@@ -14,11 +14,12 @@ import 'package:js/js.dart';
 import 'chrome_api.dart';
 import 'debug_session.dart';
 import 'logger.dart';
+import 'utils.dart';
 
 Port? _lifelinePort;
 int? _lifelineTab;
 
-void maybeCreateLifelinePort(int tabId) {
+Future<void> maybeCreateLifelinePort(int tabId) async {
   // Don't create a lifeline port if we already have one (meaning another Dart
   // app is currently being debugged):
   if (_lifelinePort != null) {
@@ -31,13 +32,7 @@ void maybeCreateLifelinePort(int tabId) {
   // will connect to the port:
   debugLog('Creating lifeline port.');
   _lifelineTab = tabId;
-  chrome.scripting.executeScript(
-    InjectDetails(
-      target: Target(tabId: tabId),
-      files: ['lifeline_connection.dart.js'],
-    ),
-    /*callback*/ null,
-  );
+  await injectScript('lifeline_connection.dart.js', tabId: tabId);
 }
 
 void maybeRemoveLifelinePort(int removedTabId) {

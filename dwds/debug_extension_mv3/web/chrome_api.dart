@@ -292,13 +292,14 @@ class OnChangedHandler {
 @JS()
 @anonymous
 class Tabs {
-  external Object query(QueryInfo queryInfo);
+  external dynamic query(
+      QueryInfo queryInfo, void Function(List<Tab>) callback);
 
-  external Object create(TabInfo tabInfo);
+  external dynamic create(TabInfo tabInfo, void Function(Tab) callback);
 
-  external Object get(int tabId);
+  external dynamic get(int tabId, void Function(Tab?) callback);
 
-  external Object remove(int tabId);
+  external dynamic remove(int tabId, void Function()? callback);
 
   external OnActivatedHandler get onActivated;
 
@@ -378,7 +379,7 @@ class NavigationInfo {
 @JS()
 @anonymous
 class Windows {
-  external Object create(WindowInfo? createData);
+  external dynamic create(WindowInfo? createData, Function(WindowObj) callback);
 
   external OnFocusChangedHandler get onFocusChanged;
 }

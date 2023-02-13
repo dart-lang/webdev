@@ -12,29 +12,80 @@ import 'package:js/js.dart';
 
 import 'chrome_api.dart';
 
-Future<Tab> createTab(String url, {bool inNewWindow = false}) async {
+Future<Tab> createTab(String url, {bool inNewWindow = false}) {
+  final completer = Completer<Tab>();
   if (inNewWindow) {
-    final windowPromise = chrome.windows.create(
+    chrome.windows.create(
       WindowInfo(focused: true, url: url),
+      allowInterop(
+        (WindowObj windowObj) {
+          completer.complete(windowObj.tabs.first);
+        },
+      ),
     );
-    final windowObj = await promiseToFuture<WindowObj>(windowPromise);
-    return windowObj.tabs.first;
+  } else {
+    chrome.tabs.create(
+      TabInfo(
+        active: true,
+        url: url,
+      ),
+      allowInterop(
+        (Tab tab) {
+          completer.complete(tab);
+        },
+      ),
+    );
   }
-  final tabPromise = chrome.tabs.create(TabInfo(
-    active: true,
-    url: url,
-  ));
-  return promiseToFuture<Tab>(tabPromise);
+  return completer.future;
 }
 
 Future<Tab?> getTab(int tabId) {
-  return promiseToFuture<Tab?>(chrome.tabs.get(tabId));
+  final completer = Completer<Tab?>();
+  chrome.tabs.get(tabId, allowInterop((tab) {
+    completer.complete(tab);
+  }));
+  return completer.future;
 }
 
-Future<Tab?> getActiveTab() async {
+Future<Tab?> get activeTab async {
+  final completer = Completer<Tab?>();
   final query = QueryInfo(active: true, currentWindow: true);
-  final tabs = List<Tab>.from(await promiseToFuture(chrome.tabs.query(query)));
-  return tabs.isNotEmpty ? tabs.first : null;
+  chrome.tabs.query(query, allowInterop((List tabs) {
+    if (tabs.isNotEmpty) {
+      completer.complete(tabs.first as Tab);
+    } else {
+      completer.complete(null);
+    }
+  }));
+  return completer.future;
+}
+
+Future<bool> removeTab(int tabId) {
+  final completer = Completer<bool>();
+  chrome.tabs.remove(tabId, allowInterop(() {
+    completer.complete(true);
+  }));
+  return completer.future;
+}
+
+Future<bool> injectScript(String scriptName, {required int tabId}) {
+  final completer = Completer<bool>();
+  chrome.scripting.executeScript(
+      InjectDetails(
+        target: Target(tabId: tabId),
+        files: [scriptName],
+      ), allowInterop(() {
+    completer.complete(true);
+  }));
+  return completer.future;
+}
+
+void onExtensionIconClicked(void Function(Tab) callback) {
+  chrome.action.onClicked.addListener(callback);
+}
+
+void setExtensionIcon(IconInfo info) {
+  chrome.action.setIcon(info, /*callback*/ null);
 }
 
 bool? _isDevMode;
