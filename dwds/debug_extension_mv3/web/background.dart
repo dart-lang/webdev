@@ -14,7 +14,6 @@ import 'chrome_api.dart';
 import 'cross_extension_communication.dart';
 import 'data_types.dart';
 import 'debug_session.dart';
-import 'lifeline_ports.dart';
 import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
@@ -34,8 +33,6 @@ void _registerListeners() {
   chrome.runtime.onMessageExternal.addListener(
     allowInterop(handleMessagesFromAngularDartDevTools),
   );
-  chrome.tabs.onRemoved
-      .addListener(allowInterop((tabId, _) => maybeRemoveLifelinePort(tabId)));
   // Update the extension icon on tab navigation:
   chrome.tabs.onActivated.addListener(allowInterop((ActiveInfo info) {
     _updateIcon(info.tabId);

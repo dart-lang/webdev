@@ -1,5 +1,8 @@
 ## 3.0.1-dev
 
+- Update SDK constraint to `>=3.0.0-188.0.dev <4.0.0`.
+  - Supports records.
+
 ## 3.0.0
 
 - Add `--enable-experiment` flag to webdev commands and pass it

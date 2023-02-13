@@ -2,6 +2,13 @@
 
 - Cleanup `getObject` code for lists and maps.
   - Now works with offset `0` and `null` count.
+  - Fix failures on edge cases.
+- Support records:
+  - Update SDK constraint to `>=3.0.0-188.0.dev <4.0.0`.
+  - Update `package:vm_service` constraint to `>=10.1.2 <12.0.0`.
+  - Update `package:dds` constraint to `^2.7.1`.
+  - Fill `BoundField.name` for records.
+  - Display records as a container of fields.
 
 ## 17.0.0
 

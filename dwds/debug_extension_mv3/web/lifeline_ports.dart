@@ -12,25 +12,17 @@ import 'dart:async';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
+import 'debug_session.dart';
 import 'logger.dart';
 import 'utils.dart';
 
-// Switch to true to enable debug logs.
-// TODO(elliette): Enable / disable with flag while building the extension.
-final enableDebugLogging = true;
-
-Port? lifelinePort;
-int? lifelineTab;
-final dartTabs = <int>{};
+Port? _lifelinePort;
+int? _lifelineTab;
 
 Future<void> maybeCreateLifelinePort(int tabId) async {
-  // Keep track of current Dart tabs that are being debugged. This way if one of
-  // them is closed, we can reconnect the lifeline port to another one:
-  dartTabs.add(tabId);
-  debugLog('Dart tabs are: $dartTabs');
   // Don't create a lifeline port if we already have one (meaning another Dart
   // app is currently being debugged):
-  if (lifelinePort != null) {
+  if (_lifelinePort != null) {
     debugWarn('Port already exists.');
     return;
   }
@@ -39,26 +31,22 @@ Future<void> maybeCreateLifelinePort(int tabId) async {
   // Inject the connection script into the current Dart tab, that way the tab
   // will connect to the port:
   debugLog('Creating lifeline port.');
-  lifelineTab = tabId;
+  _lifelineTab = tabId;
   await injectScript('lifeline_connection.dart.js', tabId: tabId);
 }
 
 void maybeRemoveLifelinePort(int removedTabId) {
-  final removedDartTab = dartTabs.remove(removedTabId);
-  // If the removed tab was not a Dart tab, return early.
-  if (!removedDartTab) return;
-  debugLog('Removed tab $removedTabId, Dart tabs are now $dartTabs.');
   // If the removed Dart tab hosted the lifeline port connection, see if there
   // are any other Dart tabs to connect to. Otherwise disconnect the port.
-  if (lifelineTab == removedTabId) {
-    if (dartTabs.isEmpty) {
-      lifelineTab = null;
+  if (_lifelineTab == removedTabId) {
+    if (existsActiveDebugSession) {
+      _lifelineTab = latestAppBeingDebugged;
+      debugLog('Reconnecting lifeline port to a new Dart tab: $_lifelineTab.');
+      _reconnectToLifelinePort();
+    } else {
+      _lifelineTab = null;
       debugLog('No more Dart tabs, disconnecting from lifeline port.');
       _disconnectFromLifelinePort();
-    } else {
-      lifelineTab = dartTabs.last;
-      debugLog('Reconnecting lifeline port to a new Dart tab: $lifelineTab.');
-      _reconnectToLifelinePort();
     }
   }
 }
@@ -66,7 +54,7 @@ void maybeRemoveLifelinePort(int removedTabId) {
 void _keepLifelinePortAlive(Port port) {
   final portName = port.name ?? '';
   if (portName != 'keepAlive') return;
-  lifelinePort = port;
+  _lifelinePort = port;
   // Reconnect to the lifeline port every 5 minutes, as per:
   // https://bugs.chromium.org/p/chromium/issues/detail?id=1146434#c6
   Timer(Duration(minutes: 5), () {
@@ -77,26 +65,26 @@ void _keepLifelinePortAlive(Port port) {
 
 void _reconnectToLifelinePort() {
   debugLog('Reconnecting...');
-  if (lifelinePort == null) {
+  if (_lifelinePort == null) {
     debugWarn('Could not find a lifeline port.');
     return;
   }
-  if (lifelineTab == null) {
+  if (_lifelineTab == null) {
     debugWarn('Could not find a lifeline tab.');
     return;
   }
   // Disconnect from the port, and then recreate the connection with the current
   // Dart tab:
   _disconnectFromLifelinePort();
-  maybeCreateLifelinePort(lifelineTab!);
+  maybeCreateLifelinePort(_lifelineTab!);
   debugLog('Reconnection complete.');
 }
 
 void _disconnectFromLifelinePort() {
   debugLog('Disconnecting...');
-  if (lifelinePort != null) {
-    lifelinePort!.disconnect();
-    lifelinePort = null;
+  if (_lifelinePort != null) {
+    _lifelinePort!.disconnect();
+    _lifelinePort = null;
     debugLog('Disconnection complete.');
   }
 }
