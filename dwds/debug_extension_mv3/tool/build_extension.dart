@@ -90,8 +90,3 @@ void logStep(String message) {
 void logWarning(String message) {
   print('[WARNING] $message');
 }
-
-void logOutput(dynamic output) {
-  final outputList = output is List ? output : [output ?? ''];
-  print(outputList.map((output) => '$output').join('\n'));
-}
