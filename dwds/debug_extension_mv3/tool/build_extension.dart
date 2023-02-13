@@ -24,6 +24,9 @@ void main(List<String> arguments) async {
   final argResults = parser.parse(arguments);
 
   exitCode = await run(isProd: argResults[prodFlag] as bool);
+  if (exitCode != 0) {
+    print('BUILDING THE EXTENSION FAILED.');
+  } 
 }
 
 Future<int> run({required bool isProd}) async {
