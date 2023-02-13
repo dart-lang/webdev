@@ -18,39 +18,47 @@ import 'package:path/path.dart' as p;
 
 const prodFlag = 'prod';
 
-void main(List<String> arguments) {
-  exitCode = 0; // presume success
+void main(List<String> arguments) async {
   final parser = ArgParser()
     ..addFlag(prodFlag, negatable: true, defaultsTo: false);
   final argResults = parser.parse(arguments);
 
-  run(isProd: argResults[prodFlag] as bool);
+  exitCode = await run(isProd: argResults[prodFlag] as bool);
 }
 
-Future<void> run({required bool isProd}) async {
+Future<int> run({required bool isProd}) async {
   logInfo('Building extension for ${isProd ? 'prod' : 'dev'}');
   logInfo('Compiling extension with dart2js to /compiled directory');
-  logOutput(
-    await Process.run(
-      'dart',
-      ['run', 'build_runner', 'build', 'web', '--output', 'build', '--release'],
-    ),
+  final compileStep = await Process.run(
+    'dart',
+    ['run', 'build_runner', 'build', 'web', '--output', 'build', '--release'],
   );
+  final compileStepSucceeded = _handleProcessResult(compileStep);
+  // Terminate early if compilation failed:
+  if (!compileStepSucceeded) return compileStep.exitCode;
   logInfo('Updating manifest.json in /compiled directory.');
-  logOutput(
-    await Process.run(
-      'dart',
-      [p.join('tool', 'update_dev_files.dart')],
-    ),
+  final updateStep = await Process.run(
+    'dart',
+    [p.join('tool', 'update_dev_files.dart')],
   );
+  final updateStepSucceeded = _handleProcessResult(updateStep);
+  // Terminate early if updating dev files failed:
+  if (!updateStepSucceeded) return updateStep.exitCode;
+  // Return 0 to indicate success:
+  return 0;
+}
+
+bool _handleProcessResult(ProcessResult result) {
+  final success = result.exitCode == 0;
+  logOutput(success ? result.stdout : result.stderr);
+  return success;
 }
 
 void logInfo(String message) {
   print('[BUILD STEP] $message');
 }
 
-void logOutput(ProcessResult result) {
-  final output = result.stdout;
+void logOutput(dynamic output) {
   final outputList = output is List ? output : [output ?? ''];
   print(outputList.map((output) => '$output').join('\n'));
 }
