@@ -27,13 +27,13 @@ void main(List<String> arguments) async {
 
   exitCode = await run(isProd: argResults[prodFlag] as bool);
   if (exitCode != 0) {
-    print('BUILDING THE EXTENSION FAILED WITH EXIT CODE $exitCode.');
+    logWarning('Run terminated unexpectedly with exit code: $exitCode');
   }
 }
 
 Future<int> run({required bool isProd}) async {
-  logInfo('Building extension for ${isProd ? 'prod' : 'dev'}');
-  logInfo('Compiling extension with dart2js to /compiled directory');
+  logStep('Building extension for ${isProd ? 'prod' : 'dev'}');
+  logStep('Compiling extension with dart2js to /compiled directory');
   final compileStep = await Process.start(
     'dart',
     ['run', 'build_runner', 'build', 'web', '--output', 'build', '--release'],
@@ -43,7 +43,7 @@ Future<int> run({required bool isProd}) async {
   if (compileExitCode != 0) {
     return compileExitCode;
   }
-  logInfo('Updating manifest.json in /compiled directory.');
+  logStep('Updating manifest.json in /compiled directory.');
   final updateStep = await Process.start(
     'dart',
     [p.join('tool', 'update_dev_files.dart')],
@@ -71,17 +71,24 @@ void _handleOutput(Stream<List<int>> output) {
 }
 
 void _handleOutputLine(String line, {bool isStdout = true}) {
+  final outputName = isStdout ? 'stdout' : 'stderr';
   if (line.toUpperCase().contains('SEVERE') ||
       line.toUpperCase().contains('ERROR')) {
-    throw Exception(line);
+    final error = 'Unexpected error in $outputName: $line';
+    logWarning(error);
+    throw Exception(error);
   }
   if (line.isNotEmpty) {
     print('${isStdout ? 'stdout' : 'stderr'}: $line');
   }
 }
 
-void logInfo(String message) {
+void logStep(String message) {
   print('[BUILD STEP] $message');
+}
+
+void logWarning(String message) {
+  print('[WARNING] $message');
 }
 
 void logOutput(dynamic output) {
