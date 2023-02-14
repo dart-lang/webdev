@@ -90,13 +90,15 @@ void setExtensionIcon(IconInfo info) {
 
 bool? _isDevMode;
 
-bool isDevMode() {
+bool get isDevMode {
   if (_isDevMode != null) {
     return _isDevMode!;
   }
   final extensionManifest = chrome.runtime.getManifest();
   final extensionName = getProperty(extensionManifest, 'name') ?? '';
-  return extensionName.contains('DEV');
+  final isDevMode = extensionName.contains('DEV');
+  _isDevMode = isDevMode;
+  return isDevMode;
 }
 
 String addQueryParameters(
