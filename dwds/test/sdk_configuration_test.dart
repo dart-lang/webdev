@@ -49,8 +49,8 @@ void main() {
           await DefaultSdkConfigurationProvider().configuration;
 
       final sdkDirectory = outputDir.path;
-      final sdkLayout = TestSdkLayout(sdkDirectory);
-      final sdkConfiguration = TestSdkLayout.createConfiguration(sdkLayout);
+      final sdkLayout = FakeSdkLayout(sdkDirectory);
+      final sdkConfiguration = FakeSdkLayout.createConfiguration(sdkLayout);
 
       final weakSdkSummaryPath = sdkLayout.weakSummaryPath;
       final soundSdkSummaryPath = sdkLayout.soundSummaryPath;
@@ -81,8 +81,8 @@ void main() {
     test('Cannot validate non-existing configuration layout', () async {
       final sdkDirectory = outputDir.path;
 
-      final sdkLayout = TestSdkLayout(sdkDirectory);
-      final sdkConfiguration = TestSdkLayout.createConfiguration(sdkLayout);
+      final sdkLayout = FakeSdkLayout(sdkDirectory);
+      final sdkConfiguration = FakeSdkLayout.createConfiguration(sdkLayout);
 
       sdkConfiguration.validateSdkDir();
       expect(() => sdkConfiguration.validate(), _throwsDoesNotExistException);
@@ -121,10 +121,10 @@ void main() {
   });
 }
 
-class TestSdkLayout {
+class FakeSdkLayout {
   final String sdkDirectory;
 
-  static SdkConfiguration createConfiguration(TestSdkLayout sdkLayout) =>
+  static SdkConfiguration createConfiguration(FakeSdkLayout sdkLayout) =>
       SdkConfiguration(
         sdkDirectory: sdkLayout.sdkDirectory,
         soundSdkSummaryPath: sdkLayout.soundSummaryPath,
@@ -132,7 +132,7 @@ class TestSdkLayout {
         compilerWorkerPath: sdkLayout.compilerWorkerPath,
       );
 
-  TestSdkLayout(this.sdkDirectory);
+  FakeSdkLayout(this.sdkDirectory);
 
   String get weakSummaryPath =>
       p.join(sdkDirectory, 'summaries', 'unsound.dill');

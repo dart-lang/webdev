@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:dwds/sdk_configuration.dart';
 import 'package:path/path.dart' as p;
 
@@ -155,4 +157,21 @@ class TestSdkLayout {
         soundSdkSummaryPath: sdkLayout.soundSummaryPath,
         compilerWorkerPath: sdkLayout.dartdevcSnapshotPath,
       );
+}
+
+// Update modified files.
+Future<void> copyDirectory(String from, String to) async {
+  if (!Directory(from).existsSync()) return;
+  await Directory(to).create(recursive: true);
+
+  await for (final file in Directory(from).list()) {
+    final copyTo = p.join(to, p.relative(file.path, from: from));
+    if (file is Directory) {
+      await copyDirectory(file.path, copyTo);
+    } else if (file is File) {
+      await File(file.path).copy(copyTo);
+    } else if (file is Link) {
+      await Link(copyTo).create(await file.target(), recursive: true);
+    }
+  }
 }

@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:dwds/src/readers/frontend_server_asset_reader.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_layout.dart';
 
 import '../fixtures/utilities.dart';
 
@@ -32,7 +33,8 @@ void main() {
   }
 
   setUpAll(() async {
-    await Process.run(dartPath, ['pub', 'upgrade'],
+    final sdkLayout = TestSdkLayout.defaultSdkLayout;
+    await Process.run(sdkLayout.dartPath, ['pub', 'upgrade'],
         workingDirectory: packagesDir);
   });
 

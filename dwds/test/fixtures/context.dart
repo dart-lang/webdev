@@ -33,6 +33,7 @@ import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
+import 'package:test_common/test_sdk_layout.dart';
 import 'package:vm_service/vm_service.dart';
 // ignore: deprecated_member_use
 import 'package:webdriver/io.dart';
@@ -61,6 +62,7 @@ class TestContext {
   final String dartEntryFileName;
   final String htmlEntryFileName;
   final NullSafety nullSafety;
+  late final Directory sdkDirectory;
 
   /// Top level directory in which we run the test server, e.g.
   /// "/workstation/webdev/fixtures/_testSound".
@@ -182,6 +184,22 @@ class TestContext {
     _logger.info('Entry: $_dartEntryFilePath');
   }
 
+  void setUpAll() {
+    final systemTempDir = Directory.systemTemp;
+    sdkDirectory = systemTempDir.createTempSync('sdk copy');
+    copyDirectory(TestSdkLayout.defaultSdkDirectory, sdkDirectory.path);
+  }
+
+  void tearDownAll() {
+    try {
+      if (sdkDirectory.existsSync()) {
+        sdkDirectory.deleteSync(recursive: true);
+      }
+    } catch(e) {
+      _logger.warning('Failed to delete sdk directory copy: ${sdkDirectory.path}');
+    }
+  }
+
   Future<void> setUp({
     ReloadConfiguration reloadConfiguration = ReloadConfiguration.none,
     bool serveDevTools = false,
@@ -204,7 +222,10 @@ class TestContext {
   }) async {
     // Generate missing SDK assets if needed.
     final sdkConfigurationProvider =
-        TestSdkConfigurationProvider(verboseCompiler: verboseCompiler);
+        TestSdkConfigurationProvider(
+          sdkDirectory: sdkDirectory.path,
+          verboseCompiler: verboseCompiler);
+
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
     final configuration = await sdkConfigurationProvider.configuration;
     configuration.validate();
@@ -249,7 +270,7 @@ class TestContext {
             'Could not start ChromeDriver. Is it installed?\nError: $e');
       }
 
-      await Process.run(dartPath, ['pub', 'upgrade'],
+      await Process.run(sdkLayout.dartPath, ['pub', 'upgrade'],
           workingDirectory: workingDirectory);
 
       ExpressionCompiler? expressionCompiler;
@@ -272,7 +293,7 @@ class TestContext {
               '--verbose',
             ];
             _daemonClient =
-                await connectClient(workingDirectory, options, (log) {
+                await connectClient(sdkLayout.dartPath, workingDirectory, options, (log) {
               final record = log.toLogRecord();
               final name =
                   record.loggerName == '' ? '' : '${record.loggerName}: ';

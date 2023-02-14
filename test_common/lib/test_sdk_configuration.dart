@@ -19,13 +19,15 @@ import 'package:test_common/test_sdk_layout.dart';
 /// TODO(annagrin): update to only generating missing sound artifacts
 /// for frontend server after we have no uses of weak null safety.
 class TestSdkConfigurationProvider extends SdkConfigurationProvider {
+  late final String _sdkDirectory;
   final bool _verboseCompiler;
   SdkConfiguration? _configuration;
 
-  final sdkLayout = TestSdkLayout.defaultSdkLayout;
+  late final sdkLayout = TestSdkLayout.createDefault(_sdkDirectory);
 
-  TestSdkConfigurationProvider({bool verboseCompiler = false})
-      : _verboseCompiler = verboseCompiler;
+  TestSdkConfigurationProvider({String? sdkDirectory, bool verboseCompiler = false})
+      : _sdkDirectory = sdkDirectory?? SdkLayout.defaultSdkDirectory, 
+        _verboseCompiler = verboseCompiler;
 
   @override
   Future<SdkConfiguration> get configuration async =>
