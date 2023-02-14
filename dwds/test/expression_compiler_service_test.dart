@@ -13,7 +13,6 @@ import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
@@ -49,8 +48,8 @@ void main() async {
       final packages = outputDir.uri.resolve('package_config.json');
       final kernel = outputDir.uri.resolve('try.full.dill');
       final executable = Platform.resolvedExecutable;
-      final binDir = p.dirname(executable);
-      final dartdevc = p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
+      final dartdevc =
+          SdkConfiguration.defaultConfiguration.compilerWorkerPath!;
 
       // redirect logs for testing
       _output = StreamController<String>.broadcast();

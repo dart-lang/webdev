@@ -25,7 +25,7 @@ void main() {
     });
 
     test('Cannot validate an empty configuration layout', () async {
-      final emptyConfiguration = SdkConfiguration();
+      final emptyConfiguration = SdkConfiguration.empty();
       expect(() => emptyConfiguration.validateSdkDir(),
           _throwsDoesNotExistException);
       expect(() => emptyConfiguration.validate(), _throwsDoesNotExistException);
@@ -49,10 +49,12 @@ void main() {
           await DefaultSdkConfigurationProvider().configuration;
 
       final sdkDirectory = outputDir.path;
-      final summariesDir = p.join(sdkDirectory, 'summaries');
-      final weakSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
-      final soundSdkSummaryPath =
-          p.join(summariesDir, 'ddc_outline_sound.dill');
+      final sdkLayout = TestSdkLayout(sdkDirectory);
+      final sdkConfiguration = TestSdkLayout.createConfiguration(sdkLayout);
+
+      final weakSdkSummaryPath = sdkLayout.weakSummaryPath;
+      final soundSdkSummaryPath = sdkLayout.soundSummaryPath;
+      final summariesDir = p.dirname(soundSdkSummaryPath);
 
       Directory(summariesDir).createSync(recursive: true);
       File(defaultSdkConfiguration.weakSdkSummaryPath!)
@@ -60,19 +62,12 @@ void main() {
       File(defaultSdkConfiguration.soundSdkSummaryPath!)
           .copySync(soundSdkSummaryPath);
 
-      final workerDir = p.join(sdkDirectory, 'snapshots');
-      final compilerWorkerPath = p.join(workerDir, 'dartdevc.dart.snapshot');
+      final compilerWorkerPath = sdkLayout.compilerWorkerPath;
+      final workerDir = p.dirname(compilerWorkerPath);
 
       Directory(workerDir).createSync(recursive: true);
       File(defaultSdkConfiguration.compilerWorkerPath!)
           .copySync(compilerWorkerPath);
-
-      final sdkConfiguration = SdkConfiguration(
-        sdkDirectory: sdkDirectory,
-        soundSdkSummaryPath: soundSdkSummaryPath,
-        weakSdkSummaryPath: weakSdkSummaryPath,
-        compilerWorkerPath: compilerWorkerPath,
-      );
 
       expect(sdkConfiguration.sdkDirectory, equals(sdkDirectory));
       expect(sdkConfiguration.weakSdkSummaryPath, equals(weakSdkSummaryPath));
@@ -84,20 +79,10 @@ void main() {
     });
 
     test('Cannot validate non-existing configuration layout', () async {
-      final sdkDir = outputDir.path;
-      final summariesDir = p.join(sdkDir, 'fakesummaries');
-      final weakSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
-      final soundSdkSummaryPath =
-          p.join(summariesDir, 'ddc_outline_sound.dill');
-      final workerDir = p.join(sdkDir, 'fakesnapshots');
-      final compilerWorkerPath = p.join(workerDir, 'dartdevc.dart.snapshot');
+      final sdkDirectory = outputDir.path;
 
-      final sdkConfiguration = SdkConfiguration(
-        sdkDirectory: sdkDir,
-        soundSdkSummaryPath: soundSdkSummaryPath,
-        weakSdkSummaryPath: weakSdkSummaryPath,
-        compilerWorkerPath: compilerWorkerPath,
-      );
+      final sdkLayout = TestSdkLayout(sdkDirectory);
+      final sdkConfiguration = TestSdkLayout.createConfiguration(sdkLayout);
 
       sdkConfiguration.validateSdkDir();
       expect(() => sdkConfiguration.validate(), _throwsDoesNotExistException);
@@ -109,46 +94,52 @@ void main() {
 
     final root = '/root';
     final sdkDirectory = root;
-    final soundSdkSummaryPath = _soundSdkSummaryPath(sdkDirectory);
-    final weakSdkSummaryPath = _weakSdkSummaryPath(sdkDirectory);
-    final librariesPath = _librariesPath(sdkDirectory);
-    final compilerWorkerPath = _compilerWorkerPath(root);
+
+    final sdkLayout = SdkLayout.createDefault(sdkDirectory);
+    final sdkConfiguration = SdkConfiguration.fromSdkLayout(sdkLayout);
+    final soundSdkSummaryPath = sdkLayout.soundSummaryPath;
+    final weakSdkSummaryPath = sdkLayout.weakSummaryPath;
+    final compilerWorkerPath = sdkLayout.dartdevcSnapshotPath;
 
     setUp(() async {
       fs = MemoryFileSystem();
       await fs.directory(sdkDirectory).create(recursive: true);
       await fs.file(soundSdkSummaryPath).create(recursive: true);
       await fs.file(weakSdkSummaryPath).create(recursive: true);
-      await fs.file(librariesPath).create(recursive: true);
       await fs.file(compilerWorkerPath).create(recursive: true);
     });
 
     test('Can create and validate default SDK configuration', () async {
-      final configuration = SdkConfiguration(
-        sdkDirectory: sdkDirectory,
-        soundSdkSummaryPath: soundSdkSummaryPath,
-        weakSdkSummaryPath: weakSdkSummaryPath,
-        compilerWorkerPath: compilerWorkerPath,
-      );
+      expect(sdkConfiguration.sdkDirectory, equals(sdkDirectory));
+      expect(sdkConfiguration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
+      expect(sdkConfiguration.weakSdkSummaryPath, equals(weakSdkSummaryPath));
+      expect(sdkConfiguration.compilerWorkerPath, equals(compilerWorkerPath));
 
-      expect(configuration.sdkDirectory, equals(sdkDirectory));
-      expect(configuration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
-      expect(configuration.weakSdkSummaryPath, equals(weakSdkSummaryPath));
-      expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
-
-      configuration.validateSdkDir(fileSystem: fs);
-      configuration.validate(fileSystem: fs);
+      sdkConfiguration.validateSdkDir(fileSystem: fs);
+      sdkConfiguration.validate(fileSystem: fs);
     });
   });
 }
 
-String _weakSdkSummaryPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill');
+class TestSdkLayout {
+  final String sdkDirectory;
 
-String _soundSdkSummaryPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill');
+  static SdkConfiguration createConfiguration(TestSdkLayout sdkLayout) =>
+      SdkConfiguration(
+        sdkDirectory: sdkLayout.sdkDirectory,
+        soundSdkSummaryPath: sdkLayout.soundSummaryPath,
+        weakSdkSummaryPath: sdkLayout.weakSummaryPath,
+        compilerWorkerPath: sdkLayout.compilerWorkerPath,
+      );
 
-String _librariesPath(String sdkDir) => p.join(sdkDir, 'lib', 'libraries.json');
+  TestSdkLayout(this.sdkDirectory);
 
-String _compilerWorkerPath(String binDir) =>
-    p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
+  String get weakSummaryPath =>
+      p.join(sdkDirectory, 'summaries', 'unsound.dill');
+
+  String get soundSummaryPath =>
+      p.join(sdkDirectory, 'summaries', 'sound.dill');
+
+  String get compilerWorkerPath =>
+      p.join(sdkDirectory, 'snapshots', 'test.snapshot');
+}

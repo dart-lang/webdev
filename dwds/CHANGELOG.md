@@ -1,4 +1,4 @@
-## 17.0.1-dev
+## 18.0.0-dev
 
 - Cleanup `getObject` code for lists and maps.
   - Now works with offset `0` and `null` count.
@@ -9,6 +9,11 @@
   - Update `package:dds` constraint to `^2.7.1`.
   - Fill `BoundField.name` for records.
   - Display records as a container of fields.
+- Remove test-only code from `sdk_configuration.dart`.
+
+**Breaking changes**
+- Require `sdkConfigurationProvider` in `ExpressionCompilerService`
+  constructor.
 
 ## 17.0.0
 

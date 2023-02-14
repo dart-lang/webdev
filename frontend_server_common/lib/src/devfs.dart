@@ -139,28 +139,28 @@ class WebDevFS {
         dartWebSdkPath,
         'kernel',
         'amd',
-        'dart_sdk.js',
+        'dart_sdk_unsound.js',
       ));
 
   File get dartSdkSound => fileSystem.file(fileSystem.path.join(
         dartWebSdkPath,
         'kernel',
         'amd',
-        'dart_sdk_sound.js',
+        'dart_sdk.js',
       ));
 
   File get dartSdkSourcemap => fileSystem.file(fileSystem.path.join(
         dartWebSdkPath,
         'kernel',
         'amd',
-        'dart_sdk.js.map',
+        'dart_sdk_unsound.js.map',
       ));
 
   File get dartSdkSourcemapSound => fileSystem.file(fileSystem.path.join(
         dartWebSdkPath,
         'kernel',
         'amd',
-        'dart_sdk_sound.js.map',
+        'dart_sdk.js.map',
       ));
 
   File get stackTraceMapper => fileSystem.file(fileSystem.path.join(

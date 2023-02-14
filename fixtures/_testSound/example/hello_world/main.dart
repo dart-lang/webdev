@@ -109,7 +109,7 @@ String helloString(String response) => response;
 
 bool helloBool(bool response) => response;
 
-num helloNum(num response) => response;
+num? helloNum(num? response) => response;
 
 MyTestClass createObject(String message) => MyTestClass(message: message);
 
@@ -120,9 +120,13 @@ String messagesCombined(MyTestClass a, MyTestClass b) => a.message + b.message;
 class MyTestClass {
   final String message;
 
-  String notFinal;
+  String? notFinal;
 
-  MyTestClass({this.message = 'world'}) : notFinal = 'wonderful';
+  static final String staticMessage = 'static';
+
+  static String staticHello() => 'static hello';
+
+  MyTestClass({this.message = 'world'});
 
   String hello() => message;
 }
