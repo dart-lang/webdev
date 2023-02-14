@@ -68,16 +68,12 @@ Future<bool> removeTab(int tabId) {
   return completer.future;
 }
 
-Future<bool> injectScript(String scriptName, {required int tabId}) {
-  final completer = Completer<bool>();
-  chrome.scripting.executeScript(
-      InjectDetails(
-        target: Target(tabId: tabId),
-        files: [scriptName],
-      ), allowInterop(() {
-    completer.complete(true);
-  }));
-  return completer.future;
+Future<bool> injectScript(String scriptName, {required int tabId}) async {
+  await promiseToFuture(chrome.scripting.executeScript(InjectDetails(
+    target: Target(tabId: tabId),
+    files: [scriptName],
+  )));
+  return true;
 }
 
 void onExtensionIconClicked(void Function(Tab) callback) {
