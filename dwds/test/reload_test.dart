@@ -6,10 +6,10 @@
 @Timeout(Duration(minutes: 5))
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/logging.dart';
 import 'fixtures/utilities.dart';
 
 final context = TestContext.withSoundNullSafety(

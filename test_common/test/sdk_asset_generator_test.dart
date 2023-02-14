@@ -9,10 +9,9 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-
-import 'fixtures/logging.dart';
-import 'fixtures/sdk_asset_generator.dart';
-import 'fixtures/test_sdk_layout.dart';
+import 'package:test_common/logging.dart';
+import 'package:test_common/sdk_asset_generator.dart';
+import 'package:test_common/test_sdk_layout.dart';
 
 void main() {
   group('SDK asset generator', () {

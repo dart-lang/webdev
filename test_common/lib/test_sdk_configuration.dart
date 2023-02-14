@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // TODO:(annagrin) Move to a test_common package.
-import 'package:dwds/src/utilities/sdk_configuration.dart';
+import 'package:dwds/sdk_configuration.dart';
 
-import 'sdk_asset_generator.dart';
-import 'test_sdk_layout.dart';
+import 'package:test_common/sdk_asset_generator.dart';
+import 'package:test_common/test_sdk_layout.dart';
 
 /// Implementation for SDK configuration for tests that can generate
 /// missing assets.

@@ -1,0 +1,13 @@
+# This file contains the analysis options used for code in the webdev
+# repository.
+
+include: package:lints/recommended.yaml
+
+analyzer:
+
+linter:
+  rules:
+    - always_use_package_imports
+    - directives_ordering
+    - prefer_final_locals
+    - unawaited_futures

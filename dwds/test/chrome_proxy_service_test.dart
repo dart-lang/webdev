@@ -16,11 +16,11 @@ import 'package:dwds/src/utilities/shared.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/logging.dart';
 
 final context = TestContext.withSoundNullSafety();
 

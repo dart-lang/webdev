@@ -11,16 +11,11 @@ import 'package:dwds/asset_reader.dart';
 import 'package:dwds/expression_compiler.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
+import 'package:test_common/test_sdk_layout.dart';
 
 import 'devfs.dart';
 import 'frontend_server_client.dart';
 import 'utilities.dart';
-
-final Uri summaryDillUnsound = Uri.file(
-    p.join(dartSdkPath, 'lib', '_internal', 'ddc_outline_unsound.dill'));
-final Uri summaryDillSound =
-    Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_outline.dill'));
 
 class ResidentWebRunner {
   final _logger = Logger('ResidentWebRunner');
@@ -36,19 +31,24 @@ class ResidentWebRunner {
     required this.outputPath,
     required this.soundNullSafety,
     this.experiments = const <String>[],
+    required this.sdkLayout,
     bool verbose = false,
   }) {
+    final platformDillUri = Uri.file(soundNullSafety
+        ? sdkLayout.soundSummaryPath
+        : sdkLayout.weakSummaryPath);
+
     generator = ResidentCompiler(
       dartSdkPath,
       projectDirectory: projectDirectory,
       packageConfigFile: packageConfigFile,
       useDebuggerModuleNames: packageUriMapper.useDebuggerModuleNames,
-      platformDill:
-          soundNullSafety ? '$summaryDillSound' : '$summaryDillUnsound',
+      platformDill: '$platformDillUri',
       fileSystemRoots: fileSystemRoots,
       fileSystemScheme: fileSystemScheme,
       soundNullSafety: soundNullSafety,
       experiments: experiments,
+      sdkLayout: sdkLayout,
       verbose: verbose,
     );
     expressionCompiler = TestExpressionCompiler(generator);
@@ -64,6 +64,7 @@ class ResidentWebRunner {
   final String fileSystemScheme;
   final bool soundNullSafety;
   final List<String> experiments;
+  final TestSdkLayout sdkLayout;
 
   late ResidentCompiler generator;
   late ExpressionCompiler expressionCompiler;
@@ -82,6 +83,7 @@ class ResidentWebRunner {
       index: index,
       urlTunneler: urlTunneler,
       soundNullSafety: soundNullSafety,
+      sdkLayout: sdkLayout,
     );
     uri = await devFS.create();
 
