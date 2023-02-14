@@ -255,7 +255,7 @@ void main() {
       final source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
       expect(source, contains('Hello World!'));
-    }, solo: true);
+    });
 
     test('can refresh the page via the fullReload service extension', () async {
       final client = context.debugConnection.vmService;
