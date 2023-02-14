@@ -431,7 +431,6 @@ void main() async {
 
           tearDown(() async {
             await tearDownHelper(worker: worker);
-
           });
 
           tearDownAll(() async {
