@@ -13,10 +13,9 @@ import '../fixtures/utilities.dart';
 
 Future<String> buildDebugExtension() async {
   final extensionDir = absolutePath(pathFromDwds: 'debug_extension_mv3');
-  // TODO(elliette): This doesn't work on Windows, see https://github.com/dart-lang/webdev/issues/1724.
   await Process.run(
-    p.join('tool', 'build_extension.sh'),
-    [],
+    'dart',
+    [p.join('tool', 'build_extension.dart')],
     workingDirectory: extensionDir,
   );
   return p.join(extensionDir, 'compiled');
