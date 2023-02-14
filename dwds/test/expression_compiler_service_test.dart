@@ -77,7 +77,7 @@ void main() async {
         sdkConfigurationProvider: DefaultSdkConfigurationProvider(),
       );
 
-      await service.initialize(moduleFormat: 'amd');
+      await service.initialize(moduleFormat: 'amd', soundNullSafety: true);
 
       // setup asset server
       serveHttpRequests(server, assetHandler, (e, s) {
