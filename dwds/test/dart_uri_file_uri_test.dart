@@ -12,26 +12,25 @@ import 'package:test/test.dart';
 import 'fixtures/context.dart';
 import 'fixtures/utilities.dart';
 
-final context = TestContext.withWeakNullSafety(
-  packageName: '_testPackage',
+final context = TestContext.withSoundNullSafety(
+  packageName: '_testPackageSound',
   webAssetsPath: 'web',
   dartEntryFileName: 'main.dart',
   htmlEntryFileName: 'index.html',
 );
 
 /// The directory for the general _test package.
-final testDir = absolutePath(pathFromFixtures: p.join('_test'));
+final testDir = absolutePath(pathFromFixtures: p.join('_testSound'));
 
 /// The directory for the _testPackage package (contained within dwds), which
 /// imports _test.
-final testPackageDir = absolutePath(pathFromFixtures: p.join('_testPackage'));
+final testPackageDir =
+    absolutePath(pathFromFixtures: p.join('_testPackageSound'));
 
 // This tests converting file Uris into our internal paths.
 //
 // These tests are separated out because we need a running isolate in order to
 // look up packages.
-// TODO(https://github.com/dart-lang/webdev/issues/1818): Switch test over for
-// testing sound null-safety.
 void main() {
   for (final compilationMode in CompilationMode.values) {
     group('$compilationMode |', () {
@@ -45,14 +44,14 @@ void main() {
           final serverPath =
               compilationMode == CompilationMode.frontendServer &&
                       useDebuggerModuleNames
-                  ? 'packages/_testPackage/lib/test_library.dart'
-                  : 'packages/_test_package/test_library.dart';
+                  ? 'packages/_testPackageSound/lib/test_library.dart'
+                  : 'packages/_test_package_sound/test_library.dart';
 
           final anotherServerPath =
               compilationMode == CompilationMode.frontendServer &&
                       useDebuggerModuleNames
-                  ? 'packages/_test/lib/library.dart'
-                  : 'packages/_test/library.dart';
+                  ? 'packages/_testSound/lib/library.dart'
+                  : 'packages/_test_sound/library.dart';
 
           setUpAll(() async {
             await context.setUp(
