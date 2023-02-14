@@ -7,7 +7,7 @@
 import 'package:dwds/asset_reader.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
-import 'package:test_common/sdk_layout.dart';
+import 'package:test_common/test_sdk_layout.dart';
 
 import 'asset_server.dart';
 import 'bootstrap.dart';

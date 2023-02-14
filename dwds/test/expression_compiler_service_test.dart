@@ -49,10 +49,6 @@ void main() async {
       final executable = Platform.resolvedExecutable;
       final dartdevc =
           SdkConfiguration.defaultConfiguration.compilerWorkerPath!;
-<<<<<<< HEAD
-
-=======
->>>>>>> af0c65ab91 (Changed accidentally renamed fields back)
       // redirect logs for testing
       _output = StreamController<String>.broadcast();
       output.stream.listen(printOnFailure);

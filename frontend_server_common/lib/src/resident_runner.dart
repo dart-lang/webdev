@@ -11,7 +11,7 @@ import 'package:dwds/asset_reader.dart';
 import 'package:dwds/expression_compiler.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
-import 'package:test_common/sdk_layout.dart';
+import 'package:test_common/test_sdk_layout.dart';
 
 import 'devfs.dart';
 import 'frontend_server_client.dart';

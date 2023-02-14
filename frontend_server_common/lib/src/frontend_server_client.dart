@@ -11,7 +11,7 @@ import 'dart:io';
 import 'package:dwds/expression_compiler.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
-import 'package:test_common/sdk_layout.dart';
+import 'package:test_common/test_sdk_layout.dart';
 import 'package:usage/uuid/uuid.dart';
 
 import 'utilities.dart';
