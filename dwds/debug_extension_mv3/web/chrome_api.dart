@@ -230,7 +230,7 @@ class MessageSender {
 @JS()
 @anonymous
 class Scripting {
-  external executeScript(InjectDetails details, Function? callback);
+  external Object executeScript(InjectDetails details);
 }
 
 @JS()
