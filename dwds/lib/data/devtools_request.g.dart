@@ -50,13 +50,6 @@ class _$DevToolsRequestSerializer
         ..add(
             serializers.serialize(value, specifiedType: const FullType(bool)));
     }
-    value = object.isMv3Extension;
-    if (value != null) {
-      result
-        ..add('isMv3Extension')
-        ..add(
-            serializers.serialize(value, specifiedType: const FullType(bool)));
-    }
     return result;
   }
 
@@ -90,10 +83,6 @@ class _$DevToolsRequestSerializer
           break;
         case 'uriOnly':
           result.uriOnly = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool?;
-          break;
-        case 'isMv3Extension':
-          result.isMv3Extension = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool?;
           break;
       }
@@ -174,8 +163,6 @@ class _$DevToolsRequest extends DevToolsRequest {
   final String? tabUrl;
   @override
   final bool? uriOnly;
-  @override
-  final bool? isMv3Extension;
 
   factory _$DevToolsRequest([void Function(DevToolsRequestBuilder)? updates]) =>
       (new DevToolsRequestBuilder()..update(updates))._build();
@@ -185,8 +172,7 @@ class _$DevToolsRequest extends DevToolsRequest {
       required this.instanceId,
       this.contextId,
       this.tabUrl,
-      this.uriOnly,
-      this.isMv3Extension})
+      this.uriOnly})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(appId, r'DevToolsRequest', 'appId');
     BuiltValueNullFieldError.checkNotNull(
@@ -209,8 +195,7 @@ class _$DevToolsRequest extends DevToolsRequest {
         instanceId == other.instanceId &&
         contextId == other.contextId &&
         tabUrl == other.tabUrl &&
-        uriOnly == other.uriOnly &&
-        isMv3Extension == other.isMv3Extension;
+        uriOnly == other.uriOnly;
   }
 
   @override
@@ -221,7 +206,6 @@ class _$DevToolsRequest extends DevToolsRequest {
     _$hash = $jc(_$hash, contextId.hashCode);
     _$hash = $jc(_$hash, tabUrl.hashCode);
     _$hash = $jc(_$hash, uriOnly.hashCode);
-    _$hash = $jc(_$hash, isMv3Extension.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -233,8 +217,7 @@ class _$DevToolsRequest extends DevToolsRequest {
           ..add('instanceId', instanceId)
           ..add('contextId', contextId)
           ..add('tabUrl', tabUrl)
-          ..add('uriOnly', uriOnly)
-          ..add('isMv3Extension', isMv3Extension))
+          ..add('uriOnly', uriOnly))
         .toString();
   }
 }
@@ -263,11 +246,6 @@ class DevToolsRequestBuilder
   bool? get uriOnly => _$this._uriOnly;
   set uriOnly(bool? uriOnly) => _$this._uriOnly = uriOnly;
 
-  bool? _isMv3Extension;
-  bool? get isMv3Extension => _$this._isMv3Extension;
-  set isMv3Extension(bool? isMv3Extension) =>
-      _$this._isMv3Extension = isMv3Extension;
-
   DevToolsRequestBuilder();
 
   DevToolsRequestBuilder get _$this {
@@ -278,7 +256,6 @@ class DevToolsRequestBuilder
       _contextId = $v.contextId;
       _tabUrl = $v.tabUrl;
       _uriOnly = $v.uriOnly;
-      _isMv3Extension = $v.isMv3Extension;
       _$v = null;
     }
     return this;
@@ -307,8 +284,7 @@ class DevToolsRequestBuilder
                 instanceId, r'DevToolsRequest', 'instanceId'),
             contextId: contextId,
             tabUrl: tabUrl,
-            uriOnly: uriOnly,
-            isMv3Extension: isMv3Extension);
+            uriOnly: uriOnly);
     replace(_$result);
     return _$result;
   }

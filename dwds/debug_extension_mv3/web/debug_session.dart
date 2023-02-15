@@ -275,8 +275,7 @@ Future<bool> _connectToDwds({
     ..instanceId = debugInfo.appInstanceId
     ..contextId = dartAppContextId
     ..tabUrl = tabUrl
-    ..uriOnly = true
-    ..isMv3Extension = true));
+    ..uriOnly = true));
   return true;
 }
 
