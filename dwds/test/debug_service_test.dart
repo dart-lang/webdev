@@ -9,12 +9,16 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 
 import 'fixtures/context.dart';
 
-final context = TestContext.withSoundNullSafety();
-
 void main() {
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+
+  final context = TestContext.testWithSoundNullSafety(provider);
+
   setUpAll(() async {
     // Disable DDS as we're testing DWDS behavior.
     await context.setUp(spawnDds: false);

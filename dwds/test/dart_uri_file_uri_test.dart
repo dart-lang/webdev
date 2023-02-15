@@ -8,16 +8,10 @@
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/utilities.dart';
-
-final context = TestContext.withWeakNullSafety(
-  packageName: '_testPackage',
-  webAssetsPath: 'web',
-  dartEntryFileName: 'main.dart',
-  htmlEntryFileName: 'index.html',
-);
 
 /// The directory for the general _test package.
 final testDir = absolutePath(pathFromFixtures: p.join('_test'));
@@ -33,6 +27,10 @@ final testPackageDir = absolutePath(pathFromFixtures: p.join('_testPackage'));
 // TODO(https://github.com/dart-lang/webdev/issues/1818): Switch test over for
 // testing sound null-safety.
 void main() {
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+  final context = TestContext.testWithSoundNullSafety(provider);
+
   for (final compilationMode in CompilationMode.values) {
     group('$compilationMode |', () {
       for (final useDebuggerModuleNames in [false, true]) {
@@ -45,14 +43,14 @@ void main() {
           final serverPath =
               compilationMode == CompilationMode.frontendServer &&
                       useDebuggerModuleNames
-                  ? 'packages/_testPackage/lib/test_library.dart'
-                  : 'packages/_test_package/test_library.dart';
+                  ? 'packages/_testPackageSound/lib/test_library.dart'
+                  : 'packages/_test_package_sound/test_library.dart';
 
           final anotherServerPath =
               compilationMode == CompilationMode.frontendServer &&
                       useDebuggerModuleNames
-                  ? 'packages/_test/lib/library.dart'
-                  : 'packages/_test/library.dart';
+                  ? 'packages/_testSound/lib/library.dart'
+                  : 'packages/_test_sound/library.dart';
 
           setUpAll(() async {
             await context.setUp(

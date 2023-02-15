@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO:(annagrin) Move to a test_common package.
+import 'dart:io';
+
 import 'package:dwds/sdk_configuration.dart';
 
 import 'package:test_common/sdk_asset_generator.dart';
@@ -19,28 +20,49 @@ import 'package:test_common/test_sdk_layout.dart';
 /// TODO(annagrin): update to only generating missing sound artifacts
 /// for frontend server after we have no uses of weak null safety.
 class TestSdkConfigurationProvider extends SdkConfigurationProvider {
-  late final String _sdkDirectory;
-  final bool _verboseCompiler;
+  final bool _verbose;
+  late final Directory _sdkDirectory;
   SdkConfiguration? _configuration;
 
-  late final sdkLayout = TestSdkLayout.createDefault(_sdkDirectory);
+  late final TestSdkLayout sdkLayout;
 
-  TestSdkConfigurationProvider({String? sdkDirectory, bool verboseCompiler = false})
-      : _sdkDirectory = sdkDirectory?? SdkLayout.defaultSdkDirectory, 
-        _verboseCompiler = verboseCompiler;
+  TestSdkConfigurationProvider({bool verbose = false}) : _verbose = verbose {
+    _sdkDirectory = Directory.systemTemp.createTempSync('sdk copy');
+    sdkLayout = TestSdkLayout.createDefault(_sdkDirectory.path);
+  }
 
   @override
   Future<SdkConfiguration> get configuration async =>
       _configuration ??= await _create();
 
   /// Generate missing assets in the default SDK layout.
+  ///
+  /// Creates a copy of the SDK directory where all the missing assets
+  /// are generated. Tests using this configuration run using the copy
+  /// sdk layout to make sure the actual SDK is not modified.
   Future<SdkConfiguration> _create() async {
-    final assetGenerator = SdkAssetGenerator(
-      sdkLayout: sdkLayout,
-      verboseCompiler: _verboseCompiler,
-    );
+    try {
+      await copyDirectory(
+          TestSdkLayout.defaultSdkDirectory, _sdkDirectory.path);
 
-    await assetGenerator.generateSdkAssets();
-    return TestSdkLayout.defaultSdkConfiguration;
+      final assetGenerator = SdkAssetGenerator(
+        sdkLayout: sdkLayout,
+        verboseCompiler: _verbose,
+      );
+
+      await assetGenerator.generateSdkAssets();
+      return TestSdkLayout.createConfiguration(sdkLayout);
+    } catch (_) {
+      dispose();
+      rethrow;
+    }
+  }
+
+  void dispose() {
+    try {
+      if (_sdkDirectory.existsSync()) {
+        _sdkDirectory.deleteSync(recursive: true);
+      }
+    } catch (_) {}
   }
 }

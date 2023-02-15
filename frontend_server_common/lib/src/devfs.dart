@@ -43,7 +43,7 @@ class WebDevFS {
 
     fileSystem.currentDirectory = projectDirectory.toFilePath();
 
-    assetServer = await TestAssetServer.start(
+    assetServer = await TestAssetServer.start(sdkLayout.sdkDirectory,
         fileSystem, index, hostname, port, urlTunneler, packageUriMapper);
     return Uri.parse('http://$hostname:$port');
   }

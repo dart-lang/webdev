@@ -119,4 +119,3 @@ void _deleteIfExists(String path) {
     file.deleteSync();
   }
 }
-

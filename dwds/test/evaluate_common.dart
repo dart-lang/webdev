@@ -6,54 +6,15 @@
 @Timeout(Duration(minutes: 2))
 import 'dart:async';
 
-import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 
-class TestSetup {
-  static TestContext contextUnsound(String index) =>
-      TestContext.withWeakNullSafety(
-        packageName: '_testPackage',
-        webAssetsPath: 'web',
-        dartEntryFileName: 'main.dart',
-        htmlEntryFileName: index,
-      );
-
-  static TestContext contextSound(String index) =>
-      TestContext.withSoundNullSafety(
-        packageName: '_testPackageSound',
-        webAssetsPath: 'web',
-        dartEntryFileName: 'main.dart',
-        htmlEntryFileName: index,
-      );
-
-  TestContext context;
-
-  TestSetup.sound(IndexBaseMode baseMode)
-      : context = contextSound(_index(baseMode));
-
-  TestSetup.unsound(IndexBaseMode baseMode)
-      : context = contextUnsound(_index(baseMode));
-
-  factory TestSetup.create(NullSafety? nullSafety, IndexBaseMode baseMode) =>
-      nullSafety == NullSafety.sound
-          ? TestSetup.sound(baseMode)
-          : TestSetup.unsound(baseMode);
-
-  ChromeProxyService get service =>
-      fetchChromeProxyService(context.debugConnection);
-  WipConnection get tabConnection => context.tabConnection;
-
-  static String _index(IndexBaseMode baseMode) =>
-      baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html';
-}
-
 void testAll({
+  required TestSdkConfigurationProvider provider,
   CompilationMode compilationMode = CompilationMode.buildDaemon,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
   NullSafety nullSafety = NullSafety.sound,
@@ -65,27 +26,27 @@ void testAll({
     throw StateError(
         'build daemon scenario does not support non-empty base in index file');
   }
-  final setup = TestSetup.create(nullSafety, indexBaseMode);
-  final context = setup.context;
+  final context = TestContext.testPackage(
+      provider: provider, nullSafety: nullSafety, baseMode: indexBaseMode);
 
   Future<void> onBreakPoint(String isolate, ScriptRef script,
       String breakPointId, Future<void> Function() body) async {
+    final service = context.service;
     Breakpoint? bp;
     try {
       final line =
           await context.findBreakpointLine(breakPointId, isolate, script);
-      bp = await setup.service
-          .addBreakpointWithScriptUri(isolate, script.uri!, line);
+      bp = await service.addBreakpointWithScriptUri(isolate, script.uri!, line);
       await body();
     } finally {
       // Remove breakpoint so it doesn't impact other tests or retries.
       if (bp != null) {
-        await setup.service.removeBreakpoint(isolate, bp.id!);
+        await service.removeBreakpoint(isolate, bp.id!);
       }
     }
   }
 
-  group('shared context with evaluation |', () {
+  group('with evaluation |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
@@ -103,6 +64,7 @@ void testAll({
     setUp(() => setCurrentLogWriter(debug: debug));
 
     group('evaluateInFrame |', () {
+      late VmServiceInterface service;
       VM vm;
       late Isolate isolate;
       late String isolateId;
@@ -115,13 +77,14 @@ void testAll({
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
-        vm = await setup.service.getVM();
-        isolate = await setup.service.getIsolate(vm.isolates!.first.id!);
+        service = context.service;
+        vm = await service.getVM();
+        isolate = await service.getIsolate(vm.isolates!.first.id!);
         isolateId = isolate.id!;
-        scripts = await setup.service.getScripts(isolateId);
+        scripts = await service.getScripts(isolateId);
 
-        await setup.service.streamListen('Debug');
-        stream = setup.service.onEvent('Debug');
+        await service.streamListen('Debug');
+        stream = service.onEvent('Debug');
 
         final soundNullSafety = nullSafety == NullSafety.sound;
         final testPackage =
@@ -138,7 +101,7 @@ void testAll({
       });
 
       tearDown(() async {
-        await setup.service.resume(isolateId);
+        await service.resume(isolateId);
       });
 
       test('uses correct null safety mode', () async {
@@ -148,7 +111,7 @@ void testAll({
 
           final isNullSafetyEnabled =
               '() { const sound = !(<Null>[] is List<int>); return sound; } ()';
-          final result = await setup.service.evaluateInFrame(
+          final result = await service.evaluateInFrame(
               isolateId, event.topFrame!.index!, isNullSafetyEnabled);
 
           expect(
@@ -163,10 +126,10 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service
+          final result = await context.service
               .evaluateInFrame(isolateId, event.topFrame!.index!, 'stream');
           final instanceId = (result as InstanceRef).id!;
-          final instance = await setup.service.getObject(isolateId, instanceId);
+          final instance = await service.getObject(isolateId, instanceId);
 
           expect(
               instance,
@@ -180,11 +143,11 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final object = await setup.service.evaluateInFrame(
+          final object = await service.evaluateInFrame(
               isolateId, event.topFrame!.index!, 'MainClass(0)');
 
           final param = object as InstanceRef;
-          final result = await setup.service.evaluateInFrame(
+          final result = await service.evaluateInFrame(
             isolateId,
             event.topFrame!.index!,
             't.toString()',
@@ -206,7 +169,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service
+          final result = await context.service
               .evaluateInFrame(isolateId, event.topFrame!.index!, 'local');
 
           expect(
@@ -219,7 +182,7 @@ void testAll({
       test('Type does not show native JavaScript object fields', () async {
         await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           Future<Instance> getInstance(InstanceRef ref) async {
-            final result = await setup.service.getObject(isolateId, ref.id!);
+            final result = await service.getObject(isolateId, ref.id!);
             expect(result, isA<Instance>());
             return result as Instance;
           }
@@ -227,7 +190,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service
+          final result = await context.service
               .evaluateInFrame(isolateId, event.topFrame!.index!, 'Type');
           expect(result, isA<InstanceRef>());
           final instanceRef = result as InstanceRef;
@@ -265,7 +228,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service.evaluateInFrame(
+          final result = await service.evaluateInFrame(
               isolateId, event.topFrame!.index!, 'instance.field');
 
           expect(
@@ -281,7 +244,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service.evaluateInFrame(
+          final result = await service.evaluateInFrame(
               isolateId, event.topFrame!.index!, 'instance._field');
 
           expect(
@@ -296,7 +259,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service.evaluateInFrame(
+          final result = await service.evaluateInFrame(
               isolateId, event.topFrame!.index!, 'instance._field');
 
           expect(
@@ -312,10 +275,10 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final instanceRef = await setup.service.evaluateInFrame(
+          final instanceRef = await service.evaluateInFrame(
               isolateId, event.topFrame!.index!, 'instance') as InstanceRef;
 
-          final instance = await setup.service
+          final instance = await context.service
               .getObject(isolateId, instanceRef.id!) as Instance;
 
           final field = instance.fields!.firstWhere(
@@ -333,7 +296,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service.evaluateInFrame(
+          final result = await service.evaluateInFrame(
               isolateId, event.topFrame!.index!, 'testLibraryValue');
 
           expect(
@@ -348,7 +311,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service.evaluateInFrame(
+          final result = await service.evaluateInFrame(
               isolateId, event.topFrame!.index!, 'print(local)');
 
           expect(
@@ -363,7 +326,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service.evaluateInFrame(
+          final result = await service.evaluateInFrame(
               isolateId, event.topFrame!.index!, 'testLibraryFunction(42)');
 
           expect(
@@ -378,7 +341,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service.evaluateInFrame(
+          final result = await service.evaluateInFrame(
               isolateId, event.topFrame!.index!, 'testLibraryFunction(local)');
 
           expect(
@@ -393,7 +356,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service.evaluateInFrame(
+          final result = await service.evaluateInFrame(
               isolateId, event.topFrame!.index!, 'testLibraryPartFunction(42)');
 
           expect(
@@ -408,7 +371,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service.evaluateInFrame(isolateId,
+          final result = await service.evaluateInFrame(isolateId,
               event.topFrame!.index!, 'testLibraryPartFunction(local)');
 
           expect(
@@ -424,7 +387,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service
+          final result = await context.service
               .evaluateInFrame(isolateId, event.topFrame!.index!, 'item');
 
           expect(
@@ -440,7 +403,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service
+          final result = await context.service
               .evaluateInFrame(isolateId, event.topFrame!.index!, 'formal');
 
           expect(
@@ -457,8 +420,8 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service
-              .evaluateInFrame(isolateId, event.topFrame!.index!, 'this.field');
+          final result = await service.evaluateInFrame(
+              isolateId, event.topFrame!.index!, 'this.field');
 
           expect(
               result,
@@ -475,8 +438,8 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service
-              .evaluateInFrame(isolateId, event.topFrame!.index!, 'this.field');
+          final result = await service.evaluateInFrame(
+              isolateId, event.topFrame!.index!, 'this.field');
 
           expect(
               result,
@@ -491,8 +454,8 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service
-              .evaluateInFrame(isolateId, event.topFrame!.index! + 1, 'local');
+          final result = await service.evaluateInFrame(
+              isolateId, event.topFrame!.index! + 1, 'local');
 
           expect(
               result,
@@ -506,7 +469,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service
+          final result = await context.service
               .evaluateInFrame(isolateId, event.topFrame!.index!, 'a');
 
           expect(
@@ -521,7 +484,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final error = await setup.service
+          final error = await context.service
               .evaluateInFrame(isolateId, event.topFrame!.index!, 'typo');
 
           expect(
@@ -536,7 +499,7 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final error = await setup.service.evaluateInFrame(
+          final error = await service.evaluateInFrame(
               isolateId, event.topFrame!.index!, 'd.deferredPrintLocal()');
 
           expect(
@@ -552,7 +515,7 @@ void testAll({
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           await expectLater(
-              setup.service
+              context.service
                   .evaluateInFrame('bad', event.topFrame!.index!, 'local'),
               throwsSentinelException);
         });
@@ -560,26 +523,28 @@ void testAll({
     });
 
     group('evaluate |', () {
+      late VmServiceInterface service;
       VM vm;
       late Isolate isolate;
       late String isolateId;
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
-        vm = await setup.service.getVM();
-        isolate = await setup.service.getIsolate(vm.isolates!.first.id!);
+        service = context.service;
+        vm = await service.getVM();
+        isolate = await service.getIsolate(vm.isolates!.first.id!);
         isolateId = isolate.id!;
 
-        await setup.service.streamListen('Debug');
+        await service.streamListen('Debug');
       });
 
       tearDown(() async {});
 
       test('in parallel (in a batch)', () async {
         final library = isolate.rootLib!;
-        final evaluation1 = setup.service
+        final evaluation1 = context.service
             .evaluate(isolateId, library.id!, 'MainClass(0).toString()');
-        final evaluation2 = setup.service
+        final evaluation2 = context.service
             .evaluate(isolateId, library.id!, 'MainClass(1).toString()');
 
         final results = await Future.wait([evaluation1, evaluation2]);
@@ -597,9 +562,9 @@ void testAll({
       test('in parallel (in a batch) handles errors', () async {
         final library = isolate.rootLib!;
         final missingLibId = '';
-        final evaluation1 = setup.service
+        final evaluation1 = context.service
             .evaluate(isolateId, missingLibId, 'MainClass(0).toString()');
-        final evaluation2 = setup.service
+        final evaluation2 = context.service
             .evaluate(isolateId, library.id!, 'MainClass(1).toString()');
 
         final results = await Future.wait([evaluation1, evaluation2]);
@@ -622,11 +587,11 @@ void testAll({
 
       test('with scope override', () async {
         final library = isolate.rootLib!;
-        final object = await setup.service
+        final object = await context.service
             .evaluate(isolateId, library.id!, 'MainClass(0)');
 
         final param = object as InstanceRef;
-        final result = await setup.service.evaluate(
+        final result = await service.evaluate(
             isolateId, library.id!, 't.toString()',
             scope: {'t': param.id!});
 
@@ -638,7 +603,7 @@ void testAll({
 
       test('uses symbol from the same library', () async {
         final library = isolate.rootLib!;
-        final result = await setup.service
+        final result = await context.service
             .evaluate(isolateId, library.id!, 'MainClass(0).toString()');
 
         expect(
@@ -649,7 +614,7 @@ void testAll({
 
       test('uses symbol from another library', () async {
         final library = isolate.rootLib!;
-        final result = await setup.service.evaluate(
+        final result = await service.evaluate(
             isolateId, library.id!, 'TestLibraryClass(0,1).toString()');
 
         expect(
@@ -662,7 +627,7 @@ void testAll({
 
       test('closure call', () async {
         final library = isolate.rootLib!;
-        final result = await setup.service
+        final result = await context.service
             .evaluate(isolateId, library.id!, '(() => 42)()');
 
         expect(
@@ -673,7 +638,7 @@ void testAll({
     });
   }, timeout: const Timeout.factor(2));
 
-  group('shared context with no evaluation |', () {
+  group('with no evaluation |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
@@ -690,6 +655,7 @@ void testAll({
     setUp(() => setCurrentLogWriter(debug: debug));
 
     group('evaluateInFrame |', () {
+      late VmServiceInterface service;
       VM vm;
       late Isolate isolate;
       late String isolateId;
@@ -698,20 +664,21 @@ void testAll({
       late Stream<Event> stream;
 
       setUp(() async {
-        vm = await setup.service.getVM();
-        isolate = await setup.service.getIsolate(vm.isolates!.first.id!);
+        service = context.service;
+        vm = await service.getVM();
+        isolate = await service.getIsolate(vm.isolates!.first.id!);
         isolateId = isolate.id!;
-        scripts = await setup.service.getScripts(isolateId);
+        scripts = await service.getScripts(isolateId);
 
-        await setup.service.streamListen('Debug');
-        stream = setup.service.onEvent('Debug');
+        await service.streamListen('Debug');
+        stream = service.onEvent('Debug');
 
         mainScript = scripts.scripts!
             .firstWhere((each) => each.uri!.contains('main.dart'));
       });
 
       tearDown(() async {
-        await setup.service.resume(isolateId);
+        await service.resume(isolateId);
       });
 
       test('cannot evaluate expression', () async {
@@ -720,8 +687,8 @@ void testAll({
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           await expectLater(
-              setup.service
-                  .evaluateInFrame(isolateId, event.topFrame!.index!, 'local'),
+              service.evaluateInFrame(
+                  isolateId, event.topFrame!.index!, 'local'),
               throwsRPCError);
         });
       });

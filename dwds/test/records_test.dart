@@ -5,35 +5,23 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
 
-import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
-
-class TestSetup {
-  TestContext context;
-
-  TestSetup.sound()
-      : context = TestContext.withSoundNullSafety(
-          packageName: '_experimentSound',
-          webAssetsPath: 'web',
-          dartEntryFileName: 'main.dart',
-          htmlEntryFileName: 'index.html',
-        );
-
-  ChromeProxyService get service =>
-      fetchChromeProxyService(context.debugConnection);
-}
 
 void main() async {
   // Enable verbose logging for debugging.
   final debug = false;
 
+  final provider = TestSdkConfigurationProvider(verbose: debug);
+  tearDownAll(provider.dispose);
+
   for (var compilationMode in CompilationMode.values) {
     await _runTests(
+      provider: provider,
       compilationMode: compilationMode,
       debug: debug,
     );
@@ -41,18 +29,18 @@ void main() async {
 }
 
 Future<void> _runTests({
+  required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   required bool debug,
 }) async {
-  final setup = TestSetup.sound();
-  final context = setup.context;
+  final context = TestContext.testExperimentWithSoundNullSafety(provider);
   late VmServiceInterface service;
   late Stream<Event> stream;
   late String isolateId;
   late ScriptRef mainScript;
 
   onBreakPoint(breakPointId, body) =>
-      _onBreakPoint(setup, stream, isolateId, mainScript, breakPointId, body);
+      _onBreakPoint(context, stream, isolateId, mainScript, breakPointId, body);
 
   getInstance(frame, expression) =>
       _getInstance(service, isolateId, frame, expression);
@@ -74,7 +62,7 @@ Future<void> _runTests({
         verboseCompiler: debug,
         experiments: ['records'],
       );
-      service = setup.service;
+      service = context.service;
 
       final vm = await service.getVM();
       isolateId = vm.isolates!.first.id!;
@@ -87,7 +75,9 @@ Future<void> _runTests({
           .firstWhere((each) => each.uri!.contains('main.dart'));
     });
 
-    tearDownAll(context.tearDown);
+    tearDownAll(() async {
+      await context.tearDown();
+    });
 
     setUp(() => setCurrentLogWriter(debug: debug));
     tearDown(() => service.resume(isolateId));
@@ -405,15 +395,14 @@ Future<void> _runTests({
 }
 
 Future<void> _onBreakPoint(
-  TestSetup setup,
+  TestContext context,
   Stream<Event> stream,
   String isolateId,
   ScriptRef script,
   String breakPointId,
   Future<void> Function(Event event) body,
 ) async {
-  final context = setup.context;
-  final service = setup.service;
+  final service = context.service;
 
   Breakpoint? bp;
   try {

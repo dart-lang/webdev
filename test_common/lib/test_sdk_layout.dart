@@ -99,6 +99,8 @@ class TestSdkLayout {
           'snapshots',
           'kernel_worker.dart.snapshot',
         ),
+        devToolsPath:
+            p.join(sdkLayout.sdkDirectory, 'bin', 'resources', 'devtools'),
       );
 
   final String sdkDirectory;
@@ -130,6 +132,7 @@ class TestSdkLayout {
   final String frontendServerSnapshotPath;
   final String dartdevcSnapshotPath;
   final String kernelWorkerSnapshotPath;
+  final String devToolsPath;
 
   const TestSdkLayout({
     required this.sdkDirectory,
@@ -147,6 +150,7 @@ class TestSdkLayout {
     required this.frontendServerSnapshotPath,
     required this.dartdevcSnapshotPath,
     required this.kernelWorkerSnapshotPath,
+    required this.devToolsPath,
   });
 
   /// Creates configuration from sdk layout.

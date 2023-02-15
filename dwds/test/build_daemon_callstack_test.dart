@@ -6,42 +6,17 @@
 @Timeout(Duration(minutes: 2))
 import 'dart:async';
 
-import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 
-class TestSetup {
-  static final contextUnsound = TestContext.withWeakNullSafety(
-    packageName: '_testPackage',
-    webAssetsPath: 'web',
-    dartEntryFileName: 'main.dart',
-    htmlEntryFileName: 'index.html',
-  );
-
-  static final contextSound = TestContext.withSoundNullSafety(
-    packageName: '_testPackageSound',
-    webAssetsPath: 'web',
-    dartEntryFileName: 'main.dart',
-    htmlEntryFileName: 'index.html',
-  );
-
-  TestContext context;
-
-  TestSetup.sound() : context = contextSound;
-
-  TestSetup.unsound() : context = contextUnsound;
-
-  ChromeProxyService get service =>
-      fetchChromeProxyService(context.debugConnection);
-  WipConnection get tabConnection => context.tabConnection;
-}
-
 void main() {
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+
   group(
     'shared context |',
     () {
@@ -51,9 +26,8 @@ void main() {
       for (var nullSafety in NullSafety.values) {
         group('${nullSafety.name} null safety |', () {
           final soundNullSafety = nullSafety == NullSafety.sound;
-          final setup =
-              soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
-          final context = setup.context;
+          final context = TestContext.testPackage(
+              provider: provider, nullSafety: nullSafety);
 
           setUpAll(() async {
             setCurrentLogWriter(debug: debug);
@@ -69,7 +43,7 @@ void main() {
           });
 
           group('callStack |', () {
-            late ChromeProxyService service;
+            late VmServiceInterface service;
             VM vm;
             late Isolate isolate;
             ScriptList scripts;
@@ -79,7 +53,7 @@ void main() {
 
             setUp(() async {
               setCurrentLogWriter(debug: debug);
-              service = setup.service;
+              service = context.service;
               vm = await service.getVM();
               isolate = await service.getIsolate(vm.isolates!.first.id!);
               scripts = await service.getScripts(isolate.id!);
@@ -108,7 +82,7 @@ void main() {
                 final script = breakpoint.script;
                 final line =
                     await context.findBreakpointLine(bpId, isolate.id!, script);
-                bp = await setup.service
+                bp = await context.service
                     .addBreakpointWithScriptUri(isolate.id!, script.uri!, line);
 
                 expect(bp, isNotNull);
@@ -121,7 +95,7 @@ void main() {
               } finally {
                 // Remove breakpoint so it doesn't impact other tests or retries.
                 if (bp != null) {
-                  await setup.service.removeBreakpoint(isolate.id!, bp.id!);
+                  await context.service.removeBreakpoint(isolate.id!, bp.id!);
                 }
               }
             }

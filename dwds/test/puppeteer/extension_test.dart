@@ -18,6 +18,7 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 
 import '../../debug_extension_mv3/web/data_serializers.dart';
 import '../../debug_extension_mv3/web/data_types.dart';
@@ -25,17 +26,19 @@ import '../fixtures/context.dart';
 import '../fixtures/utilities.dart';
 import 'test_utils.dart';
 
-final context = TestContext.withSoundNullSafety();
-
 enum Panel { debugger, inspector }
 
 void main() async {
   group('MV3 Debug Extension', () {
+    final provider = TestSdkConfigurationProvider();
+    final context = TestContext.testWithSoundNullSafety(provider);
     late String extensionPath;
 
     setUpAll(() async {
       extensionPath = await buildDebugExtension();
     });
+
+    tearDownAll(provider.dispose);
 
     for (var useSse in [true, false]) {
       group(useSse ? 'connected with SSE:' : 'connected with WebSockets:', () {
@@ -65,6 +68,7 @@ void main() async {
 
         tearDownAll(() async {
           await browser.close();
+          await context.tearDown();
         });
 
         test('the debug info for a Dart app is saved in session storage',
@@ -350,6 +354,7 @@ void main() async {
 
           tearDownAll(() async {
             await browser.close();
+            await context.tearDown();
           });
           test(
               'isFlutterApp=$isFlutterApp and isInternalBuild=false are saved in storage',
@@ -441,6 +446,7 @@ void main() async {
 
           tearDownAll(() async {
             await browser.close();
+            await context.tearDown();
           });
           test(
               'isFlutterApp=$isFlutterApp and isInternalBuild=true are saved in storage',

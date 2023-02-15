@@ -14,6 +14,7 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 // ignore: deprecated_member_use
 import 'package:webdriver/io.dart';
 
@@ -30,9 +31,12 @@ import 'fixtures/utilities.dart';
 // Remove the key before pushing code to GitHub.
 // See go/extension-identification.
 
-final context = TestContext.withSoundNullSafety();
-
 void main() async {
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+
+  final context = TestContext.testWithSoundNullSafety(provider);
+
   Future<void> waitForDartDevToolsWithRetry({
     int retryCount = 6,
     Duration retryWait = const Duration(seconds: 1),
@@ -204,16 +208,12 @@ void main() async {
   }
 
   group('With encoding', () {
-    final context = TestContext.withSoundNullSafety();
-    setUp(() async {
+    final context = TestContext.testWithSoundNullSafety(provider);
+    setUpAll(() async {
       await context.setUp(
           enableDebugExtension: true,
           urlEncoder: (url) async =>
               url.endsWith(r'/$debug') ? 'http://some-encoded-url:8081/' : url);
-    });
-
-    tearDown(() async {
-      await context.tearDown();
     });
 
     test('uses the encoded URI', () async {
@@ -225,14 +225,14 @@ void main() async {
   });
 
   group('With "any" hostname', () {
-    final context = TestContext.withSoundNullSafety();
+    final context = TestContext.testWithSoundNullSafety(provider);
     final uriPattern = RegExp(r'dartExtensionUri = "([^"]+)";');
 
-    setUp(() async {
+    setUpAll(() async {
       await context.setUp(enableDebugExtension: true, hostname: 'any');
     });
 
-    tearDown(() async {
+    tearDownAll(() async {
       await context.tearDown();
     });
 

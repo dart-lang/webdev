@@ -19,6 +19,7 @@ import 'package:dwds/src/loaders/frontend_server_require.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/server.dart';
@@ -33,10 +34,8 @@ import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
-import 'package:test_common/test_sdk_layout.dart';
 import 'package:vm_service/vm_service.dart';
-// ignore: deprecated_member_use
-import 'package:webdriver/io.dart';
+import 'package:webdriver/async_io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'server.dart';
@@ -62,7 +61,9 @@ class TestContext {
   final String dartEntryFileName;
   final String htmlEntryFileName;
   final NullSafety nullSafety;
-  late final Directory sdkDirectory;
+
+  final TestSdkConfigurationProvider sdkConfigurationProvider;
+  // late TestSdkLayout sdkLayout;
 
   /// Top level directory in which we run the test server, e.g.
   /// "/workstation/webdev/fixtures/_testSound".
@@ -137,30 +138,84 @@ class TestContext {
 
   final _logger = logging.Logger('Context');
 
-  TestContext.withSoundNullSafety({
-    String packageName = '_testSound',
-    String webAssetsPath = 'example/hello_world',
-    String dartEntryFileName = 'main.dart',
-    String htmlEntryFileName = 'index.html',
+  static String _index(IndexBaseMode baseMode) =>
+      baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html';
+
+  TestContext.testPackage({
+    required TestSdkConfigurationProvider provider,
+    required NullSafety nullSafety,
+    IndexBaseMode baseMode = IndexBaseMode.noBase,
   }) : this._(
-          nullSafety: NullSafety.sound,
-          packageName: packageName,
-          webAssetsPath: webAssetsPath,
-          dartEntryFileName: dartEntryFileName,
-          htmlEntryFileName: htmlEntryFileName,
+          packageName: nullSafety == NullSafety.sound
+              ? '_testPackageSound'
+              : '_testPackage',
+          webAssetsPath: 'web',
+          dartEntryFileName: 'main.dart',
+          htmlEntryFileName: _index(baseMode),
+          nullSafety: nullSafety,
+          sdkConfigurationProvider: provider,
         );
 
-  TestContext.withWeakNullSafety({
-    String packageName = '_test',
-    String webAssetsPath = 'example/hello_world',
-    String dartEntryFileName = 'main.dart',
-    String htmlEntryFileName = 'index.html',
+  TestContext.testPackageWithSoundNullSafety(
+      TestSdkConfigurationProvider provider)
+      : this.testPackage(provider: provider, nullSafety: NullSafety.sound);
+
+  TestContext.testCircular({
+    required TestSdkConfigurationProvider provider,
+    required NullSafety nullSafety,
+    IndexBaseMode baseMode = IndexBaseMode.noBase,
   }) : this._(
-          nullSafety: NullSafety.weak,
-          packageName: packageName,
-          webAssetsPath: webAssetsPath,
-          dartEntryFileName: dartEntryFileName,
-          htmlEntryFileName: htmlEntryFileName,
+          packageName: nullSafety == NullSafety.sound
+              ? '_testCircular2Sound'
+              : '_testCircular2',
+          webAssetsPath: 'web',
+          dartEntryFileName: 'main.dart',
+          htmlEntryFileName: _index(baseMode),
+          nullSafety: nullSafety,
+          sdkConfigurationProvider: provider,
+        );
+
+  TestContext.testWithSoundNullSafety(TestSdkConfigurationProvider provider)
+      : this._(
+          packageName: '_testSound',
+          webAssetsPath: 'example/hello_world',
+          dartEntryFileName: 'main.dart',
+          htmlEntryFileName: 'index.html',
+          nullSafety: NullSafety.sound,
+          sdkConfigurationProvider: provider,
+        );
+
+  TestContext.testScopesWithSoundNullSafety(
+      TestSdkConfigurationProvider provider)
+      : this._(
+          packageName: '_testSound',
+          webAssetsPath: webCompatiblePath(['example', 'scopes']),
+          dartEntryFileName: 'main.dart',
+          htmlEntryFileName: 'scopes.html',
+          nullSafety: NullSafety.sound,
+          sdkConfigurationProvider: provider,
+        );
+
+  TestContext.testAppendBodyWithSoundNullSafety(
+      TestSdkConfigurationProvider provider)
+      : this._(
+          packageName: '_testSound',
+          webAssetsPath: webCompatiblePath(['example', 'append_body']),
+          dartEntryFileName: 'main.dart',
+          htmlEntryFileName: 'index.html',
+          nullSafety: NullSafety.sound,
+          sdkConfigurationProvider: provider,
+        );
+
+  TestContext.testExperimentWithSoundNullSafety(
+      TestSdkConfigurationProvider provider)
+      : this._(
+          packageName: '_experimentSound',
+          webAssetsPath: 'web',
+          dartEntryFileName: 'main.dart',
+          htmlEntryFileName: 'index.html',
+          nullSafety: NullSafety.sound,
+          sdkConfigurationProvider: provider,
         );
 
   TestContext._({
@@ -169,6 +224,7 @@ class TestContext {
     required this.dartEntryFileName,
     required this.htmlEntryFileName,
     required this.nullSafety,
+    required this.sdkConfigurationProvider,
   }) {
     // Verify that the test fixtures package matches the null-safety mode:
     final isSoundPackage = packageName.toLowerCase().contains('sound');
@@ -182,22 +238,6 @@ class TestContext {
     _logger.info('Project: $workingDirectory');
     _logger.info('Packages: $_packageConfigFile');
     _logger.info('Entry: $_dartEntryFilePath');
-  }
-
-  void setUpAll() {
-    final systemTempDir = Directory.systemTemp;
-    sdkDirectory = systemTempDir.createTempSync('sdk copy');
-    copyDirectory(TestSdkLayout.defaultSdkDirectory, sdkDirectory.path);
-  }
-
-  void tearDownAll() {
-    try {
-      if (sdkDirectory.existsSync()) {
-        sdkDirectory.deleteSync(recursive: true);
-      }
-    } catch(e) {
-      _logger.warning('Failed to delete sdk directory copy: ${sdkDirectory.path}');
-    }
   }
 
   Future<void> setUp({
@@ -220,17 +260,13 @@ class TestContext {
     bool isInternalBuild = false,
     List<String> experiments = const <String>[],
   }) async {
-    // Generate missing SDK assets if needed.
-    final sdkConfigurationProvider =
-        TestSdkConfigurationProvider(
-          sdkDirectory: sdkDirectory.path,
-          verboseCompiler: verboseCompiler);
-
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
-    final configuration = await sdkConfigurationProvider.configuration;
-    configuration.validate();
 
     try {
+      // Make sure configuration was created correctly.
+      final configuration = await sdkConfigurationProvider.configuration;
+      configuration.validate();
+
       DartUri.currentDirectory = workingDirectory;
       configureLogWriter();
 
@@ -292,8 +328,8 @@ class TestContext {
                 '--enable-experiment=$experiment',
               '--verbose',
             ];
-            _daemonClient =
-                await connectClient(sdkLayout.dartPath, workingDirectory, options, (log) {
+            _daemonClient = await connectClient(
+                sdkLayout.dartPath, workingDirectory, options, (log) {
               final record = log.toLogRecord();
               final name =
                   record.loggerName == '' ? '' : '${record.loggerName}: ';
@@ -437,6 +473,7 @@ class TestContext {
         ddcService,
         isFlutterApp,
         isInternalBuild,
+        sdkLayout,
       );
 
       _appUrl = basePath.isEmpty
@@ -470,6 +507,8 @@ class TestContext {
       rethrow;
     }
   }
+
+  ChromeProxyService get service => fetchChromeProxyService(debugConnection);
 
   Future<void> startDebugging() async {
     debugConnection = await testServer.dwds.debugConnection(appConnection);

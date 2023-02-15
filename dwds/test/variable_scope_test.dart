@@ -4,26 +4,20 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
-import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/utilities.dart';
-
-final context = TestContext.withSoundNullSafety(
-  webAssetsPath: webCompatiblePath(['example', 'scopes']),
-  dartEntryFileName: 'main.dart',
-  htmlEntryFileName: 'scopes.html',
-);
-ChromeProxyService get service =>
-    fetchChromeProxyService(context.debugConnection);
-WipConnection get tabConnection => context.tabConnection;
 
 void main() {
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+
+  final context = TestContext.testScopesWithSoundNullSafety(provider);
+
   setUpAll(() async {
     await context.setUp();
   });
@@ -52,6 +46,7 @@ void main() {
   });
 
   group('variable scope', () {
+    late ChromeProxyService service;
     VM vm;
     String? isolateId;
     late Stream<Event> stream;
@@ -112,6 +107,7 @@ void main() {
     }
 
     setUp(() async {
+      service = context.service;
       vm = await service.getVM();
       isolateId = vm.isolates!.first.id;
       scripts = await service.getScripts(isolateId!);

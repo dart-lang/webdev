@@ -6,21 +6,19 @@
 @Timeout(Duration(minutes: 2))
 import 'dart:async';
 
-import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 
-final context = TestContext.withSoundNullSafety();
-ChromeProxyService get service =>
-    fetchChromeProxyService(context.debugConnection);
-WipConnection get tabConnection => context.tabConnection;
-
 void main() {
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+
+  final context = TestContext.testWithSoundNullSafety(provider);
+
   setUpAll(() async {
     setCurrentLogWriter();
     await context.setUp();
@@ -31,6 +29,7 @@ void main() {
   });
 
   group('breakpoints', () {
+    late VmServiceInterface service;
     VM vm;
     late Isolate isolate;
     ScriptList scripts;
@@ -39,11 +38,10 @@ void main() {
 
     setUp(() async {
       setCurrentLogWriter();
-      vm = await fetchChromeProxyService(context.debugConnection).getVM();
-      isolate = await fetchChromeProxyService(context.debugConnection)
-          .getIsolate(vm.isolates!.first.id!);
-      scripts = await fetchChromeProxyService(context.debugConnection)
-          .getScripts(isolate.id!);
+      service = context.service;
+      vm = await service.getVM();
+      isolate = await service.getIsolate(vm.isolates!.first.id!);
+      scripts = await service.getScripts(isolate.id!);
       mainScript = scripts.scripts!
           .firstWhere((each) => each.uri!.contains('main.dart'));
       isolateEventStream = service.onEvent('Isolate');

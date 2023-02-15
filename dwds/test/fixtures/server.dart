@@ -16,9 +16,8 @@ import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
+import 'package:test_common/test_sdk_layout.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'utilities.dart';
 
 Logger _logger = Logger('TestServer');
 
@@ -82,6 +81,7 @@ class TestServer {
     ExpressionCompilerService? ddcService,
     bool isFlutterApp,
     bool isInternalBuild,
+    TestSdkLayout sdkLayout,
   ) async {
     var pipeline = const Pipeline();
 
@@ -122,7 +122,7 @@ class TestServer {
                 final server = await DevToolsServer().serveDevTools(
                   hostname: hostname,
                   enableStdinCommands: false,
-                  customDevToolsPath: devToolsPath,
+                  customDevToolsPath: sdkLayout.devToolsPath,
                 );
                 if (server == null) {
                   throw StateError('DevTools server could not be started.');

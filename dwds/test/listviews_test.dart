@@ -5,12 +5,15 @@
 @Timeout(Duration(minutes: 2))
 
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 
 import 'fixtures/context.dart';
 
-final context = TestContext.withSoundNullSafety();
-
 void main() {
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+
+  final context = TestContext.testWithSoundNullSafety(provider);
   setUpAll(() async {
     await context.setUp();
   });
@@ -42,7 +45,5 @@ void main() {
 
       expect(result.json, expected);
     },
-    // TODO(https://github.com/dart-lang/webdev/issues/1741): Re-enable when resolved.
-    skip: true,
   );
 }
