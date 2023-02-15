@@ -13,12 +13,12 @@ import '../fixtures/context.dart';
 import '../fixtures/utilities.dart';
 
 enum ConsoleSource {
-  worker,
   devTools,
+  worker,
 }
 
-final _workerLogs = [];
 final _devToolsLogs = [];
+final _workerLogs = [];
 
 Future<String> buildDebugExtension({required bool isMV3}) async {
   final extensionDir = absolutePath(pathFromDwds: 'debug_extension_mv3');
@@ -68,7 +68,7 @@ Future<void> tearDownHelper({required Worker worker}) async {
   _logConsoleMsgsOnFailure();
   _workerLogs.clear();
   _devToolsLogs.clear();
-  await worker.evaluate(_clearStorageJs).catchError((_) {});
+  await _clearStorage(worker: worker);
 }
 
 Future<Worker> getServiceWorker(Browser browser) async {
@@ -80,7 +80,7 @@ Future<Worker> getServiceWorker(Browser browser) async {
     worker.url,
     onConsoleApiCalled: (type, jsHandles, _) {
       for (var handle in jsHandles) {
-        saveConsoleMsg(
+        _saveConsoleMsg(
             source: ConsoleSource.worker, type: '$type', msg: '$handle');
       }
     },
@@ -94,7 +94,7 @@ Future<Page> getChromeDevToolsPage(Browser browser) async {
   chromeDevToolsTarget.type = 'page';
   final chromeDevToolsPage = await chromeDevToolsTarget.page;
   chromeDevToolsPage.onConsole.listen((msg) {
-    saveConsoleMsg(
+    _saveConsoleMsg(
       source: ConsoleSource.devTools,
       type: '${msg.type}',
       msg: msg.text ?? '',
@@ -103,26 +103,12 @@ Future<Page> getChromeDevToolsPage(Browser browser) async {
   return chromeDevToolsPage;
 }
 
-void saveConsoleMsg({
-  required ConsoleSource source,
-  required String type,
-  required String msg,
-}) {
-  if (msg.isEmpty) return;
-  final consiseMsg = msg.startsWith('JSHandle:') ? msg.substring(9) : msg;
-  final formatted = 'console.$type: $consiseMsg';
-  switch (source) {
-    case ConsoleSource.worker:
-      _workerLogs.add(formatted);
-      break;
-    case ConsoleSource.devTools:
-      _devToolsLogs.add(formatted);
-      break;
-  }
+Future evaluate(String jsExpression, {required Worker worker}) async {
+  return worker.evaluate(jsExpression);
 }
 
 Future<void> clickOnExtensionIcon(Worker worker) async {
-  return worker.evaluate(_clickIconJs);
+  return evaluate(_clickIconJs, worker: worker);
 }
 
 // Note: The following delay is required to reduce flakiness. It makes
@@ -159,6 +145,24 @@ String getExtensionOrigin(Browser browser) {
   return '$chromeExtension//$extensionId';
 }
 
+void _saveConsoleMsg({
+  required ConsoleSource source,
+  required String type,
+  required String msg,
+}) {
+  if (msg.isEmpty) return;
+  final consiseMsg = msg.startsWith('JSHandle:') ? msg.substring(9) : msg;
+  final formatted = 'console.$type: $consiseMsg';
+  switch (source) {
+    case ConsoleSource.devTools:
+      _devToolsLogs.add(formatted);
+      break;
+    case ConsoleSource.worker:
+      _workerLogs.add(formatted);
+      break;
+  }
+}
+
 void _logConsoleMsgsOnFailure() {
   if (_workerLogs.isNotEmpty) {
     printOnFailure(['Service Worker logs:', ..._workerLogs].join('\n'));
@@ -175,6 +179,15 @@ Iterable<String> _getUrlsInBrowser(Browser browser) {
 Future<Page> _getPageForUrl(Browser browser, {required String url}) {
   final pageTarget = browser.targets.firstWhere((target) => target.url == url);
   return pageTarget.page;
+}
+
+Future<void> _clearStorage({
+  required Worker worker,
+}) async {
+  return evaluate(
+    _clearStorageJs,
+    worker: worker,
+  ).catchError((_) {});
 }
 
 final _clickIconJs = '''
