@@ -136,15 +136,15 @@ void detachDebugger(
   final debugSession = _debugSessionForTab(tabId, type: type);
   if (debugSession == null) return;
   final debuggee = Debuggee(tabId: debugSession.appTabId);
-  final detachPromise = chrome.debugger.detach(debuggee);
-  await promiseToFuture(detachPromise);
-  final error = chrome.runtime.lastError;
-  if (error != null) {
-    debugWarn(
-        'Error detaching tab for reason: $reason. Error: ${error.message}');
-  } else {
-    _handleDebuggerDetach(debuggee, reason);
-  }
+  chrome.debugger.detach(debuggee, allowInterop(() {
+    final error = chrome.runtime.lastError;
+    if (error != null) {
+      debugWarn(
+          'Error detaching tab for reason: $reason. Error: ${error.message}');
+    } else {
+      _handleDebuggerDetach(debuggee, reason);
+    }
+  }));
 }
 
 void _registerDebugEventListeners() {

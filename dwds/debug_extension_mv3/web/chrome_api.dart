@@ -31,7 +31,7 @@ class Debugger {
   external void attach(
       Debuggee target, String requiredVersion, Function? callback);
 
-  external Object detach(Debuggee target);
+  external void detach(Debuggee target, Function? callback);
 
   external void sendCommand(Debuggee target, String method,
       Object? commandParams, Function? callback);

@@ -97,9 +97,6 @@ void _handleRuntimeMessages(
 }
 
 void _handleStorageChanges(Object storageObj, String storageArea) {
-  // We only care about session storage objects:
-  if (storageArea != 'session') return;
-
   interceptStorageChange<DebugInfo>(
     storageObj: storageObj,
     expectedType: StorageObject.debugInfo,
