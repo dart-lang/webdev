@@ -34,17 +34,17 @@ void testAll({
 
   Future<void> onBreakPoint(String isolate, ScriptRef script,
       String breakPointId, Future<void> Function() body) async {
-    final service = context.service;
     Breakpoint? bp;
     try {
       final line =
           await context.findBreakpointLine(breakPointId, isolate, script);
-      bp = await service.addBreakpointWithScriptUri(isolate, script.uri!, line);
+      bp = await context.service
+          .addBreakpointWithScriptUri(isolate, script.uri!, line);
       await body();
     } finally {
       // Remove breakpoint so it doesn't impact other tests or retries.
       if (bp != null) {
-        await service.removeBreakpoint(isolate, bp.id!);
+        await context.service.removeBreakpoint(isolate, bp.id!);
       }
     }
   }

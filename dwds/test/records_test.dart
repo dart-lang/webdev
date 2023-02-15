@@ -402,13 +402,12 @@ Future<void> _onBreakPoint(
   String breakPointId,
   Future<void> Function(Event event) body,
 ) async {
-  final service = context.service;
-
   Breakpoint? bp;
   try {
     final line =
         await context.findBreakpointLine(breakPointId, isolateId, script);
-    bp = await service.addBreakpointWithScriptUri(isolateId, script.uri!, line);
+    bp = await context.service
+        .addBreakpointWithScriptUri(isolateId, script.uri!, line);
 
     final event =
         await stream.firstWhere((e) => e.kind == EventKind.kPauseBreakpoint);
@@ -417,7 +416,7 @@ Future<void> _onBreakPoint(
   } finally {
     // Remove breakpoint so it doesn't impact other tests or retries.
     if (bp != null) {
-      await service.removeBreakpoint(isolateId, bp.id!);
+      await context.service.removeBreakpoint(isolateId, bp.id!);
     }
   }
 }
