@@ -142,9 +142,8 @@ void _setDebuggableIcon() {
 }
 
 void _setDefaultIcon() {
-  final iconPath = isDevMode()
-      ? 'static_assets/dart_dev.png'
-      : 'static_assets/dart_grey.png';
+  final iconPath =
+      isDevMode ? 'static_assets/dart_dev.png' : 'static_assets/dart_grey.png';
   setExtensionIcon(IconInfo(path: iconPath));
 }
 

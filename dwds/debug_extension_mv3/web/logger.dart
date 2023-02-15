@@ -45,7 +45,7 @@ void _log(
   _LogLevel? level,
   String? prefix,
 }) {
-  if (!verbose && !isDevMode()) return;
+  if (!verbose && !isDevMode) return;
   final logMsg = prefix != null ? '[$prefix] $msg' : msg;
   final logLevel = level ?? _LogLevel.info;
   switch (logLevel) {
