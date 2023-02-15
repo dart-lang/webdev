@@ -34,7 +34,7 @@ void main() async {
     late String extensionPath;
 
     setUpAll(() async {
-      extensionPath = await buildDebugExtension();
+      extensionPath = await buildDebugExtension(isMV3: true);
     });
 
     for (var useSse in [true, false]) {

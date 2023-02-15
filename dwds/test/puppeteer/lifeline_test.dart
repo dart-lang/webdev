@@ -23,7 +23,7 @@ void main() async {
 
   group('MV3 Debug Extension Lifeline Connection', () {
     setUpAll(() async {
-      extensionPath = await buildDebugExtension();
+      extensionPath = await buildDebugExtension(isMV3: true);
       browser = await setUpExtensionTest(
         context,
         extensionPath: extensionPath,
