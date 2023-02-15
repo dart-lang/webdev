@@ -277,7 +277,10 @@ void main() async {
           final devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
           // There should be no warning notifications:
-          var chromeNotifications = await worker.evaluate(_getNotifications());
+          var chromeNotifications = await evaluate(
+            _getNotifications(),
+            worker: worker,
+          );
           expect(chromeNotifications, isEmpty);
           // Navigate back to Dart app:
           await navigateToPage(browser, url: appUrl, isNew: false);
@@ -286,7 +289,8 @@ void main() async {
           await clickOnExtensionIcon(worker);
           await workerEvalDelay();
           // There should now be a warning notificiation:
-          chromeNotifications = await worker.evaluate(_getNotifications());
+          chromeNotifications =
+              await evaluate(_getNotifications(), worker: worker);
           expect(chromeNotifications, isNotEmpty);
           // Close the Dart app and the associated Dart DevTools:
           await appTab.close();
@@ -705,7 +709,10 @@ Future<int> _getTabId(
   required Worker worker,
 }) async {
   final jsExpression = _tabIdForTabJs(url);
-  return (await worker.evaluate(jsExpression)) as int;
+  return (await evaluate(
+    jsExpression,
+    worker: worker,
+  )) as int;
 }
 
 Future<int?> _getWindowId(
@@ -713,7 +720,10 @@ Future<int?> _getWindowId(
   required Worker worker,
 }) async {
   final jsExpression = _windowIdForTabJs(url);
-  return (await worker.evaluate(jsExpression)) as int?;
+  return (await evaluate(
+    jsExpression,
+    worker: worker,
+  )) as int?;
 }
 
 Future<T> _fetchStorageObj<T>(
@@ -722,10 +732,13 @@ Future<T> _fetchStorageObj<T>(
   required Worker worker,
 }) async {
   final json = await retryFnAsync<String>(() async {
-    final storageObj = await worker.evaluate(_fetchStorageObjJs(
-      storageKey,
-      storageArea: storageArea,
-    ));
+    final storageObj = await evaluate(
+      _fetchStorageObjJs(
+        storageKey,
+        storageArea: storageArea,
+      ),
+      worker: worker,
+    );
     return storageObj[storageKey];
   });
   if (T == String) return json as T;
