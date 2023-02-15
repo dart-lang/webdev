@@ -33,6 +33,7 @@ void main() {
     Future<void> readAsString(String path) async {
       final request = Request('GET', Uri.parse('http://foo:0000/$path'));
       final response = await context.assetHandler(request);
+      expect(response.statusCode, 200);
       final result = await response.readAsString();
       expect(result, isNotNull,
           reason: 'Failed to read $path: ${response.statusCode}');
@@ -41,25 +42,24 @@ void main() {
     Future<void> readAsBytes(String path) async {
       final request = Request('GET', Uri.parse('http://foo:0000/$path'));
       final response = await context.assetHandler(request);
+      expect(response.statusCode, 200);
       final result = await response.read().toList();
       expect(result, isNotNull,
           reason: 'Failed to read $path: ${response.statusCode}');
     }
 
     test('can read dill files', () async {
-      final path = 'hello_world/main.unsound.ddc.full.dill';
+      final path = 'hello_world/main.ddc.full.dill';
       await readAsBytes(path);
     });
 
     test('can read large number of resources simultaneously', () async {
       final n = 1000;
       final futures = [
+        for (var i = 0; i < n; i++) readAsString('hello_world/main.ddc.js.map'),
+        for (var i = 0; i < n; i++) readAsString('hello_world/main.ddc.js'),
         for (var i = 0; i < n; i++)
-          readAsString('hello_world/main.unsound.ddc.js.map'),
-        for (var i = 0; i < n; i++)
-          readAsString('hello_world/main.unsound.ddc.js'),
-        for (var i = 0; i < n; i++)
-          readAsBytes('hello_world/main.unsound.ddc.full.dill'),
+          readAsBytes('hello_world/main.ddc.full.dill'),
       ];
 
       await expectLater(Future.wait(futures), completes);

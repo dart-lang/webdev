@@ -61,9 +61,7 @@ void main() async {
         });
 
         tearDown(() async {
-          await workerEvalDelay();
-          await worker.evaluate(_clearStorageJs());
-          await workerEvalDelay();
+          await tearDownHelper(worker: worker);
         });
 
         tearDownAll(() async {
@@ -209,7 +207,6 @@ void main() async {
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(worker);
-          print('clicked, waiting for devtools');
           // Wait for DevTools to open:
           final devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
@@ -348,8 +345,7 @@ void main() async {
           });
 
           tearDown(() async {
-            await workerEvalDelay();
-            await worker.evaluate(_clearStorageJs());
+            await tearDownHelper(worker: worker);
           });
 
           tearDownAll(() async {
@@ -429,7 +425,7 @@ void main() async {
 
           setUp(() async {
             for (final page in await browser.pages) {
-              await page.close();
+              await page.close().catchError((_) {});
             }
             appTab = await navigateToPage(
               browser,
@@ -439,9 +435,7 @@ void main() async {
           });
 
           tearDown(() async {
-            await workerEvalDelay();
-            await worker.evaluate(_clearStorageJs());
-            await workerEvalDelay();
+            await tearDownHelper(worker: worker);
           });
 
           tearDownAll(() async {
@@ -467,7 +461,7 @@ void main() async {
 
           test('the correct extension panels are added to Chrome DevTools',
               () async {
-            final chromeDevToolsPage = await _getChromeDevToolsPage(browser);
+            final chromeDevToolsPage = await getChromeDevToolsPage(browser);
             // There are no hooks for when a panel is added to Chrome DevTools,
             // therefore we rely on a slight delay:
             await Future.delayed(Duration(seconds: 1));
@@ -500,7 +494,7 @@ void main() async {
 
           test('Dart DevTools is embedded for debug session lifetime',
               () async {
-            final chromeDevToolsPage = await _getChromeDevToolsPage(browser);
+            final chromeDevToolsPage = await getChromeDevToolsPage(browser);
             // There are no hooks for when a panel is added to Chrome DevTools,
             // therefore we rely on a slight delay:
             await Future.delayed(Duration(seconds: 1));
@@ -547,7 +541,7 @@ void main() async {
 
           test('The Dart DevTools IFRAME has the correct query parameters',
               () async {
-            final chromeDevToolsPage = await _getChromeDevToolsPage(browser);
+            final chromeDevToolsPage = await getChromeDevToolsPage(browser);
             // There are no hooks for when a panel is added to Chrome DevTools,
             // therefore we rely on a slight delay:
             await Future.delayed(Duration(seconds: 1));
@@ -624,9 +618,7 @@ void main() async {
       });
 
       tearDown(() async {
-        await workerEvalDelay();
-        await worker.evaluate(_clearStorageJs());
-        await workerEvalDelay();
+        await tearDownHelper(worker: worker);
       });
 
       tearDownAll(() async {
@@ -676,13 +668,6 @@ Future<bool> _clickLaunchButton(
   } catch (_) {
     return false;
   }
-}
-
-Future<Page> _getChromeDevToolsPage(Browser browser) async {
-  final chromeDevToolsTarget = browser.targets
-      .firstWhere((target) => target.url.startsWith('devtools://devtools'));
-  chromeDevToolsTarget.type = 'page';
-  return await chromeDevToolsTarget.page;
 }
 
 Future<Page> _getPanelPage(
@@ -789,16 +774,6 @@ String _fetchStorageObjJs(
           }
         });
       });
-    }
-''';
-}
-
-String _clearStorageJs() {
-  return '''
-    async () => {
-      await chrome.storage.local.clear();
-      await chrome.storage.session.clear();
-      return true;
     }
 ''';
 }

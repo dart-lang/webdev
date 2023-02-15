@@ -18,7 +18,7 @@ void main() {
   });
 
   tearDownAll(testRunner.tearDownAll);
-  
+
   test('--launch-app launches the specified app', () async {
     var webdev = await testRunner.runWebDev(
         ['daemon', '--launch-app=web/scopes.html'],

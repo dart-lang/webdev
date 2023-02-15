@@ -14,18 +14,17 @@ import 'fixtures/context.dart';
 import 'fixtures/utilities.dart';
 
 /// The directory for the general _test package.
-final testDir = absolutePath(pathFromFixtures: p.join('_test'));
+final testDir = absolutePath(pathFromFixtures: p.join('_testSound'));
 
 /// The directory for the _testPackage package (contained within dwds), which
 /// imports _test.
-final testPackageDir = absolutePath(pathFromFixtures: p.join('_testPackage'));
+final testPackageDir =
+    absolutePath(pathFromFixtures: p.join('_testPackageSound'));
 
 // This tests converting file Uris into our internal paths.
 //
 // These tests are separated out because we need a running isolate in order to
 // look up packages.
-// TODO(https://github.com/dart-lang/webdev/issues/1818): Switch test over for
-// testing sound null-safety.
 void main() {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
