@@ -608,7 +608,7 @@ void main() async {
               // Expect the Dart DevTools IFRAME to be added:
               final devToolsUrlFragment =
                   'ide=ChromeDevTools&embed=true&page=debugger';
-              final iframeTarget = await browser.waitForTarget(
+              var iframeTarget = await browser.waitForTarget(
                 (target) => target.url.contains(devToolsUrlFragment),
               );
               var iframeDestroyed = false;
@@ -635,6 +635,18 @@ void main() async {
                 screenshotName:
                     'debuggerPanelDisconnected_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
               );
+              // Navigate back to the Dart app:
+              await appTab.goto(context.appUrl, wait: Until.domContentLoaded);
+              // Click the launch button again
+              await _clickLaunchButton(
+                browser,
+                panel: Panel.debugger,
+              );
+              // Expect the Dart DevTools IFRAME to be added again:
+              iframeTarget = await browser.waitForTarget(
+                (target) => target.url.contains(devToolsUrlFragment),
+              );
+              expect(iframeTarget, isNotNull);
             });
 
             test('The Dart DevTools IFRAME has the correct query parameters',
@@ -865,6 +877,18 @@ Future<T> _fetchStorageObj<T>(
   if (T == String) return json as T;
   return serializers.deserialize(jsonDecode(json)) as T;
 }
+
+// String _detachDebuggerJs(int tabId) {
+//   return '''
+//     async () => {
+//       return new Promise((resolve, reject) => {
+//         chrome.debugger.detach({tabId: $tabId}, () => {
+//           resolve(true);
+//         })
+//       });
+//     }
+// ''';
+// }
 
 String _tabIdForTabJs(String tabUrl) {
   return '''
