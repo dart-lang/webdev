@@ -7,7 +7,6 @@ library debug_session;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart' show IterableExtension;
