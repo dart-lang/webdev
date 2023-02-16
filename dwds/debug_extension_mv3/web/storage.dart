@@ -14,6 +14,7 @@ import 'package:js/js.dart';
 import 'chrome_api.dart';
 import 'data_serializers.dart';
 import 'logger.dart';
+import 'utils.dart';
 
 enum StorageObject {
   debugInfo,
@@ -131,6 +132,9 @@ void interceptStorageChange<T>({
 }
 
 StorageArea _getStorageArea(Persistance persistance) {
+  // MV2 extensions don't have access to session storage:
+  if (!isMV3) return chrome.storage.local;
+
   switch (persistance) {
     case Persistance.acrossSessions:
       return chrome.storage.local;

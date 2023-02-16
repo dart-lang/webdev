@@ -22,7 +22,7 @@ Future<void> _updateManifestJson() async {
         _newKeyValue(
           oldLine: line,
           newKey: 'name',
-          newValue: '[DEV] MV3 Dart Debug Extension',
+          newValue: '[DEV] Dart Debug Extension',
         ),
         if (extensionKey != null)
           _newKeyValue(

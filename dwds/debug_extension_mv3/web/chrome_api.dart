@@ -12,40 +12,14 @@ external Chrome get chrome;
 @JS()
 @anonymous
 class Chrome {
-  external Action get action;
   external Debugger get debugger;
   external Devtools get devtools;
   external Notifications get notifications;
   external Runtime get runtime;
-  external Scripting get scripting;
   external Storage get storage;
   external Tabs get tabs;
   external WebNavigation get webNavigation;
   external Windows get windows;
-}
-
-/// chrome.action APIs
-/// https://developer.chrome.com/docs/extensions/reference/action
-
-@JS()
-@anonymous
-class Action {
-  external void setIcon(IconInfo iconInfo, Function? callback);
-
-  external OnClickedHandler get onClicked;
-}
-
-@JS()
-@anonymous
-class OnClickedHandler {
-  external void addListener(void Function(Tab tab) callback);
-}
-
-@JS()
-@anonymous
-class IconInfo {
-  external String get path;
-  external factory IconInfo({String path});
 }
 
 /// chrome.debugger APIs:
@@ -57,7 +31,7 @@ class Debugger {
   external void attach(
       Debuggee target, String requiredVersion, Function? callback);
 
-  external Object detach(Debuggee target);
+  external void detach(Debuggee target, Function? callback);
 
   external void sendCommand(Debuggee target, String method,
       Object? commandParams, Function? callback);
@@ -222,30 +196,6 @@ class MessageSender {
   external Tab? get tab;
   external String? get url;
   external factory MessageSender({String? id, String? url, Tab? tab});
-}
-
-/// chrome.scripting APIs
-/// https://developer.chrome.com/docs/extensions/reference/scripting
-
-@JS()
-@anonymous
-class Scripting {
-  external Object executeScript(InjectDetails details);
-}
-
-@JS()
-@anonymous
-class InjectDetails<T, U> {
-  external Target get target;
-  external T? get func;
-  external List<U?>? get args;
-  external List<String>? get files;
-  external factory InjectDetails({
-    Target target,
-    T? func,
-    List<U>? args,
-    List<String>? files,
-  });
 }
 
 @JS()
