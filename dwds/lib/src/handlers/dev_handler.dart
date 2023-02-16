@@ -561,14 +561,10 @@ class DevHandler {
       // handle how to open it. Therefore return early before opening a new
       // tab or window:
       if (devToolsRequest.uriOnly ?? false) {
-        // The MV3 extension is responsible for adding the IDE query
-        // parameter to the DevTools URI.
-        final devToolsUri = (devToolsRequest.isMv3Extension ?? false)
-            ? _constructDevToolsUri(encodedUri)
-            : _constructDevToolsUri(
-                encodedUri,
-                ideQueryParam: 'ChromeDevTools',
-              );
+        final devToolsUri = _constructDevToolsUri(
+          encodedUri,
+          ideQueryParam: 'ChromeDevTools',
+        );
         return extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
       }
 

@@ -58,9 +58,7 @@ void main() async {
         });
 
         tearDown(() async {
-          await workerEvalDelay();
-          await worker.evaluate(_clearStorageJs());
-          await workerEvalDelay();
+          await tearDownHelper(worker: worker);
         });
 
         tearDownAll(() async {
@@ -205,7 +203,6 @@ void main() async {
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(worker);
-          print('clicked, waiting for devtools');
           // Wait for DevTools to open:
           final devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
@@ -280,7 +277,10 @@ void main() async {
           final devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
           // There should be no warning notifications:
-          var chromeNotifications = await worker.evaluate(_getNotifications());
+          var chromeNotifications = await evaluate(
+            _getNotifications(),
+            worker: worker,
+          );
           expect(chromeNotifications, isEmpty);
           // Navigate back to Dart app:
           await navigateToPage(browser, url: appUrl, isNew: false);
@@ -289,7 +289,8 @@ void main() async {
           await clickOnExtensionIcon(worker);
           await workerEvalDelay();
           // There should now be a warning notificiation:
-          chromeNotifications = await worker.evaluate(_getNotifications());
+          chromeNotifications =
+              await evaluate(_getNotifications(), worker: worker);
           expect(chromeNotifications, isNotEmpty);
           // Close the Dart app and the associated Dart DevTools:
           await appTab.close();
@@ -344,8 +345,7 @@ void main() async {
           });
 
           tearDown(() async {
-            await workerEvalDelay();
-            await worker.evaluate(_clearStorageJs());
+            await tearDownHelper(worker: worker);
           });
 
           tearDownAll(() async {
@@ -424,7 +424,7 @@ void main() async {
 
           setUp(() async {
             for (final page in await browser.pages) {
-              await page.close();
+              await page.close().catchError((_) {});
             }
             appTab = await navigateToPage(
               browser,
@@ -434,9 +434,7 @@ void main() async {
           });
 
           tearDown(() async {
-            await workerEvalDelay();
-            await worker.evaluate(_clearStorageJs());
-            await workerEvalDelay();
+            await tearDownHelper(worker: worker);
           });
 
           tearDownAll(() async {
@@ -461,7 +459,7 @@ void main() async {
 
           test('the correct extension panels are added to Chrome DevTools',
               () async {
-            final chromeDevToolsPage = await _getChromeDevToolsPage(browser);
+            final chromeDevToolsPage = await getChromeDevToolsPage(browser);
             // There are no hooks for when a panel is added to Chrome DevTools,
             // therefore we rely on a slight delay:
             await Future.delayed(Duration(seconds: 1));
@@ -494,7 +492,7 @@ void main() async {
 
           test('Dart DevTools is embedded for debug session lifetime',
               () async {
-            final chromeDevToolsPage = await _getChromeDevToolsPage(browser);
+            final chromeDevToolsPage = await getChromeDevToolsPage(browser);
             // There are no hooks for when a panel is added to Chrome DevTools,
             // therefore we rely on a slight delay:
             await Future.delayed(Duration(seconds: 1));
@@ -541,7 +539,7 @@ void main() async {
 
           test('The Dart DevTools IFRAME has the correct query parameters',
               () async {
-            final chromeDevToolsPage = await _getChromeDevToolsPage(browser);
+            final chromeDevToolsPage = await getChromeDevToolsPage(browser);
             // There are no hooks for when a panel is added to Chrome DevTools,
             // therefore we rely on a slight delay:
             await Future.delayed(Duration(seconds: 1));
@@ -618,9 +616,7 @@ void main() async {
       });
 
       tearDown(() async {
-        await workerEvalDelay();
-        await worker.evaluate(_clearStorageJs());
-        await workerEvalDelay();
+        await tearDownHelper(worker: worker);
       });
 
       tearDownAll(() async {
@@ -672,13 +668,6 @@ Future<bool> _clickLaunchButton(
   }
 }
 
-Future<Page> _getChromeDevToolsPage(Browser browser) async {
-  final chromeDevToolsTarget = browser.targets
-      .firstWhere((target) => target.url.startsWith('devtools://devtools'));
-  chromeDevToolsTarget.type = 'page';
-  return await chromeDevToolsTarget.page;
-}
-
 Future<Page> _getPanelPage(
   Browser browser, {
   required Panel panel,
@@ -720,7 +709,10 @@ Future<int> _getTabId(
   required Worker worker,
 }) async {
   final jsExpression = _tabIdForTabJs(url);
-  return (await worker.evaluate(jsExpression)) as int;
+  return (await evaluate(
+    jsExpression,
+    worker: worker,
+  )) as int;
 }
 
 Future<int?> _getWindowId(
@@ -728,7 +720,10 @@ Future<int?> _getWindowId(
   required Worker worker,
 }) async {
   final jsExpression = _windowIdForTabJs(url);
-  return (await worker.evaluate(jsExpression)) as int?;
+  return (await evaluate(
+    jsExpression,
+    worker: worker,
+  )) as int?;
 }
 
 Future<T> _fetchStorageObj<T>(
@@ -737,10 +732,13 @@ Future<T> _fetchStorageObj<T>(
   required Worker worker,
 }) async {
   final json = await retryFnAsync<String>(() async {
-    final storageObj = await worker.evaluate(_fetchStorageObjJs(
-      storageKey,
-      storageArea: storageArea,
-    ));
+    final storageObj = await evaluate(
+      _fetchStorageObjJs(
+        storageKey,
+        storageArea: storageArea,
+      ),
+      worker: worker,
+    );
     return storageObj[storageKey];
   });
   if (T == String) return json as T;
@@ -783,16 +781,6 @@ String _fetchStorageObjJs(
           }
         });
       });
-    }
-''';
-}
-
-String _clearStorageJs() {
-  return '''
-    async () => {
-      await chrome.storage.local.clear();
-      await chrome.storage.session.clear();
-      return true;
     }
 ''';
 }

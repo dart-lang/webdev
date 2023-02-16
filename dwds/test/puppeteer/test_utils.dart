@@ -7,16 +7,24 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
+import 'package:test/test.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/utilities.dart';
 
+enum ConsoleSource {
+  devTools,
+  worker,
+}
+
+final _devToolsLogs = [];
+final _workerLogs = [];
+
 Future<String> buildDebugExtension() async {
   final extensionDir = absolutePath(pathFromDwds: 'debug_extension_mv3');
-  // TODO(elliette): This doesn't work on Windows, see https://github.com/dart-lang/webdev/issues/1724.
   await Process.run(
-    p.join('tool', 'build_extension.sh'),
-    [],
+    'dart',
+    [p.join('tool', 'build_extension.dart')],
     workingDirectory: extensionDir,
   );
   return p.join(extensionDir, 'compiled');
@@ -53,14 +61,51 @@ Future<Browser> setUpExtensionTest(
   );
 }
 
+Future<void> tearDownHelper({required Worker worker}) async {
+  _logConsoleMsgsOnFailure();
+  _workerLogs.clear();
+  _devToolsLogs.clear();
+  await _clearStorage(worker: worker);
+}
+
 Future<Worker> getServiceWorker(Browser browser) async {
   final serviceWorkerTarget =
       await browser.waitForTarget((target) => target.type == 'service_worker');
-  return (await serviceWorkerTarget.worker)!;
+  final worker = (await serviceWorkerTarget.worker)!;
+  return Worker(
+    worker.client,
+    worker.url,
+    onConsoleApiCalled: (type, jsHandles, _) {
+      for (var handle in jsHandles) {
+        _saveConsoleMsg(
+            source: ConsoleSource.worker, type: '$type', msg: '$handle');
+      }
+    },
+    onExceptionThrown: null,
+  );
+}
+
+Future<Page> getChromeDevToolsPage(Browser browser) async {
+  final chromeDevToolsTarget = browser.targets
+      .firstWhere((target) => target.url.startsWith('devtools://devtools'));
+  chromeDevToolsTarget.type = 'page';
+  final chromeDevToolsPage = await chromeDevToolsTarget.page;
+  chromeDevToolsPage.onConsole.listen((msg) {
+    _saveConsoleMsg(
+      source: ConsoleSource.devTools,
+      type: '${msg.type}',
+      msg: msg.text ?? '',
+    );
+  });
+  return chromeDevToolsPage;
+}
+
+Future evaluate(String jsExpression, {required Worker worker}) async {
+  return worker.evaluate(jsExpression);
 }
 
 Future<void> clickOnExtensionIcon(Worker worker) async {
-  return worker.evaluate(_clickIconJs);
+  return evaluate(_clickIconJs, worker: worker);
 }
 
 // Note: The following delay is required to reduce flakiness. It makes
@@ -97,6 +142,33 @@ String getExtensionOrigin(Browser browser) {
   return '$chromeExtension//$extensionId';
 }
 
+void _saveConsoleMsg({
+  required ConsoleSource source,
+  required String type,
+  required String msg,
+}) {
+  if (msg.isEmpty) return;
+  final consiseMsg = msg.startsWith('JSHandle:') ? msg.substring(9) : msg;
+  final formatted = 'console.$type: $consiseMsg';
+  switch (source) {
+    case ConsoleSource.devTools:
+      _devToolsLogs.add(formatted);
+      break;
+    case ConsoleSource.worker:
+      _workerLogs.add(formatted);
+      break;
+  }
+}
+
+void _logConsoleMsgsOnFailure() {
+  if (_workerLogs.isNotEmpty) {
+    printOnFailure(['Service Worker logs:', ..._workerLogs].join('\n'));
+  }
+  if (_devToolsLogs.isNotEmpty) {
+    printOnFailure(['Chrome DevTools logs:', ..._devToolsLogs].join('\n'));
+  }
+}
+
 Iterable<String> _getUrlsInBrowser(Browser browser) {
   return browser.targets.map((target) => target.url);
 }
@@ -106,10 +178,27 @@ Future<Page> _getPageForUrl(Browser browser, {required String url}) {
   return pageTarget.page;
 }
 
+Future<void> _clearStorage({
+  required Worker worker,
+}) async {
+  return evaluate(
+    _clearStorageJs,
+    worker: worker,
+  ).catchError((_) {});
+}
+
 final _clickIconJs = '''
   async () => {
     const activeTabs = await chrome.tabs.query({ active: true });
     const tab = activeTabs[0];
     chrome.action.onClicked.dispatch(tab);
   }
+''';
+
+final _clearStorageJs = '''
+    async () => {
+      await chrome.storage.local.clear();
+      await chrome.storage.session.clear();
+      return true;
+    }
 ''';
