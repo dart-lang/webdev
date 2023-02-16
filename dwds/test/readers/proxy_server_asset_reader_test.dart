@@ -16,8 +16,7 @@ void main() {
     final provider = TestSdkConfigurationProvider();
     tearDownAll(provider.dispose);
 
-    final context =
-        TestContext(TestProject.testWithSoundNullSafety(), provider);
+    final context = TestContext(TestProject.testWithSoundNullSafety, provider);
 
     late ProxyServerAssetReader assetReader;
     setUpAll(() async {

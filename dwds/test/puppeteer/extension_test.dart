@@ -32,8 +32,7 @@ enum Panel { debugger, inspector }
 void main() async {
   group('MV3 Debug Extension', () {
     final provider = TestSdkConfigurationProvider();
-    final context =
-        TestContext(TestProject.testWithSoundNullSafety(), provider);
+    final context = TestContext(TestProject.testWithSoundNullSafety, provider);
     late String extensionPath;
 
     setUpAll(() async {

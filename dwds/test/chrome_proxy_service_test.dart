@@ -29,7 +29,7 @@ void main() {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  final context = TestContext(TestProject.testWithSoundNullSafety(), provider);
+  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
 
   group('shared context', () {
     setUpAll(() async {
@@ -126,8 +126,7 @@ void main() {
       });
 
       test('addBreakpointWithScriptUri absolute file URI', () async {
-        final current = context.workingDirectory;
-        final test = path.join(path.dirname(current), '_testSound');
+        final test = context.project.absolutePackageDirectory;
         final scriptPath = Uri.parse(mainScript.uri!).path.substring(1);
         final fullPath = path.join(test, scriptPath);
         final fileUri = Uri.file(fullPath);
@@ -163,15 +162,15 @@ void main() {
       });
     });
 
-    group('callcontext.serviceExtension', () {
+    group('callServiceExtension', () {
       setUp(() {
         setCurrentLogWriter(debug: debug);
       });
 
       test('success', () async {
-        final serviceMethod = 'ext.test.callcontext.serviceExtension';
+        final serviceMethod = 'ext.test.callServiceExtension';
         await context.tabConnection.runtime
-            .evaluate('registerExtension("$context.serviceMethod");');
+            .evaluate('registerExtension("$serviceMethod");');
 
         // The non-string keys/values get auto json-encoded to match the vm
         // behavior.
@@ -196,7 +195,7 @@ void main() {
       });
 
       test('failure', () async {
-        final serviceMethod = 'ext.test.callcontext.serviceExtensionWithError';
+        final serviceMethod = 'ext.test.callServiceExtensionWithError';
         await context.tabConnection.runtime
             .evaluate('registerExtensionWithError("$serviceMethod");');
 

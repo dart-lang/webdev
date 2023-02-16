@@ -16,7 +16,7 @@ import 'test_utils.dart';
 
 void main() async {
   final provider = TestSdkConfigurationProvider();
-  final context = TestContext(TestProject.testWithSoundNullSafety(), provider);
+  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
   late Worker worker;
   late Browser browser;
   late String extensionPath;

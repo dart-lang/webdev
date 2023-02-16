@@ -24,7 +24,6 @@ void main() {
 
     for (var nullSafety in NullSafety.values) {
       group('${nullSafety.name} null safety |', () {
-        final soundNullSafety = nullSafety == NullSafety.sound;
         final context = TestContext(
             TestProject.testPackage(nullSafety: nullSafety), provider);
 
@@ -60,9 +59,7 @@ void main() {
             await service.streamListen('Debug');
             stream = service.onEvent('Debug');
 
-            final testPackage =
-                soundNullSafety ? '_test_package_sound' : '_test_package';
-
+            final testPackage = context.project.packageName;
             mainScript = scripts.scripts!
                 .firstWhere((each) => each.uri!.contains('main.dart'));
             testLibraryScript = scripts.scripts!.firstWhere((each) =>

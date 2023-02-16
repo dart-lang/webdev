@@ -139,6 +139,8 @@ class TestContext {
       : nullSafety = project.nullSafety {
     DartUri.currentDirectory = workingDirectory;
 
+    project.validate();
+
     _logger.info('Serving: $directoryToServe/$filePathToServe');
     _logger.info('Project: $workingDirectory');
     _logger.info('Packages: $_packageConfigFile');

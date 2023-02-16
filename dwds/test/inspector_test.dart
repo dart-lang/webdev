@@ -23,7 +23,7 @@ void main() {
   tearDownAll(provider.dispose);
 
   final context =
-      TestContext(TestProject.testScopesWithSoundNullSafety(), provider);
+      TestContext(TestProject.testScopesWithSoundNullSafety, provider);
 
   late AppInspector inspector;
   late Debugger debugger;

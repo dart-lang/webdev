@@ -35,7 +35,7 @@ Future<void> _runTests({
   required bool debug,
 }) async {
   final context =
-      TestContext(TestProject.testExperimentWithSoundNullSafety(), provider);
+      TestContext(TestProject.testExperimentWithSoundNullSafety, provider);
   late VmServiceInterface service;
   late Stream<Event> stream;
   late String isolateId;

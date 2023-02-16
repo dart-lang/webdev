@@ -18,7 +18,7 @@ void main() {
   tearDownAll(provider.dispose);
 
   final context =
-      TestContext(TestProject.testScopesWithSoundNullSafety(), provider);
+      TestContext(TestProject.testScopesWithSoundNullSafety, provider);
 
   setUpAll(() async {
     await context.setUp();

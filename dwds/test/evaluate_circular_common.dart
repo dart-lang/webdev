@@ -28,9 +28,11 @@ void testAll({
         'build daemon scenario does not support non-empty base in index file');
   }
 
-  final context = TestContext(
-      TestProject.testCircular(nullSafety: nullSafety, baseMode: indexBaseMode),
-      provider);
+  final testCircular1 = TestProject.testCircular1(nullSafety: nullSafety);
+  final testCircular2 = TestProject.testCircular2(
+      nullSafety: nullSafety, baseMode: indexBaseMode);
+
+  final context = TestContext(testCircular2, provider);
 
   Future<void> onBreakPoint(String isolate, ScriptRef script,
       String breakPointId, Future<void> Function() body) async {
@@ -87,11 +89,8 @@ void testAll({
         await service.streamListen('Debug');
         stream = service.onEvent('Debug');
 
-        final soundNullSafety = nullSafety == NullSafety.sound;
-        final test1 =
-            soundNullSafety ? '_test_circular1_sound' : '_test_circular1';
-        final test2 =
-            soundNullSafety ? '_test_circular2_sound' : '_test_circular2';
+        final test1 = testCircular1.packageName;
+        final test2 = testCircular2.packageName;
 
         test1LibraryScript = scripts.scripts!.firstWhere(
             (each) => each.uri!.contains('package:$test1/library1.dart'));

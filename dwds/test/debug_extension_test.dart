@@ -37,8 +37,7 @@ void main() async {
   tearDownAll(provider.dispose);
 
   for (var useSse in [true, false]) {
-    final context =
-        TestContext(TestProject.testWithSoundNullSafety(), provider);
+    final context = TestContext(TestProject.testWithSoundNullSafety, provider);
 
     group(useSse ? 'SSE' : 'WebSockets', () {
       group('Without encoding', () {
@@ -193,8 +192,7 @@ void main() async {
   }
 
   group('With encoding', () {
-    final context =
-        TestContext(TestProject.testWithSoundNullSafety(), provider);
+    final context = TestContext(TestProject.testWithSoundNullSafety, provider);
 
     setUpAll(() async {
       await context.setUp(
@@ -212,8 +210,7 @@ void main() async {
   });
 
   group('With "any" hostname', () {
-    final context =
-        TestContext(TestProject.testWithSoundNullSafety(), provider);
+    final context = TestContext(TestProject.testWithSoundNullSafety, provider);
 
     final uriPattern = RegExp(r'dartExtensionUri = "([^"]+)";');
 

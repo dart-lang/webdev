@@ -16,7 +16,7 @@ void main() {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
 
-  final context = TestContext(TestProject.testWithSoundNullSafety(), provider);
+  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
 
   group('while debugger is attached', () {
     late VmServiceInterface service;

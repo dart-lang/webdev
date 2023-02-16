@@ -60,14 +60,11 @@ void main() {
             await service.streamListen('Debug');
             stream = service.onEvent('Debug');
 
-            final testPackage = nullSafety == NullSafety.sound
-                ? '_test_package_sound'
-                : '_test_package';
-
+            final packageName = context.project.packageName;
             mainScript = scripts.scripts!
                 .firstWhere((each) => each.uri!.contains('main.dart'));
             testLibraryScript = scripts.scripts!.firstWhere((each) =>
-                each.uri!.contains('package:$testPackage/test_library.dart'));
+                each.uri!.contains('package:$packageName/test_library.dart'));
           });
 
           tearDown(() async {

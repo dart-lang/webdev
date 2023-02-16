@@ -24,7 +24,7 @@ void main() {
   tearDownAll(provider.dispose);
 
   final context =
-      TestContext(TestProject.testAppendBodyWithSoundNullSafety(), provider);
+      TestContext(TestProject.testAppendBodyWithSoundNullSafety, provider);
 
   Future<void> makeEditAndWaitForRebuild() async {
     context.makeEditToDartEntryFile(
