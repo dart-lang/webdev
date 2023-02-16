@@ -5,6 +5,7 @@
 @JS()
 library panel;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
@@ -49,19 +50,23 @@ const _pleaseAuthenticateMsg = 'Please re-authenticate and try again.';
 int get _tabId => chrome.devtools.inspectedWindow.tabId;
 
 void main() {
-  _registerListeners();
+  unawaited(
+    _registerListeners().catchError((error) {
+      debugWarn('Error registering listeners in panel: $error');
+    }),
+  );
   _setColorThemeToMatchChromeDevTools();
   _maybeUpdateFileABugLink();
 }
 
-void _registerListeners() {
+Future<void> _registerListeners() async {
   chrome.storage.onChanged.addListener(allowInterop(_handleStorageChanges));
   chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
   final launchDebugConnectionButton =
       document.getElementById(_launchDebugConnectionButtonId) as ButtonElement;
   launchDebugConnectionButton.addEventListener('click', _launchDebugConnection);
 
-  _maybeInjectDevToolsIframe();
+  await _maybeInjectDevToolsIframe();
 }
 
 void _handleRuntimeMessages(
@@ -251,7 +256,7 @@ void _maybeHandleConnectionTimeout() async {
   }
 }
 
-void _maybeInjectDevToolsIframe() async {
+Future<void> _maybeInjectDevToolsIframe() async {
   final devToolsUri = await fetchStorageObject<String>(
       type: StorageObject.devToolsUri, tabId: _tabId);
   if (devToolsUri == null) return;
