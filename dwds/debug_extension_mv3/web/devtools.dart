@@ -27,7 +27,6 @@ void _registerListeners() {
     Object _,
     String storageArea,
   ) {
-    if (storageArea != 'session') return;
     _maybeCreatePanels();
   }));
 }

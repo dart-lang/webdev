@@ -10,6 +10,7 @@
 // Run from the extension root directory:
 //    - For dev: dart run tool/build_extension.dart
 //    - For prod: dart run tool/build_extension.dart prod
+//    - For MV3: dart run tool/build_extension.dart --mv3
 
 import 'dart:async';
 import 'dart:convert';
@@ -19,20 +20,26 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 
 const _prodFlag = 'prod';
+const _mv3Flag = 'mv3';
 
 void main(List<String> arguments) async {
   final parser = ArgParser()
-    ..addFlag(_prodFlag, negatable: true, defaultsTo: false);
+    ..addFlag(_prodFlag, negatable: true, defaultsTo: false)
+    ..addFlag(_mv3Flag, negatable: true, defaultsTo: false);
   final argResults = parser.parse(arguments);
 
-  exitCode = await run(isProd: argResults[_prodFlag] as bool);
+  exitCode = await run(
+    isProd: argResults[_prodFlag] as bool,
+    isMV3: argResults[_mv3Flag] as bool,
+  );
   if (exitCode != 0) {
     _logWarning('Run terminated unexpectedly with exit code: $exitCode');
   }
 }
 
-Future<int> run({required bool isProd}) async {
-  _logInfo('Building extension for ${isProd ? 'prod' : 'dev'}');
+Future<int> run({required bool isProd, required bool isMV3}) async {
+  _logInfo(
+      'Building ${isMV3 ? 'MV3' : 'MV2'} extension for ${isProd ? 'prod' : 'dev'}');
   _logInfo('Compiling extension with dart2js to /compiled directory');
   final compileStep = await Process.start(
     'dart',
@@ -42,6 +49,17 @@ Future<int> run({required bool isProd}) async {
   // Terminate early if compilation failed:
   if (compileExitCode != 0) {
     return compileExitCode;
+  }
+  final manifestFileName = isMV3 ? 'manifest_mv3' : 'manifest_mv2';
+  _logInfo('Copying manifest.json to /compiled directory');
+  final copyStep = await Process.start('cp', [
+    p.join('web', '$manifestFileName.json'),
+    p.join('compiled', 'manifest.json'),
+  ]);
+  final copyExitCode = await _handleProcess(copyStep);
+  // Terminate early if copying the manifest file failed:
+  if (copyExitCode != 0) {
+    return copyExitCode;
   }
   _logInfo('Updating manifest.json in /compiled directory.');
   final updateStep = await Process.start(
