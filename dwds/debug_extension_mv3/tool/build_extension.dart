@@ -52,14 +52,14 @@ Future<int> run({required bool isProd, required bool isMV3}) async {
   }
   final manifestFileName = isMV3 ? 'manifest_mv3' : 'manifest_mv2';
   _logInfo('Copying manifest.json to /compiled directory');
-  final copyStep = await Process.start('cp', [
-    p.join('web', '$manifestFileName.json'),
-    p.join('compiled', 'manifest.json'),
-  ]);
-  final copyExitCode = await _handleProcess(copyStep);
-  // Terminate early if copying the manifest file failed:
-  if (copyExitCode != 0) {
-    return copyExitCode;
+  try {
+    File(p.join('web', '$manifestFileName.json')).copySync(
+      p.join('compiled', 'manifest.json'),
+    );
+  } catch (error) {
+    _logWarning('Copying manifest file failed: $error');
+    // Return non-zero exit code to indicate failure:
+    return 1;
   }
   _logInfo('Updating manifest.json in /compiled directory.');
   final updateStep = await Process.start(
