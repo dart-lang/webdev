@@ -11,6 +11,7 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
 const originalString = 'Hello World!';
 const newString = 'Bonjour le monde!';
@@ -22,7 +23,8 @@ void main() {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  final context = TestContext.testAppendBodyWithSoundNullSafety(provider);
+  final context =
+      TestContext(TestProject.testAppendBodyWithSoundNullSafety(), provider);
 
   Future<void> makeEditAndWaitForRebuild() async {
     context.makeEditToDartEntryFile(

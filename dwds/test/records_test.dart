@@ -11,6 +11,7 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
@@ -33,7 +34,8 @@ Future<void> _runTests({
   required CompilationMode compilationMode,
   required bool debug,
 }) async {
-  final context = TestContext.testExperimentWithSoundNullSafety(provider);
+  final context =
+      TestContext(TestProject.testExperimentWithSoundNullSafety(), provider);
   late VmServiceInterface service;
   late Stream<Event> stream;
   late String isolateId;

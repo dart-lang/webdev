@@ -11,11 +11,12 @@ import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
+import '../fixtures/project.dart';
 import 'test_utils.dart';
 
 void main() async {
   final provider = TestSdkConfigurationProvider();
-  final context = TestContext.testWithSoundNullSafety(provider);
+  final context = TestContext(TestProject.testWithSoundNullSafety(), provider);
   late Worker worker;
   late Browser browser;
   late String extensionPath;

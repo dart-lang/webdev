@@ -38,6 +38,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/async_io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'project.dart';
 import 'server.dart';
 import 'utilities.dart';
 
@@ -51,41 +52,37 @@ final Matcher throwsSentinelException = throwsA(isSentinelException);
 
 enum CompilationMode { buildDaemon, frontendServer }
 
-enum IndexBaseMode { noBase, base }
-
-enum NullSafety { weak, sound }
-
 class TestContext {
-  final String packageName;
-  final String webAssetsPath;
-  final String dartEntryFileName;
-  final String htmlEntryFileName;
+  final TestProject project;
   final NullSafety nullSafety;
-
   final TestSdkConfigurationProvider sdkConfigurationProvider;
-  // late TestSdkLayout sdkLayout;
 
   /// Top level directory in which we run the test server, e.g.
   /// "/workstation/webdev/fixtures/_testSound".
-  String get workingDirectory => absolutePath(pathFromFixtures: packageName);
+  String get workingDirectory =>
+      absolutePath(pathFromFixtures: project.packageDirectory);
 
   /// The directory to build and serve, e.g. "example".
-  String get directoryToServe => p.split(webAssetsPath).first;
+  String get directoryToServe => p.split(project.webAssetsPath).first;
 
   /// The path to the HTML file to serve, relative to the [directoryToServe],
   /// e.g. "hello_world/index.html".
   String get filePathToServe {
-    final pathParts = p.split(webAssetsPath).where(
+    final pathParts = p.split(project.webAssetsPath).where(
           (pathPart) => pathPart != directoryToServe,
         );
-    return webCompatiblePath([...pathParts, htmlEntryFileName]);
+    return webCompatiblePath([...pathParts, project.htmlEntryFileName]);
   }
 
   /// The path to the Dart entry file, e.g,
   /// "/workstation/webdev/fixtures/_testSound/example/hello_world/main.dart":
   String get _dartEntryFilePath => absolutePath(
         pathFromFixtures: p.joinAll(
-          [packageName, webAssetsPath, dartEntryFileName],
+          [
+            project.packageDirectory,
+            project.webAssetsPath,
+            project.dartEntryFileName
+          ],
         ),
       );
 
@@ -138,100 +135,8 @@ class TestContext {
 
   final _logger = logging.Logger('Context');
 
-  static String _index(IndexBaseMode baseMode) =>
-      baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html';
-
-  TestContext.testPackage({
-    required TestSdkConfigurationProvider provider,
-    required NullSafety nullSafety,
-    IndexBaseMode baseMode = IndexBaseMode.noBase,
-  }) : this._(
-          packageName: nullSafety == NullSafety.sound
-              ? '_testPackageSound'
-              : '_testPackage',
-          webAssetsPath: 'web',
-          dartEntryFileName: 'main.dart',
-          htmlEntryFileName: _index(baseMode),
-          nullSafety: nullSafety,
-          sdkConfigurationProvider: provider,
-        );
-
-  TestContext.testPackageWithSoundNullSafety(
-      TestSdkConfigurationProvider provider)
-      : this.testPackage(provider: provider, nullSafety: NullSafety.sound);
-
-  TestContext.testCircular({
-    required TestSdkConfigurationProvider provider,
-    required NullSafety nullSafety,
-    IndexBaseMode baseMode = IndexBaseMode.noBase,
-  }) : this._(
-          packageName: nullSafety == NullSafety.sound
-              ? '_testCircular2Sound'
-              : '_testCircular2',
-          webAssetsPath: 'web',
-          dartEntryFileName: 'main.dart',
-          htmlEntryFileName: _index(baseMode),
-          nullSafety: nullSafety,
-          sdkConfigurationProvider: provider,
-        );
-
-  TestContext.testWithSoundNullSafety(TestSdkConfigurationProvider provider)
-      : this._(
-          packageName: '_testSound',
-          webAssetsPath: 'example/hello_world',
-          dartEntryFileName: 'main.dart',
-          htmlEntryFileName: 'index.html',
-          nullSafety: NullSafety.sound,
-          sdkConfigurationProvider: provider,
-        );
-
-  TestContext.testScopesWithSoundNullSafety(
-      TestSdkConfigurationProvider provider)
-      : this._(
-          packageName: '_testSound',
-          webAssetsPath: webCompatiblePath(['example', 'scopes']),
-          dartEntryFileName: 'main.dart',
-          htmlEntryFileName: 'scopes.html',
-          nullSafety: NullSafety.sound,
-          sdkConfigurationProvider: provider,
-        );
-
-  TestContext.testAppendBodyWithSoundNullSafety(
-      TestSdkConfigurationProvider provider)
-      : this._(
-          packageName: '_testSound',
-          webAssetsPath: webCompatiblePath(['example', 'append_body']),
-          dartEntryFileName: 'main.dart',
-          htmlEntryFileName: 'index.html',
-          nullSafety: NullSafety.sound,
-          sdkConfigurationProvider: provider,
-        );
-
-  TestContext.testExperimentWithSoundNullSafety(
-      TestSdkConfigurationProvider provider)
-      : this._(
-          packageName: '_experimentSound',
-          webAssetsPath: 'web',
-          dartEntryFileName: 'main.dart',
-          htmlEntryFileName: 'index.html',
-          nullSafety: NullSafety.sound,
-          sdkConfigurationProvider: provider,
-        );
-
-  TestContext._({
-    required this.packageName,
-    required this.webAssetsPath,
-    required this.dartEntryFileName,
-    required this.htmlEntryFileName,
-    required this.nullSafety,
-    required this.sdkConfigurationProvider,
-  }) {
-    // Verify that the test fixtures package matches the null-safety mode:
-    final isSoundPackage = packageName.toLowerCase().contains('sound');
-    assert(nullSafety == NullSafety.sound ? isSoundPackage : !isSoundPackage);
-    // Verify that the web assets path has no starting slash:
-    assert(!webAssetsPath.startsWith('/'));
-
+  TestContext(this.project, this.sdkConfigurationProvider)
+      : nullSafety = project.nullSafety {
     DartUri.currentDirectory = workingDirectory;
 
     _logger.info('Serving: $directoryToServe/$filePathToServe');
@@ -373,7 +278,8 @@ class TestContext {
           {
             _logger.warning('Index: $filePathToServe');
 
-            final entry = p.toUri(p.join(webAssetsPath, dartEntryFileName));
+            final entry = p.toUri(
+                p.join(project.webAssetsPath, project.dartEntryFileName));
             final fileSystem = LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
               fileSystem,

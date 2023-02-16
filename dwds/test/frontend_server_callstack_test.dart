@@ -12,6 +12,7 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -23,9 +24,8 @@ void main() {
   group('shared context |', () {
     for (var nullSafety in NullSafety.values) {
       group('${nullSafety.name} null safety |', () {
-        final soundNullSafety = nullSafety == NullSafety.sound;
-        final context =
-            TestContext.testPackage(provider: provider, nullSafety: nullSafety);
+        final context = TestContext(
+            TestProject.testPackage(nullSafety: nullSafety), provider);
 
         setUpAll(() async {
           setCurrentLogWriter(debug: debug);
@@ -60,8 +60,9 @@ void main() {
             await service.streamListen('Debug');
             stream = service.onEvent('Debug');
 
-            final testPackage =
-                soundNullSafety ? '_test_package_sound' : '_test_package';
+            final testPackage = nullSafety == NullSafety.sound
+                ? '_test_package_sound'
+                : '_test_package';
 
             mainScript = scripts.scripts!
                 .firstWhere((each) => each.uri!.contains('main.dart'));

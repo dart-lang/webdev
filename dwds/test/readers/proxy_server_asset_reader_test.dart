@@ -9,13 +9,15 @@ import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
+import '../fixtures/project.dart';
 
 void main() {
   group('ProxyServerAssetReader', () {
     final provider = TestSdkConfigurationProvider();
     tearDownAll(provider.dispose);
 
-    final context = TestContext.testWithSoundNullSafety(provider);
+    final context =
+        TestContext(TestProject.testWithSoundNullSafety(), provider);
 
     late ProxyServerAssetReader assetReader;
     setUpAll(() async {

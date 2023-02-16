@@ -16,12 +16,15 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
 
-  final context = TestContext.testScopesWithSoundNullSafety(provider);
+  final context =
+      TestContext(TestProject.testScopesWithSoundNullSafety(), provider);
+
   late AppInspector inspector;
   late Debugger debugger;
 

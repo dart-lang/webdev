@@ -13,6 +13,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
 Future<void> _waitForPageReady(TestContext context) async {
   var attempt = 100;
@@ -28,7 +29,7 @@ void main() {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
 
-  final context = TestContext.testWithSoundNullSafety(provider);
+  final context = TestContext(TestProject.testWithSoundNullSafety(), provider);
 
   group('Injected client', () {
     setUp(() async {

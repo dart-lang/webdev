@@ -23,6 +23,7 @@ import 'package:test_common/test_sdk_configuration.dart';
 import '../../debug_extension_mv3/web/data_serializers.dart';
 import '../../debug_extension_mv3/web/data_types.dart';
 import '../fixtures/context.dart';
+import '../fixtures/project.dart';
 import '../fixtures/utilities.dart';
 import 'test_utils.dart';
 
@@ -31,7 +32,8 @@ enum Panel { debugger, inspector }
 void main() async {
   group('MV3 Debug Extension', () {
     final provider = TestSdkConfigurationProvider();
-    final context = TestContext.testWithSoundNullSafety(provider);
+    final context =
+        TestContext(TestProject.testWithSoundNullSafety(), provider);
     late String extensionPath;
 
     setUpAll(() async {

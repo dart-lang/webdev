@@ -12,6 +12,7 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
 void testAll({
   required TestSdkConfigurationProvider provider,
@@ -26,11 +27,10 @@ void testAll({
     throw StateError(
         'build daemon scenario does not support non-empty base in index file');
   }
-  final context = TestContext.testCircular(
-    provider: provider,
-    nullSafety: nullSafety,
-    baseMode: indexBaseMode,
-  );
+
+  final context = TestContext(
+      TestProject.testCircular(nullSafety: nullSafety, baseMode: indexBaseMode),
+      provider);
 
   Future<void> onBreakPoint(String isolate, ScriptRef script,
       String breakPointId, Future<void> Function() body) async {

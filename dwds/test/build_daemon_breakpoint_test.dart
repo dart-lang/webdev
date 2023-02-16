@@ -11,12 +11,14 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
 
-  final context = TestContext.testPackageWithSoundNullSafety(provider);
+  final context =
+      TestContext(TestProject.testPackageWithSoundNullSafety(), provider);
 
   group('shared context', () {
     setUpAll(() async {

@@ -20,6 +20,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
 void main() {
   // Change to true to see verbose output from the tests.
@@ -28,7 +29,7 @@ void main() {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  final context = TestContext.testWithSoundNullSafety(provider);
+  final context = TestContext(TestProject.testWithSoundNullSafety(), provider);
 
   group('shared context', () {
     setUpAll(() async {

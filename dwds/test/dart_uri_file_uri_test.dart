@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
 /// The directory for the general _test package.
@@ -28,7 +29,8 @@ final testPackageDir =
 void main() {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
-  final context = TestContext.testWithSoundNullSafety(provider);
+
+  final context = TestContext(TestProject.testWithSoundNullSafety(), provider);
 
   for (final compilationMode in CompilationMode.values) {
     group('$compilationMode |', () {

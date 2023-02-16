@@ -12,6 +12,7 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
 void testAll({
   required TestSdkConfigurationProvider provider,
@@ -26,27 +27,29 @@ void testAll({
     throw StateError(
         'build daemon scenario does not support non-empty base in index file');
   }
-  final context = TestContext.testPackage(
-      provider: provider, nullSafety: nullSafety, baseMode: indexBaseMode);
+
+  final context = TestContext(
+      TestProject.testPackage(nullSafety: nullSafety, baseMode: indexBaseMode),
+      provider);
 
   Future<void> onBreakPoint(String isolate, ScriptRef script,
       String breakPointId, Future<void> Function() body) async {
-    final service = context.service;
     Breakpoint? bp;
     try {
       final line =
           await context.findBreakpointLine(breakPointId, isolate, script);
-      bp = await service.addBreakpointWithScriptUri(isolate, script.uri!, line);
+      bp = await context.service
+          .addBreakpointWithScriptUri(isolate, script.uri!, line);
       await body();
     } finally {
       // Remove breakpoint so it doesn't impact other tests or retries.
       if (bp != null) {
-        await service.removeBreakpoint(isolate, bp.id!);
+        await context.service.removeBreakpoint(isolate, bp.id!);
       }
     }
   }
 
-  group('with evaluation |', () {
+  group('Shared context with evaluation |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
@@ -638,7 +641,7 @@ void testAll({
     });
   }, timeout: const Timeout.factor(2));
 
-  group('with no evaluation |', () {
+  group('shared context with no evaluation |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(

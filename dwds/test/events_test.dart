@@ -15,12 +15,13 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/async_core.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
 
-  final context = TestContext.testWithSoundNullSafety(provider);
+  final context = TestContext(TestProject.testWithSoundNullSafety(), provider);
 
   group('serve requests', () {
     late HttpServer server;
