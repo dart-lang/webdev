@@ -239,8 +239,8 @@ Future<void> _clearStorage({
 
 String _clickIconJs({bool isMV3 = false}) => '''
   async () => {
-    const activeTabs = await chrome.tabs.query({ active: true }, (activeTabs) => {
-      const tab = activeTabs[0];
+    const activeTabs = await chrome.tabs.query({ active: true }, (tabs) => {
+      const tab = tabs[0];
       chrome.${isMV3 ? 'action' : 'browserAction'}.onClicked.dispatch(tab);
     });
   }
