@@ -180,8 +180,7 @@ void main() {
       await process.shouldExit(0);
 
       await d.file('main.unsound.ddc.js', isNotEmpty).validate();
-      // 'https://github.com/dart-lang/webdev/issues/1892'
-    }, skip: true);
+    });
   });
 
   group('should build with --output=NONE', () {
@@ -507,8 +506,7 @@ void main() {
             }
           }, timeout: const Timeout.factor(2));
         });
-        // 'https://github.com/dart-lang/webdev/issues/1892'
-      }, skip: !soundNullSafety);
+      });
     }
   });
 }
