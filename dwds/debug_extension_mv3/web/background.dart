@@ -111,6 +111,26 @@ void _handleRuntimeMessages(
           attachDebugger(tabId, trigger: Trigger.extensionPanel);
         }
       });
+
+  interceptMessage<String>(
+      message: jsRequest,
+      expectedType: MessageType.multipleAppsDetected,
+      expectedSender: Script.detector,
+      expectedRecipient: Script.background,
+      messageHandler: (String multipleAppsDetected) async {
+        final dartTab = sender.tab;
+        if (dartTab == null) {
+          debugWarn('Received multiple apps detected but tab is missing.');
+          return;
+        }
+        _setWarningIcon();
+        // Save the multiple apps info in storage:
+        await setStorageObject<String>(
+          type: StorageObject.multipleAppsDetected,
+          value: multipleAppsDetected,
+          tabId: dartTab.id,
+        );
+      });
 }
 
 void _detectNavigationAwayFromDartApp(NavigationInfo navigationInfo) async {
@@ -139,6 +159,10 @@ void _updateIcon(int activeTabId) async {
 
 void _setDebuggableIcon() {
   setExtensionIcon(IconInfo(path: 'static_assets/dart.png'));
+}
+
+void _setWarningIcon() {
+  setExtensionIcon(IconInfo(path: 'static_assets/dart_warning.png'));
 }
 
 void _setDefaultIcon() {

@@ -7,6 +7,7 @@ library debug_session;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:html';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart' show IterableExtension;
@@ -111,7 +112,17 @@ void attachDebugger(int dartAppTabId, {required Trigger trigger}) async {
       'Already debugging in ${existingDebuggerLocation.displayName}.',
     );
   }
-
+  // Determine if there are multiple apps in the tab:
+  final multipleApps = await fetchStorageObject<String>(
+    type: StorageObject.multipleAppsDetected,
+    tabId: dartAppTabId,
+  );
+  if (multipleApps != null) {
+    return _showWarningNotification(
+      'It appears that you are running multiple Dart apps in a tab. Dart ' +
+          'debugging is not supported in a multi-app environment.',
+    );
+  }
   // Verify that the user is authenticated:
   final isAuthenticated = await _authenticateUser(dartAppTabId);
   if (!isAuthenticated) return;

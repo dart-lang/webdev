@@ -17,6 +17,8 @@ import 'data_serializers.dart';
 import 'logger.dart';
 import 'messaging.dart';
 
+const _multipleAppsAttribute = 'data-multiple-dart-apps';
+
 void main() {
   _registerListeners();
 }
@@ -24,6 +26,7 @@ void main() {
 void _registerListeners() {
   document.addEventListener('dart-app-ready', _onDartAppReadyEvent);
   document.addEventListener('dart-auth-response', _onDartAuthEvent);
+  _detectMultipleDartApps();
 }
 
 void _onDartAppReadyEvent(Event event) {
@@ -48,6 +51,51 @@ void _onDartAuthEvent(Event event) {
     type: MessageType.isAuthenticated,
     body: isAuthenticated,
   );
+}
+
+void _detectMultipleDartApps() {
+  final documentElement = document.documentElement;
+  if (documentElement == null) return;
+
+  if (documentElement.hasAttribute(_multipleAppsAttribute)) {
+    _sendMessageToBackgroundScript(
+      type: MessageType.multipleAppsDetected,
+      body: 'true',
+    );
+    return;
+  }
+
+  final multipleAppsObserver =
+      MutationObserver(_detectMultipleDartAppsCallback);
+  multipleAppsObserver.observe(
+    documentElement,
+    attributeFilter: [_multipleAppsAttribute],
+  );
+}
+
+void _detectMultipleDartAppsCallback(
+  List<dynamic> mutations,
+  MutationObserver observer,
+) {
+  for (var mutation in mutations) {
+    if (_isMultipleAppsMutation(mutation)) {
+      _sendMessageToBackgroundScript(
+        type: MessageType.multipleAppsDetected,
+        body: 'true',
+      );
+      observer.disconnect();
+    }
+  }
+}
+
+bool _isMultipleAppsMutation(dynamic mutation) {
+  final isAttributeMutation = hasProperty(mutation, 'type') &&
+      getProperty(mutation, 'type') == 'attributes';
+  if (isAttributeMutation) {
+    return hasProperty(mutation, 'attributeName') &&
+        getProperty(mutation, 'attributeName') == _multipleAppsAttribute;
+  }
+  return false;
 }
 
 // TODO(elliette): Remove once DWDS 17.0.0 is in Flutter stable. If we are on an

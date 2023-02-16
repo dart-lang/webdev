@@ -28,7 +28,8 @@ enum MessageType {
   connectFailure,
   debugInfo,
   debugStateChange,
-  devToolsUrl;
+  devToolsUrl,
+  multipleAppsDetected;
 
   factory MessageType.fromString(String value) {
     return MessageType.values.byName(value);
