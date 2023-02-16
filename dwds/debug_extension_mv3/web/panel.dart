@@ -40,6 +40,12 @@ const _showClass = 'show';
 const _warningBannerId = 'warningBanner';
 const _warningMsgId = 'warningMsg';
 
+const _noAppDetectedMsg = 'No app detected.';
+const _lostConnectionMsg = 'Lost connection.';
+const _connectionTimeoutMsg = 'Connection timed out.';
+const _failedToConnectMsg = 'Failed to connect, please try again.';
+const _pleaseAuthenticateMsg = 'Please re-authenticate and try again.';
+
 int get _tabId => chrome.devtools.inspectedWindow.tabId;
 
 void main() {
@@ -115,7 +121,7 @@ void _handleDebugInfoChanges(DebugInfo? debugInfo) async {
   if (debugInfo == null && _isDartApp) {
     _isDartApp = false;
     if (!_warningBannerIsVisible()) {
-      _showWarningBanner('No app detected.');
+      _showWarningBanner(_noAppDetectedMsg);
     }
   }
   if (debugInfo != null && !_isDartApp) {
@@ -180,10 +186,10 @@ void _handleDebugConnectionLost(String? reason) {
       return;
     case DetachReason.staleDebugSession:
     case DetachReason.navigatedAwayFromApp:
-      _showWarningBanner('No app detected.');
+      _showWarningBanner(_noAppDetectedMsg);
       break;
     default:
-      _showWarningBanner('Lost connection.');
+      _showWarningBanner(_lostConnectionMsg);
       break;
   }
 }
@@ -191,16 +197,16 @@ void _handleDebugConnectionLost(String? reason) {
 void _handleConnectFailure(ConnectFailureReason reason) {
   switch (reason) {
     case ConnectFailureReason.authentication:
-      _showWarningBanner('Please re-authenticate and try again.');
+      _showWarningBanner(_pleaseAuthenticateMsg);
       break;
     case ConnectFailureReason.noDartApp:
-      _showWarningBanner('No app detected.');
+      _showWarningBanner(_noAppDetectedMsg);
       break;
     case ConnectFailureReason.timeout:
-      _showWarningBanner('Connection timed out.');
+      _showWarningBanner(_connectionTimeoutMsg);
       break;
     default:
-      _showWarningBanner('Failed to connect, please try again.');
+      _showWarningBanner(_failedToConnectMsg);
   }
   _updateElementVisibility(_launchDebugConnectionButtonId, visible: true);
   _updateElementVisibility(_loadingSpinnerId, visible: false);
@@ -271,7 +277,7 @@ void _injectDevToolsIframe(String devToolsUri) {
       'ide': 'ChromeDevTools',
       'embed': 'true',
       'page': panelType,
-      '_backgroundColor': _backgroundColor,
+      'backgroundColor': _backgroundColor,
     },
   );
   iframe.setAttribute('src', iframeSrc);
