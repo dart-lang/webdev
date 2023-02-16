@@ -649,6 +649,11 @@ void main() async {
               expect(iframeTarget, isNotNull);
             });
 
+            // TODO(elliette): Pull TestServer out of TestContext, so we can add
+            // a test case for starting another test app, loading that app in
+            // the tab we were debugging, and be able to reconnect to that one.
+            // See https://github.com/dart-lang/webdev/issues/1779
+
             test('The Dart DevTools IFRAME has the correct query parameters',
                 () async {
               final chromeDevToolsPage = await getChromeDevToolsPage(browser);
@@ -877,18 +882,6 @@ Future<T> _fetchStorageObj<T>(
   if (T == String) return json as T;
   return serializers.deserialize(jsonDecode(json)) as T;
 }
-
-// String _detachDebuggerJs(int tabId) {
-//   return '''
-//     async () => {
-//       return new Promise((resolve, reject) => {
-//         chrome.debugger.detach({tabId: $tabId}, () => {
-//           resolve(true);
-//         })
-//       });
-//     }
-// ''';
-// }
 
 String _tabIdForTabJs(String tabUrl) {
   return '''
