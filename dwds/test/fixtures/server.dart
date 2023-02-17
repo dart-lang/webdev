@@ -122,7 +122,7 @@ class TestServer {
                 final server = await DevToolsServer().serveDevTools(
                   hostname: hostname,
                   enableStdinCommands: false,
-                  customDevToolsPath: sdkLayout.devToolsPath,
+                  customDevToolsPath: sdkLayout.devToolsDirectory,
                 );
                 if (server == null) {
                   throw StateError('DevTools server could not be started.');

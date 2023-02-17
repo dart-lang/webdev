@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:dwds/sdk_configuration.dart';
+import 'package:logging/logging.dart';
 
 import 'package:test_common/sdk_asset_generator.dart';
 import 'package:test_common/test_sdk_layout.dart';
@@ -20,6 +21,8 @@ import 'package:test_common/test_sdk_layout.dart';
 /// TODO(annagrin): update to only generating missing sound artifacts
 /// for frontend server after we have no uses of weak null safety.
 class TestSdkConfigurationProvider extends SdkConfigurationProvider {
+  final _logger = Logger('TestSdkConfigurationProvider');
+
   final bool _verbose;
   late final Directory _sdkDirectory;
   SdkConfiguration? _configuration;
@@ -44,7 +47,13 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
     try {
       await copyDirectory(
           TestSdkLayout.defaultSdkDirectory, _sdkDirectory.path);
+    } catch (e, s) {
+      _logger.severe('Failed to create SDK directory copy', e, s);
+      dispose();
+      rethrow;
+    }
 
+    try {
       final assetGenerator = SdkAssetGenerator(
         sdkLayout: sdkLayout,
         verboseCompiler: _verbose,
@@ -52,17 +61,21 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
 
       await assetGenerator.generateSdkAssets();
       return TestSdkLayout.createConfiguration(sdkLayout);
-    } catch (_) {
+    } catch (e, s) {
+      _logger.severe('Failed generate missing assets', e, s);
       dispose();
       rethrow;
     }
   }
 
-  void dispose() {
+  void dispose({bool retry = true}) {
     try {
       if (_sdkDirectory.existsSync()) {
         _sdkDirectory.deleteSync(recursive: true);
       }
-    } catch (_) {}
+    } catch (e, s) {
+      _logger.warning('Failed delete SDK directory copy', e, s);
+      dispose(retry: false);
+    }
   }
 }

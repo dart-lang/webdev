@@ -85,7 +85,11 @@ class TestSdkLayout {
           'web',
           'dart_stack_trace_mapper.js',
         ),
-        dartPath: p.join(sdkLayout.sdkDirectory, 'bin', 'dart'),
+        dartPath: p.join(
+          sdkLayout.sdkDirectory,
+          'bin',
+          'dart',
+        ),
         frontendServerSnapshotPath: p.join(
           sdkLayout.sdkDirectory,
           'bin',
@@ -99,8 +103,12 @@ class TestSdkLayout {
           'snapshots',
           'kernel_worker.dart.snapshot',
         ),
-        devToolsPath:
-            p.join(sdkLayout.sdkDirectory, 'bin', 'resources', 'devtools'),
+        devToolsDirectory: p.join(
+          sdkLayout.sdkDirectory,
+          'bin',
+          'resources',
+          'devtools',
+        ),
       );
 
   final String sdkDirectory;
@@ -132,7 +140,7 @@ class TestSdkLayout {
   final String frontendServerSnapshotPath;
   final String dartdevcSnapshotPath;
   final String kernelWorkerSnapshotPath;
-  final String devToolsPath;
+  final String devToolsDirectory;
 
   const TestSdkLayout({
     required this.sdkDirectory,
@@ -150,7 +158,7 @@ class TestSdkLayout {
     required this.frontendServerSnapshotPath,
     required this.dartdevcSnapshotPath,
     required this.kernelWorkerSnapshotPath,
-    required this.devToolsPath,
+    required this.devToolsDirectory,
   });
 
   /// Creates configuration from sdk layout.
@@ -168,7 +176,7 @@ Future<void> copyDirectory(String from, String to) async {
   if (!Directory(from).existsSync()) return;
   await Directory(to).create(recursive: true);
 
-  await for (final file in Directory(from).list()) {
+  await for (final file in Directory(from).list(followLinks: false)) {
     final copyTo = p.join(to, p.relative(file.path, from: from));
     if (file is Directory) {
       await copyDirectory(file.path, copyTo);

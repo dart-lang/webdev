@@ -111,7 +111,8 @@ void main() {
   });
 }
 
-Matcher _exists = predicate((String path) => File(path).existsSync());
+Matcher _exists =
+    predicate((String path) => File(path).existsSync(), 'File exists');
 
 void _deleteIfExists(String path) {
   final file = File(path);

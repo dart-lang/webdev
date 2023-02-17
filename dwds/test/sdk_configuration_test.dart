@@ -10,6 +10,7 @@ import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:file/memory.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 
 var _throwsDoesNotExistException = throwsA(
     isA<InvalidSdkConfigurationException>()
@@ -21,7 +22,7 @@ void main() {
       final defaultConfiguration =
           await DefaultSdkConfigurationProvider().configuration;
       defaultConfiguration.validateSdkDir();
-      defaultConfiguration.validate();
+      defaultConfiguration.validateSoundSummaries();
     });
 
     test('Cannot validate an empty configuration layout', () async {
@@ -52,13 +53,10 @@ void main() {
       final sdkLayout = FakeSdkLayout(sdkDirectory);
       final sdkConfiguration = FakeSdkLayout.createConfiguration(sdkLayout);
 
-      final weakSdkSummaryPath = sdkLayout.weakSummaryPath;
       final soundSdkSummaryPath = sdkLayout.soundSummaryPath;
       final summariesDir = p.dirname(soundSdkSummaryPath);
 
       Directory(summariesDir).createSync(recursive: true);
-      File(defaultSdkConfiguration.weakSdkSummaryPath!)
-          .copySync(weakSdkSummaryPath);
       File(defaultSdkConfiguration.soundSdkSummaryPath!)
           .copySync(soundSdkSummaryPath);
 
@@ -70,12 +68,11 @@ void main() {
           .copySync(compilerWorkerPath);
 
       expect(sdkConfiguration.sdkDirectory, equals(sdkDirectory));
-      expect(sdkConfiguration.weakSdkSummaryPath, equals(weakSdkSummaryPath));
       expect(sdkConfiguration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
       expect(sdkConfiguration.compilerWorkerPath, equals(compilerWorkerPath));
 
       sdkConfiguration.validateSdkDir();
-      sdkConfiguration.validate();
+      sdkConfiguration.validateSoundSummaries();
     });
 
     test('Cannot validate non-existing configuration layout', () async {
@@ -89,7 +86,7 @@ void main() {
     });
   });
 
-  group('SDK configuration', () {
+  group('SDK configuration with memory file system', () {
     late MemoryFileSystem fs;
 
     final root = '/root';
@@ -117,6 +114,17 @@ void main() {
 
       sdkConfiguration.validateSdkDir(fileSystem: fs);
       sdkConfiguration.validate(fileSystem: fs);
+    });
+  });
+
+  group('Test configuration', () {
+    final provider = TestSdkConfigurationProvider();
+    tearDownAll(provider.dispose);
+
+    test('Can validate configuration layout with generated assets', () async {
+      final sdkConfiguration = await provider.configuration;
+      sdkConfiguration.validateSdkDir();
+      sdkConfiguration.validate();
     });
   });
 }
