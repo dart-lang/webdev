@@ -5,6 +5,7 @@
 @JS()
 library panel;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
@@ -40,22 +41,32 @@ const _showClass = 'show';
 const _warningBannerId = 'warningBanner';
 const _warningMsgId = 'warningMsg';
 
+const _noAppDetectedMsg = 'No app detected.';
+const _lostConnectionMsg = 'Lost connection.';
+const _connectionTimeoutMsg = 'Connection timed out.';
+const _failedToConnectMsg = 'Failed to connect, please try again.';
+const _pleaseAuthenticateMsg = 'Please re-authenticate and try again.';
+
 int get _tabId => chrome.devtools.inspectedWindow.tabId;
 
 void main() {
-  _registerListeners();
+  unawaited(
+    _registerListeners().catchError((error) {
+      debugWarn('Error registering listeners in panel: $error');
+    }),
+  );
   _setColorThemeToMatchChromeDevTools();
   _maybeUpdateFileABugLink();
 }
 
-void _registerListeners() {
+Future<void> _registerListeners() async {
   chrome.storage.onChanged.addListener(allowInterop(_handleStorageChanges));
   chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
   final launchDebugConnectionButton =
       document.getElementById(_launchDebugConnectionButtonId) as ButtonElement;
   launchDebugConnectionButton.addEventListener('click', _launchDebugConnection);
 
-  _maybeInjectDevToolsIframe();
+  await _maybeInjectDevToolsIframe();
 }
 
 void _handleRuntimeMessages(
@@ -114,11 +125,15 @@ void _handleStorageChanges(Object storageObj, String storageArea) {
 void _handleDebugInfoChanges(DebugInfo? debugInfo) async {
   if (debugInfo == null && _isDartApp) {
     _isDartApp = false;
-    _showWarningBanner('Dart app is no longer open.');
+    if (!_warningBannerIsVisible()) {
+      _showWarningBanner(_noAppDetectedMsg);
+    }
   }
   if (debugInfo != null && !_isDartApp) {
     _isDartApp = true;
-    _hideWarningBanner();
+    if (_warningBannerIsVisible()) {
+      _hideWarningBanner();
+    }
   }
 }
 
@@ -171,33 +186,45 @@ void _handleDebugConnectionLost(String? reason) {
   final detachReason = DetachReason.fromString(reason ?? 'unknown');
   _removeDevToolsIframe();
   _updateElementVisibility(_landingPageId, visible: true);
-  if (detachReason != DetachReason.canceledByUser) {
-    _showWarningBanner('Lost connection.');
+  switch (detachReason) {
+    case DetachReason.canceledByUser:
+      return;
+    case DetachReason.staleDebugSession:
+    case DetachReason.navigatedAwayFromApp:
+      _showWarningBanner(_noAppDetectedMsg);
+      break;
+    default:
+      _showWarningBanner(_lostConnectionMsg);
+      break;
   }
 }
 
 void _handleConnectFailure(ConnectFailureReason reason) {
   switch (reason) {
     case ConnectFailureReason.authentication:
-      _showWarningBanner('Please re-authenticate and try again.');
+      _showWarningBanner(_pleaseAuthenticateMsg);
       break;
     case ConnectFailureReason.noDartApp:
-      _showWarningBanner('No Dart app detected.');
+      _showWarningBanner(_noAppDetectedMsg);
       break;
     case ConnectFailureReason.timeout:
-      _showWarningBanner('Connection timed out.');
+      _showWarningBanner(_connectionTimeoutMsg);
       break;
     default:
-      _showWarningBanner('Failed to connect, please try again.');
+      _showWarningBanner(_failedToConnectMsg);
   }
   _updateElementVisibility(_launchDebugConnectionButtonId, visible: true);
   _updateElementVisibility(_loadingSpinnerId, visible: false);
 }
 
+bool _warningBannerIsVisible() {
+  final warningBanner = document.getElementById(_warningBannerId);
+  return warningBanner != null && warningBanner.classes.contains(_showClass);
+}
+
 void _showWarningBanner(String message) {
   final warningMsg = document.getElementById(_warningMsgId);
   warningMsg?.setInnerHtml(message);
-  print(warningMsg);
   final warningBanner = document.getElementById(_warningBannerId);
   warningBanner?.classes.add(_showClass);
 }
@@ -213,7 +240,7 @@ void _launchDebugConnection(Event _) async {
   final json = jsonEncode(serializers.serialize(DebugStateChange((b) => b
     ..tabId = _tabId
     ..newState = DebugStateChange.startDebugging)));
-  sendRuntimeMessage(
+  await sendRuntimeMessage(
       type: MessageType.debugStateChange,
       body: json,
       sender: Script.debuggerPanel,
@@ -229,10 +256,15 @@ void _maybeHandleConnectionTimeout() async {
   }
 }
 
-void _maybeInjectDevToolsIframe() async {
+Future<void> _maybeInjectDevToolsIframe() async {
   final devToolsUri = await fetchStorageObject<String>(
       type: StorageObject.devToolsUri, tabId: _tabId);
-  if (devToolsUri != null) {
+  if (devToolsUri == null) return;
+  if (isActiveDebugSession(_tabId)) {
+    debugWarn('Unexpected state. Stale DevTools URI.');
+    await clearStaleDebugSession(_tabId);
+    _updateElementVisibility(_landingPageId, visible: true);
+  } else {
     _injectDevToolsIframe(devToolsUri);
   }
 }
@@ -250,7 +282,7 @@ void _injectDevToolsIframe(String devToolsUri) {
       'ide': 'ChromeDevTools',
       'embed': 'true',
       'page': panelType,
-      '_backgroundColor': _backgroundColor,
+      'backgroundColor': _backgroundColor,
     },
   );
   iframe.setAttribute('src', iframeSrc);
