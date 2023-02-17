@@ -6,10 +6,10 @@
 @Timeout(Duration(minutes: 5))
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/logging.dart';
 import 'fixtures/utilities.dart';
 
 final context = TestContext.withSoundNullSafety(
@@ -227,10 +227,13 @@ void main() {
       var isolate = await client.getIsolate(isolateId);
       var library = isolate.rootLib!.uri!;
 
+      final String callback =
+          '(_, __) async => ServiceExtensionResponse.result("")';
+
       await client.evaluate(
         isolateId,
         library,
-        "registerExtension('ext.foo', (method, params) {})",
+        "registerExtension('ext.foo', $callback)",
       );
 
       expect(await client.callServiceExtension('hotRestart'),
@@ -244,7 +247,7 @@ void main() {
       await client.evaluate(
         isolateId,
         library,
-        "registerExtension('ext.bar', (method, params) {})",
+        "registerExtension('ext.bar', $callback)",
       );
 
       await eventsDone;
@@ -252,9 +255,7 @@ void main() {
       final source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
       expect(source, contains('Hello World!'));
-      // TODO(https://github.com/dart-lang/webdev/issues/1818): Re-enable. The
-      // callback passed to registerExtension requires a non-null return type.
-    }, skip: 'https://github.com/dart-lang/webdev/issues/1818');
+    });
 
     test('can refresh the page via the fullReload service extension', () async {
       final client = context.debugConnection.vmService;

@@ -7,13 +7,18 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:test_process/test_process.dart';
 import 'package:webdev/src/util.dart';
 
 final _webdevBin = p.absolute(p.join('bin', 'webdev.dart'));
+final _sdkConfigurationProvider = TestSdkConfigurationProvider();
 
 Future<TestProcess> runWebDev(List<String> args,
     {String? workingDirectory}) async {
+  // Generate missing test assets in the SDK.
+  await _sdkConfigurationProvider.configuration;
+
   var fullArgs = [_webdevBin, ...args];
 
   return TestProcess.start(dartPath, fullArgs,

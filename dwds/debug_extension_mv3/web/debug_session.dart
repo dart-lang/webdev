@@ -7,7 +7,6 @@ library debug_session;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart' show IterableExtension;
@@ -50,6 +49,7 @@ enum DetachReason {
   connectionDoneEvent,
   devToolsTabClosed,
   navigatedAwayFromApp,
+  staleDebugSession,
   unknown;
 
   factory DetachReason.fromString(String value) {
@@ -128,40 +128,60 @@ void attachDebugger(int dartAppTabId, {required Trigger trigger}) async {
   );
 }
 
-void detachDebugger(
+Future<bool> detachDebugger(
   int tabId, {
   required TabType type,
   required DetachReason reason,
 }) async {
   final debugSession = _debugSessionForTab(tabId, type: type);
-  if (debugSession == null) return;
+  if (debugSession == null) return false;
   final debuggee = Debuggee(tabId: debugSession.appTabId);
-  final detachPromise = chrome.debugger.detach(debuggee);
-  await promiseToFuture(detachPromise);
-  final error = chrome.runtime.lastError;
-  if (error != null) {
-    debugWarn(
-        'Error detaching tab for reason: $reason. Error: ${error.message}');
+  final completer = Completer<bool>();
+  chrome.debugger.detach(debuggee, allowInterop(() {
+    final error = chrome.runtime.lastError;
+    if (error != null) {
+      debugWarn(
+          'Error detaching tab for reason: $reason. Error: ${error.message}');
+      completer.complete(false);
+    } else {
+      _handleDebuggerDetach(debuggee, reason);
+      completer.complete(true);
+    }
+  }));
+  return completer.future;
+}
+
+bool isActiveDebugSession(int tabId) =>
+    _debugSessionForTab(tabId, type: TabType.dartApp) != null;
+
+Future<void> clearStaleDebugSession(int tabId) async {
+  final debugSession = _debugSessionForTab(tabId, type: TabType.dartApp);
+  if (debugSession != null) {
+    await detachDebugger(
+      tabId,
+      type: TabType.dartApp,
+      reason: DetachReason.staleDebugSession,
+    );
   } else {
-    _handleDebuggerDetach(debuggee, reason);
+    await _removeDebugSessionDataInStorage(tabId);
   }
 }
 
 void _registerDebugEventListeners() {
   chrome.debugger.onEvent.addListener(allowInterop(_onDebuggerEvent));
-  chrome.debugger.onDetach.addListener(allowInterop(
-    (source, _) => _handleDebuggerDetach(
+  chrome.debugger.onDetach.addListener(allowInterop((source, _) async {
+    await _handleDebuggerDetach(
       source,
       DetachReason.canceledByUser,
-    ),
-  ));
-  chrome.tabs.onRemoved.addListener(allowInterop(
-    (tabId, _) => detachDebugger(
+    );
+  }));
+  chrome.tabs.onRemoved.addListener(allowInterop((tabId, _) async {
+    await detachDebugger(
       tabId,
       type: TabType.devTools,
       reason: DetachReason.devToolsTabClosed,
-    ),
-  ));
+    );
+  }));
 }
 
 _enableExecutionContextReporting(int tabId) {
@@ -223,7 +243,7 @@ Future<void> _maybeConnectToDwds(int tabId, Object? params) async {
   );
   if (!connected) {
     debugWarn('Failed to connect to DWDS for $contextOrigin.');
-    _sendConnectFailureMessage(ConnectFailureReason.unknown,
+    await _sendConnectFailureMessage(ConnectFailureReason.unknown,
         dartAppTabId: tabId);
   }
 }
@@ -248,16 +268,16 @@ Future<bool> _connectToDwds({
     appTabId: dartAppTabId,
     trigger: trigger,
     onIncoming: (data) => _routeDwdsEvent(data, client, dartAppTabId),
-    onDone: () {
-      detachDebugger(
+    onDone: () async {
+      await detachDebugger(
         dartAppTabId,
         type: TabType.dartApp,
         reason: DetachReason.connectionDoneEvent,
       );
     },
-    onError: (err) {
+    onError: (err) async {
       debugWarn('Connection error: $err', verbose: true);
-      detachDebugger(
+      await detachDebugger(
         dartAppTabId,
         type: TabType.dartApp,
         reason: DetachReason.connectionErrorEvent,
@@ -275,8 +295,7 @@ Future<bool> _connectToDwds({
     ..instanceId = debugInfo.appInstanceId
     ..contextId = dartAppContextId
     ..tabUrl = tabUrl
-    ..uriOnly = true
-    ..isMv3Extension = true));
+    ..uriOnly = true));
   return true;
 }
 
@@ -379,7 +398,7 @@ void _openDevTools(String devToolsUri, {required int dartAppTabId}) async {
   }
 }
 
-void _handleDebuggerDetach(Debuggee source, DetachReason reason) async {
+Future<void> _handleDebuggerDetach(Debuggee source, DetachReason reason) async {
   final tabId = source.tabId;
   debugLog(
     'Debugger detached due to: $reason',
@@ -387,22 +406,30 @@ void _handleDebuggerDetach(Debuggee source, DetachReason reason) async {
     prefix: '$tabId',
   );
   final debugSession = _debugSessionForTab(tabId, type: TabType.dartApp);
-  if (debugSession == null) return;
-  debugLog('Removing debug session...');
-  _removeDebugSession(debugSession);
-  // Notify the extension panels that the debug session has ended:
-  _sendStopDebuggingMessage(reason, dartAppTabId: source.tabId);
-  // Remove the DevTools URI and encoded URI from storage:
-  await removeStorageObject(type: StorageObject.devToolsUri, tabId: tabId);
-  await removeStorageObject(type: StorageObject.encodedUri, tabId: tabId);
-  // Maybe close the associated DevTools tab as well:
-  final devToolsTabId = debugSession.devToolsTabId;
+  if (debugSession != null) {
+    debugLog('Removing debug session...');
+    _removeDebugSession(debugSession);
+    // Notify the extension panels that the debug session has ended:
+    await _sendStopDebuggingMessage(reason, dartAppTabId: tabId);
+    // Maybe close the associated DevTools tab as well:
+    await _maybeCloseDevTools(debugSession.devToolsTabId);
+  }
+  await _removeDebugSessionDataInStorage(tabId);
+}
+
+Future<void> _maybeCloseDevTools(int? devToolsTabId) async {
   if (devToolsTabId == null) return;
   final devToolsTab = await getTab(devToolsTabId);
   if (devToolsTab != null) {
     debugLog('Closing DevTools tab...');
     await removeTab(devToolsTabId);
   }
+}
+
+Future<void> _removeDebugSessionDataInStorage(int tabId) async {
+  // Remove the DevTools URI and encoded URI from storage:
+  await removeStorageObject(type: StorageObject.devToolsUri, tabId: tabId);
+  await removeStorageObject(type: StorageObject.encodedUri, tabId: tabId);
 }
 
 void _removeDebugSession(_DebugSession debugSession) {
@@ -424,25 +451,25 @@ void _removeDebugSession(_DebugSession debugSession) {
   }
 }
 
-void _sendConnectFailureMessage(ConnectFailureReason reason,
+Future<bool> _sendConnectFailureMessage(ConnectFailureReason reason,
     {required int dartAppTabId}) async {
   final json = jsonEncode(serializers.serialize(ConnectFailure((b) => b
     ..tabId = dartAppTabId
     ..reason = reason.name)));
-  sendRuntimeMessage(
+  return await sendRuntimeMessage(
       type: MessageType.connectFailure,
       body: json,
       sender: Script.background,
       recipient: Script.debuggerPanel);
 }
 
-void _sendStopDebuggingMessage(DetachReason reason,
+Future<bool> _sendStopDebuggingMessage(DetachReason reason,
     {required int dartAppTabId}) async {
   final json = jsonEncode(serializers.serialize(DebugStateChange((b) => b
     ..tabId = dartAppTabId
     ..reason = reason.name
     ..newState = DebugStateChange.stopDebugging)));
-  sendRuntimeMessage(
+  return await sendRuntimeMessage(
       type: MessageType.debugStateChange,
       body: json,
       sender: Script.background,
@@ -480,7 +507,7 @@ Future<bool> _authenticateUser(int tabId) async {
       tabId: tabId,
     );
   } else {
-    _sendConnectFailureMessage(
+    await _sendConnectFailureMessage(
       ConnectFailureReason.authentication,
       dartAppTabId: tabId,
     );
@@ -624,8 +651,20 @@ class _DebugSession {
   }
 
   void close() {
-    _socketClient.close();
-    _batchSubscription.cancel();
-    _batchController.close();
+    try {
+      _socketClient.close();
+    } catch (error) {
+      debugError('Error closing socket client: $error');
+    }
+    try {
+      _batchSubscription.cancel();
+    } catch (error) {
+      debugError('Error canceling batch subscription: $error');
+    }
+    try {
+      _batchController.close();
+    } catch (error) {
+      debugError('Error closing batch controller: $error');
+    }
   }
 }

@@ -27,7 +27,6 @@ void _registerListeners() {
     Object _,
     String storageArea,
   ) {
-    if (storageArea != 'session') return;
     _maybeCreatePanels();
   }));
 }
@@ -44,7 +43,7 @@ void _maybeCreatePanels() async {
   if (!isInternalBuild) return;
   // Create a Debugger panel for all internal apps:
   chrome.devtools.panels.create(
-    isDevMode() ? '[DEV] Dart Debugger' : 'Dart Debugger',
+    isDevMode ? '[DEV] Dart Debugger' : 'Dart Debugger',
     '',
     'static_assets/debugger_panel.html',
     allowInterop((ExtensionPanel panel) => _onPanelAdded(panel, debugInfo)),
@@ -53,7 +52,7 @@ void _maybeCreatePanels() async {
   final isFlutterApp = debugInfo.isFlutterApp ?? false;
   if (isFlutterApp) {
     chrome.devtools.panels.create(
-      isDevMode() ? '[DEV] Flutter Inspector' : 'Flutter Inspector',
+      isDevMode ? '[DEV] Flutter Inspector' : 'Flutter Inspector',
       '',
       'static_assets/inspector_panel.html',
       allowInterop((ExtensionPanel panel) => _onPanelAdded(panel, debugInfo)),

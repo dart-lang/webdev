@@ -9,14 +9,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds/sdk_configuration.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
-import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
-
-import 'fixtures/logging.dart';
+import 'package:test_common/logging.dart';
 
 ExpressionCompilerService get service => _service!;
 late ExpressionCompilerService? _service;
@@ -47,10 +46,12 @@ void main() async {
       final source = outputDir.uri.resolve('try.dart');
       final packages = outputDir.uri.resolve('package_config.json');
       final kernel = outputDir.uri.resolve('try.full.dill');
+      // Expression compiler service does not need any extra assets
+      // generated in the SDK, so we use the current SDK layout and
+      // configuration.
       final executable = Platform.resolvedExecutable;
       final dartdevc =
           SdkConfiguration.defaultConfiguration.compilerWorkerPath!;
-
       // redirect logs for testing
       _output = StreamController<String>.broadcast();
       output.stream.listen(printOnFailure);
@@ -76,7 +77,7 @@ void main() async {
         sdkConfigurationProvider: DefaultSdkConfigurationProvider(),
       );
 
-      await service.initialize(moduleFormat: 'amd');
+      await service.initialize(moduleFormat: 'amd', soundNullSafety: true);
 
       // setup asset server
       serveHttpRequests(server, assetHandler, (e, s) {

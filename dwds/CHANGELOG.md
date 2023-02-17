@@ -10,6 +10,7 @@
   - Fill `BoundField.name` for records.
   - Display records as a container of fields.
 - Remove test-only code from `sdk_configuration.dart`.
+- Move shared test-only code to a new `test_common` package.
 
 **Breaking changes**
 - Require `sdkConfigurationProvider` in `ExpressionCompilerService`

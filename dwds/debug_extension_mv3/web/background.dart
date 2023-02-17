@@ -89,6 +89,10 @@ void _handleRuntimeMessages(
           debugWarn('Received debug info but tab is missing.');
           return;
         }
+        // If this is a new Dart app, we need to clear old debug session data:
+        if (!await _matchesAppInStorage(debugInfo.appId, tabId: dartTab.id)) {
+          await clearStaleDebugSession(dartTab.id);
+        }
         // Save the debug info for the Dart app in storage:
         await setStorageObject<DebugInfo>(
             type: StorageObject.debugInfo, value: debugInfo, tabId: dartTab.id);
@@ -119,8 +123,9 @@ void _detectNavigationAwayFromDartApp(NavigationInfo navigationInfo) async {
   if (debugInfo == null) return;
   if (debugInfo.appUrl != navigationInfo.url) {
     _setDefaultIcon();
+    await clearStaleDebugSession(tabId);
     await removeStorageObject(type: StorageObject.debugInfo, tabId: tabId);
-    detachDebugger(
+    await detachDebugger(
       tabId,
       type: TabType.dartApp,
       reason: DetachReason.navigatedAwayFromApp,
@@ -142,9 +147,8 @@ void _setDebuggableIcon() {
 }
 
 void _setDefaultIcon() {
-  final iconPath = isDevMode()
-      ? 'static_assets/dart_dev.png'
-      : 'static_assets/dart_grey.png';
+  final iconPath =
+      isDevMode ? 'static_assets/dart_dev.png' : 'static_assets/dart_grey.png';
   setExtensionIcon(IconInfo(path: iconPath));
 }
 
@@ -153,4 +157,9 @@ Future<DebugInfo?> _fetchDebugInfo(int tabId) {
     type: StorageObject.debugInfo,
     tabId: tabId,
   );
+}
+
+Future<bool> _matchesAppInStorage(String? appId, {required int tabId}) async {
+  final debugInfo = await _fetchDebugInfo(tabId);
+  return appId != null && appId == debugInfo?.appId;
 }

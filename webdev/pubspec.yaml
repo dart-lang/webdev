@@ -45,6 +45,8 @@ dev_dependencies:
   build_verify: ^3.0.0
   build_version: ^2.1.1
   test: ^1.21.1
+  test_common:
+    path: ../test_common
   test_descriptor: ^2.0.0
   test_process: ^2.0.2
   webdriver: ^3.0.0
