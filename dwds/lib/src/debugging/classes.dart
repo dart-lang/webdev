@@ -45,9 +45,7 @@ class ClassHelper extends Domain {
   ///
   /// If a corresponding class does not exist it will return null.
   Future<Class?> forObjectId(String objectId) async {
-    print('GET CLASS FOR? $objectId');
     if (!objectId.startsWith('classes|')) return null;
-    print('---- YES!');
     var clazz = _classes[objectId];
     if (clazz != null) return clazz;
     final splitId = objectId.split('|');
