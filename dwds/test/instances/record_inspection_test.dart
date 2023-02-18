@@ -67,7 +67,7 @@ Future<void> _runTests({
         verboseCompiler: debug,
         experiments: ['records'],
       );
-      service = context.service;
+      service = context.debugConnection.vmService;
 
       final vm = await service.getVM();
       isolateId = vm.isolates!.first.id!;
