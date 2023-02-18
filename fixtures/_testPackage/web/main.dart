@@ -65,7 +65,7 @@ void printFieldFromLibraryPartClass() {
 }
 
 void printFieldMain() {
-  var instance = MainClass(1);
+  var instance = MainClass(2,1);
   print('$instance'); // Breakpoint: printFieldMain
 }
 
@@ -135,11 +135,12 @@ ClassWithMethod createObject() {
 }
 
 class MainClass {
+  final int field;
   final int _field;
-  MainClass(this._field); // Breakpoint: newMainClass
+  MainClass(this.field, this._field); // Breakpoint: newMainClass
 
   @override
-  String toString() => '$_field';
+  String toString() => '$field, $_field';
 }
 
 class EnclosedClass {

@@ -108,6 +108,11 @@ Future<void> _runTests({
           expect(await getFields(instanceRef), {'_field': 1, 'field': 2});
 
           // Offsets and counts are ignored for plain object fields.
+
+          // DevTools calls [getObject] with offset=0 and count=0 and
+          // expects all fields to be returned.
+          expect(await getFields(instanceRef, offset: 0, count: 0),
+              {'_field': 1, 'field': 2});
           expect(await getFields(instanceRef, offset: 0),
               {'_field': 1, 'field': 2});
           expect(await getFields(instanceRef, offset: 0, count: 1),
