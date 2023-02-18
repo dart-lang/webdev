@@ -29,14 +29,14 @@ void _registerListeners() {
   _detectMultipleDartApps();
 }
 
-void _onDartAppReadyEvent(Event event) {
+Future<void> _onDartAppReadyEvent(Event event) async {
   final debugInfo = getProperty(event, 'detail') as String?;
   if (debugInfo == null) {
     debugWarn(
         'No debug info sent with ready event, instead reading from Window.');
     _injectDebugInfoScript();
   } else {
-    _sendMessageToBackgroundScript(
+    await _sendMessageToBackgroundScript(
       type: MessageType.debugInfo,
       body: debugInfo,
     );
@@ -44,10 +44,10 @@ void _onDartAppReadyEvent(Event event) {
   }
 }
 
-void _onDartAuthEvent(Event event) {
+Future<void> _onDartAuthEvent(Event event) async {
   final isAuthenticated = getProperty(event, 'detail') as String?;
   if (isAuthenticated == null) return;
-  _sendMessageToBackgroundScript(
+  await _sendMessageToBackgroundScript(
     type: MessageType.isAuthenticated,
     body: isAuthenticated,
   );
@@ -109,11 +109,11 @@ void _injectDebugInfoScript() {
   document.head?.append(script);
 }
 
-void _sendMessageToBackgroundScript({
+Future<void> _sendMessageToBackgroundScript({
   required MessageType type,
   required String body,
-}) {
-  sendRuntimeMessage(
+}) async {
+  await sendRuntimeMessage(
     type: type,
     body: body,
     sender: Script.detector,
