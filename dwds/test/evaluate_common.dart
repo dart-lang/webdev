@@ -147,7 +147,7 @@ void testAll({
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final object = await service.evaluateInFrame(
-              isolateId, event.topFrame!.index!, 'MainClass(0)');
+              isolateId, event.topFrame!.index!, 'MainClass(1,0)');
 
           final param = object as InstanceRef;
           final result = await service.evaluateInFrame(
@@ -545,30 +545,30 @@ void testAll({
 
       test('in parallel (in a batch)', () async {
         final library = isolate.rootLib!;
-        final evaluation1 = context.service
-            .evaluate(isolateId, library.id!, 'MainClass(0).toString()');
-        final evaluation2 = context.service
-            .evaluate(isolateId, library.id!, 'MainClass(1).toString()');
+        final evaluation1 = service.evaluate(
+            isolateId, library.id!, 'MainClass(1,0).toString()');
+        final evaluation2 = service.evaluate(
+            isolateId, library.id!, 'MainClass(1,1).toString()');
 
         final results = await Future.wait([evaluation1, evaluation2]);
         expect(
             results[0],
             const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', '0'));
+                (instance) => instance.valueAsString, 'valueAsString', '1, 0'));
 
         expect(
             results[1],
             const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', '1'));
+                (instance) => instance.valueAsString, 'valueAsString', '1, 1'));
       });
 
       test('in parallel (in a batch) handles errors', () async {
         final library = isolate.rootLib!;
         final missingLibId = '';
-        final evaluation1 = context.service
-            .evaluate(isolateId, missingLibId, 'MainClass(0).toString()');
-        final evaluation2 = context.service
-            .evaluate(isolateId, library.id!, 'MainClass(1).toString()');
+        final evaluation1 = service.evaluate(
+            isolateId, missingLibId, 'MainClass(1,0).toString()');
+        final evaluation2 = service.evaluate(
+            isolateId, library.id!, 'MainClass(1,1).toString()');
 
         final results = await Future.wait([evaluation1, evaluation2]);
 
@@ -590,8 +590,8 @@ void testAll({
 
       test('with scope override', () async {
         final library = isolate.rootLib!;
-        final object = await context.service
-            .evaluate(isolateId, library.id!, 'MainClass(0)');
+        final object =
+            await service.evaluate(isolateId, library.id!, 'MainClass(1,0)');
 
         final param = object as InstanceRef;
         final result = await service.evaluate(
@@ -601,18 +601,18 @@ void testAll({
         expect(
             result,
             const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', '0'));
+                (instance) => instance.valueAsString, 'valueAsString', '1, 0'));
       });
 
       test('uses symbol from the same library', () async {
         final library = isolate.rootLib!;
-        final result = await context.service
-            .evaluate(isolateId, library.id!, 'MainClass(0).toString()');
+        final result = await service.evaluate(
+            isolateId, library.id!, 'MainClass(1,0).toString()');
 
         expect(
             result,
             const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', '0'));
+                (instance) => instance.valueAsString, 'valueAsString', '1, 0'));
       });
 
       test('uses symbol from another library', () async {

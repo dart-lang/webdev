@@ -925,12 +925,62 @@ void main() {
           expect(world.offset, 3);
         });
 
-        test('offset/count parameters are ignored for Classes', () async {
+        test(
+            'offset/count parameters greater than zero are ignored for Classes',
+            () async {
           final testClass = await context.service.getObject(
             isolate.id!,
             rootLibrary!.classes!.first.id!,
             offset: 100,
             count: 100,
+          ) as Class;
+          expect(
+              testClass.functions,
+              unorderedEquals([
+                predicate(
+                    (FuncRef f) => f.name == 'staticHello' && f.isStatic!),
+                predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
+                predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
+                predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
+                predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
+                predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
+                predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
+                predicate(
+                    (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!),
+                predicate(
+                    (FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
+              ]));
+          expect(
+              testClass.fields,
+              unorderedEquals([
+                predicate((FieldRef f) =>
+                    f.name == 'message' &&
+                    f.declaredType != null &&
+                    !f.isStatic! &&
+                    !f.isConst! &&
+                    f.isFinal!),
+                predicate((FieldRef f) =>
+                    f.name == 'notFinal' &&
+                    f.declaredType != null &&
+                    !f.isStatic! &&
+                    !f.isConst! &&
+                    !f.isFinal!),
+                predicate((FieldRef f) =>
+                    f.name == 'staticMessage' &&
+                    f.declaredType != null &&
+                    f.isStatic! &&
+                    !f.isConst! &&
+                    !f.isFinal!),
+              ]));
+        });
+
+        test('offset/count parameters equal to zero are ignored for Classes',
+            () async {
+          final testClass = await context.service.getObject(
+            isolate.id!,
+            rootLibrary!.classes!.first.id!,
+            offset: 0,
+            count: 0,
           ) as Class;
           expect(
               testClass.functions,

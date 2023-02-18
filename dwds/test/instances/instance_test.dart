@@ -13,8 +13,8 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'fixtures/context.dart';
-import 'fixtures/project.dart';
+import '../fixtures/context.dart';
+import '../fixtures/project.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider();
@@ -137,9 +137,9 @@ void main() {
       final classRef = instance.classRef!;
       expect(classRef, isNotNull);
       expect(classRef.name, 'MyTestClass<dynamic>');
-      final fieldNames =
+      final boundFieldNames =
           instance.fields!.map((boundField) => boundField.decl!.name).toList();
-      expect(fieldNames, [
+      expect(boundFieldNames, [
         '_privateField',
         'abstractField',
         'closure',
@@ -149,7 +149,11 @@ void main() {
         'notFinal',
         'tornOff',
       ]);
+      final fieldNames =
+          instance.fields!.map((boundField) => boundField.name).toList();
+      expect(boundFieldNames, fieldNames);
       for (var field in instance.fields!) {
+        expect(field.name, isNotNull);
         expect(field.decl!.declaredType, isNotNull);
       }
     });

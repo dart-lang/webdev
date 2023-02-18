@@ -403,15 +403,21 @@ class Debugger extends Domain {
     return null;
   }
 
-  static bool _isEmptyRange({int? offset, int? count, int? length}) {
+  static bool _isEmptyRange({
+    required int length,
+    int? offset,
+    int? count,
+  }) {
     if (count == 0) return true;
-    if (length == null) return false;
     if (offset == null) return false;
     return offset >= length;
   }
 
-  static bool _isSubRange({int? offset, int? count, int? length}) {
-    if (length == null) return false;
+  static bool _isSubRange({
+    required int length,
+    int? offset,
+    int? count,
+  }) {
     if (offset == 0 && count == null) return false;
     return offset != null || count != null;
   }
@@ -502,13 +508,16 @@ class Debugger extends Domain {
     int? length,
   }) async {
     String rangeId = objectId;
-    if (_isEmptyRange(offset: offset, count: count, length: length)) {
-      return [];
-    }
-    if (_isSubRange(offset: offset, count: count, length: length)) {
-      final range = await _subRange(objectId,
-          offset: offset ?? 0, count: count, length: length!);
-      rangeId = range.objectId ?? rangeId;
+    // Ignore offset/count if there is no length:
+    if (length != null) {
+      if (_isEmptyRange(offset: offset, count: count, length: length)) {
+        return [];
+      }
+      if (_isSubRange(offset: offset, count: count, length: length)) {
+        final range = await _subRange(objectId,
+            offset: offset ?? 0, count: count, length: length);
+        rangeId = range.objectId ?? rangeId;
+      }
     }
     final jsProperties = await sendCommandAndValidateResult<List>(
       _remoteDebugger,

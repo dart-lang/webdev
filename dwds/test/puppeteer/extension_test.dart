@@ -613,7 +613,7 @@ void main() async {
               // Expect the Dart DevTools IFRAME to be added:
               final devToolsUrlFragment =
                   'ide=ChromeDevTools&embed=true&page=debugger';
-              final iframeTarget = await browser.waitForTarget(
+              var iframeTarget = await browser.waitForTarget(
                 (target) => target.url.contains(devToolsUrlFragment),
               );
               var iframeDestroyed = false;
@@ -640,7 +640,24 @@ void main() async {
                 screenshotName:
                     'debuggerPanelDisconnected_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
               );
+              // Navigate back to the Dart app:
+              await appTab.goto(context.appUrl, wait: Until.domContentLoaded);
+              // Click the launch button again
+              await _clickLaunchButton(
+                browser,
+                panel: Panel.debugger,
+              );
+              // Expect the Dart DevTools IFRAME to be added again:
+              iframeTarget = await browser.waitForTarget(
+                (target) => target.url.contains(devToolsUrlFragment),
+              );
+              expect(iframeTarget, isNotNull);
             });
+
+            // TODO(elliette): Pull TestServer out of TestContext, so we can add
+            // a test case for starting another test app, loading that app in
+            // the tab we were debugging, and be able to reconnect to that one.
+            // See https://github.com/dart-lang/webdev/issues/1779
 
             test('The Dart DevTools IFRAME has the correct query parameters',
                 () async {

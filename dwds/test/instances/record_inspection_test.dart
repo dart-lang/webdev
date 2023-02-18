@@ -10,8 +10,9 @@ import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'fixtures/context.dart';
-import 'fixtures/project.dart';
+import '../fixtures/context.dart';
+import '../fixtures/project.dart';
+import 'instance_inspection_common.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
@@ -41,19 +42,21 @@ Future<void> _runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  onBreakPoint(breakPointId, body) =>
-      _onBreakPoint(context, stream, isolateId, mainScript, breakPointId, body);
+  final testInspector = TestInspector(context);
+
+  onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+      stream, isolateId, mainScript, breakPointId, body);
 
   getInstance(frame, expression) =>
-      _getInstance(service, isolateId, frame, expression);
+      testInspector.getInstance(isolateId, frame, expression);
 
   getObject(instanceId) => service.getObject(isolateId, instanceId);
 
   getInstanceRef(frame, expression) =>
-      _getInstanceRef(service, isolateId, frame, expression);
+      testInspector.getInstanceRef(isolateId, frame, expression);
 
-  getFields(instanceRef, {offset, count}) =>
-      _getFields(service, isolateId, instanceRef, offset: offset, count: count);
+  getFields(instanceRef, {offset, count}) => testInspector
+      .getFields(isolateId, instanceRef, offset: offset, count: count);
 
   group('$compilationMode |', () {
     setUpAll(() async {
@@ -91,18 +94,18 @@ Future<void> _runTests({
 
         final instanceId = instanceRef.id!;
         expect(await getObject(instanceId),
-            _matchRecordInstance(length: 2, type: 'RecordType(bool, int)'));
+            matchRecordInstance(length: 2, type: 'RecordType(bool, int)'));
 
-        expect(await getFields(instanceRef), {1: 'true', 2: '3'});
-        expect(await getFields(instanceRef, offset: 0), {1: 'true', 2: '3'});
-        expect(await getFields(instanceRef, offset: 1), {2: '3'});
+        expect(await getFields(instanceRef), {1: true, 2: 3});
+        expect(await getFields(instanceRef, offset: 0), {1: true, 2: 3});
+        expect(await getFields(instanceRef, offset: 1), {2: 3});
         expect(await getFields(instanceRef, offset: 2), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
-        expect(await getFields(instanceRef, offset: 0, count: 1), {1: 'true'});
-        expect(await getFields(instanceRef, offset: 0, count: 2),
-            {1: 'true', 2: '3'});
-        expect(await getFields(instanceRef, offset: 0, count: 5),
-            {1: 'true', 2: '3'});
+        expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
+        expect(
+            await getFields(instanceRef, offset: 0, count: 2), {1: true, 2: 3});
+        expect(
+            await getFields(instanceRef, offset: 0, count: 5), {1: true, 2: 3});
         expect(await getFields(instanceRef, offset: 2, count: 5), {});
       });
     });
@@ -111,10 +114,10 @@ Future<void> _runTests({
       await onBreakPoint('printSimpleLocal', (event) async {
         final frame = event.topFrame!.index!;
         expect(await getInstance(frame, r'record.$1'),
-            _matchPrimitiveInstance(kind: InstanceKind.kBool, value: 'true'));
+            matchPrimitiveInstance(kind: InstanceKind.kBool, value: true));
 
         expect(await getInstance(frame, r'record.$2'),
-            _matchPrimitiveInstance(kind: InstanceKind.kDouble, value: '3'));
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3));
       });
     });
 
@@ -127,20 +130,20 @@ Future<void> _runTests({
 
         expect(
             await getObject(instanceId),
-            _matchRecordInstance(
+            matchRecordInstance(
                 length: 2, type: 'RecordType(bool, {String cat})'));
 
-        expect(await getFields(instanceRef), {1: 'true', 'cat': 'Vasya'});
-        expect(await getFields(instanceRef, offset: 0),
-            {1: 'true', 'cat': 'Vasya'});
+        expect(await getFields(instanceRef), {1: true, 'cat': 'Vasya'});
+        expect(
+            await getFields(instanceRef, offset: 0), {1: true, 'cat': 'Vasya'});
         expect(await getFields(instanceRef, offset: 1), {'cat': 'Vasya'});
         expect(await getFields(instanceRef, offset: 2), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
-        expect(await getFields(instanceRef, offset: 0, count: 1), {1: 'true'});
+        expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2),
-            {1: 'true', 'cat': 'Vasya'});
+            {1: true, 'cat': 'Vasya'});
         expect(await getFields(instanceRef, offset: 0, count: 5),
-            {1: 'true', 'cat': 'Vasya'});
+            {1: true, 'cat': 'Vasya'});
         expect(await getFields(instanceRef, offset: 2, count: 5), {});
       });
     });
@@ -149,12 +152,10 @@ Future<void> _runTests({
       await onBreakPoint('printSimpleNamedLocal', (event) async {
         final frame = event.topFrame!.index!;
         expect(await getInstance(frame, r'record.$1'),
-            _matchPrimitiveInstance(kind: InstanceKind.kBool, value: 'true'));
+            matchPrimitiveInstance(kind: InstanceKind.kBool, value: true));
 
-        expect(
-            await getInstance(frame, r'record.cat'),
-            _matchPrimitiveInstance(
-                kind: InstanceKind.kString, value: 'Vasya'));
+        expect(await getInstance(frame, r'record.cat'),
+            matchPrimitiveInstance(kind: InstanceKind.kString, value: 'Vasya'));
       });
     });
 
@@ -166,41 +167,41 @@ Future<void> _runTests({
         final instanceId = instanceRef.id!;
         expect(
             await getObject(instanceId),
-            _matchRecordInstance(
+            matchRecordInstance(
                 length: 3,
                 type: 'RecordType(bool, int, IdentityMap<String, int>)'));
 
         expect(await getFields(instanceRef), {
-          1: 'true',
-          2: '3',
-          3: {'a': '1', 'b': '5'}
+          1: true,
+          2: 3,
+          3: {'a': 1, 'b': 5}
         });
         expect(await getFields(instanceRef, offset: 0), {
-          1: 'true',
-          2: '3',
-          3: {'a': '1', 'b': '5'}
+          1: true,
+          2: 3,
+          3: {'a': 1, 'b': 5}
         });
         expect(await getFields(instanceRef, offset: 1), {
-          2: '3',
-          3: {'a': '1', 'b': '5'}
+          2: 3,
+          3: {'a': 1, 'b': 5}
         });
-        expect(await getFields(instanceRef, offset: 1, count: 1), {2: '3'});
+        expect(await getFields(instanceRef, offset: 1, count: 1), {2: 3});
         expect(await getFields(instanceRef, offset: 1, count: 2), {
-          2: '3',
-          3: {'a': '1', 'b': '5'}
+          2: 3,
+          3: {'a': 1, 'b': 5}
         });
         expect(await getFields(instanceRef, offset: 2), {
-          3: {'a': '1', 'b': '5'}
+          3: {'a': 1, 'b': 5}
         });
         expect(await getFields(instanceRef, offset: 3), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
-        expect(await getFields(instanceRef, offset: 0, count: 1), {1: 'true'});
-        expect(await getFields(instanceRef, offset: 0, count: 2),
-            {1: 'true', 2: '3'});
+        expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
+        expect(
+            await getFields(instanceRef, offset: 0, count: 2), {1: true, 2: 3});
         expect(await getFields(instanceRef, offset: 0, count: 5), {
-          1: 'true',
-          2: '3',
-          3: {'a': '1', 'b': '5'}
+          1: true,
+          2: 3,
+          3: {'a': 1, 'b': 5}
         });
         expect(await getFields(instanceRef, offset: 3, count: 5), {});
       });
@@ -210,14 +211,14 @@ Future<void> _runTests({
       await onBreakPoint('printComplexLocal', (event) async {
         final frame = event.topFrame!.index!;
         expect(await getInstance(frame, r'record.$1'),
-            _matchPrimitiveInstance(kind: InstanceKind.kBool, value: 'true'));
+            matchPrimitiveInstance(kind: InstanceKind.kBool, value: true));
 
         expect(await getInstance(frame, r'record.$2'),
-            _matchPrimitiveInstance(kind: InstanceKind.kDouble, value: '3'));
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3));
 
         final third = await getInstanceRef(frame, r'record.$3');
         expect(third.kind, InstanceKind.kMap);
-        expect(await getFields(third), {'a': '1', 'b': '5'});
+        expect(await getFields(third), {'a': 1, 'b': 5});
       });
     });
 
@@ -229,42 +230,42 @@ Future<void> _runTests({
         final instanceId = instanceRef.id!;
         expect(
             await getObject(instanceId),
-            _matchRecordInstance(
+            matchRecordInstance(
                 length: 3,
                 type:
                     'RecordType(bool, int, {IdentityMap<String, int> array})'));
 
         expect(await getFields(instanceRef), {
-          1: 'true',
-          2: '3',
-          'array': {'a': '1', 'b': '5'}
+          1: true,
+          2: 3,
+          'array': {'a': 1, 'b': 5}
         });
         expect(await getFields(instanceRef, offset: 0), {
-          1: 'true',
-          2: '3',
-          'array': {'a': '1', 'b': '5'}
+          1: true,
+          2: 3,
+          'array': {'a': 1, 'b': 5}
         });
         expect(await getFields(instanceRef, offset: 1), {
-          2: '3',
-          'array': {'a': '1', 'b': '5'}
+          2: 3,
+          'array': {'a': 1, 'b': 5}
         });
-        expect(await getFields(instanceRef, offset: 1, count: 1), {2: '3'});
+        expect(await getFields(instanceRef, offset: 1, count: 1), {2: 3});
         expect(await getFields(instanceRef, offset: 1, count: 2), {
-          2: '3',
-          'array': {'a': '1', 'b': '5'}
+          2: 3,
+          'array': {'a': 1, 'b': 5}
         });
         expect(await getFields(instanceRef, offset: 2), {
-          'array': {'a': '1', 'b': '5'}
+          'array': {'a': 1, 'b': 5}
         });
         expect(await getFields(instanceRef, offset: 3), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
-        expect(await getFields(instanceRef, offset: 0, count: 1), {1: 'true'});
-        expect(await getFields(instanceRef, offset: 0, count: 2),
-            {1: 'true', 2: '3'});
+        expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
+        expect(
+            await getFields(instanceRef, offset: 0, count: 2), {1: true, 2: 3});
         expect(await getFields(instanceRef, offset: 0, count: 5), {
-          1: 'true',
-          2: '3',
-          'array': {'a': '1', 'b': '5'}
+          1: true,
+          2: 3,
+          'array': {'a': 1, 'b': 5}
         });
         expect(await getFields(instanceRef, offset: 3, count: 5), {});
       });
@@ -274,14 +275,14 @@ Future<void> _runTests({
       await onBreakPoint('printComplexNamedLocal', (event) async {
         final frame = event.topFrame!.index!;
         expect(await getInstance(frame, r'record.$1'),
-            _matchPrimitiveInstance(kind: InstanceKind.kBool, value: 'true'));
+            matchPrimitiveInstance(kind: InstanceKind.kBool, value: true));
 
         expect(await getInstance(frame, r'record.$2'),
-            _matchPrimitiveInstance(kind: InstanceKind.kDouble, value: '3'));
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3));
 
         final third = await getInstanceRef(frame, r'record.array');
         expect(third.kind, InstanceKind.kMap);
-        expect(await getFields(third), {'a': '1', 'b': '5'});
+        expect(await getFields(third), {'a': 1, 'b': 5});
       });
     });
 
@@ -293,30 +294,30 @@ Future<void> _runTests({
         final instanceId = instanceRef.id!;
         expect(
             await getObject(instanceId),
-            _matchRecordInstance(
+            matchRecordInstance(
                 length: 2, type: 'RecordType(bool, RecordType(bool, int))'));
 
         expect(await getFields(instanceRef), {
-          1: 'true',
-          2: {1: 'false', 2: '5'}
+          1: true,
+          2: {1: false, 2: 5}
         });
         expect(await getFields(instanceRef, offset: 0), {
-          1: 'true',
-          2: {1: 'false', 2: '5'}
+          1: true,
+          2: {1: false, 2: 5}
         });
         expect(await getFields(instanceRef, offset: 1), {
-          2: {1: 'false', 2: '5'}
+          2: {1: false, 2: 5}
         });
         expect(await getFields(instanceRef, offset: 2), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
-        expect(await getFields(instanceRef, offset: 0, count: 1), {1: 'true'});
+        expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
-          1: 'true',
-          2: {1: 'false', 2: '5'}
+          1: true,
+          2: {1: false, 2: 5}
         });
         expect(await getFields(instanceRef, offset: 0, count: 5), {
-          1: 'true',
-          2: {1: 'false', 2: '5'}
+          1: true,
+          2: {1: false, 2: 5}
         });
         expect(await getFields(instanceRef, offset: 2, count: 5), {});
       });
@@ -329,10 +330,10 @@ Future<void> _runTests({
 
         final instanceId = instanceRef.id!;
         expect(await getObject(instanceId),
-            _matchRecordInstance(length: 2, type: 'RecordType(bool, int)'));
+            matchRecordInstance(length: 2, type: 'RecordType(bool, int)'));
 
-        expect(await getFields(instanceRef), {1: 'false', 2: '5'});
-        expect(await getFields(instanceRef, offset: 0), {1: 'false', 2: '5'});
+        expect(await getFields(instanceRef), {1: false, 2: 5});
+        expect(await getFields(instanceRef, offset: 0), {1: false, 2: 5});
       });
     });
 
@@ -344,37 +345,37 @@ Future<void> _runTests({
         final instanceId = instanceRef.id!;
         expect(
             await getObject(instanceId),
-            _matchRecordInstance(
+            matchRecordInstance(
                 length: 2,
                 type: 'RecordType(bool, {RecordType(bool, int) inner})'));
 
         expect(await getFields(instanceRef), {
-          1: 'true',
-          'inner': {1: 'false', 2: '5'}
+          1: true,
+          'inner': {1: false, 2: 5}
         });
         expect(await getFields(instanceRef, offset: 0), {
-          1: 'true',
-          'inner': {1: 'false', 2: '5'}
+          1: true,
+          'inner': {1: false, 2: 5}
         });
         expect(await getFields(instanceRef, offset: 1), {
-          'inner': {1: 'false', 2: '5'}
+          'inner': {1: false, 2: 5}
         });
         expect(await getFields(instanceRef, offset: 1, count: 1), {
-          'inner': {1: 'false', 2: '5'}
+          'inner': {1: false, 2: 5}
         });
         expect(await getFields(instanceRef, offset: 1, count: 2), {
-          'inner': {1: 'false', 2: '5'}
+          'inner': {1: false, 2: 5}
         });
         expect(await getFields(instanceRef, offset: 2), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
-        expect(await getFields(instanceRef, offset: 0, count: 1), {1: 'true'});
+        expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
-          1: 'true',
-          'inner': {1: 'false', 2: '5'}
+          1: true,
+          'inner': {1: false, 2: 5}
         });
         expect(await getFields(instanceRef, offset: 0, count: 5), {
-          1: 'true',
-          'inner': {1: 'false', 2: '5'}
+          1: true,
+          'inner': {1: false, 2: 5}
         });
         expect(await getFields(instanceRef, offset: 2, count: 5), {});
       });
@@ -387,139 +388,11 @@ Future<void> _runTests({
 
         final instanceId = instanceRef.id!;
         expect(await getObject(instanceId),
-            _matchRecordInstance(length: 2, type: 'RecordType(bool, int)'));
+            matchRecordInstance(length: 2, type: 'RecordType(bool, int)'));
 
-        expect(await getFields(instanceRef), {1: 'false', 2: '5'});
-        expect(await getFields(instanceRef, offset: 0), {1: 'false', 2: '5'});
+        expect(await getFields(instanceRef), {1: false, 2: 5});
+        expect(await getFields(instanceRef, offset: 0), {1: false, 2: 5});
       });
     });
   });
 }
-
-Future<void> _onBreakPoint(
-  TestContext context,
-  Stream<Event> stream,
-  String isolateId,
-  ScriptRef script,
-  String breakPointId,
-  Future<void> Function(Event event) body,
-) async {
-  Breakpoint? bp;
-  try {
-    final line =
-        await context.findBreakpointLine(breakPointId, isolateId, script);
-    bp = await context.service
-        .addBreakpointWithScriptUri(isolateId, script.uri!, line);
-
-    final event =
-        await stream.firstWhere((e) => e.kind == EventKind.kPauseBreakpoint);
-
-    await body(event);
-  } finally {
-    // Remove breakpoint so it doesn't impact other tests or retries.
-    if (bp != null) {
-      await context.service.removeBreakpoint(isolateId, bp.id!);
-    }
-  }
-}
-
-Future<Map<dynamic, Object?>> _getFields(
-  VmServiceInterface service,
-  String isolateId,
-  InstanceRef instanceRef, {
-  int? offset,
-  int? count,
-}) async {
-  final instanceId = instanceRef.id!;
-  final instanceKind = instanceRef.kind;
-
-  final result = await service.getObject(
-    isolateId,
-    instanceId,
-    offset: offset,
-    count: count,
-  );
-
-  expect(result, isA<Instance>());
-  final instance = result as Instance;
-  expect(instance.kind, instanceKind);
-
-  final fields = instance.fields;
-  final associations = instance.associations;
-
-  Map<dynamic, InstanceRef>? fieldRefs;
-  if (fields != null) {
-    fieldRefs = _boundFieldsToMap(fields);
-  } else if (associations != null) {
-    fieldRefs = _associationsToMap(associations);
-  } else {
-    fieldRefs = {};
-  }
-
-  final fieldValues = <dynamic, Object?>{};
-  for (var p in fieldRefs.entries) {
-    fieldValues[p.key] =
-        p.value.valueAsString ?? await _getFields(service, isolateId, p.value);
-  }
-  return fieldValues;
-}
-
-Future<InstanceRef> _getInstanceRef(
-  VmServiceInterface service,
-  String isolateId,
-  int frame,
-  String expression,
-) async {
-  final result = await service.evaluateInFrame(
-    isolateId,
-    frame,
-    expression,
-  );
-  expect(result, isA<InstanceRef>());
-  return result as InstanceRef;
-}
-
-Future<Instance> _getInstance(
-  VmServiceInterface service,
-  String isolateId,
-  int frame,
-  String expression,
-) async {
-  final instanceRef = await _getInstanceRef(
-    service,
-    isolateId,
-    frame,
-    expression,
-  );
-
-  expect(instanceRef.id, isNotNull);
-  final result = await service.getObject(
-    isolateId,
-    instanceRef.id!,
-  );
-
-  expect(result, isA<Instance>());
-  return result as Instance;
-}
-
-Map<String, InstanceRef> _associationsToMap(
-        Iterable<MapAssociation> associations) =>
-    Map.fromEntries(
-        associations.map((e) => MapEntry(e.key.valueAsString, e.value)));
-
-Map<dynamic, InstanceRef> _boundFieldsToMap(Iterable<BoundField> fields) =>
-    Map.fromEntries(fields
-        .where((e) => e.name != null)
-        .map((e) => MapEntry(e.name, e.value)));
-
-Matcher _matchPrimitiveInstance(
-        {required String kind, required dynamic value}) =>
-    isA<Instance>()
-        .having((e) => e.kind, 'kind', kind)
-        .having((e) => e.valueAsString, 'value', value);
-
-Matcher _matchRecordInstance({required int length, required String type}) =>
-    isA<Instance>()
-        .having((e) => e.kind, 'kind', InstanceKind.kRecord)
-        .having((e) => e.length, 'length', length)
-        .having((e) => e.classRef!.name, 'classRef.name', type);
