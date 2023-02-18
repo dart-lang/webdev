@@ -7,8 +7,9 @@
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
-final context = TestContext.withSoundNullSafety();
+final context = TestContext(TestProject.testWithSoundNullSafety);
 
 void main() {
   setUpAll(() async {
