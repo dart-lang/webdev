@@ -13,8 +13,8 @@ import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'fixtures/context.dart';
-import 'fixtures/utilities.dart';
+import '../fixtures/context.dart';
+import '../fixtures/utilities.dart';
 
 final context = TestContext.withSoundNullSafety(
   webAssetsPath: webCompatiblePath(['example', 'scopes']),
@@ -139,9 +139,9 @@ void main() {
       final classRef = instance.classRef!;
       expect(classRef, isNotNull);
       expect(classRef.name, 'MyTestClass<dynamic>');
-      final fieldNames =
+      final boundFieldNames =
           instance.fields!.map((boundField) => boundField.decl!.name).toList();
-      expect(fieldNames, [
+      expect(boundFieldNames, [
         '_privateField',
         'abstractField',
         'closure',
@@ -151,7 +151,11 @@ void main() {
         'notFinal',
         'tornOff',
       ]);
+      final fieldNames =
+          instance.fields!.map((boundField) => boundField.name).toList();
+      expect(boundFieldNames, fieldNames);
       for (var field in instance.fields!) {
+        expect(field.name, isNotNull);
         expect(field.decl!.declaredType, isNotNull);
       }
     });
