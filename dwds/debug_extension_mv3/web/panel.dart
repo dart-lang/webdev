@@ -46,10 +46,11 @@ const _lostConnectionMsg = 'Lost connection.';
 const _connectionTimeoutMsg = 'Connection timed out.';
 const _failedToConnectMsg = 'Failed to connect, please try again.';
 const _pleaseAuthenticateMsg = 'Please re-authenticate and try again.';
+const _multipleAppsMsg = 'Cannot debug multiple apps in a page.';
 
 int get _tabId => chrome.devtools.inspectedWindow.tabId;
 
-void main() {
+void main() async {
   unawaited(
     _registerListeners().catchError((error) {
       debugWarn('Error registering listeners in panel: $error');
@@ -57,6 +58,11 @@ void main() {
   );
   _setColorThemeToMatchChromeDevTools();
   _maybeUpdateFileABugLink();
+  final multipleApps = await fetchStorageObject<String>(
+    type: StorageObject.multipleAppsDetected,
+    tabId: _tabId,
+  );
+  _maybeShowMultipleAppsWarning(multipleApps);
 }
 
 Future<void> _registerListeners() async {
@@ -120,6 +126,12 @@ void _handleStorageChanges(Object storageObj, String storageArea) {
     tabId: _tabId,
     changeHandler: _handleDevToolsUriChanges,
   );
+  interceptStorageChange<String>(
+    storageObj: storageObj,
+    expectedType: StorageObject.multipleAppsDetected,
+    tabId: _tabId,
+    changeHandler: _maybeShowMultipleAppsWarning,
+  );
 }
 
 void _handleDebugInfoChanges(DebugInfo? debugInfo) async {
@@ -140,6 +152,16 @@ void _handleDebugInfoChanges(DebugInfo? debugInfo) async {
 void _handleDevToolsUriChanges(String? devToolsUri) async {
   if (devToolsUri != null) {
     _injectDevToolsIframe(devToolsUri);
+  }
+}
+
+void _maybeShowMultipleAppsWarning(String? multipleApps) async {
+  if (multipleApps != null) {
+    _showWarningBanner(_multipleAppsMsg);
+  } else {
+    if (_warningBannerIsVisible(message: _multipleAppsMsg)) {
+      _hideWarningBanner();
+    }
   }
 }
 
@@ -217,9 +239,13 @@ void _handleConnectFailure(ConnectFailureReason reason) {
   _updateElementVisibility(_loadingSpinnerId, visible: false);
 }
 
-bool _warningBannerIsVisible() {
+bool _warningBannerIsVisible({String? message}) {
   final warningBanner = document.getElementById(_warningBannerId);
-  return warningBanner != null && warningBanner.classes.contains(_showClass);
+  final isVisible =
+      warningBanner != null && warningBanner.classes.contains(_showClass);
+  if (message == null || isVisible == false) return isVisible;
+  final warningMsg = document.getElementById(_warningMsgId);
+  return warningMsg?.innerHtml == message;
 }
 
 void _showWarningBanner(String message) {

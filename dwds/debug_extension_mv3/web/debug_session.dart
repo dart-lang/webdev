@@ -7,7 +7,6 @@ library debug_session;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart' show IterableExtension;
@@ -438,9 +437,19 @@ Future<void> _maybeCloseDevTools(int? devToolsTabId) async {
 }
 
 Future<void> _removeDebugSessionDataInStorage(int tabId) async {
-  // Remove the DevTools URI and encoded URI from storage:
-  await removeStorageObject(type: StorageObject.devToolsUri, tabId: tabId);
-  await removeStorageObject(type: StorageObject.encodedUri, tabId: tabId);
+  // Remove the DevTools URI, encoded URI, and multiple apps info from storage:
+  await removeStorageObject(
+    type: StorageObject.devToolsUri,
+    tabId: tabId,
+  );
+  await removeStorageObject(
+    type: StorageObject.encodedUri,
+    tabId: tabId,
+  );
+  await removeStorageObject(
+    type: StorageObject.multipleAppsDetected,
+    tabId: tabId,
+  );
 }
 
 void _removeDebugSession(_DebugSession debugSession) {
