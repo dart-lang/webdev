@@ -119,8 +119,7 @@ void attachDebugger(int dartAppTabId, {required Trigger trigger}) async {
   );
   if (multipleApps != null) {
     return _showWarningNotification(
-      'It appears that you are running multiple Dart apps in a tab. Dart ' +
-          'debugging is not supported in a multi-app environment.',
+      'Dart debugging is not supported in a multi-app environment.',
     );
   }
   // Verify that the user is authenticated:

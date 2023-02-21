@@ -26,7 +26,6 @@ void main() {
 void _registerListeners() {
   document.addEventListener('dart-app-ready', _onDartAppReadyEvent);
   document.addEventListener('dart-auth-response', _onDartAuthEvent);
-  _detectMultipleDartApps();
 }
 
 Future<void> _onDartAppReadyEvent(Event event) async {
@@ -41,6 +40,7 @@ Future<void> _onDartAppReadyEvent(Event event) async {
       body: debugInfo,
     );
     _sendAuthRequest(debugInfo);
+    _detectMultipleDartApps();
   }
 }
 

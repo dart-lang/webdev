@@ -34,13 +34,13 @@ void _registerListeners() {
     allowInterop(handleMessagesFromAngularDartDevTools),
   );
   // Update the extension icon on tab navigation:
-  chrome.tabs.onActivated.addListener(allowInterop((ActiveInfo info) {
-    _updateIcon(info.tabId);
+  chrome.tabs.onActivated.addListener(allowInterop((ActiveInfo info) async {
+    await _updateIcon(info.tabId);
   }));
   chrome.windows.onFocusChanged.addListener(allowInterop((_) async {
     final currentTab = await activeTab;
     if (currentTab?.id != null) {
-      _updateIcon(currentTab!.id);
+      await _updateIcon(currentTab!.id);
     }
   }));
   chrome.webNavigation.onCommitted
@@ -99,7 +99,7 @@ void _handleRuntimeMessages(
         // Update the icon to show that a Dart app has been detected:
         final currentTab = await activeTab;
         if (currentTab?.id == dartTab.id) {
-          _setDebuggableIcon();
+          await _updateIcon(dartTab.id);
         }
       });
 
@@ -153,7 +153,7 @@ void _detectNavigationAwayFromDartApp(NavigationInfo navigationInfo) async {
   }
 }
 
-void _updateIcon(int activeTabId) async {
+Future<void> _updateIcon(int activeTabId) async {
   final debugInfo = await _fetchDebugInfo(activeTabId);
   if (debugInfo == null) {
     _setDefaultIcon();
