@@ -34,13 +34,13 @@ void _registerListeners() {
     allowInterop(handleMessagesFromAngularDartDevTools),
   );
   // Update the extension icon on tab navigation:
-  chrome.tabs.onActivated.addListener(allowInterop((ActiveInfo info) {
-    _updateIcon(info.tabId);
+  chrome.tabs.onActivated.addListener(allowInterop((ActiveInfo info) async {
+    await _updateIcon(info.tabId);
   }));
   chrome.windows.onFocusChanged.addListener(allowInterop((_) async {
     final currentTab = await activeTab;
     if (currentTab?.id != null) {
-      _updateIcon(currentTab!.id);
+      await _updateIcon(currentTab!.id);
     }
   }));
   chrome.webNavigation.onCommitted
@@ -99,7 +99,7 @@ void _handleRuntimeMessages(
         // Update the icon to show that a Dart app has been detected:
         final currentTab = await activeTab;
         if (currentTab?.id == dartTab.id) {
-          _setDebuggableIcon();
+          await _updateIcon(dartTab.id);
         }
       });
 
@@ -114,6 +114,26 @@ void _handleRuntimeMessages(
         if (newState == DebugStateChange.startDebugging) {
           attachDebugger(tabId, trigger: Trigger.extensionPanel);
         }
+      });
+
+  interceptMessage<String>(
+      message: jsRequest,
+      expectedType: MessageType.multipleAppsDetected,
+      expectedSender: Script.detector,
+      expectedRecipient: Script.background,
+      messageHandler: (String multipleAppsDetected) async {
+        final dartTab = sender.tab;
+        if (dartTab == null) {
+          debugWarn('Received multiple apps detected but tab is missing.');
+          return;
+        }
+        // Save the multiple apps info in storage:
+        await setStorageObject<String>(
+          type: StorageObject.multipleAppsDetected,
+          value: multipleAppsDetected,
+          tabId: dartTab.id,
+        );
+        _setWarningIcon();
       });
 }
 
@@ -133,17 +153,25 @@ void _detectNavigationAwayFromDartApp(NavigationInfo navigationInfo) async {
   }
 }
 
-void _updateIcon(int activeTabId) async {
+Future<void> _updateIcon(int activeTabId) async {
   final debugInfo = await _fetchDebugInfo(activeTabId);
-  if (debugInfo != null) {
-    _setDebuggableIcon();
-  } else {
+  if (debugInfo == null) {
     _setDefaultIcon();
+    return;
   }
+  final multipleApps = await fetchStorageObject<String>(
+    type: StorageObject.multipleAppsDetected,
+    tabId: activeTabId,
+  );
+  multipleApps == null ? _setDebuggableIcon() : _setWarningIcon();
 }
 
 void _setDebuggableIcon() {
   setExtensionIcon(IconInfo(path: 'static_assets/dart.png'));
+}
+
+void _setWarningIcon() {
+  setExtensionIcon(IconInfo(path: 'static_assets/dart_warning.png'));
 }
 
 void _setDefaultIcon() {
