@@ -50,14 +50,14 @@ const _multipleAppsMsg = 'Cannot debug multiple apps in a page.';
 
 int get _tabId => chrome.devtools.inspectedWindow.tabId;
 
-void main() async {
+Future<void> main() async {
   unawaited(
     _registerListeners().catchError((error) {
       debugWarn('Error registering listeners in panel: $error');
     }),
   );
   _setColorThemeToMatchChromeDevTools();
-  _maybeUpdateFileABugLink();
+  await _maybeUpdateFileABugLink();
   final multipleApps = await fetchStorageObject<String>(
     type: StorageObject.multipleAppsDetected,
     tabId: _tabId,
@@ -76,7 +76,7 @@ Future<void> _registerListeners() async {
 }
 
 void _handleRuntimeMessages(
-    dynamic jsRequest, MessageSender sender, Function sendResponse) async {
+    dynamic jsRequest, MessageSender sender, Function sendResponse) {
   if (jsRequest is! String) return;
 
   interceptMessage<DebugStateChange>(
@@ -134,7 +134,7 @@ void _handleStorageChanges(Object storageObj, String storageArea) {
   );
 }
 
-void _handleDebugInfoChanges(DebugInfo? debugInfo) async {
+void _handleDebugInfoChanges(DebugInfo? debugInfo) {
   if (debugInfo == null && _isDartApp) {
     _isDartApp = false;
     if (!_warningBannerIsVisible()) {
@@ -149,13 +149,13 @@ void _handleDebugInfoChanges(DebugInfo? debugInfo) async {
   }
 }
 
-void _handleDevToolsUriChanges(String? devToolsUri) async {
+void _handleDevToolsUriChanges(String? devToolsUri) {
   if (devToolsUri != null) {
     _injectDevToolsIframe(devToolsUri);
   }
 }
 
-void _maybeShowMultipleAppsWarning(String? multipleApps) async {
+void _maybeShowMultipleAppsWarning(String? multipleApps) {
   if (multipleApps != null) {
     _showWarningBanner(_multipleAppsMsg);
   } else {
@@ -165,7 +165,7 @@ void _maybeShowMultipleAppsWarning(String? multipleApps) async {
   }
 }
 
-void _maybeUpdateFileABugLink() async {
+Future<void> _maybeUpdateFileABugLink() async {
   final debugInfo = await fetchStorageObject<DebugInfo>(
     type: StorageObject.debugInfo,
     tabId: _tabId,
@@ -179,7 +179,7 @@ void _maybeUpdateFileABugLink() async {
   }
 }
 
-void _setColorThemeToMatchChromeDevTools() async {
+void _setColorThemeToMatchChromeDevTools() {
   final chromeTheme = chrome.devtools.panels.themeName;
   final panelBody = document.getElementById(_panelBodyId);
   if (chromeTheme == 'dark') {
@@ -260,7 +260,7 @@ void _hideWarningBanner() {
   warningBanner?.classes.remove(_showClass);
 }
 
-void _launchDebugConnection(Event _) async {
+Future<void> _launchDebugConnection(Event _) async {
   _updateElementVisibility(_launchDebugConnectionButtonId, visible: false);
   _updateElementVisibility(_loadingSpinnerId, visible: true);
   final json = jsonEncode(serializers.serialize(DebugStateChange((b) => b
@@ -271,10 +271,10 @@ void _launchDebugConnection(Event _) async {
       body: json,
       sender: Script.debuggerPanel,
       recipient: Script.background);
-  _maybeHandleConnectionTimeout();
+  unawaited(_maybeHandleConnectionTimeout().catchError((_) {}));
 }
 
-void _maybeHandleConnectionTimeout() async {
+Future<void> _maybeHandleConnectionTimeout() async {
   _connecting = true;
   await Future.delayed(Duration(seconds: 10));
   if (_connecting == true) {
