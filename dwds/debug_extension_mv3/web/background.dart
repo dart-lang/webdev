@@ -127,13 +127,13 @@ void _handleRuntimeMessages(
           debugWarn('Received multiple apps detected but tab is missing.');
           return;
         }
-        _setWarningIcon();
         // Save the multiple apps info in storage:
         await setStorageObject<String>(
           type: StorageObject.multipleAppsDetected,
           value: multipleAppsDetected,
           tabId: dartTab.id,
         );
+        _setWarningIcon();
       });
 }
 
@@ -155,11 +155,15 @@ void _detectNavigationAwayFromDartApp(NavigationInfo navigationInfo) async {
 
 void _updateIcon(int activeTabId) async {
   final debugInfo = await _fetchDebugInfo(activeTabId);
-  if (debugInfo != null) {
-    _setDebuggableIcon();
-  } else {
+  if (debugInfo == null) {
     _setDefaultIcon();
+    return;
   }
+  final multipleApps = await fetchStorageObject<String>(
+    type: StorageObject.multipleAppsDetected,
+    tabId: activeTabId,
+  );
+  multipleApps == null ? _setDebuggableIcon() : _setWarningIcon();
 }
 
 void _setDebuggableIcon() {
