@@ -11,8 +11,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 ///
 /// This is taken from a real run, but truncated to two levels of scope and one
 /// level of stack.
-List<WipCallFrame> frames1 =
-    frames1Json.map((json) => WipCallFrame(json)).toList();
+List<WipCallFrame> frames1 = frames1Json.map(WipCallFrame.new).toList();
 
 List<Map<String, dynamic>> frames1Json = [
   {
