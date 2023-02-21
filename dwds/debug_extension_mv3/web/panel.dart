@@ -69,7 +69,7 @@ Future<void> _registerListeners() async {
   await _maybeInjectDevToolsIframe();
 }
 
-void _handleRuntimeMessages(
+Future<void> _handleRuntimeMessages(
     dynamic jsRequest, MessageSender sender, Function sendResponse) async {
   if (jsRequest is! String) return;
 
@@ -122,7 +122,7 @@ void _handleStorageChanges(Object storageObj, String storageArea) {
   );
 }
 
-void _handleDebugInfoChanges(DebugInfo? debugInfo) async {
+Future<void> _handleDebugInfoChanges(DebugInfo? debugInfo) async {
   if (debugInfo == null && _isDartApp) {
     _isDartApp = false;
     if (!_warningBannerIsVisible()) {
@@ -137,13 +137,13 @@ void _handleDebugInfoChanges(DebugInfo? debugInfo) async {
   }
 }
 
-void _handleDevToolsUriChanges(String? devToolsUri) async {
+Future<void> _handleDevToolsUriChanges(String? devToolsUri) async {
   if (devToolsUri != null) {
     _injectDevToolsIframe(devToolsUri);
   }
 }
 
-void _maybeUpdateFileABugLink() async {
+Future<void> _maybeUpdateFileABugLink() async {
   final debugInfo = await fetchStorageObject<DebugInfo>(
     type: StorageObject.debugInfo,
     tabId: _tabId,
@@ -157,7 +157,7 @@ void _maybeUpdateFileABugLink() async {
   }
 }
 
-void _setColorThemeToMatchChromeDevTools() async {
+Future<void> _setColorThemeToMatchChromeDevTools() async {
   final chromeTheme = chrome.devtools.panels.themeName;
   final panelBody = document.getElementById(_panelBodyId);
   if (chromeTheme == 'dark') {
@@ -234,7 +234,7 @@ void _hideWarningBanner() {
   warningBanner?.classes.remove(_showClass);
 }
 
-void _launchDebugConnection(Event _) async {
+Future<void> _launchDebugConnection(Event _) async {
   _updateElementVisibility(_launchDebugConnectionButtonId, visible: false);
   _updateElementVisibility(_loadingSpinnerId, visible: true);
   final json = jsonEncode(serializers.serialize(DebugStateChange((b) => b
@@ -245,10 +245,10 @@ void _launchDebugConnection(Event _) async {
       body: json,
       sender: Script.debuggerPanel,
       recipient: Script.background);
-  _maybeHandleConnectionTimeout();
+  await _maybeHandleConnectionTimeout();
 }
 
-void _maybeHandleConnectionTimeout() async {
+Future<void> _maybeHandleConnectionTimeout() async {
   _connecting = true;
   await Future.delayed(Duration(seconds: 10));
   if (_connecting == true) {

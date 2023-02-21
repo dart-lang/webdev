@@ -481,7 +481,7 @@ class TestContext {
   void makeEditToDartEntryFile({
     required String toReplace,
     required String replaceWith,
-  }) async {
+  }) {
     final file = File(_dartEntryFilePath);
     final fileContents = file.readAsStringSync();
     file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));

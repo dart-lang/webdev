@@ -104,7 +104,8 @@ bool get existsActiveDebugSession => _debugSessions.isNotEmpty;
 int? get latestAppBeingDebugged =>
     existsActiveDebugSession ? _debugSessions.last.appTabId : null;
 
-void attachDebugger(int dartAppTabId, {required Trigger trigger}) async {
+Future<void> attachDebugger(int dartAppTabId,
+    {required Trigger trigger}) async {
   // Check if a debugger is already attached:
   final existingDebuggerLocation = _debuggerLocation(dartAppTabId);
   if (existingDebuggerLocation != null) {
@@ -363,7 +364,8 @@ void _forwardChromeDebuggerEventToDwds(
   }
 }
 
-void _openDevTools(String devToolsUri, {required int dartAppTabId}) async {
+Future<void> _openDevTools(String devToolsUri,
+    {required int dartAppTabId}) async {
   if (devToolsUri.isEmpty) {
     debugError('DevTools URI is empty.');
     return;
