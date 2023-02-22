@@ -118,7 +118,7 @@ class ChromeProxyService implements VmServiceInterface {
       _skipLists,
       root,
     );
-    debugger.then((value) => _debuggerCompleter.complete(value));
+    debugger.then(_debuggerCompleter.complete);
   }
 
   static Future<ChromeProxyService> create(

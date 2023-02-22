@@ -48,9 +48,7 @@ void _showSavedMsg() {
   final snackbar = document.getElementById('savedSnackbar');
   if (snackbar == null) return;
   snackbar.classes.add('show');
-  Timer(Duration(seconds: 3), () {
-    _maybeHideSavedMsg();
-  });
+  Timer(Duration(seconds: 3), _maybeHideSavedMsg);
 }
 
 void _maybeHideSavedMsg() {

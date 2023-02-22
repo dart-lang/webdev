@@ -140,7 +140,7 @@ Matcher matchPrimitiveInstance(
         {required String kind, required dynamic value}) =>
     isA<Instance>()
         .having((e) => e.kind, 'kind', kind)
-        .having((e) => _getValue(e), 'value', value);
+        .having(_getValue, 'value', value);
 
 Matcher matchPlainInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kPlainInstance)
