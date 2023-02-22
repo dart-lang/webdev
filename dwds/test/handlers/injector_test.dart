@@ -24,7 +24,14 @@ void main() {
   group('InjectedHandlerWithoutExtension', () {
     late DwdsInjector injector;
     setUp(() async {
-      injector = DwdsInjector(loadStrategy);
+      injector = DwdsInjector(
+        loadStrategy,
+        useSseForInjectedClient: true,
+        enableDevtoolsLaunch: true,
+        emitDebugEvents: true,
+        isInternalBuild: false,
+        isFlutterApp: () => Future.value(true),
+      );
       final pipeline = const Pipeline().addMiddleware(injector.middleware);
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
@@ -223,7 +230,14 @@ void main() {
   group('InjectedHandlerWithoutExtension using WebSockets', () {
     late DwdsInjector injector;
     setUp(() async {
-      injector = DwdsInjector(loadStrategy, useSseForInjectedClient: false);
+      injector = DwdsInjector(
+        loadStrategy,
+        useSseForInjectedClient: false,
+        enableDevtoolsLaunch: true,
+        emitDebugEvents: true,
+        isInternalBuild: false,
+        isFlutterApp: () => Future.value(true),
+      );
       final pipeline = const Pipeline().addMiddleware(injector.middleware);
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
@@ -269,9 +283,15 @@ void main() {
   group('InjectedHandlerWithExtension', () {
     setUp(() async {
       final extensionUri = 'http://localhost:4000';
-      final pipeline = const Pipeline().addMiddleware(
-          DwdsInjector(loadStrategy, extensionUri: Future.value(extensionUri))
-              .middleware);
+      final pipeline = const Pipeline().addMiddleware(DwdsInjector(
+        loadStrategy,
+        extensionUri: Future.value(extensionUri),
+        useSseForInjectedClient: true,
+        enableDevtoolsLaunch: true,
+        emitDebugEvents: true,
+        isInternalBuild: false,
+        isFlutterApp: () => Future.value(true),
+      ).middleware);
       server = await shelf_io.serve(pipeline.addHandler((request) {
         return Response.ok(
             '$entrypointExtensionMarker\n'
