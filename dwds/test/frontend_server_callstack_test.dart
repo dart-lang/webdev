@@ -4,7 +4,6 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
-import 'dart:async';
 
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';

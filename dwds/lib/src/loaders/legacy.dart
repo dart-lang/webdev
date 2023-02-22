@@ -100,8 +100,7 @@ class LegacyStrategy extends LoadStrategy {
       'window.\$dartLoader.forceLoadModule("$clientScript");\n';
 
   @override
-  Future<String?> moduleForServerPath(
-          String entrypoint, String serverPath) async =>
+  Future<String?> moduleForServerPath(String entrypoint, String serverPath) =>
       _moduleForServerPath(metadataProviderFor(entrypoint), serverPath);
 
   @override
@@ -109,12 +108,11 @@ class LegacyStrategy extends LoadStrategy {
       _moduleInfoForProvider(metadataProviderFor(entrypoint));
 
   @override
-  Future<String?> serverPathForModule(String entrypoint, String module) async =>
+  Future<String?> serverPathForModule(String entrypoint, String module) =>
       _serverPathForModule(metadataProviderFor(entrypoint), module);
 
   @override
-  Future<String?> sourceMapPathForModule(
-          String entrypoint, String module) async =>
+  Future<String?> sourceMapPathForModule(String entrypoint, String module) =>
       _sourceMapPathForModule(metadataProviderFor(entrypoint), module);
 
   @override

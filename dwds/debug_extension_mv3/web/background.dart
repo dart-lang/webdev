@@ -5,8 +5,6 @@
 @JS()
 library background;
 
-import 'dart:async';
-
 import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
 

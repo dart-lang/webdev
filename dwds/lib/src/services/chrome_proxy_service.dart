@@ -488,7 +488,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String expression, {
     Map<String, String>? scope,
     bool? disableBreakpoints,
-  }) async {
+  }) {
     // TODO(798) - respect disableBreakpoints.
     return captureElapsedTime(() async {
       await isInitialized;
@@ -512,7 +512,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Response> evaluateInFrame(
       String isolateId, int frameIndex, String expression,
-      {Map<String, String>? scope, bool? disableBreakpoints}) async {
+      {Map<String, String>? scope, bool? disableBreakpoints}) {
     // TODO(798) - respect disableBreakpoints.
 
     return captureElapsedTime(() async {
@@ -563,7 +563,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Isolate> getIsolate(String isolateId) async {
+  Future<Isolate> getIsolate(String isolateId) {
     return captureElapsedTime(() async {
       await isInitialized;
       _checkIsolate('getIsolate', isolateId);
@@ -587,8 +587,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<ScriptList> getScripts(String isolateId) async {
-    return await captureElapsedTime(() async {
+  Future<ScriptList> getScripts(String isolateId) {
+    return captureElapsedTime(() async {
       await isInitialized;
       _checkIsolate('getScripts', isolateId);
       return inspector.getScripts();
@@ -605,8 +605,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     bool? forceCompile,
     bool? reportLines,
     List<String>? libraryFilters,
-  }) async {
-    return await captureElapsedTime(() async {
+  }) {
+    return captureElapsedTime(() async {
       await isInitialized;
       _checkIsolate('getSourceReport', isolateId);
       return await inspector.getSourceReport(
@@ -635,7 +635,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<VM> getVM() async {
+  Future<VM> getVM() {
     return captureElapsedTime(() async {
       await isInitialized;
       return _vm;
@@ -739,7 +739,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> registerService(String service, String alias) async {
+  Future<Success> registerService(String service, String alias) {
     return _rpcNotSupportedFuture('registerService');
   }
 
@@ -917,15 +917,15 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   /// Parses the [BatchedDebugEvents] and emits corresponding Dart VM Service
   /// protocol [Event]s.
-  Future<void> parseBatchedDebugEvents(BatchedDebugEvents debugEvents) async {
+  void parseBatchedDebugEvents(BatchedDebugEvents debugEvents) {
     for (var debugEvent in debugEvents.events) {
-      await parseDebugEvent(debugEvent);
+      parseDebugEvent(debugEvent);
     }
   }
 
   /// Parses the [DebugEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
-  Future<void> parseDebugEvent(DebugEvent debugEvent) async {
+  void parseDebugEvent(DebugEvent debugEvent) {
     if (terminatingIsolates) return;
     if (!_isIsolateRunning) return;
     final isolateRef = inspector.isolateRef;
@@ -943,7 +943,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   /// Parses the [RegisterEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
-  Future<void> parseRegisterEvent(RegisterEvent registerEvent) async {
+  void parseRegisterEvent(RegisterEvent registerEvent) {
     if (terminatingIsolates) return;
     if (!_isIsolateRunning) return;
 

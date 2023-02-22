@@ -270,11 +270,11 @@ class Locations {
   /// [module] refers to the JS path of a DDC module without the extension.
   ///
   /// This will populate the [_sourceToLocation] and [_moduleToLocations] maps.
-  Future<Set<Location>> _locationsForModule(String module) async {
+  Future<Set<Location>> _locationsForModule(String module) {
     final memoizer =
         _locationMemoizer.putIfAbsent(module, () => AsyncMemoizer());
 
-    return await memoizer.runOnce(() async {
+    return memoizer.runOnce(() async {
       if (_moduleToLocations.containsKey(module)) {
         return _moduleToLocations[module]!;
       }

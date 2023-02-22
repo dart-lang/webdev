@@ -11,6 +11,7 @@
   - Display records as a container of fields.
 - Remove test-only code from `sdk_configuration.dart`.
 - Move shared test-only code to a new `test_common` package.
+- Convert unnecessary async code to sync.
 
 **Breaking changes**
 - Require `sdkConfigurationProvider` in `ExpressionCompilerService`

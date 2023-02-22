@@ -39,7 +39,7 @@ class BatchedStreamController<T> {
   Stream<List<T>> get stream => _outputController.stream;
 
   /// Close the controller.
-  Future<dynamic> close() async {
+  Future<dynamic> close() {
     safeUnawaited(_inputController.close());
     return _completer.future.then((value) => _outputController.close());
   }
