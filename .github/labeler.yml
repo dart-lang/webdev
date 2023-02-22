@@ -1,0 +1,13 @@
+# This configures the .github/workflows/pull_request_label.yml workflow. 
+
+'infra':
+  - '.github/**'
+
+'package:dwds':
+  - dwds/**/*
+
+'package:frontend_server_client':
+  - frontend_server_client/**/*
+
+'package:webdev':
+  - webdev/**/*
