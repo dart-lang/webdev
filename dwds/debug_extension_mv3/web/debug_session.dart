@@ -104,7 +104,8 @@ bool get existsActiveDebugSession => _debugSessions.isNotEmpty;
 int? get latestAppBeingDebugged =>
     existsActiveDebugSession ? _debugSessions.last.appTabId : null;
 
-void attachDebugger(int dartAppTabId, {required Trigger trigger}) async {
+Future<void> attachDebugger(int dartAppTabId,
+    {required Trigger trigger}) async {
   // Check if a debugger is already attached:
   final existingDebuggerLocation = _debuggerLocation(dartAppTabId);
   if (existingDebuggerLocation != null) {
@@ -112,7 +113,16 @@ void attachDebugger(int dartAppTabId, {required Trigger trigger}) async {
       'Already debugging in ${existingDebuggerLocation.displayName}.',
     );
   }
-
+  // Determine if there are multiple apps in the tab:
+  final multipleApps = await fetchStorageObject<String>(
+    type: StorageObject.multipleAppsDetected,
+    tabId: dartAppTabId,
+  );
+  if (multipleApps != null) {
+    return _showWarningNotification(
+      'Dart debugging is not supported in a multi-app environment.',
+    );
+  }
   // Verify that the user is authenticated:
   final isAuthenticated = await _authenticateUser(dartAppTabId);
   if (!isAuthenticated) return;
@@ -363,7 +373,8 @@ void _forwardChromeDebuggerEventToDwds(
   }
 }
 
-void _openDevTools(String devToolsUri, {required int dartAppTabId}) async {
+Future<void> _openDevTools(String devToolsUri,
+    {required int dartAppTabId}) async {
   if (devToolsUri.isEmpty) {
     debugError('DevTools URI is empty.');
     return;
@@ -427,9 +438,19 @@ Future<void> _maybeCloseDevTools(int? devToolsTabId) async {
 }
 
 Future<void> _removeDebugSessionDataInStorage(int tabId) async {
-  // Remove the DevTools URI and encoded URI from storage:
-  await removeStorageObject(type: StorageObject.devToolsUri, tabId: tabId);
-  await removeStorageObject(type: StorageObject.encodedUri, tabId: tabId);
+  // Remove the DevTools URI, encoded URI, and multiple apps info from storage:
+  await removeStorageObject(
+    type: StorageObject.devToolsUri,
+    tabId: tabId,
+  );
+  await removeStorageObject(
+    type: StorageObject.encodedUri,
+    tabId: tabId,
+  );
+  await removeStorageObject(
+    type: StorageObject.multipleAppsDetected,
+    tabId: tabId,
+  );
 }
 
 void _removeDebugSession(_DebugSession debugSession) {

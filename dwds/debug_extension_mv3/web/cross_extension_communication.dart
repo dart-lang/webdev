@@ -27,16 +27,16 @@ final _eventsForAngularDartDevTools = {
   'dwds.encodedUri',
 };
 
-void handleMessagesFromAngularDartDevTools(
+Future<void> handleMessagesFromAngularDartDevTools(
     dynamic jsRequest, MessageSender sender, Function sendResponse) async {
   if (jsRequest == null) return;
   final message = jsRequest as ExternalExtensionMessage;
   if (message.name == 'chrome.debugger.sendCommand') {
     _forwardCommandToChromeDebugger(message, sendResponse);
   } else if (message.name == 'dwds.encodedUri') {
-    _respondWithEncodedUri(message.tabId, sendResponse);
+    await _respondWithEncodedUri(message.tabId, sendResponse);
   } else if (message.name == 'dwds.startDebugging') {
-    attachDebugger(message.tabId, trigger: Trigger.angularDartDevTools);
+    await attachDebugger(message.tabId, trigger: Trigger.angularDartDevTools);
     sendResponse(true);
   } else {
     sendResponse(
@@ -83,7 +83,7 @@ void _respondWithChromeResult(Object? chromeResult, Function sendResponse) {
   }
 }
 
-void _respondWithEncodedUri(int tabId, Function sendResponse) async {
+Future<void> _respondWithEncodedUri(int tabId, Function sendResponse) async {
   final encodedUri = await fetchStorageObject<String>(
       type: StorageObject.encodedUri, tabId: tabId);
   sendResponse(encodedUri ?? '');

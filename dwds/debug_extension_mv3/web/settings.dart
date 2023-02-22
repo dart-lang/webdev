@@ -23,7 +23,7 @@ void _registerListeners() {
   saveButton.addEventListener('click', _saveSettingsToStorage);
 }
 
-void _updateSettingsFromStorage(Event _) async {
+Future<void> _updateSettingsFromStorage(Event _) async {
   final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
       type: StorageObject.devToolsOpener);
   final openInNewWindow = devToolsOpener?.newWindow ?? false;
@@ -31,7 +31,7 @@ void _updateSettingsFromStorage(Event _) async {
   _getRadioButton('tabOpt').checked = !openInNewWindow;
 }
 
-void _saveSettingsToStorage(Event event) async {
+Future<void> _saveSettingsToStorage(Event event) async {
   event.preventDefault();
   _maybeHideSavedMsg();
   final form = document.querySelector("form") as FormElement;

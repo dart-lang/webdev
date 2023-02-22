@@ -472,7 +472,7 @@ void main() async {
                   (target) => target.url.startsWith('devtools://devtools'));
               chromeDevToolsTarget.type = 'page';
               final chromeDevToolsPage = await chromeDevToolsTarget.page;
-              _tabLeft(chromeDevToolsPage);
+              await _tabLeft(chromeDevToolsPage);
               await _takeScreenshot(chromeDevToolsPage,
                   screenshotName: 'chromeDevTools_externalBuild');
               final inspectorPanelTarget = browser.targets.firstWhereOrNull(
@@ -564,7 +564,7 @@ void main() async {
               // therefore we rely on a slight delay:
               await Future.delayed(Duration(seconds: 1));
               if (isFlutterApp) {
-                _tabLeft(chromeDevToolsPage);
+                await _tabLeft(chromeDevToolsPage);
                 final inspectorPanelElement = await _getPanelElement(
                   browser,
                   panel: Panel.inspector,
@@ -576,7 +576,7 @@ void main() async {
                   screenshotName: 'inspectorPanelLandingPage_flutterApp',
                 );
               }
-              _tabLeft(chromeDevToolsPage);
+              await _tabLeft(chromeDevToolsPage);
               final debuggerPanelElement = await _getPanelElement(
                 browser,
                 panel: Panel.debugger,
@@ -597,9 +597,9 @@ void main() async {
               // therefore we rely on a slight delay:
               await Future.delayed(Duration(seconds: 1));
               // Navigate to the Dart Debugger panel:
-              _tabLeft(chromeDevToolsPage);
+              await _tabLeft(chromeDevToolsPage);
               if (isFlutterApp) {
-                _tabLeft(chromeDevToolsPage);
+                await _tabLeft(chromeDevToolsPage);
               }
               await _clickLaunchButton(
                 browser,
@@ -661,9 +661,9 @@ void main() async {
               // therefore we rely on a slight delay:
               await Future.delayed(Duration(seconds: 1));
               // Navigate to the Dart Debugger panel:
-              _tabLeft(chromeDevToolsPage);
+              await _tabLeft(chromeDevToolsPage);
               if (isFlutterApp) {
-                _tabLeft(chromeDevToolsPage);
+                await _tabLeft(chromeDevToolsPage);
               }
               await _clickLaunchButton(
                 browser,
@@ -693,6 +693,54 @@ void main() async {
               expect(queryParameters, containsPair('page', isNotEmpty));
               expect(
                   queryParameters, containsPair('backgroundColor', isNotEmpty));
+            });
+
+            test('Trying to debug a page with multiple Dart apps shows warning',
+                () async {
+              final chromeDevToolsPage = await getChromeDevToolsPage(browser);
+              // There are no hooks for when a panel is added to Chrome DevTools,
+              // therefore we rely on a slight delay:
+              await Future.delayed(Duration(seconds: 1));
+              // Navigate to the Dart Debugger panel:
+              await _tabLeft(chromeDevToolsPage);
+              if (isFlutterApp) {
+                await _tabLeft(chromeDevToolsPage);
+              }
+              // Expect there to be no warning banner:
+              var warningMsg = await _evaluateInPanel<String>(browser,
+                  panel: Panel.debugger,
+                  jsExpression:
+                      'document.querySelector("#warningMsg").innerHTML');
+              expect(warningMsg == 'Cannot debug multiple apps in a page.',
+                  isFalse);
+              // Set the 'data-multiple-dart-apps' attribute on the DOM.
+              await appTab.evaluate(_setMultipleAppsAttributeJs);
+              final appTabId = await _getTabId(
+                context.appUrl,
+                worker: worker,
+                backgroundPage: backgroundPage,
+              );
+              // Expect multiple apps info to be saved in storage:
+              final storageKey = '$appTabId-multipleAppsDetected';
+              final multipleAppsDetected = await _fetchStorageObj<String>(
+                storageKey,
+                storageArea: 'session',
+                worker: worker,
+                backgroundPage: backgroundPage,
+              );
+              expect(multipleAppsDetected, equals('true'));
+              // Expect there to be a warning banner:
+              warningMsg = await _evaluateInPanel<String>(browser,
+                  panel: Panel.debugger,
+                  jsExpression:
+                      'document.querySelector("#warningMsg").innerHTML');
+              await _takeScreenshot(
+                chromeDevToolsPage,
+                screenshotName:
+                    'debuggerMultipleAppsDetected_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
+              );
+              expect(
+                  warningMsg, equals('Cannot debug multiple apps in a page.'));
             });
           });
         }
@@ -813,6 +861,17 @@ Future<Page> _getPanelPage(
   return await panelTarget.page;
 }
 
+Future<T> _evaluateInPanel<T>(
+  Browser browser, {
+  required Panel panel,
+  required String jsExpression,
+}) async {
+  final panelPage = await _getPanelPage(browser, panel: panel);
+  final frames = panelPage.frames;
+  final mainFrame = frames[0];
+  return mainFrame.evaluate(jsExpression);
+}
+
 Future<ElementHandle?> _getPanelElement(
   Browser browser, {
   required Panel panel,
@@ -825,7 +884,7 @@ Future<ElementHandle?> _getPanelElement(
   return panelElement;
 }
 
-void _tabLeft(Page chromeDevToolsPage) async {
+Future<void> _tabLeft(Page chromeDevToolsPage) async {
   // TODO(elliette): Detect which enviroment we are OS we are running
   // in and update modifier key accordingly. Meta key for MacOs and
   // Ctrl key for Linux/Windows.
@@ -940,6 +999,10 @@ String _getNotifications() {
     }
 ''';
 }
+
+String _setMultipleAppsAttributeJs = '''
+  document.documentElement.setAttribute("data-multiple-dart-apps", true);
+''';
 
 // TODO(https://github.com/dart-lang/webdev/issues/1787): Compare to golden
 // images. Currently golden comparison is not set up, since this is only run
