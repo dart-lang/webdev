@@ -20,8 +20,6 @@ class TestProject {
   String get absolutePackageDirectory =>
       absolutePath(pathFromFixtures: packageDirectory);
 
-  // _test_package
-
   const TestProject.testPackageWithSoundNullSafety(
       {IndexBaseMode baseMode = IndexBaseMode.noBase})
       : this._(
@@ -54,7 +52,6 @@ class TestProject {
           ? TestProject.testPackageWithSoundNullSafety(baseMode: baseMode)
           : TestProject.testPackageWithWeakNullSafety(baseMode: baseMode);
 
-  /// _test_circular1
   static const testCircular1WithSoundNullSafety = TestProject._(
     packageName: '_test_circular1_sound',
     packageDirectory: '_testCircular1Sound',
@@ -79,7 +76,6 @@ class TestProject {
           ? TestProject.testCircular1WithSoundNullSafety
           : TestProject.testCircular1WithWeakNullSafety;
 
-  /// _test_circular2
   const TestProject.testCircular2WithSoundNullSafety(
       {IndexBaseMode baseMode = IndexBaseMode.noBase})
       : this._(
@@ -112,7 +108,6 @@ class TestProject {
           ? TestProject.testCircular2WithSoundNullSafety(baseMode: baseMode)
           : TestProject.testCircular2WithWeakNullSafety(baseMode: baseMode);
 
-  /// _test
   static const testWithSoundNullSafety = TestProject._(
     packageName: '_test_sound',
     packageDirectory: '_testSound',
