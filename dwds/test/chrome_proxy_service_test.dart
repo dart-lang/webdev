@@ -21,12 +21,11 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
-final context = TestContext.withSoundNullSafety();
+final context = TestContext(TestProject.testWithSoundNullSafety);
 
-ChromeProxyService get service =>
-    fetchChromeProxyService(context.debugConnection);
-
+ChromeProxyService get service => context.service;
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {

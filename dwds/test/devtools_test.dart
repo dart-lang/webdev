@@ -12,8 +12,9 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
-final context = TestContext.withSoundNullSafety();
+final context = TestContext(TestProject.testWithSoundNullSafety);
 
 Future<void> _waitForPageReady(TestContext context) async {
   var attempt = 100;

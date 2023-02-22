@@ -6,7 +6,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/server.dart';
@@ -14,16 +13,13 @@ import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/async_core.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
-ChromeProxyService get service =>
-    fetchChromeProxyService(context.debugConnection);
+final context = TestContext(TestProject.testWithSoundNullSafety);
 
-WipConnection get tabConnection => context.tabConnection;
-
-final context = TestContext.withSoundNullSafety();
+ChromeProxyService get service => context.service;
 
 void main() {
   group('serve requests', () {

@@ -19,6 +19,7 @@ import 'package:dwds/src/loaders/frontend_server_require.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/server.dart';
@@ -38,6 +39,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'project.dart';
 import 'server.dart';
 import 'utilities.dart';
 
@@ -51,38 +53,36 @@ final Matcher throwsSentinelException = throwsA(isSentinelException);
 
 enum CompilationMode { buildDaemon, frontendServer }
 
-enum IndexBaseMode { noBase, base }
-
-enum NullSafety { weak, sound }
-
 class TestContext {
-  final String packageName;
-  final String webAssetsPath;
-  final String dartEntryFileName;
-  final String htmlEntryFileName;
+  final TestProject project;
   final NullSafety nullSafety;
 
   /// Top level directory in which we run the test server, e.g.
   /// "/workstation/webdev/fixtures/_testSound".
-  String get workingDirectory => absolutePath(pathFromFixtures: packageName);
+  String get workingDirectory =>
+      absolutePath(pathFromFixtures: project.packageDirectory);
 
   /// The directory to build and serve, e.g. "example".
-  String get directoryToServe => p.split(webAssetsPath).first;
+  String get directoryToServe => p.split(project.webAssetsPath).first;
 
   /// The path to the HTML file to serve, relative to the [directoryToServe],
   /// e.g. "hello_world/index.html".
   String get filePathToServe {
-    final pathParts = p.split(webAssetsPath).where(
+    final pathParts = p.split(project.webAssetsPath).where(
           (pathPart) => pathPart != directoryToServe,
         );
-    return webCompatiblePath([...pathParts, htmlEntryFileName]);
+    return webCompatiblePath([...pathParts, project.htmlEntryFileName]);
   }
 
   /// The path to the Dart entry file, e.g,
   /// "/workstation/webdev/fixtures/_testSound/example/hello_world/main.dart":
   String get _dartEntryFilePath => absolutePath(
         pathFromFixtures: p.joinAll(
-          [packageName, webAssetsPath, dartEntryFileName],
+          [
+            project.packageDirectory,
+            project.webAssetsPath,
+            project.dartEntryFileName,
+          ],
         ),
       );
 
@@ -135,46 +135,19 @@ class TestContext {
 
   final _logger = logging.Logger('Context');
 
-  TestContext.withSoundNullSafety({
-    String packageName = '_testSound',
-    String webAssetsPath = 'example/hello_world',
-    String dartEntryFileName = 'main.dart',
-    String htmlEntryFileName = 'index.html',
-  }) : this._(
-          nullSafety: NullSafety.sound,
-          packageName: packageName,
-          webAssetsPath: webAssetsPath,
-          dartEntryFileName: dartEntryFileName,
-          htmlEntryFileName: htmlEntryFileName,
-        );
+  /// Internal VM service.
+  ///
+  /// Prefer using [vmService] instead in tests when possible, to include testing
+  /// of the VmServerConnection (bypassed when using [service]).
+  ChromeProxyService get service => fetchChromeProxyService(debugConnection);
 
-  TestContext.withWeakNullSafety({
-    String packageName = '_test',
-    String webAssetsPath = 'example/hello_world',
-    String dartEntryFileName = 'main.dart',
-    String htmlEntryFileName = 'index.html',
-  }) : this._(
-          nullSafety: NullSafety.weak,
-          packageName: packageName,
-          webAssetsPath: webAssetsPath,
-          dartEntryFileName: dartEntryFileName,
-          htmlEntryFileName: htmlEntryFileName,
-        );
+  /// External VM service.
+  VmServiceInterface get vmService => debugConnection.vmService;
 
-  TestContext._({
-    required this.packageName,
-    required this.webAssetsPath,
-    required this.dartEntryFileName,
-    required this.htmlEntryFileName,
-    required this.nullSafety,
-  }) {
-    // Verify that the test fixtures package matches the null-safety mode:
-    final isSoundPackage = packageName.toLowerCase().contains('sound');
-    assert(nullSafety == NullSafety.sound ? isSoundPackage : !isSoundPackage);
-    // Verify that the web assets path has no starting slash:
-    assert(!webAssetsPath.startsWith('/'));
-
+  TestContext(this.project) : nullSafety = project.nullSafety {
     DartUri.currentDirectory = workingDirectory;
+
+    project.validate();
 
     _logger.info('Serving: $directoryToServe/$filePathToServe');
     _logger.info('Project: $workingDirectory');
@@ -316,7 +289,8 @@ class TestContext {
           {
             _logger.warning('Index: $filePathToServe');
 
-            final entry = p.toUri(p.join(webAssetsPath, dartEntryFileName));
+            final entry = p.toUri(
+                p.join(project.webAssetsPath, project.dartEntryFileName));
             final fileSystem = LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
               fileSystem,
