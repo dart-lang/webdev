@@ -30,11 +30,7 @@ Future<Tab> createTab(String url, {bool inNewWindow = false}) {
         active: true,
         url: url,
       ),
-      allowInterop(
-        (Tab tab) {
-          completer.complete(tab);
-        },
-      ),
+      allowInterop(completer.complete),
     );
   }
   return completer.future;
@@ -42,9 +38,7 @@ Future<Tab> createTab(String url, {bool inNewWindow = false}) {
 
 Future<Tab?> getTab(int tabId) {
   final completer = Completer<Tab?>();
-  chrome.tabs.get(tabId, allowInterop((tab) {
-    completer.complete(tab);
-  }));
+  chrome.tabs.get(tabId, allowInterop(completer.complete));
   return completer.future;
 }
 

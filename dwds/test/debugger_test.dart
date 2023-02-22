@@ -21,8 +21,9 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
 import 'fixtures/context.dart';
 import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
+import 'fixtures/project.dart';
 
-final context = TestContext.withSoundNullSafety();
+final context = TestContext(TestProject.testWithSoundNullSafety);
 late AppInspector inspector;
 late Debugger debugger;
 late FakeWebkitDebugger webkitDebugger;

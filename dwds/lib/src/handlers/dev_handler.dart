@@ -159,7 +159,7 @@ class DevHandler {
           .takeUntilGap(const Duration(milliseconds: 50));
       // We enqueue this work as we need to begin listening (`.hasNext`)
       // before events are received.
-      safeUnawaited(Future.microtask(() => connection.runtime.enable()));
+      safeUnawaited(Future.microtask(connection.runtime.enable));
 
       await for (var contextId in contextIds) {
         final result = await connection.sendCommand('Runtime.evaluate', {

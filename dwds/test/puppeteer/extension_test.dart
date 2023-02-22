@@ -22,6 +22,7 @@ import 'package:test/test.dart';
 import '../../debug_extension_mv3/web/data_serializers.dart';
 import '../../debug_extension_mv3/web/data_types.dart';
 import '../fixtures/context.dart';
+import '../fixtures/project.dart';
 import '../fixtures/utilities.dart';
 import 'test_utils.dart';
 
@@ -34,7 +35,7 @@ import 'test_utils.dart';
 // To run the MV2 tests only:
 // dart test test/puppeteer/extension_test.dart --r=expanded --no-retry --n="MV2 Debug Extension"
 
-final context = TestContext.withSoundNullSafety();
+final context = TestContext(TestProject.testWithSoundNullSafety);
 
 enum Panel { debugger, inspector }
 

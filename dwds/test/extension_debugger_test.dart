@@ -40,9 +40,7 @@ void main() async {
         ..success = true);
       final resultCompleter = Completer();
       unawaited(extensionDebugger.sendCommand('Runtime.evaluate',
-          params: {'expression': '\$pi'}).then((response) {
-        resultCompleter.complete(response);
-      }));
+          params: {'expression': '\$pi'}).then(resultCompleter.complete));
       connection.controllerIncoming.sink
           .add(jsonEncode(serializers.serialize(extensionResponse)));
       final response = await resultCompleter.future;

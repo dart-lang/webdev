@@ -12,27 +12,27 @@ import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import 'fixtures/utilities.dart';
+import 'fixtures/project.dart';
 
 void main() {
+  final project = TestProject.testPackageWithSoundNullSafety();
   for (final useDebuggerModuleNames in [true, false]) {
     group(
         'Package uri mapper with debugger module names: '
         ' $useDebuggerModuleNames |', () {
       final fileSystem = LocalFileSystem();
 
-      final packageUri =
-          Uri(scheme: 'package', path: '_test_package_sound/test_library.dart');
+      final packageUri = Uri(
+          scheme: 'package', path: '${project.packageName}/test_library.dart');
 
       final serverPath = useDebuggerModuleNames
-          ? 'packages/_testPackageSound/lib/test_library.dart'
-          : '/packages/_test_package_sound/test_library.dart';
+          ? 'packages/${project.packageDirectory}/lib/test_library.dart'
+          : '/packages/${project.packageName}/test_library.dart';
 
       final resolvedPath =
-          '/webdev/fixtures/_testPackageSound/lib/test_library.dart';
+          '/webdev/fixtures/${project.packageDirectory}/lib/test_library.dart';
 
-      final testPackageSoundPath =
-          absolutePath(pathFromFixtures: '_testPackageSound');
+      final testPackageSoundPath = project.absolutePackageDirectory;
 
       final packageConfigFile = Uri.file(p.join(
         testPackageSoundPath,

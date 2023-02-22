@@ -271,8 +271,7 @@ class Locations {
   ///
   /// This will populate the [_sourceToLocation] and [_moduleToLocations] maps.
   Future<Set<Location>> _locationsForModule(String module) {
-    final memoizer =
-        _locationMemoizer.putIfAbsent(module, () => AsyncMemoizer());
+    final memoizer = _locationMemoizer.putIfAbsent(module, AsyncMemoizer.new);
 
     return memoizer.runOnce(() async {
       if (_moduleToLocations.containsKey(module)) {

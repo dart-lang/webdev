@@ -26,9 +26,8 @@ void main() {
 
     test('Cannot validate an empty configuration layout', () async {
       final emptyConfiguration = SdkConfiguration.empty();
-      expect(() => emptyConfiguration.validateSdkDir(),
-          _throwsDoesNotExistException);
-      expect(() => emptyConfiguration.validate(), _throwsDoesNotExistException);
+      expect(emptyConfiguration.validateSdkDir, _throwsDoesNotExistException);
+      expect(emptyConfiguration.validate, _throwsDoesNotExistException);
     });
   });
 
@@ -85,7 +84,7 @@ void main() {
       final sdkConfiguration = TestSdkLayout.createConfiguration(sdkLayout);
 
       sdkConfiguration.validateSdkDir();
-      expect(() => sdkConfiguration.validate(), _throwsDoesNotExistException);
+      expect(sdkConfiguration.validate, _throwsDoesNotExistException);
     });
   });
 

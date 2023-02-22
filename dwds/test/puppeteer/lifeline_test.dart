@@ -9,9 +9,10 @@ import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 
 import '../fixtures/context.dart';
+import '../fixtures/project.dart';
 import 'test_utils.dart';
 
-final context = TestContext.withSoundNullSafety();
+final context = TestContext(TestProject.testWithSoundNullSafety);
 
 void main() async {
   late Worker worker;
