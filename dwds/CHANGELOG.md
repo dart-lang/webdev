@@ -13,8 +13,11 @@
 - Move shared test-only code to a new `test_common` package.
 
 **Breaking changes**
+
 - Require `sdkConfigurationProvider` in `ExpressionCompilerService`
   constructor.
+- Change DWDS parameter `isFlutterApp` from type `bool?` to type
+  `Future<bool> Function()?`.
 
 ## 17.0.0
 
@@ -40,6 +43,7 @@
 - Fix expression compiler throwing when weak SDK summary is not found.
 
 **Breaking changes**
+
 - Include an optional param to `Dwds.start` to indicate whether it is running
   internally or externally.
 - Include an optional param to `Dwds.start` to indicate whether it a Flutter
