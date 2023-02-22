@@ -36,16 +36,16 @@ class DwdsInjector {
   final bool _useSseForInjectedClient;
   final bool _emitDebugEvents;
   final bool _isInternalBuild;
-  final bool _isFlutterApp;
+  final Future<bool> Function() _isFlutterApp;
 
   DwdsInjector(
     this._loadStrategy, {
+    required bool enableDevtoolsLaunch,
+    required bool useSseForInjectedClient,
+    required bool emitDebugEvents,
+    required bool isInternalBuild,
+    required Future<bool> Function() isFlutterApp,
     Future<String>? extensionUri,
-    bool enableDevtoolsLaunch = false,
-    bool useSseForInjectedClient = true,
-    bool emitDebugEvents = true,
-    bool isInternalBuild = false,
-    bool isFlutterApp = false,
   })  : _extensionUri = extensionUri,
         _enableDevtoolsLaunch = enableDevtoolsLaunch,
         _useSseForInjectedClient = useSseForInjectedClient,
@@ -117,7 +117,7 @@ class DwdsInjector {
                 _enableDevtoolsLaunch,
                 _emitDebugEvents,
                 _isInternalBuild,
-                _isFlutterApp,
+                await _isFlutterApp(),
               );
               body += await _loadStrategy.bootstrapFor(entrypoint);
               _logger.info('Injected debugging metadata for '
