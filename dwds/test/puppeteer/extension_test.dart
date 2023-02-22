@@ -694,6 +694,54 @@ void main() async {
               expect(
                   queryParameters, containsPair('backgroundColor', isNotEmpty));
             });
+
+            test('Trying to debug a page with multiple Dart apps shows warning',
+                () async {
+              final chromeDevToolsPage = await getChromeDevToolsPage(browser);
+              // There are no hooks for when a panel is added to Chrome DevTools,
+              // therefore we rely on a slight delay:
+              await Future.delayed(Duration(seconds: 1));
+              // Navigate to the Dart Debugger panel:
+              await _tabLeft(chromeDevToolsPage);
+              if (isFlutterApp) {
+                await _tabLeft(chromeDevToolsPage);
+              }
+              // Expect there to be no warning banner:
+              var warningMsg = await _evaluateInPanel<String>(browser,
+                  panel: Panel.debugger,
+                  jsExpression:
+                      'document.querySelector("#warningMsg").innerHTML');
+              expect(warningMsg == 'Cannot debug multiple apps in a page.',
+                  isFalse);
+              // Set the 'data-multiple-dart-apps' attribute on the DOM.
+              await appTab.evaluate(_setMultipleAppsAttributeJs);
+              final appTabId = await _getTabId(
+                context.appUrl,
+                worker: worker,
+                backgroundPage: backgroundPage,
+              );
+              // Expect multiple apps info to be saved in storage:
+              final storageKey = '$appTabId-multipleAppsDetected';
+              final multipleAppsDetected = await _fetchStorageObj<String>(
+                storageKey,
+                storageArea: 'session',
+                worker: worker,
+                backgroundPage: backgroundPage,
+              );
+              expect(multipleAppsDetected, equals('true'));
+              // Expect there to be a warning banner:
+              warningMsg = await _evaluateInPanel<String>(browser,
+                  panel: Panel.debugger,
+                  jsExpression:
+                      'document.querySelector("#warningMsg").innerHTML');
+              await _takeScreenshot(
+                chromeDevToolsPage,
+                screenshotName:
+                    'debuggerMultipleAppsDetected_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
+              );
+              expect(
+                  warningMsg, equals('Cannot debug multiple apps in a page.'));
+            });
           });
         }
       });
@@ -811,6 +859,17 @@ Future<Page> _getPanelPage(
       await browser.waitForTarget((target) => target.url.contains(panelName));
   panelTarget.type = 'page';
   return await panelTarget.page;
+}
+
+Future<T> _evaluateInPanel<T>(
+  Browser browser, {
+  required Panel panel,
+  required String jsExpression,
+}) async {
+  final panelPage = await _getPanelPage(browser, panel: panel);
+  final frames = panelPage.frames;
+  final mainFrame = frames[0];
+  return mainFrame.evaluate(jsExpression);
 }
 
 Future<ElementHandle?> _getPanelElement(
@@ -940,6 +999,10 @@ String _getNotifications() {
     }
 ''';
 }
+
+String _setMultipleAppsAttributeJs = '''
+  document.documentElement.setAttribute("data-multiple-dart-apps", true);
+''';
 
 // TODO(https://github.com/dart-lang/webdev/issues/1787): Compare to golden
 // images. Currently golden comparison is not set up, since this is only run

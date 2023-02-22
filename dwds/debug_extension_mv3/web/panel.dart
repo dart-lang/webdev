@@ -46,17 +46,23 @@ const _lostConnectionMsg = 'Lost connection.';
 const _connectionTimeoutMsg = 'Connection timed out.';
 const _failedToConnectMsg = 'Failed to connect, please try again.';
 const _pleaseAuthenticateMsg = 'Please re-authenticate and try again.';
+const _multipleAppsMsg = 'Cannot debug multiple apps in a page.';
 
 int get _tabId => chrome.devtools.inspectedWindow.tabId;
 
-void main() {
+Future<void> main() async {
   unawaited(
     _registerListeners().catchError((error) {
       debugWarn('Error registering listeners in panel: $error');
     }),
   );
   _setColorThemeToMatchChromeDevTools();
-  _maybeUpdateFileABugLink();
+  await _maybeUpdateFileABugLink();
+  final multipleApps = await fetchStorageObject<String>(
+    type: StorageObject.multipleAppsDetected,
+    tabId: _tabId,
+  );
+  _maybeShowMultipleAppsWarning(multipleApps);
 }
 
 Future<void> _registerListeners() async {
@@ -69,8 +75,8 @@ Future<void> _registerListeners() async {
   await _maybeInjectDevToolsIframe();
 }
 
-Future<void> _handleRuntimeMessages(
-    dynamic jsRequest, MessageSender sender, Function sendResponse) async {
+void _handleRuntimeMessages(
+    dynamic jsRequest, MessageSender sender, Function sendResponse) {
   if (jsRequest is! String) return;
 
   interceptMessage<DebugStateChange>(
@@ -120,9 +126,15 @@ void _handleStorageChanges(Object storageObj, String storageArea) {
     tabId: _tabId,
     changeHandler: _handleDevToolsUriChanges,
   );
+  interceptStorageChange<String>(
+    storageObj: storageObj,
+    expectedType: StorageObject.multipleAppsDetected,
+    tabId: _tabId,
+    changeHandler: _maybeShowMultipleAppsWarning,
+  );
 }
 
-Future<void> _handleDebugInfoChanges(DebugInfo? debugInfo) async {
+void _handleDebugInfoChanges(DebugInfo? debugInfo) {
   if (debugInfo == null && _isDartApp) {
     _isDartApp = false;
     if (!_warningBannerIsVisible()) {
@@ -137,9 +149,19 @@ Future<void> _handleDebugInfoChanges(DebugInfo? debugInfo) async {
   }
 }
 
-Future<void> _handleDevToolsUriChanges(String? devToolsUri) async {
+void _handleDevToolsUriChanges(String? devToolsUri) {
   if (devToolsUri != null) {
     _injectDevToolsIframe(devToolsUri);
+  }
+}
+
+void _maybeShowMultipleAppsWarning(String? multipleApps) {
+  if (multipleApps != null) {
+    _showWarningBanner(_multipleAppsMsg);
+  } else {
+    if (_warningBannerIsVisible(message: _multipleAppsMsg)) {
+      _hideWarningBanner();
+    }
   }
 }
 
@@ -157,7 +179,7 @@ Future<void> _maybeUpdateFileABugLink() async {
   }
 }
 
-Future<void> _setColorThemeToMatchChromeDevTools() async {
+void _setColorThemeToMatchChromeDevTools() {
   final chromeTheme = chrome.devtools.panels.themeName;
   final panelBody = document.getElementById(_panelBodyId);
   if (chromeTheme == 'dark') {
@@ -217,9 +239,13 @@ void _handleConnectFailure(ConnectFailureReason reason) {
   _updateElementVisibility(_loadingSpinnerId, visible: false);
 }
 
-bool _warningBannerIsVisible() {
+bool _warningBannerIsVisible({String? message}) {
   final warningBanner = document.getElementById(_warningBannerId);
-  return warningBanner != null && warningBanner.classes.contains(_showClass);
+  final isVisible =
+      warningBanner != null && warningBanner.classes.contains(_showClass);
+  if (message == null || isVisible == false) return isVisible;
+  final warningMsg = document.getElementById(_warningMsgId);
+  return warningMsg?.innerHtml == message;
 }
 
 void _showWarningBanner(String message) {
@@ -245,7 +271,7 @@ Future<void> _launchDebugConnection(Event _) async {
       body: json,
       sender: Script.debuggerPanel,
       recipient: Script.background);
-  await _maybeHandleConnectionTimeout();
+  unawaited(_maybeHandleConnectionTimeout().catchError((_) {}));
 }
 
 Future<void> _maybeHandleConnectionTimeout() async {

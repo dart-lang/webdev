@@ -99,7 +99,7 @@ Future<void> _handleRuntimeMessages(
         // Update the icon to show that a Dart app has been detected:
         final currentTab = await activeTab;
         if (currentTab?.id == dartTab.id) {
-          _setDebuggableIcon();
+          await _updateIcon(dartTab.id);
         }
       });
 
@@ -114,6 +114,26 @@ Future<void> _handleRuntimeMessages(
         if (newState == DebugStateChange.startDebugging) {
           attachDebugger(tabId, trigger: Trigger.extensionPanel);
         }
+      });
+
+  interceptMessage<String>(
+      message: jsRequest,
+      expectedType: MessageType.multipleAppsDetected,
+      expectedSender: Script.detector,
+      expectedRecipient: Script.background,
+      messageHandler: (String multipleAppsDetected) async {
+        final dartTab = sender.tab;
+        if (dartTab == null) {
+          debugWarn('Received multiple apps detected but tab is missing.');
+          return;
+        }
+        // Save the multiple apps info in storage:
+        await setStorageObject<String>(
+          type: StorageObject.multipleAppsDetected,
+          value: multipleAppsDetected,
+          tabId: dartTab.id,
+        );
+        _setWarningIcon();
       });
 }
 
@@ -136,15 +156,23 @@ Future<void> _detectNavigationAwayFromDartApp(
 
 Future<void> _updateIcon(int activeTabId) async {
   final debugInfo = await _fetchDebugInfo(activeTabId);
-  if (debugInfo != null) {
-    _setDebuggableIcon();
-  } else {
+  if (debugInfo == null) {
     _setDefaultIcon();
+    return;
   }
+  final multipleApps = await fetchStorageObject<String>(
+    type: StorageObject.multipleAppsDetected,
+    tabId: activeTabId,
+  );
+  multipleApps == null ? _setDebuggableIcon() : _setWarningIcon();
 }
 
 void _setDebuggableIcon() {
   setExtensionIcon(IconInfo(path: 'static_assets/dart.png'));
+}
+
+void _setWarningIcon() {
+  setExtensionIcon(IconInfo(path: 'static_assets/dart_warning.png'));
 }
 
 void _setDefaultIcon() {
