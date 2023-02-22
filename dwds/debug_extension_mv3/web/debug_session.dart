@@ -113,7 +113,16 @@ Future<void> attachDebugger(int dartAppTabId,
       'Already debugging in ${existingDebuggerLocation.displayName}.',
     );
   }
-
+  // Determine if there are multiple apps in the tab:
+  final multipleApps = await fetchStorageObject<String>(
+    type: StorageObject.multipleAppsDetected,
+    tabId: dartAppTabId,
+  );
+  if (multipleApps != null) {
+    return _showWarningNotification(
+      'Dart debugging is not supported in a multi-app environment.',
+    );
+  }
   // Verify that the user is authenticated:
   final isAuthenticated = await _authenticateUser(dartAppTabId);
   if (!isAuthenticated) return;
@@ -429,9 +438,19 @@ Future<void> _maybeCloseDevTools(int? devToolsTabId) async {
 }
 
 Future<void> _removeDebugSessionDataInStorage(int tabId) async {
-  // Remove the DevTools URI and encoded URI from storage:
-  await removeStorageObject(type: StorageObject.devToolsUri, tabId: tabId);
-  await removeStorageObject(type: StorageObject.encodedUri, tabId: tabId);
+  // Remove the DevTools URI, encoded URI, and multiple apps info from storage:
+  await removeStorageObject(
+    type: StorageObject.devToolsUri,
+    tabId: tabId,
+  );
+  await removeStorageObject(
+    type: StorageObject.encodedUri,
+    tabId: tabId,
+  );
+  await removeStorageObject(
+    type: StorageObject.multipleAppsDetected,
+    tabId: tabId,
+  );
 }
 
 void _removeDebugSession(_DebugSession debugSession) {
