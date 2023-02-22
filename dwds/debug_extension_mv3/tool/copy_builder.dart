@@ -18,7 +18,7 @@ class _CopyBuilder extends Builder {
       };
 
   @override
-  void build(BuildStep buildStep) async {
+  Future<void> build(BuildStep buildStep) async {
     final inputAsset = buildStep.inputId;
     final allowedOutputs = buildStep.allowedOutputs;
 

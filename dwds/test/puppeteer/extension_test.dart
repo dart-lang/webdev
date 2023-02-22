@@ -472,7 +472,7 @@ void main() async {
                   (target) => target.url.startsWith('devtools://devtools'));
               chromeDevToolsTarget.type = 'page';
               final chromeDevToolsPage = await chromeDevToolsTarget.page;
-              _tabLeft(chromeDevToolsPage);
+              await _tabLeft(chromeDevToolsPage);
               await _takeScreenshot(chromeDevToolsPage,
                   screenshotName: 'chromeDevTools_externalBuild');
               final inspectorPanelTarget = browser.targets.firstWhereOrNull(
@@ -564,7 +564,7 @@ void main() async {
               // therefore we rely on a slight delay:
               await Future.delayed(Duration(seconds: 1));
               if (isFlutterApp) {
-                _tabLeft(chromeDevToolsPage);
+                await _tabLeft(chromeDevToolsPage);
                 final inspectorPanelElement = await _getPanelElement(
                   browser,
                   panel: Panel.inspector,
@@ -576,7 +576,7 @@ void main() async {
                   screenshotName: 'inspectorPanelLandingPage_flutterApp',
                 );
               }
-              _tabLeft(chromeDevToolsPage);
+              await _tabLeft(chromeDevToolsPage);
               final debuggerPanelElement = await _getPanelElement(
                 browser,
                 panel: Panel.debugger,
@@ -597,9 +597,9 @@ void main() async {
               // therefore we rely on a slight delay:
               await Future.delayed(Duration(seconds: 1));
               // Navigate to the Dart Debugger panel:
-              _tabLeft(chromeDevToolsPage);
+              await _tabLeft(chromeDevToolsPage);
               if (isFlutterApp) {
-                _tabLeft(chromeDevToolsPage);
+                await _tabLeft(chromeDevToolsPage);
               }
               await _clickLaunchButton(
                 browser,
@@ -661,9 +661,9 @@ void main() async {
               // therefore we rely on a slight delay:
               await Future.delayed(Duration(seconds: 1));
               // Navigate to the Dart Debugger panel:
-              _tabLeft(chromeDevToolsPage);
+              await _tabLeft(chromeDevToolsPage);
               if (isFlutterApp) {
-                _tabLeft(chromeDevToolsPage);
+                await _tabLeft(chromeDevToolsPage);
               }
               await _clickLaunchButton(
                 browser,
@@ -702,9 +702,9 @@ void main() async {
               // therefore we rely on a slight delay:
               await Future.delayed(Duration(seconds: 1));
               // Navigate to the Dart Debugger panel:
-              _tabLeft(chromeDevToolsPage);
+              await _tabLeft(chromeDevToolsPage);
               if (isFlutterApp) {
-                _tabLeft(chromeDevToolsPage);
+                await _tabLeft(chromeDevToolsPage);
               }
               // Expect there to be no warning banner:
               var warningMsg = await _evaluateInPanel<String>(browser,
@@ -884,7 +884,7 @@ Future<ElementHandle?> _getPanelElement(
   return panelElement;
 }
 
-void _tabLeft(Page chromeDevToolsPage) async {
+Future<void> _tabLeft(Page chromeDevToolsPage) async {
   // TODO(elliette): Detect which enviroment we are OS we are running
   // in and update modifier key accordingly. Meta key for MacOs and
   // Ctrl key for Linux/Windows.

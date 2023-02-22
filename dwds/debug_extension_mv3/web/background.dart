@@ -55,7 +55,7 @@ void _registerListeners() {
   ));
 }
 
-void _handleRuntimeMessages(
+Future<void> _handleRuntimeMessages(
     dynamic jsRequest, MessageSender sender, Function sendResponse) async {
   if (jsRequest is! String) return;
 
@@ -137,7 +137,8 @@ void _handleRuntimeMessages(
       });
 }
 
-void _detectNavigationAwayFromDartApp(NavigationInfo navigationInfo) async {
+Future<void> _detectNavigationAwayFromDartApp(
+    NavigationInfo navigationInfo) async {
   final tabId = navigationInfo.tabId;
   final debugInfo = await _fetchDebugInfo(navigationInfo.tabId);
   if (debugInfo == null) return;

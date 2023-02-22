@@ -213,7 +213,7 @@ class Debugger extends Domain {
   Future<void> resumeFromStart() => _resumeHandler(null);
 
   /// Notify the debugger the [Isolate] is paused at the application start.
-  void notifyPausedAtStart() async {
+  void notifyPausedAtStart() {
     stackComputer = FrameComputer(this, []);
   }
 

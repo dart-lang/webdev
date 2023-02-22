@@ -19,7 +19,7 @@ bool panelsExist = false;
 
 void main() async {
   _registerListeners();
-  _maybeCreatePanels();
+  await _maybeCreatePanels();
 }
 
 void _registerListeners() {
@@ -31,7 +31,7 @@ void _registerListeners() {
   }));
 }
 
-void _maybeCreatePanels() async {
+Future<void> _maybeCreatePanels() async {
   if (panelsExist) return;
   final tabId = chrome.devtools.inspectedWindow.tabId;
   final debugInfo = await fetchStorageObject<DebugInfo>(
