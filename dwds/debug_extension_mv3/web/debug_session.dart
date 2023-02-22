@@ -245,6 +245,10 @@ Future<void> _maybeConnectToDwds(int tabId, Object? params) async {
   if (debugInfo == null) return;
   if (contextOrigin != debugInfo.appOrigin) return;
   final contextId = context['id'] as int;
+  // Find the correct frame to connect to (this is necessary if the Dart app is
+  // embedded in an IFRAME):
+  final isDartFrame = await _isDartFrame(tabId: tabId, contextId: contextId);
+  if (!isDartFrame) return;
   final connected = await _connectToDwds(
     dartAppContextId: contextId,
     dartAppTabId: tabId,
@@ -255,6 +259,33 @@ Future<void> _maybeConnectToDwds(int tabId, Object? params) async {
     await _sendConnectFailureMessage(ConnectFailureReason.unknown,
         dartAppTabId: tabId);
   }
+}
+
+Future<bool> _isDartFrame({required int tabId, required int contextId}) {
+  final completer = Completer<bool>();
+  chrome.debugger.sendCommand(
+      Debuggee(tabId: tabId),
+      'Runtime.evaluate',
+      _InjectedParams(
+          expression:
+              '[window.\$dartAppId, window.\$dartAppInstanceId, window.\$dwdsVersion]',
+          returnByValue: true,
+          contextId: contextId), allowInterop((dynamic response) {
+    final evalResponse = response as _EvalResponse;
+    final value = evalResponse.result.value;
+    final appId = value?[0];
+    final instanceId = value?[1];
+    final dwdsVersion = value?[2];
+    final frameIdentifier = 'Frame at tab $tabId with context $contextId';
+    if (appId == null || instanceId == null) {
+      debugWarn('$frameIdentifier is not a Dart frame.');
+      completer.complete(false);
+    } else {
+      debugLog('Dart $frameIdentifier is using DWDS $dwdsVersion.');
+      completer.complete(true);
+    }
+  }));
+  return completer.future;
 }
 
 Future<bool> _connectToDwds({
@@ -686,4 +717,26 @@ class _DebugSession {
       debugError('Error closing batch controller: $error');
     }
   }
+}
+
+@JS()
+@anonymous
+class _EvalResponse {
+  external _EvalResult get result;
+}
+
+@JS()
+@anonymous
+class _EvalResult {
+  external List<String?>? get value;
+}
+
+@JS()
+@anonymous
+class _InjectedParams {
+  external String get expresion;
+  external bool get returnByValue;
+  external int get contextId;
+  external factory _InjectedParams(
+      {String? expression, bool? returnByValue, int? contextId});
 }
