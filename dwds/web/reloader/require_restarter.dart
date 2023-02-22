@@ -221,9 +221,7 @@ class RequireRestarter implements Restarter {
     final stackTrace = StackTrace.current;
     requireLoader.forceLoadModule(
       moduleId,
-      allowInterop(() {
-        completer.complete();
-      }),
+      allowInterop(completer.complete),
       allowInterop((e) {
         completer.completeError(
             HotReloadFailedException(e.message), stackTrace);

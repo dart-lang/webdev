@@ -81,7 +81,7 @@ class TestContext {
           [
             project.packageDirectory,
             project.webAssetsPath,
-            project.dartEntryFileName
+            project.dartEntryFileName,
           ],
         ),
       );
@@ -134,6 +134,15 @@ class TestContext {
   late DebugConnection debugConnection;
 
   final _logger = logging.Logger('Context');
+
+  /// Internal VM service.
+  ///
+  /// Prefer using [vmService] instead in tests when possible, to include testing
+  /// of the VmServerConnection (bypassed when using [service]).
+  ChromeProxyService get service => fetchChromeProxyService(debugConnection);
+
+  /// External VM service.
+  VmServiceInterface get vmService => debugConnection.vmService;
 
   TestContext(this.project, this.sdkConfigurationProvider)
       : nullSafety = project.nullSafety {
@@ -416,8 +425,6 @@ class TestContext {
     }
   }
 
-  ChromeProxyService get service => fetchChromeProxyService(debugConnection);
-
   Future<void> startDebugging() async {
     debugConnection = await testServer.dwds.debugConnection(appConnection);
     _webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
@@ -449,7 +456,7 @@ class TestContext {
   void makeEditToDartEntryFile({
     required String toReplace,
     required String replaceWith,
-  }) async {
+  }) {
     final file = File(_dartEntryFilePath);
     final fileContents = file.readAsStringSync();
     file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));

@@ -15,13 +15,14 @@ import 'package:test/test.dart';
 import 'fixtures/project.dart';
 
 void main() {
+  final project = TestProject.testPackageWithSoundNullSafety();
+
   for (final useDebuggerModuleNames in [true, false]) {
     group(
         'Package uri mapper with debugger module names: '
         ' $useDebuggerModuleNames |', () {
       final fileSystem = LocalFileSystem();
 
-      final project = TestProject.testPackageWithSoundNullSafety();
       final packageUri = Uri(
           scheme: 'package', path: '${project.packageName}/test_library.dart');
 

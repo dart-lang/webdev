@@ -233,7 +233,7 @@ void _startDebugging(DebuggerTrigger debuggerTrigger) {
   }));
 }
 
-void _attachDebuggerToTab(Tab currentTab) async {
+Future<void> _attachDebuggerToTab(Tab currentTab) async {
   if (!_debuggableTabs.contains(currentTab.id)) return;
 
   if (_tabIdToWarning.containsKey(currentTab.id)) {
@@ -287,7 +287,7 @@ void _handleMessageFromPanelScript(Request request, MessageSender sender) {
   }
 }
 
-void _maybeMarkTabAsDebuggable(
+Future<void> _maybeMarkTabAsDebuggable(
     Request request, MessageSender sender, Function sendResponse) async {
   // Register any warnings for the tab:
   if (request.warning != '') {
@@ -300,7 +300,7 @@ void _maybeMarkTabAsDebuggable(
   sendResponse(true);
 }
 
-void _maybeAttachDebugSession(
+Future<void> _maybeAttachDebugSession(
   Debuggee source,
   String method,
   Object? params,
@@ -361,7 +361,7 @@ int _removeDebugSessionForTab(int tabId) {
   }
 }
 
-void _maybeSaveDevToolsTabId(Tab tab) async {
+Future<void> _maybeSaveDevToolsTabId(Tab tab) async {
   // Remembers the ID of the DevTools tab.
   //
   // This assumes that the next launched tab after a session is created is the
@@ -369,7 +369,7 @@ void _maybeSaveDevToolsTabId(Tab tab) async {
   if (_debugSessions.isNotEmpty) _debugSessions.last.devtoolsTabId ??= tab.id;
 }
 
-void _handleMessageFromExternalExtensions(
+Future<void> _handleMessageFromExternalExtensions(
     dynamic jsRequest, MessageSender sender, Function sendResponse) async {
   if (jsRequest == null) return;
   final request = jsRequest as Request;
@@ -408,7 +408,7 @@ void _handleMessageFromExternalExtensions(
   }
 }
 
-void _forwardMessageToExternalExtensions(
+Future<void> _forwardMessageToExternalExtensions(
     Debuggee source, String method, Object? params) async {
   if (_allowedEvents.contains(method)) {
     sendMessageToExtensions(ExternalExtensionRequest(

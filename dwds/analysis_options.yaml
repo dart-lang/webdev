@@ -19,3 +19,5 @@ linter:
     - directives_ordering
     - prefer_final_locals
     - unawaited_futures
+    - avoid_void_async
+    - unnecessary_lambdas

@@ -118,7 +118,7 @@ class ChromeProxyService implements VmServiceInterface {
       _skipLists,
       root,
     );
-    debugger.then((value) => _debuggerCompleter.complete(value));
+    debugger.then(_debuggerCompleter.complete);
   }
 
   static Future<ChromeProxyService> create(
@@ -991,7 +991,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
                 ..timestamp = event.timestamp.toInt());
           break;
         case 'dart.developer.log':
-          _handleDeveloperLog(isolateRef, event);
+          await _handleDeveloperLog(isolateRef, event);
           break;
         default:
           break;
@@ -1005,7 +1005,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     controller.add(event);
   }
 
-  void _handleDeveloperLog(IsolateRef isolateRef, ConsoleAPIEvent event) async {
+  Future<void> _handleDeveloperLog(
+      IsolateRef isolateRef, ConsoleAPIEvent event) async {
     final logObject = event.params?['args'][1] as Map?;
     final logParams = <String, RemoteObject>{};
     for (dynamic obj in logObject?['preview']?['properties'] ?? {}) {

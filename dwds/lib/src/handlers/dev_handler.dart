@@ -160,7 +160,7 @@ class DevHandler {
           .takeUntilGap(const Duration(milliseconds: 50));
       // We enqueue this work as we need to begin listening (`.hasNext`)
       // before events are received.
-      safeUnawaited(Future.microtask(() => connection.runtime.enable()));
+      safeUnawaited(Future.microtask(connection.runtime.enable));
 
       await for (var contextId in contextIds) {
         final result = await connection.sendCommand('Runtime.evaluate', {
@@ -432,7 +432,7 @@ class DevHandler {
         .createIsolate(appConnection);
   }
 
-  void _listen() async {
+  Future<void> _listen() async {
     _subs.add(_injected.devHandlerPaths.listen((devHandlerPath) async {
       final uri = Uri.parse(devHandlerPath);
       if (!_sseHandlers.containsKey(uri.path)) {
@@ -473,14 +473,14 @@ class DevHandler {
     return appDebugService;
   }
 
-  void _listenForDebugExtension() async {
+  Future<void> _listenForDebugExtension() async {
     while (await _extensionBackend!.connections.hasNext) {
-      _startExtensionDebugService();
+      await _startExtensionDebugService();
     }
   }
 
   /// Starts a [DebugService] for Dart Debug Extension.
-  void _startExtensionDebugService() async {
+  Future<void> _startExtensionDebugService() async {
     final extensionDebugger = await _extensionBackend!.extensionDebugger;
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.

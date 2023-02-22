@@ -24,8 +24,8 @@ void main() {
   group('shared context |', () {
     for (var nullSafety in NullSafety.values) {
       group('${nullSafety.name} null safety |', () {
-        final context = TestContext(
-            TestProject.testPackage(nullSafety: nullSafety), provider);
+        final project = TestProject.testPackage(nullSafety: nullSafety);
+        final context = TestContext(project, provider);
 
         setUpAll(() async {
           setCurrentLogWriter(debug: debug);
@@ -60,11 +60,11 @@ void main() {
             await service.streamListen('Debug');
             stream = service.onEvent('Debug');
 
-            final packageName = context.project.packageName;
+            final testPackage = project.packageName;
             mainScript = scripts.scripts!
                 .firstWhere((each) => each.uri!.contains('main.dart'));
             testLibraryScript = scripts.scripts!.firstWhere((each) =>
-                each.uri!.contains('package:$packageName/test_library.dart'));
+                each.uri!.contains('package:$testPackage/test_library.dart'));
           });
 
           tearDown(() async {

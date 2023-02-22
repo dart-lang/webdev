@@ -36,9 +36,26 @@ void main() async {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
 
-  for (var useSse in [true, false]) {
-    final context = TestContext(TestProject.testWithSoundNullSafety, provider);
+  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
 
+  Future<void> waitForDartDevToolsWithRetry({
+    int retryCount = 6,
+    Duration retryWait = const Duration(seconds: 1),
+  }) async {
+    if (retryCount == 0) return;
+    final windows = await context.webDriver.windows.toList();
+    await context.webDriver.driver.switchTo.window(windows.last);
+    final title = await context.webDriver.title;
+    if (title == 'Dart DevTools') return;
+
+    await Future.delayed(retryWait);
+    return waitForDartDevToolsWithRetry(
+      retryCount: retryCount--,
+      retryWait: retryWait,
+    );
+  }
+
+  for (var useSse in [true, false]) {
     group(useSse ? 'SSE' : 'WebSockets', () {
       group('Without encoding', () {
         setUp(() async {
@@ -48,7 +65,7 @@ void main() async {
             'expression': 'fakeClick()',
           });
           // Wait for DevTools to actually open.
-          await waitForDartDevToolsWithRetry(context);
+          await waitForDartDevToolsWithRetry();
         });
 
         tearDown(() async {
@@ -76,7 +93,7 @@ void main() async {
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
             'expression': 'fakeClick()',
           });
-          await waitForDartDevToolsWithRetry(context);
+          await waitForDartDevToolsWithRetry();
           expect(await context.webDriver.title, 'Dart DevTools');
         });
 
@@ -142,7 +159,7 @@ void main() async {
             'expression': 'fakeClick()',
           });
           // Wait for DevTools to actually open.
-          await waitForDartDevToolsWithRetry(context);
+          await waitForDartDevToolsWithRetry();
         });
 
         tearDown(() async {
@@ -168,7 +185,7 @@ void main() async {
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
             'expression': 'fakeClick()',
           });
-          await waitForDartDevToolsWithRetry(context);
+          await waitForDartDevToolsWithRetry();
           expect(await context.webDriver.title, 'Dart DevTools');
         });
 
@@ -192,13 +209,15 @@ void main() async {
   }
 
   group('With encoding', () {
-    final context = TestContext(TestProject.testWithSoundNullSafety, provider);
-
-    setUpAll(() async {
+    setUp(() async {
       await context.setUp(
           enableDebugExtension: true,
           urlEncoder: (url) async =>
               url.endsWith(r'/$debug') ? 'http://some-encoded-url:8081/' : url);
+    });
+
+    tearDown(() async {
+      await context.tearDown();
     });
 
     test('uses the encoded URI', () async {
@@ -210,15 +229,13 @@ void main() async {
   });
 
   group('With "any" hostname', () {
-    final context = TestContext(TestProject.testWithSoundNullSafety, provider);
-
     final uriPattern = RegExp(r'dartExtensionUri = "([^"]+)";');
 
-    setUpAll(() async {
+    setUp(() async {
       await context.setUp(enableDebugExtension: true, hostname: 'any');
     });
 
-    tearDownAll(() async {
+    tearDown(() async {
       await context.tearDown();
     });
 
@@ -240,23 +257,4 @@ void main() async {
           ));
     });
   });
-}
-
-Future<void> waitForDartDevToolsWithRetry(
-  TestContext context, {
-  int retryCount = 6,
-  Duration retryWait = const Duration(seconds: 1),
-}) async {
-  if (retryCount == 0) return;
-  final windows = await context.webDriver.windows.toList();
-  await context.webDriver.driver.switchTo.window(windows.last);
-  final title = await context.webDriver.title;
-  if (title == 'Dart DevTools') return;
-
-  await Future.delayed(retryWait);
-  return waitForDartDevToolsWithRetry(
-    context,
-    retryCount: retryCount--,
-    retryWait: retryWait,
-  );
 }

@@ -37,12 +37,12 @@ Future<void> _runTests({
 }) async {
   final context =
       TestContext(TestProject.testExperimentWithSoundNullSafety, provider);
+  final testInspector = TestInspector(context);
+
   late VmServiceInterface service;
   late Stream<Event> stream;
   late String isolateId;
   late ScriptRef mainScript;
-
-  final testInspector = TestInspector(context);
 
   onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
       stream, isolateId, mainScript, breakPointId, body);
