@@ -287,7 +287,7 @@ class AppInspector implements AppInspectorInterface {
     // it's not really a Dart object.
     if (isLibraryId(targetId)) {
       final library = await getObject(targetId) as Library;
-      return await _invokeLibraryFunction(library, selector, remoteArguments);
+      return _invokeLibraryFunction(library, selector, remoteArguments);
     } else {
       return _invokeMethod(
           remoteObjectFor(targetId), selector, remoteArguments);

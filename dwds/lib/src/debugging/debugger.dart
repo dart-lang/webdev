@@ -236,7 +236,7 @@ class Debugger extends Domain {
     final uri = oldRef?.uri;
     if (uri == null) return null;
     final dartUri = DartUri(uri, _root);
-    return await inspector.scriptRefFor(dartUri.serverPath);
+    return inspector.scriptRefFor(dartUri.serverPath);
   }
 
   Future<void> reestablishBreakpoints(
@@ -367,7 +367,7 @@ class Debugger extends Domain {
     // TODO(alanknight): Can these be moved to dart_scope.dart?
     final properties = await visibleProperties(debugger: this, frame: frame);
     final boundVariables = await Future.wait(
-      properties.map((property) async => await _boundVariable(property)),
+      properties.map((property) async => _boundVariable(property)),
     );
 
     // Filter out variables that do not come from dart code, such as native
@@ -469,7 +469,7 @@ class Debugger extends Domain {
           }
         }
         ''';
-    return await inspector.jsCallFunctionOn(receiver, expression, args);
+    return inspector.jsCallFunctionOn(receiver, expression, args);
   }
 
   // TODO(elliette): https://github.com/dart-lang/webdev/issues/1501 Re-enable

@@ -858,7 +858,7 @@ Future<Page> _getPanelPage(
   panelTarget ??=
       await browser.waitForTarget((target) => target.url.contains(panelName));
   panelTarget.type = 'page';
-  return await panelTarget.page;
+  return panelTarget.page;
 }
 
 Future<T> _evaluateInPanel<T>(

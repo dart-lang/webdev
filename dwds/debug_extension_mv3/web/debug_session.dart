@@ -477,7 +477,7 @@ Future<bool> _sendConnectFailureMessage(ConnectFailureReason reason,
   final json = jsonEncode(serializers.serialize(ConnectFailure((b) => b
     ..tabId = dartAppTabId
     ..reason = reason.name)));
-  return await sendRuntimeMessage(
+  return sendRuntimeMessage(
       type: MessageType.connectFailure,
       body: json,
       sender: Script.background,
@@ -490,7 +490,7 @@ Future<bool> _sendStopDebuggingMessage(DetachReason reason,
     ..tabId = dartAppTabId
     ..reason = reason.name
     ..newState = DebugStateChange.stopDebugging)));
-  return await sendRuntimeMessage(
+  return sendRuntimeMessage(
       type: MessageType.debugStateChange,
       body: json,
       sender: Script.background,

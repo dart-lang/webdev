@@ -60,7 +60,7 @@ class ProxyServerAssetReader implements AssetReader {
       ''');
       return null;
     } else {
-      return await response.readAsString();
+      return response.readAsString();
     }
   }
 

@@ -274,7 +274,7 @@ class Locations {
     final memoizer =
         _locationMemoizer.putIfAbsent(module, () => AsyncMemoizer());
 
-    return await memoizer.runOnce(() async {
+    return memoizer.runOnce(() async {
       if (_moduleToLocations.containsKey(module)) {
         return _moduleToLocations[module]!;
       }

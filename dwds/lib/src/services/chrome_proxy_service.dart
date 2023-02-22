@@ -498,7 +498,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         _checkIsolate('evaluate', isolateId);
 
         final library = await inspector.getLibrary(targetId);
-        return await _getEvaluationResult(
+        return _getEvaluationResult(
             isolateId,
             () => evaluator.evaluateExpression(
                 isolateId, library?.uri, expression, scope),
@@ -522,7 +522,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         await isCompilerInitialized;
         _checkIsolate('evaluateInFrame', isolateId);
 
-        return await _getEvaluationResult(
+        return _getEvaluationResult(
             isolateId,
             () => evaluator.evaluateExpressionInFrame(
                 isolateId, frameIndex, expression, scope),
@@ -588,7 +588,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<ScriptList> getScripts(String isolateId) async {
-    return await captureElapsedTime(() async {
+    return captureElapsedTime(() async {
       await isInitialized;
       _checkIsolate('getScripts', isolateId);
       return inspector.getScripts();
@@ -606,10 +606,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     bool? reportLines,
     List<String>? libraryFilters,
   }) async {
-    return await captureElapsedTime(() async {
+    return captureElapsedTime(() async {
       await isInitialized;
       _checkIsolate('getSourceReport', isolateId);
-      return await inspector.getSourceReport(
+      return inspector.getSourceReport(
         reports,
         scriptId: scriptId,
         tokenPos: tokenPos,
@@ -771,7 +771,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         await isInitialized;
         await isStarted;
         _checkIsolate('resume', isolateId);
-        return await (await debuggerFuture)
+        return (await debuggerFuture)
             .resume(step: step, frameIndex: frameIndex);
       }, (result) => DwdsEvent.resume(step));
     } else {

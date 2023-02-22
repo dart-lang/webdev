@@ -176,7 +176,7 @@ class RequireRestarter implements Restarter {
     // As function is async, it can potentially be called second time while
     // first invocation is still running. In this case just mark as dirty and
     // wait until loop from the first call will do the work
-    if (!_running.isCompleted) return await _running.future;
+    if (!_running.isCompleted) return _running.future;
     _running = Completer();
 
     var reloadedModules = 0;

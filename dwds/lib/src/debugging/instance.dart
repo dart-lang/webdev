@@ -120,16 +120,16 @@ class InstanceHelper extends Domain {
     }
 
     if (metaData.isSystemList) {
-      return await _listInstanceFor(classRef, remoteObject,
+      return _listInstanceFor(classRef, remoteObject,
           offset: offset, count: count, length: metaData.length);
     } else if (metaData.isSystemMap) {
-      return await _mapInstanceFor(classRef, remoteObject,
+      return _mapInstanceFor(classRef, remoteObject,
           offset: offset, count: count, length: metaData.length);
     } else if (metaData.isRecord) {
-      return await _recordInstanceFor(classRef, remoteObject,
+      return _recordInstanceFor(classRef, remoteObject,
           offset: offset, count: count, length: metaData.length);
     } else {
-      return await _plainInstanceFor(classRef, remoteObject,
+      return _plainInstanceFor(classRef, remoteObject,
           offset: offset, count: count, length: metaData.length);
     }
   }
@@ -354,8 +354,8 @@ class InstanceHelper extends Domain {
         count: count, elementCount: elements.length, length: length);
     final range = elements.sublist(0, rangeCount);
 
-    return Future.wait(range
-        .map((element) async => await _instanceRefForRemote(element.value)));
+    return Future.wait(
+        range.map((element) async => _instanceRefForRemote(element.value)));
   }
 
   /// Return elements of the list from [properties].

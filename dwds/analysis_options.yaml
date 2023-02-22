@@ -20,3 +20,4 @@ linter:
     - prefer_final_locals
     - unawaited_futures
     - avoid_void_async
+    - unnecessary_await_in_return
