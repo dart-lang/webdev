@@ -5,29 +5,13 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
 
-import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../fixtures/context.dart';
+import '../fixtures/project.dart';
 import 'instance_inspection_common.dart';
-
-class TestSetup {
-  TestContext context;
-
-  TestSetup.sound()
-      : context = TestContext.withSoundNullSafety(
-          packageName: '_testPackageSound',
-          webAssetsPath: 'web',
-          dartEntryFileName: 'main.dart',
-          htmlEntryFileName: 'index.html',
-        );
-
-  ChromeProxyService get service =>
-      fetchChromeProxyService(context.debugConnection);
-}
 
 void main() async {
   // Enable verbose logging for debugging.
@@ -45,8 +29,7 @@ Future<void> _runTests({
   required CompilationMode compilationMode,
   required bool debug,
 }) async {
-  final setup = TestSetup.sound();
-  final context = setup.context;
+  final context = TestContext(TestProject.testPackageWithSoundNullSafety());
   late VmServiceInterface service;
   late Stream<Event> stream;
   late String isolateId;
@@ -77,8 +60,7 @@ Future<void> _runTests({
         verboseCompiler: debug,
         experiments: ['records'],
       );
-      service = setup.service;
-
+      service = context.service;
       final vm = await service.getVM();
       isolateId = vm.isolates!.first.id!;
       final scripts = await service.getScripts(isolateId);
@@ -109,8 +91,8 @@ Future<void> _runTests({
 
           // Offsets and counts are ignored for plain object fields.
 
-          // DevTools calls [getObject] with offset=0 and count=0 and
-          // expects all fields to be returned.
+          // DevTools calls [VmServiceInterface.getObject] with offset=0
+          // and count=0 and expects all fields to be returned.
           expect(await getFields(instanceRef, offset: 0, count: 0),
               {'_field': 1, 'field': 2});
           expect(await getFields(instanceRef, offset: 0),

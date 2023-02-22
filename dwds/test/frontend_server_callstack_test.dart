@@ -6,40 +6,13 @@
 @Timeout(Duration(minutes: 2))
 import 'dart:async';
 
-import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
-
-class TestSetup {
-  static final contextUnsound = TestContext.withWeakNullSafety(
-    packageName: '_testPackage',
-    webAssetsPath: 'web',
-    dartEntryFileName: 'main.dart',
-    htmlEntryFileName: 'index.html',
-  );
-
-  static final contextSound = TestContext.withSoundNullSafety(
-    packageName: '_testPackageSound',
-    webAssetsPath: 'web',
-    dartEntryFileName: 'main.dart',
-    htmlEntryFileName: 'index.html',
-  );
-
-  TestContext context;
-
-  TestSetup.sound() : context = contextSound;
-
-  TestSetup.unsound() : context = contextUnsound;
-
-  ChromeProxyService get service =>
-      fetchChromeProxyService(context.debugConnection);
-  WipConnection get tabConnection => context.tabConnection;
-}
+import 'fixtures/project.dart';
 
 void main() {
   group('shared context |', () {
@@ -48,9 +21,8 @@ void main() {
 
     for (var nullSafety in NullSafety.values) {
       group('${nullSafety.name} null safety |', () {
-        final soundNullSafety = nullSafety == NullSafety.sound;
-        final setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
-        final context = setup.context;
+        final project = TestProject.testPackage(nullSafety: nullSafety);
+        final context = TestContext(project);
 
         setUpAll(() async {
           setCurrentLogWriter(debug: debug);
@@ -76,7 +48,7 @@ void main() {
 
           setUp(() async {
             setCurrentLogWriter(debug: debug);
-            service = setup.service;
+            service = context.service;
             vm = await service.getVM();
             isolate = await service.getIsolate(vm.isolates!.first.id!);
             isolateId = isolate.id!;
@@ -85,9 +57,7 @@ void main() {
             await service.streamListen('Debug');
             stream = service.onEvent('Debug');
 
-            final testPackage =
-                soundNullSafety ? '_test_package_sound' : '_test_package';
-
+            final testPackage = project.packageName;
             mainScript = scripts.scripts!
                 .firstWhere((each) => each.uri!.contains('main.dart'));
             testLibraryScript = scripts.scripts!.firstWhere((each) =>
@@ -106,7 +76,7 @@ void main() {
               final script = breakpoint.script;
               final line =
                   await context.findBreakpointLine(bpId, isolateId, script);
-              bp = await setup.service
+              bp = await context.service
                   .addBreakpointWithScriptUri(isolateId, script.uri!, line);
 
               expect(bp, isNotNull);
@@ -119,7 +89,7 @@ void main() {
             } finally {
               // Remove breakpoint so it doesn't impact other tests or retries.
               if (bp != null) {
-                await setup.service.removeBreakpoint(isolateId, bp.id!);
+                await context.service.removeBreakpoint(isolateId, bp.id!);
               }
             }
           }

@@ -14,13 +14,9 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../fixtures/context.dart';
-import '../fixtures/utilities.dart';
+import '../fixtures/project.dart';
 
-final context = TestContext.withSoundNullSafety(
-  webAssetsPath: webCompatiblePath(['example', 'scopes']),
-  dartEntryFileName: 'main.dart',
-  htmlEntryFileName: 'scopes.html',
-);
+final context = TestContext(TestProject.testScopesWithSoundNullSafety);
 
 WipConnection get tabConnection => context.tabConnection;
 

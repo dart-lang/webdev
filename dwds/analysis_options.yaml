@@ -21,3 +21,4 @@ linter:
     - unawaited_futures
     - avoid_void_async
     - unnecessary_await_in_return
+    - unnecessary_lambdas

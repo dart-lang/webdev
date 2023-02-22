@@ -10,13 +10,9 @@ import 'package:test_common/logging.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/utilities.dart';
+import 'fixtures/project.dart';
 
-final context = TestContext.withSoundNullSafety(
-  webAssetsPath: webCompatiblePath(['example', 'append_body']),
-  dartEntryFileName: 'main.dart',
-  htmlEntryFileName: 'index.html',
-);
+final context = TestContext(TestProject.testAppendBodyWithSoundNullSafety);
 
 const originalString = 'Hello World!';
 const newString = 'Bonjour le monde!';

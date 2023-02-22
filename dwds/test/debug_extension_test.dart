@@ -18,6 +18,7 @@ import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
 // Instructions for running:
@@ -30,7 +31,7 @@ import 'fixtures/utilities.dart';
 // Remove the key before pushing code to GitHub.
 // See go/extension-identification.
 
-final context = TestContext.withSoundNullSafety();
+final context = TestContext(TestProject.testWithSoundNullSafety);
 
 void main() async {
   Future<void> waitForDartDevToolsWithRetry({
@@ -204,7 +205,7 @@ void main() async {
   }
 
   group('With encoding', () {
-    final context = TestContext.withSoundNullSafety();
+    final context = TestContext(TestProject.testWithSoundNullSafety);
     setUp(() async {
       await context.setUp(
           enableDebugExtension: true,
@@ -225,7 +226,7 @@ void main() async {
   });
 
   group('With "any" hostname', () {
-    final context = TestContext.withSoundNullSafety();
+    final context = TestContext(TestProject.testWithSoundNullSafety);
     final uriPattern = RegExp(r'dartExtensionUri = "([^"]+)";');
 
     setUp(() async {

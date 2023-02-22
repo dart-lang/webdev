@@ -47,7 +47,8 @@ Future<T> toFuture<T>(Promise<T> promise) {
   final completer = Completer<T>();
   promise.then(
     allowInterop(completer.complete),
-    allowInterop((e) => completer.completeError(e)),
+    // TODO(annagrin): propagate stack trace from promise instead.
+    allowInterop((e) => completer.completeError(e, StackTrace.current)),
   );
   return completer.future;
 }

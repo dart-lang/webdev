@@ -10,18 +10,16 @@ library refresh_test;
 
 import 'dart:async';
 
-import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
-final context = TestContext.withSoundNullSafety();
-ChromeProxyService get service =>
-    fetchChromeProxyService(context.debugConnection);
-WipConnection get tabConnection => context.tabConnection;
+final context = TestContext(TestProject.testWithSoundNullSafety);
+
+ChromeProxyService get service => context.service;
 
 void main() {
   group('fresh context', () {

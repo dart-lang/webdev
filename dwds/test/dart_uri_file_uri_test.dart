@@ -10,22 +10,18 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/utilities.dart';
+import 'fixtures/project.dart';
 
-final context = TestContext.withSoundNullSafety(
-  packageName: '_testPackageSound',
-  webAssetsPath: 'web',
-  dartEntryFileName: 'main.dart',
-  htmlEntryFileName: 'index.html',
-);
+final testProject = TestProject.testWithSoundNullSafety;
+final testPackageProject = TestProject.testPackageWithSoundNullSafety();
+final context = TestContext(testPackageProject);
 
 /// The directory for the general _test package.
-final testDir = absolutePath(pathFromFixtures: p.join('_testSound'));
+final testDir = testProject.absolutePackageDirectory;
 
 /// The directory for the _testPackage package (contained within dwds), which
 /// imports _test.
-final testPackageDir =
-    absolutePath(pathFromFixtures: p.join('_testPackageSound'));
+final testPackageDir = testPackageProject.absolutePackageDirectory;
 
 // This tests converting file Uris into our internal paths.
 //
@@ -41,17 +37,17 @@ void main() {
                   ? 'web/main.dart'
                   : 'main.dart';
 
-          final serverPath =
-              compilationMode == CompilationMode.frontendServer &&
-                      useDebuggerModuleNames
-                  ? 'packages/_testPackageSound/lib/test_library.dart'
-                  : 'packages/_test_package_sound/test_library.dart';
+          final serverPath = compilationMode ==
+                      CompilationMode.frontendServer &&
+                  useDebuggerModuleNames
+              ? 'packages/${testPackageProject.packageDirectory}/lib/test_library.dart'
+              : 'packages/${testPackageProject.packageName}/test_library.dart';
 
           final anotherServerPath =
               compilationMode == CompilationMode.frontendServer &&
                       useDebuggerModuleNames
-                  ? 'packages/_testSound/lib/library.dart'
-                  : 'packages/_test_sound/library.dart';
+                  ? 'packages/${testProject.packageDirectory}/lib/library.dart'
+                  : 'packages/${testProject.packageName}/library.dart';
 
           setUpAll(() async {
             await context.setUp(
