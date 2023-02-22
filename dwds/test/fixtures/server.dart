@@ -116,7 +116,7 @@ class TestServer {
         urlEncoder: urlEncoder,
         expressionCompiler: expressionCompiler,
         isInternalBuild: isInternalBuild,
-        isFlutterApp: isFlutterApp,
+        isFlutterApp: () => Future.value(isFlutterApp),
         devtoolsLauncher: serveDevTools
             ? (hostname) async {
                 final server = await DevToolsServer().serveDevTools(
