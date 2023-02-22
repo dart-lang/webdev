@@ -649,9 +649,12 @@ void main() async {
               expect(iframeTarget, isNotNull);
             });
 
-            // TODO(elliette): Pull TestServer out of TestContext, so we can add
-            // a test case for starting another test app, loading that app in
-            // the tab we were debugging, and be able to reconnect to that one.
+            // TODO(elliette): Pull TestServer out of TestContext, so we can add:
+            // 1. a test case for starting another test app, loading that app in
+            // the tab we were debugging, and being able to reconnect to that
+            // one.
+            // 2. a test case for embedding a Dart app in a tab with the same
+            // origin, and being able to connect to the embedded Dart app.
             // See https://github.com/dart-lang/webdev/issues/1779
 
             test('The Dart DevTools IFRAME has the correct query parameters',
