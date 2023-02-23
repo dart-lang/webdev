@@ -93,7 +93,9 @@ Future<void> _handleRuntimeMessages(
         }
         // Save the debug info for the Dart app in storage:
         await setStorageObject<DebugInfo>(
-            type: StorageObject.debugInfo, value: debugInfo, tabId: dartTab.id);
+            type: StorageObject.debugInfo,
+            value: _addTabUrl(debugInfo, tabUrl: dartTab.url),
+            tabId: dartTab.id);
         // Update the icon to show that a Dart app has been detected:
         final currentTab = await activeTab;
         if (currentTab?.id == dartTab.id) {
@@ -137,10 +139,13 @@ Future<void> _handleRuntimeMessages(
 
 Future<void> _detectNavigationAwayFromDartApp(
     NavigationInfo navigationInfo) async {
+  // Ignore any navigation events within the page itself (e.g., opening a link,
+  // reloading an IFRAME, etc):
+  if (_isSubAppNavigation(navigationInfo)) return;
   final tabId = navigationInfo.tabId;
   final debugInfo = await _fetchDebugInfo(navigationInfo.tabId);
   if (debugInfo == null) return;
-  if (debugInfo.appUrl != navigationInfo.url) {
+  if (debugInfo.tabUrl != navigationInfo.url) {
     _setDefaultIcon();
     await clearStaleDebugSession(tabId);
     await removeStorageObject(type: StorageObject.debugInfo, tabId: tabId);
@@ -150,6 +155,29 @@ Future<void> _detectNavigationAwayFromDartApp(
       reason: DetachReason.navigatedAwayFromApp,
     );
   }
+}
+
+bool _isSubAppNavigation(NavigationInfo navigationInfo) {
+  return [
+    'auto_subframe',
+    'form_submit',
+    'link',
+    'manual_subframe',
+  ].contains(navigationInfo.transitionType);
+}
+
+DebugInfo _addTabUrl(DebugInfo debugInfo, {required String tabUrl}) {
+  return DebugInfo((b) => b
+    ..appEntrypointPath = debugInfo.appEntrypointPath
+    ..appId = debugInfo.appId
+    ..appInstanceId = debugInfo.appInstanceId
+    ..appOrigin = debugInfo.appOrigin
+    ..appUrl = debugInfo.appUrl
+    ..authUrl = debugInfo.authUrl
+    ..extensionUrl = debugInfo.extensionUrl
+    ..isInternalBuild = debugInfo.isInternalBuild
+    ..isFlutterApp = debugInfo.isFlutterApp
+    ..tabUrl = tabUrl);
 }
 
 Future<void> _updateIcon(int activeTabId) async {

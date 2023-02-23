@@ -89,6 +89,13 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
         ..add(
             serializers.serialize(value, specifiedType: const FullType(bool)));
     }
+    value = object.tabUrl;
+    if (value != null) {
+      result
+        ..add('tabUrl')
+        ..add(serializers.serialize(value,
+            specifiedType: const FullType(String)));
+    }
     return result;
   }
 
@@ -143,6 +150,10 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
           result.isFlutterApp = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool?;
           break;
+        case 'tabUrl':
+          result.tabUrl = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
+          break;
       }
     }
 
@@ -171,6 +182,8 @@ class _$DebugInfo extends DebugInfo {
   final bool? isInternalBuild;
   @override
   final bool? isFlutterApp;
+  @override
+  final String? tabUrl;
 
   factory _$DebugInfo([void Function(DebugInfoBuilder)? updates]) =>
       (new DebugInfoBuilder()..update(updates))._build();
@@ -185,7 +198,8 @@ class _$DebugInfo extends DebugInfo {
       this.dwdsVersion,
       this.extensionUrl,
       this.isInternalBuild,
-      this.isFlutterApp})
+      this.isFlutterApp,
+      this.tabUrl})
       : super._();
 
   @override
@@ -208,7 +222,8 @@ class _$DebugInfo extends DebugInfo {
         dwdsVersion == other.dwdsVersion &&
         extensionUrl == other.extensionUrl &&
         isInternalBuild == other.isInternalBuild &&
-        isFlutterApp == other.isFlutterApp;
+        isFlutterApp == other.isFlutterApp &&
+        tabUrl == other.tabUrl;
   }
 
   @override
@@ -224,6 +239,7 @@ class _$DebugInfo extends DebugInfo {
     _$hash = $jc(_$hash, extensionUrl.hashCode);
     _$hash = $jc(_$hash, isInternalBuild.hashCode);
     _$hash = $jc(_$hash, isFlutterApp.hashCode);
+    _$hash = $jc(_$hash, tabUrl.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -240,7 +256,8 @@ class _$DebugInfo extends DebugInfo {
           ..add('dwdsVersion', dwdsVersion)
           ..add('extensionUrl', extensionUrl)
           ..add('isInternalBuild', isInternalBuild)
-          ..add('isFlutterApp', isFlutterApp))
+          ..add('isFlutterApp', isFlutterApp)
+          ..add('tabUrl', tabUrl))
         .toString();
   }
 }
@@ -291,6 +308,10 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
   bool? get isFlutterApp => _$this._isFlutterApp;
   set isFlutterApp(bool? isFlutterApp) => _$this._isFlutterApp = isFlutterApp;
 
+  String? _tabUrl;
+  String? get tabUrl => _$this._tabUrl;
+  set tabUrl(String? tabUrl) => _$this._tabUrl = tabUrl;
+
   DebugInfoBuilder();
 
   DebugInfoBuilder get _$this {
@@ -306,6 +327,7 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
       _extensionUrl = $v.extensionUrl;
       _isInternalBuild = $v.isInternalBuild;
       _isFlutterApp = $v.isFlutterApp;
+      _tabUrl = $v.tabUrl;
       _$v = null;
     }
     return this;
@@ -337,7 +359,8 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
             dwdsVersion: dwdsVersion,
             extensionUrl: extensionUrl,
             isInternalBuild: isInternalBuild,
-            isFlutterApp: isFlutterApp);
+            isFlutterApp: isFlutterApp,
+            tabUrl: tabUrl);
     replace(_$result);
     return _$result;
   }
