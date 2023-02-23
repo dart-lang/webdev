@@ -57,7 +57,7 @@ class TestSdkCopyConfigurationProvider extends SdkConfigurationProvider {
     try {
       final assetGenerator = SdkAssetGenerator(
         sdkLayout: sdkLayout,
-        verboseCompiler: _verbose,
+        verbose: _verbose,
       );
 
       await assetGenerator.generateSdkAssets();
@@ -107,7 +107,7 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
   Future<SdkConfiguration> _create() async {
     final assetGenerator = SdkAssetGenerator(
       sdkLayout: sdkLayout,
-      verboseCompiler: _verbose,
+      verbose: _verbose,
     );
 
     await assetGenerator.generateSdkAssets();
