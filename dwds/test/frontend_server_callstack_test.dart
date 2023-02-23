@@ -6,26 +6,23 @@
 @Timeout(Duration(minutes: 2))
 import 'dart:async';
 
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
 void main() {
-  // Enable verbose logging for debugging.
-  final debug = false;
-
-  final provider = TestSdkConfigurationProvider(verbose: debug);
-  tearDownAll(provider.dispose);
-
   group('shared context |', () {
+    // Enable verbose logging for debugging.
+    final debug = false;
+
     for (var nullSafety in NullSafety.values) {
       group('${nullSafety.name} null safety |', () {
         final project = TestProject.testPackage(nullSafety: nullSafety);
-        final context = TestContext(project, provider);
+        final context = TestContext(project);
 
         setUpAll(() async {
           setCurrentLogWriter(debug: debug);
@@ -40,7 +37,7 @@ void main() {
         });
 
         group('callStack |', () {
-          late VmServiceInterface service;
+          late ChromeProxyService service;
           VM vm;
           late Isolate isolate;
           late String isolateId;

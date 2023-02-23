@@ -15,18 +15,14 @@ import 'package:test/test.dart';
 import 'test_utils.dart';
 
 void main() {
-  final testRunner = TestRunner();
-  setUpAll(testRunner.setUpAll);
-  tearDownAll(testRunner.tearDownAll);
-
-  test('help build', () => _readmeCheck(testRunner, ['help', 'build']));
-  test('help serve', () => _readmeCheck(testRunner, ['help', 'serve']));
+  test('help build', () => _readmeCheck(['help', 'build']));
+  test('help serve', () => _readmeCheck(['help', 'serve']));
 }
 
 final _readmeContents = File('README.md').readAsStringSync();
 
-Future _readmeCheck(TestRunner testRunner, List<String> args) async {
-  var process = await testRunner.runWebDev(args);
+Future _readmeCheck(List<String> args) async {
+  var process = await runWebDev(args);
   var output =
       (await process.stdoutStream().map((line) => line.trimRight()).join('\n'))
           .trim();

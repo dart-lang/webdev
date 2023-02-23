@@ -8,14 +8,12 @@ import 'dart:async';
 
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
 void testAll({
-  required TestSdkConfigurationProvider provider,
   CompilationMode compilationMode = CompilationMode.buildDaemon,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
   NullSafety nullSafety = NullSafety.sound,
@@ -28,11 +26,10 @@ void testAll({
         'build daemon scenario does not support non-empty base in index file');
   }
 
-  final testCircular1 = TestProject.testCircular1(nullSafety: nullSafety);
-  final testCircular2 = TestProject.testCircular2(
+  final project1 = TestProject.testCircular1(nullSafety: nullSafety);
+  final project2 = TestProject.testCircular2(
       nullSafety: nullSafety, baseMode: indexBaseMode);
-
-  final context = TestContext(testCircular2, provider);
+  final context = TestContext(project2);
 
   Future<void> onBreakPoint(String isolate, ScriptRef script,
       String breakPointId, Future<void> Function() body) async {
@@ -69,7 +66,6 @@ void testAll({
     setUp(() => setCurrentLogWriter(debug: debug));
 
     group('evaluateInFrame', () {
-      late VmServiceInterface service;
       VM vm;
       late Isolate isolate;
       late String isolateId;
@@ -80,17 +76,16 @@ void testAll({
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
-        service = context.service;
-        vm = await service.getVM();
-        isolate = await service.getIsolate(vm.isolates!.first.id!);
+        vm = await context.service.getVM();
+        isolate = await context.service.getIsolate(vm.isolates!.first.id!);
         isolateId = isolate.id!;
-        scripts = await service.getScripts(isolateId);
+        scripts = await context.service.getScripts(isolateId);
 
-        await service.streamListen('Debug');
-        stream = service.onEvent('Debug');
+        await context.service.streamListen('Debug');
+        stream = context.service.onEvent('Debug');
 
-        final test1 = testCircular1.packageName;
-        final test2 = testCircular2.packageName;
+        final test1 = project1.packageName;
+        final test2 = project2.packageName;
 
         test1LibraryScript = scripts.scripts!.firstWhere(
             (each) => each.uri!.contains('package:$test1/library1.dart'));
@@ -99,7 +94,7 @@ void testAll({
       });
 
       tearDown(() async {
-        await service.resume(isolateId);
+        await context.service.resume(isolateId);
       });
 
       test('evaluate expression in _test_circular1/library', () async {

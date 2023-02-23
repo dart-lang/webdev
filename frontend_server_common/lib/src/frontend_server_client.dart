@@ -396,7 +396,7 @@ class ResidentCompiler {
 
     _logger.info(args.join(' '));
     final workingDirectory = projectDirectory.toFilePath();
-    _server = await Process.start(sdkLayout.dartPath, args,
+    _server = await Process.start(Platform.resolvedExecutable, args,
         workingDirectory: workingDirectory);
 
     var server = _server!;

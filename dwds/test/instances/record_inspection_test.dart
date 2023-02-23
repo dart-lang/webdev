@@ -7,7 +7,6 @@
 
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../fixtures/context.dart';
@@ -18,12 +17,8 @@ void main() async {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  final provider = TestSdkConfigurationProvider(verbose: debug);
-  tearDownAll(provider.dispose);
-
   for (var compilationMode in CompilationMode.values) {
     await _runTests(
-      provider: provider,
       compilationMode: compilationMode,
       debug: debug,
     );
@@ -31,12 +26,10 @@ void main() async {
 }
 
 Future<void> _runTests({
-  required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   required bool debug,
 }) async {
-  final context =
-      TestContext(TestProject.testExperimentWithSoundNullSafety, provider);
+  final context = TestContext(TestProject.testExperimentWithSoundNullSafety);
   final testInspector = TestInspector(context);
 
   late VmServiceInterface service;
@@ -67,8 +60,7 @@ Future<void> _runTests({
         verboseCompiler: debug,
         experiments: ['records'],
       );
-      service = context.debugConnection.vmService;
-
+      service = context.service;
       final vm = await service.getVM();
       isolateId = vm.isolates!.first.id!;
       final scripts = await service.getScripts(isolateId);
@@ -80,9 +72,7 @@ Future<void> _runTests({
           .firstWhere((each) => each.uri!.contains('main.dart'));
     });
 
-    tearDownAll(() async {
-      await context.tearDown();
-    });
+    tearDownAll(context.tearDown);
 
     setUp(() => setCurrentLogWriter(debug: debug));
     tearDown(() => service.resume(isolateId));

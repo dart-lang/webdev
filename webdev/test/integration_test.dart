@@ -18,12 +18,8 @@ void main() {
   var pubCommand =
       sdkVersion.compareTo(firstSdkVersionWithoutPub) < 0 ? 'pub' : 'dart pub';
 
-  final testRunner = TestRunner();
-  setUpAll(testRunner.setUpAll);
-  tearDownAll(testRunner.tearDownAll);
-
   test('non-existant commands create errors', () async {
-    var process = await testRunner.runWebDev(['monkey']);
+    var process = await runWebDev(['monkey']);
 
     await expectLater(
         process.stdout, emits('Could not find a command named "monkey".'));
@@ -32,7 +28,7 @@ void main() {
   });
 
   test('passing extra args to build fails with bad usage', () async {
-    var process = await testRunner.runWebDev(['build', 'extra', 'args']);
+    var process = await runWebDev(['build', 'extra', 'args']);
 
     await expectLater(process.stdout,
         emits('Arguments were provided that are not supported: "extra args".'));
@@ -59,8 +55,7 @@ name: sample
     await d.file('.dart_tool/package_config.json', '''
 ''').create();
 
-    var process =
-        await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
+    var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
 
     var output = await process.stdout.rest.toList();
 
@@ -92,8 +87,7 @@ name: sample
           await d.file('.dart_tool/package_config.json', '''
 ''').create();
 
-          var process = await testRunner
-              .runWebDev([command], workingDirectory: d.sandbox);
+          var process = await runWebDev([command], workingDirectory: d.sandbox);
 
           await checkProcessStdout(process, [
             'webdev could not run for this project.',
@@ -116,8 +110,7 @@ name: sample
           await d.file('.dart_tool/package_config.json', '''
 ''').create();
 
-          var process = await testRunner
-              .runWebDev(['serve'], workingDirectory: d.sandbox);
+          var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
 
           await checkProcessStdout(process, [
             'webdev could not run for this project.',
@@ -145,8 +138,7 @@ name: sample
           // Required for webdev to not complain about nothing to serve.
           await d.dir('web').create();
 
-          var process = await testRunner.runWebDev(
-              ['serve', '--no-build-web-compilers'],
+          var process = await runWebDev(['serve', '--no-build-web-compilers'],
               workingDirectory: d.sandbox);
 
           // Fails since this is a fake package
@@ -195,8 +187,8 @@ name: sample
               await d.file('.dart_tool/package_config.json', '''
 ''').create();
 
-              var process = await testRunner
-                  .runWebDev(['serve'], workingDirectory: d.sandbox);
+              var process =
+                  await runWebDev(['serve'], workingDirectory: d.sandbox);
 
               if (entry.key == 'build_daemon') {
                 await checkProcessStdout(process, [
@@ -220,8 +212,7 @@ name: sample
       }
 
       test('no pubspec.yaml', () async {
-        var process =
-            await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
+        var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
 
         await checkProcessStdout(process, [
           'webdev could not run for this project.',
@@ -235,8 +226,7 @@ name: sample
 name: sample
 ''').create();
 
-        var process =
-            await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
+        var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
 
         await checkProcessStdout(process, [
           'webdev could not run for this project.',
@@ -260,8 +250,7 @@ dependencies:
   args: ^1.0.0
 ''').create();
 
-        var process =
-            await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
+        var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
 
         await checkProcessStdout(process, [
           'webdev could not run for this project.',

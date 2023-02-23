@@ -10,25 +10,22 @@ library refresh_test;
 
 import 'dart:async';
 
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
+final context = TestContext(TestProject.testWithSoundNullSafety);
+
+ChromeProxyService get service => context.service;
+
 void main() {
-  final provider = TestSdkConfigurationProvider();
-  tearDownAll(provider.dispose);
-
-  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
-
   group('fresh context', () {
-    late VmServiceInterface service;
     late VM vm;
     setUpAll(() async {
       await context.setUp();
-      service = context.service;
       vm = await service.getVM();
     });
 
