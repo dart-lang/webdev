@@ -18,7 +18,6 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 
 import '../../debug_extension_mv3/web/data_serializers.dart';
 import '../../debug_extension_mv3/web/data_types.dart';
@@ -36,13 +35,11 @@ import 'test_utils.dart';
 // To run the MV2 tests only:
 // dart test test/puppeteer/extension_test.dart --r=expanded --no-retry --n="MV2 Debug Extension"
 
+final context = TestContext(TestProject.testWithSoundNullSafety);
+
 enum Panel { debugger, inspector }
 
 void main() async {
-  final provider = TestSdkConfigurationProvider();
-  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
-  tearDownAll(provider.dispose);
-
   for (var isMV3 in [true, false]) {
     group('${isMV3 ? 'MV3' : 'MV2'} Debug Extension', () {
       late String extensionPath;
@@ -87,7 +84,6 @@ void main() async {
 
           tearDownAll(() async {
             await browser.close();
-            await context.tearDown();
           });
 
           test('the debug info for a Dart app is saved in session storage',
@@ -654,9 +650,12 @@ void main() async {
               expect(iframeTarget, isNotNull);
             });
 
-            // TODO(elliette): Pull TestServer out of TestContext, so we can add
-            // a test case for starting another test app, loading that app in
-            // the tab we were debugging, and be able to reconnect to that one.
+            // TODO(elliette): Pull TestServer out of TestContext, so we can add:
+            // 1. a test case for starting another test app, loading that app in
+            // the tab we were debugging, and being able to reconnect to that
+            // one.
+            // 2. a test case for embedding a Dart app in a tab with the same
+            // origin, and being able to connect to the embedded Dart app.
             // See https://github.com/dart-lang/webdev/issues/1779
 
             test('The Dart DevTools IFRAME has the correct query parameters',

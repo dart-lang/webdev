@@ -5,9 +5,13 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_process/test_process.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:webdev/src/util.dart';
+
+import '../test_utils.dart';
 
 const isRPCError = TypeMatcher<RPCError>();
 
@@ -31,6 +35,17 @@ Future<String> waitForAppId(TestProcess webdev) async {
   }
   assert(appId.isNotEmpty);
   return appId;
+}
+
+Future<String> prepareWorkspace() async {
+  var exampleDirectory =
+      p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'));
+
+  var process = await TestProcess.start(dartPath, ['pub', 'upgrade'],
+      workingDirectory: exampleDirectory, environment: getPubEnvironment());
+
+  await process.shouldExit(0);
+  return exampleDirectory;
 }
 
 String? getDebugServiceUri(String line) {

@@ -85,22 +85,22 @@ class FrontendServerAssetReader implements AssetReader {
   /// Updates the internal caches by reading the Frontend Server output files.
   ///
   /// Will only read the incremental files on additional calls.
-  Future<void> updateCaches() async {
+  void updateCaches() {
     if (!_haveReadOriginals) {
-      await _updateCaches(_mapOriginal, _jsonOriginal);
+      _updateCaches(_mapOriginal, _jsonOriginal);
       _haveReadOriginals = true;
     } else {
-      await _updateCaches(_mapIncremental, _jsonIncremental);
+      _updateCaches(_mapIncremental, _jsonIncremental);
     }
   }
 
-  Future<void> _updateCaches(File map, File json) async {
-    if (!(await map.exists() && await json.exists())) {
+  void _updateCaches(File map, File json) {
+    if (!(map.existsSync() && json.existsSync())) {
       throw StateError('$map and $json do not exist.');
     }
-    final sourceContents = await map.readAsBytes();
+    final sourceContents = map.readAsBytesSync();
     final sourceInfo =
-        jsonDecode(await json.readAsString()) as Map<String, dynamic>;
+        jsonDecode(json.readAsStringSync()) as Map<String, dynamic>;
     for (var key in sourceInfo.keys) {
       final info = sourceInfo[key];
       _mapContents[key] = utf8.decode(sourceContents

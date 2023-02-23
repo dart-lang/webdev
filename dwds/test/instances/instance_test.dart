@@ -3,32 +3,29 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 2))
-import 'dart:async';
 
+import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
 
+final context = TestContext(TestProject.testScopesWithSoundNullSafety);
+
+WipConnection get tabConnection => context.tabConnection;
+
 void main() {
-  final provider = TestSdkConfigurationProvider();
-  tearDownAll(provider.dispose);
-
-  final context =
-      TestContext(TestProject.testScopesWithSoundNullSafety, provider);
-
   late AppInspector inspector;
   late Debugger debugger;
 
   setUpAll(() async {
     await context.setUp();
-    final chromeProxyService = context.service;
+    final chromeProxyService = fetchChromeProxyService(context.debugConnection);
     inspector = chromeProxyService.inspector;
     debugger = await chromeProxyService.debuggerFuture;
   });

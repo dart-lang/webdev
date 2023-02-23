@@ -65,7 +65,7 @@ void main() {
     group('initialized with empty configuration', () {
       setUpAll(() async {
         await DartUri.initialize();
-        await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
+        DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 
       tearDownAll(DartUri.clear);
@@ -78,7 +78,7 @@ void main() {
     group('initialized with current SDK directory', () {
       setUpAll(() async {
         await DartUri.initialize();
-        await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
+        DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 
       tearDownAll(DartUri.clear);
@@ -98,7 +98,7 @@ void main() {
     group('initialized with other SDK directory', () {
       setUpAll(() async {
         await DartUri.initialize();
-        await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
+        DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 
       tearDownAll(() async {
@@ -132,7 +132,7 @@ void main() {
       setUpAll(() async {
         configureLogWriter(customLogWriter: logWriter);
         await DartUri.initialize();
-        await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
+        DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 
       tearDownAll(() async {

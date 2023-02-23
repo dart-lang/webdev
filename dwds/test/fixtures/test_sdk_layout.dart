@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/sdk_configuration.dart';
+// TODO:(annagrin) Move to a test_common package.
+import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:path/path.dart' as p;
 
 /// Test Dart SDK layout.

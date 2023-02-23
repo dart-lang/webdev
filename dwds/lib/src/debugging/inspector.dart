@@ -1,6 +1,6 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.import 'dart:async';
+// BSD-style license that can be found in the LICENSE file.
 
 import 'package:async/async.dart';
 import 'package:collection/collection.dart';
@@ -114,9 +114,8 @@ class AppInspector implements AppInspectorInterface {
     final scripts = await scriptRefs;
 
     await DartUri.initialize();
-    await DartUri.recordAbsoluteUris(
-        libraries.map((lib) => lib.uri).whereNotNull());
-    await DartUri.recordAbsoluteUris(
+    DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri).whereNotNull());
+    DartUri.recordAbsoluteUris(
         scripts.map((script) => script.uri).whereNotNull());
 
     isolate.extensionRPCs?.addAll(await _getExtensionRpcs());

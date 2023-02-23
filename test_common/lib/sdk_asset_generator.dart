@@ -13,7 +13,7 @@ import 'package:test_common/test_sdk_layout.dart';
 /// - sound null safety: js, source map, full dill.
 /// - weak null safety: js, source map, full dill, summary.
 class SdkAssetGenerator {
-  bool _sdkAssetsGenerated = false;
+  static bool _sdkAssetsGenerated = false;
   final _logger = Logger('SdkAssetGenerator');
 
   final FileSystem fileSystem;
@@ -88,7 +88,10 @@ class SdkAssetGenerator {
         'org-dartlang-sdk:///lib/libraries.json',
         '--modules',
         'amd',
-        soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
+        if (soundNullSafety)
+          '--sound-null-safety'
+        else
+          '--no-sound-null-safety',
         'dart:core',
         '-o',
         jsPath,
@@ -96,7 +99,7 @@ class SdkAssetGenerator {
 
       final output = <String>[];
       _logger.fine('Executing dart ${args.join(' ')}');
-      final process = await Process.start(sdkLayout.dartPath, args,
+      final process = await Process.start(Platform.resolvedExecutable, args,
           workingDirectory: sdkLayout.sdkDirectory);
 
       process.stdout
@@ -184,7 +187,7 @@ class SdkAssetGenerator {
       ];
 
       _logger.fine('Executing dart ${args.join(' ')}');
-      final process = await Process.start(sdkLayout.dartPath, args,
+      final process = await Process.start(Platform.resolvedExecutable, args,
           workingDirectory: sdkLayout.sdkDirectory);
 
       final output = <String>[];

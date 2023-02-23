@@ -68,7 +68,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
     return request.completer.future;
   }
 
-  Future<void> _processRequest(List<EvaluateRequest> requests) async {
+  void _processRequest(List<EvaluateRequest> requests) {
     String? libraryUri;
     String? isolateId;
     Map<String, String>? scope;

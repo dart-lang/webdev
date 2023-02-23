@@ -84,9 +84,10 @@ class Dwds {
     bool launchDevToolsInNewWindow = true,
     bool emitDebugEvents = true,
     bool isInternalBuild = false,
-    bool isFlutterApp = false,
+    Future<bool> Function()? isFlutterApp,
   }) async {
     globalLoadStrategy = loadStrategy;
+    isFlutterApp ??= () => Future.value(true);
 
     DevTools? devTools;
     Future<String>? extensionUri;

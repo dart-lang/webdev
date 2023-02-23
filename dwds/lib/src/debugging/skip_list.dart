@@ -18,10 +18,10 @@ class SkipLists {
   /// https://chromedevtools.github.io/devtools-protocol/tot/Debugger/#method-stepInto
   ///
   /// Can return a cached value.
-  Future<List<Map<String, dynamic>>> compute(
+  List<Map<String, dynamic>> compute(
     String scriptId,
     Set<Location> locations,
-  ) async {
+  ) {
     if (_idToList.containsKey(scriptId)) return _idToList[scriptId]!;
 
     final sortedLocations = locations.toList()

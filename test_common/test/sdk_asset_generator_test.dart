@@ -7,6 +7,7 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/sdk_asset_generator.dart';
@@ -43,7 +44,7 @@ void main() {
       compilerWorkerPath = copySdkLayout.dartdevcSnapshotPath;
 
       // Copy the SDK directory into a temp directory.
-      await copyDirectory(TestSdkLayout.defaultSdkDirectory, sdkDirectory);
+      await _copy(TestSdkLayout.defaultSdkDirectory, sdkDirectory);
 
       // Simulate missing sound assets.
       soundSdkFullDillPath = copySdkLayout.soundFullDillPath;
@@ -111,12 +112,28 @@ void main() {
   });
 }
 
-Matcher _exists =
-    predicate((String path) => File(path).existsSync(), 'File exists');
+Matcher _exists = predicate((String path) => File(path).existsSync());
 
 void _deleteIfExists(String path) {
   final file = File(path);
   if (file.existsSync()) {
     file.deleteSync();
+  }
+}
+
+// Update modified files.
+Future<void> _copy(String from, String to) async {
+  if (!Directory(from).existsSync()) return;
+  await Directory(to).create(recursive: true);
+
+  await for (final file in Directory(from).list()) {
+    final copyTo = p.join(to, p.relative(file.path, from: from));
+    if (file is Directory) {
+      await _copy(file.path, copyTo);
+    } else if (file is File) {
+      await File(file.path).copy(copyTo);
+    } else if (file is Link) {
+      await Link(copyTo).create(await file.target(), recursive: true);
+    }
   }
 }

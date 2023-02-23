@@ -11,17 +11,12 @@ import 'utils.dart';
 void main() {
   late String exampleDirectory;
 
-  final testRunner = TestRunner();
   setUpAll(() async {
-    await testRunner.setUpAll();
-    exampleDirectory = await testRunner.prepareWorkspace();
+    exampleDirectory = await prepareWorkspace();
   });
 
-  tearDownAll(testRunner.tearDownAll);
-
   test('--launch-app launches the specified app', () async {
-    var webdev = await testRunner.runWebDev(
-        ['daemon', '--launch-app=web/scopes.html'],
+    var webdev = await runWebDev(['daemon', '--launch-app=web/scopes.html'],
         workingDirectory: exampleDirectory);
     var appId = await waitForAppId(webdev);
 
