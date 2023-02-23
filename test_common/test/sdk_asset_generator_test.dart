@@ -76,7 +76,7 @@ void main() {
       final configuration = TestSdkLayout.createConfiguration(sdkLayout);
 
       final assetGenerator =
-          SdkAssetGenerator(sdkLayout: sdkLayout, verboseCompiler: true);
+          SdkAssetGenerator(sdkLayout: sdkLayout, verbose: true);
       await assetGenerator.generateSdkAssets();
 
       // Make sure SDK configuration and asset generator agree on the file paths.

@@ -17,14 +17,14 @@ class SdkAssetGenerator {
   final _logger = Logger('SdkAssetGenerator');
 
   final FileSystem fileSystem;
-  final bool verboseCompiler;
+  final bool verbose;
 
   late final TestSdkLayout sdkLayout;
 
   SdkAssetGenerator({
     this.fileSystem = const LocalFileSystem(),
     required this.sdkLayout,
-    this.verboseCompiler = false,
+    this.verbose = false,
   });
 
   /// Generate all SDK assets, once for the current executable run.
@@ -180,7 +180,7 @@ class SdkAssetGenerator {
           '--no-sound-null-safety',
         '--output',
         summaryPath,
-        if (verboseCompiler) '--verbose',
+        if (verbose) '--verbose',
       ];
 
       _logger.fine('Executing dart ${args.join(' ')}');

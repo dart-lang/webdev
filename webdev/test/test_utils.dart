@@ -8,21 +8,53 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
+import 'package:test_common/test_sdk_layout.dart';
 import 'package:test_process/test_process.dart';
-import 'package:webdev/src/util.dart';
 
 final _webdevBin = p.absolute(p.join('bin', 'webdev.dart'));
-final _sdkConfigurationProvider = TestSdkNoCopyConfigurationProvider();
 
-Future<TestProcess> runWebDev(List<String> args,
-    {String? workingDirectory}) async {
-  // Generate missing test assets in the SDK.
-  await _sdkConfigurationProvider.configuration;
+class TestRunner {
+  late TestSdkConfigurationProvider sdkConfigurationProvider;
+  late TestSdkLayout sdkLayout;
 
-  var fullArgs = [_webdevBin, ...args];
+  Future<void> setUpAll({bool verbose = false}) async {
+    // Generate missing SDK assets if needed.
+    sdkConfigurationProvider = TestSdkConfigurationProvider(verbose: verbose);
+    sdkLayout = sdkConfigurationProvider.sdkLayout;
 
-  return TestProcess.start(dartPath, fullArgs,
-      workingDirectory: workingDirectory);
+    try {
+      // Make sure configuration was created correctly.
+      final configuration = await sdkConfigurationProvider.configuration;
+      configuration.validate();
+    } catch (_) {
+      tearDownAll();
+      rethrow;
+    }
+  }
+
+  void tearDownAll() {
+    sdkConfigurationProvider.dispose();
+  }
+
+  Future<TestProcess> runWebDev(List<String> args,
+      {String? workingDirectory}) async {
+    var fullArgs = [_webdevBin, ...args];
+
+    return TestProcess.start(sdkLayout.dartPath, fullArgs,
+        workingDirectory: workingDirectory);
+  }
+
+  Future<String> prepareWorkspace() async {
+    var exampleDirectory =
+        p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'));
+
+    var process = await TestProcess.start(
+        sdkLayout.dartPath, ['pub', 'upgrade'],
+        workingDirectory: exampleDirectory, environment: getPubEnvironment());
+
+    await process.shouldExit(0);
+    return exampleDirectory;
+  }
 }
 
 Future checkProcessStdout(TestProcess process, List items) async {
