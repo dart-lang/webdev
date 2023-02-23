@@ -4,7 +4,7 @@
   "manifest_version": 3,
   "devtools_page": "static_assets/devtools.html",
   "action": {
-    "default_icon": "static_assets/dart_dev.png"
+    "default_icon": "static_assets/dart_grey.png"
   },
   "externally_connectable": {
     "ids": ["nbkbficgbembimioedhceniahniffgpl"]
