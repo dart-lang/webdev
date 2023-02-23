@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 2))
-import 'dart:async';
 import 'dart:io';
 
 import 'package:dwds/src/readers/frontend_server_asset_reader.dart';
@@ -46,7 +45,7 @@ void main() {
       p.join(tempFixtures.path, 'main.dart.dill'),
       packagesDir,
     );
-    await assetReader.updateCaches();
+    assetReader.updateCaches();
   });
 
   tearDown(() async {
@@ -107,7 +106,7 @@ void main() {
             .writeAsString((await mapOriginal.readAsString())
                 .replaceAll('web/main.dart.lib.js', 'web/foo.dart.lib.js'));
 
-        await assetReader.updateCaches();
+        assetReader.updateCaches();
 
         final newResult =
             await assetReader.sourceMapContents('web/foo.dart.lib.js.map');

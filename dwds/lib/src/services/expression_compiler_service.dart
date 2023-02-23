@@ -207,7 +207,7 @@ class _Compiler {
   ///
   /// Terminates the isolate running expression compiler worker
   /// and marks the service as stopped.
-  Future<void> stop() async {
+  void stop() {
     _sendPort.send({'command': 'Shutdown'});
     _receivePort.close();
     _logger.info('Stopped.');

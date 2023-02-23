@@ -4,7 +4,6 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
-import 'dart:async';
 
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';

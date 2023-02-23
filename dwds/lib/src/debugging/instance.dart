@@ -79,7 +79,7 @@ class InstanceHelper extends Domain {
       ..offset = (truncated ? offset : null);
   }
 
-  Future<Instance?> _closureInstanceFor(RemoteObject remoteObject) async {
+  Instance? _closureInstanceFor(RemoteObject remoteObject) {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
     final result = Instance(
@@ -354,8 +354,8 @@ class InstanceHelper extends Domain {
         count: count, elementCount: elements.length, length: length);
     final range = elements.sublist(0, rangeCount);
 
-    return Future.wait(range
-        .map((element) async => await _instanceRefForRemote(element.value)));
+    return Future.wait(
+        range.map((element) => _instanceRefForRemote(element.value)));
   }
 
   /// Return elements of the list from [properties].

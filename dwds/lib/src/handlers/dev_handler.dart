@@ -117,9 +117,8 @@ class DevHandler {
         for (var handler in _sseHandlers.values) {
           handler.shutdown();
         }
-        await Future.wait(_servicesByAppId.values.map((service) async {
-          await service.close();
-        }));
+        await Future.wait(
+            _servicesByAppId.values.map((service) => service.close()));
         _servicesByAppId.clear();
       }();
 
@@ -269,19 +268,19 @@ class DevHandler {
           if (message is DevToolsRequest) {
             await _handleDebugRequest(connection, injectedConnection);
           } else if (message is IsolateExit) {
-            await _handleIsolateExit(connection);
+            _handleIsolateExit(connection);
           } else if (message is IsolateStart) {
             await _handleIsolateStart(connection, injectedConnection);
           } else if (message is BatchedDebugEvents) {
-            await _servicesByAppId[connection.request.appId]
+            _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
                 .parseBatchedDebugEvents(message);
           } else if (message is DebugEvent) {
-            await _servicesByAppId[connection.request.appId]
+            _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
                 .parseDebugEvent(message);
           } else if (message is RegisterEvent) {
-            await _servicesByAppId[connection.request.appId]
+            _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
                 .parseRegisterEvent(message);
           }
@@ -302,7 +301,7 @@ class DevHandler {
       }
     });
 
-    safeUnawaited(injectedConnection.sink.done.then((_) async {
+    safeUnawaited(injectedConnection.sink.done.then((_) {
       _injectedConnections.remove(injectedConnection);
       final connection = appConnection;
       if (connection != null) {
@@ -419,7 +418,7 @@ class DevHandler {
     return connection;
   }
 
-  Future<void> _handleIsolateExit(AppConnection appConnection) async {
+  void _handleIsolateExit(AppConnection appConnection) {
     _servicesByAppId[appConnection.request.appId]
         ?.chromeProxyService
         .destroyIsolate();
@@ -432,7 +431,7 @@ class DevHandler {
         .createIsolate(appConnection);
   }
 
-  Future<void> _listen() async {
+  void _listen() {
     _subs.add(_injected.devHandlerPaths.listen((devHandlerPath) async {
       final uri = Uri.parse(devHandlerPath);
       if (!_sseHandlers.containsKey(uri.path)) {
