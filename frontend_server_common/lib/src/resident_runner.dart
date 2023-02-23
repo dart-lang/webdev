@@ -15,7 +15,6 @@ import 'package:test_common/test_sdk_layout.dart';
 
 import 'devfs.dart';
 import 'frontend_server_client.dart';
-import 'utilities.dart';
 
 class ResidentWebRunner {
   final _logger = Logger('ResidentWebRunner');
@@ -39,7 +38,7 @@ class ResidentWebRunner {
         : sdkLayout.weakSummaryPath);
 
     generator = ResidentCompiler(
-      dartSdkPath,
+      sdkLayout.sdkDirectory,
       projectDirectory: projectDirectory,
       packageConfigFile: packageConfigFile,
       useDebuggerModuleNames: packageUriMapper.useDebuggerModuleNames,
