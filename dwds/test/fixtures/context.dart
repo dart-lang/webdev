@@ -176,7 +176,7 @@ class TestContext {
   }) async {
     // Generate missing SDK assets if needed.
     final sdkConfigurationProvider =
-        TestSdkConfigurationProvider(verboseCompiler: verboseCompiler);
+        TestSdkConfigurationProvider(verbose: verboseCompiler);
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
     final configuration = await sdkConfigurationProvider.configuration;
     configuration.validate();

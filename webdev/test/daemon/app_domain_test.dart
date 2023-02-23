@@ -14,39 +14,43 @@ import 'utils.dart';
 void main() {
   late String exampleDirectory;
 
+  final testRunner = TestRunner();
   setUpAll(() async {
-    exampleDirectory = await prepareWorkspace();
+    await testRunner.setUpAll();
+    exampleDirectory = await testRunner.prepareWorkspace();
   });
+
+  tearDownAll(testRunner.tearDownAll);
 
   group('AppDomain', () {
     group('Events', () {
       test('.start', () async {
-        var webdev =
-            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var webdev = await testRunner
+            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         await expectLater(
             webdev.stdout, emitsThrough(startsWith('[{"event":"app.start"')));
         await exitWebdev(webdev);
       });
 
       test('.started', () async {
-        var webdev =
-            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var webdev = await testRunner
+            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         await expectLater(
             webdev.stdout, emitsThrough(startsWith('[{"event":"app.started"')));
         await exitWebdev(webdev);
       });
 
       test('.debugPort', () async {
-        var webdev =
-            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var webdev = await testRunner
+            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         await expectLater(webdev.stdout,
             emitsThrough(startsWith('[{"event":"app.debugPort"')));
         await exitWebdev(webdev);
       });
 
       test('.log', () async {
-        var webdev =
-            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var webdev = await testRunner
+            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         var appId = await waitForAppId(webdev);
         // The example app does an initial print.
         await expectLater(
@@ -60,8 +64,8 @@ void main() {
 
     group('Methods', () {
       test('.callServiceExtension', () async {
-        var webdev =
-            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var webdev = await testRunner
+            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         var appId = await waitForAppId(webdev);
         if (Platform.isWindows) {
           // Windows takes a bit longer to run the application and register
@@ -81,8 +85,8 @@ void main() {
       });
 
       test('.reload', () async {
-        var webdev =
-            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var webdev = await testRunner
+            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         var appId = await waitForAppId(webdev);
         var extensionCall = '[{"method":"app.restart","id":0,'
             '"params" : { "appId" : "$appId", "fullRestart" : false}}]';
@@ -97,8 +101,8 @@ void main() {
       });
 
       test('.restart', () async {
-        var webdev =
-            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var webdev = await testRunner
+            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         var appId = await waitForAppId(webdev);
         var extensionCall = '[{"method":"app.restart","id":0,'
             '"params" : { "appId" : "$appId", "fullRestart" : true}}]';
@@ -117,8 +121,8 @@ void main() {
       });
 
       test('.stop', () async {
-        var webdev =
-            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var webdev = await testRunner
+            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         var appId = await waitForAppId(webdev);
         var stopCall = '[{"method":"app.stop","id":0,'
             '"params" : { "appId" : "$appId"}}]';

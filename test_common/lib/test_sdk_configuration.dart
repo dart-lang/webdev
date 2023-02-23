@@ -57,7 +57,7 @@ class TestSdkCopyConfigurationProvider extends SdkConfigurationProvider {
     try {
       final assetGenerator = SdkAssetGenerator(
         sdkLayout: sdkLayout,
-        verboseCompiler: _verbose,
+        verbose: _verbose,
       );
 
       await assetGenerator.generateSdkAssets();
@@ -92,13 +92,12 @@ class TestSdkCopyConfigurationProvider extends SdkConfigurationProvider {
 /// TODO(annagrin): update to only generating missing sound artifacts
 /// for frontend server after we have no uses of weak null safety.
 class TestSdkConfigurationProvider extends SdkConfigurationProvider {
-  final bool _verboseCompiler;
+  final bool _verbose;
   SdkConfiguration? _configuration;
 
   final sdkLayout = TestSdkLayout.defaultSdkLayout;
 
-  TestSdkConfigurationProvider({bool verboseCompiler = false})
-      : _verboseCompiler = verboseCompiler;
+  TestSdkConfigurationProvider({bool verbose = false}) : _verbose = verbose;
 
   @override
   Future<SdkConfiguration> get configuration async =>
@@ -108,7 +107,7 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
   Future<SdkConfiguration> _create() async {
     final assetGenerator = SdkAssetGenerator(
       sdkLayout: sdkLayout,
-      verboseCompiler: _verboseCompiler,
+      verbose: _verbose,
     );
 
     await assetGenerator.generateSdkAssets();
