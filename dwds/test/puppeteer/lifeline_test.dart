@@ -7,22 +7,19 @@
 
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
 import 'test_utils.dart';
 
+final context = TestContext(TestProject.testWithSoundNullSafety);
+
 void main() async {
-  final provider = TestSdkConfigurationProvider();
-  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
   late Worker worker;
   late Browser browser;
   late String extensionPath;
 
   int connectionCount = 0;
-
-  tearDownAll(provider.dispose);
 
   group('MV3 Debug Extension Lifeline Connection', () {
     setUpAll(() async {
@@ -37,7 +34,6 @@ void main() async {
 
     tearDownAll(() async {
       await browser.close();
-      await context.tearDown();
     });
 
     test('connects to a lifeline port', () async {

@@ -6,31 +6,27 @@
 @Timeout(Duration(minutes: 2))
 
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
+final context = TestContext(TestProject.testScopesWithSoundNullSafety);
+
 void main() {
-  final provider = TestSdkConfigurationProvider();
-  tearDownAll(provider.dispose);
-
-  final context =
-      TestContext(TestProject.testScopesWithSoundNullSafety, provider);
-
   late AppInspector inspector;
   late Debugger debugger;
 
   setUpAll(() async {
     await context.setUp();
-    final service = context.service;
+    final service = fetchChromeProxyService(context.debugConnection);
     inspector = service.inspector;
     debugger = await service.debuggerFuture;
   });

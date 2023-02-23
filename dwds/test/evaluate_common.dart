@@ -8,14 +8,12 @@ import 'dart:async';
 
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
 void testAll({
-  required TestSdkConfigurationProvider provider,
   CompilationMode compilationMode = CompilationMode.buildDaemon,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
   NullSafety nullSafety = NullSafety.sound,
@@ -27,12 +25,10 @@ void testAll({
     throw StateError(
         'build daemon scenario does not support non-empty base in index file');
   }
-
   final testProject = TestProject.test(nullSafety: nullSafety);
   final testPackageProject =
       TestProject.testPackage(nullSafety: nullSafety, baseMode: indexBaseMode);
-
-  final context = TestContext(testPackageProject, provider);
+  final context = TestContext(testPackageProject);
 
   Future<void> onBreakPoint(String isolate, ScriptRef script,
       String breakPointId, Future<void> Function() body) async {
@@ -51,7 +47,7 @@ void testAll({
     }
   }
 
-  group('Shared context with evaluation |', () {
+  group('shared context with evaluation |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
@@ -531,12 +527,11 @@ void testAll({
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
-        final service = context.service;
-        vm = await service.getVM();
-        isolate = await service.getIsolate(vm.isolates!.first.id!);
+        vm = await context.service.getVM();
+        isolate = await context.service.getIsolate(vm.isolates!.first.id!);
         isolateId = isolate.id!;
 
-        await service.streamListen('Debug');
+        await context.service.streamListen('Debug');
       });
 
       tearDown(() async {});
@@ -664,14 +659,13 @@ void testAll({
       late Stream<Event> stream;
 
       setUp(() async {
-        final service = context.service;
-        vm = await service.getVM();
-        isolate = await service.getIsolate(vm.isolates!.first.id!);
+        vm = await context.service.getVM();
+        isolate = await context.service.getIsolate(vm.isolates!.first.id!);
         isolateId = isolate.id!;
-        scripts = await service.getScripts(isolateId);
+        scripts = await context.service.getScripts(isolateId);
 
-        await service.streamListen('Debug');
-        stream = service.onEvent('Debug');
+        await context.service.streamListen('Debug');
+        stream = context.service.onEvent('Debug');
 
         mainScript = scripts.scripts!
             .firstWhere((each) => each.uri!.contains('main.dart'));

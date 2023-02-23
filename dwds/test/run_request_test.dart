@@ -5,24 +5,21 @@
 @Timeout(Duration(minutes: 2))
 import 'dart:async';
 
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
+final context = TestContext(TestProject.testWithSoundNullSafety);
+
+ChromeProxyService get service => context.service;
+
 void main() {
-  final provider = TestSdkConfigurationProvider();
-  tearDownAll(provider.dispose);
-
-  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
-
   group('while debugger is attached', () {
-    late VmServiceInterface service;
     setUp(() async {
       await context.setUp(autoRun: false);
-      service = context.service;
     });
 
     tearDown(() async {
@@ -59,10 +56,8 @@ void main() {
   });
 
   group('while debugger is not attached', () {
-    late VmServiceInterface service;
     setUp(() async {
       await context.setUp(autoRun: false, waitToDebug: true);
-      service = context.service;
     });
 
     tearDown(() async {

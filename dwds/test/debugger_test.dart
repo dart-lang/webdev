@@ -18,9 +18,12 @@ import 'package:vm_service/vm_service.dart' hide LogRecord;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     show CallFrame, DebuggerPausedEvent, StackTrace, WipCallFrame, WipScript;
 
+import 'fixtures/context.dart';
 import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
+import 'fixtures/project.dart';
 
+final context = TestContext(TestProject.testWithSoundNullSafety);
 late AppInspector inspector;
 late Debugger debugger;
 late FakeWebkitDebugger webkitDebugger;

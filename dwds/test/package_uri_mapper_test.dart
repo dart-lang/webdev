@@ -16,7 +16,6 @@ import 'fixtures/project.dart';
 
 void main() {
   final project = TestProject.testPackageWithSoundNullSafety();
-
   for (final useDebuggerModuleNames in [true, false]) {
     group(
         'Package uri mapper with debugger module names: '
@@ -34,6 +33,7 @@ void main() {
           '/webdev/fixtures/${project.packageDirectory}/lib/test_library.dart';
 
       final testPackageSoundPath = project.absolutePackageDirectory;
+
       final packageConfigFile = Uri.file(p.join(
         testPackageSoundPath,
         '.dart_tool',

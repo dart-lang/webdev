@@ -4,19 +4,17 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
+import 'dart:async';
 
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
 void main() {
-  final provider = TestSdkConfigurationProvider();
-  tearDownAll(provider.dispose);
-
   group(
     'shared context |',
     () {
@@ -26,7 +24,7 @@ void main() {
       for (var nullSafety in NullSafety.values) {
         group('${nullSafety.name} null safety |', () {
           final project = TestProject.testPackage(nullSafety: nullSafety);
-          final context = TestContext(project, provider);
+          final context = TestContext(project);
 
           setUpAll(() async {
             setCurrentLogWriter(debug: debug);
@@ -42,7 +40,7 @@ void main() {
           });
 
           group('callStack |', () {
-            late VmServiceInterface service;
+            late ChromeProxyService service;
             VM vm;
             late Isolate isolate;
             ScriptList scripts;
@@ -60,7 +58,7 @@ void main() {
               await service.streamListen('Debug');
               stream = service.onEvent('Debug');
 
-              final testPackage = context.project.packageName;
+              final testPackage = project.packageName;
               mainScript = scripts.scripts!
                   .firstWhere((each) => each.uri!.contains('main.dart'));
               testLibraryScript = scripts.scripts!.firstWhere((each) =>

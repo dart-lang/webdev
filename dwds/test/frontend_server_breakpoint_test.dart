@@ -5,23 +5,21 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
 
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
+final context = TestContext(TestProject.testPackageWithSoundNullSafety());
+
+ChromeProxyService get service => context.service;
+
 void main() {
   // Enable verbose logging for debugging.
   final debug = false;
-
-  final provider = TestSdkConfigurationProvider(verbose: debug);
-  tearDownAll(provider.dispose);
-
-  final context =
-      TestContext(TestProject.testPackageWithSoundNullSafety(), provider);
 
   // Change to 'true' to print expression compiler messages to console.
   //
@@ -43,7 +41,6 @@ void main() {
     });
 
     group('breakpoint', () {
-      late VmServiceInterface service;
       VM vm;
       late Isolate isolate;
       late String isolateId;
@@ -53,7 +50,6 @@ void main() {
       late Stream<Event> stream;
 
       setUp(() async {
-        service = context.service;
         setCurrentLogWriter(debug: debug);
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);

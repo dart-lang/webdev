@@ -14,7 +14,6 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 // ignore: deprecated_member_use
 import 'package:webdriver/io.dart';
 
@@ -32,12 +31,9 @@ import 'fixtures/utilities.dart';
 // Remove the key before pushing code to GitHub.
 // See go/extension-identification.
 
+final context = TestContext(TestProject.testWithSoundNullSafety);
+
 void main() async {
-  final provider = TestSdkConfigurationProvider();
-  tearDownAll(provider.dispose);
-
-  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
-
   Future<void> waitForDartDevToolsWithRetry({
     int retryCount = 6,
     Duration retryWait = const Duration(seconds: 1),
@@ -209,6 +205,7 @@ void main() async {
   }
 
   group('With encoding', () {
+    final context = TestContext(TestProject.testWithSoundNullSafety);
     setUp(() async {
       await context.setUp(
           enableDebugExtension: true,
@@ -229,6 +226,7 @@ void main() async {
   });
 
   group('With "any" hostname', () {
+    final context = TestContext(TestProject.testWithSoundNullSafety);
     final uriPattern = RegExp(r'dartExtensionUri = "([^"]+)";');
 
     setUp(() async {
