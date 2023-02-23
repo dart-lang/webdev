@@ -141,7 +141,7 @@ Future<void> _detectNavigationAwayFromDartApp(
     NavigationInfo navigationInfo) async {
   // Ignore any navigation events within the page itself (e.g., opening a link,
   // reloading an IFRAME, etc):
-  if (_isSubAppNavigation(navigationInfo)) return;
+  if (_isInternalNavigation(navigationInfo)) return;
   final tabId = navigationInfo.tabId;
   final debugInfo = await _fetchDebugInfo(navigationInfo.tabId);
   if (debugInfo == null) return;
@@ -157,7 +157,7 @@ Future<void> _detectNavigationAwayFromDartApp(
   }
 }
 
-bool _isSubAppNavigation(NavigationInfo navigationInfo) {
+bool _isInternalNavigation(NavigationInfo navigationInfo) {
   return [
     'auto_subframe',
     'form_submit',
