@@ -7,13 +7,15 @@
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
 
 void main() {
   group('Asset handler', () {
-    final context = TestContext(TestProject.testWithSoundNullSafety);
+    final provider = TestSdkConfigurationProvider();
+    final context = TestContext(TestProject.testWithSoundNullSafety, provider);
 
     setUpAll(() async {
       setCurrentLogWriter();
@@ -25,6 +27,7 @@ void main() {
 
     tearDownAll(() async {
       await context.tearDown();
+      provider.dispose();
     });
 
     setUp(setCurrentLogWriter);

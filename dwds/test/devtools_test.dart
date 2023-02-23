@@ -7,14 +7,13 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 // ignore: deprecated_member_use
 import 'package:webdriver/io.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
-
-final context = TestContext(TestProject.testWithSoundNullSafety);
 
 Future<void> _waitForPageReady(TestContext context) async {
   var attempt = 100;
@@ -27,6 +26,11 @@ Future<void> _waitForPageReady(TestContext context) async {
 }
 
 void main() {
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+
+  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
+
   group('Injected client', () {
     setUp(() async {
       await context.setUp(

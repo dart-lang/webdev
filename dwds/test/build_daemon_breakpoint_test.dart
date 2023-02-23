@@ -5,18 +5,20 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
 
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
-final context = TestContext(TestProject.testPackageWithSoundNullSafety());
-
-ChromeProxyService get service => context.service;
-
 void main() {
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+
+  final context =
+      TestContext(TestProject.testPackageWithSoundNullSafety(), provider);
+
   group('shared context', () {
     setUpAll(() async {
       await context.setUp();
@@ -34,8 +36,10 @@ void main() {
       late ScriptRef mainScript;
       late String mainScriptUri;
       late Stream<Event> stream;
+      late VmServiceInterface service;
 
       setUp(() async {
+        service = context.service;
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
         isolateId = isolate.id!;

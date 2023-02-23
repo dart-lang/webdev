@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -17,20 +16,22 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
-final context = TestContext(TestProject.testWithSoundNullSafety);
-
-ChromeProxyService get service => context.service;
-WipConnection get tabConnection => context.tabConnection;
-
 void main() {
   // Change to true to see verbose output from the tests.
   final debug = false;
+
+  final provider = TestSdkConfigurationProvider(verbose: debug);
+  tearDownAll(provider.dispose);
+
+  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
+
   group('shared context', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
@@ -45,6 +46,7 @@ void main() {
     });
 
     group('breakpoints', () {
+      late VmServiceInterface service;
       VM vm;
       late Isolate isolate;
 
@@ -53,17 +55,15 @@ void main() {
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
-        vm = await fetchChromeProxyService(context.debugConnection).getVM();
-        isolate = await fetchChromeProxyService(context.debugConnection)
-            .getIsolate(vm.isolates!.first.id!);
-        scripts = await fetchChromeProxyService(context.debugConnection)
-            .getScripts(isolate.id!);
+        service = context.service;
+        vm = await service.getVM();
+        isolate = await service.getIsolate(vm.isolates!.first.id!);
+        scripts = await service.getScripts(isolate.id!);
         mainScript = scripts.scripts!
             .firstWhere((each) => each.uri!.contains('main.dart'));
       });
 
       test('addBreakpoint', () async {
-        // TODO: Much more testing.
         final line = await context.findBreakpointLine(
             'printHelloWorld', isolate.id!, mainScript);
         final firstBp =
@@ -125,8 +125,7 @@ void main() {
       });
 
       test('addBreakpointWithScriptUri absolute file URI', () async {
-        final current = context.workingDirectory;
-        final test = path.join(path.dirname(current), '_testSound');
+        final test = context.project.absolutePackageDirectory;
         final scriptPath = Uri.parse(mainScript.uri!).path.substring(1);
         final fullPath = path.join(test, scriptPath);
         final fileUri = Uri.file(fullPath);
@@ -163,13 +162,16 @@ void main() {
     });
 
     group('callServiceExtension', () {
+      late ChromeProxyService service;
+
       setUp(() {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
       });
 
       test('success', () async {
         final serviceMethod = 'ext.test.callServiceExtension';
-        await tabConnection.runtime
+        await context.tabConnection.runtime
             .evaluate('registerExtension("$serviceMethod");');
 
         // The non-string keys/values get auto json-encoded to match the vm
@@ -196,7 +198,7 @@ void main() {
 
       test('failure', () async {
         final serviceMethod = 'ext.test.callServiceExtensionWithError';
-        await tabConnection.runtime
+        await context.tabConnection.runtime
             .evaluate('registerExtensionWithError("$serviceMethod");');
 
         final errorDetails = {'intentional': 'error'};
@@ -215,8 +217,11 @@ void main() {
     });
 
     group('VMTimeline', () {
+      late VmServiceInterface service;
+
       setUp(() {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
       });
 
       test('clearVMTimeline', () async {
@@ -242,6 +247,7 @@ void main() {
     });
 
     test('getMemoryUsage', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolate = await service.getIsolate(vm.isolates!.first.id!);
 
@@ -254,11 +260,13 @@ void main() {
     });
 
     group('evaluate', () {
+      late VmServiceInterface service;
       late Isolate isolate;
       LibraryRef? bootstrap;
 
       setUpAll(() async {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
         final vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
         bootstrap = isolate.rootLib;
@@ -362,29 +370,36 @@ void main() {
     });
 
     test('evaluateInFrame', () async {
+      final service = context.service;
       await expectLater(
           service.evaluateInFrame('', 0, ''), throwsSentinelException);
     });
 
     test('getAllocationProfile', () async {
+      final service = context.service;
       await expectLater(service.getAllocationProfile(''), throwsRPCError);
     });
 
     test('getClassList', () async {
+      final service = context.service;
       await expectLater(service.getClassList(''), throwsRPCError);
     });
 
     test('getFlagList', () async {
+      final service = context.service;
       expect(await service.getFlagList(), isA<FlagList>());
     });
 
     test('getInstances', () async {
+      final service = context.service;
       await expectLater(service.getInstances('', '', 0), throwsRPCError);
     });
 
     group('getIsolate', () {
+      late VmServiceInterface service;
       setUp(() {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
       });
 
       test('works for existing isolates', () async {
@@ -412,6 +427,7 @@ void main() {
     });
 
     group('getObject', () {
+      late ChromeProxyService service;
       late Isolate isolate;
       LibraryRef? bootstrap;
 
@@ -419,6 +435,7 @@ void main() {
 
       setUpAll(() async {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
         final vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
         bootstrap = isolate.rootLib;
@@ -1062,6 +1079,7 @@ void main() {
     });
 
     test('getScripts', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       final scripts = await service.getScripts(isolateId);
@@ -1084,8 +1102,11 @@ void main() {
     });
 
     group('getSourceReport', () {
+      late VmServiceInterface service;
+
       setUp(() {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
       });
 
       test('Coverage report', () async {
@@ -1136,6 +1157,7 @@ void main() {
     });
 
     group('Pausing', () {
+      late VmServiceInterface service;
       String? isolateId;
       late Stream<Event> stream;
       ScriptList scripts;
@@ -1143,6 +1165,7 @@ void main() {
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
         final vm = await service.getVM();
         isolateId = vm.isolates!.first.id;
         scripts = await service.getScripts(isolateId!);
@@ -1172,6 +1195,7 @@ void main() {
     });
 
     group('Step', () {
+      late VmServiceInterface service;
       String? isolateId;
       late Stream<Event> stream;
       ScriptList scripts;
@@ -1179,6 +1203,7 @@ void main() {
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
         final vm = await service.getVM();
         isolateId = vm.isolates!.first.id;
         scripts = await service.getScripts(isolateId!);
@@ -1242,6 +1267,7 @@ void main() {
     });
 
     group('getStack', () {
+      late VmServiceInterface service;
       String? isolateId;
       late Stream<Event> stream;
       ScriptList scripts;
@@ -1249,6 +1275,7 @@ void main() {
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
         final vm = await service.getVM();
         isolateId = vm.isolates!.first.id;
         scripts = await service.getScripts(isolateId!);
@@ -1387,6 +1414,7 @@ void main() {
     });
 
     test('getVM', () async {
+      final service = context.service;
       final vm = await service.getVM();
       expect(vm.name, isNotNull);
       expect(vm.version, Platform.version);
@@ -1398,12 +1426,14 @@ void main() {
     });
 
     test('getVersion', () async {
+      final service = context.service;
       final version = await service.getVersion();
       expect(version, isNotNull);
       expect(version.major, greaterThan(0));
     });
 
     group('invoke', () {
+      late ChromeProxyService service;
       VM vm;
       late Isolate isolate;
       LibraryRef? bootstrap;
@@ -1411,6 +1441,7 @@ void main() {
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
         bootstrap = isolate.rootLib;
@@ -1514,24 +1545,27 @@ void main() {
     });
 
     test('kill', () async {
+      final service = context.service;
       await expectLater(service.kill(''), throwsRPCError);
     });
 
     test('onEvent', () async {
+      final service = context.service;
       expect(() => service.onEvent(''), throwsRPCError);
     });
 
     test('pause / resume', () async {
+      final service = context.service;
       await service.streamListen('Debug');
       final stream = service.onEvent('Debug');
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       final pauseCompleter = Completer();
-      final pauseSub = tabConnection.debugger.onPaused.listen((_) {
+      final pauseSub = context.tabConnection.debugger.onPaused.listen((_) {
         pauseCompleter.complete();
       });
       final resumeCompleter = Completer();
-      final resumeSub = tabConnection.debugger.onResumed.listen((_) {
+      final resumeSub = context.tabConnection.debugger.onResumed.listen((_) {
         resumeCompleter.complete();
       });
       expect(await service.pause(isolateId), const TypeMatcher<Success>());
@@ -1550,16 +1584,19 @@ void main() {
     });
 
     test('getInboundReferences', () async {
+      final service = context.service;
       await expectLater(
           service.getInboundReferences('', '', 0), throwsRPCError);
     });
 
     test('getRetainingPath', () async {
+      final service = context.service;
       await expectLater(service.getRetainingPath('', '', 0), throwsRPCError);
     });
 
     test('lookupResolvedPackageUris converts package and org-dartlang-app uris',
         () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       final scriptList = await service.getScripts(isolateId);
@@ -1579,6 +1616,7 @@ void main() {
 
     test('lookupResolvedPackageUris does not translate non-existent paths',
         () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
 
@@ -1591,6 +1629,7 @@ void main() {
     });
 
     test('lookupResolvedPackageUris translates dart uris', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
 
@@ -1607,6 +1646,7 @@ void main() {
 
     test('lookupPackageUris finds package and org-dartlang-app paths',
         () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       final scriptList = await service.getScripts(isolateId);
@@ -1627,6 +1667,7 @@ void main() {
     });
 
     test('lookupPackageUris ignores local parameter', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       final scriptList = await service.getScripts(isolateId);
@@ -1660,6 +1701,7 @@ void main() {
     });
 
     test('lookupPackageUris does not translate non-existent paths', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
 
@@ -1672,6 +1714,7 @@ void main() {
     });
 
     test('lookupPackageUris translates dart uris', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
 
@@ -1686,16 +1729,19 @@ void main() {
       ]);
     }, skip: 'https://github.com/dart-lang/webdev/issues/1584');
 
-    test('registerService', () async {
+    test('registerservice', () async {
+      final service = context.service;
       await expectLater(
           service.registerService('ext.foo.bar', ''), throwsRPCError);
     });
 
     test('reloadSources', () async {
+      final service = context.service;
       await expectLater(service.reloadSources(''), throwsRPCError);
     });
 
     test('setIsolatePauseMode', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       expect(await service.setIsolatePauseMode(isolateId), _isSuccess);
@@ -1718,15 +1764,18 @@ void main() {
     });
 
     test('setFlag', () async {
+      final service = context.service;
       await expectLater(service.setFlag('', ''), throwsRPCError);
     });
 
     test('setLibraryDebuggable', () async {
+      final service = context.service;
       await expectLater(
           service.setLibraryDebuggable('', '', false), throwsRPCError);
     });
 
     test('setName', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       expect(service.setName(isolateId, 'test'), completion(_isSuccess));
@@ -1735,21 +1784,26 @@ void main() {
     });
 
     test('setVMName', () async {
+      final service = context.service;
       expect(service.setVMName('foo'), completion(_isSuccess));
       final vm = await service.getVM();
       expect(vm.name, 'foo');
     });
 
     test('streamCancel', () async {
+      final service = context.service;
       await expectLater(service.streamCancel(''), throwsRPCError);
     });
 
     group('streamListen/onEvent', () {
+      late ChromeProxyService service;
+
       group('Debug', () {
         late Stream<Event> eventStream;
 
         setUp(() async {
           setCurrentLogWriter(debug: debug);
+          service = context.service;
           expect(await service.streamListen('Debug'),
               const TypeMatcher<Success>());
           eventStream = service.onEvent('Debug');
@@ -1758,12 +1812,12 @@ void main() {
         test('basic Pause/Resume', () async {
           expect(service.streamListen('Debug'), completion(_isSuccess));
           final stream = service.onEvent('Debug');
-          safeUnawaited(tabConnection.debugger.pause());
+          safeUnawaited(context.tabConnection.debugger.pause());
           await expectLater(
               stream,
               emitsThrough(const TypeMatcher<Event>()
                   .having((e) => e.kind, 'kind', EventKind.kPauseInterrupted)));
-          safeUnawaited(tabConnection.debugger.resume());
+          safeUnawaited(context.tabConnection.debugger.resume());
           expect(
               eventStream,
               emitsThrough(const TypeMatcher<Event>()
@@ -1782,15 +1836,17 @@ void main() {
                           .having((instance) => instance.id, 'id', isNotNull)
                           .having((instance) => instance.kind, 'inspectee.kind',
                               InstanceKind.kPlainInstance))));
-          await tabConnection.runtime.evaluate('inspectInstance()');
+          await context.tabConnection.runtime.evaluate('inspectInstance()');
         });
       });
 
       group('Extension', () {
+        late VmServiceInterface service;
         late Stream<Event> eventStream;
 
         setUp(() async {
           setCurrentLogWriter(debug: debug);
+          service = context.service;
           expect(await service.streamListen('Extension'),
               const TypeMatcher<Success>());
           eventStream = service.onEvent('Extension');
@@ -1804,7 +1860,8 @@ void main() {
                   event.kind == EventKind.kExtension &&
                   event.extensionKind == eventKind &&
                   event.extensionData!.data['example'] == 'data')));
-          await tabConnection.runtime.evaluate("postEvent('$eventKind');");
+          await context.tabConnection.runtime
+              .evaluate("postEvent('$eventKind');");
         });
 
         test('Batched debug events from injected client', () async {
@@ -1837,11 +1894,11 @@ void main() {
               ]));
 
           for (var data in batch1) {
-            await tabConnection.runtime.evaluate(emitDebugEvent(data));
+            await context.tabConnection.runtime.evaluate(emitDebugEvent(data));
           }
           await Future.delayed(delay);
           for (var data in batch2) {
-            await tabConnection.runtime.evaluate(emitDebugEvent(data));
+            await context.tabConnection.runtime.evaluate(emitDebugEvent(data));
           }
         });
       });
@@ -1858,14 +1915,14 @@ void main() {
           isolateEventStream = service.onEvent(EventStreams.kIsolate);
         });
 
-        test('ServiceExtensionAdded', () async {
+        test('serviceExtensionAdded', () async {
           final extensionMethod = 'ext.foo.bar';
           expect(
               isolateEventStream,
               emitsThrough(predicate((Event event) =>
                   event.kind == EventKind.kServiceExtensionAdded &&
                   event.extensionRPC == extensionMethod)));
-          await tabConnection.runtime
+          await context.tabConnection.runtime
               .evaluate("registerExtension('$extensionMethod');");
         });
 
@@ -1907,7 +1964,8 @@ void main() {
           expect(
               isolateEventStream, emitsInOrder(extensions.map(eventMatcher)));
           for (var extension in extensions) {
-            await tabConnection.runtime.evaluate(emitRegisterEvent(extension));
+            await context.tabConnection.runtime
+                .evaluate(emitRegisterEvent(extension));
           }
         });
       });
@@ -1924,7 +1982,7 @@ void main() {
                 event.kind == EventKind.kWriteEvent &&
                 String.fromCharCodes(base64.decode(event.bytes!))
                     .contains('hello'))));
-        await tabConnection.runtime.evaluate('console.log("hello");');
+        await context.tabConnection.runtime.evaluate('console.log("hello");');
       });
 
       test('Stderr', () async {
@@ -1936,7 +1994,7 @@ void main() {
                 event.kind == EventKind.kWriteEvent &&
                 String.fromCharCodes(base64.decode(event.bytes!))
                     .contains('Error'))));
-        await tabConnection.runtime.evaluate('console.error("Error");');
+        await context.tabConnection.runtime.evaluate('console.error("Error");');
       });
 
       test('exception stack trace mapper', () async {
@@ -1948,7 +2006,8 @@ void main() {
                 event.kind == EventKind.kWriteEvent &&
                 String.fromCharCodes(base64.decode(event.bytes!))
                     .contains('main.dart'))));
-        await tabConnection.runtime.evaluate('throwUncaughtException();');
+        await context.tabConnection.runtime
+            .evaluate('throwUncaughtException();');
       });
 
       test('VM', () async {
@@ -1964,12 +2023,14 @@ void main() {
     });
 
     test('Logging', () async {
+      final service = context.service;
       expect(
           service.streamListen(EventStreams.kLogging), completion(_isSuccess));
       final stream = service.onEvent(EventStreams.kLogging);
       final message = 'myMessage';
 
-      safeUnawaited(tabConnection.runtime.evaluate("sendLog('$message');"));
+      safeUnawaited(
+          context.tabConnection.runtime.evaluate("sendLog('$message');"));
 
       final event = await stream.first;
       expect(event.kind, EventKind.kLogging);

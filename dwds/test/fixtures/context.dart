@@ -34,8 +34,7 @@ import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
-// ignore: deprecated_member_use
-import 'package:webdriver/io.dart';
+import 'package:webdriver/async_io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'project.dart';
@@ -55,6 +54,7 @@ enum CompilationMode { buildDaemon, frontendServer }
 class TestContext {
   final TestProject project;
   final NullSafety nullSafety;
+  final TestSdkConfigurationProvider sdkConfigurationProvider;
 
   /// Top level directory in which we run the test server, e.g.
   /// "/workstation/webdev/fixtures/_testSound".
@@ -143,7 +143,8 @@ class TestContext {
   /// External VM service.
   VmServiceInterface get vmService => debugConnection.vmService;
 
-  TestContext(this.project) : nullSafety = project.nullSafety {
+  TestContext(this.project, this.sdkConfigurationProvider)
+      : nullSafety = project.nullSafety {
     DartUri.currentDirectory = workingDirectory;
 
     project.validate();
@@ -174,14 +175,13 @@ class TestContext {
     bool isInternalBuild = false,
     List<String> experiments = const <String>[],
   }) async {
-    // Generate missing SDK assets if needed.
-    final sdkConfigurationProvider =
-        TestSdkConfigurationProvider(verbose: verboseCompiler);
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
-    final configuration = await sdkConfigurationProvider.configuration;
-    configuration.validate();
 
     try {
+      // Make sure configuration was created correctly.
+      final configuration = await sdkConfigurationProvider.configuration;
+      configuration.validate();
+
       DartUri.currentDirectory = workingDirectory;
       configureLogWriter();
 
@@ -221,7 +221,7 @@ class TestContext {
             'Could not start ChromeDriver. Is it installed?\nError: $e');
       }
 
-      await Process.run(dartPath, ['pub', 'upgrade'],
+      await Process.run(sdkLayout.dartPath, ['pub', 'upgrade'],
           workingDirectory: workingDirectory);
 
       ExpressionCompiler? expressionCompiler;
@@ -243,8 +243,8 @@ class TestContext {
                 '--enable-experiment=$experiment',
               '--verbose',
             ];
-            _daemonClient =
-                await connectClient(workingDirectory, options, (log) {
+            _daemonClient = await connectClient(
+                sdkLayout.dartPath, workingDirectory, options, (log) {
               final record = log.toLogRecord();
               final name =
                   record.loggerName == '' ? '' : '${record.loggerName}: ';
@@ -389,6 +389,7 @@ class TestContext {
         ddcService,
         isFlutterApp,
         isInternalBuild,
+        sdkLayout,
       );
 
       _appUrl = basePath.isEmpty

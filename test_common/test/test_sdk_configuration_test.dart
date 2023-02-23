@@ -20,7 +20,7 @@ void main() {
     });
 
     test('Creates and deletes SDK directory copy', () async {
-      final provider = TestSdkCopyConfigurationProvider(verbose: debug);
+      final provider = TestSdkConfigurationProvider(verbose: debug);
       final sdkDirectory = provider.sdkLayout.sdkDirectory;
       final weakSdkSummary = provider.sdkLayout.weakSummaryPath;
       try {
@@ -42,7 +42,7 @@ void main() {
 
   group('Test SDK configuration |', () {
     setCurrentLogWriter(debug: debug);
-    final provider = TestSdkCopyConfigurationProvider(verbose: debug);
+    final provider = TestSdkConfigurationProvider(verbose: debug);
     tearDownAll(provider.dispose);
 
     test('Can validate configuration with generated assets', () async {

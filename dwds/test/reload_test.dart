@@ -7,12 +7,11 @@
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
-
-final context = TestContext(TestProject.testAppendBodyWithSoundNullSafety);
 
 const originalString = 'Hello World!';
 const newString = 'Bonjour le monde!';
@@ -20,6 +19,28 @@ const newString = 'Bonjour le monde!';
 void main() {
   // set to true for debug logging.
   final debug = false;
+
+  final provider = TestSdkConfigurationProvider(verbose: debug);
+  tearDownAll(provider.dispose);
+
+  final context =
+      TestContext(TestProject.testAppendBodyWithSoundNullSafety, provider);
+
+  Future<void> makeEditAndWaitForRebuild() async {
+    context.makeEditToDartEntryFile(
+      toReplace: originalString,
+      replaceWith: newString,
+    );
+    await context.waitForSuccessfulBuild(propagateToBrowser: true);
+  }
+
+  void undoEdit() {
+    context.makeEditToDartEntryFile(
+      toReplace: newString,
+      replaceWith: originalString,
+    );
+  }
+
   group('Injected client with live reload', () {
     group('and with debugging', () {
       setUp(() async {
@@ -436,21 +457,6 @@ void main() {
       });
     });
   });
-}
-
-Future<void> makeEditAndWaitForRebuild() async {
-  context.makeEditToDartEntryFile(
-    toReplace: originalString,
-    replaceWith: newString,
-  );
-  await context.waitForSuccessfulBuild(propagateToBrowser: true);
-}
-
-void undoEdit() {
-  context.makeEditToDartEntryFile(
-    toReplace: newString,
-    replaceWith: originalString,
-  );
 }
 
 TypeMatcher<Event> _hasKind(String kind) =>

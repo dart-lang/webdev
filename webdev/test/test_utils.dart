@@ -14,13 +14,12 @@ import 'package:test_process/test_process.dart';
 final _webdevBin = p.absolute(p.join('bin', 'webdev.dart'));
 
 class TestRunner {
-  late TestSdkCopyConfigurationProvider sdkConfigurationProvider;
+  late TestSdkConfigurationProvider sdkConfigurationProvider;
   late TestSdkLayout sdkLayout;
 
   Future<void> setUpAll({bool verbose = false}) async {
     // Generate missing SDK assets if needed.
-    sdkConfigurationProvider =
-        TestSdkCopyConfigurationProvider(verbose: verbose);
+    sdkConfigurationProvider = TestSdkConfigurationProvider(verbose: verbose);
     sdkLayout = sdkConfigurationProvider.sdkLayout;
 
     try {

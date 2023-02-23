@@ -8,26 +8,31 @@
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
-
-final testProject = TestProject.testWithSoundNullSafety;
-final testPackageProject = TestProject.testPackageWithSoundNullSafety();
-final context = TestContext(testPackageProject);
-
-/// The directory for the general _test package.
-final testDir = testProject.absolutePackageDirectory;
-
-/// The directory for the _testPackage package (contained within dwds), which
-/// imports _test.
-final testPackageDir = testPackageProject.absolutePackageDirectory;
 
 // This tests converting file Uris into our internal paths.
 //
 // These tests are separated out because we need a running isolate in order to
 // look up packages.
 void main() {
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+
+  final testProject = TestProject.testWithSoundNullSafety;
+  final testPackageProject = TestProject.testPackageWithSoundNullSafety();
+
+  /// The directory for the general _test package.
+  final testDir = testProject.absolutePackageDirectory;
+
+  /// The directory for the _testPackage package (contained within dwds),
+  /// which imports _test.
+  final testPackageDir = testPackageProject.absolutePackageDirectory;
+
+  final context = TestContext(testPackageProject, provider);
+
   for (final compilationMode in CompilationMode.values) {
     group('$compilationMode |', () {
       for (final useDebuggerModuleNames in [false, true]) {

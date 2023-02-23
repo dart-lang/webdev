@@ -7,21 +7,22 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dwds/src/events.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/async_core.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
-final context = TestContext(TestProject.testWithSoundNullSafety);
-
-ChromeProxyService get service => context.service;
-
 void main() {
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+
+  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
+
   group('serve requests', () {
     late HttpServer server;
 
@@ -168,11 +169,13 @@ void main() {
       });
 
       group('evaluate', () {
+        late VmServiceInterface service;
         late String isolateId;
         late String bootstrapId;
 
         setUpAll(() async {
           setCurrentLogWriter();
+          service = context.service;
           final vm = await service.getVM();
           final isolate = await service.getIsolate(vm.isolates!.first.id!);
           isolateId = isolate.id!;
@@ -212,12 +215,14 @@ void main() {
       });
 
       group('evaluateInFrame', () {
+        late VmServiceInterface service;
         late String isolateId;
         late Stream<Event> stream;
         late ScriptRef mainScript;
 
         setUpAll(() async {
           setCurrentLogWriter();
+          service = context.service;
           final vm = await service.getVM();
 
           isolateId = vm.isolates!.first.id!;
@@ -302,11 +307,13 @@ void main() {
       });
 
       group('getSourceReport', () {
+        late VmServiceInterface service;
         late String isolateId;
         late ScriptRef mainScript;
 
         setUp(() async {
           setCurrentLogWriter();
+          service = context.service;
           final vm = await service.getVM();
           isolateId = vm.isolates!.first.id!;
           final scriptList = await service.getScripts(isolateId);
@@ -327,10 +334,12 @@ void main() {
       });
 
       group('getSripts', () {
+        late VmServiceInterface service;
         late String isolateId;
 
         setUp(() async {
           setCurrentLogWriter();
+          service = context.service;
           final vm = await service.getVM();
           isolateId = vm.isolates!.first.id!;
         });
@@ -345,10 +354,12 @@ void main() {
       });
 
       group('getIsolate', () {
+        late VmServiceInterface service;
         late String isolateId;
 
         setUp(() async {
           setCurrentLogWriter();
+          service = context.service;
           final vm = await service.getVM();
           isolateId = vm.isolates!.first.id!;
         });
@@ -372,7 +383,7 @@ void main() {
               matchesEvent(DwdsEventKind.getVM, {
                 'elapsedMilliseconds': isNotNull,
               }),
-              () => service.getVM());
+              () => context.service.getVM());
         });
       });
 
@@ -393,10 +404,12 @@ void main() {
       });
 
       group('resume', () {
+        late VmServiceInterface service;
         late String isolateId;
 
         setUp(() async {
           setCurrentLogWriter();
+          service = context.service;
           final vm = await service.getVM();
           isolateId = vm.isolates!.first.id!;
           await service.streamListen('Debug');

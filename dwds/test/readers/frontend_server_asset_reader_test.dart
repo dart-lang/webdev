@@ -8,10 +8,10 @@ import 'dart:io';
 import 'package:dwds/src/readers/frontend_server_asset_reader.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_layout.dart';
 
+import '../fixtures/project.dart';
 import '../fixtures/utilities.dart';
-
-final packagesDir = absolutePath(pathFromFixtures: '_test');
 
 final fixturesDir = absolutePath(pathFromDwds: p.join('test', 'fixtures'));
 
@@ -20,6 +20,9 @@ void main() {
   late Directory tempFixtures;
   late File jsonOriginal;
   late File mapOriginal;
+
+  final testProject = TestProject.testWithSoundNullSafety;
+  final packagesDir = testProject.absolutePackageDirectory;
 
   Future<void> createTempFixtures() async {
     tempFixtures = await Directory.systemTemp.createTemp('dwds_test_fixtures');
@@ -31,7 +34,8 @@ void main() {
   }
 
   setUpAll(() async {
-    await Process.run(dartPath, ['pub', 'upgrade'],
+    final sdkLayout = TestSdkLayout.defaultSdkLayout;
+    await Process.run(sdkLayout.dartPath, ['pub', 'upgrade'],
         workingDirectory: packagesDir);
   });
 
