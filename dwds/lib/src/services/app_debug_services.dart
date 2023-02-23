@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:dwds/src/dwds_vm_client.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart'

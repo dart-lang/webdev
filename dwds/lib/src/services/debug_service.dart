@@ -60,7 +60,7 @@ void Function(WebSocketChannel) _createNewConnectionHandler(
     VmServerConnection(inputStream, responseController.sink,
             serviceExtensionRegistry, chromeProxyService)
         .done
-        .whenComplete(() async {
+        .whenComplete(() {
       --_clientsConnected;
       if (!_acceptNewConnections && _clientsConnected == 0) {
         // DDS has disconnected so we can allow for clients to connect directly

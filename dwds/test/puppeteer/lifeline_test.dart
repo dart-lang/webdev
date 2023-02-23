@@ -4,7 +4,6 @@
 
 @Timeout(Duration(minutes: 12))
 @Skip('https://github.com/dart-lang/webdev/issues/1788')
-import 'dart:async';
 
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';

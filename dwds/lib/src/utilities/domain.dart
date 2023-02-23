@@ -1,6 +1,6 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.import 'dart:async';
+// BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';

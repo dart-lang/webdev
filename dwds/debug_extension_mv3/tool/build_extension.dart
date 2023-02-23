@@ -12,7 +12,6 @@
 //    - For prod: dart run tool/build_extension.dart prod
 //    - For MV3: dart run tool/build_extension.dart --mv3
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 

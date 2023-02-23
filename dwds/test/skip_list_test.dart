@@ -31,7 +31,7 @@ void main() {
     });
 
     test('do not include known ranges', () async {
-      final skipList = await skipLists.compute('123', {
+      final skipList = skipLists.compute('123', {
         Location.from(
             'foo', TargetLineEntry(1, []), TargetEntry(2, 0, 0, 0), dartUri),
         Location.from(
@@ -44,7 +44,7 @@ void main() {
     });
 
     test('do not include start of the file', () async {
-      final skipList = await skipLists.compute('123', {
+      final skipList = skipLists.compute('123', {
         Location.from(
             'foo', TargetLineEntry(0, []), TargetEntry(0, 0, 0, 0), dartUri),
         Location.from(
@@ -56,7 +56,7 @@ void main() {
     });
 
     test('does not depend on order of locations', () async {
-      final skipList = await skipLists.compute('123', {
+      final skipList = skipLists.compute('123', {
         Location.from(
             'foo', TargetLineEntry(10, []), TargetEntry(20, 0, 0, 0), dartUri),
         Location.from(
@@ -69,14 +69,14 @@ void main() {
 
     test('contains the provided id', () async {
       final id = '123';
-      final skipList = await skipLists.compute(id, {});
+      final skipList = skipLists.compute(id, {});
       for (var range in skipList) {
         expect(range['scriptId'], id);
       }
     });
 
     test('ignores the whole file if provided no locations', () async {
-      final skipList = await skipLists.compute('123', {});
+      final skipList = skipLists.compute('123', {});
       expect(skipList.length, 1);
       _validateRange(skipList.first, 0, 0, maxValue, maxValue);
     });

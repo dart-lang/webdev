@@ -1,6 +1,6 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.import 'dart:async';
+// BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:dwds/src/loaders/strategy.dart';
@@ -191,7 +191,7 @@ class ClassHelper extends Domain {
     });
     final fieldRefs = <FieldRef>[];
     final fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
-    fieldDescriptors.forEach((name, descriptor) async {
+    fieldDescriptors.forEach((name, descriptor) {
       final classMetaData = ClassMetaData(
           jsName: descriptor['classRefName'],
           libraryId: descriptor['classRefLibraryId'],
@@ -214,7 +214,7 @@ class ClassHelper extends Domain {
 
     final staticFieldDescriptors =
         classDescriptor['staticFields'] as Map<String, dynamic>;
-    staticFieldDescriptors.forEach((name, descriptor) async {
+    staticFieldDescriptors.forEach((name, descriptor) {
       fieldRefs.add(
         FieldRef(
           name: name,

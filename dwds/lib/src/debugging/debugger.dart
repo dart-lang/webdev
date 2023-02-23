@@ -367,7 +367,7 @@ class Debugger extends Domain {
     // TODO(alanknight): Can these be moved to dart_scope.dart?
     final properties = await visibleProperties(debugger: this, frame: frame);
     final boundVariables = await Future.wait(
-      properties.map((property) async => await _boundVariable(property)),
+      properties.map(_boundVariable),
     );
 
     // Filter out variables that do not come from dart code, such as native
@@ -659,7 +659,7 @@ class Debugger extends Domain {
           // TODO(grouma) - In the future we should send all previously computed
           // skipLists.
           await _remoteDebugger.stepInto(params: {
-            'skipList': await _skipLists.compute(
+            'skipList': _skipLists.compute(
               scriptId,
               await _locations.locationsForUrl(url),
             )
