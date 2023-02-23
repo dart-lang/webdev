@@ -64,7 +64,6 @@ void main() {
   });
 
   group('while debugger is not attached', () {
-    late VmServiceInterface service;
     setUp(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(autoRun: false, waitToDebug: true);
@@ -76,7 +75,7 @@ void main() {
     test('correctly sets the isolate pauseEvent if already running', () async {
       context.appConnection.runMain();
       await context.startDebugging();
-      service = context.vmService;
+      final service = context.vmService;
       final vm = await service.getVM();
       final isolate = await service.getIsolate(vm.isolates!.first.id!);
       expect(isolate.pauseEvent!.kind, EventKind.kResume);
