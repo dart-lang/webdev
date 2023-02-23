@@ -14,19 +14,15 @@ import 'utils.dart';
 void main() {
   late String exampleDirectory;
 
-  final testRunner = TestRunner();
   setUpAll(() async {
-    await testRunner.setUpAll();
-    exampleDirectory = await testRunner.prepareWorkspace();
+    exampleDirectory = await prepareWorkspace();
   });
-
-  tearDownAll(testRunner.tearDownAll);
 
   group('Daemon', () {
     group('Events', () {
       test('.connected', () async {
-        var webdev = await testRunner
-            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var webdev =
+            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
         await expectLater(
             webdev.stdout, emits(startsWith('[{"event":"daemon.connected"')));
         await exitWebdev(webdev);
@@ -35,8 +31,8 @@ void main() {
 
     group('Methods', () {
       test('.version', () async {
-        var webdev = await testRunner
-            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var webdev =
+            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
         webdev.stdin.add(utf8.encode('[{"method":"daemon.version","id":0}]\n'));
         await expectLater(
             webdev.stdout, emitsThrough(equals('[{"id":0,"result":"0.4.2"}]')));
@@ -44,8 +40,8 @@ void main() {
       });
 
       test('.shutdown', () async {
-        var webdev = await testRunner
-            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var webdev =
+            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
         webdev.stdin
             .add(utf8.encode('[{"method":"daemon.shutdown","id":0}]\n'));
         await expectLater(webdev.stdout, emitsThrough(equals('[{"id":0}]')));
