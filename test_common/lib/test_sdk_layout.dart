@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:dwds/sdk_configuration.dart';
 import 'package:path/path.dart' as p;
 
@@ -83,7 +85,11 @@ class TestSdkLayout {
           'web',
           'dart_stack_trace_mapper.js',
         ),
-        dartPath: p.join(sdkLayout.sdkDirectory, 'bin', 'dart'),
+        dartPath: p.join(
+          sdkLayout.sdkDirectory,
+          'bin',
+          Platform.isWindows ? 'dart.exe' : 'dart',
+        ),
         frontendServerSnapshotPath: p.join(
           sdkLayout.sdkDirectory,
           'bin',
@@ -96,6 +102,12 @@ class TestSdkLayout {
           'bin',
           'snapshots',
           'kernel_worker.dart.snapshot',
+        ),
+        devToolsDirectory: p.join(
+          sdkLayout.sdkDirectory,
+          'bin',
+          'resources',
+          'devtools',
         ),
       );
 
@@ -128,6 +140,7 @@ class TestSdkLayout {
   final String frontendServerSnapshotPath;
   final String dartdevcSnapshotPath;
   final String kernelWorkerSnapshotPath;
+  final String devToolsDirectory;
 
   const TestSdkLayout({
     required this.sdkDirectory,
@@ -145,6 +158,7 @@ class TestSdkLayout {
     required this.frontendServerSnapshotPath,
     required this.dartdevcSnapshotPath,
     required this.kernelWorkerSnapshotPath,
+    required this.devToolsDirectory,
   });
 
   /// Creates configuration from sdk layout.
@@ -155,4 +169,21 @@ class TestSdkLayout {
         soundSdkSummaryPath: sdkLayout.soundSummaryPath,
         compilerWorkerPath: sdkLayout.dartdevcSnapshotPath,
       );
+}
+
+// Update modified files.
+Future<void> copyDirectory(String from, String to) async {
+  if (!Directory(from).existsSync()) return;
+  await Directory(to).create(recursive: true);
+
+  await for (final file in Directory(from).list(followLinks: false)) {
+    final copyTo = p.join(to, p.relative(file.path, from: from));
+    if (file is Directory) {
+      await copyDirectory(file.path, copyTo);
+    } else if (file is File) {
+      await File(file.path).copy(copyTo);
+    } else if (file is Link) {
+      await Link(copyTo).create(await file.target(), recursive: true);
+    }
+  }
 }
