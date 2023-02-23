@@ -60,6 +60,9 @@ Future<int> run({required bool isProd, required bool isMV3}) async {
     // Return non-zero exit code to indicate failure:
     return 1;
   }
+  // If we're compiling for prod, skip updating the manifest.json:
+  if (isProd) return 0;
+  // Update manifest.json for dev:
   _logInfo('Updating manifest.json in /compiled directory.');
   final updateStep = await Process.start(
     'dart',
