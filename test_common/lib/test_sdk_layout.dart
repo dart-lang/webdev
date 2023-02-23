@@ -88,7 +88,7 @@ class TestSdkLayout {
         dartPath: p.join(
           sdkLayout.sdkDirectory,
           'bin',
-          'dart',
+          Platform.isWindows ? 'dart.exe' : 'dart',
         ),
         frontendServerSnapshotPath: p.join(
           sdkLayout.sdkDirectory,
