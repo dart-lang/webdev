@@ -79,3 +79,38 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
     }
   }
 }
+
+/// Implementation for SDK configuration for tests that can generate
+/// missing assets.
+///
+///  - Generate SDK js, source map, and full dill for weak and sound
+///    modes (normally included in flutter SDK or produced by build).
+///  - Need to generate SDK summary for weak null safety mode as it
+///    is not provided by the SDK installation.
+///
+/// TODO(annagrin): update to only generating missing sound artifacts
+/// for frontend server after we have no uses of weak null safety.
+class TestSdkNoCopyConfigurationProvider extends SdkConfigurationProvider {
+  final bool _verbose;
+  SdkConfiguration? _configuration;
+
+  final sdkLayout = TestSdkLayout.defaultSdkLayout;
+
+  TestSdkNoCopyConfigurationProvider({bool verbose = false})
+      : _verbose = verbose;
+
+  @override
+  Future<SdkConfiguration> get configuration async =>
+      _configuration ??= await _create();
+
+  /// Generate missing assets in the default SDK layout.
+  Future<SdkConfiguration> _create() async {
+    final assetGenerator = SdkAssetGenerator(
+      sdkLayout: sdkLayout,
+      verboseCompiler: _verbose,
+    );
+
+    await assetGenerator.generateSdkAssets();
+    return TestSdkLayout.defaultSdkConfiguration;
+  }
+}

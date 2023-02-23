@@ -12,7 +12,7 @@ import 'package:test_process/test_process.dart';
 import 'package:webdev/src/util.dart';
 
 final _webdevBin = p.absolute(p.join('bin', 'webdev.dart'));
-final _sdkConfigurationProvider = TestSdkConfigurationProvider();
+final _sdkConfigurationProvider = TestSdkNoCopyConfigurationProvider();
 
 Future<TestProcess> runWebDev(List<String> args,
     {String? workingDirectory}) async {
