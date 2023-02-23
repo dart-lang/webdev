@@ -6,6 +6,7 @@
 import 'dart:async';
 
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -13,7 +14,10 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
 void main() {
-  final provider = TestSdkConfigurationProvider();
+  // Enable verbose logging for debugging.
+  final debug = false;
+
+  final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
   final context = TestContext(TestProject.testWithSoundNullSafety, provider);
@@ -21,7 +25,8 @@ void main() {
   group('while debugger is attached', () {
     late VmServiceInterface service;
     setUp(() async {
-      await context.setUp(autoRun: false);
+      setCurrentLogWriter(debug: debug);
+      await context.setUp(autoRun: false, verboseCompiler: debug);
       service = context.service;
     });
 
@@ -61,8 +66,8 @@ void main() {
   group('while debugger is not attached', () {
     late VmServiceInterface service;
     setUp(() async {
+      setCurrentLogWriter(debug: debug);
       await context.setUp(autoRun: false, waitToDebug: true);
-      service = context.service;
     });
 
     tearDown(() async {
@@ -71,6 +76,7 @@ void main() {
     test('correctly sets the isolate pauseEvent if already running', () async {
       context.appConnection.runMain();
       await context.startDebugging();
+      service = context.vmService;
       final vm = await service.getVM();
       final isolate = await service.getIsolate(vm.isolates!.first.id!);
       expect(isolate.pauseEvent!.kind, EventKind.kResume);
