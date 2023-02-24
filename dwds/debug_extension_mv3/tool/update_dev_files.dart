@@ -30,6 +30,14 @@ Future<void> _updateManifestJson() async {
             newValue: extensionKey,
           ),
       ];
+    } else if (_matchesKey(line: line, key: 'default_icon')) {
+      return [
+        _newKeyValue(
+          oldLine: line,
+          newKey: 'default_icon',
+          newValue: 'static_assets/dart_dev.png',
+        )
+      ];
     } else {
       return [line];
     }
