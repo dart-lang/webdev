@@ -175,7 +175,7 @@ Future<void> _maybeUpdateFileABugLink() async {
     final bugLink = document.getElementById(_bugLinkId);
     if (bugLink == null) return;
     bugLink.setAttribute(
-        'href', 'http://b/issues/new?component=775375&template=1369639');
+        'href', 'http://b/issues/new?component=775375&template=1791321');
   }
 }
 
