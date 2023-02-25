@@ -213,6 +213,19 @@ Future<Map<String, dynamic>> _hotRestart(
       }
     };
   }
+
+  (await chromeProxyService.debuggerFuture).notifyPausedAtStart();
+  // enable breakpoints now instead of later in createIsolate?
+  await chromeProxyService.reestablishBreakpoints();
+  
+  // Collect any pause events that happen before the start of the new isolate.
+  //final pauseEvents = <Event>[];
+  //final pauseSubscription = chromeProxyService.onEvent(EventKind.kPauseBreakpoint)
+  //  .listen((e) {
+  //     _logger.severe('Collecting event: $e');
+  //    pauseEvents.add(e);
+  //  });
+
   // Start listening for isolate create events before issuing a hot
   // restart. Only return success after the isolate has fully started.
   final stream = chromeProxyService.onEvent('Isolate');
@@ -245,6 +258,13 @@ Future<Map<String, dynamic>> _hotRestart(
         'message': '$exception',
       }
     };
+  } finally {
+    // Redirect any pause events to the new isolate.
+    //await pauseSubscription.cancel();
+    //for (var event in pauseEvents) {
+    //  _logger.severe('Redirecting event: $event');
+    //  chromeProxyService.streamNotify('Debug', event);
+    //}
   }
   _logger.info('Waiting for Isolate Start event.');
   await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
@@ -291,7 +311,7 @@ Future<void> _disableBreakpointsAndResume(
     // ignore failures indicating that the app is already running:
     //
     // WipError -32000 Can only perform operation while paused.
-    await client.resume(isolateId);
+    await chromeProxyService.resume(isolateId);
   } on RPCError catch (e, s) {
     if (!e.message.contains('Can only perform operation while paused')) {
       _logger.severe('Hot restart failed to resume exiting isolate', e, s);

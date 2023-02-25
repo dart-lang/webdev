@@ -113,7 +113,7 @@ class ChromeProxyService implements VmServiceInterface {
   ) {
     final debugger = Debugger.create(
       remoteDebugger,
-      _streamNotify,
+      streamNotify,
       _locations,
       _skipLists,
       root,
@@ -272,9 +272,7 @@ class ChromeProxyService implements VmServiceInterface {
 
     safeUnawaited(_prewarmExpressionCompilerCache());
 
-    await debugger.reestablishBreakpoints(
-        _previousBreakpoints, _disabledBreakpoints);
-    _disabledBreakpoints.clear();
+   // await reestablishBreakpoints();
 
     safeUnawaited(appConnection.onStart.then((_) async {
       await debugger.resumeFromStart();
@@ -291,13 +289,13 @@ class ChromeProxyService implements VmServiceInterface {
 
     _vm.isolates?.add(isolateRef);
 
-    _streamNotify(
+    streamNotify(
         'Isolate',
         Event(
             kind: EventKind.kIsolateStart,
             timestamp: timestamp,
             isolate: isolateRef));
-    _streamNotify(
+    streamNotify(
         'Isolate',
         Event(
             kind: EventKind.kIsolateRunnable,
@@ -308,7 +306,7 @@ class ChromeProxyService implements VmServiceInterface {
     // isolate, but devtools doesn't recognize extensions after a page refresh
     // otherwise.
     for (var extensionRpc in inspector.isolate.extensionRPCs ?? []) {
-      _streamNotify(
+      streamNotify(
           'Isolate',
           Event(
               kind: EventKind.kServiceExtensionAdded,
@@ -334,7 +332,7 @@ class ChromeProxyService implements VmServiceInterface {
     _initializedCompleter = Completer<void>();
     _startedCompleter = Completer<void>();
     _compilerCompleter = Completer<void>();
-    _streamNotify(
+    streamNotify(
         'Isolate',
         Event(
             kind: EventKind.kIsolateExit,
@@ -358,6 +356,12 @@ class ChromeProxyService implements VmServiceInterface {
     for (var breakpoint in isolate.breakpoints?.toList() ?? []) {
       await (await debuggerFuture).removeBreakpoint(breakpoint.id);
     }
+  }
+
+  Future<void> reestablishBreakpoints() async {
+    await (await debuggerFuture).reestablishBreakpoints(
+        _previousBreakpoints, _disabledBreakpoints);
+    _disabledBreakpoints.clear();
   }
 
   @override
@@ -521,6 +525,11 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       if (evaluator != null) {
         await isCompilerInitialized;
         _checkIsolate('evaluateInFrame', isolateId);
+
+        // did we get a pause event? wait a bit
+      // await streamListen(EventStreams.kDebug);
+       //final stream = onEvent('Debug');
+      // await stream.firstWhere((event) => event.kind == EventKind.kPauseBreakpoint).timeout(Duration(milliseconds: 50));
 
         return await _getEvaluationResult(
             isolateId,
@@ -823,7 +832,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Success> setVMName(String name) async {
     _vm.name = name;
-    _streamNotify(
+    streamNotify(
         'VM',
         Event(
             kind: EventKind.kVMUpdate,
@@ -930,7 +939,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     if (!_isIsolateRunning) return;
     final isolateRef = inspector.isolateRef;
 
-    _streamNotify(
+    streamNotify(
         EventStreams.kExtension,
         Event(
             kind: EventKind.kExtension,
@@ -952,7 +961,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     final service = registerEvent.eventData;
     isolate.extensionRPCs?.add(service);
 
-    _streamNotify(
+    streamNotify(
         EventStreams.kIsolate,
         Event(
             kind: EventKind.kServiceExtensionAdded,
@@ -981,7 +990,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           if (event.args[1].type != 'object') break;
 
           final inspectee = await _instanceRef(event.args[1]);
-          _streamNotify(
+          streamNotify(
               EventStreams.kDebug,
               Event(
                   kind: EventKind.kInspect,
@@ -999,7 +1008,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     });
   }
 
-  void _streamNotify(String streamId, Event event) {
+  void streamNotify(String streamId, Event event) {
     final controller = _streamControllers[streamId];
     if (controller == null) return;
     controller.add(event);
@@ -1030,7 +1039,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       zone: await _instanceRef(logParams['zone']),
     );
 
-    _streamNotify(
+    streamNotify(
       EventStreams.kLogging,
       Event(
           kind: EventKind.kLogging,
