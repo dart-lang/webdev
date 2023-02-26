@@ -21,14 +21,18 @@ import 'package:dwds/src/events.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/batched_expression_evaluator.dart';
+import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:pub_semver/pub_semver.dart' as semver;
+import 'package:uuid/uuid.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
+    as wip;
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
@@ -88,7 +92,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// a hot restart.
   bool get _isIsolateRunning => _inspector != null;
 
-  StreamSubscription<ConsoleAPIEvent>? _consoleSubscription;
+  StreamSubscription<wip.ConsoleAPIEvent>? _consoleSubscription;
 
   final _disabledBreakpoints = <Breakpoint>{};
   final _previousBreakpoints = <Breakpoint>{};
@@ -99,6 +103,9 @@ class ChromeProxyService implements VmServiceInterface {
   ExpressionEvaluator? _expressionEvaluator;
 
   bool terminatingIsolates = false;
+
+  /// Synchronizes hot restarts to avoid races.
+  final _hotRestartQueue = AtomicQueue();
 
   ChromeProxyService._(
     this._vm,
@@ -272,8 +279,6 @@ class ChromeProxyService implements VmServiceInterface {
 
     safeUnawaited(_prewarmExpressionCompilerCache());
 
-   // await reestablishBreakpoints();
-
     safeUnawaited(appConnection.onStart.then((_) async {
       await debugger.resumeFromStart();
       _startedCompleter.complete();
@@ -358,12 +363,6 @@ class ChromeProxyService implements VmServiceInterface {
     }
   }
 
-  Future<void> reestablishBreakpoints() async {
-    await (await debuggerFuture).reestablishBreakpoints(
-        _previousBreakpoints, _disabledBreakpoints);
-    _disabledBreakpoints.clear();
-  }
-
   @override
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int? column}) async {
@@ -440,7 +439,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   Future<Response> _getEvaluationResult(String isolateId,
-      Future<RemoteObject> Function() evaluation, String expression) async {
+      Future<wip.RemoteObject> Function() evaluation, String expression) async {
     try {
       final result = await evaluation();
       if (!_isIsolateRunning || isolateId != inspector.isolate.id) {
@@ -527,9 +526,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         _checkIsolate('evaluateInFrame', isolateId);
 
         // did we get a pause event? wait a bit
-      // await streamListen(EventStreams.kDebug);
-       //final stream = onEvent('Debug');
-      // await stream.firstWhere((event) => event.kind == EventKind.kPauseBreakpoint).timeout(Duration(milliseconds: 50));
+        // await streamListen(EventStreams.kDebug);
+        //final stream = onEvent('Debug');
+        // await stream.firstWhere((event) => event.kind == EventKind.kPauseBreakpoint).timeout(Duration(milliseconds: 50));
 
         return await _getEvaluationResult(
             isolateId,
@@ -877,7 +876,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   /// Returns a streamController that listens for console logs from chrome and
   /// adds all events passing [filter] to the stream.
   StreamController<Event> _chromeConsoleStreamController(
-      bool Function(ConsoleAPIEvent) filter,
+      bool Function(wip.ConsoleAPIEvent) filter,
       {bool includeExceptions = false}) {
     late StreamController<Event> controller;
     StreamSubscription? chromeConsoleSubscription;
@@ -1015,12 +1014,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   Future<void> _handleDeveloperLog(
-      IsolateRef isolateRef, ConsoleAPIEvent event) async {
+      IsolateRef isolateRef, wip.ConsoleAPIEvent event) async {
     final logObject = event.params?['args'][1] as Map?;
-    final logParams = <String, RemoteObject>{};
+    final logParams = <String, wip.RemoteObject>{};
     for (dynamic obj in logObject?['preview']?['properties'] ?? {}) {
       if (obj['name'] != null && obj is Map<String, dynamic>) {
-        logParams[obj['name'] as String] = RemoteObject(obj);
+        logParams[obj['name'] as String] = wip.RemoteObject(obj);
       }
     }
 
@@ -1094,7 +1093,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     ]);
   }
 
-  Future<InstanceRef> _instanceRef(RemoteObject? obj) async {
+  Future<InstanceRef> _instanceRef(wip.RemoteObject? obj) async {
     final instance = obj == null ? null : await inspector.instanceRefFor(obj);
     return instance ?? InstanceHelper.kNullInstanceRef;
   }
@@ -1139,6 +1138,149 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   dynamic noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
+  }
+
+  /// Hot restart support.
+  Future<Map<String, dynamic>> hotRestart() {
+    return _hotRestartQueue.run(_hotRestart);
+  }
+
+  Future<Map<String, dynamic>> _hotRestart() async {
+    _logger.info('Attempting a hot restart');
+
+    terminatingIsolates = true;
+    await _disableBreakpointsAndResume();
+    try {
+      _logger.info('Attempting to get execution context ID.');
+      await executionContext.id;
+      _logger.info('Got execution context ID.');
+    } on StateError catch (e, s) {
+      _logger.severe('Failed to find execution context', e, s);
+      // We couldn't find the execution context. `hotRestart` may have been
+      // triggered in the middle of a full reload.
+      return {
+        'error': {
+          'code': RPCError.kInternalError,
+          'message': e.message,
+        }
+      };
+    }
+
+    // Start listening for isolate create events before issuing a hot
+    // restart. Only return success after the isolate has fully started.
+    final stream = onEvent('Isolate');
+    final isolateStarted =
+        stream.firstWhere((e) => e.kind == EventKind.kIsolateStart);
+    try {
+      // Restart bootstrap. Does not run the original dart main.
+      _logger.info('Restarting bootstrap');
+      await _restartBootstrap();
+
+      // Reestablish breakpoints before the main run.
+      await _reestablishBreakpoints();
+
+      // Run the original dart main.
+      _logger.info('Running dart main');
+      await _runMain();
+    } on wip.WipError catch (e, s) {
+      final code = e.error?['code'];
+      final message = e.error?['message'];
+      _logger.info('hot restart failed', e, s);
+      // This corresponds to `Execution context was destroyed` which can
+      // occur during a hot restart that must fall back to a full reload.
+      if (code != RPCError.kServerError) {
+        return {
+          'error': {
+            'code': code,
+            'message': message,
+            'data': e,
+          }
+        };
+      }
+    } on ChromeDebugException catch (e, s) {
+      _logger.severe('hot restart failed', e, s);
+      // Exceptions thrown by the injected client during hot restart.
+      return {
+        'error': {
+          'code': RPCError.kInternalError,
+          'message': '$e',
+        }
+      };
+    }
+
+    _logger.info('Waiting for Isolate Start event.');
+    await isolateStarted;
+    terminatingIsolates = false;
+
+    _logger.info('Successful hot restart');
+    return {'result': Success().toJson()};
+  }
+
+  Future<Map<String, dynamic>> fullReload() async {
+    _logger.info('Attempting a full reload');
+    await remoteDebugger.enablePage();
+    await remoteDebugger.pageReload();
+    _logger.info('Successful full reload');
+    return {'result': Success().toJson()};
+  }
+
+  Future<void> _disableBreakpointsAndResume() async {
+    _logger.info('Attempting to disable breakpoints and resume the isolate');
+    final vm = await getVM();
+    final isolates = vm.isolates;
+    if (isolates == null || isolates.isEmpty) {
+      throw StateError('No active isolate to resume.');
+    }
+    final isolateId = isolates.first.id;
+    if (isolateId == null) {
+      throw StateError('No active isolate to resume.');
+    }
+    await disableBreakpoints();
+    try {
+      // Any checks for paused status result in race conditions or hangs
+      // at this point:
+      //
+      // - `getIsolate()` and check for status:
+      //    the app might still pause on existing breakpoint.
+      //
+      // - `pause()` and wait for `Debug.paused` event:
+      //   chrome does not send the `Debug.Paused `notification
+      //   without shifting focus to chrome.
+      //
+      // Instead, just try resuming and
+      // ignore failures indicating that the app is already running:
+      //
+      // WipError -32000 Can only perform operation while paused.
+      await resume(isolateId);
+    } on Exception catch (e, s) {
+      if (!'$e'.contains('Can only perform operation while paused')) {
+        _logger.severe('Hot restart failed to resume exiting isolate', e, s);
+        rethrow;
+      }
+    }
+    _logger.info('Successfully disabled breakpoints and resumed the isolate');
+  }
+
+  Future<void> _reestablishBreakpoints() async {
+    await (await debuggerFuture)
+        .reestablishBreakpoints(_previousBreakpoints, _disabledBreakpoints);
+    _disabledBreakpoints.clear();
+  }
+
+  Future<void> _restartBootstrap() async {
+    // Generate run id to hot restart all apps loaded into the tab.
+    final runId = const Uuid().v4().toString();
+    await inspector.jsEvaluate('\$dartHotRestartDwds(\'$runId\');',
+        awaitPromise: true);
+  }
+
+  Future<void> _runMain() async {
+    // Wait for the debugger to get the first resume event and
+    // for the new inspector to be ready.
+    await isStarted;
+
+    // Run original main.
+    await inspector.jsEvaluate('\$dartRunMain();');
   }
 
   /// Validate that isolateId matches the current isolate we're connected to and

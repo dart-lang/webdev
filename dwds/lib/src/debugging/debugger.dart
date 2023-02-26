@@ -588,7 +588,6 @@ class Debugger extends Domain {
 
   /// Handles pause events coming from the Chrome connection.
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
-    logger.severe('Pause event: ${e.reason}');
     final isolate = inspector.isolate;
     Event event;
     final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -608,7 +607,6 @@ class Debugger extends Domain {
           timestamp: timestamp,
           isolate: inspector.isolateRef)
         ..pauseBreakpoints = pauseBreakpoints;
-       logger.severe('Sending breakpoing pause event');
     } else if (e.reason == 'exception' || e.reason == 'assert') {
       InstanceRef? exception;
 
@@ -637,7 +635,6 @@ class Debugger extends Domain {
         isolate: inspector.isolateRef,
         exception: exception,
       );
-      logger.severe('Sending exception pause event');
     } else {
       // Continue stepping until we hit a dart location,
       // avoiding stepping through library loading code.
@@ -674,7 +671,6 @@ class Debugger extends Domain {
           kind: EventKind.kPauseInterrupted,
           timestamp: timestamp,
           isolate: inspector.isolateRef);
-      logger.severe('Sending interrupted pause event');
     }
 
     // Calculate the frames (and handle any exceptions that may occur).
@@ -696,20 +692,13 @@ class Debugger extends Domain {
     // after checking with Chrome team if there is a way to check if the Chrome
     // DevTools is showing an overlay. Both cannot be shown at the same time.
     // _showPausedOverlay();
-
-    // TODO: UI is waiting for this on the breakpoint after a hot restart, 
-    // but it never arrives. Wait for this to be send before trying to evaluate?
     isolate.pauseEvent = event;
     _streamNotify('Debug', event);
   }
 
   /// Handles resume events coming from the Chrome connection.
-  Future<void> _resumeHandler(DebuggerResumedEvent? _) async {
-    // We can receive a resume event in the middle of a reload which will result
-    // in a null isolate.
+  Future<void> _resumeHandler(DebuggerResumedEvent? e) async {
     final isolate = inspector.isolate;
-
-    logger.severe('Resume event');
     stackComputer = null;
     final event = Event(
         kind: EventKind.kResume,

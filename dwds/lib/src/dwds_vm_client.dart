@@ -6,14 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dwds/src/events.dart';
-import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/debug_service.dart';
-import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
-import 'package:uuid/uuid.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 final _logger = Logger('DwdsVmClient');
 
@@ -31,10 +27,10 @@ class DwdsVmClient {
   ///
   /// All subsequent calls to [close] will return this future.
   Future<void>? _closed;
-
+/*
   /// Synchronizes hot restarts to avoid races.
   final _hotRestartQueue = AtomicQueue();
-
+*/
   DwdsVmClient(this.client, this._requestController, this._responseController);
 
   Future<void> close() => _closed ??= () async {
@@ -91,14 +87,17 @@ class DwdsVmClient {
     client.registerServiceCallback(
         'hotRestart',
         (request) => captureElapsedTime(
-            () => dwdsVmClient.hotRestart(chromeProxyService, client),
-            (_) => DwdsEvent.hotRestart()));
+              chromeProxyService.hotRestart,
+              (_) => DwdsEvent.hotRestart(),
+            ));
     await client.registerService('hotRestart', 'DWDS');
 
     client.registerServiceCallback(
         'fullReload',
-        (request) => captureElapsedTime(() => _fullReload(chromeProxyService),
-            (_) => DwdsEvent.fullReload()));
+        (request) => captureElapsedTime(
+              chromeProxyService.fullReload,
+              (_) => DwdsEvent.fullReload(),
+            ));
     await client.registerService('fullReload', 'DWDS');
 
     client.registerServiceCallback('ext.dwds.screenshot', (_) async {
@@ -110,7 +109,7 @@ class DwdsVmClient {
     await client.registerService('ext.dwds.screenshot', 'DWDS');
 
     client.registerServiceCallback('ext.dwds.sendEvent', (event) async {
-      _processSendEvent(event, chromeProxyService, dwdsStats);
+      _processSendEvent(event, dwdsStats);
       return {'result': Success().toJson()};
     });
     await client.registerService('ext.dwds.sendEvent', 'DWDS');
@@ -147,14 +146,15 @@ class DwdsVmClient {
     return dwdsVmClient;
   }
 
-  Future<Map<String, dynamic>> hotRestart(
-      ChromeProxyService chromeProxyService, VmService client) {
-    return _hotRestartQueue.run(() => _hotRestart(chromeProxyService, client));
+/*
+  // TODO: move to chrome proxy service.
+  Future<Map<String, dynamic>> hotRestart(ChromeProxyService chromeProxyService) {
+    return _hotRestartQueue.run(() => chromeProxyService.hotRestart());
   }
+  */
 }
 
-void _processSendEvent(Map<String, dynamic> event,
-    ChromeProxyService chromeProxyService, DwdsStats dwdsStats) {
+void _processSendEvent(Map<String, dynamic> event, DwdsStats dwdsStats) {
   final type = event['type'] as String?;
   final payload = event['payload'] as Map<String, dynamic>?;
   switch (type) {
@@ -193,17 +193,19 @@ void _recordDwdsStats(DwdsStats dwdsStats, String screen) {
   }
 }
 
+/*
 Future<Map<String, dynamic>> _hotRestart(
     ChromeProxyService chromeProxyService, VmService client) async {
   _logger.info('Attempting a hot restart');
 
   chromeProxyService.terminatingIsolates = true;
-  await _disableBreakpointsAndResume(client, chromeProxyService);
+  await _disableBreakpointsAndResume(chromeProxyService);
   try {
     _logger.info('Attempting to get execution context ID.');
     await chromeProxyService.executionContext.id;
     _logger.info('Got execution context ID.');
-  } on StateError catch (e) {
+  } on StateError catch (e,s) {
+    _logger.severe('Failed to find execution context', e, s);
     // We couldn't find the execution context. `hotRestart` may have been
     // triggered in the middle of a full reload.
     return {
@@ -214,31 +216,26 @@ Future<Map<String, dynamic>> _hotRestart(
     };
   }
 
-  (await chromeProxyService.debuggerFuture).notifyPausedAtStart();
-  // enable breakpoints now instead of later in createIsolate?
-  await chromeProxyService.reestablishBreakpoints();
-  
-  // Collect any pause events that happen before the start of the new isolate.
-  //final pauseEvents = <Event>[];
-  //final pauseSubscription = chromeProxyService.onEvent(EventKind.kPauseBreakpoint)
-  //  .listen((e) {
-  //     _logger.severe('Collecting event: $e');
-  //    pauseEvents.add(e);
-  //  });
-
   // Start listening for isolate create events before issuing a hot
   // restart. Only return success after the isolate has fully started.
   final stream = chromeProxyService.onEvent('Isolate');
+  final isolateStarted = stream.firstWhere((e) => e.kind == EventKind.kIsolateStart);
   try {
-    // Generate run id to hot restart all apps loaded into the tab.
-    final runId = const Uuid().v4().toString();
-    _logger.info('Issuing \$dartHotRestartDwds request');
-    await chromeProxyService.inspector
-        .jsEvaluate('\$dartHotRestartDwds(\'$runId\');', awaitPromise: true);
-    _logger.info('\$dartHotRestartDwds request complete.');
-  } on WipError catch (exception) {
-    final code = exception.error?['code'];
-    final message = exception.error?['message'];
+    // Restart bootstrap. Does not run the original dart main.
+    _logger.info('Restarting bootstrap');
+    await chromeProxyService.restartBootstrap();
+
+    // Reestablish breakpoints before the main run.
+    await chromeProxyService.reestablishBreakpoints();
+
+    // Run the original dart main.
+    _logger.info('Running dart main');
+    await chromeProxyService.runMain();
+
+  } on WipError catch (e,s) {
+    final code = e.error?['code'];
+    final message = e.error?['message'];
+    _logger.info('hot restart failed', e, s);
     // This corresponds to `Execution context was destroyed` which can
     // occur during a hot restart that must fall back to a full reload.
     if (code != RPCError.kServerError) {
@@ -246,28 +243,23 @@ Future<Map<String, dynamic>> _hotRestart(
         'error': {
           'code': code,
           'message': message,
-          'data': exception,
+          'data': e,
         }
       };
     }
-  } on ChromeDebugException catch (exception) {
+  } on ChromeDebugException catch (e,s ) {
+     _logger.severe('hot restart failed', e, s);
     // Exceptions thrown by the injected client during hot restart.
     return {
       'error': {
         'code': RPCError.kInternalError,
-        'message': '$exception',
+        'message': '$e',
       }
     };
-  } finally {
-    // Redirect any pause events to the new isolate.
-    //await pauseSubscription.cancel();
-    //for (var event in pauseEvents) {
-    //  _logger.severe('Redirecting event: $event');
-    //  chromeProxyService.streamNotify('Debug', event);
-    //}
   }
+
   _logger.info('Waiting for Isolate Start event.');
-  await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
+  await isolateStarted;
   chromeProxyService.terminatingIsolates = false;
 
   _logger.info('Successful hot restart');
@@ -283,10 +275,9 @@ Future<Map<String, dynamic>> _fullReload(
   return {'result': Success().toJson()};
 }
 
-Future<void> _disableBreakpointsAndResume(
-    VmService client, ChromeProxyService chromeProxyService) async {
+Future<void> _disableBreakpointsAndResume(ChromeProxyService chromeProxyService) async {
   _logger.info('Attempting to disable breakpoints and resume the isolate');
-  final vm = await client.getVM();
+  final vm = await chromeProxyService.getVM();
   final isolates = vm.isolates;
   if (isolates == null || isolates.isEmpty) {
     throw StateError('No active isolate to resume.');
@@ -312,11 +303,12 @@ Future<void> _disableBreakpointsAndResume(
     //
     // WipError -32000 Can only perform operation while paused.
     await chromeProxyService.resume(isolateId);
-  } on RPCError catch (e, s) {
-    if (!e.message.contains('Can only perform operation while paused')) {
+  } on Exception catch (e, s) {
+    if (!'$e'.contains('Can only perform operation while paused')) {
       _logger.severe('Hot restart failed to resume exiting isolate', e, s);
       rethrow;
     }
   }
   _logger.info('Successfully disabled breakpoints and resumed the isolate');
 }
+*/

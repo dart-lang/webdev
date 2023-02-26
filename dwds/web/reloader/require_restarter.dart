@@ -127,7 +127,8 @@ class RequireRestarter implements Restarter {
       result = await _reload(modulesToLoad);
     }
     callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
-    runMain();
+    // start paused, run main after the setup is complete.
+    //runMain();
     return result;
   }
 
