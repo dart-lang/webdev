@@ -1264,7 +1264,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     final runId = const Uuid().v4().toString();
 
     // Restart the bootstrap but don't run the main yet.
-    await inspector.jsEvaluate('\$dartHotRestartDwds(\'$runId\', false);',
+    await inspector.jsEvaluate('\$dartHotRestartDwds(\'$runId\', true);',
         awaitPromise: true);
   }
 
