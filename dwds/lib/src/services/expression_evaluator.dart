@@ -143,7 +143,7 @@ class ExpressionEvaluator {
   /// [expression] dart expression to evaluate.
   Future<RemoteObject> evaluateExpressionInFrame(String isolateId,
       int frameIndex, String expression, Map<String, String>? scope) async {
-    if (scope != null) {
+    if (scope != null && scope.isNotEmpty) {
       // TODO(annagrin): Implement scope support.
       // Issue: https://github.com/dart-lang/webdev/issues/1344
       return createError(
