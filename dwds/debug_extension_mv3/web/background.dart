@@ -140,7 +140,7 @@ Future<void> _handleRuntimeMessages(
 Future<void> _detectNavigationAwayFromDartApp(
     NavigationInfo navigationInfo) async {
   // Ignore any navigation events within the page itself (e.g., opening a link,
-  // reloading an IFRAME, etc):
+  // reloading the page, reloading an IFRAME, etc):
   if (_isInternalNavigation(navigationInfo)) return;
   final tabId = navigationInfo.tabId;
   final debugInfo = await _fetchDebugInfo(navigationInfo.tabId);
