@@ -1,4 +1,4 @@
-## 18.0.0-dev
+## 18.0.0
 
 - Cleanup `getObject` code for lists and maps.
   - Now works with offset `0` and `null` count.
