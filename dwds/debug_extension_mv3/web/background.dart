@@ -163,6 +163,7 @@ bool _isInternalNavigation(NavigationInfo navigationInfo) {
     'form_submit',
     'link',
     'manual_subframe',
+    'reload',
   ].contains(navigationInfo.transitionType);
 }
 
