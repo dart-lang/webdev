@@ -49,6 +49,11 @@ const isSentinelException = TypeMatcher<SentinelException>();
 final Matcher throwsRPCError = throwsA(isRPCError);
 final Matcher throwsSentinelException = throwsA(isSentinelException);
 
+Matcher isRPCErrorWithMessage(String message) =>
+    isA<RPCError>().having((e) => e.message, 'message', contains(message));
+Matcher throwsRPCErrorWithMessage(String message) =>
+    throwsA(isRPCErrorWithMessage(message));
+
 enum CompilationMode { buildDaemon, frontendServer }
 
 class TestContext {
