@@ -24781,7 +24781,7 @@
             case 3:
               // join
               manager = new A.ReloadingManager(client, restarter);
-              self.$dartHotRestartDwds = A.allowInterop(new A.main__closure(manager), type$.Promise_bool_Function_String);
+              self.$dartHotRestartDwds = A.allowInterop(new A.main__closure(manager), type$.Promise_bool_Function_2_String_and_nullable_bool);
               t1 = $.Zone__current;
               t2 = A.StreamController_StreamController(null, null, false, type$.DebugEvent);
               t3 = A.StreamController_StreamController(null, null, false, type$.List_DebugEvent);
@@ -24820,8 +24820,10 @@
     $signature: 84
   };
   A.main__closure.prototype = {
-    call$1(runId) {
-      return A.toPromise(this.manager.hotRestart$1$runId(A._asString(runId)), type$.bool);
+    call$2(runId, startPaused) {
+      A._asString(runId);
+      A._asBoolQ(startPaused);
+      return A.toPromise(this.manager.hotRestart$2$runId$startPaused(runId, startPaused === true), type$.bool);
     },
     $signature: 68
   };
@@ -25111,11 +25113,11 @@
     $signature: 78
   };
   A.LegacyRestarter.prototype = {
-    restart$1$runId(runId) {
+    restart$2$runId$startPaused(runId, startPaused) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.bool),
         $async$returnValue, t1, t2, t3, dartLibrary;
-      var $async$restart$1$runId = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
+      var $async$restart$2$runId$startPaused = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
         while (true)
@@ -25143,7 +25145,7 @@
               return A._asyncReturn($async$returnValue, $async$completer);
           }
       });
-      return A._asyncStartSync($async$restart$1$runId, $async$completer);
+      return A._asyncStartSync($async$restart$2$runId$startPaused, $async$completer);
     },
     $isRestarter: 1
   };
@@ -25170,11 +25172,11 @@
     $signature: 79
   };
   A.ReloadingManager.prototype = {
-    hotRestart$1$runId(runId) {
+    hotRestart$2$runId$startPaused(runId, startPaused) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.bool),
         $async$returnValue, $async$self = this, result, t1, t2;
-      var $async$hotRestart$1$runId = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
+      var $async$hotRestart$2$runId$startPaused = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
         while (true)
@@ -25186,7 +25188,7 @@
               type$.nullable_void_Function_IsolateExitBuilder._as(null);
               t1.add$1(0, B.C_JsonCodec.encode$2$toEncodable(t2.serialize$1(new A.IsolateExitBuilder()._isolate_events$_build$0()), null));
               $async$goto = 3;
-              return A._asyncAwait($async$self._restarter.restart$1$runId(runId), $async$hotRestart$1$runId);
+              return A._asyncAwait($async$self._restarter.restart$2$runId$startPaused(runId, startPaused), $async$hotRestart$2$runId$startPaused);
             case 3:
               // returning from await.
               result = $async$result;
@@ -25200,10 +25202,10 @@
               return A._asyncReturn($async$returnValue, $async$completer);
           }
       });
-      return A._asyncStartSync($async$hotRestart$1$runId, $async$completer);
+      return A._asyncStartSync($async$hotRestart$2$runId$startPaused, $async$completer);
     },
     hotRestart$0() {
-      return this.hotRestart$1$runId(null);
+      return this.hotRestart$2$runId$startPaused(null, false);
     },
     _afterRestart$1(succeeded) {
       var t1, t2;
@@ -25242,11 +25244,11 @@
   A.JsError.prototype = {};
   A.JsMap.prototype = {};
   A.RequireRestarter.prototype = {
-    restart$1$runId(runId) {
+    restart$2$runId$startPaused(runId, startPaused) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.bool),
         $async$returnValue, $async$self = this, newDigests, modulesToLoad, t4, t5, t6, line, toZone, t7, result, developer, t1, t2, t3;
-      var $async$restart$1$runId = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
+      var $async$restart$2$runId$startPaused = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
         while (true)
@@ -25263,13 +25265,13 @@
               // then
               t1 = t1 ? t3._as(developer) : developer;
               $async$goto = 5;
-              return A._asyncAwait(A.toFuture(type$.Promise_void._as(t1.invokeExtension("ext.flutter.disassemble", "{}")), type$.void), $async$restart$1$runId);
+              return A._asyncAwait(A.toFuture(type$.Promise_void._as(t1.invokeExtension("ext.flutter.disassemble", "{}")), type$.void), $async$restart$2$runId$startPaused);
             case 5:
               // returning from await.
             case 4:
               // join
               $async$goto = 6;
-              return A._asyncAwait($async$self._getDigests$0(), $async$restart$1$runId);
+              return A._asyncAwait($async$self._getDigests$0(), $async$restart$2$runId$startPaused);
             case 6:
               // returning from await.
               newDigests = $async$result;
@@ -25308,7 +25310,7 @@
               // then
               $async$self._updateGraph$0();
               $async$goto = 10;
-              return A._asyncAwait($async$self._reload$1(modulesToLoad), $async$restart$1$runId);
+              return A._asyncAwait($async$self._reload$1(modulesToLoad), $async$restart$2$runId$startPaused);
             case 10:
               // returning from await.
               result = $async$result;
@@ -25321,6 +25323,10 @@
             case 8:
               // join
               t3._as(self.$loadModuleConfig.call$1("dart_sdk").dart).hotRestart();
+              if (!startPaused) {
+                A.print("Running main!");
+                A.runMain();
+              }
               $async$returnValue = result;
               // goto return
               $async$goto = 1;
@@ -25330,7 +25336,7 @@
               return A._asyncReturn($async$returnValue, $async$completer);
           }
       });
-      return A._asyncStartSync($async$restart$1$runId, $async$completer);
+      return A._asyncStartSync($async$restart$2$runId$startPaused, $async$completer);
     },
     _getDigests$0() {
       var $async$goto = 0,
@@ -25737,8 +25743,8 @@
     _inheritMany(A._CastIterableBase, [A.CastIterable, A.__CastListBase__CastIterableBase_ListMixin, A.CastSet, A.CastQueue]);
     _inherit(A._EfficientLengthCastIterable, A.CastIterable);
     _inherit(A._CastListBase, A.__CastListBase__CastIterableBase_ListMixin);
-    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._Future__chainForeignFuture_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._CustomHashMap_closure, A._LinkedCustomHashMap_closure, A.SplayTreeSet_closure, A._BigIntImpl_hashCode_finish, A._Uri__makePath_closure, A._createTables_setChars, A._createTables_setRange, A.Element_Element$html_closure, A.HttpRequest_request_closure, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.NodeValidatorBuilder_allowsElement_closure, A.NodeValidatorBuilder_allowsAttribute_closure, A._SimpleNodeValidator_closure, A._SimpleNodeValidator_closure0, A._TemplatingNodeValidator_closure, A._convertDartToNative_Value_closure, A.JsObject__convertDataTree__convert, A._convertToJS_closure, A._convertToJS_closure0, A._wrapToDart_closure, A._wrapToDart_closure0, A._wrapToDart_closure1, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.StreamQueue__ensureListening_closure, A.BuiltListMultimap_BuiltListMultimap_closure, A.BuiltListMultimap_hashCode_closure, A.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.BuiltSet_hashCode_closure, A.BuiltSetMultimap_hashCode_closure, A.SetMultimapBuilder_replace_closure, A.newBuiltValueToStringHelper_closure, A.BuiltListMultimapSerializer_serialize_closure, A.BuiltListMultimapSerializer_deserialize_closure, A.BuiltListSerializer_serialize_closure, A.BuiltListSerializer_deserialize_closure, A.BuiltSetMultimapSerializer_serialize_closure, A.BuiltSetMultimapSerializer_deserialize_closure, A.BuiltSetSerializer_serialize_closure, A.BuiltSetSerializer_deserialize_closure, A.WebSocketClient_stream_closure, A.stronglyConnectedComponents_strongConnect, A.Pool__runOnRelease_closure, A.SseClient_closure0, A.SseClient_closure1, A.generateUuidV4__generateBits, A._GuaranteeSink__addError_closure, A.HtmlWebSocketChannel_closure, A.HtmlWebSocketChannel_closure0, A.HtmlWebSocketChannel_closure1, A.HtmlWebSocketChannel_closure2, A.main__closure, A.main__closure0, A.main___closure2, A.main___closure1, A.main__closure2, A.main___closure0, A.main___closure, A.main__closure4, A.main__closure5, A.main__closure6, A.main__closure7, A._launchCommunicationWithDebugExtension_closure, A._listenForDebugExtensionAuthRequest_closure, A.LegacyRestarter_restart_closure, A.LegacyRestarter_restart_closure0, A.toFuture_closure, A.RequireRestarter__reloadModule_closure]);
-    _inheritMany(A.Closure2Args, [A._CastListBase_sort_closure, A.CastMap_forEach_closure, A.ConstantMap_map_closure, A.Primitives_functionNoSuchMethod_closure, A.JsLinkedHashMap_addAll_closure, A.initHooks_closure0, A._awaitOnObject_closure0, A._wrapJsFunctionForAsync_closure, A._Future__chainForeignFuture_closure0, A._Future_timeout_closure1, A._BufferingStreamSubscription_asFuture_closure0, A.LinkedHashMap_LinkedHashMap$from_closure, A.MapBase_mapToString_closure, A.SplayTreeSet__newSet_closure, A._JsonStringifier_writeMap_closure, A._symbolMapToStringMap_closure, A.NoSuchMethodError_toString_closure, A._BigIntImpl_hashCode_combine, A.Uri__parseIPv4Address_error, A.Uri_parseIPv6Address_error, A.Uri_parseIPv6Address_parseHex, A._createTables_build, A.MidiInputMap_keys_closure, A.MidiOutputMap_keys_closure, A.RtcStatsReport_keys_closure, A.Storage_keys_closure, A._ValidatingTreeSanitizer_sanitizeTree_walk, A._StructuredClone_walk_closure, A._StructuredClone_walk_closure0, A._AcceptStructuredClone_walk_closure, A.convertDartToNative_Dictionary_closure, A.AudioParamMap_keys_closure, A.StreamQueue__ensureListening_closure1, A.hashObjects_closure, A.MapBuilder_replace_closure, A.safeUnawaited_closure, A.Pool__runOnRelease_closure0, A.generateUuidV4__printDigits, A.generateUuidV4__bitsDigits, A.main__closure1, A.main_closure0, A.toPromise_closure]);
+    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._Future__chainForeignFuture_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._CustomHashMap_closure, A._LinkedCustomHashMap_closure, A.SplayTreeSet_closure, A._BigIntImpl_hashCode_finish, A._Uri__makePath_closure, A._createTables_setChars, A._createTables_setRange, A.Element_Element$html_closure, A.HttpRequest_request_closure, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.NodeValidatorBuilder_allowsElement_closure, A.NodeValidatorBuilder_allowsAttribute_closure, A._SimpleNodeValidator_closure, A._SimpleNodeValidator_closure0, A._TemplatingNodeValidator_closure, A._convertDartToNative_Value_closure, A.JsObject__convertDataTree__convert, A._convertToJS_closure, A._convertToJS_closure0, A._wrapToDart_closure, A._wrapToDart_closure0, A._wrapToDart_closure1, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.StreamQueue__ensureListening_closure, A.BuiltListMultimap_BuiltListMultimap_closure, A.BuiltListMultimap_hashCode_closure, A.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.BuiltSet_hashCode_closure, A.BuiltSetMultimap_hashCode_closure, A.SetMultimapBuilder_replace_closure, A.newBuiltValueToStringHelper_closure, A.BuiltListMultimapSerializer_serialize_closure, A.BuiltListMultimapSerializer_deserialize_closure, A.BuiltListSerializer_serialize_closure, A.BuiltListSerializer_deserialize_closure, A.BuiltSetMultimapSerializer_serialize_closure, A.BuiltSetMultimapSerializer_deserialize_closure, A.BuiltSetSerializer_serialize_closure, A.BuiltSetSerializer_deserialize_closure, A.WebSocketClient_stream_closure, A.stronglyConnectedComponents_strongConnect, A.Pool__runOnRelease_closure, A.SseClient_closure0, A.SseClient_closure1, A.generateUuidV4__generateBits, A._GuaranteeSink__addError_closure, A.HtmlWebSocketChannel_closure, A.HtmlWebSocketChannel_closure0, A.HtmlWebSocketChannel_closure1, A.HtmlWebSocketChannel_closure2, A.main__closure0, A.main___closure2, A.main___closure1, A.main__closure2, A.main___closure0, A.main___closure, A.main__closure4, A.main__closure5, A.main__closure6, A.main__closure7, A._launchCommunicationWithDebugExtension_closure, A._listenForDebugExtensionAuthRequest_closure, A.LegacyRestarter_restart_closure, A.LegacyRestarter_restart_closure0, A.toFuture_closure, A.RequireRestarter__reloadModule_closure]);
+    _inheritMany(A.Closure2Args, [A._CastListBase_sort_closure, A.CastMap_forEach_closure, A.ConstantMap_map_closure, A.Primitives_functionNoSuchMethod_closure, A.JsLinkedHashMap_addAll_closure, A.initHooks_closure0, A._awaitOnObject_closure0, A._wrapJsFunctionForAsync_closure, A._Future__chainForeignFuture_closure0, A._Future_timeout_closure1, A._BufferingStreamSubscription_asFuture_closure0, A.LinkedHashMap_LinkedHashMap$from_closure, A.MapBase_mapToString_closure, A.SplayTreeSet__newSet_closure, A._JsonStringifier_writeMap_closure, A._symbolMapToStringMap_closure, A.NoSuchMethodError_toString_closure, A._BigIntImpl_hashCode_combine, A.Uri__parseIPv4Address_error, A.Uri_parseIPv6Address_error, A.Uri_parseIPv6Address_parseHex, A._createTables_build, A.MidiInputMap_keys_closure, A.MidiOutputMap_keys_closure, A.RtcStatsReport_keys_closure, A.Storage_keys_closure, A._ValidatingTreeSanitizer_sanitizeTree_walk, A._StructuredClone_walk_closure, A._StructuredClone_walk_closure0, A._AcceptStructuredClone_walk_closure, A.convertDartToNative_Dictionary_closure, A.AudioParamMap_keys_closure, A.StreamQueue__ensureListening_closure1, A.hashObjects_closure, A.MapBuilder_replace_closure, A.safeUnawaited_closure, A.Pool__runOnRelease_closure0, A.generateUuidV4__printDigits, A.generateUuidV4__bitsDigits, A.main__closure, A.main__closure1, A.main_closure0, A.toPromise_closure]);
     _inherit(A.CastList, A._CastListBase);
     _inherit(A.MapBase, A.MapMixin);
     _inheritMany(A.MapBase, [A.CastMap, A.JsLinkedHashMap, A._HashMap, A._JsonMap, A._AttributeMap]);
@@ -25960,7 +25966,7 @@
     typeUniverse: {eC: new Map(), tR: {}, eT: {}, tPV: {}, sEA: []},
     mangledGlobalNames: {int: "int", double: "double", num: "num", String: "String", bool: "bool", Null: "Null", List: "List"},
     mangledNames: {},
-    types: ["~()", "@(@)", "Object?(@)", "~(@)", "~(Event)", "Null()", "~(String,@)", "Null(@)", "Null(Object,StackTrace)", "~(@,@)", "~(~())", "~(Object,StackTrace)", "bool(@)", "Set<0^>()<Object?>", "bool(Object?,Object?)", "int(Object?)", "ScriptElement()", "~(String)", "~(@,StackTrace)", "~(Object?,Object?)", "~(Symbol0,@)", "int(int,int)", "int(int)", "String(String)", "~(Uint8List,String,int)", "Future<Null>()", "~(String,String)", "~(Object[StackTrace?])", "bool(NodeValidator)", "bool(String)", "Object?(Object?)", "bool(Element,String,String,_Html5NodeValidator)", "~(Object?)", "~(MessageEvent)", "Null(Event)", "String(int,int)", "bool()", "int(@,@)", "~(Node,Node?)", "Null(@,@)", "@(@,@)", "@(Object?)", "JsFunction(@)", "JsArray<@>(@)", "bool(Node)", "int(int,@)", "IndentingBuiltValueToStringHelper(String)", "ListBuilder<Object>()", "ListMultimapBuilder<Object,Object>()", "MapBuilder<Object,Object>()", "~(ProgressEvent)", "SetMultimapBuilder<Object,Object>()", "~([Object?])", "Uint8List(@,@)", "@(String)", "@(@,String)", "bool(Object?)", "ListBuilder<DebugEvent>()", "JsObject(@)", "~(String,int?)", "String(@)", "Logger()", "~(String?)", "~(String,int)", "~(int,@)", "Null(@,StackTrace)", "Null(CloseEvent)", "bool(Object,Object)", "Promise<1&>(String)", "~(List<DebugEvent>)", "ListBuilder<DebugEvent>(BatchedDebugEventsBuilder)", "DebugEventBuilder(DebugEventBuilder)", "Null(~())", "RegisterEventBuilder(RegisterEventBuilder)", "DevToolsRequestBuilder(DevToolsRequestBuilder)", "Future<~>(String)", "ConnectRequestBuilder(ConnectRequestBuilder)", "DebugInfoBuilder(DebugInfoBuilder)", "Future<Null>(Event)", "bool(bool)", "List<String>(String)", "int(String,String)", "~(JsError)", "ScriptElement()()", "Future<~>()", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)", "_Future<@>(@)", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "ListBuilder<ExtensionEvent>()", "SetBuilder<Object>()"],
+    types: ["~()", "@(@)", "Object?(@)", "~(@)", "~(Event)", "Null()", "~(String,@)", "Null(@)", "Null(Object,StackTrace)", "~(@,@)", "~(~())", "~(Object,StackTrace)", "bool(@)", "Set<0^>()<Object?>", "bool(Object?,Object?)", "int(Object?)", "ScriptElement()", "~(String)", "~(@,StackTrace)", "~(Object?,Object?)", "~(Symbol0,@)", "int(int,int)", "int(int)", "String(String)", "~(Uint8List,String,int)", "Future<Null>()", "~(String,String)", "~(Object[StackTrace?])", "bool(NodeValidator)", "bool(String)", "Object?(Object?)", "bool(Element,String,String,_Html5NodeValidator)", "~(Object?)", "~(MessageEvent)", "Null(Event)", "String(int,int)", "bool()", "int(@,@)", "~(Node,Node?)", "Null(@,@)", "@(@,@)", "@(Object?)", "JsFunction(@)", "JsArray<@>(@)", "bool(Node)", "int(int,@)", "IndentingBuiltValueToStringHelper(String)", "ListBuilder<Object>()", "ListMultimapBuilder<Object,Object>()", "MapBuilder<Object,Object>()", "~(ProgressEvent)", "SetMultimapBuilder<Object,Object>()", "~([Object?])", "Uint8List(@,@)", "@(String)", "@(@,String)", "bool(Object?)", "ListBuilder<DebugEvent>()", "JsObject(@)", "~(String,int?)", "String(@)", "Logger()", "~(String?)", "~(String,int)", "~(int,@)", "Null(@,StackTrace)", "Null(CloseEvent)", "bool(Object,Object)", "Promise<1&>(String,bool?)", "~(List<DebugEvent>)", "ListBuilder<DebugEvent>(BatchedDebugEventsBuilder)", "DebugEventBuilder(DebugEventBuilder)", "Null(~())", "RegisterEventBuilder(RegisterEventBuilder)", "DevToolsRequestBuilder(DevToolsRequestBuilder)", "Future<~>(String)", "ConnectRequestBuilder(ConnectRequestBuilder)", "DebugInfoBuilder(DebugInfoBuilder)", "Future<Null>(Event)", "bool(bool)", "List<String>(String)", "int(String,String)", "~(JsError)", "ScriptElement()()", "Future<~>()", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)", "_Future<@>(@)", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "ListBuilder<ExtensionEvent>()", "SetBuilder<Object>()"],
     interceptorsByTag: null,
     leafTags: null,
     arrayRti: Symbol("$ti")
@@ -26087,7 +26093,7 @@
       PoolResource: findType("PoolResource"),
       PrimitiveSerializer_dynamic: findType("PrimitiveSerializer<@>"),
       ProgressEvent: findType("ProgressEvent"),
-      Promise_bool_Function_String: findType("Promise<1&>(String)"),
+      Promise_bool_Function_2_String_and_nullable_bool: findType("Promise<1&>(String,bool?)"),
       Promise_void: findType("Promise<1&>"),
       QueueList_Result_DebugEvent: findType("QueueList<Result<DebugEvent>>"),
       Record: findType("Record"),

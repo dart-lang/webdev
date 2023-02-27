@@ -62,8 +62,9 @@ Future<void>? main() {
 
     final manager = ReloadingManager(client, restarter);
 
-    hotRestartJs = allowInterop((String runId) {
-      return toPromise(manager.hotRestart(runId: runId));
+    hotRestartJs = allowInterop((String runId, bool? startPaused) {
+      return toPromise(
+          manager.hotRestart(runId: runId, startPaused: startPaused ?? false));
     });
 
     final debugEventController =
@@ -278,7 +279,8 @@ external set dartAppInstanceId(String? id);
 external String get dartModuleStrategy;
 
 @JS(r'$dartHotRestartDwds')
-external set hotRestartJs(Promise<bool> Function(String runId) cb);
+external set hotRestartJs(
+    Promise<bool> Function(String runId, bool? startPaused) cb);
 
 @JS(r'$launchDevTools')
 external void Function() get launchDevToolsJs;

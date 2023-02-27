@@ -99,7 +99,7 @@ class RequireRestarter implements Restarter {
   }
 
   @override
-  Future<bool> restart({String? runId}) async {
+  Future<bool> restart({String? runId, bool startPaused = false}) async {
     final developer = getProperty(require('dart_sdk'), 'developer');
     if (callMethod(getProperty(developer, '_extensions'), 'containsKey',
         ['ext.flutter.disassemble']) as bool) {
@@ -127,8 +127,11 @@ class RequireRestarter implements Restarter {
       result = await _reload(modulesToLoad);
     }
     callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
-    // start paused, run main after the setup is complete.
-    //runMain();
+    // If requested to start paused, run main after the setup is complete.
+    if (!startPaused) {
+      print('Running main!');
+      runMain();
+    }
     return result;
   }
 

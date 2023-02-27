@@ -352,17 +352,6 @@ class ChromeProxyService implements VmServiceInterface {
     _consoleSubscription = null;
   }
 
-  Future<void> disableBreakpoints() async {
-    _disabledBreakpoints.clear();
-    if (!_isIsolateRunning) return;
-    final isolate = inspector.isolate;
-
-    _disabledBreakpoints.addAll(isolate.breakpoints ?? []);
-    for (var breakpoint in isolate.breakpoints?.toList() ?? []) {
-      await (await debuggerFuture).removeBreakpoint(breakpoint.id);
-    }
-  }
-
   @override
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int? column}) async {
@@ -1141,6 +1130,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   /// Hot restart support.
+  ///
+  /// Ensure we can only run one hot restart at a time.
   Future<Map<String, dynamic>> hotRestart() {
     return _hotRestartQueue.run(_hotRestart);
   }
@@ -1172,15 +1163,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     final isolateStarted =
         stream.firstWhere((e) => e.kind == EventKind.kIsolateStart);
     try {
-      // Restart bootstrap. Does not run the original dart main.
-      _logger.info('Restarting bootstrap');
+      // Re-establish breakpoints after exiting the previous isolate
+      // but before running main.
       await _restartBootstrap();
-
-      // Reestablish breakpoints before the main run.
       await _reestablishBreakpoints();
-
-      // Run the original dart main.
-      _logger.info('Running dart main');
       await _runMain();
     } on wip.WipError catch (e, s) {
       final code = e.error?['code'];
@@ -1224,6 +1210,17 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     return {'result': Success().toJson()};
   }
 
+  Future<void> _disableBreakpoints() async {
+    _disabledBreakpoints.clear();
+    if (!_isIsolateRunning) return;
+    final isolate = inspector.isolate;
+
+    _disabledBreakpoints.addAll(isolate.breakpoints ?? []);
+    for (var breakpoint in isolate.breakpoints?.toList() ?? []) {
+      await (await debuggerFuture).removeBreakpoint(breakpoint.id);
+    }
+  }
+
   Future<void> _disableBreakpointsAndResume() async {
     _logger.info('Attempting to disable breakpoints and resume the isolate');
     final vm = await getVM();
@@ -1235,7 +1232,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     if (isolateId == null) {
       throw StateError('No active isolate to resume.');
     }
-    await disableBreakpoints();
+    await _disableBreakpoints();
     try {
       // Any checks for paused status result in race conditions or hangs
       // at this point:
@@ -1261,25 +1258,30 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     _logger.info('Successfully disabled breakpoints and resumed the isolate');
   }
 
+  Future<void> _restartBootstrap() async {
+    _logger.info('Restarting bootstrap.');
+    // Generate run id to hot restart all apps loaded into the tab.
+    final runId = const Uuid().v4().toString();
+
+    // Restart the bootstrap but don't run the main yet.
+    await inspector.jsEvaluate('\$dartHotRestartDwds(\'$runId\', false);',
+        awaitPromise: true);
+  }
+
   Future<void> _reestablishBreakpoints() async {
+    _logger.info('Re-establishing breakpoints.');
     await (await debuggerFuture)
         .reestablishBreakpoints(_previousBreakpoints, _disabledBreakpoints);
     _disabledBreakpoints.clear();
   }
 
-  Future<void> _restartBootstrap() async {
-    // Generate run id to hot restart all apps loaded into the tab.
-    final runId = const Uuid().v4().toString();
-    await inspector.jsEvaluate('\$dartHotRestartDwds(\'$runId\');',
-        awaitPromise: true);
-  }
-
   Future<void> _runMain() async {
     // Wait for the debugger to get the first resume event and
     // for the new inspector to be ready.
+    _logger.info('Waiting for the vm service to start.');
     await isStarted;
 
-    // Run original main.
+    _logger.info('Running dart main.');
     await inspector.jsEvaluate('\$dartRunMain();');
   }
 

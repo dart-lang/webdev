@@ -10,7 +10,7 @@ import 'restarter.dart';
 
 class LegacyRestarter implements Restarter {
   @override
-  Future<bool> restart({String? runId}) async {
+  Future<bool> restart({String? runId, bool startPaused = false}) async {
     final dartLibrary = context['dart_library'] as JsObject;
     if (runId == null) {
       dartLibrary.callMethod('reload');
