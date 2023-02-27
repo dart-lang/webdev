@@ -16,6 +16,7 @@ import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'fixtures/context.dart';
 import 'fixtures/fakes.dart';
 
 late ExpressionEvaluator? _evaluator;
@@ -92,6 +93,41 @@ void main() async {
             result,
             const TypeMatcher<RemoteObject>()
                 .having((o) => o.value, 'value', 'true'));
+      });
+
+      test('can evaluate expression in frame with null scope', () async {
+        // Verify that we don't get the internal error.
+        // More extensive testing of 'evaluateExpressionInFrame' is done in
+        // evaluation tests for frontend server and build daemon.
+        await expectLater(
+            evaluator.evaluateExpressionInFrame('1', 0, 'true', null),
+            throwsRPCErrorWithMessage(
+                'Cannot evaluate on a call frame when the program is not paused'));
+      });
+
+      test('can evaluate expression in frame with empty scope', () async {
+        // Verify that we don't get the internal error.
+        // More extensive testing of 'evaluateExpressionInFrame' is done in
+        // evaluation tests for frontend server and build daemon.
+        await expectLater(
+            evaluator.evaluateExpressionInFrame('1', 0, 'true', {}),
+            throwsRPCErrorWithMessage(
+                'Cannot evaluate on a call frame when the program is not paused'));
+      });
+
+      test('cannot evaluate expression in frame with non-empty scope',
+          () async {
+        final result = await evaluator
+            .evaluateExpressionInFrame('1', 0, 'true', {'a': '1'});
+        expect(
+            result,
+            const TypeMatcher<RemoteObject>()
+                .having((o) => o.type, 'type', 'InternalError')
+                .having(
+                    (o) => o.value,
+                    'value',
+                    contains(
+                        'Using scope for expression evaluation in frame is not supported')));
       });
 
       test('returns error if closed', () async {
