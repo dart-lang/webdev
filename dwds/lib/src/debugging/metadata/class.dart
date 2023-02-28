@@ -6,10 +6,12 @@ import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/domain.dart';
+import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 const _dartCoreLibrary = 'dart:core';
+const _dartInterceptorsLibrary = 'dart:_interceptors';
 
 /// A hard-coded ClassRef for the Closure class.
 final classRefForClosure = classRefFor(_dartCoreLibrary, 'Closure');
@@ -19,6 +21,10 @@ final classRefForString = classRefFor(_dartCoreLibrary, InstanceKind.kString);
 
 /// A hard-coded ClassRef for a (non-existent) class called Unknown.
 final classRefForUnknown = classRefFor(_dartCoreLibrary, 'Unknown');
+
+/// A hard-coded ClassRef for a JS exception.
+final classRefForNativeJsError =
+    classRefFor(_dartInterceptorsLibrary, 'NativeError');
 
 ///  A hard-coded LibraryRef for a a dart:core library.
 final libraryRefForCore = LibraryRef(
@@ -43,6 +49,8 @@ ClassRef classRefFor(String libraryId, String? name) => ClassRef(
 
 /// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {
+  static final _logger = Logger('ClassMetadata');
+
   /// The name of the JS constructor for the object.
   ///
   /// This may be a constructor for a Dart, but it's still a JS name. For
@@ -67,6 +75,7 @@ class ClassMetaData {
     Object? length,
     bool isFunction = false,
     bool isRecord = false,
+    bool isNativeError = false,
   }) {
     return ClassMetaData._(
       jsName as String?,
@@ -75,6 +84,7 @@ class ClassMetaData {
       int.tryParse('$length'),
       isFunction,
       isRecord,
+      isNativeError,
     );
   }
 
@@ -85,6 +95,7 @@ class ClassMetaData {
     this.length,
     this.isFunction,
     this.isRecord,
+    this.isNativeError,
   );
 
   /// Returns the ID of the class.
@@ -100,18 +111,22 @@ class ClassMetaData {
     try {
       final evalExpression = '''
       function(arg) {
-        const sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-        const classObject = sdkUtils.getReifiedType(arg);
-        const isFunction = classObject instanceof sdkUtils.AbstractFunctionType;
-        const isRecord = classObject instanceof sdkUtils.RecordType;
+        const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+        const dart = sdk.dart;
+        const interceptors = sdk._interceptors;
+        const classObject = dart.getReifiedType(arg);
+        const isFunction = classObject instanceof dart.AbstractFunctionType;
+        const isRecord = classObject instanceof dart.RecordType;
+        const isNativeError = dart.is(arg, interceptors.NativeError);
         const result = {};
         var name = isFunction ? 'Function' : classObject.name;
 
         result['name'] = name;
-        result['libraryId'] = sdkUtils.getLibraryUri(classObject);
-        result['dartName'] = sdkUtils.typeName(classObject);
+        result['libraryId'] = dart.getLibraryUri(classObject);
+        result['dartName'] = dart.typeName(classObject);
         result['isFunction'] = isFunction;
         result['isRecord'] = isRecord;
+        result['isNativeError'] = isNativeError;
         result['length'] = arg['length'];
 
         if (isRecord) {
@@ -136,9 +151,12 @@ class ClassMetaData {
         dartName: metadata['dartName'],
         isFunction: metadata['isFunction'],
         isRecord: metadata['isRecord'],
+        isNativeError: metadata['isNativeError'],
         length: metadata['length'],
       );
-    } on ChromeDebugException {
+    } on ChromeDebugException catch (e, s) {
+      _logger.fine(
+          'Could not create class metadata for ${remoteObject.json}', e, s);
       return null;
     }
   }
@@ -162,4 +180,8 @@ class ClassMetaData {
 
   /// True if this class refers to a record type.
   bool isRecord;
+
+  /// True is this class refers to a native JS type.
+  /// i.e. inherits from NativeError.
+  bool isNativeError;
 }

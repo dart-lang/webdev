@@ -613,10 +613,9 @@ class Debugger extends Domain {
       if (e.data is Map<String, dynamic>) {
         final map = e.data as Map<String, dynamic>;
         if (map['type'] == 'object') {
-          // The className here is generally 'DartError'.
           final obj = RemoteObject(map);
           exception = await inspector.instanceRefFor(obj);
-          if (exception != null && isNativeJsObject(exception)) {
+          if (exception != null && isNativeJsError(exception)) {
             if (obj.description != null) {
               // Create a string exception object.
               final description =
@@ -791,14 +790,21 @@ bool isDisplayableObject(Object? object) =>
     object is Sentinel || object is InstanceRef && !isNativeJsObject(object);
 
 bool isNativeJsObject(InstanceRef instanceRef) {
-  // New type representation of JS objects reifies them to a type suffixed with
-  // JavaScriptObject.
   final className = instanceRef.classRef?.name;
-  return (className != null &&
-          className.endsWith('JavaScriptObject') &&
-          instanceRef.classRef?.library?.uri == 'dart:_interceptors') ||
-      // Old type representation still needed to support older SDK versions.
-      className == 'NativeJavaScriptObject';
+  final libraryUri = instanceRef.classRef?.library?.uri;
+  // Non-dart JS objects are all instances of JavaScriptObject,
+  return className != null &&
+      libraryUri == 'dart:_interceptors' &&
+      className == 'JavaScriptObject';
+}
+
+bool isNativeJsError(InstanceRef instanceRef) {
+  final className = instanceRef.classRef?.name;
+  final libraryUri = instanceRef.classRef?.library?.uri;
+  // Exceptions are instances of NativeError.
+  return className != null &&
+      libraryUri == 'dart:_interceptors' &&
+      className == 'NativeError';
 }
 
 /// Returns the Dart line number for the provided breakpoint.

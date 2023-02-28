@@ -128,6 +128,9 @@ class InstanceHelper extends Domain {
     } else if (metaData.isRecord) {
       return await _recordInstanceFor(classRef, remoteObject,
           offset: offset, count: count, length: metaData.length);
+    } else if (metaData.isNativeError) {
+      return await _plainInstanceFor(classRefForNativeJsError, remoteObject,
+          offset: offset, count: count, length: metaData.length);
     } else {
       return await _plainInstanceFor(classRef, remoteObject,
           offset: offset, count: count, length: metaData.length);
@@ -628,6 +631,14 @@ class InstanceHelper extends Domain {
               id: objectId,
               identityHashCode: remoteObject.objectId.hashCode,
               classRef: metaData.classRef)
+            ..length = metaData.length;
+        }
+        if (metaData.isNativeError) {
+          return InstanceRef(
+              kind: InstanceKind.kPlainInstance,
+              id: objectId,
+              identityHashCode: remoteObject.objectId.hashCode,
+              classRef: classRefForNativeJsError)
             ..length = metaData.length;
         }
         return InstanceRef(
