@@ -1,6 +1,6 @@
 # This configures the .github/workflows/pull_request_label.yml workflow. 
 
-'infra':
+'type-infra':
   - '.github/**'
 
 'package:dwds':
