@@ -33,10 +33,6 @@ final classRefForUnknown = classRefFor(_dartCoreLibrary, 'Unknown');
 final classRefForNativeJsError =
     classRefFor(_dartInterceptorsLibrary, 'NativeError');
 
-// Non-dart JS objects are all instances of JavaScriptObject
-// and its subtypes with names that end with 'JavaScriptObject'.
-final _classSuffixForNativeJsObject = 'JavaScriptObject';
-
 /// Returns true for non-dart JavaScript classes.
 ///
 /// TODO(annagrin): this breaks on name changes for JS types.
@@ -48,7 +44,7 @@ bool isNativeJsObjectRef(ClassRef? classRef) {
   // and its subtypes with names that end with 'JavaScriptObject'.
   return className != null &&
       libraryUri == _dartInterceptorsLibrary &&
-      className.endsWith(_classSuffixForNativeJsObject);
+      className.endsWith('JavaScriptObject');
 }
 
 ///  A hard-coded LibraryRef for a a dart:core library.
