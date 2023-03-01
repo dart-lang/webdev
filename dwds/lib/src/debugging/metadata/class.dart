@@ -26,7 +26,7 @@ final classRefForUnknown = classRefFor(_dartCoreLibrary, 'Unknown');
 ///
 /// Exceptions are instances of NativeError and its subtypes.
 /// We detect their common base type in class metadata and replace their
-/// classRef by hard-coded reference one in instances and instance refs.
+/// classRef by hard-coded reference in instances and instance refs.
 ///
 /// TODO(annagrin): this breaks on name changes for JS types.
 /// https://github.com/dart-lang/sdk/issues/51583
