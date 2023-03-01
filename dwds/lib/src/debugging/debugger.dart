@@ -796,13 +796,7 @@ bool isDisplayableObject(Object? object) =>
 
 /// Returns true for non-dart JavaScript objects.
 bool isNativeJsObject(InstanceRef instanceRef) {
-  final className = instanceRef.classRef?.name;
-  final libraryUri = instanceRef.classRef?.library?.uri;
-  // Non-dart JS objects are all instances of JavaScriptObject
-  // and its subtypes with names that end with 'JavaScriptObject'.
-  return className != null &&
-      libraryUri == dartInterceptorsLibrary &&
-      className.endsWith(classSuffixForNativeJsObject);
+  return isNativeJsObjectRef(instanceRef.classRef);
 }
 
 /// Returns true of JavaScript exceptions.
