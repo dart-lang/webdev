@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/debugging/frame_computer.dart';
 import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/loaders/strategy.dart';
@@ -786,25 +787,27 @@ Future<T> sendCommandAndValidateResult<T>(
   return result;
 }
 
+/// Returns true for objects we display for the user.
 bool isDisplayableObject(Object? object) =>
-    object is Sentinel || object is InstanceRef && !isNativeJsObject(object);
+    object is Sentinel ||
+    object is InstanceRef &&
+        !isNativeJsObject(object) &&
+        !isNativeJsError(object);
 
+/// Returns true for non-dart JavaScript objects.
 bool isNativeJsObject(InstanceRef instanceRef) {
   final className = instanceRef.classRef?.name;
   final libraryUri = instanceRef.classRef?.library?.uri;
-  // Non-dart JS objects are all instances of JavaScriptObject,
+  // Non-dart JS objects are all instances of JavaScriptObject
+  // and its subtypes with names that end with 'JavaScriptObject'.
   return className != null &&
-      libraryUri == 'dart:_interceptors' &&
-      className == 'JavaScriptObject';
+      libraryUri == dartInterceptorsLibrary &&
+      className.endsWith(classSuffixForNativeJsObject);
 }
 
+/// Returns true of JavaScript exceptions.
 bool isNativeJsError(InstanceRef instanceRef) {
-  final className = instanceRef.classRef?.name;
-  final libraryUri = instanceRef.classRef?.library?.uri;
-  // Exceptions are instances of NativeError.
-  return className != null &&
-      libraryUri == 'dart:_interceptors' &&
-      className == 'NativeError';
+  return instanceRef.classRef == classRefForNativeJsError;
 }
 
 /// Returns the Dart line number for the provided breakpoint.
