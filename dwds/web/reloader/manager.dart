@@ -26,10 +26,12 @@ class ReloadingManager {
   ///
   /// The apps are restarted at the same time on the first call.
   Future<bool> hotRestart({String? runId, bool startPaused = false}) async {
+    print('BEGIN HOT RESTART');
     _beforeRestart();
     final result =
         await _restarter.restart(runId: runId, startPaused: startPaused);
     _afterRestart(result);
+     print('END HOT RESTART (no main)');
     return result;
   }
 

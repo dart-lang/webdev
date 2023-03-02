@@ -180,10 +180,12 @@ String _injectClientAndHoistMain(
     window.\$dwdsInitialized = true;
     window.\$dartMainTearOffs = [$mainFunction];
     window.\$dartRunMain = function() {
+      console.log('START RUNNING DART MAIN');
       window.\$dartMainExecuted = true;
       window.\$dartMainTearOffs.forEach(function(main){
          main();
       });
+      console.log('END RUNNING DART MAIN');
     }
     $injectedClientSnippet
   } else {
