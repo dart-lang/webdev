@@ -2021,9 +2021,9 @@ void main() {
         await service.setVMName('test');
       });
 
-      test('custom stream', () async {
+      test('custom stream', () {
         expect(
-            () => service.streamListen('VM'),
+            () => service.streamListen('aCustomStreamId'),
             throwsA(predicate(
                 (e) => (e is RPCError) && e.code == RPCError.kInvalidParams)));
       });
