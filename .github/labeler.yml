@@ -11,3 +11,9 @@
 
 'package:webdev':
   - webdev/**/*
+
+'dart-debug-extension':
+  - dwds/debug_extension_mv3
+
+'dart-debug-extension':
+  - dwds/debug_extension
