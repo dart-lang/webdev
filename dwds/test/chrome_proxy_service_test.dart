@@ -2020,6 +2020,13 @@ void main() {
                 e.kind == EventKind.kVMUpdate && e.vm!.name == 'test')));
         await service.setVMName('test');
       });
+
+      test('custom stream', () async {
+        expect(
+            () => service.streamListen('VM'),
+            throwsA(predicate(
+                (e) => (e is RPCError) && e.code == RPCError.kInvalidParams)));
+      });
     });
 
     test('Logging', () async {
