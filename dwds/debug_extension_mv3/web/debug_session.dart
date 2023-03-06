@@ -106,26 +106,9 @@ int? get latestAppBeingDebugged =>
 
 Future<void> attachDebugger(int dartAppTabId,
     {required Trigger trigger}) async {
-  // Check if a debugger is already attached:
-  final existingDebuggerLocation = _debuggerLocation(dartAppTabId);
-  if (existingDebuggerLocation != null) {
-    return _showWarningNotification(
-      'Already debugging in ${existingDebuggerLocation.displayName}.',
-    );
-  }
-  // Determine if there are multiple apps in the tab:
-  final multipleApps = await fetchStorageObject<String>(
-    type: StorageObject.multipleAppsDetected,
-    tabId: dartAppTabId,
-  );
-  if (multipleApps != null) {
-    return _showWarningNotification(
-      'Dart debugging is not supported in a multi-app environment.',
-    );
-  }
-  // Verify that the user is authenticated:
-  final isAuthenticated = await _authenticateUser(dartAppTabId);
-  if (!isAuthenticated) return;
+  // Validate that the tab can be debugged:
+  final tabIsDebuggable = await _validateTabIsDebuggable(dartAppTabId);
+  if (!tabIsDebuggable) return;
 
   _tabIdToTrigger[dartAppTabId] = trigger;
   _registerDebugEventListeners();
@@ -175,6 +158,40 @@ Future<void> clearStaleDebugSession(int tabId) async {
   } else {
     await _removeDebugSessionDataInStorage(tabId);
   }
+}
+
+Future<bool> _validateTabIsDebuggable(int dartAppTabId) async {
+  // Check if a debugger is already attached:
+  final existingDebuggerLocation = _debuggerLocation(dartAppTabId);
+  if (existingDebuggerLocation != null) {
+    await _showWarningNotification(
+      'Already debugging in ${existingDebuggerLocation.displayName}.',
+    );
+    return false;
+  }
+  // Determine if this is a Dart app:
+  final debugInfo = await fetchStorageObject<DebugInfo>(
+    type: StorageObject.debugInfo,
+    tabId: dartAppTabId,
+  );
+  if (debugInfo == null) {
+    await _showWarningNotification('Not a Dart app.');
+    return false;
+  }
+  // Determine if there are multiple apps in the tab:
+  final multipleApps = await fetchStorageObject<String>(
+    type: StorageObject.multipleAppsDetected,
+    tabId: dartAppTabId,
+  );
+  if (multipleApps != null) {
+    await _showWarningNotification(
+      'Dart debugging is not supported in a multi-app environment.',
+    );
+    return false;
+  }
+  // Verify that the user is authenticated:
+  final isAuthenticated = await _authenticateUser(dartAppTabId);
+  return isAuthenticated;
 }
 
 void _registerDebugEventListeners() {
@@ -548,7 +565,7 @@ Future<bool> _authenticateUser(int tabId) async {
   );
   final authUrl = debugInfo?.authUrl;
   if (authUrl == null) {
-    _showWarningNotification('Cannot authenticate user.');
+    await _showWarningNotification('Cannot authenticate user.');
     return false;
   }
   final isAuthenticated = await _sendAuthRequest(authUrl);
@@ -582,7 +599,8 @@ Future<bool> _sendAuthRequest(String authUrl) async {
   return responseBody.contains('Dart Debug Authentication Success!');
 }
 
-void _showWarningNotification(String message) {
+Future<bool> _showWarningNotification(String message) {
+  final completer = Completer<bool>();
   chrome.notifications.create(
     /*notificationId*/ null,
     NotificationOptions(
@@ -591,8 +609,11 @@ void _showWarningNotification(String message) {
       iconUrl: 'static_assets/dart.png',
       type: 'basic',
     ),
-    /*callback*/ null,
+    allowInterop((_) {
+      completer.complete(true);
+    }),
   );
+  return completer.future;
 }
 
 DebuggerLocation? _debuggerLocation(int dartAppTabId) {
