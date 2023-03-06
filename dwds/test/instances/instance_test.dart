@@ -8,6 +8,7 @@ import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -16,6 +17,8 @@ import '../fixtures/context.dart';
 import '../fixtures/project.dart';
 
 void main() {
+  // Enable verbose logging for debugging.
+  final debug = false;
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
 
@@ -26,6 +29,7 @@ void main() {
   late Debugger debugger;
 
   setUpAll(() async {
+    setCurrentLogWriter(debug: debug);
     await context.setUp();
     final chromeProxyService = context.service;
     inspector = chromeProxyService.inspector;
@@ -42,6 +46,9 @@ void main() {
       '${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("example/scopes/main")'
       '["$url"]["$variable"];';
 
+  String interceptorsNewExpression(String type) =>
+      "require('dart_sdk')._interceptors.$type['_#new#tearOff']()";
+
   /// A reference to the the variable `libraryPublicFinal`, an instance of
   /// `MyTestClass`.
   Future<RemoteObject> libraryPublicFinal() =>
@@ -52,6 +59,8 @@ void main() {
       inspector.jsEvaluate(libraryVariableExpression('libraryPublic'));
 
   group('instanceRef', () {
+    setUp(() => setCurrentLogWriter(debug: debug));
+
     test('for a null', () async {
       final remoteObject = await libraryPublicFinal();
       final nullVariable = await inspector.loadField(remoteObject, 'notFinal');
@@ -126,9 +135,26 @@ void main() {
       expect(ref.kind, InstanceKind.kMap);
       expect(ref.classRef!.name, 'IdentityMap<String, int>');
     });
+
+    test('for a native JavaScript error', () async {
+      final remoteObject =
+          await inspector.jsEvaluate(interceptorsNewExpression('NativeError'));
+      final ref = await inspector.instanceRefFor(remoteObject);
+      expect(ref!.kind, InstanceKind.kPlainInstance);
+      expect(ref.classRef!.name, 'NativeError');
+    });
+
+    test('for a native JavaScript type error', () async {
+      final remoteObject = await inspector
+          .jsEvaluate(interceptorsNewExpression('JSNoSuchMethodError'));
+      final ref = await inspector.instanceRefFor(remoteObject);
+      expect(ref!.kind, InstanceKind.kPlainInstance);
+      expect(ref.classRef!.name, 'NativeError');
+    });
   });
 
   group('instance', () {
+    setUp(() => setCurrentLogWriter(debug: debug));
     test('for class object', () async {
       final remoteObject = await libraryPublicFinal();
       final instance = await inspector.instanceFor(remoteObject);

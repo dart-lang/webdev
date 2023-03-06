@@ -1,5 +1,9 @@
 ## 18.0.0-dev
 
+- Fix failure to map JS exceptions to dart.
+
+## 18.0.0
+
 - Cleanup `getObject` code for lists and maps.
   - Now works with offset `0` and `null` count.
   - Fix failures on edge cases.
@@ -12,6 +16,7 @@
 - Remove test-only code from `sdk_configuration.dart`.
 - Move shared test-only code to a new `test_common` package.
 - Convert unnecessary async code to sync.
+- Allow empty scopes in expression evaluation in a frame.
 
 **Breaking changes**
 

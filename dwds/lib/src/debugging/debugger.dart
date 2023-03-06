@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/debugging/frame_computer.dart';
 import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/loaders/strategy.dart';
@@ -613,10 +614,9 @@ class Debugger extends Domain {
       if (e.data is Map<String, dynamic>) {
         final map = e.data as Map<String, dynamic>;
         if (map['type'] == 'object') {
-          // The className here is generally 'DartError'.
           final obj = RemoteObject(map);
           exception = await inspector.instanceRefFor(obj);
-          if (exception != null && isNativeJsObject(exception)) {
+          if (exception != null && isNativeJsError(exception)) {
             if (obj.description != null) {
               // Create a string exception object.
               final description =
@@ -784,18 +784,21 @@ Future<T> sendCommandAndValidateResult<T>(
   return result;
 }
 
+/// Returns true for objects we display for the user.
 bool isDisplayableObject(Object? object) =>
-    object is Sentinel || object is InstanceRef && !isNativeJsObject(object);
+    object is Sentinel ||
+    object is InstanceRef &&
+        !isNativeJsObject(object) &&
+        !isNativeJsError(object);
 
+/// Returns true for non-dart JavaScript objects.
 bool isNativeJsObject(InstanceRef instanceRef) {
-  // New type representation of JS objects reifies them to a type suffixed with
-  // JavaScriptObject.
-  final className = instanceRef.classRef?.name;
-  return (className != null &&
-          className.endsWith('JavaScriptObject') &&
-          instanceRef.classRef?.library?.uri == 'dart:_interceptors') ||
-      // Old type representation still needed to support older SDK versions.
-      className == 'NativeJavaScriptObject';
+  return isNativeJsObjectRef(instanceRef.classRef);
+}
+
+/// Returns true of JavaScript exceptions.
+bool isNativeJsError(InstanceRef instanceRef) {
+  return instanceRef.classRef == classRefForNativeJsError;
 }
 
 /// Returns the Dart line number for the provided breakpoint.

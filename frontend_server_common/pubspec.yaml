@@ -19,3 +19,7 @@ dependencies:
   test_common:
     path: ../test_common
   usage: ^4.0.0
+
+dependency_overrides:
+  dwds:
+    path: ../dwds
