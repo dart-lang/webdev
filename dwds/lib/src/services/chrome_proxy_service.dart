@@ -511,7 +511,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       final evaluator = _expressionEvaluator;
       if (evaluator != null) {
         await isCompilerInitialized;
-
         _checkIsolate('evaluateInFrame', isolateId);
         return await _getEvaluationResult(
             isolateId,
