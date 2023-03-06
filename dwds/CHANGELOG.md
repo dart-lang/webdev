@@ -1,3 +1,7 @@
+## 18.0.0-dev
+
+- Fix failure to map JS exceptions to dart.
+
 ## 18.0.0
 
 - Cleanup `getObject` code for lists and maps.
