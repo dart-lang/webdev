@@ -31,8 +31,7 @@ import 'package:logging/logging.dart' hide LogRecord;
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:uuid/uuid.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
-    as wip;
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
@@ -92,7 +91,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// a hot restart.
   bool get _isIsolateRunning => _inspector != null;
 
-  StreamSubscription<wip.ConsoleAPIEvent>? _consoleSubscription;
+  StreamSubscription<ConsoleAPIEvent>? _consoleSubscription;
 
   final _disabledBreakpoints = <Breakpoint>{};
   final _previousBreakpoints = <Breakpoint>{};
@@ -120,7 +119,7 @@ class ChromeProxyService implements VmServiceInterface {
   ) {
     final debugger = Debugger.create(
       remoteDebugger,
-      streamNotify,
+      _streamNotify,
       _locations,
       _skipLists,
       root,
@@ -294,13 +293,13 @@ class ChromeProxyService implements VmServiceInterface {
 
     _vm.isolates?.add(isolateRef);
 
-    streamNotify(
+    _streamNotify(
         'Isolate',
         Event(
             kind: EventKind.kIsolateStart,
             timestamp: timestamp,
             isolate: isolateRef));
-    streamNotify(
+    _streamNotify(
         'Isolate',
         Event(
             kind: EventKind.kIsolateRunnable,
@@ -311,7 +310,7 @@ class ChromeProxyService implements VmServiceInterface {
     // isolate, but devtools doesn't recognize extensions after a page refresh
     // otherwise.
     for (var extensionRpc in inspector.isolate.extensionRPCs ?? []) {
-      streamNotify(
+      _streamNotify(
           'Isolate',
           Event(
               kind: EventKind.kServiceExtensionAdded,
@@ -337,7 +336,7 @@ class ChromeProxyService implements VmServiceInterface {
     _initializedCompleter = Completer<void>();
     _startedCompleter = Completer<void>();
     _compilerCompleter = Completer<void>();
-    streamNotify(
+    _streamNotify(
         'Isolate',
         Event(
             kind: EventKind.kIsolateExit,
@@ -428,7 +427,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   Future<Response> _getEvaluationResult(String isolateId,
-      Future<wip.RemoteObject> Function() evaluation, String expression) async {
+      Future<RemoteObject> Function() evaluation, String expression) async {
     try {
       final result = await evaluation();
       if (!_isIsolateRunning || isolateId != inspector.isolate.id) {
@@ -512,13 +511,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       final evaluator = _expressionEvaluator;
       if (evaluator != null) {
         await isCompilerInitialized;
+
         _checkIsolate('evaluateInFrame', isolateId);
-
-        // did we get a pause event? wait a bit
-        // await streamListen(EventStreams.kDebug);
-        //final stream = onEvent('Debug');
-        // await stream.firstWhere((event) => event.kind == EventKind.kPauseBreakpoint).timeout(Duration(milliseconds: 50));
-
         return await _getEvaluationResult(
             isolateId,
             () => evaluator.evaluateExpressionInFrame(
@@ -820,7 +814,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Success> setVMName(String name) async {
     _vm.name = name;
-    streamNotify(
+    _streamNotify(
         'VM',
         Event(
             kind: EventKind.kVMUpdate,
@@ -865,7 +859,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   /// Returns a streamController that listens for console logs from chrome and
   /// adds all events passing [filter] to the stream.
   StreamController<Event> _chromeConsoleStreamController(
-      bool Function(wip.ConsoleAPIEvent) filter,
+      bool Function(ConsoleAPIEvent) filter,
       {bool includeExceptions = false}) {
     late StreamController<Event> controller;
     StreamSubscription? chromeConsoleSubscription;
@@ -927,7 +921,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     if (!_isIsolateRunning) return;
     final isolateRef = inspector.isolateRef;
 
-    streamNotify(
+    _streamNotify(
         EventStreams.kExtension,
         Event(
             kind: EventKind.kExtension,
@@ -949,7 +943,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     final service = registerEvent.eventData;
     isolate.extensionRPCs?.add(service);
 
-    streamNotify(
+    _streamNotify(
         EventStreams.kIsolate,
         Event(
             kind: EventKind.kServiceExtensionAdded,
@@ -978,7 +972,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           if (event.args[1].type != 'object') break;
 
           final inspectee = await _instanceRef(event.args[1]);
-          streamNotify(
+          _streamNotify(
               EventStreams.kDebug,
               Event(
                   kind: EventKind.kInspect,
@@ -996,19 +990,19 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     });
   }
 
-  void streamNotify(String streamId, Event event) {
+  void _streamNotify(String streamId, Event event) {
     final controller = _streamControllers[streamId];
     if (controller == null) return;
     controller.add(event);
   }
 
   Future<void> _handleDeveloperLog(
-      IsolateRef isolateRef, wip.ConsoleAPIEvent event) async {
+      IsolateRef isolateRef, ConsoleAPIEvent event) async {
     final logObject = event.params?['args'][1] as Map?;
-    final logParams = <String, wip.RemoteObject>{};
+    final logParams = <String, RemoteObject>{};
     for (dynamic obj in logObject?['preview']?['properties'] ?? {}) {
       if (obj['name'] != null && obj is Map<String, dynamic>) {
-        logParams[obj['name'] as String] = wip.RemoteObject(obj);
+        logParams[obj['name'] as String] = RemoteObject(obj);
       }
     }
 
@@ -1027,7 +1021,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       zone: await _instanceRef(logParams['zone']),
     );
 
-    streamNotify(
+    _streamNotify(
       EventStreams.kLogging,
       Event(
           kind: EventKind.kLogging,
@@ -1082,7 +1076,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     ]);
   }
 
-  Future<InstanceRef> _instanceRef(wip.RemoteObject? obj) async {
+  Future<InstanceRef> _instanceRef(RemoteObject? obj) async {
     final instance = obj == null ? null : await inspector.instanceRefFor(obj);
     return instance ?? InstanceHelper.kNullInstanceRef;
   }
@@ -1168,7 +1162,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       await _restartBootstrap();
       await _reestablishBreakpoints();
       await _runMain();
-    } on wip.WipError catch (e, s) {
+    } on WipError catch (e, s) {
       final code = e.error?['code'];
       final message = e.error?['message'];
       _logger.info('hot restart failed', e, s);

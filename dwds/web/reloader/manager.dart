@@ -31,7 +31,7 @@ class ReloadingManager {
     final result =
         await _restarter.restart(runId: runId, startPaused: startPaused);
     _afterRestart(result);
-     print('END HOT RESTART (no main)');
+    print('END HOT RESTART (no main)');
     return result;
   }
 

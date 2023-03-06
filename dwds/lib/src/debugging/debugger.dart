@@ -697,7 +697,7 @@ class Debugger extends Domain {
   }
 
   /// Handles resume events coming from the Chrome connection.
-  Future<void> _resumeHandler(DebuggerResumedEvent? e) async {
+  Future<void> _resumeHandler(DebuggerResumedEvent? _) async {
     final isolate = inspector.isolate;
     stackComputer = null;
     final event = Event(
