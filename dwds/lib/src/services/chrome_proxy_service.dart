@@ -101,7 +101,7 @@ class ChromeProxyService implements VmServiceInterface {
   final ExpressionCompiler? _compiler;
   ExpressionEvaluator? _expressionEvaluator;
 
-  bool terminatingIsolates = false;
+  bool _terminatingIsolates = false;
 
   /// Synchronizes hot restarts to avoid races.
   final _hotRestartQueue = AtomicQueue();
@@ -917,7 +917,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   /// Parses the [DebugEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
   void parseDebugEvent(DebugEvent debugEvent) {
-    if (terminatingIsolates) return;
+    if (_terminatingIsolates) return;
     if (!_isIsolateRunning) return;
     final isolateRef = inspector.isolateRef;
 
@@ -935,7 +935,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   /// Parses the [RegisterEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
   void parseRegisterEvent(RegisterEvent registerEvent) {
-    if (terminatingIsolates) return;
+    if (_terminatingIsolates) return;
     if (!_isIsolateRunning) return;
 
     final isolate = inspector.isolate;
@@ -956,7 +956,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   void _setUpChromeConsoleListeners(IsolateRef isolateRef) {
     _consoleSubscription =
         remoteDebugger.onConsoleAPICalled.listen((event) async {
-      if (terminatingIsolates) return;
+      if (_terminatingIsolates) return;
       if (event.type != 'debug') return;
       if (!_isIsolateRunning) return;
 
@@ -1133,7 +1133,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Map<String, dynamic>> _hotRestart() async {
     _logger.info('Attempting a hot restart');
 
-    terminatingIsolates = true;
+    _terminatingIsolates = true;
     await _disableBreakpointsAndResume();
     try {
       _logger.info('Attempting to get execution context ID.');
@@ -1190,7 +1190,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
     _logger.info('Waiting for Isolate Start event.');
     await isolateStarted;
-    terminatingIsolates = false;
+    _terminatingIsolates = false;
 
     _logger.info('Successful hot restart');
     return {'result': Success().toJson()};
