@@ -1275,7 +1275,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     await isStarted;
 
     _logger.info('Running dart main.');
-    await inspector.jsEvaluate('\$dartRunMain();');
+    await inspector.jsEvaluate('\$dartRunMain();', awaitPromise: true);
   }
 
   /// Validate that isolateId matches the current isolate we're connected to and
