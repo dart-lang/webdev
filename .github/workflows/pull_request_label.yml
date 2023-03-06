@@ -8,7 +8,8 @@ name: Pull Request Labeler
 permissions: read-all
 
 on:
-  pull_request_target
+  pull_request:
+    branches: [ master ]
 
 jobs:
   label:
