@@ -1,3 +1,7 @@
+## 18.0.1-dev
+
+- Handle unexpected extension debugger disconnect events without crashing the app - [#2021](https://github.com/dart-lang/webdev/pull/2021)
+
 ## 18.0.0
 
 - Cleanup `getObject` code for lists and maps.
