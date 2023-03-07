@@ -489,7 +489,6 @@ class DevHandler {
   /// Starts a [DebugService] for Dart Debug Extension.
   Future<void> _startExtensionDebugService(
       ExtensionDebugger extensionDebugger) async {
-    final extensionDebugger = await _extensionBackend!.extensionDebugger;
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
     extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
