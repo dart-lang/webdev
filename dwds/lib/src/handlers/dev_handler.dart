@@ -480,7 +480,7 @@ class DevHandler {
       return;
     }
 
-    while (await _extensionBackend!.connections.hasNext) {
+    while (await extensionBackend.connections.hasNext) {
       final extensionDebugger = await extensionBackend.extensionDebugger;
       await _startExtensionDebugService(extensionDebugger);
     }
