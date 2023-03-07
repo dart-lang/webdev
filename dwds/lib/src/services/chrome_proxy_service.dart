@@ -707,7 +707,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         default:
           throw RPCError(
             'streamListen',
-            RPCError.kMethodNotFound,
+            RPCError.kInvalidParams,
             'The stream `$streamId` is not supported on web devices',
           );
       }
