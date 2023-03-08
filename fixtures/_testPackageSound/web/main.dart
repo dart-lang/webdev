@@ -45,6 +45,7 @@ void main() async {
     printStream(); // Breakpoint: callPrintStream
     printList();
     printMap();
+    printSet();
   });
 
   document.body?.appendText(concatenate('Program', ' is running!'));
@@ -75,7 +76,7 @@ void printFieldFromLibraryPartClass() {
 }
 
 void printFieldMain() {
-  var instance = MainClass(2,1);
+  var instance = MainClass(2, 1);
   print('$instance'); // Breakpoint: printFieldMain
 }
 
@@ -148,6 +149,11 @@ void printList() {
 void printMap() {
   final map = {'a': 1, 'b': 2, 'c': 3};
   print(map); // Breakpoint: printMap
+}
+
+void printSet() {
+  final mySet = {1, 4, 5, 7};
+  print(mySet); // Breakpoint: printSet
 }
 
 ClassWithMethod createObject() {

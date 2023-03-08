@@ -154,6 +154,10 @@ Matcher matchMapInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kMap)
     .having((e) => e.classRef!.name, 'classRef.name', type);
 
+Matcher matchSetInstance({required String type}) => isA<Instance>()
+    .having((e) => e.kind, 'kind', InstanceKind.kSet)
+    .having((e) => e.classRef!.name, 'classRef.name', type);
+
 Matcher matchRecordInstance({required int length, required String type}) =>
     isA<Instance>()
         .having((e) => e.kind, 'kind', InstanceKind.kRecord)

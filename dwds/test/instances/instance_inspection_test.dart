@@ -202,5 +202,36 @@ Future<void> _runTests({
         });
       });
     });
+
+    group('Set |', () {
+      test('type and fields', () async {
+        await onBreakPoint('printSet', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'mySet');
+
+          final instanceId = instanceRef.id!;
+          expect(await getObject(instanceId),
+              matchSetInstance(type: '_HashSet<int>'));
+
+          expect(await getFields(instanceRef), [1, 4, 5, 7]);
+          expect(await getFields(instanceRef, offset: 0), [1, 4, 5, 7]);
+          expect(await getFields(instanceRef, offset: 1, count: 2), [4, 5]);
+          expect(await getFields(instanceRef, offset: 2), [5, 7]);
+          expect(await getFields(instanceRef, offset: 2, count: 10), [5, 7]);
+          expect(await getFields(instanceRef, offset: 1, count: 0), []);
+          expect(await getFields(instanceRef, offset: 10, count: 2), []);
+        });
+      });
+
+      test('Element access', () async {
+        await onBreakPoint('printSet', (event) async {
+          final frame = event.topFrame!.index!;
+          expect(await getInstance(frame, r"mySet.first"),
+              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1));
+          expect(await getInstance(frame, r"mySet.last"),
+              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 7));
+        });
+      });
+    });
   });
 }

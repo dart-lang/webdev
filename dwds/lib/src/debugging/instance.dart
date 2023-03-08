@@ -523,21 +523,28 @@ class InstanceHelper extends Domain {
       }
     ''';
 
-    final result = await inspector.jsCallFunctionOn(remoteObject, expression, []);
+    final result =
+        await inspector.jsCallFunctionOn(remoteObject, expression, []);
     final entriesObject = await inspector.loadField(result, 'entries');
     final entriesInstance =
-        await instanceFor(entriesObject);
+        await instanceFor(entriesObject, offset: offset, count: count);
     final elements = entriesInstance?.elements ?? [];
 
-    return Instance(
+    final setInstance = Instance(
         identityHashCode: remoteObject.objectId.hashCode,
         kind: InstanceKind.kSet,
         id: objectId,
         classRef: classRef)
       ..length = length
-      ..elements = elements
-      ..offset = offset
-      ..count = length;
+      ..elements = elements;
+    if (offset != null && offset > 0) {
+      setInstance.offset = offset;
+    }
+    if (length != null && elements.length < length) {
+      setInstance.count = elements.length;
+    }
+
+    return setInstance;
   }
 
   /// Return the available count of elements in the requested range.
