@@ -90,6 +90,7 @@ void main() {
               isNot(isIn([
                 'NativeJavaScriptObject',
                 'JavaScriptObject',
+                'NativeError'
               ]))));
     }
 

@@ -1,6 +1,6 @@
 # This configures the .github/workflows/pull_request_label.yml workflow. 
 
-'infra':
+'type-infra':
   - '.github/**'
 
 'package:dwds':
@@ -11,3 +11,7 @@
 
 'package:webdev':
   - webdev/**/*
+
+'dart-debug-extension':
+  - dwds/debug_extension/**/*
+  - dwds/debug_extension_mv3/**/*

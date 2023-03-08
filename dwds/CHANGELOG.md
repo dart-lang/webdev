@@ -1,5 +1,7 @@
 ## 18.0.1-dev
 
+- Fix failure to map JS exceptions to dart. - [#2004](https://github.com/dart-lang/webdev/pull/2004)
+- Fix for listening to custom streams. - [#2011](https://github.com/dart-lang/webdev/pull/2011)
 - Handle unexpected extension debugger disconnect events without crashing the app - [#2021](https://github.com/dart-lang/webdev/pull/2021)
 
 ## 18.0.0

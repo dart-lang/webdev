@@ -373,6 +373,29 @@ void main() async {
             await devToolsTabTarget.onClose;
           });
 
+          test('Clicking extension icon for a non Dart app shows warning',
+              () async {
+            // Navigate to a page that doesn't contain a Dart app:
+            final tab = await navigateToPage(browser,
+                url: 'https://dart.dev', isNew: true);
+            // Click on the Dart Debug Extension icon:
+            await workerEvalDelay();
+            await clickOnExtensionIcon(
+              worker: worker,
+              backgroundPage: backgroundPage,
+            );
+            // There should now be a warning notificiation:
+            final chromeNotifications = await evaluate(
+              _getNotifications(),
+              worker: worker,
+              backgroundPage: backgroundPage,
+            );
+            await workerEvalDelay();
+            expect(chromeNotifications, isNotEmpty);
+            // Close the tab:
+            await tab.close();
+          });
+
           test('Refreshing the Dart app does not open a new Dart DevTools',
               () async {
             final appUrl = context.appUrl;

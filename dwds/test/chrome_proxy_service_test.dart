@@ -1391,8 +1391,7 @@ void main() {
             .firstWhere((event) => event.kind == EventKind.kPauseException);
         expect(event.exception, isNotNull);
         // Check that the exception stack trace has been mapped to Dart source files.
-        // TODO(https://github.com/dart-lang/webdev/issues/1821) Uncomment.
-        // expect(event.exception!.valueAsString, contains('main.dart'));
+        expect(event.exception!.valueAsString, contains('main.dart'));
 
         final stack = await service.getStack(isolateId!);
         expect(stack, isNotNull);
@@ -2019,6 +2018,13 @@ void main() {
             emitsThrough(predicate((Event e) =>
                 e.kind == EventKind.kVMUpdate && e.vm!.name == 'test')));
         await service.setVMName('test');
+      });
+
+      test('custom stream', () {
+        expect(
+            () => service.streamListen('aCustomStreamId'),
+            throwsA(predicate(
+                (e) => (e is RPCError) && e.code == RPCError.kInvalidParams)));
       });
     });
 
