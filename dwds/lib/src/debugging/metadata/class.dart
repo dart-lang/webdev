@@ -196,6 +196,8 @@ class ClassMetaData {
   /// True if this class refers to system Lists, which are treated specially.
   bool get isSystemList => jsName == 'JSArray';
 
+  bool get isSet => jsName == '_HashSet';
+
   /// True if this class refers to a function type.
   bool isFunction;
 

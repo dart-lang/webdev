@@ -18,6 +18,7 @@ void main() {
 
   var count = 0;
   Timer.periodic(const Duration(seconds: 1), (_) {
+    final mySet = {1, 3, 4, 5};
     print('Counter is: ${++count}');
   });
 }

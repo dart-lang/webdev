@@ -119,6 +119,7 @@ class InstanceHelper extends Domain {
       return _closureInstanceFor(remoteObject);
     }
 
+    print('is set? ${metaData.isSet}');
     if (metaData.isSystemList) {
       return await _listInstanceFor(classRef, remoteObject,
           offset: offset, count: count, length: metaData.length);
@@ -128,6 +129,14 @@ class InstanceHelper extends Domain {
     } else if (metaData.isRecord) {
       return await _recordInstanceFor(classRef, remoteObject,
           offset: offset, count: count, length: metaData.length);
+    } else if (metaData.isSet) {
+      return await _setInstanceFor(
+        classRef,
+        remoteObject,
+        offset: offset,
+        count: count,
+        length: metaData.length,
+      );
     } else if (metaData.isNativeError) {
       return await _plainInstanceFor(classRefForNativeJsError, remoteObject,
           offset: offset, count: count, length: metaData.length);
@@ -492,6 +501,29 @@ class InstanceHelper extends Domain {
       ..offset = offset
       ..count = rangeCount
       ..fields = fields;
+  }
+
+  Future<Instance?> _setInstanceFor(
+    ClassRef classRef,
+    RemoteObject remoteObject, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
+    print('IS A SET');
+    final objectId = remoteObject.objectId;
+    print('SET HAS OBJECT ID: $objectId');
+    if (objectId == null) return null;
+
+    print('calling get properties...');
+    final elements = await debugger.getProperties(objectId,
+        offset: offset, count: count, length: length);
+
+    for (var element in elements) {
+      print(element);
+    }
+
+    return null;
   }
 
   /// Return the available count of elements in the requested range.
