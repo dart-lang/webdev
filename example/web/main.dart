@@ -18,7 +18,22 @@ void main() {
 
   var count = 0;
   Timer.periodic(const Duration(seconds: 1), (_) {
+    final myList = [1, 3, 4];
     final mySet = {1, 3, 4, 5};
+    final myOtherSet = {MyClass(1), MyClass(2), MyClass(3)};
+    final myRecord = (1, a: 2, 3, b: 4);
     print('Counter is: ${++count}');
   });
+}
+
+class MyClass {
+  final int _field;
+  MyClass(this._field); // Breakpoint: newEnclosedClass
+
+  @override
+  String toString() => '$_field';
+
+  bool equals(Object other) {
+    return other is MyClass && other.toString() == toString();
+  }
 }

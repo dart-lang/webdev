@@ -119,7 +119,6 @@ class InstanceHelper extends Domain {
       return _closureInstanceFor(remoteObject);
     }
 
-    print('is set? ${metaData.isSet}');
     if (metaData.isSystemList) {
       return await _listInstanceFor(classRef, remoteObject,
           offset: offset, count: count, length: metaData.length);
@@ -385,7 +384,7 @@ class InstanceHelper extends Domain {
   ///
   /// If [offset] is `null`, assumes 0 offset.
   /// If [count] is `null`, return all fields starting from the offset.
-  Future<List<BoundField>> _recordFields(RemoteObject map,
+  Future<List<BoundField>> _recordFields(RemoteObject record,
       {int? offset, int? count}) async {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
@@ -407,7 +406,7 @@ class InstanceHelper extends Domain {
         };
       }
     ''';
-    final result = await inspector.jsCallFunctionOn(map, expression, []);
+    final result = await inspector.jsCallFunctionOn(record, expression, []);
     final positionalCountObject =
         await inspector.loadField(result, 'positionalCount');
     if (positionalCountObject == null || positionalCountObject.value is! int) {
@@ -510,20 +509,35 @@ class InstanceHelper extends Domain {
     int? count,
     int? length,
   }) async {
-    print('IS A SET');
     final objectId = remoteObject.objectId;
-    print('SET HAS OBJECT ID: $objectId');
     if (objectId == null) return null;
 
-    print('calling get properties...');
-    final elements = await debugger.getProperties(objectId,
-        offset: offset, count: count, length: length);
+    final expression = '''
+      function() {
+        const sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
+        const jsSet = sdkUtils.dloadRepl(this, "_map");
+        const entries = [...jsSet.values()];
+        return {
+          entries: entries
+        };
+      }
+    ''';
 
-    for (var element in elements) {
-      print(element);
-    }
+    final result = await inspector.jsCallFunctionOn(remoteObject, expression, []);
+    final entriesObject = await inspector.loadField(result, 'entries');
+    final entriesInstance =
+        await instanceFor(entriesObject);
+    final elements = entriesInstance?.elements ?? [];
 
-    return null;
+    return Instance(
+        identityHashCode: remoteObject.objectId.hashCode,
+        kind: InstanceKind.kSet,
+        id: objectId,
+        classRef: classRef)
+      ..length = length
+      ..elements = elements
+      ..offset = offset
+      ..count = length;
   }
 
   /// Return the available count of elements in the requested range.
@@ -660,6 +674,14 @@ class InstanceHelper extends Domain {
         if (metaData.isRecord) {
           return InstanceRef(
               kind: InstanceKind.kRecord,
+              id: objectId,
+              identityHashCode: remoteObject.objectId.hashCode,
+              classRef: metaData.classRef)
+            ..length = metaData.length;
+        }
+        if (metaData.isSet) {
+          return InstanceRef(
+              kind: InstanceKind.kSet,
               id: objectId,
               identityHashCode: remoteObject.objectId.hashCode,
               classRef: metaData.classRef)
