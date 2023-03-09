@@ -13,7 +13,11 @@ import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+import 'package:logging/logging.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
+    hide StackTrace;
+
+final _logger = Logger('ExtensionDebugger');
 
 /// A remote debugger backed by the Dart Debug Extension with an SSE connection.
 class ExtensionDebugger implements RemoteDebugger {
@@ -140,11 +144,23 @@ class ExtensionDebugger implements RemoteDebugger {
     final completer = Completer<WipResponse>();
     final id = newId();
     _completers[id] = completer;
-    sseConnection.sink
-        .add(jsonEncode(serializers.serialize(ExtensionRequest((b) => b
-          ..id = id
-          ..command = command
-          ..commandParams = jsonEncode(params ?? {})))));
+    try {
+      sseConnection.sink
+          .add(jsonEncode(serializers.serialize(ExtensionRequest((b) => b
+            ..id = id
+            ..command = command
+            ..commandParams = jsonEncode(params ?? {})))));
+    } on StateError catch (error, stackTrace) {
+      if (error.message.contains('Cannot add event after closing')) {
+        _logger.severe('Socket connection closed. Shutting down debugger.');
+        closeWithError(error);
+      } else {
+        _logger.severe('Bad state while sending $command.', error, stackTrace);
+      }
+    } catch (error, stackTrace) {
+      _logger.severe(
+          'Unknown error while sending $command.', error, stackTrace);
+    }
     return completer.future;
   }
 
@@ -160,6 +176,13 @@ class ExtensionDebugger implements RemoteDebugger {
           _closeController.close(),
         ]);
       }();
+
+  void closeWithError(Object? error) {
+    _logger.shout(
+        'Closing extension debugger due to error. Restart app for debugging functionality',
+        error);
+    close();
+  }
 
   @override
   Future disable() => sendCommand('Debugger.disable');

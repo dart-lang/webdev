@@ -28,6 +28,7 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
+import 'package:dwds/src/servers/extension_debugger.dart';
 import 'package:dwds/src/services/app_debug_services.dart';
 import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
@@ -473,109 +474,123 @@ class DevHandler {
   }
 
   Future<void> _listenForDebugExtension() async {
-    while (await _extensionBackend!.connections.hasNext) {
-      await _startExtensionDebugService();
+    final extensionBackend = _extensionBackend;
+    if (extensionBackend == null) {
+      _logger.severe('No debug extension backend. Debugging will not work.');
+      return;
+    }
+
+    while (await extensionBackend.connections.hasNext) {
+      final extensionDebugger = await extensionBackend.extensionDebugger;
+      await _startExtensionDebugService(extensionDebugger);
     }
   }
 
   /// Starts a [DebugService] for Dart Debug Extension.
-  Future<void> _startExtensionDebugService() async {
-    final extensionDebugger = await _extensionBackend!.extensionDebugger;
+  Future<void> _startExtensionDebugService(
+      ExtensionDebugger extensionDebugger) async {
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
     extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
-      // TODO(grouma) - Ideally we surface those warnings to the extension so
-      // that it can be displayed to the user through an alert.
-      final tabUrl = devToolsRequest.tabUrl;
-      final appId = devToolsRequest.appId;
-      if (tabUrl == null) {
-        _logger.warning('Failed to start extension debug service. '
-            'Missing tab url in DevTools request for app with id: $appId');
-        return;
+      try {
+        await _handleDevToolsRequest(extensionDebugger, devToolsRequest);
+      } catch (error) {
+        _logger.severe('Encountered error handling DevTools request.');
+        extensionDebugger.closeWithError(error);
       }
-      final connection = _appConnectionByAppId[appId];
-      if (connection == null) {
-        _logger.warning('Failed to start extension debug service. '
-            'Not connected to an app with id: $appId');
-        return;
-      }
-      final executionContext = extensionDebugger.executionContext;
-      if (executionContext == null) {
-        _logger.warning('Failed to start extension debug service. '
-            'No execution context for app with id: $appId');
-        return;
-      }
-
-      final debuggerStart = DateTime.now();
-      var appServices = _servicesByAppId[appId];
-      if (appServices == null) {
-        final debugService = await DebugService.start(
-          _hostname,
-          extensionDebugger,
-          executionContext,
-          basePathForServerUri(tabUrl),
-          _assetReader,
-          _loadStrategy,
-          connection,
-          _urlEncoder,
-          onResponse: (response) {
-            if (response['error'] == null) return;
-            _logger
-                .finest('VmService proxy responded with an error:\n$response');
-          },
-          useSse: _useSseForDebugProxy,
-          expressionCompiler: _expressionCompiler,
-          spawnDds: _spawnDds,
-        );
-        appServices = await _createAppDebugServices(
-          devToolsRequest.appId,
-          debugService,
-        );
-        final encodedUri = await debugService.encodedUri;
-        extensionDebugger.sendEvent('dwds.encodedUri', encodedUri);
-        safeUnawaited(appServices
-            .chromeProxyService.remoteDebugger.onClose.first
-            .whenComplete(() async {
-          appServices?.chromeProxyService.destroyIsolate();
-          await appServices?.close();
-          _servicesByAppId.remove(devToolsRequest.appId);
-          _logger.info('Stopped debug service on '
-              '${await appServices?.debugService.encodedUri}\n');
-        }));
-        extensionDebugConnections.add(DebugConnection(appServices));
-        _servicesByAppId[appId] = appServices;
-      }
-      // If we don't have a DevTools instance, then are connecting to an IDE.
-      // Therefore return early instead of opening DevTools:
-      if (_devTools == null) return;
-
-      final encodedUri = await appServices.debugService.encodedUri;
-
-      appServices.dwdsStats.updateLoadTime(
-          debuggerStart: debuggerStart, devToolsStart: DateTime.now());
-
-      // TODO(elliette): Remove handling requests from the MV2 extension after
-      // MV3 release.
-      // If we only want the URI, this means the Dart Debug Extension should
-      // handle how to open it. Therefore return early before opening a new
-      // tab or window:
-      if (devToolsRequest.uriOnly ?? false) {
-        final devToolsUri = _constructDevToolsUri(
-          encodedUri,
-          ideQueryParam: 'ChromeDevTools',
-        );
-        return extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
-      }
-
-      // Otherwise, launch DevTools in a new tab / window:
-      await _launchDevTools(
-        extensionDebugger,
-        _constructDevToolsUri(
-          encodedUri,
-          ideQueryParam: 'DebugExtension',
-        ),
-      );
     });
+  }
+
+  Future<void> _handleDevToolsRequest(
+    ExtensionDebugger extensionDebugger,
+    DevToolsRequest devToolsRequest,
+  ) async {
+    // TODO(grouma) - Ideally we surface those warnings to the extension so
+    // that it can be displayed to the user through an alert.
+    final tabUrl = devToolsRequest.tabUrl;
+    final appId = devToolsRequest.appId;
+    if (tabUrl == null) {
+      throw StateError('Failed to start extension debug service. '
+          'Missing tab url in DevTools request for app with id: $appId');
+    }
+    final connection = _appConnectionByAppId[appId];
+    if (connection == null) {
+      throw StateError('Failed to start extension debug service. '
+          'Not connected to an app with id: $appId');
+    }
+    final executionContext = extensionDebugger.executionContext;
+    if (executionContext == null) {
+      throw StateError('Failed to start extension debug service. '
+          'No execution context for app with id: $appId');
+    }
+
+    final debuggerStart = DateTime.now();
+    var appServices = _servicesByAppId[appId];
+    if (appServices == null) {
+      final debugService = await DebugService.start(
+        _hostname,
+        extensionDebugger,
+        executionContext,
+        basePathForServerUri(tabUrl),
+        _assetReader,
+        _loadStrategy,
+        connection,
+        _urlEncoder,
+        onResponse: (response) {
+          if (response['error'] == null) return;
+          _logger.finest('VmService proxy responded with an error:\n$response');
+        },
+        useSse: _useSseForDebugProxy,
+        expressionCompiler: _expressionCompiler,
+        spawnDds: _spawnDds,
+      );
+      appServices = await _createAppDebugServices(
+        devToolsRequest.appId,
+        debugService,
+      );
+      final encodedUri = await debugService.encodedUri;
+      extensionDebugger.sendEvent('dwds.encodedUri', encodedUri);
+      safeUnawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
+          .whenComplete(() async {
+        appServices?.chromeProxyService.destroyIsolate();
+        await appServices?.close();
+        _servicesByAppId.remove(devToolsRequest.appId);
+        _logger.info('Stopped debug service on '
+            '${await appServices?.debugService.encodedUri}\n');
+      }));
+      extensionDebugConnections.add(DebugConnection(appServices));
+      _servicesByAppId[appId] = appServices;
+    }
+    // If we don't have a DevTools instance, then are connecting to an IDE.
+    // Therefore return early instead of opening DevTools:
+    if (_devTools == null) return;
+
+    final encodedUri = await appServices.debugService.encodedUri;
+
+    appServices.dwdsStats.updateLoadTime(
+        debuggerStart: debuggerStart, devToolsStart: DateTime.now());
+
+    // TODO(elliette): Remove handling requests from the MV2 extension after
+    // MV3 release.
+    // If we only want the URI, this means the Dart Debug Extension should
+    // handle how to open it. Therefore return early before opening a new
+    // tab or window:
+    if (devToolsRequest.uriOnly ?? false) {
+      final devToolsUri = _constructDevToolsUri(
+        encodedUri,
+        ideQueryParam: 'ChromeDevTools',
+      );
+      return extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
+    }
+
+    // Otherwise, launch DevTools in a new tab / window:
+    await _launchDevTools(
+      extensionDebugger,
+      _constructDevToolsUri(
+        encodedUri,
+        ideQueryParam: 'DebugExtension',
+      ),
+    );
   }
 
   DevTools _ensureDevTools() {

@@ -115,4 +115,38 @@ void main() async {
       expect(request, extensionRequest);
     });
   });
+  group('when closed', () {
+    test('DebugExtension.detached event closes the connection', () async {
+      final extensionEvent = ExtensionEvent((b) => b
+        ..method = jsonEncode('DebugExtension.detached')
+        ..params = jsonEncode({}));
+
+      connection.controllerIncoming.sink
+          .add(jsonEncode(serializers.serialize(extensionEvent)));
+      // Expect the connection to receive a close event:
+      expect(await extensionDebugger.onClose.first, isNotNull);
+    });
+
+    test(
+        'gracefully handles trying to send events after the connection is closed',
+        () async {
+      // Close the connection:
+      final extensionEvent = ExtensionEvent((b) => b
+        ..method = jsonEncode('DebugExtension.detached')
+        ..params = jsonEncode({}));
+      connection.controllerIncoming.sink
+          .add(jsonEncode(serializers.serialize(extensionEvent)));
+      // Wait for it to be closed:
+      await extensionDebugger.onClose.first;
+      // Try to send an event:
+      callToSendCommand() => extensionDebugger.sendCommand(
+            'Debugger.setBreakpoint',
+            params: {
+              'location': {'scriptId': '555', 'lineNumber': 28}
+            },
+          );
+      // Should not throw any errors:
+      expect(callToSendCommand, returnsNormally);
+    });
+  });
 }
