@@ -15,8 +15,13 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:dwds/data/debug_info.dart';
+import 'package:dwds/data/extension_request.dart';
+import 'package:dwds/src/servers/extension_backend.dart';
+import 'package:dwds/src/utilities/server.dart';
 import 'package:path/path.dart' as p;
-import 'package:puppeteer/puppeteer.dart';
+import 'package:puppeteer/puppeteer.dart' hide Response;
+import 'package:shelf/shelf.dart';
+import 'package:shelf_static/shelf_static.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
@@ -777,25 +782,32 @@ void main() async {
         }
       });
 
-      group('connected to a fake app', () {
-        final fakeAppPath = webCompatiblePath(
+      group('Backwards-compatible with older DWDS versions', () {
+        final port = 8080;
+        final hostname = 'localhost';
+        final fakeAppUrl = 'http://$hostname:$port/index.html';
+        final fakeAppDir = webCompatiblePath(
           p.split(
             absolutePath(
               pathFromDwds: p.join(
                 'test',
                 'puppeteer',
                 'fake_app',
-                'index.html',
               ),
             ),
           ),
         );
-        final fakeAppUrl = 'file://$fakeAppPath';
         late Browser browser;
+        late HttpServer server;
         Worker? worker;
         Page? backgroundPage;
 
         setUpAll(() async {
+          server = await _fakeServer(
+            hostname: hostname,
+            port: port,
+            assetPath: fakeAppDir,
+          );
           browser = await puppeteer.launch(
             headless: false,
             timeout: Duration(seconds: 60),
@@ -824,15 +836,19 @@ void main() async {
         });
 
         tearDownAll(() async {
+          await server.close();
           await browser.close();
         });
 
-        // Note: This tests that the debug extension still works for DWDS versions
-        // <17.0.0. Those versions don't send the debug info with the ready event.
-        // Therefore the values are read from the Window object.
+        // Note: This tests that the extension works for DWDS versions <17.0.0.
+        // Those versions don't send the debug info with the ready event
+        // (https://github.com/dart-lang/webdev/pull/1772). Therefore the values
+        // are read from the Window object.
         test('reads debug info from Window and saves to storage', () async {
           // Navigate to the "Dart" app:
-          await navigateToPage(browser, url: fakeAppUrl, isNew: true);
+          final appTab =
+              await navigateToPage(browser, url: fakeAppUrl, isNew: true);
+
           // Verify that we have debug info for the fake "Dart" app:
           final appTabId = await _getTabId(
             fakeAppUrl,
@@ -853,6 +869,56 @@ void main() async {
           expect(debugInfo.isFlutterApp, isFalse);
           expect(debugInfo.appOrigin, isNotNull);
           expect(debugInfo.appUrl, isNotNull);
+
+          // Close the tab:
+          await appTab.close();
+        });
+
+        // Note: This tests that the extension works for DWDS versions <18.0.0.
+        // Those versions don't support authentication from the injected client
+        // (https://github.com/dart-lang/webdev/pull/1916). Therefore the auth
+        // request is sent from the extension itself.
+        test('clicking on extension icon authenticates the user', () async {
+          // Navigate to the "Dart" app:
+          final appTab =
+              await navigateToPage(browser, url: fakeAppUrl, isNew: true);
+
+          // Wait for debug info to be saved:
+          final appTabId = await _getTabId(
+            fakeAppUrl,
+            worker: worker,
+            backgroundPage: backgroundPage,
+          );
+          final debugInfoKey = '$appTabId-debugInfo';
+          final debugInfo = await _fetchStorageObj<DebugInfo>(
+            debugInfoKey,
+            storageArea: 'session',
+            worker: worker,
+            backgroundPage: backgroundPage,
+          );
+
+          // Verify that the extension URL has been saved (this is what is used
+          // by the extension to create the auth url):
+          expect(debugInfo.extensionUrl, isNotNull);
+
+          // Click on the extension icon:
+          await clickOnExtensionIcon(
+            worker: worker,
+            backgroundPage: backgroundPage,
+          );
+
+          // Verify that the user is now authenticated:
+          final authKey = '$appTabId-isAuthenticated';
+          final isAuthenticated = await _fetchStorageObj<String>(
+            authKey,
+            storageArea: 'session',
+            worker: worker,
+            backgroundPage: backgroundPage,
+          );
+          expect(isAuthenticated, equals('true'));
+
+          // Close the tab:
+          await appTab.close();
         });
       });
     });
@@ -1051,4 +1117,23 @@ Future<void> _takeScreenshot(
   final screenshotPath =
       p.join('test', 'puppeteer', 'test_images', '$screenshotName.png');
   await File(screenshotPath).writeAsBytes(screenshot);
+}
+
+Future<HttpServer> _fakeServer({
+  required String hostname,
+  required int port,
+  required String assetPath,
+}) async {
+  final server = await startHttpServer(hostname, port: port);
+  final staticHandler = createStaticHandler(assetPath);
+  final cascade = Cascade().add(staticHandler).add(_fakeAuthHandler);
+  serveHttpRequests(server, cascade.handler, (e, s) {});
+  return server;
+}
+
+Response _fakeAuthHandler(request) {
+  if (request.url.path == authenticationPath) {
+    return Response.ok(authenticationResponse);
+  }
+  return Response.notFound('Not found');
 }
