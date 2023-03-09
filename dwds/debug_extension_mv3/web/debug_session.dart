@@ -563,7 +563,7 @@ Future<bool> _authenticateUser(int tabId) async {
     type: StorageObject.debugInfo,
     tabId: tabId,
   );
-  final authUrl = debugInfo?.authUrl;
+  final authUrl = debugInfo?.authUrl ?? _authUrl(debugInfo?.extensionUrl);
   if (authUrl == null) {
     await _showWarningNotification('Cannot authenticate user.');
     return false;
@@ -739,6 +739,19 @@ class _DebugSession {
     } catch (error) {
       debugError('Error closing batch controller: $error');
     }
+  }
+}
+
+String? _authUrl(String? extensionUrl) {
+  if (extensionUrl == null) return null;
+  final authUrl = Uri.parse(extensionUrl).replace(path: authenticationPath);
+  switch (authUrl.scheme) {
+    case 'ws':
+      return authUrl.replace(scheme: 'http').toString();
+    case 'wss':
+      return authUrl.replace(scheme: 'https').toString();
+    default:
+      return authUrl.toString();
   }
 }
 
