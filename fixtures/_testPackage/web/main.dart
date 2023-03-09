@@ -44,6 +44,9 @@ void main() {
     printObjectMultiLine(); // Breakpoint: callPrintObjectMultiLine
     printNestedObjectsMultiLine(); // Breakpoint: callPrintEnclosingFunctionMultiLine
     printStream(); // Breakpoint: callPrintStream
+    printList();
+    printMap();
+    printSet();
   });
 
   document.body.appendText(concatenate('Program', ' is running!'));
@@ -128,6 +131,21 @@ void printStream() {
   var subscription = stream.listen(print);
   controller.sink.add(0);
   subscription.cancel(); // Breakpoint: printStream
+}
+
+void printList() {
+  final list = [0, 1, 2];
+  print(list); // Breakpoint: printList
+}
+
+void printMap() {
+  final map = {'a': 1, 'b': 2, 'c': 3};
+  print(map); // Breakpoint: printMap
+}
+
+void printSet() {
+  final mySet = {1, 4, 5, 7};
+  print(mySet); // Breakpoint: printSet
 }
 
 ClassWithMethod createObject() {

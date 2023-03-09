@@ -128,6 +128,14 @@ class InstanceHelper extends Domain {
     } else if (metaData.isRecord) {
       return await _recordInstanceFor(classRef, remoteObject,
           offset: offset, count: count, length: metaData.length);
+    } else if (metaData.isSet) {
+      return await _setInstanceFor(
+        classRef,
+        remoteObject,
+        offset: offset,
+        count: count,
+        length: metaData.length,
+      );
     } else if (metaData.isNativeError) {
       return await _plainInstanceFor(classRefForNativeJsError, remoteObject,
           offset: offset, count: count, length: metaData.length);
@@ -376,7 +384,7 @@ class InstanceHelper extends Domain {
   ///
   /// If [offset] is `null`, assumes 0 offset.
   /// If [count] is `null`, return all fields starting from the offset.
-  Future<List<BoundField>> _recordFields(RemoteObject map,
+  Future<List<BoundField>> _recordFields(RemoteObject record,
       {int? offset, int? count}) async {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
@@ -398,7 +406,7 @@ class InstanceHelper extends Domain {
         };
       }
     ''';
-    final result = await inspector.jsCallFunctionOn(map, expression, []);
+    final result = await inspector.jsCallFunctionOn(record, expression, []);
     final positionalCountObject =
         await inspector.loadField(result, 'positionalCount');
     if (positionalCountObject == null || positionalCountObject.value is! int) {
@@ -492,6 +500,51 @@ class InstanceHelper extends Domain {
       ..offset = offset
       ..count = rangeCount
       ..fields = fields;
+  }
+
+  Future<Instance?> _setInstanceFor(
+    ClassRef classRef,
+    RemoteObject remoteObject, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
+    final objectId = remoteObject.objectId;
+    if (objectId == null) return null;
+
+    final expression = '''
+      function() {
+        const sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
+        const jsSet = sdkUtils.dloadRepl(this, "_map");
+        const entries = [...jsSet.values()];
+        return {
+          entries: entries
+        };
+      }
+    ''';
+
+    final result =
+        await inspector.jsCallFunctionOn(remoteObject, expression, []);
+    final entriesObject = await inspector.loadField(result, 'entries');
+    final entriesInstance =
+        await instanceFor(entriesObject, offset: offset, count: count);
+    final elements = entriesInstance?.elements ?? [];
+
+    final setInstance = Instance(
+        identityHashCode: remoteObject.objectId.hashCode,
+        kind: InstanceKind.kSet,
+        id: objectId,
+        classRef: classRef)
+      ..length = length
+      ..elements = elements;
+    if (offset != null && offset > 0) {
+      setInstance.offset = offset;
+    }
+    if (length != null && elements.length < length) {
+      setInstance.count = elements.length;
+    }
+
+    return setInstance;
   }
 
   /// Return the available count of elements in the requested range.
@@ -628,6 +681,14 @@ class InstanceHelper extends Domain {
         if (metaData.isRecord) {
           return InstanceRef(
               kind: InstanceKind.kRecord,
+              id: objectId,
+              identityHashCode: remoteObject.objectId.hashCode,
+              classRef: metaData.classRef)
+            ..length = metaData.length;
+        }
+        if (metaData.isSet) {
+          return InstanceRef(
+              kind: InstanceKind.kSet,
               id: objectId,
               identityHashCode: remoteObject.objectId.hashCode,
               classRef: metaData.classRef)
