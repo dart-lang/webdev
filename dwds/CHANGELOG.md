@@ -2,6 +2,7 @@
 
 - Fix failure to map JS exceptions to dart. - [#2004](https://github.com/dart-lang/webdev/pull/2004)
 - Fix for listening to custom streams. - [#2011](https://github.com/dart-lang/webdev/pull/2011)
+- Support `Set` inspection. - [#2024](https://github.com/dart-lang/webdev/pull/2024)
 
 ## 18.0.0
 
