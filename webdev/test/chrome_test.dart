@@ -27,7 +27,8 @@ void main() {
       chrome!.chromeConnection.getUrl(_closeTabUrl(tab.id));
 
   Future<WipConnection> connectToTab(String url) async {
-    var tab = await chrome!.chromeConnection.getTab((t) => t.url.contains(url));
+    var tab = await chrome!.chromeConnection.getTab((t) => t.url.contains(url),
+        retryFor: const Duration(milliseconds: 60));
     expect(tab, isNotNull);
     return tab!.connect();
   }
@@ -78,7 +79,7 @@ void main() {
       } else {
         expect(result, contains('chrome_user_data'));
       }
-    });
+    }, skip: 'https://github.com/dart-lang/webdev/issues/2030');
   });
 
   group('chrome with user data dir', () {
@@ -152,7 +153,7 @@ void main() {
       } else {
         expect(result, contains('chrome_user_data_copy'));
       }
-    });
+    }, skip: 'https://github.com/dart-lang/webdev/issues/2030');
 
     test('can auto detect default chrome directory', () async {
       var userDataDir = autoDetectChromeUserDataDirectory();
@@ -170,7 +171,7 @@ void main() {
       expect(result, contains('chrome_user_data_copy'));
     }, onPlatform: {
       'windows': const Skip('https://github.com/dart-lang/webdev/issues/1545')
-    });
+    }, skip: 'https://github.com/dart-lang/webdev/issues/2030');
 
     test('cannot auto detect default chrome directory on windows', () async {
       var userDataDir = autoDetectChromeUserDataDirectory();
