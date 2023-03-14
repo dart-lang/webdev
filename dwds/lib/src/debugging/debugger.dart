@@ -83,6 +83,7 @@ class Debugger extends Domain {
   FrameComputer? stackComputer;
 
   bool _isStepping = false;
+  DartLocation? _previousSteppingLocation;
 
   void updateInspector(AppInspectorInterface appInspector) {
     inspector = appInspector;
@@ -143,6 +144,7 @@ class Debugger extends Domain {
       }
     } else {
       _isStepping = false;
+      _previousSteppingLocation = null;
       result = await _remoteDebugger.resume();
     }
     handleErrorIfPresent(result);
@@ -354,7 +356,14 @@ class Debugger extends Domain {
     final url = urlForScriptId(scriptId);
     if (url == null) return null;
 
-    return _locations.locationForJs(url, line, column);
+    final loc = await _locations.locationForJs(url, line, column);
+    if (loc == null || loc.dartLocation == _previousSteppingLocation) {
+      return null;
+    }
+    logger.severe('Previous location: $_previousSteppingLocation');
+    logger.severe('Location: $loc');
+    _previousSteppingLocation = loc.dartLocation;
+    return loc;
   }
 
   /// Returns script ID for the paused event.
