@@ -394,5 +394,5 @@ Future<void> _runTests({
         expect(await getFields(instanceRef, offset: 0), {1: false, 2: 5});
       });
     });
-  });
+  }, skip: 'https://github.com/dart-lang/webdev/pull/2032');
 }

@@ -52,5 +52,5 @@ void main() {
         expect(await webdev.exitCode, equals(0));
       });
     });
-  });
+  }, 'https://github.com/dart-lang/webdev/pull/2032');
 }

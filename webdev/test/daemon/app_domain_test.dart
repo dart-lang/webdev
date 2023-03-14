@@ -134,6 +134,6 @@ void main() {
         // This should cause webdev to exit.
         expect(await webdev.exitCode, equals(0));
       });
-    });
+    }, 'https://github.com/dart-lang/webdev/pull/2032');
   });
 }

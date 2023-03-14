@@ -32,5 +32,5 @@ void main() {
             startsWith('[{"event":"app.log","params":{"appId":"$appId",'
                 '"log":"Initial print from scopes app\\n"}}')));
     await exitWebdev(webdev);
-  });
+  }, 'https://github.com/dart-lang/webdev/pull/2032');
 }
