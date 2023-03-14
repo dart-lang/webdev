@@ -52,5 +52,5 @@ void main() {
         expect(await webdev.exitCode, equals(0));
       });
     });
-  });
+  }, skip: 'https://github.com/dart-lang/webdev/issues/2028');
 }
