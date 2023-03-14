@@ -162,7 +162,16 @@ Matcher matchRecordInstance({required int length, required String type}) =>
     isA<Instance>()
         .having((e) => e.kind, 'kind', InstanceKind.kRecord)
         .having((e) => e.length, 'length', length)
-        .having((e) => e.classRef!.name, 'classRef.name', type);
+        .having((e) => e.classRef!, 'classRef', matchRecordType(type));
+
+/// Currently some dart versions allow for the record type
+/// to show as `RecordType(type1, type2...)`, and some as `(type1, type2...)`.
+/// Match both versions.
+///
+/// TODO(annagrin): Replace by matching `(type1, type2...)` after dart 3.0
+/// is stable.
+Matcher matchRecordType(String type) => isA<ClassRef>().having((e) => e.name,
+    'type name', anyOf([type.replaceAll('RecordType', ''), type]));
 
 Object? _getValue(InstanceRef instanceRef) {
   switch (instanceRef.kind) {
