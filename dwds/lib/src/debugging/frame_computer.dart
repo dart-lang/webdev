@@ -16,6 +16,7 @@ class FrameComputer {
 
   final List<WipCallFrame> _callFrames;
   final List<Frame> _computedFrames = [];
+  final List<Frame> _jsFrames = [];
 
   var _frameIndex = 0;
 
@@ -51,6 +52,11 @@ class FrameComputer {
         _computedFrames.removeLast();
       }
 
+      // Only show JS frames if we were unable to calculate any Dart frames.
+      if (_computedFrames.isEmpty && _jsFrames.isNotEmpty) {
+        return _jsFrames.take(limit ?? _jsFrames.length).toList();
+      }
+
       return _computedFrames;
     });
   }
@@ -61,10 +67,16 @@ class FrameComputer {
 
       final callFrame = _callFrames[_frameIndex];
       final dartFrame =
-          await debugger.calculateDartFrameFor(callFrame, _frameIndex++);
+          await debugger.calculateDartFrameFor(callFrame, _frameIndex);
       if (dartFrame != null) {
         _computedFrames.add(dartFrame);
+      } else {
+        final jsFrame = debugger.calculateJsFrameFor(callFrame, _frameIndex);
+        if (jsFrame != null) {
+          _jsFrames.add(jsFrame);
+        }
       }
+      _frameIndex++;
     }
   }
 
@@ -103,13 +115,23 @@ class FrameComputer {
 
           final frame = await debugger.calculateDartFrameFor(
             tempWipFrame,
-            _frameIndex++,
+            _frameIndex,
             populateVariables: false,
           );
           if (frame != null) {
             frame.kind = FrameKind.kAsyncCausal;
             _computedFrames.add(frame);
+          } else {
+            final jsFrame = debugger.calculateJsFrameFor(
+              tempWipFrame,
+              _frameIndex,
+              isAsync: true,
+            );
+            if (jsFrame != null) {
+              _jsFrames.add(jsFrame);
+            }
           }
+          _frameIndex++;
         }
       }
 

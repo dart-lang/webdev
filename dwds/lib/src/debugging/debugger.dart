@@ -587,6 +587,33 @@ class Debugger extends Domain {
     return dartFrame;
   }
 
+  /// Returns a JS [Frame] from a Chrome frame.
+  Frame? calculateJsFrameFor(
+    WipCallFrame frame,
+    int frameIndex, {
+    bool isAsync = false,
+  }) {
+    final location = frame.location;
+    final url = urlForScriptId(location.scriptId);
+
+    final jsFrame = Frame(
+      index: frameIndex,
+      code: CodeRef(
+        name: frame.functionName.isEmpty ? 'anonymous' : frame.functionName,
+        kind: CodeKind.kNative,
+        id: createId(),
+      ),
+      location: SourceLocation(
+        script: ScriptRef(uri: url, id: createId()),
+        line: location.lineNumber,
+        column: location.columnNumber,
+      ),
+      kind: isAsync ? FrameKind.kAsyncCausal : FrameKind.kRegular,
+    );
+
+    return jsFrame;
+  }
+
   /// Handles pause events coming from the Chrome connection.
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
     final isolate = inspector.isolate;
