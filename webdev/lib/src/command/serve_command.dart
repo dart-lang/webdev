@@ -6,8 +6,10 @@ import 'dart:async';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:logging/logging.dart';
 
 import '../logging.dart';
+import '../pubspec.dart';
 import '../serve/dev_workflow.dart';
 import 'configuration.dart';
 import 'shared.dart';
@@ -93,7 +95,13 @@ refresh: Performs a full page refresh.
     Configuration configuration;
     configuration = Configuration.fromArgs(argResults);
     configureLogWriter(configuration.verbose);
-    var pubspecLock = await readPubspecLock(configuration);
+    PubspecLock? pubspecLock;
+    try {
+      pubspecLock = await readPubspecLock(configuration);
+    } on PackageException catch (e) {
+      logWriter(Level.SEVERE, 'Pubspec errors: ', error: '${e.details}');
+      rethrow;
+    }
     // Forward remaining arguments as Build Options to the Daemon.
     // This isn't documented. Should it be advertised?
     var buildOptions = buildRunnerArgs(pubspecLock, configuration)

@@ -48,6 +48,8 @@ class AppDomain extends Domain {
           'finished': true,
         });
         break;
+      default:
+        break;
     }
   }
 
