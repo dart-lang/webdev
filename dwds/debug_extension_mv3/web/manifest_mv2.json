@@ -1,6 +1,6 @@
 {
   "name": "Dart Debug Extension",
-  "version": "1.31",
+  "version": "1.33",
   "manifest_version": 2,
   "devtools_page": "static_assets/devtools.html",
   "browser_action": {
