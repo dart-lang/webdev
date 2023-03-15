@@ -15,6 +15,6 @@ dependencies:
 dev_dependencies:
   lints: ^2.0.0
 
-# dependency_overrides:d
+# dependency_overrides:
 #   dwds:
 #     path: ../dwds
