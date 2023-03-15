@@ -1,5 +1,7 @@
 ## 3.0.2-dev
 
+-  Update `build_daemon` constraint to `^4.0.0`.
+
 ## 3.0.1
 
 - Update SDK constraint to `>=3.0.0-188.0.dev <4.0.0`.
