@@ -11,9 +11,14 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 ///
 /// This is taken from a real run, but truncated to two levels of scope and one
 /// level of stack.
-List<WipCallFrame> frames1 = frames1Json.map(WipCallFrame.new).toList();
+List<WipCallFrame> dartFrames = dartFramesJson.map(WipCallFrame.new).toList();
 
-List<Map<String, dynamic>> frames1Json = [
+List<WipCallFrame> jsFrames = jsFramesJson.map(WipCallFrame.new).toList();
+
+List<WipCallFrame> dartAndJsFrames =
+    [...dartFramesJson, ...jsFramesJson].map(WipCallFrame.new).toList();
+
+List<Map<String, dynamic>> dartFramesJson = [
   {
     "callFrameId": "{\"ordinal\":0,\"injectedScriptId\":2}",
     "functionName": "",
@@ -84,6 +89,39 @@ List<Map<String, dynamic>> frames1Json = [
     ],
     "this": {"type": "undefined"},
   }
+];
+
+final jsFramesJson = [
+  {
+    "url": "http://localhost:63691/dwds/src/injected/client.js",
+    "functionName": "createTimer",
+    "location": {
+      "scriptId": "239",
+      "lineNumber": 19833,
+      "columnNumber": 18,
+    },
+    "scopeChain": []
+  },
+  {
+    "url": "http://localhost:63691/dwds/src/injected/client.js",
+    "functionName": "rootRun",
+    "location": {
+      "scriptId": "239",
+      "lineNumber": 12193,
+      "columnNumber": 2,
+    },
+    "scopeChain": []
+  },
+  {
+    "url": "http://localhost:63691/dwds/src/injected/client.js",
+    "functionName": "runGuarded",
+    "location": {
+      "scriptId": "239",
+      "lineNumber": 13008,
+      "columnNumber": 13,
+    },
+    "scopeChain": []
+  },
 ];
 
 /// Data in the form returned from getProperties called twice on successive

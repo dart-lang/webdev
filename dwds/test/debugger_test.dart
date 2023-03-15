@@ -101,8 +101,8 @@ void main() async {
 
   /// Test that we get expected variable values from a hard-coded
   /// stack frame.
-  test('frames 1', () async {
-    final stackComputer = FrameComputer(debugger, frames1);
+  test('Only Dart frames', () async {
+    final stackComputer = FrameComputer(debugger, dartFrames);
     final frames = await stackComputer.calculateFrames();
     expect(frames, isNotNull);
     expect(frames, isNotEmpty);
@@ -110,6 +110,42 @@ void main() async {
     final firstFrameVars = frames[0].vars!;
     final frame1Variables = firstFrameVars.map((each) => each.name).toList();
     expect(frame1Variables, ['a', 'b']);
+  });
+
+  /// Test that we get JS frames if only JS frames are in the stack trace:
+  test('Only JS frames', () async {
+    final stackComputer = FrameComputer(debugger, jsFrames);
+    final frames = await stackComputer.calculateFrames();
+
+    expect(frames, isNotNull);
+    expect(frames.length, equals(3));
+
+    final firstFrame = frames[0];
+    expect(firstFrame.code?.kind, equals('Native'));
+    expect(firstFrame.code?.name, equals('createTimer'));
+
+    final secondFrame = frames[1];
+    expect(secondFrame.code?.kind, equals('Native'));
+    expect(secondFrame.code?.name, equals('rootRun'));
+
+    final thirdFrame = frames[2];
+    expect(thirdFrame.code?.kind, equals('Native'));
+    expect(thirdFrame.code?.name, equals('runGuarded'));
+  });
+
+  /// Test that we get only Dart frames if both Dart and JS frames are in the stack trace:
+  test('Dart and JS frames', () async {
+    final stackComputer = FrameComputer(debugger, dartAndJsFrames);
+    final frames = await stackComputer.calculateFrames();
+
+    expect(frames, isNotNull);
+    expect(frames, isNotEmpty);
+
+    final jsFrames = frames.where((frame) => frame.code?.kind == 'Native');
+    final dartFrames = frames.where((frame) => frame.code?.kind == 'Dart');
+
+    expect(jsFrames, isEmpty);
+    expect(dartFrames, isNotEmpty);
   });
 
   test('creates async frames', () async {
