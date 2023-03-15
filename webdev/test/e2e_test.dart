@@ -513,5 +513,5 @@ void main() {
         });
       });
     }
-  }, skip: 'https://github.com/dart-lang/webdev/issues/2028');
+  });
 }
