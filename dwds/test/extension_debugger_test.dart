@@ -50,12 +50,12 @@ void main() async {
     test('an ExtensionEvent', () async {
       final extensionEvent = ExtensionEvent((b) => b
         ..method = jsonEncode('Debugger.paused')
-        ..params = jsonEncode(frames1Json[0]));
+        ..params = jsonEncode(dartFramesJson[0]));
       connection.controllerIncoming.sink
           .add(jsonEncode(serializers.serialize(extensionEvent)));
       final wipEvent = await extensionDebugger.onNotification.first;
       expect(wipEvent.method, 'Debugger.paused');
-      expect(wipEvent.params, frames1Json[0]);
+      expect(wipEvent.params, dartFramesJson[0]);
     });
 
     test('a BatchedEvents', () async {
