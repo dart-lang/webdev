@@ -5,6 +5,9 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
 
+import 'dart:io';
+
+import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -146,5 +149,7 @@ Future<void> _runTests({
         }
       });
     });
-  });
+  }, // TODO(annagrin): Remove when dart 3.0 is stable.
+      skip: semver.Version.parse(Platform.version.split(' ')[0]) <=
+          semver.Version.parse('3.0.0-322.0.dev'));
 }

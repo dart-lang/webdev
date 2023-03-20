@@ -1,6 +1,7 @@
 ## 18.0.2-dev
 
 - Support new DDC temp names for patterns. - [#2042](https://github.com/dart-lang/webdev/pull/2042)
+- Make debugger find next dart location when stepping.
 
 ## 18.0.1
 
