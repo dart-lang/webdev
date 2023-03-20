@@ -207,6 +207,10 @@ class ExpressionEvaluator {
 
     // Compile expression using an expression compiler, such as
     // frontend server or expression compiler worker.
+    //
+    // TODO(annagrin): map JS locals to dart locals in the expression
+    // and JS scope before passing them to the dart expression compiler.
+    // Issue:  https://github.com/dart-lang/sdk/issues/40273
     final compilationResult = await _compiler.compileExpressionToJs(
         isolateId,
         libraryUri.toString(),

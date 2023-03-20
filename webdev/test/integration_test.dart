@@ -72,7 +72,7 @@ name: sample
   var invalidRanges = <String, List<String>>{
     'build_runner': ['0.8.9', '3.0.0'],
     'build_web_compilers': ['0.3.5', '5.0.0'],
-    'build_daemon': ['0.3.0', '4.0.0'],
+    'build_daemon': ['0.3.0', '5.0.0'],
   };
 
   for (var command in ['build', 'serve', 'daemon']) {
@@ -174,7 +174,7 @@ name: sample
                   break;
                 case 'build_daemon':
                   buildDaemonVersion = version;
-                  supportedRange = '>=$_supportedBuildDaemonVersion <4.0.0';
+                  supportedRange = '^$_supportedBuildDaemonVersion';
               }
 
               await d.file('pubspec.yaml', '''
@@ -278,7 +278,7 @@ dependencies:
 
 const _supportedBuildRunnerVersion = '2.4.0';
 const _supportedWebCompilersVersion = '4.0.0';
-const _supportedBuildDaemonVersion = '2.0.0';
+const _supportedBuildDaemonVersion = '4.0.0';
 
 String _pubspecLock(
     {String? runnerVersion = _supportedBuildRunnerVersion,

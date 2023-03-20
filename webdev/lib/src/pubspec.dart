@@ -126,7 +126,7 @@ class PubspecLock {
 
 Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
     PubspecLock pubspecLock) async {
-  var buildDaemonConstraint = '>=2.0.0 <4.0.0';
+  var buildDaemonConstraint = '^4.0.0';
 
   var issues = <PackageExceptionDetails>[];
 

@@ -7,6 +7,7 @@
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -14,36 +15,67 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
 void main() {
-  final provider = TestSdkConfigurationProvider();
+  // set to true for debug logging.
+  final debug = false;
+
+  final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
   final context =
       TestContext(TestProject.testScopesWithSoundNullSafety, provider);
 
   setUpAll(() async {
-    await context.setUp();
+    setCurrentLogWriter(debug: debug);
+    await context.setUp(verboseCompiler: debug);
   });
 
   tearDownAll(() async {
     await context.tearDown();
   });
 
-  group('ddcTemporaryVariableRegExp', () {
-    test('matches correctly', () {
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't4$'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't4$0'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't4$10'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't4$0'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't1'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't10'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r'__t$TL'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r'__t$StringN'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r'__t$IdentityMapOfString$T'),
+  group('temporary variable regular expression', () {
+    setUpAll(() => setCurrentLogWriter(debug: debug));
+    test('matches correctly for pre-patterns temporary variables', () {
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't4$'), isTrue);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't4$0'), isTrue);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't4$10'), isTrue);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't4$0'), isTrue);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't1'), isTrue);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't10'), isTrue);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r'__t$TL'), isTrue);
+      expect(
+          previousDdcTemporaryVariableRegExp.hasMatch(r'__t$StringN'), isTrue);
+      expect(
+          previousDdcTemporaryVariableRegExp
+              .hasMatch(r'__t$IdentityMapOfString$T'),
+          isTrue);
+
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't'), isFalse);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't10foo'), isFalse);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't$10foo'), isFalse);
+    });
+
+    test('matches correctly for post-patterns temporary variables', () {
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't$364$'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't$364$0'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't$364$10'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't$364$0'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't$361'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't$36$350$350'), isTrue);
+      expect(
+          ddcTemporaryVariableRegExp.hasMatch(r't$36$350$354$35isSet'), isTrue);
+      expect(ddcTemporaryTypeVariableRegExp.hasMatch(r'__t$TL'), isTrue);
+      expect(ddcTemporaryTypeVariableRegExp.hasMatch(r'__t$StringN'), isTrue);
+      expect(
+          ddcTemporaryTypeVariableRegExp.hasMatch(r'__t$IdentityMapOfString$T'),
           isTrue);
 
       expect(ddcTemporaryVariableRegExp.hasMatch(r't'), isFalse);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r'this'), isFalse);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r'\$this'), isFalse);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't10'), isFalse);
       expect(ddcTemporaryVariableRegExp.hasMatch(r't10foo'), isFalse);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't$10foo'), isFalse);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r'ten'), isFalse);
     });
   });
 
@@ -108,6 +140,8 @@ void main() {
           variable.name: variable.value as InstanceRef?,
       };
     }
+
+    setUpAll(() => setCurrentLogWriter(debug: debug));
 
     setUp(() async {
       service = context.service;

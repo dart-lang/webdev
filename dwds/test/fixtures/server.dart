@@ -97,6 +97,8 @@ class TestServer {
           return BuildResult((b) => b.status = BuildStatus.failed);
         case daemon.BuildStatus.succeeded:
           return BuildResult((b) => b.status = BuildStatus.succeeded);
+        default:
+          break;
       }
       throw StateError('Unexpected Daemon build result: $result');
     });
