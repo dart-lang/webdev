@@ -119,6 +119,20 @@ class TestInspector {
     expect(result, isA<Instance>());
     return result as Instance;
   }
+
+  Future<Map<String?, Instance?>> getFrameVariables(
+      String isolateId, Frame frame) async {
+    final refs = <String, InstanceRef>{
+      for (var variable in frame.vars!)
+        variable.name!: variable.value as InstanceRef
+    };
+    final instances = <String, Instance>{};
+    for (final p in refs.entries) {
+      instances[p.key] =
+          await service.getObject(isolateId, p.value.id!) as Instance;
+    }
+    return instances;
+  }
 }
 
 Map<String, InstanceRef> _associationsToMap(
@@ -179,7 +193,7 @@ Object? _getValue(InstanceRef instanceRef) {
       return instanceRef.valueAsString == 'true';
     case InstanceKind.kDouble:
     case InstanceKind.kInt:
-      return int.parse(instanceRef.valueAsString!);
+      return double.parse(instanceRef.valueAsString!);
     case InstanceKind.kString:
       return instanceRef.valueAsString;
     default:

@@ -138,7 +138,6 @@ Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
 
   // Only warn of build_daemon issues if they have a dependency on the package.
   if (buildDaemonIssues.any((issue) => !issue._missingDependency)) {
-    print('Build daemon issues: $buildDaemonIssues');
     var info = await _latestPackageInfo();
     var issuePreamble =
         'This version of webdev does not support the `build_daemon` '

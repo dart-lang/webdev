@@ -360,8 +360,6 @@ class Debugger extends Domain {
     if (loc == null || loc.dartLocation == _previousSteppingLocation) {
       return null;
     }
-    logger.severe('Previous location: $_previousSteppingLocation');
-    logger.severe('Location: $loc');
     _previousSteppingLocation = loc.dartLocation;
     return loc;
   }

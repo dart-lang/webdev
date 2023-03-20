@@ -82,11 +82,6 @@ class DartLocation {
     if (other is! DartLocation) {
       return false;
     }
-    print('Compare locations: $this, $other');
-    final result = uri.serverPath == other.uri.serverPath &&
-        line == other.line &&
-        column == other.column;
-    print('Locations are the same: $result');
     return uri.serverPath == other.uri.serverPath &&
         line == other.line &&
         column == other.column;

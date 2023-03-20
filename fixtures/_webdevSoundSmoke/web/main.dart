@@ -19,18 +19,5 @@ void main() {
   var count = 0;
   Timer.periodic(const Duration(seconds: 1), (_) {
     print('Counter is: ${++count}'); // Breakpoint: printCounter
-
-    final lor = testLogicalOr([0, 1]);
-    print(lor);
   });
-}
-
-String testLogicalOr(Object obj) {
-  switch (obj) {
-    case [var a, int n] || [int n, var a] when n == 1 && a is String:
-    case [double n, var a] || [var a, double n] when (n - 3.14).abs() < 0.001:
-      return a.toString();
-    default:
-      return 'default';
-  }
 }
