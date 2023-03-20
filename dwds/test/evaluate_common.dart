@@ -105,6 +105,27 @@ void testAll({
         await context.service.resume(isolateId);
       });
 
+      test('extension method scope variables can be evaluated', () async {
+        await onBreakPoint(isolateId, mainScript, 'extension', () async {
+          final event = await stream
+              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
+          final stack = await context.service.getStack(isolateId);
+          final scope = _getFrameVariables(stack.frames!.first);
+          for (var p in scope.entries) {
+            final name = p.key;
+            final value = p.value as InstanceRef;
+            final result = await context.service
+                .evaluateInFrame(isolateId, event.topFrame!.index!, name!);
+
+            expect(
+                result,
+                isA<InstanceRef>().having((instance) => instance.valueAsString,
+                    'valueAsString', value.valueAsString));
+          }
+        });
+      }, skip: 'https://github.com/dart-lang/webdev/issues/1371');
+
       test('uses correct null safety mode', () async {
         await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           final event = await stream
@@ -694,4 +715,11 @@ void testAll({
       });
     });
   });
+}
+
+Map<String?, InstanceRef?> _getFrameVariables(Frame frame) {
+  return <String?, InstanceRef?>{
+    for (var variable in frame.vars!)
+      variable.name: variable.value as InstanceRef?,
+  };
 }

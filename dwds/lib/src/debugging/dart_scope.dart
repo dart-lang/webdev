@@ -6,9 +6,19 @@ import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-// TODO(sdk/issues/44262) - use an alternative way to identify synthetic
-// variables.
-final ddcTemporaryVariableRegExp = RegExp(r'^(t[0-9]+\$?[0-9]*|__t[\$\w*]+)$');
+/// The regular expressions used to filter out temp variables.
+/// Needs to be kept in sync with SDK repo.
+///
+/// TODO(annagrin) - use an alternative way to identify
+/// synthetic variables.
+/// Issue: https://github.com/dart-lang/sdk/issues/44262
+final ddcTemporaryVariableRegExp = RegExp(r'^t(\$[0-9]*)+\w*$');
+final ddcTemporaryTypeVariableRegExp = RegExp(r'^__t[\$\w*]+$');
+
+/// Temporary variable regex before SDK changes for patterns.
+/// TODO(annagrin): remove after dart 3.0 is stable.
+final previousDdcTemporaryVariableRegExp =
+    RegExp(r'^(t[0-9]+\$?[0-9]*|__t[\$\w*]+)$');
 
 /// Find the visible Dart properties from a JS Scope Chain, coming from the
 /// scopeChain attribute of a Chrome CallFrame corresponding to [frame].
@@ -65,7 +75,9 @@ Future<List<Property>> visibleProperties({
     // Dart generic function, where the type arguments get passed in as
     // parameters. Hide those.
     return (type == 'function' && description.startsWith('class ')) ||
-        (ddcTemporaryVariableRegExp.hasMatch(name)) ||
+        previousDdcTemporaryVariableRegExp.hasMatch(name) ||
+        ddcTemporaryVariableRegExp.hasMatch(name) ||
+        ddcTemporaryTypeVariableRegExp.hasMatch(name) ||
         (type == 'object' && description == 'dart.LegacyType.new');
   });
 
