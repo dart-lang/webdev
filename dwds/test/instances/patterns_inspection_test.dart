@@ -150,6 +150,6 @@ Future<void> _runTests({
       });
     });
   }, // TODO(annagrin): Remove when dart 3.0 is stable.
-      skip: semver.Version.parse(Platform.version.split(' ')[0]) <=
-          semver.Version.parse('3.0.0-322.0.dev'));
+      skip: semver.Version.parse(Platform.version.split(' ')[0]) <
+          semver.Version.parse('3.0.0-351.0.dev'));
 }
