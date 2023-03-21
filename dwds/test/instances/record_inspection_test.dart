@@ -65,7 +65,7 @@ Future<void> _runTests({
         compilationMode: compilationMode,
         enableExpressionEvaluation: true,
         verboseCompiler: debug,
-        experiments: ['records'],
+        experiments: ['records', 'patterns'],
       );
       service = context.debugConnection.vmService;
 
