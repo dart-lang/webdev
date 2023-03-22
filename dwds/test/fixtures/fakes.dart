@@ -163,6 +163,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
       (String _) => '',
       (MetadataProvider _) async => <String, ModuleInfo>{},
       FakeAssetReader(),
+      Uri.parse('package:fakeapp/main.dart'),
     );
   }
 
@@ -303,6 +304,9 @@ class FakeStrategy implements LoadStrategy {
 
   @override
   String get loadModuleSnippet => '';
+
+  @override
+  Uri? get appEntrypoint => Uri.parse('package:myapp/main.dart');
 
   @override
   ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;

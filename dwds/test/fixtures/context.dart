@@ -281,10 +281,8 @@ class TestContext {
             }
 
             requireStrategy = BuildRunnerRequireStrategyProvider(
-              assetHandler,
-              reloadConfiguration,
-              assetReader,
-            ).strategy;
+                    assetHandler, reloadConfiguration, assetReader, Uri())
+                .strategy;
 
             buildResults = daemonClient.buildResults;
           }
@@ -330,12 +328,14 @@ class TestContext {
             _assetHandler = webRunner.devFS.assetServer.handleRequest;
 
             requireStrategy = FrontendServerRequireStrategyProvider(
-                    reloadConfiguration,
-                    assetReader,
-                    packageUriMapper,
-                    () async => {},
-                    basePath)
-                .strategy;
+              reloadConfiguration,
+              assetReader,
+              packageUriMapper,
+              () async => {},
+              basePath,
+              // TODO: switch to package path
+              Uri.parse(_dartEntryFilePath),
+            ).strategy;
 
             buildResults = const Stream<BuildResults>.empty();
           }
