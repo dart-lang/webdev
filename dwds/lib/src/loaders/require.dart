@@ -132,6 +132,10 @@ class RequireStrategy extends LoadStrategy {
   final Future<Map<String, ModuleInfo>> Function(
       MetadataProvider metadataProvider) _moduleInfoForProvider;
 
+  @override
+  Uri? get appEntrypoint => _appEntrypoint;
+  final Uri? _appEntrypoint;
+
   RequireStrategy(
     this.reloadConfiguration,
     this._moduleProvider,
@@ -142,6 +146,7 @@ class RequireStrategy extends LoadStrategy {
     this._serverPathForAppUri,
     this._moduleInfoForProvider,
     AssetReader assetReader,
+    this._appEntrypoint,
   ) : super(assetReader);
 
   @override

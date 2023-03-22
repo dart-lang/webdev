@@ -16,6 +16,7 @@ class FrontendServerRequireStrategyProvider {
   final PackageUriMapper _packageUriMapper;
   final Future<Map<String, String>> Function() _digestsProvider;
   final String _basePath;
+  final Uri? _appEntrypoint;
 
   late final RequireStrategy _requireStrategy = RequireStrategy(
     _configuration,
@@ -27,6 +28,7 @@ class FrontendServerRequireStrategyProvider {
     _serverPathForAppUri,
     _moduleInfoForProvider,
     _assetReader,
+    _appEntrypoint,
   );
 
   FrontendServerRequireStrategyProvider(
@@ -35,6 +37,7 @@ class FrontendServerRequireStrategyProvider {
     this._packageUriMapper,
     this._digestsProvider,
     this._basePath,
+    this._appEntrypoint,
   );
 
   RequireStrategy get strategy => _requireStrategy;

@@ -60,6 +60,8 @@ class LegacyStrategy extends LoadStrategy {
   /// an app URI.
   final String? Function(String appUri) _serverPathForAppUri;
 
+  final Uri? _appEntrypoint;
+
   LegacyStrategy(
     this.reloadConfiguration,
     this._moduleForServerPath,
@@ -68,6 +70,7 @@ class LegacyStrategy extends LoadStrategy {
     this._serverPathForAppUri,
     this._moduleInfoForProvider,
     AssetReader assetReader,
+    this._appEntrypoint,
   ) : super(assetReader);
 
   @override
@@ -117,4 +120,7 @@ class LegacyStrategy extends LoadStrategy {
 
   @override
   String? serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);
+
+  @override
+  Uri? get appEntrypoint => _appEntrypoint;
 }
