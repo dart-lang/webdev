@@ -412,7 +412,10 @@ class DevHandler {
 
       // Reconnect to existing service.
       services.connectedInstanceId = message.instanceId;
-      await services.chromeProxyService.createIsolate(connection);
+      await services.chromeProxyService.createIsolate(
+        connection,
+        _loadStrategy,
+      );
     }
     _appConnectionByAppId[message.appId] = connection;
     _connectedApps.add(connection);
@@ -429,7 +432,10 @@ class DevHandler {
       AppConnection appConnection, SocketConnection sseConnection) async {
     await _servicesByAppId[appConnection.request.appId]
         ?.chromeProxyService
-        .createIsolate(appConnection);
+        .createIsolate(
+          appConnection,
+          _loadStrategy,
+        );
   }
 
   void _listen() {

@@ -23,8 +23,11 @@ class LibraryHelper extends Domain {
 
   LibraryRef? _rootLib;
 
-  LibraryHelper(AppInspectorInterface appInspector) {
+  late final LoadStrategy _loadStrategy;
+
+  LibraryHelper(AppInspectorInterface appInspector, LoadStrategy loadStrategy) {
     inspector = appInspector;
+    _loadStrategy = loadStrategy;
   }
 
   Future<LibraryRef> get rootLib async {
@@ -32,6 +35,10 @@ class LibraryHelper extends Domain {
     // TODO: read entrypoint from app metadata.
     // Issue: https://github.com/dart-lang/webdev/issues/1290
     final libraries = await libraryRefs;
+    if (_loadStrategy.appEntrypoint != null) {
+      _rootLib = libraries.firstWhereOrNull(
+          (lib) => Uri.parse(lib.uri ?? '') == _loadStrategy.appEntrypoint);
+    }
     _rootLib = libraries
         .firstWhereOrNull((lib) => lib.name?.contains('org-dartlang') ?? false);
     _rootLib = _rootLib ??

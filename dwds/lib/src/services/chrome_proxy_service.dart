@@ -159,7 +159,10 @@ class ChromeProxyService implements VmServiceInterface {
       executionContext,
       expressionCompiler,
     );
-    safeUnawaited(service.createIsolate(appConnection));
+    safeUnawaited(service.createIsolate(
+      appConnection,
+      loadStrategy,
+    ));
     return service;
   }
 
@@ -229,7 +232,8 @@ class ChromeProxyService implements VmServiceInterface {
   /// Only one isolate at a time is supported, but they should be cleaned up
   /// with [destroyIsolate] and recreated with this method there is a hot
   /// restart or full page refresh.
-  Future<void> createIsolate(AppConnection appConnection) async {
+  Future<void> createIsolate(
+      AppConnection appConnection, LoadStrategy loadStrategy) async {
     // Inspector is null if the previous isolate is destroyed.
     if (_isIsolateRunning) {
       throw UnsupportedError(
@@ -248,14 +252,14 @@ class ChromeProxyService implements VmServiceInterface {
 
     debugger.notifyPausedAtStart();
     _inspector = await AppInspector.create(
-      appConnection,
-      remoteDebugger,
-      _assetReader,
-      _locations,
-      root,
-      debugger,
-      executionContext,
-    );
+        appConnection,
+        remoteDebugger,
+        _assetReader,
+        _locations,
+        root,
+        debugger,
+        executionContext,
+        loadStrategy);
     debugger.updateInspector(inspector);
 
     final compiler = _compiler;
