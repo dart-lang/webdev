@@ -39,8 +39,8 @@ class LibraryHelper extends Domain {
       _rootLib = libraries.firstWhereOrNull(
           (lib) => Uri.parse(lib.uri ?? '') == _loadStrategy.appEntrypoint);
     } else {
-      _rootLib = libraries
-          .firstWhereOrNull((lib) => lib.name?.contains('org-dartlang') ?? false);
+      _rootLib = libraries.firstWhereOrNull(
+          (lib) => lib.name?.contains('org-dartlang') ?? false);
       _rootLib = _rootLib ??
           libraries
               .firstWhereOrNull((lib) => lib.name?.contains('main') ?? false);
