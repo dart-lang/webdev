@@ -65,7 +65,7 @@ Future<void> _runTests({
         compilationMode: compilationMode,
         enableExpressionEvaluation: true,
         verboseCompiler: debug,
-        experiments: ['records'],
+        experiments: ['records', 'patterns'],
       );
       service = context.debugConnection.vmService;
 
@@ -88,7 +88,7 @@ Future<void> _runTests({
     tearDown(() => service.resume(isolateId));
 
     test('simple records', () async {
-      await onBreakPoint('printSimpleLocal', (event) async {
+      await onBreakPoint('printSimpleLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
@@ -111,7 +111,7 @@ Future<void> _runTests({
     });
 
     test('simple records, field access', () async {
-      await onBreakPoint('printSimpleLocal', (event) async {
+      await onBreakPoint('printSimpleLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         expect(await getInstance(frame, r'record.$1'),
             matchPrimitiveInstance(kind: InstanceKind.kBool, value: true));
@@ -122,7 +122,7 @@ Future<void> _runTests({
     });
 
     test('simple records with named fields', () async {
-      await onBreakPoint('printSimpleNamedLocal', (event) async {
+      await onBreakPoint('printSimpleNamedLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
@@ -149,7 +149,7 @@ Future<void> _runTests({
     });
 
     test('simple records with named fields, field access', () async {
-      await onBreakPoint('printSimpleNamedLocal', (event) async {
+      await onBreakPoint('printSimpleNamedLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         expect(await getInstance(frame, r'record.$1'),
             matchPrimitiveInstance(kind: InstanceKind.kBool, value: true));
@@ -160,7 +160,7 @@ Future<void> _runTests({
     });
 
     test('complex records fields', () async {
-      await onBreakPoint('printComplexLocal', (event) async {
+      await onBreakPoint('printComplexLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
@@ -208,7 +208,7 @@ Future<void> _runTests({
     });
 
     test('complex records, field access', () async {
-      await onBreakPoint('printComplexLocal', (event) async {
+      await onBreakPoint('printComplexLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         expect(await getInstance(frame, r'record.$1'),
             matchPrimitiveInstance(kind: InstanceKind.kBool, value: true));
@@ -223,7 +223,7 @@ Future<void> _runTests({
     });
 
     test('complex records with named fields', () async {
-      await onBreakPoint('printComplexNamedLocal', (event) async {
+      await onBreakPoint('printComplexNamedLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
@@ -272,7 +272,7 @@ Future<void> _runTests({
     });
 
     test('complex records with named fields, field access', () async {
-      await onBreakPoint('printComplexNamedLocal', (event) async {
+      await onBreakPoint('printComplexNamedLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         expect(await getInstance(frame, r'record.$1'),
             matchPrimitiveInstance(kind: InstanceKind.kBool, value: true));
@@ -287,7 +287,7 @@ Future<void> _runTests({
     });
 
     test('nested records', () async {
-      await onBreakPoint('printNestedLocal', (event) async {
+      await onBreakPoint('printNestedLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
@@ -324,7 +324,7 @@ Future<void> _runTests({
     });
 
     test('nested records, field access', () async {
-      await onBreakPoint('printNestedLocal', (event) async {
+      await onBreakPoint('printNestedLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, r'record.$2');
 
@@ -338,7 +338,7 @@ Future<void> _runTests({
     });
 
     test('nested records with named fields,', () async {
-      await onBreakPoint('printNestedNamedLocal', (event) async {
+      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
@@ -382,7 +382,7 @@ Future<void> _runTests({
     });
 
     test('nested records with named fields, field access', () async {
-      await onBreakPoint('printNestedNamedLocal', (event) async {
+      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, r'record.inner');
 

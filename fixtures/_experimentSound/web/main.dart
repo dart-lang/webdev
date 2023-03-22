@@ -9,44 +9,58 @@ import 'dart:html';
 void main() {
   // for evaluation
   Timer.periodic(const Duration(seconds: 1), (_) {
-    printSimpleLocal();
-    printComplexLocal();
-    printNestedLocal();
-    printSimpleNamedLocal();
-    printComplexNamedLocal();
-    printNestedNamedLocal();
+    printSimpleLocalRecord();
+    printComplexLocalRecord();
+    printNestedLocalRecord();
+    printSimpleNamedLocalRecord();
+    printComplexNamedLocalRecord();
+    printNestedNamedLocalRecord();
+    print('Patterns'); // Breakpoint: callTestPattern1
+    testPattern(['a', 1]);
+    testPattern([3.14, 'b']);
+    testPattern([0, 1]);
   });
 
   document.body!.appendText('Program is running!');
 }
 
-void printSimpleLocal() {
+void printSimpleLocalRecord() {
   final record = (true, 3);
-  print(record); // Breakpoint: printSimpleLocal
+  print(record); // Breakpoint: printSimpleLocalRecord
 }
 
-void printSimpleNamedLocal() {
+void printSimpleNamedLocalRecord() {
   final record = (true, cat: 'Vasya');
-  print(record); // Breakpoint: printSimpleNamedLocal
+  print(record); // Breakpoint: printSimpleNamedLocalRecord
 }
 
-void printComplexLocal() {
+void printComplexLocalRecord() {
   final record = (true, 3, {'a': 1, 'b': 5});
-  print(record); // Breakpoint: printComplexLocal
+  print(record); // Breakpoint: printComplexLocalRecord
 }
 
-void printComplexNamedLocal() {
+void printComplexNamedLocalRecord() {
   final record = (true, 3, array: {'a': 1, 'b': 5});
-  print(record); // Breakpoint: printComplexNamedLocal
+  print(record); // Breakpoint: printComplexNamedLocalRecord
 }
 
-void printNestedLocal() {
+void printNestedLocalRecord() {
   final record = (true, (false, 5));
-  print(record); // Breakpoint: printNestedLocal
+  print(record); // Breakpoint: printNestedLocalRecord
 }
 
-void printNestedNamedLocal() {
+void printNestedNamedLocalRecord() {
   final record = (true, inner: (false, 5));
-  print(record); // Breakpoint: printNestedNamedLocal
+  print(record); // Breakpoint: printNestedNamedLocalRecord
 }
 
+String testPattern(Object obj) {
+  switch (obj) {
+    case [var a, int n] || [int n, var a] when n == 1 && a is String:
+      return a.toString(); // Breakpoint: testPatternCase1
+    case [double n, var a] || [var a, double n] when (n - 3.14).abs() < 0.001:
+      return a.toString(); // Breakpoint: testPatternCase2
+    default:
+      return 'default'; // Breakpoint: testPatternDefault
+  }
+}

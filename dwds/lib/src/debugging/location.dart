@@ -75,6 +75,19 @@ class DartLocation {
   }
 
   @override
+  int get hashCode => Object.hashAll([uri, line, column]);
+
+  @override
+  bool operator ==(Object? other) {
+    if (other is! DartLocation) {
+      return false;
+    }
+    return uri.serverPath == other.uri.serverPath &&
+        line == other.line &&
+        column == other.column;
+  }
+
+  @override
   String toString() => '[${uri.serverPath}:$line:$column]';
 
   factory DartLocation.fromZeroBased(DartUri uri, int line, int column) =>
