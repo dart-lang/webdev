@@ -38,12 +38,13 @@ class LibraryHelper extends Domain {
     if (_loadStrategy.appEntrypoint != null) {
       _rootLib = libraries.firstWhereOrNull(
           (lib) => Uri.parse(lib.uri ?? '') == _loadStrategy.appEntrypoint);
+    } else {
+      _rootLib = libraries
+          .firstWhereOrNull((lib) => lib.name?.contains('org-dartlang') ?? false);
+      _rootLib = _rootLib ??
+          libraries
+              .firstWhereOrNull((lib) => lib.name?.contains('main') ?? false);
     }
-    _rootLib = libraries
-        .firstWhereOrNull((lib) => lib.name?.contains('org-dartlang') ?? false);
-    _rootLib = _rootLib ??
-        libraries
-            .firstWhereOrNull((lib) => lib.name?.contains('main') ?? false);
     _rootLib = _rootLib ?? (libraries.isNotEmpty ? libraries.last : null);
     return _rootLib!;
   }
