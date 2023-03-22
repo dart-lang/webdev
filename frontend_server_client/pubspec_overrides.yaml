@@ -1,0 +1,4 @@
+dependency_overrides:
+  # Necessary to get a version solve until test_core allows version 3.x of
+  # this package
+  test_core: ^0.4.13

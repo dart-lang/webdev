@@ -1,0 +1,5 @@
+dependency_overrides:
+  webdev:
+    path: ../../webdev
+  dwds:
+    path: ..

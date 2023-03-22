@@ -22,7 +22,3 @@ dev_dependencies:
   test_process: ^2.0.0
   vm_service: ^8.0.0
 
-dependency_overrides:
-  # Necessary to get a version solve until test_core allows version 3.x of
-  # this package
-  test_core: ^0.4.13

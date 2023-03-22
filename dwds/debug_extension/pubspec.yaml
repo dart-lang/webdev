@@ -23,9 +23,4 @@ dev_dependencies:
   built_collection: ^5.0.0
   dwds: ^11.0.0
   webdev: ^2.0.0
-
-dependency_overrides:
-  webdev:
-    path: ../../webdev
-  dwds:
-    path: ..
+  
