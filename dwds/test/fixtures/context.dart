@@ -91,9 +91,11 @@ class TestContext {
       );
 
   /// The package name of the Dart entry file, e.g,
-  /// "_testSound:example/hello_world/main.dart":
-  String get _dartEntryFilePackageName =>
-      '${project.packageName}:${p.join(project.webAssetsPath, project.dartEntryFileName)}';
+  /// "org-dartlang-app:example/hello_world/main.dart":
+  String get _dartEntryFilePackageName => 'org-dartlang-app:///${p.join(
+        project.webAssetsPath,
+        project.dartEntryFileName,
+      )}';
 
   /// The URI for the package_config.json is located in:
   /// <project directory>/.dart_tool/package_config
@@ -285,9 +287,6 @@ class TestContext {
               expressionCompiler = ddcService;
             }
 
-            print('====== $_dartEntryFilePackageName !!!!!');
-            print('as uri ${Uri.parse(_dartEntryFilePackageName)}');
-
             requireStrategy = BuildRunnerRequireStrategyProvider(
               assetHandler,
               reloadConfiguration,
@@ -337,9 +336,6 @@ class TestContext {
             basePath = webRunner.devFS.assetServer.basePath;
             assetReader = webRunner.devFS.assetServer;
             _assetHandler = webRunner.devFS.assetServer.handleRequest;
-
-            print('====== $_dartEntryFilePackageName !!!!!');
-
             requireStrategy = FrontendServerRequireStrategyProvider(
               reloadConfiguration,
               assetReader,

@@ -125,8 +125,13 @@ class WebDevServer {
       );
 
       var loadStrategy = BuildRunnerRequireStrategyProvider(
-              assetHandler, options.configuration.reload, assetReader, null)
-          .strategy;
+        assetHandler,
+        options.configuration.reload,
+        assetReader,
+        // TODO(https://github.com/flutter/devtools/issues/5350): Figure out how
+        // to determine the app's entrypoint:
+        /*appEntrypoint=*/ null,
+      ).strategy;
       if (options.configuration.enableExpressionEvaluation) {
         ddcService = ExpressionCompilerService(
           options.configuration.hostname,
