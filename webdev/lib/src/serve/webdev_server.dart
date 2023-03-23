@@ -130,7 +130,7 @@ class WebDevServer {
         assetReader,
         // TODO(https://github.com/flutter/devtools/issues/5350): Figure out how
         // to determine the app's entrypoint:
-        /*appEntrypoint=*/ null,
+        /* appEntrypoint */ null,
       ).strategy;
       if (options.configuration.enableExpressionEvaluation) {
         ddcService = ExpressionCompilerService(
