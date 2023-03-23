@@ -125,7 +125,7 @@ class WebDevServer {
       );
 
       var loadStrategy = BuildRunnerRequireStrategyProvider(
-              assetHandler, options.configuration.reload, assetReader)
+              assetHandler, options.configuration.reload, assetReader, null)
           .strategy;
       if (options.configuration.enableExpressionEvaluation) {
         ddcService = ExpressionCompilerService(
