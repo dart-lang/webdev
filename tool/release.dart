@@ -128,6 +128,7 @@ Future<int> runRelease({
     '../webdev',
     '../frontend_server_common',
     '../frontend_server_client',
+    '../test_common',
   ]) {
     _logInfo('Upgrading pub packages for $packagePath');
     final pubUpgradeProcess = await Process.run(
@@ -263,7 +264,7 @@ Future<void> _updateDwdsPin(String package) async {
           segments.lastWhere((segment) => segment.startsWith('*')).substring(1);
       _logInfo('Changing DWDS pin from $currentVersion to $nextVersion');
       _replaceInFile(
-        File('../webdev/pubspec.yaml'),
+        File('../$package/pubspec.yaml'),
         query: currentVersion,
         replaceWith: nextVersion,
       );
