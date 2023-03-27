@@ -1942,8 +1942,7 @@ void main() {
                     event.isolate!.id != initialIsolateId),
               ])));
           service.destroyIsolate();
-          await service.createIsolate(
-              context.appConnection, globalLoadStrategy);
+          await service.createIsolate(context.appConnection);
           await eventsDone;
           expect((await service.getVM()).isolates!.first.id,
               isNot(initialIsolateId));
