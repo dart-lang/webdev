@@ -136,7 +136,6 @@ class AppInspector implements AppInspectorInterface {
     String root,
     Debugger debugger,
     ExecutionContext executionContext,
-    LoadStrategy loadStrategy,
   ) async {
     final id = createId();
     final time = DateTime.now().millisecondsSinceEpoch;
@@ -176,7 +175,7 @@ class AppInspector implements AppInspectorInterface {
 
     debugger.updateInspector(inspector);
 
-    final libraryHelper = LibraryHelper(inspector, loadStrategy);
+    final libraryHelper = LibraryHelper(inspector);
     final classHelper = ClassHelper(inspector);
     final instanceHelper = InstanceHelper(inspector, debugger);
 
