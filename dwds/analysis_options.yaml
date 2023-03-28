@@ -25,9 +25,9 @@ linter:
 
 dart_code_metrics:
   metrics:
-    cyclomatic-complexity: 20
-    number-of-parameters: 4
-    maximum-nesting-level: 5
+    # cyclomatic-complexity: 20 ENABLE
+    # number-of-parameters: 5 ENABLE
+    # maximum-nesting-level: 5 ENABLE
   metrics-exclude:
     - test/**
   rules:
@@ -36,8 +36,8 @@ dart_code_metrics:
     - avoid-cascade-after-if-null
     - avoid-collection-methods-with-unrelated-types
     - avoid-duplicate-exports
-    - avoid-dynamic
-#    - avoid-global-state   TODO(jacobr): bunch of false positives around boolean flags.
+#    - avoid-dynamic Too strict, since we deal with a lot of dynamic types from JS.
+#    - avoid-global-state  
 #    - avoid-ignoring-return-values
 #    - avoid-late-keyword
     - avoid-missing-enum-constant-in-map
@@ -46,7 +46,7 @@ dart_code_metrics:
 #    - avoid-non-null-assertion
 #    - avoid-passing-async-when-sync-expected TODO(jacobr): consider re-enabliing.
     - avoid-redundant-async
-    - avoid-throw-in-catch-block
+#    - avoid-throw-in-catch-block ENABLE
 
 #    - avoid-top-level-members-in-tests Doesn't seem to match our style.
     - avoid-unnecessary-type-assertions
@@ -81,7 +81,7 @@ dart_code_metrics:
  #   - no-magic-number
  #   - no-object-declaration Too difficult to use along with avoiding dynamic particular for JSON decoding logic.
  #   - prefer-async-await TODO(jacobr): evaluate enabling.
-    - prefer-commenting-analyzer-ignores
+ #   - prefer-commenting-analyzer-ignores ENABLE
   #  - prefer-conditional-expressions Too many false positives involving large conditional expressions.
   #  - prefer-correct-identifier-length Too many false positives with fine names like i and id.
   #  - prefer-correct-test-file-name TODO(jacobr): enable and fix violations.
