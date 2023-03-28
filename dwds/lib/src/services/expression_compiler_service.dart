@@ -157,7 +157,6 @@ class _Compiler {
   }
 
   Future<ExpressionCompilationResult> compileExpressionToJs(
-    String isolateId,
     String libraryUri,
     int line,
     int column,
@@ -261,7 +260,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
     String expression,
   ) async =>
       (await _compiler.future).compileExpressionToJs(
-        isolateId,
         libraryUri,
         line,
         column,

@@ -122,7 +122,8 @@ void testAll({
           () async {
             await onBreakPoint(isolateId, mainScript, 'extension', () async {
               final event = await stream.firstWhere(
-                  (event) => event.kind == EventKind.kPauseBreakpoint);
+                (event) => event.kind == EventKind.kPauseBreakpoint,
+              );
 
               final stack = await context.service.getStack(isolateId);
               final scope = _getFrameVariables(stack.frames!.first);
@@ -149,7 +150,8 @@ void testAll({
         test('uses correct null safety mode', () async {
           await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final isNullSafetyEnabled =
                 '() { const sound = !(<Null>[] is List<int>); return sound; } ()';
@@ -173,7 +175,8 @@ void testAll({
         test('does not crash if class metadata cannot be found', () async {
           await onBreakPoint(isolateId, mainScript, 'printStream', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service
                 .evaluateInFrame(isolateId, event.topFrame!.index!, 'stream');
@@ -195,7 +198,8 @@ void testAll({
         test('with scope override is not supported yet', () async {
           await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final object = await context.service.evaluateInFrame(
               isolateId,
@@ -226,7 +230,8 @@ void testAll({
         test('local', () async {
           await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service
                 .evaluateInFrame(isolateId, event.topFrame!.index!, 'local');
@@ -252,7 +257,8 @@ void testAll({
             }
 
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service
                 .evaluateInFrame(isolateId, event.topFrame!.index!, 'Type');
@@ -294,7 +300,8 @@ void testAll({
           await onBreakPoint(
               isolateId, mainScript, 'printFieldFromLibraryClass', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service.evaluateInFrame(
               isolateId,
@@ -317,7 +324,8 @@ void testAll({
           await onBreakPoint(
               isolateId, mainScript, 'printFieldFromLibraryClass', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service.evaluateInFrame(
               isolateId,
@@ -339,7 +347,8 @@ void testAll({
         test('private field from current library', () async {
           await onBreakPoint(isolateId, mainScript, 'printFieldMain', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service.evaluateInFrame(
               isolateId,
@@ -362,7 +371,8 @@ void testAll({
           await onBreakPoint(
               isolateId, mainScript, 'printFieldFromLibraryClass', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final instanceRef = await context.service.evaluateInFrame(
               isolateId,
@@ -391,7 +401,8 @@ void testAll({
         test('global', () async {
           await onBreakPoint(isolateId, mainScript, 'printGlobal', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service.evaluateInFrame(
               isolateId,
@@ -413,7 +424,8 @@ void testAll({
         test('call core function', () async {
           await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service.evaluateInFrame(
               isolateId,
@@ -435,7 +447,8 @@ void testAll({
         test('call library function with const param', () async {
           await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service.evaluateInFrame(
               isolateId,
@@ -457,7 +470,8 @@ void testAll({
         test('call library function with local param', () async {
           await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service.evaluateInFrame(
               isolateId,
@@ -479,7 +493,8 @@ void testAll({
         test('call library part function with const param', () async {
           await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service.evaluateInFrame(
               isolateId,
@@ -501,7 +516,8 @@ void testAll({
         test('call library part function with local param', () async {
           await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service.evaluateInFrame(
               isolateId,
@@ -524,7 +540,8 @@ void testAll({
           await onBreakPoint(isolateId, mainScript, 'printLoopVariable',
               () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service
                 .evaluateInFrame(isolateId, event.topFrame!.index!, 'item');
@@ -544,7 +561,8 @@ void testAll({
           await onBreakPoint(
               isolateId, testLibraryScript, 'testLibraryFunction', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service
                 .evaluateInFrame(isolateId, event.topFrame!.index!, 'formal');
@@ -566,10 +584,14 @@ void testAll({
               isolateId, testLibraryScript, 'testLibraryClassConstructor',
               () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service.evaluateInFrame(
-                isolateId, event.topFrame!.index!, 'this.field');
+              isolateId,
+              event.topFrame!.index!,
+              'this.field',
+            );
 
             expect(
               result,
@@ -587,10 +609,14 @@ void testAll({
           await onBreakPoint(isolateId, testLibraryPartScript,
               'testLibraryPartClassConstructor', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service.evaluateInFrame(
-                isolateId, event.topFrame!.index!, 'this.field');
+              isolateId,
+              event.topFrame!.index!,
+              'this.field',
+            );
 
             expect(
               result,
@@ -607,10 +633,14 @@ void testAll({
           await onBreakPoint(
               isolateId, testLibraryScript, 'testLibraryFunction', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service.evaluateInFrame(
-                isolateId, event.topFrame!.index! + 1, 'local');
+              isolateId,
+              event.topFrame!.index! + 1,
+              'local',
+            );
 
             expect(
               result,
@@ -626,7 +656,8 @@ void testAll({
         test('evaluate expression in a library', () async {
           await onBreakPoint(isolateId, libraryScript, 'Concatenate', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final result = await context.service
                 .evaluateInFrame(isolateId, event.topFrame!.index!, 'a');
@@ -645,7 +676,8 @@ void testAll({
         test('compilation error', () async {
           await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             final error = await context.service
                 .evaluateInFrame(isolateId, event.topFrame!.index!, 'typo');
@@ -666,7 +698,8 @@ void testAll({
           () async {
             await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
               final event = await stream.firstWhere(
-                  (event) => event.kind == EventKind.kPauseBreakpoint);
+                (event) => event.kind == EventKind.kPauseBreakpoint,
+              );
 
               final error = await context.service.evaluateInFrame(
                 isolateId,
@@ -690,7 +723,8 @@ void testAll({
         test('cannot evaluate in unsupported isolate', () async {
           await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
             final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint);
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
             await expectLater(
               context.service

@@ -121,7 +121,7 @@ class DwdsVmClient {
     await client.registerService('ext.dwds.screenshot', 'DWDS');
 
     client.registerServiceCallback('ext.dwds.sendEvent', (event) async {
-      _processSendEvent(event, chromeProxyService, dwdsStats);
+      _processSendEvent(event, dwdsStats);
       return {'result': Success().toJson()};
     });
     await client.registerService('ext.dwds.sendEvent', 'DWDS');
@@ -172,7 +172,6 @@ class DwdsVmClient {
 
 void _processSendEvent(
   Map<String, dynamic> event,
-  ChromeProxyService chromeProxyService,
   DwdsStats dwdsStats,
 ) {
   final type = event['type'] as String?;

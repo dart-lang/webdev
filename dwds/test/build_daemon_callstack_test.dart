@@ -113,7 +113,10 @@ void main() {
               final lines = await Future.wait(
                 breakpoints.map(
                   (frame) => context.findBreakpointLine(
-                      frame.bpId, isolate.id!, frame.script),
+                    frame.bpId,
+                    isolate.id!,
+                    frame.script,
+                  ),
                 ),
               );
 
