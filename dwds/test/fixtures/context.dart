@@ -90,13 +90,6 @@ class TestContext {
         ),
       );
 
-  /// The package URI of the Dart entry file, e.g,
-  /// "org-dartlang-app:example/hello_world/main.dart":
-  Uri get _dartEntryFilePackageUri => Uri.parse('org-dartlang-app:///${p.join(
-        project.webAssetsPath,
-        project.dartEntryFileName,
-      )}');
-
   /// The URI for the package_config.json is located in:
   /// <project directory>/.dart_tool/package_config
   Uri get _packageConfigFile =>
@@ -291,7 +284,7 @@ class TestContext {
               assetHandler,
               reloadConfiguration,
               assetReader,
-              _dartEntryFilePackageUri,
+              project.dartEntryFilePackageUri,
             ).strategy;
 
             buildResults = daemonClient.buildResults;
@@ -342,7 +335,7 @@ class TestContext {
               packageUriMapper,
               () async => {},
               basePath,
-              _dartEntryFilePackageUri,
+              project.dartEntryFilePackageUri,
             ).strategy;
 
             buildResults = const Stream<BuildResults>.empty();
