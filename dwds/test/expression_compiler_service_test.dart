@@ -57,11 +57,12 @@ void main() async {
       output.stream.listen(printOnFailure);
 
       configureLogWriter(
-          customLogWriter: (level, message, {error, loggerName, stackTrace}) {
-        final e = error == null ? '' : ': $error';
-        final s = stackTrace == null ? '' : ':\n$stackTrace';
-        output.add('[$level] $loggerName: $message$e$s');
-      });
+        customLogWriter: (level, message, {error, loggerName, stackTrace}) {
+          final e = error == null ? '' : ': $error';
+          final s = stackTrace == null ? '' : ':\n$stackTrace';
+          output.add('[$level] $loggerName: $message$e$s');
+        },
+      );
 
       // start asset server
       _server = await startHttpServer('localhost');
@@ -119,17 +120,25 @@ void main() async {
         '--packages',
         packages.path,
       ];
-      final process = await Process.start(executable, args,
-              workingDirectory: outputDir.path)
-          .then((p) {
+      final process = await Process.start(
+        executable,
+        args,
+        workingDirectory: outputDir.path,
+      ).then((p) {
         transformToLines(p.stdout).listen(output.add);
         transformToLines(p.stderr).listen(output.add);
         return p;
       });
-      expect(await process.exitCode, 0,
-          reason: 'failed running $executable with args $args');
-      expect(File.fromUri(kernel).existsSync(), true,
-          reason: 'failed to create full dill');
+      expect(
+        await process.exitCode,
+        0,
+        reason: 'failed running $executable with args $args',
+      );
+      expect(
+        File.fromUri(kernel).existsSync(),
+        true,
+        reason: 'failed to create full dill',
+      );
     });
 
     tearDown(() async {
@@ -140,35 +149,62 @@ void main() async {
     test('works with no errors', () async {
       expect(output.stream, neverEmits(contains('[SEVERE]')));
       expect(
-          output.stream,
-          emitsThrough(contains(
-              '[INFO] ExpressionCompilerService: Updating dependencies...')));
+        output.stream,
+        emitsThrough(
+          contains(
+            '[INFO] ExpressionCompilerService: Updating dependencies...',
+          ),
+        ),
+      );
       expect(
-          output.stream,
-          emitsThrough(contains(
-              '[INFO] ExpressionCompilerService: Updated dependencies.')));
+        output.stream,
+        emitsThrough(
+          contains(
+            '[INFO] ExpressionCompilerService: Updated dependencies.',
+          ),
+        ),
+      );
       expect(
-          output.stream,
-          emitsThrough(contains(
-              '[FINEST] ExpressionCompilerService: Compiling "true" at')));
+        output.stream,
+        emitsThrough(
+          contains(
+            '[FINEST] ExpressionCompilerService: Compiling "true" at',
+          ),
+        ),
+      );
       expect(
-          output.stream,
-          emitsThrough(contains(
-              '[FINEST] ExpressionCompilerService: Compiled "true" to:')));
-      expect(output.stream,
-          emitsThrough(contains('[INFO] ExpressionCompilerService: Stopped.')));
+        output.stream,
+        emitsThrough(
+          contains(
+            '[FINEST] ExpressionCompilerService: Compiled "true" to:',
+          ),
+        ),
+      );
+      expect(
+        output.stream,
+        emitsThrough(contains('[INFO] ExpressionCompilerService: Stopped.')),
+      );
       final result = await service
           .updateDependencies({'try': ModuleInfo('try.full.dill', 'try.dill')});
       expect(result, true, reason: 'failed to update dependencies');
 
       final compilationResult = await service.compileExpressionToJs(
-          '0', 'org-dartlang-app:/try.dart', 2, 1, {}, {}, 'try', 'true');
+        '0',
+        'org-dartlang-app:/try.dart',
+        2,
+        1,
+        {},
+        {},
+        'try',
+        'true',
+      );
 
       expect(
-          compilationResult,
-          isA<ExpressionCompilationResult>()
-              .having((r) => r.result, 'result', contains('return true;'))
-              .having((r) => r.isError, 'isError', false));
+        compilationResult,
+        isA<ExpressionCompilationResult>()
+            .having((r) => r.result, 'result', contains('return true;'))
+            .having((r) => r.isError, 'isError', false),
+      );
 
       await stop();
     });
@@ -176,36 +212,64 @@ void main() async {
     test('can evaluate multiple expressions', () async {
       expect(output.stream, neverEmits(contains('[SEVERE]')));
       expect(
-          output.stream,
-          emitsThrough(contains(
-              '[INFO] ExpressionCompilerService: Updating dependencies...')));
+        output.stream,
+        emitsThrough(
+          contains(
+            '[INFO] ExpressionCompilerService: Updating dependencies...',
+          ),
+        ),
+      );
       expect(
-          output.stream,
-          emitsThrough(contains(
-              '[INFO] ExpressionCompilerService: Updated dependencies.')));
+        output.stream,
+        emitsThrough(
+          contains(
+            '[INFO] ExpressionCompilerService: Updated dependencies.',
+          ),
+        ),
+      );
 
-      expect(output.stream,
-          emitsThrough(contains('[INFO] ExpressionCompilerService: Stopped.')));
+      expect(
+        output.stream,
+        emitsThrough(contains('[INFO] ExpressionCompilerService: Stopped.')),
+      );
       final result = await service
           .updateDependencies({'try': ModuleInfo('try.full.dill', 'try.dill')});
       expect(result, true, reason: 'failed to update dependencies');
 
       final compilationResult1 = await service.compileExpressionToJs(
-          '0', 'org-dartlang-app:/try.dart', 2, 1, {}, {}, 'try', 'true');
+        '0',
+        'org-dartlang-app:/try.dart',
+        2,
+        1,
+        {},
+        {},
+        'try',
+        'true',
+      );
       final compilationResult2 = await service.compileExpressionToJs(
-          '0', 'org-dartlang-app:/try.dart', 2, 1, {}, {}, 'try', 'false');
+        '0',
+        'org-dartlang-app:/try.dart',
+        2,
+        1,
+        {},
+        {},
+        'try',
+        'false',
+      );
 
       expect(
-          compilationResult1,
-          isA<ExpressionCompilationResult>()
-              .having((r) => r.result, 'result', contains('return true;'))
-              .having((r) => r.isError, 'isError', false));
+        compilationResult1,
+        isA<ExpressionCompilationResult>()
+            .having((r) => r.result, 'result', contains('return true;'))
+            .having((r) => r.isError, 'isError', false),
+      );
 
       expect(
-          compilationResult2,
-          isA<ExpressionCompilationResult>()
-              .having((r) => r.result, 'result', contains('return false;'))
-              .having((r) => r.isError, 'isError', false));
+        compilationResult2,
+        isA<ExpressionCompilationResult>()
+            .having((r) => r.result, 'result', contains('return false;'))
+            .having((r) => r.isError, 'isError', false),
+      );
 
       await stop();
     });
@@ -213,39 +277,67 @@ void main() async {
     test('can compile multiple expressions in parallel', () async {
       expect(output.stream, neverEmits(contains('[SEVERE]')));
       expect(
-          output.stream,
-          emitsThrough(contains(
-              '[INFO] ExpressionCompilerService: Updating dependencies...')));
+        output.stream,
+        emitsThrough(
+          contains(
+            '[INFO] ExpressionCompilerService: Updating dependencies...',
+          ),
+        ),
+      );
       expect(
-          output.stream,
-          emitsThrough(contains(
-              '[INFO] ExpressionCompilerService: Updated dependencies.')));
+        output.stream,
+        emitsThrough(
+          contains(
+            '[INFO] ExpressionCompilerService: Updated dependencies.',
+          ),
+        ),
+      );
 
-      expect(output.stream,
-          emitsThrough(contains('[INFO] ExpressionCompilerService: Stopped.')));
+      expect(
+        output.stream,
+        emitsThrough(contains('[INFO] ExpressionCompilerService: Stopped.')),
+      );
       final result = await service
           .updateDependencies({'try': ModuleInfo('try.full.dill', 'try.dill')});
       expect(result, true, reason: 'failed to update dependencies');
 
       final compilationResult1 = service.compileExpressionToJs(
-          '0', 'org-dartlang-app:/try.dart', 2, 1, {}, {}, 'try', 'true');
+        '0',
+        'org-dartlang-app:/try.dart',
+        2,
+        1,
+        {},
+        {},
+        'try',
+        'true',
+      );
       final compilationResult2 = service.compileExpressionToJs(
-          '0', 'org-dartlang-app:/try.dart', 2, 1, {}, {}, 'try', 'false');
+        '0',
+        'org-dartlang-app:/try.dart',
+        2,
+        1,
+        {},
+        {},
+        'try',
+        'false',
+      );
 
       final results =
           await Future.wait([compilationResult1, compilationResult2]);
 
       expect(
-          results[0],
-          isA<ExpressionCompilationResult>()
-              .having((r) => r.result, 'result', contains('return true;'))
-              .having((r) => r.isError, 'isError', false));
+        results[0],
+        isA<ExpressionCompilationResult>()
+            .having((r) => r.result, 'result', contains('return true;'))
+            .having((r) => r.isError, 'isError', false),
+      );
 
       expect(
-          results[1],
-          isA<ExpressionCompilationResult>()
-              .having((r) => r.result, 'result', contains('return false;'))
-              .having((r) => r.isError, 'isError', false));
+        results[1],
+        isA<ExpressionCompilationResult>()
+            .having((r) => r.result, 'result', contains('return false;'))
+            .having((r) => r.isError, 'isError', false),
+      );
 
       await stop();
     });

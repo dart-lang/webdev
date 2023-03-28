@@ -39,14 +39,21 @@ class OnClickedHandler {
 class Debugger {
   // https://developer.chrome.com/docs/extensions/reference/debugger/#method-attach
   external void attach(
-      Debuggee target, String requiredVersion, Function? callback);
+    Debuggee target,
+    String requiredVersion,
+    Function? callback,
+  );
 
   // https://developer.chrome.com/docs/extensions/reference/debugger/#method-detach
   external void detach(Debuggee target, Function? callback);
 
   // https://developer.chrome.com/docs/extensions/reference/debugger/#method-sendCommand
-  external void sendCommand(Debuggee target, String method,
-      Object? commandParams, Function? callback);
+  external void sendCommand(
+    Debuggee target,
+    String method,
+    Object? commandParams,
+    Function? callback,
+  );
 
   // https://developer.chrome.com/docs/extensions/reference/debugger/#event-onDetach
   external OnDetachHandler get onDetach;
@@ -59,14 +66,16 @@ class Debugger {
 @anonymous
 class OnDetachHandler {
   external void addListener(
-      void Function(Debuggee source, String reason) callback);
+    void Function(Debuggee source, String reason) callback,
+  );
 }
 
 @JS()
 @anonymous
 class OnEventHandler {
   external void addListener(
-      void Function(Debuggee source, String method, Object? params) callback);
+    void Function(Debuggee source, String method, Object? params) callback,
+  );
 }
 
 @JS()
@@ -74,7 +83,11 @@ class OnEventHandler {
 class Runtime {
   // https://developer.chrome.com/docs/extensions/reference/runtime/#method-sendMessage
   external void sendMessage(
-      String? id, Object? message, Object? options, Function? callback);
+    String? id,
+    Object? message,
+    Object? options,
+    Function? callback,
+  );
 
   // https://developer.chrome.com/docs/extensions/reference/runtime/#property-lastError
   // Note: Not checking the lastError when one occurs throws a runtime exception.
@@ -91,7 +104,8 @@ class Runtime {
 @anonymous
 class OnMessageHandler {
   external void addListener(
-      void Function(dynamic, MessageSender, Function) callback);
+    void Function(dynamic, MessageSender, Function) callback,
+  );
 }
 
 @JS()
@@ -99,7 +113,9 @@ class OnMessageHandler {
 class Tabs {
   // https://developer.chrome.com/docs/extensions/reference/tabs/#method-query
   external List<Tab> query(
-      QueryInfo queryInfo, void Function(List<Tab>) callback);
+    QueryInfo queryInfo,
+    void Function(List<Tab>) callback,
+  );
 
   // https://developer.chrome.com/docs/extensions/reference/tabs/#event-onActivated
   external OnActivatedHandler get onActivated;
@@ -127,7 +143,8 @@ class OnCreatedHandler {
 @anonymous
 class OnRemovedHandler {
   external void addListener(
-      void Function(int tabId, RemoveInfo removeInfo) callback);
+    void Function(int tabId, RemoveInfo removeInfo) callback,
+  );
 }
 
 @JS()

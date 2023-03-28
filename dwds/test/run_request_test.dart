@@ -42,11 +42,11 @@ void main() {
       final resumeCompleter = Completer();
       // The underlying stream is a broadcast stream so we need to add a
       // listener before calling resume so that we don't miss events.
-      unawaited(stream
-          .firstWhere((event) => event.kind == EventKind.kResume)
-          .then((_) {
-        resumeCompleter.complete();
-      }));
+      unawaited(
+        stream.firstWhere((event) => event.kind == EventKind.kResume).then((_) {
+          resumeCompleter.complete();
+        }),
+      );
       await service.resume(isolate.id!);
       await resumeCompleter.future;
       expect(isolate.pauseEvent!.kind, EventKind.kResume);

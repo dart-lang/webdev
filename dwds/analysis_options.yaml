@@ -16,8 +16,9 @@ analyzer:
 linter:
   rules:
     - always_use_package_imports
+    - avoid_void_async
     - directives_ordering
     - prefer_final_locals
+    - require_trailing_commas
     - unawaited_futures
-    - avoid_void_async
     - unnecessary_lambdas

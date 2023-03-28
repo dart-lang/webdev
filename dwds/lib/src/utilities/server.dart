@@ -69,11 +69,17 @@ Future<HttpServer> startHttpServer(String hostname, {int? port}) async {
 ///
 /// Captures all sync and async stack error traces and passes
 /// them to the [onError] handler.
-void serveHttpRequests(Stream<HttpRequest> requests, Handler handler,
-    void Function(Object, StackTrace) onError) {
-  return Chain.capture(() {
-    serveRequests(requests, handler);
-  }, onError: onError);
+void serveHttpRequests(
+  Stream<HttpRequest> requests,
+  Handler handler,
+  void Function(Object, StackTrace) onError,
+) {
+  return Chain.capture(
+    () {
+      serveRequests(requests, handler);
+    },
+    onError: onError,
+  );
 }
 
 /// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
@@ -92,8 +98,10 @@ void handleErrorIfPresent(wip.WipResponse? response, {String? evalContents}) {
 /// Returns result contained in the response.
 /// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
 /// result or the result is null.
-Map<String, dynamic> getResultOrHandleError(wip.WipResponse? response,
-    {String? evalContents}) {
+Map<String, dynamic> getResultOrHandleError(
+  wip.WipResponse? response, {
+  String? evalContents,
+}) {
   handleErrorIfPresent(response, evalContents: evalContents);
   final result = response?.result?['result'];
   if (result == null) {

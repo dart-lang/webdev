@@ -45,30 +45,40 @@ Future<Tab?> getTab(int tabId) {
 Future<Tab?> get activeTab async {
   final completer = Completer<Tab?>();
   final query = QueryInfo(active: true, currentWindow: true);
-  chrome.tabs.query(query, allowInterop((List tabs) {
-    if (tabs.isNotEmpty) {
-      completer.complete(tabs.first as Tab);
-    } else {
-      completer.complete(null);
-    }
-  }));
+  chrome.tabs.query(
+    query,
+    allowInterop((List tabs) {
+      if (tabs.isNotEmpty) {
+        completer.complete(tabs.first as Tab);
+      } else {
+        completer.complete(null);
+      }
+    }),
+  );
   return completer.future;
 }
 
 Future<bool> removeTab(int tabId) {
   final completer = Completer<bool>();
-  chrome.tabs.remove(tabId, allowInterop(() {
-    completer.complete(true);
-  }));
+  chrome.tabs.remove(
+    tabId,
+    allowInterop(() {
+      completer.complete(true);
+    }),
+  );
   return completer.future;
 }
 
 Future<bool> injectScript(String scriptName, {required int tabId}) async {
   if (isMV3) {
-    await promiseToFuture(_executeScriptMV3(_InjectDetails(
-      target: Target(tabId: tabId),
-      files: [scriptName],
-    )));
+    await promiseToFuture(
+      _executeScriptMV3(
+        _InjectDetails(
+          target: Target(tabId: tabId),
+          files: [scriptName],
+        ),
+      ),
+    );
     return true;
   } else {
     debugWarn('Script injection is only supported in Manifest V3.');
@@ -124,10 +134,12 @@ String addQueryParameters(
   required Map<String, String> queryParameters,
 }) {
   final originalUri = Uri.parse(uri);
-  final newUri = originalUri.replace(queryParameters: {
-    ...originalUri.queryParameters,
-    ...queryParameters,
-  });
+  final newUri = originalUri.replace(
+    queryParameters: {
+      ...originalUri.queryParameters,
+      ...queryParameters,
+    },
+  );
   return newUri.toString();
 }
 

@@ -116,7 +116,8 @@ class AppInspector implements AppInspectorInterface {
     await DartUri.initialize();
     DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri).whereNotNull());
     DartUri.recordAbsoluteUris(
-        scripts.map((script) => script.uri).whereNotNull());
+      scripts.map((script) => script.uri).whereNotNull(),
+    );
 
     isolate.extensionRPCs?.addAll(await _getExtensionRpcs());
   }
@@ -141,28 +142,29 @@ class AppInspector implements AppInspectorInterface {
     final time = DateTime.now().millisecondsSinceEpoch;
     final name = 'main()';
     final isolate = Isolate(
-        id: id,
-        number: id,
-        name: name,
-        startTime: time,
-        runnable: true,
-        pauseOnExit: false,
-        pauseEvent: Event(
-            kind: EventKind.kPauseStart,
-            timestamp: time,
-            isolate: IsolateRef(
-              id: id,
-              name: name,
-              number: id,
-              isSystemIsolate: false,
-            )),
-        livePorts: 0,
-        libraries: [],
-        breakpoints: [],
-        exceptionPauseMode: debugger.pauseState,
-        isSystemIsolate: false,
-        isolateFlags: [])
-      ..extensionRPCs = [];
+      id: id,
+      number: id,
+      name: name,
+      startTime: time,
+      runnable: true,
+      pauseOnExit: false,
+      pauseEvent: Event(
+        kind: EventKind.kPauseStart,
+        timestamp: time,
+        isolate: IsolateRef(
+          id: id,
+          name: name,
+          number: id,
+          isSystemIsolate: false,
+        ),
+      ),
+      livePorts: 0,
+      libraries: [],
+      breakpoints: [],
+      exceptionPauseMode: debugger.pauseState,
+      isSystemIsolate: false,
+      isolateFlags: [],
+    )..extensionRPCs = [];
     final inspector = AppInspector._(
       appConnection,
       isolate,
@@ -211,9 +213,12 @@ class AppInspector implements AppInspectorInterface {
 
   /// Call a method by name on [receiver], with arguments [positionalArgs] and
   /// [namedArgs].
-  Future<RemoteObject> _invokeMethod(RemoteObject receiver, String methodName,
-      [List<RemoteObject> positionalArgs = const [],
-      Map namedArgs = const {}]) async {
+  Future<RemoteObject> _invokeMethod(
+    RemoteObject receiver,
+    String methodName, [
+    List<RemoteObject> positionalArgs = const [],
+    Map namedArgs = const {},
+  ]) async {
     // TODO(alanknight): Support named arguments.
     if (namedArgs.isNotEmpty) {
       throw UnsupportedError('Named arguments are not yet supported');
@@ -234,17 +239,22 @@ class AppInspector implements AppInspectorInterface {
   /// [evalExpression] should be a JS function definition that can accept
   /// [arguments].
   @override
-  Future<RemoteObject> jsCallFunctionOn(RemoteObject receiver,
-      String evalExpression, List<RemoteObject> arguments,
-      {bool returnByValue = false}) async {
+  Future<RemoteObject> jsCallFunctionOn(
+    RemoteObject receiver,
+    String evalExpression,
+    List<RemoteObject> arguments, {
+    bool returnByValue = false,
+  }) async {
     final jsArguments = arguments.map(callArgumentFor).toList();
-    final response =
-        await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
-      'functionDeclaration': evalExpression,
-      'arguments': jsArguments,
-      'objectId': receiver.objectId,
-      'returnByValue': returnByValue,
-    });
+    final response = await remoteDebugger.sendCommand(
+      'Runtime.callFunctionOn',
+      params: {
+        'functionDeclaration': evalExpression,
+        'arguments': jsArguments,
+        'objectId': receiver.objectId,
+        'returnByValue': returnByValue,
+      },
+    );
     final result =
         getResultOrHandleError(response, evalContents: evalExpression);
     return RemoteObject(result);
@@ -255,16 +265,20 @@ class AppInspector implements AppInspectorInterface {
   /// [evalExpression] should be a JS function definition that can accept
   /// [arguments].
   Future<RemoteObject> _jsCallFunction(
-      String evalExpression, List<Object> arguments,
-      {bool returnByValue = false}) async {
+    String evalExpression,
+    List<Object> arguments, {
+    bool returnByValue = false,
+  }) async {
     final jsArguments = arguments.map(callArgumentFor).toList();
-    final response =
-        await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
-      'functionDeclaration': evalExpression,
-      'arguments': jsArguments,
-      'executionContextId': await contextId,
-      'returnByValue': returnByValue,
-    });
+    final response = await remoteDebugger.sendCommand(
+      'Runtime.callFunctionOn',
+      params: {
+        'functionDeclaration': evalExpression,
+        'arguments': jsArguments,
+        'executionContextId': await contextId,
+        'returnByValue': returnByValue,
+      },
+    );
     final result =
         getResultOrHandleError(response, evalContents: evalExpression);
     return RemoteObject(result);
@@ -279,7 +293,10 @@ class AppInspector implements AppInspectorInterface {
   /// for non-Dart JS objects.)
   @override
   Future<RemoteObject> invoke(
-      String targetId, String selector, List<dynamic> arguments) async {
+    String targetId,
+    String selector,
+    List<dynamic> arguments,
+  ) async {
     final remoteArguments =
         arguments.cast<String>().map(remoteObjectFor).toList();
     // We special case the Dart library, where invokeMethod won't work because
@@ -289,31 +306,43 @@ class AppInspector implements AppInspectorInterface {
       return await _invokeLibraryFunction(library, selector, remoteArguments);
     } else {
       return _invokeMethod(
-          remoteObjectFor(targetId), selector, remoteArguments);
+        remoteObjectFor(targetId),
+        selector,
+        remoteArguments,
+      );
     }
   }
 
   /// Invoke the function named [selector] from [library] with [arguments].
   Future<RemoteObject> _invokeLibraryFunction(
-      Library library, String selector, List<RemoteObject> arguments) {
+    Library library,
+    String selector,
+    List<RemoteObject> arguments,
+  ) {
     return _evaluateInLibrary(
-        library,
-        'function () { return this.$selector.apply(this, arguments);}',
-        arguments);
+      library,
+      'function () { return this.$selector.apply(this, arguments);}',
+      arguments,
+    );
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
   @override
-  Future<RemoteObject> jsEvaluate(String expression,
-      {bool returnByValue = false, bool awaitPromise = false}) async {
+  Future<RemoteObject> jsEvaluate(
+    String expression, {
+    bool returnByValue = false,
+    bool awaitPromise = false,
+  }) async {
     // TODO(alanknight): Support a version with arguments if needed.
-    final response =
-        await remoteDebugger.sendCommand('Runtime.evaluate', params: {
-      'expression': expression,
-      'returnByValue': returnByValue,
-      'awaitPromise': awaitPromise,
-      'contextId': await contextId,
-    });
+    final response = await remoteDebugger.sendCommand(
+      'Runtime.evaluate',
+      params: {
+        'expression': expression,
+        'returnByValue': returnByValue,
+        'awaitPromise': awaitPromise,
+        'contextId': await contextId,
+      },
+    );
     final result = getResultOrHandleError(response, evalContents: expression);
     return RemoteObject(result);
   }
@@ -321,7 +350,10 @@ class AppInspector implements AppInspectorInterface {
   /// Evaluate the JS function with source [jsFunction] in the context of
   /// [library] with [arguments].
   Future<RemoteObject> _evaluateInLibrary(
-      Library library, String jsFunction, List<RemoteObject> arguments) async {
+    Library library,
+    String jsFunction,
+    List<RemoteObject> arguments,
+  ) async {
     final libraryUri = library.uri;
     if (libraryUri == null) {
       throwInvalidParam('invoke', 'library uri is null');
@@ -339,7 +371,9 @@ class AppInspector implements AppInspectorInterface {
   /// Call [function] with objects referred by [argumentIds] as arguments.
   @override
   Future<RemoteObject> callFunction(
-      String function, Iterable<String> argumentIds) async {
+    String function,
+    Iterable<String> argumentIds,
+  ) async {
     final arguments = argumentIds.map(remoteObjectFor).toList();
     return _jsCallFunction(function, arguments);
   }
@@ -399,17 +433,20 @@ class AppInspector implements AppInspectorInterface {
     final serverPath = DartUri(scriptUri, _root).serverPath;
     final source = await _assetReader.dartSourceContents(serverPath);
     if (source == null) {
-      throwInvalidParam('getObject',
-          'No source for $scriptRef  with serverPath: $serverPath');
+      throwInvalidParam(
+        'getObject',
+        'No source for $scriptRef  with serverPath: $serverPath',
+      );
     }
     final libraryId = _scriptIdToLibraryId[scriptId];
     if (libraryId == null) {
       throwInvalidParam('getObject', 'No library for script $scriptRef');
     }
     return Script(
-        uri: scriptRef.uri,
-        library: await libraryRefFor(libraryId),
-        id: scriptId)
+      uri: scriptRef.uri,
+      library: await libraryRefFor(libraryId),
+      id: scriptId,
+    )
       ..tokenPosTable = await _locations.tokenPosTableFor(serverPath)
       ..source = source;
   }
@@ -419,8 +456,11 @@ class AppInspector implements AppInspectorInterface {
     final response = await remoteDebugger.sendCommand('Runtime.getHeapUsage');
     final result = response.result;
     if (result == null) {
-      throw RPCError('getMemoryUsage', RPCError.kInternalError,
-          'Null result from chrome Devtools.');
+      throw RPCError(
+        'getMemoryUsage',
+        RPCError.kInternalError,
+        'Null result from chrome Devtools.',
+      );
     }
     final jsUsage = HeapUsage(result);
     final usage = MemoryUsage.parse({
@@ -429,8 +469,11 @@ class AppInspector implements AppInspectorInterface {
       'externalUsage': 0,
     });
     if (usage == null) {
-      throw RPCError('getMemoryUsage', RPCError.kInternalError,
-          'Failed to parse memory usage result.');
+      throw RPCError(
+        'getMemoryUsage',
+        RPCError.kInternalError,
+        'Failed to parse memory usage result.',
+      );
     }
     return usage;
   }
@@ -463,13 +506,17 @@ class AppInspector implements AppInspectorInterface {
     List<String>? libraryFilters,
   }) {
     if (reports.contains(SourceReportKind.kCoverage)) {
-      throwInvalidParam('getSourceReport',
-          'Source report kind ${SourceReportKind.kCoverage} not supported');
+      throwInvalidParam(
+        'getSourceReport',
+        'Source report kind ${SourceReportKind.kCoverage} not supported',
+      );
     }
 
     if (reports.isEmpty) {
-      throwInvalidParam('getSourceReport',
-          'Invalid parameter: no value for source report kind provided.');
+      throwInvalidParam(
+        'getSourceReport',
+        'Invalid parameter: no value for source report kind provided.',
+      );
     }
 
     if (reports.length > 1 ||
@@ -552,7 +599,9 @@ class AppInspector implements AppInspectorInterface {
         final libraryId = libraryRef?.id;
         if (libraryId != null) {
           final libraryIdToScriptRefs = _libraryIdToScriptRefs.putIfAbsent(
-              libraryId, () => <ScriptRef>[]);
+            libraryId,
+            () => <ScriptRef>[],
+          );
           for (var scriptRef in scriptRefs) {
             final scriptId = scriptRef.id;
             final scriptUri = scriptRef.uri;
@@ -592,7 +641,10 @@ class AppInspector implements AppInspectorInterface {
       extensionRpcs.addAll(List.from(result['value'] as List? ?? []));
     } catch (e, s) {
       _logger.severe(
-          'Error calling Runtime.evaluate with params $params', e, s);
+        'Error calling Runtime.evaluate with params $params',
+        e,
+        s,
+      );
     }
     return extensionRpcs;
   }
@@ -604,7 +656,9 @@ class AppInspector implements AppInspectorInterface {
     RemoteObject mapperResult;
     try {
       mapperResult = await _jsCallFunction(
-          stackTraceMapperExpression, <Object>[description]);
+        stackTraceMapperExpression,
+        <Object>[description],
+      );
     } catch (_) {
       return description;
     }

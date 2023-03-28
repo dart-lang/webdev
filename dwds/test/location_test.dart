@@ -162,7 +162,10 @@ void main() {
 }
 
 Matcher _matchLocationForDart(int line, int column) => isA<Location>().having(
-    (l) => l.dartLocation, 'dartLocation', _matchDartLocation(line, column));
+      (l) => l.dartLocation,
+      'dartLocation',
+      _matchDartLocation(line, column),
+    );
 
 Matcher _matchLocationForJs(int line, int column) => isA<Location>()
     .having((l) => l.jsLocation, 'jsLocation', _matchJsLocation(line, column));
@@ -182,7 +185,9 @@ const _sourceMapPath = 'packages/module.js.map';
 class MockLoadStrategy extends FakeStrategy {
   @override
   Future<String?> moduleForServerPath(
-          String entrypoint, String serverPath) async =>
+    String entrypoint,
+    String serverPath,
+  ) async =>
       _module;
 
   @override
@@ -191,7 +196,9 @@ class MockLoadStrategy extends FakeStrategy {
 
   @override
   Future<String> sourceMapPathForModule(
-          String entrypoint, String module) async =>
+    String entrypoint,
+    String module,
+  ) async =>
       _sourceMapPath;
 
   @override

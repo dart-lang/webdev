@@ -175,9 +175,12 @@ class DartUri {
   /// Load the .dart_tool/package_config.json file associated with the running
   /// application so we can resolve file URLs into package: URLs appropriately.
   static Future<void> _loadPackageConfig(Uri uri) async {
-    _packageConfig = await loadPackageConfigUri(uri, onError: (e) {
-      _logger.warning('Cannot read packages spec: $uri', e);
-    });
+    _packageConfig = await loadPackageConfigUri(
+      uri,
+      onError: (e) {
+        _logger.warning('Cannot read packages spec: $uri', e);
+      },
+    );
   }
 
   /// Record the library represented by package: or org-dartlang-app: uris

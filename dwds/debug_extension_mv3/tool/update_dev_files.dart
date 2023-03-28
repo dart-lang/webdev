@@ -45,7 +45,9 @@ Future<void> _updateManifestJson() async {
 }
 
 Future<void> _transformDevFile(
-    File devFile, List<String> Function(String) transformLine) async {
+  File devFile,
+  List<String> Function(String) transformLine,
+) async {
   final lines = devFile.readAsLinesSync();
   final newLines = <String>[];
   for (final line in lines) {

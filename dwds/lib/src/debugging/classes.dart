@@ -68,7 +68,9 @@ class ClassHelper extends Domain {
   /// Constructs a [Class] instance for the provided [LibraryRef] and
   /// [ClassRef].
   Future<Class?> _constructClass(
-      LibraryRef libraryRef, ClassRef classRef) async {
+    LibraryRef libraryRef,
+    ClassRef classRef,
+  ) async {
     final libraryUri = libraryRef.uri;
     final className = classRef.name;
     final classId = classRef.id;
@@ -179,7 +181,8 @@ class ClassHelper extends Domain {
     methodDescriptors.addAll(staticMethodDescriptors);
     methodDescriptors.forEach((name, descriptor) {
       final methodId = 'methods|$classId|$name';
-      methodRefs.add(FuncRef(
+      methodRefs.add(
+        FuncRef(
           id: methodId,
           name: name,
           owner: classRef,
@@ -187,16 +190,20 @@ class ClassHelper extends Domain {
           isStatic: descriptor['isStatic'] as bool,
           // TODO(annagrin): get information about getters and setters from symbols.
           // https://github.com/dart-lang/sdk/issues/46723
-          implicit: false));
+          implicit: false,
+        ),
+      );
     });
     final fieldRefs = <FieldRef>[];
     final fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
     fieldDescriptors.forEach((name, descriptor) {
       final classMetaData = ClassMetaData(
-          jsName: descriptor['classRefName'],
-          libraryId: descriptor['classRefLibraryId'],
-          dartName: descriptor['classRefDartName']);
-      fieldRefs.add(FieldRef(
+        jsName: descriptor['classRefName'],
+        libraryId: descriptor['classRefLibraryId'],
+        dartName: descriptor['classRefDartName'],
+      );
+      fieldRefs.add(
+        FieldRef(
           name: name,
           owner: classRef,
           declaredType: InstanceRef(
@@ -209,7 +216,9 @@ class ClassHelper extends Domain {
           isConst: descriptor['isConst'] as bool,
           isFinal: descriptor['isFinal'] as bool,
           isStatic: descriptor['isStatic'] as bool,
-          id: createId()));
+          id: createId(),
+        ),
+      );
     });
 
     final staticFieldDescriptors =
@@ -236,15 +245,16 @@ class ClassHelper extends Domain {
     // TODO: Implement the rest of these
     // https://github.com/dart-lang/webdev/issues/176.
     return Class(
-        name: classRef.name,
-        isAbstract: false,
-        isConst: false,
-        library: libraryRef,
-        interfaces: [],
-        fields: fieldRefs,
-        functions: methodRefs,
-        subclasses: [],
-        id: classId,
-        traceAllocations: false);
+      name: classRef.name,
+      isAbstract: false,
+      isConst: false,
+      library: libraryRef,
+      interfaces: [],
+      fields: fieldRefs,
+      functions: methodRefs,
+      subclasses: [],
+      id: classId,
+      traceAllocations: false,
+    );
   }
 }

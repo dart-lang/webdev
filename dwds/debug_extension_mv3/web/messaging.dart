@@ -94,19 +94,22 @@ void interceptMessage<T>({
       messageHandler(decodedMessage.body as T);
     } else {
       messageHandler(
-          serializers.deserialize(jsonDecode(decodedMessage.body)) as T);
+        serializers.deserialize(jsonDecode(decodedMessage.body)) as T,
+      );
     }
   } catch (error) {
     debugError(
-        'Error intercepting $expectedType from $expectedSender to $expectedRecipient: $error');
+      'Error intercepting $expectedType from $expectedSender to $expectedRecipient: $error',
+    );
   }
 }
 
-Future<bool> sendRuntimeMessage(
-    {required MessageType type,
-    required String body,
-    required Script sender,
-    required Script recipient}) {
+Future<bool> sendRuntimeMessage({
+  required MessageType type,
+  required String body,
+  required Script sender,
+  required Script recipient,
+}) {
   final message = Message(
     to: recipient,
     from: sender,
@@ -122,7 +125,8 @@ Future<bool> sendRuntimeMessage(
       final error = chrome.runtime.lastError;
       if (error != null) {
         debugError(
-            'Error sending $type to $recipient from $sender: ${error.message}');
+          'Error sending $type to $recipient from $sender: ${error.message}',
+        );
       }
       completer.complete(error != null);
     }),

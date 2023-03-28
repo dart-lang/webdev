@@ -20,9 +20,9 @@ class TestProject {
   String get absolutePackageDirectory =>
       absolutePath(pathFromFixtures: packageDirectory);
 
-  const TestProject.testPackageWithSoundNullSafety(
-      {IndexBaseMode baseMode = IndexBaseMode.noBase})
-      : this._(
+  const TestProject.testPackageWithSoundNullSafety({
+    IndexBaseMode baseMode = IndexBaseMode.noBase,
+  }) : this._(
           packageName: '_test_package_sound',
           packageDirectory: '_testPackageSound',
           webAssetsPath: 'web',
@@ -32,9 +32,9 @@ class TestProject {
           nullSafety: NullSafety.sound,
         );
 
-  const TestProject.testPackageWithWeakNullSafety(
-      {IndexBaseMode baseMode = IndexBaseMode.noBase})
-      : this._(
+  const TestProject.testPackageWithWeakNullSafety({
+    IndexBaseMode baseMode = IndexBaseMode.noBase,
+  }) : this._(
           packageName: '_test_package',
           packageDirectory: '_testPackage',
           webAssetsPath: 'web',
@@ -70,15 +70,16 @@ class TestProject {
     nullSafety: NullSafety.weak,
   );
 
-  factory TestProject.testCircular1(
-          {NullSafety nullSafety = NullSafety.sound}) =>
+  factory TestProject.testCircular1({
+    NullSafety nullSafety = NullSafety.sound,
+  }) =>
       nullSafety == NullSafety.sound
           ? TestProject.testCircular1WithSoundNullSafety
           : TestProject.testCircular1WithWeakNullSafety;
 
-  const TestProject.testCircular2WithSoundNullSafety(
-      {IndexBaseMode baseMode = IndexBaseMode.noBase})
-      : this._(
+  const TestProject.testCircular2WithSoundNullSafety({
+    IndexBaseMode baseMode = IndexBaseMode.noBase,
+  }) : this._(
           packageName: '_test_circular2_sound',
           packageDirectory: '_testCircular2Sound',
           webAssetsPath: 'web',
@@ -88,9 +89,9 @@ class TestProject {
           nullSafety: NullSafety.sound,
         );
 
-  const TestProject.testCircular2WithWeakNullSafety(
-      {IndexBaseMode baseMode = IndexBaseMode.noBase})
-      : this._(
+  const TestProject.testCircular2WithWeakNullSafety({
+    IndexBaseMode baseMode = IndexBaseMode.noBase,
+  }) : this._(
           packageName: '_test_circular2',
           packageDirectory: '_testCircular2',
           webAssetsPath: 'web',

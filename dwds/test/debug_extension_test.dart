@@ -60,7 +60,10 @@ void main() async {
       group('Without encoding', () {
         setUp(() async {
           await context.setUp(
-              enableDebugExtension: true, serveDevTools: true, useSse: useSse);
+            enableDebugExtension: true,
+            serveDevTools: true,
+            useSse: useSse,
+          );
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
             'expression': 'fakeClick()',
           });
@@ -76,8 +79,10 @@ void main() async {
           final windows = await context.webDriver.windows.toList();
           await context.webDriver.driver.switchTo.window(windows.last);
           expect(await context.webDriver.title, contains('Dart DevTools'));
-          expect(await context.webDriver.currentUrl,
-              contains('ide=DebugExtension'));
+          expect(
+            await context.webDriver.currentUrl,
+            contains('ide=DebugExtension'),
+          );
         });
 
         test('can close DevTools and relaunch', () async {
@@ -103,27 +108,32 @@ void main() async {
           final service = fetchChromeProxyService(context.debugConnection);
           final scripts = service.remoteDebugger.scripts;
           expect(
-              scripts.values.map((s) => s.url),
-              containsAllInOrder([
-                contains('stack_trace_mapper.dart.js'),
-                contains('hello_world/main.ddc.js'),
-                contains('packages/path/path.ddc.js'),
-                contains('dev_compiler/dart_sdk.js'),
-                contains('dwds/src/injected/client.js'),
-              ]));
+            scripts.values.map((s) => s.url),
+            containsAllInOrder([
+              contains('stack_trace_mapper.dart.js'),
+              contains('hello_world/main.ddc.js'),
+              contains('packages/path/path.ddc.js'),
+              contains('dev_compiler/dart_sdk.js'),
+              contains('dwds/src/injected/client.js'),
+            ]),
+          );
         });
       });
 
       group('With a sharded Dart app', () {
         setUp(() async {
           await context.setUp(
-              enableDebugExtension: true, serveDevTools: true, useSse: useSse);
+            enableDebugExtension: true,
+            serveDevTools: true,
+            useSse: useSse,
+          );
           final htmlTag =
               await context.webDriver.findElement(const By.tagName('html'));
 
           await context.webDriver.execute(
-              "arguments[0].setAttribute('data-multiple-dart-apps', 'true');",
-              [htmlTag]);
+            "arguments[0].setAttribute('data-multiple-dart-apps', 'true');",
+            [htmlTag],
+          );
         });
 
         tearDown(() async {
@@ -147,13 +157,17 @@ void main() async {
       group('With an internal Dart app', () {
         setUp(() async {
           await context.setUp(
-              enableDebugExtension: true, serveDevTools: true, useSse: false);
+            enableDebugExtension: true,
+            serveDevTools: true,
+            useSse: false,
+          );
           final htmlTag =
               await context.webDriver.findElement(const By.tagName('html'));
 
           await context.webDriver.execute(
-              "arguments[0].setAttribute('data-ddr-dart-app', 'true');",
-              [htmlTag]);
+            "arguments[0].setAttribute('data-ddr-dart-app', 'true');",
+            [htmlTag],
+          );
 
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
             'expression': 'fakeClick()',
@@ -195,14 +209,15 @@ void main() async {
           final service = fetchChromeProxyService(context.debugConnection);
           final scripts = service.remoteDebugger.scripts;
           expect(
-              scripts.values.map((s) => s.url),
-              containsAllInOrder([
-                contains('stack_trace_mapper.dart.js'),
-                contains('hello_world/main.ddc.js'),
-                contains('packages/path/path.ddc.js'),
-                contains('dev_compiler/dart_sdk.js'),
-                contains('dwds/src/injected/client.js'),
-              ]));
+            scripts.values.map((s) => s.url),
+            containsAllInOrder([
+              contains('stack_trace_mapper.dart.js'),
+              contains('hello_world/main.ddc.js'),
+              contains('packages/path/path.ddc.js'),
+              contains('dev_compiler/dart_sdk.js'),
+              contains('dwds/src/injected/client.js'),
+            ]),
+          );
         });
       });
     });
@@ -211,9 +226,10 @@ void main() async {
   group('With encoding', () {
     setUp(() async {
       await context.setUp(
-          enableDebugExtension: true,
-          urlEncoder: (url) async =>
-              url.endsWith(r'/$debug') ? 'http://some-encoded-url:8081/' : url);
+        enableDebugExtension: true,
+        urlEncoder: (url) async =>
+            url.endsWith(r'/$debug') ? 'http://some-encoded-url:8081/' : url,
+      );
     });
 
     tearDown(() async {
@@ -221,8 +237,11 @@ void main() async {
     });
 
     test('uses the encoded URI', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension',
+        ),
+      );
       expect(result.body.contains('dartExtensionUri'), isTrue);
       expect(result.body.contains('http://some-encoded-url:8081/'), isTrue);
     });
@@ -240,21 +259,25 @@ void main() async {
     });
 
     test('generates an extensionUri with a valid valid hostname', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension',
+        ),
+      );
       expect(result.body.contains('dartExtensionUri'), isTrue);
       final extensionUri =
           Uri.parse(uriPattern.firstMatch(result.body)!.group(1)!);
       expect(
-          extensionUri.host,
-          anyOf(
-            // The hostname should've been mapped from "any" to one of the local
-            // loopback addresses/IPs.
-            equals('localhost'),
-            equals('127.0.0.1'),
-            equals('::'),
-            equals('::1'),
-          ));
+        extensionUri.host,
+        anyOf(
+          // The hostname should've been mapped from "any" to one of the local
+          // loopback addresses/IPs.
+          equals('localhost'),
+          equals('127.0.0.1'),
+          equals('::'),
+          equals('::1'),
+        ),
+      );
     });
   });
 }

@@ -25,7 +25,8 @@ void _registerListeners() {
 
 Future<void> _updateSettingsFromStorage(Event _) async {
   final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
-      type: StorageObject.devToolsOpener);
+    type: StorageObject.devToolsOpener,
+  );
   final openInNewWindow = devToolsOpener?.newWindow ?? false;
   _getRadioButton('windowOpt').checked = openInNewWindow;
   _getRadioButton('tabOpt').checked = !openInNewWindow;
@@ -38,9 +39,11 @@ Future<void> _saveSettingsToStorage(Event event) async {
   final data = FormData(form);
   final devToolsOpenerValue = data.get('devToolsOpener') as String;
   await setStorageObject<DevToolsOpener>(
-      type: StorageObject.devToolsOpener,
-      value: DevToolsOpener(
-          (b) => b..newWindow = devToolsOpenerValue == 'window'));
+    type: StorageObject.devToolsOpener,
+    value: DevToolsOpener(
+      (b) => b..newWindow = devToolsOpenerValue == 'window',
+    ),
+  );
   _showSavedMsg();
 }
 

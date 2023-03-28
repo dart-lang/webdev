@@ -56,8 +56,11 @@ class RequireLoader {
   external JsMap<String, List<String>> get moduleParentsGraph;
 
   @JS()
-  external void forceLoadModule(String moduleId, void Function() callback,
-      void Function(JsError e) onError);
+  external void forceLoadModule(
+    String moduleId,
+    void Function() callback,
+    void Function(JsError e) onError,
+  );
 }
 
 class HotReloadFailedException implements Exception {
@@ -101,11 +104,18 @@ class RequireRestarter implements Restarter {
   @override
   Future<bool> restart({String? runId}) async {
     final developer = getProperty(require('dart_sdk'), 'developer');
-    if (callMethod(getProperty(developer, '_extensions'), 'containsKey',
-        ['ext.flutter.disassemble']) as bool) {
-      await toFuture(callMethod(
-              developer, 'invokeExtension', ['ext.flutter.disassemble', '{}'])
-          as Promise<void>);
+    if (callMethod(
+      getProperty(developer, '_extensions'),
+      'containsKey',
+      ['ext.flutter.disassemble'],
+    ) as bool) {
+      await toFuture(
+        callMethod(
+          developer,
+          'invokeExtension',
+          ['ext.flutter.disassemble', '{}'],
+        ) as Promise<void>,
+      );
     }
 
     final newDigests = await _getDigests();
@@ -134,8 +144,11 @@ class RequireRestarter implements Restarter {
   List<String> _allModules() => keys(requireLoader.moduleParentsGraph);
 
   Future<Map<String, String>> _getDigests() async {
-    final request = await HttpRequest.request(requireLoader.digestsPath,
-        responseType: 'json', method: 'GET');
+    final request = await HttpRequest.request(
+      requireLoader.digestsPath,
+      responseType: 'json',
+      method: 'GET',
+    );
     return (request.response as Map).cast<String, String>();
   }
 
@@ -155,11 +168,14 @@ class RequireRestarter implements Restarter {
     if (order1 == null || order2 == null) {
       final missing = order1 == null ? module1 : module2;
       throw HotReloadFailedException(
-          'Unable to fetch ordering info for module: $missing');
+        'Unable to fetch ordering info for module: $missing',
+      );
     }
 
     topological = Comparable.compare(
-        _moduleOrdering[module2]!, _moduleOrdering[module1]!);
+      _moduleOrdering[module2]!,
+      _moduleOrdering[module1]!,
+    );
 
     if (topological == 0) {
       // If modules are in cycle (same strongly connected component) compare
@@ -192,9 +208,10 @@ class RequireRestarter implements Restarter {
           // The bootstrap module is not reloaded but we need to update the
           // $dartRunMain reference to the newly loaded child module.
           final childModule = callMethod(
-              getProperty(require('dart_sdk'), 'dart'),
-              'getModuleLibraries',
-              [previousModuleId]);
+            getProperty(require('dart_sdk'), 'dart'),
+            'getModuleLibraries',
+            [previousModuleId],
+          );
           dartRunMain = allowInterop(() {
             callMethod(_jsObjectValues(childModule).first, 'main', []);
           });
@@ -224,7 +241,9 @@ class RequireRestarter implements Restarter {
       allowInterop(completer.complete),
       allowInterop((e) {
         completer.completeError(
-            HotReloadFailedException(e.message), stackTrace);
+          HotReloadFailedException(e.message),
+          stackTrace,
+        );
       }),
     );
     return completer.future;
