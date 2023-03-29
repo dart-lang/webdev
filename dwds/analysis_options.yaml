@@ -35,12 +35,13 @@ dart_code_metrics:
     - avoid-cascade-after-if-null
     - avoid-collection-methods-with-unrelated-types
     - avoid-duplicate-exports
-    - avoid-global-state  
+    # - avoid-global-state  
     - avoid-missing-enum-constant-in-map
     - avoid-nested-conditional-expressions
     - avoid-non-ascii-symbols
     # - avoid-non-null-assertion
     # - avoid-passing-async-when-sync-expected
+    - avoid-redundant-async
     # - avoid-throw-in-catch-block
     - avoid-unnecessary-type-assertions
     - avoid-unnecessary-type-casts

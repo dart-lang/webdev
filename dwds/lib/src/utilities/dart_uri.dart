@@ -144,7 +144,7 @@ class DartUri {
   /// We store this here because for tests we may want to act as if we're
   /// running in the directory of a target package, even if the current
   /// directory of the tests is actually the main dwds directory.
-  static final String currentDirectory = p.current;
+  static String currentDirectory = p.current;
 
   /// The current directory as a file: Uri, saved here to avoid re-computing.
   static final String currentDirectoryUri = '${p.toUri(currentDirectory)}';
