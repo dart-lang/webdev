@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(elliette): Don't import out of /src of directories.
+// ignore_for_file: implementation_imports
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart' as daemon;

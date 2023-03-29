@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(elliette): Don't import out of /src of directories.
+// ignore_for_file: implementation_imports
 import 'dart:convert';
 import 'dart:io';
 
@@ -32,14 +34,13 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
+import 'package:test_common/project.dart';
+import 'package:test_common/server.dart';
 import 'package:test_common/test_sdk_configuration.dart';
+import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/async_io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'project.dart';
-import 'server.dart';
-import 'utilities.dart';
 
 final _exeExt = Platform.isWindows ? '.exe' : '';
 
