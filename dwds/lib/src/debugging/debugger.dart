@@ -56,9 +56,10 @@ class Debugger extends Domain {
     this._skipLists,
     this._root,
   ) : _breakpoints = _Breakpoints(
-            locations: _locations,
-            remoteDebugger: _remoteDebugger,
-            root: _root);
+          locations: _locations,
+          remoteDebugger: _remoteDebugger,
+          root: _root,
+        );
 
   /// The breakpoints we have set so far, indexable by either
   /// Dart or JS ID.
@@ -158,15 +159,19 @@ class Debugger extends Domain {
   /// The returned stack will contain up to [limit] frames if provided.
   Future<Stack> getStack({int? limit}) async {
     if (stackComputer == null) {
-      throw RPCError('getStack', RPCError.kInternalError,
-          'Cannot compute stack when application is not paused');
+      throw RPCError(
+        'getStack',
+        RPCError.kInternalError,
+        'Cannot compute stack when application is not paused',
+      );
     }
 
     final frames = await stackComputer!.calculateFrames(limit: limit);
     return Stack(
-        frames: frames,
-        messages: [],
-        truncated: limit != null && frames.length == limit);
+      frames: frames,
+      messages: [],
+      truncated: limit != null && frames.length == limit,
+    );
   }
 
   static Future<Debugger> create(
@@ -203,10 +208,14 @@ class Debugger extends Domain {
     await _remoteDebugger.enable();
 
     // Enable collecting information about async frames when paused.
-    handleErrorIfPresent(await _remoteDebugger
-        .sendCommand('Debugger.setAsyncCallStackDepth', params: {
-      'maxDepth': 128,
-    }));
+    handleErrorIfPresent(
+      await _remoteDebugger.sendCommand(
+        'Debugger.setAsyncCallStackDepth',
+        params: {
+          'maxDepth': 128,
+        },
+      ),
+    );
   }
 
   /// Resumes the Isolate from start.
@@ -255,12 +264,16 @@ class Debugger extends Domain {
       if (scriptRef != null && scriptUri != null) {
         final jsBpId = _breakpoints.jsIdFor(dartBpId)!;
         final updatedLocation = await _locations.locationForDart(
-            DartUri(scriptUri, _root),
-            _lineNumberFor(breakpoint),
-            _columnNumberFor(breakpoint));
+          DartUri(scriptUri, _root),
+          _lineNumberFor(breakpoint),
+          _columnNumberFor(breakpoint),
+        );
         if (updatedLocation != null) {
           final updatedBreakpoint = _breakpoints._dartBreakpoint(
-              scriptRef, updatedLocation, dartBpId);
+            scriptRef,
+            updatedLocation,
+            dartBpId,
+          );
           _breakpoints._note(bp: updatedBreakpoint, jsId: jsBpId);
           _notifyBreakpoint(updatedBreakpoint);
         } else {
@@ -279,8 +292,11 @@ class Debugger extends Domain {
       final scriptRef = await _updatedScriptRefFor(breakpoint);
       final scriptId = scriptRef?.id;
       if (scriptId != null) {
-        await addBreakpoint(scriptId, _lineNumberFor(breakpoint),
-            column: _columnNumberFor(breakpoint));
+        await addBreakpoint(
+          scriptId,
+          _lineNumberFor(breakpoint),
+          column: _columnNumberFor(breakpoint),
+        );
       } else {
         logger.warning('Cannot update disabled breakpoint ${breakpoint.id}:'
             ' cannot find script ref.');
@@ -302,12 +318,17 @@ class Debugger extends Domain {
   Future<Success> removeBreakpoint(String breakpointId) async {
     if (_breakpoints.breakpointFor(breakpointId) == null) {
       throwInvalidParam(
-          'removeBreakpoint', 'invalid breakpoint id $breakpointId');
+        'removeBreakpoint',
+        'invalid breakpoint id $breakpointId',
+      );
     }
     final jsId = _breakpoints.jsIdFor(breakpointId);
     if (jsId == null) {
-      throw RPCError('removeBreakpoint', RPCError.kInternalError,
-          'invalid JS breakpoint id $jsId');
+      throw RPCError(
+        'removeBreakpoint',
+        RPCError.kInternalError,
+        'invalid JS breakpoint id $jsId',
+      );
     }
     await _removeBreakpoint(jsId);
 
@@ -316,10 +337,10 @@ class Debugger extends Domain {
       _streamNotify(
         'Debug',
         Event(
-            kind: EventKind.kBreakpointRemoved,
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            isolate: inspector.isolateRef)
-          ..breakpoint = bp,
+          kind: EventKind.kBreakpointRemoved,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          isolate: inspector.isolateRef,
+        )..breakpoint = bp,
       );
     }
     return Success();
@@ -432,13 +453,19 @@ class Debugger extends Domain {
 
   /// Compute the last possible element index in the range of [offset]..end
   /// that includes [count] elements, if available.
-  static int? _calculateRangeEnd(
-          {int? count, required int offset, required int length}) =>
+  static int? _calculateRangeEnd({
+    int? count,
+    required int offset,
+    required int length,
+  }) =>
       count == null ? null : math.min(offset + count, length);
 
   /// Calculate the number of available elements in the range.
-  static int _calculateRangeCount(
-          {int? count, required int offset, required int length}) =>
+  static int _calculateRangeCount({
+    int? count,
+    required int offset,
+    required int length,
+  }) =>
       count == null ? length - offset : math.min(count, length - offset);
 
   /// Find a sub-range of the entries for a Map/List when offset and/or count
@@ -448,8 +475,12 @@ class Debugger extends Domain {
   /// will just return a RemoteObject for it and ignore [offset], [count] and
   /// [length]. If it is, then [length] should be the number of entries in the
   /// List/Map and [offset] and [count] should indicate the desired range.
-  Future<RemoteObject> _subRange(String id,
-      {required int offset, int? count, required int length}) async {
+  Future<RemoteObject> _subRange(
+    String id, {
+    required int offset,
+    int? count,
+    required int length,
+  }) async {
     // TODO(#809): Sometimes we already know the type of the object, and
     // we could take advantage of that to short-circuit.
     final receiver = remoteObjectFor(id);
@@ -522,8 +553,12 @@ class Debugger extends Domain {
         return [];
       }
       if (_isSubRange(offset: offset, count: count, length: length)) {
-        final range = await _subRange(objectId,
-            offset: offset ?? 0, count: count, length: length);
+        final range = await _subRange(
+          objectId,
+          offset: offset ?? 0,
+          count: count,
+          length: length,
+        );
         rangeId = range.objectId ?? rangeId;
       }
     }
@@ -579,10 +614,11 @@ class Debugger extends Domain {
         id: createId(),
       ),
       location: SourceLocation(
-          line: bestLocation.dartLocation.line,
-          column: bestLocation.dartLocation.column,
-          tokenPos: bestLocation.tokenPos,
-          script: script),
+        line: bestLocation.dartLocation.line,
+        column: bestLocation.dartLocation.column,
+        tokenPos: bestLocation.tokenPos,
+        script: script,
+      ),
       kind: FrameKind.kRegular,
     );
 
@@ -611,10 +647,10 @@ class Debugger extends Domain {
           ?.where((bp) => breakpointIds.contains(bp.id))
           .toList();
       event = Event(
-          kind: EventKind.kPauseBreakpoint,
-          timestamp: timestamp,
-          isolate: inspector.isolateRef)
-        ..pauseBreakpoints = pauseBreakpoints;
+        kind: EventKind.kPauseBreakpoint,
+        timestamp: timestamp,
+        isolate: inspector.isolateRef,
+      )..pauseBreakpoints = pauseBreakpoints;
     } else if (e.reason == 'exception' || e.reason == 'assert') {
       InstanceRef? exception;
 
@@ -665,19 +701,22 @@ class Debugger extends Domain {
         } else if ((await _sourceLocation(e)) == null) {
           // TODO(grouma) - In the future we should send all previously computed
           // skipLists.
-          await _remoteDebugger.stepInto(params: {
-            'skipList': _skipLists.compute(
-              scriptId,
-              await _locations.locationsForUrl(url),
-            )
-          });
+          await _remoteDebugger.stepInto(
+            params: {
+              'skipList': _skipLists.compute(
+                scriptId,
+                await _locations.locationsForUrl(url),
+              )
+            },
+          );
           return;
         }
       }
       event = Event(
-          kind: EventKind.kPauseInterrupted,
-          timestamp: timestamp,
-          isolate: inspector.isolateRef);
+        kind: EventKind.kPauseInterrupted,
+        timestamp: timestamp,
+        isolate: inspector.isolateRef,
+      );
     }
 
     // Calculate the frames (and handle any exceptions that may occur).
@@ -711,9 +750,10 @@ class Debugger extends Domain {
 
     stackComputer = null;
     final event = Event(
-        kind: EventKind.kResume,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isolate: inspector.isolateRef);
+      kind: EventKind.kResume,
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      isolate: inspector.isolateRef,
+    );
 
     // TODO(elliette): https://github.com/dart-lang/webdev/issues/1501 Re-enable
     // after checking with Chrome team if there is a way to check if the Chrome
@@ -731,9 +771,10 @@ class Debugger extends Domain {
 
     stackComputer = null;
     final event = Event(
-        kind: EventKind.kIsolateExit,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isolate: inspector.isolateRef);
+      kind: EventKind.kIsolateExit,
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      isolate: inspector.isolateRef,
+    );
     isolate.pauseEvent = event;
     _streamNotify('Isolate', event);
     logger.severe('Target crashed!');
@@ -742,8 +783,11 @@ class Debugger extends Domain {
   WipCallFrame? jsFrameForIndex(int frameIndex) {
     final computer = stackComputer;
     if (computer == null) {
-      throw RPCError('evaluateInFrame', 106,
-          'Cannot evaluate on a call frame when the program is not paused');
+      throw RPCError(
+        'evaluateInFrame',
+        106,
+        'Cannot evaluate on a call frame when the program is not paused',
+      );
     }
     return computer.jsFrameForIndex(frameIndex);
   }
@@ -754,7 +798,9 @@ class Debugger extends Domain {
   /// If the program is not paused, so there is no current stack, throws a
   /// [StateError].
   Future<RemoteObject> evaluateJsOnCallFrameIndex(
-      int frameIndex, String expression) {
+    int frameIndex,
+    String expression,
+  ) {
     final index = jsFrameForIndex(frameIndex)?.callFrameId;
     if (index == null) {
       // This might happen on async frames.
@@ -766,7 +812,9 @@ class Debugger extends Domain {
   /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on
   /// the call frame with id [callFrameId].
   Future<RemoteObject> evaluateJsOnCallFrame(
-      String callFrameId, String expression) async {
+    String callFrameId,
+    String expression,
+  ) async {
     // TODO(alanknight): Support a version with arguments if needed.
     try {
       return await _remoteDebugger.evaluateOnCallFrame(callFrameId, expression);
@@ -788,8 +836,12 @@ Future<T> sendCommandAndValidateResult<T>(
   final response = await remoteDebugger.sendCommand(method, params: params);
   final result = response.result?[resultField];
   if (result == null) {
-    throw RPCError(method, RPCError.kInternalError,
-        '$resultField not found in result from sendCommand', params);
+    throw RPCError(
+      method,
+      RPCError.kInternalError,
+      '$resultField not found in result from sendCommand',
+      params,
+    );
   }
   return result;
 }
@@ -847,7 +899,11 @@ class _Breakpoints extends Domain {
   });
 
   Future<Breakpoint> _createBreakpoint(
-      String id, String scriptId, int line, int column) async {
+    String id,
+    String scriptId,
+    int line,
+    int column,
+  ) async {
     final dartScript = inspector.scriptWithId(scriptId);
     final dartScriptUri = dartScript?.uri;
     Location? location;
@@ -894,12 +950,17 @@ class _Breakpoints extends Domain {
   Future<Breakpoint> add(String scriptId, int line, int column) async {
     final id = breakpointIdFor(scriptId, line, column);
     return _bpByDartId.putIfAbsent(
-        id, () => _createBreakpoint(id, scriptId, line, column));
+      id,
+      () => _createBreakpoint(id, scriptId, line, column),
+    );
   }
 
   /// Create a Dart breakpoint at [location] in [dartScript] with [id].
   Breakpoint _dartBreakpoint(
-      ScriptRef dartScript, Location location, String id) {
+    ScriptRef dartScript,
+    Location location,
+    String id,
+  ) {
     final breakpoint = Breakpoint(
       id: id,
       breakpointNumber: int.parse(createId()),
@@ -923,14 +984,15 @@ class _Breakpoints extends Domain {
     // simultaneously by serializing the requests.
     return _queue.run(() async {
       final breakPointId = await sendCommandAndValidateResult<String>(
-          remoteDebugger,
-          method: 'Debugger.setBreakpointByUrl',
-          resultField: 'breakpointId',
-          params: {
-            'urlRegex': urlRegex,
-            'lineNumber': location.jsLocation.line,
-            'columnNumber': location.jsLocation.column,
-          });
+        remoteDebugger,
+        method: 'Debugger.setBreakpointByUrl',
+        resultField: 'breakpointId',
+        params: {
+          'urlRegex': urlRegex,
+          'lineNumber': location.jsLocation.line,
+          'columnNumber': location.jsLocation.column,
+        },
+      );
       return breakPointId;
     });
   }
@@ -1015,7 +1077,7 @@ String _prettifyExtension(String member) {
 /// that an escaped sequence precedes a number literal in the JS name.
 String _unescape(String name) {
   return name.replaceAllMapped(
-      RegExp(r'\$[0-9]+'),
-      (m) =>
-          String.fromCharCode(int.parse(name.substring(m.start + 1, m.end))));
+    RegExp(r'\$[0-9]+'),
+    (m) => String.fromCharCode(int.parse(name.substring(m.start + 1, m.end))),
+  );
 }

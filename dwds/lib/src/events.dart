@@ -23,8 +23,10 @@ class DwdsStats {
     return wasReady;
   }
 
-  void updateLoadTime(
-      {required DateTime debuggerStart, required DateTime devToolsStart}) {
+  void updateLoadTime({
+    required DateTime debuggerStart,
+    required DateTime devToolsStart,
+  }) {
     _debuggerStart = debuggerStart;
     _devToolsStart = devToolsStart;
   }
@@ -140,15 +142,19 @@ Stream<DwdsEvent> get eventStream => _eventController.stream;
 /// and appends time and exception details to it if
 /// available.
 Future<T> captureElapsedTime<T>(
-    Future<T> Function() function, DwdsEvent Function(T? result) event) async {
+  Future<T> Function() function,
+  DwdsEvent Function(T? result) event,
+) async {
   final stopwatch = Stopwatch()..start();
   T? result;
   try {
     return result = await function();
   } catch (e) {
-    emitEvent(event(null)
-      ..addException(e)
-      ..addElapsedTime(stopwatch.elapsedMilliseconds));
+    emitEvent(
+      event(null)
+        ..addException(e)
+        ..addElapsedTime(stopwatch.elapsedMilliseconds),
+    );
     rethrow;
   } finally {
     emitEvent(event(result)..addElapsedTime(stopwatch.elapsedMilliseconds));

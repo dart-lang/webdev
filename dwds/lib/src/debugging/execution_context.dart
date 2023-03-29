@@ -31,20 +31,25 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
     if (_id != null) return _id!;
     _logger.fine('Looking for Dart execution context...');
     const timeoutInMs = 100;
-    while (await _contexts.hasNext
-        .timeout(const Duration(milliseconds: timeoutInMs), onTimeout: () {
-      _logger.warning(
-          'Timed out finding an execution context after $timeoutInMs ms.');
-      return false;
-    })) {
+    while (await _contexts.hasNext.timeout(
+      const Duration(milliseconds: timeoutInMs),
+      onTimeout: () {
+        _logger.warning(
+          'Timed out finding an execution context after $timeoutInMs ms.',
+        );
+        return false;
+      },
+    )) {
       final context = await _contexts.next;
       _logger.fine('Checking context id: $context');
       try {
-        final result =
-            await _remoteDebugger.sendCommand('Runtime.evaluate', params: {
-          'expression': r'window["$dartAppInstanceId"];',
-          'contextId': context,
-        });
+        final result = await _remoteDebugger.sendCommand(
+          'Runtime.evaluate',
+          params: {
+            'expression': r'window["$dartAppInstanceId"];',
+            'contextId': context,
+          },
+        );
         if (result.result?['result']?['value'] != null) {
           _logger.fine('Found valid execution context: $context');
           _id = context;

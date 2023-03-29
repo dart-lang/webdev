@@ -59,12 +59,19 @@ void main() {
 
       test('set breakpoint', () async {
         final line = await context.findBreakpointLine(
-            'printLocal', isolateId, mainScript);
+          'printLocal',
+          isolateId,
+          mainScript,
+        );
         final bp = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri, line);
+          isolateId,
+          mainScriptUri,
+          line,
+        );
 
         await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          (Event event) => event.kind == EventKind.kPauseBreakpoint,
+        );
 
         expect(bp, isNotNull);
 
@@ -74,12 +81,19 @@ void main() {
 
       test('set breakpoint again', () async {
         final line = await context.findBreakpointLine(
-            'printLocal', isolateId, mainScript);
+          'printLocal',
+          isolateId,
+          mainScript,
+        );
         final bp = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri, line);
+          isolateId,
+          mainScriptUri,
+          line,
+        );
 
         await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          (Event event) => event.kind == EventKind.kPauseBreakpoint,
+        );
 
         expect(bp, isNotNull);
 
@@ -89,17 +103,27 @@ void main() {
 
       test('set existing breakpoint succeeds', () async {
         final line = await context.findBreakpointLine(
-            'printLocal', isolateId, mainScript);
+          'printLocal',
+          isolateId,
+          mainScript,
+        );
         final bp1 = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri, line);
+          isolateId,
+          mainScriptUri,
+          line,
+        );
         final bp2 = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri, line);
+          isolateId,
+          mainScriptUri,
+          line,
+        );
 
         expect(bp1, equals(bp2));
         expect(bp1, isNotNull);
 
         await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          (Event event) => event.kind == EventKind.kPauseBreakpoint,
+        );
 
         var currentIsolate = await service.getIsolate(isolateId);
         expect(currentIsolate.breakpoints, containsAll([bp1]));
@@ -114,7 +138,10 @@ void main() {
       test('set breakpoints at the same line simultaneously succeeds',
           () async {
         final line = await context.findBreakpointLine(
-            'printLocal', isolateId, mainScript);
+          'printLocal',
+          isolateId,
+          mainScript,
+        );
         final futures = [
           service.addBreakpointWithScriptUri(isolateId, mainScriptUri, line),
           service.addBreakpointWithScriptUri(isolateId, mainScriptUri, line),
@@ -125,7 +152,8 @@ void main() {
         expect(breakpoints[0], isNotNull);
 
         await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          (Event event) => event.kind == EventKind.kPauseBreakpoint,
+        );
 
         var currentIsolate = await service.getIsolate(isolateId);
         expect(currentIsolate.breakpoints, containsAll([breakpoints[0]]));
@@ -139,12 +167,19 @@ void main() {
 
       test('remove non-existing breakpoint fails', () async {
         final line = await context.findBreakpointLine(
-            'printLocal', isolateId, mainScript);
+          'printLocal',
+          isolateId,
+          mainScript,
+        );
         final bp = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri, line);
+          isolateId,
+          mainScriptUri,
+          line,
+        );
 
         await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          (Event event) => event.kind == EventKind.kPauseBreakpoint,
+        );
 
         var currentIsolate = await service.getIsolate(isolateId);
         expect(currentIsolate.breakpoints, containsAll([bp]));
@@ -152,7 +187,9 @@ void main() {
         // Remove breakpoints so they don't impact other tests.
         await service.removeBreakpoint(isolateId, bp.id!);
         await expectLater(
-            service.removeBreakpoint(isolateId, bp.id!), throwsRPCError);
+          service.removeBreakpoint(isolateId, bp.id!),
+          throwsRPCError,
+        );
 
         currentIsolate = await service.getIsolate(isolateId);
         expect(currentIsolate.breakpoints, isEmpty);

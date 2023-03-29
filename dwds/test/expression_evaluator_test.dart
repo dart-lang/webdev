@@ -90,9 +90,10 @@ void main() async {
         final result =
             await evaluator.evaluateExpression('1', 'main.dart', 'true', {});
         expect(
-            result,
-            const TypeMatcher<RemoteObject>()
-                .having((o) => o.value, 'value', 'true'));
+          result,
+          const TypeMatcher<RemoteObject>()
+              .having((o) => o.value, 'value', 'true'),
+        );
       });
 
       test('can evaluate expression in frame with null scope', () async {
@@ -100,9 +101,11 @@ void main() async {
         // More extensive testing of 'evaluateExpressionInFrame' is done in
         // evaluation tests for frontend server and build daemon.
         await expectLater(
-            evaluator.evaluateExpressionInFrame('1', 0, 'true', null),
-            throwsRPCErrorWithMessage(
-                'Cannot evaluate on a call frame when the program is not paused'));
+          evaluator.evaluateExpressionInFrame('1', 0, 'true', null),
+          throwsRPCErrorWithMessage(
+            'Cannot evaluate on a call frame when the program is not paused',
+          ),
+        );
       });
 
       test('can evaluate expression in frame with empty scope', () async {
@@ -110,9 +113,11 @@ void main() async {
         // More extensive testing of 'evaluateExpressionInFrame' is done in
         // evaluation tests for frontend server and build daemon.
         await expectLater(
-            evaluator.evaluateExpressionInFrame('1', 0, 'true', {}),
-            throwsRPCErrorWithMessage(
-                'Cannot evaluate on a call frame when the program is not paused'));
+          evaluator.evaluateExpressionInFrame('1', 0, 'true', {}),
+          throwsRPCErrorWithMessage(
+            'Cannot evaluate on a call frame when the program is not paused',
+          ),
+        );
       });
 
       test('cannot evaluate expression in frame with non-empty scope',
@@ -120,14 +125,17 @@ void main() async {
         final result = await evaluator
             .evaluateExpressionInFrame('1', 0, 'true', {'a': '1'});
         expect(
-            result,
-            const TypeMatcher<RemoteObject>()
-                .having((o) => o.type, 'type', 'InternalError')
-                .having(
-                    (o) => o.value,
-                    'value',
-                    contains(
-                        'Using scope for expression evaluation in frame is not supported')));
+          result,
+          const TypeMatcher<RemoteObject>()
+              .having((o) => o.type, 'type', 'InternalError')
+              .having(
+                (o) => o.value,
+                'value',
+                contains(
+                  'Using scope for expression evaluation in frame is not supported',
+                ),
+              ),
+        );
       });
 
       test('returns error if closed', () async {
@@ -135,10 +143,11 @@ void main() async {
         final result =
             await evaluator.evaluateExpression('1', 'main.dart', 'true', {});
         expect(
-            result,
-            const TypeMatcher<RemoteObject>()
-                .having((o) => o.type, 'type', 'InternalError')
-                .having((o) => o.value, 'value', contains('evaluator closed')));
+          result,
+          const TypeMatcher<RemoteObject>()
+              .having((o) => o.type, 'type', 'InternalError')
+              .having((o) => o.value, 'value', contains('evaluator closed')),
+        );
       });
     });
 
@@ -153,9 +162,10 @@ void main() async {
         final result =
             await evaluator.evaluateExpression('1', 'main.dart', 'true', {});
         expect(
-            result,
-            const TypeMatcher<RemoteObject>()
-                .having((o) => o.value, 'value', 'true'));
+          result,
+          const TypeMatcher<RemoteObject>()
+              .having((o) => o.value, 'value', 'true'),
+        );
       });
 
       test('returns error if closed', () async {
@@ -163,10 +173,11 @@ void main() async {
         final result =
             await evaluator.evaluateExpression('1', 'main.dart', 'true', {});
         expect(
-            result,
-            const TypeMatcher<RemoteObject>()
-                .having((o) => o.type, 'type', 'InternalError')
-                .having((o) => o.value, 'value', contains('evaluator closed')));
+          result,
+          const TypeMatcher<RemoteObject>()
+              .having((o) => o.type, 'type', 'InternalError')
+              .having((o) => o.value, 'value', contains('evaluator closed')),
+        );
       });
     });
   });

@@ -32,7 +32,8 @@ Future<void> _onDartAppReadyEvent(Event event) async {
   final debugInfo = getProperty(event, 'detail') as String?;
   if (debugInfo == null) {
     debugWarn(
-        'No debug info sent with ready event, instead reading from Window.');
+      'No debug info sent with ready event, instead reading from Window.',
+    );
     _injectDebugInfoScript();
   } else {
     await _sendMessageToBackgroundScript(

@@ -25,11 +25,12 @@ void main() {
 
       // Verify the output.
       expect(
-          controller.stream,
-          emitsInOrder([
-            batchOne,
-            batchTwo,
-          ]));
+        controller.stream,
+        emitsInOrder([
+          batchOne,
+          batchTwo,
+        ]),
+      );
 
       // Add input.
       final inputController = StreamController<int>();

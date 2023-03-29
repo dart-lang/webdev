@@ -44,11 +44,14 @@ void main() {
       expect(previousDdcTemporaryVariableRegExp.hasMatch(r't10'), isTrue);
       expect(previousDdcTemporaryVariableRegExp.hasMatch(r'__t$TL'), isTrue);
       expect(
-          previousDdcTemporaryVariableRegExp.hasMatch(r'__t$StringN'), isTrue);
+        previousDdcTemporaryVariableRegExp.hasMatch(r'__t$StringN'),
+        isTrue,
+      );
       expect(
-          previousDdcTemporaryVariableRegExp
-              .hasMatch(r'__t$IdentityMapOfString$T'),
-          isTrue);
+        previousDdcTemporaryVariableRegExp
+            .hasMatch(r'__t$IdentityMapOfString$T'),
+        isTrue,
+      );
 
       expect(previousDdcTemporaryVariableRegExp.hasMatch(r't'), isFalse);
       expect(previousDdcTemporaryVariableRegExp.hasMatch(r't10foo'), isFalse);
@@ -63,12 +66,15 @@ void main() {
       expect(ddcTemporaryVariableRegExp.hasMatch(r't$361'), isTrue);
       expect(ddcTemporaryVariableRegExp.hasMatch(r't$36$350$350'), isTrue);
       expect(
-          ddcTemporaryVariableRegExp.hasMatch(r't$36$350$354$35isSet'), isTrue);
+        ddcTemporaryVariableRegExp.hasMatch(r't$36$350$354$35isSet'),
+        isTrue,
+      );
       expect(ddcTemporaryTypeVariableRegExp.hasMatch(r'__t$TL'), isTrue);
       expect(ddcTemporaryTypeVariableRegExp.hasMatch(r'__t$StringN'), isTrue);
       expect(
-          ddcTemporaryTypeVariableRegExp.hasMatch(r'__t$IdentityMapOfString$T'),
-          isTrue);
+        ddcTemporaryTypeVariableRegExp.hasMatch(r'__t$IdentityMapOfString$T'),
+        isTrue,
+      );
 
       expect(ddcTemporaryVariableRegExp.hasMatch(r't'), isFalse);
       expect(ddcTemporaryVariableRegExp.hasMatch(r'this'), isFalse);
@@ -115,19 +121,20 @@ void main() {
 
     void expectDartObject(String variableName, Instance instance) {
       expect(
-          instance,
-          isA<Instance>().having(
-              (instance) => instance.classRef!.name,
-              '$variableName: classRef.name',
-              isNot(isIn([
-                'NativeJavaScriptObject',
-                'JavaScriptObject',
-                'NativeError'
-              ]))));
+        instance,
+        isA<Instance>().having(
+          (instance) => instance.classRef!.name,
+          '$variableName: classRef.name',
+          isNot(
+            isIn(['NativeJavaScriptObject', 'JavaScriptObject', 'NativeError']),
+          ),
+        ),
+      );
     }
 
     Future<void> expectDartVariables(
-        Map<String?, InstanceRef?> variables) async {
+      Map<String?, InstanceRef?> variables,
+    ) async {
       for (var name in variables.keys) {
         final instance = await getInstance(variables[name]!);
         expectDartObject(name!, instance);
@@ -174,17 +181,18 @@ void main() {
 
       final variableNames = variables.keys.toList()..sort();
       expect(
-          variableNames,
-          containsAll([
-            'aClass',
-            'another',
-            'intLocalInMain',
-            'local',
-            'localThatsNull',
-            'nestedFunction',
-            'parameter',
-            'testClass'
-          ]));
+        variableNames,
+        containsAll([
+          'aClass',
+          'another',
+          'intLocalInMain',
+          'local',
+          'localThatsNull',
+          'nestedFunction',
+          'parameter',
+          'testClass'
+        ]),
+      );
     });
 
     test('variables in closure nested in method', () async {
@@ -193,8 +201,10 @@ void main() {
       await expectDartVariables(variables);
 
       final variableNames = variables.keys.toList()..sort();
-      expect(variableNames,
-          ['closureLocalInsideMethod', 'local', 'parameter', 'this']);
+      expect(
+        variableNames,
+        ['closureLocalInsideMethod', 'local', 'parameter', 'this'],
+      );
     });
 
     test('variables in method', () async {

@@ -63,16 +63,20 @@ void main() {
               final testPackage = context.project.packageName;
               mainScript = scripts.scripts!
                   .firstWhere((each) => each.uri!.contains('main.dart'));
-              testLibraryScript = scripts.scripts!.firstWhere((each) =>
-                  each.uri!.contains('package:$testPackage/test_library.dart'));
+              testLibraryScript = scripts.scripts!.firstWhere(
+                (each) => each.uri!
+                    .contains('package:$testPackage/test_library.dart'),
+              );
             });
 
             tearDown(() async {
               await service.resume(isolate.id!);
             });
 
-            Future<void> onBreakPoint(BreakpointTestData breakpoint,
-                Future<void> Function() body) async {
+            Future<void> onBreakPoint(
+              BreakpointTestData breakpoint,
+              Future<void> Function() body,
+            ) async {
               Breakpoint? bp;
               try {
                 final bpId = breakpoint.bpId;
@@ -80,13 +84,17 @@ void main() {
                 final line =
                     await context.findBreakpointLine(bpId, isolate.id!, script);
                 bp = await service.addBreakpointWithScriptUri(
-                    isolate.id!, script.uri!, line);
+                  isolate.id!,
+                  script.uri!,
+                  line,
+                );
 
                 expect(bp, isNotNull);
                 expect(bp.location, _matchBpLocation(script, line, 0));
 
                 await stream.firstWhere(
-                    (Event event) => event.kind == EventKind.kPauseBreakpoint);
+                  (Event event) => event.kind == EventKind.kPauseBreakpoint,
+                );
 
                 await body();
               } finally {
@@ -97,11 +105,20 @@ void main() {
               }
             }
 
-            Future<void> testCallStack(List<BreakpointTestData> breakpoints,
-                {int frameIndex = 1}) async {
+            Future<void> testCallStack(
+              List<BreakpointTestData> breakpoints, {
+              int frameIndex = 1,
+            }) async {
               // Find lines the breakpoints are located on.
-              final lines = await Future.wait(breakpoints.map((frame) => context
-                  .findBreakpointLine(frame.bpId, isolate.id!, frame.script)));
+              final lines = await Future.wait(
+                breakpoints.map(
+                  (frame) => context.findBreakpointLine(
+                    frame.bpId,
+                    isolate.id!,
+                    frame.script,
+                  ),
+                ),
+              );
 
               // Get current stack.
               final stack = await service.getStack(isolate.id!);
@@ -111,13 +128,19 @@ void main() {
               final expected = [
                 for (var i = 0; i < lines.length; i++)
                   _matchFrame(
-                      breakpoints[i].script, breakpoints[i].function, lines[i])
+                    breakpoints[i].script,
+                    breakpoints[i].function,
+                    lines[i],
+                  )
               ];
               expect(stack.frames, containsAll(expected));
 
               // Verify that expression evaluation is not failing.
               final instance = await service.evaluateInFrame(
-                  isolate.id!, frameIndex, 'true');
+                isolate.id!,
+                frameIndex,
+                'true',
+              );
               expect(instance, isA<InstanceRef>());
             }
 
@@ -141,7 +164,9 @@ void main() {
                 ),
               ];
               await onBreakPoint(
-                  breakpoints[0], () => testCallStack(breakpoints));
+                breakpoints[0],
+                () => testCallStack(breakpoints),
+              );
             });
 
             test('expression evaluation succeeds on parent frame', () async {
@@ -163,8 +188,10 @@ void main() {
                   mainScript,
                 ),
               ];
-              await onBreakPoint(breakpoints[0],
-                  () => testCallStack(breakpoints, frameIndex: 2));
+              await onBreakPoint(
+                breakpoints[0],
+                () => testCallStack(breakpoints, frameIndex: 2),
+              );
             });
 
             test('breakpoint inside a line gives correct callstack', () async {
@@ -187,7 +214,9 @@ void main() {
                 ),
               ];
               await onBreakPoint(
-                  breakpoints[0], () => testCallStack(breakpoints));
+                breakpoints[0],
+                () => testCallStack(breakpoints),
+              );
             });
 
             test('breakpoint gives correct callstack after step out', () async {
@@ -212,7 +241,8 @@ void main() {
               await onBreakPoint(breakpoints[0], () async {
                 await service.resume(isolate.id!, step: 'Out');
                 await stream.firstWhere(
-                    (Event event) => event.kind == EventKind.kPauseInterrupted);
+                  (Event event) => event.kind == EventKind.kPauseInterrupted,
+                );
                 return testCallStack([breakpoints[1], breakpoints[2]]);
               });
             });
@@ -239,7 +269,8 @@ void main() {
               await onBreakPoint(breakpoints[1], () async {
                 await service.resume(isolate.id!, step: 'Into');
                 await stream.firstWhere(
-                    (Event event) => event.kind == EventKind.kPauseInterrupted);
+                  (Event event) => event.kind == EventKind.kPauseInterrupted,
+                );
                 return testCallStack(breakpoints);
               });
             });
@@ -268,11 +299,15 @@ void main() {
                 ),
               ];
               final bp = BreakpointTestData(
-                  'printMultiLine', 'printObjectMultiLine', mainScript);
+                'printMultiLine',
+                'printObjectMultiLine',
+                mainScript,
+              );
               await onBreakPoint(bp, () async {
                 await service.resume(isolate.id!, step: 'Into');
                 await stream.firstWhere(
-                    (Event event) => event.kind == EventKind.kPauseInterrupted);
+                  (Event event) => event.kind == EventKind.kPauseInterrupted,
+                );
                 return testCallStack(breakpoints);
               });
             });
@@ -285,8 +320,11 @@ void main() {
 
 Matcher _matchFrame(ScriptRef script, String function, int line) => isA<Frame>()
     .having((frame) => frame.code!.name, 'function', function)
-    .having((frame) => frame.location, 'location',
-        _matchFrameLocation(script, line));
+    .having(
+      (frame) => frame.location,
+      'location',
+      _matchFrameLocation(script, line),
+    );
 
 Matcher _matchBpLocation(ScriptRef script, int line, int column) =>
     isA<SourceLocation>()

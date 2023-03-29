@@ -103,8 +103,10 @@ class WebSocketSocketHandler extends SocketHandler {
   StreamQueue<WebSocketConnection>? _connectionsStreamQueue;
 
   WebSocketSocketHandler() {
-    _handler = webSocketHandler((WebSocketChannel channel) =>
-        _connectionsStream.add(WebSocketConnection(channel)));
+    _handler = webSocketHandler(
+      (WebSocketChannel channel) =>
+          _connectionsStream.add(WebSocketConnection(channel)),
+    );
   }
 
   @override

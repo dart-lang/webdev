@@ -81,8 +81,12 @@ class FrameComputer {
       if (_asyncFramesToProcess == null) {
         if (_computedFrames.isNotEmpty &&
             _computedFrames.last.kind != FrameKind.kAsyncSuspensionMarker) {
-          _computedFrames.add(Frame(
-              index: _frameIndex++, kind: FrameKind.kAsyncSuspensionMarker));
+          _computedFrames.add(
+            Frame(
+              index: _frameIndex++,
+              kind: FrameKind.kAsyncSuspensionMarker,
+            ),
+          );
         }
         _asyncFramesToProcess = asyncStackTrace.callFrames;
       } else {
@@ -91,8 +95,10 @@ class FrameComputer {
         if (asyncFramesToProcess.isNotEmpty) {
           final callFrame = asyncFramesToProcess.removeAt(0);
           final location = WipLocation.fromValues(
-              callFrame.scriptId, callFrame.lineNumber,
-              columnNumber: callFrame.columnNumber);
+            callFrame.scriptId,
+            callFrame.lineNumber,
+            columnNumber: callFrame.columnNumber,
+          );
 
           final tempWipFrame = WipCallFrame({
             'url': callFrame.url,

@@ -38,7 +38,8 @@ void main(List<String> arguments) async {
 
 Future<int> run({required bool isProd, required bool isMV3}) async {
   _logInfo(
-      'Building ${isMV3 ? 'MV3' : 'MV2'} extension for ${isProd ? 'prod' : 'dev'}');
+    'Building ${isMV3 ? 'MV3' : 'MV2'} extension for ${isProd ? 'prod' : 'dev'}',
+  );
   _logInfo('Compiling extension with dart2js to /compiled directory');
   final compileStep = await Process.start(
     'dart',

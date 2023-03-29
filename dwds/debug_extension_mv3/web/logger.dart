@@ -66,12 +66,24 @@ external _Console get _console;
 @JS()
 @anonymous
 class _Console {
-  external void log(String header,
-      [String style1, String style2, String style3]);
+  external void log(
+    String header, [
+    String style1,
+    String style2,
+    String style3,
+  ]);
 
-  external void warn(String header,
-      [String style1, String style2, String style3]);
+  external void warn(
+    String header, [
+    String style1,
+    String style2,
+    String style3,
+  ]);
 
-  external void error(String header,
-      [String style1, String style2, String style3]);
+  external void error(
+    String header, [
+    String style1,
+    String style2,
+    String style3,
+  ]);
 }

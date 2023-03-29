@@ -55,53 +55,69 @@ void main() {
       }
     });
 
-    test('restore after refresh', () async {
-      final firstBp =
-          await service.addBreakpoint(isolate.id!, mainScript.id!, 23);
-      expect(firstBp, isNotNull);
-      expect(firstBp.id, isNotNull);
+    test(
+      'restore after refresh',
+      () async {
+        final firstBp =
+            await service.addBreakpoint(isolate.id!, mainScript.id!, 23);
+        expect(firstBp, isNotNull);
+        expect(firstBp.id, isNotNull);
 
-      final eventsDone = expectLater(
+        final eventsDone = expectLater(
           isolateEventStream,
-          emitsThrough(emitsInOrder([
-            predicate((Event event) => event.kind == EventKind.kIsolateExit),
-            predicate((Event event) => event.kind == EventKind.kIsolateStart),
-            predicate(
-                (Event event) => event.kind == EventKind.kIsolateRunnable),
-          ])));
+          emitsThrough(
+            emitsInOrder([
+              predicate((Event event) => event.kind == EventKind.kIsolateExit),
+              predicate((Event event) => event.kind == EventKind.kIsolateStart),
+              predicate(
+                (Event event) => event.kind == EventKind.kIsolateRunnable,
+              ),
+            ]),
+          ),
+        );
 
-      await context.webDriver.refresh();
-      await eventsDone;
+        await context.webDriver.refresh();
+        await eventsDone;
 
-      vm = await service.getVM();
-      isolate = await service.getIsolate(vm.isolates!.first.id!);
+        vm = await service.getVM();
+        isolate = await service.getIsolate(vm.isolates!.first.id!);
 
-      expect(isolate.breakpoints!.length, equals(1));
-    }, timeout: const Timeout.factor(2));
+        expect(isolate.breakpoints!.length, equals(1));
+      },
+      timeout: const Timeout.factor(2),
+    );
 
-    test('restore after hot restart', () async {
-      final firstBp =
-          await service.addBreakpoint(isolate.id!, mainScript.id!, 23);
-      expect(firstBp, isNotNull);
-      expect(firstBp.id, isNotNull);
+    test(
+      'restore after hot restart',
+      () async {
+        final firstBp =
+            await service.addBreakpoint(isolate.id!, mainScript.id!, 23);
+        expect(firstBp, isNotNull);
+        expect(firstBp.id, isNotNull);
 
-      final eventsDone = expectLater(
+        final eventsDone = expectLater(
           isolateEventStream,
-          emits(emitsInOrder([
-            predicate((Event event) => event.kind == EventKind.kIsolateExit),
-            predicate((Event event) => event.kind == EventKind.kIsolateStart),
-            predicate(
-                (Event event) => event.kind == EventKind.kIsolateRunnable),
-          ])));
+          emits(
+            emitsInOrder([
+              predicate((Event event) => event.kind == EventKind.kIsolateExit),
+              predicate((Event event) => event.kind == EventKind.kIsolateStart),
+              predicate(
+                (Event event) => event.kind == EventKind.kIsolateRunnable,
+              ),
+            ]),
+          ),
+        );
 
-      await context.debugConnection.vmService
-          .callServiceExtension('hotRestart');
-      await eventsDone;
+        await context.debugConnection.vmService
+            .callServiceExtension('hotRestart');
+        await eventsDone;
 
-      vm = await service.getVM();
-      isolate = await service.getIsolate(vm.isolates!.first.id!);
+        vm = await service.getVM();
+        isolate = await service.getIsolate(vm.isolates!.first.id!);
 
-      expect(isolate.breakpoints!.length, equals(1));
-    }, timeout: const Timeout.factor(2));
+        expect(isolate.breakpoints!.length, equals(1));
+      },
+      timeout: const Timeout.factor(2),
+    );
   });
 }
