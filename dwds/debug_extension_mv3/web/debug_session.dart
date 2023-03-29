@@ -234,9 +234,11 @@ _enableExecutionContextReporting(int tabId) {
       if (chromeError != null) {
         final errorMessage = _translateChromeError(chromeError.message);
         chrome.notifications.create(
-          /*notificationId*/ null,
+          /*notificationId*/
+          null,
           NotificationOptions(message: errorMessage),
-          /*callback*/ null,
+          /*callback*/
+          null,
         );
         return;
       }
@@ -682,7 +684,8 @@ Future<bool> _sendAuthRequest(String authUrl) async {
 Future<bool> _showWarningNotification(String message) {
   final completer = Completer<bool>();
   chrome.notifications.create(
-    /*notificationId*/ null,
+    /*notificationId*/
+    null,
     NotificationOptions(
       title: '[Error] Dart Debug Extension',
       message: message,

@@ -13,7 +13,6 @@ import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/events.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
@@ -223,7 +222,6 @@ class DebugService {
     ExecutionContext executionContext,
     String root,
     AssetReader assetReader,
-    LoadStrategy loadStrategy,
     AppConnection appConnection,
     UrlEncoder? urlEncoder, {
     void Function(Map<String, Object>)? onRequest,
@@ -236,7 +234,6 @@ class DebugService {
       remoteDebugger,
       root,
       assetReader,
-      loadStrategy,
       appConnection,
       executionContext,
       expressionCompiler,

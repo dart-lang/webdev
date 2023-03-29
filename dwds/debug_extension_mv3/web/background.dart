@@ -62,7 +62,7 @@ void _registerListeners() {
 Future<void> _handleRuntimeMessages(
   dynamic jsRequest,
   MessageSender sender,
-  Function sendResponse,
+  Function _,
 ) async {
   if (jsRequest is! String) return;
 

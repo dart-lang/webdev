@@ -24,7 +24,6 @@ import 'package:dwds/src/events.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/require.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
@@ -54,7 +53,6 @@ class DevHandler {
   final _injectedConnections = <SocketConnection>{};
   final DevTools? _devTools;
   final AssetReader _assetReader;
-  final LoadStrategy _loadStrategy;
   final String _hostname;
   final _connectedApps = StreamController<AppConnection>.broadcast();
   final _servicesByAppId = <String, AppDebugServices>{};
@@ -84,7 +82,6 @@ class DevHandler {
     this.buildResults,
     this._devTools,
     this._assetReader,
-    this._loadStrategy,
     this._hostname,
     this._extensionBackend,
     this._urlEncoder,
@@ -201,7 +198,6 @@ class DevHandler {
       executionContext,
       basePathForServerUri(appTab.url),
       _assetReader,
-      _loadStrategy,
       appConnection,
       _urlEncoder,
       onResponse: (response) {
@@ -241,7 +237,6 @@ class DevHandler {
         appConnection,
       );
       appServices = await _createAppDebugServices(
-        appConnection.request.appId,
         debugService,
       );
       safeUnawaited(
@@ -282,7 +277,7 @@ class DevHandler {
           } else if (message is IsolateExit) {
             _handleIsolateExit(connection);
           } else if (message is IsolateStart) {
-            await _handleIsolateStart(connection, injectedConnection);
+            await _handleIsolateStart(connection);
           } else if (message is BatchedDebugEvents) {
             _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
@@ -480,7 +475,6 @@ class DevHandler {
 
   Future<void> _handleIsolateStart(
     AppConnection appConnection,
-    SocketConnection sseConnection,
   ) async {
     await _servicesByAppId[appConnection.request.appId]
         ?.chromeProxyService
@@ -512,7 +506,6 @@ class DevHandler {
   }
 
   Future<AppDebugServices> _createAppDebugServices(
-    String appId,
     DebugService debugService,
   ) async {
     final dwdsStats = DwdsStats();
@@ -596,7 +589,6 @@ class DevHandler {
         executionContext,
         basePathForServerUri(tabUrl),
         _assetReader,
-        _loadStrategy,
         connection,
         _urlEncoder,
         onResponse: (response) {
@@ -608,7 +600,6 @@ class DevHandler {
         spawnDds: _spawnDds,
       );
       appServices = await _createAppDebugServices(
-        devToolsRequest.appId,
         debugService,
       );
       final encodedUri = await debugService.encodedUri;

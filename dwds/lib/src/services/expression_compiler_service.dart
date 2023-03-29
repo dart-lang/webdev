@@ -157,7 +157,6 @@ class _Compiler {
   }
 
   Future<ExpressionCompilationResult> compileExpressionToJs(
-    String isolateId,
     String libraryUri,
     int line,
     int column,
@@ -188,12 +187,7 @@ class _Compiler {
       'moduleName': moduleName,
     });
 
-    final errors = response['errors'] as List<String>?;
-    final e = response['exception'];
-    final s = response['stackTrace'];
-    final error = (errors != null && errors.isNotEmpty)
-        ? errors.first
-        : (e != null ? '$e:$s' : '<unknown error>');
+    final error = _createErrorMsg(response);
     final procedure = (response['compiledProcedure'] as String?) ?? '';
     final succeeded = (response['succeeded'] as bool?) ?? false;
     final result = succeeded ? procedure : error;
@@ -204,6 +198,15 @@ class _Compiler {
       _logger.finest('Failed to compile "$expression": $result');
     }
     return ExpressionCompilationResult(result, !succeeded);
+  }
+
+  String _createErrorMsg(Map<String, dynamic> response) {
+    final errors = response['errors'] as List<String>?;
+    if (errors != null && errors.isNotEmpty) return errors.first;
+
+    final e = response['exception'];
+    final s = response['stackTrace'];
+    return e != null ? '$e:$s' : '<unknown error>';
   }
 
   /// Stops the service.
@@ -261,7 +264,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
     String expression,
   ) async =>
       (await _compiler.future).compileExpressionToJs(
-        isolateId,
         libraryUri,
         line,
         column,
