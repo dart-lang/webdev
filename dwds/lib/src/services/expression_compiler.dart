@@ -44,14 +44,15 @@ abstract class ExpressionCompiler {
   /// Should wait for the dependencies to update if called during a call to
   /// [updateDependencies].
   Future<ExpressionCompilationResult> compileExpressionToJs(
-      String isolateId,
-      String libraryUri,
-      int line,
-      int column,
-      Map<String, String> jsModules,
-      Map<String, String> jsFrameValues,
-      String moduleName,
-      String expression);
+    String isolateId,
+    String libraryUri,
+    int line,
+    int column,
+    Map<String, String> jsModules,
+    Map<String, String> jsFrameValues,
+    String moduleName,
+    String expression,
+  );
 
   /// Trigger (re-)load of kernel files for modules.
   ///

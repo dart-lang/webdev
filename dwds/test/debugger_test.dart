@@ -85,7 +85,10 @@ void main() async {
     globalLoadStrategy = TestStrategy();
     final root = 'fakeRoot';
     locations = Locations(
-        FakeAssetReader(sourceMap: sourceMapContents), FakeModules(), root);
+      FakeAssetReader(sourceMap: sourceMapContents),
+      FakeModules(),
+      root,
+    );
     locations.initialize('fake_entrypoint');
     skipLists = SkipLists();
     debugger = await Debugger.create(
@@ -179,19 +182,25 @@ void main() async {
 
     test('errors in the zone are caught and logged', () async {
       // Add a DebuggerPausedEvent with a null parameter to provoke an error.
-      pausedController.sink.add(DebuggerPausedEvent({
-        'method': '',
-        'params': {
-          'reason': 'other',
-          'callFrames': [
-            {'callFrameId': '', 'functionName': ''},
-          ],
-        }
-      }));
+      pausedController.sink.add(
+        DebuggerPausedEvent({
+          'method': '',
+          'params': {
+            'reason': 'other',
+            'callFrames': [
+              {'callFrameId': '', 'functionName': ''},
+            ],
+          }
+        }),
+      );
       expect(
-          Debugger.logger.onRecord,
-          emitsThrough(predicate((LogRecord log) =>
-              log.message == 'Error calculating Dart frames')));
+        Debugger.logger.onRecord,
+        emitsThrough(
+          predicate(
+            (LogRecord log) => log.message == 'Error calculating Dart frames',
+          ),
+        ),
+      );
     });
   });
 }

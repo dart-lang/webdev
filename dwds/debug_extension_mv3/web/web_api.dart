@@ -37,7 +37,10 @@ Future<FetchResponse> fetchRequest(String resourceUrl) async {
     return FetchResponse(status: status, ok: ok, body: body);
   } catch (error) {
     return FetchResponse(
-        status: 400, ok: false, body: 'Error fetching $resourceUrl: $error');
+      status: 400,
+      ok: false,
+      body: 'Error fetching $resourceUrl: $error',
+    );
   }
 }
 

@@ -29,12 +29,19 @@ class Chrome {
 @anonymous
 class Debugger {
   external void attach(
-      Debuggee target, String requiredVersion, Function? callback);
+    Debuggee target,
+    String requiredVersion,
+    Function? callback,
+  );
 
   external void detach(Debuggee target, Function? callback);
 
-  external void sendCommand(Debuggee target, String method,
-      Object? commandParams, Function? callback);
+  external void sendCommand(
+    Debuggee target,
+    String method,
+    Object? commandParams,
+    Function? callback,
+  );
 
   external OnDetachHandler get onDetach;
 
@@ -45,14 +52,16 @@ class Debugger {
 @anonymous
 class OnDetachHandler {
   external void addListener(
-      void Function(Debuggee source, String reason) callback);
+    void Function(Debuggee source, String reason) callback,
+  );
 }
 
 @JS()
 @anonymous
 class OnEventHandler {
   external void addListener(
-      void Function(Debuggee source, String method, Object? params) callback);
+    void Function(Debuggee source, String method, Object? params) callback,
+  );
 }
 
 @JS()
@@ -87,8 +96,12 @@ class InspectedWindow {
 class Panels {
   external String get themeName;
 
-  external void create(String title, String iconPath, String pagePath,
-      void Function(ExtensionPanel)? callback);
+  external void create(
+    String title,
+    String iconPath,
+    String pagePath,
+    void Function(ExtensionPanel)? callback,
+  );
 }
 
 @JS()
@@ -117,7 +130,10 @@ class OnShownHandler {
 @anonymous
 class Notifications {
   external void create(
-      String? notificationId, NotificationOptions options, Function? callback);
+    String? notificationId,
+    NotificationOptions options,
+    Function? callback,
+  );
 }
 
 @JS()
@@ -140,7 +156,11 @@ class Runtime {
   external void connect(String? extensionId, ConnectInfo info);
 
   external void sendMessage(
-      String? id, Object? message, Object? options, Function? callback);
+    String? id,
+    Object? message,
+    Object? options,
+    Function? callback,
+  );
 
   external Object getManifest();
 
@@ -186,7 +206,8 @@ class ConnectionHandler {
 @anonymous
 class OnMessageHandler {
   external void addListener(
-      void Function(dynamic, MessageSender, Function) callback);
+    void Function(dynamic, MessageSender, Function) callback,
+  );
 }
 
 @JS()
@@ -243,7 +264,9 @@ class OnChangedHandler {
 @anonymous
 class Tabs {
   external dynamic query(
-      QueryInfo queryInfo, void Function(List<Tab>) callback);
+    QueryInfo queryInfo,
+    void Function(List<Tab>) callback,
+  );
 
   external dynamic create(TabInfo tabInfo, void Function(Tab) callback);
 

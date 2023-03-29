@@ -19,8 +19,12 @@ class ProxyServerAssetReader implements AssetReader {
   late final Handler _handler;
   late final http.Client _client;
 
-  ProxyServerAssetReader(int assetServerPort,
-      {String root = '', String host = 'localhost', bool isHttps = false}) {
+  ProxyServerAssetReader(
+    int assetServerPort, {
+    String root = '',
+    String host = 'localhost',
+    bool isHttps = false,
+  }) {
     final scheme = isHttps ? 'https://' : 'http://';
     final inner = HttpClient()
       ..maxConnectionsPerHost = 200

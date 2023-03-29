@@ -51,7 +51,12 @@ Future<void> _runTests({
   final testInspector = TestInspector(context);
 
   onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
-      stream, isolateId, mainScript, breakPointId, body);
+        stream,
+        isolateId,
+        mainScript,
+        breakPointId,
+        body,
+      );
 
   getInstance(frame, expression) =>
       testInspector.getInstance(isolateId, frame, expression);
@@ -99,8 +104,10 @@ Future<void> _runTests({
             final instanceRef = await getInstanceRef(frame, 'instance');
 
             final instanceId = instanceRef.id!;
-            expect(await getObject(instanceId),
-                matchPlainInstance(type: 'MainClass'));
+            expect(
+              await getObject(instanceId),
+              matchPlainInstance(type: 'MainClass'),
+            );
 
             expect(await getFields(instanceRef), {'_field': 1, 'field': 2});
 
@@ -108,29 +115,45 @@ Future<void> _runTests({
 
             // DevTools calls [VmServiceInterface.getObject] with offset=0
             // and count=0 and expects all fields to be returned.
-            expect(await getFields(instanceRef, offset: 0, count: 0),
-                {'_field': 1, 'field': 2});
-            expect(await getFields(instanceRef, offset: 0),
-                {'_field': 1, 'field': 2});
-            expect(await getFields(instanceRef, offset: 0, count: 1),
-                {'_field': 1, 'field': 2});
-            expect(await getFields(instanceRef, offset: 1),
-                {'_field': 1, 'field': 2});
-            expect(await getFields(instanceRef, offset: 1, count: 0),
-                {'_field': 1, 'field': 2});
-            expect(await getFields(instanceRef, offset: 1, count: 3),
-                {'_field': 1, 'field': 2});
+            expect(
+              await getFields(instanceRef, offset: 0, count: 0),
+              {'_field': 1, 'field': 2},
+            );
+            expect(
+              await getFields(instanceRef, offset: 0),
+              {'_field': 1, 'field': 2},
+            );
+            expect(
+              await getFields(instanceRef, offset: 0, count: 1),
+              {'_field': 1, 'field': 2},
+            );
+            expect(
+              await getFields(instanceRef, offset: 1),
+              {'_field': 1, 'field': 2},
+            );
+            expect(
+              await getFields(instanceRef, offset: 1, count: 0),
+              {'_field': 1, 'field': 2},
+            );
+            expect(
+              await getFields(instanceRef, offset: 1, count: 3),
+              {'_field': 1, 'field': 2},
+            );
           });
         });
 
         test('field access', () async {
           await onBreakPoint('printFieldMain', (event) async {
             final frame = event.topFrame!.index!;
-            expect(await getInstance(frame, r'instance.field'),
-                matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 2));
+            expect(
+              await getInstance(frame, r'instance.field'),
+              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 2),
+            );
 
-            expect(await getInstance(frame, r'instance._field'),
-                matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1));
+            expect(
+              await getInstance(frame, r'instance._field'),
+              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
+            );
           });
         });
       });
@@ -142,8 +165,10 @@ Future<void> _runTests({
             final instanceRef = await getInstanceRef(frame, 'list');
 
             final instanceId = instanceRef.id!;
-            expect(await getObject(instanceId),
-                matchListInstance(type: 'List<int>'));
+            expect(
+              await getObject(instanceId),
+              matchListInstance(type: 'List<int>'),
+            );
 
             expect(await getFields(instanceRef), [0, 1, 2]);
             expect(await getFields(instanceRef, offset: 1, count: 0), []);
@@ -159,14 +184,20 @@ Future<void> _runTests({
         test('Element access', () async {
           await onBreakPoint('printList', (event) async {
             final frame = event.topFrame!.index!;
-            expect(await getInstance(frame, r'list[0]'),
-                matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 0));
+            expect(
+              await getInstance(frame, r'list[0]'),
+              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 0),
+            );
 
-            expect(await getInstance(frame, r"list[1]"),
-                matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1));
+            expect(
+              await getInstance(frame, r"list[1]"),
+              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
+            );
 
-            expect(await getInstance(frame, r"list[2]"),
-                matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 2));
+            expect(
+              await getInstance(frame, r"list[2]"),
+              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 2),
+            );
           });
         });
       });
@@ -178,19 +209,25 @@ Future<void> _runTests({
             final instanceRef = await getInstanceRef(frame, 'map');
 
             final instanceId = instanceRef.id!;
-            expect(await getObject(instanceId),
-                matchMapInstance(type: 'IdentityMap<String, int>'));
+            expect(
+              await getObject(instanceId),
+              matchMapInstance(type: 'IdentityMap<String, int>'),
+            );
 
             expect(await getFields(instanceRef), {'a': 1, 'b': 2, 'c': 3});
 
             expect(await getFields(instanceRef, offset: 1, count: 0), {});
-            expect(await getFields(instanceRef, offset: 0),
-                {'a': 1, 'b': 2, 'c': 3});
+            expect(
+              await getFields(instanceRef, offset: 0),
+              {'a': 1, 'b': 2, 'c': 3},
+            );
             expect(await getFields(instanceRef, offset: 0, count: 1), {'a': 1});
             expect(await getFields(instanceRef, offset: 1), {'b': 2, 'c': 3});
             expect(await getFields(instanceRef, offset: 1, count: 1), {'b': 2});
-            expect(await getFields(instanceRef, offset: 1, count: 3),
-                {'b': 2, 'c': 3});
+            expect(
+              await getFields(instanceRef, offset: 1, count: 3),
+              {'b': 2, 'c': 3},
+            );
             expect(await getFields(instanceRef, offset: 3, count: 3), {});
           });
         });
@@ -198,14 +235,20 @@ Future<void> _runTests({
         test('Element access', () async {
           await onBreakPoint('printMap', (event) async {
             final frame = event.topFrame!.index!;
-            expect(await getInstance(frame, r"map['a']"),
-                matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1));
+            expect(
+              await getInstance(frame, r"map['a']"),
+              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
+            );
 
-            expect(await getInstance(frame, r"map['b']"),
-                matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 2));
+            expect(
+              await getInstance(frame, r"map['b']"),
+              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 2),
+            );
 
-            expect(await getInstance(frame, r"map['c']"),
-                matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3));
+            expect(
+              await getInstance(frame, r"map['c']"),
+              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3),
+            );
           });
         });
       });
@@ -217,8 +260,10 @@ Future<void> _runTests({
             final instanceRef = await getInstanceRef(frame, 'mySet');
 
             final instanceId = instanceRef.id!;
-            expect(await getObject(instanceId),
-                matchSetInstance(type: '_HashSet<int>'));
+            expect(
+              await getObject(instanceId),
+              matchSetInstance(type: '_HashSet<int>'),
+            );
 
             expect(await getFields(instanceRef), [1, 4, 5, 7]);
             expect(await getFields(instanceRef, offset: 0), [1, 4, 5, 7]);
@@ -233,10 +278,14 @@ Future<void> _runTests({
         test('Element access', () async {
           await onBreakPoint('printSet', (event) async {
             final frame = event.topFrame!.index!;
-            expect(await getInstance(frame, r"mySet.first"),
-                matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1));
-            expect(await getInstance(frame, r"mySet.last"),
-                matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 7));
+            expect(
+              await getInstance(frame, r"mySet.first"),
+              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
+            );
+            expect(
+              await getInstance(frame, r"mySet.last"),
+              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 7),
+            );
           });
         });
       });

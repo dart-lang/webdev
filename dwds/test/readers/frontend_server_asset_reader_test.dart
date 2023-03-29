@@ -35,8 +35,11 @@ void main() {
 
   setUpAll(() async {
     final sdkLayout = TestSdkLayout.defaultSdkLayout;
-    await Process.run(sdkLayout.dartPath, ['pub', 'upgrade'],
-        workingDirectory: packagesDir);
+    await Process.run(
+      sdkLayout.dartPath,
+      ['pub', 'upgrade'],
+      workingDirectory: packagesDir,
+    );
   });
 
   setUp(() async {
@@ -100,11 +103,15 @@ void main() {
 
         // Update fixture.
         await File(p.join(tempFixtures.path, 'main.dart.dill.incremental.json'))
-            .writeAsString((await jsonOriginal.readAsString())
-                .replaceAll('web/main.dart.lib.js', 'web/foo.dart.lib.js'));
+            .writeAsString(
+          (await jsonOriginal.readAsString())
+              .replaceAll('web/main.dart.lib.js', 'web/foo.dart.lib.js'),
+        );
         await File(p.join(tempFixtures.path, 'main.dart.dill.incremental.map'))
-            .writeAsString((await mapOriginal.readAsString())
-                .replaceAll('web/main.dart.lib.js', 'web/foo.dart.lib.js'));
+            .writeAsString(
+          (await mapOriginal.readAsString())
+              .replaceAll('web/main.dart.lib.js', 'web/foo.dart.lib.js'),
+        );
 
         assetReader.updateCaches();
 

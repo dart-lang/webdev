@@ -48,7 +48,12 @@ Future<void> _runTests({
   late ScriptRef mainScript;
 
   onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
-      stream, isolateId, mainScript, breakPointId, body);
+        stream,
+        isolateId,
+        mainScript,
+        breakPointId,
+        body,
+      );
 
   getInstanceRef(frame, expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
@@ -59,97 +64,101 @@ Future<void> _runTests({
   getFrameVariables(Frame frame) =>
       testInspector.getFrameVariables(isolateId, frame);
 
-  group('$compilationMode |', () {
-    setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
-      await context.setUp(
-        compilationMode: compilationMode,
-        enableExpressionEvaluation: true,
-        verboseCompiler: debug,
-        experiments: ['records', 'patterns'],
-      );
-      service = context.debugConnection.vmService;
+  group(
+    '$compilationMode |',
+    () {
+      setUpAll(() async {
+        setCurrentLogWriter(debug: debug);
+        await context.setUp(
+          compilationMode: compilationMode,
+          enableExpressionEvaluation: true,
+          verboseCompiler: debug,
+          experiments: ['records', 'patterns'],
+        );
+        service = context.debugConnection.vmService;
 
-      final vm = await service.getVM();
-      isolateId = vm.isolates!.first.id!;
-      final scripts = await service.getScripts(isolateId);
+        final vm = await service.getVM();
+        isolateId = vm.isolates!.first.id!;
+        final scripts = await service.getScripts(isolateId);
 
-      await service.streamListen('Debug');
-      stream = service.onEvent('Debug');
+        await service.streamListen('Debug');
+        stream = service.onEvent('Debug');
 
-      mainScript = scripts.scripts!
-          .firstWhere((each) => each.uri!.contains('main.dart'));
-    });
+        mainScript = scripts.scripts!
+            .firstWhere((each) => each.uri!.contains('main.dart'));
+      });
 
-    tearDownAll(() async {
-      await context.tearDown();
-    });
+      tearDownAll(() async {
+        await context.tearDown();
+      });
 
-    setUp(() => setCurrentLogWriter(debug: debug));
-    tearDown(() => service.resume(isolateId));
+      setUp(() => setCurrentLogWriter(debug: debug));
+      tearDown(() => service.resume(isolateId));
 
-    test('pattern match case 1', () async {
-      await onBreakPoint('testPatternCase1', (event) async {
-        final frame = event.topFrame!;
+      test('pattern match case 1', () async {
+        await onBreakPoint('testPatternCase1', (event) async {
+          final frame = event.topFrame!;
 
-        expect(await getFrameVariables(frame), {
-          'obj': matchListInstance(type: 'List<Object>'),
-          'a': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'a'),
-          'n': matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
+          expect(await getFrameVariables(frame), {
+            'obj': matchListInstance(type: 'List<Object>'),
+            'a': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'a'),
+            'n': matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
+          });
         });
       });
-    });
 
-    test('pattern match case 2', () async {
-      await onBreakPoint('testPatternCase2', (event) async {
-        final frame = event.topFrame!;
+      test('pattern match case 2', () async {
+        await onBreakPoint('testPatternCase2', (event) async {
+          final frame = event.topFrame!;
 
-        expect(await getFrameVariables(frame), {
-          'obj': matchListInstance(type: 'List<Object>'),
-          'a': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'b'),
-          'n': matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3.14),
+          expect(await getFrameVariables(frame), {
+            'obj': matchListInstance(type: 'List<Object>'),
+            'a': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'b'),
+            'n':
+                matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3.14),
+          });
         });
       });
-    });
 
-    test('pattern match default case', () async {
-      await onBreakPoint('testPatternDefault', (event) async {
-        final frame = event.topFrame!;
-        final frameIndex = frame.index!;
-        final instanceRef = await getInstanceRef(frameIndex, 'obj');
-        expect(await getFields(instanceRef), [0, 1]);
+      test('pattern match default case', () async {
+        await onBreakPoint('testPatternDefault', (event) async {
+          final frame = event.topFrame!;
+          final frameIndex = frame.index!;
+          final instanceRef = await getInstanceRef(frameIndex, 'obj');
+          expect(await getFields(instanceRef), [0, 1]);
 
-        expect(await getFrameVariables(frame), {
-          'obj': matchListInstance(type: 'List<int>'),
+          expect(await getFrameVariables(frame), {
+            'obj': matchListInstance(type: 'List<int>'),
+          });
         });
       });
-    });
 
-    test('stepping through pattern match', () async {
-      await onBreakPoint('callTestPattern1', (Event event) async {
-        var previousLocation = event.topFrame!.location;
-        for (var step in [
-          // Make sure we step into the callee.
-          for (var i = 0; i < 4; i++) 'Into',
-          // Make a few steps inside the callee.
-          for (var i = 0; i < 4; i++) 'Over',
-        ]) {
-          await service.resume(isolateId, step: step);
+      test('stepping through pattern match', () async {
+        await onBreakPoint('callTestPattern1', (Event event) async {
+          var previousLocation = event.topFrame!.location;
+          for (var step in [
+            // Make sure we step into the callee.
+            for (var i = 0; i < 4; i++) 'Into',
+            // Make a few steps inside the callee.
+            for (var i = 0; i < 4; i++) 'Over',
+          ]) {
+            await service.resume(isolateId, step: step);
 
-          event = await stream
-              .firstWhere((e) => e.kind == EventKind.kPauseInterrupted);
+            event = await stream
+                .firstWhere((e) => e.kind == EventKind.kPauseInterrupted);
 
-          if (step == 'Over') {
-            expect(event.topFrame!.code!.name, 'testPattern');
+            if (step == 'Over') {
+              expect(event.topFrame!.code!.name, 'testPattern');
+            }
+
+            final location = event.topFrame!.location;
+            expect(location, isNot(equals(previousLocation)));
+            previousLocation = location;
           }
-
-          final location = event.topFrame!.location;
-          expect(location, isNot(equals(previousLocation)));
-          previousLocation = location;
-        }
+        });
       });
-    });
-  }, // TODO(annagrin): Remove when dart 3.0 is stable.
-      skip: semver.Version.parse(Platform.version.split(' ')[0]) <
-          semver.Version.parse('3.0.0-351.0.dev'));
+    }, // TODO(annagrin): Remove when dart 3.0 is stable.
+    skip: semver.Version.parse(Platform.version.split(' ')[0]) <
+        semver.Version.parse('3.0.0-351.0.dev'),
+  );
 }

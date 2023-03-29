@@ -134,15 +134,20 @@ void main() {
       await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(emitsInOrder([
+        client.onIsolateEvent,
+        emitsThrough(
+          emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
             _hasKind(EventKind.kIsolateStart),
             _hasKind(EventKind.kIsolateRunnable),
-          ])));
+          ]),
+        ),
+      );
 
-      expect(await client.callServiceExtension('hotRestart'),
-          const TypeMatcher<Success>());
+      expect(
+        await client.callServiceExtension('hotRestart'),
+        const TypeMatcher<Success>(),
+      );
 
       await eventsDone;
     });
@@ -153,20 +158,25 @@ void main() {
       await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(emitsInOrder([
+        client.onIsolateEvent,
+        emitsThrough(
+          emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
             _hasKind(EventKind.kIsolateStart),
             _hasKind(EventKind.kIsolateRunnable),
-          ])));
+          ]),
+        ),
+      );
 
       // Execute two hot restart calls in parallel.
       final done = Future.wait([
         client.callServiceExtension('hotRestart'),
         client.callServiceExtension('hotRestart'),
       ]);
-      expect(await done,
-          [const TypeMatcher<Success>(), const TypeMatcher<Success>()]);
+      expect(
+        await done,
+        [const TypeMatcher<Success>(), const TypeMatcher<Success>()],
+      );
 
       // The debugger is still working.
       final vm = await client.getVM();
@@ -176,9 +186,13 @@ void main() {
 
       final result = await client.evaluate(isolateId, library, 'true');
       expect(
-          result,
-          isA<InstanceRef>().having(
-              (instance) => instance.valueAsString, 'valueAsString', 'true'));
+        result,
+        isA<InstanceRef>().having(
+          (instance) => instance.valueAsString,
+          'valueAsString',
+          'true',
+        ),
+      );
 
       await eventsDone;
     });
@@ -189,12 +203,15 @@ void main() {
       await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(emitsInOrder([
+        client.onIsolateEvent,
+        emitsThrough(
+          emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
             _hasKind(EventKind.kIsolateStart),
             _hasKind(EventKind.kIsolateRunnable),
-          ])));
+          ]),
+        ),
+      );
 
       await context.webDriver.driver.refresh();
 
@@ -207,15 +224,20 @@ void main() {
       await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(emitsInOrder([
+        client.onIsolateEvent,
+        emitsThrough(
+          emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
             _hasKind(EventKind.kIsolateStart),
             _hasKind(EventKind.kIsolateRunnable),
-          ])));
+          ]),
+        ),
+      );
 
-      expect(await client.callServiceExtension('hotRestart'),
-          const TypeMatcher<Success>());
+      expect(
+        await client.callServiceExtension('hotRestart'),
+        const TypeMatcher<Success>(),
+      );
 
       await eventsDone;
 
@@ -233,11 +255,12 @@ void main() {
       // but the injected client continues to work and send events
       // after hot restart.
       final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(
-            _hasKind(EventKind.kServiceExtensionAdded)
-                .having((e) => e.extensionRPC, 'service', 'ext.bar'),
-          ));
+        client.onIsolateEvent,
+        emitsThrough(
+          _hasKind(EventKind.kServiceExtensionAdded)
+              .having((e) => e.extensionRPC, 'service', 'ext.bar'),
+        ),
+      );
 
       var vm = await client.getVM();
       var isolateId = vm.isolates!.first.id!;
@@ -253,8 +276,10 @@ void main() {
         "registerExtension('ext.foo', $callback)",
       );
 
-      expect(await client.callServiceExtension('hotRestart'),
-          const TypeMatcher<Success>());
+      expect(
+        await client.callServiceExtension('hotRestart'),
+        const TypeMatcher<Success>(),
+      );
 
       vm = await client.getVM();
       isolateId = vm.isolates!.first.id!;
@@ -280,12 +305,15 @@ void main() {
       await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(emitsInOrder([
+        client.onIsolateEvent,
+        emitsThrough(
+          emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
             _hasKind(EventKind.kIsolateStart),
             _hasKind(EventKind.kIsolateRunnable),
-          ])));
+          ]),
+        ),
+      );
 
       expect(await client.callServiceExtension('fullReload'), isA<Success>());
 
@@ -333,7 +361,9 @@ void main() {
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
       expect(
-          await client.removeBreakpoint(isolate.id!, bp.id!), isA<Success>());
+        await client.removeBreakpoint(isolate.id!, bp.id!),
+        isA<Success>(),
+      );
       expect(await client.resume(isolate.id!), isA<Success>());
     });
 
@@ -366,11 +396,18 @@ void main() {
 
       // Expression evaluation while paused on a breakpoint should work.
       var result = await client.evaluateInFrame(
-          isolate.id!, event.topFrame!.index!, 'count');
+        isolate.id!,
+        event.topFrame!.index!,
+        'count',
+      );
       expect(
-          result,
-          isA<InstanceRef>().having((instance) => instance.valueAsString,
-              'valueAsString', greaterThanOrEqualTo('0')));
+        result,
+        isA<InstanceRef>().having(
+          (instance) => instance.valueAsString,
+          'valueAsString',
+          greaterThanOrEqualTo('0'),
+        ),
+      );
 
       await client.removeBreakpoint(isolateId, bp.id!);
       await client.resume(isolateId);
@@ -378,9 +415,13 @@ void main() {
       // Expression evaluation while running should work.
       result = await client.evaluate(isolateId, library, 'true');
       expect(
-          result,
-          isA<InstanceRef>().having(
-              (instance) => instance.valueAsString, 'valueAsString', 'true'));
+        result,
+        isA<InstanceRef>().having(
+          (instance) => instance.valueAsString,
+          'valueAsString',
+          'true',
+        ),
+      );
     });
   });
 
@@ -408,7 +449,9 @@ void main() {
         expect(source.contains(newString), isTrue);
         // The ext.flutter.disassemble callback is invoked and waited for.
         expect(
-            source, contains('start disassemble end disassemble $newString'));
+          source,
+          contains('start disassemble end disassemble $newString'),
+        );
       });
 
       test('fires isolate create/destroy events during hot restart', () async {
@@ -416,12 +459,15 @@ void main() {
         await client.streamListen('Isolate');
 
         final eventsDone = expectLater(
-            client.onIsolateEvent,
-            emitsThrough(emitsInOrder([
+          client.onIsolateEvent,
+          emitsThrough(
+            emitsInOrder([
               _hasKind(EventKind.kIsolateExit),
               _hasKind(EventKind.kIsolateStart),
               _hasKind(EventKind.kIsolateRunnable),
-            ])));
+            ]),
+          ),
+        );
 
         await makeEditAndWaitForRebuild();
 
@@ -453,7 +499,9 @@ void main() {
         expect(source.contains(newString), isTrue);
         // The ext.flutter.disassemble callback is invoked and waited for.
         expect(
-            source, contains('start disassemble end disassemble $newString'));
+          source,
+          contains('start disassemble end disassemble $newString'),
+        );
       });
     });
   });

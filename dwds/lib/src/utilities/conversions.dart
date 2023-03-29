@@ -116,7 +116,10 @@ String dartIdFor(Object? argument) {
 String stringFromDartId(String dartId) {
   if (!isStringId(dartId)) {
     throw ArgumentError.value(
-        dartId, 'dart object ID', 'Expected a valid ID for a String');
+      dartId,
+      'dart object ID',
+      'Expected a valid ID for a String',
+    );
   }
   return _stringFromDartId(dartId);
 }

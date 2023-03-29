@@ -37,8 +37,11 @@ void main() {
       final response = await context.assetHandler(request);
       expect(response.statusCode, 200);
       final result = await response.readAsString();
-      expect(result, isNotNull,
-          reason: 'Failed to read $path: ${response.statusCode}');
+      expect(
+        result,
+        isNotNull,
+        reason: 'Failed to read $path: ${response.statusCode}',
+      );
     }
 
     Future<void> readAsBytes(String path) async {
@@ -46,8 +49,11 @@ void main() {
       final response = await context.assetHandler(request);
       expect(response.statusCode, 200);
       final result = await response.read().toList();
-      expect(result, isNotNull,
-          reason: 'Failed to read $path: ${response.statusCode}');
+      expect(
+        result,
+        isNotNull,
+        reason: 'Failed to read $path: ${response.statusCode}',
+      );
     }
 
     test('can read dill files', () async {

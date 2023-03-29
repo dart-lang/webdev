@@ -69,13 +69,16 @@ String absolutePath({
 
 /// Connects to the `build_runner` daemon.
 Future<BuildDaemonClient> connectClient(
-        String dartPath,
-        String workingDirectory,
-        List<String> options,
-        Function(ServerLog) logHandler) =>
-    BuildDaemonClient.connect(workingDirectory,
-        [dartPath, 'run', 'build_runner', 'daemon', ...options],
-        logHandler: logHandler);
+  String dartPath,
+  String workingDirectory,
+  List<String> options,
+  Function(ServerLog) logHandler,
+) =>
+    BuildDaemonClient.connect(
+      workingDirectory,
+      [dartPath, 'run', 'build_runner', 'daemon', ...options],
+      logHandler: logHandler,
+    );
 
 /// Returns the port of the daemon asset server.
 int daemonPort(String workingDirectory) {

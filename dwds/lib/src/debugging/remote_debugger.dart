@@ -28,8 +28,10 @@ abstract class RemoteDebugger {
 
   Stream<void> get onClose;
 
-  Future<WipResponse> sendCommand(String command,
-      {Map<String, dynamic>? params});
+  Future<WipResponse> sendCommand(
+    String command, {
+    Map<String, dynamic>? params,
+  });
 
   Future<void> disable();
 
@@ -55,11 +57,16 @@ abstract class RemoteDebugger {
 
   Future<WipResponse> pageReload();
 
-  Future<RemoteObject> evaluate(String expression,
-      {bool? returnByValue, int? contextId});
+  Future<RemoteObject> evaluate(
+    String expression, {
+    bool? returnByValue,
+    int? contextId,
+  });
 
   Future<RemoteObject> evaluateOnCallFrame(
-      String callFrameId, String expression);
+    String callFrameId,
+    String expression,
+  );
 
   Future<List<WipBreakLocation>> getPossibleBreakpoints(WipLocation start);
 

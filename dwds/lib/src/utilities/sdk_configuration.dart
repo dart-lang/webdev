@@ -133,7 +133,8 @@ class SdkConfiguration {
     if (sdkDirectory == null ||
         !fileSystem.directory(sdkDirectory).existsSync()) {
       throw InvalidSdkConfigurationException(
-          'Sdk directory $sdkDirectory does not exist');
+        'Sdk directory $sdkDirectory does not exist',
+      );
     }
   }
 
@@ -142,30 +143,36 @@ class SdkConfiguration {
     validateWeakSummaries(fileSystem: fileSystem);
   }
 
-  void validateWeakSummaries(
-      {FileSystem fileSystem = const LocalFileSystem()}) {
+  void validateWeakSummaries({
+    FileSystem fileSystem = const LocalFileSystem(),
+  }) {
     if (weakSdkSummaryPath == null ||
         !fileSystem.file(weakSdkSummaryPath).existsSync()) {
       throw InvalidSdkConfigurationException(
-          'Sdk summary $weakSdkSummaryPath does not exist');
+        'Sdk summary $weakSdkSummaryPath does not exist',
+      );
     }
   }
 
-  void validateSoundSummaries(
-      {FileSystem fileSystem = const LocalFileSystem()}) {
+  void validateSoundSummaries({
+    FileSystem fileSystem = const LocalFileSystem(),
+  }) {
     if ((soundSdkSummaryPath == null ||
         !fileSystem.file(soundSdkSummaryPath).existsSync())) {
       throw InvalidSdkConfigurationException(
-          'Sdk summary $soundSdkSummaryPath does not exist');
+        'Sdk summary $soundSdkSummaryPath does not exist',
+      );
     }
   }
 
-  void validateCompilerWorker(
-      {FileSystem fileSystem = const LocalFileSystem()}) {
+  void validateCompilerWorker({
+    FileSystem fileSystem = const LocalFileSystem(),
+  }) {
     if (compilerWorkerPath == null ||
         !fileSystem.file(compilerWorkerPath).existsSync()) {
       throw InvalidSdkConfigurationException(
-          'Compiler worker $compilerWorkerPath does not exist');
+        'Compiler worker $compilerWorkerPath does not exist',
+      );
     }
   }
 }

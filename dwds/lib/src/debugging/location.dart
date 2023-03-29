@@ -210,7 +210,10 @@ class Locations {
   /// beginning of the line - return the first existing location
   /// that comes after the given column.
   Location? _bestDartLocation(
-      Iterable<Location> locations, int line, int column) {
+    Iterable<Location> locations,
+    int line,
+    int column,
+  ) {
     Location? bestLocation;
     for (var location in locations) {
       if (location.dartLocation.line == line &&
@@ -234,7 +237,10 @@ class Locations {
   ///
   /// https://github.com/microsoft/vscode-js-debug/blob/536f96bae61a3d87546b61bc7916097904c81429/src/common/sourceUtils.ts#L286
   Location? _bestJsLocation(
-      Iterable<Location> locations, int line, int? column) {
+    Iterable<Location> locations,
+    int line,
+    int? column,
+  ) {
     column ??= 0;
     Location? bestLocation;
     for (var location in locations) {
@@ -327,22 +333,27 @@ class Locations {
             // It will fail if the path has both separators in it.
             final relativeSegments = p.split(mapping.urls[index]);
             final path = p.url.normalize(
-                p.url.joinAll([scriptLocation, ...relativeSegments]));
+              p.url.joinAll([scriptLocation, ...relativeSegments]),
+            );
 
             final dartUri = DartUri(path, _root);
-            result.add(Location.from(
-              modulePath,
-              lineEntry,
-              entry,
-              dartUri,
-            ));
+            result.add(
+              Location.from(
+                modulePath,
+                lineEntry,
+                entry,
+                dartUri,
+              ),
+            );
           }
         }
       }
       for (var location in result) {
         _sourceToLocation
             .putIfAbsent(
-                location.dartLocation.uri.serverPath, () => <Location>{})
+              location.dartLocation.uri.serverPath,
+              () => <Location>{},
+            )
             .add(location);
       }
       return _moduleToLocations[module] = result;

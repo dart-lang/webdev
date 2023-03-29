@@ -24,7 +24,9 @@ void main() {
       final fileSystem = LocalFileSystem();
 
       final packageUri = Uri(
-          scheme: 'package', path: '${project.packageName}/test_library.dart');
+        scheme: 'package',
+        path: '${project.packageName}/test_library.dart',
+      );
 
       final serverPath = useDebuggerModuleNames
           ? 'packages/${project.packageDirectory}/lib/test_library.dart'
@@ -34,11 +36,13 @@ void main() {
           '/webdev/fixtures/${project.packageDirectory}/lib/test_library.dart';
 
       final testPackageSoundPath = project.absolutePackageDirectory;
-      final packageConfigFile = Uri.file(p.join(
-        testPackageSoundPath,
-        '.dart_tool',
-        'package_config.json',
-      ));
+      final packageConfigFile = Uri.file(
+        p.join(
+          testPackageSoundPath,
+          '.dart_tool',
+          'package_config.json',
+        ),
+      );
 
       late final PackageUriMapper packageUriMapper;
       setUpAll(() async {
@@ -63,10 +67,11 @@ void main() {
 
       test('Can convert server paths to file paths', () {
         expect(
-            packageUriMapper.serverPathToResolvedUri(serverPath),
-            isA<Uri>()
-                .having((uri) => uri.scheme, 'scheme', 'file')
-                .having((uri) => uri.path, 'path', endsWith(resolvedPath)));
+          packageUriMapper.serverPathToResolvedUri(serverPath),
+          isA<Uri>()
+              .having((uri) => uri.scheme, 'scheme', 'file')
+              .having((uri) => uri.path, 'path', endsWith(resolvedPath)),
+        );
       });
     });
   }

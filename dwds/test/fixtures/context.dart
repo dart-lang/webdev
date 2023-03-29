@@ -190,10 +190,12 @@ class TestContext {
       DartUri.currentDirectory = workingDirectory;
       configureLogWriter();
 
-      _client = IOClient(HttpClient()
-        ..maxConnectionsPerHost = 200
-        ..idleTimeout = const Duration(seconds: 30)
-        ..connectionTimeout = const Duration(seconds: 30));
+      _client = IOClient(
+        HttpClient()
+          ..maxConnectionsPerHost = 200
+          ..idleTimeout = const Duration(seconds: 30)
+          ..connectionTimeout = const Duration(seconds: 30),
+      );
 
       final systemTempDir = Directory.systemTemp;
       _outputDir = systemTempDir.createTempSync('foo bar');
@@ -201,8 +203,10 @@ class TestContext {
       final chromeDriverPort = await findUnusedPort();
       final chromeDriverUrlBase = 'wd/hub';
       try {
-        _chromeDriver = await Process.start('chromedriver$_exeExt',
-            ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase']);
+        _chromeDriver = await Process.start(
+          'chromedriver$_exeExt',
+          ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase'],
+        );
         // On windows this takes a while to boot up, wait for the first line
         // of stdout as a signal that it is ready.
         final stdOutLines = chromeDriver.stdout
@@ -223,11 +227,15 @@ class TestContext {
         await stdOutLines.first;
       } catch (e) {
         throw StateError(
-            'Could not start ChromeDriver. Is it installed?\nError: $e');
+          'Could not start ChromeDriver. Is it installed?\nError: $e',
+        );
       }
 
-      await Process.run(sdkLayout.dartPath, ['pub', 'upgrade'],
-          workingDirectory: workingDirectory);
+      await Process.run(
+        sdkLayout.dartPath,
+        ['pub', 'upgrade'],
+        workingDirectory: workingDirectory,
+      );
 
       ExpressionCompiler? expressionCompiler;
       AssetReader assetReader;
@@ -253,19 +261,25 @@ class TestContext {
               final record = log.toLogRecord();
               final name =
                   record.loggerName == '' ? '' : '${record.loggerName}: ';
-              _logger.log(record.level, '$name${record.message}', record.error,
-                  record.stackTrace);
+              _logger.log(
+                record.level,
+                '$name${record.message}',
+                record.error,
+                record.stackTrace,
+              );
             });
             daemonClient.registerBuildTarget(
-                DefaultBuildTarget((b) => b..target = directoryToServe));
+              DefaultBuildTarget((b) => b..target = directoryToServe),
+            );
             daemonClient.startBuild();
 
             await waitForSuccessfulBuild();
 
             final assetServerPort = daemonPort(workingDirectory);
             _assetHandler = proxyHandler(
-                'http://localhost:$assetServerPort/$directoryToServe/',
-                client: client);
+              'http://localhost:$assetServerPort/$directoryToServe/',
+              client: client,
+            );
             assetReader =
                 ProxyServerAssetReader(assetServerPort, root: directoryToServe);
 
@@ -294,7 +308,8 @@ class TestContext {
             _logger.warning('Index: $filePathToServe');
 
             final entry = p.toUri(
-                p.join(project.webAssetsPath, project.dartEntryFileName));
+              p.join(project.webAssetsPath, project.dartEntryFileName),
+            );
             final fileSystem = LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
               fileSystem,
@@ -318,8 +333,12 @@ class TestContext {
             );
 
             final assetServerPort = await findUnusedPort();
-            await webRunner.run(fileSystem, hostname, assetServerPort,
-                p.join(directoryToServe, filePathToServe));
+            await webRunner.run(
+              fileSystem,
+              hostname,
+              assetServerPort,
+              p.join(directoryToServe, filePathToServe),
+            );
 
             if (enableExpressionEvaluation) {
               expressionCompiler = webRunner.expressionCompiler;
@@ -330,12 +349,12 @@ class TestContext {
             _assetHandler = webRunner.devFS.assetServer.handleRequest;
 
             requireStrategy = FrontendServerRequireStrategyProvider(
-                    reloadConfiguration,
-                    assetReader,
-                    packageUriMapper,
-                    () async => {},
-                    basePath)
-                .strategy;
+              reloadConfiguration,
+              assetReader,
+              packageUriMapper,
+              () async => {},
+              basePath,
+            ).strategy;
 
             buildResults = const Stream<BuildResults>.empty();
           }
@@ -367,10 +386,12 @@ class TestContext {
             }
           });
         _webDriver = await createDriver(
-            spec: WebDriverSpec.JsonWire,
-            desired: capabilities,
-            uri: Uri.parse(
-                'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
+          spec: WebDriverSpec.JsonWire,
+          desired: capabilities,
+          uri: Uri.parse(
+            'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/',
+          ),
+        );
       }
       final connection = ChromeConnection('localhost', debugPort);
 
@@ -466,12 +487,16 @@ class TestContext {
     file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
   }
 
-  Future<void> waitForSuccessfulBuild(
-      {Duration? timeout, bool propagateToBrowser = false}) async {
+  Future<void> waitForSuccessfulBuild({
+    Duration? timeout,
+    bool propagateToBrowser = false,
+  }) async {
     // Wait for the build until the timeout is reached:
     await daemonClient.buildResults
-        .firstWhere((results) => results.results
-            .any((result) => result.status == BuildStatus.succeeded))
+        .firstWhere(
+          (results) => results.results
+              .any((result) => result.status == BuildStatus.succeeded),
+        )
         .timeout(timeout ?? const Duration(seconds: 60));
 
     if (propagateToBrowser) {
@@ -485,13 +510,17 @@ class TestContext {
   }
 
   Future<void> _buildDebugExtension() async {
-    final process = await Process.run('tool/build_extension.sh', ['prod'],
-        workingDirectory: absolutePath(pathFromDwds: 'debug_extension'));
+    final process = await Process.run(
+      'tool/build_extension.sh',
+      ['prod'],
+      workingDirectory: absolutePath(pathFromDwds: 'debug_extension'),
+    );
     print(process.stdout);
   }
 
   Future<ChromeTab> _fetchDartDebugExtensionTab(
-      ChromeConnection connection) async {
+    ChromeConnection connection,
+  ) async {
     final extensionTabs = (await connection.getTabs()).where((tab) {
       return tab.isChromeExtension;
     });
@@ -513,7 +542,10 @@ class TestContext {
   ///
   /// Throws if it can't find the matching line.
   Future<int> findBreakpointLine(
-      String breakpointId, String isolateId, ScriptRef scriptRef) async {
+    String breakpointId,
+    String isolateId,
+    ScriptRef scriptRef,
+  ) async {
     final script = await debugConnection.vmService
         .getObject(isolateId, scriptRef.id!) as Script;
     final lines = LineSplitter.split(script.source!).toList();

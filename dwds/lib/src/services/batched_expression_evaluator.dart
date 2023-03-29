@@ -61,7 +61,9 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
   ) async {
     if (_closed) {
       return createError(
-          ErrorKind.internal, 'Batched expression evaluator closed');
+        ErrorKind.internal,
+        'Batched expression evaluator closed',
+      );
     }
     final request = EvaluateRequest(isolateId, libraryUri, expression, scope);
     _requestController.sink.add(request);
@@ -112,7 +114,11 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
       if (first.completer.isCompleted) return;
       return super
           .evaluateExpression(
-              first.isolateId, first.libraryUri, first.expression, first.scope)
+            first.isolateId,
+            first.libraryUri,
+            first.expression,
+            first.scope,
+          )
           .then(requests.first.completer.complete);
     }
 
@@ -122,7 +128,11 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
     _logger.fine('Evaluating batch of expressions $batchedExpression');
 
     final RemoteObject list = await super.evaluateExpression(
-        first.isolateId, first.libraryUri, batchedExpression, first.scope);
+      first.isolateId,
+      first.libraryUri,
+      batchedExpression,
+      first.scope,
+    );
 
     for (var i = 0; i < requests.length; i++) {
       final request = requests[i];
@@ -137,12 +147,17 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
       } else {
         safeUnawaited(
           _debugger
-              .getProperties(listId,
-                  offset: i, count: 1, length: requests.length)
+              .getProperties(
+            listId,
+            offset: i,
+            count: 1,
+            length: requests.length,
+          )
               .then((v) {
             final result = v.first.value;
             _logger.fine(
-                'Got result out of a batch for ${request.expression}: $result');
+              'Got result out of a batch for ${request.expression}: $result',
+            );
             request.completer.complete(result);
           }),
           onError: (error, stackTrace) =>
