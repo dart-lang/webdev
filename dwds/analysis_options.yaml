@@ -23,7 +23,7 @@ linter:
     - unawaited_futures
     - unnecessary_lambdas
 
-# TODO(elliette): Enable commented-out rules with fixes.
+# TODO(https://github.com/dart-lang/webdev/issues/2053): Enable commented-out rules with fixes.
 dart_code_metrics:
   metrics:
     # cyclomatic-complexity: 20
