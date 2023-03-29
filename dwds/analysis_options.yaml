@@ -23,65 +23,41 @@ linter:
     - unawaited_futures
     - unnecessary_lambdas
 
+# TODO(elliette): Enable commented out rules.
 dart_code_metrics:
   metrics:
-    # cyclomatic-complexity: 20 ENABLE
-    # number-of-parameters: 5 ENABLE
-    # maximum-nesting-level: 5 ENABLE
+    # cyclomatic-complexity: 20
+    # number-of-parameters: 5
+    # maximum-nesting-level: 5
   metrics-exclude:
     - test/**
   rules:
-#    - arguments-ordering Too strict
-#    - avoid-banned-imports
     - avoid-cascade-after-if-null
     - avoid-collection-methods-with-unrelated-types
     - avoid-duplicate-exports
-#    - avoid-dynamic Too strict, since we deal with a lot of dynamic types from JS.
     - avoid-global-state  
-#    - avoid-ignoring-return-values
-#    - avoid-late-keyword
     - avoid-missing-enum-constant-in-map
     - avoid-nested-conditional-expressions
-#    - avoid-non-ascii-symbols  TODO(jacobr): probably worth enabling.
+    - avoid-non-ascii-symbols
 #    - avoid-non-null-assertion
-#    - avoid-passing-async-when-sync-expected TODO(jacobr): consider re-enabliing.
-    - avoid-redundant-async
-#    - avoid-throw-in-catch-block ENABLE
+#    - avoid-passing-async-when-sync-expected
+#    - avoid-throw-in-catch-block
 
-#    - avoid-top-level-members-in-tests Doesn't seem to match our style.
+    - avoid-top-level-members-in-tests
     - avoid-unnecessary-type-assertions
     - avoid-unnecessary-type-casts
     - avoid-unrelated-type-assertions
     - avoid-unused-parameters
-#    - ban-name
-    # - binary-expression-operand-order Some nice catches but too many false positives to enable.
+    - binary-expression-operand-order
     - double-literal-format
-    # - format-comment TODO(jacobr): enable this one after fixing violations.
-    # TODO(jacobr): enable member-ordering. This catches a bunch of real style
-    # issues but would be alot of work to migrate.
-    # - member-ordering
-    # - newline-before-return TODO(jacobr): should be in the formatter if it was a rule to adopt.
+ #    - format-comment
+ #    - member-ordering
     - no-boolean-literal-compare
-    # - no-empty-block Too many false positives. However it does flag a bunch of code smells so possibly worth re-enabling.
-    # This one seems interesting but has too many false positives. Gave it a try.
-    # - no-equal-arguments:
-    #    ignored-parameters:
-    #      - height
-    #      - width
-    #      - double-literal-format
-    #      - defaultSortColumn
-    #      - left
-    #      - right
-    #      - top
-    #      - bottom
-    #      - bottomLeft
-    #      - topLeft
-    #      - enabledBorder
+#    - no-empty-block ENABLE
     - no-equal-then-else
- #   - no-magic-number
- #   - no-object-declaration Too difficult to use along with avoiding dynamic particular for JSON decoding logic.
- #   - prefer-async-await TODO(jacobr): evaluate enabling.
- #   - prefer-commenting-analyzer-ignores ENABLE
+ #   - prefer-async-await
+ #   - prefer-commenting-analyzer-ignores
+ # STOPPED HERE
   #  - prefer-conditional-expressions Too many false positives involving large conditional expressions.
   #  - prefer-correct-identifier-length Too many false positives with fine names like i and id.
   #  - prefer-correct-test-file-name TODO(jacobr): enable and fix violations.
