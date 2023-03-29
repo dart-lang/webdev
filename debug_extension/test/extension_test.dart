@@ -23,13 +23,13 @@ import 'package:puppeteer/puppeteer.dart' hide Response;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
 import 'package:test/test.dart';
+import 'package:test_common/context.dart';
+import 'package:test_common/project.dart';
 import 'package:test_common/test_sdk_configuration.dart';
+import 'package:test_common/utilities.dart';
 
 import '../web/data_serializers.dart';
 import '../web/data_types.dart';
-import 'package:test_common/context.dart';
-import 'package:test_common/project.dart';
-import 'package:test_common/utilities.dart';
 import 'test_utils.dart';
 
 // To run all tests:

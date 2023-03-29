@@ -7,10 +7,10 @@
 
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
-
 import 'package:test_common/context.dart';
 import 'package:test_common/project.dart';
+import 'package:test_common/test_sdk_configuration.dart';
+
 import 'test_utils.dart';
 
 void main() async {
