@@ -1,0 +1,63 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    # Ignore generated files
+    - "lib/data/*"
+    # Ignore debug extension builds
+    - "debug_extension/dev_build/*"
+    - "debug_extension/prod_build/*"
+    - "debug_extension_mv3/dev_build/*"
+    - "debug_extension_mv3/prod_build/*"
+
+linter:
+  rules:
+    - always_use_package_imports
+    - avoid_void_async
+    - directives_ordering
+    - prefer_final_locals
+    - require_trailing_commas
+    - unawaited_futures
+    - unnecessary_lambdas
+
+# TODO(https://github.com/dart-lang/webdev/issues/2053): Enable commented-out rules with fixes.
+dart_code_metrics:
+  metrics:
+    # cyclomatic-complexity: 20
+    # number-of-parameters: 5
+    # maximum-nesting-level: 5
+  metrics-exclude:
+    - test/**
+  rules:
+    - avoid-cascade-after-if-null
+    - avoid-collection-methods-with-unrelated-types
+    - avoid-duplicate-exports
+    # - avoid-global-state  
+    - avoid-missing-enum-constant-in-map
+    - avoid-nested-conditional-expressions
+    - avoid-non-ascii-symbols
+    # - avoid-non-null-assertion
+    # - avoid-passing-async-when-sync-expected
+    - avoid-redundant-async
+    # - avoid-throw-in-catch-block
+    - avoid-unnecessary-type-assertions
+    - avoid-unnecessary-type-casts
+    - avoid-unrelated-type-assertions
+    - avoid-unused-parameters
+    - binary-expression-operand-order
+    - double-literal-format
+    # - format-comment
+    # - member-ordering
+    - no-boolean-literal-compare
+    # - no-empty-block
+    - no-equal-then-else
+    # - prefer-async-await
+    # - prefer-commenting-analyzer-ignores
+    # - prefer-correct-test-file-name
+    - prefer-correct-type-name
+    - prefer-enums-by-name
+    # - prefer-immediate-return
+    - prefer-iterable-of
+    - prefer-last
+    # - prefer-moving-to-variable:
+    #     allow-duplicated-chains: 2
