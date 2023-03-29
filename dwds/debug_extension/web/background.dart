@@ -517,7 +517,8 @@ Future<bool> _tryAttach(
       final dwdsVersion = value?[3];
       if (extensionUri == null || appId == null || instanceId == null) {
         window.console.warn(
-            'Unable to debug app. Missing Dart debugging global variables');
+          'Unable to debug app. Missing Dart debugging global variables',
+        );
         successCompleter.complete(false);
         return;
       }
