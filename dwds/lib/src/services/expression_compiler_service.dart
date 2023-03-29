@@ -264,10 +264,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
     String expression,
   ) async =>
       (await _compiler.future).compileExpressionToJs(
-<<<<<<< HEAD
-=======
-        isolateId,
->>>>>>> master
         libraryUri,
         line,
         column,
