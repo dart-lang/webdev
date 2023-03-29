@@ -14,13 +14,12 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
+import 'package:test_common/context.dart';
+import 'package:test_common/project.dart';
 import 'package:test_common/test_sdk_configuration.dart';
+import 'package:test_common/utilities.dart';
 // ignore: deprecated_member_use
 import 'package:webdriver/io.dart';
-
-import 'fixtures/context.dart';
-import 'fixtures/project.dart';
-import 'fixtures/utilities.dart';
 
 // Instructions for running:
 // * From the /dwds, run: dart test test/debug_extension_test.dart

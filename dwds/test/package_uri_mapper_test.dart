@@ -12,7 +12,7 @@ import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import 'fixtures/project.dart';
+import 'package:test_common/project.dart';
 
 void main() {
   final project = TestProject.testPackageWithSoundNullSafety();

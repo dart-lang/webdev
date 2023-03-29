@@ -6,10 +6,9 @@
 
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:test/test.dart';
+import 'package:test_common/context.dart';
+import 'package:test_common/project.dart';
 import 'package:test_common/test_sdk_configuration.dart';
-
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
 
 void main() {
   group('ProxyServerAssetReader', () {

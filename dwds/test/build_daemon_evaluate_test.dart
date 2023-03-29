@@ -6,11 +6,11 @@
 @Timeout(Duration(minutes: 2))
 
 import 'package:test/test.dart';
+import 'package:test_common/context.dart';
+import 'package:test_common/project.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 import 'evaluate_common.dart';
-import 'fixtures/context.dart';
-import 'fixtures/project.dart';
 
 void main() async {
   // Enable verbose logging for debugging.

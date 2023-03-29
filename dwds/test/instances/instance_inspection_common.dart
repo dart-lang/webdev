@@ -6,9 +6,8 @@
 @Timeout(Duration(minutes: 2))
 
 import 'package:test/test.dart';
+import 'package:test_common/context.dart';
 import 'package:vm_service/vm_service.dart';
-
-import '../fixtures/context.dart';
 
 class TestInspector {
   TestInspector(this.context);

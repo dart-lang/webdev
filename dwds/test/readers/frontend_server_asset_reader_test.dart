@@ -8,10 +8,9 @@ import 'dart:io';
 import 'package:dwds/src/readers/frontend_server_asset_reader.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:test_common/project.dart';
 import 'package:test_common/test_sdk_layout.dart';
-
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
+import 'package:test_common/utilities.dart';
 
 final fixturesDir = absolutePath(pathFromDwds: p.join('test', 'fixtures'));
 

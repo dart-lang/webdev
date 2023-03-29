@@ -8,13 +8,12 @@ import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
+import 'package:test_common/context.dart';
 import 'package:test_common/logging.dart';
+import 'package:test_common/project.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
 
 void main() {
   // Enable verbose logging for debugging.

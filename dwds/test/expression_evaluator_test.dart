@@ -12,11 +12,10 @@ import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/batched_expression_evaluator.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
-
 import 'package:test/test.dart';
+import 'package:test_common/context.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'fixtures/context.dart';
 import 'fixtures/fakes.dart';
 
 late ExpressionEvaluator? _evaluator;

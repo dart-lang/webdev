@@ -9,13 +9,12 @@ import 'dart:io';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:test/test.dart';
+import 'package:test_common/context.dart';
 import 'package:test_common/logging.dart';
+import 'package:test_common/project.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/async_core.dart';
-
-import 'fixtures/context.dart';
-import 'fixtures/project.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider();

@@ -27,9 +27,9 @@ import 'package:test_common/test_sdk_configuration.dart';
 
 import '../web/data_serializers.dart';
 import '../web/data_types.dart';
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
+import 'package:test_common/context.dart';
+import 'package:test_common/project.dart';
+import 'package:test_common/utilities.dart';
 import 'test_utils.dart';
 
 // To run all tests:

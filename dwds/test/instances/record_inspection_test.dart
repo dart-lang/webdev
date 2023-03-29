@@ -6,12 +6,12 @@
 @Timeout(Duration(minutes: 2))
 
 import 'package:test/test.dart';
+import 'package:test_common/context.dart';
 import 'package:test_common/logging.dart';
+import 'package:test_common/project.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
 import 'instance_inspection_common.dart';
 
 void main() async {
