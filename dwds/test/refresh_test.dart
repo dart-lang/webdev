@@ -53,7 +53,10 @@ void main() {
       final refreshedMain = refreshedScriptList.scripts!
           .lastWhere((each) => each.uri!.contains('main.dart'));
       final bpLine = await context.findBreakpointLine(
-          'printHelloWorld', isolateId, refreshedMain);
+        'printHelloWorld',
+        isolateId,
+        refreshedMain,
+      );
       final bp =
           await service.addBreakpoint(isolateId, refreshedMain.id!, bpLine);
       final isolate = await service.getIsolate(vm.isolates!.first.id!);

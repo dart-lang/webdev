@@ -44,12 +44,18 @@ class DwdsVmClient {
       }();
 
   static Future<DwdsVmClient> create(
-      DebugService debugService, DwdsStats dwdsStats) async {
+    DebugService debugService,
+    DwdsStats dwdsStats,
+  ) async {
     // Set up hot restart as an extension.
     final requestController = StreamController<Map<String, Object>>();
     final responseController = StreamController<Map<String, Object?>>();
-    VmServerConnection(requestController.stream, responseController.sink,
-        debugService.serviceExtensionRegistry, debugService.chromeProxyService);
+    VmServerConnection(
+      requestController.stream,
+      responseController.sink,
+      debugService.serviceExtensionRegistry,
+      debugService.chromeProxyService,
+    );
     final client =
         VmService(responseController.stream.map(jsonEncode), (request) {
       if (requestController.isClosed) {
@@ -89,16 +95,21 @@ class DwdsVmClient {
     await client.registerService('_flutter.listViews', 'DWDS');
 
     client.registerServiceCallback(
-        'hotRestart',
-        (request) => captureElapsedTime(
-            () => dwdsVmClient.hotRestart(chromeProxyService, client),
-            (_) => DwdsEvent.hotRestart()));
+      'hotRestart',
+      (request) => captureElapsedTime(
+        () => dwdsVmClient.hotRestart(chromeProxyService, client),
+        (_) => DwdsEvent.hotRestart(),
+      ),
+    );
     await client.registerService('hotRestart', 'DWDS');
 
     client.registerServiceCallback(
-        'fullReload',
-        (request) => captureElapsedTime(() => _fullReload(chromeProxyService),
-            (_) => DwdsEvent.fullReload()));
+      'fullReload',
+      (request) => captureElapsedTime(
+        () => _fullReload(chromeProxyService),
+        (_) => DwdsEvent.fullReload(),
+      ),
+    );
     await client.registerService('fullReload', 'DWDS');
 
     client.registerServiceCallback('ext.dwds.screenshot', (_) async {
@@ -116,8 +127,12 @@ class DwdsVmClient {
     await client.registerService('ext.dwds.sendEvent', 'DWDS');
 
     client.registerServiceCallback('ext.dwds.emitEvent', (event) async {
-      emitEvent(DwdsEvent(
-          event['type'] as String, event['payload'] as Map<String, dynamic>));
+      emitEvent(
+        DwdsEvent(
+          event['type'] as String,
+          event['payload'] as Map<String, dynamic>,
+        ),
+      );
       return {'result': Success().toJson()};
     });
     await client.registerService('ext.dwds.emitEvent', 'DWDS');
@@ -148,13 +163,18 @@ class DwdsVmClient {
   }
 
   Future<Map<String, dynamic>> hotRestart(
-      ChromeProxyService chromeProxyService, VmService client) {
+    ChromeProxyService chromeProxyService,
+    VmService client,
+  ) {
     return _hotRestartQueue.run(() => _hotRestart(chromeProxyService, client));
   }
 }
 
-void _processSendEvent(Map<String, dynamic> event,
-    ChromeProxyService chromeProxyService, DwdsStats dwdsStats) {
+void _processSendEvent(
+  Map<String, dynamic> event,
+  ChromeProxyService chromeProxyService,
+  DwdsStats dwdsStats,
+) {
   final type = event['type'] as String?;
   final payload = event['payload'] as Map<String, dynamic>?;
   switch (type) {
@@ -194,7 +214,9 @@ void _recordDwdsStats(DwdsStats dwdsStats, String screen) {
 }
 
 Future<Map<String, dynamic>> _hotRestart(
-    ChromeProxyService chromeProxyService, VmService client) async {
+  ChromeProxyService chromeProxyService,
+  VmService client,
+) async {
   _logger.info('Attempting a hot restart');
 
   chromeProxyService.terminatingIsolates = true;
@@ -255,7 +277,8 @@ Future<Map<String, dynamic>> _hotRestart(
 }
 
 Future<Map<String, dynamic>> _fullReload(
-    ChromeProxyService chromeProxyService) async {
+  ChromeProxyService chromeProxyService,
+) async {
   _logger.info('Attempting a full reload');
   await chromeProxyService.remoteDebugger.enablePage();
   await chromeProxyService.remoteDebugger.pageReload();
@@ -264,7 +287,9 @@ Future<Map<String, dynamic>> _fullReload(
 }
 
 Future<void> _disableBreakpointsAndResume(
-    VmService client, ChromeProxyService chromeProxyService) async {
+  VmService client,
+  ChromeProxyService chromeProxyService,
+) async {
   _logger.info('Attempting to disable breakpoints and resume the isolate');
   final vm = await client.getVM();
   final isolates = vm.isolates;

@@ -51,23 +51,32 @@ class FrontendServerRequireStrategyProvider {
       : '$_basePath/${stripLeadingSlashes(serverPath)}';
 
   Future<Map<String, String>> _moduleProvider(
-          MetadataProvider metadataProvider) async =>
-      (await metadataProvider.moduleToModulePath).map((key, value) =>
-          MapEntry(key, stripLeadingSlashes(removeJsExtension(value))));
+    MetadataProvider metadataProvider,
+  ) async =>
+      (await metadataProvider.moduleToModulePath).map(
+        (key, value) =>
+            MapEntry(key, stripLeadingSlashes(removeJsExtension(value))),
+      );
 
   Future<String?> _moduleForServerPath(
-      MetadataProvider metadataProvider, String serverPath) async {
+    MetadataProvider metadataProvider,
+    String serverPath,
+  ) async {
     final modulePathToModule = await metadataProvider.modulePathToModule;
     final relativeServerPath = _removeBasePath(serverPath);
     return modulePathToModule[relativeServerPath];
   }
 
   Future<String> _serverPathForModule(
-          MetadataProvider metadataProvider, String module) async =>
+    MetadataProvider metadataProvider,
+    String module,
+  ) async =>
       _addBasePath((await metadataProvider.moduleToModulePath)[module] ?? '');
 
   Future<String> _sourceMapPathForModule(
-          MetadataProvider metadataProvider, String module) async =>
+    MetadataProvider metadataProvider,
+    String module,
+  ) async =>
       _addBasePath((await metadataProvider.moduleToSourceMap)[module] ?? '');
 
   String? _serverPathForAppUri(String appUrl) {
@@ -85,16 +94,18 @@ class FrontendServerRequireStrategyProvider {
   }
 
   Future<Map<String, ModuleInfo>> _moduleInfoForProvider(
-      MetadataProvider metadataProvider) async {
+    MetadataProvider metadataProvider,
+  ) async {
     final modules = await metadataProvider.moduleToModulePath;
     final result = <String, ModuleInfo>{};
     for (var module in modules.keys) {
       final modulePath = modules[module]!;
       result[module] = ModuleInfo(
-          // TODO: Save locations of full kernel files in ddc metadata.
-          // Issue: https://github.com/dart-lang/sdk/issues/43684
-          p.setExtension(modulePath, '.full.dill'),
-          p.setExtension(modulePath, '.dill'));
+        // TODO: Save locations of full kernel files in ddc metadata.
+        // Issue: https://github.com/dart-lang/sdk/issues/43684
+        p.setExtension(modulePath, '.full.dill'),
+        p.setExtension(modulePath, '.dill'),
+      );
     }
     return result;
   }

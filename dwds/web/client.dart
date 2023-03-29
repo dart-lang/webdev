@@ -71,75 +71,103 @@ Future<void>? main() {
     debugEventController.stream.listen((events) {
       if (dartEmitDebugEvents) {
         _trySendEvent(
-            client.sink,
-            jsonEncode(serializers.serialize(BatchedDebugEvents(
-                (b) => b.events = ListBuilder<DebugEvent>(events)))));
+          client.sink,
+          jsonEncode(
+            serializers.serialize(
+              BatchedDebugEvents(
+                (b) => b.events = ListBuilder<DebugEvent>(events),
+              ),
+            ),
+          ),
+        );
       }
     });
 
     emitDebugEvent = allowInterop((String kind, String eventData) {
       if (dartEmitDebugEvents) {
         _trySendEvent(
-            debugEventController.sink,
-            DebugEvent((b) => b
+          debugEventController.sink,
+          DebugEvent(
+            (b) => b
               ..timestamp = (DateTime.now().millisecondsSinceEpoch)
               ..kind = kind
-              ..eventData = eventData));
+              ..eventData = eventData,
+          ),
+        );
       }
     });
 
     emitRegisterEvent = allowInterop((String eventData) {
       _trySendEvent(
-          client.sink,
-          jsonEncode(serializers.serialize(RegisterEvent((b) => b
-            ..timestamp = (DateTime.now().millisecondsSinceEpoch)
-            ..eventData = eventData))));
+        client.sink,
+        jsonEncode(
+          serializers.serialize(
+            RegisterEvent(
+              (b) => b
+                ..timestamp = (DateTime.now().millisecondsSinceEpoch)
+                ..eventData = eventData,
+            ),
+          ),
+        ),
+      );
     });
 
     launchDevToolsJs = allowInterop(() {
       if (!_isChromium) {
         window.alert(
-            'Dart DevTools is only supported on Chromium based browsers.');
+          'Dart DevTools is only supported on Chromium based browsers.',
+        );
         return;
       }
       _trySendEvent(
-          client.sink,
-          jsonEncode(serializers.serialize(DevToolsRequest((b) => b
-            ..appId = dartAppId
-            ..instanceId = dartAppInstanceId))));
+        client.sink,
+        jsonEncode(
+          serializers.serialize(
+            DevToolsRequest(
+              (b) => b
+                ..appId = dartAppId
+                ..instanceId = dartAppInstanceId,
+            ),
+          ),
+        ),
+      );
     });
 
-    client.stream.listen((serialized) async {
-      final event = serializers.deserialize(jsonDecode(serialized));
-      if (event is BuildResult) {
-        if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
-          manager.reloadPage();
-        } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
-          await manager.hotRestart();
-        } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
-          print('Hot reload is currently unsupported. Ignoring change.');
-        }
-      } else if (event is DevToolsResponse) {
-        if (!event.success) {
-          final alert = 'DevTools failed to open with:\n${event.error}';
-          if (event.promptExtension && window.confirm(alert)) {
-            window.open('https://goo.gle/dart-debug-extension', '_blank');
-          } else {
-            window.alert(alert);
+    client.stream.listen(
+      (serialized) async {
+        final event = serializers.deserialize(jsonDecode(serialized));
+        if (event is BuildResult) {
+          if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
+            manager.reloadPage();
+          } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
+            await manager.hotRestart();
+          } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
+            print('Hot reload is currently unsupported. Ignoring change.');
           }
+        } else if (event is DevToolsResponse) {
+          if (!event.success) {
+            final alert = 'DevTools failed to open with:\n${event.error}';
+            if (event.promptExtension && window.confirm(alert)) {
+              window.open('https://goo.gle/dart-debug-extension', '_blank');
+            } else {
+              window.alert(alert);
+            }
+          }
+        } else if (event is RunRequest) {
+          runMain();
+        } else if (event is ErrorResponse) {
+          window.console
+              .error('Error from backend:\n\nError: ${event.error}\n\n'
+                  'Stack Trace:\n${event.stackTrace}');
         }
-      } else if (event is RunRequest) {
-        runMain();
-      } else if (event is ErrorResponse) {
-        window.console.error('Error from backend:\n\nError: ${event.error}\n\n'
-            'Stack Trace:\n${event.stackTrace}');
-      }
-    }, onError: (error) {
-      // An error is propagated on a full page reload as Chrome presumably
-      // forces the SSE connection to close in a bad state. This does not cause
-      // any adverse effects so simply swallow this error as to not print the
-      // misleading unhandled error message.
-    });
+      },
+      onError: (error) {
+        // An error is propagated on a full page reload as Chrome presumably
+        // forces the SSE connection to close in a bad state. This does not cause
+        // any adverse effects so simply swallow this error as to not print the
+        // misleading unhandled error message.
+      },
+    );
 
     if (dwdsEnableDevtoolsLaunch) {
       window.onKeyDown.listen((Event e) {
@@ -161,11 +189,18 @@ Future<void>? main() {
 
     if (_isChromium) {
       _trySendEvent(
-          client.sink,
-          jsonEncode(serializers.serialize(ConnectRequest((b) => b
-            ..appId = dartAppId
-            ..instanceId = dartAppInstanceId
-            ..entrypointPath = dartEntrypointPath))));
+        client.sink,
+        jsonEncode(
+          serializers.serialize(
+            ConnectRequest(
+              (b) => b
+                ..appId = dartAppId
+                ..instanceId = dartAppInstanceId
+                ..entrypointPath = dartEntrypointPath,
+            ),
+          ),
+        ),
+      );
     } else {
       // If not Chromium we just invoke main, devtools aren't supported.
       runMain();
@@ -224,32 +259,42 @@ void _launchCommunicationWithDebugExtension() {
 
   // Send the dart-app-ready event along with debug info to the Dart Debug
   // Extension so that it can debug the Dart app:
-  final debugInfoJson = jsonEncode(serializers.serialize(DebugInfo((b) => b
-    ..appEntrypointPath = dartEntrypointPath
-    ..appId = _appId
-    ..appInstanceId = dartAppInstanceId
-    ..appOrigin = window.location.origin
-    ..appUrl = window.location.href
-    ..authUrl = _authUrl
-    ..extensionUrl = _extensionUrl
-    ..isInternalBuild = _isInternalBuild
-    ..isFlutterApp = _isFlutterApp)));
+  final debugInfoJson = jsonEncode(
+    serializers.serialize(
+      DebugInfo(
+        (b) => b
+          ..appEntrypointPath = dartEntrypointPath
+          ..appId = _appId
+          ..appInstanceId = dartAppInstanceId
+          ..appOrigin = window.location.origin
+          ..appUrl = window.location.href
+          ..authUrl = _authUrl
+          ..extensionUrl = _extensionUrl
+          ..isInternalBuild = _isInternalBuild
+          ..isFlutterApp = _isFlutterApp,
+      ),
+    ),
+  );
   dispatchEvent(CustomEvent('dart-app-ready', detail: debugInfoJson));
 }
 
 void _listenForDebugExtensionAuthRequest() {
-  window.addEventListener('message', allowInterop((event) async {
-    final messageEvent = event as MessageEvent;
-    if (messageEvent.data is! String) return;
-    if (messageEvent.data as String != 'dart-auth-request') return;
+  window.addEventListener(
+    'message',
+    allowInterop((event) async {
+      final messageEvent = event as MessageEvent;
+      if (messageEvent.data is! String) return;
+      if (messageEvent.data as String != 'dart-auth-request') return;
 
-    // Notify the Dart Debug Extension of authentication status:
-    if (_authUrl != null) {
-      final isAuthenticated = await _authenticateUser(_authUrl!);
-      dispatchEvent(
-          CustomEvent('dart-auth-response', detail: '$isAuthenticated'));
-    }
-  }));
+      // Notify the Dart Debug Extension of authentication status:
+      if (_authUrl != null) {
+        final isAuthenticated = await _authenticateUser(_authUrl!);
+        dispatchEvent(
+          CustomEvent('dart-auth-response', detail: '$isAuthenticated'),
+        );
+      }
+    }),
+  );
 }
 
 Future<bool> _authenticateUser(String authUrl) async {

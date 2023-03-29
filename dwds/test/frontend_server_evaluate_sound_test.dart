@@ -26,18 +26,21 @@ void main() async {
       final nullSafety = NullSafety.sound;
       group('${nullSafety.name} null safety |', () {
         for (var indexBaseMode in IndexBaseMode.values) {
-          group('with ${indexBaseMode.name} |', () {
-            testAll(
-              provider: provider,
-              compilationMode: CompilationMode.frontendServer,
-              indexBaseMode: indexBaseMode,
-              nullSafety: nullSafety,
-              useDebuggerModuleNames: useDebuggerModuleNames,
-              debug: debug,
-            );
-          },
-              // https://github.com/dart-lang/sdk/issues/49277
-              skip: indexBaseMode == IndexBaseMode.base && Platform.isWindows);
+          group(
+            'with ${indexBaseMode.name} |',
+            () {
+              testAll(
+                provider: provider,
+                compilationMode: CompilationMode.frontendServer,
+                indexBaseMode: indexBaseMode,
+                nullSafety: nullSafety,
+                useDebuggerModuleNames: useDebuggerModuleNames,
+                debug: debug,
+              );
+            },
+            // https://github.com/dart-lang/sdk/issues/49277
+            skip: indexBaseMode == IndexBaseMode.base && Platform.isWindows,
+          );
         }
       });
     });

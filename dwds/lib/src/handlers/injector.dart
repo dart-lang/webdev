@@ -62,22 +62,28 @@ class DwdsInjector {
         return (Request request) async {
           if (request.url.path.endsWith('$_clientScript.js')) {
             final uri = await Isolate.resolvePackageUri(
-                Uri.parse('package:$_clientScript.js'));
+              Uri.parse('package:$_clientScript.js'),
+            );
             if (uri == null) {
               throw StateError('Cannot resolve "package:$_clientScript.js"');
             }
             final result = await File(uri.toFilePath()).readAsString();
-            return Response.ok(result, headers: {
-              HttpHeaders.contentTypeHeader: 'application/javascript'
-            });
+            return Response.ok(
+              result,
+              headers: {
+                HttpHeaders.contentTypeHeader: 'application/javascript'
+              },
+            );
           } else if (request.url.path.endsWith(bootstrapJsExtension)) {
             final ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
             if (ifNoneMatch != null) {
               // Disable caching of the inner hander by manually modifying the
               // if-none-match header before forwarding the request.
-              request = request.change(headers: {
-                HttpHeaders.ifNoneMatchHeader: '$ifNoneMatch\$injected',
-              });
+              request = request.change(
+                headers: {
+                  HttpHeaders.ifNoneMatchHeader: '$ifNoneMatch\$injected',
+                },
+              );
             }
             final response = await innerHandler(request);
             if (response.statusCode == HttpStatus.notFound) return response;
@@ -143,16 +149,17 @@ class DwdsInjector {
 /// Returns the provided body with the main function hoisted into a global
 /// variable and a snippet of JS that loads the injected client.
 String _injectClientAndHoistMain(
-    String body,
-    String appId,
-    String devHandlerPath,
-    String entrypointPath,
-    String? extensionUri,
-    LoadStrategy loadStrategy,
-    bool enableDevtoolsLaunch,
-    bool emitDebugEvents,
-    bool isInternalBuild,
-    bool isFlutterApp) {
+  String body,
+  String appId,
+  String devHandlerPath,
+  String entrypointPath,
+  String? extensionUri,
+  LoadStrategy loadStrategy,
+  bool enableDevtoolsLaunch,
+  bool emitDebugEvents,
+  bool isInternalBuild,
+  bool isFlutterApp,
+) {
   final bodyLines = body.split('\n');
   final extensionIndex =
       bodyLines.indexWhere((line) => line.contains(mainExtensionMarker));
@@ -165,15 +172,16 @@ String _injectClientAndHoistMain(
   // application to be in a ready state, that is the main function is hoisted
   // and the Dart SDK is loaded.
   final injectedClientSnippet = _injectedClientSnippet(
-      appId,
-      devHandlerPath,
-      entrypointPath,
-      extensionUri,
-      loadStrategy,
-      enableDevtoolsLaunch,
-      emitDebugEvents,
-      isInternalBuild,
-      isFlutterApp);
+    appId,
+    devHandlerPath,
+    entrypointPath,
+    extensionUri,
+    loadStrategy,
+    enableDevtoolsLaunch,
+    emitDebugEvents,
+    isInternalBuild,
+    isFlutterApp,
+  );
   result += '''
   // Injected by dwds for debugging support.
   if(!window.\$dwdsInitialized) {

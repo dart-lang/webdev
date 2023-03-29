@@ -147,7 +147,10 @@ class _Compiler {
       final s = response['stackTrace'] as String?;
       final stackTrace = s == null ? null : StackTrace.fromString(s);
       _logger.severe(
-          'Failed to update dependencies: $errors', exception, stackTrace);
+        'Failed to update dependencies: $errors',
+        exception,
+        stackTrace,
+      );
     }
     updateCompleter.complete();
     return result;
@@ -248,20 +251,31 @@ class ExpressionCompilerService implements ExpressionCompiler {
 
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(
-          String isolateId,
-          String libraryUri,
-          int line,
-          int column,
-          Map<String, String> jsModules,
-          Map<String, String> jsFrameValues,
-          String moduleName,
-          String expression) async =>
-      (await _compiler.future).compileExpressionToJs(isolateId, libraryUri,
-          line, column, jsModules, jsFrameValues, moduleName, expression);
+    String isolateId,
+    String libraryUri,
+    int line,
+    int column,
+    Map<String, String> jsModules,
+    Map<String, String> jsFrameValues,
+    String moduleName,
+    String expression,
+  ) async =>
+      (await _compiler.future).compileExpressionToJs(
+        isolateId,
+        libraryUri,
+        line,
+        column,
+        jsModules,
+        jsFrameValues,
+        moduleName,
+        expression,
+      );
 
   @override
-  Future<void> initialize(
-      {required String moduleFormat, bool soundNullSafety = false}) async {
+  Future<void> initialize({
+    required String moduleFormat,
+    bool soundNullSafety = false,
+  }) async {
     if (_compiler.isCompleted) return;
 
     final compiler = await _Compiler.start(

@@ -23,12 +23,14 @@ void main() async {
 }
 
 void _registerListeners() {
-  chrome.storage.onChanged.addListener(allowInterop((
-    Object _,
-    String storageArea,
-  ) {
-    _maybeCreatePanels();
-  }));
+  chrome.storage.onChanged.addListener(
+    allowInterop((
+      Object _,
+      String storageArea,
+    ) {
+      _maybeCreatePanels();
+    }),
+  );
 }
 
 Future<void> _maybeCreatePanels() async {
@@ -62,11 +64,13 @@ Future<void> _maybeCreatePanels() async {
 }
 
 void _onPanelAdded(ExtensionPanel panel, DebugInfo debugInfo) {
-  panel.onShown.addListener(allowInterop((Window window) {
-    if (window.origin != debugInfo.appOrigin) {
-      debugWarn('Page at ${window.origin} is no longer a Dart app.');
-      // TODO(elliette): Display banner that panel is not applicable. See:
-      // https://stackoverflow.com/questions/18927147/how-to-close-destroy-chrome-devtools-extensionpanel-programmatically
-    }
-  }));
+  panel.onShown.addListener(
+    allowInterop((Window window) {
+      if (window.origin != debugInfo.appOrigin) {
+        debugWarn('Page at ${window.origin} is no longer a Dart app.');
+        // TODO(elliette): Display banner that panel is not applicable. See:
+        // https://stackoverflow.com/questions/18927147/how-to-close-destroy-chrome-devtools-extensionpanel-programmatically
+      }
+    }),
+  );
 }

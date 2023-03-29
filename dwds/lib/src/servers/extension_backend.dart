@@ -32,20 +32,28 @@ class ExtensionBackend {
   Future<void>? _closed;
 
   ExtensionBackend._(
-      SocketHandler socketHandler, this.hostname, this.port, this._server)
-      : connections = socketHandler.connections;
+    SocketHandler socketHandler,
+    this.hostname,
+    this.port,
+    this._server,
+  ) : connections = socketHandler.connections;
 
   // Starts the backend on an open port.
   static Future<ExtensionBackend> start(
-      SocketHandler socketHandler, String hostname) async {
+    SocketHandler socketHandler,
+    String hostname,
+  ) async {
     var cascade = Cascade();
     cascade = cascade.add((request) {
       if (request.url.path == authenticationPath) {
-        return Response.ok(authenticationResponse, headers: {
-          if (request.headers.containsKey('origin'))
-            'Access-Control-Allow-Origin': request.headers['origin']!,
-          'Access-Control-Allow-Credentials': 'true'
-        });
+        return Response.ok(
+          authenticationResponse,
+          headers: {
+            if (request.headers.containsKey('origin'))
+              'Access-Control-Allow-Origin': request.headers['origin']!,
+            'Access-Control-Allow-Credentials': 'true'
+          },
+        );
       }
       return Response.notFound('');
     }).add(socketHandler.handler);
@@ -55,7 +63,11 @@ class ExtensionBackend {
       emitEvent(DwdsEvent.httpRequestException('ExtensionBackend', '$e:$s'));
     });
     return ExtensionBackend._(
-        socketHandler, server.address.host, server.port, server);
+      socketHandler,
+      server.address.host,
+      server.port,
+      server,
+    );
   }
 
   Future<void> close() => _closed ??= _server.close();

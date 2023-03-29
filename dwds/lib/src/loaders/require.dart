@@ -130,7 +130,8 @@ class RequireStrategy extends LoadStrategy {
   ///   web/main -> {main.ddc.full.dill, main.ddc.dill}
   ///
   final Future<Map<String, ModuleInfo>> Function(
-      MetadataProvider metadataProvider) _moduleInfoForProvider;
+    MetadataProvider metadataProvider,
+  ) _moduleInfoForProvider;
 
   RequireStrategy(
     this.reloadConfiguration,

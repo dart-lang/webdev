@@ -89,7 +89,10 @@ Future<Worker> getServiceWorker(Browser browser) async {
     onConsoleApiCalled: (type, jsHandles, _) {
       for (var handle in jsHandles) {
         _saveConsoleMsg(
-            source: ConsoleSource.worker, type: '$type', msg: '$handle');
+          source: ConsoleSource.worker,
+          type: '$type',
+          msg: '$handle',
+        );
       }
     },
     onExceptionThrown: null,

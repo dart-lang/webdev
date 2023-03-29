@@ -20,8 +20,9 @@ class LegacyStrategy extends LoadStrategy {
   /// /packages/path/path.ddc.js -> packages/path/path
   ///
   final Future<String?> Function(
-          MetadataProvider metadataProvider, String sourcePath)
-      _moduleForServerPath;
+    MetadataProvider metadataProvider,
+    String sourcePath,
+  ) _moduleForServerPath;
 
   /// Returns a map from module id to module info.
   ///
@@ -30,7 +31,8 @@ class LegacyStrategy extends LoadStrategy {
   ///   web/main -> {main.ddc.full.dill, main.ddc.dill}
   ///
   final Future<Map<String, ModuleInfo>> Function(
-      MetadataProvider metadataProvider) _moduleInfoForProvider;
+    MetadataProvider metadataProvider,
+  ) _moduleInfoForProvider;
 
   /// Returns the server path for the provided module.
   ///
@@ -39,7 +41,9 @@ class LegacyStrategy extends LoadStrategy {
   ///   web/main -> main.ddc.js
   ///
   final Future<String?> Function(
-      MetadataProvider metadataProvider, String module) _serverPathForModule;
+    MetadataProvider metadataProvider,
+    String module,
+  ) _serverPathForModule;
 
   /// Returns the source map path for the provided module.
   ///
@@ -48,7 +52,9 @@ class LegacyStrategy extends LoadStrategy {
   ///   web/main -> main.ddc.js.map
   ///
   final Future<String?> Function(
-      MetadataProvider metadataProvider, String module) _sourceMapPathForModule;
+    MetadataProvider metadataProvider,
+    String module,
+  ) _sourceMapPathForModule;
 
   /// Returns the server path for the app uri.
   ///

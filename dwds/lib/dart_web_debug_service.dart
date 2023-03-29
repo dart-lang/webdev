@@ -94,21 +94,27 @@ class Dwds {
     ExtensionBackend? extensionBackend;
     if (enableDebugExtension) {
       final handler = useSseForDebugBackend
-          ? SseSocketHandler(SseHandler(Uri.parse('/\$debug'),
-              // Proxy servers may actively kill long standing connections.
-              // Allow for clients to reconnect in a short window. Making the
-              // window too long may cause issues if the user closes a debug
-              // session and initiates a new one during the keepAlive window.
-              keepAlive: const Duration(seconds: 5)))
+          ? SseSocketHandler(
+              SseHandler(
+                Uri.parse('/\$debug'),
+                // Proxy servers may actively kill long standing connections.
+                // Allow for clients to reconnect in a short window. Making the
+                // window too long may cause issues if the user closes a debug
+                // session and initiates a new one during the keepAlive window.
+                keepAlive: const Duration(seconds: 5),
+              ),
+            )
           : WebSocketSocketHandler();
 
       extensionBackend = await ExtensionBackend.start(handler, hostname);
-      extensionUri = Future.value(Uri(
-              scheme: useSseForDebugBackend ? 'http' : 'ws',
-              host: extensionBackend.hostname,
-              port: extensionBackend.port,
-              path: r'$debug')
-          .toString());
+      extensionUri = Future.value(
+        Uri(
+          scheme: useSseForDebugBackend ? 'http' : 'ws',
+          host: extensionBackend.hostname,
+          port: extensionBackend.port,
+          path: r'$debug',
+        ).toString(),
+      );
       if (urlEncoder != null) extensionUri = urlEncoder(await extensionUri);
     }
 
