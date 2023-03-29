@@ -37,7 +37,7 @@ dart_code_metrics:
     - avoid-collection-methods-with-unrelated-types
     - avoid-duplicate-exports
 #    - avoid-dynamic Too strict, since we deal with a lot of dynamic types from JS.
-#    - avoid-global-state  
+    - avoid-global-state  
 #    - avoid-ignoring-return-values
 #    - avoid-late-keyword
     - avoid-missing-enum-constant-in-map
