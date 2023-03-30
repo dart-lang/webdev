@@ -48,6 +48,10 @@ abstract class LoadStrategy {
   /// The reload configuration for this strategy, e.g. liveReload.
   ReloadConfiguration get reloadConfiguration;
 
+  /// The URI for the app's entrypoint file, which is usually `main.dart`. It
+  /// should be a package URI, e.g. `package:myapp/main.dart`.
+  Uri? get appEntrypoint;
+
   /// Returns a snippet of JS code that initializes a `library` variable that
   /// has the actual library object in DDC for [libraryUri].
   ///

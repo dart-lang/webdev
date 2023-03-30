@@ -189,6 +189,10 @@ void main() {
       objectId = instance.objectId!;
     });
 
+    test('expect rootLib to be the main.dart file', () {
+      expect(inspector.isolate.rootLib?.uri, equals(url));
+    });
+
     test('invoke top-level private', () async {
       final remote = await inspector.invoke(
         bootstrapLibrary!.id!,
