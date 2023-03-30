@@ -162,8 +162,10 @@ Future<void> _runTests({
         await onBreakPoint('testPattern2Case1', (event) async {
           final frame = event.topFrame!;
 
-          expect(await getFrameVariables(frame),
-              {'dog': matchPrimitiveInstance(kind: 'String', value: 'Prismo')});
+          expect(
+            await getFrameVariables(frame),
+            {'dog': matchPrimitiveInstance(kind: 'String', value: 'Prismo')},
+          );
         });
       });
 
