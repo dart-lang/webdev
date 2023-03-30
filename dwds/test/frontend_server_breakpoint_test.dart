@@ -74,12 +74,19 @@ void main() {
 
       test('set breakpoint', () async {
         final line = await context.findBreakpointLine(
-            'printLocal', isolateId, mainScript);
+          'printLocal',
+          isolateId,
+          mainScript,
+        );
         final bp = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri, line);
+          isolateId,
+          mainScriptUri,
+          line,
+        );
 
         await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          (Event event) => event.kind == EventKind.kPauseBreakpoint,
+        );
 
         expect(bp, isNotNull);
 
@@ -89,12 +96,19 @@ void main() {
 
       test('set breakpoint again', () async {
         final line = await context.findBreakpointLine(
-            'printLocal', isolateId, mainScript);
+          'printLocal',
+          isolateId,
+          mainScript,
+        );
         final bp = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri, line);
+          isolateId,
+          mainScriptUri,
+          line,
+        );
 
         await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          (Event event) => event.kind == EventKind.kPauseBreakpoint,
+        );
 
         expect(bp, isNotNull);
 
@@ -104,22 +118,30 @@ void main() {
 
       test('set breakpoint inside a JavaScript line succeeds', () async {
         final line = await context.findBreakpointLine(
-            'printNestedObjectMultiLine', isolateId, mainScript);
+          'printNestedObjectMultiLine',
+          isolateId,
+          mainScript,
+        );
         final column = 0;
         final bp = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri, line,
-            column: column);
+          isolateId,
+          mainScriptUri,
+          line,
+          column: column,
+        );
 
         await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          (Event event) => event.kind == EventKind.kPauseBreakpoint,
+        );
 
         expect(bp, isNotNull);
         expect(
-            bp.location,
-            isA<SourceLocation>()
-                .having((loc) => loc.script, 'script', equals(mainScript))
-                .having((loc) => loc.line, 'line', equals(line))
-                .having((loc) => loc.column, 'column', greaterThan(column)));
+          bp.location,
+          isA<SourceLocation>()
+              .having((loc) => loc.script, 'script', equals(mainScript))
+              .having((loc) => loc.line, 'line', equals(line))
+              .having((loc) => loc.column, 'column', greaterThan(column)),
+        );
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolateId, bp.id!);

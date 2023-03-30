@@ -28,7 +28,10 @@ class TestInspector {
       final line =
           await context.findBreakpointLine(breakPointId, isolateId, script);
       bp = await service.addBreakpointWithScriptUri(
-          isolateId, script.uri!, line);
+        isolateId,
+        script.uri!,
+        line,
+      );
 
       final event =
           await stream.firstWhere((e) => e.kind == EventKind.kPauseBreakpoint);
@@ -121,7 +124,9 @@ class TestInspector {
   }
 
   Future<Map<String?, Instance?>> getFrameVariables(
-      String isolateId, Frame frame) async {
+    String isolateId,
+    Frame frame,
+  ) async {
     final refs = <String, InstanceRef>{
       for (var variable in frame.vars!)
         variable.name!: variable.value as InstanceRef
@@ -136,22 +141,28 @@ class TestInspector {
 }
 
 Map<String, InstanceRef> _associationsToMap(
-        Iterable<MapAssociation> associations) =>
+  Iterable<MapAssociation> associations,
+) =>
     Map.fromEntries(
-        associations.map((e) => MapEntry(e.key.valueAsString, e.value)));
+      associations.map((e) => MapEntry(e.key.valueAsString, e.value)),
+    );
 
 Map<dynamic, InstanceRef> _boundFieldsToMap(Iterable<BoundField> fields) =>
-    Map.fromEntries(fields
-        .where((e) => e.name != null)
-        .map((e) => MapEntry(e.name, e.value)));
+    Map.fromEntries(
+      fields.where((e) => e.name != null).map((e) => MapEntry(e.name, e.value)),
+    );
 
 Map<dynamic, InstanceRef> _elementsToMap(List<dynamic> fields) =>
-    Map.fromEntries(fields
-        .where((e) => e != null)
-        .map((e) => MapEntry(fields.indexOf(e), e!)));
+    Map.fromEntries(
+      fields
+          .where((e) => e != null)
+          .map((e) => MapEntry(fields.indexOf(e), e!)),
+    );
 
-Matcher matchPrimitiveInstance(
-        {required String kind, required dynamic value}) =>
+Matcher matchPrimitiveInstance({
+  required String kind,
+  required dynamic value,
+}) =>
     isA<Instance>()
         .having((e) => e.kind, 'kind', kind)
         .having(_getValue, 'value', value);
@@ -184,8 +195,11 @@ Matcher matchRecordInstance({required int length, required String type}) =>
 ///
 /// TODO(annagrin): Replace by matching `(type1, type2...)` after dart 3.0
 /// is stable.
-Matcher matchRecordType(String type) => isA<ClassRef>().having((e) => e.name,
-    'type name', anyOf([type.replaceAll('RecordType', ''), type]));
+Matcher matchRecordType(String type) => isA<ClassRef>().having(
+      (e) => e.name,
+      'type name',
+      anyOf([type.replaceAll('RecordType', ''), type]),
+    );
 
 Object? _getValue(InstanceRef instanceRef) {
   switch (instanceRef.kind) {

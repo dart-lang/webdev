@@ -44,8 +44,11 @@ class FrontendServerAssetReader implements AssetReader {
         _mapIncremental = File('$outputPath.incremental.map'),
         _jsonOriginal = File('$outputPath.json'),
         _jsonIncremental = File('$outputPath.incremental.json'),
-        _packageConfig = loadPackageConfig(File(p
-            .absolute(p.join(_packageRoot, '.dart_tool/package_config.json'))));
+        _packageConfig = loadPackageConfig(
+          File(
+            p.absolute(p.join(_packageRoot, '.dart_tool/package_config.json')),
+          ),
+        );
 
   @override
   Future<String?> dartSourceContents(String serverPath) async {
@@ -103,12 +106,14 @@ class FrontendServerAssetReader implements AssetReader {
         jsonDecode(json.readAsStringSync()) as Map<String, dynamic>;
     for (var key in sourceInfo.keys) {
       final info = sourceInfo[key];
-      _mapContents[key] = utf8.decode(sourceContents
-          .getRange(
-            info['sourcemap'][0] as int,
-            info['sourcemap'][1] as int,
-          )
-          .toList());
+      _mapContents[key] = utf8.decode(
+        sourceContents
+            .getRange(
+              info['sourcemap'][0] as int,
+              info['sourcemap'][1] as int,
+            )
+            .toList(),
+      );
     }
   }
 

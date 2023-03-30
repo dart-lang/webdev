@@ -33,9 +33,17 @@ void main() {
     test('do not include known ranges', () async {
       final skipList = skipLists.compute('123', {
         Location.from(
-            'foo', TargetLineEntry(1, []), TargetEntry(2, 0, 0, 0), dartUri),
+          'foo',
+          TargetLineEntry(1, []),
+          TargetEntry(2, 0, 0, 0),
+          dartUri,
+        ),
         Location.from(
-            'foo', TargetLineEntry(10, []), TargetEntry(20, 0, 0, 0), dartUri),
+          'foo',
+          TargetLineEntry(10, []),
+          TargetEntry(20, 0, 0, 0),
+          dartUri,
+        ),
       });
       expect(skipList.length, 3);
       _validateRange(skipList.first, 0, 0, 1, 1);
@@ -46,9 +54,17 @@ void main() {
     test('do not include start of the file', () async {
       final skipList = skipLists.compute('123', {
         Location.from(
-            'foo', TargetLineEntry(0, []), TargetEntry(0, 0, 0, 0), dartUri),
+          'foo',
+          TargetLineEntry(0, []),
+          TargetEntry(0, 0, 0, 0),
+          dartUri,
+        ),
         Location.from(
-            'foo', TargetLineEntry(10, []), TargetEntry(20, 0, 0, 0), dartUri),
+          'foo',
+          TargetLineEntry(10, []),
+          TargetEntry(20, 0, 0, 0),
+          dartUri,
+        ),
       });
       expect(skipList.length, 2);
       _validateRange(skipList[0], 0, 1, 10, 19);
@@ -58,9 +74,17 @@ void main() {
     test('does not depend on order of locations', () async {
       final skipList = skipLists.compute('123', {
         Location.from(
-            'foo', TargetLineEntry(10, []), TargetEntry(20, 0, 0, 0), dartUri),
+          'foo',
+          TargetLineEntry(10, []),
+          TargetEntry(20, 0, 0, 0),
+          dartUri,
+        ),
         Location.from(
-            'foo', TargetLineEntry(0, []), TargetEntry(0, 0, 0, 0), dartUri),
+          'foo',
+          TargetLineEntry(0, []),
+          TargetEntry(0, 0, 0, 0),
+          dartUri,
+        ),
       });
       expect(skipList.length, 2);
       _validateRange(skipList[0], 0, 1, 10, 19);
@@ -83,8 +107,13 @@ void main() {
   });
 }
 
-void _validateRange(Map<String, dynamic> range, int startLine, int startColumn,
-    int endLine, int endColumn) {
+void _validateRange(
+  Map<String, dynamic> range,
+  int startLine,
+  int startColumn,
+  int endLine,
+  int endColumn,
+) {
   final start = range['start'];
   expect(start['lineNumber'], startLine);
   expect(start['columnNumber'], startColumn);

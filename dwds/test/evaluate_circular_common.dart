@@ -24,17 +24,24 @@ void testAll({
   if (compilationMode == CompilationMode.buildDaemon &&
       indexBaseMode == IndexBaseMode.base) {
     throw StateError(
-        'build daemon scenario does not support non-empty base in index file');
+      'build daemon scenario does not support non-empty base in index file',
+    );
   }
 
   final testCircular1 = TestProject.testCircular1(nullSafety: nullSafety);
   final testCircular2 = TestProject.testCircular2(
-      nullSafety: nullSafety, baseMode: indexBaseMode);
+    nullSafety: nullSafety,
+    baseMode: indexBaseMode,
+  );
 
   final context = TestContext(testCircular2, provider);
 
-  Future<void> onBreakPoint(String isolate, ScriptRef script,
-      String breakPointId, Future<void> Function() body) async {
+  Future<void> onBreakPoint(
+    String isolate,
+    ScriptRef script,
+    String breakPointId,
+    Future<void> Function() body,
+  ) async {
     Breakpoint? bp;
     try {
       final line =
@@ -92,9 +99,11 @@ void testAll({
         final test2 = testCircular2.packageName;
 
         test1LibraryScript = scripts.scripts!.firstWhere(
-            (each) => each.uri!.contains('package:$test1/library1.dart'));
+          (each) => each.uri!.contains('package:$test1/library1.dart'),
+        );
         test2LibraryScript = scripts.scripts!.firstWhere(
-            (each) => each.uri!.contains('package:$test2/library2.dart'));
+          (each) => each.uri!.contains('package:$test2/library2.dart'),
+        );
       });
 
       tearDown(() async {
@@ -111,9 +120,13 @@ void testAll({
               .evaluateInFrame(isolateId, event.topFrame!.index!, 'a');
 
           expect(
-              result,
-              isA<InstanceRef>().having(
-                  (instance) => instance.valueAsString, 'valueAsString', 'a'));
+            result,
+            isA<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              'a',
+            ),
+          );
         });
       });
 
@@ -128,9 +141,13 @@ void testAll({
               .evaluateInFrame(isolateId, event.topFrame!.index!, 'true');
 
           expect(
-              result,
-              isA<InstanceRef>().having((instance) => instance.valueAsString,
-                  'valueAsString', 'true'));
+            result,
+            isA<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              'true',
+            ),
+          );
         });
       });
     });

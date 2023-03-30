@@ -53,12 +53,19 @@ class ExpressionEvaluator {
   static final _loadModuleErrorRegex =
       RegExp(r".*Failed to load '.*\.com/(.*\.js).*");
 
-  ExpressionEvaluator(this._entrypoint, this._inspector, this._debugger,
-      this._locations, this._modules, this._compiler);
+  ExpressionEvaluator(
+    this._entrypoint,
+    this._inspector,
+    this._debugger,
+    this._locations,
+    this._modules,
+    this._compiler,
+  );
 
   RemoteObject createError(ErrorKind severity, String message) {
     return RemoteObject(
-        <String, String>{'type': '$severity', 'value': message});
+      <String, String>{'type': '$severity', 'value': message},
+    );
   }
 
   void close() {
@@ -108,7 +115,15 @@ class ExpressionEvaluator {
     // Compile expression using an expression compiler, such as
     // frontend server or expression compiler worker.
     final compilationResult = await _compiler.compileExpressionToJs(
-        isolateId, libraryUri.toString(), 0, 0, {}, {}, module, expression);
+      isolateId,
+      libraryUri.toString(),
+      0,
+      0,
+      {},
+      {},
+      module,
+      expression,
+    );
 
     final isError = compilationResult.isError;
     final jsResult = compilationResult.result;
@@ -141,8 +156,12 @@ class ExpressionEvaluator {
   /// [isolateId] current isolate ID.
   /// [frameIndex] JavaScript frame to evaluate the expression in.
   /// [expression] dart expression to evaluate.
-  Future<RemoteObject> evaluateExpressionInFrame(String isolateId,
-      int frameIndex, String expression, Map<String, String>? scope) async {
+  Future<RemoteObject> evaluateExpressionInFrame(
+    String isolateId,
+    int frameIndex,
+    String expression,
+    Map<String, String>? scope,
+  ) async {
     if (scope != null && scope.isNotEmpty) {
       // TODO(annagrin): Implement scope support.
       // Issue: https://github.com/dart-lang/webdev/issues/1344
@@ -175,7 +194,9 @@ class ExpressionEvaluator {
     final url = _debugger.urlForScriptId(jsScriptId);
     if (url == null) {
       return createError(
-          ErrorKind.internal, 'Cannot find url for JS script: $jsScriptId');
+        ErrorKind.internal,
+        'Cannot find url for JS script: $jsScriptId',
+      );
     }
     final locationMap = await _locations.locationForJs(url, jsLine, jsColumn);
     if (locationMap == null) {
@@ -193,13 +214,17 @@ class ExpressionEvaluator {
     final libraryUri = await _modules.libraryForSource(dartSourcePath);
     if (libraryUri == null) {
       return createError(
-          ErrorKind.internal, 'no libraryUri for $dartSourcePath');
+        ErrorKind.internal,
+        'no libraryUri for $dartSourcePath',
+      );
     }
 
     final module = await _modules.moduleForLibrary(libraryUri.toString());
     if (module == null) {
       return createError(
-          ErrorKind.internal, 'no module for $libraryUri ($dartSourcePath)');
+        ErrorKind.internal,
+        'no module for $libraryUri ($dartSourcePath)',
+      );
     }
 
     _logger.finest('Evaluating "$expression" at $module, '
@@ -212,14 +237,15 @@ class ExpressionEvaluator {
     // and JS scope before passing them to the dart expression compiler.
     // Issue:  https://github.com/dart-lang/sdk/issues/40273
     final compilationResult = await _compiler.compileExpressionToJs(
-        isolateId,
-        libraryUri.toString(),
-        dartLocation.line,
-        dartLocation.column,
-        {},
-        jsScope,
-        module,
-        expression);
+      isolateId,
+      libraryUri.toString(),
+      dartLocation.line,
+      dartLocation.column,
+      {},
+      jsScope,
+      module,
+      expression,
+    );
 
     final isError = compilationResult.isError;
     final jsResult = compilationResult.result;
@@ -276,7 +302,9 @@ class ExpressionEvaluator {
         var modulePath = _loadModuleErrorRegex.firstMatch(error)?.group(1);
         final module = modulePath != null
             ? await globalLoadStrategy.moduleForServerPath(
-                _entrypoint, modulePath)
+                _entrypoint,
+                modulePath,
+              )
             : 'unknown';
         modulePath ??= 'unknown';
         error = 'Module is not loaded : $module (path: $modulePath). '
@@ -292,7 +320,9 @@ class ExpressionEvaluator {
     final jsScope = <String, String>{};
 
     void collectVariables(
-        String scopeType, Iterable<chrome.Property> variables) {
+      String scopeType,
+      Iterable<chrome.Property> variables,
+    ) {
       for (var p in variables) {
         final name = p.name;
         final value = p.value;
@@ -356,7 +386,9 @@ class ExpressionEvaluator {
   }
 
   String _createJsLambdaWithTryCatch(
-      String expression, Iterable<String> params) {
+    String expression,
+    Iterable<String> params,
+  ) {
     final args = params.join(', ');
     return '  '
         '  function($args) {\n'

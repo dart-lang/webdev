@@ -57,12 +57,17 @@ class FakeInspector implements AppInspector {
 
   @override
   Future<RemoteObject> callFunction(
-          String function, Iterable<String> argumentIds) async =>
+    String function,
+    Iterable<String> argumentIds,
+  ) async =>
       RemoteObject({'type': 'string', 'value': 'true'});
 
   @override
-  Future<void> initialize(LibraryHelper libraryHelper, ClassHelper classHelper,
-          InstanceHelper instanceHelper) async =>
+  Future<void> initialize(
+    LibraryHelper libraryHelper,
+    ClassHelper classHelper,
+    InstanceHelper instanceHelper,
+  ) async =>
       {};
 
   @override
@@ -204,8 +209,10 @@ class FakeWebkitDebugger implements WebkitDebugger {
   int resultsReturned = 0;
 
   @override
-  Future<WipResponse> sendCommand(String command,
-      {Map<String, dynamic>? params}) async {
+  Future<WipResponse> sendCommand(
+    String command, {
+    Map<String, dynamic>? params,
+  }) async {
     // Force the results that we expect for looking up the variables.
     if (command == 'Runtime.getProperties') {
       return results[resultsReturned++];
@@ -245,19 +252,25 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Stream<WipConnection> get onClose => Stream.empty();
 
   @override
-  Future<RemoteObject> evaluate(String expression,
-          {bool? returnByValue, int? contextId}) async =>
+  Future<RemoteObject> evaluate(
+    String expression, {
+    bool? returnByValue,
+    int? contextId,
+  }) async =>
       RemoteObject({});
 
   @override
   Future<RemoteObject> evaluateOnCallFrame(
-      String callFrameId, String expression) async {
+    String callFrameId,
+    String expression,
+  ) async {
     return RemoteObject(<String, dynamic>{});
   }
 
   @override
   Future<List<WipBreakLocation>> getPossibleBreakpoints(
-          WipLocation start) async =>
+    WipLocation start,
+  ) async =>
       [];
 
   @override
@@ -316,7 +329,9 @@ class FakeStrategy implements LoadStrategy {
 
   @override
   Future<String?> moduleForServerPath(
-          String entrypoint, String serverPath) async =>
+    String entrypoint,
+    String serverPath,
+  ) async =>
       '';
 
   @override
@@ -325,7 +340,9 @@ class FakeStrategy implements LoadStrategy {
 
   @override
   Future<String> sourceMapPathForModule(
-          String entrypoint, String module) async =>
+    String entrypoint,
+    String module,
+  ) async =>
       '';
 
   @override
@@ -382,14 +399,15 @@ class FakeAssetReader implements AssetReader {
 class FakeExpressionCompiler implements ExpressionCompiler {
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(
-          String isolateId,
-          String libraryUri,
-          int line,
-          int column,
-          Map<String, String> jsModules,
-          Map<String, String> jsFrameValues,
-          String moduleName,
-          String expression) async =>
+    String isolateId,
+    String libraryUri,
+    int line,
+    int column,
+    Map<String, String> jsModules,
+    Map<String, String> jsFrameValues,
+    String moduleName,
+    String expression,
+  ) async =>
       ExpressionCompilationResult(expression, false);
 
   @override

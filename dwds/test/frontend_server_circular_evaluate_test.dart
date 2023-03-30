@@ -25,19 +25,22 @@ void main() async {
     for (var nullSafety in NullSafety.values) {
       group('${nullSafety.name} null safety |', () {
         for (var indexBaseMode in IndexBaseMode.values) {
-          group('with ${indexBaseMode.name} |', () {
-            testAll(
-              provider: provider,
-              compilationMode: CompilationMode.frontendServer,
-              indexBaseMode: indexBaseMode,
-              nullSafety: nullSafety,
-              useDebuggerModuleNames: true,
-              debug: debug,
-            );
-          },
-              skip:
-                  // https://github.com/dart-lang/sdk/issues/49277
-                  indexBaseMode == IndexBaseMode.base && Platform.isWindows);
+          group(
+            'with ${indexBaseMode.name} |',
+            () {
+              testAll(
+                provider: provider,
+                compilationMode: CompilationMode.frontendServer,
+                indexBaseMode: indexBaseMode,
+                nullSafety: nullSafety,
+                useDebuggerModuleNames: true,
+                debug: debug,
+              );
+            },
+            skip:
+                // https://github.com/dart-lang/sdk/issues/49277
+                indexBaseMode == IndexBaseMode.base && Platform.isWindows,
+          );
         }
       });
     }

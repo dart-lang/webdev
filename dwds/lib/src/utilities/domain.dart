@@ -25,9 +25,12 @@ abstract class AppInspectorInterface {
   ///
   /// [evalExpression] should be a JS function definition that can accept
   /// [arguments].
-  Future<RemoteObject> jsCallFunctionOn(RemoteObject receiver,
-      String evalExpression, List<RemoteObject> arguments,
-      {bool returnByValue = false});
+  Future<RemoteObject> jsCallFunctionOn(
+    RemoteObject receiver,
+    String evalExpression,
+    List<RemoteObject> arguments, {
+    bool returnByValue = false,
+  });
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].
   Future<ScriptRef?> scriptRefFor(String uri);
@@ -58,7 +61,9 @@ abstract class AppInspectorInterface {
 
   /// Call [function] with objects referred by [argumentIds] as arguments.
   Future<RemoteObject> callFunction(
-      String function, Iterable<String> argumentIds);
+    String function,
+    Iterable<String> argumentIds,
+  );
 
   /// Invoke the function named [selector] on the object identified by
   /// [targetId].
@@ -68,11 +73,17 @@ abstract class AppInspectorInterface {
   /// Dart object Ids (which can also be Chrome RemoteObject objectIds that are
   /// for non-Dart JS objects.)
   Future<RemoteObject> invoke(
-      String targetId, String selector, List<dynamic> arguments);
+    String targetId,
+    String selector,
+    List<dynamic> arguments,
+  );
 
   /// Evaluate [expression] by calling Chrome's `Runtime.evaluate`.
-  Future<RemoteObject> jsEvaluate(String expression,
-      {bool returnByValue = false, bool awaitPromise = false});
+  Future<RemoteObject> jsEvaluate(
+    String expression, {
+    bool returnByValue = false,
+    bool awaitPromise = false,
+  });
 
   /// Lookup an `object` from some isolate by its [objectId].
   Future<Obj> getObject(String objectId, {int offset, int count});

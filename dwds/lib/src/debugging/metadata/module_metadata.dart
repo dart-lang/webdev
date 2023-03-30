@@ -120,9 +120,14 @@ class ModuleMetadata {
 
   final Map<String, LibraryMetadata> libraries = {};
 
-  ModuleMetadata(this.name, this.closureName, this.sourceMapUri, this.moduleUri,
-      this.soundNullSafety,
-      {String? ver}) {
+  ModuleMetadata(
+    this.name,
+    this.closureName,
+    this.sourceMapUri,
+    this.moduleUri,
+    this.soundNullSafety, {
+    String? ver,
+  }) {
     version = ver ?? ModuleMetadataVersion.current.version;
   }
 

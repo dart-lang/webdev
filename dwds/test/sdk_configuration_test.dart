@@ -13,8 +13,9 @@ import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 var _throwsDoesNotExistException = throwsA(
-    isA<InvalidSdkConfigurationException>()
-        .having((e) => '$e', 'message', contains('does not exist')));
+  isA<InvalidSdkConfigurationException>()
+      .having((e) => '$e', 'message', contains('does not exist')),
+);
 
 void main() {
   group('Basic configuration', () {

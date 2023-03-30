@@ -76,41 +76,48 @@ Future<void> _registerListeners() async {
 }
 
 void _handleRuntimeMessages(
-    dynamic jsRequest, MessageSender sender, Function sendResponse) {
+  dynamic jsRequest,
+  MessageSender sender,
+  Function sendResponse,
+) {
   if (jsRequest is! String) return;
 
   interceptMessage<DebugStateChange>(
-      message: jsRequest,
-      expectedType: MessageType.debugStateChange,
-      expectedSender: Script.background,
-      expectedRecipient: Script.debuggerPanel,
-      messageHandler: (DebugStateChange debugStateChange) async {
-        if (debugStateChange.tabId != _tabId) {
-          debugWarn(
-              'Received debug state change request, but Dart app tab does not match current tab.');
-          return;
-        }
-        if (debugStateChange.newState == DebugStateChange.stopDebugging) {
-          _handleDebugConnectionLost(debugStateChange.reason);
-        }
-      });
+    message: jsRequest,
+    expectedType: MessageType.debugStateChange,
+    expectedSender: Script.background,
+    expectedRecipient: Script.debuggerPanel,
+    messageHandler: (DebugStateChange debugStateChange) async {
+      if (debugStateChange.tabId != _tabId) {
+        debugWarn(
+          'Received debug state change request, but Dart app tab does not match current tab.',
+        );
+        return;
+      }
+      if (debugStateChange.newState == DebugStateChange.stopDebugging) {
+        _handleDebugConnectionLost(debugStateChange.reason);
+      }
+    },
+  );
 
   interceptMessage<ConnectFailure>(
-      message: jsRequest,
-      expectedType: MessageType.connectFailure,
-      expectedSender: Script.background,
-      expectedRecipient: Script.debuggerPanel,
-      messageHandler: (ConnectFailure connectFailure) async {
-        debugLog(
-            'Received connect failure for ${connectFailure.tabId} vs $_tabId');
-        if (connectFailure.tabId != _tabId) {
-          return;
-        }
-        _connecting = false;
-        _handleConnectFailure(
-          ConnectFailureReason.fromString(connectFailure.reason ?? 'unknown'),
-        );
-      });
+    message: jsRequest,
+    expectedType: MessageType.connectFailure,
+    expectedSender: Script.background,
+    expectedRecipient: Script.debuggerPanel,
+    messageHandler: (ConnectFailure connectFailure) async {
+      debugLog(
+        'Received connect failure for ${connectFailure.tabId} vs $_tabId',
+      );
+      if (connectFailure.tabId != _tabId) {
+        return;
+      }
+      _connecting = false;
+      _handleConnectFailure(
+        ConnectFailureReason.fromString(connectFailure.reason ?? 'unknown'),
+      );
+    },
+  );
 }
 
 void _handleStorageChanges(Object storageObj, String storageArea) {
@@ -175,7 +182,9 @@ Future<void> _maybeUpdateFileABugLink() async {
     final bugLink = document.getElementById(_bugLinkId);
     if (bugLink == null) return;
     bugLink.setAttribute(
-        'href', 'http://b/issues/new?component=775375&template=1791321');
+      'href',
+      'http://b/issues/new?component=775375&template=1791321',
+    );
   }
 }
 
@@ -263,14 +272,21 @@ void _hideWarningBanner() {
 Future<void> _launchDebugConnection(Event _) async {
   _updateElementVisibility(_launchDebugConnectionButtonId, visible: false);
   _updateElementVisibility(_loadingSpinnerId, visible: true);
-  final json = jsonEncode(serializers.serialize(DebugStateChange((b) => b
-    ..tabId = _tabId
-    ..newState = DebugStateChange.startDebugging)));
+  final json = jsonEncode(
+    serializers.serialize(
+      DebugStateChange(
+        (b) => b
+          ..tabId = _tabId
+          ..newState = DebugStateChange.startDebugging,
+      ),
+    ),
+  );
   await sendRuntimeMessage(
-      type: MessageType.debugStateChange,
-      body: json,
-      sender: Script.debuggerPanel,
-      recipient: Script.background);
+    type: MessageType.debugStateChange,
+    body: json,
+    sender: Script.debuggerPanel,
+    recipient: Script.background,
+  );
   unawaited(_maybeHandleConnectionTimeout().catchError((_) {}));
 }
 
@@ -284,7 +300,9 @@ Future<void> _maybeHandleConnectionTimeout() async {
 
 Future<void> _maybeInjectDevToolsIframe() async {
   final devToolsUri = await fetchStorageObject<String>(
-      type: StorageObject.devToolsUri, tabId: _tabId);
+    type: StorageObject.devToolsUri,
+    tabId: _tabId,
+  );
   if (devToolsUri == null) return;
   if (isActiveDebugSession(_tabId)) {
     debugWarn('Unexpected state. Stale DevTools URI.');

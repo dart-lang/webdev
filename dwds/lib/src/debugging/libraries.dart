@@ -33,12 +33,14 @@ class LibraryHelper extends Domain {
     // Issue: https://github.com/dart-lang/webdev/issues/1290
     final libraries = await libraryRefs;
     if (globalLoadStrategy.appEntrypoint != null) {
-      _rootLib = libraries.firstWhereOrNull((lib) =>
-          Uri.parse(lib.uri ?? '') == globalLoadStrategy.appEntrypoint);
+      _rootLib = libraries.firstWhereOrNull(
+        (lib) => Uri.parse(lib.uri ?? '') == globalLoadStrategy.appEntrypoint,
+      );
     }
     _rootLib = _rootLib ??
         libraries.firstWhereOrNull(
-            (lib) => lib.name?.contains('org-dartlang') ?? false);
+          (lib) => lib.name?.contains('org-dartlang') ?? false,
+        );
     _rootLib = _rootLib ??
         libraries
             .firstWhereOrNull((lib) => lib.name?.contains('main') ?? false);
