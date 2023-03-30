@@ -579,16 +579,13 @@ class AppInspector implements AppInspectorInterface {
   /// Returns the list of scripts refs cached.
   Future<List<ScriptRef>> _populateScriptCaches() async {
     return _scriptCacheMemoizer.runOnce(() async {
-      final libraryUris = [
-        for (var library in isolate.libraries ?? []) library.uri
-      ];
       final scripts = await globalLoadStrategy
           .metadataProviderFor(appConnection.request.entrypointPath)
           .scripts;
       // For all the non-dart: libraries, find their parts and create scriptRefs
       // for them.
       final userLibraries =
-          libraryUris.where((uri) => !uri.startsWith('dart:'));
+          _userLibraryUris(isolate.libraries ?? <LibraryRef>[]);
       for (var uri in userLibraries) {
         final parts = scripts[uri];
         final scriptRefs = [
@@ -617,6 +614,12 @@ class AppInspector implements AppInspectorInterface {
       }
       return _scriptRefsById.values.toList();
     });
+  }
+
+  Iterable<String> _userLibraryUris(Iterable<LibraryRef> libraries) {
+    return libraries
+        .map((library) => library.uri ?? '')
+        .where((uri) => uri.isNotEmpty && !uri.startsWith('dart:'));
   }
 
   /// Look up the script by id in an isolate.

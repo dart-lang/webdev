@@ -77,8 +77,8 @@ Future<void> _registerListeners() async {
 
 void _handleRuntimeMessages(
   dynamic jsRequest,
-  MessageSender sender,
-  Function sendResponse,
+  MessageSender _,
+  Function __,
 ) {
   if (jsRequest is! String) return;
 
@@ -120,7 +120,7 @@ void _handleRuntimeMessages(
   );
 }
 
-void _handleStorageChanges(Object storageObj, String storageArea) {
+void _handleStorageChanges(Object storageObj, String _) {
   interceptStorageChange<DebugInfo>(
     storageObj: storageObj,
     expectedType: StorageObject.debugInfo,
@@ -252,7 +252,7 @@ bool _warningBannerIsVisible({String? message}) {
   final warningBanner = document.getElementById(_warningBannerId);
   final isVisible =
       warningBanner != null && warningBanner.classes.contains(_showClass);
-  if (message == null || isVisible == false) return isVisible;
+  if (message == null || !isVisible) return isVisible;
   final warningMsg = document.getElementById(_warningMsgId);
   return warningMsg?.innerHtml == message;
 }
@@ -293,7 +293,7 @@ Future<void> _launchDebugConnection(Event _) async {
 Future<void> _maybeHandleConnectionTimeout() async {
   _connecting = true;
   await Future.delayed(Duration(seconds: 10));
-  if (_connecting == true) {
+  if (_connecting) {
     _handleConnectFailure(ConnectFailureReason.timeout);
   }
 }

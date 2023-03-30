@@ -74,7 +74,7 @@ Future<int> run({required bool isProd, required bool isMV3}) async {
   return updateExitCode;
 }
 
-Future<int> _handleProcess(Process process) async {
+Future<int> _handleProcess(Process process) {
   _handleOutput(process.stdout, isStdout: true);
   _handleOutput(process.stderr, isStdout: false);
   return process.exitCode;

@@ -38,7 +38,7 @@ abstract class SdkConfigurationProvider {
 class SdkLayout {
   static final defaultSdkDirectory =
       p.dirname(p.dirname(Platform.resolvedExecutable));
-  static SdkLayout defaultSdkLayout =
+  static final SdkLayout defaultSdkLayout =
       SdkLayout.createDefault(defaultSdkDirectory);
 
   final String sdkDirectory;

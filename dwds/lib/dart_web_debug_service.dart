@@ -141,7 +141,6 @@ class Dwds {
       buildResults,
       devTools,
       assetReader,
-      loadStrategy,
       hostname,
       extensionBackend,
       urlEncoder,
