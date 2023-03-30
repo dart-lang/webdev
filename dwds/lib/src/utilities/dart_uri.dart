@@ -147,7 +147,7 @@ class DartUri {
   static String currentDirectory = p.current;
 
   /// The current directory as a file: Uri, saved here to avoid re-computing.
-  static String currentDirectoryUri = '${p.toUri(currentDirectory)}';
+  static final String currentDirectoryUri = '${p.toUri(currentDirectory)}';
 
   /// Record library and script uris to enable resolving library and script paths.
   static Future<void> initialize() async {

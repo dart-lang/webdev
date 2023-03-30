@@ -222,7 +222,7 @@ class Debugger extends Domain {
   ///
   /// The JS VM is technically not paused at the start of the Isolate so there
   /// will not be a corresponding [DebuggerResumedEvent].
-  Future<void> resumeFromStart() => _resumeHandler(null);
+  void resumeFromStart() => _resumeHandler(null);
 
   /// Notify the debugger the [Isolate] is paused at the application start.
   void notifyPausedAtStart() {
@@ -443,7 +443,6 @@ class Debugger extends Domain {
   }
 
   static bool _isSubRange({
-    required int length,
     int? offset,
     int? count,
   }) {
@@ -552,7 +551,7 @@ class Debugger extends Domain {
       if (_isEmptyRange(offset: offset, count: count, length: length)) {
         return [];
       }
-      if (_isSubRange(offset: offset, count: count, length: length)) {
+      if (_isSubRange(offset: offset, count: count)) {
         final range = await _subRange(
           objectId,
           offset: offset ?? 0,
@@ -743,7 +742,7 @@ class Debugger extends Domain {
   }
 
   /// Handles resume events coming from the Chrome connection.
-  Future<void> _resumeHandler(DebuggerResumedEvent? _) async {
+  void _resumeHandler(DebuggerResumedEvent? _) {
     // We can receive a resume event in the middle of a reload which will result
     // in a null isolate.
     final isolate = inspector.isolate;
@@ -764,7 +763,7 @@ class Debugger extends Domain {
   }
 
   /// Handles targetCrashed events coming from the Chrome connection.
-  Future<void> _crashHandler(TargetCrashedEvent _) async {
+  void _crashHandler(TargetCrashedEvent _) {
     // We can receive a resume event in the middle of a reload which will result
     // in a null isolate.
     final isolate = inspector.isolate;
@@ -947,7 +946,7 @@ class _Breakpoints extends Domain {
 
   /// Adds a breakpoint at [scriptId] and [line] or returns an existing one if
   /// present.
-  Future<Breakpoint> add(String scriptId, int line, int column) async {
+  Future<Breakpoint> add(String scriptId, int line, int column) {
     final id = breakpointIdFor(scriptId, line, column);
     return _bpByDartId.putIfAbsent(
       id,
