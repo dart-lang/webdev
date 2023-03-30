@@ -382,7 +382,7 @@ class TestContext {
               'args': [
                 'remote-debugging-port=$debugPort',
                 if (enableDebugExtension)
-                  '--load-extension=debug_extension/prod_build',
+                  '--load-extension=../debug_extension/compiled',
                 if (headless) '--headless'
               ]
             }
@@ -513,9 +513,11 @@ class TestContext {
 
   Future<void> _buildDebugExtension() async {
     final process = await Process.run(
-      'tool/build_extension.sh',
-      ['prod'],
-      workingDirectory: absolutePath(pathFromDwds: 'debug_extension'),
+      'dart',
+      [
+        p.join('tool', 'build_extension.dart'),
+      ],
+      workingDirectory: absolutePath(pathFromDwds: '../debug_extension'),
     );
     print(process.stdout);
   }
