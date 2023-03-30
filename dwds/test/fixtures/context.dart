@@ -247,7 +247,7 @@ class TestContext {
             final assetServerPort =
                 daemonPort(project.absolutePackageDirectory);
             _assetHandler = proxyHandler(
-              'http://localhost:$assetServerPort/${project.directoryToServe}',
+              'http://localhost:$assetServerPort/${project.directoryToServe}/',
               client: client,
             );
             assetReader = ProxyServerAssetReader(
