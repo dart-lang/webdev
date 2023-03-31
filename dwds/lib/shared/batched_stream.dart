@@ -66,14 +66,14 @@ class BatchedStreamController<T> {
       if (now > lastSendTime + _batchDelayMilliseconds) {
         lastSendTime = now;
         if (buffer.isNotEmpty) {
-          _outputController.sink.add(List.from(buffer));
+          _outputController.sink.add(List.of(buffer));
           buffer.clear();
         }
       }
     }
 
     if (buffer.isNotEmpty) {
-      _outputController.sink.add(List.from(buffer));
+      _outputController.sink.add(List.of(buffer));
     }
     _completer.complete(true);
   }

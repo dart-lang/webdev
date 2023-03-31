@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/domain.dart';
@@ -142,7 +141,6 @@ class ClassMetaData {
   ///
   /// Returns null if the [remoteObject] is not a Dart class.
   static Future<ClassMetaData?> metaDataFor(
-    RemoteDebugger remoteDebugger,
     RemoteObject remoteObject,
     AppInspectorInterface inspector,
   ) async {

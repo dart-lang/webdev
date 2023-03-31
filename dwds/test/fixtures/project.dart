@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:path/path.dart' as p;
+
 import 'utilities.dart';
 
 enum NullSafety { weak, sound }
@@ -19,6 +21,13 @@ class TestProject {
 
   String get absolutePackageDirectory =>
       absolutePath(pathFromFixtures: packageDirectory);
+
+  /// The package URI of the Dart entry file, e.g,
+  /// "org-dartlang-app:example/hello_world/main.dart":
+  Uri get dartEntryFilePackageUri => Uri.parse('org-dartlang-app:///${p.join(
+        webAssetsPath,
+        dartEntryFileName,
+      )}');
 
   const TestProject.testPackageWithSoundNullSafety({
     IndexBaseMode baseMode = IndexBaseMode.noBase,
