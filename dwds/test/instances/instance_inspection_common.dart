@@ -5,6 +5,7 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
 
+import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -183,23 +184,24 @@ Matcher matchSetInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kSet)
     .having((e) => e.classRef!.name, 'classRef.name', type);
 
-Matcher matchRecordInstance({required int length, required String type}) =>
-    isA<Instance>()
-        .having((e) => e.kind, 'kind', InstanceKind.kRecord)
-        .having((e) => e.length, 'length', length)
-        .having((e) => e.classRef!, 'classRef', matchRecordType(type));
+Matcher matchRecordInstance({required int length}) => isA<Instance>()
+    .having((e) => e.kind, 'kind', InstanceKind.kRecord)
+    .having((e) => e.length, 'length', length)
+    .having((e) => e.classRef!, 'classRef', matchRecordType);
 
-/// Currently some dart versions allow for the record type
-/// to show as `RecordType(type1, type2...)`, and some as `(type1, type2...)`.
-/// Match both versions.
-///
-/// TODO(annagrin): Replace by matching `(type1, type2...)` after dart 3.0
-/// is stable.
-Matcher matchRecordType(String type) => isA<ClassRef>().having(
-      (e) => e.name,
-      'type name',
-      anyOf([type.replaceAll('RecordType', ''), type]),
-    );
+Matcher matchRecordClass = matchClass(libraryId: 'dart:core', type: 'Record');
+
+Matcher matchTypeClass = matchClass(libraryId: 'dart:_runtime', type: '_Type');
+
+Matcher matchClass({required String libraryId, required String type}) =>
+    isA<Class>()
+        .having((e) => e.name, 'name', type)
+        .having((e) => e.id, 'id', classIdFor(libraryId, type));
+
+Matcher matchRecordType = matchType('Record');
+
+Matcher matchType(String type) =>
+    isA<ClassRef>().having((e) => e.name, 'type name', type);
 
 Object? _getValue(InstanceRef instanceRef) {
   switch (instanceRef.kind) {

@@ -14,10 +14,13 @@ const _dartCoreLibrary = 'dart:core';
 const _dartInterceptorsLibrary = 'dart:_interceptors';
 
 /// A hard-coded ClassRef for the Closure class.
-final classRefForClosure = classRefFor(_dartCoreLibrary, 'Closure');
+final classRefForClosure = classRefFor(_dartCoreLibrary, InstanceKind.kClosure);
 
 /// A hard-coded ClassRef for the String class.
 final classRefForString = classRefFor(_dartCoreLibrary, InstanceKind.kString);
+
+/// A hard-coded ClassRef for the Record class.
+final classRefForRecord = classRefFor(_dartCoreLibrary, InstanceKind.kRecord);
 
 /// A hard-coded ClassRef for a (non-existent) class called Unknown.
 final classRefForUnknown = classRefFor(_dartCoreLibrary, 'Unknown');
@@ -63,14 +66,21 @@ LibraryRef libraryRefFor(String libraryId) => LibraryRef(
 
 /// Returns a [ClassRef] for the provided library ID and class name.
 ClassRef classRefFor(String libraryId, String? name) => ClassRef(
-      id: 'classes|$libraryId|$name',
+      id: classIdFor(libraryId, name),
       name: name,
       library: libraryRefFor(libraryId),
     );
 
+String classIdFor(String libraryId, String? name) => 'classes|$libraryId|$name';
+
 /// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {
   static final _logger = Logger('ClassMetadata');
+
+  /// Class id.
+  ///
+  /// Takes the form of 'libraryId:name'.
+  final String id;
 
   /// The name of the JS constructor for the object.
   ///
@@ -86,8 +96,8 @@ class ClassMetaData {
   /// For example, 'int', 'List<String>', 'Null'
   final String? dartName;
 
-  /// The library identifier, which is the URI of the library.
-  final String libraryId;
+  /// Class ref for the class metadata.
+  final ClassRef classRef;
 
   factory ClassMetaData({
     Object? jsName,
@@ -98,10 +108,18 @@ class ClassMetaData {
     bool isRecord = false,
     bool isNativeError = false,
   }) {
+    final jName = jsName as String?;
+    final dName = dartName as String?;
+    final library = libraryId as String? ?? _dartCoreLibrary;
+    final id = '$library:$jName';
+
+    final classRef = isRecord ? classRefForRecord : classRefFor(library, dName);
+
     return ClassMetaData._(
-      jsName as String?,
-      libraryId as String? ?? _dartCoreLibrary,
-      dartName as String?,
+      id,
+      classRef,
+      jName,
+      dName,
       int.tryParse('$length'),
       isFunction,
       isRecord,
@@ -110,19 +128,15 @@ class ClassMetaData {
   }
 
   ClassMetaData._(
+    this.id,
+    this.classRef,
     this.jsName,
-    this.libraryId,
     this.dartName,
     this.length,
     this.isFunction,
     this.isRecord,
     this.isNativeError,
   );
-
-  /// Returns the ID of the class.
-  ///
-  /// Takes the form of 'libraryId:name'.
-  String get id => '$libraryId:$jsName';
 
   /// Returns the [ClassMetaData] for the Chrome [remoteObject].
   ///
@@ -190,9 +204,6 @@ class ClassMetaData {
       return null;
     }
   }
-
-  /// Return a [ClassRef] appropriate to this metadata.
-  ClassRef get classRef => classRefFor(libraryId, dartName);
 
   /// True if this class refers to system maps, which are treated specially.
   ///
