@@ -61,40 +61,6 @@ class TestContext {
   final NullSafety nullSafety;
   final TestSdkConfigurationProvider sdkConfigurationProvider;
 
-  /// Top level directory in which we run the test server, e.g.
-  /// "/workstation/webdev/fixtures/_testSound".
-  String get workingDirectory =>
-      absolutePath(pathFromFixtures: project.packageDirectory);
-
-  /// The directory to build and serve, e.g. "example".
-  String get directoryToServe => p.split(project.webAssetsPath).first;
-
-  /// The path to the HTML file to serve, relative to the [directoryToServe],
-  /// e.g. "hello_world/index.html".
-  String get filePathToServe {
-    final pathParts = p.split(project.webAssetsPath).where(
-          (pathPart) => pathPart != directoryToServe,
-        );
-    return webCompatiblePath([...pathParts, project.htmlEntryFileName]);
-  }
-
-  /// The path to the Dart entry file, e.g,
-  /// "/workstation/webdev/fixtures/_testSound/example/hello_world/main.dart":
-  String get _dartEntryFilePath => absolutePath(
-        pathFromFixtures: p.joinAll(
-          [
-            project.packageDirectory,
-            project.webAssetsPath,
-            project.dartEntryFileName,
-          ],
-        ),
-      );
-
-  /// The URI for the package_config.json is located in:
-  /// <project directory>/.dart_tool/package_config
-  Uri get _packageConfigFile =>
-      p.toUri(p.join(workingDirectory, '.dart_tool', 'package_config.json'));
-
   String get appUrl => _appUrl!;
   late String? _appUrl;
 
@@ -150,14 +116,16 @@ class TestContext {
 
   TestContext(this.project, this.sdkConfigurationProvider)
       : nullSafety = project.nullSafety {
-    DartUri.currentDirectory = workingDirectory;
+    DartUri.currentDirectory = project.absolutePackageDirectory;
 
     project.validate();
 
-    _logger.info('Serving: $directoryToServe/$filePathToServe');
-    _logger.info('Project: $workingDirectory');
-    _logger.info('Packages: $_packageConfigFile');
-    _logger.info('Entry: $_dartEntryFilePath');
+    _logger.info(
+      'Serving: ${project.directoryToServe}/${project.filePathToServe}',
+    );
+    _logger.info('Project: ${project.absolutePackageDirectory}');
+    _logger.info('Packages: ${project.packageConfigFile}');
+    _logger.info('Entry: ${project.dartEntryFilePath}');
   }
 
   Future<void> setUp({
@@ -187,7 +155,7 @@ class TestContext {
       final configuration = await sdkConfigurationProvider.configuration;
       configuration.validate();
 
-      DartUri.currentDirectory = workingDirectory;
+      DartUri.currentDirectory = project.absolutePackageDirectory;
       configureLogWriter();
 
       _client = IOClient(
@@ -234,7 +202,7 @@ class TestContext {
       await Process.run(
         sdkLayout.dartPath,
         ['pub', 'upgrade'],
-        workingDirectory: workingDirectory,
+        workingDirectory: project.absolutePackageDirectory,
       );
 
       ExpressionCompiler? expressionCompiler;
@@ -257,7 +225,8 @@ class TestContext {
               '--verbose',
             ];
             _daemonClient = await connectClient(
-                sdkLayout.dartPath, workingDirectory, options, (log) {
+                sdkLayout.dartPath, project.absolutePackageDirectory, options,
+                (log) {
               final record = log.toLogRecord();
               final name =
                   record.loggerName == '' ? '' : '${record.loggerName}: ';
@@ -269,19 +238,22 @@ class TestContext {
               );
             });
             daemonClient.registerBuildTarget(
-              DefaultBuildTarget((b) => b..target = directoryToServe),
+              DefaultBuildTarget((b) => b..target = project.directoryToServe),
             );
             daemonClient.startBuild();
 
             await waitForSuccessfulBuild();
 
-            final assetServerPort = daemonPort(workingDirectory);
+            final assetServerPort =
+                daemonPort(project.absolutePackageDirectory);
             _assetHandler = proxyHandler(
-              'http://localhost:$assetServerPort/$directoryToServe/',
+              'http://localhost:$assetServerPort/${project.directoryToServe}/',
               client: client,
             );
-            assetReader =
-                ProxyServerAssetReader(assetServerPort, root: directoryToServe);
+            assetReader = ProxyServerAssetReader(
+              assetServerPort,
+              root: project.directoryToServe,
+            );
 
             if (enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
@@ -306,7 +278,7 @@ class TestContext {
           break;
         case CompilationMode.frontendServer:
           {
-            _logger.warning('Index: $filePathToServe');
+            _logger.warning('Index: $project.filePathToServe');
 
             final entry = p.toUri(
               p.join(project.webAssetsPath, project.dartEntryFileName),
@@ -314,17 +286,17 @@ class TestContext {
             final fileSystem = LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
               fileSystem,
-              _packageConfigFile,
+              project.packageConfigFile,
               useDebuggerModuleNames: useDebuggerModuleNames,
             );
 
             _webRunner = ResidentWebRunner(
               mainUri: entry,
               urlTunneler: urlEncoder,
-              projectDirectory: p.toUri(workingDirectory),
-              packageConfigFile: _packageConfigFile,
+              projectDirectory: p.toUri(project.absolutePackageDirectory),
+              packageConfigFile: project.packageConfigFile,
               packageUriMapper: packageUriMapper,
-              fileSystemRoots: [p.toUri(workingDirectory)],
+              fileSystemRoots: [p.toUri(project.absolutePackageDirectory)],
               fileSystemScheme: 'org-dartlang-app',
               outputPath: outputDir.path,
               soundNullSafety: nullSafety == NullSafety.sound,
@@ -338,7 +310,7 @@ class TestContext {
               fileSystem,
               hostname,
               assetServerPort,
-              p.join(directoryToServe, filePathToServe),
+              p.join(project.directoryToServe, project.filePathToServe),
             );
 
             if (enableExpressionEvaluation) {
@@ -402,7 +374,7 @@ class TestContext {
         assetHandler,
         assetReader,
         requireStrategy,
-        directoryToServe,
+        project.directoryToServe,
         buildResults,
         () async => connection,
         serveDevTools,
@@ -420,8 +392,8 @@ class TestContext {
       );
 
       _appUrl = basePath.isEmpty
-          ? 'http://localhost:$port/$filePathToServe'
-          : 'http://localhost:$port/$basePath/$filePathToServe';
+          ? 'http://localhost:$port/${project.filePathToServe}'
+          : 'http://localhost:$port/$basePath/${project.filePathToServe}';
 
       if (launchChrome) {
         await _webDriver?.get(appUrl);
@@ -483,7 +455,7 @@ class TestContext {
     required String toReplace,
     required String replaceWith,
   }) {
-    final file = File(_dartEntryFilePath);
+    final file = File(project.dartEntryFilePath);
     final fileContents = file.readAsStringSync();
     file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
   }

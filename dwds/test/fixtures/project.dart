@@ -19,8 +19,44 @@ class TestProject {
   final String htmlEntryFileName;
   final NullSafety nullSafety;
 
+  /// The top level directory in which we run the test server, e.g.
+  /// "/workstation/webdev/fixtures/_testSound".
   String get absolutePackageDirectory =>
       absolutePath(pathFromFixtures: packageDirectory);
+
+  /// The directory to build and serve, e.g. "example".
+  String get directoryToServe => p.split(webAssetsPath).first;
+
+  /// The path to the HTML file to serve, relative to the [directoryToServe],
+  /// e.g. "hello_world/index.html".
+  String get filePathToServe {
+    final pathParts = p.split(webAssetsPath).where(
+          (pathPart) => pathPart != directoryToServe,
+        );
+    return webCompatiblePath([...pathParts, htmlEntryFileName]);
+  }
+
+  /// The path to the Dart entry file, e.g,
+  /// "/workstation/webdev/fixtures/_testSound/example/hello_world/main.dart":
+  String get dartEntryFilePath => absolutePath(
+        pathFromFixtures: p.joinAll(
+          [
+            packageDirectory,
+            webAssetsPath,
+            dartEntryFileName,
+          ],
+        ),
+      );
+
+  /// The URI for the package_config.json is located in:
+  /// <project directory>/.dart_tool/package_config
+  Uri get packageConfigFile => p.toUri(
+        p.join(
+          absolutePackageDirectory,
+          '.dart_tool',
+          'package_config.json',
+        ),
+      );
 
   /// The package URI of the Dart entry file, e.g,
   /// "org-dartlang-app:example/hello_world/main.dart":
