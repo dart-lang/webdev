@@ -157,6 +157,31 @@ Future<void> _runTests({
           }
         });
       });
+
+      test('before instantiation of pattern-matching variables', () async {
+        await onBreakPoint('testPattern2Case1', (event) async {
+          final frame = event.topFrame!;
+
+          expect(
+            await getFrameVariables(frame),
+            {'dog': matchPrimitiveInstance(kind: 'String', value: 'Prismo')},
+          );
+        });
+      });
+
+      test('after instantiation of pattern-matching variables', () async {
+        await onBreakPoint('testPattern2Case2', (event) async {
+          final frame = event.topFrame!;
+
+          expect(await getFrameVariables(frame), {
+            'dog': matchPrimitiveInstance(kind: 'String', value: 'Prismo'),
+            'cats': matchListInstance(type: 'List<String>'),
+            'firstCat':
+                matchPrimitiveInstance(kind: 'String', value: 'Garfield'),
+            'secondCat': matchPrimitiveInstance(kind: 'String', value: 'Tom'),
+          });
+        });
+      });
     }, // TODO(annagrin): Remove when dart 3.0 is stable.
     skip: semver.Version.parse(Platform.version.split(' ')[0]) <
         semver.Version.parse('3.0.0-351.0.dev'),
