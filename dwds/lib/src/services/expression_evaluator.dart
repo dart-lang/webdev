@@ -320,7 +320,6 @@ class ExpressionEvaluator {
     final jsScope = <String, String>{};
 
     void collectVariables(
-      String scopeType,
       Iterable<chrome.Property> variables,
     ) {
       for (var p in variables) {
@@ -340,7 +339,7 @@ class ExpressionEvaluator {
       final objectId = scope.object.objectId;
       if (objectId != null) {
         final scopeProperties = await _debugger.getProperties(objectId);
-        collectVariables(scope.scope, scopeProperties);
+        collectVariables(scopeProperties);
       }
     }
 

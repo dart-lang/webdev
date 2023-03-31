@@ -42,7 +42,7 @@ Future<Tab?> getTab(int tabId) {
   return completer.future;
 }
 
-Future<Tab?> get activeTab async {
+Future<Tab?> get activeTab {
   final completer = Completer<Tab?>();
   final query = QueryInfo(active: true, currentWindow: true);
   chrome.tabs.query(
@@ -96,9 +96,17 @@ void onExtensionIconClicked(void Function(Tab) callback) {
 
 void setExtensionIcon(IconInfo info) {
   if (isMV3) {
-    _setExtensionIconMV3(info, /*callback*/ null);
+    _setExtensionIconMV3(
+      info,
+      /*callback*/
+      null,
+    );
   } else {
-    _setExtensionIconMV2(info, /*callback*/ null);
+    _setExtensionIconMV2(
+      info,
+      /*callback*/
+      null,
+    );
   }
 }
 

@@ -125,7 +125,6 @@ class ChromeProxyService implements VmServiceInterface {
     RemoteDebugger remoteDebugger,
     String root,
     AssetReader assetReader,
-    LoadStrategy loadStrategy,
     AppConnection appConnection,
     ExecutionContext executionContext,
     ExpressionCompiler? expressionCompiler,
@@ -164,7 +163,7 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   /// Initializes metadata in [Locations], [Modules], and [ExpressionCompiler].
-  Future<void> _initializeEntrypoint(String entrypoint) async {
+  void _initializeEntrypoint(String entrypoint) {
     _locations.initialize(entrypoint);
     _modules.initialize(entrypoint);
     _skipLists.initialize();
@@ -251,7 +250,7 @@ class ChromeProxyService implements VmServiceInterface {
     // Issue: https://github.com/dart-lang/webdev/issues/1282
     final debugger = await debuggerFuture;
     final entrypoint = appConnection.request.entrypointPath;
-    await _initializeEntrypoint(entrypoint);
+    _initializeEntrypoint(entrypoint);
 
     debugger.notifyPausedAtStart();
     _inspector = await AppInspector.create(
@@ -286,8 +285,8 @@ class ChromeProxyService implements VmServiceInterface {
     _disabledBreakpoints.clear();
 
     safeUnawaited(
-      appConnection.onStart.then((_) async {
-        await debugger.resumeFromStart();
+      appConnection.onStart.then((_) {
+        debugger.resumeFromStart();
         _startedCompleter.complete();
       }),
     );
@@ -898,7 +897,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   // ignore: annotate_overrides
   Future<Success> setExceptionPauseMode(
     String isolateId,
-    /*ExceptionPauseMode*/ String mode,
+    /*ExceptionPauseMode*/
+    String mode,
   ) =>
       setIsolatePauseMode(isolateId, exceptionPauseMode: mode);
 

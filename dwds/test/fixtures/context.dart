@@ -270,6 +270,7 @@ class TestContext {
               assetHandler,
               reloadConfiguration,
               assetReader,
+              project.dartEntryFilePackageUri,
             ).strategy;
 
             buildResults = daemonClient.buildResults;
@@ -319,13 +320,13 @@ class TestContext {
             basePath = webRunner.devFS.assetServer.basePath;
             assetReader = webRunner.devFS.assetServer;
             _assetHandler = webRunner.devFS.assetServer.handleRequest;
-
             requireStrategy = FrontendServerRequireStrategyProvider(
               reloadConfiguration,
               assetReader,
               packageUriMapper,
               () async => {},
               basePath,
+              project.dartEntryFilePackageUri,
             ).strategy;
 
             buildResults = const Stream<BuildResults>.empty();

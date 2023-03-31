@@ -58,6 +58,13 @@ class TestProject {
         ),
       );
 
+  /// The package URI of the Dart entry file, e.g,
+  /// "org-dartlang-app:example/hello_world/main.dart":
+  Uri get dartEntryFilePackageUri => Uri.parse('org-dartlang-app:///${p.join(
+        webAssetsPath,
+        dartEntryFileName,
+      )}');
+
   const TestProject.testPackageWithSoundNullSafety({
     IndexBaseMode baseMode = IndexBaseMode.noBase,
   }) : this._(

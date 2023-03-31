@@ -121,7 +121,6 @@ class InstanceHelper extends Domain {
     }
 
     final metaData = await ClassMetaData.metaDataFor(
-      inspector.remoteDebugger,
       remoteObject,
       inspector,
     );
@@ -748,7 +747,6 @@ class InstanceHelper extends Domain {
           return _primitiveInstanceRef(InstanceKind.kNull, remoteObject);
         }
         final metaData = await ClassMetaData.metaDataFor(
-          inspector.remoteDebugger,
           remoteObject,
           inspector,
         );
