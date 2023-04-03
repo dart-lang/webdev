@@ -1,4 +1,4 @@
-## 19.0.0-dev
+## 19.0.0
 
 - Allow clients to specify the connected app's entrypoint file. - [#2047](https://github.com/dart-lang/webdev/pull/2047)
 - Don't include non-instantiated variables in stack frame data. - [#2061](https://github.com/dart-lang/webdev/pull/2061)
