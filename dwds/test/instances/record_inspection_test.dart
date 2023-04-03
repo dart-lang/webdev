@@ -92,16 +92,55 @@ Future<void> _runTests({
     setUp(() => setCurrentLogWriter(debug: debug));
     tearDown(() => service.resume(isolateId));
 
+    test('simple record display', () async {
+      await onBreakPoint('printSimpleLocalRecord', (event) async {
+        final frame = event.topFrame!.index!;
+
+        final instanceRef = await getInstanceRef(frame, 'record');
+        final instance = await getObject(instanceRef.id!);
+        final classId = instance.classRef!.id;
+
+        expect(await getObject(classId), matchRecordClass);
+
+        final stringRef = await getInstanceRef(frame, 'record.toString()');
+        final stringRefId = stringRef.id!;
+
+        expect(
+          await getObject(stringRefId),
+          matchPrimitiveInstance(
+            kind: InstanceKind.kString,
+            value: '(true, 3)',
+          ),
+        );
+
+        final typeInstanceRef =
+            await getInstanceRef(frame, 'record.runtimeType');
+        final typeInstance = await getObject(typeInstanceRef.id!);
+        final typeClassId = typeInstance.classRef!.id;
+
+        expect(await getObject(typeClassId), matchTypeClass);
+
+        final typeStringRef =
+            await getInstanceRef(frame, 'record.runtimeType.toString()');
+        final typeStringId = typeStringRef.id!;
+
+        expect(
+          await getObject(typeStringId),
+          matchPrimitiveInstance(
+            kind: InstanceKind.kString,
+            value: '(bool, int)',
+          ),
+        );
+      });
+    });
+
     test('simple records', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
-
         final instanceId = instanceRef.id!;
-        expect(
-          await getObject(instanceId),
-          matchRecordInstance(length: 2, type: 'RecordType(bool, int)'),
-        );
+
+        expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
         expect(await getFields(instanceRef), {1: true, 2: 3});
         expect(await getFields(instanceRef, offset: 0), {1: true, 2: 3});
@@ -136,6 +175,48 @@ Future<void> _runTests({
       });
     });
 
+    test('simple records with named fields display', () async {
+      await onBreakPoint('printSimpleNamedLocalRecord', (event) async {
+        final frame = event.topFrame!.index!;
+
+        final instanceRef = await getInstanceRef(frame, 'record');
+        final instance = await getObject(instanceRef.id!);
+        final classId = instance.classRef!.id;
+
+        expect(await getObject(classId), matchRecordClass);
+
+        final stringRef = await getInstanceRef(frame, 'record.toString()');
+        final stringId = stringRef.id!;
+
+        expect(
+          await getObject(stringId),
+          matchPrimitiveInstance(
+            kind: InstanceKind.kString,
+            value: '(true, cat: Vasya)',
+          ),
+        );
+
+        final typeInstanceRef =
+            await getInstanceRef(frame, 'record.runtimeType');
+        final typeInstance = await getObject(typeInstanceRef.id!);
+        final typeClassId = typeInstance.classRef!.id;
+
+        expect(await getObject(typeClassId), matchTypeClass);
+
+        final typeStringRef =
+            await getInstanceRef(frame, 'record.runtimeType.toString()');
+        final typeStringId = typeStringRef.id!;
+
+        expect(
+          await getObject(typeStringId),
+          matchPrimitiveInstance(
+            kind: InstanceKind.kString,
+            value: '(bool, {String cat})',
+          ),
+        );
+      });
+    });
+
     test('simple records with named fields', () async {
       await onBreakPoint('printSimpleNamedLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
@@ -143,13 +224,7 @@ Future<void> _runTests({
 
         final instanceId = instanceRef.id!;
 
-        expect(
-          await getObject(instanceId),
-          matchRecordInstance(
-            length: 2,
-            type: 'RecordType(bool, {String cat})',
-          ),
-        );
+        expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
         expect(await getFields(instanceRef), {1: true, 'cat': 'Vasya'});
         expect(
@@ -187,19 +262,55 @@ Future<void> _runTests({
       });
     });
 
-    test('complex records fields', () async {
+    test('complex records display', () async {
+      await onBreakPoint('printComplexLocalRecord', (event) async {
+        final frame = event.topFrame!.index!;
+
+        final instanceRef = await getInstanceRef(frame, 'record');
+        final instance = await getObject(instanceRef.id!);
+        final classId = instance.classRef!.id;
+
+        expect(await getObject(classId), matchRecordClass);
+
+        final stringRef = await getInstanceRef(frame, 'record.toString()');
+        final stringId = stringRef.id!;
+
+        expect(
+          await getObject(stringId),
+          matchPrimitiveInstance(
+            kind: InstanceKind.kString,
+            value: '(true, 3, {a: 1, b: 5})',
+          ),
+        );
+
+        final typeInstanceRef =
+            await getInstanceRef(frame, 'record.runtimeType');
+        final typeInstance = await getObject(typeInstanceRef.id!);
+        final typeClassId = typeInstance.classRef!.id;
+
+        expect(await getObject(typeClassId), matchTypeClass);
+
+        final typeStringRef =
+            await getInstanceRef(frame, 'record.runtimeType.toString()');
+        final typeStringId = typeStringRef.id!;
+
+        expect(
+          await getObject(typeStringId),
+          matchPrimitiveInstance(
+            kind: InstanceKind.kString,
+            value: '(bool, int, IdentityMap<String, int>)',
+          ),
+        );
+      });
+    });
+
+    test('complex records', () async {
       await onBreakPoint('printComplexLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
         final instanceId = instanceRef.id!;
-        expect(
-          await getObject(instanceId),
-          matchRecordInstance(
-            length: 3,
-            type: 'RecordType(bool, int, IdentityMap<String, int>)',
-          ),
-        );
+        expect(await getObject(instanceId), matchRecordInstance(length: 3));
 
         expect(await getFields(instanceRef), {
           1: true,
@@ -258,19 +369,55 @@ Future<void> _runTests({
       });
     });
 
+    test('complex records with named fields display', () async {
+      await onBreakPoint('printComplexNamedLocalRecord', (event) async {
+        final frame = event.topFrame!.index!;
+
+        final instanceRef = await getInstanceRef(frame, 'record');
+        final instance = await getObject(instanceRef.id!);
+        final classId = instance.classRef!.id;
+
+        expect(await getObject(classId), matchRecordClass);
+
+        final stringRef = await getInstanceRef(frame, 'record.toString()');
+        final stringId = stringRef.id!;
+
+        expect(
+          await getObject(stringId),
+          matchPrimitiveInstance(
+            kind: InstanceKind.kString,
+            value: '(true, 3, array: {a: 1, b: 5})',
+          ),
+        );
+
+        final typeInstanceRef =
+            await getInstanceRef(frame, 'record.runtimeType');
+        final typeInstance = await getObject(typeInstanceRef.id!);
+        final typeClassId = typeInstance.classRef!.id;
+
+        expect(await getObject(typeClassId), matchTypeClass);
+
+        final typeStringRef =
+            await getInstanceRef(frame, 'record.runtimeType.toString()');
+        final typeStringId = typeStringRef.id!;
+
+        expect(
+          await getObject(typeStringId),
+          matchPrimitiveInstance(
+            kind: InstanceKind.kString,
+            value: '(bool, int, {IdentityMap<String, int> array})',
+          ),
+        );
+      });
+    });
+
     test('complex records with named fields', () async {
       await onBreakPoint('printComplexNamedLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
         final instanceId = instanceRef.id!;
-        expect(
-          await getObject(instanceId),
-          matchRecordInstance(
-            length: 3,
-            type: 'RecordType(bool, int, {IdentityMap<String, int> array})',
-          ),
-        );
+        expect(await getObject(instanceId), matchRecordInstance(length: 3));
 
         expect(await getFields(instanceRef), {
           1: true,
@@ -329,19 +476,55 @@ Future<void> _runTests({
       });
     });
 
+    test('nested records display', () async {
+      await onBreakPoint('printNestedLocalRecord', (event) async {
+        final frame = event.topFrame!.index!;
+
+        final instanceRef = await getInstanceRef(frame, 'record');
+        final instance = await getObject(instanceRef.id!);
+        final classId = instance.classRef!.id;
+
+        expect(await getObject(classId), matchRecordClass);
+
+        final stringRef = await getInstanceRef(frame, 'record.toString()');
+        final stringId = stringRef.id!;
+
+        expect(
+          await getObject(stringId),
+          matchPrimitiveInstance(
+            kind: InstanceKind.kString,
+            value: '(true, (false, 5))',
+          ),
+        );
+
+        final typeInstanceRef =
+            await getInstanceRef(frame, 'record.runtimeType');
+        final typeInstance = await getObject(typeInstanceRef.id!);
+        final typeClassId = typeInstance.classRef!.id;
+
+        expect(await getObject(typeClassId), matchTypeClass);
+
+        final typeStringRef =
+            await getInstanceRef(frame, 'record.runtimeType.toString()');
+        final typeStringId = typeStringRef.id!;
+
+        expect(
+          await getObject(typeStringId),
+          matchPrimitiveInstance(
+            kind: InstanceKind.kString,
+            value: '(bool, (bool, int))',
+          ),
+        );
+      });
+    });
+
     test('nested records', () async {
       await onBreakPoint('printNestedLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
         final instanceId = instanceRef.id!;
-        expect(
-          await getObject(instanceId),
-          matchRecordInstance(
-            length: 2,
-            type: 'RecordType(bool, RecordType(bool, int))',
-          ),
-        );
+        expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
         expect(await getFields(instanceRef), {
           1: true,
@@ -375,29 +558,62 @@ Future<void> _runTests({
         final instanceRef = await getInstanceRef(frame, r'record.$2');
 
         final instanceId = instanceRef.id!;
-        expect(
-          await getObject(instanceId),
-          matchRecordInstance(length: 2, type: 'RecordType(bool, int)'),
-        );
+        expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
         expect(await getFields(instanceRef), {1: false, 2: 5});
         expect(await getFields(instanceRef, offset: 0), {1: false, 2: 5});
       });
     });
 
-    test('nested records with named fields,', () async {
+    test('nested records with named fields display', () async {
+      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+        final frame = event.topFrame!.index!;
+
+        final instanceRef = await getInstanceRef(frame, 'record');
+        final instance = await getObject(instanceRef.id!);
+        final classId = instance.classRef!.id;
+
+        expect(await getObject(classId), matchRecordClass);
+
+        final stringRef = await getInstanceRef(frame, 'record.toString()');
+        final stringId = stringRef.id!;
+
+        expect(
+          await getObject(stringId),
+          matchPrimitiveInstance(
+            kind: InstanceKind.kString,
+            value: '(true, inner: (false, 5))',
+          ),
+        );
+
+        final typeInstanceRef =
+            await getInstanceRef(frame, 'record.runtimeType');
+        final typeInstance = await getObject(typeInstanceRef.id!);
+        final typeClassId = typeInstance.classRef!.id;
+
+        expect(await getObject(typeClassId), matchTypeClass);
+
+        final typeStringRef =
+            await getInstanceRef(frame, 'record.runtimeType.toString()');
+        final typeStringId = typeStringRef.id!;
+
+        expect(
+          await getObject(typeStringId),
+          matchPrimitiveInstance(
+            kind: InstanceKind.kString,
+            value: '(bool, {(bool, int) inner})',
+          ),
+        );
+      });
+    });
+
+    test('nested records with named fields', () async {
       await onBreakPoint('printNestedNamedLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
         final instanceId = instanceRef.id!;
-        expect(
-          await getObject(instanceId),
-          matchRecordInstance(
-            length: 2,
-            type: 'RecordType(bool, {RecordType(bool, int) inner})',
-          ),
-        );
+        expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
         expect(await getFields(instanceRef), {
           1: true,
@@ -437,10 +653,7 @@ Future<void> _runTests({
         final instanceRef = await getInstanceRef(frame, r'record.inner');
 
         final instanceId = instanceRef.id!;
-        expect(
-          await getObject(instanceId),
-          matchRecordInstance(length: 2, type: 'RecordType(bool, int)'),
-        );
+        expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
         expect(await getFields(instanceRef), {1: false, 2: 5});
         expect(await getFields(instanceRef, offset: 0), {1: false, 2: 5});

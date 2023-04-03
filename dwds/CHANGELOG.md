@@ -1,5 +1,7 @@
 ## 19.0.0-dev
+
 - Allow clients to specify the connected app's entrypoint file. - [#2047](https://github.com/dart-lang/webdev/pull/2047)
+- Fix `getObject` failure on record class - [2063](https://github.com/dart-lang/webdev/pull/2063)
 
 ## 18.0.2
 
