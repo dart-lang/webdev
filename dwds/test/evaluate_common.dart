@@ -6,6 +6,7 @@
 @Timeout(Duration(minutes: 2))
 import 'dart:async';
 
+import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -114,7 +115,9 @@ void testAll({
         });
 
         tearDown(() async {
-          await context.service.resume(isolateId);
+          try {
+            await context.service.resume(isolateId);
+          } catch (_) {}
         });
 
         test(
@@ -687,10 +690,56 @@ void testAll({
               isA<ErrorRef>().having(
                 (instance) => instance.message,
                 'message',
-                contains('CompilationError:'),
+                contains('${EvaluationErrorKind.compilation}'),
               ),
             );
           });
+        });
+
+        test('async frame error', () async {
+          final maxAttempts = 100;
+
+          Frame? frame;
+          int attempt = 0;
+          Response? error;
+          do {
+            try {
+              await context.service.resume(isolateId);
+            } catch (_) {}
+
+            await context.service.pause(isolateId);
+
+            final event = stream.firstWhere(
+              (event) => event.kind == EventKind.kPauseInterrupted,
+            );
+
+            frame = (await event).topFrame;
+            if (frame != null) {
+              error = await context.service.evaluateInFrame(
+                isolateId,
+                frame.index!,
+                'true',
+              );
+            }
+
+            expect(
+              attempt,
+              lessThan(maxAttempts),
+              reason:
+                  'Failed to receive and async frame error in $attempt attempts',
+            );
+            await (Future.delayed(const Duration(milliseconds: 10)));
+            attempt++;
+          } while (error is! ErrorRef);
+
+          expect(
+            error,
+            isA<ErrorRef>().having(
+              (instance) => instance.message,
+              'message',
+              contains('${EvaluationErrorKind.asyncFrame}'),
+            ),
+          );
         });
 
         test(
@@ -712,7 +761,7 @@ void testAll({
                 isA<ErrorRef>().having(
                   (instance) => instance.message,
                   'message',
-                  contains('LoadModuleError:'),
+                  contains('${EvaluationErrorKind.loadModule}'),
                 ),
               );
             });
