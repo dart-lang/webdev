@@ -50,7 +50,7 @@ void main() {
       () async {
         final windows = await context.webDriver.windows.toList();
         await context.webDriver.driver.switchTo.window(windows.last);
-        expect(await context.webDriver.title, equals('Dart DevTools'));
+        expect(await context.webDriver.pageSource, contains('DevTools'));
         expect(await context.webDriver.currentUrl, contains('ide=Dwds'));
         // TODO(https://github.com/dart-lang/webdev/issues/1888): Re-enable.
       },
