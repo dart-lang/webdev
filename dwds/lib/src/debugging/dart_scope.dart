@@ -67,6 +67,8 @@ Future<List<Property>> visibleProperties({
     if (value == null) return true;
 
     final type = value.type;
+    if (type == 'undefined') return true;
+
     final description = value.description ?? '';
     final name = property.name ?? '';
 

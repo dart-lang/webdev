@@ -182,6 +182,21 @@ class TestInspector {
     final typeInstanceRef = await getUnwrappedTypeInstanceRef(isolateId, ref);
     return await service.getObject(isolateId, typeInstanceRef.id!) as Instance;
   }
+
+  Future<List<String?>> getFieldTypes(
+    String isolateId,
+    InstanceRef ref,
+  ) async {
+    final fieldTypeInstanceRefs =
+        await getFields(isolateId, ref, depth: 1) as Map<dynamic, InstanceRef>;
+
+    final fieldTypes = await Future.wait(
+      fieldTypeInstanceRefs.values.map(
+        (ref) async => await service.invoke(isolateId, ref.id!, 'toString', []),
+      ),
+    );
+    return fieldTypes.map((ref) => (ref as InstanceRef).valueAsString).toList();
+  }
 }
 
 Map<String, InstanceRef> _associationsToMap(

@@ -946,7 +946,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       Event(
         kind: EventKind.kVMUpdate,
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        // We are not guaranteed to have an isolate at this point an time.
+        // We are not guaranteed to have an isolate at this point in time.
         isolate: null,
       )..vm = toVMRef(_vm),
     );

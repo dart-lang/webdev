@@ -19,6 +19,7 @@ void main() {
     testPattern(['a', 1]);
     testPattern([3.14, 'b']);
     testPattern([0, 1]);
+    testPattern2();
   });
 
   document.body!.appendText('Program is running!');
@@ -63,4 +64,12 @@ String testPattern(Object obj) {
     default:
       return 'default'; // Breakpoint: testPatternDefault
   }
+}
+
+String testPattern2() {
+  final dog = 'Prismo'; 
+  final cats = ['Garfield', 'Tom']; // Breakpoint: testPattern2Case1
+  final [firstCat, secondCat] = cats;
+  print(firstCat); // Breakpoint: testPattern2Case2
+  return '$dog, $firstCat, $secondCat';
 }

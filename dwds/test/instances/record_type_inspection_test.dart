@@ -57,20 +57,13 @@ Future<void> _runTests({
   getInstanceRef(frame, expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  getFields(instanceRef, {offset, count, depth = -1}) =>
-      testInspector.getFields(
-        isolateId,
-        instanceRef,
-        offset: offset,
-        count: count,
-        depth: depth,
-      );
-
   getUnwrappedTypeInstanceRef(ref) =>
       testInspector.getUnwrappedTypeInstanceRef(isolateId, ref);
 
   getUnwrappedTypeInstance(ref) =>
       testInspector.getUnwrappedTypeInstance(isolateId, ref);
+
+  getFieldTypes(InstanceRef ref) => testInspector.getFieldTypes(isolateId, ref);
 
   group('$compilationMode |', () {
     setUpAll(() async {
@@ -101,40 +94,22 @@ Future<void> _runTests({
     setUp(() => setCurrentLogWriter(debug: debug));
     tearDown(() => service.resume(isolateId));
 
-    Future<List<String?>> getRecordFieldTypes(InstanceRef ref) async {
-      final typeInstanceRef = await getUnwrappedTypeInstanceRef(ref);
-      final classId = typeInstanceRef.classRef!.id;
-
-      expect(await getObject(classId), matchRecordTypeClass);
-
-      final fieldTypeInstanceRefs = await getFields(typeInstanceRef, depth: 1)
-          as Map<dynamic, InstanceRef>;
-
-      final fieldTypes = await Future.wait(
-        fieldTypeInstanceRefs.values.map(
-          (ref) async =>
-              await service.invoke(isolateId, ref.id!, 'toString', []),
-        ),
-      );
-
-      return fieldTypes
-          .map((ref) => (ref as InstanceRef).valueAsString)
-          .toList();
-    }
-
     test('simple record type', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final typeInstanceRef =
             await getInstanceRef(frame, 'record.runtimeType');
 
-        expect(
-          await getUnwrappedTypeInstance(typeInstanceRef),
-          matchRecordTypeInstance(length: 2),
-        );
+        final ref = await getUnwrappedTypeInstanceRef(typeInstanceRef);
+        final instance = await getUnwrappedTypeInstance(typeInstanceRef);
+
+        expect(instance, matchRecordTypeInstance(length: 2));
+
+        final classId = instance.classRef!.id;
+        expect(await getObject(classId), matchRecordTypeClass);
 
         expect(
-          await getRecordFieldTypes(typeInstanceRef),
+          await getFieldTypes(ref),
           ['bool', 'int'],
         );
       });
@@ -163,13 +138,16 @@ Future<void> _runTests({
         final typeInstanceRef =
             await getInstanceRef(frame, 'record.runtimeType');
 
-        expect(
-          await getUnwrappedTypeInstance(typeInstanceRef),
-          matchRecordTypeInstance(length: 3),
-        );
+        final ref = await getUnwrappedTypeInstanceRef(typeInstanceRef);
+        final instance = await getUnwrappedTypeInstance(typeInstanceRef);
+
+        expect(instance, matchRecordTypeInstance(length: 3));
+
+        final classId = instance.classRef!.id;
+        expect(await getObject(classId), matchRecordTypeClass);
 
         expect(
-          await getRecordFieldTypes(typeInstanceRef),
+          await getFieldTypes(ref),
           ['bool', 'int', 'IdentityMap<String, int>'],
         );
       });
@@ -198,13 +176,16 @@ Future<void> _runTests({
         final typeInstanceRef =
             await getInstanceRef(frame, 'record.runtimeType');
 
-        expect(
-          await getUnwrappedTypeInstance(typeInstanceRef),
-          matchRecordTypeInstance(length: 3),
-        );
+        final ref = await getUnwrappedTypeInstanceRef(typeInstanceRef);
+        final instance = await getUnwrappedTypeInstance(typeInstanceRef);
+
+        expect(instance, matchRecordTypeInstance(length: 3));
+
+        final classId = instance.classRef!.id;
+        expect(await getObject(classId), matchRecordTypeClass);
 
         expect(
-          await getRecordFieldTypes(typeInstanceRef),
+          await getFieldTypes(ref),
           ['bool', 'int', 'IdentityMap<String, int>'],
         );
       });
@@ -233,13 +214,16 @@ Future<void> _runTests({
         final typeInstanceRef =
             await getInstanceRef(frame, 'record.runtimeType');
 
-        expect(
-          await getUnwrappedTypeInstance(typeInstanceRef),
-          matchRecordTypeInstance(length: 2),
-        );
+        final ref = await getUnwrappedTypeInstanceRef(typeInstanceRef);
+        final instance = await getUnwrappedTypeInstance(typeInstanceRef);
+
+        expect(instance, matchRecordTypeInstance(length: 2));
+
+        final classId = instance.classRef!.id;
+        expect(await getObject(classId), matchRecordTypeClass);
 
         expect(
-          await getRecordFieldTypes(typeInstanceRef),
+          await getFieldTypes(ref),
           ['bool', '(bool, int)'],
         );
       });
@@ -268,13 +252,16 @@ Future<void> _runTests({
         final typeInstanceRef =
             await getInstanceRef(frame, 'record.runtimeType');
 
-        expect(
-          await getUnwrappedTypeInstance(typeInstanceRef),
-          matchRecordTypeInstance(length: 2),
-        );
+        final ref = await getUnwrappedTypeInstanceRef(typeInstanceRef);
+        final instance = await getUnwrappedTypeInstance(typeInstanceRef);
+
+        expect(instance, matchRecordTypeInstance(length: 2));
+
+        final classId = instance.classRef!.id;
+        expect(await getObject(classId), matchRecordTypeClass);
 
         expect(
-          await getRecordFieldTypes(typeInstanceRef),
+          await getFieldTypes(ref),
           ['bool', '(bool, int)'],
         );
       });
