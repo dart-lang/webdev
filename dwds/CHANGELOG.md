@@ -1,6 +1,6 @@
 ## 19.0.1-dev
 
-- Display record types concisely. - []()
+- Display record types concisely. - [2070](https://github.com/dart-lang/webdev/pull/2070)
 
 ## 19.0.0
 
