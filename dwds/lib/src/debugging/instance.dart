@@ -847,13 +847,6 @@ class InstanceHelper extends Domain {
 
   /// The Chrome type for a value.
   String? _chromeType(Object? value) {
-    final ret = _chromeType1(value);
-    _logger.severe('Chrome type for $value: $ret');
-    return ret;
-  }
-
-  /// The Chrome type for a value.
-  String? _chromeType1(Object? value) {
     if (value == null) return null;
     if (value is String) return 'string';
     if (value is num) return 'number';
