@@ -103,6 +103,7 @@ Future<void> _runTests({
         final ref = await getUnwrappedTypeInstanceRef(typeInstanceRef);
         final instance = await getUnwrappedTypeInstance(typeInstanceRef);
 
+        expect(ref, matchRecordTypeInstanceRef(length: 2));
         expect(instance, matchRecordTypeInstance(length: 2));
 
         final classId = instance.classRef!.id;
@@ -141,6 +142,7 @@ Future<void> _runTests({
         final ref = await getUnwrappedTypeInstanceRef(typeInstanceRef);
         final instance = await getUnwrappedTypeInstance(typeInstanceRef);
 
+        expect(ref, matchRecordTypeInstanceRef(length: 3));
         expect(instance, matchRecordTypeInstance(length: 3));
 
         final classId = instance.classRef!.id;
@@ -179,6 +181,7 @@ Future<void> _runTests({
         final ref = await getUnwrappedTypeInstanceRef(typeInstanceRef);
         final instance = await getUnwrappedTypeInstance(typeInstanceRef);
 
+        expect(ref, matchRecordTypeInstanceRef(length: 3));
         expect(instance, matchRecordTypeInstance(length: 3));
 
         final classId = instance.classRef!.id;
@@ -217,6 +220,7 @@ Future<void> _runTests({
         final ref = await getUnwrappedTypeInstanceRef(typeInstanceRef);
         final instance = await getUnwrappedTypeInstance(typeInstanceRef);
 
+        expect(ref, matchRecordTypeInstanceRef(length: 2));
         expect(instance, matchRecordTypeInstance(length: 2));
 
         final classId = instance.classRef!.id;
@@ -255,6 +259,7 @@ Future<void> _runTests({
         final ref = await getUnwrappedTypeInstanceRef(typeInstanceRef);
         final instance = await getUnwrappedTypeInstance(typeInstanceRef);
 
+        expect(ref, matchRecordTypeInstanceRef(length: 2));
         expect(instance, matchRecordTypeInstance(length: 2));
 
         final classId = instance.classRef!.id;

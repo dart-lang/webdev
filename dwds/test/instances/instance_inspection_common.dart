@@ -218,6 +218,16 @@ Map<dynamic, InstanceRef> _elementsToMap(List<dynamic> fields) =>
           .map((e) => MapEntry(fields.indexOf(e), e!)),
     );
 
+Matcher matchRecordInstanceRef({required int length}) => isA<InstanceRef>()
+    .having((e) => e.kind, 'kind', InstanceKind.kRecord)
+    .having((e) => e.length, 'length', length)
+    .having((e) => e.classRef!, 'classRef', matchRecordClassRef);
+
+Matcher matchRecordTypeInstanceRef({required int length}) => isA<InstanceRef>()
+    .having((e) => e.kind, 'kind', InstanceKind.kRecordType)
+    .having((e) => e.length, 'length', length)
+    .having((e) => e.classRef!, 'classRef', matchRecordTypeClassRef);
+
 Matcher matchPrimitiveInstance({
   required String kind,
   required dynamic value,
