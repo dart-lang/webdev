@@ -15,7 +15,7 @@ void _connectToLifelinePort() {
     prefix: 'Dart Debug Extension',
   );
   chrome.runtime.connect(
-    /*extensionId=*/
+    // extensionId
     null,
     ConnectInfo(name: 'keepAlive'),
   );

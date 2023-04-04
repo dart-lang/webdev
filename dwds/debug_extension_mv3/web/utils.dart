@@ -98,13 +98,13 @@ void setExtensionIcon(IconInfo info) {
   if (isMV3) {
     _setExtensionIconMV3(
       info,
-      /*callback*/
+      // callback
       null,
     );
   } else {
     _setExtensionIconMV2(
       info,
-      /*callback*/
+      // callback
       null,
     );
   }
