@@ -10,6 +10,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 const _dartCoreLibrary = 'dart:core';
+const _dartRuntimeLibrary = 'dart:_runtime';
 const _dartInterceptorsLibrary = 'dart:_interceptors';
 
 /// A hard-coded ClassRef for the Closure class.
@@ -20,6 +21,10 @@ final classRefForString = classRefFor(_dartCoreLibrary, InstanceKind.kString);
 
 /// A hard-coded ClassRef for the Record class.
 final classRefForRecord = classRefFor(_dartCoreLibrary, InstanceKind.kRecord);
+
+/// A hard-coded ClassRef for the RecordType class.
+final classRefForRecordType =
+    classRefFor(_dartRuntimeLibrary, InstanceKind.kRecordType);
 
 /// A hard-coded ClassRef for a (non-existent) class called Unknown.
 final classRefForUnknown = classRefFor(_dartCoreLibrary, 'Unknown');
@@ -105,6 +110,7 @@ class ClassMetaData {
     Object? length,
     bool isFunction = false,
     bool isRecord = false,
+    bool isRecordType = false,
     bool isNativeError = false,
   }) {
     final jName = jsName as String?;
@@ -112,7 +118,13 @@ class ClassMetaData {
     final library = libraryId as String? ?? _dartCoreLibrary;
     final id = '$library:$jName';
 
-    final classRef = isRecord ? classRefForRecord : classRefFor(library, dName);
+    var classRef = classRefFor(library, dName);
+    if (isRecord) {
+      classRef = classRefForRecord;
+    }
+    if (isRecordType) {
+      classRef = classRefForRecordType;
+    }
 
     return ClassMetaData._(
       id,
@@ -122,6 +134,7 @@ class ClassMetaData {
       int.tryParse('$length'),
       isFunction,
       isRecord,
+      isRecordType,
       isNativeError,
     );
   }
@@ -134,6 +147,7 @@ class ClassMetaData {
     this.length,
     this.isFunction,
     this.isRecord,
+    this.isRecordType,
     this.isNativeError,
   );
 
@@ -149,10 +163,12 @@ class ClassMetaData {
       function(arg) {
         const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
         const dart = sdk.dart;
+        const core = sdk.core;
         const interceptors = sdk._interceptors;
         const classObject = dart.getReifiedType(arg);
         const isFunction = classObject instanceof dart.AbstractFunctionType;
         const isRecord = classObject instanceof dart.RecordType;
+        const isRecordType = dart.is(arg, dart.RecordType);
         const isNativeError = dart.is(arg, interceptors.NativeError);
         const result = {};
         var name = isFunction ? 'Function' : classObject.name;
@@ -162,6 +178,7 @@ class ClassMetaData {
         result['dartName'] = dart.typeName(classObject);
         result['isFunction'] = isFunction;
         result['isRecord'] = isRecord;
+        result['isRecordType'] = isRecordType;
         result['isNativeError'] = isNativeError;
         result['length'] = arg['length'];
 
@@ -173,6 +190,10 @@ class ClassMetaData {
           result['length'] = positionalCount + namedCount;
         }
 
+        if (isRecordType) {
+          result['name'] = 'RecordType';
+          result['length'] = arg.types.length;
+        }
         return result;
       }
     ''';
@@ -190,6 +211,7 @@ class ClassMetaData {
         dartName: metadata['dartName'],
         isFunction: metadata['isFunction'],
         isRecord: metadata['isRecord'],
+        isRecordType: metadata['isRecordType'],
         isNativeError: metadata['isNativeError'],
         length: metadata['length'],
       );
@@ -202,6 +224,8 @@ class ClassMetaData {
       return null;
     }
   }
+
+  /// TODO(annagrin): convert fields and getters below to kinds.
 
   /// True if this class refers to system maps, which are treated specially.
   ///
@@ -219,8 +243,11 @@ class ClassMetaData {
   /// True if this class refers to a function type.
   bool isFunction;
 
-  /// True if this class refers to a record type.
+  /// True if this class refers to a Record type.
   bool isRecord;
+
+  /// True if this class refers to a RecordType type.
+  bool isRecordType;
 
   /// True is this class refers to a native JS type.
   /// i.e. inherits from NativeError.
