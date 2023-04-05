@@ -705,7 +705,7 @@ void testAll({
               isA<ErrorRef>().having(
                 (instance) => instance.message,
                 'message',
-                contains('${EvaluationErrorKind.compilation}'),
+                contains(EvaluationErrorKind.compilation),
               ),
             );
           });
@@ -762,7 +762,7 @@ void testAll({
             isA<ErrorRef>().having(
               (instance) => instance.message,
               'message',
-              contains('${EvaluationErrorKind.asyncFrame}'),
+              contains(EvaluationErrorKind.asyncFrame),
             ),
           );
 
@@ -793,7 +793,7 @@ void testAll({
                 isA<ErrorRef>().having(
                   (instance) => instance.message,
                   'message',
-                  contains('${EvaluationErrorKind.loadModule}'),
+                  contains(EvaluationErrorKind.loadModule),
                 ),
               );
             });

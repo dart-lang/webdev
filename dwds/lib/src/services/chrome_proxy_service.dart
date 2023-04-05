@@ -526,8 +526,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   bool _hasReportableEvaluationError(String type) {
     if (!_hasEvaluationError(type)) return false;
 
-    if (type.startsWith('${EvaluationErrorKind.compilation}') ||
-        type.startsWith('${EvaluationErrorKind.asyncFrame}')) {
+    if (type.startsWith(EvaluationErrorKind.compilation) ||
+        type.startsWith(EvaluationErrorKind.asyncFrame)) {
       return false;
     }
     return true;
