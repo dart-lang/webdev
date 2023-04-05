@@ -1,6 +1,6 @@
 ## 19.0.1-dev
 
-- Refactor code for presenting record instances. - [#]()
+- Refactor code for presenting record instances. - [#2074](https://github.com/dart-lang/webdev/pull/2074)
 
 ## 19.0.0
 
