@@ -1,5 +1,7 @@
 ## 3.0.4
 
+- Update `dwds` constraint to `19.0.0`.
+
 ## 3.0.3
 
 - Update `dwds` constraint to `18.0.2`.
