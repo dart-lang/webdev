@@ -98,23 +98,33 @@ class ExpressionEvaluator {
   ) async {
     if (_closed) {
       return createError(
-          EvaluationErrorKind.internal, 'expression evaluator closed.');
+        EvaluationErrorKind.internal,
+        'expression evaluator closed.',
+      );
     }
 
     scope ??= {};
 
     if (expression.isEmpty) {
-      return createError(EvaluationErrorKind.invalidInput, expression);
+      return createError(
+        EvaluationErrorKind.invalidInput,
+        expression,
+      );
     }
 
     if (libraryUri == null) {
-      return createError(EvaluationErrorKind.invalidInput, 'no library uri');
+      return createError(
+        EvaluationErrorKind.invalidInput,
+        'no library uri',
+      );
     }
 
     final module = await _modules.moduleForLibrary(libraryUri);
     if (module == null) {
       return createError(
-          EvaluationErrorKind.internal, 'no module for $libraryUri');
+        EvaluationErrorKind.internal,
+        'no module for $libraryUri',
+      );
     }
 
     // Wrap the expression in a lambda so we can call it as a function.

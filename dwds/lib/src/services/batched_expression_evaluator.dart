@@ -142,7 +142,9 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
       final listId = list.objectId;
       if (listId == null) {
         final error = createError(
-            EvaluationErrorKind.internal, 'No batch result object ID.');
+          EvaluationErrorKind.internal,
+          'No batch result object ID.',
+        );
         request.completer.complete(error);
       } else {
         safeUnawaited(
