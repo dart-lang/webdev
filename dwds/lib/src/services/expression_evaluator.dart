@@ -14,25 +14,15 @@ import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 class EvaluationErrorKind {
-  const EvaluationErrorKind._(this._kind);
+  EvaluationErrorKind._();
 
-  final String _kind;
-  static const EvaluationErrorKind compilation =
-      EvaluationErrorKind._('CompilationError');
-  static const EvaluationErrorKind type = EvaluationErrorKind._('TypeError');
-  static const EvaluationErrorKind reference =
-      EvaluationErrorKind._('ReferenceError');
-  static const EvaluationErrorKind internal =
-      EvaluationErrorKind._('InternalError');
-  static const EvaluationErrorKind asyncFrame =
-      EvaluationErrorKind._('AsyncFrameError');
-  static const EvaluationErrorKind invalidInput =
-      EvaluationErrorKind._('InvalidInputError');
-  static const EvaluationErrorKind loadModule =
-      EvaluationErrorKind._('LoadModuleError');
-
-  @override
-  String toString() => _kind;
+  static const compilation = 'CompilationError';
+  static const type = 'TypeError';
+  static const reference = 'ReferenceError';
+  static const internal = 'InternalError';
+  static const asyncFrame = 'AsyncFrameError';
+  static const invalidInput = 'InvalidInputError';
+  static const loadModule = 'LoadModuleError';
 }
 
 /// ExpressionEvaluator provides functionality to evaluate dart expressions
@@ -69,9 +59,12 @@ class ExpressionEvaluator {
     this._compiler,
   );
 
-  RemoteObject createError(EvaluationErrorKind severity, String message) {
+  /// Create and error with [severity] and [message]
+  ///
+  /// [severity] is one of kinds in [EvaluationErrorKind]
+  RemoteObject createError(String severity, String message) {
     return RemoteObject(
-      <String, String>{'type': '$severity', 'value': message},
+      <String, String>{'type': severity, 'value': message},
     );
   }
 
