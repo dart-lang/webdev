@@ -52,7 +52,7 @@ void main(List<String> arguments) async {
 
   int exitCode;
   if (isReset == true) {
-    exitCode = runReset(
+    exitCode = await runReset(
       package: package,
       newVersion: newVersion,
     );
@@ -68,7 +68,7 @@ void main(List<String> arguments) async {
   }
 }
 
-int runReset({
+Future<int> runReset({
   required String package,
   String? newVersion,
 }) {
@@ -81,7 +81,13 @@ int runReset({
       Current version is $currentVersion.
     ''',
     );
-    return 1;
+    return Future.value(1);
+  }
+
+  // Add the dependency overrides of DWDS back for webdev:
+  if (package == 'webdev') {
+    _updateOverrides('webdev', includeOverrides: true);
+    _updateOverrides('test_common', includeOverrides: true);
   }
 
   // Update the version strings in CHANGELOG and pubspec.yaml.
@@ -92,7 +98,9 @@ int runReset({
     isReset: true,
   );
 
-  return 0;
+  // Build the package.
+  final exitCode = _buildPackage(package);
+  return exitCode;
 }
 
 Future<int> runRelease({
@@ -116,10 +124,15 @@ Future<int> runRelease({
     }
   }
 
-  // Update the pinned version of DWDS for webdev releases.
   if (package == 'webdev') {
+    // Update the pinned version of DWDS for webdev releases.
     _logInfo('Updating pinned version of DWDS.');
-    await _updateDwdsPin(package);
+    await _updateDwdsPin('webdev');
+    await _updateDwdsPin('test_common');
+  // Remove the dependency overrides of DWDS for webdev releases:
+    _logInfo('Removing dependency overrides of DWDS.');
+    _updateOverrides('webdev', includeOverrides: false);
+    _updateOverrides('test_common', includeOverrides: false);
   }
 
   // Run dart pub upgrade.
@@ -175,6 +188,18 @@ Future<int> _buildPackage(String package) async {
   return buildProcess.exitCode;
 }
 
+void _updateOverrides(
+  String package, {
+  required bool includeOverrides,
+}) {
+  final pubspecOverrides = File('../$package/pubspec_overrides.yaml');
+  final newLines = <String>[];
+  for (final line in pubspecOverrides.readAsLinesSync()) {
+    newLines.add(includeOverrides ? _uncomment(line) : _commentOut(line));
+  }
+  return pubspecOverrides.writeAsStringSync(newLines.joinWithNewLine());
+}
+
 void _updateVersionStrings(
   String package, {
   required String nextVersion,
@@ -192,6 +217,36 @@ void _updateVersionStrings(
       _replaceInFile(file, query: currentVersion, replaceWith: nextVersion);
     }
   }
+}
+
+String _uncomment(String line) {
+  if (_isEmptyLine(line)) return line;
+
+  if (!_isCommentedOut(line)) {
+    _logWarning('$line is not commented out.');
+    return line;
+  }
+
+  return line.substring(2);
+}
+
+String _commentOut(String line) {
+  if (_isEmptyLine(line)) return line;
+
+  if (_isCommentedOut(line)) {
+    _logWarning('$line is already commented out.');
+    return line;
+  }
+
+  return '# $line';
+}
+
+bool _isCommentedOut(String line) {
+  return line.startsWith('# ');
+}
+
+bool _isEmptyLine(String line) {
+  return line.trim().isEmpty;
 }
 
 void _addNewLine(
