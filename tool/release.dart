@@ -129,7 +129,7 @@ Future<int> runRelease({
     _logInfo('Updating pinned version of DWDS.');
     await _updateDwdsPin('webdev');
     await _updateDwdsPin('test_common');
-  // Remove the dependency overrides of DWDS for webdev releases:
+    // Remove the dependency overrides of DWDS for webdev releases:
     _logInfo('Removing dependency overrides of DWDS.');
     _updateOverrides('webdev', includeOverrides: false);
     _updateOverrides('test_common', includeOverrides: false);
