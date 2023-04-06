@@ -12,8 +12,10 @@ import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/batched_expression_evaluator.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
+import 'package:logging/logging.dart';
 
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart' hide LogRecord;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
@@ -31,14 +33,17 @@ void main() async {
       _batchedEvaluator = null;
     }
 
+    late StreamController<DebuggerPausedEvent> pausedController;
+    late StreamController<Event> debugEventController;
     setUp(() async {
       globalLoadStrategy = FakeStrategy();
 
       final assetReader = FakeAssetReader(sourceMap: '');
       final modules = FakeModules();
 
-      final webkitDebugger = FakeWebkitDebugger(scripts: {});
-      final pausedController = StreamController<DebuggerPausedEvent>();
+      final webkitDebugger = FakeWebkitDebugger();
+      pausedController = StreamController<DebuggerPausedEvent>();
+      debugEventController = StreamController<Event>();
       webkitDebugger.onPaused = pausedController.stream;
 
       final root = 'fakeRoot';
@@ -49,7 +54,7 @@ void main() async {
       final skipLists = SkipLists();
       final debugger = await Debugger.create(
         webkitDebugger,
-        (_, __) {},
+        (_, e) => debugEventController.sink.add(e),
         locations,
         skipLists,
         root,
@@ -105,6 +110,37 @@ void main() async {
           throwsRPCErrorWithMessage(
             'Cannot evaluate on a call frame when the program is not paused',
           ),
+        );
+      });
+
+      test('cannot evaluate expression in async frame ', () async {
+        // Add a DebuggerPausedEvent with no frames provoke an error.
+        pausedController.sink.add(
+          DebuggerPausedEvent({
+            'method': '',
+            'params': {
+              'reason': 'other',
+              'callFrames': [],
+            }
+          }),
+        );
+
+        await debugEventController.stream
+            .firstWhere((e) => e.kind == EventKind.kPauseInterrupted);
+
+        // Verify that we get the internal error.
+        final result =
+            await evaluator.evaluateExpressionInFrame('20', 0, 'true', null);
+        expect(
+          result,
+          isA<RemoteObject>()
+              .having((o) => o.json['type'], 'type', 'AsyncFrameError')
+              .having(
+                (o) => o.json['value'],
+                'value',
+                'Expression evaluation in async frames is not supported. '
+                    'No frame with index 0.',
+              ),
         );
       });
 
