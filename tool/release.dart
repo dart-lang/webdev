@@ -192,12 +192,13 @@ void _updateOverrides(
   String package, {
   required bool includeOverrides,
 }) {
-  final pubspecOverrides = File('../$package/pubspec_overrides.yaml');
-  final newLines = <String>[];
-  for (final line in pubspecOverrides.readAsLinesSync()) {
-    newLines.add(includeOverrides ? _uncomment(line) : _commentOut(line));
+  final overridesFilePath = '../$package/pubspec_overrides.yaml';
+  final noOverridesFilePath = '../$package/ignore_pubspec_overrides.yaml';
+  if (includeOverrides) {
+    File(noOverridesFilePath).rename(overridesFilePath);
+  } else {
+    File(overridesFilePath).rename(noOverridesFilePath);
   }
-  return pubspecOverrides.writeAsStringSync(newLines.joinWithNewLine());
 }
 
 void _updateVersionStrings(
@@ -217,36 +218,6 @@ void _updateVersionStrings(
       _replaceInFile(file, query: currentVersion, replaceWith: nextVersion);
     }
   }
-}
-
-String _uncomment(String line) {
-  if (_isEmptyLine(line)) return line;
-
-  if (!_isCommentedOut(line)) {
-    _logWarning('$line is not commented out.');
-    return line;
-  }
-
-  return line.substring(2);
-}
-
-String _commentOut(String line) {
-  if (_isEmptyLine(line)) return line;
-
-  if (_isCommentedOut(line)) {
-    _logWarning('$line is already commented out.');
-    return line;
-  }
-
-  return '# $line';
-}
-
-bool _isCommentedOut(String line) {
-  return line.startsWith('# ');
-}
-
-bool _isEmptyLine(String line) {
-  return line.trim().isEmpty;
 }
 
 void _addNewLine(
