@@ -496,7 +496,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
               '${result.type}: ${result.value}.');
 
           _logger.info('Please follow instructions at '
-              'https://github.cm/dart-lang/webdev/issues/956 '
+              'https://github.com/dart-lang/webdev/issues/956 '
               'to file a bug.');
         }
         return ErrorRef(
