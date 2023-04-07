@@ -705,7 +705,7 @@ void testAll({
               isA<ErrorRef>().having(
                 (instance) => instance.message,
                 'message',
-                contains(EvaluationErrorKind.compilation.toString()),
+                contains('EvaluationError.compilation'),
               ),
             );
           });
@@ -762,7 +762,7 @@ void testAll({
             isA<ErrorRef>().having(
               (instance) => instance.message,
               'message',
-              contains(EvaluationErrorKind.asyncFrame.toString()),
+              contains('EvaluationError.asyncFrame'),
             ),
           );
 
@@ -793,7 +793,7 @@ void testAll({
                 isA<ErrorRef>().having(
                   (instance) => instance.message,
                   'message',
-                  contains(EvaluationErrorKind.loadModule.toString()),
+                  contains('EvaluationError.loadModule'),
                 ),
               );
             });
