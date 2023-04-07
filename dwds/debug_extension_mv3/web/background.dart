@@ -62,7 +62,8 @@ void _registerListeners() {
 Future<void> _handleRuntimeMessages(
   dynamic jsRequest,
   MessageSender sender,
-  Function _,
+  // ignore: avoid-unused-parameters
+  Function sendResponse,
 ) async {
   if (jsRequest is! String) return;
 
