@@ -489,14 +489,16 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
       // Handle compilation errors, internal errors,
       // and reference errors from JavaScript evaluation in chrome.
-      if (_hasReportableEvaluationError(result.type)) {
-        _logger.warning('Failed to evaluate expression \'$expression\': '
-            '${result.type}: ${result.value}.');
+      final evaluationError = EvaluationErrorKind.fromString(result.type);
+      if (evaluationError != null) {
+        if (_hasReportableEvaluationError(evaluationError)) {
+          _logger.warning('Failed to evaluate expression \'$expression\': '
+              '${result.type}: ${result.value}.');
 
-        _logger.info('Please follow instructions at '
-            'https://github.com/dart-lang/webdev/issues/956 '
-            'to file a bug.');
-
+          _logger.info('Please follow instructions at '
+              'https://github.cm/dart-lang/webdev/issues/956 '
+              'to file a bug.');
+        }
         return ErrorRef(
           kind: 'error',
           message: '${result.type}: ${result.value}',
@@ -520,15 +522,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   // Decides if the error is serious enough to be shown to the user
   // to encourage bug reporting.
-  bool _hasReportableEvaluationError(String type) {
-    final evaluationError = EvaluationErrorKind.fromString(type);
-    if (evaluationError == null) return false;
-
-    if (evaluationError == EvaluationErrorKind.compilation ||
-        evaluationError == EvaluationErrorKind.asyncFrame) {
-      return false;
-    }
-    return true;
+  bool _hasReportableEvaluationError(EvaluationErrorKind error) {
+    final ignorableErrors = [
+      EvaluationErrorKind.compilation,
+      EvaluationErrorKind.asyncFrame,
+    ];
+    return !ignorableErrors.contains(error);
   }
 
   @override
