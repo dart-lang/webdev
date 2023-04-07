@@ -6,10 +6,12 @@
 @Timeout(Duration(minutes: 2))
 import 'dart:async';
 
+import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
@@ -85,9 +87,22 @@ void testAll({
         late ScriptRef testLibraryScript;
         late ScriptRef testLibraryPartScript;
         late Stream<Event> stream;
+        late StreamController<String> output;
 
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          output = StreamController<String>.broadcast();
+          output.stream.listen(debug ? print : printOnFailure);
+
+          configureLogWriter(
+            customLogWriter: (level, message, {error, loggerName, stackTrace}) {
+              final e = error == null ? '' : ': $error';
+              final s = stackTrace == null ? '' : ':\n$stackTrace';
+              if (!output.isClosed) {
+                output.add('[$level] $loggerName: $message$e$s');
+              }
+            },
+          );
+
           vm = await context.service.getVM();
           isolate = await context.service.getIsolate(vm.isolates!.first.id!);
           isolateId = isolate.id!;
@@ -114,7 +129,10 @@ void testAll({
         });
 
         tearDown(() async {
-          await context.service.resume(isolateId);
+          await output.close();
+          try {
+            await context.service.resume(isolateId);
+          } catch (_) {}
         });
 
         test(
@@ -687,9 +705,72 @@ void testAll({
               isA<ErrorRef>().having(
                 (instance) => instance.message,
                 'message',
-                contains('CompilationError:'),
+                contains(EvaluationErrorKind.compilation),
               ),
             );
+          });
+        });
+
+        test('async frame error', () async {
+          final maxAttempts = 100;
+
+          Response? error;
+          String? breakpointId;
+          try {
+            // Pause in client.js directly to force pausing in async code.
+            breakpointId = await _setBreakpointInInjectedClient(
+              context.tabConnection.debugger,
+            );
+
+            var attempt = 0;
+            do {
+              try {
+                await context.service.resume(isolateId);
+              } catch (_) {}
+
+              final event = stream.firstWhere(
+                (event) => event.kind == EventKind.kPauseInterrupted,
+              );
+              final frame = (await event).topFrame;
+              if (frame != null) {
+                error = await context.service.evaluateInFrame(
+                  isolateId,
+                  frame.index!,
+                  'true',
+                );
+              }
+              expect(
+                attempt,
+                lessThan(maxAttempts),
+                reason:
+                    'Failed to receive and async frame error in $attempt attempts',
+              );
+              await (Future.delayed(const Duration(milliseconds: 10)));
+              attempt++;
+            } while (error is! ErrorRef);
+          } finally {
+            if (breakpointId != null) {
+              await context.tabConnection.debugger
+                  .removeBreakpoint(breakpointId);
+            }
+          }
+
+          // Verify we receive an error when evaluating
+          // on async frame.
+          expect(
+            error,
+            isA<ErrorRef>().having(
+              (instance) => instance.message,
+              'message',
+              contains(EvaluationErrorKind.asyncFrame),
+            ),
+          );
+
+          // Verify we don't emit errors or warnings
+          // on async frame evaluations.
+          output.stream.listen((event) {
+            expect(event, isNot(contains('[WARNING]')));
+            expect(event, isNot(contains('[SEVERE]')));
           });
         });
 
@@ -712,7 +793,7 @@ void testAll({
                 isA<ErrorRef>().having(
                   (instance) => instance.message,
                   'message',
-                  contains('LoadModuleError:'),
+                  contains(EvaluationErrorKind.loadModule),
                 ),
               );
             });
@@ -945,4 +1026,25 @@ Map<String?, InstanceRef?> _getFrameVariables(Frame frame) {
     for (var variable in frame.vars!)
       variable.name: variable.value as InstanceRef?,
   };
+}
+
+Future<String> _setBreakpointInInjectedClient(WipDebugger debugger) async {
+  final client = 'dwds/src/injected/client.js';
+  final clientScript =
+      debugger.scripts.values.firstWhere((e) => e.url.contains(client));
+  final clientSource = await debugger.getScriptSource(clientScript.scriptId);
+
+  final line = clientSource.split('\n').indexWhere(
+        (element) => element.contains('convertDartClosureToJS'),
+      );
+
+  final result = await debugger.sendCommand(
+    'Debugger.setBreakpointByUrl',
+    params: {
+      'urlRegex': '.*$client',
+      'lineNumber': line + 4,
+      'columnNumber': 0,
+    },
+  );
+  return result.json['result']['breakpointId'];
 }

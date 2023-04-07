@@ -13,19 +13,16 @@ import 'package:dwds/src/utilities/objects.dart' as chrome;
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-class ErrorKind {
-  const ErrorKind._(this._kind);
+class EvaluationErrorKind {
+  EvaluationErrorKind._();
 
-  final String _kind;
-  static const ErrorKind compilation = ErrorKind._('CompilationError');
-  static const ErrorKind type = ErrorKind._('TypeError');
-  static const ErrorKind reference = ErrorKind._('ReferenceError');
-  static const ErrorKind internal = ErrorKind._('InternalError');
-  static const ErrorKind invalidInput = ErrorKind._('InvalidInputError');
-  static const ErrorKind loadModule = ErrorKind._('LoadModuleError');
-
-  @override
-  String toString() => _kind;
+  static const compilation = 'CompilationError';
+  static const type = 'TypeError';
+  static const reference = 'ReferenceError';
+  static const internal = 'InternalError';
+  static const asyncFrame = 'AsyncFrameError';
+  static const invalidInput = 'InvalidInputError';
+  static const loadModule = 'LoadModuleError';
 }
 
 /// ExpressionEvaluator provides functionality to evaluate dart expressions
@@ -62,9 +59,12 @@ class ExpressionEvaluator {
     this._compiler,
   );
 
-  RemoteObject createError(ErrorKind severity, String message) {
+  /// Create and error with [severity] and [message]
+  ///
+  /// [severity] is one of kinds in [EvaluationErrorKind]
+  RemoteObject createError(String severity, String message) {
     return RemoteObject(
-      <String, String>{'type': '$severity', 'value': message},
+      <String, String>{'type': severity, 'value': message},
     );
   }
 
@@ -90,22 +90,34 @@ class ExpressionEvaluator {
     Map<String, String>? scope,
   ) async {
     if (_closed) {
-      return createError(ErrorKind.internal, 'expression evaluator closed.');
+      return createError(
+        EvaluationErrorKind.internal,
+        'expression evaluator closed.',
+      );
     }
 
     scope ??= {};
 
     if (expression.isEmpty) {
-      return createError(ErrorKind.invalidInput, expression);
+      return createError(
+        EvaluationErrorKind.invalidInput,
+        expression,
+      );
     }
 
     if (libraryUri == null) {
-      return createError(ErrorKind.invalidInput, 'no library uri');
+      return createError(
+        EvaluationErrorKind.invalidInput,
+        'no library uri',
+      );
     }
 
     final module = await _modules.moduleForLibrary(libraryUri);
     if (module == null) {
-      return createError(ErrorKind.internal, 'no module for $libraryUri');
+      return createError(
+        EvaluationErrorKind.internal,
+        'no module for $libraryUri',
+      );
     }
 
     // Wrap the expression in a lambda so we can call it as a function.
@@ -166,20 +178,20 @@ class ExpressionEvaluator {
       // TODO(annagrin): Implement scope support.
       // Issue: https://github.com/dart-lang/webdev/issues/1344
       return createError(
-          ErrorKind.internal,
+          EvaluationErrorKind.internal,
           'Using scope for expression evaluation in frame '
           'is not supported.');
     }
 
     if (expression.isEmpty) {
-      return createError(ErrorKind.invalidInput, expression);
+      return createError(EvaluationErrorKind.invalidInput, expression);
     }
 
     // Get JS scope and current JS location.
     final jsFrame = _debugger.jsFrameForIndex(frameIndex);
     if (jsFrame == null) {
       return createError(
-          ErrorKind.internal,
+          EvaluationErrorKind.asyncFrame,
           'Expression evaluation in async frames '
           'is not supported. No frame with index $frameIndex.');
     }
@@ -194,14 +206,14 @@ class ExpressionEvaluator {
     final url = _debugger.urlForScriptId(jsScriptId);
     if (url == null) {
       return createError(
-        ErrorKind.internal,
+        EvaluationErrorKind.internal,
         'Cannot find url for JS script: $jsScriptId',
       );
     }
     final locationMap = await _locations.locationForJs(url, jsLine, jsColumn);
     if (locationMap == null) {
       return createError(
-          ErrorKind.internal,
+          EvaluationErrorKind.internal,
           'Cannot find Dart location for JS location: '
           'url: $url, '
           'function: $functionName, '
@@ -214,7 +226,7 @@ class ExpressionEvaluator {
     final libraryUri = await _modules.libraryForSource(dartSourcePath);
     if (libraryUri == null) {
       return createError(
-        ErrorKind.internal,
+        EvaluationErrorKind.internal,
         'no libraryUri for $dartSourcePath',
       );
     }
@@ -222,7 +234,7 @@ class ExpressionEvaluator {
     final module = await _modules.moduleForLibrary(libraryUri.toString());
     if (module == null) {
       return createError(
-        ErrorKind.internal,
+        EvaluationErrorKind.internal,
         'no module for $libraryUri ($dartSourcePath)',
       );
     }
@@ -283,10 +295,10 @@ class ExpressionEvaluator {
     }
     if (error.contains('InternalError: ')) {
       error = error.replaceAll('InternalError: ', '');
-      return createError(ErrorKind.internal, error);
+      return createError(EvaluationErrorKind.internal, error);
     }
     error = error.replaceAll(_syntheticNameFilterRegex, '');
-    return createError(ErrorKind.compilation, error);
+    return createError(EvaluationErrorKind.compilation, error);
   }
 
   Future<RemoteObject> _formatEvaluationError(RemoteObject result) async {
@@ -294,10 +306,10 @@ class ExpressionEvaluator {
       var error = '${result.value}';
       if (error.startsWith('ReferenceError: ')) {
         error = error.replaceFirst('ReferenceError: ', '');
-        return createError(ErrorKind.reference, error);
+        return createError(EvaluationErrorKind.reference, error);
       } else if (error.startsWith('TypeError: ')) {
         error = error.replaceFirst('TypeError: ', '');
-        return createError(ErrorKind.type, error);
+        return createError(EvaluationErrorKind.type, error);
       } else if (error.startsWith('NetworkError: ')) {
         var modulePath = _loadModuleErrorRegex.firstMatch(error)?.group(1);
         final module = modulePath != null
@@ -310,7 +322,7 @@ class ExpressionEvaluator {
         error = 'Module is not loaded : $module (path: $modulePath). '
             'Accessing libraries that have not yet been used in the '
             'application is not supported during expression evaluation.';
-        return createError(ErrorKind.loadModule, error);
+        return createError(EvaluationErrorKind.loadModule, error);
       }
     }
     return result;
