@@ -497,12 +497,13 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         _logger.info('Please follow instructions at '
             'https://github.com/dart-lang/webdev/issues/956 '
             'to file a bug.');
+
+        return ErrorRef(
+          kind: 'error',
+          message: '${result.type}: ${result.value}',
+          id: createId(),
+        );
       }
-      return ErrorRef(
-        kind: 'error',
-        message: '${result.type}: ${result.value}',
-        id: createId(),
-      );
       return (await _instanceRef(result));
     } on RPCError catch (_) {
       rethrow;
