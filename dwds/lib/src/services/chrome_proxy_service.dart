@@ -489,21 +489,20 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
       // Handle compilation errors, internal errors,
       // and reference errors from JavaScript evaluation in chrome.
-      if (_hasEvaluationError(result.type)) {
-        if (_hasReportableEvaluationError(result.type)) {
-          _logger.warning('Failed to evaluate expression \'$expression\': '
-              '${result.type}: ${result.value}.');
 
-          _logger.info('Please follow instructions at '
-              'https://github.com/dart-lang/webdev/issues/956 '
-              'to file a bug.');
-        }
-        return ErrorRef(
-          kind: 'error',
-          message: '${result.type}: ${result.value}',
-          id: createId(),
-        );
+      if (_hasReportableEvaluationError(result.type)) {
+        _logger.warning('Failed to evaluate expression \'$expression\': '
+            '${result.type}: ${result.value}.');
+
+        _logger.info('Please follow instructions at '
+            'https://github.com/dart-lang/webdev/issues/956 '
+            'to file a bug.');
       }
+      return ErrorRef(
+        kind: 'error',
+        message: '${result.type}: ${result.value}',
+        id: createId(),
+      );
       return (await _instanceRef(result));
     } on RPCError catch (_) {
       rethrow;
@@ -519,15 +518,14 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     }
   }
 
-  bool _hasEvaluationError(String type) => type.contains('Error');
-
   // Decides if the error is serious enough to be shown to the user
   // to encourage bug reporting.
   bool _hasReportableEvaluationError(String type) {
-    if (!_hasEvaluationError(type)) return false;
+    final evaluationError = EvaluationErrorKind.fromString(type);
+    if (evaluationError == null) return false;
 
-    if (type == EvaluationErrorKind.compilation ||
-        type == EvaluationErrorKind.asyncFrame) {
+    if (evaluationError == EvaluationErrorKind.compilation ||
+        evaluationError == EvaluationErrorKind.asyncFrame) {
       return false;
     }
     return true;

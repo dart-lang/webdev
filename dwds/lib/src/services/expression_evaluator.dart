@@ -13,16 +13,24 @@ import 'package:dwds/src/utilities/objects.dart' as chrome;
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-class EvaluationErrorKind {
-  EvaluationErrorKind._();
+enum EvaluationErrorKind {
+  compilation,
+  type,
+  reference,
+  internal,
+  asyncFrame,
+  invalidInput,
+  loadModule;
 
-  static const compilation = 'CompilationError';
-  static const type = 'TypeError';
-  static const reference = 'ReferenceError';
-  static const internal = 'InternalError';
-  static const asyncFrame = 'AsyncFrameError';
-  static const invalidInput = 'InvalidInputError';
-  static const loadModule = 'LoadModuleError';
+  static final _nameMap = EvaluationErrorKind.values.asNameMap();
+
+  static EvaluationErrorKind? fromString(String value) {
+    final kind = value.split('.').last;
+    return _nameMap[kind];
+  }
+
+  @override
+  String toString() => 'EvaluationError.$name';
 }
 
 /// ExpressionEvaluator provides functionality to evaluate dart expressions
@@ -59,12 +67,10 @@ class ExpressionEvaluator {
     this._compiler,
   );
 
-  /// Create and error with [severity] and [message]
-  ///
-  /// [severity] is one of kinds in [EvaluationErrorKind]
-  RemoteObject createError(String severity, String message) {
+  /// Create an error with [kind] and [message]
+  RemoteObject createError(EvaluationErrorKind kind, String message) {
     return RemoteObject(
-      <String, String>{'type': severity, 'value': message},
+      <String, String>{'type': '$kind', 'value': message},
     );
   }
 
