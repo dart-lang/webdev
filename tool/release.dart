@@ -52,7 +52,7 @@ void main(List<String> arguments) async {
 
   int exitCode;
   if (isReset == true) {
-    exitCode = runReset(
+    exitCode = await runReset(
       package: package,
       newVersion: newVersion,
     );
@@ -68,7 +68,7 @@ void main(List<String> arguments) async {
   }
 }
 
-int runReset({
+Future<int> runReset({
   required String package,
   String? newVersion,
 }) {
@@ -81,7 +81,13 @@ int runReset({
       Current version is $currentVersion.
     ''',
     );
-    return 1;
+    return Future.value(1);
+  }
+
+  // Add the dependency overrides of DWDS back for webdev:
+  if (package == 'webdev') {
+    _updateOverrides('webdev', includeOverrides: true);
+    _updateOverrides('test_common', includeOverrides: true);
   }
 
   // Update the version strings in CHANGELOG and pubspec.yaml.
@@ -92,7 +98,9 @@ int runReset({
     isReset: true,
   );
 
-  return 0;
+  // Build the package.
+  final exitCode = _buildPackage(package);
+  return exitCode;
 }
 
 Future<int> runRelease({
@@ -116,10 +124,15 @@ Future<int> runRelease({
     }
   }
 
-  // Update the pinned version of DWDS for webdev releases.
   if (package == 'webdev') {
+    // Update the pinned version of DWDS for webdev releases.
     _logInfo('Updating pinned version of DWDS.');
-    await _updateDwdsPin(package);
+    await _updateDwdsPin('webdev');
+    await _updateDwdsPin('test_common');
+    // Remove the dependency overrides of DWDS for webdev releases:
+    _logInfo('Removing dependency overrides of DWDS.');
+    _updateOverrides('webdev', includeOverrides: false);
+    _updateOverrides('test_common', includeOverrides: false);
   }
 
   // Run dart pub upgrade.
@@ -173,6 +186,19 @@ Future<int> _buildPackage(String package) async {
     _logWarning(buildErrors);
   }
   return buildProcess.exitCode;
+}
+
+void _updateOverrides(
+  String package, {
+  required bool includeOverrides,
+}) {
+  final overridesFilePath = '../$package/pubspec_overrides.yaml';
+  final noOverridesFilePath = '../$package/ignore_pubspec_overrides.yaml';
+  if (includeOverrides) {
+    File(noOverridesFilePath).rename(overridesFilePath);
+  } else {
+    File(overridesFilePath).rename(noOverridesFilePath);
+  }
 }
 
 void _updateVersionStrings(

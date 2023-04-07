@@ -29,7 +29,8 @@ final _eventsForAngularDartDevTools = {
 
 Future<void> handleMessagesFromAngularDartDevTools(
   dynamic jsRequest,
-  MessageSender _,
+  // ignore: avoid-unused-parameters
+  MessageSender sender,
   Function sendResponse,
 ) async {
   if (jsRequest == null) return;
@@ -107,7 +108,7 @@ void _forwardMessageToAngularDartDevTools(ExternalExtensionMessage message) {
   chrome.runtime.sendMessage(
     _angularDartDevToolsId,
     message,
-    /* options */
+    // options
     null,
     allowInterop(([result]) => _checkForErrors(result, message.name)),
   );
