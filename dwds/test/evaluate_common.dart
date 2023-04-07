@@ -6,7 +6,6 @@
 @Timeout(Duration(minutes: 2))
 import 'dart:async';
 
-import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
