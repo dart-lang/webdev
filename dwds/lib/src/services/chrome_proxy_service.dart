@@ -489,7 +489,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
       // Handle compilation errors, internal errors,
       // and reference errors from JavaScript evaluation in chrome.
-
       if (_hasReportableEvaluationError(result.type)) {
         _logger.warning('Failed to evaluate expression \'$expression\': '
             '${result.type}: ${result.value}.');
