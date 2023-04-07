@@ -1,5 +1,7 @@
 ## 19.0.1-dev
 
+- Do not show async frame errors on evaluation. - [#2073](https://github.com/dart-lang/webdev/pull/2073)
+
 ## 19.0.0
 
 - Allow clients to specify the connected app's entrypoint file. - [#2047](https://github.com/dart-lang/webdev/pull/2047)
