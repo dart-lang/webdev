@@ -491,7 +491,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       // and reference errors from JavaScript evaluation in chrome.
       final evaluationError = EvaluationErrorKind.fromString(result.type);
       if (evaluationError != null) {
-        if (_hasReportableEvaluationError(evaluationError)) {
+        if (evaluationError.isReportable()) {
           _logger.warning('Failed to evaluate expression \'$expression\': '
               '${result.type}: ${result.value}.');
 
@@ -518,16 +518,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       _logger.info('$e:$s');
       return ErrorRef(kind: 'error', message: '<unknown>', id: createId());
     }
-  }
-
-  // Decides if the error is serious enough to be shown to the user
-  // to encourage bug reporting.
-  bool _hasReportableEvaluationError(EvaluationErrorKind error) {
-    final ignorableErrors = [
-      EvaluationErrorKind.compilation,
-      EvaluationErrorKind.asyncFrame,
-    ];
-    return !ignorableErrors.contains(error);
   }
 
   @override

@@ -24,6 +24,12 @@ enum EvaluationErrorKind {
 
   static final _nameMap = EvaluationErrorKind.values.asNameMap();
 
+  /// The following errors are not serious enough to be shown to the user:
+  static final _ignorableErrors = {
+    EvaluationErrorKind.asyncFrame,
+    EvaluationErrorKind.compilation,
+  };
+
   static EvaluationErrorKind? fromString(String value) {
     final kind = value.split('.').last;
     return _nameMap[kind];
@@ -31,6 +37,10 @@ enum EvaluationErrorKind {
 
   @override
   String toString() => 'EvaluationError.$name';
+
+  // Determines whether the error is serious enough to be shown to the user to
+  // encourage bug reporting.
+  bool isReportable() => !_ignorableErrors.contains(this);
 }
 
 /// ExpressionEvaluator provides functionality to evaluate dart expressions
