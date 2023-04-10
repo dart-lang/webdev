@@ -21,7 +21,7 @@ const _packageOption = 'package';
 const _versionOption = 'version';
 const _resetFlag = 'reset';
 
-late String? accessToken;
+late String? _accessToken;
 
 void main(List<String> arguments) async {
   final parser = ArgParser()
@@ -36,6 +36,7 @@ void main(List<String> arguments) async {
     ..addOption(_versionOption, abbr: 'v')
     ..addFlag(_resetFlag, abbr: 'r');
 
+  // Parse the arguments:
   final argResults = parser.parse(arguments);
   final package = argResults[_packageOption] as String?;
   if (package == null) {
@@ -47,9 +48,10 @@ void main(List<String> arguments) async {
     _logWarning('Please specify the version with -v X.X.X');
     return;
   }
+  final isReset = argResults[_resetFlag] as bool? ?? false;
 
-  final isReset = argResults[_resetFlag] as bool?;
-  if (isReset ?? false) {
+  // Either reset the CHANGELOG after release, or populate it for release:
+  if (isReset) {
     _resetChangelog(
       package: package,
       version: version,
@@ -79,13 +81,8 @@ void _populateChangelog({
   required String package,
   required String version,
 }) async {
-  // Populating the CHANGELOG requires calling Github APIs, check if there is an
-  // access token for authentication:
-  accessToken = await _checkAccessToken();
-  if (accessToken == null) {
-    _logWarning(
-        'No access token found, will call Github APIs without authenticating.');
-  }
+  _logInfo('Checking access token for authentication with Github APIs');
+  _accessToken = await _checkAccessToken();
   _logInfo('Getting latest release name');
   final latestReleaseName = _latestReleaseName(package);
   _logInfo('Looking up commit for $latestReleaseName');
@@ -125,6 +122,8 @@ Future<String?> _checkAccessToken() async {
   if (tokenFileExists) {
     return tokenFile.readAsString();
   }
+  _logWarning(
+      'No personal access token found, will call Github APIs without authenticating.');
   return null;
 }
 
@@ -211,10 +210,10 @@ dynamic _githubQuery(String requestPath, {Map<String, dynamic>? params}) async {
     '/repos/dart-lang/webdev/$requestPath',
     params,
   );
-  final githubResponse = accessToken == null
+  final githubResponse = _accessToken == null
       ? await http.get(uri)
       : await http.get(uri, headers: {
-          HttpHeaders.authorizationHeader: 'token $accessToken',
+          HttpHeaders.authorizationHeader: 'token $_accessToken',
         });
   return jsonDecode(githubResponse.body);
 }
