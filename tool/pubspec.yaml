@@ -7,5 +7,5 @@ environment:
 
 dev_dependencies:
   args: ^2.4.0
-dependencies:
+  collection: ^1.15.0
   http: ^0.13.5
