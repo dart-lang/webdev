@@ -12,18 +12,13 @@ import 'package:http/http.dart' as http;
 /// Note: This script is run from the release script. If you need to run it
 /// manually, you can do so with:
 ///
-/// `dart run generate_changelog.dart -p dwds -n X.X.X -c X.X.X --reset`
+/// `dart run generate_changelog.dart -p dwds -v X.X.X --reset`
 ///  - p is the package (either webdev or dwds)
-///  - n is the next release number
-///  - c is the current release number
+///  - v is the version number
 ///  -- reset is an optional flag for resetting the CHANGELOG after a release
-///
-/// To generate the CHANGELOG for WebDev:
-///  `dart run generate_changelog.dart -p webdev`
 
 const _packageOption = 'package';
-const _nextVersionOption = 'next';
-const _currentVersionOption = 'current';
+const _versionOption = 'version';
 const _resetFlag = 'reset';
 
 late String? accessToken;
@@ -38,8 +33,7 @@ void main(List<String> arguments) async {
         'dwds',
       ],
     )
-    ..addOption(_nextVersionOption, abbr: 'n')
-    ..addOption(_currentVersionOption, abbr: 'c')
+    ..addOption(_versionOption, abbr: 'v')
     ..addFlag(_resetFlag, abbr: 'r');
 
   final argResults = parser.parse(arguments);
@@ -48,9 +42,9 @@ void main(List<String> arguments) async {
     _logWarning('Please specify package with either -p dwds or -p webdev');
     return;
   }
-  final nextVersion = argResults[_nextVersionOption] as String?;
-  if (nextVersion == null) {
-    _logWarning('Please specify the next version with -n X.X.X');
+  final version = argResults[_versionOption] as String?;
+  if (version == null) {
+    _logWarning('Please specify the version with -v X.X.X');
     return;
   }
 
@@ -58,25 +52,24 @@ void main(List<String> arguments) async {
   if (isReset ?? false) {
     _resetChangelog(
       package: package,
-      nextVersion: nextVersion,
+      version: version,
     );
   } else {
     _populateChangelog(
       package: package,
-      nextVersion: nextVersion,
-      currentVersion: argResults[_currentVersionOption] as String?,
+      version: version,
     );
   }
 }
 
 void _resetChangelog({
   required String package,
-  required String nextVersion,
+  required String version,
 }) {
   _prependLinesToChangelog(
     package,
     lines: [
-      '## $nextVersion',
+      '## $version',
       ' - Do not edit, CHANGELOG is populated during the release process.'
     ],
   );
@@ -84,8 +77,7 @@ void _resetChangelog({
 
 void _populateChangelog({
   required String package,
-  required String nextVersion,
-  String? currentVersion,
+  required String version,
 }) async {
   // Populating the CHANGELOG requires calling Github APIs, check if there is an
   // access token for authentication:
@@ -94,21 +86,22 @@ void _populateChangelog({
     _logWarning(
         'No access token found, will call Github APIs without authenticating.');
   }
-  final latestReleaseName = currentVersion ?? _latestReleaseName(package);
-  _logInfo('Looking up commit for $latestReleaseName...');
+  _logInfo('Getting latest release name');
+  final latestReleaseName = _latestReleaseName(package);
+  _logInfo('Looking up commit for $latestReleaseName');
   final commit = await _findCommitMatchingTagName(latestReleaseName);
-  _logInfo('Getting all commits since ${commit.sha}...');
+  _logInfo('Getting all commits since ${commit.sha}');
   final commits = await _getCommitsSince(commit);
-  _logInfo('Getting the associated pulls for those commits...');
+  _logInfo('Getting the associated pulls for those commits');
   final pulls = await _getPullsForPackage(
     commits,
     package: package,
   );
-  _logInfo('Writing pulls info to CHANGELOG...');
+  _logInfo('Writing pulls info to CHANGELOG');
   _writePullsToChangelog(
     pulls,
     package: package,
-    version: nextVersion,
+    version: version,
   );
 }
 

@@ -111,7 +111,9 @@ Future<int> runRelease({
 }) async {
   // Check that we are on a stable version of Dart.
   if (skipStableCheck != true) {
-    final checkVersionProcess = await Process.run('dart', ['--version']);
+    final checkVersionProcess = _logProcess(
+      await Process.run('dart', ['--version']),
+    );
     final versionInfo = checkVersionProcess.stdout as String;
     if (!versionInfo.contains('stable')) {
       _logWarning(
@@ -145,13 +147,15 @@ Future<int> runRelease({
     '../test_common',
   ]) {
     _logInfo('Upgrading pub packages for $packagePath');
-    final pubUpgradeProcess = await Process.run(
-      'dart',
-      [
-        'pub',
-        'upgrade',
-      ],
-      workingDirectory: packagePath,
+    final pubUpgradeProcess = _logProcess(
+      await Process.run(
+        'dart',
+        [
+          'pub',
+          'upgrade',
+        ],
+        workingDirectory: packagePath,
+      ),
     );
     final upgradeErrors = pubUpgradeProcess.stderr as String;
     if (upgradeErrors.isNotEmpty) {
@@ -176,16 +180,13 @@ Future<int> runRelease({
 
 Future<int> _buildPackage(String package) async {
   _logInfo('Building $package');
-  final buildProcess = await Process.run(
-    'dart',
-    ['run', 'build_runner', 'build'],
-    workingDirectory: '../$package',
+  final buildProcess = _logProcess(
+    await Process.run(
+      'dart',
+      ['run', 'build_runner', 'build'],
+      workingDirectory: '../$package',
+    ),
   );
-
-  final buildErrors = buildProcess.stderr as String;
-  if (buildErrors.isNotEmpty) {
-    _logWarning(buildErrors);
-  }
   return buildProcess.exitCode;
 }
 
@@ -218,8 +219,7 @@ Future<void> _updatePubspecAndChangelog(
   // Populate the CHANGELOG:
   await _runChangelogGenerator(
     package,
-    currentVersion: currentVersion,
-    nextVersion: nextVersion,
+    version: nextVersion,
     isReset: isReset,
   );
 }
@@ -236,28 +236,25 @@ void _updatePubspecVersion(
 
 Future<int> _runChangelogGenerator(
   String package, {
-  required String nextVersion,
-  required String currentVersion,
+  required String version,
   required bool isReset,
 }) async {
   _logInfo('Running the CHANGELOG generator for $package');
-  final generateChangelogProcess = await Process.run(
-    'dart',
-    [
-      'run',
-      'generate_changelog.dart',
-      '-n',
-      nextVersion,
-      '-c',
-      currentVersion,
-      if (isReset) '--reset',
-    ],
+  final generateChangelogProcess = _logProcess(
+    await Process.run(
+      'dart',
+      [
+        'run',
+        'generate_changelog.dart',
+        '-p',
+        package,
+        '-v',
+        version,
+        if (isReset) '--reset',
+      ],
+    ),
+    logInfo: true,
   );
-
-  final generateChangelogErrors = generateChangelogProcess.stderr as String;
-  if (generateChangelogErrors.isNotEmpty) {
-    _logWarning(generateChangelogErrors);
-  }
   return generateChangelogProcess.exitCode;
 }
 
@@ -303,14 +300,16 @@ String _removeDev(String devVersion) {
 }
 
 Future<void> _updateDwdsPin(String package) async {
-  final pubOutdatedProcess = await Process.run(
-    'dart',
-    [
-      'pub',
-      'outdated',
-      '--no-dependency-overrides',
-    ],
-    workingDirectory: '../$package',
+  final pubOutdatedProcess = _logProcess(
+    await Process.run(
+      'dart',
+      [
+        'pub',
+        'outdated',
+        '--no-dependency-overrides',
+      ],
+      workingDirectory: '../$package',
+    ),
   );
   final lines = pubOutdatedProcess.stdout.split('\n') as List<String>;
   for (final line in lines) {
@@ -328,6 +327,22 @@ Future<void> _updateDwdsPin(String package) async {
       );
     }
   }
+}
+
+ProcessResult _logProcess(
+  ProcessResult process, {
+  bool logErrors = true,
+  bool logInfo = false,
+}) {
+  if (logErrors) {
+    final processErrors = process.stderr as String;
+    if (processErrors.isNotEmpty) _logWarning(processErrors);
+  }
+  if (logInfo) {
+    final processInfo = process.stdout as String;
+    if (processInfo.isNotEmpty) _logInfo(processInfo);
+  }
+  return process;
 }
 
 void _logInfo(String message) {
