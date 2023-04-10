@@ -446,6 +446,65 @@ class InstanceHelper extends Domain {
           .where((p) => p.name != null && int.tryParse(p.name!) != null)
           .toList();
 
+  /// The field names for a Dart record shape.
+  ///
+  /// Returns a range of [count] fields, if available, starting from
+  /// the [offset].
+  ///
+  /// If [offset] is `null`, assumes 0 offset.
+  /// If [count] is `null`, return all fields starting from the offset.
+  /// The [shape] object describes the shape using `positionalCount`
+  /// and `named` fields.
+  ///
+  /// Returns list of field names for the record shape.
+  Future<List<dynamic>> _recordShapeFields(
+    RemoteObject shape, {
+    int? offset,
+    int? count,
+  }) async {
+    final positionalCountObject =
+        await inspector.loadField(shape, 'positionalCount');
+    if (positionalCountObject == null || positionalCountObject.value is! int) {
+      _logger.warning(
+        'Unexpected positional count from record: $positionalCountObject',
+      );
+      return [];
+    }
+
+    final namedObject = await inspector.loadField(shape, 'named');
+    final positionalCount = positionalCountObject.value as int;
+    final positionalOffset = offset ?? 0;
+    final positionalAvailable =
+        _remainingCount(positionalOffset, positionalCount);
+    final positionalRangeCount =
+        min(positionalAvailable, count ?? positionalAvailable);
+    final positionalElements = [
+      for (var i = positionalOffset + 1;
+          i <= positionalOffset + positionalRangeCount;
+          i++)
+        i
+    ];
+
+    // Collect named fields in the requested range.
+    // Account for already collected positional fields.
+    final namedRangeOffset =
+        offset == null ? null : _remainingCount(positionalCount, offset);
+    final namedRangeCount =
+        count == null ? null : _remainingCount(positionalRangeCount, count);
+    final namedInstance = await instanceFor(
+      namedObject,
+      offset: namedRangeOffset,
+      count: namedRangeCount,
+    );
+    final namedElements =
+        namedInstance?.elements?.map((e) => e.valueAsString) ?? [];
+
+    return [
+      ...positionalElements,
+      ...namedElements,
+    ];
+  }
+
   /// The fields for a Dart Record.
   ///
   /// Returns a range of [count] fields, if available, starting from
@@ -479,51 +538,10 @@ class InstanceHelper extends Domain {
       }
     ''';
     final result = await inspector.jsCallFunctionOn(record, expression, []);
-    final positionalCountObject =
-        await inspector.loadField(result, 'positionalCount');
-    if (positionalCountObject == null || positionalCountObject.value is! int) {
-      _logger.warning(
-        'Unexpected positional count from record: $positionalCountObject',
-      );
-      return [];
-    }
+    final fieldNameElements =
+        await _recordShapeFields(result, offset: offset, count: count);
 
-    final namedObject = await inspector.loadField(result, 'named');
     final valuesObject = await inspector.loadField(result, 'values');
-
-    // Collect positional fields in the requested range.
-    final positionalCount = positionalCountObject.value as int;
-    final positionalOffset = offset ?? 0;
-    final positionalAvailable =
-        _remainingCount(positionalOffset, positionalCount);
-    final positionalRangeCount =
-        min(positionalAvailable, count ?? positionalAvailable);
-    final positionalElements = [
-      for (var i = positionalOffset + 1;
-          i <= positionalOffset + positionalRangeCount;
-          i++)
-        i
-    ];
-
-    // Collect named fields in the requested range.
-    // Account for already collected positional fields.
-    final namedRangeOffset =
-        offset == null ? null : _remainingCount(positionalCount, offset);
-    final namedRangeCount =
-        count == null ? null : _remainingCount(positionalRangeCount, count);
-    final namedInstance = await instanceFor(
-      namedObject,
-      offset: namedRangeOffset,
-      count: namedRangeCount,
-    );
-    final namedElements =
-        namedInstance?.elements?.map((e) => e.valueAsString) ?? [];
-
-    final fieldNameElements = [
-      ...positionalElements,
-      ...namedElements,
-    ];
-
     final valuesInstance =
         await instanceFor(valuesObject, offset: offset, count: count);
     final valueElements = valuesInstance?.elements ?? [];
@@ -533,11 +551,19 @@ class InstanceHelper extends Domain {
       return [];
     }
 
-    final fields = <BoundField>[];
-    Map.fromIterables(fieldNameElements, valueElements).forEach((key, value) {
-      fields.add(BoundField(name: key, value: value));
+    return _elementsToBoundFields(fieldNameElements, valueElements);
+  }
+
+  /// Create a list of `BoundField`s from field [names] and [values].
+  static List<BoundField> _elementsToBoundFields(
+    List<dynamic> names,
+    List<dynamic> values,
+  ) {
+    final boundFields = <BoundField>[];
+    Map.fromIterables(names, values).forEach((name, value) {
+      boundFields.add(BoundField(name: name, value: value));
     });
-    return fields;
+    return boundFields;
   }
 
   static int _remainingCount(int collected, int requested) {
