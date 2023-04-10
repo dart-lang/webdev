@@ -1,4 +1,5 @@
 ## 3.0.5-dev
+ - Do not edit, CHANGELOG is generated during the release process.
 
 ## 3.0.4
 

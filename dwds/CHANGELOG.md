@@ -1,5 +1,5 @@
 ## 19.0.1-dev
- - Do not edit.
+ - Do not edit, CHANGELOG is generated during the release process.
  
 ## 19.0.0
 
