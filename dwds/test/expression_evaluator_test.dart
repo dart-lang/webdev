@@ -133,7 +133,8 @@ void main() async {
         expect(
           result,
           isA<RemoteObject>()
-              .having((o) => o.json['type'], 'type', 'AsyncFrameError')
+              .having(
+                  (o) => o.json['type'], 'type', 'EvaluationError.asyncFrame',)
               .having(
                 (o) => o.json['value'],
                 'value',
@@ -162,7 +163,7 @@ void main() async {
         expect(
           result,
           const TypeMatcher<RemoteObject>()
-              .having((o) => o.type, 'type', 'InternalError')
+              .having((o) => o.type, 'type', 'EvaluationError.internal')
               .having(
                 (o) => o.value,
                 'value',
@@ -180,7 +181,7 @@ void main() async {
         expect(
           result,
           const TypeMatcher<RemoteObject>()
-              .having((o) => o.type, 'type', 'InternalError')
+              .having((o) => o.type, 'type', 'EvaluationError.internal')
               .having((o) => o.value, 'value', contains('evaluator closed')),
         );
       });
@@ -210,7 +211,7 @@ void main() async {
         expect(
           result,
           const TypeMatcher<RemoteObject>()
-              .having((o) => o.type, 'type', 'InternalError')
+              .having((o) => o.type, 'type', 'EvaluationError.internal')
               .having((o) => o.value, 'value', contains('evaluator closed')),
         );
       });
