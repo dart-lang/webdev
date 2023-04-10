@@ -9,15 +9,22 @@ import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 
-const _packageOption = 'package';
-
-/// Note: Must be run from the /tool directory.
+/// Note: This script is run from the release script. If you need to run it
+/// manually, you can do so with:
 ///
-/// To generate the CHANGELOG for dwds:
-///  `dart run generate_changelog.dart -p dwds`
+/// `dart run generate_changelog.dart -p dwds -n X.X.X -c X.X.X --reset`
+///  - p is the package (either webdev or dwds)
+///  - n is the next release number
+///  - c is the current release number
+///  -- reset is an optional flag for resetting the CHANGELOG after a release
 ///
 /// To generate the CHANGELOG for WebDev:
 ///  `dart run generate_changelog.dart -p webdev`
+
+const _packageOption = 'package';
+const _nextVersionOption = 'next';
+const _currentVersionOption = 'current';
+const _resetFlag = 'reset';
 
 late String? accessToken;
 
@@ -30,24 +37,93 @@ void main(List<String> arguments) async {
         'webdev',
         'dwds',
       ],
-    );
+    )
+    ..addOption(_nextVersionOption, abbr: 'n')
+    ..addOption(_currentVersionOption, abbr: 'c')
+    ..addFlag(_resetFlag, abbr: 'r');
 
   final argResults = parser.parse(arguments);
   final package = argResults[_packageOption] as String?;
   if (package == null) {
-    _logWarning('Please specify package with either -p=dwds or -p=webdev');
+    _logWarning('Please specify package with either -p dwds or -p webdev');
+    return;
+  }
+  final nextVersion = argResults[_nextVersionOption] as String?;
+  if (nextVersion == null) {
+    _logWarning('Please specify the next version with -n X.X.X');
     return;
   }
 
+  final isReset = argResults[_resetFlag] as bool?;
+  if (isReset ?? false) {
+    _resetChangelog(
+      package: package,
+      nextVersion: nextVersion,
+    );
+  } else {
+    _populateChangelog(
+      package: package,
+      nextVersion: nextVersion,
+      currentVersion: argResults[_currentVersionOption] as String?,
+    );
+  }
+}
+
+void _resetChangelog({
+  required String package,
+  required String nextVersion,
+}) {
+  _prependLinesToChangelog(
+    package,
+    lines: [
+      '## $nextVersion',
+      ' - Do not edit, CHANGELOG is populated during the release process.'
+    ],
+  );
+}
+
+void _populateChangelog({
+  required String package,
+  required String nextVersion,
+  String? currentVersion,
+}) async {
+  // Populating the CHANGELOG requires calling Github APIs, check if there is an
+  // access token for authentication:
   accessToken = await _checkAccessToken();
   if (accessToken == null) {
     _logWarning(
         'No access token found, will call Github APIs without authenticating.');
   }
-
-  _generateChangelog(
+  final latestReleaseName = currentVersion ?? _latestReleaseName(package);
+  _logInfo('Looking up commit for $latestReleaseName...');
+  final commit = await _findCommitMatchingTagName(latestReleaseName);
+  _logInfo('Getting all commits since ${commit.sha}...');
+  final commits = await _getCommitsSince(commit);
+  _logInfo('Getting the associated pulls for those commits...');
+  final pulls = await _getPullsForPackage(
+    commits,
     package: package,
   );
+  _logInfo('Writing pulls info to CHANGELOG...');
+  _writePullsToChangelog(
+    pulls,
+    package: package,
+    version: nextVersion,
+  );
+}
+
+void _prependLinesToChangelog(
+  String package, {
+  required List<String> lines,
+}) {
+  final changelog = File('../$package/CHANGELOG.md');
+  final newLines = [
+    ...lines,
+    '',
+    ...changelog.readAsLinesSync(),
+  ];
+  final content = newLines.joinWithNewLine();
+  return changelog.writeAsStringSync(content);
 }
 
 Future<String?> _checkAccessToken() async {
@@ -59,25 +135,11 @@ Future<String?> _checkAccessToken() async {
   return null;
 }
 
-void _generateChangelog({
-  required String package,
-}) async {
-  _logInfo('Getting latest release for $package...');
-  final latestReleaseName = _latestReleaseName(package);
-  _logInfo('Looking up commit for $latestReleaseName...');
-  final commit = await _findCommitMatchingTagName(latestReleaseName);
-  _logInfo('Getting all commits since ${commit.sha}...');
-  final commits = await _getCommitsSince(commit);
-  _logInfo('Getting the associated pulls for those commits...');
-  final pulls = await _getPullsForPackage(commits, package: package);
-  _logInfo('Writing pulls info to CHANGELOG...');
-  _writePullsToChangelog(pulls, package: package);
-}
-
 String _latestReleaseName(String package) {
+  _logInfo('Getting latest release for $package...');
   final changelog = File('../$package/CHANGELOG.md');
   final lines = changelog.readAsLinesSync();
-  // The third line contains the latest release in the format "## XX.X.X":
+  // The third line contains the latest release in the format "## X.X.X":
   return lines[3].trim().substring(3);
 }
 
@@ -129,6 +191,7 @@ Future<List<_PullInfo>> _getPullsForPackage(
 
 void _writePullsToChangelog(
   List<_PullInfo> pulls, {
+  required String version,
   required String package,
 }) {
   final pullInfoLines = pulls.map((pull) {
@@ -140,7 +203,7 @@ void _writePullsToChangelog(
   final changelog = File('../$package/CHANGELOG.md');
   final changelogLines = changelog.readAsLinesSync();
   final newContent = [
-    changelogLines[0], // The version header, e.g. "## XX.X.X"
+    '## $version', // The version header, e.g. "## X.X.X"
     '', // A new line
     ...pullInfoLines,
     '', // Another new line

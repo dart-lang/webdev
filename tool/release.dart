@@ -6,11 +6,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
-const _packageOption = 'package';
-const _versionOption = 'version';
-const _resetFlag = 'reset';
-const _skipStableCheckFlag = 'skipStableCheck';
-
 /// Note: Must be run from the /tool directory.
 ///
 /// To prepare DWDS for release:
@@ -24,6 +19,11 @@ const _skipStableCheckFlag = 'skipStableCheck';
 ///
 /// To reset WebDev after a release:
 ///   `dart run release.dart --reset -p webdev -v -[[dev version]]`
+
+const _packageOption = 'package';
+const _versionOption = 'version';
+const _resetFlag = 'reset';
+const _skipStableCheckFlag = 'skipStableCheck';
 
 void main(List<String> arguments) async {
   final parser = ArgParser()
@@ -42,24 +42,24 @@ void main(List<String> arguments) async {
   final argResults = parser.parse(arguments);
   final package = argResults[_packageOption] as String?;
   if (package == null) {
-    _logWarning('Please specify package with either --p=dwds or --p=webdev');
+    _logWarning('Please specify package with either -p dwds or -p webdev');
     return;
   }
 
   final isReset = argResults[_resetFlag] as bool?;
-  final newVersion = argResults[_versionOption] as String?;
+  final nextVersion = argResults[_versionOption] as String?;
   final skipStableCheck = argResults[_skipStableCheckFlag] as bool?;
 
   int exitCode;
   if (isReset == true) {
     exitCode = await runReset(
       package: package,
-      newVersion: newVersion,
+      nextVersion: nextVersion,
     );
   } else {
     exitCode = await runRelease(
       package: package,
-      newVersion: newVersion,
+      nextVersion: nextVersion,
       skipStableCheck: skipStableCheck,
     );
   }
@@ -70,11 +70,11 @@ void main(List<String> arguments) async {
 
 Future<int> runReset({
   required String package,
-  String? newVersion,
-}) {
+  String? nextVersion,
+}) async {
   // Check that a new dev version has been provided.
   final currentVersion = _readVersionFile(package);
-  if (newVersion == null || !newVersion.contains('dev')) {
+  if (nextVersion == null || !nextVersion.contains('dev')) {
     _logInfo(
       '''
       Please provide the next dev version for $package, e.g. -v 3.0.1-dev
@@ -86,15 +86,16 @@ Future<int> runReset({
 
   // Add the dependency overrides of DWDS back for webdev:
   if (package == 'webdev') {
+    _logInfo('Adding back dependency overrides for DWDS.');
     _updateOverrides('webdev', includeOverrides: true);
     _updateOverrides('test_common', includeOverrides: true);
   }
 
   // Update the version strings in CHANGELOG and pubspec.yaml.
-  _updateVersionStrings(
+  await _updatePubspecAndChangelog(
     package,
     currentVersion: currentVersion,
-    nextVersion: newVersion,
+    nextVersion: nextVersion,
     isReset: true,
   );
 
@@ -105,7 +106,7 @@ Future<int> runReset({
 
 Future<int> runRelease({
   required String package,
-  String? newVersion,
+  String? nextVersion,
   bool? skipStableCheck,
 }) async {
   // Check that we are on a stable version of Dart.
@@ -161,11 +162,11 @@ Future<int> runRelease({
 
   // Update the version strings in CHANGELOG and pubspec.yaml.
   final currentVersion = _readVersionFile(package);
-  final nextVersion = newVersion ?? _removeDev(currentVersion);
-  _updateVersionStrings(
+  await _updatePubspecAndChangelog(
     package,
     currentVersion: currentVersion,
-    nextVersion: nextVersion,
+    nextVersion: nextVersion ?? _removeDev(currentVersion),
+    isReset: false,
   );
 
   // Build the package.
@@ -201,32 +202,63 @@ void _updateOverrides(
   }
 }
 
-void _updateVersionStrings(
+Future<void> _updatePubspecAndChangelog(
+  String package, {
+  required String currentVersion,
+  required String nextVersion,
+  required bool isReset,
+}) async {
+  // Update the version in pubspec.yaml.
+  _updatePubspecVersion(
+    package,
+    currentVersion: currentVersion,
+    nextVersion: nextVersion,
+  );
+
+  // Populate the CHANGELOG:
+  await _runChangelogGenerator(
+    package,
+    currentVersion: currentVersion,
+    nextVersion: nextVersion,
+    isReset: isReset,
+  );
+}
+
+void _updatePubspecVersion(
   String package, {
   required String nextVersion,
   required String currentVersion,
-  bool isReset = false,
 }) {
   _logInfo('Updating $package from $currentVersion to $nextVersion');
   final pubspec = File('../$package/pubspec.yaml');
-  final changelog = File('../$package/CHANGELOG.md');
-  if (isReset) {
-    _addNewLine(changelog, newLine: '## $nextVersion');
-    _replaceInFile(pubspec, query: currentVersion, replaceWith: nextVersion);
-  } else {
-    for (final file in [pubspec, changelog]) {
-      _replaceInFile(file, query: currentVersion, replaceWith: nextVersion);
-    }
-  }
+  _replaceInFile(pubspec, query: currentVersion, replaceWith: nextVersion);
 }
 
-void _addNewLine(
-  File file, {
-  required String newLine,
-}) {
-  final newLines = [newLine, '', ...file.readAsLinesSync()];
-  final content = newLines.joinWithNewLine();
-  return file.writeAsStringSync(content);
+Future<int> _runChangelogGenerator(
+  String package, {
+  required String nextVersion,
+  required String currentVersion,
+  required bool isReset,
+}) async {
+  _logInfo('Running the CHANGELOG generator for $package');
+  final generateChangelogProcess = await Process.run(
+    'dart',
+    [
+      'run',
+      'generate_changelog.dart',
+      '-n',
+      nextVersion,
+      '-c',
+      currentVersion,
+      if (isReset) '--reset',
+    ],
+  );
+
+  final generateChangelogErrors = generateChangelogProcess.stderr as String;
+  if (generateChangelogErrors.isNotEmpty) {
+    _logWarning(generateChangelogErrors);
+  }
+  return generateChangelogProcess.exitCode;
 }
 
 void _replaceInFile(
