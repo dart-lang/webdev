@@ -134,7 +134,10 @@ void main() async {
           result,
           isA<RemoteObject>()
               .having(
-                  (o) => o.json['type'], 'type', 'EvaluationError.asyncFrame',)
+                (o) => o.json['type'],
+                'type',
+                'EvaluationError.asyncFrame',
+              )
               .having(
                 (o) => o.json['value'],
                 'value',
