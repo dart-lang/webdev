@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:core';
+import 'dart:developer';
 import 'dart:html';
 
 import 'package:_test_package_sound/test_library.dart';
@@ -27,6 +29,7 @@ void main() async {
   });
 
   // for evaluation
+  var extensionId = 0;
   Timer.periodic(const Duration(seconds: 1), (_) async {
     await asyncMethod();
     printLocal();
@@ -46,9 +49,18 @@ void main() async {
     printList();
     printMap();
     printSet();
+    // For testing evaluation in async JS frames.
+    registerUserExtension(extensionId++);
   });
 
   document.body?.appendText(concatenate('Program', ' is running!'));
+}
+
+void registerUserExtension(int id) async {
+  registerExtension('ext.extension$id', (_, __) async {
+    print('Hello World from extension$id');
+    return ServiceExtensionResponse.result(json.encode({'success': true}));
+  });
 }
 
 Future<int> asyncMethod() async {
