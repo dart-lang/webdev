@@ -13,7 +13,6 @@ github:
         - '**.yml'
   env:
     DISPLAY: ':99'
-  cron: '0 0 * * 0' # "At 00:00 (UTC) on Sunday."
   on_completion:
     - name: "Notify failure"
       runs-on: ubuntu-latest
