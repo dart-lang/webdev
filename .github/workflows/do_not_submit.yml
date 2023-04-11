@@ -1,4 +1,4 @@
-# A workflow to prevent PRs labeled "do-not-submit" from being merged.
+# A workflow to prevent PRs labeled "do-not-submit" from being submitted.
 
 name: Do Not Submit
 
@@ -7,7 +7,7 @@ on:
     types: [synchronize, opened, reopened, labeled, unlabeled]
 
 jobs:
-  do-not-merge:
+  do-not-submit:
     if: ${{ contains(github.event.*.labels.*.name, 'do-not-submit') }}
     name: Prevent submission
     runs-on: ubuntu-latest
