@@ -1,4 +1,5 @@
 # A workflow to prevent PRs labeled "do-not-submit" from being merged.
+
 name: Do Not Submit
 
 on:
