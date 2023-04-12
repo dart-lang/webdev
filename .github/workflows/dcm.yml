@@ -1,0 +1,30 @@
+# A CI workflow to run the Dart Code Metrics analyzer (https://dcm.dev).
+
+name: Dart Code Metrics
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  dcm:
+    name: Dart Code Metrics
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install DCM
+        run: |
+          set -x
+          sudo apt-get update
+          wget -qO- https://dcm.dev/pgp-key.public | sudo gpg --dearmor -o /usr/share/keyrings/dcm.gpg
+          echo 'deb [signed-by=/usr/share/keyrings/dcm.gpg arch=amd64] https://dcm.dev/debian stable main' | sudo tee /etc/apt/sources.list.d/dart_stable.list
+          sudo apt-get update
+          sudo apt-get install dcm
+          sudo chmod +x /usr/bin/dcm
+      - name: Checkout repositiory
+        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
+      - name: Run DCM on DWDS
+        run: |
+          dcm analyze --ci-key="$${{ secrets.DCM_KEY }}" --email="${{ secrets.DCM_EMAIL }}" lib
+        working-directory: dwds
