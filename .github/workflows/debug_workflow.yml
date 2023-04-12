@@ -1,0 +1,16 @@
+name: Debugging only
+
+on:
+  pull_request:
+
+jobs:
+  print-vars:
+    name: Print github vars
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print vars
+        run: |
+          echo "WORKFLOW: ${github.workflow}"
+          echo "HEAD REF: ${github.head_ref}"
+          echo "REF: ${github.ref}"
+          exit 1;
