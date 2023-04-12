@@ -8,7 +8,7 @@ github:
     pull_request:
       concurrency:
         group: ${{ github.workflow }}-${{ github.head_ref }}
-        cancel-in-progress: true
+        cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
   env:
     DISPLAY: ':99'
   on_completion:
