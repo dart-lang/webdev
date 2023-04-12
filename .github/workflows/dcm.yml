@@ -4,6 +4,7 @@ name: Dart Code Metrics
 
 on:
   pull_request_target:
+    types: [opened, synchronize, reopened]
 
 jobs:
   dcm:
