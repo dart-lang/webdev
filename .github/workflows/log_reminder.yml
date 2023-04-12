@@ -5,8 +5,8 @@ name: Changelog Reminder
 on:
   pull_request:
     types: [synchronize, opened, reopened, labeled, unlabeled]
-    paths-ignore:
-      - '**/CHANGELOG.md'
+    paths:
+      - '**/*.dart'
 
 jobs:
   changelog-reminder:
@@ -14,8 +14,18 @@ jobs:
     name: Prevent submission
     runs-on: ubuntu-latest
     steps:
-      - name: Request CHANGELOG update
+      - name: Checkout repositiory
+        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - name: Check changed files
         run: |
-          echo "Did not detect an update to the CHANGELOG in this PR."
-          echo "Please update the CHANGELOG, or add the 'changelog-not-required' label."
+          CHANGELOG='CHANGELOG.md'
+          PR_DIFF=$(git diff origin/master --compact-summary)
+          echo "$PR_DIFF"
+          case $CHANGELOG in
+            *"$PR_DIFF"*)
+              exit 0
+            ;;
+          esac
+          echo "Did not detect an update to the CHANGELOG.md in this PR."
+          echo "Please update the CHANGELOG.md, or add the 'changelog-not-required' label."
           exit 1
