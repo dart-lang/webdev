@@ -3,15 +3,12 @@
 name: Dart Code Metrics
 
 on:
-  pull_request
+  pull_request_target
 
 jobs:
   dcm:
     name: Dart Code Metrics
     runs-on: ubuntu-latest
-    env:
-      DCM_EMAIL: "fake-email"
-      DCM_CI_KEY: "fake-key"
     steps:
       - name: Install DCM
         run: |
@@ -29,6 +26,5 @@ jobs:
         uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
       - name: Run DCM on DWDS
         run: |
-          set -x
-          dcm analyze --ci-key="$DCM_CI_KEY" --email="$DCM_EMAIL" lib
+          dcm analyze --ci-key="$${{ secrets.DCM_KEY }}" --email="${{ secrets.DCM_EMAIL }}" lib
         working-directory: dwds
