@@ -11,7 +11,7 @@ on:
 jobs:
   changelog-reminder:
     if: ${{ !contains(github.event.*.labels.*.name, 'changelog-not-required') }}
-    name: Prevent submission
+    name: Maybe prevent submission
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repositiory
