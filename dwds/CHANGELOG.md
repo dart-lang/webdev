@@ -2,6 +2,7 @@
 
 - Do not show async frame errors on evaluation. - [#2073](https://github.com/dart-lang/webdev/pull/2073)
 - Refactor code for presenting record instances. - [#2074](https://github.com/dart-lang/webdev/pull/2074)
+- Example changelog update.
 
 ## 19.0.0
 
