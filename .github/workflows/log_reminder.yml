@@ -5,9 +5,8 @@ name: Changelog Reminder
 on:
   pull_request:
     types: [synchronize, opened, reopened, labeled, unlabeled]
-    paths:
-      - '**/*.dart'
-      - '!**/CHANGELOG.md'
+    paths-ignore:
+      - '**/CHANGELOG.md'
 
 jobs:
   changelog-reminder:
