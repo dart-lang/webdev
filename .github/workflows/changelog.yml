@@ -3,14 +3,14 @@
 name: Changelog Reminder
 
 on:
-  pull_request
+  pull_request:
     types: [synchronize, opened, reopened, labeled, unlabeled]
     paths:
       - '**/*.dart'
 
 jobs:
   changelog-reminder:
-    # if: ${{ !contains(github.event.*.labels.*.name, 'no-changelog') }}
+    if: ${{ !contains(github.event.*.labels.*.name, 'no-changelog') }}
     name: Changelog Reminder
     runs-on: ubuntu-latest
     steps:
