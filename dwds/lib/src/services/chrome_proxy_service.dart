@@ -129,7 +129,6 @@ class ChromeProxyService implements VmServiceInterface {
     ExecutionContext executionContext,
     ExpressionCompiler? expressionCompiler,
   ) async {
-    print('a different edit');
     final vm = VM(
       name: 'ChromeDebugProxy',
       operatingSystem: Platform.operatingSystem,
