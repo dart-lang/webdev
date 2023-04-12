@@ -7,7 +7,7 @@ github:
         - master
     pull_request:
       concurrency:
-        group: ${{ github.ref }}
+        group: ${{ github.workflow }}-${{ github.ref }}
         cancel-in-progress: true
   env:
     DISPLAY: ':99'
