@@ -5,11 +5,9 @@ on:
     branches:
       - master
   pull_request:
-    paths:
-      - "**.dart"
-      - "**.js"
-      - "**.yaml"
-      - "**.yml"
+    paths-ignore:
+      - '**/*.md'
+
 defaults:
   run:
     shell: bash
