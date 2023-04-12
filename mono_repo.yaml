@@ -6,11 +6,8 @@ github:
       branches:
         - master
     pull_request:
-      paths:
-        - '**.dart'
-        - '**.js'
-        - '**.yaml'
-        - '**.yml'
+      paths-ignore:
+        - '**/*.md'
   env:
     DISPLAY: ':99'
   on_completion:
