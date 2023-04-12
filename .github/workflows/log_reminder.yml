@@ -7,8 +7,7 @@ on:
     types: [synchronize, opened, reopened, labeled, unlabeled]
     paths:
       - '**/*.dart'
-    paths-ignore:
-      - '**/CHANGELOG.md'
+      - '!**/CHANGELOG.md'
 
 jobs:
   changelog-reminder:
