@@ -129,6 +129,7 @@ class ChromeProxyService implements VmServiceInterface {
     ExecutionContext executionContext,
     ExpressionCompiler? expressionCompiler,
   ) async {
+    print('CHANGE TO DART FILE!');
     final vm = VM(
       name: 'ChromeDebugProxy',
       operatingSystem: Platform.operatingSystem,
