@@ -21,12 +21,10 @@ jobs:
           git fetch origin master
           PR_DIFF=$(git diff origin/master --name-only)
           echo "$PR_DIFF"
-          CHANGELOG='CHANGELOG.md'
-          case $CHANGELOG in
-            *"$PR_DIFF"*)
-              exit 0
-            ;;
-          esac
+          if [[ $PR_DIFF == *"CHANGELOG.md"* ]]; then
+            echo "CHANGELOG.md has been updated."
+            exit 0;
+          fi
           echo "Did not detect an update to the CHANGELOG.md in this PR."
           echo "Please update the CHANGELOG.md, or add the 'changelog-not-required' label."
           exit 1
