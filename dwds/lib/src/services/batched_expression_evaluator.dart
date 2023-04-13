@@ -61,7 +61,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
   ) async {
     if (_closed) {
       return createError(
-        ErrorKind.internal,
+        EvaluationErrorKind.internal,
         'Batched expression evaluator closed',
       );
     }
@@ -141,8 +141,10 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
 
       final listId = list.objectId;
       if (listId == null) {
-        final error =
-            createError(ErrorKind.internal, 'No batch result object ID.');
+        final error = createError(
+          EvaluationErrorKind.internal,
+          'No batch result object ID.',
+        );
         request.completer.complete(error);
       } else {
         safeUnawaited(

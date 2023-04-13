@@ -489,8 +489,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
       // Handle compilation errors, internal errors,
       // and reference errors from JavaScript evaluation in chrome.
-      if (result.type.contains('Error')) {
-        if (!result.type.startsWith('CompilationError')) {
+      if (_hasEvaluationError(result.type)) {
+        if (_hasReportableEvaluationError(result.type)) {
           _logger.warning('Failed to evaluate expression \'$expression\': '
               '${result.type}: ${result.value}.');
 
@@ -517,6 +517,20 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       _logger.info('$e:$s');
       return ErrorRef(kind: 'error', message: '<unknown>', id: createId());
     }
+  }
+
+  bool _hasEvaluationError(String type) => type.contains('Error');
+
+  // Decides if the error is serious enough to be shown to the user
+  // to encourage bug reporting.
+  bool _hasReportableEvaluationError(String type) {
+    if (!_hasEvaluationError(type)) return false;
+
+    if (type == EvaluationErrorKind.compilation ||
+        type == EvaluationErrorKind.asyncFrame) {
+      return false;
+    }
+    return true;
   }
 
   @override

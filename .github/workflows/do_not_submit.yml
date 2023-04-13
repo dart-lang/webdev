@@ -1,0 +1,18 @@
+# A workflow to prevent PRs labeled "do-not-submit" from being submitted.
+
+name: Do Not Submit
+
+on:
+  pull_request:
+    types: [synchronize, opened, reopened, labeled, unlabeled]
+
+jobs:
+  do-not-submit:
+    if: ${{ contains(github.event.*.labels.*.name, 'do-not-submit') }}
+    name: Prevent submission
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for do-not-submit label
+        run: |
+          echo "Must remove 'do-not-submit' label before submission."
+          exit 1

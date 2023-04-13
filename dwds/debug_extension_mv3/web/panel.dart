@@ -77,8 +77,10 @@ Future<void> _registerListeners() async {
 
 void _handleRuntimeMessages(
   dynamic jsRequest,
-  MessageSender _,
-  Function __,
+  // ignore: avoid-unused-parameters
+  MessageSender sender,
+  // ignore: avoid-unused-parameters
+  Function sendResponse,
 ) {
   if (jsRequest is! String) return;
 

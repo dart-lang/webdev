@@ -118,10 +118,10 @@ Future<bool> sendRuntimeMessage({
   );
   final completer = Completer<bool>();
   chrome.runtime.sendMessage(
-    /*id*/
+    // id
     null,
     message.toJSON(),
-    /*options*/
+    // options
     null,
     allowInterop(() {
       final error = chrome.runtime.lastError;
