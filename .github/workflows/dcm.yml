@@ -25,6 +25,7 @@ jobs:
         uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
       - name: Upgrade dependencies
         run: dart pub upgrade
+        working-directory: dwds
       - name: Run DCM on DWDS
         run: dcm analyze --ci-key="${{ secrets.DCM_CI_KEY }}" --email="${{ secrets.DCM_EMAIL }}" lib
         working-directory: dwds
