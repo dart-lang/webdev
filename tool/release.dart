@@ -84,9 +84,12 @@ Future<int> runReset({
     return Future.value(1);
   }
 
-  // Add the dependency overrides of DWDS back for webdev:
+  // Reset the dependency overrides for the package:
+  _updateOverrides(package, includeOverrides: true);
+
+  // If updating webdev, also reset the dwds override for test_common to prevent
+  // conflicts:
   if (package == 'webdev') {
-    _updateOverrides('webdev', includeOverrides: true);
     _updateOverrides('test_common', includeOverrides: true);
   }
 
@@ -124,14 +127,20 @@ Future<int> runRelease({
     }
   }
 
+  // Update the pinned version of DWDS for webdev releases.
   if (package == 'webdev') {
-    // Update the pinned version of DWDS for webdev releases.
     _logInfo('Updating pinned version of DWDS.');
     await _updateDwdsPin('webdev');
     await _updateDwdsPin('test_common');
-    // Remove the dependency overrides of DWDS for webdev releases:
-    _logInfo('Removing dependency overrides of DWDS.');
-    _updateOverrides('webdev', includeOverrides: false);
+  }
+
+  // Remove any dependency overrides for the package:
+  _logInfo('Removing dependency overrides for $package.');
+  _updateOverrides(package, includeOverrides: false);
+
+  // If updating webdev, also remove the dwds override for test_common to
+  // prevent conflicts:
+  if (package == 'webdev') {
     _updateOverrides('test_common', includeOverrides: false);
   }
 
