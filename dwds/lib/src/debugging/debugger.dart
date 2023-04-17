@@ -976,7 +976,7 @@ class _Breakpoints extends Domain {
   }
 
   /// Calls the Chrome protocol setBreakpoint and returns the remote ID.
-  Future<String?> _setJsBreakpoint(Location location) async {
+  Future<String?> _setJsBreakpoint(Location location) {
     // The module can be loaded from a nested path and contain an ETAG suffix.
     final urlRegex = '.*${location.jsLocation.module}.*';
     // Prevent `Aww, snap!` errors when setting multiple breakpoints
