@@ -20,4 +20,5 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
       - name: Run proper release test
-        run:  dart test test_common/test/proper_release_test.dart
+        run:  dart test test/proper_release_test.dart
+        working-directory: test_common
