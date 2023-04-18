@@ -1,6 +1,6 @@
 # A CI workflow to make sure a release is properly finished.
 
-name: Release reminder
+name: Release Reminder
 
 on:
   pull_request:
