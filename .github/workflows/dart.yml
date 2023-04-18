@@ -5,9 +5,11 @@ on:
     branches:
       - master
   pull_request:
-    concurrency:
-      group: "${{ github.workflow }}-${{ github.head_ref }}"
-      cancel-in-progress: "${{ startsWith(github.ref, 'refs/pull/') }}"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
 defaults:
   run:
     shell: bash
