@@ -7,9 +7,9 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
+import 'package:test_common/utilities.dart';
 
 import '../fixtures/context.dart';
-import '../fixtures/utilities.dart';
 
 enum ConsoleSource {
   background,
