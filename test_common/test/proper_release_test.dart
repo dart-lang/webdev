@@ -18,15 +18,15 @@ void main() {
           absolutePath(pathFromWebdev: p.join(package, 'pubspec.yaml'));
       final pubspec = Pubspec.parse(File(pubspecPath).readAsStringSync());
       final version = pubspec.version!;
-      final isDev = version.toString().contains('dev');
-      if (!isDev) {
+      final isWip = version.toString().contains('wip');
+      if (!isWip) {
         final wasReleased =
             await _versionWasReleased(package, version: version);
         expect(wasReleased, isTrue,
             reason: _versionNotReleasedReason(package, version: version));
       }
-      expect(isDev, isTrue,
-          reason: _noDevVersionReason(package, version: version));
+      expect(isWip, isTrue,
+          reason: _noWipVersionReason(package, version: version));
     });
   }
 }
@@ -56,15 +56,15 @@ String _versionNotReleasedReason(String package, {required Version version}) {
     ''';
 }
 
-String _noDevVersionReason(String package, {required Version? version}) {
+String _noWipVersionReason(String package, {required Version? version}) {
   final nextPatch = version?.nextPatch;
-  final nextDevVersion = nextPatch != null ? '$nextPatch-dev' : '[dev version]';
+  final nextWipVersion = nextPatch != null ? '$nextPatch-wip' : '[wip version]';
   return '''
     NOTE: If this PR is to prepare a release, please add the "prepare-release" 
     label to skip this test.
 
-    $package uses a dev version for development. Current version is $version.
+    $package uses a wip version for development. Current version is $version.
     If $package was just published, please open a new PR to reset it with:
-    dart run release.dart --reset -p $package -v $nextDevVersion
+    dart run release.dart --reset -p $package -v $nextWipVersion
     ''';
 }
