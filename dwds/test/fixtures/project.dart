@@ -4,7 +4,7 @@
 
 import 'package:path/path.dart' as p;
 
-import 'utilities.dart';
+import 'package:test_common/utilities.dart';
 
 enum NullSafety { weak, sound }
 

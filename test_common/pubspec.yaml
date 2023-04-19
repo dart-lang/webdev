@@ -14,3 +14,5 @@ dependencies:
 
 dev_dependencies:
   lints: ^2.0.0
+  pubspec_parse: ^1.2.2
+  pub_semver: ^2.1.1
