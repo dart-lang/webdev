@@ -9,7 +9,9 @@ jobs:
     name: Test webhook
     runs-on: ubuntu-latest
     steps:
-      - name: "Test chat webhook"
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart
+       - name: "Test chat webhook"
         if: "always()"
         run: |
           curl -H "Content-Type: application/json" -X POST -d \
