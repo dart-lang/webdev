@@ -1,5 +1,7 @@
 # A CI workflow to run tests on a daily cron job.
 
+name: Daily Testing
+
 # on:
 #   schedule:
 #     # Everyday at 5:00 PM UTC (10:00 AM PST)
