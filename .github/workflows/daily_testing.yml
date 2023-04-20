@@ -22,8 +22,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --tags=scheduled-daily"
-        run: "dart test --tags=scheduled-daily"
+      - name: "dwds; dart test --tags=daily"
+        run: "dart test --tags=daily"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
   notify_failure:
