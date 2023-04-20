@@ -26,14 +26,14 @@ jobs:
         run: "dart test --tags=scheduled-daily"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-    notify_failure:
-      name: Notify failure
-      runs-on: ubuntu-latest
-      if: "(github.event_name == 'pull_request' || github.event_name == 'schedule') && failure()"
-      steps:
-        - run: |
-            curl -H "Content-Type: application/json" -X POST -d \
-              "{'text':'Testing chat webhook, disregard! @elliottbrooks ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
-              "${CHAT_WEBHOOK_URL}"
-          env:
-            CHAT_WEBHOOK_URL: "${{ secrets.BUILD_AND_TEST_TEAM_CHAT_WEBHOOK_URL }}"
+  notify_failure:
+    name: Notify failure
+    runs-on: ubuntu-latest
+    if: "(github.event_name == 'pull_request' || github.event_name == 'schedule') && failure()"
+    steps:
+      - run: |
+          curl -H "Content-Type: application/json" -X POST -d \
+            "{'text':'Testing chat webhook, disregard! @elliottbrooks ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
+            "${CHAT_WEBHOOK_URL}"
+        env:
+          CHAT_WEBHOOK_URL: "${{ secrets.BUILD_AND_TEST_TEAM_CHAT_WEBHOOK_URL }}"
