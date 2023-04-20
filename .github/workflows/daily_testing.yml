@@ -33,4 +33,4 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" -X POST -d \
             "{'text':'Daily Webdev tests failed! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
-            "${{ secrets.BUILD_AND_TEST_TEAM_CHAT_WEBHOOK_URL }}"
+            "${{ secrets.WEBDEV_NOTIFICATION_CHAT_WEBHOOK }}"
