@@ -4,6 +4,7 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
+@Tags(['daily'])
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -82,7 +83,7 @@ void main() {
         expect(firstBp.id, equals(secondBp.id));
 
         // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id!, firstBp.id!);
+        await service.removeBreakpoint(isolate.id!, 'notAnId');
       });
 
       test('addBreakpoint succeeds when sending the same breakpoint twice',
