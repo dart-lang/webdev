@@ -61,7 +61,9 @@ the example app and connect to DWDS.
 
 ## Changes required when submitting a PR
 
-- Make sure you update the `CHANGELOG.md` with a description of the change
+- Make sure you update the `CHANGELOG.md` with a description of the change, or use
+  the 'changelog-not-required' label to mark that the PR doesn't need a `CHANGELOG.md`
+  entry.
 - If DWDS / Webdev was just released, then you will need to update the version
   in the `CHANGELOG`, and the `pubspec.yaml` file as well (eg,
   https://github.com/dart-lang/webdev/pull/1462)
