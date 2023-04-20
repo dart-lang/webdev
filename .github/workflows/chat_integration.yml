@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart
-       - name: "Test chat webhook"
+      - name: "Test chat webhook"
         if: "always()"
         run: |
           curl -H "Content-Type: application/json" -X POST -d \
