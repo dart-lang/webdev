@@ -1,0 +1,35 @@
+# A CI workflow to run tests on a daily cron job.
+
+name: Daily Testing
+
+on:
+  pull_request
+
+jobs:
+  daily_testing:
+    name: Daily Testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
+        with:
+          sdk: dev
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
+      - id: dwds_pub_upgrade
+        name: dwds; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds
+      - id: dwds_daily_tests
+        name: "dwds; dart test --tags=daily"
+        run: "dart test --tags=daily"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+      - name: "Notify failure"
+        if: "always() && steps.dwds_daily_tests.conclusion == 'failure'"
+        run: |
+          curl -H "Content-Type: application/json" -X POST -d \
+            "{'text':'Testing chat webhook, disregard! @elliottbrooks ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
+            "${{ secrets.BUILD_AND_TEST_TEAM_CHAT_WEBHOOK_URL }}"
