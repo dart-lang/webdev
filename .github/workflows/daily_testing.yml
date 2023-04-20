@@ -2,11 +2,6 @@
 
 name: Daily Testing
 
-# on:
-#   schedule:
-#     # Everyday at 5:00 PM UTC (10:00 AM PST)
-#     - cron: '00 17 * * *' 
-
 on:
   pull_request
 
@@ -42,4 +37,3 @@ jobs:
               "${CHAT_WEBHOOK_URL}"
           env:
             CHAT_WEBHOOK_URL: "${{ secrets.BUILD_AND_TEST_TEAM_CHAT_WEBHOOK_URL }}"
--
