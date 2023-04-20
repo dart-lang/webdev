@@ -30,8 +30,7 @@ jobs:
       - name: "Notify failure"
         if: "always() && steps.dwds_daily_tests.conclusion == 'failure'"
         run: |
+          echo "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}"
           curl -H "Content-Type: application/json" -X POST -d \
             "{'text':'Testing chat webhook, disregard! @elliottbrooks ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
-            "${CHAT_WEBHOOK_URL}"
-        env:
-          CHAT_WEBHOOK_URL: "${{ secrets.BUILD_AND_TEST_TEAM_CHAT_WEBHOOK_URL }}"
+            "${{ secrets.BUILD_AND_TEST_TEAM_CHAT_WEBHOOK_URL }}"
