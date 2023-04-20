@@ -83,7 +83,7 @@ void main() {
         expect(firstBp.id, equals(secondBp.id));
 
         // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id!, 'notAnId');
+        await service.removeBreakpoint(isolate.id!, firstBp.id!);
       });
 
       test('addBreakpoint succeeds when sending the same breakpoint twice',

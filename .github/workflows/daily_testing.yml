@@ -3,7 +3,8 @@
 name: Daily Testing
 
 on:
-  pull_request
+  schedule:
+    - cron: '00 14 * * *' # Everyday at 3:00 PM UTC (8:00 AM PST)
 
 jobs:
   daily_testing:
@@ -31,5 +32,5 @@ jobs:
         if: "always() && steps.dwds_daily_tests.conclusion == 'failure'"
         run: |
           curl -H "Content-Type: application/json" -X POST -d \
-            "{'text':'Testing chat webhook, disregard! @${{ secrets.REPO_OWNER}} ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
+            "{'text':'Daily Webdev tests failed! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
             "${{ secrets.BUILD_AND_TEST_TEAM_CHAT_WEBHOOK_URL }}"
