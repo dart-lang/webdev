@@ -22,20 +22,14 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --tags=daily"
+      - id: dwds_daily_tests
+        name: "dwds; dart test --tags=daily"
         run: "dart test --tags=daily"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-  notify_failure:
-    name: Notify failure
-    runs-on: ubuntu-latest
-    needs:
-      - daily_testing
-    if: >-
-      (github.event_name == 'pull_request' ||  github.event_name == 'schedule') &&
-      (github.event.state == 'error' || github.event.state == 'failure')
-    steps:
-      - run: |
+      - name: "Notify failure"
+        if: "always() && steps.dwds_daily_tests.conclusion == 'failure'"
+        run: |
           curl -H "Content-Type: application/json" -X POST -d \
             "{'text':'Testing chat webhook, disregard! @elliottbrooks ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
             "${CHAT_WEBHOOK_URL}"
