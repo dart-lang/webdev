@@ -1,0 +1,17 @@
+# A CI workflow to run tests on a daily cron job.
+
+name: Test chat webhook
+
+on:
+  pull_request
+jobs:
+  daily_testing:
+    name: Test webhook
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Test chat webhook"
+        if: "always()"
+        run: |
+          curl -H "Content-Type: application/json" -X POST -d \
+            "{'text':'This is only a test! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
+            "${{ secrets.WEBDEV_NOTIFICATION_CHAT_WEBHOOK }}"
