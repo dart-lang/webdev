@@ -530,7 +530,8 @@ void main() {
                 );
                 expect(inspectorPanelTarget, isNull);
                 final debuggerPanelTarget = browser.targets.firstWhereOrNull(
-                    (target) => target.url == 'debugger_panel');
+                  (target) => target.url == 'debugger_panel',
+                );
                 expect(debuggerPanelTarget, isNull);
               },
               skip: true,
