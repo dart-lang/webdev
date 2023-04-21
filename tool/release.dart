@@ -20,10 +20,10 @@ const _skipStableCheckFlag = 'skipStableCheck';
 ///  `dart run release.dart -p webdev`
 ///
 /// To reset DWDS after a release:
-///  `dart run release.dart --reset -p dwds -v -[[dev version]]`
+///  `dart run release.dart --reset -p dwds -v [[wip version]]`
 ///
 /// To reset WebDev after a release:
-///   `dart run release.dart --reset -p webdev -v -[[dev version]]`
+///   `dart run release.dart --reset -p webdev -v [[wip version]]`
 
 void main(List<String> arguments) async {
   final parser = ArgParser()
@@ -52,7 +52,7 @@ void main(List<String> arguments) async {
 
   int exitCode;
   if (isReset == true) {
-    exitCode = runReset(
+    exitCode = await runReset(
       package: package,
       newVersion: newVersion,
     );
@@ -68,20 +68,29 @@ void main(List<String> arguments) async {
   }
 }
 
-int runReset({
+Future<int> runReset({
   required String package,
   String? newVersion,
 }) {
-  // Check that a new dev version has been provided.
+  // Check that a new wip version has been provided.
   final currentVersion = _readVersionFile(package);
-  if (newVersion == null || !newVersion.contains('dev')) {
+  if (newVersion == null || !newVersion.contains('wip')) {
     _logInfo(
       '''
-      Please provide the next dev version for $package, e.g. -v 3.0.1-dev
+      Please provide the next wip version for $package, e.g. -v 3.0.1-wip
       Current version is $currentVersion.
     ''',
     );
-    return 1;
+    return Future.value(1);
+  }
+
+  // Reset the dependency overrides for the package:
+  _updateOverrides(package, includeOverrides: true);
+
+  // If updating webdev, also reset the dwds override for test_common to prevent
+  // conflicts:
+  if (package == 'webdev') {
+    _updateOverrides('test_common', includeOverrides: true);
   }
 
   // Update the version strings in CHANGELOG and pubspec.yaml.
@@ -92,7 +101,9 @@ int runReset({
     isReset: true,
   );
 
-  return 0;
+  // Build the package.
+  final exitCode = _buildPackage(package);
+  return exitCode;
 }
 
 Future<int> runRelease({
@@ -119,7 +130,18 @@ Future<int> runRelease({
   // Update the pinned version of DWDS for webdev releases.
   if (package == 'webdev') {
     _logInfo('Updating pinned version of DWDS.');
-    await _updateDwdsPin(package);
+    await _updateDwdsPin('webdev');
+    await _updateDwdsPin('test_common');
+  }
+
+  // Remove any dependency overrides for the package:
+  _logInfo('Removing dependency overrides for $package.');
+  _updateOverrides(package, includeOverrides: false);
+
+  // If updating webdev, also remove the dwds override for test_common to
+  // prevent conflicts:
+  if (package == 'webdev') {
+    _updateOverrides('test_common', includeOverrides: false);
   }
 
   // Run dart pub upgrade.
@@ -148,7 +170,7 @@ Future<int> runRelease({
 
   // Update the version strings in CHANGELOG and pubspec.yaml.
   final currentVersion = _readVersionFile(package);
-  final nextVersion = newVersion ?? _removeDev(currentVersion);
+  final nextVersion = newVersion ?? _removeWip(currentVersion);
   _updateVersionStrings(
     package,
     currentVersion: currentVersion,
@@ -175,6 +197,28 @@ Future<int> _buildPackage(String package) async {
   return buildProcess.exitCode;
 }
 
+void _updateOverrides(
+  String package, {
+  required bool includeOverrides,
+}) {
+  final overridesFilePath = '../$package/pubspec_overrides.yaml';
+  final noOverridesFilePath = '../$package/ignore_pubspec_overrides.yaml';
+  if (includeOverrides) {
+    _renameFile(currentName: noOverridesFilePath, newName: overridesFilePath);
+  } else {
+    _renameFile(currentName: overridesFilePath, newName: noOverridesFilePath);
+  }
+}
+
+void _renameFile({required String currentName, required String newName}) {
+  final currentFile = File(currentName);
+  if (!currentFile.existsSync()) {
+    _logInfo('Skip renaming $currentName to $newName, file does not exist.');
+    return;
+  }
+  currentFile.rename(newName);
+}
+
 void _updateVersionStrings(
   String package, {
   required String nextVersion,
@@ -185,7 +229,12 @@ void _updateVersionStrings(
   final pubspec = File('../$package/pubspec.yaml');
   final changelog = File('../$package/CHANGELOG.md');
   if (isReset) {
-    _addNewLine(changelog, newLine: '## $nextVersion');
+    final wasReplaced = _replaceInFile(
+      changelog,
+      query: currentVersion,
+      replaceWith: nextVersion,
+    );
+    if (!wasReplaced) _addNewLine(changelog, newLine: '## $nextVersion');
     _replaceInFile(pubspec, query: currentVersion, replaceWith: nextVersion);
   } else {
     for (final file in [pubspec, changelog]) {
@@ -203,21 +252,24 @@ void _addNewLine(
   return file.writeAsStringSync(content);
 }
 
-void _replaceInFile(
+bool _replaceInFile(
   File file, {
   required String query,
   required String replaceWith,
 }) {
   final newLines = <String>[];
+  var replaced = false;
   for (final line in file.readAsLinesSync()) {
     if (line.contains(query)) {
       newLines.add(line.replaceAll(query, replaceWith));
+      replaced = true;
     } else {
       newLines.add(line);
     }
   }
   final content = newLines.joinWithNewLine();
-  return file.writeAsStringSync(content);
+  file.writeAsStringSync(content);
+  return replaced;
 }
 
 String _readVersionFile(String package) {
@@ -237,11 +289,11 @@ String _readVersionFile(String package) {
   throw Exception('Could not read version in $package/lib/src/version.dart');
 }
 
-String _removeDev(String devVersion) {
-  if (!devVersion.contains('dev')) {
-    throw Exception('$devVersion is not a dev version.');
+String _removeWip(String wipVersion) {
+  if (!wipVersion.contains('wip')) {
+    throw Exception('$wipVersion is not a wip version.');
   }
-  return devVersion.split('-dev').first;
+  return wipVersion.split('-wip').first;
 }
 
 Future<void> _updateDwdsPin(String package) async {

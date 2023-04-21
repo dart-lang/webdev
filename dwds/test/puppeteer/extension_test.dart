@@ -24,6 +24,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
+import 'package:test_common/utilities.dart';
 
 import '../../debug_extension_mv3/web/data_serializers.dart';
 import '../../debug_extension_mv3/web/data_types.dart';

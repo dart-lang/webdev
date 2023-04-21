@@ -1,4 +1,8 @@
-## 3.0.4-dev
+## 3.0.5-wip
+
+## 3.0.4
+
+- Update `dwds` constraint to `19.0.0`.
 
 ## 3.0.3
 

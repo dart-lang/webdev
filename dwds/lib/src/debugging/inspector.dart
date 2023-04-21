@@ -577,7 +577,7 @@ class AppInspector implements AppInspectorInterface {
   /// reload the inspector will get re-created.
   ///
   /// Returns the list of scripts refs cached.
-  Future<List<ScriptRef>> _populateScriptCaches() async {
+  Future<List<ScriptRef>> _populateScriptCaches() {
     return _scriptCacheMemoizer.runOnce(() async {
       final scripts = await globalLoadStrategy
           .metadataProviderFor(appConnection.request.entrypointPath)
