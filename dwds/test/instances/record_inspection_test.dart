@@ -1,4 +1,4 @@
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -60,8 +60,14 @@ Future<void> _runTests({
   getInstanceRef(frame, expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  getFields(instanceRef, {offset, count}) => testInspector
-      .getFields(isolateId, instanceRef, offset: offset, count: count);
+  getFields(instanceRef, {offset, count, depth = -1}) =>
+      testInspector.getFields(
+        isolateId,
+        instanceRef,
+        offset: offset,
+        count: count,
+        depth: depth,
+      );
 
   group('$compilationMode |', () {
     setUpAll(() async {
@@ -97,8 +103,7 @@ Future<void> _runTests({
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final instance = await getObject(instanceRef.id!);
-        final classId = instance.classRef!.id;
+        final classId = instanceRef.classRef!.id;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -112,25 +117,6 @@ Future<void> _runTests({
             value: '(true, 3)',
           ),
         );
-
-        final typeInstanceRef =
-            await getInstanceRef(frame, 'record.runtimeType');
-        final typeInstance = await getObject(typeInstanceRef.id!);
-        final typeClassId = typeInstance.classRef!.id;
-
-        expect(await getObject(typeClassId), matchTypeClass);
-
-        final typeStringRef =
-            await getInstanceRef(frame, 'record.runtimeType.toString()');
-        final typeStringId = typeStringRef.id!;
-
-        expect(
-          await getObject(typeStringId),
-          matchPrimitiveInstance(
-            kind: InstanceKind.kString,
-            value: '(bool, int)',
-          ),
-        );
       });
     });
 
@@ -140,6 +126,7 @@ Future<void> _runTests({
         final instanceRef = await getInstanceRef(frame, 'record');
         final instanceId = instanceRef.id!;
 
+        expect(instanceRef, matchRecordInstanceRef(length: 2));
         expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
         expect(await getFields(instanceRef), {1: true, 2: 3});
@@ -180,8 +167,7 @@ Future<void> _runTests({
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final instance = await getObject(instanceRef.id!);
-        final classId = instance.classRef!.id;
+        final classId = instanceRef.classRef!.id;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -195,25 +181,6 @@ Future<void> _runTests({
             value: '(true, cat: Vasya)',
           ),
         );
-
-        final typeInstanceRef =
-            await getInstanceRef(frame, 'record.runtimeType');
-        final typeInstance = await getObject(typeInstanceRef.id!);
-        final typeClassId = typeInstance.classRef!.id;
-
-        expect(await getObject(typeClassId), matchTypeClass);
-
-        final typeStringRef =
-            await getInstanceRef(frame, 'record.runtimeType.toString()');
-        final typeStringId = typeStringRef.id!;
-
-        expect(
-          await getObject(typeStringId),
-          matchPrimitiveInstance(
-            kind: InstanceKind.kString,
-            value: '(bool, {String cat})',
-          ),
-        );
       });
     });
 
@@ -223,7 +190,7 @@ Future<void> _runTests({
         final instanceRef = await getInstanceRef(frame, 'record');
 
         final instanceId = instanceRef.id!;
-
+        expect(instanceRef, matchRecordInstanceRef(length: 2));
         expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
         expect(await getFields(instanceRef), {1: true, 'cat': 'Vasya'});
@@ -267,8 +234,7 @@ Future<void> _runTests({
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final instance = await getObject(instanceRef.id!);
-        final classId = instance.classRef!.id;
+        final classId = instanceRef.classRef!.id;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -282,25 +248,6 @@ Future<void> _runTests({
             value: '(true, 3, {a: 1, b: 5})',
           ),
         );
-
-        final typeInstanceRef =
-            await getInstanceRef(frame, 'record.runtimeType');
-        final typeInstance = await getObject(typeInstanceRef.id!);
-        final typeClassId = typeInstance.classRef!.id;
-
-        expect(await getObject(typeClassId), matchTypeClass);
-
-        final typeStringRef =
-            await getInstanceRef(frame, 'record.runtimeType.toString()');
-        final typeStringId = typeStringRef.id!;
-
-        expect(
-          await getObject(typeStringId),
-          matchPrimitiveInstance(
-            kind: InstanceKind.kString,
-            value: '(bool, int, IdentityMap<String, int>)',
-          ),
-        );
       });
     });
 
@@ -310,6 +257,7 @@ Future<void> _runTests({
         final instanceRef = await getInstanceRef(frame, 'record');
 
         final instanceId = instanceRef.id!;
+        expect(instanceRef, matchRecordInstanceRef(length: 3));
         expect(await getObject(instanceId), matchRecordInstance(length: 3));
 
         expect(await getFields(instanceRef), {
@@ -374,8 +322,7 @@ Future<void> _runTests({
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final instance = await getObject(instanceRef.id!);
-        final classId = instance.classRef!.id;
+        final classId = instanceRef.classRef!.id;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -389,25 +336,6 @@ Future<void> _runTests({
             value: '(true, 3, array: {a: 1, b: 5})',
           ),
         );
-
-        final typeInstanceRef =
-            await getInstanceRef(frame, 'record.runtimeType');
-        final typeInstance = await getObject(typeInstanceRef.id!);
-        final typeClassId = typeInstance.classRef!.id;
-
-        expect(await getObject(typeClassId), matchTypeClass);
-
-        final typeStringRef =
-            await getInstanceRef(frame, 'record.runtimeType.toString()');
-        final typeStringId = typeStringRef.id!;
-
-        expect(
-          await getObject(typeStringId),
-          matchPrimitiveInstance(
-            kind: InstanceKind.kString,
-            value: '(bool, int, {IdentityMap<String, int> array})',
-          ),
-        );
       });
     });
 
@@ -417,6 +345,7 @@ Future<void> _runTests({
         final instanceRef = await getInstanceRef(frame, 'record');
 
         final instanceId = instanceRef.id!;
+        expect(instanceRef, matchRecordInstanceRef(length: 3));
         expect(await getObject(instanceId), matchRecordInstance(length: 3));
 
         expect(await getFields(instanceRef), {
@@ -481,8 +410,7 @@ Future<void> _runTests({
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final instance = await getObject(instanceRef.id!);
-        final classId = instance.classRef!.id;
+        final classId = instanceRef.classRef!.id;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -496,25 +424,6 @@ Future<void> _runTests({
             value: '(true, (false, 5))',
           ),
         );
-
-        final typeInstanceRef =
-            await getInstanceRef(frame, 'record.runtimeType');
-        final typeInstance = await getObject(typeInstanceRef.id!);
-        final typeClassId = typeInstance.classRef!.id;
-
-        expect(await getObject(typeClassId), matchTypeClass);
-
-        final typeStringRef =
-            await getInstanceRef(frame, 'record.runtimeType.toString()');
-        final typeStringId = typeStringRef.id!;
-
-        expect(
-          await getObject(typeStringId),
-          matchPrimitiveInstance(
-            kind: InstanceKind.kString,
-            value: '(bool, (bool, int))',
-          ),
-        );
       });
     });
 
@@ -524,6 +433,7 @@ Future<void> _runTests({
         final instanceRef = await getInstanceRef(frame, 'record');
 
         final instanceId = instanceRef.id!;
+        expect(instanceRef, matchRecordInstanceRef(length: 2));
         expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
         expect(await getFields(instanceRef), {
@@ -558,6 +468,7 @@ Future<void> _runTests({
         final instanceRef = await getInstanceRef(frame, r'record.$2');
 
         final instanceId = instanceRef.id!;
+        expect(instanceRef, matchRecordInstanceRef(length: 2));
         expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
         expect(await getFields(instanceRef), {1: false, 2: 5});
@@ -570,8 +481,7 @@ Future<void> _runTests({
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final instance = await getObject(instanceRef.id!);
-        final classId = instance.classRef!.id;
+        final classId = instanceRef.classRef!.id;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -585,25 +495,6 @@ Future<void> _runTests({
             value: '(true, inner: (false, 5))',
           ),
         );
-
-        final typeInstanceRef =
-            await getInstanceRef(frame, 'record.runtimeType');
-        final typeInstance = await getObject(typeInstanceRef.id!);
-        final typeClassId = typeInstance.classRef!.id;
-
-        expect(await getObject(typeClassId), matchTypeClass);
-
-        final typeStringRef =
-            await getInstanceRef(frame, 'record.runtimeType.toString()');
-        final typeStringId = typeStringRef.id!;
-
-        expect(
-          await getObject(typeStringId),
-          matchPrimitiveInstance(
-            kind: InstanceKind.kString,
-            value: '(bool, {(bool, int) inner})',
-          ),
-        );
       });
     });
 
@@ -613,6 +504,7 @@ Future<void> _runTests({
         final instanceRef = await getInstanceRef(frame, 'record');
 
         final instanceId = instanceRef.id!;
+        expect(instanceRef, matchRecordInstanceRef(length: 2));
         expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
         expect(await getFields(instanceRef), {
@@ -653,6 +545,7 @@ Future<void> _runTests({
         final instanceRef = await getInstanceRef(frame, r'record.inner');
 
         final instanceId = instanceRef.id!;
+        expect(instanceRef, matchRecordInstanceRef(length: 2));
         expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
         expect(await getFields(instanceRef), {1: false, 2: 5});

@@ -155,6 +155,14 @@ class InstanceHelper extends Domain {
         count: count,
         length: metaData.length,
       );
+    } else if (metaData.isRecordType) {
+      return await _recordTypeInstanceFor(
+        classRef,
+        remoteObject,
+        offset: offset,
+        count: count,
+        length: metaData.length,
+      );
     } else if (metaData.isSet) {
       return await _setInstanceFor(
         classRef,
@@ -416,15 +424,15 @@ class InstanceHelper extends Domain {
     int? count,
     int? length,
   }) async {
-    // Filter out all non-indexed properties
-    final elements = _indexedListProperties(
-      await debugger.getProperties(
-        list.objectId!,
-        offset: offset,
-        count: count,
-        length: length,
-      ),
+    final properties = await debugger.getProperties(
+      list.objectId!,
+      offset: offset,
+      count: count,
+      length: length,
     );
+
+    // Filter out all non-indexed properties
+    final elements = _indexedListProperties(properties);
 
     final rangeCount = _calculateRangeCount(
       count: count,
@@ -546,19 +554,19 @@ class InstanceHelper extends Domain {
         await instanceFor(valuesObject, offset: offset, count: count);
     final valueElements = valuesInstance?.elements ?? [];
 
-    if (fieldNameElements.length != valueElements.length) {
-      _logger.warning('Record fields and values are not the same length.');
-      return [];
-    }
-
     return _elementsToBoundFields(fieldNameElements, valueElements);
   }
 
   /// Create a list of `BoundField`s from field [names] and [values].
-  static List<BoundField> _elementsToBoundFields(
+  List<BoundField> _elementsToBoundFields(
     List<dynamic> names,
     List<dynamic> values,
   ) {
+    if (names.length != values.length) {
+      _logger.warning('Bound field names and values are not the same length.');
+      return [];
+    }
+
     final boundFields = <BoundField>[];
     Map.fromIterables(names, values).forEach((name, value) {
       boundFields.add(BoundField(name: name, value: value));
@@ -606,6 +614,89 @@ class InstanceHelper extends Domain {
       ..offset = offset
       ..count = rangeCount
       ..fields = fields;
+  }
+
+  /// Create a RecordType instance with class [classRef] from [remoteObject].
+  ///
+  /// Returns an instance containing [count] fields, if available,
+  /// starting from the [offset].
+  ///
+  /// If [offset] is `null`, assumes 0 offset.
+  /// If [count] is `null`, return all fields starting from the offset.
+  /// [length] is the expected length of the whole object, read from
+  /// the [ClassMetaData].
+  Future<Instance?> _recordTypeInstanceFor(
+    ClassRef classRef,
+    RemoteObject remoteObject, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
+    final objectId = remoteObject.objectId;
+    if (objectId == null) return null;
+    // Records are complicated, do an eval to get names and values.
+    final fields =
+        await _recordTypeFields(remoteObject, offset: offset, count: count);
+    final rangeCount = _calculateRangeCount(
+      count: count,
+      elementCount: fields.length,
+      length: length,
+    );
+    return Instance(
+      identityHashCode: remoteObject.objectId.hashCode,
+      kind: InstanceKind.kRecordType,
+      id: objectId,
+      classRef: classRef,
+    )
+      ..length = length
+      ..offset = offset
+      ..count = rangeCount
+      ..fields = fields;
+  }
+
+  /// The field types for a Dart RecordType.
+  ///
+  /// Returns a range of [count] field types, if available, starting from
+  /// the [offset].
+  ///
+  /// If [offset] is `null`, assumes 0 offset.
+  /// If [count] is `null`, return all field types starting from the offset.
+  Future<List<BoundField>> _recordTypeFields(
+    RemoteObject record, {
+    int? offset,
+    int? count,
+  }) async {
+    // We do this in in awkward way because we want the names and types, but we
+    // can't return things by value or some Dart objects will come back as
+    // values that we need to be RemoteObject, e.g. a List of int.
+    final expression = '''
+      function() {
+        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
+        var shape = sdkUtils.dloadRepl(this, "shape");
+        var positionalCount = sdkUtils.dloadRepl(shape, "positionals");
+        var named = sdkUtils.dloadRepl(shape, "named");
+        named = named == null? null: sdkUtils.dsendRepl(named, "toList", []);
+        var types = sdkUtils.dloadRepl(this, "types");
+        types = types.map(t => sdkUtils.wrapType(t));
+        types = sdkUtils.dsendRepl(types, "toList", []);
+
+        return {
+          positionalCount: positionalCount,
+          named: named,
+          types: types
+        };
+      }
+    ''';
+    final result = await inspector.jsCallFunctionOn(record, expression, []);
+    final fieldNameElements =
+        await _recordShapeFields(result, offset: offset, count: count);
+
+    final typesObject = await inspector.loadField(result, 'types');
+    final typesInstance =
+        await instanceFor(typesObject, offset: offset, count: count);
+    final typeElements = typesInstance?.elements ?? [];
+
+    return _elementsToBoundFields(fieldNameElements, typeElements);
   }
 
   Future<Instance?> _setInstanceFor(
@@ -796,6 +887,14 @@ class InstanceHelper extends Domain {
         if (metaData.isRecord) {
           return InstanceRef(
             kind: InstanceKind.kRecord,
+            id: objectId,
+            identityHashCode: remoteObject.objectId.hashCode,
+            classRef: metaData.classRef,
+          )..length = metaData.length;
+        }
+        if (metaData.isRecordType) {
+          return InstanceRef(
+            kind: InstanceKind.kRecordType,
             id: objectId,
             identityHashCode: remoteObject.objectId.hashCode,
             classRef: metaData.classRef,
