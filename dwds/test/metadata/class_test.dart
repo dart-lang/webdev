@@ -9,16 +9,16 @@ import 'package:test/test.dart';
 
 void main() {
   test('Gracefully handles invalid length objects', () async {
-    var metadata = ClassMetaData(length: null);
+    var metadata = ClassMetaData(length: null, classRef: classRefForUnknown);
     expect(metadata.length, isNull);
 
-    metadata = ClassMetaData(length: {});
+    metadata = ClassMetaData(length: {}, classRef: classRefForUnknown);
     expect(metadata.length, isNull);
 
-    metadata = ClassMetaData(length: '{}');
+    metadata = ClassMetaData(length: '{}', classRef: classRefForUnknown);
     expect(metadata.length, isNull);
 
-    metadata = ClassMetaData(length: 0);
+    metadata = ClassMetaData(length: 0, classRef: classRefForUnknown);
     expect(metadata.length, equals(0));
   });
 }

@@ -120,9 +120,11 @@ class LibraryHelper extends Domain {
           List<Map<String, dynamic>>.from(jsonValues['classes'] ?? []);
       for (final classDescriptor in classDescriptors) {
         final classMetaData = ClassMetaData(
-          jsName: classDescriptor['name'] as Object?,
-          libraryId: libraryRef.id,
-          dartName: classDescriptor['dartName'] as Object?,
+          jsName: classDescriptor['name'],
+          classRef: classRefFor(
+            libraryRef.id,
+            classDescriptor['dartName'],
+          ),
         );
         classRefs.add(classMetaData.classRef);
       }

@@ -127,6 +127,60 @@ class InstanceHelper extends Domain {
 
     final classRef = metaData?.classRef;
     if (metaData == null || classRef == null) return null;
+
+    switch (metaData.kind) {
+      case InstanceKind.kClosure:
+        return _closureInstanceFor(remoteObject);
+      case InstanceKind.kList:
+        return await _listInstanceFor(
+          classRef,
+          remoteObject,
+          offset: offset,
+          count: count,
+          length: metaData.length,
+        );
+      case InstanceKind.kSet:
+        return await _setInstanceFor(
+          classRef,
+          remoteObject,
+          offset: offset,
+          count: count,
+          length: metaData.length,
+        );
+      case InstanceKind.kMap:
+        return await _mapInstanceFor(
+          classRef,
+          remoteObject,
+          offset: offset,
+          count: count,
+          length: metaData.length,
+        );
+      case InstanceKind.kRecord:
+        return await _recordInstanceFor(
+          classRef,
+          remoteObject,
+          offset: offset,
+          count: count,
+          length: metaData.length,
+        );
+      case InstanceKind.kRecordType:
+        return await _recordTypeInstanceFor(
+          classRef,
+          remoteObject,
+          offset: offset,
+          count: count,
+          length: metaData.length,
+        );
+      default:
+        return await _plainInstanceFor(
+          classRef,
+          remoteObject,
+          offset: offset,
+          count: count,
+          length: metaData.length,
+        );
+    }
+    /*
     if (metaData.isFunction) {
       return _closureInstanceFor(remoteObject);
     }
@@ -187,7 +241,7 @@ class InstanceHelper extends Domain {
         count: count,
         length: metaData.length,
       );
-    }
+    }*/
   }
 
   /// If [remoteObject] represents a primitive, return an [Instance] for it,
@@ -868,60 +922,67 @@ class InstanceHelper extends Domain {
           inspector,
         );
         if (metaData == null) return null;
-        if (metaData.isSystemList) {
-          return InstanceRef(
-            kind: InstanceKind.kList,
-            id: objectId,
-            identityHashCode: remoteObject.objectId.hashCode,
-            classRef: metaData.classRef,
-          )..length = metaData.length;
-        }
-        if (metaData.isSystemMap) {
-          return InstanceRef(
-            kind: InstanceKind.kMap,
-            id: objectId,
-            identityHashCode: remoteObject.objectId.hashCode,
-            classRef: metaData.classRef,
-          )..length = metaData.length;
-        }
-        if (metaData.isRecord) {
-          return InstanceRef(
-            kind: InstanceKind.kRecord,
-            id: objectId,
-            identityHashCode: remoteObject.objectId.hashCode,
-            classRef: metaData.classRef,
-          )..length = metaData.length;
-        }
-        if (metaData.isRecordType) {
-          return InstanceRef(
-            kind: InstanceKind.kRecordType,
-            id: objectId,
-            identityHashCode: remoteObject.objectId.hashCode,
-            classRef: metaData.classRef,
-          )..length = metaData.length;
-        }
-        if (metaData.isSet) {
-          return InstanceRef(
-            kind: InstanceKind.kSet,
-            id: objectId,
-            identityHashCode: remoteObject.objectId.hashCode,
-            classRef: metaData.classRef,
-          )..length = metaData.length;
-        }
-        if (metaData.isNativeError) {
-          return InstanceRef(
-            kind: InstanceKind.kPlainInstance,
-            id: objectId,
-            identityHashCode: remoteObject.objectId.hashCode,
-            classRef: classRefForNativeJsError,
-          )..length = metaData.length;
-        }
         return InstanceRef(
-          kind: InstanceKind.kPlainInstance,
+          kind: metaData.kind,
           id: objectId,
           identityHashCode: remoteObject.objectId.hashCode,
           classRef: metaData.classRef,
-        );
+        )..length = metaData.length;
+
+      //   if (metaData.isSystemList) {
+      //     return InstanceRef(
+      //       kind: InstanceKind.kList,
+      //       id: objectId,
+      //       identityHashCode: remoteObject.objectId.hashCode,
+      //       classRef: metaData.classRef,
+      //     )..length = metaData.length;
+      //   }
+      //   if (metaData.isSystemMap) {
+      //     return InstanceRef(
+      //       kind: InstanceKind.kMap,
+      //       id: objectId,
+      //       identityHashCode: remoteObject.objectId.hashCode,
+      //       classRef: metaData.classRef,
+      //     )..length = metaData.length;
+      //   }
+      //   if (metaData.isRecord) {
+      //     return InstanceRef(
+      //       kind: InstanceKind.kRecord,
+      //       id: objectId,
+      //       identityHashCode: remoteObject.objectId.hashCode,
+      //       classRef: metaData.classRef,
+      //     )..length = metaData.length;
+      //   }
+      //   if (metaData.isRecordType) {
+      //     return InstanceRef(
+      //       kind: InstanceKind.kRecordType,
+      //       id: objectId,
+      //       identityHashCode: remoteObject.objectId.hashCode,
+      //       classRef: metaData.classRef,
+      //     )..length = metaData.length;
+      //   }
+      //   if (metaData.isSet) {
+      //     return InstanceRef(
+      //       kind: InstanceKind.kSet,
+      //       id: objectId,
+      //       identityHashCode: remoteObject.objectId.hashCode,
+      //       classRef: metaData.classRef,
+      //     )..length = metaData.length;
+      //   }
+      //   if (metaData.isNativeError) {
+      //     return InstanceRef(
+      //       kind: InstanceKind.kPlainInstance,
+      //       id: objectId,
+      //       identityHashCode: remoteObject.objectId.hashCode,
+      //       classRef: classRefForNativeJsError,
+      //     )..length = metaData.length;
+      //   }
+      //   return InstanceRef(
+      //     kind: InstanceKind.kPlainInstance,
+      //     id: objectId,
+      //     identityHashCode: remoteObject.objectId.hashCode,
+      //     classRef: metaData.classRef,
+      //   );
       case 'function':
         final functionMetaData = await FunctionMetaData.metaDataFor(
           inspector.remoteDebugger,

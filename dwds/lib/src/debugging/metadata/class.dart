@@ -40,6 +40,8 @@ final classRefForUnknown = classRefFor(_dartCoreLibrary, 'Unknown');
 final classRefForNativeJsError =
     classRefFor(_dartInterceptorsLibrary, 'NativeError');
 
+String classMetaDataIdFor(String library, String? jsName) => '$library:$jsName';
+
 /// Returns true for non-dart JavaScript classes.
 ///
 /// TODO(annagrin): this breaks on name changes for JS types.
@@ -69,17 +71,56 @@ LibraryRef libraryRefFor(String libraryId) => LibraryRef(
     );
 
 /// Returns a [ClassRef] for the provided library ID and class name.
-ClassRef classRefFor(String libraryId, String? name) => ClassRef(
-      id: classIdFor(libraryId, name),
-      name: name,
-      library: libraryRefFor(libraryId),
-    );
+ClassRef classRefFor(Object? libraryId, Object? dartName) {
+  final library = libraryId as String? ?? _dartCoreLibrary;
+  final name = dartName as String?;
+  return ClassRef(
+    id: classIdFor(library, name),
+    name: name,
+    library: libraryRefFor(library),
+  );
+}
 
 String classIdFor(String libraryId, String? name) => 'classes|$libraryId|$name';
+
+enum ClassMetaDataKind {
+  object,
+  map,
+  set,
+  list,
+  function,
+  record,
+  recordType,
+  nativeError,
+}
+
+String toInstanceKind(ClassMetaDataKind kind) {
+  switch (kind) {
+    case ClassMetaDataKind.function:
+      return InstanceKind.kClosure;
+    case ClassMetaDataKind.list:
+      return InstanceKind.kList;
+    case ClassMetaDataKind.map:
+      return InstanceKind.kMap;
+    case ClassMetaDataKind.set:
+      return InstanceKind.kSet;
+    case ClassMetaDataKind.record:
+      return InstanceKind.kRecord;
+    case ClassMetaDataKind.recordType:
+      return InstanceKind.kRecordType;
+    case ClassMetaDataKind.nativeError:
+    case ClassMetaDataKind.object:
+    default:
+      return InstanceKind.kPlainInstance;
+  }
+}
 
 /// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {
   static final _logger = Logger('ClassMetadata');
+
+  /// Instance kind.
+  final String kind;
 
   /// Class id.
   ///
@@ -98,44 +139,51 @@ class ClassMetaData {
   /// The dart type name for the object.
   ///
   /// For example, 'int', 'List<String>', 'Null'
-  final String? dartName;
+  String? get dartName => classRef.name;
 
   /// Class ref for the class metadata.
   final ClassRef classRef;
 
   factory ClassMetaData({
     Object? jsName,
-    Object? libraryId,
-    Object? dartName,
+    //Object? libraryId,
+    //Object? dartName,
     Object? length,
-    bool isFunction = false,
-    bool isRecord = false,
-    bool isRecordType = false,
-    bool isNativeError = false,
+    String kind = InstanceKind.kPlainInstance,
+    required ClassRef classRef,
+    //bool isFunction = false,
+    //bool isRecord = false,
+    //bool isRecordType = false,
+    //bool isNativeError = false,
   }) {
-    final jName = jsName as String?;
-    final dName = dartName as String?;
-    final library = libraryId as String? ?? _dartCoreLibrary;
-    final id = '$library:$jName';
+    final id = classMetaDataIdFor(classRef.library!.id!, jsName as String?);
+    // final jName = jsName as String?;
+    // final dName = dartName as String?;
+    //final library = libraryId as String? ?? _dartCoreLibrary;
+    //final id = '$library:$jName';
 
-    var classRef = classRefFor(library, dName);
-    if (isRecord) {
-      classRef = classRefForRecord;
-    }
-    if (isRecordType) {
-      classRef = classRefForRecordType;
-    }
+    // var classRef = classRefFor(library, dName);
+    // if (kind == ClassMetaDataKind.record) {
+    //   classRef = classRefForRecord;
+    // }
+    // if (kind == ClassMetaDataKind.recordType) {
+    //   classRef = classRefForRecordType;
+    // }
+    // if (kind == ClassMetaDataKind.nativeError) {
+    //   classRef = classRefForNativeJsError;
+    // }
 
     return ClassMetaData._(
       id,
       classRef,
-      jName,
-      dName,
+      jsName,
+      //dartName as String?,
       int.tryParse('$length'),
-      isFunction,
-      isRecord,
-      isRecordType,
-      isNativeError,
+      kind,
+      // isFunction,
+      // isRecord,
+      // isRecordType,
+      // isNativeError,
     );
   }
 
@@ -143,12 +191,13 @@ class ClassMetaData {
     this.id,
     this.classRef,
     this.jsName,
-    this.dartName,
+    //this.dartName,
     this.length,
-    this.isFunction,
-    this.isRecord,
-    this.isRecordType,
-    this.isNativeError,
+    this.kind,
+    // this.isFunction,
+    // this.isRecord,
+    // this.isRecordType,
+    // this.isNativeError,
   );
 
   /// Returns the [ClassMetaData] for the Chrome [remoteObject].
@@ -205,14 +254,21 @@ class ClassMetaData {
         returnByValue: true,
       );
       final metadata = result.value as Map;
+      final jsName = metadata['name'];
+
+      final kind = _computeInstanceKind(metadata);
+      final classRef = _computeClassRef(metadata);
+
       return ClassMetaData(
-        jsName: metadata['name'],
-        libraryId: metadata['libraryId'],
-        dartName: metadata['dartName'],
-        isFunction: metadata['isFunction'],
-        isRecord: metadata['isRecord'],
-        isRecordType: metadata['isRecordType'],
-        isNativeError: metadata['isNativeError'],
+        jsName: jsName,
+        //libraryId: library,
+        //dartName: dartName,
+        kind: kind,
+        classRef: classRef,
+        // isFunction: metadata['isFunction'],
+        // isRecord: metadata['isRecord'],
+        // isRecordType: metadata['isRecordType'],
+        // isNativeError: metadata['isNativeError'],
         length: metadata['length'],
       );
     } on ChromeDebugException catch (e, s) {
@@ -233,23 +289,70 @@ class ClassMetaData {
   /// plain objects.
   // TODO(alanknight): It may be that IdentityMap should not be treated as a
   // system map.
-  bool get isSystemMap => jsName == 'LinkedMap' || jsName == 'IdentityMap';
+  // bool get isSystemMap => jsName == 'LinkedMap' || jsName == 'IdentityMap';
 
-  /// True if this class refers to system Lists, which are treated specially.
-  bool get isSystemList => jsName == 'JSArray';
+  // /// True if this class refers to system Lists, which are treated specially.
+  // bool get isSystemList => jsName == 'JSArray';
 
-  bool get isSet => jsName == '_HashSet';
+  // bool get isSet => jsName == '_HashSet';
 
-  /// True if this class refers to a function type.
-  bool isFunction;
+  // /// True if this class refers to a function type.
+  // bool isFunction;
 
-  /// True if this class refers to a Record type.
-  bool isRecord;
+  // /// True if this class refers to a Record type.
+  // bool isRecord;
 
-  /// True if this class refers to a RecordType type.
-  bool isRecordType;
+  // /// True if this class refers to a RecordType type.
+  // bool isRecordType;
 
-  /// True is this class refers to a native JS type.
-  /// i.e. inherits from NativeError.
-  bool isNativeError;
+  // /// True is this class refers to a native JS type.
+  // /// i.e. inherits from NativeError.
+  // bool isNativeError;
+}
+
+String _computeInstanceKind(Map metadata) {
+  final jsName = metadata['name'];
+  final isFunction = metadata['isFunction'];
+  final isRecord = metadata['isRecord'];
+  final isRecordType = metadata['isRecordType'];
+
+  if (jsName == '_HashSet') {
+    return InstanceKind.kSet;
+  }
+  if (jsName == 'JSArray') {
+    return InstanceKind.kList;
+  }
+  if (jsName == 'LinkedMap' || jsName == 'IdentityMap') {
+    return InstanceKind.kMap;
+  }
+  if (isFunction) {
+    return InstanceKind.kClosure;
+  }
+  if (isRecord) {
+    return InstanceKind.kRecord;
+  }
+  if (isRecordType) {
+    return InstanceKind.kRecordType;
+  }
+  return InstanceKind.kPlainInstance;
+}
+
+ClassRef _computeClassRef(Map metadata) {
+  final dartName = metadata['dartName'];
+  final library = metadata['libraryId'];
+  final isRecord = metadata['isRecord'];
+  final isRecordType = metadata['isRecordType'];
+  final isNativeError = metadata['isNativeError'];
+
+  if (isRecord) {
+    return classRefForRecord;
+  }
+  if (isRecordType) {
+    return classRefForRecordType;
+  }
+  if (isNativeError) {
+    return classRefForNativeJsError;
+  }
+
+  return classRefFor(library, dartName);
 }
