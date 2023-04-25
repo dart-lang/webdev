@@ -860,70 +860,15 @@ class InstanceHelper extends Domain {
           identityHashCode: remoteObject.objectId.hashCode,
           classRef: metaData.classRef,
         )..length = metaData.length;
-
-      //   if (metaData.isSystemList) {
-      //     return InstanceRef(
-      //       kind: InstanceKind.kList,
-      //       id: objectId,
-      //       identityHashCode: remoteObject.objectId.hashCode,
-      //       classRef: metaData.classRef,
-      //     )..length = metaData.length;
-      //   }
-      //   if (metaData.isSystemMap) {
-      //     return InstanceRef(
-      //       kind: InstanceKind.kMap,
-      //       id: objectId,
-      //       identityHashCode: remoteObject.objectId.hashCode,
-      //       classRef: metaData.classRef,
-      //     )..length = metaData.length;
-      //   }
-      //   if (metaData.isRecord) {
-      //     return InstanceRef(
-      //       kind: InstanceKind.kRecord,
-      //       id: objectId,
-      //       identityHashCode: remoteObject.objectId.hashCode,
-      //       classRef: metaData.classRef,
-      //     )..length = metaData.length;
-      //   }
-      //   if (metaData.isRecordType) {
-      //     return InstanceRef(
-      //       kind: InstanceKind.kRecordType,
-      //       id: objectId,
-      //       identityHashCode: remoteObject.objectId.hashCode,
-      //       classRef: metaData.classRef,
-      //     )..length = metaData.length;
-      //   }
-      //   if (metaData.isSet) {
-      //     return InstanceRef(
-      //       kind: InstanceKind.kSet,
-      //       id: objectId,
-      //       identityHashCode: remoteObject.objectId.hashCode,
-      //       classRef: metaData.classRef,
-      //     )..length = metaData.length;
-      //   }
-      //   if (metaData.isNativeError) {
-      //     return InstanceRef(
-      //       kind: InstanceKind.kPlainInstance,
-      //       id: objectId,
-      //       identityHashCode: remoteObject.objectId.hashCode,
-      //       classRef: classRefForNativeJsError,
-      //     )..length = metaData.length;
-      //   }
-      //   return InstanceRef(
-      //     kind: InstanceKind.kPlainInstance,
-      //     id: objectId,
-      //     identityHashCode: remoteObject.objectId.hashCode,
-      //     classRef: metaData.classRef,
-      //   );
       case 'function':
-        final functionMetaData = await FunctionMetaData.metaDataFor(
-          inspector.remoteDebugger,
-          remoteObject,
-        );
         final objectId = remoteObject.objectId;
         if (objectId == null) {
           return _primitiveInstanceRef(InstanceKind.kNull, remoteObject);
         }
+        final functionMetaData = await FunctionMetaData.metaDataFor(
+          inspector.remoteDebugger,
+          remoteObject,
+        );
         return InstanceRef(
           kind: InstanceKind.kClosure,
           id: objectId,
