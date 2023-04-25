@@ -3,3 +3,4 @@ retry: 3
 
 tags:
   extension:  # Extension tests require configuration, so we may exclude.
+  daily: # Daily tests also run on a scheduled daily cron job.
