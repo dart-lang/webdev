@@ -146,44 +146,17 @@ class ClassMetaData {
 
   factory ClassMetaData({
     Object? jsName,
-    //Object? libraryId,
-    //Object? dartName,
     Object? length,
-    String kind = InstanceKind.kPlainInstance,
+    required String kind,
     required ClassRef classRef,
-    //bool isFunction = false,
-    //bool isRecord = false,
-    //bool isRecordType = false,
-    //bool isNativeError = false,
   }) {
     final id = classMetaDataIdFor(classRef.library!.id!, jsName as String?);
-    // final jName = jsName as String?;
-    // final dName = dartName as String?;
-    //final library = libraryId as String? ?? _dartCoreLibrary;
-    //final id = '$library:$jName';
-
-    // var classRef = classRefFor(library, dName);
-    // if (kind == ClassMetaDataKind.record) {
-    //   classRef = classRefForRecord;
-    // }
-    // if (kind == ClassMetaDataKind.recordType) {
-    //   classRef = classRefForRecordType;
-    // }
-    // if (kind == ClassMetaDataKind.nativeError) {
-    //   classRef = classRefForNativeJsError;
-    // }
-
     return ClassMetaData._(
       id,
       classRef,
       jsName,
-      //dartName as String?,
       int.tryParse('$length'),
       kind,
-      // isFunction,
-      // isRecord,
-      // isRecordType,
-      // isNativeError,
     );
   }
 
@@ -191,13 +164,8 @@ class ClassMetaData {
     this.id,
     this.classRef,
     this.jsName,
-    //this.dartName,
     this.length,
     this.kind,
-    // this.isFunction,
-    // this.isRecord,
-    // this.isRecordType,
-    // this.isNativeError,
   );
 
   /// Returns the [ClassMetaData] for the Chrome [remoteObject].
@@ -254,22 +222,12 @@ class ClassMetaData {
         returnByValue: true,
       );
       final metadata = result.value as Map;
-      final jsName = metadata['name'];
-
-      final kind = _computeInstanceKind(metadata);
-      final classRef = _computeClassRef(metadata);
 
       return ClassMetaData(
-        jsName: jsName,
-        //libraryId: library,
-        //dartName: dartName,
-        kind: kind,
-        classRef: classRef,
-        // isFunction: metadata['isFunction'],
-        // isRecord: metadata['isRecord'],
-        // isRecordType: metadata['isRecordType'],
-        // isNativeError: metadata['isNativeError'],
+        jsName: metadata['name'],
         length: metadata['length'],
+        kind: _getInstanceKind(metadata),
+        classRef: _getClassRef(metadata),
       );
     } on ChromeDebugException catch (e, s) {
       _logger.fine(
@@ -280,37 +238,10 @@ class ClassMetaData {
       return null;
     }
   }
-
-  /// TODO(annagrin): convert fields and getters below to kinds.
-
-  /// True if this class refers to system maps, which are treated specially.
-  ///
-  /// Classes that implement Map or inherit from MapBase are still treated as
-  /// plain objects.
-  // TODO(alanknight): It may be that IdentityMap should not be treated as a
-  // system map.
-  // bool get isSystemMap => jsName == 'LinkedMap' || jsName == 'IdentityMap';
-
-  // /// True if this class refers to system Lists, which are treated specially.
-  // bool get isSystemList => jsName == 'JSArray';
-
-  // bool get isSet => jsName == '_HashSet';
-
-  // /// True if this class refers to a function type.
-  // bool isFunction;
-
-  // /// True if this class refers to a Record type.
-  // bool isRecord;
-
-  // /// True if this class refers to a RecordType type.
-  // bool isRecordType;
-
-  // /// True is this class refers to a native JS type.
-  // /// i.e. inherits from NativeError.
-  // bool isNativeError;
 }
 
-String _computeInstanceKind(Map metadata) {
+/// Find instance kind of an object from [metadata].
+String _getInstanceKind(Map metadata) {
   final jsName = metadata['name'];
   final isFunction = metadata['isFunction'];
   final isRecord = metadata['isRecord'];
@@ -337,7 +268,8 @@ String _computeInstanceKind(Map metadata) {
   return InstanceKind.kPlainInstance;
 }
 
-ClassRef _computeClassRef(Map metadata) {
+/// Find class ref of an object from [metadata].
+ClassRef _getClassRef(Map metadata) {
   final dartName = metadata['dartName'];
   final library = metadata['libraryId'];
   final isRecord = metadata['isRecord'];

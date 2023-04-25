@@ -114,12 +114,6 @@ class InstanceHelper extends Domain {
     final objectId = remoteObject?.objectId;
     if (remoteObject == null || objectId == null) return null;
 
-    // TODO: This is checking the JS object ID for the dart pattern we use for
-    // VM objects, which seems wrong (and, we catch 'string' types above).
-    if (isStringId(objectId)) {
-      return _stringInstanceFor(remoteObject, offset, count);
-    }
-
     final metaData = await ClassMetaData.metaDataFor(
       remoteObject,
       inspector,
@@ -180,68 +174,6 @@ class InstanceHelper extends Domain {
           length: metaData.length,
         );
     }
-    /*
-    if (metaData.isFunction) {
-      return _closureInstanceFor(remoteObject);
-    }
-
-    if (metaData.isSystemList) {
-      return await _listInstanceFor(
-        classRef,
-        remoteObject,
-        offset: offset,
-        count: count,
-        length: metaData.length,
-      );
-    } else if (metaData.isSystemMap) {
-      return await _mapInstanceFor(
-        classRef,
-        remoteObject,
-        offset: offset,
-        count: count,
-        length: metaData.length,
-      );
-    } else if (metaData.isRecord) {
-      return await _recordInstanceFor(
-        classRef,
-        remoteObject,
-        offset: offset,
-        count: count,
-        length: metaData.length,
-      );
-    } else if (metaData.isRecordType) {
-      return await _recordTypeInstanceFor(
-        classRef,
-        remoteObject,
-        offset: offset,
-        count: count,
-        length: metaData.length,
-      );
-    } else if (metaData.isSet) {
-      return await _setInstanceFor(
-        classRef,
-        remoteObject,
-        offset: offset,
-        count: count,
-        length: metaData.length,
-      );
-    } else if (metaData.isNativeError) {
-      return await _plainInstanceFor(
-        classRefForNativeJsError,
-        remoteObject,
-        offset: offset,
-        count: count,
-        length: metaData.length,
-      );
-    } else {
-      return await _plainInstanceFor(
-        classRef,
-        remoteObject,
-        offset: offset,
-        count: count,
-        length: metaData.length,
-      );
-    }*/
   }
 
   /// If [remoteObject] represents a primitive, return an [Instance] for it,
