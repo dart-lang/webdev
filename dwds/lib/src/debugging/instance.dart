@@ -4,7 +4,7 @@
 
 import 'dart:math';
 
-import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:dwds/src/debugging/metadata/function.dart';
 import 'package:dwds/src/loaders/strategy.dart';
@@ -19,12 +19,13 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {
   final _logger = Logger('InstanceHelper');
+  final ClassMetaDataHelper metadataHelper;
 
-  InstanceHelper(AppInspectorInterface appInspector, this.debugger) {
+  InstanceHelper(AppInspector appInspector)
+      : metadataHelper = ClassMetaDataHelper(appInspector) {
     inspector = appInspector;
   }
 
-  final Debugger debugger;
   static final InstanceRef kNullInstanceRef =
       _primitiveInstanceRef(InstanceKind.kNull, null);
 
@@ -114,18 +115,15 @@ class InstanceHelper extends Domain {
     final objectId = remoteObject?.objectId;
     if (remoteObject == null || objectId == null) return null;
 
-    final metaData = await ClassMetaData.metaDataFor(
-      remoteObject,
-      inspector,
-    );
+    final metaData = await metadataHelper.metaDataFor(remoteObject);
 
     final classRef = metaData?.classRef;
     if (metaData == null || classRef == null) return null;
 
-    switch (metaData.kind) {
-      case InstanceKind.kClosure:
+    switch (metaData.runtimeKind) {
+      case RuntimeObjectKind.function:
         return _closureInstanceFor(remoteObject);
-      case InstanceKind.kList:
+      case RuntimeObjectKind.list:
         return await _listInstanceFor(
           classRef,
           remoteObject,
@@ -133,7 +131,7 @@ class InstanceHelper extends Domain {
           count: count,
           length: metaData.length,
         );
-      case InstanceKind.kSet:
+      case RuntimeObjectKind.set:
         return await _setInstanceFor(
           classRef,
           remoteObject,
@@ -141,7 +139,7 @@ class InstanceHelper extends Domain {
           count: count,
           length: metaData.length,
         );
-      case InstanceKind.kMap:
+      case RuntimeObjectKind.map:
         return await _mapInstanceFor(
           classRef,
           remoteObject,
@@ -149,7 +147,7 @@ class InstanceHelper extends Domain {
           count: count,
           length: metaData.length,
         );
-      case InstanceKind.kRecord:
+      case RuntimeObjectKind.record:
         return await _recordInstanceFor(
           classRef,
           remoteObject,
@@ -157,7 +155,7 @@ class InstanceHelper extends Domain {
           count: count,
           length: metaData.length,
         );
-      case InstanceKind.kRecordType:
+      case RuntimeObjectKind.recordType:
         return await _recordTypeInstanceFor(
           classRef,
           remoteObject,
@@ -165,6 +163,24 @@ class InstanceHelper extends Domain {
           count: count,
           length: metaData.length,
         );
+      case RuntimeObjectKind.type:
+        return await _plainTypeInstanceFor(
+          classRef,
+          remoteObject,
+          offset: offset,
+          count: count,
+          length: metaData.length,
+        );
+      case RuntimeObjectKind.wrappedType:
+        return await _wrappedTypeInstanceFor(
+          classRef,
+          remoteObject,
+          offset: offset,
+          count: count,
+        );
+      case RuntimeObjectKind.object:
+      case RuntimeObjectKind.nativeError:
+      case RuntimeObjectKind.nativeObject:
       default:
         return await _plainInstanceFor(
           classRef,
@@ -234,7 +250,7 @@ class InstanceHelper extends Domain {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
 
-    final properties = await debugger.getProperties(
+    final properties = await inspector.getProperties(
       objectId,
       offset: offset,
       count: count,
@@ -245,7 +261,7 @@ class InstanceHelper extends Domain {
       dartProperties.map<Future<BoundField>>((p) => _fieldFor(p, classRef)),
     );
     boundFields = boundFields
-        .where((bv) => isDisplayableObject(bv.value))
+        .where((bv) => inspector.isDisplayableObject(bv.value))
         .toList()
       ..sort(_compareBoundFields);
     final result = Instance(
@@ -410,7 +426,7 @@ class InstanceHelper extends Domain {
     int? count,
     int? length,
   }) async {
-    final properties = await debugger.getProperties(
+    final properties = await inspector.getProperties(
       list.objectId!,
       offset: offset,
       count: count,
@@ -731,6 +747,113 @@ class InstanceHelper extends Domain {
     return setInstance;
   }
 
+  /// Create Type instance with class [classRef] from [remoteObject].
+  ///
+  /// Finds the internal type and returns its object representation.
+  ///
+  /// Returns an instance containing [count] fields, if available,
+  /// starting from the [offset].
+  ///
+  /// If [offset] is `null`, assumes 0 offset.
+  /// If [count] is `null`, return all fields starting from the offset.
+  Future<Instance?> _wrappedTypeInstanceFor(
+    ClassRef classRef,
+    RemoteObject remoteObject, {
+    int? offset,
+    int? count,
+  }) async {
+    final objectId = remoteObject.objectId;
+    if (objectId == null) return null;
+
+    final unwrappedType = await _internalType(remoteObject);
+    return instanceFor(unwrappedType, offset: offset, count: count);
+  }
+
+  /// Get inner type from the DDC [type] wrapper instance.
+  Future<RemoteObject> _internalType(RemoteObject type) {
+    final expression = '''
+      function() {
+        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
+        return sdkUtils.dloadRepl(this, "_type");
+      }
+    ''';
+
+    return inspector.jsCallFunctionOn(type, expression, []);
+  }
+
+  /// Create Type instance with class [classRef] from [remoteObject].
+  ///
+  /// Collect information from the internal [remoteObject] and present
+  /// it as an instance of [Type] class.
+  ///
+  /// Returns an instance containing `hashCode` and `runtimeType` fields.
+  /// [length] is the expected length of the whole object, read from
+  /// the [ClassMetaData].
+  Future<Instance?> _plainTypeInstanceFor(
+    ClassRef classRef,
+    RemoteObject remoteObject, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
+    final objectId = remoteObject.objectId;
+    if (objectId == null) return null;
+
+    final fields = await _typeFields(classRef, remoteObject);
+    return Instance(
+      identityHashCode: objectId.hashCode,
+      kind: InstanceKind.kPlainInstance,
+      id: objectId,
+      classRef: classRef,
+    )
+      ..length = length
+      ..offset = offset
+      ..count = count
+      ..fields = fields;
+  }
+
+  /// The field types for a Dart RecordType.
+  ///
+  /// Returns a range of [count] field types, if available, starting from
+  /// the [offset].
+  ///
+  /// If [offset] is `null`, assumes 0 offset.
+  /// If [count] is `null`, return all field types starting from the offset.
+  Future<List<BoundField>> _typeFields(
+    ClassRef classRef,
+    RemoteObject type,
+  ) async {
+    // Present the type as an instance of `core.Type` class and
+    // hide the internal implementation.
+    final expression = '''
+      function() {
+        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
+        var externalType = sdkUtils.wrapType(this);
+        var hashCode = sdkUtils.dloadRepl(externalType, "hashCode");
+        var runtimeType = sdkUtils.dloadRepl(externalType, "runtimeType");
+
+        return {
+          hashCode: hashCode,
+          runtimeType: runtimeType
+        };
+      }
+    ''';
+
+    final result = await inspector.jsCallFunctionOn(type, expression, []);
+    final hashCodeObject = await inspector.loadField(result, 'hashCode');
+    final runtimeTypeObject = await inspector.loadField(result, 'runtimeType');
+
+    final properties = [
+      Property({'name': 'hashCode', 'value': hashCodeObject}),
+      Property({'name': 'runtimeType', 'value': runtimeTypeObject}),
+    ];
+
+    final boundFields = await Future.wait(
+      properties.map<Future<BoundField>>((p) => _fieldFor(p, classRef)),
+    );
+    return boundFields;
+  }
+
   /// Return the available count of elements in the requested range.
   /// Return `null` if the range includes the whole object.
   /// [count] is the range length requested by the `getObject` call.
@@ -817,6 +940,29 @@ class InstanceHelper extends Domain {
     return 'object';
   }
 
+  /// Create an [InstanceRef] for the given Chrome [remoteObject]
+  /// for a wrapped type.
+  ///
+  /// Make sure the instance kind and class ref on the ref matches
+  /// the one on the instance (the internal type instance kind).
+  Future<InstanceRef?> _wrappedTypeInstanceRef(
+    RemoteObject remoteObject,
+  ) async {
+    final objectId = remoteObject.objectId;
+    if (objectId == null) return null;
+
+    final unwrappedObject = await _internalType(remoteObject);
+    final metaData = await metadataHelper.metaDataFor(unwrappedObject);
+    if (metaData == null) return null;
+
+    return InstanceRef(
+      kind: metaData.kind,
+      id: objectId,
+      identityHashCode: objectId.hashCode,
+      classRef: metaData.classRef,
+    )..length = metaData.length;
+  }
+
   /// Create an [InstanceRef] for the given Chrome [remoteObject].
   Future<InstanceRef?> _instanceRefForRemote(RemoteObject? remoteObject) async {
     // If we have a null result, treat it as a reference to null.
@@ -849,15 +995,15 @@ class InstanceHelper extends Domain {
         if (objectId == null) {
           return _primitiveInstanceRef(InstanceKind.kNull, remoteObject);
         }
-        final metaData = await ClassMetaData.metaDataFor(
-          remoteObject,
-          inspector,
-        );
+        final metaData = await metadataHelper.metaDataFor(remoteObject);
         if (metaData == null) return null;
+        if (metaData.runtimeKind == RuntimeObjectKind.wrappedType) {
+          return _wrappedTypeInstanceRef(remoteObject);
+        }
         return InstanceRef(
           kind: metaData.kind,
           id: objectId,
-          identityHashCode: remoteObject.objectId.hashCode,
+          identityHashCode: objectId.hashCode,
           classRef: metaData.classRef,
         )..length = metaData.length;
       case 'function':
@@ -872,7 +1018,7 @@ class InstanceHelper extends Domain {
         return InstanceRef(
           kind: InstanceKind.kClosure,
           id: objectId,
-          identityHashCode: remoteObject.objectId.hashCode,
+          identityHashCode: objectId.hashCode,
           classRef: classRefForClosure,
         )
           // TODO(grouma) - fill this in properly.

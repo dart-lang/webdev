@@ -4,7 +4,6 @@
 
 @Timeout(Duration(minutes: 2))
 
-import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
@@ -26,14 +25,12 @@ void main() {
       TestContext(TestProject.testScopesWithSoundNullSafety, provider);
 
   late AppInspector inspector;
-  late Debugger debugger;
 
   setUpAll(() async {
     setCurrentLogWriter(debug: debug);
     await context.setUp();
     final chromeProxyService = context.service;
     inspector = chromeProxyService.inspector;
-    debugger = await chromeProxyService.debuggerFuture;
   });
 
   tearDownAll(() async {
@@ -98,7 +95,7 @@ void main() {
 
     test('for closure', () async {
       final remoteObject = await libraryPublicFinal();
-      final properties = await debugger.getProperties(remoteObject.objectId!);
+      final properties = await inspector.getProperties(remoteObject.objectId!);
       final closure =
           properties.firstWhere((property) => property.name == 'closure');
       final instanceRef = await inspector.instanceRefFor(closure.value!);
@@ -149,7 +146,7 @@ void main() {
           .jsEvaluate(interceptorsNewExpression('JSNoSuchMethodError'));
       final ref = await inspector.instanceRefFor(remoteObject);
       expect(ref!.kind, InstanceKind.kPlainInstance);
-      expect(ref.classRef!.name, 'NativeError');
+      expect(ref.classRef!.name, 'JSNoSuchMethodError');
     });
   });
 
@@ -185,7 +182,7 @@ void main() {
 
     test('for closure', () async {
       final remoteObject = await libraryPublicFinal();
-      final properties = await debugger.getProperties(remoteObject.objectId!);
+      final properties = await inspector.getProperties(remoteObject.objectId!);
       final closure =
           properties.firstWhere((property) => property.name == 'closure');
       final instance = await inspector.instanceFor(closure.value!);

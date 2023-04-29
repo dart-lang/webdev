@@ -6,36 +6,25 @@
 
 import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:test/test.dart';
-import 'package:vm_service/vm_service.dart';
 
 void main() {
   test('Gracefully handles invalid length objects', () async {
-    var metadata = ClassMetaData(
-      length: null,
-      kind: InstanceKind.kPlainInstance,
-      classRef: classRefForUnknown,
-    );
+    createMetadata(dynamic length) => ClassMetaData(
+          length: length,
+          runtimeKind: RuntimeObjectKind.object,
+          classRef: classRefForUnknown,
+        );
+
+    var metadata = createMetadata(null);
     expect(metadata.length, isNull);
 
-    metadata = ClassMetaData(
-      length: {},
-      kind: InstanceKind.kPlainInstance,
-      classRef: classRefForUnknown,
-    );
+    metadata = createMetadata({});
     expect(metadata.length, isNull);
 
-    metadata = ClassMetaData(
-      length: '{}',
-      kind: InstanceKind.kPlainInstance,
-      classRef: classRefForUnknown,
-    );
+    metadata = createMetadata('{}');
     expect(metadata.length, isNull);
 
-    metadata = ClassMetaData(
-      length: 0,
-      kind: InstanceKind.kPlainInstance,
-      classRef: classRefForUnknown,
-    );
+    metadata = createMetadata(0);
     expect(metadata.length, equals(0));
   });
 }

@@ -6,7 +6,6 @@
 @Timeout(Duration(minutes: 2))
 
 import 'package:dwds/dwds.dart';
-import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/conversions.dart';
@@ -26,13 +25,11 @@ void main() {
       TestContext(TestProject.testScopesWithSoundNullSafety, provider);
 
   late AppInspector inspector;
-  late Debugger debugger;
 
   setUpAll(() async {
     await context.setUp();
     final service = context.service;
     inspector = service.inspector;
-    debugger = await service.debuggerFuture;
   });
 
   tearDownAll(() async {
@@ -159,7 +156,7 @@ void main() {
 
   test('properties', () async {
     final remoteObject = await libraryPublicFinal();
-    final properties = await debugger.getProperties(remoteObject.objectId!);
+    final properties = await inspector.getProperties(remoteObject.objectId!);
     final names =
         properties.map((p) => p.name).where((x) => x != '__proto__').toList();
     final expected = [

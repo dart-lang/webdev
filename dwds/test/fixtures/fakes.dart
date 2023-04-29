@@ -6,11 +6,9 @@ import 'dart:async';
 
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds/src/debugging/classes.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
-import 'package:dwds/src/debugging/libraries.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
@@ -63,12 +61,7 @@ class FakeInspector implements AppInspector {
       RemoteObject({'type': 'string', 'value': 'true'});
 
   @override
-  Future<void> initialize(
-    LibraryHelper libraryHelper,
-    ClassHelper classHelper,
-    InstanceHelper instanceHelper,
-  ) async =>
-      {};
+  Future<void> initialize() async => {};
 
   @override
   Future<InstanceRef?> instanceRefFor(Object value) async =>

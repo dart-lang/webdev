@@ -121,7 +121,7 @@ class LibraryHelper extends Domain {
       for (final classDescriptor in classDescriptors) {
         final classMetaData = ClassMetaData(
           jsName: classDescriptor['name'],
-          kind: InstanceKind.kType,
+          runtimeKind: RuntimeObjectKind.type,
           classRef: classRefFor(
             libraryRef.id,
             classDescriptor['dartName'],

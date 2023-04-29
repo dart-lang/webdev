@@ -161,41 +161,26 @@ class TestInspector {
     return instances;
   }
 
-  Future<InstanceRef> getUnwrappedTypeInstanceRef(
+  Future<InstanceRef> getDisplayedRef(
+    String isolateId,
+    String instanceId,
+  ) async =>
+      await service.invoke(isolateId, instanceId, 'toString', [])
+          as InstanceRef;
+
+  Future<List<String?>> getDisplayedFields(
     String isolateId,
     InstanceRef ref,
   ) async {
-    final typeClassId = ref.classRef!.id!;
-
-    // `o.runtimeType` is an instance of `Type`.
-    expect(await service.getObject(isolateId, typeClassId), matchTypeClass);
-
-    // Get `o.runtimeType._type`.
-    return (await getFields(isolateId, ref, depth: 1)
-        as Map<dynamic, Object?>)['_type'] as InstanceRef;
-  }
-
-  Future<Instance> getUnwrappedTypeInstance(
-    String isolateId,
-    InstanceRef ref,
-  ) async {
-    final typeInstanceRef = await getUnwrappedTypeInstanceRef(isolateId, ref);
-    return await service.getObject(isolateId, typeInstanceRef.id!) as Instance;
-  }
-
-  Future<List<String?>> getFieldTypes(
-    String isolateId,
-    InstanceRef ref,
-  ) async {
-    final fieldTypeInstanceRefs =
+    final fieldRefs =
         await getFields(isolateId, ref, depth: 1) as Map<dynamic, InstanceRef>;
 
-    final fieldTypes = await Future.wait(
-      fieldTypeInstanceRefs.values.map(
-        (ref) async => await service.invoke(isolateId, ref.id!, 'toString', []),
-      ),
-    );
-    return fieldTypes.map((ref) => (ref as InstanceRef).valueAsString).toList();
+    Future<String?> toStringValue(InstanceRef ref) async =>
+        ref.valueAsString ??
+        (await getDisplayedRef(isolateId, ref.id!)).valueAsString;
+
+    final fields = await Future.wait(fieldRefs.values.map(toStringValue));
+    return fields.toList();
   }
 }
 
@@ -262,14 +247,17 @@ Matcher matchRecordTypeInstance({required int length}) => isA<Instance>()
     .having((e) => e.length, 'length', length)
     .having((e) => e.classRef!, 'classRef', matchRecordTypeClassRef);
 
+Matcher matchTypeStringInstance(String name) =>
+    matchPrimitiveInstance(kind: InstanceKind.kString, value: name);
+
 Matcher matchTypeInstance = isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kPlainInstance)
-    .having((e) => e.classRef!.name, 'classRef.name', matchTypeClassRef);
+    .having((e) => e.classRef, 'classRef', matchTypeClassRef);
 
 Matcher matchRecordClass = matchClass(libraryId: 'dart:core', type: 'Record');
 Matcher matchRecordTypeClass =
     matchClass(libraryId: 'dart:_runtime', type: 'RecordType');
-Matcher matchTypeClass = matchClass(libraryId: 'dart:_runtime', type: '_Type');
+Matcher matchTypeClass = matchClass(libraryId: 'dart:core', type: 'Type');
 
 Matcher matchClass({required String libraryId, required String type}) =>
     isA<Class>()
