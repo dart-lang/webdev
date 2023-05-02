@@ -63,6 +63,25 @@ Future<void> _runTests({
   getInstanceRef(frame, expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
+  getFields(instanceRef, {offset, count, depth = -1}) =>
+      testInspector.getFields(
+        isolateId,
+        instanceRef,
+        offset: offset,
+        count: count,
+        depth: depth,
+      );
+
+  final matchTypeObject = {
+    'hashCode': matchPrimitiveInstanceRef(kind: InstanceKind.kDouble),
+    'runtimeType': matchTypeInstanceRef,
+  };
+
+  final matchDisplayedTypeObject = [
+    matches('[0-9]*'),
+    'Type',
+  ];
+
   group('$compilationMode |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
@@ -98,12 +117,12 @@ Future<void> _runTests({
         final instanceRef = await getInstanceRef(frame, "'1'.runtimeType");
         final instanceId = instanceRef.id!;
 
-        final instance = await getObject(instanceId) as Instance;
-
+        final instance = await getObject(instanceId);
         expect(instance, matchTypeInstance);
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
+        expect(await getFields(instanceRef, depth: 1), matchTypeObject);
       });
     });
 
@@ -116,10 +135,7 @@ Future<void> _runTests({
         final displayedInstance = await getObject(displayedRef.id);
 
         expect(displayedInstance, matchTypeStringInstance('String'));
-        expect(
-          await getDisplayedFields(instanceRef),
-          [matches('[0-9]*'), 'Type'],
-        );
+        expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });
     });
 
@@ -134,6 +150,7 @@ Future<void> _runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
+        expect(await getFields(instanceRef, depth: 1), matchTypeObject);
       });
     });
 
@@ -147,10 +164,7 @@ Future<void> _runTests({
         final displayedInstance = await getObject(displayedRef.id);
 
         expect(displayedInstance, matchTypeStringInstance('int'));
-        expect(
-          await getDisplayedFields(instanceRef),
-          [matches('[0-9]*'), 'Type'],
-        );
+        expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });
     });
 
@@ -165,6 +179,7 @@ Future<void> _runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
+        expect(await getFields(instanceRef, depth: 1), matchTypeObject);
       });
     });
 
@@ -178,10 +193,7 @@ Future<void> _runTests({
         final displayedInstance = await getObject(displayedRef.id);
 
         expect(displayedInstance, matchTypeStringInstance('List<int>'));
-        expect(
-          await getDisplayedFields(instanceRef),
-          [matches('[0-9]*'), 'Type'],
-        );
+        expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });
     });
 
@@ -197,6 +209,7 @@ Future<void> _runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
+        expect(await getFields(instanceRef, depth: 1), matchTypeObject);
       });
     });
 
@@ -214,10 +227,7 @@ Future<void> _runTests({
           displayedInstance,
           matchTypeStringInstance('IdentityMap<int, String>'),
         );
-        expect(
-          await getDisplayedFields(instanceRef),
-          [matches('[0-9]*'), 'Type'],
-        );
+        expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });
     });
 
@@ -232,6 +242,7 @@ Future<void> _runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
+        expect(await getFields(instanceRef, depth: 1), matchTypeObject);
       });
     });
 
@@ -248,10 +259,7 @@ Future<void> _runTests({
           displayedInstance,
           matchTypeStringInstance('_IdentityHashSet<int>'),
         );
-        expect(
-          await getDisplayedFields(instanceRef),
-          [matches('[0-9]*'), 'Type'],
-        );
+        expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });
     });
 
@@ -266,6 +274,10 @@ Future<void> _runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchRecordTypeClass);
+        expect(
+          await getFields(instanceRef, depth: 2),
+          {1: matchTypeObject, 2: matchTypeObject},
+        );
       });
     });
 
@@ -301,6 +313,7 @@ Future<void> _runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
+        expect(await getFields(instanceRef, depth: 1), matchTypeObject);
       });
     });
 
@@ -315,10 +328,7 @@ Future<void> _runTests({
         final displayedInstance = await getObject(displayedRef.id);
 
         expect(displayedInstance, matchTypeStringInstance('_Uri'));
-        expect(
-          await getDisplayedFields(instanceRef),
-          [matches('[0-9]*'), 'Type'],
-        );
+        expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });
     });
   });

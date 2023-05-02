@@ -148,6 +148,14 @@ void main() {
       expect(ref!.kind, InstanceKind.kPlainInstance);
       expect(ref.classRef!.name, 'JSNoSuchMethodError');
     });
+
+    test('for a native JavaScript object', () async {
+      final remoteObject = await inspector
+          .jsEvaluate(interceptorsNewExpression('LegacyJavaScriptObject'));
+      final ref = await inspector.instanceRefFor(remoteObject);
+      expect(ref!.kind, InstanceKind.kPlainInstance);
+      expect(ref.classRef!.name, 'LegacyJavaScriptObject');
+    });
   });
 
   group('instance', () {
@@ -249,6 +257,30 @@ void main() {
       expect(instance.elements, isNull);
       final field = instance.fields!.first;
       expect(field.decl!.name, '_internal');
+    });
+
+    test('for a native JavaScript error', () async {
+      final remoteObject =
+          await inspector.jsEvaluate(interceptorsNewExpression('NativeError'));
+      final ref = await inspector.instanceFor(remoteObject);
+      expect(ref!.kind, InstanceKind.kPlainInstance);
+      expect(ref.classRef!.name, 'NativeError');
+    });
+
+    test('for a native JavaScript type error', () async {
+      final remoteObject = await inspector
+          .jsEvaluate(interceptorsNewExpression('JSNoSuchMethodError'));
+      final ref = await inspector.instanceFor(remoteObject);
+      expect(ref!.kind, InstanceKind.kPlainInstance);
+      expect(ref.classRef!.name, 'JSNoSuchMethodError');
+    });
+
+    test('for a native JavaScript object', () async {
+      final remoteObject = await inspector
+          .jsEvaluate(interceptorsNewExpression('LegacyJavaScriptObject'));
+      final ref = await inspector.instanceFor(remoteObject);
+      expect(ref!.kind, InstanceKind.kPlainInstance);
+      expect(ref.classRef!.name, 'LegacyJavaScriptObject');
     });
   });
 }

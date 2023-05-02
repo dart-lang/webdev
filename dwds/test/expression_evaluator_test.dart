@@ -58,7 +58,8 @@ void main() async {
         skipLists,
         root,
       );
-      final inspector = FakeInspector(fakeIsolate: simpleIsolate);
+      final inspector =
+          FakeInspector(webkitDebugger, fakeIsolate: simpleIsolate);
       debugger.updateInspector(inspector);
 
       _evaluator = ExpressionEvaluator(

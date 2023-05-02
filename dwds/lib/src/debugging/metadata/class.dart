@@ -216,10 +216,10 @@ class ClassMetaDataHelper {
           result['runtimeKind'] = '${RuntimeObjectKind.type}';
         } else if (dart.is(arg, dart._Type)) {
           result['runtimeKind'] = '${RuntimeObjectKind.wrappedType}';
-        } else if (dart.is(arg, interceptors.JavaScriptObject)) {
-          result['runtimeKind'] = '${RuntimeObjectKind.nativeObject}';
         } else if (dart.is(arg, interceptors.NativeError)) {
           result['runtimeKind'] = '${RuntimeObjectKind.nativeError}';
+        } else if (dart.is(arg, interceptors.JavaScriptObject)) {
+          result['runtimeKind'] = '${RuntimeObjectKind.nativeObject}';
         }
         return result;
       }

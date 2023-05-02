@@ -98,7 +98,7 @@ void main() async {
       skipLists,
       root,
     );
-    inspector = FakeInspector(fakeIsolate: simpleIsolate);
+    inspector = FakeInspector(webkitDebugger, fakeIsolate: simpleIsolate);
     debugger.updateInspector(inspector);
   });
 
@@ -168,7 +168,7 @@ void main() async {
   setUp(() {
     // We need to provide an Isolate so that the code doesn't bail out on a null
     // check before it has a chance to throw.
-    inspector = FakeInspector(fakeIsolate: simpleIsolate);
+    inspector = FakeInspector(webkitDebugger, fakeIsolate: simpleIsolate);
     debugger.updateInspector(inspector);
   });
 
@@ -176,7 +176,7 @@ void main() async {
     setUp(() {
       // We need to provide an Isolate so that the code doesn't bail out on a null
       // check before it has a chance to throw.
-      inspector = FakeInspector(fakeIsolate: simpleIsolate);
+      inspector = FakeInspector(webkitDebugger, fakeIsolate: simpleIsolate);
       debugger.updateInspector(inspector);
     });
 

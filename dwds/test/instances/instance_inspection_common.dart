@@ -65,16 +65,12 @@ class TestInspector {
     expect(result, isA<Instance>());
     final instance = result as Instance;
 
-    // TODO(annagrin): we sometimes get mismatching reference
-    // and instance kinds from chrome. Investigate.
-    if (instanceRef.kind != InstanceKind.kClosure) {
-      expect(
-        instance.kind,
-        instanceRef.kind,
-        reason: 'object $instanceId with ref kind ${instanceRef.kind} '
-            'has an instance kind ${instance.kind}',
-      );
-    }
+    expect(
+      instance.kind,
+      instanceRef.kind,
+      reason: 'object $instanceId with ref kind ${instanceRef.kind} '
+          'has an instance kind ${instance.kind}',
+    );
 
     final fields = instance.fields;
     final associations = instance.associations;
@@ -212,6 +208,15 @@ Matcher matchRecordTypeInstanceRef({required int length}) => isA<InstanceRef>()
     .having((e) => e.kind, 'kind', InstanceKind.kRecordType)
     .having((e) => e.length, 'length', length)
     .having((e) => e.classRef!, 'classRef', matchRecordTypeClassRef);
+
+Matcher matchTypeInstanceRef = isA<InstanceRef>()
+    .having((e) => e.kind, 'kind', InstanceKind.kPlainInstance)
+    .having((e) => e.classRef, 'classRef', matchTypeClassRef);
+
+Matcher matchPrimitiveInstanceRef({
+  required String kind,
+}) =>
+    isA<InstanceRef>().having((e) => e.kind, 'kind', kind);
 
 Matcher matchPrimitiveInstance({
   required String kind,

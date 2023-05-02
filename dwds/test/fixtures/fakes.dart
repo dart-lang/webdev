@@ -16,6 +16,7 @@ import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/objects.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
 
@@ -44,7 +45,8 @@ Isolate get simpleIsolate => Isolate(
     );
 
 class FakeInspector implements AppInspector {
-  FakeInspector({required this.fakeIsolate});
+  final WebkitDebugger _remoteDebugger;
+  FakeInspector(this._remoteDebugger, {required this.fakeIsolate});
 
   Isolate fakeIsolate;
 
@@ -91,6 +93,32 @@ class FakeInspector implements AppInspector {
         name: fakeIsolate.name,
         isSystemIsolate: fakeIsolate.isSystemIsolate,
       );
+
+  @override
+  Future<List<Property>> getProperties(
+    String objectId, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
+    final response = await _remoteDebugger.sendCommand(
+      'Runtime.getProperties',
+      params: {
+        'objectId': objectId,
+        'ownProperties': true,
+      },
+    );
+    final result = response.result?['result'];
+    return result
+        .map<Property>((each) => Property(each as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  bool isDisplayableObject(Object? object) => true;
+
+  @override
+  bool isNativeJsError(InstanceRef instanceRef) => false;
 }
 
 class FakeSseConnection implements SseSocketConnection {
