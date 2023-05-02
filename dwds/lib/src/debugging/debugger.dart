@@ -46,8 +46,6 @@ class Debugger extends Domain {
   final SkipLists _skipLists;
   final String _root;
 
-  //final classMetaDataHelper = ClassMetaDataHelper();
-
   Debugger._(
     this._remoteDebugger,
     this._streamNotify,
