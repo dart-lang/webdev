@@ -178,6 +178,21 @@ class TestInspector {
     final fields = await Future.wait(fieldRefs.values.map(toStringValue));
     return fields.toList();
   }
+
+  Future<List<Instance>> getElements(
+    String isolateId,
+    String instanceId,
+  ) async {
+    final instance = await service.getObject(isolateId, instanceId) as Instance;
+    return Future.wait(
+      instance.fields!.map(
+        (e) async => await service.getObject(
+          isolateId,
+          (e.value as InstanceRef).id!,
+        ) as Instance,
+      ),
+    );
+  }
 }
 
 Map<String, InstanceRef> _associationsToMap(
@@ -209,8 +224,9 @@ Matcher matchRecordTypeInstanceRef({required int length}) => isA<InstanceRef>()
     .having((e) => e.length, 'length', length)
     .having((e) => e.classRef!, 'classRef', matchRecordTypeClassRef);
 
-Matcher matchTypeInstanceRef = isA<InstanceRef>()
-    .having((e) => e.kind, 'kind', InstanceKind.kPlainInstance)
+Matcher matchTypeInstanceRef(String name) => isA<InstanceRef>()
+    .having((e) => e.kind, 'kind', InstanceKind.kType)
+    .having((e) => e.name, 'name', name)
     .having((e) => e.classRef, 'classRef', matchTypeClassRef);
 
 Matcher matchPrimitiveInstanceRef({
@@ -228,19 +244,19 @@ Matcher matchPrimitiveInstance({
 
 Matcher matchPlainInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kPlainInstance)
-    .having((e) => e.classRef!.name, 'classRef.name', type);
+    .having((e) => e.classRef, 'classRef', matchClassRef(type));
 
 Matcher matchListInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kList)
-    .having((e) => e.classRef!.name, 'classRef.name', type);
+    .having((e) => e.classRef, 'classRef', matchClassRef(type));
 
 Matcher matchMapInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kMap)
-    .having((e) => e.classRef!.name, 'classRef.name', type);
+    .having((e) => e.classRef, 'classRef', matchClassRef(type));
 
 Matcher matchSetInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kSet)
-    .having((e) => e.classRef!.name, 'classRef.name', type);
+    .having((e) => e.classRef, 'classRef', matchClassRef(type));
 
 Matcher matchRecordInstance({required int length}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kRecord)
@@ -255,8 +271,9 @@ Matcher matchRecordTypeInstance({required int length}) => isA<Instance>()
 Matcher matchTypeStringInstance(String name) =>
     matchPrimitiveInstance(kind: InstanceKind.kString, value: name);
 
-Matcher matchTypeInstance = isA<Instance>()
-    .having((e) => e.kind, 'kind', InstanceKind.kPlainInstance)
+Matcher matchTypeInstance(String name) => isA<Instance>()
+    .having((e) => e.kind, 'kind', InstanceKind.kType)
+    .having((e) => e.name, 'name', name)
     .having((e) => e.classRef, 'classRef', matchTypeClassRef);
 
 Matcher matchRecordClass = matchClass(libraryId: 'dart:core', type: 'Record');

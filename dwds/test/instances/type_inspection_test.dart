@@ -54,9 +54,6 @@ Future<void> _runTests({
 
   getObject(instanceId) => service.getObject(isolateId, instanceId);
 
-  getDisplayedRef(instanceId) =>
-      testInspector.getDisplayedRef(isolateId, instanceId);
-
   getDisplayedFields(instanceRef) =>
       testInspector.getDisplayedFields(isolateId, instanceRef);
 
@@ -72,9 +69,12 @@ Future<void> _runTests({
         depth: depth,
       );
 
+  getElements(String instanceId) =>
+      testInspector.getElements(isolateId, instanceId);
+
   final matchTypeObject = {
     'hashCode': matchPrimitiveInstanceRef(kind: InstanceKind.kDouble),
-    'runtimeType': matchTypeInstanceRef,
+    'runtimeType': matchTypeInstanceRef('Type'),
   };
 
   final matchDisplayedTypeObject = [
@@ -115,26 +115,15 @@ Future<void> _runTests({
       await onBreakPoint('printSimpleLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, "'1'.runtimeType");
-        final instanceId = instanceRef.id!;
+        expect(instanceRef, matchTypeInstanceRef('String'));
 
+        final instanceId = instanceRef.id!;
         final instance = await getObject(instanceId);
-        expect(instance, matchTypeInstance);
+        expect(instance, matchTypeInstance('String'));
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
         expect(await getFields(instanceRef, depth: 1), matchTypeObject);
-      });
-    });
-
-    test('String type display', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, "'1'.runtimeType");
-        final instanceId = instanceRef.id!;
-        final displayedRef = await getDisplayedRef(instanceId);
-        final displayedInstance = await getObject(displayedRef.id);
-
-        expect(displayedInstance, matchTypeStringInstance('String'));
         expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });
     });
@@ -143,27 +132,15 @@ Future<void> _runTests({
       await onBreakPoint('printSimpleLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, '1.runtimeType');
-        final instanceId = instanceRef.id!;
+        expect(instanceRef, matchTypeInstanceRef('int'));
 
+        final instanceId = instanceRef.id!;
         final instance = await getObject(instanceId);
-        expect(instance, matchTypeInstance);
+        expect(instance, matchTypeInstance('int'));
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
         expect(await getFields(instanceRef, depth: 1), matchTypeObject);
-      });
-    });
-
-    test('int type display', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, '1.runtimeType');
-        final instanceId = instanceRef.id!;
-
-        final displayedRef = await getDisplayedRef(instanceId);
-        final displayedInstance = await getObject(displayedRef.id);
-
-        expect(displayedInstance, matchTypeStringInstance('int'));
         expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });
     });
@@ -172,27 +149,15 @@ Future<void> _runTests({
       await onBreakPoint('printSimpleLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, '<int>[].runtimeType');
-        final instanceId = instanceRef.id!;
+        expect(instanceRef, matchTypeInstanceRef('List<int>'));
 
+        final instanceId = instanceRef.id!;
         final instance = await getObject(instanceId);
-        expect(instance, matchTypeInstance);
+        expect(instance, matchTypeInstance('List<int>'));
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
         expect(await getFields(instanceRef, depth: 1), matchTypeObject);
-      });
-    });
-
-    test('list type display', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, '<int>[].runtimeType');
-        final instanceId = instanceRef.id!;
-
-        final displayedRef = await getDisplayedRef(instanceId);
-        final displayedInstance = await getObject(displayedRef.id);
-
-        expect(displayedInstance, matchTypeStringInstance('List<int>'));
         expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });
     });
@@ -202,31 +167,15 @@ Future<void> _runTests({
         final frame = event.topFrame!.index!;
         final instanceRef =
             await getInstanceRef(frame, '<int, String>{}.runtimeType');
-        final instanceId = instanceRef.id!;
+        expect(instanceRef, matchTypeInstanceRef('IdentityMap<int, String>'));
 
+        final instanceId = instanceRef.id!;
         final instance = await getObject(instanceId);
-        expect(instance, matchTypeInstance);
+        expect(instance, matchTypeInstance('IdentityMap<int, String>'));
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
         expect(await getFields(instanceRef, depth: 1), matchTypeObject);
-      });
-    });
-
-    test('map type display', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef =
-            await getInstanceRef(frame, '<int, String>{}.runtimeType');
-        final instanceId = instanceRef.id!;
-
-        final displayedRef = await getDisplayedRef(instanceId);
-        final displayedInstance = await getObject(displayedRef.id);
-
-        expect(
-          displayedInstance,
-          matchTypeStringInstance('IdentityMap<int, String>'),
-        );
         expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });
     });
@@ -235,30 +184,15 @@ Future<void> _runTests({
       await onBreakPoint('printSimpleLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, '<int>{}.runtimeType');
-        final instanceId = instanceRef.id!;
+        expect(instanceRef, matchTypeInstanceRef('_IdentityHashSet<int>'));
 
+        final instanceId = instanceRef.id!;
         final instance = await getObject(instanceId);
-        expect(instance, matchTypeInstance);
+        expect(instance, matchTypeInstance('_IdentityHashSet<int>'));
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
         expect(await getFields(instanceRef, depth: 1), matchTypeObject);
-      });
-    });
-
-    test('set type display', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, '<int>{}.runtimeType');
-        final instanceId = instanceRef.id!;
-
-        final displayedRef = await getDisplayedRef(instanceId);
-        final displayedInstance = await getObject(displayedRef.id);
-
-        expect(
-          displayedInstance,
-          matchTypeStringInstance('_IdentityHashSet<int>'),
-        );
         expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });
     });
@@ -267,32 +201,21 @@ Future<void> _runTests({
       await onBreakPoint('printSimpleLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, "(0,'a').runtimeType");
-        final instanceId = instanceRef.id!;
+        expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
 
+        final instanceId = instanceRef.id!;
         final instance = await getObject(instanceId);
         expect(instance, matchRecordTypeInstance(length: 2));
+        expect(
+          await getElements(instanceId),
+          [matchTypeInstance('int'), matchTypeInstance('String')],
+        );
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchRecordTypeClass);
         expect(
           await getFields(instanceRef, depth: 2),
           {1: matchTypeObject, 2: matchTypeObject},
-        );
-      });
-    });
-
-    test('record type display', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, "(0,'a').runtimeType");
-        final instanceId = instanceRef.id!;
-
-        final displayedRef = await getDisplayedRef(instanceId);
-        final displayedInstance = await getObject(displayedRef.id);
-
-        expect(
-          displayedInstance,
-          matchTypeStringInstance('(int, String)'),
         );
         expect(
           await getDisplayedFields(instanceRef),
@@ -306,28 +229,15 @@ Future<void> _runTests({
         final frame = event.topFrame!.index!;
         final instanceRef =
             await getInstanceRef(frame, "Uri.file('').runtimeType");
-        final instanceId = instanceRef.id!;
+        expect(instanceRef, matchTypeInstanceRef('_Uri'));
 
+        final instanceId = instanceRef.id!;
         final instance = await getObject(instanceId);
-        expect(instance, matchTypeInstance);
+        expect(instance, matchTypeInstance('_Uri'));
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
         expect(await getFields(instanceRef, depth: 1), matchTypeObject);
-      });
-    });
-
-    test('class type display', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef =
-            await getInstanceRef(frame, "Uri.file('').runtimeType");
-        final instanceId = instanceRef.id!;
-
-        final displayedRef = await getDisplayedRef(instanceId);
-        final displayedInstance = await getObject(displayedRef.id);
-
-        expect(displayedInstance, matchTypeStringInstance('_Uri'));
         expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });
     });

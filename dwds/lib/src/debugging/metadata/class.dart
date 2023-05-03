@@ -94,6 +94,11 @@ class ClassMetaData {
   /// example, 'Number', 'JSArray', 'Object'.
   final String? jsName;
 
+  /// Type name for Type instances.
+  ///
+  /// For example, 'int', 'String', 'MyClass', 'List<int>'.
+  final String? typeName;
+
   /// The length of the object, if applicable.
   final int? length;
 
@@ -110,6 +115,7 @@ class ClassMetaData {
 
   factory ClassMetaData({
     Object? jsName,
+    Object? typeName,
     Object? length,
     required String runtimeKind,
     required ClassRef classRef,
@@ -119,6 +125,7 @@ class ClassMetaData {
       id,
       classRef,
       jsName,
+      typeName as String?,
       int.tryParse('$length'),
       runtimeKind,
     );
@@ -128,6 +135,7 @@ class ClassMetaData {
     this.id,
     this.classRef,
     this.jsName,
+    this.typeName,
     this.length,
     this.runtimeKind,
   );
@@ -146,9 +154,10 @@ class ClassMetaData {
         return InstanceKind.kRecord;
       case RuntimeObjectKind.recordType:
         return InstanceKind.kRecordType;
-      case RuntimeObjectKind.object:
       case RuntimeObjectKind.type:
       case RuntimeObjectKind.wrappedType:
+        return InstanceKind.kType;
+      case RuntimeObjectKind.object:
       case RuntimeObjectKind.nativeError:
       case RuntimeObjectKind.nativeObject:
       default:
@@ -214,6 +223,8 @@ class ClassMetaDataHelper {
           result['length'] = arg.types.length;
         } else if (name == 'Type') {
           result['runtimeKind'] = '${RuntimeObjectKind.type}';
+          var externalType = dart.wrapType(arg);
+          result['typeName'] = dart.dsendRepl(externalType, "toString", []);
         } else if (dart.is(arg, dart._Type)) {
           result['runtimeKind'] = '${RuntimeObjectKind.wrappedType}';
         } else if (dart.is(arg, interceptors.NativeError)) {
@@ -233,6 +244,7 @@ class ClassMetaDataHelper {
       );
       final metadata = result.value as Map;
       final jsName = metadata['name'];
+      final typeName = metadata['typeName'];
       final dartName = metadata['dartName'];
       final library = metadata['libraryId'];
       final runtimeKind = metadata['runtimeKind'];
@@ -256,6 +268,7 @@ class ClassMetaDataHelper {
 
       return ClassMetaData(
         jsName: jsName,
+        typeName: typeName,
         length: length,
         runtimeKind: runtimeKind,
         classRef: classRef,

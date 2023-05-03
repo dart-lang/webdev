@@ -693,7 +693,7 @@ class AppInspector implements AppInspectorInterface {
         .isNativeJsObject(instanceRef.classRef);
   }
 
-  /// Returns true of JavaScript exceptions.
+  /// Returns true for JavaScript exceptions.
   @override
   bool isNativeJsError(InstanceRef instanceRef) {
     return _instanceHelper.metadataHelper.isNativeJsError(instanceRef.classRef);

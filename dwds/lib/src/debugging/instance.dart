@@ -125,55 +125,48 @@ class InstanceHelper extends Domain {
         return _closureInstanceFor(remoteObject);
       case RuntimeObjectKind.list:
         return await _listInstanceFor(
-          classRef,
+          metaData,
           remoteObject,
           offset: offset,
           count: count,
-          length: metaData.length,
         );
       case RuntimeObjectKind.set:
         return await _setInstanceFor(
-          classRef,
+          metaData,
           remoteObject,
           offset: offset,
           count: count,
-          length: metaData.length,
         );
       case RuntimeObjectKind.map:
         return await _mapInstanceFor(
-          classRef,
+          metaData,
           remoteObject,
           offset: offset,
           count: count,
-          length: metaData.length,
         );
       case RuntimeObjectKind.record:
         return await _recordInstanceFor(
-          classRef,
+          metaData,
           remoteObject,
           offset: offset,
           count: count,
-          length: metaData.length,
         );
       case RuntimeObjectKind.recordType:
         return await _recordTypeInstanceFor(
-          classRef,
+          metaData,
           remoteObject,
           offset: offset,
           count: count,
-          length: metaData.length,
         );
       case RuntimeObjectKind.type:
         return await _plainTypeInstanceFor(
-          classRef,
+          metaData,
           remoteObject,
           offset: offset,
           count: count,
-          length: metaData.length,
         );
       case RuntimeObjectKind.wrappedType:
         return await _wrappedTypeInstanceFor(
-          classRef,
           remoteObject,
           offset: offset,
           count: count,
@@ -183,11 +176,10 @@ class InstanceHelper extends Domain {
       case RuntimeObjectKind.nativeObject:
       default:
         return await _plainInstanceFor(
-          classRef,
+          metaData,
           remoteObject,
           offset: offset,
           count: count,
-          length: metaData.length,
         );
     }
   }
@@ -241,11 +233,10 @@ class InstanceHelper extends Domain {
   /// Create a plain instance of [classRef] from [remoteObject] and the JS
   /// properties [properties].
   Future<Instance?> _plainInstanceFor(
-    ClassRef classRef,
+    ClassMetaData metaData,
     RemoteObject remoteObject, {
     int? offset,
     int? count,
-    int? length,
   }) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
@@ -254,11 +245,12 @@ class InstanceHelper extends Domain {
       objectId,
       offset: offset,
       count: count,
-      length: length,
+      length: metaData.length,
     );
     final dartProperties = await _dartFieldsFor(properties, remoteObject);
     var boundFields = await Future.wait(
-      dartProperties.map<Future<BoundField>>((p) => _fieldFor(p, classRef)),
+      dartProperties
+          .map<Future<BoundField>>((p) => _fieldFor(p, metaData.classRef)),
     );
     boundFields = boundFields
         .where((bv) => inspector.isDisplayableObject(bv.value))
@@ -268,7 +260,7 @@ class InstanceHelper extends Domain {
       kind: InstanceKind.kPlainInstance,
       id: objectId,
       identityHashCode: remoteObject.objectId.hashCode,
-      classRef: classRef,
+      classRef: metaData.classRef,
     )..fields = boundFields;
     return result;
   }
@@ -340,11 +332,10 @@ class InstanceHelper extends Domain {
   /// [length] is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _mapInstanceFor(
-    ClassRef classRef,
+    ClassMetaData metaData,
     RemoteObject remoteObject, {
     int? offset,
     int? count,
-    int? length,
   }) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
@@ -355,15 +346,15 @@ class InstanceHelper extends Domain {
     final rangeCount = _calculateRangeCount(
       count: count,
       elementCount: associations.length,
-      length: length,
+      length: metaData.length,
     );
     return Instance(
       identityHashCode: remoteObject.objectId.hashCode,
       kind: InstanceKind.kMap,
       id: objectId,
-      classRef: classRef,
+      classRef: metaData.classRef,
     )
-      ..length = length
+      ..length = metaData.length
       ..offset = offset
       ..count = rangeCount
       ..associations = associations;
@@ -379,11 +370,10 @@ class InstanceHelper extends Domain {
   /// [length] is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _listInstanceFor(
-    ClassRef classRef,
+    ClassMetaData metaData,
     RemoteObject remoteObject, {
     int? offset,
     int? count,
-    int? length,
   }) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
@@ -392,20 +382,20 @@ class InstanceHelper extends Domain {
       remoteObject,
       offset: offset,
       count: count,
-      length: length,
+      length: metaData.length,
     );
     final rangeCount = _calculateRangeCount(
       count: count,
       elementCount: elements.length,
-      length: length,
+      length: metaData.length,
     );
     return Instance(
       identityHashCode: remoteObject.objectId.hashCode,
       kind: InstanceKind.kList,
       id: objectId,
-      classRef: classRef,
+      classRef: metaData.classRef,
     )
-      ..length = length
+      ..length = metaData.length
       ..elements = elements
       ..offset = offset
       ..count = rangeCount;
@@ -590,11 +580,10 @@ class InstanceHelper extends Domain {
   /// [length] is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _recordInstanceFor(
-    ClassRef classRef,
+    ClassMetaData metaData,
     RemoteObject remoteObject, {
     int? offset,
     int? count,
-    int? length,
   }) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
@@ -604,15 +593,15 @@ class InstanceHelper extends Domain {
     final rangeCount = _calculateRangeCount(
       count: count,
       elementCount: fields.length,
-      length: length,
+      length: metaData.length,
     );
     return Instance(
       identityHashCode: remoteObject.objectId.hashCode,
       kind: InstanceKind.kRecord,
       id: objectId,
-      classRef: classRef,
+      classRef: metaData.classRef,
     )
-      ..length = length
+      ..length = metaData.length
       ..offset = offset
       ..count = rangeCount
       ..fields = fields;
@@ -628,11 +617,10 @@ class InstanceHelper extends Domain {
   /// [length] is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _recordTypeInstanceFor(
-    ClassRef classRef,
+    ClassMetaData metaData,
     RemoteObject remoteObject, {
     int? offset,
     int? count,
-    int? length,
   }) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
@@ -642,15 +630,15 @@ class InstanceHelper extends Domain {
     final rangeCount = _calculateRangeCount(
       count: count,
       elementCount: fields.length,
-      length: length,
+      length: metaData.length,
     );
     return Instance(
       identityHashCode: remoteObject.objectId.hashCode,
       kind: InstanceKind.kRecordType,
       id: objectId,
-      classRef: classRef,
+      classRef: metaData.classRef,
     )
-      ..length = length
+      ..length = metaData.length
       ..offset = offset
       ..count = rangeCount
       ..fields = fields;
@@ -702,12 +690,12 @@ class InstanceHelper extends Domain {
   }
 
   Future<Instance?> _setInstanceFor(
-    ClassRef classRef,
+    ClassMetaData metaData,
     RemoteObject remoteObject, {
     int? offset,
     int? count,
-    int? length,
   }) async {
+    final length = metaData.length;
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
 
@@ -733,7 +721,7 @@ class InstanceHelper extends Domain {
       identityHashCode: remoteObject.objectId.hashCode,
       kind: InstanceKind.kSet,
       id: objectId,
-      classRef: classRef,
+      classRef: metaData.classRef,
     )
       ..length = length
       ..elements = elements;
@@ -757,7 +745,6 @@ class InstanceHelper extends Domain {
   /// If [offset] is `null`, assumes 0 offset.
   /// If [count] is `null`, return all fields starting from the offset.
   Future<Instance?> _wrappedTypeInstanceFor(
-    ClassRef classRef,
     RemoteObject remoteObject, {
     int? offset,
     int? count,
@@ -790,23 +777,23 @@ class InstanceHelper extends Domain {
   /// [length] is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _plainTypeInstanceFor(
-    ClassRef classRef,
+    ClassMetaData metaData,
     RemoteObject remoteObject, {
     int? offset,
     int? count,
-    int? length,
   }) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
 
-    final fields = await _typeFields(classRef, remoteObject);
+    final fields = await _typeFields(metaData.classRef, remoteObject);
     return Instance(
       identityHashCode: objectId.hashCode,
-      kind: InstanceKind.kPlainInstance,
+      kind: InstanceKind.kType,
       id: objectId,
-      classRef: classRef,
+      classRef: metaData.classRef,
+      name: metaData.typeName,
     )
-      ..length = length
+      ..length = metaData.length
       ..offset = offset
       ..count = count
       ..fields = fields;
@@ -960,6 +947,7 @@ class InstanceHelper extends Domain {
       id: objectId,
       identityHashCode: objectId.hashCode,
       classRef: metaData.classRef,
+      name: metaData.typeName,
     )..length = metaData.length;
   }
 
