@@ -628,8 +628,8 @@ class AppInspector implements AppInspectorInterface {
   Future<RemoteObject> _subRange(
     String id, {
     required int offset,
-    int? count,
     required int length,
+    int? count,
   }) async {
     // TODO(#809): Sometimes we already know the type of the object, and
     // we could take advantage of that to short-circuit.

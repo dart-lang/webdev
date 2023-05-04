@@ -64,24 +64,49 @@ String classMetaDataIdFor(String library, String? jsName) => '$library:$jsName';
 /// Object kinds are determined using DDC runtime API and
 /// are used to translate from JavaScript objects to their
 /// vm service protocol representation.
-class RuntimeObjectKind {
-  static const String object = 'object';
-  static const String set = 'set';
-  static const String list = 'list';
-  static const String map = 'map';
-  static const String wrappedType = 'wrappedType';
-  static const String function = 'function';
-  static const String record = 'record';
-  static const String type = 'type';
-  static const String recordType = 'recordType';
-  static const String nativeError = 'nativeError';
-  static const String nativeObject = 'nativeObject';
+enum RuntimeObjectKind {
+  object,
+  set,
+  list,
+  map,
+  function,
+  record,
+  type,
+  recordType,
+  wrappedType,
+  nativeError,
+  nativeObject;
+
+  static final _valueMap = {
+    for (var v in values) v.toString(): v,
+  };
+
+  static RuntimeObjectKind from(String value) {
+    final kind = _valueMap[value];
+    if (kind == null) {
+      throw StateError('Unknown runtime object kind: $value');
+    }
+    return kind;
+  }
+
+  String toInstanceKind() {
+    return switch (this) {
+      object || nativeObject || nativeError => InstanceKind.kPlainInstance,
+      set => InstanceKind.kSet,
+      list => InstanceKind.kList,
+      map => InstanceKind.kMap,
+      function => InstanceKind.kClosure,
+      record => InstanceKind.kRecord,
+      type || wrappedType => InstanceKind.kType,
+      recordType => InstanceKind.kRecordType,
+    };
+  }
 }
 
 /// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {
   /// Runtime object kind.
-  final String runtimeKind;
+  final RuntimeObjectKind runtimeKind;
 
   /// Class id.
   ///
@@ -111,13 +136,13 @@ class ClassMetaData {
   final ClassRef classRef;
 
   /// Instance kind for vm service protocol.
-  String get kind => _toInstanceKind(runtimeKind);
+  String get kind => runtimeKind.toInstanceKind();
 
   factory ClassMetaData({
     Object? jsName,
     Object? typeName,
     Object? length,
-    required String runtimeKind,
+    required RuntimeObjectKind runtimeKind,
     required ClassRef classRef,
   }) {
     final id = classMetaDataIdFor(classRef.library!.id!, jsName as String?);
@@ -139,40 +164,20 @@ class ClassMetaData {
     this.length,
     this.runtimeKind,
   );
-
-  static String _toInstanceKind(String runtimeKind) {
-    switch (runtimeKind) {
-      case RuntimeObjectKind.function:
-        return InstanceKind.kClosure;
-      case RuntimeObjectKind.list:
-        return InstanceKind.kList;
-      case RuntimeObjectKind.map:
-        return InstanceKind.kMap;
-      case RuntimeObjectKind.set:
-        return InstanceKind.kSet;
-      case RuntimeObjectKind.record:
-        return InstanceKind.kRecord;
-      case RuntimeObjectKind.recordType:
-        return InstanceKind.kRecordType;
-      case RuntimeObjectKind.type:
-      case RuntimeObjectKind.wrappedType:
-        return InstanceKind.kType;
-      case RuntimeObjectKind.object:
-      case RuntimeObjectKind.nativeError:
-      case RuntimeObjectKind.nativeObject:
-      default:
-        return InstanceKind.kPlainInstance;
-    }
-  }
 }
 
+/// Metadata helper for objects and class refs.
+///
+/// Allows to get runtime metadata from DDC runtime
+/// and provides functionality to detect some of the
+/// runtime kinds of objects.
 class ClassMetaDataHelper {
   static final _logger = Logger('ClassMetadata');
 
   final AppInspectorInterface _inspector;
 
   /// Runtime object kinds for class refs.
-  final _runtimeObjectKinds = <String, String>{};
+  final _runtimeObjectKinds = <String, RuntimeObjectKind>{};
 
   ClassMetaDataHelper(this._inspector);
 
@@ -181,7 +186,7 @@ class ClassMetaDataHelper {
   /// Returns null if the [remoteObject] is not a Dart class.
   Future<ClassMetaData?> metaDataFor(RemoteObject remoteObject) async {
     try {
-      /// TODO(annagrin): this breaks on changes internal
+      /// TODO(annagrin): this breaks on changes to internal
       /// type representation in DDC. Replace by runtime API.
       /// https://github.com/dart-lang/sdk/issues/51583
       final evalExpression = '''
@@ -190,14 +195,14 @@ class ClassMetaDataHelper {
         const dart = sdk.dart;
         const core = sdk.core;
         const interceptors = sdk._interceptors;
-        const classObject = dart.getReifiedType(arg);
+        const reifiedType = dart.getReifiedType(arg);
 
         const result = {};
-        var name = classObject.name;
+        var name = reifiedType.name;
 
         result['name'] = name;
-        result['libraryId'] = dart.getLibraryUri(classObject);
-        result['dartName'] = dart.typeName(classObject);
+        result['libraryId'] = dart.getLibraryUri(reifiedType);
+        result['dartName'] = dart.typeName(reifiedType);
         result['length'] = arg['length'];
         result['runtimeKind'] = '${RuntimeObjectKind.object}';
 
@@ -207,26 +212,28 @@ class ClassMetaDataHelper {
           result['runtimeKind'] = '${RuntimeObjectKind.list}';
         } else if (name == 'LinkedMap' || name == 'IdentityMap') {
           result['runtimeKind'] = '${RuntimeObjectKind.map}';
-        } else if (classObject instanceof dart.AbstractFunctionType) {
+        } else if (reifiedType instanceof dart.AbstractFunctionType) {
           result['runtimeKind'] = '${RuntimeObjectKind.function}';
           result['name'] = 'Function';
-        } else if (classObject instanceof dart.RecordType) {
+        } else if (reifiedType instanceof dart.RecordType) {
           result['runtimeKind'] = '${RuntimeObjectKind.record}';
           result['name'] = 'Record';
-          var shape = classObject.shape;
+          result['libraryId'] = 'dart:core';
+          result['dartName'] = 'Record';
+          var shape = reifiedType.shape;
           var positionalCount = shape.positionals;
           var namedCount = shape.named == null ? 0 : shape.named.length;
           result['length'] = positionalCount + namedCount;
-        } else if (dart.is(arg, dart.RecordType)) {
+        } else if (arg instanceof dart._Type) {
+          result['runtimeKind'] = '${RuntimeObjectKind.wrappedType}';
+        } else if (arg instanceof dart.RecordType) {
           result['runtimeKind'] = '${RuntimeObjectKind.recordType}';
           result['name'] = 'RecordType';
           result['length'] = arg.types.length;
-        } else if (name == 'Type') {
+        } else if (dart.is(arg, core.Type)) {
           result['runtimeKind'] = '${RuntimeObjectKind.type}';
           var externalType = dart.wrapType(arg);
           result['typeName'] = dart.dsendRepl(externalType, "toString", []);
-        } else if (dart.is(arg, dart._Type)) {
-          result['runtimeKind'] = '${RuntimeObjectKind.wrappedType}';
         } else if (dart.is(arg, interceptors.NativeError)) {
           result['runtimeKind'] = '${RuntimeObjectKind.nativeError}';
         } else if (dart.is(arg, interceptors.JavaScriptObject)) {
@@ -247,24 +254,11 @@ class ClassMetaDataHelper {
       final typeName = metadata['typeName'];
       final dartName = metadata['dartName'];
       final library = metadata['libraryId'];
-      final runtimeKind = metadata['runtimeKind'];
+      final runtimeKind = RuntimeObjectKind.from(metadata['runtimeKind']);
       final length = metadata['length'];
 
-      // We hide internal types for some instance types.
-      var classRef = classRefFor(library, dartName);
-      if (runtimeKind == RuntimeObjectKind.record) {
-        classRef = classRefForRecord;
-      } else if (runtimeKind == RuntimeObjectKind.recordType) {
-        classRef = classRefForRecordType;
-      } else if (runtimeKind == RuntimeObjectKind.wrappedType) {
-        classRef = classRefForType;
-      }
-
-      final id = classRef.id;
-      if (id == null) {
-        throw StateError('ClassRef id is null for $dartName');
-      }
-      _runtimeObjectKinds[id] = runtimeKind;
+      final classRef = classRefFor(library, dartName);
+      _addRuntimeObjectKind(classRef, runtimeKind);
 
       return ClassMetaData(
         jsName: jsName,
@@ -281,6 +275,18 @@ class ClassMetaDataHelper {
       );
       return null;
     }
+  }
+
+  // Stores runtime object kind for class refs.
+  void _addRuntimeObjectKind(
+    ClassRef classRef,
+    RuntimeObjectKind runtimeKind,
+  ) {
+    final id = classRef.id;
+    if (id == null) {
+      throw StateError('No classRef id for $classRef');
+    }
+    _runtimeObjectKinds[id] = runtimeKind;
   }
 
   /// Returns true for non-dart JavaScript classes.

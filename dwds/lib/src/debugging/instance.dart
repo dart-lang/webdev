@@ -40,19 +40,21 @@ class InstanceHelper extends Domain {
       kind: kind,
       classRef: classRef,
       id: dartIdFor(remoteObject?.value),
-    )..valueAsString = '${remoteObject?.value}';
+      valueAsString: '${remoteObject?.value}',
+    );
   }
 
   /// Creates an [Instance] for a primitive [RemoteObject].
-  Instance? _primitiveInstance(String kind, RemoteObject? remote) {
-    final objectId = remote?.objectId;
+  Instance? _primitiveInstance(String kind, RemoteObject? remoteObject) {
+    final objectId = remoteObject?.objectId;
     if (objectId == null) return null;
     return Instance(
       identityHashCode: objectId.hashCode,
       id: objectId,
       kind: kind,
       classRef: classRefFor('dart:core', kind),
-    )..valueAsString = '${remote?.value}';
+      valueAsString: '${remoteObject?.value}',
+    );
   }
 
   Instance? _stringInstanceFor(
@@ -78,12 +80,12 @@ class InstanceHelper extends Domain {
       kind: InstanceKind.kString,
       classRef: classRefForString,
       id: createId(),
-    )
-      ..valueAsString = preview
-      ..valueAsStringIsTruncated = truncated
-      ..length = fullString.length
-      ..count = (truncated ? preview.length : null)
-      ..offset = (truncated ? offset : null);
+      valueAsString: preview,
+      valueAsStringIsTruncated: truncated,
+      length: fullString.length,
+      count: (truncated ? preview.length : null),
+      offset: (truncated ? offset : null),
+    );
   }
 
   Instance? _closureInstanceFor(RemoteObject remoteObject) {
@@ -123,6 +125,26 @@ class InstanceHelper extends Domain {
     switch (metaData.runtimeKind) {
       case RuntimeObjectKind.function:
         return _closureInstanceFor(remoteObject);
+      case RuntimeObjectKind.recordType:
+        return await _recordTypeInstanceFor(
+          metaData,
+          remoteObject,
+          offset: offset,
+          count: count,
+        );
+      case RuntimeObjectKind.type:
+        return await _plainTypeInstanceFor(
+          metaData,
+          remoteObject,
+          offset: offset,
+          count: count,
+        );
+      case RuntimeObjectKind.wrappedType:
+        return await _wrappedTypeInstanceFor(
+          remoteObject,
+          offset: offset,
+          count: count,
+        );
       case RuntimeObjectKind.list:
         return await _listInstanceFor(
           metaData,
@@ -147,26 +169,6 @@ class InstanceHelper extends Domain {
       case RuntimeObjectKind.record:
         return await _recordInstanceFor(
           metaData,
-          remoteObject,
-          offset: offset,
-          count: count,
-        );
-      case RuntimeObjectKind.recordType:
-        return await _recordTypeInstanceFor(
-          metaData,
-          remoteObject,
-          offset: offset,
-          count: count,
-        );
-      case RuntimeObjectKind.type:
-        return await _plainTypeInstanceFor(
-          metaData,
-          remoteObject,
-          offset: offset,
-          count: count,
-        );
-      case RuntimeObjectKind.wrappedType:
-        return await _wrappedTypeInstanceFor(
           remoteObject,
           offset: offset,
           count: count,
@@ -261,7 +263,8 @@ class InstanceHelper extends Domain {
       id: objectId,
       identityHashCode: remoteObject.objectId.hashCode,
       classRef: metaData.classRef,
-    )..fields = boundFields;
+      fields: boundFields,
+    );
     return result;
   }
 
@@ -353,11 +356,11 @@ class InstanceHelper extends Domain {
       kind: InstanceKind.kMap,
       id: objectId,
       classRef: metaData.classRef,
-    )
-      ..length = metaData.length
-      ..offset = offset
-      ..count = rangeCount
-      ..associations = associations;
+      length: metaData.length,
+      offset: offset,
+      count: rangeCount,
+      associations: associations,
+    );
   }
 
   /// Create a List instance of [classRef] from [remoteObject].
@@ -394,11 +397,11 @@ class InstanceHelper extends Domain {
       kind: InstanceKind.kList,
       id: objectId,
       classRef: metaData.classRef,
-    )
-      ..length = metaData.length
-      ..elements = elements
-      ..offset = offset
-      ..count = rangeCount;
+      length: metaData.length,
+      elements: elements,
+      offset: offset,
+      count: rangeCount,
+    );
   }
 
   /// The elements for a Dart List.
@@ -600,11 +603,11 @@ class InstanceHelper extends Domain {
       kind: InstanceKind.kRecord,
       id: objectId,
       classRef: metaData.classRef,
-    )
-      ..length = metaData.length
-      ..offset = offset
-      ..count = rangeCount
-      ..fields = fields;
+      length: metaData.length,
+      offset: offset,
+      count: rangeCount,
+      fields: fields,
+    );
   }
 
   /// Create a RecordType instance with class [classRef] from [remoteObject].
@@ -637,11 +640,11 @@ class InstanceHelper extends Domain {
       kind: InstanceKind.kRecordType,
       id: objectId,
       classRef: metaData.classRef,
-    )
-      ..length = metaData.length
-      ..offset = offset
-      ..count = rangeCount
-      ..fields = fields;
+      length: metaData.length,
+      offset: offset,
+      count: rangeCount,
+      fields: fields,
+    );
   }
 
   /// The field types for a Dart RecordType.
@@ -722,9 +725,10 @@ class InstanceHelper extends Domain {
       kind: InstanceKind.kSet,
       id: objectId,
       classRef: metaData.classRef,
-    )
-      ..length = length
-      ..elements = elements;
+      length: length,
+      elements: elements,
+    );
+
     if (offset != null && offset > 0) {
       setInstance.offset = offset;
     }
@@ -792,11 +796,11 @@ class InstanceHelper extends Domain {
       id: objectId,
       classRef: metaData.classRef,
       name: metaData.typeName,
-    )
-      ..length = metaData.length
-      ..offset = offset
-      ..count = count
-      ..fields = fields;
+      length: metaData.length,
+      offset: offset,
+      count: count,
+      fields: fields,
+    );
   }
 
   /// The field types for a Dart RecordType.
@@ -948,7 +952,8 @@ class InstanceHelper extends Domain {
       identityHashCode: objectId.hashCode,
       classRef: metaData.classRef,
       name: metaData.typeName,
-    )..length = metaData.length;
+      length: metaData.length,
+    );
   }
 
   /// Create an [InstanceRef] for the given Chrome [remoteObject].
@@ -969,9 +974,9 @@ class InstanceHelper extends Domain {
           id: dartIdFor(remoteObject.value),
           classRef: classRefForString,
           kind: InstanceKind.kString,
-        )
-          ..valueAsString = stringValue
-          ..length = stringValue?.length;
+          valueAsString: stringValue,
+          length: stringValue?.length,
+        );
       case 'number':
         return _primitiveInstanceRef(InstanceKind.kDouble, remoteObject);
       case 'boolean':
@@ -993,7 +998,8 @@ class InstanceHelper extends Domain {
           id: objectId,
           identityHashCode: objectId.hashCode,
           classRef: metaData.classRef,
-        )..length = metaData.length;
+          length: metaData.length,
+        );
       case 'function':
         final objectId = remoteObject.objectId;
         if (objectId == null) {
@@ -1008,9 +1014,8 @@ class InstanceHelper extends Domain {
           id: objectId,
           identityHashCode: objectId.hashCode,
           classRef: classRefForClosure,
-        )
           // TODO(grouma) - fill this in properly.
-          ..closureFunction = FuncRef(
+          closureFunction: FuncRef(
             name: functionMetaData.name,
             id: createId(),
             // TODO(alanknight): The right ClassRef
@@ -1020,8 +1025,9 @@ class InstanceHelper extends Domain {
             // TODO(annagrin): get information about getters and setters from symbols.
             // https://github.com/dart-lang/sdk/issues/46723
             implicit: false,
-          )
-          ..closureContext = (ContextRef(length: 0, id: createId()));
+          ),
+          closureContext: ContextRef(length: 0, id: createId()),
+        );
       default:
         // Return null for an unsupported type. This is likely a JS construct.
         return null;
