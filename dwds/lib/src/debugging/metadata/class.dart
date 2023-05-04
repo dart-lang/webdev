@@ -73,7 +73,7 @@ enum RuntimeObjectKind {
   record,
   type,
   recordType,
-  wrappedType,
+  typeWrapper,
   nativeError,
   nativeObject;
 
@@ -97,7 +97,7 @@ enum RuntimeObjectKind {
       map => InstanceKind.kMap,
       function => InstanceKind.kClosure,
       record => InstanceKind.kRecord,
-      type || wrappedType => InstanceKind.kType,
+      type || typeWrapper => InstanceKind.kType,
       recordType => InstanceKind.kRecordType,
     };
   }
@@ -225,7 +225,7 @@ class ClassMetaDataHelper {
           var namedCount = shape.named == null ? 0 : shape.named.length;
           result['length'] = positionalCount + namedCount;
         } else if (arg instanceof dart._Type) {
-          result['runtimeKind'] = '${RuntimeObjectKind.wrappedType}';
+          result['runtimeKind'] = '${RuntimeObjectKind.typeWrapper}';
         } else if (arg instanceof dart.RecordType) {
           result['runtimeKind'] = '${RuntimeObjectKind.recordType}';
           result['name'] = 'RecordType';

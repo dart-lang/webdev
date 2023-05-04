@@ -139,8 +139,8 @@ class InstanceHelper extends Domain {
           offset: offset,
           count: count,
         );
-      case RuntimeObjectKind.wrappedType:
-        return await _wrappedTypeInstanceFor(
+      case RuntimeObjectKind.typeWrapper:
+        return await _typeWrapperInstanceFor(
           remoteObject,
           offset: offset,
           count: count,
@@ -748,7 +748,7 @@ class InstanceHelper extends Domain {
   ///
   /// If [offset] is `null`, assumes 0 offset.
   /// If [count] is `null`, return all fields starting from the offset.
-  Future<Instance?> _wrappedTypeInstanceFor(
+  Future<Instance?> _typeWrapperInstanceFor(
     RemoteObject remoteObject, {
     int? offset,
     int? count,
@@ -756,8 +756,8 @@ class InstanceHelper extends Domain {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
 
-    final unwrappedType = await _internalType(remoteObject);
-    return instanceFor(unwrappedType, offset: offset, count: count);
+    final internalType = await _internalType(remoteObject);
+    return instanceFor(internalType, offset: offset, count: count);
   }
 
   /// Get inner type from the DDC [type] wrapper instance.
@@ -936,14 +936,14 @@ class InstanceHelper extends Domain {
   ///
   /// Make sure the instance kind and class ref on the ref matches
   /// the one on the instance (the internal type instance kind).
-  Future<InstanceRef?> _wrappedTypeInstanceRef(
+  Future<InstanceRef?> _typeWrapperInstanceRef(
     RemoteObject remoteObject,
   ) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
 
-    final unwrappedObject = await _internalType(remoteObject);
-    final metaData = await metadataHelper.metaDataFor(unwrappedObject);
+    final internalType = await _internalType(remoteObject);
+    final metaData = await metadataHelper.metaDataFor(internalType);
     if (metaData == null) return null;
 
     return InstanceRef(
@@ -990,8 +990,8 @@ class InstanceHelper extends Domain {
         }
         final metaData = await metadataHelper.metaDataFor(remoteObject);
         if (metaData == null) return null;
-        if (metaData.runtimeKind == RuntimeObjectKind.wrappedType) {
-          return _wrappedTypeInstanceRef(remoteObject);
+        if (metaData.runtimeKind == RuntimeObjectKind.typeWrapper) {
+          return _typeWrapperInstanceRef(remoteObject);
         }
         return InstanceRef(
           kind: metaData.kind,
