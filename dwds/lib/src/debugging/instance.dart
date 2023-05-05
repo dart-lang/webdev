@@ -139,12 +139,6 @@ class InstanceHelper extends Domain {
           offset: offset,
           count: count,
         );
-      case RuntimeObjectKind.typeWrapper:
-        return await _typeWrapperInstanceFor(
-          remoteObject,
-          offset: offset,
-          count: count,
-        );
       case RuntimeObjectKind.list:
         return await _listInstanceFor(
           metaData,
@@ -627,9 +621,13 @@ class InstanceHelper extends Domain {
   }) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
+
     // Records are complicated, do an eval to get names and values.
-    final fields =
-        await _recordTypeFields(remoteObject, offset: offset, count: count);
+    final fields = await _recordTypeFields(
+      remoteObject,
+      offset: offset,
+      count: count,
+    );
     final rangeCount = _calculateRangeCount(
       count: count,
       elementCount: fields.length,
@@ -665,11 +663,12 @@ class InstanceHelper extends Domain {
     final expression = '''
       function() {
         var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-        var shape = sdkUtils.dloadRepl(this, "shape");
+        var type = sdkUtils.dloadRepl(this, "_type");
+        var shape = sdkUtils.dloadRepl(type, "shape");
         var positionalCount = sdkUtils.dloadRepl(shape, "positionals");
         var named = sdkUtils.dloadRepl(shape, "named");
         named = named == null? null: sdkUtils.dsendRepl(named, "toList", []);
-        var types = sdkUtils.dloadRepl(this, "types");
+        var types = sdkUtils.dloadRepl(type, "types");
         types = types.map(t => sdkUtils.wrapType(t));
         types = sdkUtils.dsendRepl(types, "toList", []);
 
@@ -741,39 +740,6 @@ class InstanceHelper extends Domain {
 
   /// Create Type instance with class [classRef] from [remoteObject].
   ///
-  /// Finds the internal type and returns its object representation.
-  ///
-  /// Returns an instance containing [count] fields, if available,
-  /// starting from the [offset].
-  ///
-  /// If [offset] is `null`, assumes 0 offset.
-  /// If [count] is `null`, return all fields starting from the offset.
-  Future<Instance?> _typeWrapperInstanceFor(
-    RemoteObject remoteObject, {
-    int? offset,
-    int? count,
-  }) async {
-    final objectId = remoteObject.objectId;
-    if (objectId == null) return null;
-
-    final internalType = await _internalType(remoteObject);
-    return instanceFor(internalType, offset: offset, count: count);
-  }
-
-  /// Get inner type from the DDC [type] wrapper instance.
-  Future<RemoteObject> _internalType(RemoteObject type) {
-    final expression = '''
-      function() {
-        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-        return sdkUtils.dloadRepl(this, "_type");
-      }
-    ''';
-
-    return inspector.jsCallFunctionOn(type, expression, []);
-  }
-
-  /// Create Type instance with class [classRef] from [remoteObject].
-  ///
   /// Collect information from the internal [remoteObject] and present
   /// it as an instance of [Type] class.
   ///
@@ -819,9 +785,8 @@ class InstanceHelper extends Domain {
     final expression = '''
       function() {
         var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-        var externalType = sdkUtils.wrapType(this);
-        var hashCode = sdkUtils.dloadRepl(externalType, "hashCode");
-        var runtimeType = sdkUtils.dloadRepl(externalType, "runtimeType");
+        var hashCode = sdkUtils.dloadRepl(this, "hashCode");
+        var runtimeType = sdkUtils.dloadRepl(this, "runtimeType");
 
         return {
           hashCode: hashCode,
@@ -931,31 +896,6 @@ class InstanceHelper extends Domain {
     return 'object';
   }
 
-  /// Create an [InstanceRef] for the given Chrome [remoteObject]
-  /// for a wrapped type.
-  ///
-  /// Make sure the instance kind and class ref on the ref matches
-  /// the one on the instance (the internal type instance kind).
-  Future<InstanceRef?> _typeWrapperInstanceRef(
-    RemoteObject remoteObject,
-  ) async {
-    final objectId = remoteObject.objectId;
-    if (objectId == null) return null;
-
-    final internalType = await _internalType(remoteObject);
-    final metaData = await metadataHelper.metaDataFor(internalType);
-    if (metaData == null) return null;
-
-    return InstanceRef(
-      kind: metaData.kind,
-      id: objectId,
-      identityHashCode: objectId.hashCode,
-      classRef: metaData.classRef,
-      name: metaData.typeName,
-      length: metaData.length,
-    );
-  }
-
   /// Create an [InstanceRef] for the given Chrome [remoteObject].
   Future<InstanceRef?> _instanceRefForRemote(RemoteObject? remoteObject) async {
     // If we have a null result, treat it as a reference to null.
@@ -990,15 +930,14 @@ class InstanceHelper extends Domain {
         }
         final metaData = await metadataHelper.metaDataFor(remoteObject);
         if (metaData == null) return null;
-        if (metaData.runtimeKind == RuntimeObjectKind.typeWrapper) {
-          return _typeWrapperInstanceRef(remoteObject);
-        }
+
         return InstanceRef(
           kind: metaData.kind,
           id: objectId,
           identityHashCode: objectId.hashCode,
           classRef: metaData.classRef,
           length: metaData.length,
+          name: metaData.typeName,
         );
       case 'function':
         final objectId = remoteObject.objectId;

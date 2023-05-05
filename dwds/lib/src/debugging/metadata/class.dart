@@ -10,23 +10,12 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 const _dartCoreLibrary = 'dart:core';
-const _dartRuntimeLibrary = 'dart:_runtime';
 
 /// A hard-coded ClassRef for the Closure class.
 final classRefForClosure = classRefFor(_dartCoreLibrary, InstanceKind.kClosure);
 
 /// A hard-coded ClassRef for the String class.
 final classRefForString = classRefFor(_dartCoreLibrary, InstanceKind.kString);
-
-/// A hard-coded ClassRef for the Record class.
-final classRefForRecord = classRefFor(_dartCoreLibrary, InstanceKind.kRecord);
-
-/// A hard-coded ClassRef for the RecordType class.
-final classRefForRecordType =
-    classRefFor(_dartRuntimeLibrary, InstanceKind.kRecordType);
-
-/// A hard-coded ClassRef for the Type class.
-final classRefForType = classRefFor(_dartCoreLibrary, 'Type');
 
 /// A hard-coded ClassRef for a (non-existent) class called Unknown.
 final classRefForUnknown = classRefFor(_dartCoreLibrary, 'Unknown');
@@ -73,7 +62,6 @@ enum RuntimeObjectKind {
   record,
   type,
   recordType,
-  typeWrapper,
   nativeError,
   nativeObject;
 
@@ -97,7 +85,7 @@ enum RuntimeObjectKind {
       map => InstanceKind.kMap,
       function => InstanceKind.kClosure,
       record => InstanceKind.kRecord,
-      type || typeWrapper => InstanceKind.kType,
+      type => InstanceKind.kType,
       recordType => InstanceKind.kRecordType,
     };
   }
@@ -195,7 +183,13 @@ class ClassMetaDataHelper {
         const dart = sdk.dart;
         const core = sdk.core;
         const interceptors = sdk._interceptors;
-        const reifiedType = dart.getReifiedType(arg);
+        var object = arg;
+        var reifiedType = dart.getReifiedType(arg);
+
+        if (arg instanceof dart._Type) {
+          object = dart.dloadRepl(arg, "_type");
+          reifiedType = dart.getReifiedType(object);
+        }
 
         const result = {};
         var name = reifiedType.name;
@@ -203,7 +197,7 @@ class ClassMetaDataHelper {
         result['name'] = name;
         result['libraryId'] = dart.getLibraryUri(reifiedType);
         result['dartName'] = dart.typeName(reifiedType);
-        result['length'] = arg['length'];
+        result['length'] = object['length'];
         result['runtimeKind'] = '${RuntimeObjectKind.object}';
 
         if (name == '_HashSet') {
@@ -224,19 +218,15 @@ class ClassMetaDataHelper {
           var positionalCount = shape.positionals;
           var namedCount = shape.named == null ? 0 : shape.named.length;
           result['length'] = positionalCount + namedCount;
-        } else if (arg instanceof dart._Type) {
-          result['runtimeKind'] = '${RuntimeObjectKind.typeWrapper}';
-        } else if (arg instanceof dart.RecordType) {
+        } else if (object instanceof dart.RecordType) {
           result['runtimeKind'] = '${RuntimeObjectKind.recordType}';
-          result['name'] = 'RecordType';
-          result['length'] = arg.types.length;
-        } else if (dart.is(arg, core.Type)) {
+          result['length'] = object.types.length;
+        } else if (dart.is(object, core.Type)) {
           result['runtimeKind'] = '${RuntimeObjectKind.type}';
-          var externalType = dart.wrapType(arg);
-          result['typeName'] = dart.dsendRepl(externalType, "toString", []);
-        } else if (dart.is(arg, interceptors.NativeError)) {
+          result['typeName'] = dart.dsendRepl(arg, "toString", []);
+        } else if (dart.is(object, interceptors.NativeError)) {
           result['runtimeKind'] = '${RuntimeObjectKind.nativeError}';
-        } else if (dart.is(arg, interceptors.JavaScriptObject)) {
+        } else if (dart.is(object, interceptors.JavaScriptObject)) {
           result['runtimeKind'] = '${RuntimeObjectKind.nativeObject}';
         }
         return result;
