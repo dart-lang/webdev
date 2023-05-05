@@ -106,7 +106,10 @@ Future<void> _runTests({
             final instanceId = instanceRef.id!;
             expect(
               await getObject(instanceId),
-              matchPlainInstance(type: 'MainClass'),
+              matchPlainInstance(
+                libraryId: 'org-dartlang-app:///web/main.dart',
+                type: 'MainClass',
+              ),
             );
 
             expect(await getFields(instanceRef), {'_field': 1, 'field': 2});

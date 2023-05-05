@@ -20,13 +20,6 @@ final classRefForString = classRefFor(_dartCoreLibrary, InstanceKind.kString);
 /// A hard-coded ClassRef for a (non-existent) class called Unknown.
 final classRefForUnknown = classRefFor(_dartCoreLibrary, 'Unknown');
 
-///  A hard-coded LibraryRef for a a dart:core library.
-final libraryRefForCore = LibraryRef(
-  id: _dartCoreLibrary,
-  name: _dartCoreLibrary,
-  uri: _dartCoreLibrary,
-);
-
 /// Returns a [LibraryRef] for the provided library ID and class name.
 LibraryRef libraryRefFor(String libraryId) => LibraryRef(
       id: libraryId,
@@ -65,17 +58,10 @@ enum RuntimeObjectKind {
   nativeError,
   nativeObject;
 
-  static final _valueMap = {
-    for (var v in values) v.toString(): v,
-  };
-
-  static RuntimeObjectKind from(String value) {
-    final kind = _valueMap[value];
-    if (kind == null) {
-      throw StateError('Unknown runtime object kind: $value');
-    }
-    return kind;
-  }
+  // TODO(annagrin): Update when built-in parsing is available.
+  // We can also implement a faster parser if needed.
+  // https://github.com/dart-lang/language/issues/2348
+  static final parse = values.byName;
 
   String toInstanceKind() {
     return switch (this) {
@@ -183,51 +169,62 @@ class ClassMetaDataHelper {
         const dart = sdk.dart;
         const core = sdk.core;
         const interceptors = sdk._interceptors;
-        var object = arg;
-        var reifiedType = dart.getReifiedType(arg);
-
-        if (arg instanceof dart._Type) {
-          object = dart.dloadRepl(arg, "_type");
-          reifiedType = dart.getReifiedType(object);
-        }
+        const reifiedType = dart.getReifiedType(arg);
+        const name = reifiedType.name;
 
         const result = {};
-        var name = reifiedType.name;
-
         result['name'] = name;
         result['libraryId'] = dart.getLibraryUri(reifiedType);
         result['dartName'] = dart.typeName(reifiedType);
-        result['length'] = object['length'];
-        result['runtimeKind'] = '${RuntimeObjectKind.object}';
+        result['length'] = arg['length'];
+        result['runtimeKind'] = '${RuntimeObjectKind.object.name}';
 
         if (name == '_HashSet') {
-          result['runtimeKind'] = '${RuntimeObjectKind.set}';
-        } else if (name == 'JSArray') {
-          result['runtimeKind'] = '${RuntimeObjectKind.list}';
-        } else if (name == 'LinkedMap' || name == 'IdentityMap') {
-          result['runtimeKind'] = '${RuntimeObjectKind.map}';
-        } else if (reifiedType instanceof dart.AbstractFunctionType) {
-          result['runtimeKind'] = '${RuntimeObjectKind.function}';
+          result['runtimeKind'] = '${RuntimeObjectKind.set.name}';
+        }
+        else if (name == 'JSArray') {
+          result['runtimeKind'] = '${RuntimeObjectKind.list.name}';
+        }
+        else if (name == 'LinkedMap' || name == 'IdentityMap') {
+          result['runtimeKind'] = '${RuntimeObjectKind.map.name}';
+        }
+        else if (reifiedType instanceof dart.AbstractFunctionType) {
+          result['runtimeKind'] = '${RuntimeObjectKind.function.name}';
           result['name'] = 'Function';
-        } else if (reifiedType instanceof dart.RecordType) {
-          result['runtimeKind'] = '${RuntimeObjectKind.record}';
-          result['name'] = 'Record';
+        }
+        else if (reifiedType instanceof dart.RecordType) {
+          result['runtimeKind'] = '${RuntimeObjectKind.record.name}';
           result['libraryId'] = 'dart:core';
+          result['name'] = 'Record';
           result['dartName'] = 'Record';
           var shape = reifiedType.shape;
           var positionalCount = shape.positionals;
           var namedCount = shape.named == null ? 0 : shape.named.length;
           result['length'] = positionalCount + namedCount;
-        } else if (object instanceof dart.RecordType) {
-          result['runtimeKind'] = '${RuntimeObjectKind.recordType}';
-          result['length'] = object.types.length;
-        } else if (dart.is(object, core.Type)) {
-          result['runtimeKind'] = '${RuntimeObjectKind.type}';
-          result['typeName'] = dart.dsendRepl(arg, "toString", []);
-        } else if (dart.is(object, interceptors.NativeError)) {
-          result['runtimeKind'] = '${RuntimeObjectKind.nativeError}';
-        } else if (dart.is(object, interceptors.JavaScriptObject)) {
-          result['runtimeKind'] = '${RuntimeObjectKind.nativeObject}';
+        }
+        else if (arg instanceof dart._Type) {
+          var object = dart.dloadRepl(arg, "_type");
+          if (object instanceof dart.RecordType) {
+            result['libraryId'] = 'dart:_runtime';
+            result['name'] = 'RecordType';
+            result['dartName'] = 'RecordType';
+            result['runtimeKind'] = '${RuntimeObjectKind.recordType.name}';
+            result['length'] = object.types.length;
+          }
+          else if (dart.is(object, core.Type)) {
+            result['libraryId'] = 'dart:core';
+            result['name'] = 'Type';
+            result['dartName'] = 'Type';
+            result['runtimeKind'] = '${RuntimeObjectKind.type.name}';
+            result['typeName'] = dart.dsendRepl(arg, "toString", []);
+            result['length'] = object['length'];
+          }
+        }
+        else if (dart.is(arg, interceptors.NativeError)) {
+          result['runtimeKind'] = '${RuntimeObjectKind.nativeError.name}';
+        }
+        else if (dart.is(arg, interceptors.JavaScriptObject)) {
+          result['runtimeKind'] = '${RuntimeObjectKind.nativeObject.name}';
         }
         return result;
       }
@@ -244,7 +241,7 @@ class ClassMetaDataHelper {
       final typeName = metadata['typeName'];
       final dartName = metadata['dartName'];
       final library = metadata['libraryId'];
-      final runtimeKind = RuntimeObjectKind.from(metadata['runtimeKind']);
+      final runtimeKind = RuntimeObjectKind.parse(metadata['runtimeKind']);
       final length = metadata['length'];
 
       final classRef = classRefFor(library, dartName);

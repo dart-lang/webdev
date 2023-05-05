@@ -5,7 +5,6 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
 
-import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -242,31 +241,36 @@ Matcher matchPrimitiveInstance({
         .having((e) => e.kind, 'kind', kind)
         .having(_getValue, 'value', value);
 
-Matcher matchPlainInstance({required String type}) => isA<Instance>()
-    .having((e) => e.kind, 'kind', InstanceKind.kPlainInstance)
-    .having((e) => e.classRef, 'classRef', matchClassRef(type));
+Matcher matchPlainInstance({required libraryId, required String type}) =>
+    isA<Instance>()
+        .having((e) => e.kind, 'kind', InstanceKind.kPlainInstance)
+        .having(
+          (e) => e.classRef,
+          'classRef',
+          matchClassRef(name: type, libraryId: libraryId),
+        );
 
 Matcher matchListInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kList)
-    .having((e) => e.classRef, 'classRef', matchClassRef(type));
+    .having((e) => e.classRef, 'classRef', matchListClassRef(type));
 
 Matcher matchMapInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kMap)
-    .having((e) => e.classRef, 'classRef', matchClassRef(type));
+    .having((e) => e.classRef, 'classRef', matchMapClassRef(type));
 
 Matcher matchSetInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kSet)
-    .having((e) => e.classRef, 'classRef', matchClassRef(type));
+    .having((e) => e.classRef, 'classRef', matchSetClassRef(type));
 
 Matcher matchRecordInstance({required int length}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kRecord)
     .having((e) => e.length, 'length', length)
-    .having((e) => e.classRef!, 'classRef', matchRecordClassRef);
+    .having((e) => e.classRef, 'classRef', matchRecordClassRef);
 
 Matcher matchRecordTypeInstance({required int length}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kRecordType)
     .having((e) => e.length, 'length', length)
-    .having((e) => e.classRef!, 'classRef', matchRecordTypeClassRef);
+    .having((e) => e.classRef, 'classRef', matchRecordTypeClassRef);
 
 Matcher matchTypeStringInstance(String name) =>
     matchPrimitiveInstance(kind: InstanceKind.kString, value: name);
@@ -276,22 +280,38 @@ Matcher matchTypeInstance(String name) => isA<Instance>()
     .having((e) => e.name, 'name', name)
     .having((e) => e.classRef, 'classRef', matchTypeClassRef);
 
-Matcher matchRecordClass = matchClass(libraryId: 'dart:core', type: 'Record');
+Matcher matchRecordClass =
+    matchClass(name: _recordClass, libraryId: _dartCoreLibrary);
 Matcher matchRecordTypeClass =
-    matchClass(libraryId: 'dart:_runtime', type: 'RecordType');
-Matcher matchTypeClass = matchClass(libraryId: 'dart:core', type: 'Type');
+    matchClass(name: _recordTypeClass, libraryId: _dartRuntimeLibrary);
+Matcher matchTypeClass =
+    matchClass(name: _typeClass, libraryId: _dartCoreLibrary);
 
-Matcher matchClass({required String libraryId, required String type}) =>
-    isA<Class>()
-        .having((e) => e.name, 'name', type)
-        .having((e) => e.id, 'id', classIdFor(libraryId, type));
+Matcher matchClass({String? name, String? libraryId}) => isA<Class>()
+    .having((e) => e.name, 'name', name)
+    .having((e) => e.library, 'library', matchLibraryRef(libraryId));
 
-Matcher matchRecordClassRef = matchClassRef('Record');
-Matcher matchRecordTypeClassRef = matchClassRef('RecordType');
-Matcher matchTypeClassRef = matchClassRef('Type');
+Matcher matchRecordClassRef =
+    matchClassRef(name: _recordClass, libraryId: _dartCoreLibrary);
+Matcher matchRecordTypeClassRef =
+    matchClassRef(name: _recordTypeClass, libraryId: _dartRuntimeLibrary);
+Matcher matchTypeClassRef =
+    matchClassRef(name: _typeClass, libraryId: _dartCoreLibrary);
+Matcher matchListClassRef(String type) =>
+    matchClassRef(name: type, libraryId: _dartInterceptorsLibrary);
+Matcher matchMapClassRef(String type) =>
+    matchClassRef(name: type, libraryId: _dartJsHelperLibrary);
+Matcher matchSetClassRef(String type) =>
+    matchClassRef(name: type, libraryId: _dartCollectionLibrary);
 
-Matcher matchClassRef(String type) =>
-    isA<ClassRef>().having((e) => e.name, 'class name', type);
+Matcher matchClassRef({String? name, String? libraryId}) => isA<ClassRef>()
+    .having((e) => e.name, 'class name', name)
+    .having((e) => e.library, 'library', matchLibraryRef(libraryId));
+
+Matcher matchLibraryRef(String? libraryId) => isA<LibraryRef>()
+    .having((e) => e.name, 'name', libraryId)
+    .having((e) => e.id, 'id', libraryId)
+    .having((e) => e.uri, 'uri', libraryId);
 
 Object? _getValue(InstanceRef instanceRef) {
   switch (instanceRef.kind) {
@@ -306,3 +326,13 @@ Object? _getValue(InstanceRef instanceRef) {
       return null;
   }
 }
+
+final _dartCoreLibrary = 'dart:core';
+final _dartRuntimeLibrary = 'dart:_runtime';
+final _dartInterceptorsLibrary = 'dart:_interceptors';
+final _dartJsHelperLibrary = 'dart:_js_helper';
+final _dartCollectionLibrary = 'dart:collection';
+
+final _recordClass = 'Record';
+final _recordTypeClass = 'RecordType';
+final _typeClass = 'Type';
