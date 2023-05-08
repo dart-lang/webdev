@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:async/async.dart';
 import 'package:collection/collection.dart';
 import 'package:dwds/src/connections/app_connection.dart';
@@ -17,6 +19,7 @@ import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/objects.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
@@ -96,17 +99,13 @@ class AppInspector implements AppInspectorInterface {
     this._locations,
     this._root,
     this._executionContext,
-  ) : _isolateRef = _toIsolateRef(_isolate);
+  ) : _isolateRef = _toIsolateRef(_isolate) {
+    _libraryHelper = LibraryHelper(this);
+    _classHelper = ClassHelper(this);
+    _instanceHelper = InstanceHelper(this);
+  }
 
-  Future<void> initialize(
-    LibraryHelper libraryHelper,
-    ClassHelper classHelper,
-    InstanceHelper instanceHelper,
-  ) async {
-    _libraryHelper = libraryHelper;
-    _classHelper = classHelper;
-    _instanceHelper = instanceHelper;
-
+  Future<void> initialize() async {
     final libraries = await _libraryHelper.libraryRefs;
     isolate.rootLib = await _libraryHelper.rootLib;
     isolate.libraries?.addAll(libraries);
@@ -176,16 +175,7 @@ class AppInspector implements AppInspectorInterface {
     );
 
     debugger.updateInspector(inspector);
-
-    final libraryHelper = LibraryHelper(inspector);
-    final classHelper = ClassHelper(inspector);
-    final instanceHelper = InstanceHelper(inspector, debugger);
-
-    await inspector.initialize(
-      libraryHelper,
-      classHelper,
-      instanceHelper,
-    );
+    await inspector.initialize();
     return inspector;
   }
 
@@ -566,6 +556,147 @@ class AppInspector implements AppInspectorInterface {
   @override
   Future<ScriptList> getScripts() async {
     return ScriptList(scripts: await scriptRefs);
+  }
+
+  /// Calls the Chrome Runtime.getProperties API for the object with [objectId].
+  ///
+  /// Note that the property names are JS names, e.g.
+  /// Symbol(DartClass.actualName) and will need to be converted. For a system
+  /// List or Map, [offset] and/or [count] can be provided to indicate a desired
+  /// range of entries. They will be ignored if there is no [length].
+  @override
+  Future<List<Property>> getProperties(
+    String objectId, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
+    String rangeId = objectId;
+    // Ignore offset/count if there is no length:
+    if (length != null) {
+      if (_isEmptyRange(offset: offset, count: count, length: length)) {
+        return [];
+      }
+      if (_isSubRange(offset: offset, count: count)) {
+        final range = await _subRange(
+          objectId,
+          offset: offset ?? 0,
+          count: count,
+          length: length,
+        );
+        rangeId = range.objectId ?? rangeId;
+      }
+    }
+    final jsProperties = await sendCommandAndValidateResult<List>(
+      _remoteDebugger,
+      method: 'Runtime.getProperties',
+      resultField: 'result',
+      params: {
+        'objectId': rangeId,
+        'ownProperties': true,
+      },
+    );
+    return jsProperties
+        .map<Property>((each) => Property(each as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Compute the last possible element index in the range of [offset]..end
+  /// that includes [count] elements, if available.
+  static int? _calculateRangeEnd({
+    int? count,
+    required int offset,
+    required int length,
+  }) =>
+      count == null ? null : math.min(offset + count, length);
+
+  /// Calculate the number of available elements in the range.
+  static int _calculateRangeCount({
+    int? count,
+    required int offset,
+    required int length,
+  }) =>
+      count == null ? length - offset : math.min(count, length - offset);
+
+  /// Find a sub-range of the entries for a Map/List when offset and/or count
+  /// have been specified on a getObject request.
+  ///
+  /// If the object referenced by [id] is not a system List or Map then this
+  /// will just return a RemoteObject for it and ignore [offset], [count] and
+  /// [length]. If it is, then [length] should be the number of entries in the
+  /// List/Map and [offset] and [count] should indicate the desired range.
+  Future<RemoteObject> _subRange(
+    String id, {
+    required int offset,
+    required int length,
+    int? count,
+  }) async {
+    // TODO(#809): Sometimes we already know the type of the object, and
+    // we could take advantage of that to short-circuit.
+    final receiver = remoteObjectFor(id);
+    final end =
+        _calculateRangeEnd(count: count, offset: offset, length: length);
+    final rangeCount =
+        _calculateRangeCount(count: count, offset: offset, length: length);
+    final args =
+        [offset, rangeCount, end].map(dartIdFor).map(remoteObjectFor).toList();
+    // If this is a List, just call sublist. If it's a Map, get the entries, but
+    // avoid doing a toList on a large map using skip/take to get the section we
+    // want. To make those alternatives easier in JS, pass both count and end.
+    final expression = '''
+        function (offset, count, end) {
+          const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
+          if (sdk.core.Map.is(this)) {
+            const entries = sdk.dart.dload(this, "entries");
+            const skipped = sdk.dart.dsend(entries, "skip", [offset])
+            const taken = sdk.dart.dsend(skipped, "take", [count]);
+            return sdk.dart.dsend(taken, "toList", []);
+          } else  if (sdk.core.List.is(this)) {
+            return sdk.dart.dsendRepl(this, "sublist", [offset, end]);
+          } else {
+            return this;
+          }
+        }
+        ''';
+    return await jsCallFunctionOn(receiver, expression, args);
+  }
+
+  static bool _isEmptyRange({
+    required int length,
+    int? offset,
+    int? count,
+  }) {
+    if (count == 0) return true;
+    if (offset == null) return false;
+    return offset >= length;
+  }
+
+  static bool _isSubRange({
+    int? offset,
+    int? count,
+  }) {
+    if (offset == 0 && count == null) return false;
+    return offset != null || count != null;
+  }
+
+  /// Returns true for objects we display for the user.
+  @override
+  bool isDisplayableObject(Object? object) =>
+      object is Sentinel ||
+      object is InstanceRef &&
+          !isNativeJsObject(object) &&
+          !isNativeJsError(object);
+
+  /// Returns true for non-dart JavaScript objects.
+  bool isNativeJsObject(InstanceRef instanceRef) {
+    return _instanceHelper.metadataHelper
+        .isNativeJsObject(instanceRef.classRef);
+  }
+
+  /// Returns true for JavaScript exceptions.
+  @override
+  bool isNativeJsError(InstanceRef instanceRef) {
+    return _instanceHelper.metadataHelper.isNativeJsError(instanceRef.classRef);
   }
 
   /// Request and cache <ScriptRef>s for all the scripts in the application.

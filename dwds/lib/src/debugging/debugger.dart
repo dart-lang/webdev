@@ -3,17 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/debugging/frame_computer.dart';
 import 'package:dwds/src/debugging/location.dart';
-import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
-import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/objects.dart' show Property;
@@ -394,7 +391,8 @@ class Debugger extends Domain {
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
   Future<List<BoundVariable>> variablesFor(WipCallFrame frame) async {
     // TODO(alanknight): Can these be moved to dart_scope.dart?
-    final properties = await visibleProperties(debugger: this, frame: frame);
+    final properties =
+        await visibleProperties(inspector: inspector, frame: frame);
     final boundVariables = await Future.wait(
       properties.map(_boundVariable),
     );
@@ -402,7 +400,7 @@ class Debugger extends Domain {
     // Filter out variables that do not come from dart code, such as native
     // JavaScript objects
     return boundVariables
-        .where((bv) => isDisplayableObject(bv?.value))
+        .where((bv) => inspector.isDisplayableObject(bv?.value))
         .toList()
         .cast();
   }
@@ -432,84 +430,6 @@ class Debugger extends Domain {
     return null;
   }
 
-  static bool _isEmptyRange({
-    required int length,
-    int? offset,
-    int? count,
-  }) {
-    if (count == 0) return true;
-    if (offset == null) return false;
-    return offset >= length;
-  }
-
-  static bool _isSubRange({
-    int? offset,
-    int? count,
-  }) {
-    if (offset == 0 && count == null) return false;
-    return offset != null || count != null;
-  }
-
-  /// Compute the last possible element index in the range of [offset]..end
-  /// that includes [count] elements, if available.
-  static int? _calculateRangeEnd({
-    int? count,
-    required int offset,
-    required int length,
-  }) =>
-      count == null ? null : math.min(offset + count, length);
-
-  /// Calculate the number of available elements in the range.
-  static int _calculateRangeCount({
-    int? count,
-    required int offset,
-    required int length,
-  }) =>
-      count == null ? length - offset : math.min(count, length - offset);
-
-  /// Find a sub-range of the entries for a Map/List when offset and/or count
-  /// have been specified on a getObject request.
-  ///
-  /// If the object referenced by [id] is not a system List or Map then this
-  /// will just return a RemoteObject for it and ignore [offset], [count] and
-  /// [length]. If it is, then [length] should be the number of entries in the
-  /// List/Map and [offset] and [count] should indicate the desired range.
-  Future<RemoteObject> _subRange(
-    String id, {
-    required int offset,
-    int? count,
-    required int length,
-  }) async {
-    // TODO(#809): Sometimes we already know the type of the object, and
-    // we could take advantage of that to short-circuit.
-    final receiver = remoteObjectFor(id);
-    final end =
-        _calculateRangeEnd(count: count, offset: offset, length: length);
-    final rangeCount =
-        _calculateRangeCount(count: count, offset: offset, length: length);
-    final args =
-        [offset, rangeCount, end].map(dartIdFor).map(remoteObjectFor).toList();
-    // If this is a List, just call sublist. If it's a Map, get the entries, but
-    // avoid doing a toList on a large map using skip/take to get the section we
-    // want. To make those alternatives easier in JS, pass both count and end.
-    final expression = '''
-        function (offset, count, end) {
-          const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
-          if (sdk.core.Map.is(this)) {
-            const entries = sdk.dart.dload(this, "entries");
-            const skipped = sdk.dart.dsend(entries, "skip", [offset])
-            const taken = sdk.dart.dsend(skipped, "take", [count]);
-            return sdk.dart.dsend(taken, "toList", []);
-          } else  if (sdk.core.List.is(this)) {
-            return sdk.dart.dsendRepl(this, "sublist", [offset, end]);
-          } else {
-            return this;
-          }
-        }
-        ''';
-    return await inspector.jsCallFunctionOn(receiver, expression, args);
-  }
-
   // TODO(elliette): https://github.com/dart-lang/webdev/issues/1501 Re-enable
   // after checking with Chrome team if there is a way to check if the Chrome
   // DevTools is showing an overlay. Both cannot be shown at the same time:
@@ -532,48 +452,6 @@ class Debugger extends Domain {
   //   handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.disable'));
   //   _pausedOverlayVisible = false;
   // }
-
-  /// Calls the Chrome Runtime.getProperties API for the object with [objectId].
-  ///
-  /// Note that the property names are JS names, e.g.
-  /// Symbol(DartClass.actualName) and will need to be converted. For a system
-  /// List or Map, [offset] and/or [count] can be provided to indicate a desired
-  /// range of entries. They will be ignored if there is no [length].
-  Future<List<Property>> getProperties(
-    String objectId, {
-    int? offset,
-    int? count,
-    int? length,
-  }) async {
-    String rangeId = objectId;
-    // Ignore offset/count if there is no length:
-    if (length != null) {
-      if (_isEmptyRange(offset: offset, count: count, length: length)) {
-        return [];
-      }
-      if (_isSubRange(offset: offset, count: count)) {
-        final range = await _subRange(
-          objectId,
-          offset: offset ?? 0,
-          count: count,
-          length: length,
-        );
-        rangeId = range.objectId ?? rangeId;
-      }
-    }
-    final jsProperties = await sendCommandAndValidateResult<List>(
-      _remoteDebugger,
-      method: 'Runtime.getProperties',
-      resultField: 'result',
-      params: {
-        'objectId': rangeId,
-        'ownProperties': true,
-      },
-    );
-    return jsProperties
-        .map<Property>((each) => Property(each as Map<String, dynamic>))
-        .toList();
-  }
 
   /// Returns a Dart [Frame] for a JS [frame].
   Future<Frame?> calculateDartFrameFor(
@@ -658,7 +536,7 @@ class Debugger extends Domain {
         if (map['type'] == 'object') {
           final obj = RemoteObject(map);
           exception = await inspector.instanceRefFor(obj);
-          if (exception != null && isNativeJsError(exception)) {
+          if (exception != null && inspector.isNativeJsError(exception)) {
             if (obj.description != null) {
               // Create a string exception object.
               final description =
@@ -843,23 +721,6 @@ Future<T> sendCommandAndValidateResult<T>(
     );
   }
   return result;
-}
-
-/// Returns true for objects we display for the user.
-bool isDisplayableObject(Object? object) =>
-    object is Sentinel ||
-    object is InstanceRef &&
-        !isNativeJsObject(object) &&
-        !isNativeJsError(object);
-
-/// Returns true for non-dart JavaScript objects.
-bool isNativeJsObject(InstanceRef instanceRef) {
-  return isNativeJsObjectRef(instanceRef.classRef);
-}
-
-/// Returns true of JavaScript exceptions.
-bool isNativeJsError(InstanceRef instanceRef) {
-  return instanceRef.classRef == classRefForNativeJsError;
 }
 
 /// Returns the Dart line number for the provided breakpoint.

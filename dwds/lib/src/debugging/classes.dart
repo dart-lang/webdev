@@ -199,8 +199,11 @@ class ClassHelper extends Domain {
     fieldDescriptors.forEach((name, descriptor) {
       final classMetaData = ClassMetaData(
         jsName: descriptor['classRefName'],
-        libraryId: descriptor['classRefLibraryId'],
-        dartName: descriptor['classRefDartName'],
+        runtimeKind: RuntimeObjectKind.type,
+        classRef: classRefFor(
+          descriptor['classRefLibraryId'],
+          descriptor['classRefDartName'],
+        ),
       );
       fieldRefs.add(
         FieldRef(
@@ -209,8 +212,7 @@ class ClassHelper extends Domain {
           declaredType: InstanceRef(
             identityHashCode: createId().hashCode,
             id: createId(),
-            kind: InstanceKind.kType,
-            // TODO(elliette): Is this the same as classRef?
+            kind: classMetaData.kind,
             classRef: classMetaData.classRef,
           ),
           isConst: descriptor['isConst'] as bool,

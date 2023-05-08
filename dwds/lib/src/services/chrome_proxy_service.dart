@@ -262,7 +262,6 @@ class ChromeProxyService implements VmServiceInterface {
       debugger,
       executionContext,
     );
-    debugger.updateInspector(inspector);
 
     final compiler = _compiler;
     _expressionEvaluator = compiler == null

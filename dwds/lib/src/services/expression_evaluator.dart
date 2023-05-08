@@ -350,7 +350,7 @@ class ExpressionEvaluator {
     for (var scope in scopeChain) {
       final objectId = scope.object.objectId;
       if (objectId != null) {
-        final scopeProperties = await _debugger.getProperties(objectId);
+        final scopeProperties = await _inspector.getProperties(objectId);
         collectVariables(scopeProperties);
       }
     }

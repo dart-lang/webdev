@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -25,7 +25,7 @@ final previousDdcTemporaryVariableRegExp =
 ///
 /// See chromedevtools.github.io/devtools-protocol/tot/Debugger#type-CallFrame.
 Future<List<Property>> visibleProperties({
-  required Debugger debugger,
+  required AppInspectorInterface inspector,
   required WipCallFrame frame,
 }) async {
   final allProperties = <Property>[];
@@ -48,7 +48,7 @@ Future<List<Property>> visibleProperties({
   for (var scope in filterScopes(frame).reversed) {
     final objectId = scope.object.objectId;
     if (objectId != null) {
-      final properties = await debugger.getProperties(objectId);
+      final properties = await inspector.getProperties(objectId);
       allProperties.addAll(properties);
     }
   }

@@ -28,19 +28,19 @@ class EvaluateRequest {
 
 class BatchedExpressionEvaluator extends ExpressionEvaluator {
   final _logger = Logger('BatchedExpressionEvaluator');
-  final Debugger _debugger;
+  final AppInspectorInterface _inspector;
   final _requestController =
       BatchedStreamController<EvaluateRequest>(delay: 200);
   bool _closed = false;
 
   BatchedExpressionEvaluator(
     String entrypoint,
-    AppInspectorInterface inspector,
-    this._debugger,
+    this._inspector,
+    Debugger debugger,
     Locations locations,
     Modules modules,
     ExpressionCompiler compiler,
-  ) : super(entrypoint, inspector, _debugger, locations, modules, compiler) {
+  ) : super(entrypoint, _inspector, debugger, locations, modules, compiler) {
     _requestController.stream.listen(_processRequest);
   }
 
@@ -148,7 +148,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
         request.completer.complete(error);
       } else {
         safeUnawaited(
-          _debugger
+          _inspector
               .getProperties(
             listId,
             offset: i,
