@@ -284,32 +284,25 @@ void testAll({
             final instanceRef = result as InstanceRef;
 
             // Type
-            var instance = await getInstance(instanceRef);
+            final instance = await getInstance(instanceRef);
             for (var field in instance.fields!) {
               final name = field.decl!.name;
+              final fieldInstance =
+                  await getInstance(field.value as InstanceRef);
 
-              // Type.<name> (i.e. Type._type)
-              instance = await getInstance(field.value as InstanceRef);
-              for (var field in instance.fields!) {
-                final nestedName = field.decl!.name;
-
-                // Type.<name>.<nestedName> (i.e Type._type._subtypeCache)
-                instance = await getInstance(field.value as InstanceRef);
-
-                expect(
-                  instance,
-                  isA<Instance>().having(
-                    (instance) => instance.classRef!.name,
-                    'Type.$name.$nestedName: classRef.name',
-                    isNot(
-                      isIn([
-                        'NativeJavaScriptObject',
-                        'JavaScriptObject',
-                      ]),
-                    ),
+              expect(
+                fieldInstance,
+                isA<Instance>().having(
+                  (i) => i.classRef!.name,
+                  'Type.$name: classRef.name',
+                  isNot(
+                    isIn([
+                      'NativeJavaScriptObject',
+                      'JavaScriptObject',
+                    ]),
                   ),
-                );
-              }
+                ),
+              );
             }
           });
         });

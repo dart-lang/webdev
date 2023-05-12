@@ -6,11 +6,9 @@ import 'dart:async';
 
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds/src/debugging/classes.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
-import 'package:dwds/src/debugging/libraries.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
@@ -18,6 +16,7 @@ import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/objects.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
 
@@ -46,7 +45,8 @@ Isolate get simpleIsolate => Isolate(
     );
 
 class FakeInspector implements AppInspector {
-  FakeInspector({required this.fakeIsolate});
+  final WebkitDebugger _remoteDebugger;
+  FakeInspector(this._remoteDebugger, {required this.fakeIsolate});
 
   Isolate fakeIsolate;
 
@@ -63,12 +63,7 @@ class FakeInspector implements AppInspector {
       RemoteObject({'type': 'string', 'value': 'true'});
 
   @override
-  Future<void> initialize(
-    LibraryHelper libraryHelper,
-    ClassHelper classHelper,
-    InstanceHelper instanceHelper,
-  ) async =>
-      {};
+  Future<void> initialize() async => {};
 
   @override
   Future<InstanceRef?> instanceRefFor(Object value) async =>
@@ -98,6 +93,32 @@ class FakeInspector implements AppInspector {
         name: fakeIsolate.name,
         isSystemIsolate: fakeIsolate.isSystemIsolate,
       );
+
+  @override
+  Future<List<Property>> getProperties(
+    String objectId, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
+    final response = await _remoteDebugger.sendCommand(
+      'Runtime.getProperties',
+      params: {
+        'objectId': objectId,
+        'ownProperties': true,
+      },
+    );
+    final result = response.result?['result'];
+    return result
+        .map<Property>((each) => Property(each as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  bool isDisplayableObject(Object? object) => true;
+
+  @override
+  bool isNativeJsError(InstanceRef instanceRef) => false;
 }
 
 class FakeSseConnection implements SseSocketConnection {

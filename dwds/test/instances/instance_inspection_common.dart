@@ -5,7 +5,6 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
 
-import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -51,9 +50,9 @@ class TestInspector {
     InstanceRef instanceRef, {
     int? offset,
     int? count,
+    int depth = -1,
   }) async {
     final instanceId = instanceRef.id!;
-    final instanceKind = instanceRef.kind;
 
     final result = await service.getObject(
       isolateId,
@@ -64,7 +63,13 @@ class TestInspector {
 
     expect(result, isA<Instance>());
     final instance = result as Instance;
-    expect(instance.kind, instanceKind);
+
+    expect(
+      instance.kind,
+      instanceRef.kind,
+      reason: 'object $instanceId with ref kind ${instanceRef.kind} '
+          'has an instance kind ${instance.kind}',
+    );
 
     final fields = instance.fields;
     final associations = instance.associations;
@@ -81,10 +86,21 @@ class TestInspector {
       fieldRefs = {};
     }
 
+    if (depth > 0) {
+      depth--;
+    }
+    if (depth == 0) {
+      return elements == null ? fieldRefs : fieldRefs.values.toList();
+    }
+
     final fieldValues = <dynamic, Object?>{};
     for (var p in fieldRefs.entries) {
-      fieldValues[p.key] =
-          _getValue(p.value) ?? await getFields(isolateId, p.value);
+      fieldValues[p.key] = _getValue(p.value) ??
+          await getFields(
+            isolateId,
+            p.value,
+            depth: depth,
+          );
     }
     return elements == null ? fieldValues : fieldValues.values.toList();
   }
@@ -139,6 +155,43 @@ class TestInspector {
     }
     return instances;
   }
+
+  Future<InstanceRef> getDisplayedRef(
+    String isolateId,
+    String instanceId,
+  ) async =>
+      await service.invoke(isolateId, instanceId, 'toString', [])
+          as InstanceRef;
+
+  Future<List<String?>> getDisplayedFields(
+    String isolateId,
+    InstanceRef ref,
+  ) async {
+    final fieldRefs =
+        await getFields(isolateId, ref, depth: 1) as Map<dynamic, InstanceRef>;
+
+    Future<String?> toStringValue(InstanceRef ref) async =>
+        ref.valueAsString ??
+        (await getDisplayedRef(isolateId, ref.id!)).valueAsString;
+
+    final fields = await Future.wait(fieldRefs.values.map(toStringValue));
+    return fields.toList();
+  }
+
+  Future<List<Instance>> getElements(
+    String isolateId,
+    String instanceId,
+  ) async {
+    final instance = await service.getObject(isolateId, instanceId) as Instance;
+    return Future.wait(
+      instance.fields!.map(
+        (e) async => await service.getObject(
+          isolateId,
+          (e.value as InstanceRef).id!,
+        ) as Instance,
+      ),
+    );
+  }
 }
 
 Map<String, InstanceRef> _associationsToMap(
@@ -160,6 +213,26 @@ Map<dynamic, InstanceRef> _elementsToMap(List<dynamic> fields) =>
           .map((e) => MapEntry(fields.indexOf(e), e!)),
     );
 
+Matcher matchRecordInstanceRef({required int length}) => isA<InstanceRef>()
+    .having((e) => e.kind, 'kind', InstanceKind.kRecord)
+    .having((e) => e.length, 'length', length)
+    .having((e) => e.classRef!, 'classRef', matchRecordClassRef);
+
+Matcher matchRecordTypeInstanceRef({required int length}) => isA<InstanceRef>()
+    .having((e) => e.kind, 'kind', InstanceKind.kRecordType)
+    .having((e) => e.length, 'length', length)
+    .having((e) => e.classRef!, 'classRef', matchRecordTypeClassRef);
+
+Matcher matchTypeInstanceRef(String name) => isA<InstanceRef>()
+    .having((e) => e.kind, 'kind', InstanceKind.kType)
+    .having((e) => e.name, 'name', name)
+    .having((e) => e.classRef, 'classRef', matchTypeClassRef);
+
+Matcher matchPrimitiveInstanceRef({
+  required String kind,
+}) =>
+    isA<InstanceRef>().having((e) => e.kind, 'kind', kind);
+
 Matcher matchPrimitiveInstance({
   required String kind,
   required dynamic value,
@@ -168,40 +241,77 @@ Matcher matchPrimitiveInstance({
         .having((e) => e.kind, 'kind', kind)
         .having(_getValue, 'value', value);
 
-Matcher matchPlainInstance({required String type}) => isA<Instance>()
-    .having((e) => e.kind, 'kind', InstanceKind.kPlainInstance)
-    .having((e) => e.classRef!.name, 'classRef.name', type);
+Matcher matchPlainInstance({required libraryId, required String type}) =>
+    isA<Instance>()
+        .having((e) => e.kind, 'kind', InstanceKind.kPlainInstance)
+        .having(
+          (e) => e.classRef,
+          'classRef',
+          matchClassRef(name: type, libraryId: libraryId),
+        );
 
 Matcher matchListInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kList)
-    .having((e) => e.classRef!.name, 'classRef.name', type);
+    .having((e) => e.classRef, 'classRef', matchListClassRef(type));
 
 Matcher matchMapInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kMap)
-    .having((e) => e.classRef!.name, 'classRef.name', type);
+    .having((e) => e.classRef, 'classRef', matchMapClassRef(type));
 
 Matcher matchSetInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kSet)
-    .having((e) => e.classRef!.name, 'classRef.name', type);
+    .having((e) => e.classRef, 'classRef', matchSetClassRef(type));
 
 Matcher matchRecordInstance({required int length}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kRecord)
     .having((e) => e.length, 'length', length)
-    .having((e) => e.classRef!, 'classRef', matchRecordType);
+    .having((e) => e.classRef, 'classRef', matchRecordClassRef);
 
-Matcher matchRecordClass = matchClass(libraryId: 'dart:core', type: 'Record');
+Matcher matchRecordTypeInstance({required int length}) => isA<Instance>()
+    .having((e) => e.kind, 'kind', InstanceKind.kRecordType)
+    .having((e) => e.length, 'length', length)
+    .having((e) => e.classRef, 'classRef', matchRecordTypeClassRef);
 
-Matcher matchTypeClass = matchClass(libraryId: 'dart:_runtime', type: '_Type');
+Matcher matchTypeStringInstance(String name) =>
+    matchPrimitiveInstance(kind: InstanceKind.kString, value: name);
 
-Matcher matchClass({required String libraryId, required String type}) =>
-    isA<Class>()
-        .having((e) => e.name, 'name', type)
-        .having((e) => e.id, 'id', classIdFor(libraryId, type));
+Matcher matchTypeInstance(String name) => isA<Instance>()
+    .having((e) => e.kind, 'kind', InstanceKind.kType)
+    .having((e) => e.name, 'name', name)
+    .having((e) => e.classRef, 'classRef', matchTypeClassRef);
 
-Matcher matchRecordType = matchType('Record');
+Matcher matchRecordClass =
+    matchClass(name: _recordClass, libraryId: _dartCoreLibrary);
+Matcher matchRecordTypeClass =
+    matchClass(name: _recordTypeClass, libraryId: _dartRuntimeLibrary);
+Matcher matchTypeClass =
+    matchClass(name: _typeClass, libraryId: _dartCoreLibrary);
 
-Matcher matchType(String type) =>
-    isA<ClassRef>().having((e) => e.name, 'type name', type);
+Matcher matchClass({String? name, String? libraryId}) => isA<Class>()
+    .having((e) => e.name, 'name', name)
+    .having((e) => e.library, 'library', matchLibraryRef(libraryId));
+
+Matcher matchRecordClassRef =
+    matchClassRef(name: _recordClass, libraryId: _dartCoreLibrary);
+Matcher matchRecordTypeClassRef =
+    matchClassRef(name: _recordTypeClass, libraryId: _dartRuntimeLibrary);
+Matcher matchTypeClassRef =
+    matchClassRef(name: _typeClass, libraryId: _dartCoreLibrary);
+Matcher matchListClassRef(String type) =>
+    matchClassRef(name: type, libraryId: _dartInterceptorsLibrary);
+Matcher matchMapClassRef(String type) =>
+    matchClassRef(name: type, libraryId: _dartJsHelperLibrary);
+Matcher matchSetClassRef(String type) =>
+    matchClassRef(name: type, libraryId: _dartCollectionLibrary);
+
+Matcher matchClassRef({String? name, String? libraryId}) => isA<ClassRef>()
+    .having((e) => e.name, 'class name', name)
+    .having((e) => e.library, 'library', matchLibraryRef(libraryId));
+
+Matcher matchLibraryRef(String? libraryId) => isA<LibraryRef>()
+    .having((e) => e.name, 'name', libraryId)
+    .having((e) => e.id, 'id', libraryId)
+    .having((e) => e.uri, 'uri', libraryId);
 
 Object? _getValue(InstanceRef instanceRef) {
   switch (instanceRef.kind) {
@@ -216,3 +326,13 @@ Object? _getValue(InstanceRef instanceRef) {
       return null;
   }
 }
+
+final _dartCoreLibrary = 'dart:core';
+final _dartRuntimeLibrary = 'dart:_runtime';
+final _dartInterceptorsLibrary = 'dart:_interceptors';
+final _dartJsHelperLibrary = 'dart:_js_helper';
+final _dartCollectionLibrary = 'dart:collection';
+
+final _recordClass = 'Record';
+final _recordTypeClass = 'RecordType';
+final _typeClass = 'Type';

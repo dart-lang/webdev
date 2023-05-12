@@ -4,6 +4,7 @@
 
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/utilities/objects.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -90,6 +91,22 @@ abstract class AppInspectorInterface {
 
   /// All the scripts in the isolate.
   Future<ScriptList> getScripts();
+
+  /// Calls the Chrome Runtime.getProperties API for the object with [objectId].
+  ///
+  /// Note that the property names are JS names, e.g.
+  /// Symbol(DartClass.actualName) and will need to be converted. For a system
+  /// List or Map, [offset] and/or [count] can be provided to indicate a desired
+  /// range of entries. They will be ignored if there is no [length].
+  Future<List<Property>> getProperties(
+    String objectId, {
+    int? offset,
+    int? count,
+    int? length,
+  });
+
+  bool isDisplayableObject(Object? object);
+  bool isNativeJsError(InstanceRef instanceRef);
 
   /// Return the VM SourceReport for the given parameters.
   ///
