@@ -8,4 +8,4 @@ updates:
     schedule:
       interval: monthly
     ignore:
-      - dependency-name: "dart.yaml"
+      - dependency-name: "workflows/dart.yaml"
