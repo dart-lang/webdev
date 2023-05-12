@@ -9,7 +9,7 @@ jobs:
     name: Run tests ${{matrix.sdk}} on ${{matrix.os}}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
         sdk: ['dev', 'main']
     runs-on: ${{ matrix.os }}
     steps:
@@ -26,6 +26,7 @@ jobs:
         working-directory: dwds
       - name: Download Chromium
         run: dart test/puppeteer/download_chromium.dart
+        working-directory: dwds
       - name: Run Puppeteer tests
         run: xvfb-run dart test test/puppeteer/extension_test.dart
         working-directory: dwds
