@@ -16,6 +16,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 
 const _prodFlag = 'prod';
@@ -43,13 +44,25 @@ Future<int> run({required bool isProd, required bool isMV3}) async {
   _logInfo('Compiling extension with dart2js to /compiled directory');
   final compileStep = await Process.start(
     'dart',
-    ['run', 'build_runner', 'build', 'web', '--output', 'build', '--release'],
+    [
+      'run',
+      'build_runner',
+      'build',
+      'web',
+      '--output',
+      'build',
+      '--release',
+      '--delete-conflicting-outputs',
+    ],
   );
   final compileExitCode = await _handleProcess(compileStep);
   // Terminate early if compilation failed:
   if (compileExitCode != 0) {
     return compileExitCode;
   }
+
+  _logInfo('Creating /compiled directory if it doesn\'t exist');
+  await Directory('compiled').create();
   final manifestFileName = isMV3 ? 'manifest_mv3' : 'manifest_mv2';
   _logInfo('Copying manifest.json to /compiled directory');
   try {
@@ -61,6 +74,31 @@ Future<int> run({required bool isProd, required bool isMV3}) async {
     // Return non-zero exit code to indicate failure:
     return 1;
   }
+  _logInfo('Copying /static_assets to /compiled directory');
+  try {
+    await copyPath(
+      p.join('web', 'static_assets'),
+      p.join('compiled', 'static_assets'),
+    );
+  } catch (error) {
+    _logWarning('Copying static_assets failed: $error');
+    // Return non-zero exit code to indicate failure:
+    return 1;
+  }
+  _logInfo('Copying generated *.dart.js files to /compiled directory');
+  try {
+    await for (final file in Directory(p.join('build', 'web')).list()) {
+      if (file.path.endsWith('dart.js')) {
+        final fileName = p.split(file.path).last;
+        File(file.path).copySync(p.join('compiled', fileName));
+      }
+    }
+  } catch (error) {
+    _logWarning('Copying *.dart.js files failed: $error');
+    // Return non-zero exit code to indicate failure:
+    return 1;
+  }
+
   // If we're compiling for prod, skip updating the manifest.json:
   if (isProd) return 0;
   // Update manifest.json for dev:

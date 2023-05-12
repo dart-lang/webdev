@@ -8,21 +8,4 @@ targets:
             - --csp
         generate_for:
           - web/**.dart
-      mv3_extension|client_js_copy_builder:
-        enabled: true
-      
-builders:
-  client_js_copy_builder:
-    import: "tool/copy_builder.dart"
-    builder_factories:
-        - copyBuilder
-    build_extensions:
-      {
-        "web/{{}}.dart.js": ["compiled/{{}}.dart.js"],
-        "web/static_assets/{{}}.png": ["compiled/static_assets/{{}}.png"],
-        "web/static_assets/{{}}.html": ["compiled/static_assets/{{}}.html"],
-        "web/static_assets/{{}}.css": ["compiled/static_assets/{{}}.css"],
-        "web/manifest.json": ["compiled/manifest.json"],
-      }
-    auto_apply: none
-    build_to: source
+
