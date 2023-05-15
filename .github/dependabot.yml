@@ -7,3 +7,5 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      - dependency-name: "workflows/dart.yaml"
