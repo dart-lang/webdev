@@ -31,7 +31,10 @@ Future<String> buildDebugExtension({required bool isMV3}) async {
     ],
     workingDirectory: extensionDir,
   );
-  return p.join(extensionDir, 'compiled');
+  final compiledDir = p.join(extensionDir, 'compiled');
+  print('---- COMPILED CONTENTS:');
+  print(Directory(compiledDir).listSync());
+  return compiledDir;
 }
 
 Future<Browser> setUpExtensionTest(
@@ -57,6 +60,10 @@ Future<Browser> setUpExtensionTest(
     devTools: openChromeDevTools,
     headless: false,
     timeout: Duration(seconds: 60),
+    ignoreDefaultArgs: [
+      '--disable-extensions',
+      '--disable-component-extensions-with-background-pages'
+    ],
     args: [
       '--load-extension=$extensionPath',
       '--disable-extensions-except=$extensionPath',
