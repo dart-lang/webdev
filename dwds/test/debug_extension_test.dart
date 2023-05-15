@@ -8,6 +8,7 @@
 @Timeout(Duration(minutes: 2))
 @OnPlatform({
   'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
+  'linux': Skip('https://github.com/dart-lang/webdev/issues/2114'),
 })
 
 import 'package:dwds/src/connections/debug_connection.dart';
