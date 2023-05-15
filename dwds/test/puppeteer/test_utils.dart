@@ -58,7 +58,7 @@ Future<Browser> setUpExtensionTest(
   );
   return await puppeteer.launch(
     devTools: openChromeDevTools,
-    headless: true,
+    headless: false,
     timeout: Duration(seconds: 60),
     ignoreDefaultArgs: [
       '--disable-extensions',
