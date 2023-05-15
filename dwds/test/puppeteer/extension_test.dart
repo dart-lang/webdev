@@ -57,7 +57,7 @@ void main() {
       });
 
       for (var useSse in [true, false]) {
-        group(useSse ? 'connected with SSE:' : 'connected with WebSockets:',
+        group(useSse ? 'connected with SSE' : 'connected with WebSockets',
             () {
           late Browser browser;
           Worker? worker;

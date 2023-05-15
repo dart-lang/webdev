@@ -9,8 +9,8 @@ jobs:
     name: Run tests ${{matrix.sdk}} on ${{matrix.os}}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        sdk: ['dev', 'main']
+        os: [ubuntu-latest,  macos-latest]
+        sdk: ['dev']
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set up Dart SDK
@@ -27,6 +27,11 @@ jobs:
       - name: Download Chromium
         run: dart test/puppeteer/download_chromium.dart
         working-directory: dwds
-      - name: Run Puppeteer tests
-        run: xvfb-run dart test test/puppeteer/extension_test.dart
+      - name: Run Puppeteer tests on Linux
+        run: xvfb-run --auto-servernum dart test/puppeteer/extension_test.dart --no-retry --name="MV2 Debug Extension connected with SSE the debug info for a Dart app is saved in session storage" -P ci --platform vm
+        if: runner.os == 'Linux'
+        working-directory: dwds
+      - name: Run Puppeteer tests on non-Linux
+        run: dart test test/puppeteer/extension_test.dart --no-retry --name="MV2 Debug Extension connected with SSE the debug info for a Dart app is saved in session storage" -P ci --platform vm --concurrency 1
+        if: runner.os != 'Linux'
         working-directory: dwds
