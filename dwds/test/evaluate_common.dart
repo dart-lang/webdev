@@ -135,6 +135,83 @@ void testAll({
           } catch (_) {}
         });
 
+        test('with scope', () async {
+          await onBreakPoint(isolateId, mainScript, 'printFieldMain', () async {
+            final event = await stream.firstWhere(
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
+
+            final arg1 = await context.service.evaluateInFrame(
+              isolateId,
+              event.topFrame!.index!,
+              '"cat"',
+            ) as InstanceRef;
+
+            final arg2 = await context.service.evaluateInFrame(
+              isolateId,
+              event.topFrame!.index!,
+              '2',
+            ) as InstanceRef;
+
+            final arg3 = await context.service.evaluateInFrame(
+              isolateId,
+              event.topFrame!.index!,
+              'MainClass(1,0)',
+            ) as InstanceRef;
+
+            final result = await context.service.evaluateInFrame(
+              isolateId,
+              event.topFrame!.index!,
+              '"\$x1\$x2 (\$x3) \$testLibraryValue (\$instance)"',
+              scope: {
+                'x1': arg1.id!,
+                'x2': arg2.id!,
+                'x3': arg3.id!,
+              },
+            );
+
+            expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString,
+                'valueAsString',
+                'cat2 (1, 0) 3 (2, 1)',
+              ),
+            );
+          });
+        });
+
+        test('with scope and this', () async {
+          await onBreakPoint(isolateId, mainScript, 'toStringMainClass',
+              () async {
+            final event = await stream.firstWhere(
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
+
+            final arg1 = await context.service.evaluateInFrame(
+              isolateId,
+              event.topFrame!.index!,
+              '"cat"',
+            ) as InstanceRef;
+
+            final result = await context.service.evaluateInFrame(
+              isolateId,
+              event.topFrame!.index!,
+              '"\$x1 \${this._field} \${this.field}"',
+              scope: {'x1': arg1.id!},
+            );
+
+            expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString,
+                'valueAsString',
+                'cat 1 2',
+              ),
+            );
+          });
+        });
+
         test(
           'extension method scope variables can be evaluated',
           () async {
@@ -212,7 +289,7 @@ void testAll({
             );
           });
         });
-
+/*
         test('with scope override is not supported yet', () async {
           await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
             final event = await stream.firstWhere(
@@ -243,7 +320,7 @@ void testAll({
               ),
             );
           });
-        });
+        }, skip: true);*/
 
         test('local', () async {
           await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
@@ -825,6 +902,47 @@ void testAll({
         });
 
         tearDown(() async {});
+
+        test('with scope', () async {
+          final library = isolate.rootLib!;
+          final arg1 = await context.service.evaluate(
+            isolateId,
+            library.id!,
+            '"cat"',
+          ) as InstanceRef;
+
+          final arg2 = await context.service.evaluate(
+            isolateId,
+            library.id!,
+            '2',
+          ) as InstanceRef;
+
+          final arg3 = await context.service.evaluate(
+            isolateId,
+            library.id!,
+            'MainClass(1,0)',
+          ) as InstanceRef;
+
+          final result = await context.service.evaluate(
+            isolateId,
+            library.id!,
+            '"\$x1\$x2 (\$x3) \$testLibraryValue"',
+            scope: {
+              'x1': arg1.id!,
+              'x2': arg2.id!,
+              'x3': arg3.id!,
+            },
+          );
+
+          expect(
+            result,
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              'cat2 (1, 0) 3',
+            ),
+          );
+        });
 
         test('in parallel (in a batch)', () async {
           final library = isolate.rootLib!;

@@ -127,7 +127,8 @@ void printNestedObjectsMultiLine() {
 
 void printObjectMultiLine() {
   // Note: formatting the line below breaks callstack tests.
-  print( // Breakpoint: printMultiLine
+  print(
+    // Breakpoint: printMultiLine
     createObject() // Breakpoint: printObjectMultiLine
       ..initialize(),
   );
@@ -170,7 +171,7 @@ class MainClass {
   MainClass(this.field, this._field); // Breakpoint: newMainClass
 
   @override
-  String toString() => '$field, $_field';
+  String toString() => '$field, $_field'; // Breakpoint: toStringMainClass
 }
 
 class EnclosedClass {
