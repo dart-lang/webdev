@@ -289,38 +289,6 @@ void testAll({
             );
           });
         });
-/*
-        test('with scope override is not supported yet', () async {
-          await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final object = await context.service.evaluateInFrame(
-              isolateId,
-              event.topFrame!.index!,
-              'MainClass(1,0)',
-            );
-
-            final param = object as InstanceRef;
-            final result = await context.service.evaluateInFrame(
-              isolateId,
-              event.topFrame!.index!,
-              't.toString()',
-              scope: {'t': param.id!},
-            );
-
-            expect(
-              result,
-              isA<ErrorRef>().having(
-                (instance) => instance.message,
-                'message',
-                contains('Using scope for expression evaluation '
-                    'in frame is not supported'),
-              ),
-            );
-          });
-        }, skip: true);*/
 
         test('local', () async {
           await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
