@@ -37,11 +37,12 @@ void testAll({
 
   final context = TestContext(testPackageProject, provider);
 
-  Future<void> onBreakPoint(
+  Future<void> onBp(
+    Stream<Event> stream,
     String isolate,
     ScriptRef script,
     String breakPointId,
-    Future<void> Function() body,
+    Future<void> Function(Event event) body,
   ) async {
     Breakpoint? bp;
     try {
@@ -49,7 +50,10 @@ void testAll({
           await context.findBreakpointLine(breakPointId, isolate, script);
       bp = await context.service
           .addBreakpointWithScriptUri(isolate, script.uri!, line);
-      await body();
+      final event = await stream.firstWhere(
+        (event) => event.kind == EventKind.kPauseBreakpoint,
+      );
+      await body(event);
     } finally {
       // Remove breakpoint so it doesn't impact other tests or retries.
       if (bp != null) {
@@ -135,107 +139,154 @@ void testAll({
           } catch (_) {}
         });
 
+        onBreakPoint(script, bpId, body) => onBp(
+              stream,
+              isolateId,
+              script,
+              bpId,
+              body,
+            );
+
+        evaluateInFrame(frame, expr, {scope}) async =>
+            await context.service.evaluateInFrame(
+              isolateId,
+              frame,
+              expr,
+              scope: scope,
+            );
+
+        getInstanceRef(frame, expr, {scope}) async => await evaluateInFrame(
+              frame,
+              expr,
+              scope: scope,
+            ) as InstanceRef;
+
+        getInstance(InstanceRef ref) async =>
+            await context.service.getObject(isolateId, ref.id!) as Instance;
+
         test('with scope', () async {
-          await onBreakPoint(isolateId, mainScript, 'printFieldMain', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
+          await onBreakPoint(mainScript, 'printFrame1', (event) async {
+            final frame = event.topFrame!.index!;
+
+            final scope = {
+              'x1': (await getInstanceRef(frame, '"cat"')).id!,
+              'x2': (await getInstanceRef(frame, '2')).id!,
+              'x3': (await getInstanceRef(frame, 'MainClass(1,0)')).id!,
+            };
+
+            final result = await getInstanceRef(
+              frame,
+              '"\$x1\$x2 (\$x3) \$testLibraryValue (\$local1)"',
+              scope: scope,
             );
 
-            final arg1 = await context.service.evaluateInFrame(
-              isolateId,
-              event.topFrame!.index!,
-              '"cat"',
-            ) as InstanceRef;
+            expect(result, matchInstanceRef('cat2 (1, 0) 3 (1)'));
+          });
+        });
 
-            final arg2 = await context.service.evaluateInFrame(
-              isolateId,
-              event.topFrame!.index!,
-              '2',
-            ) as InstanceRef;
+        test('with large scope', () async {
+          await onBreakPoint(mainScript, 'printLocal', (event) async {
+            const N = 20;
+            final frame = event.topFrame!.index!;
 
-            final arg3 = await context.service.evaluateInFrame(
-              isolateId,
-              event.topFrame!.index!,
-              'MainClass(1,0)',
-            ) as InstanceRef;
+            final scope = {
+              for (var i = 0; i < N; i++)
+                'x$i': (await getInstanceRef(frame, '$i')).id!,
+            };
+            final expression = [
+              for (var i = 0; i < N; i++) '\$x$i',
+            ].join(' ');
+            final expected = [
+              for (var i = 0; i < N; i++) '$i',
+            ].join(' ');
 
-            final result = await context.service.evaluateInFrame(
-              isolateId,
-              event.topFrame!.index!,
-              '"\$x1\$x2 (\$x3) \$testLibraryValue (\$instance)"',
-              scope: {
-                'x1': arg1.id!,
-                'x2': arg2.id!,
-                'x3': arg3.id!,
-              },
+            final result = await evaluateInFrame(
+              frame,
+              '"$expression"',
+              scope: scope,
+            );
+            expect(result, matchInstanceRef(expected));
+          });
+        });
+
+        test('with large code scope', () async {
+          await onBreakPoint(mainScript, 'printLargeScope', (event) async {
+            const xN = 2;
+            const tN = 20;
+            final frame = event.topFrame!.index!;
+
+            final scope = {
+              for (var i = 0; i < xN; i++)
+                'x$i': (await getInstanceRef(frame, '$i')).id!,
+            };
+            final expression = [
+              for (var i = 0; i < xN; i++) '\$x$i',
+              for (var i = 0; i < tN; i++) '\$t$i',
+            ].join(' ');
+            final expected = [
+              for (var i = 0; i < xN; i++) '$i',
+              for (var i = 0; i < tN; i++) '$i',
+            ].join(' ');
+
+            final result = await evaluateInFrame(
+              frame,
+              '"$expression"',
+              scope: scope,
+            );
+            expect(result, matchInstanceRef(expected));
+          });
+        });
+
+        test('with scope in caller frame', () async {
+          await onBreakPoint(mainScript, 'printFrame1', (event) async {
+            final frame = event.topFrame!.index! + 1;
+
+            final scope = {
+              'x1': (await getInstanceRef(frame, '"cat"')).id!,
+              'x2': (await getInstanceRef(frame, '2')).id!,
+              'x3': (await getInstanceRef(frame, 'MainClass(1,0)')).id!,
+            };
+
+            final result = await getInstanceRef(
+              frame,
+              '"\$x1\$x2 (\$x3) \$testLibraryValue (\$local2)"',
+              scope: scope,
             );
 
-            expect(
-              result,
-              const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                'cat2 (1, 0) 3 (2, 1)',
-              ),
-            );
+            expect(result, matchInstanceRef('cat2 (1, 0) 3 (2)'));
           });
         });
 
         test('with scope and this', () async {
-          await onBreakPoint(isolateId, mainScript, 'toStringMainClass',
-              () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
+          await onBreakPoint(mainScript, 'toStringMainClass', (event) async {
+            final frame = event.topFrame!.index!;
 
-            final arg1 = await context.service.evaluateInFrame(
-              isolateId,
-              event.topFrame!.index!,
-              '"cat"',
-            ) as InstanceRef;
+            final scope = {
+              'x1': (await getInstanceRef(frame, '"cat"')).id!,
+            };
 
-            final result = await context.service.evaluateInFrame(
-              isolateId,
-              event.topFrame!.index!,
+            final result = await getInstanceRef(
+              frame,
               '"\$x1 \${this._field} \${this.field}"',
-              scope: {'x1': arg1.id!},
+              scope: scope,
             );
 
-            expect(
-              result,
-              const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                'cat 1 2',
-              ),
-            );
+            expect(result, matchInstanceRef('cat 1 2'));
           });
         });
 
         test(
           'extension method scope variables can be evaluated',
           () async {
-            await onBreakPoint(isolateId, mainScript, 'extension', () async {
-              final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint,
-              );
-
+            await onBreakPoint(mainScript, 'extension', (event) async {
               final stack = await context.service.getStack(isolateId);
               final scope = _getFrameVariables(stack.frames!.first);
               for (var p in scope.entries) {
                 final name = p.key;
                 final value = p.value as InstanceRef;
-                final result = await context.service
-                    .evaluateInFrame(isolateId, event.topFrame!.index!, name!);
+                final result = getInstanceRef(event.topFrame!.index!, name!);
 
-                expect(
-                  result,
-                  isA<InstanceRef>().having(
-                    (instance) => instance.valueAsString,
-                    'valueAsString',
-                    value.valueAsString,
-                  ),
-                );
+                expect(result, matchInstanceRef(value.valueAsString));
               }
             });
           },
@@ -243,90 +294,43 @@ void testAll({
         );
 
         test('uses correct null safety mode', () async {
-          await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final isNullSafetyEnabled =
+          await onBreakPoint(mainScript, 'printLocal', (event) async {
+            final isNullSafetyEnabledExpression =
                 '() { const sound = !(<Null>[] is List<int>); return sound; } ()';
-            final result = await context.service.evaluateInFrame(
-              isolateId,
+            final result = await getInstanceRef(
               event.topFrame!.index!,
-              isNullSafetyEnabled,
+              isNullSafetyEnabledExpression,
             );
-
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '${nullSafety == NullSafety.sound}',
-              ),
-            );
+            final expectedResult = '${nullSafety == NullSafety.sound}';
+            expect(result, matchInstanceRef(expectedResult));
           });
         });
 
         test('does not crash if class metadata cannot be found', () async {
-          await onBreakPoint(isolateId, mainScript, 'printStream', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
+          await onBreakPoint(mainScript, 'printStream', (event) async {
+            final instanceRef =
+                await getInstanceRef(event.topFrame!.index!, 'stream');
+            final instance = await getInstance(instanceRef);
 
-            final result = await context.service
-                .evaluateInFrame(isolateId, event.topFrame!.index!, 'stream');
-            final instanceId = (result as InstanceRef).id!;
-            final instance =
-                await context.service.getObject(isolateId, instanceId);
-
-            expect(
-              instance,
-              isA<Instance>().having(
-                (instance) => instance.classRef!.name,
-                'class name',
-                '_AsBroadcastStream<int>',
-              ),
-            );
+            expect(instance, matchInstance('_AsBroadcastStream<int>'));
           });
         });
 
         test('local', () async {
-          await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
+          await onBreakPoint(mainScript, 'printLocal', (event) async {
+            final result = await getInstanceRef(
+              event.topFrame!.index!,
+              'local',
             );
 
-            final result = await context.service
-                .evaluateInFrame(isolateId, event.topFrame!.index!, 'local');
-
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '42',
-              ),
-            );
+            expect(result, matchInstanceRef('42'));
           });
         });
 
         test('Type does not show native JavaScript object fields', () async {
-          await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
-            Future<Instance> getInstance(InstanceRef ref) async {
-              final result =
-                  await context.service.getObject(isolateId, ref.id!);
-              expect(result, isA<Instance>());
-              return result as Instance;
-            }
-
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final result = await context.service
-                .evaluateInFrame(isolateId, event.topFrame!.index!, 'Type');
-            expect(result, isA<InstanceRef>());
-            final instanceRef = result as InstanceRef;
+          await onBreakPoint(mainScript, 'printLocal', (event) async {
+            final instanceRef =
+                await getInstanceRef(event.topFrame!.index!, 'Type');
 
             // Type
             final instance = await getInstance(instanceRef);
@@ -353,398 +357,198 @@ void testAll({
         });
 
         test('field', () async {
-          await onBreakPoint(
-              isolateId, mainScript, 'printFieldFromLibraryClass', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final result = await context.service.evaluateInFrame(
-              isolateId,
+          await onBreakPoint(mainScript, 'printFieldFromLibraryClass',
+              (event) async {
+            final result = await getInstanceRef(
               event.topFrame!.index!,
               'instance.field',
             );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '1',
-              ),
-            );
+            expect(result, matchInstanceRef('1'));
           });
         });
 
         test('private field from another library', () async {
-          await onBreakPoint(
-              isolateId, mainScript, 'printFieldFromLibraryClass', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final result = await context.service.evaluateInFrame(
-              isolateId,
+          await onBreakPoint(mainScript, 'printFieldFromLibraryClass',
+              (event) async {
+            final result = await evaluateInFrame(
               event.topFrame!.index!,
               'instance._field',
             );
 
             expect(
               result,
-              isA<ErrorRef>().having(
-                (instance) => instance.message,
-                'message',
-                contains("The getter '_field' isn't defined"),
-              ),
+              matchErrorRef(contains("The getter '_field' isn't defined")),
             );
           });
         });
 
         test('private field from current library', () async {
-          await onBreakPoint(isolateId, mainScript, 'printFieldMain', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final result = await context.service.evaluateInFrame(
-              isolateId,
+          await onBreakPoint(mainScript, 'printFieldMain', (event) async {
+            final result = await getInstanceRef(
               event.topFrame!.index!,
               'instance._field',
             );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '1',
-              ),
-            );
+            expect(result, matchInstanceRef('1'));
           });
         });
 
         test('access instance fields after evaluation', () async {
-          await onBreakPoint(
-              isolateId, mainScript, 'printFieldFromLibraryClass', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final instanceRef = await context.service.evaluateInFrame(
-              isolateId,
+          await onBreakPoint(mainScript, 'printFieldFromLibraryClass',
+              (event) async {
+            final instanceRef = await getInstanceRef(
               event.topFrame!.index!,
               'instance',
-            ) as InstanceRef;
+            );
 
-            final instance = await context.service
-                .getObject(isolateId, instanceRef.id!) as Instance;
-
+            final instance = await getInstance(instanceRef);
             final field = instance.fields!.firstWhere(
               (BoundField element) => element.decl!.name == 'field',
             );
 
-            expect(
-              field.value,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '1',
-              ),
-            );
+            expect(field.value, matchInstanceRef('1'));
           });
         });
 
         test('global', () async {
-          await onBreakPoint(isolateId, mainScript, 'printGlobal', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final result = await context.service.evaluateInFrame(
-              isolateId,
+          await onBreakPoint(mainScript, 'printGlobal', (event) async {
+            final result = await getInstanceRef(
               event.topFrame!.index!,
               'testLibraryValue',
             );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '3',
-              ),
-            );
+            expect(result, matchInstanceRef('3'));
           });
         });
 
         test('call core function', () async {
-          await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final result = await context.service.evaluateInFrame(
-              isolateId,
+          await onBreakPoint(mainScript, 'printLocal', (event) async {
+            final result = await getInstanceRef(
               event.topFrame!.index!,
               'print(local)',
             );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                'null',
-              ),
-            );
+            expect(result, matchInstanceRef('null'));
           });
         });
 
         test('call library function with const param', () async {
-          await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final result = await context.service.evaluateInFrame(
-              isolateId,
+          await onBreakPoint(mainScript, 'printLocal', (event) async {
+            final result = await getInstanceRef(
               event.topFrame!.index!,
               'testLibraryFunction(42)',
             );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '42',
-              ),
-            );
+            expect(result, matchInstanceRef('42'));
           });
         });
 
         test('call library function with local param', () async {
-          await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final result = await context.service.evaluateInFrame(
-              isolateId,
+          await onBreakPoint(mainScript, 'printLocal', (event) async {
+            final result = await getInstanceRef(
               event.topFrame!.index!,
               'testLibraryFunction(local)',
             );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '42',
-              ),
-            );
+            expect(result, matchInstanceRef('42'));
           });
         });
 
         test('call library part function with const param', () async {
-          await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final result = await context.service.evaluateInFrame(
-              isolateId,
+          await onBreakPoint(mainScript, 'printLocal', (event) async {
+            final result = await getInstanceRef(
               event.topFrame!.index!,
               'testLibraryPartFunction(42)',
             );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '42',
-              ),
-            );
+            expect(result, matchInstanceRef('42'));
           });
         });
 
         test('call library part function with local param', () async {
-          await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final result = await context.service.evaluateInFrame(
-              isolateId,
+          await onBreakPoint(mainScript, 'printLocal', (event) async {
+            final result = await getInstanceRef(
               event.topFrame!.index!,
               'testLibraryPartFunction(local)',
             );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '42',
-              ),
-            );
+            expect(result, matchInstanceRef('42'));
           });
         });
 
         test('loop variable', () async {
-          await onBreakPoint(isolateId, mainScript, 'printLoopVariable',
-              () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
+          await onBreakPoint(mainScript, 'printLoopVariable', (event) async {
+            final result = await getInstanceRef(event.topFrame!.index!, 'item');
 
-            final result = await context.service
-                .evaluateInFrame(isolateId, event.topFrame!.index!, 'item');
-
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '1',
-              ),
-            );
+            expect(result, matchInstanceRef('1'));
           });
         });
 
         test('evaluate expression in _test_package/test_library', () async {
-          await onBreakPoint(
-              isolateId, testLibraryScript, 'testLibraryFunction', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
+          await onBreakPoint(testLibraryScript, 'testLibraryFunction',
+              (event) async {
+            final result =
+                await getInstanceRef(event.topFrame!.index!, 'formal');
 
-            final result = await context.service
-                .evaluateInFrame(isolateId, event.topFrame!.index!, 'formal');
-
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '23',
-              ),
-            );
+            expect(result, matchInstanceRef('23'));
           });
         });
 
         test('evaluate expression in a class constructor in a library',
             () async {
-          await onBreakPoint(
-              isolateId, testLibraryScript, 'testLibraryClassConstructor',
-              () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final result = await context.service.evaluateInFrame(
-              isolateId,
+          await onBreakPoint(testLibraryScript, 'testLibraryClassConstructor',
+              (event) async {
+            final result = await getInstanceRef(
               event.topFrame!.index!,
               'this.field',
             );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '1',
-              ),
-            );
+            expect(result, matchInstanceRef('1'));
           });
         });
 
         test('evaluate expression in a class constructor in a library part',
             () async {
-          await onBreakPoint(isolateId, testLibraryPartScript,
-              'testLibraryPartClassConstructor', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final result = await context.service.evaluateInFrame(
-              isolateId,
+          await onBreakPoint(
+              testLibraryPartScript, 'testLibraryPartClassConstructor',
+              (event) async {
+            final result = await getInstanceRef(
               event.topFrame!.index!,
               'this.field',
             );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '1',
-              ),
-            );
+            expect(result, matchInstanceRef('1'));
           });
         });
 
         test('evaluate expression in caller frame', () async {
-          await onBreakPoint(
-              isolateId, testLibraryScript, 'testLibraryFunction', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final result = await context.service.evaluateInFrame(
-              isolateId,
+          await onBreakPoint(testLibraryScript, 'testLibraryFunction',
+              (event) async {
+            final result = await getInstanceRef(
               event.topFrame!.index! + 1,
               'local',
             );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '23',
-              ),
-            );
+            expect(result, matchInstanceRef('23'));
           });
         });
 
         test('evaluate expression in a library', () async {
-          await onBreakPoint(isolateId, libraryScript, 'Concatenate', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
+          await onBreakPoint(libraryScript, 'Concatenate', (event) async {
+            final result = await getInstanceRef(event.topFrame!.index!, 'a');
 
-            final result = await context.service
-                .evaluateInFrame(isolateId, event.topFrame!.index!, 'a');
-
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                'Hello',
-              ),
-            );
+            expect(result, matchInstanceRef('Hello'));
           });
         });
 
         test('compilation error', () async {
-          await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
-            final error = await context.service
-                .evaluateInFrame(isolateId, event.topFrame!.index!, 'typo');
+          await onBreakPoint(mainScript, 'printLocal', (event) async {
+            final error = await evaluateInFrame(event.topFrame!.index!, 'typo');
 
             expect(
               error,
-              isA<ErrorRef>().having(
-                (instance) => instance.message,
-                'message',
-                contains(EvaluationErrorKind.compilation),
-              ),
+              matchErrorRef(contains(EvaluationErrorKind.compilation)),
             );
           });
         });
@@ -797,11 +601,7 @@ void testAll({
           // on async frame.
           expect(
             error,
-            isA<ErrorRef>().having(
-              (instance) => instance.message,
-              'message',
-              contains(EvaluationErrorKind.asyncFrame),
-            ),
+            matchErrorRef(contains(EvaluationErrorKind.asyncFrame)),
           );
 
           // Verify we don't emit errors or warnings
@@ -815,24 +615,15 @@ void testAll({
         test(
           'module load error',
           () async {
-            await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
-              final event = await stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseBreakpoint,
-              );
-
-              final error = await context.service.evaluateInFrame(
-                isolateId,
+            await onBreakPoint(mainScript, 'printLocal', (event) async {
+              final error = await evaluateInFrame(
                 event.topFrame!.index!,
                 'd.deferredPrintLocal()',
               );
 
               expect(
                 error,
-                isA<ErrorRef>().having(
-                  (instance) => instance.message,
-                  'message',
-                  contains(EvaluationErrorKind.loadModule),
-                ),
+                matchErrorRef(contains(EvaluationErrorKind.loadModule)),
               );
             });
           },
@@ -840,11 +631,7 @@ void testAll({
         );
 
         test('cannot evaluate in unsupported isolate', () async {
-          await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
-
+          await onBreakPoint(mainScript, 'printLocal', (event) async {
             await expectLater(
               context.service
                   .evaluateInFrame('bad', event.topFrame!.index!, 'local'),
@@ -871,171 +658,146 @@ void testAll({
 
         tearDown(() async {});
 
+        evaluate(
+          libraryId,
+          expr, {
+          scope,
+        }) async =>
+            await context.service.evaluate(
+              isolateId,
+              libraryId,
+              expr,
+              scope: scope,
+            );
+
+        getInstanceRef(
+          libraryId,
+          expr, {
+          scope,
+        }) async =>
+            await evaluate(
+              libraryId,
+              expr,
+              scope: scope,
+            ) as InstanceRef;
+
+        String getRootLibraryId() {
+          expect(isolate.rootLib, isNotNull);
+          expect(isolate.rootLib!.id, isNotNull);
+          return isolate.rootLib!.id!;
+        }
+
         test('with scope', () async {
-          final library = isolate.rootLib!;
-          final arg1 = await context.service.evaluate(
-            isolateId,
-            library.id!,
-            '"cat"',
-          ) as InstanceRef;
+          final libraryId = getRootLibraryId();
 
-          final arg2 = await context.service.evaluate(
-            isolateId,
-            library.id!,
-            '2',
-          ) as InstanceRef;
+          final scope = {
+            'x1': (await getInstanceRef(libraryId, '"cat"')).id!,
+            'x2': (await getInstanceRef(libraryId, '2')).id!,
+            'x3': (await getInstanceRef(libraryId, 'MainClass(1,0)')).id!,
+          };
 
-          final arg3 = await context.service.evaluate(
-            isolateId,
-            library.id!,
-            'MainClass(1,0)',
-          ) as InstanceRef;
-
-          final result = await context.service.evaluate(
-            isolateId,
-            library.id!,
+          final result = await getInstanceRef(
+            libraryId,
             '"\$x1\$x2 (\$x3) \$testLibraryValue"',
-            scope: {
-              'x1': arg1.id!,
-              'x2': arg2.id!,
-              'x3': arg3.id!,
-            },
+            scope: scope,
           );
 
-          expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'valueAsString',
-              'cat2 (1, 0) 3',
-            ),
+          expect(result, matchInstanceRef('cat2 (1, 0) 3'));
+        });
+
+        test('with large scope', () async {
+          final libraryId = getRootLibraryId();
+          const N = 2;
+
+          final scope = {
+            for (var i = 0; i < N; i++)
+              'x$i': (await getInstanceRef(libraryId, '$i')).id!,
+          };
+          final expression = [
+            for (var i = 0; i < N; i++) '\$x$i',
+          ].join(' ');
+          final expected = [
+            for (var i = 0; i < N; i++) '$i',
+          ].join(' ');
+
+          final result = await getInstanceRef(
+            libraryId,
+            '"$expression"',
+            scope: scope,
           );
+          expect(result, matchInstanceRef(expected));
         });
 
         test('in parallel (in a batch)', () async {
-          final library = isolate.rootLib!;
-          final evaluation1 = context.service
-              .evaluate(isolateId, library.id!, 'MainClass(1,0).toString()');
-          final evaluation2 = context.service
-              .evaluate(isolateId, library.id!, 'MainClass(1,1).toString()');
+          final libraryId = getRootLibraryId();
+
+          final evaluation1 =
+              getInstanceRef(libraryId, 'MainClass(1,0).toString()');
+          final evaluation2 =
+              getInstanceRef(libraryId, 'MainClass(1,1).toString()');
 
           final results = await Future.wait([evaluation1, evaluation2]);
-          expect(
-            results[0],
-            const TypeMatcher<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'valueAsString',
-              '1, 0',
-            ),
-          );
-
-          expect(
-            results[1],
-            const TypeMatcher<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'valueAsString',
-              '1, 1',
-            ),
-          );
+          expect(results[0], matchInstanceRef('1, 0'));
+          expect(results[1], matchInstanceRef('1, 1'));
         });
 
         test('in parallel (in a batch) handles errors', () async {
-          final library = isolate.rootLib!;
+          final libraryId = getRootLibraryId();
           final missingLibId = '';
-          final evaluation1 = context.service
-              .evaluate(isolateId, missingLibId, 'MainClass(1,0).toString()');
-          final evaluation2 = context.service
-              .evaluate(isolateId, library.id!, 'MainClass(1,1).toString()');
+
+          final evaluation1 =
+              evaluate(missingLibId, 'MainClass(1,0).toString()');
+          final evaluation2 = evaluate(libraryId, 'MainClass(1,1).toString()');
 
           final results = await Future.wait([evaluation1, evaluation2]);
 
           expect(
             results[0],
-            isA<ErrorRef>().having(
-              (instance) => instance.message,
-              'message',
-              contains('No batch result object ID'),
-            ),
+            matchErrorRef(contains('No batch result object ID')),
           );
           expect(
             results[1],
-            isA<ErrorRef>().having(
-              (instance) => instance.message,
-              'message',
-              contains('No batch result object ID'),
-            ),
+            matchErrorRef(contains('No batch result object ID')),
           );
         });
 
         test('with scope override', () async {
-          final library = isolate.rootLib!;
-          final object = await context.service
-              .evaluate(isolateId, library.id!, 'MainClass(1,0)');
+          final libraryId = getRootLibraryId();
 
-          final param = object as InstanceRef;
-          final result = await context.service.evaluate(
-            isolateId,
-            library.id!,
+          final param = await getInstanceRef(libraryId, 'MainClass(1,0)');
+          final result = await getInstanceRef(
+            libraryId,
             't.toString()',
             scope: {'t': param.id!},
           );
 
-          expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'valueAsString',
-              '1, 0',
-            ),
-          );
+          expect(result, matchInstanceRef('1, 0'));
         });
 
         test('uses symbol from the same library', () async {
-          final library = isolate.rootLib!;
-          final result = await context.service
-              .evaluate(isolateId, library.id!, 'MainClass(1,0).toString()');
+          final libraryId = getRootLibraryId();
 
-          expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'valueAsString',
-              '1, 0',
-            ),
-          );
+          final result =
+              await getInstanceRef(libraryId, 'MainClass(1,0).toString()');
+
+          expect(result, matchInstanceRef('1, 0'));
         });
 
         test('uses symbol from another library', () async {
-          final library = isolate.rootLib!;
-          final result = await context.service.evaluate(
-            isolateId,
-            library.id!,
+          final libraryId = getRootLibraryId();
+          final result = await getInstanceRef(
+            libraryId,
             'TestLibraryClass(0,1).toString()',
           );
 
-          expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'valueAsString',
-              'field: 0, _field: 1',
-            ),
-          );
+          expect(result, matchInstanceRef('field: 0, _field: 1'));
         });
 
         test('closure call', () async {
-          final library = isolate.rootLib!;
-          final result = await context.service
-              .evaluate(isolateId, library.id!, '(() => 42)()');
+          final libraryId = getRootLibraryId();
+          final result = await getInstanceRef(libraryId, '(() => 42)()');
 
-          expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'valueAsString',
-              '42',
-            ),
-          );
+          expect(result, matchInstanceRef('42'));
         });
       });
     },
@@ -1085,10 +847,7 @@ void testAll({
       });
 
       test('cannot evaluate expression', () async {
-        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
-          final event = await stream
-              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
-
+        await onBp(stream, isolateId, mainScript, 'printLocal', (event) async {
           await expectLater(
             context.service
                 .evaluateInFrame(isolateId, event.topFrame!.index!, 'local'),
@@ -1127,3 +886,21 @@ Future<String> _setBreakpointInInjectedClient(WipDebugger debugger) async {
   );
   return result.json['result']['breakpointId'];
 }
+
+Matcher matchInstanceRef(dynamic value) => isA<InstanceRef>().having(
+      (instance) => instance.valueAsString,
+      'valueAsString',
+      value,
+    );
+
+Matcher matchInstance(dynamic className) => isA<Instance>().having(
+      (instance) => instance.classRef!.name,
+      'class name',
+      className,
+    );
+
+Matcher matchErrorRef(dynamic message) => isA<ErrorRef>().having(
+      (instance) => instance.message,
+      'message',
+      message,
+    );
