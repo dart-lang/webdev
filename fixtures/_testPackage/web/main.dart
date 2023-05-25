@@ -126,11 +126,10 @@ void printNestedObjectsMultiLine() {
 }
 
 void printObjectMultiLine() {
-  // Note: formatting the line below breaks callstack tests.
-  print( // Breakpoint: printMultiLine
-    createObject() // Breakpoint: printObjectMultiLine
-      ..initialize(),
-  );
+  print(// Breakpoint: printMultiLine
+      // Breakpoint: Do not remove, will break callstack tests!
+      createObject() // Breakpoint: printObjectMultiLine
+        ..initialize());
 }
 
 void printEnclosingObject(EnclosingClass o) {
