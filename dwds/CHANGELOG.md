@@ -4,7 +4,7 @@
 - Refactor code for presenting record instances. - [#2074](https://github.com/dart-lang/webdev/pull/2074)
 - Display record types concisely. - [#2070](https://github.com/dart-lang/webdev/pull/2070)
 - Display type objects concisely. - [#2103](https://github.com/dart-lang/webdev/pull/2103)
-- Support using scope in `ChromeProxyService.evaluateInFrame`. - [#2120](https://github.com/dart-lang/webdev/pull/2120)
+- Support using scope in `ChromeProxyService.evaluateInFrame`. - [#2122](https://github.com/dart-lang/webdev/pull/2122)
 
 ## 19.0.0
 
