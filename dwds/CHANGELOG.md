@@ -5,6 +5,7 @@
 - Display record types concisely. - [#2070](https://github.com/dart-lang/webdev/pull/2070)
 - Display type objects concisely. - [#2103](https://github.com/dart-lang/webdev/pull/2103)
 - Support using scope in `ChromeProxyService.evaluateInFrame`. - [#2122](https://github.com/dart-lang/webdev/pull/2122)
+- Check for new events more often in batched stream. - [#2123](https://github.com/dart-lang/webdev/pull/2123)
 
 ## 19.0.0
 

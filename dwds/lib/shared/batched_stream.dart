@@ -10,8 +10,8 @@ import 'package:dwds/src/utilities/shared.dart';
 /// Stream controller allowing to batch events.
 class BatchedStreamController<T> {
   static const _defaultBatchDelayMilliseconds = 1000;
-  final int _checkDelayMilliseconds;
 
+  final int _checkDelayMilliseconds;
   final int _batchDelayMilliseconds;
 
   final StreamController<T> _inputController;
