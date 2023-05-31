@@ -284,7 +284,8 @@ void testAll({
               for (var p in scope.entries) {
                 final name = p.key;
                 final value = p.value as InstanceRef;
-                final result = getInstanceRef(event.topFrame!.index!, name!);
+                final result =
+                    await getInstanceRef(event.topFrame!.index!, name!);
 
                 expect(result, matchInstanceRef(value.valueAsString));
               }

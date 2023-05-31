@@ -8,6 +8,7 @@ import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/services/javascript_builder.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/objects.dart' as chrome;
@@ -145,13 +146,10 @@ class ExpressionEvaluator {
     }
 
     // Strip try/catch incorrectly added by the expression compiler.
-    var jsCode = _maybeStripTryCatch(jsResult);
+    final jsCode = _maybeStripTryCatch(jsResult);
 
     // Send JS expression to chrome to evaluate.
-    jsCode = _createEvalFunction(jsCode, scope.keys);
-
-    _logger.finest('Evaluating JS: "$jsCode" with scope: $scope');
-    var result = await _inspector.callFunction(jsCode, scope.values);
+    var result = await _callJsFunction(jsCode, scope);
     result = await _formatEvaluationError(result);
 
     _logger.finest('Evaluated "$expression" to "${result.json}"');
@@ -239,7 +237,7 @@ class ExpressionEvaluator {
         'with scope: $scope');
 
     if (scope.isNotEmpty) {
-      scope = await _collectTotalDartScope(frameIndex, scope, jsScope);
+      scope.addAll(jsScope);
       expression = _createDartLambda(expression, scope.keys);
     }
 
@@ -257,7 +255,7 @@ class ExpressionEvaluator {
       dartLocation.line,
       dartLocation.column,
       {},
-      jsScope,
+      jsScope.map((key, value) => MapEntry(key, key)),
       module,
       expression,
     );
@@ -269,60 +267,76 @@ class ExpressionEvaluator {
     }
 
     // Strip try/catch incorrectly added by the expression compiler.
-    var jsCode = _maybeStripTryCatch(jsResult);
+    final jsCode = _maybeStripTryCatch(jsResult);
 
-    late RemoteObject result;
-    if (scope.isNotEmpty) {
-      final totalJsScope = await _collectTotalJsScope(frameIndex, scope);
-
-      // Send JS expression to chrome to evaluate.
-      jsCode = _createEvalFunction(jsCode, totalJsScope.keys);
-
-      _logger.finest('Evaluating JS: "$jsCode" with scope: $totalJsScope');
-      result = await _inspector.callFunction(jsCode, totalJsScope.values);
-    } else {
-      // Send JS expression to chrome to evaluate.
-      jsCode = _createEvalExpression(jsCode);
-
-      // Send JS expression to chrome to evaluate.
-      _logger.finest('Evaluating JS: "$jsCode"');
-      result = await _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsCode);
-    }
+    var result = scope.isEmpty
+        ? await _evaluateJsExpressionInFrame(frameIndex, jsCode)
+        : await _callJsFunctionInFrame(frameIndex, jsCode, scope);
 
     result = await _formatEvaluationError(result);
     _logger.finest('Evaluated "$expression" to "${result.json}"');
     return result;
   }
 
-  String? _getObjectId(RemoteObject? object) =>
-      object?.objectId ?? dartIdFor(object?.value);
-
-  Future<Map<String, String>> _collectTotalDartScope(
-    int frame,
-    Map<String, String> dartScope,
-    Map<String, String> jsScope,
+  /// Wrap the [function] in a lambda that takes scope variables as parameters.
+  /// Send JS expression to chrome to evaluate in frame with [frameIndex]
+  /// with the provided [scope].
+  ///
+  /// [frameIndex] is the index of the frame to call the function in.
+  /// [function] is the JS function to evaluate.
+  /// [scope] is a map from scope variables to remote object IDs.
+  Future<RemoteObject> _callJsFunctionInFrame(
+    int frameIndex,
+    String function,
+    Map<String, String> scope,
   ) async {
-    // Evaluate list of variables in a batch.
-    final variables = jsScope.keys.join(', ');
-    final expression = '[$variables]';
-    final list = await _debugger.evaluateJsOnCallFrameIndex(frame, expression);
-
-    if (list.objectId != null) {
-      final elements = await _inspector.getProperties(list.objectId!);
-      final values = elements.where((e) => e.name != 'length');
-
-      final objects = Map.fromIterables(jsScope.keys, values);
-      for (var e in objects.entries) {
-        final objectId = _getObjectId(e.value.value);
-        if (objectId != null) {
-          dartScope[e.key] = objectId;
-        }
-      }
-    }
-    return dartScope;
+    final totalJsScope = await _addThisToScope(frameIndex, scope);
+    return _callJsFunction(function, totalJsScope);
   }
 
-  Future<Map<String, String>> _collectTotalJsScope(
+  /// Wrap the [function] in a lambda that takes scope variables as parameters.
+  /// Send JS expression to chrome to evaluate with the provided [scope].
+  ///
+  /// [function] is the JS function to evaluate.
+  /// [scope] is a map from scope variables to remote object IDs.
+  Future<RemoteObject> _callJsFunction(
+    String function,
+    Map<String, String> scope,
+  ) async {
+    final jsCode = _createEvalFunction(function, scope.keys);
+
+    _logger.finest('Evaluating JS: "$jsCode" with scope: $scope');
+    return _inspector.callFunction(jsCode, scope.values);
+  }
+
+  /// Wrap the [expression] in a try/catch expression to catch errors.
+  /// Send JS expression to chrome to evaluate on frame [frameIndex].
+  ///
+  /// [frameIndex] is the index of the frame to call the function in.
+  /// [expression] is the JS function to evaluate.
+  Future<RemoteObject> _evaluateJsExpressionInFrame(
+    int frameIndex,
+    String expression,
+  ) async {
+    // Send JS expression to chrome to evaluate.
+    final jsCode = _createEvalExpression(expression);
+
+    // Send JS expression to chrome to evaluate.
+    _logger.finest('Evaluating JS: "$jsCode"');
+    return _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsCode);
+  }
+
+  static String? _getObjectId(RemoteObject? object) =>
+      object?.objectId ?? dartIdFor(object?.value);
+
+  /// Add 'this' variable to scope if it is defined on current frame.
+  ///
+  /// [frame] is the current frame index.
+  /// [dartScope] is the scope already collected as a map from variable
+  ///   names to remote object IDs.
+  ///
+  /// Adds 'this' variable to the scope and returns the updated scope.
+  Future<Map<String, String>> _addThisToScope(
     int frame,
     Map<String, String> dartScope,
   ) async {
@@ -386,19 +400,23 @@ class ExpressionEvaluator {
     return result;
   }
 
+  /// Return local scope as a map from variable names to remote object IDs.
+  ///
+  /// [frame] is the current frame index.
   Future<Map<String, String>> _collectLocalJsScope(WipCallFrame frame) async {
     final jsScope = <String, String>{};
 
-    void collectVariables(
-      Iterable<chrome.Property> variables,
-    ) {
+    void collectVariables(Iterable<chrome.Property> variables) {
       for (var p in variables) {
         final name = p.name;
         final value = p.value;
         // TODO: null values represent variables optimized by v8.
         // Show that to the user.
         if (name != null && value != null && !_isUndefined(value)) {
-          jsScope[name] = name;
+          final objectId = _getObjectId(p.value);
+          if (objectId != null) {
+            jsScope[name] = objectId;
+          }
         }
       }
     }
@@ -483,231 +501,5 @@ class ExpressionEvaluator {
       builder.writeEvalStaticFunction(body, params);
     }
     return builder.build();
-  }
-}
-
-class JsBuilder {
-  var _indent = 0;
-  final _buffer = StringBuffer();
-
-  String? _built;
-  String build() => _built ??= _buffer.toString();
-
-  JsBuilder();
-
-  void _writeIndent() {
-    _buffer.writeAll([for (var i = 0; i < _indent * 2; i++) ' ']);
-  }
-
-  void write(String item) {
-    _buffer.write(item);
-  }
-
-  void writeLine(String item) {
-    _buffer.writeln(item);
-  }
-
-  void writeAll(Iterable<String> items, [String separator = ', ']) {
-    _buffer.writeAll(items, separator);
-  }
-
-  void writeWithIndent(String item) {
-    _writeIndent();
-    _buffer.write(item);
-  }
-
-  void writeLineWithIndent(String line) {
-    _writeIndent();
-    _buffer.writeln(line);
-  }
-
-  void writeAllLinesWithIndent(Iterable<String> lines) {
-    var i = 0;
-    for (var line in lines) {
-      if (i < lines.length - 1) {
-        writeLineWithIndent(line);
-      } else {
-        writeWithIndent(line);
-      }
-      i++;
-    }
-  }
-
-  void increaseIndent() {
-    _indent++;
-  }
-
-  void decreaseIndent() {
-    if (_indent != 0) _indent--;
-  }
-
-  /// $function($args);
-  void writeCallExpression(
-    Iterable<String> args,
-    void Function() build,
-  ) {
-    build();
-    _buffer.write('(');
-    _buffer.writeAll(args, ', ');
-    _buffer.write(')');
-  }
-
-  // try {
-  //   $expression;
-  // } catch (error) {
-  //   error.name + ": " + error.message;
-  // };
-  void writeTryCatchExpression(void Function() build) {
-    writeLineWithIndent('try {');
-
-    increaseIndent();
-    build();
-    writeLine('');
-    decreaseIndent();
-
-    writeLineWithIndent('} catch (error) {');
-    writeLineWithIndent('  error.name + ": " + error.message;');
-    writeWithIndent('}');
-  }
-
-  // try {
-  //   $statement
-  // } catch (error) {
-  //   return error.name + ": " + error.message;
-  // };
-  void writeTryCatchStatement(void Function() build) {
-    writeLineWithIndent('try {');
-
-    increaseIndent();
-    build();
-    writeLine('');
-    decreaseIndent();
-
-    writeLineWithIndent('} catch (error) {');
-    writeLineWithIndent('  return error.name + ": " + error.message;');
-    writeWithIndent('}');
-  }
-
-  /// return $expression;
-  void writeReturnStatement(void Function() build) {
-    writeWithIndent('return ');
-    build();
-    write(';');
-  }
-
-  /// function($args) {
-  ///   $body
-  /// };
-  void writeFunctionDefinition(
-    Iterable<String> params,
-    void Function() build,
-  ) {
-    write('function (');
-    writeAll(params);
-    writeLine(') {');
-
-    increaseIndent();
-    build();
-    writeLine('');
-    decreaseIndent();
-
-    writeWithIndent('}');
-  }
-
-  /// $function.bind($to)
-  void writeBindExpression(
-    String to,
-    void Function() build,
-  ) {
-    build();
-    write('.bind(');
-    write(to);
-    write(')');
-  }
-
-  /// try {
-  ///   $expression;
-  /// } catch (error) {
-  ///   error.name + ": " + error.message;
-  /// }
-  void createEvalExpression(Iterable<String> body) {
-    writeTryCatchExpression(() {
-      writeAllLinesWithIndent(body);
-      write(';');
-    });
-  }
-
-  /// function ($params) {
-  ///   try {
-  ///     return $function($params);
-  ///   } catch (error) {
-  ///     return error.name + ": " + error.message;
-  ///   }
-  /// }
-  void writeEvalStaticFunction(
-    Iterable<String> body,
-    Iterable<String> params,
-  ) {
-    writeFunctionDefinition(
-      params,
-      () => writeTryCatchStatement(
-        () => writeReturnStatement(
-          () => writeCallExpression(
-            params,
-            () {
-              writeAllLinesWithIndent(body);
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// function ($params, __t$this) {
-  ///   try {
-  ///     return function ($params) {
-  ///       return $function($params);
-  ///     }.bind(__t$this)($params);
-  ///   } catch (error) {
-  ///     return error.name + ": " + error.message;
-  ///   }
-  /// }
-  void writeEvalBoundFunction(
-    Iterable<String> body,
-    Iterable<String> params,
-  ) {
-    final original = 'this';
-    final substitute = '__t\$this';
-
-    final args = params.where((e) => e != original);
-    final substitutedParams = [
-      ...params.where((e) => e != original),
-      substitute
-    ];
-
-    writeFunctionDefinition(
-      substitutedParams,
-      () => writeTryCatchStatement(
-        () => writeReturnStatement(
-          () => writeCallExpression(
-            args,
-            () => writeBindExpression(
-              substitute,
-              () => writeFunctionDefinition(
-                args,
-                () => writeReturnStatement(
-                  () => writeCallExpression(
-                    args,
-                    () {
-                      writeAllLinesWithIndent(body);
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
