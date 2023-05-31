@@ -15,7 +15,7 @@ void main() {
   group('Batched stream controller', () {
     test('emits batches', () async {
       const size = 100;
-      const delay = Duration(milliseconds: 1100);
+      const delay = Duration(milliseconds: 1000);
 
       final batchOne = List<int>.generate(size, (index) => index);
       final batchTwo = List<int>.generate(size, (index) => size + index);
