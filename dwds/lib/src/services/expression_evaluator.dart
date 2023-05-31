@@ -168,6 +168,52 @@ class ExpressionEvaluator {
   /// [isolateId] current isolate ID.
   /// [frameIndex] JavaScript frame to evaluate the expression in.
   /// [expression] dart expression to evaluate.
+  /// [scope] additional scope to use in the expression as a map from
+  ///   variable names to remote object IDs.
+  ///
+  /// **Example**
+  ///
+  /// To evaluate a dart expression
+  /// ```dart
+  ///   this.t + a + x + y
+  /// ```
+  /// in a dart scope that defines `a` and `this`, and additional scope
+  /// `x, y`, we perform the following:
+  ///
+  /// 1. compile dart function
+  ///
+  ///```dart
+  ///  (x, y, a) { return this.t + a + x + y; }
+  ///```
+  ///
+  /// to JavaScript function
+  ///
+  ///  ```jsFunc```
+  ///
+  /// using the expression compiler (i.e. frontend server or expression
+  /// compiler worker).
+  ///
+  /// 2. create JavaScript wrapper function, `jsWrapperFunc`, defined as
+  ///
+  ///  ```JavaScript
+  ///  function (x, y, a, __t$this) {
+  ///    try {
+  ///      return function (x, y, a) {
+  ///        return jsFunc(x, y, a);
+  ///      }.bind(__t$this)(x, y, a);
+  ///    } catch (error) {
+  ///      return error.name + ": " + error.message;
+  ///    }
+  ///  }
+  ///  ```
+  ///
+  /// 3. collect scope variable object IDs for total scope
+  ///   (original frame scope from WipCallFrame + additional scope passed
+  ///   by the user).
+  ///
+  /// 4. call `jsWrapperFunc` using `Runtime.callFunctionOn` chrome API
+  ///   with scope variable object IDs passed as arguments.
+
   Future<RemoteObject> evaluateExpressionInFrame(
     String isolateId,
     int frameIndex,
