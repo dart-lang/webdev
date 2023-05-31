@@ -213,7 +213,6 @@ class ExpressionEvaluator {
   ///
   /// 4. call `jsWrapperFunc` using `Runtime.callFunctionOn` chrome API
   ///   with scope variable object IDs passed as arguments.
-
   Future<RemoteObject> evaluateExpressionInFrame(
     String isolateId,
     int frameIndex,
