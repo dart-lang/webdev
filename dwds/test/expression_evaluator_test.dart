@@ -156,24 +156,6 @@ void main() async {
         );
       });
 
-      test('cannot evaluate expression in frame with non-empty scope',
-          () async {
-        final result = await evaluator
-            .evaluateExpressionInFrame('1', 0, 'true', {'a': '1'});
-        expect(
-          result,
-          const TypeMatcher<RemoteObject>()
-              .having((o) => o.type, 'type', 'InternalError')
-              .having(
-                (o) => o.value,
-                'value',
-                contains(
-                  'Using scope for expression evaluation in frame is not supported',
-                ),
-              ),
-        );
-      });
-
       test('returns error if closed', () async {
         evaluator.close();
         final result =

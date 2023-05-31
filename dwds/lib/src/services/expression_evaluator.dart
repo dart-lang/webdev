@@ -667,7 +667,7 @@ class JsBuilder {
   ///   try {
   ///     return function ($params) {
   ///       return $function($params);
-  ///     }.bind(__t$this)($params)
+  ///     }.bind(__t$this)($params);
   ///   } catch (error) {
   ///     return error.name + ": " + error.message;
   ///   }
