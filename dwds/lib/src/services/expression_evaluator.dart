@@ -314,6 +314,7 @@ class ExpressionEvaluator {
     // Strip try/catch incorrectly added by the expression compiler.
     final jsCode = _maybeStripTryCatch(jsResult);
 
+    // Send JS expression to chrome to evaluate.
     var result = scope.isEmpty
         ? await _evaluateJsExpressionInFrame(frameIndex, jsCode)
         : await _callJsFunctionInFrame(frameIndex, jsCode, scope);
@@ -363,10 +364,8 @@ class ExpressionEvaluator {
     int frameIndex,
     String expression,
   ) async {
-    // Send JS expression to chrome to evaluate.
     final jsCode = _createEvalExpression(expression);
 
-    // Send JS expression to chrome to evaluate.
     _logger.finest('Evaluating JS: "$jsCode"');
     return _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsCode);
   }
