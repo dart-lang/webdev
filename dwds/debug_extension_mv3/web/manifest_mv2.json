@@ -1,10 +1,10 @@
 {
   "name": "Dart Debug Extension",
-  "version": "1.31",
-  "manifest_version": 3,
+  "version": "1.33",
+  "manifest_version": 2,
   "devtools_page": "static_assets/devtools.html",
-  "action": {
-    "default_icon": "static_assets/dart_dev.png"
+  "browser_action": {
+    "default_icon": "static_assets/dart_grey.png"
   },
   "externally_connectable": {
     "ids": ["nbkbficgbembimioedhceniahniffgpl"]
@@ -12,14 +12,12 @@
   "permissions": [
     "debugger",
     "notifications",
-    "scripting",
     "storage",
     "tabs",
     "webNavigation"
   ],
-  "host_permissions": ["<all_urls>"],
   "background": {
-    "service_worker": "background.dart.js"
+    "scripts": ["background.dart.js"]
   },
   "content_scripts": [
     {
@@ -28,11 +26,6 @@
       "run_at": "document_end"
     }
   ],
-  "web_accessible_resources": [
-    {
-      "matches": ["<all_urls>"],
-      "resources": ["debug_info.dart.js"]
-    }
-  ],
+  "web_accessible_resources": ["debug_info.dart.js"],
   "options_page": "static_assets/settings.html"
 }

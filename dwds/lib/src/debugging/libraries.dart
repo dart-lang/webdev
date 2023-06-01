@@ -1,16 +1,15 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.import 'dart:async';
+// BSD-style license that can be found in the LICENSE file.
 
 import 'package:collection/collection.dart';
+import 'package:dwds/src/debugging/metadata/class.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/services/chrome_debug_exception.dart';
+import 'package:dwds/src/utilities/domain.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../loaders/strategy.dart';
-import '../utilities/domain.dart';
-import '../services/chrome_debug_exception.dart';
-import 'metadata/class.dart';
 
 /// Keeps track of Dart libraries available in the running application.
 class LibraryHelper extends Domain {
@@ -33,8 +32,15 @@ class LibraryHelper extends Domain {
     // TODO: read entrypoint from app metadata.
     // Issue: https://github.com/dart-lang/webdev/issues/1290
     final libraries = await libraryRefs;
-    _rootLib = libraries
-        .firstWhereOrNull((lib) => lib.name?.contains('org-dartlang') ?? false);
+    if (globalLoadStrategy.appEntrypoint != null) {
+      _rootLib = libraries.firstWhereOrNull(
+        (lib) => Uri.parse(lib.uri ?? '') == globalLoadStrategy.appEntrypoint,
+      );
+    }
+    _rootLib = _rootLib ??
+        libraries.firstWhereOrNull(
+          (lib) => lib.name?.contains('org-dartlang') ?? false,
+        );
     _rootLib = _rootLib ??
         libraries
             .firstWhereOrNull((lib) => lib.name?.contains('main') ?? false);
@@ -114,9 +120,12 @@ class LibraryHelper extends Domain {
           List<Map<String, dynamic>>.from(jsonValues['classes'] ?? []);
       for (final classDescriptor in classDescriptors) {
         final classMetaData = ClassMetaData(
-          jsName: classDescriptor['name'] as Object?,
-          libraryId: libraryRef.id,
-          dartName: classDescriptor['dartName'] as Object?,
+          jsName: classDescriptor['name'],
+          runtimeKind: RuntimeObjectKind.type,
+          classRef: classRefFor(
+            libraryRef.id,
+            classDescriptor['dartName'],
+          ),
         );
         classRefs.add(classMetaData.classRef);
       }

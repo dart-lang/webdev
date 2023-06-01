@@ -7,7 +7,7 @@
 
 import 'dart:async';
 
-import 'package:dwds/src/utilities/batched_stream.dart';
+import 'package:dwds/shared/batched_stream.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
@@ -25,11 +25,12 @@ void main() {
 
       // Verify the output.
       expect(
-          controller.stream,
-          emitsInOrder([
-            batchOne,
-            batchTwo,
-          ]));
+        controller.stream,
+        emitsInOrder([
+          batchOne,
+          batchTwo,
+        ]),
+      );
 
       // Add input.
       final inputController = StreamController<int>();

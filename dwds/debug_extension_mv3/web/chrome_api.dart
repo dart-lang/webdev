@@ -12,40 +12,14 @@ external Chrome get chrome;
 @JS()
 @anonymous
 class Chrome {
-  external Action get action;
   external Debugger get debugger;
   external Devtools get devtools;
   external Notifications get notifications;
   external Runtime get runtime;
-  external Scripting get scripting;
   external Storage get storage;
   external Tabs get tabs;
   external WebNavigation get webNavigation;
   external Windows get windows;
-}
-
-/// chrome.action APIs
-/// https://developer.chrome.com/docs/extensions/reference/action
-
-@JS()
-@anonymous
-class Action {
-  external void setIcon(IconInfo iconInfo, Function? callback);
-
-  external OnClickedHandler get onClicked;
-}
-
-@JS()
-@anonymous
-class OnClickedHandler {
-  external void addListener(void Function(Tab tab) callback);
-}
-
-@JS()
-@anonymous
-class IconInfo {
-  external String get path;
-  external factory IconInfo({String path});
 }
 
 /// chrome.debugger APIs:
@@ -55,12 +29,19 @@ class IconInfo {
 @anonymous
 class Debugger {
   external void attach(
-      Debuggee target, String requiredVersion, Function? callback);
+    Debuggee target,
+    String requiredVersion,
+    Function? callback,
+  );
 
-  external Object detach(Debuggee target);
+  external void detach(Debuggee target, Function? callback);
 
-  external void sendCommand(Debuggee target, String method,
-      Object? commandParams, Function? callback);
+  external void sendCommand(
+    Debuggee target,
+    String method,
+    Object? commandParams,
+    Function? callback,
+  );
 
   external OnDetachHandler get onDetach;
 
@@ -71,14 +52,16 @@ class Debugger {
 @anonymous
 class OnDetachHandler {
   external void addListener(
-      void Function(Debuggee source, String reason) callback);
+    void Function(Debuggee source, String reason) callback,
+  );
 }
 
 @JS()
 @anonymous
 class OnEventHandler {
   external void addListener(
-      void Function(Debuggee source, String method, Object? params) callback);
+    void Function(Debuggee source, String method, Object? params) callback,
+  );
 }
 
 @JS()
@@ -113,8 +96,12 @@ class InspectedWindow {
 class Panels {
   external String get themeName;
 
-  external void create(String title, String iconPath, String pagePath,
-      void Function(ExtensionPanel)? callback);
+  external void create(
+    String title,
+    String iconPath,
+    String pagePath,
+    void Function(ExtensionPanel)? callback,
+  );
 }
 
 @JS()
@@ -143,7 +130,10 @@ class OnShownHandler {
 @anonymous
 class Notifications {
   external void create(
-      String? notificationId, NotificationOptions options, Function? callback);
+    String? notificationId,
+    NotificationOptions options,
+    Function? callback,
+  );
 }
 
 @JS()
@@ -166,7 +156,11 @@ class Runtime {
   external void connect(String? extensionId, ConnectInfo info);
 
   external void sendMessage(
-      String? id, Object? message, Object? options, Function? callback);
+    String? id,
+    Object? message,
+    Object? options,
+    Function? callback,
+  );
 
   external Object getManifest();
 
@@ -212,7 +206,8 @@ class ConnectionHandler {
 @anonymous
 class OnMessageHandler {
   external void addListener(
-      void Function(dynamic, MessageSender, Function) callback);
+    void Function(dynamic, MessageSender, Function) callback,
+  );
 }
 
 @JS()
@@ -222,30 +217,6 @@ class MessageSender {
   external Tab? get tab;
   external String? get url;
   external factory MessageSender({String? id, String? url, Tab? tab});
-}
-
-/// chrome.scripting APIs
-/// https://developer.chrome.com/docs/extensions/reference/scripting
-
-@JS()
-@anonymous
-class Scripting {
-  external executeScript(InjectDetails details, Function? callback);
-}
-
-@JS()
-@anonymous
-class InjectDetails<T, U> {
-  external Target get target;
-  external T? get func;
-  external List<U?>? get args;
-  external List<String>? get files;
-  external factory InjectDetails({
-    Target target,
-    T? func,
-    List<U>? args,
-    List<String>? files,
-  });
 }
 
 @JS()
@@ -292,13 +263,16 @@ class OnChangedHandler {
 @JS()
 @anonymous
 class Tabs {
-  external Object query(QueryInfo queryInfo);
+  external dynamic query(
+    QueryInfo queryInfo,
+    void Function(List<Tab>) callback,
+  );
 
-  external Object create(TabInfo tabInfo);
+  external dynamic create(TabInfo tabInfo, void Function(Tab) callback);
 
-  external Object get(int tabId);
+  external dynamic get(int tabId, void Function(Tab?) callback);
 
-  external Object remove(int tabId);
+  external dynamic remove(int tabId, void Function()? callback);
 
   external OnActivatedHandler get onActivated;
 
@@ -378,7 +352,7 @@ class NavigationInfo {
 @JS()
 @anonymous
 class Windows {
-  external Object create(WindowInfo? createData);
+  external dynamic create(WindowInfo? createData, Function(WindowObj) callback);
 
   external OnFocusChangedHandler get onFocusChanged;
 }

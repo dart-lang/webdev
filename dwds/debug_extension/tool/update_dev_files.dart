@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 void main() async {
@@ -79,7 +78,9 @@ Future<void> _updateDevtoolsJs() async {
 }
 
 Future<void> _transformDevFile(
-    File devFile, List<String> Function(String) transformLine) async {
+  File devFile,
+  List<String> Function(String) transformLine,
+) async {
   final lines = devFile.readAsLinesSync();
   final newLines = <String>[];
   for (final line in lines) {

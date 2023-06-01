@@ -3,34 +3,36 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
+@Tags(['daily'])
 @Timeout(Duration(minutes: 2))
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/logging.dart';
-
-final context = TestContext.withSoundNullSafety();
-
-ChromeProxyService get service =>
-    fetchChromeProxyService(context.debugConnection);
-
-WipConnection get tabConnection => context.tabConnection;
+import 'fixtures/project.dart';
 
 void main() {
   // Change to true to see verbose output from the tests.
   final debug = false;
+
+  final provider = TestSdkConfigurationProvider(verbose: debug);
+  tearDownAll(provider.dispose);
+
+  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
+
   group('shared context', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
@@ -45,6 +47,7 @@ void main() {
     });
 
     group('breakpoints', () {
+      late VmServiceInterface service;
       VM vm;
       late Isolate isolate;
 
@@ -53,19 +56,20 @@ void main() {
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
-        vm = await fetchChromeProxyService(context.debugConnection).getVM();
-        isolate = await fetchChromeProxyService(context.debugConnection)
-            .getIsolate(vm.isolates!.first.id!);
-        scripts = await fetchChromeProxyService(context.debugConnection)
-            .getScripts(isolate.id!);
+        service = context.service;
+        vm = await service.getVM();
+        isolate = await service.getIsolate(vm.isolates!.first.id!);
+        scripts = await service.getScripts(isolate.id!);
         mainScript = scripts.scripts!
             .firstWhere((each) => each.uri!.contains('main.dart'));
       });
 
       test('addBreakpoint', () async {
-        // TODO: Much more testing.
         final line = await context.findBreakpointLine(
-            'printHelloWorld', isolate.id!, mainScript);
+          'printHelloWorld',
+          isolate.id!,
+          mainScript,
+        );
         final firstBp =
             await service.addBreakpoint(isolate.id!, mainScript.id!, line);
         expect(firstBp, isNotNull);
@@ -85,7 +89,10 @@ void main() {
       test('addBreakpoint succeeds when sending the same breakpoint twice',
           () async {
         final line = await context.findBreakpointLine(
-            'printHelloWorld', isolate.id!, mainScript);
+          'printHelloWorld',
+          isolate.id!,
+          mainScript,
+        );
         final firstBp =
             service.addBreakpoint(isolate.id!, mainScript.id!, line);
         final secondBp =
@@ -97,8 +104,10 @@ void main() {
       });
 
       test('addBreakpoint in nonsense location throws', () async {
-        expect(service.addBreakpoint(isolate.id!, mainScript.id!, 200000),
-            throwsA(predicate((dynamic e) => e is RPCError && e.code == 102)));
+        expect(
+          service.addBreakpoint(isolate.id!, mainScript.id!, 200000),
+          throwsA(predicate((dynamic e) => e is RPCError && e.code == 102)),
+        );
       });
 
       test('addBreakpoint on a part file', () async {
@@ -116,24 +125,35 @@ void main() {
 
       test('addBreakpointWithScriptUri', () async {
         final line = await context.findBreakpointLine(
-            'printHelloWorld', isolate.id!, mainScript);
+          'printHelloWorld',
+          isolate.id!,
+          mainScript,
+        );
         final bp = await service.addBreakpointWithScriptUri(
-            isolate.id!, mainScript.uri!, line);
+          isolate.id!,
+          mainScript.uri!,
+          line,
+        );
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id!, bp.id!);
         expect(bp.id, isNotNull);
       });
 
       test('addBreakpointWithScriptUri absolute file URI', () async {
-        final current = context.workingDirectory;
-        final test = path.join(path.dirname(current), '_testSound');
+        final test = context.project.absolutePackageDirectory;
         final scriptPath = Uri.parse(mainScript.uri!).path.substring(1);
         final fullPath = path.join(test, scriptPath);
         final fileUri = Uri.file(fullPath);
         final line = await context.findBreakpointLine(
-            'printHelloWorld', isolate.id!, mainScript);
+          'printHelloWorld',
+          isolate.id!,
+          mainScript,
+        );
         final bp = await service.addBreakpointWithScriptUri(
-            isolate.id!, '$fileUri', line);
+          isolate.id!,
+          '$fileUri',
+          line,
+        );
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id!, bp.id!);
         expect(bp.id, isNotNull);
@@ -141,19 +161,28 @@ void main() {
 
       test('removeBreakpoint null arguments', () async {
         await expectLater(
-            service.removeBreakpoint('', ''), throwsSentinelException);
+          service.removeBreakpoint('', ''),
+          throwsSentinelException,
+        );
         await expectLater(
-            service.removeBreakpoint(isolate.id!, ''), throwsRPCError);
+          service.removeBreakpoint(isolate.id!, ''),
+          throwsRPCError,
+        );
       });
 
       test("removeBreakpoint that doesn't exist fails", () async {
         await expectLater(
-            service.removeBreakpoint(isolate.id!, '1234'), throwsRPCError);
+          service.removeBreakpoint(isolate.id!, '1234'),
+          throwsRPCError,
+        );
       });
 
       test('add and remove breakpoint', () async {
         final line = await context.findBreakpointLine(
-            'printHelloWorld', isolate.id!, mainScript);
+          'printHelloWorld',
+          isolate.id!,
+          mainScript,
+        );
         final bp =
             await service.addBreakpoint(isolate.id!, mainScript.id!, line);
         expect(isolate.breakpoints, [bp]);
@@ -163,60 +192,89 @@ void main() {
     });
 
     group('callServiceExtension', () {
+      late ChromeProxyService service;
+
       setUp(() {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
       });
 
-      test('success', () async {
-        final serviceMethod = 'ext.test.callServiceExtension';
-        await tabConnection.runtime
-            .evaluate('registerExtension("$serviceMethod");');
+      test(
+        'success',
+        () async {
+          final serviceMethod = 'ext.test.callServiceExtension';
+          await context.tabConnection.runtime
+              .evaluate('registerExtension("$serviceMethod");');
 
-        // The non-string keys/values get auto json-encoded to match the vm
-        // behavior.
-        final args = {
-          'bool': true,
-          'list': [1, '2', 3],
-          'map': {'foo': 'bar'},
-          'num': 1.0,
-          'string': 'hello',
-          1: 2,
-          false: true,
-        };
+          // The non-string keys/values get auto json-encoded to match the vm
+          // behavior.
+          final args = {
+            'bool': true,
+            'list': [1, '2', 3],
+            'map': {'foo': 'bar'},
+            'num': 1.0,
+            'string': 'hello',
+            1: 2,
+            false: true,
+          };
 
-        final result =
-            await service.callServiceExtension(serviceMethod, args: args);
-        expect(
+          final result =
+              await service.callServiceExtension(serviceMethod, args: args);
+          expect(
             result.json,
-            args.map((k, v) => MapEntry(k is String ? k : jsonEncode(k),
-                v is String ? v : jsonEncode(v))));
-      }, onPlatform: {
-        'windows': const Skip('https://github.com/dart-lang/webdev/issues/711'),
-      });
+            args.map(
+              (k, v) => MapEntry(
+                k is String ? k : jsonEncode(k),
+                v is String ? v : jsonEncode(v),
+              ),
+            ),
+          );
+        },
+        onPlatform: {
+          'windows':
+              const Skip('https://github.com/dart-lang/webdev/issues/711'),
+        },
+      );
 
-      test('failure', () async {
-        final serviceMethod = 'ext.test.callServiceExtensionWithError';
-        await tabConnection.runtime
-            .evaluate('registerExtensionWithError("$serviceMethod");');
+      test(
+        'failure',
+        () async {
+          final serviceMethod = 'ext.test.callServiceExtensionWithError';
+          await context.tabConnection.runtime
+              .evaluate('registerExtensionWithError("$serviceMethod");');
 
-        final errorDetails = {'intentional': 'error'};
-        expect(
-            service.callServiceExtension(serviceMethod, args: {
-              'code': '-32001',
-              'details': jsonEncode(errorDetails),
-            }),
-            throwsA(predicate((dynamic error) =>
-                error is RPCError &&
-                error.code == -32001 &&
-                error.details == jsonEncode(errorDetails))));
-      }, onPlatform: {
-        'windows': const Skip('https://github.com/dart-lang/webdev/issues/711'),
-      });
+          final errorDetails = {'intentional': 'error'};
+          expect(
+            service.callServiceExtension(
+              serviceMethod,
+              args: {
+                'code': '-32001',
+                'details': jsonEncode(errorDetails),
+              },
+            ),
+            throwsA(
+              predicate(
+                (dynamic error) =>
+                    error is RPCError &&
+                    error.code == -32001 &&
+                    error.details == jsonEncode(errorDetails),
+              ),
+            ),
+          );
+        },
+        onPlatform: {
+          'windows':
+              const Skip('https://github.com/dart-lang/webdev/issues/711'),
+        },
+      );
     });
 
     group('VMTimeline', () {
+      late VmServiceInterface service;
+
       setUp(() {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
       });
 
       test('clearVMTimeline', () async {
@@ -237,11 +295,14 @@ void main() {
 
       test('setVMTimelineFlags', () async {
         await expectLater(
-            service.setVMTimelineFlags(<String>[]), throwsRPCError);
+          service.setVMTimelineFlags(<String>[]),
+          throwsRPCError,
+        );
       });
     });
 
     test('getMemoryUsage', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolate = await service.getIsolate(vm.isolates!.first.id!);
 
@@ -254,11 +315,13 @@ void main() {
     });
 
     group('evaluate', () {
+      late VmServiceInterface service;
       late Isolate isolate;
       LibraryRef? bootstrap;
 
       setUpAll(() async {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
         final vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
         bootstrap = isolate.rootLib;
@@ -271,51 +334,84 @@ void main() {
 
         test('can return strings', () async {
           expect(
-              await service.evaluate(
-                  isolate.id!, bootstrap!.id!, "helloString('world')"),
-              const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.valueAsString, 'value', 'world'));
+            await service.evaluate(
+              isolate.id!,
+              bootstrap!.id!,
+              "helloString('world')",
+            ),
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'value',
+              'world',
+            ),
+          );
         });
 
         test('can return bools', () async {
           expect(
-              await service.evaluate(
-                  isolate.id!, bootstrap!.id!, 'helloBool(true)'),
-              const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.valueAsString,
-                  'valueAsString',
-                  'true'));
+            await service.evaluate(
+              isolate.id!,
+              bootstrap!.id!,
+              'helloBool(true)',
+            ),
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              'true',
+            ),
+          );
           expect(
-              await service.evaluate(
-                  isolate.id!, bootstrap!.id!, 'helloBool(false)'),
-              const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.valueAsString,
-                  'valueAsString',
-                  'false'));
+            await service.evaluate(
+              isolate.id!,
+              bootstrap!.id!,
+              'helloBool(false)',
+            ),
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              'false',
+            ),
+          );
         });
 
         test('can return nums', () async {
           expect(
-              await service.evaluate(
-                  isolate.id!, bootstrap!.id!, 'helloNum(42.0)'),
-              const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.valueAsString, 'valueAsString', '42'));
+            await service.evaluate(
+              isolate.id!,
+              bootstrap!.id!,
+              'helloNum(42.0)',
+            ),
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              '42',
+            ),
+          );
           expect(
-              await service.evaluate(
-                  isolate.id!, bootstrap!.id!, 'helloNum(42.2)'),
-              const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.valueAsString,
-                  'valueAsString',
-                  '42.2'));
+            await service.evaluate(
+              isolate.id!,
+              bootstrap!.id!,
+              'helloNum(42.2)',
+            ),
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              '42.2',
+            ),
+          );
         });
 
         test('can return objects with ids', () async {
           final object = await service.evaluate(
-              isolate.id!, bootstrap!.id!, 'createObject("cool")');
+            isolate.id!,
+            bootstrap!.id!,
+            'createObject("cool")',
+          );
           expect(
-              object,
-              const TypeMatcher<InstanceRef>()
-                  .having((instance) => instance.id, 'id', isNotNull));
+            object,
+            const TypeMatcher<InstanceRef>()
+                .having((instance) => instance.id, 'id', isNotNull),
+          );
           // TODO(jakemac): Add tests for the ClassRef once we create one,
           // https://github.com/dart-lang/sdk/issues/36771.
         });
@@ -327,64 +423,85 @@ void main() {
 
           Future<InstanceRef> createRemoteObject(String message) async {
             return await service.evaluate(
-                    isolate.id!, bootstrap!.id!, 'createObject("$message")')
-                as InstanceRef;
+              isolate.id!,
+              bootstrap!.id!,
+              'createObject("$message")',
+            ) as InstanceRef;
           }
 
           test('single scope object', () async {
             final instance = await createRemoteObject('A');
             final result = await service.evaluate(
-                isolate.id!, bootstrap!.id!, 'messageFor(arg1)',
-                scope: {'arg1': instance.id!});
+              isolate.id!,
+              bootstrap!.id!,
+              'messageFor(arg1)',
+              scope: {'arg1': instance.id!},
+            );
             expect(
-                result,
-                const TypeMatcher<InstanceRef>().having(
-                    (instance) => instance.valueAsString,
-                    'valueAsString',
-                    'A'));
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString,
+                'valueAsString',
+                'A',
+              ),
+            );
           });
 
           test('multiple scope objects', () async {
             final instance1 = await createRemoteObject('A');
             final instance2 = await createRemoteObject('B');
             final result = await service.evaluate(
-                isolate.id!, bootstrap!.id!, 'messagesCombined(arg1, arg2)',
-                scope: {'arg1': instance1.id!, 'arg2': instance2.id!});
+              isolate.id!,
+              bootstrap!.id!,
+              'messagesCombined(arg1, arg2)',
+              scope: {'arg1': instance1.id!, 'arg2': instance2.id!},
+            );
             expect(
-                result,
-                const TypeMatcher<InstanceRef>().having(
-                    (instance) => instance.valueAsString,
-                    'valueAsString',
-                    'AB'));
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString,
+                'valueAsString',
+                'AB',
+              ),
+            );
           });
         });
       });
     });
 
     test('evaluateInFrame', () async {
+      final service = context.service;
       await expectLater(
-          service.evaluateInFrame('', 0, ''), throwsSentinelException);
+        service.evaluateInFrame('', 0, ''),
+        throwsSentinelException,
+      );
     });
 
     test('getAllocationProfile', () async {
+      final service = context.service;
       await expectLater(service.getAllocationProfile(''), throwsRPCError);
     });
 
     test('getClassList', () async {
+      final service = context.service;
       await expectLater(service.getClassList(''), throwsRPCError);
     });
 
     test('getFlagList', () async {
+      final service = context.service;
       expect(await service.getFlagList(), isA<FlagList>());
     });
 
     test('getInstances', () async {
+      final service = context.service;
       await expectLater(service.getInstances('', '', 0), throwsRPCError);
     });
 
     group('getIsolate', () {
+      late VmServiceInterface service;
       setUp(() {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
       });
 
       test('works for existing isolates', () async {
@@ -397,12 +514,13 @@ void main() {
         expect(isolate.rootLib!.uri, endsWith('.dart'));
 
         expect(
-            isolate.libraries,
-            containsAll([
-              _libRef('package:path/path.dart'),
-              // TODO: library names change with kernel dart-lang/sdk#36736
-              _libRef(endsWith('main.dart')),
-            ]));
+          isolate.libraries,
+          containsAll([
+            _libRef('package:path/path.dart'),
+            // TODO: library names change with kernel dart-lang/sdk#36736
+            _libRef(endsWith('main.dart')),
+          ]),
+        );
         expect(isolate.extensionRPCs, contains('ext.hello_world.existing'));
       });
 
@@ -412,6 +530,7 @@ void main() {
     });
 
     group('getObject', () {
+      late ChromeProxyService service;
       late Isolate isolate;
       LibraryRef? bootstrap;
 
@@ -419,6 +538,7 @@ void main() {
 
       setUpAll(() async {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
         final vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
         bootstrap = isolate.rootLib;
@@ -444,13 +564,18 @@ void main() {
             await service.getObject(isolate.id!, rootLibrary!.id!) as Library;
         expect(library.scripts, hasLength(2));
         expect(
-            library.scripts,
-            unorderedEquals([
-              predicate((ScriptRef s) =>
-                  s.uri == 'org-dartlang-app:///example/hello_world/main.dart'),
-              predicate((ScriptRef s) =>
-                  s.uri == 'org-dartlang-app:///example/hello_world/part.dart'),
-            ]));
+          library.scripts,
+          unorderedEquals([
+            predicate(
+              (ScriptRef s) =>
+                  s.uri == 'org-dartlang-app:///example/hello_world/main.dart',
+            ),
+            predicate(
+              (ScriptRef s) =>
+                  s.uri == 'org-dartlang-app:///example/hello_world/part.dart',
+            ),
+          ]),
+        );
       });
 
       test('Can get the same library in parallel', () async {
@@ -466,54 +591,70 @@ void main() {
 
       test('Classes', () async {
         final testClass = await service.getObject(
-            isolate.id!, rootLibrary!.classes!.first.id!) as Class;
+          isolate.id!,
+          rootLibrary!.classes!.first.id!,
+        ) as Class;
         expect(
-            testClass.functions,
-            unorderedEquals([
-              predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic!),
-              predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
-              predicate(
-                  (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
-            ]));
+          testClass.functions,
+          unorderedEquals([
+            predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic!),
+            predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
+            predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
+            predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
+            predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
+            predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
+            predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
+            predicate(
+              (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!,
+            ),
+            predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
+          ]),
+        );
         expect(
-            testClass.fields,
-            unorderedEquals([
-              predicate((FieldRef f) =>
+          testClass.fields,
+          unorderedEquals([
+            predicate(
+              (FieldRef f) =>
                   f.name == 'message' &&
                   f.declaredType != null &&
                   !f.isStatic! &&
                   !f.isConst! &&
-                  f.isFinal!),
-              predicate((FieldRef f) =>
+                  f.isFinal!,
+            ),
+            predicate(
+              (FieldRef f) =>
                   f.name == 'notFinal' &&
                   f.declaredType != null &&
                   !f.isStatic! &&
                   !f.isConst! &&
-                  !f.isFinal!),
-              predicate((FieldRef f) =>
+                  !f.isFinal!,
+            ),
+            predicate(
+              (FieldRef f) =>
                   f.name == 'staticMessage' &&
                   f.declaredType != null &&
                   f.isStatic! &&
                   !f.isConst! &&
-                  !f.isFinal!),
-            ]));
-      }, skip: 'https://github.com/dart-lang/webdev/issues/1818');
+                  !f.isFinal!,
+            ),
+          ]),
+        );
+      });
 
       test('Runtime classes', () async {
         final testClass = await service.getObject(
-            isolate.id!, 'classes|dart:_runtime|_Type') as Class;
+          isolate.id!,
+          'classes|dart:_runtime|_Type',
+        ) as Class;
         expect(testClass.name, '_Type');
       });
 
       test('String', () async {
         final worldRef = await service.evaluate(
-            isolate.id!, bootstrap!.id!, "helloString('world')") as InstanceRef;
+          isolate.id!,
+          bootstrap!.id!,
+          "helloString('world')",
+        ) as InstanceRef;
         final world =
             await service.getObject(isolate.id!, worldRef.id!) as Instance;
         expect(world.valueAsString, 'world');
@@ -521,8 +662,10 @@ void main() {
 
       test('Large strings not truncated', () async {
         final largeString = await service.evaluate(
-                isolate.id!, bootstrap!.id!, "helloString('${'abcde' * 250}')")
-            as InstanceRef;
+          isolate.id!,
+          bootstrap!.id!,
+          "helloString('${'abcde' * 250}')",
+        ) as InstanceRef;
         expect(largeString.valueAsStringIsTruncated, isNot(isTrue));
         expect(largeString.valueAsString!.length, largeString.length);
         expect(largeString.length, 5 * 250);
@@ -563,6 +706,7 @@ void main() {
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);
+        expect(inst.elements!.length, 1001);
         final fifth = inst.elements![4] as InstanceRef;
         expect(fifth.valueAsString, '100');
         final sixth = inst.elements![5] as InstanceRef;
@@ -576,6 +720,7 @@ void main() {
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);
+        expect(inst.associations!.length, 1001);
         final fifth = inst.associations![4];
         expect(fifth.key.valueAsString, '4');
         expect(fifth.value.valueAsString, '996');
@@ -586,7 +731,10 @@ void main() {
 
       test('bool', () async {
         final ref = await service.evaluate(
-            isolate.id!, bootstrap!.id!, 'helloBool(true)') as InstanceRef;
+          isolate.id!,
+          bootstrap!.id!,
+          'helloBool(true)',
+        ) as InstanceRef;
         final obj = await service.getObject(isolate.id!, ref.id!) as Instance;
         expect(obj.kind, InstanceKind.kBool);
         expect(obj.classRef!.name, 'Bool');
@@ -595,7 +743,10 @@ void main() {
 
       test('num', () async {
         final ref = await service.evaluate(
-            isolate.id!, bootstrap!.id!, 'helloNum(42)') as InstanceRef;
+          isolate.id!,
+          bootstrap!.id!,
+          'helloNum(42)',
+        ) as InstanceRef;
         final obj = await service.getObject(isolate.id!, ref.id!) as Instance;
         expect(obj.kind, InstanceKind.kDouble);
         expect(obj.classRef!.name, 'Double');
@@ -618,6 +769,60 @@ void main() {
       });
 
       group('getObject called with offset/count parameters', () {
+        test('Lists with null offset and count are not truncated', () async {
+          final list = await createList();
+          final inst = await service.getObject(
+            isolate.id!,
+            list.objectId!,
+            count: null,
+            offset: null,
+          ) as Instance;
+          expect(inst.length, 1001);
+          expect(inst.offset, null);
+          expect(inst.count, null);
+          expect(inst.elements!.length, 1001);
+          final fifth = inst.elements![4] as InstanceRef;
+          expect(fifth.valueAsString, '100');
+          final sixth = inst.elements![5] as InstanceRef;
+          expect(sixth.valueAsString, '5');
+        });
+
+        test('Lists with null count are not truncated', () async {
+          final list = await createList();
+          final inst = await service.getObject(
+            isolate.id!,
+            list.objectId!,
+            count: null,
+            offset: 0,
+          ) as Instance;
+          expect(inst.length, 1001);
+          expect(inst.offset, 0);
+          expect(inst.count, null);
+          expect(inst.elements!.length, 1001);
+          final fifth = inst.elements![4] as InstanceRef;
+          expect(fifth.valueAsString, '100');
+          final sixth = inst.elements![5] as InstanceRef;
+          expect(sixth.valueAsString, '5');
+        });
+
+        test(
+            'Lists with null count and offset greater than 0 are '
+            'truncated from offset to end of list', () async {
+          final list = await createList();
+          final inst = await service.getObject(
+            isolate.id!,
+            list.objectId!,
+            count: null,
+            offset: 1000,
+          ) as Instance;
+          expect(inst.length, 1001);
+          expect(inst.offset, 1000);
+          expect(inst.count, null);
+          expect(inst.elements!.length, 1);
+          final only = inst.elements![0] as InstanceRef;
+          expect(only.valueAsString, '5');
+        });
+
         test('Lists with offset/count are truncated', () async {
           final list = await createList();
           final inst = await service.getObject(
@@ -629,6 +834,7 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 4);
           expect(inst.count, 7);
+          expect(inst.elements!.length, 7);
           final fifth = inst.elements![0] as InstanceRef;
           expect(fifth.valueAsString, '100');
           final sixth = inst.elements![1] as InstanceRef;
@@ -647,8 +853,100 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 1000);
           expect(inst.count, 1);
+          expect(inst.elements!.length, 1);
           final only = inst.elements![0] as InstanceRef;
           expect(only.valueAsString, '5');
+        });
+
+        test('Lists are truncated to empty if offset runs off the end',
+            () async {
+          final list = await createList();
+          final inst = await service.getObject(
+            isolate.id!,
+            list.objectId!,
+            count: 5,
+            offset: 1002,
+          ) as Instance;
+          expect(inst.elements!.length, 0);
+          expect(inst.length, 1001);
+          expect(inst.offset, 1002);
+          expect(inst.count, 0);
+          expect(inst.elements!.length, 0);
+        });
+
+        test('Lists are truncated to empty with 0 count and null offset',
+            () async {
+          final list = await createList();
+          final inst = await service.getObject(
+            isolate.id!,
+            list.objectId!,
+            count: 0,
+            offset: null,
+          ) as Instance;
+          expect(inst.elements!.length, 0);
+          expect(inst.length, 1001);
+          expect(inst.offset, null);
+          expect(inst.count, 0);
+          expect(inst.elements!.length, 0);
+        });
+
+        test('Maps with null offset/count are not truncated', () async {
+          final map = await createMap();
+          final inst = await service.getObject(
+            isolate.id!,
+            map.objectId!,
+            count: null,
+            offset: null,
+          ) as Instance;
+          expect(inst.length, 1001);
+          expect(inst.offset, null);
+          expect(inst.count, null);
+          expect(inst.associations!.length, 1001);
+          final fifth = inst.associations![4];
+          expect(fifth.key.valueAsString, '4');
+          expect(fifth.value.valueAsString, '996');
+          final sixth = inst.associations![5];
+          expect(sixth.key.valueAsString, '5');
+          expect(sixth.value.valueAsString, '995');
+        });
+
+        test(
+            'Maps with null count and offset greater than 0 are '
+            'truncated from offset to end of map', () async {
+          final list = await createMap();
+          final inst = await service.getObject(
+            isolate.id!,
+            list.objectId!,
+            count: null,
+            offset: 1000,
+          ) as Instance;
+          expect(inst.length, 1001);
+          expect(inst.offset, 1000);
+          expect(inst.count, null);
+          expect(inst.associations!.length, 1);
+          final only = inst.associations![0];
+          expect(only.key.valueAsString, '1000');
+          expect(only.value.valueAsString, '0');
+        });
+
+        test('Maps with null count are not truncated', () async {
+          final map = await createMap();
+          final inst = await service.getObject(
+            isolate.id!,
+            map.objectId!,
+            count: null,
+            offset: 0,
+          ) as Instance;
+          expect(inst.length, 1001);
+          expect(inst.offset, 0);
+          expect(inst.count, null);
+          expect(inst.associations!.length, 1001);
+          final fifth = inst.associations![4];
+          expect(fifth.key.valueAsString, '4');
+          expect(fifth.value.valueAsString, '996');
+          final sixth = inst.associations![5];
+          expect(sixth.key.valueAsString, '5');
+          expect(sixth.value.valueAsString, '995');
         });
 
         test('Maps with offset/count are truncated', () async {
@@ -662,6 +960,7 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 4);
           expect(inst.count, 7);
+          expect(inst.associations!.length, 7);
           final fifth = inst.associations![0];
           expect(fifth.key.valueAsString, '4');
           expect(fifth.value.valueAsString, '996');
@@ -682,15 +981,34 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 1000);
           expect(inst.count, 1);
+          expect(inst.associations!.length, 1);
           final only = inst.associations![0];
           expect(only.key.valueAsString, '1000');
           expect(only.value.valueAsString, '0');
         });
 
+        test('Maps are truncated to empty if offset runs off the end',
+            () async {
+          final list = await createMap();
+          final inst = await service.getObject(
+            isolate.id!,
+            list.objectId!,
+            count: 5,
+            offset: 1002,
+          ) as Instance;
+          expect(inst.associations!.length, 0);
+          expect(inst.length, 1001);
+          expect(inst.offset, 1002);
+          expect(inst.count, 0);
+          expect(inst.associations!.length, 0);
+        });
+
         test('Strings with offset/count are truncated', () async {
           final worldRef = await service.evaluate(
-                  isolate.id!, bootstrap!.id!, "helloString('world')")
-              as InstanceRef;
+            isolate.id!,
+            bootstrap!.id!,
+            "helloString('world')",
+          ) as InstanceRef;
           final world = await service.getObject(
             isolate.id!,
             worldRef.id!,
@@ -703,12 +1021,46 @@ void main() {
           expect(world.offset, 1);
         });
 
+        test('Maps are truncated to empty if offset runs off the end',
+            () async {
+          final list = await createMap();
+          final inst = await service.getObject(
+            isolate.id!,
+            list.objectId!,
+            count: 5,
+            offset: 1002,
+          ) as Instance;
+          expect(inst.associations!.length, 0);
+          expect(inst.length, 1001);
+          expect(inst.offset, 1002);
+          expect(inst.count, 0);
+          expect(inst.associations!.length, 0);
+        });
+
+        test('Maps are truncated to empty with 0 count and null offset',
+            () async {
+          final list = await createMap();
+          final inst = await service.getObject(
+            isolate.id!,
+            list.objectId!,
+            count: 0,
+            offset: null,
+          ) as Instance;
+          expect(inst.associations!.length, 0);
+          expect(inst.length, 1001);
+          expect(inst.offset, null);
+          expect(inst.count, 0);
+          expect(inst.associations!.length, 0);
+        });
+
         test(
             'Strings are truncated to the end if offset/count runs off the end',
             () async {
           final worldRef = await service.evaluate(
-                  isolate.id!, bootstrap!.id!, "helloString('world')")
-              as InstanceRef;
+            isolate.id!,
+            bootstrap!.id!,
+            "helloString('world')",
+          ) as InstanceRef;
           final world = await service.getObject(
             isolate.id!,
             worldRef.id!,
@@ -721,7 +1073,9 @@ void main() {
           expect(world.offset, 3);
         });
 
-        test('offset/count parameters are ignored for Classes', () async {
+        test(
+            'offset/count parameters greater than zero are ignored for Classes',
+            () async {
           final testClass = await service.getObject(
             isolate.id!,
             rootLibrary!.classes!.first.id!,
@@ -729,48 +1083,121 @@ void main() {
             count: 100,
           ) as Class;
           expect(
-              testClass.functions,
-              unorderedEquals([
-                predicate(
-                    (FuncRef f) => f.name == 'staticHello' && f.isStatic!),
-                predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
-                predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
-                predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
-                predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
-                predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
-                predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
-                predicate(
-                    (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!),
-                predicate(
-                    (FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
-              ]));
+            testClass.functions,
+            unorderedEquals([
+              predicate(
+                (FuncRef f) => f.name == 'staticHello' && f.isStatic!,
+              ),
+              predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
+              predicate(
+                (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!,
+              ),
+              predicate(
+                (FuncRef f) => f.name == 'runtimeType' && !f.isStatic!,
+              ),
+            ]),
+          );
           expect(
-              testClass.fields,
-              unorderedEquals([
-                predicate((FieldRef f) =>
+            testClass.fields,
+            unorderedEquals([
+              predicate(
+                (FieldRef f) =>
                     f.name == 'message' &&
                     f.declaredType != null &&
                     !f.isStatic! &&
                     !f.isConst! &&
-                    f.isFinal!),
-                predicate((FieldRef f) =>
+                    f.isFinal!,
+              ),
+              predicate(
+                (FieldRef f) =>
                     f.name == 'notFinal' &&
                     f.declaredType != null &&
                     !f.isStatic! &&
                     !f.isConst! &&
-                    !f.isFinal!),
-                predicate((FieldRef f) =>
+                    !f.isFinal!,
+              ),
+              predicate(
+                (FieldRef f) =>
                     f.name == 'staticMessage' &&
                     f.declaredType != null &&
                     f.isStatic! &&
                     !f.isConst! &&
-                    !f.isFinal!),
-              ]));
-        }, skip: 'https://github.com/dart-lang/webdev/issues/1818');
+                    !f.isFinal!,
+              ),
+            ]),
+          );
+        });
+
+        test('offset/count parameters equal to zero are ignored for Classes',
+            () async {
+          final testClass = await service.getObject(
+            isolate.id!,
+            rootLibrary!.classes!.first.id!,
+            offset: 0,
+            count: 0,
+          ) as Class;
+          expect(
+            testClass.functions,
+            unorderedEquals([
+              predicate(
+                (FuncRef f) => f.name == 'staticHello' && f.isStatic!,
+              ),
+              predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
+              predicate(
+                (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!,
+              ),
+              predicate(
+                (FuncRef f) => f.name == 'runtimeType' && !f.isStatic!,
+              ),
+            ]),
+          );
+          expect(
+            testClass.fields,
+            unorderedEquals([
+              predicate(
+                (FieldRef f) =>
+                    f.name == 'message' &&
+                    f.declaredType != null &&
+                    !f.isStatic! &&
+                    !f.isConst! &&
+                    f.isFinal!,
+              ),
+              predicate(
+                (FieldRef f) =>
+                    f.name == 'notFinal' &&
+                    f.declaredType != null &&
+                    !f.isStatic! &&
+                    !f.isConst! &&
+                    !f.isFinal!,
+              ),
+              predicate(
+                (FieldRef f) =>
+                    f.name == 'staticMessage' &&
+                    f.declaredType != null &&
+                    f.isStatic! &&
+                    !f.isConst! &&
+                    !f.isFinal!,
+              ),
+            ]),
+          );
+        });
 
         test('offset/count parameters are ignored for bools', () async {
           final ref = await service.evaluate(
-              isolate.id!, bootstrap!.id!, 'helloBool(true)') as InstanceRef;
+            isolate.id!,
+            bootstrap!.id!,
+            'helloBool(true)',
+          ) as InstanceRef;
           final obj = await service.getObject(
             isolate.id!,
             ref.id!,
@@ -784,7 +1211,10 @@ void main() {
 
         test('offset/count parameters are ignored for nums', () async {
           final ref = await service.evaluate(
-              isolate.id!, bootstrap!.id!, 'helloNum(42)') as InstanceRef;
+            isolate.id!,
+            bootstrap!.id!,
+            'helloNum(42)',
+          ) as InstanceRef;
           final obj = await service.getObject(
             isolate.id!,
             ref.id!,
@@ -798,7 +1228,10 @@ void main() {
 
         test('offset/count parameters are ignored for null', () async {
           final ref = await service.evaluate(
-              isolate.id!, bootstrap!.id!, 'helloNum(null)') as InstanceRef;
+            isolate.id!,
+            bootstrap!.id!,
+            'helloNum(null)',
+          ) as InstanceRef;
           final obj = await service.getObject(
             isolate.id!,
             ref.id!,
@@ -808,11 +1241,12 @@ void main() {
           expect(obj.kind, InstanceKind.kNull);
           expect(obj.classRef!.name, 'Null');
           expect(obj.valueAsString, 'null');
-        }, skip: 'https://github.com/dart-lang/webdev/issues/1818');
+        });
       });
     });
 
     test('getScripts', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       final scripts = await service.getScripts(isolateId);
@@ -822,8 +1256,10 @@ void main() {
       final scriptUris = scripts.scripts!.map((s) => s.uri);
 
       // Contains main script only once.
-      expect(scriptUris.where((uri) => uri!.contains('hello_world/main.dart')),
-          hasLength(1));
+      expect(
+        scriptUris.where((uri) => uri!.contains('hello_world/main.dart')),
+        hasLength(1),
+      );
 
       // Containts a known script.
       expect(scriptUris, contains('package:path/path.dart'));
@@ -831,12 +1267,17 @@ void main() {
       // Containts part files as well.
       expect(scriptUris, contains(endsWith('part.dart')));
       expect(
-          scriptUris, contains('package:intl/src/date_format_internal.dart'));
+        scriptUris,
+        contains('package:intl/src/date_format_internal.dart'),
+      );
     });
 
     group('getSourceReport', () {
+      late VmServiceInterface service;
+
       setUp(() {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
       });
 
       test('Coverage report', () async {
@@ -844,7 +1285,9 @@ void main() {
         final isolateId = vm.isolates!.first.id!;
 
         await expectLater(
-            service.getSourceReport(isolateId, ['Coverage']), throwsRPCError);
+          service.getSourceReport(isolateId, ['Coverage']),
+          throwsRPCError,
+        );
       });
 
       test('Coverage report', () async {
@@ -852,9 +1295,13 @@ void main() {
         final isolateId = vm.isolates!.first.id!;
 
         await expectLater(
-            service.getSourceReport(isolateId, ['Coverage'],
-                libraryFilters: ['foo']),
-            throwsRPCError);
+          service.getSourceReport(
+            isolateId,
+            ['Coverage'],
+            libraryFilters: ['foo'],
+          ),
+          throwsRPCError,
+        );
       });
 
       test('report type not understood', () async {
@@ -862,7 +1309,9 @@ void main() {
         final isolateId = vm.isolates!.first.id!;
 
         await expectLater(
-            service.getSourceReport(isolateId, ['FooBar']), throwsRPCError);
+          service.getSourceReport(isolateId, ['FooBar']),
+          throwsRPCError,
+        );
       });
 
       test('PossibleBreakpoints report', () async {
@@ -887,6 +1336,7 @@ void main() {
     });
 
     group('Pausing', () {
+      late VmServiceInterface service;
       String? isolateId;
       late Stream<Event> stream;
       ScriptList scripts;
@@ -894,6 +1344,7 @@ void main() {
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
         final vm = await service.getVM();
         isolateId = vm.isolates!.first.id;
         scripts = await service.getScripts(isolateId!);
@@ -905,7 +1356,10 @@ void main() {
 
       test('at breakpoints sets pauseBreakPoints', () async {
         final line = await context.findBreakpointLine(
-            'callPrintCount', isolateId!, mainScript);
+          'callPrintCount',
+          isolateId!,
+          mainScript,
+        );
         final bp =
             await service.addBreakpoint(isolateId!, mainScript.id!, line);
         final event = await stream
@@ -923,6 +1377,7 @@ void main() {
     });
 
     group('Step', () {
+      late VmServiceInterface service;
       String? isolateId;
       late Stream<Event> stream;
       ScriptList scripts;
@@ -930,6 +1385,7 @@ void main() {
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
         final vm = await service.getVM();
         isolateId = vm.isolates!.first.id;
         scripts = await service.getScripts(isolateId!);
@@ -938,7 +1394,10 @@ void main() {
         mainScript = scripts.scripts!
             .firstWhere((script) => script.uri!.contains('main.dart'));
         final line = await context.findBreakpointLine(
-            'callPrintCount', isolateId!, mainScript);
+          'callPrintCount',
+          isolateId!,
+          mainScript,
+        );
         final bp =
             await service.addBreakpoint(isolateId!, mainScript.id!, line);
         // Wait for breakpoint to trigger.
@@ -993,6 +1452,7 @@ void main() {
     });
 
     group('getStack', () {
+      late VmServiceInterface service;
       String? isolateId;
       late Stream<Event> stream;
       ScriptList scripts;
@@ -1000,6 +1460,7 @@ void main() {
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
         final vm = await service.getVM();
         isolateId = vm.isolates!.first.id;
         scripts = await service.getScripts(isolateId!);
@@ -1009,16 +1470,21 @@ void main() {
             .firstWhere((each) => each.uri!.contains('main.dart'));
       });
 
-      test('throws if not paused', () async {
-        await expectLater(service.getStack(isolateId!), throwsRPCError);
-      },
-          skip: Platform
-              .isWindows); // Issue: https://github.com/dart-lang/webdev/issues/1749
+      test(
+        'throws if not paused',
+        () async {
+          await expectLater(service.getStack(isolateId!), throwsRPCError);
+        },
+        skip: Platform.isWindows,
+      ); // Issue: https://github.com/dart-lang/webdev/issues/1749
 
       /// Support function for pausing and returning the stack at a line.
       Future<Stack> breakAt(String breakpointId, {int? limit}) async {
         final line = await context.findBreakpointLine(
-            breakpointId, isolateId!, mainScript);
+          breakpointId,
+          isolateId!,
+          mainScript,
+        );
         Breakpoint? bp;
         try {
           bp = await service.addBreakpoint(isolateId!, mainScript.id!, line);
@@ -1108,21 +1574,24 @@ void main() {
       test('break on exceptions with setIsolatePauseMode', () async {
         final oldPauseMode =
             (await service.getIsolate(isolateId!)).exceptionPauseMode;
-        await service.setIsolatePauseMode(isolateId!,
-            exceptionPauseMode: ExceptionPauseMode.kAll);
+        await service.setIsolatePauseMode(
+          isolateId!,
+          exceptionPauseMode: ExceptionPauseMode.kAll,
+        );
         // Wait for pausing to actually propagate.
         final event = await stream
             .firstWhere((event) => event.kind == EventKind.kPauseException);
         expect(event.exception, isNotNull);
         // Check that the exception stack trace has been mapped to Dart source files.
-        // TODO(https://github.com/dart-lang/webdev/issues/1821) Uncomment.
-        // expect(event.exception!.valueAsString, contains('main.dart'));
+        expect(event.exception!.valueAsString, contains('main.dart'));
 
         final stack = await service.getStack(isolateId!);
         expect(stack, isNotNull);
 
-        await service.setIsolatePauseMode(isolateId!,
-            exceptionPauseMode: oldPauseMode);
+        await service.setIsolatePauseMode(
+          isolateId!,
+          exceptionPauseMode: oldPauseMode,
+        );
         await service.resume(isolateId!);
       });
 
@@ -1138,6 +1607,7 @@ void main() {
     });
 
     test('getVM', () async {
+      final service = context.service;
       final vm = await service.getVM();
       expect(vm.name, isNotNull);
       expect(vm.version, Platform.version);
@@ -1149,12 +1619,14 @@ void main() {
     });
 
     test('getVersion', () async {
+      final service = context.service;
       final version = await service.getVersion();
       expect(version, isNotNull);
       expect(version.major, greaterThan(0));
     });
 
     group('invoke', () {
+      late ChromeProxyService service;
       VM vm;
       late Isolate isolate;
       LibraryRef? bootstrap;
@@ -1162,155 +1634,224 @@ void main() {
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
+        service = context.service;
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
         bootstrap = isolate.rootLib;
         testInstance = await service.evaluate(
-            isolate.id!, bootstrap!.id!, 'myInstance') as InstanceRef;
+          isolate.id!,
+          bootstrap!.id!,
+          'myInstance',
+        ) as InstanceRef;
       });
 
       test('rootLib', () async {
         expect(
-            bootstrap,
-            const TypeMatcher<LibraryRef>().having((library) => library.name,
-                'name', 'org-dartlang-app:///example/hello_world/main.dart'));
+          bootstrap,
+          const TypeMatcher<LibraryRef>().having(
+            (library) => library.name,
+            'name',
+            'org-dartlang-app:///example/hello_world/main.dart',
+          ),
+        );
       });
 
       test('toString()', () async {
         final remote =
             await service.invoke(isolate.id!, testInstance.id!, 'toString', []);
         expect(
-            remote,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'toString()',
-                "Instance of 'MyTestClass'"));
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.valueAsString,
+            'toString()',
+            "Instance of 'MyTestClass'",
+          ),
+        );
       });
 
       test('hello()', () async {
         final remote =
             await service.invoke(isolate.id!, testInstance.id!, 'hello', []);
         expect(
-            remote,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'hello()', 'world'));
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.valueAsString,
+            'hello()',
+            'world',
+          ),
+        );
       });
 
       test('helloString', () async {
-        final remote = await service.invoke(isolate.id!, bootstrap!.id!,
-            'helloString', ['#StringInstanceRef#abc']);
+        final remote = await service.invoke(
+          isolate.id!,
+          bootstrap!.id!,
+          'helloString',
+          ['#StringInstanceRef#abc'],
+        );
         expect(
-            remote,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'helloString', 'abc'));
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.valueAsString,
+            'helloString',
+            'abc',
+          ),
+        );
         expect(
-            remote,
-            const TypeMatcher<InstanceRef>()
-                .having((instance) => instance.kind, 'kind', 'String'));
+          remote,
+          const TypeMatcher<InstanceRef>()
+              .having((instance) => instance.kind, 'kind', 'String'),
+        );
       });
 
       test('null argument', () async {
         final remote = await service.invoke(
-            isolate.id!, bootstrap!.id!, 'helloString', ['objects/null']);
+          isolate.id!,
+          bootstrap!.id!,
+          'helloString',
+          ['objects/null'],
+        );
         expect(
-            remote,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'helloString', 'null'));
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.valueAsString,
+            'helloString',
+            'null',
+          ),
+        );
         expect(
-            remote,
-            const TypeMatcher<InstanceRef>()
-                .having((instance) => instance.kind, 'kind', 'Null'));
+          remote,
+          const TypeMatcher<InstanceRef>()
+              .having((instance) => instance.kind, 'kind', 'Null'),
+        );
       });
 
       test('helloBool', () async {
         final remote = await service.invoke(
-            isolate.id!, bootstrap!.id!, 'helloBool', ['objects/bool-true']);
+          isolate.id!,
+          bootstrap!.id!,
+          'helloBool',
+          ['objects/bool-true'],
+        );
         expect(
-            remote,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'helloBool', 'true'));
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.valueAsString,
+            'helloBool',
+            'true',
+          ),
+        );
         expect(
-            remote,
-            const TypeMatcher<InstanceRef>()
-                .having((instance) => instance.kind, 'kind', 'Bool'));
+          remote,
+          const TypeMatcher<InstanceRef>()
+              .having((instance) => instance.kind, 'kind', 'Bool'),
+        );
       });
 
       test('helloNum', () async {
         final remote = await service.invoke(
-            isolate.id!, bootstrap!.id!, 'helloNum', ['objects/int-123']);
+          isolate.id!,
+          bootstrap!.id!,
+          'helloNum',
+          ['objects/int-123'],
+        );
         expect(
-            remote,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'helloNum', '123'));
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.valueAsString,
+            'helloNum',
+            '123',
+          ),
+        );
         expect(
-            remote,
-            const TypeMatcher<InstanceRef>()
-                .having((instance) => instance.kind, 'kind', 'Double'));
+          remote,
+          const TypeMatcher<InstanceRef>()
+              .having((instance) => instance.kind, 'kind', 'Double'),
+        );
       });
 
       test('two object arguments', () async {
-        final remote = await service.invoke(isolate.id!, bootstrap!.id!,
-            'messagesCombined', [testInstance.id, testInstance.id]);
+        final remote = await service.invoke(
+          isolate.id!,
+          bootstrap!.id!,
+          'messagesCombined',
+          [testInstance.id, testInstance.id],
+        );
         expect(
-            remote,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'messagesCombined',
-                'worldworld'));
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.valueAsString,
+            'messagesCombined',
+            'worldworld',
+          ),
+        );
         expect(
-            remote,
-            const TypeMatcher<InstanceRef>()
-                .having((instance) => instance.kind, 'kind', 'String'));
+          remote,
+          const TypeMatcher<InstanceRef>()
+              .having((instance) => instance.kind, 'kind', 'String'),
+        );
       });
     });
 
     test('kill', () async {
+      final service = context.service;
       await expectLater(service.kill(''), throwsRPCError);
     });
 
     test('onEvent', () async {
+      final service = context.service;
       expect(() => service.onEvent(''), throwsRPCError);
     });
 
     test('pause / resume', () async {
+      final service = context.service;
       await service.streamListen('Debug');
       final stream = service.onEvent('Debug');
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       final pauseCompleter = Completer();
-      final pauseSub = tabConnection.debugger.onPaused.listen((_) {
+      final pauseSub = context.tabConnection.debugger.onPaused.listen((_) {
         pauseCompleter.complete();
       });
       final resumeCompleter = Completer();
-      final resumeSub = tabConnection.debugger.onResumed.listen((_) {
+      final resumeSub = context.tabConnection.debugger.onResumed.listen((_) {
         resumeCompleter.complete();
       });
       expect(await service.pause(isolateId), const TypeMatcher<Success>());
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
-      expect((await service.getIsolate(isolateId)).pauseEvent!.kind,
-          EventKind.kPauseInterrupted);
+      expect(
+        (await service.getIsolate(isolateId)).pauseEvent!.kind,
+        EventKind.kPauseInterrupted,
+      );
       await pauseCompleter.future;
       expect(await service.resume(isolateId), const TypeMatcher<Success>());
       await stream.firstWhere((event) => event.kind == EventKind.kResume);
-      expect((await service.getIsolate(isolateId)).pauseEvent!.kind,
-          EventKind.kResume);
+      expect(
+        (await service.getIsolate(isolateId)).pauseEvent!.kind,
+        EventKind.kResume,
+      );
       await resumeCompleter.future;
       await pauseSub.cancel();
       await resumeSub.cancel();
     });
 
     test('getInboundReferences', () async {
+      final service = context.service;
       await expectLater(
-          service.getInboundReferences('', '', 0), throwsRPCError);
+        service.getInboundReferences('', '', 0),
+        throwsRPCError,
+      );
     });
 
     test('getRetainingPath', () async {
+      final service = context.service;
       await expectLater(service.getRetainingPath('', '', 0), throwsRPCError);
     });
 
     test('lookupResolvedPackageUris converts package and org-dartlang-app uris',
         () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       final scriptList = await service.getScripts(isolateId);
@@ -1320,16 +1861,18 @@ void main() {
           await service.lookupResolvedPackageUris(isolateId, uris);
 
       expect(
-          resolvedUris.uris,
-          containsAll([
-            contains('/_testSound/example/hello_world/main.dart'),
-            contains('/lib/path.dart'),
-            contains('/lib/src/path_set.dart'),
-          ]));
+        resolvedUris.uris,
+        containsAll([
+          contains('/_testSound/example/hello_world/main.dart'),
+          contains('/lib/path.dart'),
+          contains('/lib/src/path_set.dart'),
+        ]),
+      );
     });
 
     test('lookupResolvedPackageUris does not translate non-existent paths',
         () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
 
@@ -1341,23 +1884,30 @@ void main() {
       expect(resolvedUris.uris, [null, null, null]);
     });
 
-    test('lookupResolvedPackageUris translates dart uris', () async {
-      final vm = await service.getVM();
-      final isolateId = vm.isolates!.first.id!;
+    test(
+      'lookupResolvedPackageUris translates dart uris',
+      () async {
+        final service = context.service;
+        final vm = await service.getVM();
+        final isolateId = vm.isolates!.first.id!;
 
-      final resolvedUris = await service.lookupResolvedPackageUris(isolateId, [
-        'dart:html',
-        'dart:async',
-      ]);
+        final resolvedUris =
+            await service.lookupResolvedPackageUris(isolateId, [
+          'dart:html',
+          'dart:async',
+        ]);
 
-      expect(resolvedUris.uris, [
-        'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
-        'org-dartlang-sdk:///sdk/lib/async/async.dart',
-      ]);
-    }, skip: 'https://github.com/dart-lang/webdev/issues/1584');
+        expect(resolvedUris.uris, [
+          'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
+          'org-dartlang-sdk:///sdk/lib/async/async.dart',
+        ]);
+      },
+      skip: 'https://github.com/dart-lang/webdev/issues/1584',
+    );
 
     test('lookupPackageUris finds package and org-dartlang-app paths',
         () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       final scriptList = await service.getScripts(isolateId);
@@ -1367,17 +1917,21 @@ void main() {
           await service.lookupResolvedPackageUris(isolateId, uris);
 
       final packageUris = await service.lookupPackageUris(
-          isolateId, List<String>.from(resolvedUris.uris!));
+        isolateId,
+        List<String>.from(resolvedUris.uris!),
+      );
       expect(
-          packageUris.uris,
-          containsAll([
-            'org-dartlang-app:///example/hello_world/main.dart',
-            'package:path/path.dart',
-            'package:path/src/path_set.dart',
-          ]));
+        packageUris.uris,
+        containsAll([
+          'org-dartlang-app:///example/hello_world/main.dart',
+          'package:path/path.dart',
+          'package:path/src/path_set.dart',
+        ]),
+      );
     });
 
     test('lookupPackageUris ignores local parameter', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       final scriptList = await service.getScripts(isolateId);
@@ -1387,30 +1941,37 @@ void main() {
           await service.lookupResolvedPackageUris(isolateId, uris, local: true);
 
       final packageUrisWithLocal = await service.lookupPackageUris(
-          isolateId, List<String>.from(resolvedUrisWithLocal.uris!));
+        isolateId,
+        List<String>.from(resolvedUrisWithLocal.uris!),
+      );
       expect(
-          packageUrisWithLocal.uris,
-          containsAll([
-            'org-dartlang-app:///example/hello_world/main.dart',
-            'package:path/path.dart',
-            'package:path/src/path_set.dart',
-          ]));
+        packageUrisWithLocal.uris,
+        containsAll([
+          'org-dartlang-app:///example/hello_world/main.dart',
+          'package:path/path.dart',
+          'package:path/src/path_set.dart',
+        ]),
+      );
 
       final resolvedUrisWithoutLocal =
           await service.lookupResolvedPackageUris(isolateId, uris, local: true);
 
       final packageUrisWithoutLocal = await service.lookupPackageUris(
-          isolateId, List<String>.from(resolvedUrisWithoutLocal.uris!));
+        isolateId,
+        List<String>.from(resolvedUrisWithoutLocal.uris!),
+      );
       expect(
-          packageUrisWithoutLocal.uris,
-          containsAll([
-            'org-dartlang-app:///example/hello_world/main.dart',
-            'package:path/path.dart',
-            'package:path/src/path_set.dart',
-          ]));
+        packageUrisWithoutLocal.uris,
+        containsAll([
+          'org-dartlang-app:///example/hello_world/main.dart',
+          'package:path/path.dart',
+          'package:path/src/path_set.dart',
+        ]),
+      );
     });
 
     test('lookupPackageUris does not translate non-existent paths', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
 
@@ -1422,62 +1983,87 @@ void main() {
       expect(resolvedUris.uris, [null, null, null]);
     });
 
-    test('lookupPackageUris translates dart uris', () async {
-      final vm = await service.getVM();
-      final isolateId = vm.isolates!.first.id!;
+    test(
+      'lookupPackageUris translates dart uris',
+      () async {
+        final service = context.service;
+        final vm = await service.getVM();
+        final isolateId = vm.isolates!.first.id!;
 
-      final resolvedUris = await service.lookupPackageUris(isolateId, [
-        'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
-        'org-dartlang-sdk:///sdk/lib/async/async.dart',
-      ]);
+        final resolvedUris = await service.lookupPackageUris(isolateId, [
+          'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
+          'org-dartlang-sdk:///sdk/lib/async/async.dart',
+        ]);
 
-      expect(resolvedUris.uris, [
-        'dart:html',
-        'dart:async',
-      ]);
-    }, skip: 'https://github.com/dart-lang/webdev/issues/1584');
+        expect(resolvedUris.uris, [
+          'dart:html',
+          'dart:async',
+        ]);
+      },
+      skip: 'https://github.com/dart-lang/webdev/issues/1584',
+    );
 
-    test('registerService', () async {
+    test('registerservice', () async {
+      final service = context.service;
       await expectLater(
-          service.registerService('ext.foo.bar', ''), throwsRPCError);
+        service.registerService('ext.foo.bar', ''),
+        throwsRPCError,
+      );
     });
 
     test('reloadSources', () async {
+      final service = context.service;
       await expectLater(service.reloadSources(''), throwsRPCError);
     });
 
     test('setIsolatePauseMode', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       expect(await service.setIsolatePauseMode(isolateId), _isSuccess);
       expect(
-          await service.setIsolatePauseMode(isolateId,
-              exceptionPauseMode: ExceptionPauseMode.kAll),
-          _isSuccess);
+        await service.setIsolatePauseMode(
+          isolateId,
+          exceptionPauseMode: ExceptionPauseMode.kAll,
+        ),
+        _isSuccess,
+      );
       expect(
-          await service.setIsolatePauseMode(isolateId,
-              exceptionPauseMode: ExceptionPauseMode.kUnhandled),
-          _isSuccess);
+        await service.setIsolatePauseMode(
+          isolateId,
+          exceptionPauseMode: ExceptionPauseMode.kUnhandled,
+        ),
+        _isSuccess,
+      );
       // Make sure this is the last one - or future tests might hang.
       expect(
-          await service.setIsolatePauseMode(isolateId,
-              exceptionPauseMode: ExceptionPauseMode.kNone),
-          _isSuccess);
+        await service.setIsolatePauseMode(
+          isolateId,
+          exceptionPauseMode: ExceptionPauseMode.kNone,
+        ),
+        _isSuccess,
+      );
       await expectLater(
-          service.setIsolatePauseMode(isolateId, exceptionPauseMode: 'invalid'),
-          throwsRPCError);
+        service.setIsolatePauseMode(isolateId, exceptionPauseMode: 'invalid'),
+        throwsRPCError,
+      );
     });
 
     test('setFlag', () async {
+      final service = context.service;
       await expectLater(service.setFlag('', ''), throwsRPCError);
     });
 
     test('setLibraryDebuggable', () async {
+      final service = context.service;
       await expectLater(
-          service.setLibraryDebuggable('', '', false), throwsRPCError);
+        service.setLibraryDebuggable('', '', false),
+        throwsRPCError,
+      );
     });
 
     test('setName', () async {
+      final service = context.service;
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
       expect(service.setName(isolateId, 'test'), completion(_isSuccess));
@@ -1486,76 +2072,106 @@ void main() {
     });
 
     test('setVMName', () async {
+      final service = context.service;
       expect(service.setVMName('foo'), completion(_isSuccess));
       final vm = await service.getVM();
       expect(vm.name, 'foo');
     });
 
     test('streamCancel', () async {
+      final service = context.service;
       await expectLater(service.streamCancel(''), throwsRPCError);
     });
 
     group('streamListen/onEvent', () {
+      late ChromeProxyService service;
+
       group('Debug', () {
         late Stream<Event> eventStream;
 
         setUp(() async {
           setCurrentLogWriter(debug: debug);
-          expect(await service.streamListen('Debug'),
-              const TypeMatcher<Success>());
+          service = context.service;
+          expect(
+            await service.streamListen('Debug'),
+            const TypeMatcher<Success>(),
+          );
           eventStream = service.onEvent('Debug');
         });
 
         test('basic Pause/Resume', () async {
           expect(service.streamListen('Debug'), completion(_isSuccess));
           final stream = service.onEvent('Debug');
-          unawaited(tabConnection.debugger.pause());
+          safeUnawaited(context.tabConnection.debugger.pause());
           await expectLater(
-              stream,
-              emitsThrough(const TypeMatcher<Event>()
-                  .having((e) => e.kind, 'kind', EventKind.kPauseInterrupted)));
-          unawaited(tabConnection.debugger.resume());
+            stream,
+            emitsThrough(
+              const TypeMatcher<Event>()
+                  .having((e) => e.kind, 'kind', EventKind.kPauseInterrupted),
+            ),
+          );
+          safeUnawaited(context.tabConnection.debugger.resume());
           expect(
-              eventStream,
-              emitsThrough(const TypeMatcher<Event>()
-                  .having((e) => e.kind, 'kind', EventKind.kResume)));
+            eventStream,
+            emitsThrough(
+              const TypeMatcher<Event>()
+                  .having((e) => e.kind, 'kind', EventKind.kResume),
+            ),
+          );
         });
 
         test('Inspect', () async {
           expect(
-              eventStream,
-              emitsThrough(const TypeMatcher<Event>()
+            eventStream,
+            emitsThrough(
+              const TypeMatcher<Event>()
                   .having((e) => e.kind, 'kind', EventKind.kInspect)
                   .having(
-                      (e) => e.inspectee,
-                      'inspectee',
-                      const TypeMatcher<InstanceRef>()
-                          .having((instance) => instance.id, 'id', isNotNull)
-                          .having((instance) => instance.kind, 'inspectee.kind',
-                              InstanceKind.kPlainInstance))));
-          await tabConnection.runtime.evaluate('inspectInstance()');
+                    (e) => e.inspectee,
+                    'inspectee',
+                    const TypeMatcher<InstanceRef>()
+                        .having((instance) => instance.id, 'id', isNotNull)
+                        .having(
+                          (instance) => instance.kind,
+                          'inspectee.kind',
+                          InstanceKind.kPlainInstance,
+                        ),
+                  ),
+            ),
+          );
+          await context.tabConnection.runtime.evaluate('inspectInstance()');
         });
       });
 
       group('Extension', () {
+        late VmServiceInterface service;
         late Stream<Event> eventStream;
 
         setUp(() async {
           setCurrentLogWriter(debug: debug);
-          expect(await service.streamListen('Extension'),
-              const TypeMatcher<Success>());
+          service = context.service;
+          expect(
+            await service.streamListen('Extension'),
+            const TypeMatcher<Success>(),
+          );
           eventStream = service.onEvent('Extension');
         });
 
         test('Custom debug event', () async {
           final eventKind = 'my.custom.event';
           expect(
-              eventStream,
-              emitsThrough(predicate((Event event) =>
-                  event.kind == EventKind.kExtension &&
-                  event.extensionKind == eventKind &&
-                  event.extensionData!.data['example'] == 'data')));
-          await tabConnection.runtime.evaluate("postEvent('$eventKind');");
+            eventStream,
+            emitsThrough(
+              predicate(
+                (Event event) =>
+                    event.kind == EventKind.kExtension &&
+                    event.extensionKind == eventKind &&
+                    event.extensionData!.data['example'] == 'data',
+              ),
+            ),
+          );
+          await context.tabConnection.runtime
+              .evaluate("postEvent('$eventKind');");
         });
 
         test('Batched debug events from injected client', () async {
@@ -1565,13 +2181,20 @@ void main() {
           final delay = const Duration(milliseconds: 2000);
 
           TypeMatcher<Event> eventMatcher(
-                  String data) =>
+            String data,
+          ) =>
               const TypeMatcher<Event>()
                   .having((event) => event.kind, 'kind', eventKind)
-                  .having((event) => event.extensionKind, 'extensionKind',
-                      extensionKind)
-                  .having((event) => event.extensionData!.data['eventData'],
-                      'eventData', data);
+                  .having(
+                    (event) => event.extensionKind,
+                    'extensionKind',
+                    extensionKind,
+                  )
+                  .having(
+                    (event) => event.extensionData!.data['eventData'],
+                    'eventData',
+                    data,
+                  );
 
           String emitDebugEvent(String data) =>
               "\$emitDebugEvent('$extensionKind', '{ \"$eventData\": \"$data\" }');";
@@ -1581,18 +2204,19 @@ void main() {
           final batch2 = List.generate(size, (int i) => 'data${size + i}');
 
           expect(
-              eventStream,
-              emitsInOrder([
-                ...batch1.map(eventMatcher),
-                ...batch2.map(eventMatcher),
-              ]));
+            eventStream,
+            emitsInOrder([
+              ...batch1.map(eventMatcher),
+              ...batch2.map(eventMatcher),
+            ]),
+          );
 
           for (var data in batch1) {
-            await tabConnection.runtime.evaluate(emitDebugEvent(data));
+            await context.tabConnection.runtime.evaluate(emitDebugEvent(data));
           }
           await Future.delayed(delay);
           for (var data in batch2) {
-            await tabConnection.runtime.evaluate(emitDebugEvent(data));
+            await context.tabConnection.runtime.evaluate(emitDebugEvent(data));
           }
         });
       });
@@ -1609,14 +2233,19 @@ void main() {
           isolateEventStream = service.onEvent(EventStreams.kIsolate);
         });
 
-        test('ServiceExtensionAdded', () async {
+        test('serviceExtensionAdded', () async {
           final extensionMethod = 'ext.foo.bar';
           expect(
-              isolateEventStream,
-              emitsThrough(predicate((Event event) =>
-                  event.kind == EventKind.kServiceExtensionAdded &&
-                  event.extensionRPC == extensionMethod)));
-          await tabConnection.runtime
+            isolateEventStream,
+            emitsThrough(
+              predicate(
+                (Event event) =>
+                    event.kind == EventKind.kServiceExtensionAdded &&
+                    event.extensionRPC == extensionMethod,
+              ),
+            ),
+          );
+          await context.tabConnection.runtime
               .evaluate("registerExtension('$extensionMethod');");
         });
 
@@ -1624,23 +2253,34 @@ void main() {
           final vm = await service.getVM();
           final initialIsolateId = vm.isolates!.first.id;
           final eventsDone = expectLater(
-              isolateEventStream,
-              emitsThrough(emitsInOrder([
-                predicate((Event event) =>
-                    event.kind == EventKind.kIsolateExit &&
-                    event.isolate!.id == initialIsolateId),
-                predicate((Event event) =>
-                    event.kind == EventKind.kIsolateStart &&
-                    event.isolate!.id != initialIsolateId),
-                predicate((Event event) =>
-                    event.kind == EventKind.kIsolateRunnable &&
-                    event.isolate!.id != initialIsolateId),
-              ])));
+            isolateEventStream,
+            emitsThrough(
+              emitsInOrder([
+                predicate(
+                  (Event event) =>
+                      event.kind == EventKind.kIsolateExit &&
+                      event.isolate!.id == initialIsolateId,
+                ),
+                predicate(
+                  (Event event) =>
+                      event.kind == EventKind.kIsolateStart &&
+                      event.isolate!.id != initialIsolateId,
+                ),
+                predicate(
+                  (Event event) =>
+                      event.kind == EventKind.kIsolateRunnable &&
+                      event.isolate!.id != initialIsolateId,
+                ),
+              ]),
+            ),
+          );
           service.destroyIsolate();
           await service.createIsolate(context.appConnection);
           await eventsDone;
-          expect((await service.getVM()).isolates!.first.id,
-              isNot(initialIsolateId));
+          expect(
+            (await service.getVM()).isolates!.first.id,
+            isNot(initialIsolateId),
+          );
         });
 
         test('RegisterExtension events from injected client', () async {
@@ -1656,9 +2296,12 @@ void main() {
               "\$emitRegisterEvent('$extension')";
 
           expect(
-              isolateEventStream, emitsInOrder(extensions.map(eventMatcher)));
+            isolateEventStream,
+            emitsInOrder(extensions.map(eventMatcher)),
+          );
           for (var extension in extensions) {
-            await tabConnection.runtime.evaluate(emitRegisterEvent(extension));
+            await context.tabConnection.runtime
+                .evaluate(emitRegisterEvent(extension));
           }
         });
       });
@@ -1670,36 +2313,52 @@ void main() {
       test('Stdout', () async {
         expect(service.streamListen('Stdout'), completion(_isSuccess));
         expect(
-            service.onEvent('Stdout'),
-            emitsThrough(predicate((Event event) =>
-                event.kind == EventKind.kWriteEvent &&
-                String.fromCharCodes(base64.decode(event.bytes!))
-                    .contains('hello'))));
-        await tabConnection.runtime.evaluate('console.log("hello");');
+          service.onEvent('Stdout'),
+          emitsThrough(
+            predicate(
+              (Event event) =>
+                  event.kind == EventKind.kWriteEvent &&
+                  String.fromCharCodes(base64.decode(event.bytes!))
+                      .contains('hello'),
+            ),
+          ),
+        );
+        await context.tabConnection.runtime.evaluate('console.log("hello");');
       });
 
       test('Stderr', () async {
         expect(service.streamListen('Stderr'), completion(_isSuccess));
         final stderrStream = service.onEvent('Stderr');
         expect(
-            stderrStream,
-            emitsThrough(predicate((Event event) =>
-                event.kind == EventKind.kWriteEvent &&
-                String.fromCharCodes(base64.decode(event.bytes!))
-                    .contains('Error'))));
-        await tabConnection.runtime.evaluate('console.error("Error");');
+          stderrStream,
+          emitsThrough(
+            predicate(
+              (Event event) =>
+                  event.kind == EventKind.kWriteEvent &&
+                  String.fromCharCodes(base64.decode(event.bytes!))
+                      .contains('Error'),
+            ),
+          ),
+        );
+        await context.tabConnection.runtime.evaluate('console.error("Error");');
       });
 
       test('exception stack trace mapper', () async {
         expect(service.streamListen('Stderr'), completion(_isSuccess));
         final stderrStream = service.onEvent('Stderr');
         expect(
-            stderrStream,
-            emitsThrough(predicate((Event event) =>
-                event.kind == EventKind.kWriteEvent &&
-                String.fromCharCodes(base64.decode(event.bytes!))
-                    .contains('main.dart'))));
-        await tabConnection.runtime.evaluate('throwUncaughtException();');
+          stderrStream,
+          emitsThrough(
+            predicate(
+              (Event event) =>
+                  event.kind == EventKind.kWriteEvent &&
+                  String.fromCharCodes(base64.decode(event.bytes!))
+                      .contains('main.dart'),
+            ),
+          ),
+        );
+        await context.tabConnection.runtime
+            .evaluate('throwUncaughtException();');
       });
 
       test('VM', () async {
@@ -1707,20 +2366,41 @@ void main() {
         expect(status, _isSuccess);
         final stream = service.onEvent('VM');
         expect(
-            stream,
-            emitsThrough(predicate((Event e) =>
-                e.kind == EventKind.kVMUpdate && e.vm!.name == 'test')));
+          stream,
+          emitsThrough(
+            predicate(
+              (Event e) =>
+                  e.kind == EventKind.kVMUpdate && e.vm!.name == 'test',
+            ),
+          ),
+        );
         await service.setVMName('test');
+      });
+
+      test('custom stream', () {
+        expect(
+          () => service.streamListen('aCustomStreamId'),
+          throwsA(
+            predicate(
+              (e) => (e is RPCError) && e.code == RPCError.kInvalidParams,
+            ),
+          ),
+        );
       });
     });
 
     test('Logging', () async {
+      final service = context.service;
       expect(
-          service.streamListen(EventStreams.kLogging), completion(_isSuccess));
+        service.streamListen(EventStreams.kLogging),
+        completion(_isSuccess),
+      );
       final stream = service.onEvent(EventStreams.kLogging);
       final message = 'myMessage';
 
-      unawaited(tabConnection.runtime.evaluate("sendLog('$message');"));
+      safeUnawaited(
+        context.tabConnection.runtime.evaluate("sendLog('$message');"),
+      );
 
       final event = await stream.first;
       expect(event.kind, EventKind.kLogging);

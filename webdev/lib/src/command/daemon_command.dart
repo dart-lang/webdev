@@ -15,6 +15,7 @@ import '../daemon/app_domain.dart';
 import '../daemon/daemon.dart';
 import '../daemon/daemon_domain.dart';
 import '../logging.dart';
+import '../pubspec.dart';
 import '../serve/dev_workflow.dart';
 import '../serve/utils.dart';
 import 'configuration.dart';
@@ -65,7 +66,13 @@ class DaemonCommand extends Command<int> {
             launchInChrome: true, debug: true, autoRun: false, release: false));
     configureLogWriter(configuration.verbose);
     // Validate the pubspec first to ensure we are in a Dart project.
-    var pubspecLock = await readPubspecLock(configuration);
+    PubspecLock? pubspecLock;
+    try {
+      pubspecLock = await readPubspecLock(configuration);
+    } on PackageException catch (e) {
+      logWriter(Level.SEVERE, 'Pubspec errors: ', error: '${e.details}');
+      rethrow;
+    }
 
     Daemon? daemon;
     DevWorkflow? workflow;

@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
-
-import '../loaders/strategy.dart';
 
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
@@ -148,7 +147,7 @@ class DartUri {
   static String currentDirectory = p.current;
 
   /// The current directory as a file: Uri, saved here to avoid re-computing.
-  static String currentDirectoryUri = '${p.toUri(currentDirectory)}';
+  static final String currentDirectoryUri = '${p.toUri(currentDirectory)}';
 
   /// Record library and script uris to enable resolving library and script paths.
   static Future<void> initialize() async {
@@ -167,7 +166,7 @@ class DartUri {
   }
 
   /// Record all of the libraries, indexed by their absolute file: URI.
-  static Future<void> recordAbsoluteUris(Iterable<String> libraryUris) async {
+  static void recordAbsoluteUris(Iterable<String> libraryUris) {
     for (var uri in libraryUris) {
       _recordAbsoluteUri(uri);
     }
@@ -176,9 +175,12 @@ class DartUri {
   /// Load the .dart_tool/package_config.json file associated with the running
   /// application so we can resolve file URLs into package: URLs appropriately.
   static Future<void> _loadPackageConfig(Uri uri) async {
-    _packageConfig = await loadPackageConfigUri(uri, onError: (e) {
-      _logger.warning('Cannot read packages spec: $uri', e);
-    });
+    _packageConfig = await loadPackageConfigUri(
+      uri,
+      onError: (e) {
+        _logger.warning('Cannot read packages spec: $uri', e);
+      },
+    );
   }
 
   /// Record the library represented by package: or org-dartlang-app: uris

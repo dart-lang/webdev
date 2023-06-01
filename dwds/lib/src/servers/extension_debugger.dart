@@ -6,15 +6,18 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+import 'package:dwds/data/devtools_request.dart';
+import 'package:dwds/data/extension_request.dart';
+import 'package:dwds/data/serializers.dart';
+import 'package:dwds/src/debugging/execution_context.dart';
+import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/handlers/socket_connections.dart';
+import 'package:dwds/src/services/chrome_debug_exception.dart';
+import 'package:logging/logging.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
+    hide StackTrace;
 
-import '../../data/devtools_request.dart';
-import '../../data/extension_request.dart';
-import '../../data/serializers.dart';
-import '../debugging/execution_context.dart';
-import '../debugging/remote_debugger.dart';
-import '../handlers/socket_connections.dart';
-import '../services/chrome_debug_exception.dart';
+final _logger = Logger('ExtensionDebugger');
 
 /// A remote debugger backed by the Dart Debug Extension with an SSE connection.
 class ExtensionDebugger implements RemoteDebugger {
@@ -53,64 +56,70 @@ class ExtensionDebugger implements RemoteDebugger {
 
   @override
   Stream<ConsoleAPIEvent> get onConsoleAPICalled => eventStream(
-      'Runtime.consoleAPICalled',
-      (WipEvent event) => ConsoleAPIEvent(event.json));
+        'Runtime.consoleAPICalled',
+        (WipEvent event) => ConsoleAPIEvent(event.json),
+      );
 
   @override
   Stream<ExceptionThrownEvent> get onExceptionThrown => eventStream(
-      'Runtime.exceptionThrown',
-      (WipEvent event) => ExceptionThrownEvent(event.json));
+        'Runtime.exceptionThrown',
+        (WipEvent event) => ExceptionThrownEvent(event.json),
+      );
 
   final _scripts = <String, WipScript>{};
   final _scriptIds = <String, String>{};
 
   ExtensionDebugger(this.sseConnection) {
-    sseConnection.stream.listen((data) {
-      final message = serializers.deserialize(jsonDecode(data));
-      if (message is ExtensionResponse) {
-        final encodedResult = {
-          'result': json.decode(message.result),
-          'id': message.id
-        };
-        final completer = _completers[message.id];
-        if (completer == null) {
-          throw StateError('Missing completer.');
-        }
-        // TODO(#988): Call completeError(WipError()) to match the behavior of
-        // package:webkit_inspection_protocol.
-        completer.complete(WipResponse(encodedResult));
-      } else if (message is ExtensionEvent) {
-        final map = {
-          'method': json.decode(message.method),
-          'params': json.decode(message.params)
-        };
-        // Note: package:sse will try to keep the connection alive, even after
-        // the client has been closed. Therefore the extension sends an event to
-        // notify DWDS that we should close the connection, instead of relying
-        // on the done event sent when the client is closed. See details:
-        // https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
-        if (map['method'] == 'DebugExtension.detached') {
-          close();
-        } else {
-          _notificationController.sink.add(WipEvent(map));
-        }
-      } else if (message is BatchedEvents) {
-        for (var event in message.events) {
-          final map = {
-            'method': json.decode(event.method),
-            'params': json.decode(event.params)
+    sseConnection.stream.listen(
+      (data) {
+        final message = serializers.deserialize(jsonDecode(data));
+        if (message is ExtensionResponse) {
+          final encodedResult = {
+            'result': json.decode(message.result),
+            'id': message.id
           };
-          _notificationController.sink.add(WipEvent(map));
+          final completer = _completers[message.id];
+          if (completer == null) {
+            throw StateError('Missing completer.');
+          }
+          // TODO(#988): Call completeError(WipError()) to match the behavior of
+          // package:webkit_inspection_protocol.
+          completer.complete(WipResponse(encodedResult));
+        } else if (message is ExtensionEvent) {
+          final map = {
+            'method': json.decode(message.method),
+            'params': json.decode(message.params)
+          };
+          // Note: package:sse will try to keep the connection alive, even after
+          // the client has been closed. Therefore the extension sends an event to
+          // notify DWDS that we should close the connection, instead of relying
+          // on the done event sent when the client is closed. See details:
+          // https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
+          if (map['method'] == 'DebugExtension.detached') {
+            close();
+          } else {
+            _notificationController.sink.add(WipEvent(map));
+          }
+        } else if (message is BatchedEvents) {
+          for (var event in message.events) {
+            final map = {
+              'method': json.decode(event.method),
+              'params': json.decode(event.params)
+            };
+            _notificationController.sink.add(WipEvent(map));
+          }
+        } else if (message is DevToolsRequest) {
+          instanceId = message.instanceId;
+          _executionContext =
+              RemoteDebuggerExecutionContext(message.contextId, this);
+          _devToolsRequestController.sink.add(message);
         }
-      } else if (message is DevToolsRequest) {
-        instanceId = message.instanceId;
-        _executionContext =
-            RemoteDebuggerExecutionContext(message.contextId, this);
-        _devToolsRequestController.sink.add(message);
-      }
-    }, onError: (_) {
-      close();
-    }, onDone: close);
+      },
+      onError: (_) {
+        close();
+      },
+      onDone: close,
+    );
     onScriptParsed.listen((event) {
       // Remove stale scripts from cache.
       if (event.script.url.isNotEmpty &&
@@ -127,25 +136,56 @@ class ExtensionDebugger implements RemoteDebugger {
   }
 
   void sendEvent(String method, String params) {
-    sseConnection.sink
-        .add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
-          ..method = method
-          ..params = params))));
+    sseConnection.sink.add(
+      jsonEncode(
+        serializers.serialize(
+          ExtensionEvent(
+            (b) => b
+              ..method = method
+              ..params = params,
+          ),
+        ),
+      ),
+    );
   }
 
   /// Sends a [command] with optional [params] to Dart Debug Extension
   /// over the SSE connection.
   @override
-  Future<WipResponse> sendCommand(String command,
-      {Map<String, dynamic>? params}) {
+  Future<WipResponse> sendCommand(
+    String command, {
+    Map<String, dynamic>? params,
+  }) {
     final completer = Completer<WipResponse>();
     final id = newId();
     _completers[id] = completer;
-    sseConnection.sink
-        .add(jsonEncode(serializers.serialize(ExtensionRequest((b) => b
-          ..id = id
-          ..command = command
-          ..commandParams = jsonEncode(params ?? {})))));
+    try {
+      sseConnection.sink.add(
+        jsonEncode(
+          serializers.serialize(
+            ExtensionRequest(
+              (b) => b
+                ..id = id
+                ..command = command
+                ..commandParams = jsonEncode(params ?? {}),
+            ),
+          ),
+        ),
+      );
+    } on StateError catch (error, stackTrace) {
+      if (error.message.contains('Cannot add event after closing')) {
+        _logger.severe('Socket connection closed. Shutting down debugger.');
+        closeWithError(error);
+      } else {
+        _logger.severe('Bad state while sending $command.', error, stackTrace);
+      }
+    } catch (error, stackTrace) {
+      _logger.severe(
+        'Unknown error while sending $command.',
+        error,
+        stackTrace,
+      );
+    }
     return completer.future;
   }
 
@@ -162,6 +202,14 @@ class ExtensionDebugger implements RemoteDebugger {
         ]);
       }();
 
+  void closeWithError(Object? error) {
+    _logger.shout(
+      'Closing extension debugger due to error. Restart app for debugging functionality',
+      error,
+    );
+    close();
+  }
+
   @override
   Future disable() => sendCommand('Debugger.disable');
 
@@ -169,9 +217,10 @@ class ExtensionDebugger implements RemoteDebugger {
   Future enable() => sendCommand('Debugger.enable');
 
   @override
-  Future<String> getScriptSource(String scriptId) async =>
-      (await sendCommand('Debugger.getScriptSource',
-              params: {'scriptId': scriptId}))
+  Future<String> getScriptSource(String scriptId) async => (await sendCommand(
+        'Debugger.getScriptSource',
+        params: {'scriptId': scriptId},
+      ))
           .result!['scriptSource'] as String;
 
   @override
@@ -181,14 +230,17 @@ class ExtensionDebugger implements RemoteDebugger {
   Future<WipResponse> resume() => sendCommand('Debugger.resume');
 
   @override
-  Future<WipResponse> setPauseOnExceptions(PauseState state) =>
-      sendCommand('Debugger.setPauseOnExceptions',
-          params: {'state': _pauseStateToString(state)});
+  Future<WipResponse> setPauseOnExceptions(PauseState state) => sendCommand(
+        'Debugger.setPauseOnExceptions',
+        params: {'state': _pauseStateToString(state)},
+      );
 
   @override
   Future<WipResponse> removeBreakpoint(String breakpointId) {
-    return sendCommand('Debugger.removeBreakpoint',
-        params: {'breakpointId': breakpointId});
+    return sendCommand(
+      'Debugger.removeBreakpoint',
+      params: {'breakpointId': breakpointId},
+    );
   }
 
   @override
@@ -209,8 +261,11 @@ class ExtensionDebugger implements RemoteDebugger {
   Future<WipResponse> pageReload() => sendCommand('Page.reload');
 
   @override
-  Future<RemoteObject> evaluate(String expression,
-      {bool? returnByValue, int? contextId}) async {
+  Future<RemoteObject> evaluate(
+    String expression, {
+    bool? returnByValue,
+    int? contextId,
+  }) async {
     final params = <String, dynamic>{
       'expression': expression,
     };
@@ -227,7 +282,9 @@ class ExtensionDebugger implements RemoteDebugger {
 
   @override
   Future<RemoteObject> evaluateOnCallFrame(
-      String callFrameId, String expression) async {
+    String callFrameId,
+    String expression,
+  ) async {
     final params = <String, dynamic>{
       'callFrameId': callFrameId,
       'expression': expression,
@@ -240,7 +297,8 @@ class ExtensionDebugger implements RemoteDebugger {
 
   @override
   Future<List<WipBreakLocation>> getPossibleBreakpoints(
-      WipLocation start) async {
+    WipLocation start,
+  ) async {
     final params = <String, dynamic>{
       'start': start.toJsonMap(),
     };
@@ -249,42 +307,51 @@ class ExtensionDebugger implements RemoteDebugger {
     final result = _validateResult(response.result);
     final locations = result['locations'] as List;
     return List.from(
-        locations.map((map) => WipBreakLocation(map as Map<String, dynamic>)));
+      locations.map((map) => WipBreakLocation(map as Map<String, dynamic>)),
+    );
   }
 
   @override
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) {
     return _eventStreams
         .putIfAbsent(
-            method,
-            () => onNotification
-                .where((event) => event.method == method)
-                .map(transformer))
+          method,
+          () => onNotification
+              .where((event) => event.method == method)
+              .map(transformer),
+        )
         .cast();
   }
 
   @override
   Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => eventStream(
-      'Debugger.globalObjectCleared',
-      (WipEvent event) => GlobalObjectClearedEvent(event.json));
+        'Debugger.globalObjectCleared',
+        (WipEvent event) => GlobalObjectClearedEvent(event.json),
+      );
 
   @override
   Stream<DebuggerPausedEvent> get onPaused => eventStream(
-      'Debugger.paused', (WipEvent event) => DebuggerPausedEvent(event.json));
+        'Debugger.paused',
+        (WipEvent event) => DebuggerPausedEvent(event.json),
+      );
 
   @override
   Stream<DebuggerResumedEvent> get onResumed => eventStream(
-      'Debugger.resumed', (WipEvent event) => DebuggerResumedEvent(event.json));
+        'Debugger.resumed',
+        (WipEvent event) => DebuggerResumedEvent(event.json),
+      );
 
   @override
   Stream<ScriptParsedEvent> get onScriptParsed => eventStream(
-      'Debugger.scriptParsed',
-      (WipEvent event) => ScriptParsedEvent(event.json));
+        'Debugger.scriptParsed',
+        (WipEvent event) => ScriptParsedEvent(event.json),
+      );
 
   @override
   Stream<TargetCrashedEvent> get onTargetCrashed => eventStream(
-      'Inspector.targetCrashed',
-      (WipEvent event) => TargetCrashedEvent(event.json));
+        'Inspector.targetCrashed',
+        (WipEvent event) => TargetCrashedEvent(event.json),
+      );
 
   @override
   Map<String, WipScript> get scripts => UnmodifiableMapView(_scripts);
@@ -308,7 +375,8 @@ class ExtensionDebugger implements RemoteDebugger {
     }
     if (result.containsKey('exceptionDetails')) {
       throw ChromeDebugException(
-          result['exceptionDetails'] as Map<String, dynamic>);
+        result['exceptionDetails'] as Map<String, dynamic>,
+      );
     }
     return result;
   }

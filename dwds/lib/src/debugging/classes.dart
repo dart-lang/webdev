@@ -1,15 +1,14 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.import 'dart:async';
+// BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/debugging/metadata/class.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/services/chrome_debug_exception.dart';
+import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../../src/services/chrome_debug_exception.dart';
-import '../loaders/strategy.dart';
-import '../utilities/domain.dart';
-import '../utilities/shared.dart';
-import 'metadata/class.dart';
 
 /// Keeps track of Dart classes available in the running application.
 class ClassHelper extends Domain {
@@ -69,7 +68,9 @@ class ClassHelper extends Domain {
   /// Constructs a [Class] instance for the provided [LibraryRef] and
   /// [ClassRef].
   Future<Class?> _constructClass(
-      LibraryRef libraryRef, ClassRef classRef) async {
+    LibraryRef libraryRef,
+    ClassRef classRef,
+  ) async {
     final libraryUri = libraryRef.uri;
     final className = classRef.name;
     final classId = classRef.id;
@@ -180,7 +181,8 @@ class ClassHelper extends Domain {
     methodDescriptors.addAll(staticMethodDescriptors);
     methodDescriptors.forEach((name, descriptor) {
       final methodId = 'methods|$classId|$name';
-      methodRefs.add(FuncRef(
+      methodRefs.add(
+        FuncRef(
           id: methodId,
           name: name,
           owner: classRef,
@@ -188,34 +190,42 @@ class ClassHelper extends Domain {
           isStatic: descriptor['isStatic'] as bool,
           // TODO(annagrin): get information about getters and setters from symbols.
           // https://github.com/dart-lang/sdk/issues/46723
-          implicit: false));
+          implicit: false,
+        ),
+      );
     });
     final fieldRefs = <FieldRef>[];
     final fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
-    fieldDescriptors.forEach((name, descriptor) async {
+    fieldDescriptors.forEach((name, descriptor) {
       final classMetaData = ClassMetaData(
-          jsName: descriptor['classRefName'],
-          libraryId: descriptor['classRefLibraryId'],
-          dartName: descriptor['classRefDartName']);
-      fieldRefs.add(FieldRef(
+        jsName: descriptor['classRefName'],
+        runtimeKind: RuntimeObjectKind.type,
+        classRef: classRefFor(
+          descriptor['classRefLibraryId'],
+          descriptor['classRefDartName'],
+        ),
+      );
+      fieldRefs.add(
+        FieldRef(
           name: name,
           owner: classRef,
           declaredType: InstanceRef(
             identityHashCode: createId().hashCode,
             id: createId(),
-            kind: InstanceKind.kType,
-            // TODO(elliette): Is this the same as classRef?
+            kind: classMetaData.kind,
             classRef: classMetaData.classRef,
           ),
           isConst: descriptor['isConst'] as bool,
           isFinal: descriptor['isFinal'] as bool,
           isStatic: descriptor['isStatic'] as bool,
-          id: createId()));
+          id: createId(),
+        ),
+      );
     });
 
     final staticFieldDescriptors =
         classDescriptor['staticFields'] as Map<String, dynamic>;
-    staticFieldDescriptors.forEach((name, descriptor) async {
+    staticFieldDescriptors.forEach((name, descriptor) {
       fieldRefs.add(
         FieldRef(
           name: name,
@@ -237,15 +247,16 @@ class ClassHelper extends Domain {
     // TODO: Implement the rest of these
     // https://github.com/dart-lang/webdev/issues/176.
     return Class(
-        name: classRef.name,
-        isAbstract: false,
-        isConst: false,
-        library: libraryRef,
-        interfaces: [],
-        fields: fieldRefs,
-        functions: methodRefs,
-        subclasses: [],
-        id: classId,
-        traceAllocations: false);
+      name: classRef.name,
+      isAbstract: false,
+      isConst: false,
+      library: libraryRef,
+      interfaces: [],
+      fields: fieldRefs,
+      functions: methodRefs,
+      subclasses: [],
+      id: classId,
+      traceAllocations: false,
+    );
   }
 }

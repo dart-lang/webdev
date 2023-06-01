@@ -6,17 +6,28 @@
 
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
+import '../fixtures/project.dart';
 
 void main() {
   group('ProxyServerAssetReader', () {
-    final context = TestContext.withWeakNullSafety();
+    final provider = TestSdkConfigurationProvider();
+    tearDownAll(provider.dispose);
+
+    final context = TestContext(TestProject.testWithSoundNullSafety, provider);
+
     late ProxyServerAssetReader assetReader;
     setUpAll(() async {
       await context.setUp();
       assetReader = context.testServer.assetReader as ProxyServerAssetReader;
     });
+
+    tearDownAll(() async {
+      await context.tearDown();
+    });
+
     test('returns null if the dart path does not exist', () async {
       final result = await assetReader.dartSourceContents('some/path/foo.dart');
       expect(result, isNull);
@@ -29,14 +40,14 @@ void main() {
     });
 
     test('can read source maps', () async {
-      final result = await assetReader
-          .dartSourceContents('hello_world/main.unsound.ddc.js.map');
+      final result =
+          await assetReader.dartSourceContents('hello_world/main.ddc.js.map');
       expect(result, isNotNull);
     });
 
     test('returns null if the source map path does not exist', () async {
-      final result = await assetReader
-          .dartSourceContents('hello_world/foo.unsound.ddc.js.map');
+      final result =
+          await assetReader.dartSourceContents('hello_world/foo.ddc.js.map');
       expect(result, isNull);
     });
   });

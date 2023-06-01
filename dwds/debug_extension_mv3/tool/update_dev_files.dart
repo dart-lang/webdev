@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 void main() async {
@@ -22,7 +21,7 @@ Future<void> _updateManifestJson() async {
         _newKeyValue(
           oldLine: line,
           newKey: 'name',
-          newValue: '[DEV] MV3 Dart Debug Extension',
+          newValue: '[DEV] Dart Debug Extension',
         ),
         if (extensionKey != null)
           _newKeyValue(
@@ -31,6 +30,14 @@ Future<void> _updateManifestJson() async {
             newValue: extensionKey,
           ),
       ];
+    } else if (_matchesKey(line: line, key: 'default_icon')) {
+      return [
+        _newKeyValue(
+          oldLine: line,
+          newKey: 'default_icon',
+          newValue: 'static_assets/dart_dev.png',
+        )
+      ];
     } else {
       return [line];
     }
@@ -38,7 +45,9 @@ Future<void> _updateManifestJson() async {
 }
 
 Future<void> _transformDevFile(
-    File devFile, List<String> Function(String) transformLine) async {
+  File devFile,
+  List<String> Function(String) transformLine,
+) async {
   final lines = devFile.readAsLinesSync();
   final newLines = <String>[];
   for (final line in lines) {

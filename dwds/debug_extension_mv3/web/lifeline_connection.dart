@@ -5,7 +5,7 @@
 import 'chrome_api.dart';
 import 'logger.dart';
 
-void main() async {
+void main() {
   _connectToLifelinePort();
 }
 
@@ -15,7 +15,8 @@ void _connectToLifelinePort() {
     prefix: 'Dart Debug Extension',
   );
   chrome.runtime.connect(
-    /*extensionId=*/ null,
+    // extensionId
+    null,
     ConnectInfo(name: 'keepAlive'),
   );
 }

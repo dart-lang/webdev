@@ -6,11 +6,9 @@ import 'dart:async';
 
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds/src/debugging/classes.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
-import 'package:dwds/src/debugging/libraries.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
@@ -18,6 +16,7 @@ import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/objects.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
 
@@ -46,7 +45,8 @@ Isolate get simpleIsolate => Isolate(
     );
 
 class FakeInspector implements AppInspector {
-  FakeInspector({required this.fakeIsolate});
+  final WebkitDebugger _remoteDebugger;
+  FakeInspector(this._remoteDebugger, {required this.fakeIsolate});
 
   Isolate fakeIsolate;
 
@@ -57,13 +57,13 @@ class FakeInspector implements AppInspector {
 
   @override
   Future<RemoteObject> callFunction(
-          String function, Iterable<String> argumentIds) async =>
+    String function,
+    Iterable<String> argumentIds,
+  ) async =>
       RemoteObject({'type': 'string', 'value': 'true'});
 
   @override
-  Future<void> initialize(LibraryHelper libraryHelper, ClassHelper classHelper,
-          InstanceHelper instanceHelper) async =>
-      {};
+  Future<void> initialize() async => {};
 
   @override
   Future<InstanceRef?> instanceRefFor(Object value) async =>
@@ -93,6 +93,32 @@ class FakeInspector implements AppInspector {
         name: fakeIsolate.name,
         isSystemIsolate: fakeIsolate.isSystemIsolate,
       );
+
+  @override
+  Future<List<Property>> getProperties(
+    String objectId, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
+    final response = await _remoteDebugger.sendCommand(
+      'Runtime.getProperties',
+      params: {
+        'objectId': objectId,
+        'ownProperties': true,
+      },
+    );
+    final result = response.result?['result'];
+    return result
+        .map<Property>((each) => Property(each as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  bool isDisplayableObject(Object? object) => true;
+
+  @override
+  bool isNativeJsError(InstanceRef instanceRef) => false;
 }
 
 class FakeSseConnection implements SseSocketConnection {
@@ -163,6 +189,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
       (String _) => '',
       (MetadataProvider _) async => <String, ModuleInfo>{},
       FakeAssetReader(),
+      Uri.parse('package:fakeapp/main.dart'),
     );
   }
 
@@ -203,8 +230,10 @@ class FakeWebkitDebugger implements WebkitDebugger {
   int resultsReturned = 0;
 
   @override
-  Future<WipResponse> sendCommand(String command,
-      {Map<String, dynamic>? params}) async {
+  Future<WipResponse> sendCommand(
+    String command, {
+    Map<String, dynamic>? params,
+  }) async {
     // Force the results that we expect for looking up the variables.
     if (command == 'Runtime.getProperties') {
       return results[resultsReturned++];
@@ -244,19 +273,25 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Stream<WipConnection> get onClose => Stream.empty();
 
   @override
-  Future<RemoteObject> evaluate(String expression,
-          {bool? returnByValue, int? contextId}) async =>
+  Future<RemoteObject> evaluate(
+    String expression, {
+    bool? returnByValue,
+    int? contextId,
+  }) async =>
       RemoteObject({});
 
   @override
   Future<RemoteObject> evaluateOnCallFrame(
-      String callFrameId, String expression) async {
+    String callFrameId,
+    String expression,
+  ) async {
     return RemoteObject(<String, dynamic>{});
   }
 
   @override
   Future<List<WipBreakLocation>> getPossibleBreakpoints(
-          WipLocation start) async =>
+    WipLocation start,
+  ) async =>
       [];
 
   @override
@@ -305,6 +340,9 @@ class FakeStrategy implements LoadStrategy {
   String get loadModuleSnippet => '';
 
   @override
+  Uri? get appEntrypoint => Uri.parse('package:myapp/main.dart');
+
+  @override
   ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
 
   @override
@@ -312,7 +350,9 @@ class FakeStrategy implements LoadStrategy {
 
   @override
   Future<String?> moduleForServerPath(
-          String entrypoint, String serverPath) async =>
+    String entrypoint,
+    String serverPath,
+  ) async =>
       '';
 
   @override
@@ -321,7 +361,9 @@ class FakeStrategy implements LoadStrategy {
 
   @override
   Future<String> sourceMapPathForModule(
-          String entrypoint, String module) async =>
+    String entrypoint,
+    String module,
+  ) async =>
       '';
 
   @override
@@ -378,14 +420,15 @@ class FakeAssetReader implements AssetReader {
 class FakeExpressionCompiler implements ExpressionCompiler {
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(
-          String isolateId,
-          String libraryUri,
-          int line,
-          int column,
-          Map<String, String> jsModules,
-          Map<String, String> jsFrameValues,
-          String moduleName,
-          String expression) async =>
+    String isolateId,
+    String libraryUri,
+    int line,
+    int column,
+    Map<String, String> jsModules,
+    Map<String, String> jsFrameValues,
+    String moduleName,
+    String expression,
+  ) async =>
       ExpressionCompilationResult(expression, false);
 
   @override

@@ -4,10 +4,9 @@
 
 import 'dart:async';
 
+import 'package:dwds/src/services/app_debug_services.dart';
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:vm_service/vm_service.dart';
-
-import '../services/app_debug_services.dart';
-import '../services/chrome_proxy_service.dart';
 
 /// A debug connection between the application in the browser and DWDS.
 ///

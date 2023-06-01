@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:async/async.dart';
+import 'package:dwds/data/extension_request.dart';
+import 'package:dwds/src/events.dart';
+import 'package:dwds/src/handlers/socket_connections.dart';
+import 'package:dwds/src/servers/extension_debugger.dart';
+import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
-
-import '../../data/extension_request.dart';
-import '../events.dart';
-import '../handlers/socket_connections.dart';
-import '../utilities/shared.dart';
-import 'extension_debugger.dart';
 
 const authenticationResponse = 'Dart Debug Authentication Success!\n\n'
     'You can close this tab and launch the Dart Debug Extension again.';
@@ -34,20 +32,28 @@ class ExtensionBackend {
   Future<void>? _closed;
 
   ExtensionBackend._(
-      SocketHandler socketHandler, this.hostname, this.port, this._server)
-      : connections = socketHandler.connections;
+    SocketHandler socketHandler,
+    this.hostname,
+    this.port,
+    this._server,
+  ) : connections = socketHandler.connections;
 
   // Starts the backend on an open port.
   static Future<ExtensionBackend> start(
-      SocketHandler socketHandler, String hostname) async {
+    SocketHandler socketHandler,
+    String hostname,
+  ) async {
     var cascade = Cascade();
     cascade = cascade.add((request) {
       if (request.url.path == authenticationPath) {
-        return Response.ok(authenticationResponse, headers: {
-          if (request.headers.containsKey('origin'))
-            'Access-Control-Allow-Origin': request.headers['origin']!,
-          'Access-Control-Allow-Credentials': 'true'
-        });
+        return Response.ok(
+          authenticationResponse,
+          headers: {
+            if (request.headers.containsKey('origin'))
+              'Access-Control-Allow-Origin': request.headers['origin']!,
+            'Access-Control-Allow-Credentials': 'true'
+          },
+        );
       }
       return Response.notFound('');
     }).add(socketHandler.handler);
@@ -57,7 +63,11 @@ class ExtensionBackend {
       emitEvent(DwdsEvent.httpRequestException('ExtensionBackend', '$e:$s'));
     });
     return ExtensionBackend._(
-        socketHandler, server.address.host, server.port, server);
+      socketHandler,
+      server.address.host,
+      server.port,
+      server,
+    );
   }
 
   Future<void> close() => _closed ??= _server.close();

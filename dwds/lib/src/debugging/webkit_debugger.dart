@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'remote_debugger.dart';
 
 /// A remote debugger with a Webkit Inspection Protocol connection.
 class WebkitDebugger implements RemoteDebugger {
@@ -26,8 +25,10 @@ class WebkitDebugger implements RemoteDebugger {
       _wipDebugger.connection.runtime.onExceptionThrown;
 
   @override
-  Future<WipResponse> sendCommand(String command,
-          {Map<String, dynamic>? params}) =>
+  Future<WipResponse> sendCommand(
+    String command, {
+    Map<String, dynamic>? params,
+  }) =>
       _wipDebugger.sendCommand(command, params: params);
 
   @override
@@ -75,15 +76,20 @@ class WebkitDebugger implements RemoteDebugger {
   Future<WipResponse> pageReload() => _wipDebugger.connection.page.reload();
 
   @override
-  Future<RemoteObject> evaluate(String expression,
-      {bool? returnByValue, int? contextId}) {
+  Future<RemoteObject> evaluate(
+    String expression, {
+    bool? returnByValue,
+    int? contextId,
+  }) {
     return _wipDebugger.connection.runtime
         .evaluate(expression, returnByValue: returnByValue);
   }
 
   @override
   Future<RemoteObject> evaluateOnCallFrame(
-      String callFrameId, String expression) {
+    String callFrameId,
+    String expression,
+  ) {
     return _wipDebugger.connection.debugger
         .evaluateOnCallFrame(callFrameId, expression);
   }
@@ -112,8 +118,9 @@ class WebkitDebugger implements RemoteDebugger {
 
   @override
   Stream<TargetCrashedEvent> get onTargetCrashed => _wipDebugger.eventStream(
-      'Inspector.targetCrashed',
-      (WipEvent event) => TargetCrashedEvent(event.json));
+        'Inspector.targetCrashed',
+        (WipEvent event) => TargetCrashedEvent(event.json),
+      );
 
   @override
   Map<String, WipScript> get scripts => _wipDebugger.scripts;

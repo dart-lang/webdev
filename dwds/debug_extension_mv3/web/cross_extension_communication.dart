@@ -27,25 +27,33 @@ final _eventsForAngularDartDevTools = {
   'dwds.encodedUri',
 };
 
-void handleMessagesFromAngularDartDevTools(
-    dynamic jsRequest, MessageSender sender, Function sendResponse) async {
+Future<void> handleMessagesFromAngularDartDevTools(
+  dynamic jsRequest,
+  // ignore: avoid-unused-parameters
+  MessageSender sender,
+  Function sendResponse,
+) async {
   if (jsRequest == null) return;
   final message = jsRequest as ExternalExtensionMessage;
   if (message.name == 'chrome.debugger.sendCommand') {
     _forwardCommandToChromeDebugger(message, sendResponse);
   } else if (message.name == 'dwds.encodedUri') {
-    _respondWithEncodedUri(message.tabId, sendResponse);
+    await _respondWithEncodedUri(message.tabId, sendResponse);
   } else if (message.name == 'dwds.startDebugging') {
-    attachDebugger(message.tabId, trigger: Trigger.angularDartDevTools);
+    await attachDebugger(message.tabId, trigger: Trigger.angularDartDevTools);
     sendResponse(true);
   } else {
     sendResponse(
-        ErrorResponse()..error = 'Unknown message name: ${message.name}');
+      ErrorResponse()..error = 'Unknown message name: ${message.name}',
+    );
   }
 }
 
-void maybeForwardMessageToAngularDartDevTools(
-    {required String method, required dynamic params, required int tabId}) {
+void maybeForwardMessageToAngularDartDevTools({
+  required String method,
+  required dynamic params,
+  required int tabId,
+}) {
   if (!_eventsForAngularDartDevTools.contains(method)) return;
 
   final message = method.startsWith('dwds')
@@ -56,7 +64,9 @@ void maybeForwardMessageToAngularDartDevTools(
 }
 
 void _forwardCommandToChromeDebugger(
-    ExternalExtensionMessage message, Function sendResponse) {
+  ExternalExtensionMessage message,
+  Function sendResponse,
+) {
   try {
     final options = message.options as SendCommandOptions;
     chrome.debugger.sendCommand(
@@ -64,7 +74,8 @@ void _forwardCommandToChromeDebugger(
       options.method,
       options.commandParams,
       allowInterop(
-          ([result]) => _respondWithChromeResult(result, sendResponse)),
+        ([result]) => _respondWithChromeResult(result, sendResponse),
+      ),
     );
   } catch (e) {
     sendResponse(ErrorResponse()..error = '$e');
@@ -74,18 +85,22 @@ void _forwardCommandToChromeDebugger(
 void _respondWithChromeResult(Object? chromeResult, Function sendResponse) {
   // No result indicates that an error occurred.
   if (chromeResult == null) {
-    sendResponse(ErrorResponse()
-      ..error = JSON.stringify(
-        chrome.runtime.lastError ?? 'Unknown error.',
-      ));
+    sendResponse(
+      ErrorResponse()
+        ..error = JSON.stringify(
+          chrome.runtime.lastError ?? 'Unknown error.',
+        ),
+    );
   } else {
     sendResponse(chromeResult);
   }
 }
 
-void _respondWithEncodedUri(int tabId, Function sendResponse) async {
+Future<void> _respondWithEncodedUri(int tabId, Function sendResponse) async {
   final encodedUri = await fetchStorageObject<String>(
-      type: StorageObject.encodedUri, tabId: tabId);
+    type: StorageObject.encodedUri,
+    tabId: tabId,
+  );
   sendResponse(encodedUri ?? '');
 }
 
@@ -93,7 +108,8 @@ void _forwardMessageToAngularDartDevTools(ExternalExtensionMessage message) {
   chrome.runtime.sendMessage(
     _angularDartDevToolsId,
     message,
-    /* options */ null,
+    // options
+    null,
     allowInterop(([result]) => _checkForErrors(result, message.name)),
   );
 }
@@ -136,8 +152,11 @@ class ExternalExtensionMessage {
   external int get tabId;
   external String get name;
   external dynamic get options;
-  external factory ExternalExtensionMessage(
-      {required int tabId, required String name, required dynamic options});
+  external factory ExternalExtensionMessage({
+    required int tabId,
+    required String name,
+    required dynamic options,
+  });
 }
 
 @JS()

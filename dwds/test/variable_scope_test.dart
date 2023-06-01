@@ -4,54 +4,89 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
-import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/utilities.dart';
-
-final context = TestContext.withSoundNullSafety(
-  webAssetsPath: webCompatiblePath(['example', 'scopes']),
-  dartEntryFileName: 'main.dart',
-  htmlEntryFileName: 'scopes.html',
-);
-ChromeProxyService get service =>
-    fetchChromeProxyService(context.debugConnection);
-WipConnection get tabConnection => context.tabConnection;
+import 'fixtures/project.dart';
 
 void main() {
+  // set to true for debug logging.
+  final debug = false;
+
+  final provider = TestSdkConfigurationProvider(verbose: debug);
+  tearDownAll(provider.dispose);
+
+  final context =
+      TestContext(TestProject.testScopesWithSoundNullSafety, provider);
+
   setUpAll(() async {
-    await context.setUp();
+    setCurrentLogWriter(debug: debug);
+    await context.setUp(verboseCompiler: debug);
   });
 
   tearDownAll(() async {
     await context.tearDown();
   });
 
-  group('ddcTemporaryVariableRegExp', () {
-    test('matches correctly', () {
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't4$'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't4$0'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't4$10'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't4$0'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't1'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't10'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r'__t$TL'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r'__t$StringN'), isTrue);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r'__t$IdentityMapOfString$T'),
-          isTrue);
+  group('temporary variable regular expression', () {
+    setUpAll(() => setCurrentLogWriter(debug: debug));
+    test('matches correctly for pre-patterns temporary variables', () {
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't4$'), isTrue);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't4$0'), isTrue);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't4$10'), isTrue);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't4$0'), isTrue);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't1'), isTrue);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't10'), isTrue);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r'__t$TL'), isTrue);
+      expect(
+        previousDdcTemporaryVariableRegExp.hasMatch(r'__t$StringN'),
+        isTrue,
+      );
+      expect(
+        previousDdcTemporaryVariableRegExp
+            .hasMatch(r'__t$IdentityMapOfString$T'),
+        isTrue,
+      );
+
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't'), isFalse);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't10foo'), isFalse);
+      expect(previousDdcTemporaryVariableRegExp.hasMatch(r't$10foo'), isFalse);
+    });
+
+    test('matches correctly for post-patterns temporary variables', () {
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't$364$'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't$364$0'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't$364$10'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't$364$0'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't$361'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't$36$350$350'), isTrue);
+      expect(
+        ddcTemporaryVariableRegExp.hasMatch(r't$36$350$354$35isSet'),
+        isTrue,
+      );
+      expect(ddcTemporaryTypeVariableRegExp.hasMatch(r'__t$TL'), isTrue);
+      expect(ddcTemporaryTypeVariableRegExp.hasMatch(r'__t$StringN'), isTrue);
+      expect(
+        ddcTemporaryTypeVariableRegExp.hasMatch(r'__t$IdentityMapOfString$T'),
+        isTrue,
+      );
 
       expect(ddcTemporaryVariableRegExp.hasMatch(r't'), isFalse);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r'this'), isFalse);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r'\$this'), isFalse);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't10'), isFalse);
       expect(ddcTemporaryVariableRegExp.hasMatch(r't10foo'), isFalse);
-      expect(ddcTemporaryVariableRegExp.hasMatch(r't$10foo'), isFalse);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r'ten'), isFalse);
     });
   });
 
   group('variable scope', () {
+    late ChromeProxyService service;
     VM vm;
     String? isolateId;
     late Stream<Event> stream;
@@ -86,18 +121,20 @@ void main() {
 
     void expectDartObject(String variableName, Instance instance) {
       expect(
-          instance,
-          isA<Instance>().having(
-              (instance) => instance.classRef!.name,
-              '$variableName: classRef.name',
-              isNot(isIn([
-                'NativeJavaScriptObject',
-                'JavaScriptObject',
-              ]))));
+        instance,
+        isA<Instance>().having(
+          (instance) => instance.classRef!.name,
+          '$variableName: classRef.name',
+          isNot(
+            isIn(['NativeJavaScriptObject', 'JavaScriptObject', 'NativeError']),
+          ),
+        ),
+      );
     }
 
     Future<void> expectDartVariables(
-        Map<String?, InstanceRef?> variables) async {
+      Map<String?, InstanceRef?> variables,
+    ) async {
       for (var name in variables.keys) {
         final instance = await getInstance(variables[name]!);
         expectDartObject(name!, instance);
@@ -111,7 +148,10 @@ void main() {
       };
     }
 
+    setUpAll(() => setCurrentLogWriter(debug: debug));
+
     setUp(() async {
+      service = context.service;
       vm = await service.getVM();
       isolateId = vm.isolates!.first.id;
       scripts = await service.getScripts(isolateId!);
@@ -141,17 +181,18 @@ void main() {
 
       final variableNames = variables.keys.toList()..sort();
       expect(
-          variableNames,
-          containsAll([
-            'aClass',
-            'another',
-            'intLocalInMain',
-            'local',
-            'localThatsNull',
-            'nestedFunction',
-            'parameter',
-            'testClass'
-          ]));
+        variableNames,
+        containsAll([
+          'aClass',
+          'another',
+          'intLocalInMain',
+          'local',
+          'localThatsNull',
+          'nestedFunction',
+          'parameter',
+          'testClass'
+        ]),
+      );
     });
 
     test('variables in closure nested in method', () async {
@@ -160,8 +201,10 @@ void main() {
       await expectDartVariables(variables);
 
       final variableNames = variables.keys.toList()..sort();
-      expect(variableNames,
-          ['closureLocalInsideMethod', 'local', 'parameter', 'this']);
+      expect(
+        variableNames,
+        ['closureLocalInsideMethod', 'local', 'parameter', 'this'],
+      );
     });
 
     test('variables in method', () async {

@@ -40,10 +40,11 @@ abstract class DevToolsRequest
   /// correct `dartAppInstanceId` automatically.
   String? get tabUrl;
 
-  /// If this is a uri only request.
+  /// Designates this as a request to send back the DevTools URI instead of
+  /// opening DevTools in a new tab or window.
   ///
-  /// Only available on requests coming from dart debug extension.
-  /// If true, DevTools should open in an embedded Chrome DevTools tab.
+  /// Only available on requests coming from the Dart Debug Extension. Is `null`
+  /// for local debug service.
   bool? get uriOnly;
 }
 

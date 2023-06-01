@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/readers/asset_reader.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:shelf/shelf.dart';
-
-import '../debugging/metadata/provider.dart';
-import '../loaders/strategy.dart';
-import '../readers/asset_reader.dart';
-import '../services/expression_compiler.dart';
 
 /// A load strategy for the legacy module system.
 class LegacyStrategy extends LoadStrategy {
@@ -21,8 +20,9 @@ class LegacyStrategy extends LoadStrategy {
   /// /packages/path/path.ddc.js -> packages/path/path
   ///
   final Future<String?> Function(
-          MetadataProvider metadataProvider, String sourcePath)
-      _moduleForServerPath;
+    MetadataProvider metadataProvider,
+    String sourcePath,
+  ) _moduleForServerPath;
 
   /// Returns a map from module id to module info.
   ///
@@ -31,7 +31,8 @@ class LegacyStrategy extends LoadStrategy {
   ///   web/main -> {main.ddc.full.dill, main.ddc.dill}
   ///
   final Future<Map<String, ModuleInfo>> Function(
-      MetadataProvider metadataProvider) _moduleInfoForProvider;
+    MetadataProvider metadataProvider,
+  ) _moduleInfoForProvider;
 
   /// Returns the server path for the provided module.
   ///
@@ -40,7 +41,9 @@ class LegacyStrategy extends LoadStrategy {
   ///   web/main -> main.ddc.js
   ///
   final Future<String?> Function(
-      MetadataProvider metadataProvider, String module) _serverPathForModule;
+    MetadataProvider metadataProvider,
+    String module,
+  ) _serverPathForModule;
 
   /// Returns the source map path for the provided module.
   ///
@@ -49,7 +52,9 @@ class LegacyStrategy extends LoadStrategy {
   ///   web/main -> main.ddc.js.map
   ///
   final Future<String?> Function(
-      MetadataProvider metadataProvider, String module) _sourceMapPathForModule;
+    MetadataProvider metadataProvider,
+    String module,
+  ) _sourceMapPathForModule;
 
   /// Returns the server path for the app uri.
   ///
@@ -61,6 +66,8 @@ class LegacyStrategy extends LoadStrategy {
   /// an app URI.
   final String? Function(String appUri) _serverPathForAppUri;
 
+  final Uri? _appEntrypoint;
+
   LegacyStrategy(
     this.reloadConfiguration,
     this._moduleForServerPath,
@@ -69,6 +76,7 @@ class LegacyStrategy extends LoadStrategy {
     this._serverPathForAppUri,
     this._moduleInfoForProvider,
     AssetReader assetReader,
+    this._appEntrypoint,
   ) : super(assetReader);
 
   @override
@@ -101,8 +109,7 @@ class LegacyStrategy extends LoadStrategy {
       'window.\$dartLoader.forceLoadModule("$clientScript");\n';
 
   @override
-  Future<String?> moduleForServerPath(
-          String entrypoint, String serverPath) async =>
+  Future<String?> moduleForServerPath(String entrypoint, String serverPath) =>
       _moduleForServerPath(metadataProviderFor(entrypoint), serverPath);
 
   @override
@@ -110,14 +117,16 @@ class LegacyStrategy extends LoadStrategy {
       _moduleInfoForProvider(metadataProviderFor(entrypoint));
 
   @override
-  Future<String?> serverPathForModule(String entrypoint, String module) async =>
+  Future<String?> serverPathForModule(String entrypoint, String module) =>
       _serverPathForModule(metadataProviderFor(entrypoint), module);
 
   @override
-  Future<String?> sourceMapPathForModule(
-          String entrypoint, String module) async =>
+  Future<String?> sourceMapPathForModule(String entrypoint, String module) =>
       _sourceMapPathForModule(metadataProviderFor(entrypoint), module);
 
   @override
   String? serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);
+
+  @override
+  Uri? get appEntrypoint => _appEntrypoint;
 }

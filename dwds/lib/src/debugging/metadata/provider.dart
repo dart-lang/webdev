@@ -1,16 +1,14 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.import 'dart:async';
+// BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:async/async.dart';
+import 'package:dwds/src/debugging/metadata/module_metadata.dart';
+import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-
-import '../../readers/asset_reader.dart';
-import 'module_metadata.dart';
 
 /// A provider of metadata in which data is collected through DDC outputs.
 class MetadataProvider {

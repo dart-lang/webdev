@@ -9,7 +9,7 @@ import 'dart:html';
 /// More specifically, the script has the correct `nonce` value set.
 final ScriptElement Function() _createScript = (() {
   final nonce = _findNonce();
-  if (nonce == null) return () => ScriptElement();
+  if (nonce == null) return ScriptElement.new;
 
   return () => ScriptElement()..setAttribute('nonce', nonce);
 })();

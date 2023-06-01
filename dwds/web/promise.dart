@@ -19,15 +19,18 @@ class Promise<T> {
   /// reject the promise, respectively. If an error is thrown in the executor
   /// function, the promise is rejected.
   external Promise(
-      void Function(void Function(T) resolve, void Function(dynamic) reject)
-          executor);
+    void Function(void Function(T) resolve, void Function(dynamic) reject)
+        executor,
+  );
 
   /// Appends fulfillment and rejection handlers to the promise.
   ///
   /// Returns a new promise resolving to the return value of the called handler,
   /// or to its original settled value if the promise was not handled.
-  external Promise<dynamic> then(dynamic Function(T value) onSuccess,
-      [dynamic Function(dynamic reason) onError]);
+  external Promise<dynamic> then(
+    dynamic Function(T value) onSuccess, [
+    dynamic Function(dynamic reason) onError,
+  ]);
 }
 
 /// Returns a [Promise] that resolves once the given [future] resolves.
@@ -35,9 +38,10 @@ class Promise<T> {
 /// This also propagates errors to the returned [Promise].
 Promise<T> toPromise<T>(Future<T> future) {
   return Promise(
-      allowInterop((void Function(T) resolve, void Function(dynamic) reject) {
-    future.then(resolve).catchError(reject);
-  }));
+    allowInterop((void Function(T) resolve, void Function(dynamic) reject) {
+      future.then(resolve).catchError(reject);
+    }),
+  );
 }
 
 /// Returns a [Future] that resolves once the given [promise] resolves.
@@ -47,7 +51,8 @@ Future<T> toFuture<T>(Promise<T> promise) {
   final completer = Completer<T>();
   promise.then(
     allowInterop(completer.complete),
-    allowInterop((e) => completer.completeError(e)),
+    // TODO(annagrin): propagate stack trace from promise instead.
+    allowInterop((e) => completer.completeError(e, StackTrace.current)),
   );
   return completer.future;
 }

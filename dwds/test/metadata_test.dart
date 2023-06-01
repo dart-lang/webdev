@@ -45,8 +45,10 @@ void main() {
       'foo.bootstrap.js',
       FakeAssetReader(metadata: _emptySourceMetadata),
     );
-    expect(await provider.libraries,
-        contains('org-dartlang-app:///web/main.dart'));
+    expect(
+      await provider.libraries,
+      contains('org-dartlang-app:///web/main.dart'),
+    );
     expect(await provider.soundNullSafety, isNotNull);
   });
 
@@ -55,8 +57,10 @@ void main() {
       'foo.bootstrap.js',
       FakeAssetReader(metadata: _noNullSafetyMetadata),
     );
-    expect(await provider.libraries,
-        contains('org-dartlang-app:///web/main.dart'));
+    expect(
+      await provider.libraries,
+      contains('org-dartlang-app:///web/main.dart'),
+    );
     expect(await provider.soundNullSafety, false);
   });
 
@@ -65,8 +69,10 @@ void main() {
       'foo.bootstrap.js',
       FakeAssetReader(metadata: _fileUriMetadata),
     );
-    await expectLater(provider.libraries,
-        throwsA(const TypeMatcher<AbsoluteImportUriException>()));
+    await expectLater(
+      provider.libraries,
+      throwsA(const TypeMatcher<AbsoluteImportUriException>()),
+    );
   });
 
   test('creates metadata from json', () async {

@@ -1,6 +1,6 @@
 name: webdev
 # Every time this changes you need to run `dart run build_runner build`.
-version: 3.0.0
+version: 3.0.5-wip
 # We should not depend on a dev SDK before publishing.
 # publish_to: none
 description: >-
@@ -9,18 +9,18 @@ description: >-
 repository: https://github.com/dart-lang/webdev/tree/master/webdev
 
 environment:
-  sdk: ">=3.0.0-134.0.dev <4.0.0"
+  sdk: ">=3.0.0-188.0.dev <4.0.0"
 
 dependencies:
   args: ^2.3.1
   async: ^2.9.0
-  build_daemon: ^3.1.0
+  build_daemon: ^4.0.0
   browser_launcher: ^1.1.0
   collection: ^1.15.0
   crypto: ^3.0.2
   dds: ^2.2.0
   # Pin DWDS to avoid dependency conflicts with vm_service:
-  dwds: 17.0.0
+  dwds: 19.0.0
   http: ^0.13.4
   http_multi_server: ^3.2.0
   io: ^1.0.3
@@ -45,14 +45,11 @@ dev_dependencies:
   build_verify: ^3.0.0
   build_version: ^2.1.1
   test: ^1.21.1
+  test_common:
+    path: ../test_common
   test_descriptor: ^2.0.0
   test_process: ^2.0.2
   webdriver: ^3.0.0
-
-# Comment out before releasing webdev.
-# dependency_overrides:
-#   dwds:
-#     path: ../dwds
 
 executables:
   webdev:

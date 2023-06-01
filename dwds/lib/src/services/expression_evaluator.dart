@@ -2,31 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/debugging/dart_scope.dart';
+import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/modules.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/objects.dart' as chrome;
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../debugging/dart_scope.dart';
-import '../debugging/debugger.dart';
-import '../debugging/location.dart';
-import '../debugging/modules.dart';
-import '../loaders/strategy.dart';
-import '../utilities/objects.dart' as chrome;
-import 'expression_compiler.dart';
+class EvaluationErrorKind {
+  EvaluationErrorKind._();
 
-class ErrorKind {
-  const ErrorKind._(this._kind);
-
-  final String _kind;
-  static const ErrorKind compilation = ErrorKind._('CompilationError');
-  static const ErrorKind type = ErrorKind._('TypeError');
-  static const ErrorKind reference = ErrorKind._('ReferenceError');
-  static const ErrorKind internal = ErrorKind._('InternalError');
-  static const ErrorKind invalidInput = ErrorKind._('InvalidInputError');
-  static const ErrorKind loadModule = ErrorKind._('LoadModuleError');
-
-  @override
-  String toString() => _kind;
+  static const compilation = 'CompilationError';
+  static const type = 'TypeError';
+  static const reference = 'ReferenceError';
+  static const internal = 'InternalError';
+  static const asyncFrame = 'AsyncFrameError';
+  static const invalidInput = 'InvalidInputError';
+  static const loadModule = 'LoadModuleError';
 }
 
 /// ExpressionEvaluator provides functionality to evaluate dart expressions
@@ -54,12 +50,22 @@ class ExpressionEvaluator {
   static final _loadModuleErrorRegex =
       RegExp(r".*Failed to load '.*\.com/(.*\.js).*");
 
-  ExpressionEvaluator(this._entrypoint, this._inspector, this._debugger,
-      this._locations, this._modules, this._compiler);
+  ExpressionEvaluator(
+    this._entrypoint,
+    this._inspector,
+    this._debugger,
+    this._locations,
+    this._modules,
+    this._compiler,
+  );
 
-  RemoteObject createError(ErrorKind severity, String message) {
+  /// Create and error with [severity] and [message]
+  ///
+  /// [severity] is one of kinds in [EvaluationErrorKind]
+  RemoteObject createError(String severity, String message) {
     return RemoteObject(
-        <String, String>{'type': '$severity', 'value': message});
+      <String, String>{'type': severity, 'value': message},
+    );
   }
 
   void close() {
@@ -84,22 +90,34 @@ class ExpressionEvaluator {
     Map<String, String>? scope,
   ) async {
     if (_closed) {
-      return createError(ErrorKind.internal, 'expression evaluator closed.');
+      return createError(
+        EvaluationErrorKind.internal,
+        'expression evaluator closed.',
+      );
     }
 
     scope ??= {};
 
     if (expression.isEmpty) {
-      return createError(ErrorKind.invalidInput, expression);
+      return createError(
+        EvaluationErrorKind.invalidInput,
+        expression,
+      );
     }
 
     if (libraryUri == null) {
-      return createError(ErrorKind.invalidInput, 'no library uri');
+      return createError(
+        EvaluationErrorKind.invalidInput,
+        'no library uri',
+      );
     }
 
     final module = await _modules.moduleForLibrary(libraryUri);
     if (module == null) {
-      return createError(ErrorKind.internal, 'no module for $libraryUri');
+      return createError(
+        EvaluationErrorKind.internal,
+        'no module for $libraryUri',
+      );
     }
 
     // Wrap the expression in a lambda so we can call it as a function.
@@ -109,7 +127,15 @@ class ExpressionEvaluator {
     // Compile expression using an expression compiler, such as
     // frontend server or expression compiler worker.
     final compilationResult = await _compiler.compileExpressionToJs(
-        isolateId, libraryUri.toString(), 0, 0, {}, {}, module, expression);
+      isolateId,
+      libraryUri.toString(),
+      0,
+      0,
+      {},
+      {},
+      module,
+      expression,
+    );
 
     final isError = compilationResult.isError;
     final jsResult = compilationResult.result;
@@ -142,26 +168,30 @@ class ExpressionEvaluator {
   /// [isolateId] current isolate ID.
   /// [frameIndex] JavaScript frame to evaluate the expression in.
   /// [expression] dart expression to evaluate.
-  Future<RemoteObject> evaluateExpressionInFrame(String isolateId,
-      int frameIndex, String expression, Map<String, String>? scope) async {
-    if (scope != null) {
+  Future<RemoteObject> evaluateExpressionInFrame(
+    String isolateId,
+    int frameIndex,
+    String expression,
+    Map<String, String>? scope,
+  ) async {
+    if (scope != null && scope.isNotEmpty) {
       // TODO(annagrin): Implement scope support.
       // Issue: https://github.com/dart-lang/webdev/issues/1344
       return createError(
-          ErrorKind.internal,
+          EvaluationErrorKind.internal,
           'Using scope for expression evaluation in frame '
           'is not supported.');
     }
 
     if (expression.isEmpty) {
-      return createError(ErrorKind.invalidInput, expression);
+      return createError(EvaluationErrorKind.invalidInput, expression);
     }
 
     // Get JS scope and current JS location.
     final jsFrame = _debugger.jsFrameForIndex(frameIndex);
     if (jsFrame == null) {
       return createError(
-          ErrorKind.internal,
+          EvaluationErrorKind.asyncFrame,
           'Expression evaluation in async frames '
           'is not supported. No frame with index $frameIndex.');
     }
@@ -176,12 +206,14 @@ class ExpressionEvaluator {
     final url = _debugger.urlForScriptId(jsScriptId);
     if (url == null) {
       return createError(
-          ErrorKind.internal, 'Cannot find url for JS script: $jsScriptId');
+        EvaluationErrorKind.internal,
+        'Cannot find url for JS script: $jsScriptId',
+      );
     }
     final locationMap = await _locations.locationForJs(url, jsLine, jsColumn);
     if (locationMap == null) {
       return createError(
-          ErrorKind.internal,
+          EvaluationErrorKind.internal,
           'Cannot find Dart location for JS location: '
           'url: $url, '
           'function: $functionName, '
@@ -194,13 +226,17 @@ class ExpressionEvaluator {
     final libraryUri = await _modules.libraryForSource(dartSourcePath);
     if (libraryUri == null) {
       return createError(
-          ErrorKind.internal, 'no libraryUri for $dartSourcePath');
+        EvaluationErrorKind.internal,
+        'no libraryUri for $dartSourcePath',
+      );
     }
 
     final module = await _modules.moduleForLibrary(libraryUri.toString());
     if (module == null) {
       return createError(
-          ErrorKind.internal, 'no module for $libraryUri ($dartSourcePath)');
+        EvaluationErrorKind.internal,
+        'no module for $libraryUri ($dartSourcePath)',
+      );
     }
 
     _logger.finest('Evaluating "$expression" at $module, '
@@ -208,15 +244,20 @@ class ExpressionEvaluator {
 
     // Compile expression using an expression compiler, such as
     // frontend server or expression compiler worker.
+    //
+    // TODO(annagrin): map JS locals to dart locals in the expression
+    // and JS scope before passing them to the dart expression compiler.
+    // Issue:  https://github.com/dart-lang/sdk/issues/40273
     final compilationResult = await _compiler.compileExpressionToJs(
-        isolateId,
-        libraryUri.toString(),
-        dartLocation.line,
-        dartLocation.column,
-        {},
-        jsScope,
-        module,
-        expression);
+      isolateId,
+      libraryUri.toString(),
+      dartLocation.line,
+      dartLocation.column,
+      {},
+      jsScope,
+      module,
+      expression,
+    );
 
     final isError = compilationResult.isError;
     final jsResult = compilationResult.result;
@@ -254,10 +295,10 @@ class ExpressionEvaluator {
     }
     if (error.contains('InternalError: ')) {
       error = error.replaceAll('InternalError: ', '');
-      return createError(ErrorKind.internal, error);
+      return createError(EvaluationErrorKind.internal, error);
     }
     error = error.replaceAll(_syntheticNameFilterRegex, '');
-    return createError(ErrorKind.compilation, error);
+    return createError(EvaluationErrorKind.compilation, error);
   }
 
   Future<RemoteObject> _formatEvaluationError(RemoteObject result) async {
@@ -265,21 +306,23 @@ class ExpressionEvaluator {
       var error = '${result.value}';
       if (error.startsWith('ReferenceError: ')) {
         error = error.replaceFirst('ReferenceError: ', '');
-        return createError(ErrorKind.reference, error);
+        return createError(EvaluationErrorKind.reference, error);
       } else if (error.startsWith('TypeError: ')) {
         error = error.replaceFirst('TypeError: ', '');
-        return createError(ErrorKind.type, error);
+        return createError(EvaluationErrorKind.type, error);
       } else if (error.startsWith('NetworkError: ')) {
         var modulePath = _loadModuleErrorRegex.firstMatch(error)?.group(1);
         final module = modulePath != null
             ? await globalLoadStrategy.moduleForServerPath(
-                _entrypoint, modulePath)
+                _entrypoint,
+                modulePath,
+              )
             : 'unknown';
         modulePath ??= 'unknown';
         error = 'Module is not loaded : $module (path: $modulePath). '
             'Accessing libraries that have not yet been used in the '
             'application is not supported during expression evaluation.';
-        return createError(ErrorKind.loadModule, error);
+        return createError(EvaluationErrorKind.loadModule, error);
       }
     }
     return result;
@@ -289,7 +332,8 @@ class ExpressionEvaluator {
     final jsScope = <String, String>{};
 
     void collectVariables(
-        String scopeType, Iterable<chrome.Property> variables) {
+      Iterable<chrome.Property> variables,
+    ) {
       for (var p in variables) {
         final name = p.name;
         final value = p.value;
@@ -306,8 +350,8 @@ class ExpressionEvaluator {
     for (var scope in scopeChain) {
       final objectId = scope.object.objectId;
       if (objectId != null) {
-        final scopeProperties = await _debugger.getProperties(objectId);
-        collectVariables(scope.scope, scopeProperties);
+        final scopeProperties = await _inspector.getProperties(objectId);
+        collectVariables(scopeProperties);
       }
     }
 
@@ -353,7 +397,9 @@ class ExpressionEvaluator {
   }
 
   String _createJsLambdaWithTryCatch(
-      String expression, Iterable<String> params) {
+    String expression,
+    Iterable<String> params,
+  ) {
     final args = params.join(', ');
     return '  '
         '  function($args) {\n'

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'location.dart';
+import 'package:dwds/src/debugging/location.dart';
 
 const maxValue = 2147483647;
 
@@ -18,10 +18,10 @@ class SkipLists {
   /// https://chromedevtools.github.io/devtools-protocol/tot/Debugger/#method-stepInto
   ///
   /// Can return a cached value.
-  Future<List<Map<String, dynamic>>> compute(
+  List<Map<String, dynamic>> compute(
     String scriptId,
     Set<Location> locations,
-  ) async {
+  ) {
     if (_idToList.containsKey(scriptId)) return _idToList[scriptId]!;
 
     final sortedLocations = locations.toList()
@@ -42,7 +42,8 @@ class SkipLists {
       if (endLine > startLine || endColumn > startColumn) {
         if (endLine >= startLine) {
           ranges.add(
-              _rangeFor(scriptId, startLine, startColumn, endLine, endColumn));
+            _rangeFor(scriptId, startLine, startColumn, endLine, endColumn),
+          );
         }
         startLine = location.jsLocation.line;
         startColumn = location.jsLocation.column + 1;

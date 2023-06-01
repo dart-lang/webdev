@@ -18,8 +18,12 @@ void main() {
   var pubCommand =
       sdkVersion.compareTo(firstSdkVersionWithoutPub) < 0 ? 'pub' : 'dart pub';
 
+  final testRunner = TestRunner();
+  setUpAll(testRunner.setUpAll);
+  tearDownAll(testRunner.tearDownAll);
+
   test('non-existant commands create errors', () async {
-    var process = await runWebDev(['monkey']);
+    var process = await testRunner.runWebDev(['monkey']);
 
     await expectLater(
         process.stdout, emits('Could not find a command named "monkey".'));
@@ -28,7 +32,7 @@ void main() {
   });
 
   test('passing extra args to build fails with bad usage', () async {
-    var process = await runWebDev(['build', 'extra', 'args']);
+    var process = await testRunner.runWebDev(['build', 'extra', 'args']);
 
     await expectLater(process.stdout,
         emits('Arguments were provided that are not supported: "extra args".'));
@@ -38,9 +42,7 @@ void main() {
 
   test('Errors with `build_runner` should not surface `build_daemon` issues',
       () async {
-    await d.file('pubspec.yaml', '''
-name: sample
-''').create();
+    await d.file('pubspec.yaml', _pubspecYaml).create();
 
     await d
         .file(
@@ -52,10 +54,10 @@ name: sample
         .create();
 
     await d.dir('.dart_tool', [d.file('package_config.json', '')]).create();
-    await d.file('.dart_tool/package_config.json', '''
-''').create();
+    await d.file('.dart_tool/package_config.json', '').create();
 
-    var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
+    var process =
+        await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
 
     var output = await process.stdout.rest.toList();
 
@@ -67,16 +69,14 @@ name: sample
   var invalidRanges = <String, List<String>>{
     'build_runner': ['0.8.9', '3.0.0'],
     'build_web_compilers': ['0.3.5', '5.0.0'],
-    'build_daemon': ['0.3.0', '4.0.0'],
+    'build_daemon': ['0.3.0', '5.0.0'],
   };
 
   for (var command in ['build', 'serve', 'daemon']) {
     group('`$command` command', () {
       group('missing dependency on', () {
         test('`build_runner` should fail', () async {
-          await d.file('pubspec.yaml', '''
-name: sample
-''').create();
+          await d.file('pubspec.yaml', _pubspecYaml).create();
 
           await d
               .file('pubspec.lock', _pubspecLock(runnerVersion: null))
@@ -84,10 +84,10 @@ name: sample
 
           await d
               .dir('.dart_tool', [d.file('package_config.json', '')]).create();
-          await d.file('.dart_tool/package_config.json', '''
-''').create();
+          await d.file('.dart_tool/package_config.json', '').create();
 
-          var process = await runWebDev([command], workingDirectory: d.sandbox);
+          var process = await testRunner
+              .runWebDev([command], workingDirectory: d.sandbox);
 
           await checkProcessStdout(process, [
             'webdev could not run for this project.',
@@ -97,9 +97,7 @@ name: sample
         });
 
         test('`build_web_compilers` should fail', () async {
-          await d.file('pubspec.yaml', '''
-name: sample
-''').create();
+          await d.file('pubspec.yaml', _pubspecYaml).create();
 
           await d
               .file('pubspec.lock', _pubspecLock(webCompilersVersion: null))
@@ -107,10 +105,10 @@ name: sample
 
           await d
               .dir('.dart_tool', [d.file('package_config.json', '')]).create();
-          await d.file('.dart_tool/package_config.json', '''
-''').create();
+          await d.file('.dart_tool/package_config.json', '').create();
 
-          var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
+          var process = await testRunner
+              .runWebDev(['serve'], workingDirectory: d.sandbox);
 
           await checkProcessStdout(process, [
             'webdev could not run for this project.',
@@ -122,9 +120,7 @@ name: sample
         test(
             '`build_web_compilers` should be ignored with '
             '--no-build-web-compilers', () async {
-          await d.file('pubspec.yaml', '''
-name: sample
-''').create();
+          await d.file('pubspec.yaml', _pubspecYaml).create();
 
           await d
               .file('pubspec.lock', _pubspecLock(webCompilersVersion: null))
@@ -132,13 +128,13 @@ name: sample
 
           await d
               .dir('.dart_tool', [d.file('package_config.json', '')]).create();
-          await d.file('.dart_tool/package_config.json', '''
-''').create();
+          await d.file('.dart_tool/package_config.json', '').create();
 
           // Required for webdev to not complain about nothing to serve.
           await d.dir('web').create();
 
-          var process = await runWebDev(['serve', '--no-build-web-compilers'],
+          var process = await testRunner.runWebDev(
+              ['serve', '--no-build-web-compilers'],
               workingDirectory: d.sandbox);
 
           // Fails since this is a fake package
@@ -166,12 +162,10 @@ name: sample
                   break;
                 case 'build_daemon':
                   buildDaemonVersion = version;
-                  supportedRange = '>=$_supportedBuildDaemonVersion <4.0.0';
+                  supportedRange = '^$_supportedBuildDaemonVersion';
               }
 
-              await d.file('pubspec.yaml', '''
-name: sample
-''').create();
+              await d.file('pubspec.yaml', _pubspecYaml).create();
 
               await d
                   .file(
@@ -184,11 +178,10 @@ name: sample
 
               await d.dir(
                   '.dart_tool', [d.file('package_config.json', '')]).create();
-              await d.file('.dart_tool/package_config.json', '''
-''').create();
+              await d.file('.dart_tool/package_config.json', '').create();
 
-              var process =
-                  await runWebDev(['serve'], workingDirectory: d.sandbox);
+              var process = await testRunner
+                  .runWebDev(['serve'], workingDirectory: d.sandbox);
 
               if (entry.key == 'build_daemon') {
                 await checkProcessStdout(process, [
@@ -212,7 +205,8 @@ name: sample
       }
 
       test('no pubspec.yaml', () async {
-        var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
+        var process =
+            await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
 
         await checkProcessStdout(process, [
           'webdev could not run for this project.',
@@ -221,19 +215,22 @@ name: sample
         await process.shouldExit(78);
       });
 
-      test('pubspec.yaml, no pubspec.lock', () async {
-        await d.file('pubspec.yaml', '''
-name: sample
-''').create();
+      test(
+        'pubspec.yaml, no pubspec.lock',
+        () async {
+          await d.file('pubspec.yaml', _pubspecYaml).create();
 
-        var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
+          var process = await testRunner
+              .runWebDev(['serve'], workingDirectory: d.sandbox);
 
-        await checkProcessStdout(process, [
-          'webdev could not run for this project.',
-          'No pubspec.lock file found, please run "$pubCommand get" first.'
-        ]);
-        await process.shouldExit(78);
-      });
+          await checkProcessStdout(process, [
+            'webdev could not run for this project.',
+            'No pubspec.lock file found, please run "$pubCommand get" first.'
+          ]);
+          await process.shouldExit(78);
+        },
+        skip: 'https://github.com/dart-lang/webdev/issues/2050',
+      );
 
       test('should fail if there has been a dependency change', () async {
         await d.file('pubspec.lock', _pubspecLock()).create();
@@ -250,7 +247,8 @@ dependencies:
   args: ^1.0.0
 ''').create();
 
-        var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
+        var process =
+            await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
 
         await checkProcessStdout(process, [
           'webdev could not run for this project.',
@@ -260,14 +258,18 @@ dependencies:
               'was generated, please run "$pubCommand get" again.'
         ]);
         await process.shouldExit(78);
-      });
+      }, skip: 'https://github.com/dart-lang/webdev/issues/2050');
     });
   }
 }
 
 const _supportedBuildRunnerVersion = '2.4.0';
 const _supportedWebCompilersVersion = '4.0.0';
-const _supportedBuildDaemonVersion = '2.0.0';
+const _supportedBuildDaemonVersion = '4.0.0';
+
+String _pubspecYaml = '''
+  name: sample
+''';
 
 String _pubspecLock(
     {String? runnerVersion = _supportedBuildRunnerVersion,

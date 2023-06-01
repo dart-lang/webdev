@@ -2,21 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/objects.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../utilities/objects.dart';
-import 'debugger.dart';
+/// The regular expressions used to filter out temp variables.
+/// Needs to be kept in sync with SDK repo.
+///
+/// TODO(annagrin) - use an alternative way to identify
+/// synthetic variables.
+/// Issue: https://github.com/dart-lang/sdk/issues/44262
+final ddcTemporaryVariableRegExp = RegExp(r'^t(\$[0-9]*)+\w*$');
+final ddcTemporaryTypeVariableRegExp = RegExp(r'^__t[\$\w*]+$');
 
-// TODO(sdk/issues/44262) - use an alternative way to identify synthetic
-// variables.
-final ddcTemporaryVariableRegExp = RegExp(r'^(t[0-9]+\$?[0-9]*|__t[\$\w*]+)$');
+/// Temporary variable regex before SDK changes for patterns.
+/// TODO(annagrin): remove after dart 3.0 is stable.
+final previousDdcTemporaryVariableRegExp =
+    RegExp(r'^(t[0-9]+\$?[0-9]*|__t[\$\w*]+)$');
 
 /// Find the visible Dart properties from a JS Scope Chain, coming from the
 /// scopeChain attribute of a Chrome CallFrame corresponding to [frame].
 ///
 /// See chromedevtools.github.io/devtools-protocol/tot/Debugger#type-CallFrame.
 Future<List<Property>> visibleProperties({
-  required Debugger debugger,
+  required AppInspectorInterface inspector,
   required WipCallFrame frame,
 }) async {
   final allProperties = <Property>[];
@@ -39,7 +48,7 @@ Future<List<Property>> visibleProperties({
   for (var scope in filterScopes(frame).reversed) {
     final objectId = scope.object.objectId;
     if (objectId != null) {
-      final properties = await debugger.getProperties(objectId);
+      final properties = await inspector.getProperties(objectId);
       allProperties.addAll(properties);
     }
   }
@@ -58,6 +67,8 @@ Future<List<Property>> visibleProperties({
     if (value == null) return true;
 
     final type = value.type;
+    if (type == 'undefined') return true;
+
     final description = value.description ?? '';
     final name = property.name ?? '';
 
@@ -66,7 +77,9 @@ Future<List<Property>> visibleProperties({
     // Dart generic function, where the type arguments get passed in as
     // parameters. Hide those.
     return (type == 'function' && description.startsWith('class ')) ||
-        (ddcTemporaryVariableRegExp.hasMatch(name)) ||
+        previousDdcTemporaryVariableRegExp.hasMatch(name) ||
+        ddcTemporaryVariableRegExp.hasMatch(name) ||
+        ddcTemporaryTypeVariableRegExp.hasMatch(name) ||
         (type == 'object' && description == 'dart.LegacyType.new');
   });
 

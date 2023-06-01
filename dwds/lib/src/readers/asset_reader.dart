@@ -33,12 +33,16 @@ class PackageUriMapper {
   final bool useDebuggerModuleNames;
 
   static Future<PackageUriMapper> create(
-      FileSystem fileSystem, Uri packageConfigFile,
-      {bool useDebuggerModuleNames = false}) async {
+    FileSystem fileSystem,
+    Uri packageConfigFile, {
+    bool useDebuggerModuleNames = false,
+  }) async {
     final packageConfig =
         await loadPackageConfig(fileSystem.file(packageConfigFile));
-    return PackageUriMapper(packageConfig,
-        useDebuggerModuleNames: useDebuggerModuleNames);
+    return PackageUriMapper(
+      packageConfig,
+      useDebuggerModuleNames: useDebuggerModuleNames,
+    );
   }
 
   PackageUriMapper(this.packageConfig, {this.useDebuggerModuleNames = false});

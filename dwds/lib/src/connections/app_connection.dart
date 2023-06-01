@@ -5,10 +5,11 @@
 import 'dart:async';
 import 'dart:convert';
 
-import '../../data/connect_request.dart';
-import '../../data/run_request.dart';
-import '../../data/serializers.dart';
-import '../handlers/socket_connections.dart';
+import 'package:dwds/data/connect_request.dart';
+import 'package:dwds/data/run_request.dart';
+import 'package:dwds/data/serializers.dart';
+import 'package:dwds/src/handlers/socket_connections.dart';
+import 'package:dwds/src/utilities/shared.dart';
 
 /// A connection between the application loaded in the browser and DWDS.
 class AppConnection {
@@ -19,7 +20,7 @@ class AppConnection {
   final SocketConnection _connection;
 
   AppConnection(this.request, this._connection) {
-    unawaited(_connection.sink.done.then((v) => _doneCompleter.complete()));
+    safeUnawaited(_connection.sink.done.then((v) => _doneCompleter.complete()));
   }
 
   bool get isInKeepAlivePeriod => _connection.isInKeepAlivePeriod;

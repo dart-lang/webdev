@@ -4,26 +4,29 @@
 
 @Timeout(Duration(minutes: 12))
 @Skip('https://github.com/dart-lang/webdev/issues/1788')
-import 'dart:async';
 
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
+import '../fixtures/project.dart';
 import 'test_utils.dart';
 
-final context = TestContext.withSoundNullSafety();
-
 void main() async {
+  final provider = TestSdkConfigurationProvider();
+  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
   late Worker worker;
   late Browser browser;
   late String extensionPath;
 
   int connectionCount = 0;
 
+  tearDownAll(provider.dispose);
+
   group('MV3 Debug Extension Lifeline Connection', () {
     setUpAll(() async {
-      extensionPath = await buildDebugExtension();
+      extensionPath = await buildDebugExtension(isMV3: true);
       browser = await setUpExtensionTest(
         context,
         extensionPath: extensionPath,
@@ -34,6 +37,7 @@ void main() async {
 
     tearDownAll(() async {
       await browser.close();
+      await context.tearDown();
     });
 
     test('connects to a lifeline port', () async {
@@ -52,7 +56,7 @@ void main() async {
         }
       });
       // Click on the Dart Debug Extension icon to intiate a debug session:
-      await clickOnExtensionIcon(worker);
+      await clickOnExtensionIcon(worker: worker, backgroundPage: null);
       final connectedToPort = await portConnectionFuture;
       // Verify that we have connected to the port:
       expect(connectedToPort, isTrue);

@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'debugger.dart';
 
 class FrameComputer {
   final Debugger debugger;
@@ -35,7 +34,7 @@ class FrameComputer {
 
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
   /// [Frame]s.
-  Future<List<Frame>> calculateFrames({int? limit}) async {
+  Future<List<Frame>> calculateFrames({int? limit}) {
     return _queue.run(() async {
       if (limit != null && _computedFrames.length >= limit) {
         return _computedFrames.take(limit).toList();
@@ -82,8 +81,12 @@ class FrameComputer {
       if (_asyncFramesToProcess == null) {
         if (_computedFrames.isNotEmpty &&
             _computedFrames.last.kind != FrameKind.kAsyncSuspensionMarker) {
-          _computedFrames.add(Frame(
-              index: _frameIndex++, kind: FrameKind.kAsyncSuspensionMarker));
+          _computedFrames.add(
+            Frame(
+              index: _frameIndex++,
+              kind: FrameKind.kAsyncSuspensionMarker,
+            ),
+          );
         }
         _asyncFramesToProcess = asyncStackTrace.callFrames;
       } else {
@@ -92,8 +95,10 @@ class FrameComputer {
         if (asyncFramesToProcess.isNotEmpty) {
           final callFrame = asyncFramesToProcess.removeAt(0);
           final location = WipLocation.fromValues(
-              callFrame.scriptId, callFrame.lineNumber,
-              columnNumber: callFrame.columnNumber);
+            callFrame.scriptId,
+            callFrame.lineNumber,
+            columnNumber: callFrame.columnNumber,
+          );
 
           final tempWipFrame = WipCallFrame({
             'url': callFrame.url,

@@ -1,3 +1,51 @@
+## 19.0.1-wip
+
+- Do not show async frame errors on evaluation. - [#2073](https://github.com/dart-lang/webdev/pull/2073)
+- Refactor code for presenting record instances. - [#2074](https://github.com/dart-lang/webdev/pull/2074)
+- Display record types concisely. - [#2070](https://github.com/dart-lang/webdev/pull/2070)
+- Display type objects concisely. - [#2103](https://github.com/dart-lang/webdev/pull/2103)
+
+## 19.0.0
+
+- Allow clients to specify the connected app's entrypoint file. - [#2047](https://github.com/dart-lang/webdev/pull/2047)
+- Don't include non-instantiated variables in stack frame data. - [#2061](https://github.com/dart-lang/webdev/pull/2061)
+- Fix `getObject` failure on record class - [2063](https://github.com/dart-lang/webdev/pull/2063)
+
+## 18.0.2
+
+- Support new DDC temp names for patterns. - [#2042](https://github.com/dart-lang/webdev/pull/2042)
+- Make debugger find next dart location when stepping. -[#2043](https://github.com/dart-lang/webdev/pull/2043)
+
+## 18.0.1
+
+- Fix failure to map JS exceptions to dart. - [#2004](https://github.com/dart-lang/webdev/pull/2004)
+- Fix for listening to custom streams. - [#2011](https://github.com/dart-lang/webdev/pull/2011)
+- Handle unexpected extension debugger disconnect events without crashing the app - [#2021](https://github.com/dart-lang/webdev/pull/2021)
+- Support `Set` inspection. - [#2024](https://github.com/dart-lang/webdev/pull/2024)
+
+## 18.0.0
+
+- Cleanup `getObject` code for lists and maps.
+  - Now works with offset `0` and `null` count.
+  - Fix failures on edge cases.
+- Support records:
+  - Update SDK constraint to `>=3.0.0-188.0.dev <4.0.0`.
+  - Update `package:vm_service` constraint to `>=10.1.2 <12.0.0`.
+  - Update `package:dds` constraint to `^2.7.1`.
+  - Fill `BoundField.name` for records.
+  - Display records as a container of fields.
+- Remove test-only code from `sdk_configuration.dart`.
+- Move shared test-only code to a new `test_common` package.
+- Convert unnecessary async code to sync.
+- Allow empty scopes in expression evaluation in a frame.
+
+**Breaking changes**
+
+- Require `sdkConfigurationProvider` in `ExpressionCompilerService`
+  constructor.
+- Change DWDS parameter `isFlutterApp` from type `bool?` to type
+  `Future<bool> Function()?`.
+
 ## 17.0.0
 
 - Include debug information in the event sent from the injected client to the
@@ -22,6 +70,7 @@
 - Fix expression compiler throwing when weak SDK summary is not found.
 
 **Breaking changes**
+
 - Include an optional param to `Dwds.start` to indicate whether it is running
   internally or externally.
 - Include an optional param to `Dwds.start` to indicate whether it a Flutter

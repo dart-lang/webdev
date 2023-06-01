@@ -6,17 +6,12 @@
 @Timeout(Duration(minutes: 5))
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/logging.dart';
-import 'fixtures/utilities.dart';
-
-final context = TestContext.withSoundNullSafety(
-  webAssetsPath: webCompatiblePath(['example', 'append_body']),
-  dartEntryFileName: 'main.dart',
-  htmlEntryFileName: 'index.html',
-);
+import 'fixtures/project.dart';
 
 const originalString = 'Hello World!';
 const newString = 'Bonjour le monde!';
@@ -24,6 +19,28 @@ const newString = 'Bonjour le monde!';
 void main() {
   // set to true for debug logging.
   final debug = false;
+
+  final provider = TestSdkConfigurationProvider(verbose: debug);
+  tearDownAll(provider.dispose);
+
+  final context =
+      TestContext(TestProject.testAppendBodyWithSoundNullSafety, provider);
+
+  Future<void> makeEditAndWaitForRebuild() async {
+    context.makeEditToDartEntryFile(
+      toReplace: originalString,
+      replaceWith: newString,
+    );
+    await context.waitForSuccessfulBuild(propagateToBrowser: true);
+  }
+
+  void undoEdit() {
+    context.makeEditToDartEntryFile(
+      toReplace: newString,
+      replaceWith: originalString,
+    );
+  }
+
   group('Injected client with live reload', () {
     group('and with debugging', () {
       setUp(() async {
@@ -117,15 +134,20 @@ void main() {
       await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(emitsInOrder([
+        client.onIsolateEvent,
+        emitsThrough(
+          emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
             _hasKind(EventKind.kIsolateStart),
             _hasKind(EventKind.kIsolateRunnable),
-          ])));
+          ]),
+        ),
+      );
 
-      expect(await client.callServiceExtension('hotRestart'),
-          const TypeMatcher<Success>());
+      expect(
+        await client.callServiceExtension('hotRestart'),
+        const TypeMatcher<Success>(),
+      );
 
       await eventsDone;
     });
@@ -136,20 +158,25 @@ void main() {
       await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(emitsInOrder([
+        client.onIsolateEvent,
+        emitsThrough(
+          emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
             _hasKind(EventKind.kIsolateStart),
             _hasKind(EventKind.kIsolateRunnable),
-          ])));
+          ]),
+        ),
+      );
 
       // Execute two hot restart calls in parallel.
       final done = Future.wait([
         client.callServiceExtension('hotRestart'),
         client.callServiceExtension('hotRestart'),
       ]);
-      expect(await done,
-          [const TypeMatcher<Success>(), const TypeMatcher<Success>()]);
+      expect(
+        await done,
+        [const TypeMatcher<Success>(), const TypeMatcher<Success>()],
+      );
 
       // The debugger is still working.
       final vm = await client.getVM();
@@ -159,9 +186,13 @@ void main() {
 
       final result = await client.evaluate(isolateId, library, 'true');
       expect(
-          result,
-          isA<InstanceRef>().having(
-              (instance) => instance.valueAsString, 'valueAsString', 'true'));
+        result,
+        isA<InstanceRef>().having(
+          (instance) => instance.valueAsString,
+          'valueAsString',
+          'true',
+        ),
+      );
 
       await eventsDone;
     });
@@ -172,12 +203,15 @@ void main() {
       await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(emitsInOrder([
+        client.onIsolateEvent,
+        emitsThrough(
+          emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
             _hasKind(EventKind.kIsolateStart),
             _hasKind(EventKind.kIsolateRunnable),
-          ])));
+          ]),
+        ),
+      );
 
       await context.webDriver.driver.refresh();
 
@@ -190,15 +224,20 @@ void main() {
       await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(emitsInOrder([
+        client.onIsolateEvent,
+        emitsThrough(
+          emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
             _hasKind(EventKind.kIsolateStart),
             _hasKind(EventKind.kIsolateRunnable),
-          ])));
+          ]),
+        ),
+      );
 
-      expect(await client.callServiceExtension('hotRestart'),
-          const TypeMatcher<Success>());
+      expect(
+        await client.callServiceExtension('hotRestart'),
+        const TypeMatcher<Success>(),
+      );
 
       await eventsDone;
 
@@ -216,25 +255,31 @@ void main() {
       // but the injected client continues to work and send events
       // after hot restart.
       final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(
-            _hasKind(EventKind.kServiceExtensionAdded)
-                .having((e) => e.extensionRPC, 'service', 'ext.bar'),
-          ));
+        client.onIsolateEvent,
+        emitsThrough(
+          _hasKind(EventKind.kServiceExtensionAdded)
+              .having((e) => e.extensionRPC, 'service', 'ext.bar'),
+        ),
+      );
 
       var vm = await client.getVM();
       var isolateId = vm.isolates!.first.id!;
       var isolate = await client.getIsolate(isolateId);
       var library = isolate.rootLib!.uri!;
 
+      final String callback =
+          '(_, __) async => ServiceExtensionResponse.result("")';
+
       await client.evaluate(
         isolateId,
         library,
-        "registerExtension('ext.foo', (method, params) {})",
+        "registerExtension('ext.foo', $callback)",
       );
 
-      expect(await client.callServiceExtension('hotRestart'),
-          const TypeMatcher<Success>());
+      expect(
+        await client.callServiceExtension('hotRestart'),
+        const TypeMatcher<Success>(),
+      );
 
       vm = await client.getVM();
       isolateId = vm.isolates!.first.id!;
@@ -244,7 +289,7 @@ void main() {
       await client.evaluate(
         isolateId,
         library,
-        "registerExtension('ext.bar', (method, params) {})",
+        "registerExtension('ext.bar', $callback)",
       );
 
       await eventsDone;
@@ -252,9 +297,7 @@ void main() {
       final source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
       expect(source, contains('Hello World!'));
-      // TODO(https://github.com/dart-lang/webdev/issues/1818): Re-enable. The
-      // callback passed to registerExtension requires a non-null return type.
-    }, skip: 'https://github.com/dart-lang/webdev/issues/1818');
+    });
 
     test('can refresh the page via the fullReload service extension', () async {
       final client = context.debugConnection.vmService;
@@ -262,12 +305,15 @@ void main() {
       await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(emitsInOrder([
+        client.onIsolateEvent,
+        emitsThrough(
+          emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
             _hasKind(EventKind.kIsolateStart),
             _hasKind(EventKind.kIsolateRunnable),
-          ])));
+          ]),
+        ),
+      );
 
       expect(await client.callServiceExtension('fullReload'), isA<Success>());
 
@@ -315,7 +361,9 @@ void main() {
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
       expect(
-          await client.removeBreakpoint(isolate.id!, bp.id!), isA<Success>());
+        await client.removeBreakpoint(isolate.id!, bp.id!),
+        isA<Success>(),
+      );
       expect(await client.resume(isolate.id!), isA<Success>());
     });
 
@@ -348,11 +396,18 @@ void main() {
 
       // Expression evaluation while paused on a breakpoint should work.
       var result = await client.evaluateInFrame(
-          isolate.id!, event.topFrame!.index!, 'count');
+        isolate.id!,
+        event.topFrame!.index!,
+        'count',
+      );
       expect(
-          result,
-          isA<InstanceRef>().having((instance) => instance.valueAsString,
-              'valueAsString', greaterThanOrEqualTo('0')));
+        result,
+        isA<InstanceRef>().having(
+          (instance) => instance.valueAsString,
+          'valueAsString',
+          greaterThanOrEqualTo('0'),
+        ),
+      );
 
       await client.removeBreakpoint(isolateId, bp.id!);
       await client.resume(isolateId);
@@ -360,9 +415,13 @@ void main() {
       // Expression evaluation while running should work.
       result = await client.evaluate(isolateId, library, 'true');
       expect(
-          result,
-          isA<InstanceRef>().having(
-              (instance) => instance.valueAsString, 'valueAsString', 'true'));
+        result,
+        isA<InstanceRef>().having(
+          (instance) => instance.valueAsString,
+          'valueAsString',
+          'true',
+        ),
+      );
     });
   });
 
@@ -390,7 +449,9 @@ void main() {
         expect(source.contains(newString), isTrue);
         // The ext.flutter.disassemble callback is invoked and waited for.
         expect(
-            source, contains('start disassemble end disassemble $newString'));
+          source,
+          contains('start disassemble end disassemble $newString'),
+        );
       });
 
       test('fires isolate create/destroy events during hot restart', () async {
@@ -398,12 +459,15 @@ void main() {
         await client.streamListen('Isolate');
 
         final eventsDone = expectLater(
-            client.onIsolateEvent,
-            emitsThrough(emitsInOrder([
+          client.onIsolateEvent,
+          emitsThrough(
+            emitsInOrder([
               _hasKind(EventKind.kIsolateExit),
               _hasKind(EventKind.kIsolateStart),
               _hasKind(EventKind.kIsolateRunnable),
-            ])));
+            ]),
+          ),
+        );
 
         await makeEditAndWaitForRebuild();
 
@@ -435,25 +499,12 @@ void main() {
         expect(source.contains(newString), isTrue);
         // The ext.flutter.disassemble callback is invoked and waited for.
         expect(
-            source, contains('start disassemble end disassemble $newString'));
+          source,
+          contains('start disassemble end disassemble $newString'),
+        );
       });
     });
   });
-}
-
-Future<void> makeEditAndWaitForRebuild() async {
-  context.makeEditToDartEntryFile(
-    toReplace: originalString,
-    replaceWith: newString,
-  );
-  await context.waitForSuccessfulBuild(propagateToBrowser: true);
-}
-
-void undoEdit() {
-  context.makeEditToDartEntryFile(
-    toReplace: newString,
-    replaceWith: originalString,
-  );
 }
 
 TypeMatcher<Event> _hasKind(String kind) =>

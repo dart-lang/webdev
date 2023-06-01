@@ -4,23 +4,22 @@
 
 import 'dart:async';
 
+import 'package:dwds/data/build_result.dart';
+import 'package:dwds/src/connections/app_connection.dart';
+import 'package:dwds/src/connections/debug_connection.dart';
+import 'package:dwds/src/events.dart';
+import 'package:dwds/src/handlers/dev_handler.dart';
+import 'package:dwds/src/handlers/injector.dart';
+import 'package:dwds/src/handlers/socket_connections.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/readers/asset_reader.dart';
+import 'package:dwds/src/servers/devtools.dart';
+import 'package:dwds/src/servers/extension_backend.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'data/build_result.dart';
-import 'src/connections/app_connection.dart';
-import 'src/connections/debug_connection.dart';
-import 'src/events.dart';
-import 'src/handlers/dev_handler.dart';
-import 'src/handlers/injector.dart';
-import 'src/handlers/socket_connections.dart';
-import 'src/loaders/strategy.dart';
-import 'src/readers/asset_reader.dart';
-import 'src/servers/devtools.dart';
-import 'src/servers/extension_backend.dart';
-import 'src/services/expression_compiler.dart';
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 
@@ -85,30 +84,37 @@ class Dwds {
     bool launchDevToolsInNewWindow = true,
     bool emitDebugEvents = true,
     bool isInternalBuild = false,
-    bool isFlutterApp = false,
+    Future<bool> Function()? isFlutterApp,
   }) async {
     globalLoadStrategy = loadStrategy;
+    isFlutterApp ??= () => Future.value(true);
 
     DevTools? devTools;
     Future<String>? extensionUri;
     ExtensionBackend? extensionBackend;
     if (enableDebugExtension) {
       final handler = useSseForDebugBackend
-          ? SseSocketHandler(SseHandler(Uri.parse('/\$debug'),
-              // Proxy servers may actively kill long standing connections.
-              // Allow for clients to reconnect in a short window. Making the
-              // window too long may cause issues if the user closes a debug
-              // session and initiates a new one during the keepAlive window.
-              keepAlive: const Duration(seconds: 5)))
+          ? SseSocketHandler(
+              SseHandler(
+                Uri.parse('/\$debug'),
+                // Proxy servers may actively kill long standing connections.
+                // Allow for clients to reconnect in a short window. Making the
+                // window too long may cause issues if the user closes a debug
+                // session and initiates a new one during the keepAlive window.
+                keepAlive: const Duration(seconds: 5),
+              ),
+            )
           : WebSocketSocketHandler();
 
       extensionBackend = await ExtensionBackend.start(handler, hostname);
-      extensionUri = Future.value(Uri(
-              scheme: useSseForDebugBackend ? 'http' : 'ws',
-              host: extensionBackend.hostname,
-              port: extensionBackend.port,
-              path: r'$debug')
-          .toString());
+      extensionUri = Future.value(
+        Uri(
+          scheme: useSseForDebugBackend ? 'http' : 'ws',
+          host: extensionBackend.hostname,
+          port: extensionBackend.port,
+          path: r'$debug',
+        ).toString(),
+      );
       if (urlEncoder != null) extensionUri = urlEncoder(await extensionUri);
     }
 
@@ -135,7 +141,6 @@ class Dwds {
       buildResults,
       devTools,
       assetReader,
-      loadStrategy,
       hostname,
       extensionBackend,
       urlEncoder,

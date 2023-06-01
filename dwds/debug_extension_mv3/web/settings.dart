@@ -23,24 +23,27 @@ void _registerListeners() {
   saveButton.addEventListener('click', _saveSettingsToStorage);
 }
 
-void _updateSettingsFromStorage(Event _) async {
+Future<void> _updateSettingsFromStorage(Event _) async {
   final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
-      type: StorageObject.devToolsOpener);
+    type: StorageObject.devToolsOpener,
+  );
   final openInNewWindow = devToolsOpener?.newWindow ?? false;
   _getRadioButton('windowOpt').checked = openInNewWindow;
   _getRadioButton('tabOpt').checked = !openInNewWindow;
 }
 
-void _saveSettingsToStorage(Event event) async {
+Future<void> _saveSettingsToStorage(Event event) async {
   event.preventDefault();
   _maybeHideSavedMsg();
   final form = document.querySelector("form") as FormElement;
   final data = FormData(form);
   final devToolsOpenerValue = data.get('devToolsOpener') as String;
   await setStorageObject<DevToolsOpener>(
-      type: StorageObject.devToolsOpener,
-      value: DevToolsOpener(
-          (b) => b..newWindow = devToolsOpenerValue == 'window'));
+    type: StorageObject.devToolsOpener,
+    value: DevToolsOpener(
+      (b) => b..newWindow = devToolsOpenerValue == 'window',
+    ),
+  );
   _showSavedMsg();
 }
 
@@ -48,9 +51,7 @@ void _showSavedMsg() {
   final snackbar = document.getElementById('savedSnackbar');
   if (snackbar == null) return;
   snackbar.classes.add('show');
-  Timer(Duration(seconds: 3), () {
-    _maybeHideSavedMsg();
-  });
+  Timer(Duration(seconds: 3), _maybeHideSavedMsg);
 }
 
 void _maybeHideSavedMsg() {

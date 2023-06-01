@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+import 'package:test_common/test_sdk_layout.dart';
 
 /// Generates sdk.js, sdk.map, sdk full dill, and sdk summary files.
 ///
@@ -13,18 +13,18 @@ import 'package:path/path.dart' as p;
 /// - sound null safety: js, source map, full dill.
 /// - weak null safety: js, source map, full dill, summary.
 class SdkAssetGenerator {
-  static bool _sdkAssetsGenerated = false;
+  bool _sdkAssetsGenerated = false;
   final _logger = Logger('SdkAssetGenerator');
 
   final FileSystem fileSystem;
-  final bool verboseCompiler;
+  final bool verbose;
 
-  late final SdkLayout sdkLayout;
+  late final TestSdkLayout sdkLayout;
 
   SdkAssetGenerator({
     this.fileSystem = const LocalFileSystem(),
     required this.sdkLayout,
-    this.verboseCompiler = false,
+    this.verbose = false,
   });
 
   /// Generate all SDK assets, once for the current executable run.
@@ -69,8 +69,8 @@ class SdkAssetGenerator {
 
       // Files to generate
       final jsPath = soundNullSafety
-          ? p.join(outputDir.path, sdkLayout.sdkJsSoundFileName)
-          : p.join(outputDir.path, sdkLayout.sdkJsWeakFileName);
+          ? p.join(outputDir.path, sdkLayout.soundJsFileName)
+          : p.join(outputDir.path, sdkLayout.weakJsFileName);
       final jsMapPath = p.setExtension(jsPath, '.js.map');
       final fullDillPath = p.setExtension(jsPath, '.dill');
 
@@ -88,10 +88,7 @@ class SdkAssetGenerator {
         'org-dartlang-sdk:///lib/libraries.json',
         '--modules',
         'amd',
-        if (soundNullSafety)
-          '--sound-null-safety'
-        else
-          '--no-sound-null-safety',
+        soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
         'dart:core',
         '-o',
         jsPath,
@@ -99,7 +96,7 @@ class SdkAssetGenerator {
 
       final output = <String>[];
       _logger.fine('Executing dart ${args.join(' ')}');
-      final process = await Process.start(Platform.resolvedExecutable, args,
+      final process = await Process.start(sdkLayout.dartPath, args,
           workingDirectory: sdkLayout.sdkDirectory);
 
       process.stdout
@@ -158,8 +155,8 @@ class SdkAssetGenerator {
       // Generate missing files.
       outputDir = fileSystem.systemTempDirectory.createTempSync();
       final summaryPath = soundNullSafety
-          ? p.join(outputDir.path, sdkLayout.sdkSummarySoundFileName)
-          : p.join(outputDir.path, sdkLayout.sdkSummaryWeakFileName);
+          ? p.join(outputDir.path, sdkLayout.soundSummaryFileName)
+          : p.join(outputDir.path, sdkLayout.weakSummaryFileName);
 
       _logger.info('Generating SDK summary files...');
 
@@ -183,11 +180,11 @@ class SdkAssetGenerator {
           '--no-sound-null-safety',
         '--output',
         summaryPath,
-        if (verboseCompiler) '--verbose',
+        if (verbose) '--verbose',
       ];
 
       _logger.fine('Executing dart ${args.join(' ')}');
-      final process = await Process.start(Platform.resolvedExecutable, args,
+      final process = await Process.start(sdkLayout.dartPath, args,
           workingDirectory: sdkLayout.sdkDirectory);
 
       final output = <String>[];

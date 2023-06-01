@@ -1,12 +1,11 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.import 'dart:async';
+// BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/server.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../../loaders/strategy.dart';
-import '../../utilities/shared.dart';
-import '../remote_debugger.dart';
 
 /// Meta data for a remote Dart function in Chrome.
 class FunctionMetaData {
@@ -15,7 +14,9 @@ class FunctionMetaData {
 
   /// Returns the [FunctionMetaData] for the Chrome [remoteObject].
   static Future<FunctionMetaData> metaDataFor(
-      RemoteDebugger remoteDebugger, RemoteObject remoteObject) async {
+    RemoteDebugger remoteDebugger,
+    RemoteObject remoteObject,
+  ) async {
     final evalExpression = '''
       function(remoteObject) {
         var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
@@ -30,13 +31,15 @@ class FunctionMetaData {
     final arguments = [
       {'objectId': remoteObject.objectId}
     ];
-    final response =
-        await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
-      'functionDeclaration': evalExpression,
-      'arguments': arguments,
-      'objectId': remoteObject.objectId,
-      'returnByValue': true,
-    });
+    final response = await remoteDebugger.sendCommand(
+      'Runtime.callFunctionOn',
+      params: {
+        'functionDeclaration': evalExpression,
+        'arguments': arguments,
+        'objectId': remoteObject.objectId,
+        'returnByValue': true,
+      },
+    );
     handleErrorIfPresent(
       response,
       evalContents: evalExpression,

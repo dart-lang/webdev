@@ -24,22 +24,36 @@ void main() {
   group('InjectedHandlerWithoutExtension', () {
     late DwdsInjector injector;
     setUp(() async {
-      injector = DwdsInjector(loadStrategy);
+      injector = DwdsInjector(
+        loadStrategy,
+        useSseForInjectedClient: true,
+        enableDevtoolsLaunch: true,
+        emitDebugEvents: true,
+        isInternalBuild: false,
+        isFlutterApp: () => Future.value(true),
+      );
       final pipeline = const Pipeline().addMiddleware(injector.middleware);
-      server = await shelf_io.serve(pipeline.addHandler((request) {
-        if (request.url.path.endsWith(bootstrapJsExtension)) {
-          return Response.ok(
+      server = await shelf_io.serve(
+        pipeline.addHandler((request) {
+          if (request.url.path.endsWith(bootstrapJsExtension)) {
+            return Response.ok(
               '$entrypointExtensionMarker\n'
               '$mainExtensionMarker\n'
               'app.main.main()',
-              headers: {HttpHeaders.etagHeader: entryEtag});
-        } else if (request.url.path.endsWith('foo.js')) {
-          return Response.ok('some js',
-              headers: {HttpHeaders.etagHeader: nonEntryEtag});
-        } else {
-          return Response.notFound('Not found');
-        }
-      }), 'localhost', 0);
+              headers: {HttpHeaders.etagHeader: entryEtag},
+            );
+          } else if (request.url.path.endsWith('foo.js')) {
+            return Response.ok(
+              'some js',
+              headers: {HttpHeaders.etagHeader: nonEntryEtag},
+            );
+          } else {
+            return Response.notFound('Not found');
+          }
+        }),
+        'localhost',
+        0,
+      );
     });
 
     tearDown(() async {
@@ -59,21 +73,30 @@ void main() {
     });
 
     test('replaces main marker with injected client', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
       expect(result.body.contains('Injected by dwds'), isTrue);
       expect(result.body.contains(mainExtensionMarker), isFalse);
     });
 
     test('prevents main from being called', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
       expect(result.body.contains('window.\$dartRunMain'), isTrue);
     });
 
     test('updates etags for injected responses', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
       expect(result.headers[HttpHeaders.etagHeader], isNot(entryEtag));
     });
 
@@ -84,58 +107,83 @@ void main() {
     });
 
     test('embeds the devHandlerPath', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
-      expect(result.body.contains('window.\$dwdsDevHandlerPath = "http://'),
-          isTrue);
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
+      expect(
+        result.body.contains('window.\$dwdsDevHandlerPath = "http://'),
+        isTrue,
+      );
     });
 
     test('emits a devHandlerPath for each entrypoint', () async {
-      await http.get(Uri.parse(
-          'http://localhost:${server.port}/foo/entrypoint$bootstrapJsExtension'));
-      await http.get(Uri.parse(
-          'http://localhost:${server.port}/blah/entrypoint$bootstrapJsExtension'));
+      await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/foo/entrypoint$bootstrapJsExtension',
+        ),
+      );
+      await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/blah/entrypoint$bootstrapJsExtension',
+        ),
+      );
       expect(
-          injector.devHandlerPaths,
-          emitsInOrder([
-            'http://localhost:${server.port}/foo/\$dwdsSseHandler',
-            'http://localhost:${server.port}/blah/\$dwdsSseHandler'
-          ]));
+        injector.devHandlerPaths,
+        emitsInOrder([
+          'http://localhost:${server.port}/foo/\$dwdsSseHandler',
+          'http://localhost:${server.port}/blah/\$dwdsSseHandler'
+        ]),
+      );
     });
 
     test(
         'Does not return 304 when if-none-match etag matches the original '
         'content etag', () async {
       final result = await http.get(
-          Uri.parse(
-              'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'),
-          headers: {HttpHeaders.ifNoneMatchHeader: entryEtag});
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+        headers: {HttpHeaders.ifNoneMatchHeader: entryEtag},
+      );
       expect(result.statusCode, HttpStatus.ok);
     });
 
     test('Does return 304 when if-none-match etag matches the modified etag',
         () async {
-      final originalResponse = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+      final originalResponse = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
 
       final etagHeader = originalResponse.headers[HttpHeaders.etagHeader];
       expect(etagHeader, isNotNull);
       final cachedResponse = await http.get(
-          Uri.parse(
-              'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'),
-          headers: {HttpHeaders.ifNoneMatchHeader: etagHeader!});
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+        headers: {HttpHeaders.ifNoneMatchHeader: etagHeader!},
+      );
       expect(cachedResponse.statusCode, HttpStatus.notModified);
     });
 
     test('Does not inject the extension backend port', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
       expect(result.body.contains('dartExtensionUri'), isFalse);
     });
 
     test('Has correct DWDS version', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
       final expected = r'$dwdsVersion = ';
       final index = result.body.indexOf(expected);
       expect(index, greaterThan(0));
@@ -145,35 +193,50 @@ void main() {
     });
 
     test('Injects bootstrap', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
       expect(result.body.contains('dummy_bootstrap'), isTrue);
     });
 
     test('Injects load strategy id', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
       expect(result.body.contains('dummy-id'), isTrue);
     });
 
     test('Injects the entrypoint path', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
       expect(
-          result.body
-              .contains('dartEntrypointPath = "entrypoint.bootstrap.js"'),
-          isTrue);
+        result.body.contains('dartEntrypointPath = "entrypoint.bootstrap.js"'),
+        isTrue,
+      );
     });
 
     test('Injects client load snippet', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
       expect(result.body.contains('dummy-load-client-snippet'), isTrue);
     });
 
     test('Injects dwds enable devtools launch configuration', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
       expect(result.body.contains('dwdsEnableDevtoolsLaunch'), isTrue);
     });
 
@@ -184,38 +247,56 @@ void main() {
     });
 
     test('the injected client contains a global \$emitDebugEvents', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/dwds/src/injected/client.js'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/dwds/src/injected/client.js',
+        ),
+      );
       expect(result.body, contains('\$dartEmitDebugEvents'));
     });
 
     test('the injected client contains a global \$emitDebugEvent', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/dwds/src/injected/client.js'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/dwds/src/injected/client.js',
+        ),
+      );
       expect(result.body, contains('\$emitDebugEvent'));
     });
 
     test('the injected client contains a global \$emitRegisterEvent', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/dwds/src/injected/client.js'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/dwds/src/injected/client.js',
+        ),
+      );
       expect(result.body, contains('\$emitRegisterEvent'));
     });
 
     test('the injected client contains a global \$isInternalBuild', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/dwds/src/injected/client.js'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/dwds/src/injected/client.js',
+        ),
+      );
       expect(result.body, contains('\$isInternalBuild'));
     });
 
     test('the injected client contains a global \$isFlutterApp', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/dwds/src/injected/client.js'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/dwds/src/injected/client.js',
+        ),
+      );
       expect(result.body, contains('\$isFlutterApp'));
     });
 
     test('serves the injected client', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/dwds/src/injected/client.js'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/dwds/src/injected/client.js',
+        ),
+      );
       expect(result.statusCode, HttpStatus.ok);
     });
   });
@@ -223,22 +304,36 @@ void main() {
   group('InjectedHandlerWithoutExtension using WebSockets', () {
     late DwdsInjector injector;
     setUp(() async {
-      injector = DwdsInjector(loadStrategy, useSseForInjectedClient: false);
+      injector = DwdsInjector(
+        loadStrategy,
+        useSseForInjectedClient: false,
+        enableDevtoolsLaunch: true,
+        emitDebugEvents: true,
+        isInternalBuild: false,
+        isFlutterApp: () => Future.value(true),
+      );
       final pipeline = const Pipeline().addMiddleware(injector.middleware);
-      server = await shelf_io.serve(pipeline.addHandler((request) {
-        if (request.url.path.endsWith(bootstrapJsExtension)) {
-          return Response.ok(
+      server = await shelf_io.serve(
+        pipeline.addHandler((request) {
+          if (request.url.path.endsWith(bootstrapJsExtension)) {
+            return Response.ok(
               '$entrypointExtensionMarker\n'
               '$mainExtensionMarker\n'
               'app.main.main()',
-              headers: {HttpHeaders.etagHeader: entryEtag});
-        } else if (request.url.path.endsWith('foo.js')) {
-          return Response.ok('some js',
-              headers: {HttpHeaders.etagHeader: nonEntryEtag});
-        } else {
-          return Response.notFound('Not found');
-        }
-      }), 'localhost', 0);
+              headers: {HttpHeaders.etagHeader: entryEtag},
+            );
+          } else if (request.url.path.endsWith('foo.js')) {
+            return Response.ok(
+              'some js',
+              headers: {HttpHeaders.etagHeader: nonEntryEtag},
+            );
+          } else {
+            return Response.notFound('Not found');
+          }
+        }),
+        'localhost',
+        0,
+      );
     });
 
     tearDown(() async {
@@ -246,23 +341,35 @@ void main() {
     });
 
     test('embeds the devHandlerPath', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
       expect(
-          result.body.contains('window.\$dwdsDevHandlerPath = "ws://'), isTrue);
+        result.body.contains('window.\$dwdsDevHandlerPath = "ws://'),
+        isTrue,
+      );
     });
 
     test('emits a devHandlerPath for each entrypoint', () async {
-      await http.get(Uri.parse(
-          'http://localhost:${server.port}/foo/entrypoint$bootstrapJsExtension'));
-      await http.get(Uri.parse(
-          'http://localhost:${server.port}/blah/entrypoint$bootstrapJsExtension'));
+      await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/foo/entrypoint$bootstrapJsExtension',
+        ),
+      );
+      await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/blah/entrypoint$bootstrapJsExtension',
+        ),
+      );
       expect(
-          injector.devHandlerPaths,
-          emitsInOrder([
-            'ws://localhost:${server.port}/foo/\$dwdsSseHandler',
-            'ws://localhost:${server.port}/blah/\$dwdsSseHandler'
-          ]));
+        injector.devHandlerPaths,
+        emitsInOrder([
+          'ws://localhost:${server.port}/foo/\$dwdsSseHandler',
+          'ws://localhost:${server.port}/blah/\$dwdsSseHandler'
+        ]),
+      );
     });
   });
 
@@ -270,15 +377,28 @@ void main() {
     setUp(() async {
       final extensionUri = 'http://localhost:4000';
       final pipeline = const Pipeline().addMiddleware(
-          DwdsInjector(loadStrategy, extensionUri: Future.value(extensionUri))
-              .middleware);
-      server = await shelf_io.serve(pipeline.addHandler((request) {
-        return Response.ok(
+        DwdsInjector(
+          loadStrategy,
+          extensionUri: Future.value(extensionUri),
+          useSseForInjectedClient: true,
+          enableDevtoolsLaunch: true,
+          emitDebugEvents: true,
+          isInternalBuild: false,
+          isFlutterApp: () => Future.value(true),
+        ).middleware,
+      );
+      server = await shelf_io.serve(
+        pipeline.addHandler((request) {
+          return Response.ok(
             '$entrypointExtensionMarker\n'
             '$mainExtensionMarker\n'
             'app.main.main()',
-            headers: {HttpHeaders.etagHeader: entryEtag});
-      }), 'localhost', 0);
+            headers: {HttpHeaders.etagHeader: entryEtag},
+          );
+        }),
+        'localhost',
+        0,
+      );
     });
 
     tearDown(() async {
@@ -286,8 +406,11 @@ void main() {
     });
 
     test('Injects the extension backend port', () async {
-      final result = await http.get(Uri.parse(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+      final result = await http.get(
+        Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+        ),
+      );
       expect(result.body.contains('dartExtensionUri'), isTrue);
     });
   });

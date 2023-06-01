@@ -13,12 +13,11 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
-import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
+import 'package:test_common/test_sdk_layout.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'utilities.dart';
 
 Logger _logger = Logger('TestServer');
 
@@ -82,6 +81,7 @@ class TestServer {
     ExpressionCompilerService? ddcService,
     bool isFlutterApp,
     bool isInternalBuild,
+    TestSdkLayout sdkLayout,
   ) async {
     var pipeline = const Pipeline();
 
@@ -97,39 +97,42 @@ class TestServer {
           return BuildResult((b) => b.status = BuildStatus.failed);
         case daemon.BuildStatus.succeeded:
           return BuildResult((b) => b.status = BuildStatus.succeeded);
+        default:
+          break;
       }
       throw StateError('Unexpected Daemon build result: $result');
     });
 
     final dwds = await Dwds.start(
-        assetReader: assetReader,
-        buildResults: filteredBuildResults,
-        chromeConnection: chromeConnection,
-        loadStrategy: strategy,
-        spawnDds: spawnDds,
-        enableDebugExtension: enableDebugExtension,
-        enableDebugging: enableDebugging,
-        useSseForDebugProxy: useSse,
-        useSseForDebugBackend: useSse,
-        useSseForInjectedClient: useSse,
-        hostname: hostname,
-        urlEncoder: urlEncoder,
-        expressionCompiler: expressionCompiler,
-        isInternalBuild: isInternalBuild,
-        isFlutterApp: isFlutterApp,
-        devtoolsLauncher: serveDevTools
-            ? (hostname) async {
-                final server = await DevToolsServer().serveDevTools(
-                  hostname: hostname,
-                  enableStdinCommands: false,
-                  customDevToolsPath: devToolsPath,
-                );
-                if (server == null) {
-                  throw StateError('DevTools server could not be started.');
-                }
-                return DevTools(server.address.host, server.port, server);
+      assetReader: assetReader,
+      buildResults: filteredBuildResults,
+      chromeConnection: chromeConnection,
+      loadStrategy: strategy,
+      spawnDds: spawnDds,
+      enableDebugExtension: enableDebugExtension,
+      enableDebugging: enableDebugging,
+      useSseForDebugProxy: useSse,
+      useSseForDebugBackend: useSse,
+      useSseForInjectedClient: useSse,
+      hostname: hostname,
+      urlEncoder: urlEncoder,
+      expressionCompiler: expressionCompiler,
+      isInternalBuild: isInternalBuild,
+      isFlutterApp: () => Future.value(isFlutterApp),
+      devtoolsLauncher: serveDevTools
+          ? (hostname) async {
+              final server = await DevToolsServer().serveDevTools(
+                hostname: hostname,
+                enableStdinCommands: false,
+                customDevToolsPath: sdkLayout.devToolsDirectory,
+              );
+              if (server == null) {
+                throw StateError('DevTools server could not be started.');
               }
-            : null);
+              return DevTools(server.address.host, server.port, server);
+            }
+          : null,
+    );
 
     final server = await startHttpServer('localhost', port: port);
     var cascade = Cascade();
@@ -163,14 +166,22 @@ class TestServer {
         final response = await innerHandler(request);
         final logFn =
             response.statusCode >= 500 ? _logger.warning : _logger.finest;
-        final msg = _requestLabel(response.statusCode, request.requestedUri,
-            request.method, watch.elapsed);
+        final msg = _requestLabel(
+          response.statusCode,
+          request.requestedUri,
+          request.method,
+          watch.elapsed,
+        );
         logFn(msg);
         return response;
       } catch (error, stackTrace) {
         if (error is HijackException) rethrow;
         final msg = _requestLabel(
-            500, request.requestedUri, request.method, watch.elapsed);
+          500,
+          request.requestedUri,
+          request.method,
+          watch.elapsed,
+        );
         _logger.severe(msg, error, stackTrace);
         rethrow;
       }
@@ -178,7 +189,11 @@ class TestServer {
   }
 
   static String _requestLabel(
-      int statusCode, Uri requestedUri, String method, Duration elapsedTime) {
+    int statusCode,
+    Uri requestedUri,
+    String method,
+    Duration elapsedTime,
+  ) {
     return '$elapsedTime '
         '$method [$statusCode] '
         '${requestedUri.path}${_formatQuery(requestedUri.query)}';

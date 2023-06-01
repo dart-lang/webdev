@@ -3,15 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async/async.dart';
+import 'package:dwds/src/debugging/modules.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/readers/asset_reader.dart';
+import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/parser.dart';
 import 'package:source_maps/source_maps.dart';
-
-import '../loaders/strategy.dart';
-import '../readers/asset_reader.dart';
-import '../utilities/dart_uri.dart';
-import 'modules.dart';
 
 var _startTokenId = 1337;
 
@@ -73,6 +72,19 @@ class DartLocation {
   int compareToLine(int otherLine, int otherColumn) {
     final result = line.compareTo(otherLine);
     return result == 0 ? column.compareTo(otherColumn) : result;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([uri, line, column]);
+
+  @override
+  bool operator ==(Object? other) {
+    if (other is! DartLocation) {
+      return false;
+    }
+    return uri.serverPath == other.uri.serverPath &&
+        line == other.line &&
+        column == other.column;
   }
 
   @override
@@ -198,7 +210,10 @@ class Locations {
   /// beginning of the line - return the first existing location
   /// that comes after the given column.
   Location? _bestDartLocation(
-      Iterable<Location> locations, int line, int column) {
+    Iterable<Location> locations,
+    int line,
+    int column,
+  ) {
     Location? bestLocation;
     for (var location in locations) {
       if (location.dartLocation.line == line &&
@@ -222,7 +237,10 @@ class Locations {
   ///
   /// https://github.com/microsoft/vscode-js-debug/blob/536f96bae61a3d87546b61bc7916097904c81429/src/common/sourceUtils.ts#L286
   Location? _bestJsLocation(
-      Iterable<Location> locations, int line, int? column) {
+    Iterable<Location> locations,
+    int line,
+    int? column,
+  ) {
     column ??= 0;
     Location? bestLocation;
     for (var location in locations) {
@@ -271,11 +289,10 @@ class Locations {
   /// [module] refers to the JS path of a DDC module without the extension.
   ///
   /// This will populate the [_sourceToLocation] and [_moduleToLocations] maps.
-  Future<Set<Location>> _locationsForModule(String module) async {
-    final memoizer =
-        _locationMemoizer.putIfAbsent(module, () => AsyncMemoizer());
+  Future<Set<Location>> _locationsForModule(String module) {
+    final memoizer = _locationMemoizer.putIfAbsent(module, AsyncMemoizer.new);
 
-    return await memoizer.runOnce(() async {
+    return memoizer.runOnce(() async {
       if (_moduleToLocations.containsKey(module)) {
         return _moduleToLocations[module]!;
       }
@@ -316,22 +333,27 @@ class Locations {
             // It will fail if the path has both separators in it.
             final relativeSegments = p.split(mapping.urls[index]);
             final path = p.url.normalize(
-                p.url.joinAll([scriptLocation, ...relativeSegments]));
+              p.url.joinAll([scriptLocation, ...relativeSegments]),
+            );
 
             final dartUri = DartUri(path, _root);
-            result.add(Location.from(
-              modulePath,
-              lineEntry,
-              entry,
-              dartUri,
-            ));
+            result.add(
+              Location.from(
+                modulePath,
+                lineEntry,
+                entry,
+                dartUri,
+              ),
+            );
           }
         }
       }
       for (var location in result) {
         _sourceToLocation
             .putIfAbsent(
-                location.dartLocation.uri.serverPath, () => <Location>{})
+              location.dartLocation.uri.serverPath,
+              () => <Location>{},
+            )
             .add(location);
       }
       return _moduleToLocations[module] = result;

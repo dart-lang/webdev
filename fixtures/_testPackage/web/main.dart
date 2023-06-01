@@ -6,7 +6,9 @@
 // @dart=2.9
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:core';
+import 'dart:developer';
 import 'dart:html';
 
 import 'package:_test/deferred_library.dart' deferred as d;
@@ -30,6 +32,7 @@ void main() {
   });
 
   // for evaluation
+  var extensionId = 0;
   Timer.periodic(const Duration(seconds: 1), (_) {
     printLocal();
     printFieldFromLibraryClass(); // Breakpoint: callPrintFieldFromLibraryClass
@@ -44,9 +47,21 @@ void main() {
     printObjectMultiLine(); // Breakpoint: callPrintObjectMultiLine
     printNestedObjectsMultiLine(); // Breakpoint: callPrintEnclosingFunctionMultiLine
     printStream(); // Breakpoint: callPrintStream
+    printList();
+    printMap();
+    printSet();
+    // For testing evaluation in async JS frames.
+    registerUserExtension(extensionId++);
   });
 
   document.body.appendText(concatenate('Program', ' is running!'));
+}
+
+void registerUserExtension(int id) async {
+  registerExtension('ext.extension$id', (_, __) async {
+    print('Hello World from extension$id');
+    return ServiceExtensionResponse.result(json.encode({'success': true}));
+  });
 }
 
 void printLocal() {
@@ -65,7 +80,7 @@ void printFieldFromLibraryPartClass() {
 }
 
 void printFieldMain() {
-  var instance = MainClass(1);
+  var instance = MainClass(2, 1);
   print('$instance'); // Breakpoint: printFieldMain
 }
 
@@ -130,16 +145,32 @@ void printStream() {
   subscription.cancel(); // Breakpoint: printStream
 }
 
+void printList() {
+  final list = [0, 1, 2];
+  print(list); // Breakpoint: printList
+}
+
+void printMap() {
+  final map = {'a': 1, 'b': 2, 'c': 3};
+  print(map); // Breakpoint: printMap
+}
+
+void printSet() {
+  final mySet = {1, 4, 5, 7};
+  print(mySet); // Breakpoint: printSet
+}
+
 ClassWithMethod createObject() {
   return ClassWithMethod(0); // Breakpoint: createObjectWithMethod
 }
 
 class MainClass {
+  final int field;
   final int _field;
-  MainClass(this._field); // Breakpoint: newMainClass
+  MainClass(this.field, this._field); // Breakpoint: newMainClass
 
   @override
-  String toString() => '$_field';
+  String toString() => '$field, $_field';
 }
 
 class EnclosedClass {

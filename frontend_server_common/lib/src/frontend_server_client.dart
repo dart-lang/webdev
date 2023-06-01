@@ -11,7 +11,7 @@ import 'dart:io';
 import 'package:dwds/expression_compiler.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
-import 'package:path/path.dart' as p;
+import 'package:test_common/test_sdk_layout.dart';
 import 'package:usage/uuid/uuid.dart';
 
 import 'utilities.dart';
@@ -23,9 +23,6 @@ void defaultConsumer(String message, {StackTrace? stackTrace}) =>
     stackTrace == null
         ? _serverLogger.info(message)
         : _serverLogger.severe(message, null, stackTrace);
-
-String get frontendServerExecutable =>
-    p.join(dartSdkPath, 'bin', 'snapshots', 'frontend_server.dart.snapshot');
 
 typedef CompilerMessageConsumer = void Function(String message,
     {StackTrace stackTrace});
@@ -260,6 +257,8 @@ class ResidentCompiler {
     required this.fileSystemScheme,
     required this.platformDill,
     required this.soundNullSafety,
+    this.experiments = const <String>[],
+    required this.sdkLayout,
     this.verbose = false,
     CompilerMessageConsumer compilerMessageConsumer = defaultConsumer,
   }) : _stdoutHandler = StdoutHandler(consumer: compilerMessageConsumer);
@@ -271,6 +270,8 @@ class ResidentCompiler {
   final String fileSystemScheme;
   final String platformDill;
   final bool soundNullSafety;
+  final List<String> experiments;
+  final TestSdkLayout sdkLayout;
   final bool verbose;
 
   /// The path to the root of the Dart SDK used to compile.
@@ -360,7 +361,7 @@ class ResidentCompiler {
 
   Future<CompilerOutput?> _compile(
       String scriptUri, String outputFilePath) async {
-    var frontendServer = frontendServerExecutable;
+    var frontendServer = sdkLayout.frontendServerSnapshotPath;
     var args = <String>[
       frontendServer,
       '--sdk-root',
@@ -388,14 +389,14 @@ class ResidentCompiler {
       ],
       if (useDebuggerModuleNames) '--debugger-module-names',
       '--experimental-emit-debug-metadata',
-      if (soundNullSafety) '--sound-null-safety',
-      if (!soundNullSafety) '--no-sound-null-safety',
-      if (verbose) '--verbose'
+      soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
+      for (final experiment in experiments) '--enable-experiment=$experiment',
+      if (verbose) '--verbose',
     ];
 
     _logger.info(args.join(' '));
     final workingDirectory = projectDirectory.toFilePath();
-    _server = await Process.start(Platform.resolvedExecutable, args,
+    _server = await Process.start(sdkLayout.dartPath, args,
         workingDirectory: workingDirectory);
 
     var server = _server!;

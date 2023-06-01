@@ -3,16 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 2))
-import 'dart:async';
 import 'dart:io';
 
 import 'package:dwds/src/readers/frontend_server_asset_reader.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_layout.dart';
+import 'package:test_common/utilities.dart';
 
-import '../fixtures/utilities.dart';
-
-final packagesDir = absolutePath(pathFromFixtures: '_test');
+import '../fixtures/project.dart';
 
 final fixturesDir = absolutePath(pathFromDwds: p.join('test', 'fixtures'));
 
@@ -21,6 +20,9 @@ void main() {
   late Directory tempFixtures;
   late File jsonOriginal;
   late File mapOriginal;
+
+  final testProject = TestProject.testWithSoundNullSafety;
+  final packagesDir = testProject.absolutePackageDirectory;
 
   Future<void> createTempFixtures() async {
     tempFixtures = await Directory.systemTemp.createTemp('dwds_test_fixtures');
@@ -32,8 +34,12 @@ void main() {
   }
 
   setUpAll(() async {
-    await Process.run(dartPath, ['pub', 'upgrade'],
-        workingDirectory: packagesDir);
+    final sdkLayout = TestSdkLayout.defaultSdkLayout;
+    await Process.run(
+      sdkLayout.dartPath,
+      ['pub', 'upgrade'],
+      workingDirectory: packagesDir,
+    );
   });
 
   setUp(() async {
@@ -42,7 +48,7 @@ void main() {
       p.join(tempFixtures.path, 'main.dart.dill'),
       packagesDir,
     );
-    await assetReader.updateCaches();
+    assetReader.updateCaches();
   });
 
   tearDown(() async {
@@ -97,13 +103,17 @@ void main() {
 
         // Update fixture.
         await File(p.join(tempFixtures.path, 'main.dart.dill.incremental.json'))
-            .writeAsString((await jsonOriginal.readAsString())
-                .replaceAll('web/main.dart.lib.js', 'web/foo.dart.lib.js'));
+            .writeAsString(
+          (await jsonOriginal.readAsString())
+              .replaceAll('web/main.dart.lib.js', 'web/foo.dart.lib.js'),
+        );
         await File(p.join(tempFixtures.path, 'main.dart.dill.incremental.map'))
-            .writeAsString((await mapOriginal.readAsString())
-                .replaceAll('web/main.dart.lib.js', 'web/foo.dart.lib.js'));
+            .writeAsString(
+          (await mapOriginal.readAsString())
+              .replaceAll('web/main.dart.lib.js', 'web/foo.dart.lib.js'),
+        );
 
-        await assetReader.updateCaches();
+        assetReader.updateCaches();
 
         final newResult =
             await assetReader.sourceMapContents('web/foo.dart.lib.js.map');

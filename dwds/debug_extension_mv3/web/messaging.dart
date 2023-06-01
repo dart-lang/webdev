@@ -5,12 +5,13 @@
 @JS()
 library messaging;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:js/js.dart';
 
-import 'data_serializers.dart';
 import 'chrome_api.dart';
+import 'data_serializers.dart';
 import 'logger.dart';
 
 enum Script {
@@ -28,7 +29,8 @@ enum MessageType {
   connectFailure,
   debugInfo,
   debugStateChange,
-  devToolsUrl;
+  devToolsUrl,
+  multipleAppsDetected;
 
   factory MessageType.fromString(String value) {
     return MessageType.values.byName(value);
@@ -92,29 +94,44 @@ void interceptMessage<T>({
       messageHandler(decodedMessage.body as T);
     } else {
       messageHandler(
-          serializers.deserialize(jsonDecode(decodedMessage.body)) as T);
+        serializers.deserialize(jsonDecode(decodedMessage.body)) as T,
+      );
     }
   } catch (error) {
     debugError(
-        'Error intercepting $expectedType from $expectedSender to $expectedRecipient: $error');
+      'Error intercepting $expectedType from $expectedSender to $expectedRecipient: $error',
+    );
   }
 }
 
-void sendRuntimeMessage(
-    {required MessageType type,
-    required String body,
-    required Script sender,
-    required Script recipient}) {
+Future<bool> sendRuntimeMessage({
+  required MessageType type,
+  required String body,
+  required Script sender,
+  required Script recipient,
+}) {
   final message = Message(
     to: recipient,
     from: sender,
     type: type,
     body: body,
   );
+  final completer = Completer<bool>();
   chrome.runtime.sendMessage(
-    /*id*/ null,
+    // id
+    null,
     message.toJSON(),
-    /*options*/ null,
-    /*callback*/ null,
+    // options
+    null,
+    allowInterop(() {
+      final error = chrome.runtime.lastError;
+      if (error != null) {
+        debugError(
+          'Error sending $type to $recipient from $sender: ${error.message}',
+        );
+      }
+      completer.complete(error != null);
+    }),
   );
+  return completer.future;
 }

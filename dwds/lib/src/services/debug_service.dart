@@ -9,6 +9,15 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dds/dds.dart';
+import 'package:dwds/src/connections/app_connection.dart';
+import 'package:dwds/src/debugging/execution_context.dart';
+import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/events.dart';
+import 'package:dwds/src/readers/asset_reader.dart';
+import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/utilities/server.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart' hide Response;
@@ -16,16 +25,6 @@ import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-
-import '../connections/app_connection.dart';
-import '../loaders/strategy.dart';
-import '../readers/asset_reader.dart';
-import '../services/expression_compiler.dart';
-import '../debugging/execution_context.dart';
-import '../debugging/remote_debugger.dart';
-import '../events.dart';
-import '../utilities/shared.dart';
-import 'chrome_proxy_service.dart';
 
 bool _acceptNewConnections = true;
 int _clientsConnected = 0;
@@ -40,10 +39,12 @@ void Function(WebSocketChannel) _createNewConnectionHandler(
 }) {
   return (webSocket) {
     final responseController = StreamController<Map<String, Object?>>();
-    webSocket.sink.addStream(responseController.stream.map((response) {
-      if (onResponse != null) onResponse(response);
-      return jsonEncode(response);
-    }));
+    webSocket.sink.addStream(
+      responseController.stream.map((response) {
+        if (onResponse != null) onResponse(response);
+        return jsonEncode(response);
+      }),
+    );
     final inputStream = webSocket.stream.map((value) {
       if (value is List<int>) {
         value = utf8.decode(value);
@@ -57,10 +58,12 @@ void Function(WebSocketChannel) _createNewConnectionHandler(
       return request;
     });
     ++_clientsConnected;
-    VmServerConnection(inputStream, responseController.sink,
-            serviceExtensionRegistry, chromeProxyService)
-        .done
-        .whenComplete(() async {
+    VmServerConnection(
+      inputStream,
+      responseController.sink,
+      serviceExtensionRegistry,
+      chromeProxyService,
+    ).done.whenComplete(() {
       --_clientsConnected;
       if (!_acceptNewConnections && _clientsConnected == 0) {
         // DDS has disconnected so we can allow for clients to connect directly
@@ -85,27 +88,35 @@ Future<void> _handleSseConnections(
       if (onResponse != null) onResponse(response);
       return jsonEncode(response);
     }).listen(connection.sink.add);
-    unawaited(chromeProxyService.remoteDebugger.onClose.first.whenComplete(() {
-      connection.sink.close();
-      sub.cancel();
-    }));
+    safeUnawaited(
+      chromeProxyService.remoteDebugger.onClose.first.whenComplete(() {
+        connection.sink.close();
+        sub.cancel();
+      }),
+    );
     final inputStream = connection.stream.map((value) {
       final request = jsonDecode(value) as Map<String, Object>;
       if (onRequest != null) onRequest(request);
       return request;
     });
     ++_clientsConnected;
-    final vmServerConnection = VmServerConnection(inputStream,
-        responseController.sink, serviceExtensionRegistry, chromeProxyService);
-    unawaited(vmServerConnection.done.whenComplete(() {
-      --_clientsConnected;
-      if (!_acceptNewConnections && _clientsConnected == 0) {
-        // DDS has disconnected so we can allow for clients to connect directly
-        // to DWDS.
-        _acceptNewConnections = true;
-      }
-      return sub.cancel();
-    }));
+    final vmServerConnection = VmServerConnection(
+      inputStream,
+      responseController.sink,
+      serviceExtensionRegistry,
+      chromeProxyService,
+    );
+    safeUnawaited(
+      vmServerConnection.done.whenComplete(() {
+        --_clientsConnected;
+        if (!_acceptNewConnections && _clientsConnected == 0) {
+          // DDS has disconnected so we can allow for clients to connect directly
+          // to DWDS.
+          _acceptNewConnections = true;
+        }
+        return sub.cancel();
+      }),
+    );
   }
 }
 
@@ -132,15 +143,16 @@ class DebugService {
   Future<void>? _closed;
 
   DebugService._(
-      this.chromeProxyService,
-      this.hostname,
-      this.port,
-      this.authToken,
-      this.serviceExtensionRegistry,
-      this._server,
-      this._useSse,
-      this._spawnDds,
-      this._urlEncoder);
+    this.chromeProxyService,
+    this.hostname,
+    this.port,
+    this.authToken,
+    this.serviceExtensionRegistry,
+    this._server,
+    this._useSse,
+    this._spawnDds,
+    this._urlEncoder,
+  );
 
   Future<void> close() => _closed ??= Future.wait([
         _server.close(),
@@ -210,7 +222,6 @@ class DebugService {
     ExecutionContext executionContext,
     String root,
     AssetReader assetReader,
-    LoadStrategy loadStrategy,
     AppConnection appConnection,
     UrlEncoder? urlEncoder, {
     void Function(Map<String, Object>)? onRequest,
@@ -223,7 +234,6 @@ class DebugService {
       remoteDebugger,
       root,
       assetReader,
-      loadStrategy,
       appConnection,
       executionContext,
       expressionCompiler,
@@ -233,16 +243,29 @@ class DebugService {
     Handler handler;
     // DDS will always connect to DWDS via web sockets.
     if (useSse && !spawnDds) {
-      final sseHandler = SseHandler(Uri.parse('/$authToken/\$debugHandler'),
-          keepAlive: const Duration(seconds: 5));
+      final sseHandler = SseHandler(
+        Uri.parse('/$authToken/\$debugHandler'),
+        keepAlive: const Duration(seconds: 5),
+      );
       handler = sseHandler.handler;
-      unawaited(_handleSseConnections(
-          sseHandler, chromeProxyService, serviceExtensionRegistry,
-          onRequest: onRequest, onResponse: onResponse));
+      safeUnawaited(
+        _handleSseConnections(
+          sseHandler,
+          chromeProxyService,
+          serviceExtensionRegistry,
+          onRequest: onRequest,
+          onResponse: onResponse,
+        ),
+      );
     } else {
-      final innerHandler = webSocketHandler(_createNewConnectionHandler(
-          chromeProxyService, serviceExtensionRegistry,
-          onRequest: onRequest, onResponse: onResponse));
+      final innerHandler = webSocketHandler(
+        _createNewConnectionHandler(
+          chromeProxyService,
+          serviceExtensionRegistry,
+          onRequest: onRequest,
+          onResponse: onResponse,
+        ),
+      );
       handler = (shelf.Request request) {
         if (!_acceptNewConnections) {
           return shelf.Response.forbidden(

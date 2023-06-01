@@ -18,11 +18,9 @@ import 'package:vm_service/vm_service.dart' hide LogRecord;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     show CallFrame, DebuggerPausedEvent, StackTrace, WipCallFrame, WipScript;
 
-import 'fixtures/context.dart';
 import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
 
-final context = TestContext.withSoundNullSafety();
 late AppInspector inspector;
 late Debugger debugger;
 late FakeWebkitDebugger webkitDebugger;
@@ -87,7 +85,10 @@ void main() async {
     globalLoadStrategy = TestStrategy();
     final root = 'fakeRoot';
     locations = Locations(
-        FakeAssetReader(sourceMap: sourceMapContents), FakeModules(), root);
+      FakeAssetReader(sourceMap: sourceMapContents),
+      FakeModules(),
+      root,
+    );
     locations.initialize('fake_entrypoint');
     skipLists = SkipLists();
     debugger = await Debugger.create(
@@ -97,7 +98,7 @@ void main() async {
       skipLists,
       root,
     );
-    inspector = FakeInspector(fakeIsolate: simpleIsolate);
+    inspector = FakeInspector(webkitDebugger, fakeIsolate: simpleIsolate);
     debugger.updateInspector(inspector);
   });
 
@@ -167,7 +168,7 @@ void main() async {
   setUp(() {
     // We need to provide an Isolate so that the code doesn't bail out on a null
     // check before it has a chance to throw.
-    inspector = FakeInspector(fakeIsolate: simpleIsolate);
+    inspector = FakeInspector(webkitDebugger, fakeIsolate: simpleIsolate);
     debugger.updateInspector(inspector);
   });
 
@@ -175,25 +176,31 @@ void main() async {
     setUp(() {
       // We need to provide an Isolate so that the code doesn't bail out on a null
       // check before it has a chance to throw.
-      inspector = FakeInspector(fakeIsolate: simpleIsolate);
+      inspector = FakeInspector(webkitDebugger, fakeIsolate: simpleIsolate);
       debugger.updateInspector(inspector);
     });
 
     test('errors in the zone are caught and logged', () async {
       // Add a DebuggerPausedEvent with a null parameter to provoke an error.
-      pausedController.sink.add(DebuggerPausedEvent({
-        'method': '',
-        'params': {
-          'reason': 'other',
-          'callFrames': [
-            {'callFrameId': '', 'functionName': ''},
-          ],
-        }
-      }));
+      pausedController.sink.add(
+        DebuggerPausedEvent({
+          'method': '',
+          'params': {
+            'reason': 'other',
+            'callFrames': [
+              {'callFrameId': '', 'functionName': ''},
+            ],
+          }
+        }),
+      );
       expect(
-          Debugger.logger.onRecord,
-          emitsThrough(predicate((LogRecord log) =>
-              log.message == 'Error calculating Dart frames')));
+        Debugger.logger.onRecord,
+        emitsThrough(
+          predicate(
+            (LogRecord log) => log.message == 'Error calculating Dart frames',
+          ),
+        ),
+      );
     });
   });
 }

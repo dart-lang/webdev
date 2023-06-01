@@ -1,0 +1,30 @@
+# A CI workflow to remind the contributor to update the changelog.
+
+name: Changelog Reminder
+
+on:
+  pull_request:
+    types: [synchronize, opened, reopened, labeled, unlabeled]
+    paths:
+      - '**/*.dart'
+
+jobs:
+  changelog-reminder:
+    if: ${{ !contains(github.event.*.labels.*.name, 'changelog-not-required') }}
+    name: Maybe prevent submission
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repositiory
+        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - name: Check changed files
+        run: |
+          git fetch origin master
+          PR_DIFF=$(git diff origin/master --name-only)
+          echo "$PR_DIFF"
+          if [[ $PR_DIFF == *"CHANGELOG.md"* ]]; then
+            echo "CHANGELOG.md has been updated."
+            exit 0;
+          fi
+          echo "Did not detect an update to the CHANGELOG.md in this PR."
+          echo "Please update the CHANGELOG.md, or add the 'changelog-not-required' label."
+          exit 1

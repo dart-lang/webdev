@@ -21,13 +21,19 @@ void main() {
 String _readDartDebugInfo() {
   final windowContext = JsObject.fromBrowserObject(window);
 
-  return jsonEncode(serializers.serialize(DebugInfo((b) => b
-    ..appEntrypointPath = windowContext['\$dartEntrypointPath']
-    ..appId = windowContext['\$dartAppId']
-    ..appInstanceId = windowContext['\$dartAppInstanceId']
-    ..appOrigin = window.location.origin
-    ..appUrl = window.location.href
-    ..extensionUrl = windowContext['\$dartExtensionUri']
-    ..isInternalBuild = windowContext['\$isInternalBuild']
-    ..isFlutterApp = windowContext['\$isFlutterApp'])));
+  return jsonEncode(
+    serializers.serialize(
+      DebugInfo(
+        (b) => b
+          ..appEntrypointPath = windowContext['\$dartEntrypointPath']
+          ..appId = windowContext['\$dartAppId']
+          ..appInstanceId = windowContext['\$dartAppInstanceId']
+          ..appOrigin = window.location.origin
+          ..appUrl = window.location.href
+          ..extensionUrl = windowContext['\$dartExtensionUri']
+          ..isInternalBuild = windowContext['\$isInternalBuild']
+          ..isFlutterApp = windowContext['\$isFlutterApp'],
+      ),
+    ),
+  );
 }

@@ -9,12 +9,17 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 
 import 'fixtures/context.dart';
-
-final context = TestContext.withSoundNullSafety();
+import 'fixtures/project.dart';
 
 void main() {
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+
+  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
+
   setUpAll(() async {
     // Disable DDS as we're testing DWDS behavior.
     await context.setUp(spawnDds: false);
@@ -26,15 +31,17 @@ void main() {
 
   test('Refuses connections without the auth token', () async {
     expect(
-        WebSocket.connect('ws://localhost:${context.debugConnection.port}/ws'),
-        throwsA(isA<WebSocketException>()));
+      WebSocket.connect('ws://localhost:${context.debugConnection.port}/ws'),
+      throwsA(isA<WebSocketException>()),
+    );
   });
 
   test('Accepts connections with the auth token', () async {
     expect(
-        WebSocket.connect('${context.debugConnection.uri}/ws')
-            .then((ws) => ws.close()),
-        completes);
+      WebSocket.connect('${context.debugConnection.uri}/ws')
+          .then((ws) => ws.close()),
+      completes,
+    );
   });
 
   test('Refuses additional connections when in single client mode', () async {
@@ -63,15 +70,18 @@ void main() {
     await completer.future;
 
     // While DDS is connected, expect additional connections to fail.
-    await expectLater(WebSocket.connect('${context.debugConnection.uri}/ws'),
-        throwsA(isA<WebSocketException>()));
+    await expectLater(
+      WebSocket.connect('${context.debugConnection.uri}/ws'),
+      throwsA(isA<WebSocketException>()),
+    );
 
     // However, once DDS is disconnected, additional clients can connect again.
     await ddsWs.close();
     expect(
-        WebSocket.connect('${context.debugConnection.uri}/ws')
-            .then((ws) => ws.close()),
-        completes);
+      WebSocket.connect('${context.debugConnection.uri}/ws')
+          .then((ws) => ws.close()),
+      completes,
+    );
   });
 
   test('Refuses to yield to dwds if existing clients found', () async {
@@ -105,8 +115,10 @@ void main() {
 
     final result = response['error'] as Map<String, dynamic>;
     expect(result['message'], 'Feature is disabled.');
-    expect(result['data'],
-        'Existing VM service clients prevent DDS from taking control.');
+    expect(
+      result['data'],
+      'Existing VM service clients prevent DDS from taking control.',
+    );
 
     await ddsWs.close();
     await ws.close();

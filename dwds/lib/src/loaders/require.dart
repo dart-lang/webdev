@@ -4,13 +4,12 @@
 
 import 'dart:convert';
 
+import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/readers/asset_reader.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
-
-import '../debugging/metadata/provider.dart';
-import '../loaders/strategy.dart';
-import '../readers/asset_reader.dart';
-import '../services/expression_compiler.dart';
 
 /// Find the path we are serving from the url.
 ///
@@ -131,7 +130,12 @@ class RequireStrategy extends LoadStrategy {
   ///   web/main -> {main.ddc.full.dill, main.ddc.dill}
   ///
   final Future<Map<String, ModuleInfo>> Function(
-      MetadataProvider metadataProvider) _moduleInfoForProvider;
+    MetadataProvider metadataProvider,
+  ) _moduleInfoForProvider;
+
+  @override
+  Uri? get appEntrypoint => _appEntrypoint;
+  final Uri? _appEntrypoint;
 
   RequireStrategy(
     this.reloadConfiguration,
@@ -143,6 +147,7 @@ class RequireStrategy extends LoadStrategy {
     this._serverPathForAppUri,
     this._moduleInfoForProvider,
     AssetReader assetReader,
+    this._appEntrypoint,
   ) : super(assetReader);
 
   @override

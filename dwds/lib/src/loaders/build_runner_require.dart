@@ -5,15 +5,14 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/require.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/readers/asset_reader.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
-
-import '../debugging/metadata/provider.dart';
-import '../loaders/strategy.dart';
-import '../readers/asset_reader.dart';
-import '../services/expression_compiler.dart';
-import 'require.dart';
 
 /// Provides a [RequireStrategy] suitable for use with `package:build_runner`.
 class BuildRunnerRequireStrategyProvider {
@@ -22,6 +21,7 @@ class BuildRunnerRequireStrategyProvider {
   final Handler _assetHandler;
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
+  final Uri? _appEntrypoint;
 
   late final RequireStrategy _requireStrategy = RequireStrategy(
     _configuration,
@@ -33,21 +33,28 @@ class BuildRunnerRequireStrategyProvider {
     _serverPathForAppUri,
     _moduleInfoForProvider,
     _assetReader,
+    _appEntrypoint,
   );
 
   BuildRunnerRequireStrategyProvider(
-      this._assetHandler, this._configuration, this._assetReader);
+    this._assetHandler,
+    this._configuration,
+    this._assetReader,
+    this._appEntrypoint,
+  );
 
   RequireStrategy get strategy => _requireStrategy;
 
   Future<Map<String, String>> _digestsProvider(
-      MetadataProvider metadataProvider) async {
+    MetadataProvider metadataProvider,
+  ) async {
     final modules = await metadataProvider.modulePathToModule;
 
     final digestsPath = metadataProvider.entrypoint
         .replaceAll('.dart.bootstrap.js', '.digests');
     final response = await _assetHandler(
-        Request('GET', Uri.parse('http://foo:0000/$digestsPath')));
+      Request('GET', Uri.parse('http://foo:0000/$digestsPath')),
+    );
     if (response.statusCode != HttpStatus.ok) {
       throw StateError('Could not read digests at path: $digestsPath');
     }
@@ -68,12 +75,17 @@ class BuildRunnerRequireStrategyProvider {
   }
 
   Future<Map<String, String>> _moduleProvider(
-          MetadataProvider metadataProvider) async =>
-      (await metadataProvider.moduleToModulePath).map((key, value) =>
-          MapEntry(key, stripTopLevelDirectory(removeJsExtension(value))));
+    MetadataProvider metadataProvider,
+  ) async =>
+      (await metadataProvider.moduleToModulePath).map(
+        (key, value) =>
+            MapEntry(key, stripTopLevelDirectory(removeJsExtension(value))),
+      );
 
   Future<String?> _moduleForServerPath(
-      MetadataProvider metadataProvider, String serverPath) async {
+    MetadataProvider metadataProvider,
+    String serverPath,
+  ) async {
     final modulePathToModule = await metadataProvider.modulePathToModule;
     final relativePath = stripLeadingSlashes(serverPath);
     for (var e in modulePathToModule.entries) {
@@ -85,13 +97,17 @@ class BuildRunnerRequireStrategyProvider {
   }
 
   Future<String?> _serverPathForModule(
-      MetadataProvider metadataProvider, String module) async {
+    MetadataProvider metadataProvider,
+    String module,
+  ) async {
     final modulePath = (await metadataProvider.moduleToModulePath)[module];
     return modulePath == null ? null : stripTopLevelDirectory(modulePath);
   }
 
   Future<String?> _sourceMapPathForModule(
-      MetadataProvider metadataProvider, String module) async {
+    MetadataProvider metadataProvider,
+    String module,
+  ) async {
     final sourceMapPath = (await metadataProvider.moduleToSourceMap)[module];
     return sourceMapPath == null ? null : stripTopLevelDirectory(sourceMapPath);
   }
@@ -109,7 +125,8 @@ class BuildRunnerRequireStrategyProvider {
   }
 
   Future<Map<String, ModuleInfo>> _moduleInfoForProvider(
-      MetadataProvider metadataProvider) async {
+    MetadataProvider metadataProvider,
+  ) async {
     final modules = await metadataProvider.modules;
     final result = <String, ModuleInfo>{};
     for (var module in modules) {
@@ -118,12 +135,13 @@ class BuildRunnerRequireStrategyProvider {
         _logger.warning('No module info found for module $module');
       } else {
         result[module] = ModuleInfo(
-            // TODO: Save locations of full kernel files in ddc metadata.
-            // Issue: https://github.com/dart-lang/sdk/issues/43684
-            // TODO: Change these to URIs instead of paths when the SDK supports
-            // it.
-            p.setExtension(serverPath, '.full.dill'),
-            p.setExtension(serverPath, '.dill'));
+          // TODO: Save locations of full kernel files in ddc metadata.
+          // Issue: https://github.com/dart-lang/sdk/issues/43684
+          // TODO: Change these to URIs instead of paths when the SDK supports
+          // it.
+          p.setExtension(serverPath, '.full.dill'),
+          p.setExtension(serverPath, '.dill'),
+        );
       }
     }
     return result;

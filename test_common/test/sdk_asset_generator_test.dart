@@ -7,12 +7,10 @@
 
 import 'dart:io';
 
-import 'package:dwds/src/utilities/sdk_configuration.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-
-import 'fixtures/logging.dart';
-import 'fixtures/sdk_asset_generator.dart';
+import 'package:test_common/logging.dart';
+import 'package:test_common/sdk_asset_generator.dart';
+import 'package:test_common/test_sdk_layout.dart';
 
 void main() {
   group('SDK asset generator', () {
@@ -39,26 +37,28 @@ void main() {
       tempDir = Directory.systemTemp.createTempSync();
 
       sdkDirectory = tempDir.path;
-      soundSdkSummaryPath = _soundSdkSummaryPath(sdkDirectory);
-      compilerWorkerPath = _compilerWorkerPath(sdkDirectory);
+      final copySdkLayout = TestSdkLayout.createDefault(sdkDirectory);
+
+      soundSdkSummaryPath = copySdkLayout.soundSummaryPath;
+      compilerWorkerPath = copySdkLayout.dartdevcSnapshotPath;
 
       // Copy the SDK directory into a temp directory.
-      await _copy(SdkLayout.sdkDir, sdkDirectory);
+      await copyDirectory(TestSdkLayout.defaultSdkDirectory, sdkDirectory);
 
       // Simulate missing sound assets.
-      soundSdkFullDillPath = _soundSdkFullDillPath(sdkDirectory);
-      soundSdkJsPath = _soundSdkJsPath(sdkDirectory);
-      soundSdkJsMapPath = _soundSdkJsMapPath(sdkDirectory);
+      soundSdkFullDillPath = copySdkLayout.soundFullDillPath;
+      soundSdkJsPath = copySdkLayout.soundJsPath;
+      soundSdkJsMapPath = copySdkLayout.soundJsMapPath;
 
       _deleteIfExists(soundSdkFullDillPath);
       _deleteIfExists(soundSdkJsPath);
       _deleteIfExists(soundSdkJsMapPath);
 
       // Simulate missing weak assets.
-      weakSdkSummaryPath = _weakSdkSummaryPath(sdkDirectory);
-      weakSdkFullDillPath = _weakSdkFullDillPath(sdkDirectory);
-      weakSdkJsPath = _weakSdkJsPath(sdkDirectory);
-      weakSdkJsMapPath = _weakSdkJsMapPath(sdkDirectory);
+      weakSdkSummaryPath = copySdkLayout.weakSummaryPath;
+      weakSdkFullDillPath = copySdkLayout.weakFullDillPath;
+      weakSdkJsPath = copySdkLayout.weakJsPath;
+      weakSdkJsMapPath = copySdkLayout.weakJsMapPath;
 
       _deleteIfExists(weakSdkSummaryPath);
       _deleteIfExists(weakSdkFullDillPath);
@@ -72,11 +72,11 @@ void main() {
 
     test('Can generate missing SDK assets and validate SDK configuration',
         () async {
-      final sdkLayout = SdkLayout.createDefault(sdkDirectory);
-      final configuration = SdkConfiguration.fromSdkLayout(sdkLayout);
+      final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
+      final configuration = TestSdkLayout.createConfiguration(sdkLayout);
 
       final assetGenerator =
-          SdkAssetGenerator(sdkLayout: sdkLayout, verboseCompiler: true);
+          SdkAssetGenerator(sdkLayout: sdkLayout, verbose: true);
       await assetGenerator.generateSdkAssets();
 
       // Make sure SDK configuration and asset generator agree on the file paths.
@@ -111,55 +111,12 @@ void main() {
   });
 }
 
-String _weakSdkSummaryPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', '_internal', 'ddc_outline_unsound.dill');
-
-String _soundSdkSummaryPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', '_internal', 'ddc_outline.dill');
-
-String _weakSdkFullDillPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', '_internal', 'ddc_platform_unsound.dill');
-
-String _soundSdkFullDillPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', '_internal', 'ddc_platform.dill');
-
-String _weakSdkJsPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', 'dev_compiler', 'kernel', 'amd', 'dart_sdk.js');
-
-String _soundSdkJsPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', 'dev_compiler', 'kernel', 'amd', 'dart_sdk_sound.js');
-
-String _weakSdkJsMapPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', 'dev_compiler', 'kernel', 'amd', 'dart_sdk.js.map');
-
-String _soundSdkJsMapPath(String sdkDir) => p.join(
-    sdkDir, 'lib', 'dev_compiler', 'kernel', 'amd', 'dart_sdk_sound.js.map');
-
-String _compilerWorkerPath(String sdkDir) =>
-    p.join(sdkDir, 'bin', 'snapshots', 'dartdevc.dart.snapshot');
-
-Matcher _exists = predicate((String path) => File(path).existsSync());
+Matcher _exists =
+    predicate((String path) => File(path).existsSync(), 'File exists');
 
 void _deleteIfExists(String path) {
   final file = File(path);
   if (file.existsSync()) {
     file.deleteSync();
-  }
-}
-
-// Update modified files.
-Future<void> _copy(String from, String to) async {
-  if (!Directory(from).existsSync()) return;
-  await Directory(to).create(recursive: true);
-
-  await for (final file in Directory(from).list()) {
-    final copyTo = p.join(to, p.relative(file.path, from: from));
-    if (file is Directory) {
-      await _copy(file.path, copyTo);
-    } else if (file is File) {
-      await File(file.path).copy(copyTo);
-    } else if (file is Link) {
-      await Link(copyTo).create(await file.target(), recursive: true);
-    }
   }
 }

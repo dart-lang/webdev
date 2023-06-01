@@ -4,60 +4,35 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
-import 'dart:async';
 
-import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/logging.dart';
-
-class TestSetup {
-  static final contextUnsound = TestContext.withWeakNullSafety(
-    packageName: '_testPackage',
-    webAssetsPath: 'web',
-    dartEntryFileName: 'main.dart',
-    htmlEntryFileName: 'index.html',
-  );
-
-  static final contextSound = TestContext.withSoundNullSafety(
-    packageName: '_testPackageSound',
-    webAssetsPath: 'web',
-    dartEntryFileName: 'main.dart',
-    htmlEntryFileName: 'index.html',
-  );
-
-  TestContext context;
-
-  TestSetup.sound() : context = contextSound;
-
-  TestSetup.unsound() : context = contextUnsound;
-
-  ChromeProxyService get service =>
-      fetchChromeProxyService(context.debugConnection);
-  WipConnection get tabConnection => context.tabConnection;
-}
+import 'fixtures/project.dart';
 
 void main() {
-  group('shared context |', () {
-    // Enable verbose logging for debugging.
-    final debug = false;
+  // Enable verbose logging for debugging.
+  final debug = false;
 
+  final provider = TestSdkConfigurationProvider(verbose: debug);
+  tearDownAll(provider.dispose);
+
+  group('shared context |', () {
     for (var nullSafety in NullSafety.values) {
       group('${nullSafety.name} null safety |', () {
-        final soundNullSafety = nullSafety == NullSafety.sound;
-        final setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
-        final context = setup.context;
+        final project = TestProject.testPackage(nullSafety: nullSafety);
+        final context = TestContext(project, provider);
 
         setUpAll(() async {
           setCurrentLogWriter(debug: debug);
           await context.setUp(
-              compilationMode: CompilationMode.frontendServer,
-              enableExpressionEvaluation: true,
-              verboseCompiler: debug);
+            compilationMode: CompilationMode.frontendServer,
+            enableExpressionEvaluation: true,
+            verboseCompiler: debug,
+          );
         });
 
         tearDownAll(() async {
@@ -65,7 +40,7 @@ void main() {
         });
 
         group('callStack |', () {
-          late ChromeProxyService service;
+          late VmServiceInterface service;
           VM vm;
           late Isolate isolate;
           late String isolateId;
@@ -76,7 +51,7 @@ void main() {
 
           setUp(() async {
             setCurrentLogWriter(debug: debug);
-            service = setup.service;
+            service = context.service;
             vm = await service.getVM();
             isolate = await service.getIsolate(vm.isolates!.first.id!);
             isolateId = isolate.id!;
@@ -85,50 +60,62 @@ void main() {
             await service.streamListen('Debug');
             stream = service.onEvent('Debug');
 
-            final testPackage =
-                soundNullSafety ? '_test_package_sound' : '_test_package';
-
+            final testPackage = project.packageName;
             mainScript = scripts.scripts!
                 .firstWhere((each) => each.uri!.contains('main.dart'));
-            testLibraryScript = scripts.scripts!.firstWhere((each) =>
-                each.uri!.contains('package:$testPackage/test_library.dart'));
+            testLibraryScript = scripts.scripts!.firstWhere(
+              (each) =>
+                  each.uri!.contains('package:$testPackage/test_library.dart'),
+            );
           });
 
           tearDown(() async {
             await service.resume(isolateId);
           });
 
-          Future<void> onBreakPoint(BreakpointTestData breakpoint,
-              Future<void> Function() body) async {
+          Future<void> onBreakPoint(
+            BreakpointTestData breakpoint,
+            Future<void> Function() body,
+          ) async {
             Breakpoint? bp;
             try {
               final bpId = breakpoint.bpId;
               final script = breakpoint.script;
               final line =
                   await context.findBreakpointLine(bpId, isolateId, script);
-              bp = await setup.service
+              bp = await context.service
                   .addBreakpointWithScriptUri(isolateId, script.uri!, line);
 
               expect(bp, isNotNull);
               expect(bp.location, _matchBpLocation(script, line, 0));
 
               await stream.firstWhere(
-                  (Event event) => event.kind == EventKind.kPauseBreakpoint);
+                (Event event) => event.kind == EventKind.kPauseBreakpoint,
+              );
 
               await body();
             } finally {
               // Remove breakpoint so it doesn't impact other tests or retries.
               if (bp != null) {
-                await setup.service.removeBreakpoint(isolateId, bp.id!);
+                await context.service.removeBreakpoint(isolateId, bp.id!);
               }
             }
           }
 
-          Future<void> testCallStack(List<BreakpointTestData> breakpoints,
-              {int frameIndex = 1}) async {
+          Future<void> testCallStack(
+            List<BreakpointTestData> breakpoints, {
+            int frameIndex = 1,
+          }) async {
             // Find lines the breakpoints are located on.
-            final lines = await Future.wait(breakpoints.map((frame) => context
-                .findBreakpointLine(frame.bpId, isolateId, frame.script)));
+            final lines = await Future.wait(
+              breakpoints.map(
+                (frame) => context.findBreakpointLine(
+                  frame.bpId,
+                  isolateId,
+                  frame.script,
+                ),
+              ),
+            );
 
             // Get current stack.
             final stack = await service.getStack(isolateId);
@@ -138,7 +125,10 @@ void main() {
             final expected = [
               for (var i = 0; i < lines.length; i++)
                 _matchFrame(
-                    breakpoints[i].script, breakpoints[i].function, lines[i])
+                  breakpoints[i].script,
+                  breakpoints[i].function,
+                  lines[i],
+                )
             ];
             expect(stack.frames, containsAll(expected));
 
@@ -168,7 +158,9 @@ void main() {
               ),
             ];
             await onBreakPoint(
-                breakpoints[0], () => testCallStack(breakpoints));
+              breakpoints[0],
+              () => testCallStack(breakpoints),
+            );
           });
 
           test('expression evaluation succeeds on parent frame', () async {
@@ -190,8 +182,10 @@ void main() {
                 mainScript,
               ),
             ];
-            await onBreakPoint(breakpoints[0],
-                () => testCallStack(breakpoints, frameIndex: 2));
+            await onBreakPoint(
+              breakpoints[0],
+              () => testCallStack(breakpoints, frameIndex: 2),
+            );
           });
 
           test('breakpoint inside a line gives correct callstack', () async {
@@ -214,7 +208,9 @@ void main() {
               ),
             ];
             await onBreakPoint(
-                breakpoints[0], () => testCallStack(breakpoints));
+              breakpoints[0],
+              () => testCallStack(breakpoints),
+            );
           });
 
           test('breakpoint gives correct callstack after step out', () async {
@@ -239,7 +235,8 @@ void main() {
             await onBreakPoint(breakpoints[0], () async {
               await service.resume(isolateId, step: 'Out');
               await stream.firstWhere(
-                  (Event event) => event.kind == EventKind.kPauseInterrupted);
+                (Event event) => event.kind == EventKind.kPauseInterrupted,
+              );
               return testCallStack([breakpoints[1], breakpoints[2]]);
             });
           });
@@ -266,7 +263,8 @@ void main() {
             await onBreakPoint(breakpoints[1], () async {
               await service.resume(isolateId, step: 'Into');
               await stream.firstWhere(
-                  (Event event) => event.kind == EventKind.kPauseInterrupted);
+                (Event event) => event.kind == EventKind.kPauseInterrupted,
+              );
               return testCallStack(breakpoints);
             });
           });
@@ -294,11 +292,15 @@ void main() {
               ),
             ];
             final bp = BreakpointTestData(
-                'printMultiLine', 'printObjectMultiLine', mainScript);
+              'printMultiLine',
+              'printObjectMultiLine',
+              mainScript,
+            );
             await onBreakPoint(bp, () async {
               await service.resume(isolateId, step: 'Into');
               await stream.firstWhere(
-                  (Event event) => event.kind == EventKind.kPauseInterrupted);
+                (Event event) => event.kind == EventKind.kPauseInterrupted,
+              );
               return testCallStack(breakpoints);
             });
           });
@@ -310,8 +312,11 @@ void main() {
 
 Matcher _matchFrame(ScriptRef script, String function, int line) => isA<Frame>()
     .having((frame) => frame.code!.name, 'function', function)
-    .having((frame) => frame.location, 'location',
-        _matchFrameLocation(script, line));
+    .having(
+      (frame) => frame.location,
+      'location',
+      _matchFrameLocation(script, line),
+    );
 
 Matcher _matchBpLocation(ScriptRef script, int line, int column) =>
     isA<SourceLocation>()

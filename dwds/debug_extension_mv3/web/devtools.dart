@@ -6,8 +6,9 @@
 library devtools;
 
 import 'dart:html';
-import 'package:js/js.dart';
+
 import 'package:dwds/data/debug_info.dart';
+import 'package:js/js.dart';
 
 import 'chrome_api.dart';
 import 'logger.dart';
@@ -18,20 +19,21 @@ bool panelsExist = false;
 
 void main() async {
   _registerListeners();
-  _maybeCreatePanels();
+  await _maybeCreatePanels();
 }
 
 void _registerListeners() {
-  chrome.storage.onChanged.addListener(allowInterop((
-    Object _,
-    String storageArea,
-  ) {
-    if (storageArea != 'session') return;
-    _maybeCreatePanels();
-  }));
+  chrome.storage.onChanged.addListener(
+    allowInterop((
+      Object _,
+      String storageArea,
+    ) {
+      _maybeCreatePanels();
+    }),
+  );
 }
 
-void _maybeCreatePanels() async {
+Future<void> _maybeCreatePanels() async {
   if (panelsExist) return;
   final tabId = chrome.devtools.inspectedWindow.tabId;
   final debugInfo = await fetchStorageObject<DebugInfo>(
@@ -43,7 +45,7 @@ void _maybeCreatePanels() async {
   if (!isInternalBuild) return;
   // Create a Debugger panel for all internal apps:
   chrome.devtools.panels.create(
-    isDevMode() ? '[DEV] Dart Debugger' : 'Dart Debugger',
+    isDevMode ? '[DEV] Dart Debugger' : 'Dart Debugger',
     '',
     'static_assets/debugger_panel.html',
     allowInterop((ExtensionPanel panel) => _onPanelAdded(panel, debugInfo)),
@@ -52,7 +54,7 @@ void _maybeCreatePanels() async {
   final isFlutterApp = debugInfo.isFlutterApp ?? false;
   if (isFlutterApp) {
     chrome.devtools.panels.create(
-      isDevMode() ? '[DEV] Flutter Inspector' : 'Flutter Inspector',
+      isDevMode ? '[DEV] Flutter Inspector' : 'Flutter Inspector',
       '',
       'static_assets/inspector_panel.html',
       allowInterop((ExtensionPanel panel) => _onPanelAdded(panel, debugInfo)),
@@ -62,11 +64,13 @@ void _maybeCreatePanels() async {
 }
 
 void _onPanelAdded(ExtensionPanel panel, DebugInfo debugInfo) {
-  panel.onShown.addListener(allowInterop((Window window) {
-    if (window.origin != debugInfo.appOrigin) {
-      debugWarn('Page at ${window.origin} is no longer a Dart app.');
-      // TODO(elliette): Display banner that panel is not applicable. See:
-      // https://stackoverflow.com/questions/18927147/how-to-close-destroy-chrome-devtools-extensionpanel-programmatically
-    }
-  }));
+  panel.onShown.addListener(
+    allowInterop((Window window) {
+      if (window.origin != debugInfo.appOrigin) {
+        debugWarn('Page at ${window.origin} is no longer a Dart app.');
+        // TODO(elliette): Display banner that panel is not applicable. See:
+        // https://stackoverflow.com/questions/18927147/how-to-close-destroy-chrome-devtools-extensionpanel-programmatically
+      }
+    }),
+  );
 }

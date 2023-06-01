@@ -14,8 +14,7 @@ import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:shelf/shelf.dart' as shelf;
-
-import 'utilities.dart';
+import 'package:test_common/test_sdk_layout.dart';
 
 class TestAssetServer implements AssetReader {
   late final String basePath;
@@ -34,6 +33,7 @@ class TestAssetServer implements AssetReader {
   late String _mergedMetadata;
   final PackageUriMapper _packageUriMapper;
   final InternetAddress internetAddress;
+  final TestSdkLayout _sdkLayout;
 
   TestAssetServer(
     this.index,
@@ -41,6 +41,7 @@ class TestAssetServer implements AssetReader {
     this._packageUriMapper,
     this.internetAddress,
     this._fileSystem,
+    this._sdkLayout,
   ) {
     basePath = _parseBasePathFromIndexHtml(index);
   }
@@ -59,6 +60,7 @@ class TestAssetServer implements AssetReader {
   /// Unhandled exceptions will throw a exception with the error and stack
   /// trace.
   static Future<TestAssetServer> start(
+    String sdkDirectory,
     FileSystem fileSystem,
     String index,
     String hostname,
@@ -66,10 +68,11 @@ class TestAssetServer implements AssetReader {
     UrlEncoder? urlTunneler,
     PackageUriMapper packageUriMapper,
   ) async {
-    var address = (await InternetAddress.lookup(hostname)).first;
-    var httpServer = await HttpServer.bind(address, port);
-    var server = TestAssetServer(
-        index, httpServer, packageUriMapper, address, fileSystem);
+    final address = (await InternetAddress.lookup(hostname)).first;
+    final httpServer = await HttpServer.bind(address, port);
+    final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
+    final server = TestAssetServer(
+        index, httpServer, packageUriMapper, address, fileSystem, sdkLayout);
     return server;
   }
 
@@ -257,7 +260,7 @@ class TestAssetServer implements AssetReader {
     }
 
     // Otherwise it must be a Dart SDK source.
-    var dartSdkParent = _fileSystem.directory(dartSdkPath).parent;
+    var dartSdkParent = _fileSystem.directory(_sdkLayout.sdkDirectory).parent;
     var dartSdkFile = _fileSystem.file(
         _fileSystem.path.joinAll(<String>[dartSdkParent.path, ...segments]));
     return dartSdkFile;

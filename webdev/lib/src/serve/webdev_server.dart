@@ -9,6 +9,7 @@ import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dds/devtools_server.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
+import 'package:dwds/sdk_configuration.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:http_multi_server/http_multi_server.dart';
@@ -100,6 +101,8 @@ class WebDevServer {
           return BuildResult((b) => b.status = BuildStatus.failed);
         case daemon.BuildStatus.succeeded:
           return BuildResult((b) => b.status = BuildStatus.succeeded);
+        default:
+          break;
       }
       throw StateError('Unexpected Daemon build result: $result');
     });
@@ -122,14 +125,20 @@ class WebDevServer {
       );
 
       var loadStrategy = BuildRunnerRequireStrategyProvider(
-              assetHandler, options.configuration.reload, assetReader)
-          .strategy;
+        assetHandler,
+        options.configuration.reload,
+        assetReader,
+        // TODO(https://github.com/flutter/devtools/issues/5350): Figure out how
+        // to determine the app's entrypoint:
+        /* appEntrypoint */ null,
+      ).strategy;
       if (options.configuration.enableExpressionEvaluation) {
         ddcService = ExpressionCompilerService(
           options.configuration.hostname,
           options.port,
           verbose: options.configuration.verbose,
           experiments: options.configuration.experiments,
+          sdkConfigurationProvider: const DefaultSdkConfigurationProvider(),
         );
       }
       var shouldServeDevTools =

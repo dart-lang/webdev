@@ -4,56 +4,17 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
-import 'dart:async';
 
-import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/logging.dart';
-
-class TestSetup {
-  static TestContext contextUnsound(String index) =>
-      TestContext.withWeakNullSafety(
-        packageName: '_testCircular2',
-        webAssetsPath: 'web',
-        dartEntryFileName: 'main.dart',
-        htmlEntryFileName: index,
-      );
-
-  static TestContext contextSound(String index) =>
-      TestContext.withSoundNullSafety(
-        packageName: '_testCircular2Sound',
-        webAssetsPath: 'web',
-        dartEntryFileName: 'main.dart',
-        htmlEntryFileName: index,
-      );
-
-  TestContext context;
-
-  TestSetup.sound(IndexBaseMode baseMode)
-      : context = contextSound(_index(baseMode));
-
-  TestSetup.unsound(IndexBaseMode baseMode)
-      : context = contextUnsound(_index(baseMode));
-
-  factory TestSetup.create(NullSafety? nullSafety, IndexBaseMode baseMode) =>
-      nullSafety == NullSafety.sound
-          ? TestSetup.sound(baseMode)
-          : TestSetup.unsound(baseMode);
-
-  ChromeProxyService get service =>
-      fetchChromeProxyService(context.debugConnection);
-  WipConnection get tabConnection => context.tabConnection;
-
-  static String _index(IndexBaseMode baseMode) =>
-      baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html';
-}
+import 'fixtures/project.dart';
 
 void testAll({
+  required TestSdkConfigurationProvider provider,
   CompilationMode compilationMode = CompilationMode.buildDaemon,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
   NullSafety nullSafety = NullSafety.sound,
@@ -63,24 +24,35 @@ void testAll({
   if (compilationMode == CompilationMode.buildDaemon &&
       indexBaseMode == IndexBaseMode.base) {
     throw StateError(
-        'build daemon scenario does not support non-empty base in index file');
+      'build daemon scenario does not support non-empty base in index file',
+    );
   }
-  final setup = TestSetup.create(nullSafety, indexBaseMode);
-  final context = setup.context;
 
-  Future<void> onBreakPoint(String isolate, ScriptRef script,
-      String breakPointId, Future<void> Function() body) async {
+  final testCircular1 = TestProject.testCircular1(nullSafety: nullSafety);
+  final testCircular2 = TestProject.testCircular2(
+    nullSafety: nullSafety,
+    baseMode: indexBaseMode,
+  );
+
+  final context = TestContext(testCircular2, provider);
+
+  Future<void> onBreakPoint(
+    String isolate,
+    ScriptRef script,
+    String breakPointId,
+    Future<void> Function() body,
+  ) async {
     Breakpoint? bp;
     try {
       final line =
           await context.findBreakpointLine(breakPointId, isolate, script);
-      bp = await setup.service
+      bp = await context.service
           .addBreakpointWithScriptUri(isolate, script.uri!, line);
       await body();
     } finally {
       // Remove breakpoint so it doesn't impact other tests or retries.
       if (bp != null) {
-        await setup.service.removeBreakpoint(isolate, bp.id!);
+        await context.service.removeBreakpoint(isolate, bp.id!);
       }
     }
   }
@@ -103,6 +75,7 @@ void testAll({
     setUp(() => setCurrentLogWriter(debug: debug));
 
     group('evaluateInFrame', () {
+      late VmServiceInterface service;
       VM vm;
       late Isolate isolate;
       late String isolateId;
@@ -113,28 +86,28 @@ void testAll({
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
-        vm = await setup.service.getVM();
-        isolate = await setup.service.getIsolate(vm.isolates!.first.id!);
+        service = context.service;
+        vm = await service.getVM();
+        isolate = await service.getIsolate(vm.isolates!.first.id!);
         isolateId = isolate.id!;
-        scripts = await setup.service.getScripts(isolateId);
+        scripts = await service.getScripts(isolateId);
 
-        await setup.service.streamListen('Debug');
-        stream = setup.service.onEvent('Debug');
+        await service.streamListen('Debug');
+        stream = service.onEvent('Debug');
 
-        final soundNullSafety = nullSafety == NullSafety.sound;
-        final test1 =
-            soundNullSafety ? '_test_circular1_sound' : '_test_circular1';
-        final test2 =
-            soundNullSafety ? '_test_circular2_sound' : '_test_circular2';
+        final test1 = testCircular1.packageName;
+        final test2 = testCircular2.packageName;
 
         test1LibraryScript = scripts.scripts!.firstWhere(
-            (each) => each.uri!.contains('package:$test1/library1.dart'));
+          (each) => each.uri!.contains('package:$test1/library1.dart'),
+        );
         test2LibraryScript = scripts.scripts!.firstWhere(
-            (each) => each.uri!.contains('package:$test2/library2.dart'));
+          (each) => each.uri!.contains('package:$test2/library2.dart'),
+        );
       });
 
       tearDown(() async {
-        await setup.service.resume(isolateId);
+        await service.resume(isolateId);
       });
 
       test('evaluate expression in _test_circular1/library', () async {
@@ -143,13 +116,17 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service
+          final result = await context.service
               .evaluateInFrame(isolateId, event.topFrame!.index!, 'a');
 
           expect(
-              result,
-              isA<InstanceRef>().having(
-                  (instance) => instance.valueAsString, 'valueAsString', 'a'));
+            result,
+            isA<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              'a',
+            ),
+          );
         });
       });
 
@@ -160,13 +137,17 @@ void testAll({
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service
+          final result = await context.service
               .evaluateInFrame(isolateId, event.topFrame!.index!, 'true');
 
           expect(
-              result,
-              isA<InstanceRef>().having((instance) => instance.valueAsString,
-                  'valueAsString', 'true'));
+            result,
+            isA<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              'true',
+            ),
+          );
         });
       });
     });

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -19,9 +18,10 @@ import 'package:dwds/src/loaders/frontend_server_require.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/utilities/server.dart';
 import 'package:file/local.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
@@ -31,12 +31,14 @@ import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
+import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
-// ignore: deprecated_member_use
-import 'package:webdriver/io.dart';
+import 'package:webdriver/async_io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'logging.dart';
+import 'project.dart';
 import 'server.dart';
 import 'utilities.dart';
 
@@ -48,47 +50,17 @@ const isSentinelException = TypeMatcher<SentinelException>();
 final Matcher throwsRPCError = throwsA(isRPCError);
 final Matcher throwsSentinelException = throwsA(isSentinelException);
 
+Matcher isRPCErrorWithMessage(String message) =>
+    isA<RPCError>().having((e) => e.message, 'message', contains(message));
+Matcher throwsRPCErrorWithMessage(String message) =>
+    throwsA(isRPCErrorWithMessage(message));
+
 enum CompilationMode { buildDaemon, frontendServer }
 
-enum IndexBaseMode { noBase, base }
-
-enum NullSafety { weak, sound }
-
 class TestContext {
-  final String packageName;
-  final String webAssetsPath;
-  final String dartEntryFileName;
-  final String htmlEntryFileName;
+  final TestProject project;
   final NullSafety nullSafety;
-
-  /// Top level directory in which we run the test server, e.g.
-  /// "/workstation/webdev/fixtures/_testSound".
-  String get workingDirectory => absolutePath(pathFromFixtures: packageName);
-
-  /// The directory to build and serve, e.g. "example".
-  String get directoryToServe => p.split(webAssetsPath).first;
-
-  /// The path to the HTML file to serve, relative to the [directoryToServe],
-  /// e.g. "hello_world/index.html".
-  String get filePathToServe {
-    final pathParts = p.split(webAssetsPath).where(
-          (pathPart) => pathPart != directoryToServe,
-        );
-    return webCompatiblePath([...pathParts, htmlEntryFileName]);
-  }
-
-  /// The path to the Dart entry file, e.g,
-  /// "/workstation/webdev/fixtures/_testSound/example/hello_world/main.dart":
-  String get _dartEntryFilePath => absolutePath(
-        pathFromFixtures: p.joinAll(
-          [packageName, webAssetsPath, dartEntryFileName],
-        ),
-      );
-
-  /// The URI for the package_config.json is located in:
-  /// <project directory>/.dart_tool/package_config
-  Uri get _packageConfigFile =>
-      p.toUri(p.join(workingDirectory, '.dart_tool', 'package_config.json'));
+  final TestSdkConfigurationProvider sdkConfigurationProvider;
 
   String get appUrl => _appUrl!;
   late String? _appUrl;
@@ -134,51 +106,27 @@ class TestContext {
 
   final _logger = logging.Logger('Context');
 
-  TestContext.withSoundNullSafety({
-    String packageName = '_testSound',
-    String webAssetsPath = 'example/hello_world',
-    String dartEntryFileName = 'main.dart',
-    String htmlEntryFileName = 'index.html',
-  }) : this._(
-          nullSafety: NullSafety.sound,
-          packageName: packageName,
-          webAssetsPath: webAssetsPath,
-          dartEntryFileName: dartEntryFileName,
-          htmlEntryFileName: htmlEntryFileName,
-        );
+  /// Internal VM service.
+  ///
+  /// Prefer using [vmService] instead in tests when possible, to include testing
+  /// of the VmServerConnection (bypassed when using [service]).
+  ChromeProxyService get service => fetchChromeProxyService(debugConnection);
 
-  TestContext.withWeakNullSafety({
-    String packageName = '_test',
-    String webAssetsPath = 'example/hello_world',
-    String dartEntryFileName = 'main.dart',
-    String htmlEntryFileName = 'index.html',
-  }) : this._(
-          nullSafety: NullSafety.weak,
-          packageName: packageName,
-          webAssetsPath: webAssetsPath,
-          dartEntryFileName: dartEntryFileName,
-          htmlEntryFileName: htmlEntryFileName,
-        );
+  /// External VM service.
+  VmServiceInterface get vmService => debugConnection.vmService;
 
-  TestContext._({
-    required this.packageName,
-    required this.webAssetsPath,
-    required this.dartEntryFileName,
-    required this.htmlEntryFileName,
-    required this.nullSafety,
-  }) {
-    // Verify that the test fixtures package matches the null-safety mode:
-    final isSoundPackage = packageName.toLowerCase().contains('sound');
-    assert(nullSafety == NullSafety.sound ? isSoundPackage : !isSoundPackage);
-    // Verify that the web assets path has no starting slash:
-    assert(!webAssetsPath.startsWith('/'));
+  TestContext(this.project, this.sdkConfigurationProvider)
+      : nullSafety = project.nullSafety {
+    DartUri.currentDirectory = project.absolutePackageDirectory;
 
-    DartUri.currentDirectory = workingDirectory;
+    project.validate();
 
-    _logger.info('Serving: $directoryToServe/$filePathToServe');
-    _logger.info('Project: $workingDirectory');
-    _logger.info('Packages: $_packageConfigFile');
-    _logger.info('Entry: $_dartEntryFilePath');
+    _logger.info(
+      'Serving: ${project.directoryToServe}/${project.filePathToServe}',
+    );
+    _logger.info('Project: ${project.absolutePackageDirectory}');
+    _logger.info('Packages: ${project.packageConfigFile}');
+    _logger.info('Entry: ${project.dartEntryFilePath}');
   }
 
   Future<void> setUp({
@@ -199,21 +147,24 @@ class TestContext {
     bool launchChrome = true,
     bool isFlutterApp = false,
     bool isInternalBuild = false,
+    List<String> experiments = const <String>[],
   }) async {
-    // Generate missing SDK assets if needed.
-    final sdkConfigurationProvider =
-        TestSdkConfigurationProvider(verboseCompiler: verboseCompiler);
-    final configuration = await sdkConfigurationProvider.configuration;
-    configuration.validate();
+    final sdkLayout = sdkConfigurationProvider.sdkLayout;
 
     try {
-      DartUri.currentDirectory = workingDirectory;
+      // Make sure configuration was created correctly.
+      final configuration = await sdkConfigurationProvider.configuration;
+      configuration.validate();
+
+      DartUri.currentDirectory = project.absolutePackageDirectory;
       configureLogWriter();
 
-      _client = IOClient(HttpClient()
-        ..maxConnectionsPerHost = 200
-        ..idleTimeout = const Duration(seconds: 30)
-        ..connectionTimeout = const Duration(seconds: 30));
+      _client = IOClient(
+        HttpClient()
+          ..maxConnectionsPerHost = 200
+          ..idleTimeout = const Duration(seconds: 30)
+          ..connectionTimeout = const Duration(seconds: 30),
+      );
 
       final systemTempDir = Directory.systemTemp;
       _outputDir = systemTempDir.createTempSync('foo bar');
@@ -221,8 +172,10 @@ class TestContext {
       final chromeDriverPort = await findUnusedPort();
       final chromeDriverUrlBase = 'wd/hub';
       try {
-        _chromeDriver = await Process.start('chromedriver$_exeExt',
-            ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase']);
+        _chromeDriver = await Process.start(
+          'chromedriver$_exeExt',
+          ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase'],
+        );
         // On windows this takes a while to boot up, wait for the first line
         // of stdout as a signal that it is ready.
         final stdOutLines = chromeDriver.stdout
@@ -243,11 +196,15 @@ class TestContext {
         await stdOutLines.first;
       } catch (e) {
         throw StateError(
-            'Could not start ChromeDriver. Is it installed?\nError: $e');
+          'Could not start ChromeDriver. Is it installed?\nError: $e',
+        );
       }
 
-      await Process.run(dartPath, ['pub', 'upgrade'],
-          workingDirectory: workingDirectory);
+      await Process.run(
+        sdkLayout.dartPath,
+        ['pub', 'upgrade'],
+        workingDirectory: project.absolutePackageDirectory,
+      );
 
       ExpressionCompiler? expressionCompiler;
       AssetReader assetReader;
@@ -264,28 +221,40 @@ class TestContext {
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
               ],
+              for (final experiment in experiments)
+                '--enable-experiment=$experiment',
               '--verbose',
             ];
-            _daemonClient =
-                await connectClient(workingDirectory, options, (log) {
+            _daemonClient = await connectClient(
+                sdkLayout.dartPath, project.absolutePackageDirectory, options,
+                (log) {
               final record = log.toLogRecord();
               final name =
                   record.loggerName == '' ? '' : '${record.loggerName}: ';
-              _logger.log(record.level, '$name${record.message}', record.error,
-                  record.stackTrace);
+              _logger.log(
+                record.level,
+                '$name${record.message}',
+                record.error,
+                record.stackTrace,
+              );
             });
             daemonClient.registerBuildTarget(
-                DefaultBuildTarget((b) => b..target = directoryToServe));
+              DefaultBuildTarget((b) => b..target = project.directoryToServe),
+            );
             daemonClient.startBuild();
 
             await waitForSuccessfulBuild();
 
-            final assetServerPort = daemonPort(workingDirectory);
+            final assetServerPort =
+                daemonPort(project.absolutePackageDirectory);
             _assetHandler = proxyHandler(
-                'http://localhost:$assetServerPort/$directoryToServe/',
-                client: client);
-            assetReader =
-                ProxyServerAssetReader(assetServerPort, root: directoryToServe);
+              'http://localhost:$assetServerPort/${project.directoryToServe}/',
+              client: client,
+            );
+            assetReader = ProxyServerAssetReader(
+              assetServerPort,
+              root: project.directoryToServe,
+            );
 
             if (enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
@@ -293,6 +262,7 @@ class TestContext {
                 port,
                 verbose: verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
+                experiments: experiments,
               );
               expressionCompiler = ddcService;
             }
@@ -301,6 +271,7 @@ class TestContext {
               assetHandler,
               reloadConfiguration,
               assetReader,
+              project.dartEntryFilePackageUri,
             ).strategy;
 
             buildResults = daemonClient.buildResults;
@@ -308,32 +279,40 @@ class TestContext {
           break;
         case CompilationMode.frontendServer:
           {
-            _logger.warning('Index: $filePathToServe');
+            _logger.warning('Index: $project.filePathToServe');
 
-            final entry = p.toUri(p.join(webAssetsPath, dartEntryFileName));
+            final entry = p.toUri(
+              p.join(project.webAssetsPath, project.dartEntryFileName),
+            );
             final fileSystem = LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
               fileSystem,
-              _packageConfigFile,
+              project.packageConfigFile,
               useDebuggerModuleNames: useDebuggerModuleNames,
             );
 
             _webRunner = ResidentWebRunner(
-              entry,
-              urlEncoder,
-              p.toUri(workingDirectory),
-              _packageConfigFile,
-              packageUriMapper,
-              [p.toUri(workingDirectory)],
-              'org-dartlang-app',
-              outputDir.path,
-              nullSafety == NullSafety.sound,
-              verboseCompiler,
+              mainUri: entry,
+              urlTunneler: urlEncoder,
+              projectDirectory: p.toUri(project.absolutePackageDirectory),
+              packageConfigFile: project.packageConfigFile,
+              packageUriMapper: packageUriMapper,
+              fileSystemRoots: [p.toUri(project.absolutePackageDirectory)],
+              fileSystemScheme: 'org-dartlang-app',
+              outputPath: outputDir.path,
+              soundNullSafety: nullSafety == NullSafety.sound,
+              experiments: experiments,
+              verbose: verboseCompiler,
+              sdkLayout: sdkLayout,
             );
 
             final assetServerPort = await findUnusedPort();
-            await webRunner.run(fileSystem, hostname, assetServerPort,
-                p.join(directoryToServe, filePathToServe));
+            await webRunner.run(
+              fileSystem,
+              hostname,
+              assetServerPort,
+              p.join(project.directoryToServe, project.filePathToServe),
+            );
 
             if (enableExpressionEvaluation) {
               expressionCompiler = webRunner.expressionCompiler;
@@ -342,14 +321,14 @@ class TestContext {
             basePath = webRunner.devFS.assetServer.basePath;
             assetReader = webRunner.devFS.assetServer;
             _assetHandler = webRunner.devFS.assetServer.handleRequest;
-
             requireStrategy = FrontendServerRequireStrategyProvider(
-                    reloadConfiguration,
-                    assetReader,
-                    packageUriMapper,
-                    () async => {},
-                    basePath)
-                .strategy;
+              reloadConfiguration,
+              assetReader,
+              packageUriMapper,
+              () async => {},
+              basePath,
+              project.dartEntryFilePackageUri,
+            ).strategy;
 
             buildResults = const Stream<BuildResults>.empty();
           }
@@ -381,10 +360,12 @@ class TestContext {
             }
           });
         _webDriver = await createDriver(
-            spec: WebDriverSpec.JsonWire,
-            desired: capabilities,
-            uri: Uri.parse(
-                'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
+          spec: WebDriverSpec.JsonWire,
+          desired: capabilities,
+          uri: Uri.parse(
+            'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/',
+          ),
+        );
       }
       final connection = ChromeConnection('localhost', debugPort);
 
@@ -394,7 +375,7 @@ class TestContext {
         assetHandler,
         assetReader,
         requireStrategy,
-        directoryToServe,
+        project.directoryToServe,
         buildResults,
         () async => connection,
         serveDevTools,
@@ -408,11 +389,12 @@ class TestContext {
         ddcService,
         isFlutterApp,
         isInternalBuild,
+        sdkLayout,
       );
 
       _appUrl = basePath.isEmpty
-          ? 'http://localhost:$port/$filePathToServe'
-          : 'http://localhost:$port/$basePath/$filePathToServe';
+          ? 'http://localhost:$port/${project.filePathToServe}'
+          : 'http://localhost:$port/$basePath/${project.filePathToServe}';
 
       if (launchChrome) {
         await _webDriver?.get(appUrl);
@@ -473,18 +455,22 @@ class TestContext {
   void makeEditToDartEntryFile({
     required String toReplace,
     required String replaceWith,
-  }) async {
-    final file = File(_dartEntryFilePath);
+  }) {
+    final file = File(project.dartEntryFilePath);
     final fileContents = file.readAsStringSync();
     file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
   }
 
-  Future<void> waitForSuccessfulBuild(
-      {Duration? timeout, bool propagateToBrowser = false}) async {
+  Future<void> waitForSuccessfulBuild({
+    Duration? timeout,
+    bool propagateToBrowser = false,
+  }) async {
     // Wait for the build until the timeout is reached:
     await daemonClient.buildResults
-        .firstWhere((results) => results.results
-            .any((result) => result.status == BuildStatus.succeeded))
+        .firstWhere(
+          (results) => results.results
+              .any((result) => result.status == BuildStatus.succeeded),
+        )
         .timeout(timeout ?? const Duration(seconds: 60));
 
     if (propagateToBrowser) {
@@ -498,13 +484,17 @@ class TestContext {
   }
 
   Future<void> _buildDebugExtension() async {
-    final process = await Process.run('tool/build_extension.sh', ['prod'],
-        workingDirectory: absolutePath(pathFromDwds: 'debug_extension'));
+    final process = await Process.run(
+      'tool/build_extension.sh',
+      ['prod'],
+      workingDirectory: absolutePath(pathFromDwds: 'debug_extension'),
+    );
     print(process.stdout);
   }
 
   Future<ChromeTab> _fetchDartDebugExtensionTab(
-      ChromeConnection connection) async {
+    ChromeConnection connection,
+  ) async {
     final extensionTabs = (await connection.getTabs()).where((tab) {
       return tab.isChromeExtension;
     });
@@ -526,7 +516,10 @@ class TestContext {
   ///
   /// Throws if it can't find the matching line.
   Future<int> findBreakpointLine(
-      String breakpointId, String isolateId, ScriptRef scriptRef) async {
+    String breakpointId,
+    String isolateId,
+    ScriptRef scriptRef,
+  ) async {
     final script = await debugConnection.vmService
         .getObject(isolateId, scriptRef.id!) as Script;
     final lines = LineSplitter.split(script.source!).toList();

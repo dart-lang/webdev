@@ -1,3 +1,23 @@
+## 3.0.5-wip
+
+## 3.0.4
+
+- Update `dwds` constraint to `19.0.0`.
+
+## 3.0.3
+
+- Update `dwds` constraint to `18.0.2`.
+
+## 3.0.2
+
+-  Update `build_daemon` constraint to `^4.0.0`.
+
+## 3.0.1
+
+- Update SDK constraint to `>=3.0.0-188.0.dev <4.0.0`.
+  - Supports records.
+- Use dwds `18.0.0`.
+
 ## 3.0.0
 
 - Add `--enable-experiment` flag to webdev commands and pass it

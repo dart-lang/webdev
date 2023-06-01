@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
-
-import 'asset_reader.dart';
 
 /// A reader for resources provided by a proxy server.
 class ProxyServerAssetReader implements AssetReader {
@@ -21,8 +19,12 @@ class ProxyServerAssetReader implements AssetReader {
   late final Handler _handler;
   late final http.Client _client;
 
-  ProxyServerAssetReader(int assetServerPort,
-      {String root = '', String host = 'localhost', bool isHttps = false}) {
+  ProxyServerAssetReader(
+    int assetServerPort, {
+    String root = '',
+    String host = 'localhost',
+    bool isHttps = false,
+  }) {
     final scheme = isHttps ? 'https://' : 'http://';
     final inner = HttpClient()
       ..maxConnectionsPerHost = 200

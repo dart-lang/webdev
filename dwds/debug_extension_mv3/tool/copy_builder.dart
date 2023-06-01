@@ -18,7 +18,7 @@ class _CopyBuilder extends Builder {
       };
 
   @override
-  void build(BuildStep buildStep) async {
+  Future<void> build(BuildStep buildStep) async {
     final inputAsset = buildStep.inputId;
     final allowedOutputs = buildStep.allowedOutputs;
 
@@ -27,8 +27,11 @@ class _CopyBuilder extends Builder {
     }
 
     final outputAsset = allowedOutputs.first;
-    await _copyBinaryFile(buildStep,
-        inputAsset: inputAsset, outputAsset: outputAsset);
+    await _copyBinaryFile(
+      buildStep,
+      inputAsset: inputAsset,
+      outputAsset: outputAsset,
+    );
   }
 
   Future<void> _copyBinaryFile(
@@ -37,6 +40,8 @@ class _CopyBuilder extends Builder {
     required AssetId outputAsset,
   }) {
     return buildStep.writeAsBytes(
-        outputAsset, buildStep.readAsBytes(inputAsset));
+      outputAsset,
+      buildStep.readAsBytes(inputAsset),
+    );
   }
 }

@@ -37,20 +37,27 @@ void main() {
         await ExtensionBackend.start(MockSocketHandler(), 'localhost');
   });
   test('returns success statusCode', () async {
-    final result = await http.get(Uri.parse(
-        'http://localhost:${extensionBackend.port}/$authenticationPath'));
+    final result = await http.get(
+      Uri.parse(
+        'http://localhost:${extensionBackend.port}/$authenticationPath',
+      ),
+    );
     expect(result.statusCode, 200);
   });
 
   test('returns expected authentication response', () async {
-    final result = await http.get(Uri.parse(
-        'http://localhost:${extensionBackend.port}/$authenticationPath'));
+    final result = await http.get(
+      Uri.parse(
+        'http://localhost:${extensionBackend.port}/$authenticationPath',
+      ),
+    );
     expect(result.body, authenticationResponse);
   });
 
   test('delegates to the underlying socket handler', () async {
     final result = await http.get(
-        Uri.parse('http://localhost:${extensionBackend.port}/somedummypath'));
+      Uri.parse('http://localhost:${extensionBackend.port}/somedummypath'),
+    );
     expect(result.body, MockSocketHandler.mockResponse);
   });
 }

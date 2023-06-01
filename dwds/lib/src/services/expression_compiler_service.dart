@@ -6,10 +6,9 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:logging/logging.dart';
-
-import '../utilities/sdk_configuration.dart';
-import 'expression_compiler.dart';
 
 class _Compiler {
   static final _logger = Logger('ExpressionCompilerService');
@@ -95,7 +94,7 @@ class _Compiler {
       moduleFormat,
       if (verbose) '--verbose',
       soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
-      for (var experiment in experiments) '--enable-experiment=$experiment',
+      for (final experiment in experiments) '--enable-experiment=$experiment',
     ];
 
     _logger.info('Starting...');
@@ -148,14 +147,16 @@ class _Compiler {
       final s = response['stackTrace'] as String?;
       final stackTrace = s == null ? null : StackTrace.fromString(s);
       _logger.severe(
-          'Failed to update dependencies: $errors', exception, stackTrace);
+        'Failed to update dependencies: $errors',
+        exception,
+        stackTrace,
+      );
     }
     updateCompleter.complete();
     return result;
   }
 
   Future<ExpressionCompilationResult> compileExpressionToJs(
-    String isolateId,
     String libraryUri,
     int line,
     int column,
@@ -186,12 +187,7 @@ class _Compiler {
       'moduleName': moduleName,
     });
 
-    final errors = response['errors'] as List<String>?;
-    final e = response['exception'];
-    final s = response['stackTrace'];
-    final error = (errors != null && errors.isNotEmpty)
-        ? errors.first
-        : (e != null ? '$e:$s' : '<unknown error>');
+    final error = _createErrorMsg(response);
     final procedure = (response['compiledProcedure'] as String?) ?? '';
     final succeeded = (response['succeeded'] as bool?) ?? false;
     final result = succeeded ? procedure : error;
@@ -204,11 +200,20 @@ class _Compiler {
     return ExpressionCompilationResult(result, !succeeded);
   }
 
+  String _createErrorMsg(Map<String, dynamic> response) {
+    final errors = response['errors'] as List<String>?;
+    if (errors != null && errors.isNotEmpty) return errors.first;
+
+    final e = response['exception'];
+    final s = response['stackTrace'];
+    return e != null ? '$e:$s' : '<unknown error>';
+  }
+
   /// Stops the service.
   ///
   /// Terminates the isolate running expression compiler worker
   /// and marks the service as stopped.
-  Future<void> stop() async {
+  void stop() {
     _sendPort.send({'command': 'Shutdown'});
     _receivePort.close();
     _logger.info('Stopped.');
@@ -237,34 +242,42 @@ class ExpressionCompilerService implements ExpressionCompiler {
   final List<String> experiments;
   final bool _verbose;
 
-  final SdkConfigurationProvider _sdkConfigurationProvider;
+  final SdkConfigurationProvider sdkConfigurationProvider;
 
   ExpressionCompilerService(
     this._address,
     this._port, {
     bool verbose = false,
-    SdkConfigurationProvider sdkConfigurationProvider =
-        const DefaultSdkConfigurationProvider(),
+    required this.sdkConfigurationProvider,
     this.experiments = const [],
-  })  : _verbose = verbose,
-        _sdkConfigurationProvider = sdkConfigurationProvider;
+  }) : _verbose = verbose;
 
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(
-          String isolateId,
-          String libraryUri,
-          int line,
-          int column,
-          Map<String, String> jsModules,
-          Map<String, String> jsFrameValues,
-          String moduleName,
-          String expression) async =>
-      (await _compiler.future).compileExpressionToJs(isolateId, libraryUri,
-          line, column, jsModules, jsFrameValues, moduleName, expression);
+    String isolateId,
+    String libraryUri,
+    int line,
+    int column,
+    Map<String, String> jsModules,
+    Map<String, String> jsFrameValues,
+    String moduleName,
+    String expression,
+  ) async =>
+      (await _compiler.future).compileExpressionToJs(
+        libraryUri,
+        line,
+        column,
+        jsModules,
+        jsFrameValues,
+        moduleName,
+        expression,
+      );
 
   @override
-  Future<void> initialize(
-      {required String moduleFormat, bool soundNullSafety = false}) async {
+  Future<void> initialize({
+    required String moduleFormat,
+    bool soundNullSafety = false,
+  }) async {
     if (_compiler.isCompleted) return;
 
     final compiler = await _Compiler.start(
@@ -272,7 +285,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       await _port,
       moduleFormat,
       soundNullSafety,
-      await _sdkConfigurationProvider.configuration,
+      await sdkConfigurationProvider.configuration,
       experiments,
       _verbose,
     );

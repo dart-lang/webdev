@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'package:async/async.dart';
+import 'package:dwds/src/utilities/shared.dart';
 
 /// Stream controller allowing to batch events.
 class BatchedStreamController<T> {
@@ -28,7 +29,7 @@ class BatchedStreamController<T> {
         _inputController = StreamController<T>(),
         _outputController = StreamController<List<T>>() {
     _inputQueue = StreamQueue<T>(_inputController.stream);
-    unawaited(_batchAndSendEvents());
+    safeUnawaited(_batchAndSendEvents());
   }
 
   /// Sink collecting events.
@@ -38,8 +39,8 @@ class BatchedStreamController<T> {
   Stream<List<T>> get stream => _outputController.stream;
 
   /// Close the controller.
-  Future<dynamic> close() async {
-    unawaited(_inputController.close());
+  Future<dynamic> close() {
+    safeUnawaited(_inputController.close());
     return _completer.future.then((value) => _outputController.close());
   }
 
@@ -65,14 +66,14 @@ class BatchedStreamController<T> {
       if (now > lastSendTime + _batchDelayMilliseconds) {
         lastSendTime = now;
         if (buffer.isNotEmpty) {
-          _outputController.sink.add(List.from(buffer));
+          _outputController.sink.add(List.of(buffer));
           buffer.clear();
         }
       }
     }
 
     if (buffer.isNotEmpty) {
-      _outputController.sink.add(List.from(buffer));
+      _outputController.sink.add(List.of(buffer));
     }
     _completer.complete(true);
   }

@@ -5,11 +5,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
-
-import '../readers/asset_reader.dart';
 
 /// A reader for Dart sources and related source maps provided by the Frontend
 /// Server.
@@ -45,8 +44,11 @@ class FrontendServerAssetReader implements AssetReader {
         _mapIncremental = File('$outputPath.incremental.map'),
         _jsonOriginal = File('$outputPath.json'),
         _jsonIncremental = File('$outputPath.incremental.json'),
-        _packageConfig = loadPackageConfig(File(p
-            .absolute(p.join(_packageRoot, '.dart_tool/package_config.json'))));
+        _packageConfig = loadPackageConfig(
+          File(
+            p.absolute(p.join(_packageRoot, '.dart_tool/package_config.json')),
+          ),
+        );
 
   @override
   Future<String?> dartSourceContents(String serverPath) async {
@@ -86,30 +88,32 @@ class FrontendServerAssetReader implements AssetReader {
   /// Updates the internal caches by reading the Frontend Server output files.
   ///
   /// Will only read the incremental files on additional calls.
-  Future<void> updateCaches() async {
+  void updateCaches() {
     if (!_haveReadOriginals) {
-      await _updateCaches(_mapOriginal, _jsonOriginal);
+      _updateCaches(_mapOriginal, _jsonOriginal);
       _haveReadOriginals = true;
     } else {
-      await _updateCaches(_mapIncremental, _jsonIncremental);
+      _updateCaches(_mapIncremental, _jsonIncremental);
     }
   }
 
-  Future<void> _updateCaches(File map, File json) async {
-    if (!(await map.exists() && await json.exists())) {
+  void _updateCaches(File map, File json) {
+    if (!(map.existsSync() && json.existsSync())) {
       throw StateError('$map and $json do not exist.');
     }
-    final sourceContents = await map.readAsBytes();
+    final sourceContents = map.readAsBytesSync();
     final sourceInfo =
-        jsonDecode(await json.readAsString()) as Map<String, dynamic>;
+        jsonDecode(json.readAsStringSync()) as Map<String, dynamic>;
     for (var key in sourceInfo.keys) {
       final info = sourceInfo[key];
-      _mapContents[key] = utf8.decode(sourceContents
-          .getRange(
-            info['sourcemap'][0] as int,
-            info['sourcemap'][1] as int,
-          )
-          .toList());
+      _mapContents[key] = utf8.decode(
+        sourceContents
+            .getRange(
+              info['sourcemap'][0] as int,
+              info['sourcemap'][1] as int,
+            )
+            .toList(),
+      );
     }
   }
 

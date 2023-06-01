@@ -10,24 +10,25 @@ library refresh_test;
 
 import 'dart:async';
 
-import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
-
-final context = TestContext.withSoundNullSafety();
-ChromeProxyService get service =>
-    fetchChromeProxyService(context.debugConnection);
-WipConnection get tabConnection => context.tabConnection;
+import 'fixtures/project.dart';
 
 void main() {
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+
+  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
+
   group('fresh context', () {
+    late VmServiceInterface service;
     late VM vm;
     setUpAll(() async {
       await context.setUp();
+      service = context.service;
       vm = await service.getVM();
     });
 
@@ -52,7 +53,10 @@ void main() {
       final refreshedMain = refreshedScriptList.scripts!
           .lastWhere((each) => each.uri!.contains('main.dart'));
       final bpLine = await context.findBreakpointLine(
-          'printHelloWorld', isolateId, refreshedMain);
+        'printHelloWorld',
+        isolateId,
+        refreshedMain,
+      );
       final bp =
           await service.addBreakpoint(isolateId, refreshedMain.id!, bpLine);
       final isolate = await service.getIsolate(vm.isolates!.first.id!);

@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/readers/asset_reader.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:shelf/shelf.dart';
-
-import '../debugging/metadata/provider.dart';
-import '../readers/asset_reader.dart';
-import '../services/expression_compiler.dart';
 
 late LoadStrategy _globalLoadStrategy;
 
@@ -48,6 +47,10 @@ abstract class LoadStrategy {
 
   /// The reload configuration for this strategy, e.g. liveReload.
   ReloadConfiguration get reloadConfiguration;
+
+  /// The URI for the app's entrypoint file, which is usually `main.dart`. It
+  /// should be a package URI, e.g. `package:myapp/main.dart`.
+  Uri? get appEntrypoint;
 
   /// Returns a snippet of JS code that initializes a `library` variable that
   /// has the actual library object in DDC for [libraryUri].

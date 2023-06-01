@@ -5,22 +5,17 @@
 @JS()
 library background;
 
-import 'dart:async';
-import 'dart:html';
-
 import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
 
-import 'data_types.dart';
-import 'debug_session.dart';
 import 'chrome_api.dart';
 import 'cross_extension_communication.dart';
-import 'lifeline_ports.dart';
+import 'data_types.dart';
+import 'debug_session.dart';
 import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';
-import 'web_api.dart';
 
 void main() {
   _registerListeners();
@@ -36,133 +31,141 @@ void _registerListeners() {
   chrome.runtime.onMessageExternal.addListener(
     allowInterop(handleMessagesFromAngularDartDevTools),
   );
-  chrome.tabs.onRemoved
-      .addListener(allowInterop((tabId, _) => maybeRemoveLifelinePort(tabId)));
   // Update the extension icon on tab navigation:
-  chrome.tabs.onActivated.addListener(allowInterop((ActiveInfo info) {
-    _updateIcon(info.tabId);
-  }));
-  chrome.windows.onFocusChanged.addListener(allowInterop((_) async {
-    final currentTab = await _getTab();
-    if (currentTab?.id != null) {
-      _updateIcon(currentTab!.id);
-    }
-  }));
+  chrome.tabs.onActivated.addListener(
+    allowInterop((ActiveInfo info) async {
+      await _updateIcon(info.tabId);
+    }),
+  );
+  chrome.windows.onFocusChanged.addListener(
+    allowInterop((_) async {
+      final currentTab = await activeTab;
+      if (currentTab?.id != null) {
+        await _updateIcon(currentTab!.id);
+      }
+    }),
+  );
   chrome.webNavigation.onCommitted
       .addListener(allowInterop(_detectNavigationAwayFromDartApp));
 
   // Detect clicks on the Dart Debug Extension icon.
-  chrome.action.onClicked.addListener(allowInterop(
-    (Tab tab) => _startDebugSession(
-      tab.id,
-      trigger: Trigger.extensionIcon,
+  onExtensionIconClicked(
+    allowInterop(
+      (Tab tab) => attachDebugger(
+        tab.id,
+        trigger: Trigger.extensionIcon,
+      ),
     ),
-  ));
+  );
 }
 
-Future<void> _startDebugSession(
-  int tabId, {
-  required Trigger trigger,
-}) async {
-  final isAuthenticated = await _authenticateUser(tabId);
-  if (!isAuthenticated) return;
-
-  maybeCreateLifelinePort(tabId);
-  attachDebugger(tabId, trigger: trigger);
-}
-
-Future<bool> _authenticateUser(int tabId) async {
-  final isAlreadyAuthenticated = await _fetchIsAuthenticated(tabId);
-  if (isAlreadyAuthenticated) return true;
-  final debugInfo = await _fetchDebugInfo(tabId);
-  final authUrl = debugInfo?.authUrl;
-  if (authUrl == null) {
-    _showWarningNotification('Cannot authenticate user.');
-    return false;
-  }
-  final isAuthenticated = await _sendAuthRequest(authUrl);
-  if (isAuthenticated) {
-    await setStorageObject<String>(
-      type: StorageObject.isAuthenticated,
-      value: '$isAuthenticated',
-      tabId: tabId,
-    );
-  } else {
-    sendConnectFailureMessage(
-      ConnectFailureReason.authentication,
-      dartAppTabId: tabId,
-    );
-    await createTab(authUrl, inNewWindow: false);
-  }
-  return isAuthenticated;
-}
-
-void _handleRuntimeMessages(
-    dynamic jsRequest, MessageSender sender, Function sendResponse) async {
+Future<void> _handleRuntimeMessages(
+  dynamic jsRequest,
+  MessageSender sender,
+  // ignore: avoid-unused-parameters
+  Function sendResponse,
+) async {
   if (jsRequest is! String) return;
 
   interceptMessage<String>(
-      message: jsRequest,
-      expectedType: MessageType.isAuthenticated,
-      expectedSender: Script.detector,
-      expectedRecipient: Script.background,
-      messageHandler: (String isAuthenticated) async {
-        final dartTab = sender.tab;
-        if (dartTab == null) {
-          debugWarn('Received auth info but tab is missing.');
-          return;
-        }
-        // Save the authentication info in storage:
-        await setStorageObject<String>(
-          type: StorageObject.isAuthenticated,
-          value: isAuthenticated,
-          tabId: dartTab.id,
-        );
-      });
+    message: jsRequest,
+    expectedType: MessageType.isAuthenticated,
+    expectedSender: Script.detector,
+    expectedRecipient: Script.background,
+    messageHandler: (String isAuthenticated) async {
+      final dartTab = sender.tab;
+      if (dartTab == null) {
+        debugWarn('Received auth info but tab is missing.');
+        return;
+      }
+      // Save the authentication info in storage:
+      await setStorageObject<String>(
+        type: StorageObject.isAuthenticated,
+        value: isAuthenticated,
+        tabId: dartTab.id,
+      );
+    },
+  );
 
   interceptMessage<DebugInfo>(
-      message: jsRequest,
-      expectedType: MessageType.debugInfo,
-      expectedSender: Script.detector,
-      expectedRecipient: Script.background,
-      messageHandler: (DebugInfo debugInfo) async {
-        final dartTab = sender.tab;
-        if (dartTab == null) {
-          debugWarn('Received debug info but tab is missing.');
-          return;
-        }
-        // Save the debug info for the Dart app in storage:
-        await setStorageObject<DebugInfo>(
-            type: StorageObject.debugInfo, value: debugInfo, tabId: dartTab.id);
-        // Update the icon to show that a Dart app has been detected:
-        final currentTab = await _getTab();
-        if (currentTab?.id == dartTab.id) {
-          _setDebuggableIcon();
-        }
-      });
+    message: jsRequest,
+    expectedType: MessageType.debugInfo,
+    expectedSender: Script.detector,
+    expectedRecipient: Script.background,
+    messageHandler: (DebugInfo debugInfo) async {
+      final dartTab = sender.tab;
+      if (dartTab == null) {
+        debugWarn('Received debug info but tab is missing.');
+        return;
+      }
+      // If this is a new Dart app, we need to clear old debug session data:
+      if (!await _matchesAppInStorage(debugInfo.appId, tabId: dartTab.id)) {
+        await clearStaleDebugSession(dartTab.id);
+      }
+      // Save the debug info for the Dart app in storage:
+      await setStorageObject<DebugInfo>(
+        type: StorageObject.debugInfo,
+        value: _addTabUrl(debugInfo, tabUrl: dartTab.url),
+        tabId: dartTab.id,
+      );
+      // Update the icon to show that a Dart app has been detected:
+      final currentTab = await activeTab;
+      if (currentTab?.id == dartTab.id) {
+        await _updateIcon(dartTab.id);
+      }
+    },
+  );
 
   interceptMessage<DebugStateChange>(
-      message: jsRequest,
-      expectedType: MessageType.debugStateChange,
-      expectedSender: Script.debuggerPanel,
-      expectedRecipient: Script.background,
-      messageHandler: (DebugStateChange debugStateChange) {
-        final newState = debugStateChange.newState;
-        final tabId = debugStateChange.tabId;
-        if (newState == DebugStateChange.startDebugging) {
-          _startDebugSession(tabId, trigger: Trigger.extensionPanel);
-        }
-      });
+    message: jsRequest,
+    expectedType: MessageType.debugStateChange,
+    expectedSender: Script.debuggerPanel,
+    expectedRecipient: Script.background,
+    messageHandler: (DebugStateChange debugStateChange) {
+      final newState = debugStateChange.newState;
+      final tabId = debugStateChange.tabId;
+      if (newState == DebugStateChange.startDebugging) {
+        attachDebugger(tabId, trigger: Trigger.extensionPanel);
+      }
+    },
+  );
+
+  interceptMessage<String>(
+    message: jsRequest,
+    expectedType: MessageType.multipleAppsDetected,
+    expectedSender: Script.detector,
+    expectedRecipient: Script.background,
+    messageHandler: (String multipleAppsDetected) async {
+      final dartTab = sender.tab;
+      if (dartTab == null) {
+        debugWarn('Received multiple apps detected but tab is missing.');
+        return;
+      }
+      // Save the multiple apps info in storage:
+      await setStorageObject<String>(
+        type: StorageObject.multipleAppsDetected,
+        value: multipleAppsDetected,
+        tabId: dartTab.id,
+      );
+      _setWarningIcon();
+    },
+  );
 }
 
-void _detectNavigationAwayFromDartApp(NavigationInfo navigationInfo) async {
+Future<void> _detectNavigationAwayFromDartApp(
+  NavigationInfo navigationInfo,
+) async {
+  // Ignore any navigation events within the page itself (e.g., opening a link,
+  // reloading the page, reloading an IFRAME, etc):
+  if (_isInternalNavigation(navigationInfo)) return;
   final tabId = navigationInfo.tabId;
   final debugInfo = await _fetchDebugInfo(navigationInfo.tabId);
   if (debugInfo == null) return;
-  if (debugInfo.appUrl != navigationInfo.url) {
+  if (debugInfo.tabUrl != navigationInfo.url) {
     _setDefaultIcon();
+    await clearStaleDebugSession(tabId);
     await removeStorageObject(type: StorageObject.debugInfo, tabId: tabId);
-    detachDebugger(
+    await detachDebugger(
       tabId,
       type: TabType.dartApp,
       reason: DetachReason.navigatedAwayFromApp,
@@ -170,25 +173,57 @@ void _detectNavigationAwayFromDartApp(NavigationInfo navigationInfo) async {
   }
 }
 
-void _updateIcon(int activeTabId) async {
+bool _isInternalNavigation(NavigationInfo navigationInfo) {
+  return [
+    'auto_subframe',
+    'form_submit',
+    'link',
+    'manual_subframe',
+    'reload',
+  ].contains(navigationInfo.transitionType);
+}
+
+DebugInfo _addTabUrl(DebugInfo debugInfo, {required String tabUrl}) {
+  return DebugInfo(
+    (b) => b
+      ..appEntrypointPath = debugInfo.appEntrypointPath
+      ..appId = debugInfo.appId
+      ..appInstanceId = debugInfo.appInstanceId
+      ..appOrigin = debugInfo.appOrigin
+      ..appUrl = debugInfo.appUrl
+      ..authUrl = debugInfo.authUrl
+      ..extensionUrl = debugInfo.extensionUrl
+      ..isInternalBuild = debugInfo.isInternalBuild
+      ..isFlutterApp = debugInfo.isFlutterApp
+      ..tabUrl = tabUrl,
+  );
+}
+
+Future<void> _updateIcon(int activeTabId) async {
   final debugInfo = await _fetchDebugInfo(activeTabId);
-  if (debugInfo != null) {
-    _setDebuggableIcon();
-  } else {
+  if (debugInfo == null) {
     _setDefaultIcon();
+    return;
   }
+  final multipleApps = await fetchStorageObject<String>(
+    type: StorageObject.multipleAppsDetected,
+    tabId: activeTabId,
+  );
+  multipleApps == null ? _setDebuggableIcon() : _setWarningIcon();
 }
 
 void _setDebuggableIcon() {
-  chrome.action
-      .setIcon(IconInfo(path: 'static_assets/dart.png'), /*callback*/ null);
+  setExtensionIcon(IconInfo(path: 'static_assets/dart.png'));
+}
+
+void _setWarningIcon() {
+  setExtensionIcon(IconInfo(path: 'static_assets/dart_warning.png'));
 }
 
 void _setDefaultIcon() {
-  final iconPath = isDevMode()
-      ? 'static_assets/dart_dev.png'
-      : 'static_assets/dart_grey.png';
-  chrome.action.setIcon(IconInfo(path: iconPath), /*callback*/ null);
+  final iconPath =
+      isDevMode ? 'static_assets/dart_dev.png' : 'static_assets/dart_grey.png';
+  setExtensionIcon(IconInfo(path: iconPath));
 }
 
 Future<DebugInfo?> _fetchDebugInfo(int tabId) {
@@ -198,35 +233,7 @@ Future<DebugInfo?> _fetchDebugInfo(int tabId) {
   );
 }
 
-Future<bool> _fetchIsAuthenticated(int tabId) async {
-  final authenticated = await fetchStorageObject<String>(
-    type: StorageObject.isAuthenticated,
-    tabId: tabId,
-  );
-  return authenticated == 'true';
-}
-
-Future<bool> _sendAuthRequest(String authUrl) async {
-  final response = await fetchRequest(authUrl);
-  final responseBody = response.body ?? '';
-  return responseBody.contains('Dart Debug Authentication Success!');
-}
-
-void _showWarningNotification(String message) {
-  chrome.notifications.create(
-    /*notificationId*/ null,
-    NotificationOptions(
-      title: '[Error] Dart Debug Extension',
-      message: message,
-      iconUrl: 'static_assets/dart.png',
-      type: 'basic',
-    ),
-    /*callback*/ null,
-  );
-}
-
-Future<Tab?> _getTab() async {
-  final query = QueryInfo(active: true, currentWindow: true);
-  final tabs = List<Tab>.from(await promiseToFuture(chrome.tabs.query(query)));
-  return tabs.isNotEmpty ? tabs.first : null;
+Future<bool> _matchesAppInStorage(String? appId, {required int tabId}) async {
+  final debugInfo = await _fetchDebugInfo(tabId);
+  return appId != null && appId == debugInfo?.appId;
 }

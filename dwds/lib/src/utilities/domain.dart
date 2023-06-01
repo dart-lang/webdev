@@ -1,12 +1,12 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.import 'dart:async';
+// BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/connections/app_connection.dart';
+import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/utilities/objects.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../connections/app_connection.dart';
-import '../debugging/remote_debugger.dart';
 
 abstract class AppInspectorInterface {
   /// Connection to the app running in the browser.
@@ -26,9 +26,12 @@ abstract class AppInspectorInterface {
   ///
   /// [evalExpression] should be a JS function definition that can accept
   /// [arguments].
-  Future<RemoteObject> jsCallFunctionOn(RemoteObject receiver,
-      String evalExpression, List<RemoteObject> arguments,
-      {bool returnByValue = false});
+  Future<RemoteObject> jsCallFunctionOn(
+    RemoteObject receiver,
+    String evalExpression,
+    List<RemoteObject> arguments, {
+    bool returnByValue = false,
+  });
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].
   Future<ScriptRef?> scriptRefFor(String uri);
@@ -59,7 +62,9 @@ abstract class AppInspectorInterface {
 
   /// Call [function] with objects referred by [argumentIds] as arguments.
   Future<RemoteObject> callFunction(
-      String function, Iterable<String> argumentIds);
+    String function,
+    Iterable<String> argumentIds,
+  );
 
   /// Invoke the function named [selector] on the object identified by
   /// [targetId].
@@ -69,17 +74,39 @@ abstract class AppInspectorInterface {
   /// Dart object Ids (which can also be Chrome RemoteObject objectIds that are
   /// for non-Dart JS objects.)
   Future<RemoteObject> invoke(
-      String targetId, String selector, List<dynamic> arguments);
+    String targetId,
+    String selector,
+    List<dynamic> arguments,
+  );
 
   /// Evaluate [expression] by calling Chrome's `Runtime.evaluate`.
-  Future<RemoteObject> jsEvaluate(String expression,
-      {bool returnByValue = false, bool awaitPromise = false});
+  Future<RemoteObject> jsEvaluate(
+    String expression, {
+    bool returnByValue = false,
+    bool awaitPromise = false,
+  });
 
   /// Lookup an `object` from some isolate by its [objectId].
   Future<Obj> getObject(String objectId, {int offset, int count});
 
   /// All the scripts in the isolate.
   Future<ScriptList> getScripts();
+
+  /// Calls the Chrome Runtime.getProperties API for the object with [objectId].
+  ///
+  /// Note that the property names are JS names, e.g.
+  /// Symbol(DartClass.actualName) and will need to be converted. For a system
+  /// List or Map, [offset] and/or [count] can be provided to indicate a desired
+  /// range of entries. They will be ignored if there is no [length].
+  Future<List<Property>> getProperties(
+    String objectId, {
+    int? offset,
+    int? count,
+    int? length,
+  });
+
+  bool isDisplayableObject(Object? object);
+  bool isNativeJsError(InstanceRef instanceRef);
 
   /// Return the VM SourceReport for the given parameters.
   ///

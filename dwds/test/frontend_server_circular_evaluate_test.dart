@@ -7,39 +7,40 @@
 
 import 'dart:io';
 
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 
-import 'fixtures/context.dart';
 import 'evaluate_circular_common.dart';
+import 'fixtures/context.dart';
+import 'fixtures/project.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  // TODO(annagrin): Remove when 2.19.0-150.0.dev is in stable.
-  final debuggerModuleNamesSupported =
-      Version.parse(Platform.version.split(' ').first) >=
-          Version.parse('2.19.0-150.0.dev');
+  final provider = TestSdkConfigurationProvider(verbose: debug);
+  tearDownAll(provider.dispose);
 
   group('Context with circular dependencies |', () {
     for (var nullSafety in NullSafety.values) {
       group('${nullSafety.name} null safety |', () {
         for (var indexBaseMode in IndexBaseMode.values) {
-          group('with ${indexBaseMode.name} |', () {
-            testAll(
-              compilationMode: CompilationMode.frontendServer,
-              indexBaseMode: indexBaseMode,
-              nullSafety: nullSafety,
-              useDebuggerModuleNames: true,
-              debug: debug,
-            );
-          },
-              skip:
-                  // https://github.com/dart-lang/sdk/issues/49277
-                  indexBaseMode == IndexBaseMode.base && Platform.isWindows ||
-                      // Needs debugger module names change in the SDK to work.
-                      !debuggerModuleNamesSupported);
+          group(
+            'with ${indexBaseMode.name} |',
+            () {
+              testAll(
+                provider: provider,
+                compilationMode: CompilationMode.frontendServer,
+                indexBaseMode: indexBaseMode,
+                nullSafety: nullSafety,
+                useDebuggerModuleNames: true,
+                debug: debug,
+              );
+            },
+            skip:
+                // https://github.com/dart-lang/sdk/issues/49277
+                indexBaseMode == IndexBaseMode.base && Platform.isWindows,
+          );
         }
       });
     }

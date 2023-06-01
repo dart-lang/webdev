@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:core';
+import 'dart:developer';
 import 'dart:html';
 
 import 'package:_test_package_sound/test_library.dart';
@@ -27,6 +29,7 @@ void main() async {
   });
 
   // for evaluation
+  var extensionId = 0;
   Timer.periodic(const Duration(seconds: 1), (_) async {
     await asyncMethod();
     printLocal();
@@ -43,9 +46,21 @@ void main() async {
     printObjectMultiLine(); // Breakpoint: callPrintObjectMultiLine
     printNestedObjectsMultiLine(); // Breakpoint: callPrintEnclosingFunctionMultiLine
     printStream(); // Breakpoint: callPrintStream
+    printList();
+    printMap();
+    printSet();
+    // For testing evaluation in async JS frames.
+    registerUserExtension(extensionId++);
   });
 
   document.body?.appendText(concatenate('Program', ' is running!'));
+}
+
+void registerUserExtension(int id) async {
+  registerExtension('ext.extension$id', (_, __) async {
+    print('Hello World from extension$id');
+    return ServiceExtensionResponse.result(json.encode({'success': true}));
+  });
 }
 
 Future<int> asyncMethod() async {
@@ -73,7 +88,7 @@ void printFieldFromLibraryPartClass() {
 }
 
 void printFieldMain() {
-  var instance = MainClass(1);
+  var instance = MainClass(2, 1);
   print('$instance'); // Breakpoint: printFieldMain
 }
 
@@ -138,16 +153,32 @@ void printStream() {
   subscription.cancel(); // Breakpoint: printStream
 }
 
+void printList() {
+  final list = [0, 1, 2];
+  print(list); // Breakpoint: printList
+}
+
+void printMap() {
+  final map = {'a': 1, 'b': 2, 'c': 3};
+  print(map); // Breakpoint: printMap
+}
+
+void printSet() {
+  final mySet = {1, 4, 5, 7};
+  print(mySet); // Breakpoint: printSet
+}
+
 ClassWithMethod createObject() {
   return ClassWithMethod(0); // Breakpoint: createObjectWithMethod
 }
 
 class MainClass {
+  final int field;
   final int _field;
-  MainClass(this._field); // Breakpoint: newMainClass
+  MainClass(this.field, this._field); // Breakpoint: newMainClass
 
   @override
-  String toString() => '$_field';
+  String toString() => '$field, $_field';
 }
 
 class EnclosedClass {

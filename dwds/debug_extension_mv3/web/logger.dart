@@ -45,7 +45,7 @@ void _log(
   _LogLevel? level,
   String? prefix,
 }) {
-  if (!verbose && !isDevMode()) return;
+  if (!verbose && !isDevMode) return;
   final logMsg = prefix != null ? '[$prefix] $msg' : msg;
   final logLevel = level ?? _LogLevel.info;
   switch (logLevel) {
@@ -66,12 +66,24 @@ external _Console get _console;
 @JS()
 @anonymous
 class _Console {
-  external void log(String header,
-      [String style1, String style2, String style3]);
+  external void log(
+    String header, [
+    String style1,
+    String style2,
+    String style3,
+  ]);
 
-  external void warn(String header,
-      [String style1, String style2, String style3]);
+  external void warn(
+    String header, [
+    String style1,
+    String style2,
+    String style3,
+  ]);
 
-  external void error(String header,
-      [String style1, String style2, String style3]);
+  external void error(
+    String header, [
+    String style1,
+    String style2,
+    String style3,
+  ]);
 }

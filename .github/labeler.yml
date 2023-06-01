@@ -1,0 +1,17 @@
+# This configures the .github/workflows/pull_request_label.yml workflow. 
+
+'type-infra':
+  - '.github/**'
+
+'package:dwds':
+  - dwds/**/*
+
+'package:frontend_server_client':
+  - frontend_server_client/**/*
+
+'package:webdev':
+  - webdev/**/*
+
+'dart-debug-extension':
+  - dwds/debug_extension/**/*
+  - dwds/debug_extension_mv3/**/*

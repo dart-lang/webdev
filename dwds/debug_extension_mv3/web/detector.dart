@@ -17,6 +17,8 @@ import 'data_serializers.dart';
 import 'logger.dart';
 import 'messaging.dart';
 
+const _multipleAppsAttribute = 'data-multiple-dart-apps';
+
 void main() {
   _registerListeners();
 }
@@ -26,28 +28,75 @@ void _registerListeners() {
   document.addEventListener('dart-auth-response', _onDartAuthEvent);
 }
 
-void _onDartAppReadyEvent(Event event) {
+Future<void> _onDartAppReadyEvent(Event event) async {
   final debugInfo = getProperty(event, 'detail') as String?;
   if (debugInfo == null) {
     debugWarn(
-        'No debug info sent with ready event, instead reading from Window.');
+      'No debug info sent with ready event, instead reading from Window.',
+    );
     _injectDebugInfoScript();
   } else {
-    _sendMessageToBackgroundScript(
+    await _sendMessageToBackgroundScript(
       type: MessageType.debugInfo,
       body: debugInfo,
     );
     _sendAuthRequest(debugInfo);
+    _detectMultipleDartApps();
   }
 }
 
-void _onDartAuthEvent(Event event) {
+Future<void> _onDartAuthEvent(Event event) async {
   final isAuthenticated = getProperty(event, 'detail') as String?;
   if (isAuthenticated == null) return;
-  _sendMessageToBackgroundScript(
+  await _sendMessageToBackgroundScript(
     type: MessageType.isAuthenticated,
     body: isAuthenticated,
   );
+}
+
+void _detectMultipleDartApps() {
+  final documentElement = document.documentElement;
+  if (documentElement == null) return;
+
+  if (documentElement.hasAttribute(_multipleAppsAttribute)) {
+    _sendMessageToBackgroundScript(
+      type: MessageType.multipleAppsDetected,
+      body: 'true',
+    );
+    return;
+  }
+
+  final multipleAppsObserver =
+      MutationObserver(_detectMultipleDartAppsCallback);
+  multipleAppsObserver.observe(
+    documentElement,
+    attributeFilter: [_multipleAppsAttribute],
+  );
+}
+
+void _detectMultipleDartAppsCallback(
+  List<dynamic> mutations,
+  MutationObserver observer,
+) {
+  for (var mutation in mutations) {
+    if (_isMultipleAppsMutation(mutation)) {
+      _sendMessageToBackgroundScript(
+        type: MessageType.multipleAppsDetected,
+        body: 'true',
+      );
+      observer.disconnect();
+    }
+  }
+}
+
+bool _isMultipleAppsMutation(dynamic mutation) {
+  final isAttributeMutation = hasProperty(mutation, 'type') &&
+      getProperty(mutation, 'type') == 'attributes';
+  if (isAttributeMutation) {
+    return hasProperty(mutation, 'attributeName') &&
+        getProperty(mutation, 'attributeName') == _multipleAppsAttribute;
+  }
+  return false;
 }
 
 // TODO(elliette): Remove once DWDS 17.0.0 is in Flutter stable. If we are on an
@@ -61,11 +110,11 @@ void _injectDebugInfoScript() {
   document.head?.append(script);
 }
 
-void _sendMessageToBackgroundScript({
+Future<void> _sendMessageToBackgroundScript({
   required MessageType type,
   required String body,
-}) {
-  sendRuntimeMessage(
+}) async {
+  await sendRuntimeMessage(
     type: type,
     body: body,
     sender: Script.detector,

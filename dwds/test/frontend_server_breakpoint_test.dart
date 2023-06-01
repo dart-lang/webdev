@@ -4,31 +4,24 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
-import 'dart:async';
 
-import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/logging.dart';
-
-final context = TestContext.withWeakNullSafety(
-  packageName: '_testPackage',
-  webAssetsPath: 'web',
-  dartEntryFileName: 'main.dart',
-  htmlEntryFileName: 'index.html',
-);
-
-ChromeProxyService get service =>
-    fetchChromeProxyService(context.debugConnection);
-WipConnection get tabConnection => context.tabConnection;
+import 'fixtures/project.dart';
 
 void main() {
   // Enable verbose logging for debugging.
   final debug = false;
+
+  final provider = TestSdkConfigurationProvider(verbose: debug);
+  tearDownAll(provider.dispose);
+
+  final context =
+      TestContext(TestProject.testPackageWithSoundNullSafety(), provider);
 
   // Change to 'true' to print expression compiler messages to console.
   //
@@ -50,6 +43,7 @@ void main() {
     });
 
     group('breakpoint', () {
+      late VmServiceInterface service;
       VM vm;
       late Isolate isolate;
       late String isolateId;
@@ -59,6 +53,7 @@ void main() {
       late Stream<Event> stream;
 
       setUp(() async {
+        service = context.service;
         setCurrentLogWriter(debug: debug);
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
@@ -79,12 +74,19 @@ void main() {
 
       test('set breakpoint', () async {
         final line = await context.findBreakpointLine(
-            'printLocal', isolateId, mainScript);
+          'printLocal',
+          isolateId,
+          mainScript,
+        );
         final bp = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri, line);
+          isolateId,
+          mainScriptUri,
+          line,
+        );
 
         await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          (Event event) => event.kind == EventKind.kPauseBreakpoint,
+        );
 
         expect(bp, isNotNull);
 
@@ -94,12 +96,19 @@ void main() {
 
       test('set breakpoint again', () async {
         final line = await context.findBreakpointLine(
-            'printLocal', isolateId, mainScript);
+          'printLocal',
+          isolateId,
+          mainScript,
+        );
         final bp = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri, line);
+          isolateId,
+          mainScriptUri,
+          line,
+        );
 
         await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          (Event event) => event.kind == EventKind.kPauseBreakpoint,
+        );
 
         expect(bp, isNotNull);
 
@@ -109,22 +118,30 @@ void main() {
 
       test('set breakpoint inside a JavaScript line succeeds', () async {
         final line = await context.findBreakpointLine(
-            'printNestedObjectMultiLine', isolateId, mainScript);
+          'printNestedObjectMultiLine',
+          isolateId,
+          mainScript,
+        );
         final column = 0;
         final bp = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri, line,
-            column: column);
+          isolateId,
+          mainScriptUri,
+          line,
+          column: column,
+        );
 
         await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          (Event event) => event.kind == EventKind.kPauseBreakpoint,
+        );
 
         expect(bp, isNotNull);
         expect(
-            bp.location,
-            isA<SourceLocation>()
-                .having((loc) => loc.script, 'script', equals(mainScript))
-                .having((loc) => loc.line, 'line', equals(line))
-                .having((loc) => loc.column, 'column', greaterThan(column)));
+          bp.location,
+          isA<SourceLocation>()
+              .having((loc) => loc.script, 'script', equals(mainScript))
+              .having((loc) => loc.line, 'line', equals(line))
+              .having((loc) => loc.column, 'column', greaterThan(column)),
+        );
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolateId, bp.id!);

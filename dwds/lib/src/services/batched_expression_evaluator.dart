@@ -5,16 +5,16 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:dwds/shared/batched_stream.dart';
+import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/modules.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../debugging/debugger.dart';
-import '../debugging/location.dart';
-import '../debugging/modules.dart';
-import '../utilities/batched_stream.dart';
-import 'expression_compiler.dart';
-import 'expression_evaluator.dart';
 
 class EvaluateRequest {
   final String isolateId;
@@ -28,19 +28,19 @@ class EvaluateRequest {
 
 class BatchedExpressionEvaluator extends ExpressionEvaluator {
   final _logger = Logger('BatchedExpressionEvaluator');
-  final Debugger _debugger;
+  final AppInspectorInterface _inspector;
   final _requestController =
       BatchedStreamController<EvaluateRequest>(delay: 200);
   bool _closed = false;
 
   BatchedExpressionEvaluator(
     String entrypoint,
-    AppInspectorInterface inspector,
-    this._debugger,
+    this._inspector,
+    Debugger debugger,
     Locations locations,
     Modules modules,
     ExpressionCompiler compiler,
-  ) : super(entrypoint, inspector, _debugger, locations, modules, compiler) {
+  ) : super(entrypoint, _inspector, debugger, locations, modules, compiler) {
     _requestController.stream.listen(_processRequest);
   }
 
@@ -61,14 +61,16 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
   ) async {
     if (_closed) {
       return createError(
-          ErrorKind.internal, 'Batched expression evaluator closed');
+        EvaluationErrorKind.internal,
+        'Batched expression evaluator closed',
+      );
     }
     final request = EvaluateRequest(isolateId, libraryUri, expression, scope);
     _requestController.sink.add(request);
     return request.completer.future;
   }
 
-  void _processRequest(List<EvaluateRequest> requests) async {
+  void _processRequest(List<EvaluateRequest> requests) {
     String? libraryUri;
     String? isolateId;
     Map<String, String>? scope;
@@ -93,7 +95,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
           _logger.fine(' - scope: $scope != ${request.scope}');
         }
 
-        unawaited(_evaluateBatch(currentRequests));
+        safeUnawaited(_evaluateBatch(currentRequests));
         currentRequests = [];
         libraryUri = request.libraryUri;
         isolateId = request.isolateId;
@@ -101,7 +103,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
       }
       currentRequests.add(request);
     }
-    unawaited(_evaluateBatch(currentRequests));
+    safeUnawaited(_evaluateBatch(currentRequests));
   }
 
   Future<void> _evaluateBatch(List<EvaluateRequest> requests) async {
@@ -112,7 +114,11 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
       if (first.completer.isCompleted) return;
       return super
           .evaluateExpression(
-              first.isolateId, first.libraryUri, first.expression, first.scope)
+            first.isolateId,
+            first.libraryUri,
+            first.expression,
+            first.scope,
+          )
           .then(requests.first.completer.complete);
     }
 
@@ -122,7 +128,11 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
     _logger.fine('Evaluating batch of expressions $batchedExpression');
 
     final RemoteObject list = await super.evaluateExpression(
-        first.isolateId, first.libraryUri, batchedExpression, first.scope);
+      first.isolateId,
+      first.libraryUri,
+      batchedExpression,
+      first.scope,
+    );
 
     for (var i = 0; i < requests.length; i++) {
       final request = requests[i];
@@ -131,18 +141,30 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
 
       final listId = list.objectId;
       if (listId == null) {
-        final error =
-            createError(ErrorKind.internal, 'No batch result object ID.');
+        final error = createError(
+          EvaluationErrorKind.internal,
+          'No batch result object ID.',
+        );
         request.completer.complete(error);
       } else {
-        unawaited(_debugger
-            .getProperties(listId, offset: i, count: 1, length: requests.length)
-            .then((v) {
-          final result = v.first.value;
-          _logger.fine(
-              'Got result out of a batch for ${request.expression}: $result');
-          request.completer.complete(result);
-        }));
+        safeUnawaited(
+          _inspector
+              .getProperties(
+            listId,
+            offset: i,
+            count: 1,
+            length: requests.length,
+          )
+              .then((v) {
+            final result = v.first.value;
+            _logger.fine(
+              'Got result out of a batch for ${request.expression}: $result',
+            );
+            request.completer.complete(result);
+          }),
+          onError: (error, stackTrace) =>
+              request.completer.completeError(error, stackTrace),
+        );
       }
     }
   }
