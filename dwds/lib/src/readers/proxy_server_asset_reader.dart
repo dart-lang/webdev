@@ -49,8 +49,9 @@ class ProxyServerAssetReader implements AssetReader {
   Future<String?> _readResource(String path) async {
     // Handlers expect a fully formed HTML URI. The actual hostname and port
     // does not matter.
-    final response =
-        await _handler(Request('GET', Uri.parse('http://foo:0000/$path')));
+    final request = Request('GET', Uri.parse('http://foo:0000/$path'))
+        .change(headers: {'requested-by': 'DWDS'});
+    final response = await _handler(request);
 
     if (response.statusCode != HttpStatus.ok) {
       _logger.warning('''
