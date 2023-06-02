@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Efficient JavaScript code builder.
+///
+/// Used to create wrapper expressions and functions for expression evaluation.
 class JsBuilder {
   var _indent = 0;
   final _buffer = StringBuffer();
@@ -59,6 +62,8 @@ class JsBuilder {
     if (_indent != 0) _indent--;
   }
 
+  /// Call the expression built by [build] with [args].
+  ///
   /// $function($args);
   void writeCallExpression(
     Iterable<String> args,
@@ -70,11 +75,13 @@ class JsBuilder {
     write(')');
   }
 
-  // try {
-  //   $expression;
-  // } catch (error) {
-  //   error.name + ": " + error.message;
-  // };
+  /// Wrap the expression built by [build] in try/catch block.
+  ///
+  /// try {
+  ///   $expression;
+  /// } catch (error) {
+  ///   error.name + ": " + error.message;
+  /// };
   void writeTryCatchExpression(void Function() build) {
     writeLineWithIndent('try {');
 
@@ -89,11 +96,13 @@ class JsBuilder {
     writeWithIndent('}');
   }
 
-  // try {
-  //   $statement
-  // } catch (error) {
-  //   return error.name + ": " + error.message;
-  // };
+  ///  Wrap the statement built by [build] in try/catch block.
+  ///
+  /// try {
+  ///   $statement
+  /// } catch (error) {
+  ///   return error.name + ": " + error.message;
+  /// };
   void writeTryCatchStatement(void Function() build) {
     writeLineWithIndent('try {');
 
@@ -107,6 +116,8 @@ class JsBuilder {
     writeWithIndent('}');
   }
 
+  /// Return the expression built by [build].
+  ///
   /// return $expression;
   void writeReturnStatement(void Function() build) {
     writeWithIndent('return ');
@@ -114,6 +125,8 @@ class JsBuilder {
     write(';');
   }
 
+  /// Define a function with [params] and body built by [build].
+  ///
   /// function($args) {
   ///   $body
   /// };
@@ -133,6 +146,8 @@ class JsBuilder {
     writeWithIndent('}');
   }
 
+  /// Bind the function built by [build] to [to].
+  ///
   /// $function.bind($to)
   void writeBindExpression(
     String to,
@@ -144,18 +159,29 @@ class JsBuilder {
     write(')');
   }
 
+  /// Create a wrapper expression to evaluate the [body].
+  ///
+  /// Can be used in `Debugger.evaluateOnCallFrame` Chrome API.
+  ///
   /// try {
   ///   $expression;
   /// } catch (error) {
   ///   error.name + ": " + error.message;
   /// }
-  void createEvalExpression(Iterable<String> body) {
+  static String createEvalExpression(Iterable<String> body) =>
+      (JsBuilder().._writeEvalExpression(body)).build();
+
+  void _writeEvalExpression(Iterable<String> body) {
     writeTryCatchExpression(() {
       writeMultiLineExpression(body);
       write(';');
     });
   }
 
+  /// Create a wrapper function with [params] that calls a static [function].
+  ///
+  /// Can be used in `Runtime.callFunctionOn` Chrome API.
+  ///
   /// function ($params) {
   ///   try {
   ///     return $function($params);
@@ -163,8 +189,14 @@ class JsBuilder {
   ///     return error.name + ": " + error.message;
   ///   }
   /// }
-  void writeEvalStaticFunction(
-    Iterable<String> body,
+  static String createEvalStaticFunction(
+    Iterable<String> function,
+    Iterable<String> params,
+  ) =>
+      (JsBuilder().._writeEvalStaticFunction(function, params)).build();
+
+  void _writeEvalStaticFunction(
+    Iterable<String> function,
     Iterable<String> params,
   ) {
     writeFunctionDefinition(
@@ -174,7 +206,7 @@ class JsBuilder {
           () => writeCallExpression(
             params,
             () {
-              writeMultiLineExpression(body);
+              writeMultiLineExpression(function);
             },
           ),
         ),
@@ -182,6 +214,9 @@ class JsBuilder {
     );
   }
 
+  /// Create a wrapper function with [params] that calls a bound [function].
+  ///
+  /// Can be used in `Runtime.callFunctionOn` Chrome API.
   /// function ($params, __t$this) {
   ///   try {
   ///     return function ($params) {
@@ -191,8 +226,14 @@ class JsBuilder {
   ///     return error.name + ": " + error.message;
   ///   }
   /// }
-  void writeEvalBoundFunction(
-    Iterable<String> body,
+  static String createEvalBoundFunction(
+    Iterable<String> function,
+    Iterable<String> params,
+  ) =>
+      (JsBuilder().._writeEvalBoundFunction(function, params)).build();
+
+  void _writeEvalBoundFunction(
+    Iterable<String> function,
     Iterable<String> params,
   ) {
     final original = 'this';
@@ -218,7 +259,7 @@ class JsBuilder {
                   () => writeCallExpression(
                     args,
                     () {
-                      writeMultiLineExpression(body);
+                      writeMultiLineExpression(function);
                     },
                   ),
                 ),

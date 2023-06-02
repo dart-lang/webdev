@@ -140,10 +140,10 @@ void main() async {
     });
 
     test('createEvalExpression', () async {
-      final jsBuilder = JsBuilder();
-      jsBuilder.createEvalExpression(['var e = 1;', 'return e']);
+      final expression =
+          JsBuilder.createEvalExpression(['var e = 1;', 'return e']);
       expect(
-          jsBuilder.build(),
+          expression,
           'try {\n'
           '  var e = 1;\n'
           '  return e;\n'
@@ -152,14 +152,13 @@ void main() async {
           '}');
     });
 
-    test('writeEvalStaticFunction', () async {
-      final jsBuilder = JsBuilder();
-      jsBuilder.writeEvalStaticFunction(
+    test('createEvalStaticFunction', () async {
+      final function = JsBuilder.createEvalStaticFunction(
         ['function(e, e2) {', '  return e;', '}'],
         ['e', 'e2'],
       );
       expect(
-          jsBuilder.build(),
+          function,
           'function (e, e2) {\n'
           '  try {\n'
           '    return function(e, e2) {\n'
@@ -171,14 +170,13 @@ void main() async {
           '}');
     });
 
-    test('writeEvalBoundFunction', () async {
-      final jsBuilder = JsBuilder();
-      jsBuilder.writeEvalBoundFunction(
+    test('createEvalBoundFunction', () async {
+      final function = JsBuilder.createEvalBoundFunction(
         ['function(e, e2) {', '  return e;', '}'],
         ['e', 'e2'],
       );
       expect(
-          jsBuilder.build(),
+          function,
           'function (e, e2, __t\$this) {\n'
           '  try {\n'
           '    return function (e, e2) {\n'

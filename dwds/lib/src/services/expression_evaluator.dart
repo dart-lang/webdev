@@ -171,7 +171,29 @@ class ExpressionEvaluator {
   /// [scope] additional scope to use in the expression as a map from
   ///   variable names to remote object IDs.
   ///
-  /// **Example**
+  /////////////////////////////////
+  /// **Example - without scope**
+  ///
+  /// To evaluate a dart expression `e`, we perform the following:
+  ///
+  /// 1. compile dart expression `e` to JavaScript expression `jsExpr`
+  ///    using the expression compiler (i.e. frontend server or expression
+  ///    compiler worker).
+  ///
+  /// 2. create JavaScript wrapper expression, `jsWrapperExpr`, defined as
+  ///
+  ///    ```JavaScript
+  ///    try {
+  ///      jsExpr;
+  ///    } catch (error) {
+  ///      error.name + ": " + error.message;
+  ///    }
+  ///    ```
+  ///
+  /// 3. evaluate `JsExpr` using `Debugger.evaluateOnCallFrame` chrome API.
+  ///
+  /// //////////////////////////
+  /// **Example - with scope**
   ///
   /// To evaluate a dart expression
   /// ```dart
@@ -182,37 +204,37 @@ class ExpressionEvaluator {
   ///
   /// 1. compile dart function
   ///
-  ///```dart
-  ///  (x, y, a) { return this.t + a + x + y; }
-  ///```
+  ///    ```dart
+  ///    (x, y, a) { return this.t + a + x + y; }
+  ///    ```
   ///
-  /// to JavaScript function
+  ///    to JavaScript function
   ///
-  ///  ```jsFunc```
+  ///    ```jsFunc```
   ///
-  /// using the expression compiler (i.e. frontend server or expression
-  /// compiler worker).
+  ///    using the expression compiler (i.e. frontend server or expression
+  ///    compiler worker).
   ///
   /// 2. create JavaScript wrapper function, `jsWrapperFunc`, defined as
   ///
-  ///  ```JavaScript
-  ///  function (x, y, a, __t$this) {
-  ///    try {
-  ///      return function (x, y, a) {
-  ///        return jsFunc(x, y, a);
-  ///      }.bind(__t$this)(x, y, a);
-  ///    } catch (error) {
-  ///      return error.name + ": " + error.message;
+  ///    ```JavaScript
+  ///    function (x, y, a, __t$this) {
+  ///      try {
+  ///        return function (x, y, a) {
+  ///          return jsFunc(x, y, a);
+  ///        }.bind(__t$this)(x, y, a);
+  ///      } catch (error) {
+  ///        return error.name + ": " + error.message;
+  ///      }
   ///    }
-  ///  }
-  ///  ```
+  ///    ```
   ///
   /// 3. collect scope variable object IDs for total scope
-  ///   (original frame scope from WipCallFrame + additional scope passed
-  ///   by the user).
+  ///    (original frame scope from WipCallFrame + additional scope passed
+  ///    by the user).
   ///
   /// 4. call `jsWrapperFunc` using `Runtime.callFunctionOn` chrome API
-  ///   with scope variable object IDs passed as arguments.
+  ///    with scope variable object IDs passed as arguments.
   Future<RemoteObject> evaluateExpressionInFrame(
     String isolateId,
     int frameIndex,
@@ -238,7 +260,7 @@ class ExpressionEvaluator {
     final jsLine = jsFrame.location.lineNumber;
     final jsScriptId = jsFrame.location.scriptId;
     final jsColumn = jsFrame.location.columnNumber;
-    final jsScope = await _collectLocalJsScope(jsFrame);
+    final frameScope = await _collectLocalFrameScope(jsFrame);
 
     // Find corresponding dart location and scope.
     final url = _debugger.urlForScriptId(jsScriptId);
@@ -282,8 +304,8 @@ class ExpressionEvaluator {
         'with scope: $scope');
 
     if (scope.isNotEmpty) {
-      scope.addAll(jsScope);
-      expression = _createDartLambda(expression, scope.keys);
+      final totalScope = Map<String, String>.from(scope)..addAll(frameScope);
+      expression = _createDartLambda(expression, totalScope.keys);
     }
 
     _logger.finest('Compiling "$expression"');
@@ -300,7 +322,7 @@ class ExpressionEvaluator {
       dartLocation.line,
       dartLocation.column,
       {},
-      jsScope.map((key, value) => MapEntry(key, key)),
+      frameScope.map((key, value) => MapEntry(key, key)),
       module,
       expression,
     );
@@ -317,29 +339,45 @@ class ExpressionEvaluator {
     // Send JS expression to chrome to evaluate.
     var result = scope.isEmpty
         ? await _evaluateJsExpressionInFrame(frameIndex, jsCode)
-        : await _callJsFunctionInFrame(frameIndex, jsCode, scope);
+        : await _callJsFunctionInFrame(frameIndex, jsCode, scope, frameScope);
 
     result = await _formatEvaluationError(result);
     _logger.finest('Evaluated "$expression" to "${result.json}"');
     return result;
   }
 
+  /// Call JavaScript [function] with [scope] on frame [frameIndex].
+  ///
   /// Wrap the [function] in a lambda that takes scope variables as parameters.
   /// Send JS expression to chrome to evaluate in frame with [frameIndex]
   /// with the provided [scope].
   ///
   /// [frameIndex] is the index of the frame to call the function in.
   /// [function] is the JS function to evaluate.
-  /// [scope] is a map from scope variables to remote object IDs.
+  /// [scope] is the additional scope as a map from scope variables to
+  ///   remote object IDs.
+  /// [frameScope] is the original scope as a map from scope variables to
+  ///   remote object IDs.
   Future<RemoteObject> _callJsFunctionInFrame(
     int frameIndex,
     String function,
     Map<String, String> scope,
+    Map<String, String> frameScope,
   ) async {
-    final totalJsScope = await _addThisToScope(frameIndex, scope);
-    return _callJsFunction(function, totalJsScope);
+    final totalScope = Map<String, String>.from(scope)..addAll(frameScope);
+    final thisObject =
+        await _debugger.evaluateJsOnCallFrameIndex(frameIndex, 'this');
+
+    final thisObjectId = thisObject.objectId;
+    if (thisObjectId != null) {
+      scope['this'] = thisObjectId;
+    }
+
+    return _callJsFunction(function, totalScope);
   }
 
+  /// Call the [function] with [scope] as arguments.
+  ///
   /// Wrap the [function] in a lambda that takes scope variables as parameters.
   /// Send JS expression to chrome to evaluate with the provided [scope].
   ///
@@ -355,6 +393,8 @@ class ExpressionEvaluator {
     return _inspector.callFunction(jsCode, scope.values);
   }
 
+  /// Evaluate JavaScript [expression] on frame [frameIndex].
+  ///
   /// Wrap the [expression] in a try/catch expression to catch errors.
   /// Send JS expression to chrome to evaluate on frame [frameIndex].
   ///
@@ -372,28 +412,6 @@ class ExpressionEvaluator {
 
   static String? _getObjectId(RemoteObject? object) =>
       object?.objectId ?? dartIdFor(object?.value);
-
-  /// Add 'this' variable to scope if it is defined on current frame.
-  ///
-  /// [frame] is the current frame index.
-  /// [dartScope] is the scope already collected as a map from variable
-  ///   names to remote object IDs.
-  ///
-  /// Adds 'this' variable to the scope and returns the updated scope.
-  Future<Map<String, String>> _addThisToScope(
-    int frame,
-    Map<String, String> dartScope,
-  ) async {
-    final thisObject =
-        await _debugger.evaluateJsOnCallFrameIndex(frame, 'this');
-    final thisObjectId = thisObject.objectId;
-
-    final totalJsScope = Map<String, String>.from(dartScope);
-    if (thisObjectId != null) {
-      totalJsScope['this'] = thisObjectId;
-    }
-    return totalJsScope;
-  }
 
   RemoteObject _formatCompilationError(String error) {
     // Frontend currently gives a text message including library name
@@ -447,8 +465,10 @@ class ExpressionEvaluator {
   /// Return local scope as a map from variable names to remote object IDs.
   ///
   /// [frame] is the current frame index.
-  Future<Map<String, String>> _collectLocalJsScope(WipCallFrame frame) async {
-    final jsScope = <String, String>{};
+  Future<Map<String, String>> _collectLocalFrameScope(
+    WipCallFrame frame,
+  ) async {
+    final scope = <String, String>{};
 
     void collectVariables(Iterable<chrome.Property> variables) {
       for (var p in variables) {
@@ -459,7 +479,7 @@ class ExpressionEvaluator {
         if (name != null && value != null && !_isUndefined(value)) {
           final objectId = _getObjectId(p.value);
           if (objectId != null) {
-            jsScope[name] = objectId;
+            scope[name] = objectId;
           }
         }
       }
@@ -475,7 +495,7 @@ class ExpressionEvaluator {
       }
     }
 
-    return jsScope;
+    return scope;
   }
 
   bool _isUndefined(RemoteObject value) => value.type == 'undefined';
@@ -526,9 +546,7 @@ class ExpressionEvaluator {
   static String _createEvalExpression(String expression) {
     final body = expression.split('\n').where((e) => e.isNotEmpty);
 
-    final builder = JsBuilder();
-    builder.createEvalExpression(body);
-    return builder.build();
+    return JsBuilder.createEvalExpression(body);
   }
 
   /// Create JS function  to invoke in `Runtime.callFunctionOn`.
@@ -538,12 +556,8 @@ class ExpressionEvaluator {
   ) {
     final body = function.split('\n').where((e) => e.isNotEmpty);
 
-    final builder = JsBuilder();
-    if (params.contains('this')) {
-      builder.writeEvalBoundFunction(body, params);
-    } else {
-      builder.writeEvalStaticFunction(body, params);
-    }
-    return builder.build();
+    return params.contains('this')
+        ? JsBuilder.createEvalBoundFunction(body, params)
+        : JsBuilder.createEvalStaticFunction(body, params);
   }
 }
