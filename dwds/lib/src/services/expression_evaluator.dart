@@ -356,8 +356,8 @@ class ExpressionEvaluator {
   /// [function] is the JS function to evaluate.
   /// [scope] is the additional scope as a map from scope variables to
   ///   remote object IDs.
-  /// [frameScope] is the original scope as a map from scope variables to
-  ///   remote object IDs.
+  /// [frameScope] is the original scope as a map from scope variables
+  ///   to remote object IDs.
   Future<RemoteObject> _callJsFunctionInFrame(
     int frameIndex,
     String function,
@@ -370,7 +370,7 @@ class ExpressionEvaluator {
 
     final thisObjectId = thisObject.objectId;
     if (thisObjectId != null) {
-      scope['this'] = thisObjectId;
+      totalScope['this'] = thisObjectId;
     }
 
     return _callJsFunction(function, totalScope);
