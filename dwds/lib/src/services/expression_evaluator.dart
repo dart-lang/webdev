@@ -386,7 +386,7 @@ class ExpressionEvaluator {
   Future<RemoteObject> _callJsFunction(
     String function,
     Map<String, String> scope,
-  ) async {
+  ) {
     final jsCode = _createEvalFunction(function, scope.keys);
 
     _logger.finest('Evaluating JS: "$jsCode" with scope: $scope');
@@ -403,7 +403,7 @@ class ExpressionEvaluator {
   Future<RemoteObject> _evaluateJsExpressionInFrame(
     int frameIndex,
     String expression,
-  ) async {
+  ) {
     final jsCode = _createEvalExpression(expression);
 
     _logger.finest('Evaluating JS: "$jsCode"');
