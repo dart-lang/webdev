@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(seconds: 90))
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -13,9 +14,45 @@ import 'package:test/test.dart';
 // TODO(elliette): Move to a cron job. This tests that the currently published
 // Webdev can be activated and serve a web app. It is intended to catch any
 // regressions due to changes in the Dart SDK.
+
+const timeoutDuration = Duration(seconds: 30);
+
 void main() {
   Process? _serveProcess;
   Directory? _tempDir;
+
+  Future<void> _expectStdoutAndCleanExit(Process process,
+      {required String expectedStdout}) async {
+    final stdoutCompleter = _captureStream(
+      process.stdout,
+      streamClosed: process.exitCode,
+    );
+    final stderrCompleter = _captureStream(
+      process.stderr,
+      streamClosed: process.exitCode,
+    );
+    final exitCode = await _waitForExitOrTimeout(process);
+    final stderrLogs = await stderrCompleter.future;
+    final stdoutLogs = await stdoutCompleter.future;
+    // Log the stderr and stdout for debugging purposes if the process did not
+    // terminate succesfully:
+    if (exitCode != 0) {
+      Logger.root.info('stderr: $stderrLogs');
+      Logger.root.info('stdout: $stdoutLogs');
+    }
+    expect(exitCode, equals(0));
+    expect(stderrLogs, isEmpty);
+    expect(stdoutLogs, contains(expectedStdout));
+  }
+
+  Future<void> _expectStdoutThenExit(Process process,
+      {required String expectedStdout}) async {
+    final stdoutCompleter = _waitForStdoutOrTimeout(
+      process,
+      expectedStdout: expectedStdout,
+    );
+    expect(await stdoutCompleter.future, isTrue);
+  }
 
   setUp(() async {
     _tempDir = Directory.systemTemp.createTempSync('installation_test');
@@ -30,7 +67,6 @@ void main() {
     final serveProcess = _serveProcess;
     if (serveProcess != null) {
       Process.killPid(serveProcess.pid);
-      maybeLogStderr(serveProcess);
       _serveProcess = null;
     }
   });
@@ -38,51 +74,84 @@ void main() {
   test('can activate and serve webdev', () async {
     final tempDir = _tempDir!;
     final tempPath = tempDir.path;
+
     // Verify that we can create a new Dart app:
-    final createProcess = await Process.run(
+    final createProcess = await Process.start(
       'dart',
       ['create', '--template', 'web', 'temp_app'],
       workingDirectory: tempPath,
     );
-    final createStderr = stringifyOutput(await createProcess.stderr);
-    expect(createStderr, isEmpty);
-    final createStdout = stringifyOutput(await createProcess.stdout);
-    expect(createStdout, contains('Created project temp_app in temp_app!'));
-    expect(createProcess.exitCode, equals(0));
+    await _expectStdoutAndCleanExit(
+      createProcess,
+      expectedStdout: 'Created project temp_app in temp_app!',
+    );
     final appPath = p.join(tempPath, 'temp_app');
     expect(await Directory(appPath).exists(), isTrue);
+
     // Verify that `dart pub global activate` works:
-    final activateProcess = await Process.run(
+    final activateProcess = await Process.start(
       'dart',
       ['pub', 'global', 'activate', 'webdev'],
     );
-    final activateStderr = stringifyOutput(await activateProcess.stderr);
-    expect(activateStderr, isEmpty);
-    final activateStdout = stringifyOutput(await activateProcess.stdout);
-    expect(activateStdout, contains('Activated webdev'));
-    expect(activateProcess.exitCode, equals(0));
+    await _expectStdoutAndCleanExit(
+      activateProcess,
+      expectedStdout: 'Activated webdev',
+    );
+
     // Verify that `webdev serve` works for our new app:
     _serveProcess = await Process.start(
         'dart', ['pub', 'global', 'run', 'webdev', 'serve'],
         workingDirectory: appPath);
-    final serveStdout = _serveProcess!.stdout.transform(utf8.decoder);
-    await expectLater(serveStdout, emitsThrough(contains('Serving `web` on')));
+    await _expectStdoutThenExit(_serveProcess!,
+        expectedStdout: 'Serving `web` on');
   });
 }
 
-String stringifyOutput(dynamic output) {
-  if (output == null) return '';
-  if (output == String) return output as String;
-  final outputList = output is List ? output : [output];
-  return outputList.map((output) => '$output').join('\n');
+Future<int> _waitForExitOrTimeout(Process process) {
+  Timer(timeoutDuration, () {
+    Logger.root.severe('Process timed out after $timeoutDuration');
+    process.kill();
+  });
+  return process.exitCode;
 }
 
-void maybeLogStderr(Process process) async {
-  final stderr = stringifyOutput(
-    await process.stderr.transform(utf8.decoder).toList(),
-  );
-  if (stderr.isNotEmpty) {
-    Logger.root.warning('stderr:');
-    Logger.root.warning(stderr);
-  }
+Completer<bool> _waitForStdoutOrTimeout(Process process,
+    {required String expectedStdout}) {
+  final completer = Completer<bool>();
+  var stdoutLogs = '';
+  var stderrLogs = '';
+
+  Timer(timeoutDuration, () {
+    Logger.root.severe(
+        'Waiting for "$expectedStdout" timed out after $timeoutDuration');
+    Logger.root.info('stdout: $stdoutLogs');
+    Logger.root.info('stderr: $stderrLogs');
+    process.kill();
+    completer.complete(false);
+  });
+
+  process.stderr.transform(utf8.decoder).listen((line) {
+    stderrLogs += line;
+  });
+  process.stdout.transform(utf8.decoder).listen((line) {
+    if (line.contains(expectedStdout)) {
+      process.kill();
+      completer.complete(true);
+    }
+  });
+
+  return completer;
+}
+
+Completer<String> _captureStream(
+  Stream<List<int>> stream, {
+  required Future<int> streamClosed,
+}) {
+  final completer = Completer<String>();
+  var output = '';
+  stream.transform(utf8.decoder).listen((line) {
+    output += line;
+  });
+  unawaited(streamClosed.then((_) => completer.complete(output)));
+  return completer;
 }
