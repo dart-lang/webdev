@@ -27,6 +27,7 @@ Future<String> buildDebugExtension({required bool isMV3}) async {
   await Process.run(
     'dart',
     [
+      'run',
       p.join('tool', 'build_extension.dart'),
       if (isMV3) '--mv3',
     ],
