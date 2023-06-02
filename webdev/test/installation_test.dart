@@ -14,6 +14,11 @@ import 'package:test/test.dart';
 // Webdev can be activated and serve a web app. It is intended to catch any
 // regressions due to changes in the Dart SDK.
 
+enum StreamType {
+  stdout,
+  stderr,
+}
+
 const processTimeout = Duration(seconds: 30);
 
 void main() {
@@ -24,12 +29,14 @@ void main() {
 
   Future<void> _expectStdoutAndCleanExit(Process process,
       {required String expectedStdout}) async {
-    final stdoutCompleter = _captureStream(
-      process.stdout,
+    final stdoutCompleter = _captureOutput(
+      process,
+      streamType: StreamType.stdout,
       stopCaptureFuture: process.exitCode,
     );
-    final stderrCompleter = _captureStream(
-      process.stderr,
+    final stderrCompleter = _captureOutput(
+      process,
+      streamType: StreamType.stderr,
       stopCaptureFuture: process.exitCode,
     );
     final exitCode = await _waitForExitOrTimeout(process);
@@ -58,8 +65,9 @@ void main() {
       process,
       expectedStdout: expectedStdout,
     );
-    final stderrCompleter = _captureStream(
-      process.stderr,
+    final stderrCompleter = _captureOutput(
+      process,
+      streamType: StreamType.stderr,
       stopCaptureFuture: expectedStdoutCompleter.future,
     );
     final stdoutLogs = await expectedStdoutCompleter.future;
@@ -166,15 +174,28 @@ Completer<String> _waitForStdoutOrTimeout(Process process,
   return completer;
 }
 
-Completer<String> _captureStream(
-  Stream<List<int>> stream, {
+Completer<String> _captureOutput(
+  Process process, {
+  required StreamType streamType,
   required Future stopCaptureFuture,
 }) {
+  final stream =
+      streamType == StreamType.stdout ? process.stdout : process.stderr;
   final completer = Completer<String>();
   var output = '';
   stream.transform(utf8.decoder).listen((line) {
     output += line;
+    if (line.contains('[SEVERE]')) {
+      process.kill(ProcessSignal.sigint);
+      if (!completer.isCompleted) {
+        completer.complete(output);
+      }
+    }
   });
-  unawaited(stopCaptureFuture.then((_) => completer.complete(output)));
+  unawaited(stopCaptureFuture.then((_) {
+    if (!completer.isCompleted) {
+      completer.complete(output);
+    }
+  }));
   return completer;
 }
