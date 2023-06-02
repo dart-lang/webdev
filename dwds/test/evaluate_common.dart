@@ -164,6 +164,117 @@ void testAll({
         getInstance(InstanceRef ref) async =>
             await context.service.getObject(isolateId, ref.id!) as Instance;
 
+        test('with scope', () async {
+          await onBreakPoint(mainScript, 'printFrame1', (event) async {
+            final frame = event.topFrame!.index!;
+
+            final scope = {
+              'x1': (await getInstanceRef(frame, '"cat"')).id!,
+              'x2': (await getInstanceRef(frame, '2')).id!,
+              'x3': (await getInstanceRef(frame, 'MainClass(1,0)')).id!,
+            };
+
+            final result = await getInstanceRef(
+              frame,
+              '"\$x1\$x2 (\$x3) \$testLibraryValue (\$local1)"',
+              scope: scope,
+            );
+
+            expect(result, matchInstanceRef('cat2 (1, 0) 3 (1)'));
+          });
+        });
+
+        test('with large scope', () async {
+          await onBreakPoint(mainScript, 'printLocal', (event) async {
+            const N = 20;
+            final frame = event.topFrame!.index!;
+
+            final scope = {
+              for (var i = 0; i < N; i++)
+                'x$i': (await getInstanceRef(frame, '$i')).id!,
+            };
+            final expression = [
+              for (var i = 0; i < N; i++) '\$x$i',
+            ].join(' ');
+            final expected = [
+              for (var i = 0; i < N; i++) '$i',
+            ].join(' ');
+
+            final result = await evaluateInFrame(
+              frame,
+              '"$expression"',
+              scope: scope,
+            );
+            expect(result, matchInstanceRef(expected));
+          });
+        });
+
+        test('with large code scope', () async {
+          await onBreakPoint(mainScript, 'printLargeScope', (event) async {
+            const xN = 2;
+            const tN = 20;
+            final frame = event.topFrame!.index!;
+
+            final scope = {
+              for (var i = 0; i < xN; i++)
+                'x$i': (await getInstanceRef(frame, '$i')).id!,
+            };
+            final expression = [
+              for (var i = 0; i < xN; i++) '\$x$i',
+              for (var i = 0; i < tN; i++) '\$t$i',
+            ].join(' ');
+            final expected = [
+              for (var i = 0; i < xN; i++) '$i',
+              for (var i = 0; i < tN; i++) '$i',
+            ].join(' ');
+
+            final result = await evaluateInFrame(
+              frame,
+              '"$expression"',
+              scope: scope,
+            );
+            expect(result, matchInstanceRef(expected));
+          });
+        });
+
+        test('with scope in caller frame', () async {
+          await onBreakPoint(mainScript, 'printFrame1', (event) async {
+            final frame = event.topFrame!.index! + 1;
+
+            final scope = {
+              'x1': (await getInstanceRef(frame, '"cat"')).id!,
+              'x2': (await getInstanceRef(frame, '2')).id!,
+              'x3': (await getInstanceRef(frame, 'MainClass(1,0)')).id!,
+            };
+
+            final result = await getInstanceRef(
+              frame,
+              '"\$x1\$x2 (\$x3) \$testLibraryValue (\$local2)"',
+              scope: scope,
+            );
+
+            expect(result, matchInstanceRef('cat2 (1, 0) 3 (2)'));
+          });
+        });
+
+        test('with scope and this', () async {
+          await onBreakPoint(mainScript, 'toStringMainClass', (event) async {
+            final frame = event.topFrame!.index!;
+
+            final scope = {
+              'x1': (await getInstanceRef(frame, '"cat"')).id!,
+            };
+
+            final result = await getInstanceRef(
+              frame,
+              '"\$x1 \${this._field} \${this.field}"',
+              scope: scope,
+            );
+
+            expect(result, matchInstanceRef('cat 1 2'));
+          });
+        });
+
         test(
           'extension method scope variables can be evaluated',
           () async {
@@ -173,7 +284,8 @@ void testAll({
               for (var p in scope.entries) {
                 final name = p.key;
                 final value = p.value as InstanceRef;
-                final result = getInstanceRef(event.topFrame!.index!, name!);
+                final result =
+                    await getInstanceRef(event.topFrame!.index!, name!);
 
                 expect(result, matchInstanceRef(value.valueAsString));
               }
@@ -575,6 +687,47 @@ void testAll({
           expect(isolate.rootLib!.id, isNotNull);
           return isolate.rootLib!.id!;
         }
+
+        test('with scope', () async {
+          final libraryId = getRootLibraryId();
+
+          final scope = {
+            'x1': (await getInstanceRef(libraryId, '"cat"')).id!,
+            'x2': (await getInstanceRef(libraryId, '2')).id!,
+            'x3': (await getInstanceRef(libraryId, 'MainClass(1,0)')).id!,
+          };
+
+          final result = await getInstanceRef(
+            libraryId,
+            '"\$x1\$x2 (\$x3) \$testLibraryValue"',
+            scope: scope,
+          );
+
+          expect(result, matchInstanceRef('cat2 (1, 0) 3'));
+        });
+
+        test('with large scope', () async {
+          final libraryId = getRootLibraryId();
+          const N = 2;
+
+          final scope = {
+            for (var i = 0; i < N; i++)
+              'x$i': (await getInstanceRef(libraryId, '$i')).id!,
+          };
+          final expression = [
+            for (var i = 0; i < N; i++) '\$x$i',
+          ].join(' ');
+          final expected = [
+            for (var i = 0; i < N; i++) '$i',
+          ].join(' ');
+
+          final result = await getInstanceRef(
+            libraryId,
+            '"$expression"',
+            scope: scope,
+          );
+          expect(result, matchInstanceRef(expected));
+        });
 
         test('in parallel (in a batch)', () async {
           final libraryId = getRootLibraryId();

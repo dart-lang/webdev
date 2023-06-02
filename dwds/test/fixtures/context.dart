@@ -279,7 +279,7 @@ class TestContext {
           break;
         case CompilationMode.frontendServer:
           {
-            _logger.warning('Index: $project.filePathToServe');
+            _logger.info('Index: ${project.filePathToServe}');
 
             final entry = p.toUri(
               p.join(project.webAssetsPath, project.dartEntryFileName),
