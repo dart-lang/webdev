@@ -8,31 +8,27 @@ const webdevDirName = 'webdev';
 const dwdsDirName = 'dwds';
 const fixturesDirName = 'fixtures';
 
-String get repoPath {
+/// The path to the webdev directory in the local machine, e.g.
+/// '/workstation/webdev'.
+String get webdevPath {
   final pathParts = p.split(p.current);
   // We expect all tests to be run from the webdev mono-repo:
   assert(pathParts.contains(webdevDirName));
   return p.joinAll(
-    pathParts.sublist(0, pathParts.indexOf(webdevDirName) + 1),
+    pathParts.sublist(0, pathParts.lastIndexOf(webdevDirName) + 1),
   );
-}
-
-/// The path to the webdev directory in the local machine, e.g.
-/// '/workstation/webdev/webdev'.
-String get webdevPath {
-  return p.join(repoPath, webdevDirName);
 }
 
 /// The path to the DWDS directory in the local machine, e.g.
 /// '/workstation/webdev/dwds'.
 String get dwdsPath {
-  return p.join(repoPath, dwdsDirName);
+  return p.join(webdevPath, dwdsDirName);
 }
 
 /// The path to the fixtures directory in the local machine, e.g.
 /// '/workstation/webdev/fixtures'.
 String get fixturesPath {
-  return p.join(repoPath, fixturesDirName);
+  return p.join(webdevPath, fixturesDirName);
 }
 
 // Creates a path compatible for web.
