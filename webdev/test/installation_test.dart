@@ -7,7 +7,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -15,9 +14,11 @@ import 'package:test/test.dart';
 // Webdev can be activated and serve a web app. It is intended to catch any
 // regressions due to changes in the Dart SDK.
 
-const timeoutDuration = Duration(seconds: 30);
+const processTimeout = Duration(seconds: 30);
 
 void main() {
+  Process? _createProcess;
+  Process? _activateProcess;
   Process? _serveProcess;
   Directory? _tempDir;
 
@@ -25,33 +26,49 @@ void main() {
       {required String expectedStdout}) async {
     final stdoutCompleter = _captureStream(
       process.stdout,
-      streamClosed: process.exitCode,
+      stopCaptureFuture: process.exitCode,
     );
     final stderrCompleter = _captureStream(
       process.stderr,
-      streamClosed: process.exitCode,
+      stopCaptureFuture: process.exitCode,
     );
     final exitCode = await _waitForExitOrTimeout(process);
     final stderrLogs = await stderrCompleter.future;
     final stdoutLogs = await stdoutCompleter.future;
-    // Log the stderr and stdout for debugging purposes if the process did not
-    // terminate succesfully:
-    if (exitCode != 0) {
-      Logger.root.info('stderr: $stderrLogs');
-      Logger.root.info('stdout: $stdoutLogs');
-    }
-    expect(exitCode, equals(0));
-    expect(stderrLogs, isEmpty);
-    expect(stdoutLogs, contains(expectedStdout));
+    expect(
+      exitCode,
+      equals(0),
+      // Include the stderr and stdout logs if the process does not terminate
+      // cleanly:
+      reason: 'stderr: $stderrLogs, stdout: $stdoutLogs',
+    );
+    expect(
+      stderrLogs,
+      isEmpty,
+    );
+    expect(
+      stdoutLogs,
+      contains(expectedStdout),
+    );
   }
 
   Future<void> _expectStdoutThenExit(Process process,
       {required String expectedStdout}) async {
-    final stdoutCompleter = _waitForStdoutOrTimeout(
+    final expectedStdoutCompleter = _waitForStdoutOrTimeout(
       process,
       expectedStdout: expectedStdout,
     );
-    expect(await stdoutCompleter.future, isTrue);
+    final stderrCompleter = _captureStream(
+      process.stderr,
+      stopCaptureFuture: expectedStdoutCompleter.future,
+    );
+    final stdoutLogs = await expectedStdoutCompleter.future;
+    final stderrLogs = await stderrCompleter.future;
+    expect(
+      stdoutLogs, contains(expectedStdout),
+      // Also include the stderr if the stdout is not expected.
+      reason: 'stderr: $stderrLogs',
+    );
   }
 
   setUp(() async {
@@ -64,9 +81,17 @@ void main() {
   });
 
   tearDown(() async {
-    final serveProcess = _serveProcess;
-    if (serveProcess != null) {
-      Process.killPid(serveProcess.pid);
+    // Kill any stale processes:
+    if (_createProcess != null) {
+      Process.killPid(_createProcess!.pid, ProcessSignal.sigint);
+      _createProcess = null;
+    }
+    if (_activateProcess != null) {
+      Process.killPid(_activateProcess!.pid, ProcessSignal.sigint);
+      _activateProcess = null;
+    }
+    if (_serveProcess != null) {
+      Process.killPid(_serveProcess!.pid, ProcessSignal.sigint);
       _serveProcess = null;
     }
   });
@@ -76,25 +101,25 @@ void main() {
     final tempPath = tempDir.path;
 
     // Verify that we can create a new Dart app:
-    final createProcess = await Process.start(
+    _createProcess = await Process.start(
       'dart',
       ['create', '--template', 'web', 'temp_app'],
       workingDirectory: tempPath,
     );
     await _expectStdoutAndCleanExit(
-      createProcess,
+      _createProcess!,
       expectedStdout: 'Created project temp_app in temp_app!',
     );
     final appPath = p.join(tempPath, 'temp_app');
     expect(await Directory(appPath).exists(), isTrue);
 
     // Verify that `dart pub global activate` works:
-    final activateProcess = await Process.start(
+    _activateProcess = await Process.start(
       'dart',
       ['pub', 'global', 'activate', 'webdev'],
     );
     await _expectStdoutAndCleanExit(
-      activateProcess,
+      _activateProcess!,
       expectedStdout: 'Activated webdev',
     );
 
@@ -108,35 +133,33 @@ void main() {
 }
 
 Future<int> _waitForExitOrTimeout(Process process) {
-  Timer(timeoutDuration, () {
-    Logger.root.severe('Process timed out after $timeoutDuration');
-    process.kill();
+  Timer(processTimeout, () {
+    process.kill(ProcessSignal.sigint);
   });
   return process.exitCode;
 }
 
-Completer<bool> _waitForStdoutOrTimeout(Process process,
+/// Returns the stdout for the [process] once the [expectedStdout] is found.
+///
+/// Otherwise returns all the stdout up to the [processTimeout].
+Completer<String> _waitForStdoutOrTimeout(Process process,
     {required String expectedStdout}) {
-  final completer = Completer<bool>();
-  var stdoutLogs = '';
-  var stderrLogs = '';
+  var output = '';
+  final completer = Completer<String>();
 
-  Timer(timeoutDuration, () {
-    Logger.root.severe(
-        'Waiting for "$expectedStdout" timed out after $timeoutDuration');
-    Logger.root.info('stdout: $stdoutLogs');
-    Logger.root.info('stderr: $stderrLogs');
-    process.kill();
-    completer.complete(false);
-  });
-
-  process.stderr.transform(utf8.decoder).listen((line) {
-    stderrLogs += line;
+  Timer(processTimeout, () {
+    process.kill(ProcessSignal.sigint);
+    if (!completer.isCompleted) {
+      completer.complete(output);
+    }
   });
   process.stdout.transform(utf8.decoder).listen((line) {
+    output += line;
     if (line.contains(expectedStdout)) {
-      process.kill();
-      completer.complete(true);
+      process.kill(ProcessSignal.sigint);
+      if (!completer.isCompleted) {
+        completer.complete(output);
+      }
     }
   });
 
@@ -145,13 +168,13 @@ Completer<bool> _waitForStdoutOrTimeout(Process process,
 
 Completer<String> _captureStream(
   Stream<List<int>> stream, {
-  required Future<int> streamClosed,
+  required Future stopCaptureFuture,
 }) {
   final completer = Completer<String>();
   var output = '';
   stream.transform(utf8.decoder).listen((line) {
     output += line;
   });
-  unawaited(streamClosed.then((_) => completer.complete(output)));
+  unawaited(stopCaptureFuture.then((_) => completer.complete(output)));
   return completer;
 }
