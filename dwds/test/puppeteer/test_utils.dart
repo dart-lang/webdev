@@ -33,6 +33,9 @@ Future<String> buildDebugExtension({required bool isMV3}) async {
     ],
     workingDirectory: extensionDir,
   );
+  print('---- EXTENSION DIR CONTENTS:');
+  print(Directory(extensionDir).listSync());
+
   final compiledDir = p.join(extensionDir, 'compiled');
   print('---- COMPILED CONTENTS:');
   print(Directory(compiledDir).listSync());
