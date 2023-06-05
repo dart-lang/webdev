@@ -20,10 +20,14 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
-      - name: Get deps
+      - name: Get deps for dwds
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
+      - name: Get deps for debug extension
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds/debug_extension_mv3
       - name: Download Chromium
         run: dart test/puppeteer/download_chromium.dart
         working-directory: dwds
