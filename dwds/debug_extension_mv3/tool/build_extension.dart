@@ -27,7 +27,7 @@ void main(List<String> arguments) async {
     ..addFlag(_mv3Flag, negatable: true, defaultsTo: false);
   final argResults = parser.parse(arguments);
 
-  exitCode = await run(
+  final exitCode = await run(
     isProd: argResults[_prodFlag] as bool,
     isMV3: argResults[_mv3Flag] as bool,
   );
@@ -104,9 +104,11 @@ void _handleOutputLine(String line, {bool isStdout = true}) {
 }
 
 void _logInfo(String message) {
+  print(message);
   stdout.writeln(message);
 }
 
 void _logWarning(String warning) {
+  print(warning);
   stderr.writeln(warning);
 }

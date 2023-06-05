@@ -23,15 +23,22 @@ final _workerLogs = [];
 
 Future<String> buildDebugExtension({required bool isMV3}) async {
   final extensionDir = absolutePath(pathFromDwds: 'debug_extension_mv3');
-  await Process.run(
+  final result = await Process.run(
     'dart',
     [
+      'run',
       p.join('tool', 'build_extension.dart'),
       if (isMV3) '--mv3',
     ],
     workingDirectory: extensionDir,
   );
-  return p.join(extensionDir, 'compiled');
+  print('stdout:');
+  print(result.stdout);
+  print('stderr:');
+  print(result.stderr);
+
+  final compiledDir = p.join(extensionDir, 'compiled');
+  return compiledDir;
 }
 
 Future<Browser> setUpExtensionTest(
@@ -57,6 +64,10 @@ Future<Browser> setUpExtensionTest(
     devTools: openChromeDevTools,
     headless: false,
     timeout: Duration(seconds: 60),
+    ignoreDefaultArgs: [
+      '--disable-extensions',
+      '--disable-component-extensions-with-background-pages'
+    ],
     args: [
       '--load-extension=$extensionPath',
       '--disable-extensions-except=$extensionPath',
