@@ -347,6 +347,11 @@ class TestContext {
             !enableDebugExtension;
         if (enableDebugExtension) {
           await _buildDebugExtension();
+          final extensionDir = absolutePath(pathFromDwds: 'debug_extension');
+
+          final prodBuildDir = p.join(extensionDir, 'prod_build');
+          print('---- PROD BUILD CONTENTS:');
+          print(Directory(prodBuildDir).listSync());
         }
         final capabilities = Capabilities.chrome
           ..addAll({
@@ -484,6 +489,8 @@ class TestContext {
   }
 
   Future<void> _buildDebugExtension() async {
+    print(
+        'building debug extension in ${absolutePath(pathFromDwds: 'debug_extension')}');
     final process = await Process.run(
       'tool/build_extension.sh',
       ['prod'],
