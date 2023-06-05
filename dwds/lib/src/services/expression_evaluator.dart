@@ -8,6 +8,8 @@ import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/services/javascript_builder.dart';
+import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/objects.dart' as chrome;
 import 'package:logging/logging.dart';
@@ -144,15 +146,13 @@ class ExpressionEvaluator {
     }
 
     // Strip try/catch incorrectly added by the expression compiler.
-    var jsCode = _maybeStripTryCatch(jsResult);
+    final jsCode = _maybeStripTryCatch(jsResult);
 
     // Send JS expression to chrome to evaluate.
-    jsCode = _createJsLambdaWithTryCatch(jsCode, scope.keys);
-    var result = await _inspector.callFunction(jsCode, scope.values);
+    var result = await _callJsFunction(jsCode, scope);
     result = await _formatEvaluationError(result);
 
-    _logger
-        .finest('Evaluated "$expression" to "$result" for isolate $isolateId');
+    _logger.finest('Evaluated "$expression" to "${result.json}"');
     return result;
   }
 
@@ -168,20 +168,80 @@ class ExpressionEvaluator {
   /// [isolateId] current isolate ID.
   /// [frameIndex] JavaScript frame to evaluate the expression in.
   /// [expression] dart expression to evaluate.
+  /// [scope] additional scope to use in the expression as a map from
+  ///   variable names to remote object IDs.
+  ///
+  /////////////////////////////////
+  /// **Example - without scope**
+  ///
+  /// To evaluate a dart expression `e`, we perform the following:
+  ///
+  /// 1. compile dart expression `e` to JavaScript expression `jsExpr`
+  ///    using the expression compiler (i.e. frontend server or expression
+  ///    compiler worker).
+  ///
+  /// 2. create JavaScript wrapper expression, `jsWrapperExpr`, defined as
+  ///
+  ///    ```JavaScript
+  ///    try {
+  ///      jsExpr;
+  ///    } catch (error) {
+  ///      error.name + ": " + error.message;
+  ///    }
+  ///    ```
+  ///
+  /// 3. evaluate `JsExpr` using `Debugger.evaluateOnCallFrame` chrome API.
+  ///
+  /// //////////////////////////
+  /// **Example - with scope**
+  ///
+  /// To evaluate a dart expression
+  /// ```dart
+  ///   this.t + a + x + y
+  /// ```
+  /// in a dart scope that defines `a` and `this`, and additional scope
+  /// `x, y`, we perform the following:
+  ///
+  /// 1. compile dart function
+  ///
+  ///    ```dart
+  ///    (x, y, a) { return this.t + a + x + y; }
+  ///    ```
+  ///
+  ///    to JavaScript function
+  ///
+  ///    ```jsFunc```
+  ///
+  ///    using the expression compiler (i.e. frontend server or expression
+  ///    compiler worker).
+  ///
+  /// 2. create JavaScript wrapper function, `jsWrapperFunc`, defined as
+  ///
+  ///    ```JavaScript
+  ///    function (x, y, a, __t$this) {
+  ///      try {
+  ///        return function (x, y, a) {
+  ///          return jsFunc(x, y, a);
+  ///        }.bind(__t$this)(x, y, a);
+  ///      } catch (error) {
+  ///        return error.name + ": " + error.message;
+  ///      }
+  ///    }
+  ///    ```
+  ///
+  /// 3. collect scope variable object IDs for total scope
+  ///    (original frame scope from WipCallFrame + additional scope passed
+  ///    by the user).
+  ///
+  /// 4. call `jsWrapperFunc` using `Runtime.callFunctionOn` chrome API
+  ///    with scope variable object IDs passed as arguments.
   Future<RemoteObject> evaluateExpressionInFrame(
     String isolateId,
     int frameIndex,
     String expression,
     Map<String, String>? scope,
   ) async {
-    if (scope != null && scope.isNotEmpty) {
-      // TODO(annagrin): Implement scope support.
-      // Issue: https://github.com/dart-lang/webdev/issues/1344
-      return createError(
-          EvaluationErrorKind.internal,
-          'Using scope for expression evaluation in frame '
-          'is not supported.');
-    }
+    scope ??= {};
 
     if (expression.isEmpty) {
       return createError(EvaluationErrorKind.invalidInput, expression);
@@ -200,7 +260,7 @@ class ExpressionEvaluator {
     final jsLine = jsFrame.location.lineNumber;
     final jsScriptId = jsFrame.location.scriptId;
     final jsColumn = jsFrame.location.columnNumber;
-    final jsScope = await _collectLocalJsScope(jsFrame);
+    final frameScope = await _collectLocalFrameScope(jsFrame);
 
     // Find corresponding dart location and scope.
     final url = _debugger.urlForScriptId(jsScriptId);
@@ -240,7 +300,15 @@ class ExpressionEvaluator {
     }
 
     _logger.finest('Evaluating "$expression" at $module, '
-        '$libraryUri:${dartLocation.line}:${dartLocation.column}');
+        '$libraryUri:${dartLocation.line}:${dartLocation.column} '
+        'with scope: $scope');
+
+    if (scope.isNotEmpty) {
+      final totalScope = Map<String, String>.from(scope)..addAll(frameScope);
+      expression = _createDartLambda(expression, totalScope.keys);
+    }
+
+    _logger.finest('Compiling "$expression"');
 
     // Compile expression using an expression compiler, such as
     // frontend server or expression compiler worker.
@@ -254,7 +322,7 @@ class ExpressionEvaluator {
       dartLocation.line,
       dartLocation.column,
       {},
-      jsScope,
+      frameScope.map((key, value) => MapEntry(key, key)),
       module,
       expression,
     );
@@ -266,18 +334,84 @@ class ExpressionEvaluator {
     }
 
     // Strip try/catch incorrectly added by the expression compiler.
-    var jsCode = _maybeStripTryCatch(jsResult);
+    final jsCode = _maybeStripTryCatch(jsResult);
 
     // Send JS expression to chrome to evaluate.
-    jsCode = _createTryCatch(jsCode);
+    var result = scope.isEmpty
+        ? await _evaluateJsExpressionInFrame(frameIndex, jsCode)
+        : await _callJsFunctionInFrame(frameIndex, jsCode, scope, frameScope);
 
-    // Send JS expression to chrome to evaluate.
-    var result = await _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsCode);
     result = await _formatEvaluationError(result);
-
     _logger.finest('Evaluated "$expression" to "${result.json}"');
     return result;
   }
+
+  /// Call JavaScript [function] with [scope] on frame [frameIndex].
+  ///
+  /// Wrap the [function] in a lambda that takes scope variables as parameters.
+  /// Send JS expression to chrome to evaluate in frame with [frameIndex]
+  /// with the provided [scope].
+  ///
+  /// [frameIndex] is the index of the frame to call the function in.
+  /// [function] is the JS function to evaluate.
+  /// [scope] is the additional scope as a map from scope variables to
+  ///   remote object IDs.
+  /// [frameScope] is the original scope as a map from scope variables
+  ///   to remote object IDs.
+  Future<RemoteObject> _callJsFunctionInFrame(
+    int frameIndex,
+    String function,
+    Map<String, String> scope,
+    Map<String, String> frameScope,
+  ) async {
+    final totalScope = Map<String, String>.from(scope)..addAll(frameScope);
+    final thisObject =
+        await _debugger.evaluateJsOnCallFrameIndex(frameIndex, 'this');
+
+    final thisObjectId = thisObject.objectId;
+    if (thisObjectId != null) {
+      totalScope['this'] = thisObjectId;
+    }
+
+    return _callJsFunction(function, totalScope);
+  }
+
+  /// Call the [function] with [scope] as arguments.
+  ///
+  /// Wrap the [function] in a lambda that takes scope variables as parameters.
+  /// Send JS expression to chrome to evaluate with the provided [scope].
+  ///
+  /// [function] is the JS function to evaluate.
+  /// [scope] is a map from scope variables to remote object IDs.
+  Future<RemoteObject> _callJsFunction(
+    String function,
+    Map<String, String> scope,
+  ) async {
+    final jsCode = _createEvalFunction(function, scope.keys);
+
+    _logger.finest('Evaluating JS: "$jsCode" with scope: $scope');
+    return _inspector.callFunction(jsCode, scope.values);
+  }
+
+  /// Evaluate JavaScript [expression] on frame [frameIndex].
+  ///
+  /// Wrap the [expression] in a try/catch expression to catch errors.
+  /// Send JS expression to chrome to evaluate on frame [frameIndex].
+  ///
+  /// [frameIndex] is the index of the frame to call the function in.
+  /// [expression] is the JS function to evaluate.
+  Future<RemoteObject> _evaluateJsExpressionInFrame(
+    int frameIndex,
+    String expression,
+  ) async {
+    final jsCode = _createEvalExpression(expression);
+
+    _logger.finest('Evaluating JS: "$jsCode"');
+    return _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsCode);
+  }
+
+  static String? _getObjectId(RemoteObject? object) =>
+      object?.objectId ?? dartIdFor(object?.value);
 
   RemoteObject _formatCompilationError(String error) {
     // Frontend currently gives a text message including library name
@@ -328,19 +462,25 @@ class ExpressionEvaluator {
     return result;
   }
 
-  Future<Map<String, String>> _collectLocalJsScope(WipCallFrame frame) async {
-    final jsScope = <String, String>{};
+  /// Return local scope as a map from variable names to remote object IDs.
+  ///
+  /// [frame] is the current frame index.
+  Future<Map<String, String>> _collectLocalFrameScope(
+    WipCallFrame frame,
+  ) async {
+    final scope = <String, String>{};
 
-    void collectVariables(
-      Iterable<chrome.Property> variables,
-    ) {
+    void collectVariables(Iterable<chrome.Property> variables) {
       for (var p in variables) {
         final name = p.name;
         final value = p.value;
         // TODO: null values represent variables optimized by v8.
         // Show that to the user.
         if (name != null && value != null && !_isUndefined(value)) {
-          jsScope[name] = name;
+          final objectId = _getObjectId(p.value);
+          if (objectId != null) {
+            scope[name] = objectId;
+          }
         }
       }
     }
@@ -355,16 +495,22 @@ class ExpressionEvaluator {
       }
     }
 
-    return jsScope;
+    return scope;
   }
 
   bool _isUndefined(RemoteObject value) => value.type == 'undefined';
+
+  static String _createDartLambda(
+    String expression,
+    Iterable<String> params,
+  ) =>
+      '(${params.join(', ')}) { return $expression; }';
 
   /// Strip try/catch incorrectly added by the expression compiler.
   /// TODO: remove adding try/catch block in expression compiler.
   /// https://github.com/dart-lang/webdev/issues/1341, then remove
   /// this stripping code.
-  String _maybeStripTryCatch(String jsCode) {
+  static String _maybeStripTryCatch(String jsCode) {
     // Match the wrapping generated by the expression compiler exactly
     // so the matching does not succeed naturally after the wrapping is
     // removed:
@@ -396,28 +542,22 @@ class ExpressionEvaluator {
     return jsCode;
   }
 
-  String _createJsLambdaWithTryCatch(
-    String expression,
-    Iterable<String> params,
-  ) {
-    final args = params.join(', ');
-    return '  '
-        '  function($args) {\n'
-        '    try {\n'
-        '      return $expression($args);\n'
-        '    } catch (error) {\n'
-        '      return error.name + ": " + error.message;\n'
-        '    }\n'
-        '} ';
+  /// Create JS expression to pass to `Debugger.evaluateOnCallFrame`.
+  static String _createEvalExpression(String expression) {
+    final body = expression.split('\n').where((e) => e.isNotEmpty);
+
+    return JsBuilder.createEvalExpression(body);
   }
 
-  String _createTryCatch(String expression) => '  '
-      '  try {\n'
-      '    $expression;\n'
-      '  } catch (error) {\n'
-      '    error.name + ": " + error.message;\n'
-      '  }\n';
+  /// Create JS function  to invoke in `Runtime.callFunctionOn`.
+  static String _createEvalFunction(
+    String function,
+    Iterable<String> params,
+  ) {
+    final body = function.split('\n').where((e) => e.isNotEmpty);
 
-  String _createDartLambda(String expression, Iterable<String> params) =>
-      '(${params.join(', ')}) => $expression';
+    return params.contains('this')
+        ? JsBuilder.createEvalBoundFunction(body, params)
+        : JsBuilder.createEvalStaticFunction(body, params);
+  }
 }

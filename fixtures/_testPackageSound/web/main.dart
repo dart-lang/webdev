@@ -49,6 +49,8 @@ void main() async {
     printList();
     printMap();
     printSet();
+    printFrame2();
+    printLargeScope();
     // For testing evaluation in async JS frames.
     registerUserExtension(extensionId++);
   });
@@ -134,11 +136,10 @@ void printNestedObjectsMultiLine() {
 }
 
 void printObjectMultiLine() {
-  // Note: formatting the line below breaks callstack tests.
-  print( // Breakpoint: printMultiLine
-    createObject() // Breakpoint: printObjectMultiLine
-      ..initialize(),
-  );
+  print(// Breakpoint: printMultiLine
+      // Breakpoint: Do not remove, will break callstack tests!
+      createObject() // Breakpoint: printObjectMultiLine
+        ..initialize());
 }
 
 void printEnclosingObject(EnclosingClass o) {
@@ -172,13 +173,50 @@ ClassWithMethod createObject() {
   return ClassWithMethod(0); // Breakpoint: createObjectWithMethod
 }
 
+void printFrame2() {
+  final local2 = 2;
+  print(local2);
+  printFrame1();
+}
+
+void printFrame1() {
+  final local1 = 1;
+  print(local1); // Breakpoint: printFrame1
+}
+
+void printLargeScope() {
+  var t0 = 0;
+  var t1 = 1;
+  var t2 = 2;
+  var t3 = 3;
+  var t4 = 4;
+  var t5 = 5;
+  var t6 = 6;
+  var t7 = 7;
+  var t8 = 8;
+  var t9 = 9;
+  var t10 = 10;
+  var t11 = 11;
+  var t12 = 12;
+  var t13 = 13;
+  var t14 = 14;
+  var t15 = 15;
+  var t16 = 16;
+  var t17 = 17;
+  var t18 = 18;
+  var t19 = 19;
+
+  print('$t0 $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, '
+      '$t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19'); // Breakpoint: printLargeScope
+}
+
 class MainClass {
   final int field;
   final int _field;
   MainClass(this.field, this._field); // Breakpoint: newMainClass
 
   @override
-  String toString() => '$field, $_field';
+  String toString() => '$field, $_field'; // Breakpoint: toStringMainClass
 }
 
 class EnclosedClass {

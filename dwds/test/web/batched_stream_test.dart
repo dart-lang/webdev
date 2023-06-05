@@ -6,6 +6,7 @@
 @Timeout(Duration(minutes: 2))
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dwds/shared/batched_stream.dart';
 import 'package:test/expect.dart';
@@ -13,37 +14,42 @@ import 'package:test/scaffolding.dart';
 
 void main() {
   group('Batched stream controller', () {
-    test('emits batches', () async {
-      const size = 100;
-      const delay = Duration(milliseconds: 1000);
+    test(
+      'emits batches',
+      () async {
+        const size = 100;
+        const delay = Duration(milliseconds: 1000);
 
-      final batchOne = List<int>.generate(size, (index) => index);
-      final batchTwo = List<int>.generate(size, (index) => size + index);
+        final batchOne = List<int>.generate(size, (index) => index);
+        final batchTwo = List<int>.generate(size, (index) => size + index);
 
-      // Setup controller.
-      final controller = BatchedStreamController<int>(delay: 500);
+        // Setup controller.
+        final controller = BatchedStreamController<int>(delay: 500);
 
-      // Verify the output.
-      expect(
-        controller.stream,
-        emitsInOrder([
-          batchOne,
-          batchTwo,
-        ]),
-      );
+        // Verify the output.
+        expect(
+          controller.stream,
+          emitsInOrder([
+            batchOne,
+            batchTwo,
+          ]),
+        );
 
-      // Add input.
-      final inputController = StreamController<int>();
-      final inputAdded = controller.sink.addStream(inputController.stream);
+        // Add input.
+        final inputController = StreamController<int>();
+        final inputAdded = controller.sink.addStream(inputController.stream);
 
-      batchOne.forEach(inputController.sink.add);
-      await Future.delayed(delay);
-      batchTwo.forEach(inputController.sink.add);
+        batchOne.forEach(inputController.sink.add);
+        await Future.delayed(delay);
+        batchTwo.forEach(inputController.sink.add);
 
-      await inputController.close();
-      await inputAdded;
-      await controller.close();
-    });
+        await inputController.close();
+        await inputAdded;
+        await controller.close();
+      },
+      // https://github.com/dart-lang/webdev/issues/2126
+      skip: Platform.isWindows,
+    );
 
     test('emits all inputs in order', () async {
       const size = 10;

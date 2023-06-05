@@ -3,14 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
 import 'package:async/async.dart';
 import 'package:dwds/src/utilities/shared.dart';
 
 /// Stream controller allowing to batch events.
 class BatchedStreamController<T> {
   static const _defaultBatchDelayMilliseconds = 1000;
-  static const _checkDelayMilliseconds = 100;
 
+  final int _checkDelayMilliseconds;
   final int _batchDelayMilliseconds;
 
   final StreamController<T> _inputController;
@@ -26,6 +27,7 @@ class BatchedStreamController<T> {
   BatchedStreamController({
     int delay = _defaultBatchDelayMilliseconds,
   })  : _batchDelayMilliseconds = delay,
+        _checkDelayMilliseconds = max(delay ~/ 10, 1),
         _inputController = StreamController<T>(),
         _outputController = StreamController<List<T>>() {
     _inputQueue = StreamQueue<T>(_inputController.stream);
@@ -46,7 +48,7 @@ class BatchedStreamController<T> {
 
   /// Send events to the output in a batch every [_batchDelayMilliseconds].
   Future<void> _batchAndSendEvents() async {
-    const duration = Duration(milliseconds: _checkDelayMilliseconds);
+    final duration = Duration(milliseconds: _checkDelayMilliseconds);
     final buffer = <T>[];
 
     // Batch events every `_batchDelayMilliseconds`.
