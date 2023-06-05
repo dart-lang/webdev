@@ -33,6 +33,10 @@ Future<String> buildDebugExtension({required bool isMV3}) async {
     ],
     workingDirectory: extensionDir,
   );
+  print('stdout:');
+  print(result.stdout);
+  print('stderr:');
+  print(result.stderr);
   print('EXIT CODE IS ${result.exitCode}');
   print('---- EXTENSION DIR CONTENTS:');
   print(Directory(extensionDir).listSync());
