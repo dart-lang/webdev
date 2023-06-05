@@ -27,20 +27,20 @@ void main(List<String> arguments) async {
     ..addFlag(_mv3Flag, negatable: true, defaultsTo: false);
   final argResults = parser.parse(arguments);
 
-  exitCode = await run(
+  final exitCode = await run(
     isProd: argResults[_prodFlag] as bool,
     isMV3: argResults[_mv3Flag] as bool,
   );
   if (exitCode != 0) {
-    _logWarning('Run terminated unexpectedly with exit code: $exitCode');
+    print('Run terminated unexpectedly with exit code: $exitCode');
   }
 }
 
 Future<int> run({required bool isProd, required bool isMV3}) async {
-  _logInfo(
+  print(
     'Building ${isMV3 ? 'MV3' : 'MV2'} extension for ${isProd ? 'prod' : 'dev'}',
   );
-  _logInfo('Compiling extension with dart2js to /compiled directory');
+  print('Compiling extension with dart2js to /compiled directory');
   final compileStep = await Process.start(
     'dart',
     ['run', 'build_runner', 'build', 'web', '--output', 'build', '--release'],
@@ -48,23 +48,24 @@ Future<int> run({required bool isProd, required bool isMV3}) async {
   final compileExitCode = await _handleProcess(compileStep);
   // Terminate early if compilation failed:
   if (compileExitCode != 0) {
+    print('compilation failed.');
     return compileExitCode;
   }
   final manifestFileName = isMV3 ? 'manifest_mv3' : 'manifest_mv2';
-  _logInfo('Copying manifest.json to /compiled directory');
+  print('Copying manifest.json to /compiled directory');
   try {
     File(p.join('web', '$manifestFileName.json')).copySync(
       p.join('compiled', 'manifest.json'),
     );
   } catch (error) {
-    _logWarning('Copying manifest file failed: $error');
+    print('Copying manifest file failed: $error');
     // Return non-zero exit code to indicate failure:
     return 1;
   }
   // If we're compiling for prod, skip updating the manifest.json:
   if (isProd) return 0;
   // Update manifest.json for dev:
-  _logInfo('Updating manifest.json in /compiled directory.');
+  print('Updating manifest.json in /compiled directory.');
   final updateStep = await Process.start(
     'dart',
     [p.join('tool', 'update_dev_files.dart')],
@@ -95,7 +96,7 @@ void _handleOutputLine(String line, {bool isStdout = true}) {
   if (line.toUpperCase().contains('SEVERE') ||
       line.toUpperCase().contains('ERROR')) {
     final error = 'Unexpected error in $outputName: $line';
-    _logWarning(error);
+    print(error);
     throw Exception(error);
   }
   // Log message to the terminal:
@@ -104,9 +105,11 @@ void _handleOutputLine(String line, {bool isStdout = true}) {
 }
 
 void _logInfo(String message) {
+  print(message);
   stdout.writeln(message);
 }
 
 void _logWarning(String warning) {
+  print(warning);
   stderr.writeln(warning);
 }

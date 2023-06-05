@@ -24,7 +24,7 @@ final _workerLogs = [];
 Future<String> buildDebugExtension({required bool isMV3}) async {
   final extensionDir = absolutePath(pathFromDwds: 'debug_extension_mv3');
   print('EXTENSION DIRECTORY IS $extensionDir');
-  await Process.run(
+  final result = await Process.run(
     'dart',
     [
       'run',
@@ -33,6 +33,7 @@ Future<String> buildDebugExtension({required bool isMV3}) async {
     ],
     workingDirectory: extensionDir,
   );
+  print('EXIT CODE IS ${result.exitCode}');
   print('---- EXTENSION DIR CONTENTS:');
   print(Directory(extensionDir).listSync());
 
