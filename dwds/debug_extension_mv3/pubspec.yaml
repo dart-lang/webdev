@@ -15,7 +15,8 @@ dependencies:
 
 dev_dependencies:
   build: ^2.0.0
-  build_runner: ^2.4.0
+  # TODO(https://github.com/dart-lang/build/issues/3531) Remove pin once fixed. 
+  build_runner: 2.4.3
   built_collection: ^5.0.0
   built_value_generator: ^8.3.0
   build_web_compilers: ^4.0.0
