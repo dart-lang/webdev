@@ -885,20 +885,32 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String? step,
     int? frameIndex,
   }) async {
-    if (inspector.appConnection.isStarted) {
-      return captureElapsedTime(
-        () async {
-          await isInitialized;
-          await isStarted;
-          _checkIsolate('resume', isolateId);
-          return await (await debuggerFuture)
-              .resume(step: step, frameIndex: frameIndex);
-        },
-        (result) => DwdsEvent.resume(step),
-      );
-    } else {
-      inspector.appConnection.runMain();
-      return Success();
+    try {
+      if (inspector.appConnection.isStarted) {
+        return captureElapsedTime(
+          () async {
+            await isInitialized;
+            await isStarted;
+            _checkIsolate('resume', isolateId);
+            return await (await debuggerFuture)
+                .resume(step: step, frameIndex: frameIndex);
+          },
+          (result) => DwdsEvent.resume(step),
+        );
+      } else {
+        inspector.appConnection.runMain();
+        return Success();
+      }
+    } on WipError catch (e) {
+      final errorMessage = e.message;
+      if (errorMessage != null &&
+          errorMessage.contains('Can only perform operation while paused')) {
+        // TODO(https://github.com/dart-lang/sdk/issues/52636): Use error code
+        // from package:vm_service.
+        const kIsolateMustBePausedCode = 106;
+        throw RPCError('resume', kIsolateMustBePausedCode, errorMessage);
+      }
+      rethrow;
     }
   }
 
