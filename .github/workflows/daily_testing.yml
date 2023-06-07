@@ -17,9 +17,25 @@ jobs:
           sdk: main
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds
+      - id: dwds_daily_tests
+        name: "dwds; dart test --tags=daily"
+        run: "dart test --tags=daily"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+      - name: "Notify failure"
+        if: "always() && steps.dwds_daily_tests.conclusion == 'failure'"
+        run: |
+          curl -H "Content-Type: application/json" -X POST -d \
+            "{'text':'Daily DWDS tests failed! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
+            "${{ secrets.WEBDEV_NOTIFICATION_CHAT_WEBHOOK }}"
+      - id: webdev_pub_upgrade
+        name:  ; dart pub upgrade
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds

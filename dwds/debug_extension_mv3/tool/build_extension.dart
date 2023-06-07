@@ -104,11 +104,9 @@ void _handleOutputLine(String line, {bool isStdout = true}) {
 }
 
 void _logInfo(String message) {
-  print(message);
   stdout.writeln(message);
 }
 
 void _logWarning(String warning) {
-  print(warning);
   stderr.writeln(warning);
 }

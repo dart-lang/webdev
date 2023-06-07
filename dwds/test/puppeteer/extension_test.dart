@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Tags(['extension'])
 @OnPlatform({
   // TODO(elliette): Enable on Windows.
   'windows': Skip('https://github.com/dart-lang/webdev/issues/1724'),
