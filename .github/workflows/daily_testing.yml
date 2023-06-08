@@ -4,7 +4,7 @@ name: Daily Testing
 
 on:
   schedule:
-    - cron: '00 14 * * *' # Everyday at 3:00 PM UTC (8:00 AM PST)
+    - cron: "00 14 * * *" # Everyday at 3:00 PM UTC (8:00 AM PST)
 
 jobs:
   daily_testing:
@@ -28,8 +28,18 @@ jobs:
         run: "dart test --tags=daily"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
+      - id: webdev_pub_upgrade
+        name: webdev; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: webdev
+      - id: webdev_daily_tests
+        name: "webdev; dart test --tags=daily"
+        run: "dart test --tags=daily"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
       - name: "Notify failure"
-        if: "always() && steps.dwds_daily_tests.conclusion == 'failure'"
+        if: "always() && steps.dwds_daily_tests.conclusion == 'failure' || steps.webdev_daily_tests.conclusion == 'failure'"
         run: |
           curl -H "Content-Type: application/json" -X POST -d \
             "{'text':'Daily Webdev tests failed! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
