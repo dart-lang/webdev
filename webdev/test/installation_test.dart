@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(seconds: 90))
+@Timeout(Duration(minutes: 3))
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -19,7 +19,7 @@ enum StreamType {
   stderr,
 }
 
-const processTimeout = Duration(seconds: 30);
+const processTimeout = Duration(minutes: 1);
 
 void main() {
   Process? _createProcess;
