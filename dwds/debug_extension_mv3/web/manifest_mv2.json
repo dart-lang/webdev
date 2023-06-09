@@ -13,7 +13,6 @@
     "debugger",
     "notifications",
     "storage",
-    "tabs",
     "webNavigation"
   ],
   "background": {

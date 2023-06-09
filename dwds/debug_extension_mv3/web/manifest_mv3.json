@@ -14,7 +14,6 @@
     "notifications",
     "scripting",
     "storage",
-    "tabs",
     "webNavigation"
   ],
   "host_permissions": ["<all_urls>"],
