@@ -136,5 +136,5 @@ abstract class Domain {
 }
 
 Never throwInvalidParam(String method, String message) {
-  throw RPCError(method, RPCError.kInvalidParams, message);
+  throw RPCError(method, RPCErrorKind.kInvalidParams.code, message);
 }

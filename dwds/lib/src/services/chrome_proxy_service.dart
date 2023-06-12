@@ -563,7 +563,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         }
         throw RPCError(
           'evaluateInFrame',
-          RPCError.kInvalidRequest,
+          RPCErrorKind.kInvalidRequest.code,
           'Expression evaluation is not supported for this configuration.',
         );
       },
@@ -602,7 +602,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         }
         throw RPCError(
           'evaluateInFrame',
-          RPCError.kInvalidRequest,
+          RPCErrorKind.kInvalidRequest.code,
           'Expression evaluation is not supported for this configuration.',
         );
       },
@@ -811,7 +811,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         default:
           throw RPCError(
             'streamListen',
-            RPCError.kInvalidParams,
+            RPCErrorKind.kInvalidParams.code,
             'The stream `$streamId` is not supported on web devices',
           );
       }
@@ -861,7 +861,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     return Future.error(
       RPCError(
         'reloadSources',
-        RPCError.kMethodNotFound,
+        RPCErrorKind.kMethodNotFound.code,
         'Hot reload not supported on web devices',
       ),
     );
@@ -905,10 +905,11 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       final errorMessage = e.message;
       if (errorMessage != null &&
           errorMessage.contains('Can only perform operation while paused')) {
-        // TODO(https://github.com/dart-lang/sdk/issues/52636): Use error code
-        // from package:vm_service.
-        const kIsolateMustBePausedCode = 106;
-        throw RPCError('resume', kIsolateMustBePausedCode, errorMessage);
+        throw RPCError(
+          'resume',
+          RPCErrorKind.kIsolateMustBePaused.code,
+          errorMessage,
+        );
       }
       rethrow;
     }
@@ -1267,7 +1268,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   static RPCError _rpcNotSupported(String method) {
     return RPCError(
       method,
-      RPCError.kMethodNotFound,
+      RPCErrorKind.kMethodNotFound.code,
       '$method: Not supported on web devices',
     );
   }
