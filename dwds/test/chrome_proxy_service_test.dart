@@ -2382,7 +2382,8 @@ void main() {
           () => service.streamListen('aCustomStreamId'),
           throwsA(
             predicate(
-              (e) => (e is RPCError) && e.code == RPCError.kInvalidParams,
+              (e) =>
+                  (e is RPCError) && e.code == RPCErrorKind.kInvalidParams.code,
             ),
           ),
         );
