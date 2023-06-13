@@ -1031,7 +1031,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     return _rpcNotSupportedFuture('registerService');
   }
 
-  Future<ReloadReport> _reloadSources(
+  @override
+  Future<ReloadReport> reloadSources(
     String isolateId, {
     bool? force,
     bool? pause,
