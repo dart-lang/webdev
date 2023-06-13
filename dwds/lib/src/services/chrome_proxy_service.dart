@@ -383,6 +383,18 @@ class ChromeProxyService implements VmServiceInterface {
     int line, {
     int? column,
   }) async {
+    return _wrapInErrorHandler(
+      'addBreakpoint',
+      () => _addBreakpoint(isolateId, scriptId, line),
+    );
+  }
+
+  Future<Breakpoint> _addBreakpoint(
+    String isolateId,
+    String scriptId,
+    int line, {
+    int? column,
+  }) async {
     await isInitialized;
     _checkIsolate('addBreakpoint', isolateId);
     return (await debuggerFuture).addBreakpoint(scriptId, line, column: column);
@@ -395,6 +407,22 @@ class ChromeProxyService implements VmServiceInterface {
 
   @override
   Future<Breakpoint> addBreakpointWithScriptUri(
+    String isolateId,
+    String scriptUri,
+    int line, {
+    int? column,
+  }) =>
+      _wrapInErrorHandler(
+        'addBreakpointWithScriptUri',
+        () => _addBreakpointWithScriptUri(
+          isolateId,
+          scriptUri,
+          line,
+          column: column,
+        ),
+      );
+
+  Future<Breakpoint> _addBreakpointWithScriptUri(
     String isolateId,
     String scriptUri,
     int line, {
@@ -428,6 +456,20 @@ class ChromeProxyService implements VmServiceInterface {
 
   @override
   Future<Response> callServiceExtension(
+    String method, {
+    String? isolateId,
+    Map? args,
+  }) =>
+      _wrapInErrorHandler(
+        'callServiceExtension',
+        () => _callServiceExtension(
+          method,
+          isolateId: isolateId,
+          args: args,
+        ),
+      );
+
+  Future<Response> _callServiceExtension(
     String method, {
     String? isolateId,
     Map? args,
@@ -539,6 +581,24 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String expression, {
     Map<String, String>? scope,
     bool? disableBreakpoints,
+  }) =>
+      _wrapInErrorHandler(
+        'evaluate',
+        () => _evaluate(
+          isolateId,
+          targetId,
+          expression,
+          scope: scope,
+          disableBreakpoints: disableBreakpoints,
+        ),
+      );
+
+  Future<Response> _evaluate(
+    String isolateId,
+    String targetId,
+    String expression, {
+    Map<String, String>? scope,
+    bool? disableBreakpoints,
   }) {
     // TODO(798) - respect disableBreakpoints.
     return captureElapsedTime(
@@ -573,6 +633,24 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Response> evaluateInFrame(
+    String isolateId,
+    int frameIndex,
+    String expression, {
+    Map<String, String>? scope,
+    bool? disableBreakpoints,
+  }) =>
+      _wrapInErrorHandler(
+        'evaluateInFrame',
+        () => _evaluateInFrame(
+          isolateId,
+          frameIndex,
+          expression,
+          scope: scope,
+          disableBreakpoints: disableBreakpoints,
+        ),
+      );
+
+  Future<Response> _evaluateInFrame(
     String isolateId,
     int frameIndex,
     String expression, {
@@ -643,7 +721,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Isolate> getIsolate(String isolateId) {
+  Future<Isolate> getIsolate(String isolateId) => _wrapInErrorHandler(
+        'getIsolate',
+        () => _getIsolate(isolateId),
+      );
+
+  Future<Isolate> _getIsolate(String isolateId) {
     return captureElapsedTime(
       () async {
         await isInitialized;
@@ -655,7 +738,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<MemoryUsage> getMemoryUsage(String isolateId) async {
+  Future<MemoryUsage> getMemoryUsage(String isolateId) =>
+      _wrapInErrorHandler('getMemoryUsage', () => _getMemoryUsage(isolateId));
+
+  Future<MemoryUsage> _getMemoryUsage(String isolateId) async {
     await isInitialized;
     _checkIsolate('getMemoryUsage', isolateId);
     return inspector.getMemoryUsage();
@@ -667,6 +753,22 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String objectId, {
     int? offset,
     int? count,
+  }) =>
+      _wrapInErrorHandler(
+        'getObject',
+        () => _getObject(
+          isolateId,
+          objectId,
+          offset: offset,
+          count: count,
+        ),
+      );
+
+  Future<Obj> _getObject(
+    String isolateId,
+    String objectId, {
+    int? offset,
+    int? count,
   }) async {
     await isInitialized;
     _checkIsolate('getObject', isolateId);
@@ -674,7 +776,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<ScriptList> getScripts(String isolateId) {
+  Future<ScriptList> getScripts(String isolateId) => _wrapInErrorHandler(
+        'getScripts',
+        () => _getScripts(isolateId),
+      );
+
+  Future<ScriptList> _getScripts(String isolateId) {
     return captureElapsedTime(
       () async {
         await isInitialized;
@@ -687,6 +794,30 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<SourceReport> getSourceReport(
+    String isolateId,
+    List<String> reports, {
+    String? scriptId,
+    int? tokenPos,
+    int? endTokenPos,
+    bool? forceCompile,
+    bool? reportLines,
+    List<String>? libraryFilters,
+  }) =>
+      _wrapInErrorHandler(
+        'getSourceReport',
+        () => _getSourceReport(
+          isolateId,
+          reports,
+          scriptId: scriptId,
+          tokenPos: tokenPos,
+          endTokenPos: endTokenPos,
+          forceCompile: forceCompile,
+          reportLines: reportLines,
+          libraryFilters: libraryFilters,
+        ),
+      );
+
+  Future<SourceReport> _getSourceReport(
     String isolateId,
     List<String> reports, {
     String? scriptId,
@@ -720,7 +851,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   ///
   /// The returned stack will contain up to [limit] frames if provided.
   @override
-  Future<Stack> getStack(String isolateId, {int? limit}) async {
+  Future<Stack> getStack(String isolateId, {int? limit}) => _wrapInErrorHandler(
+        'getStack',
+        () => _getStack(isolateId, limit: limit),
+      );
+
+  Future<Stack> _getStack(String isolateId, {int? limit}) async {
     await isInitialized;
     await isStarted;
     _checkIsolate('getStack', isolateId);
@@ -728,7 +864,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<VM> getVM() {
+  Future<VM> getVM() => _wrapInErrorHandler('getVM', _getVM);
+
+  Future<VM> _getVM() {
     return captureElapsedTime(
       () async {
         await isInitialized;
@@ -752,13 +890,34 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Version> getVersion() async {
+  Future<Version> getVersion() =>
+      _wrapInErrorHandler('getVersion', _getVersion);
+
+  Future<Version> _getVersion() async {
     final version = semver.Version.parse(vmServiceVersion);
     return Version(major: version.major, minor: version.minor);
   }
 
   @override
   Future<Response> invoke(
+    String isolateId,
+    String targetId,
+    String selector,
+    List argumentIds, {
+    bool? disableBreakpoints,
+  }) =>
+      _wrapInErrorHandler(
+        'invoke',
+        () => _invoke(
+          isolateId,
+          targetId,
+          selector,
+          argumentIds,
+          disableBreakpoints: disableBreakpoints,
+        ),
+      );
+
+  Future<Response> _invoke(
     String isolateId,
     String targetId,
     String selector,
@@ -819,7 +978,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> pause(String isolateId) async {
+  Future<Success> pause(String isolateId) =>
+      _wrapInErrorHandler('pause', () => _pause(isolateId));
+
+  Future<Success> _pause(String isolateId) async {
     await isInitialized;
     _checkIsolate('pause', isolateId);
     return (await debuggerFuture).pause();
@@ -832,6 +994,16 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String isolateId,
     List<String> uris, {
     bool? local,
+  }) =>
+      _wrapInErrorHandler(
+        'lookupResolvedPackageUris',
+        () => _lookupResolvedPackageUris(isolateId, uris, local: local),
+      );
+
+  Future<UriList> _lookupResolvedPackageUris(
+    String isolateId,
+    List<String> uris, {
+    bool? local,
   }) async {
     await isInitialized;
     _checkIsolate('lookupResolvedPackageUris', isolateId);
@@ -839,7 +1011,16 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) async {
+  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) =>
+      _wrapInErrorHandler(
+        'lookupPackageUris',
+        () => _lookupPackageUris(isolateId, uris),
+      );
+
+  Future<UriList> _lookupPackageUris(
+    String isolateId,
+    List<String> uris,
+  ) async {
     await isInitialized;
     _checkIsolate('lookupPackageUris', isolateId);
     return UriList(uris: uris.map(DartUri.toPackageUri).toList());
@@ -850,8 +1031,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     return _rpcNotSupportedFuture('registerService');
   }
 
-  @override
-  Future<ReloadReport> reloadSources(
+  Future<ReloadReport> _reloadSources(
     String isolateId, {
     bool? force,
     bool? pause,
@@ -871,6 +1051,15 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Success> removeBreakpoint(
     String isolateId,
     String breakpointId,
+  ) =>
+      _wrapInErrorHandler(
+        'removeBreakpoint',
+        () => _removeBreakpoint(isolateId, breakpointId),
+      );
+
+  Future<Success> _removeBreakpoint(
+    String isolateId,
+    String breakpointId,
   ) async {
     await isInitialized;
     _checkIsolate('removeBreakpoint', isolateId);
@@ -881,6 +1070,20 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> resume(
+    String isolateId, {
+    String? step,
+    int? frameIndex,
+  }) =>
+      _wrapInErrorHandler(
+        'resume',
+        () => _resume(
+          isolateId,
+          step: step,
+          frameIndex: frameIndex,
+        ),
+      );
+
+  Future<Success> _resume(
     String isolateId, {
     String? step,
     int? frameIndex,
@@ -933,6 +1136,20 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String isolateId, {
     String? exceptionPauseMode,
     bool? shouldPauseOnExit,
+  }) =>
+      _wrapInErrorHandler(
+        'setIsolatePauseMode',
+        () => _setIsolatePauseMode(
+          isolateId,
+          exceptionPauseMode: exceptionPauseMode,
+          shouldPauseOnExit: shouldPauseOnExit,
+        ),
+      );
+
+  Future<Success> _setIsolatePauseMode(
+    String isolateId, {
+    String? exceptionPauseMode,
+    bool? shouldPauseOnExit,
   }) async {
     // TODO(elliette): Is there a way to respect the shouldPauseOnExit parameter
     // in Chrome?
@@ -957,7 +1174,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> setName(String isolateId, String name) async {
+  Future<Success> setName(String isolateId, String name) => _wrapInErrorHandler(
+        'setName',
+        () => _setName(isolateId, name),
+      );
+
+  Future<Success> _setName(String isolateId, String name) async {
     await isInitialized;
     _checkIsolate('setName', isolateId);
     inspector.isolate.name = name;
@@ -965,7 +1187,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> setVMName(String name) async {
+  Future<Success> setVMName(String name) =>
+      _wrapInErrorHandler('setVMName', () => _setVMName(name));
+
+  Future<Success> _setVMName(String name) async {
     _vm.name = name;
     _streamNotify(
       'VM',
@@ -992,7 +1217,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> streamListen(String streamId) async {
+  Future<Success> streamListen(String streamId) =>
+      _wrapInErrorHandler('streamListen', () => _streamListen(streamId));
+
+  Future<Success> _streamListen(String streamId) async {
     // TODO: This should return an error if the stream is already being listened
     // to.
     onEvent(streamId);
@@ -1247,7 +1475,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<ProtocolList> getSupportedProtocols() async {
+  Future<ProtocolList> getSupportedProtocols() => _wrapInErrorHandler(
+        'getSupportedProtocols',
+        _getSupportedProtocols,
+      );
+
+  Future<ProtocolList> _getSupportedProtocols() async {
     final version = semver.Version.parse(vmServiceVersion);
     return ProtocolList(
       protocols: [
@@ -1275,6 +1508,23 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   static Future<T> _rpcNotSupportedFuture<T>(String method) {
     return Future.error(_rpcNotSupported(method));
+  }
+
+  Future<T> _wrapInErrorHandler<T>(
+    String command,
+    Future<T> Function() asyncCallback,
+  ) {
+    try {
+      return asyncCallback();
+    } on RPCError catch (_) {
+      rethrow;
+    } catch (e) {
+      throw RPCError(
+        command,
+        RPCErrorKind.kInternalError.code,
+        'Unexpected DWDS error for $command: $e',
+      );
+    }
   }
 
   @override
