@@ -142,7 +142,7 @@ class DwdsVmClient {
       if (ddsUri == null) {
         return RPCError(
           request['method'] as String,
-          RPCError.kInvalidParams,
+          RPCErrorKind.kInvalidParams.code,
           "'Missing parameter: 'uri'",
         ).toMap();
       }
@@ -229,7 +229,7 @@ Future<Map<String, dynamic>> _hotRestart(
     // triggered in the middle of a full reload.
     return {
       'error': {
-        'code': RPCError.kInternalError,
+        'code': RPCErrorKind.kInternalError.code,
         'message': e.message,
       }
     };
@@ -249,7 +249,7 @@ Future<Map<String, dynamic>> _hotRestart(
     final message = exception.error?['message'];
     // This corresponds to `Execution context was destroyed` which can
     // occur during a hot restart that must fall back to a full reload.
-    if (code != RPCError.kServerError) {
+    if (code != RPCErrorKind.kServerError.code) {
       return {
         'error': {
           'code': code,
@@ -262,7 +262,7 @@ Future<Map<String, dynamic>> _hotRestart(
     // Exceptions thrown by the injected client during hot restart.
     return {
       'error': {
-        'code': RPCError.kInternalError,
+        'code': RPCErrorKind.kInternalError.code,
         'message': '$exception',
       }
     };
