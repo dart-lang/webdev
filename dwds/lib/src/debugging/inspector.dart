@@ -448,7 +448,7 @@ class AppInspector implements AppInspectorInterface {
     if (result == null) {
       throw RPCError(
         'getMemoryUsage',
-        RPCError.kInternalError,
+        RPCErrorKind.kInternalError.code,
         'Null result from chrome Devtools.',
       );
     }
@@ -461,7 +461,7 @@ class AppInspector implements AppInspectorInterface {
     if (usage == null) {
       throw RPCError(
         'getMemoryUsage',
-        RPCError.kInternalError,
+        RPCErrorKind.kInternalError.code,
         'Failed to parse memory usage result.',
       );
     }
