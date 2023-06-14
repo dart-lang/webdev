@@ -40,6 +40,25 @@ void main() {
       }
     });
 
+    test('throws SentinelException if callback throws SentinelException',
+        () async {
+      Future<bool> sentinelExceptionCallback() async {
+        await Future.delayed(Duration(milliseconds: 500));
+        throw SentinelException.parse(
+          'sentinelExceptionCallback',
+          {'message': 'a sentinel exception'},
+        );
+      }
+
+      try {
+        await wrapInErrorHandlerAsync(
+            'sentinelExceptionCallback', sentinelExceptionCallback);
+        fail("SentinelException not thrown.");
+      } catch (error) {
+        expect(error, isSentinelException);
+      }
+    });
+
     test('throws RPCError if callback throws other error type', () async {
       Future<bool> exceptionCallback() async {
         await Future.delayed(Duration(milliseconds: 500));
