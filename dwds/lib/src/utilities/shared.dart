@@ -25,3 +25,20 @@ void safeUnawaited(
       _logger.warning('Error in unawaited Future:', error, stackTrace);
   unawaited(future.catchError(onError));
 }
+
+/// Throws an [RPCError] if the [asyncCallback] has an exception.
+Future<T> wrapInErrorHandlerAsync<T>(
+  String command,
+  Future<T> Function() asyncCallback,
+) {
+  return asyncCallback().catchError((error) {
+    if (error is RPCError) {
+      throw error;
+    }
+    throw RPCError(
+      command,
+      RPCErrorKind.kInternalError.code,
+      'Unexpected DWDS error for $command: $error',
+    );
+  });
+}

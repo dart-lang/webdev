@@ -383,7 +383,7 @@ class ChromeProxyService implements VmServiceInterface {
     int line, {
     int? column,
   }) async {
-    return _wrapInErrorHandler(
+    return wrapInErrorHandlerAsync(
       'addBreakpoint',
       () => _addBreakpoint(isolateId, scriptId, line),
     );
@@ -412,7 +412,7 @@ class ChromeProxyService implements VmServiceInterface {
     int line, {
     int? column,
   }) =>
-      _wrapInErrorHandler(
+      wrapInErrorHandlerAsync(
         'addBreakpointWithScriptUri',
         () => _addBreakpointWithScriptUri(
           isolateId,
@@ -460,7 +460,7 @@ class ChromeProxyService implements VmServiceInterface {
     String? isolateId,
     Map? args,
   }) =>
-      _wrapInErrorHandler(
+      wrapInErrorHandlerAsync(
         'callServiceExtension',
         () => _callServiceExtension(
           method,
@@ -582,7 +582,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     Map<String, String>? scope,
     bool? disableBreakpoints,
   }) =>
-      _wrapInErrorHandler(
+      wrapInErrorHandlerAsync(
         'evaluate',
         () => _evaluate(
           isolateId,
@@ -639,7 +639,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     Map<String, String>? scope,
     bool? disableBreakpoints,
   }) =>
-      _wrapInErrorHandler(
+      wrapInErrorHandlerAsync(
         'evaluateInFrame',
         () => _evaluateInFrame(
           isolateId,
@@ -721,7 +721,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Isolate> getIsolate(String isolateId) => _wrapInErrorHandler(
+  Future<Isolate> getIsolate(String isolateId) => wrapInErrorHandlerAsync(
         'getIsolate',
         () => _getIsolate(isolateId),
       );
@@ -739,7 +739,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<MemoryUsage> getMemoryUsage(String isolateId) =>
-      _wrapInErrorHandler('getMemoryUsage', () => _getMemoryUsage(isolateId));
+      wrapInErrorHandlerAsync(
+          'getMemoryUsage', () => _getMemoryUsage(isolateId));
 
   Future<MemoryUsage> _getMemoryUsage(String isolateId) async {
     await isInitialized;
@@ -754,7 +755,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     int? offset,
     int? count,
   }) =>
-      _wrapInErrorHandler(
+      wrapInErrorHandlerAsync(
         'getObject',
         () => _getObject(
           isolateId,
@@ -776,7 +777,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<ScriptList> getScripts(String isolateId) => _wrapInErrorHandler(
+  Future<ScriptList> getScripts(String isolateId) => wrapInErrorHandlerAsync(
         'getScripts',
         () => _getScripts(isolateId),
       );
@@ -803,7 +804,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     bool? reportLines,
     List<String>? libraryFilters,
   }) =>
-      _wrapInErrorHandler(
+      wrapInErrorHandlerAsync(
         'getSourceReport',
         () => _getSourceReport(
           isolateId,
@@ -851,7 +852,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   ///
   /// The returned stack will contain up to [limit] frames if provided.
   @override
-  Future<Stack> getStack(String isolateId, {int? limit}) => _wrapInErrorHandler(
+  Future<Stack> getStack(String isolateId, {int? limit}) =>
+      wrapInErrorHandlerAsync(
         'getStack',
         () => _getStack(isolateId, limit: limit),
       );
@@ -864,7 +866,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<VM> getVM() => _wrapInErrorHandler('getVM', _getVM);
+  Future<VM> getVM() => wrapInErrorHandlerAsync('getVM', _getVM);
 
   Future<VM> _getVM() {
     return captureElapsedTime(
@@ -891,7 +893,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Version> getVersion() =>
-      _wrapInErrorHandler('getVersion', _getVersion);
+      wrapInErrorHandlerAsync('getVersion', _getVersion);
 
   Future<Version> _getVersion() async {
     final version = semver.Version.parse(vmServiceVersion);
@@ -906,7 +908,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     List argumentIds, {
     bool? disableBreakpoints,
   }) =>
-      _wrapInErrorHandler(
+      wrapInErrorHandlerAsync(
         'invoke',
         () => _invoke(
           isolateId,
@@ -979,7 +981,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> pause(String isolateId) =>
-      _wrapInErrorHandler('pause', () => _pause(isolateId));
+      wrapInErrorHandlerAsync('pause', () => _pause(isolateId));
 
   Future<Success> _pause(String isolateId) async {
     await isInitialized;
@@ -995,7 +997,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     List<String> uris, {
     bool? local,
   }) =>
-      _wrapInErrorHandler(
+      wrapInErrorHandlerAsync(
         'lookupResolvedPackageUris',
         () => _lookupResolvedPackageUris(isolateId, uris, local: local),
       );
@@ -1012,7 +1014,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<UriList> lookupPackageUris(String isolateId, List<String> uris) =>
-      _wrapInErrorHandler(
+      wrapInErrorHandlerAsync(
         'lookupPackageUris',
         () => _lookupPackageUris(isolateId, uris),
       );
@@ -1053,7 +1055,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String isolateId,
     String breakpointId,
   ) =>
-      _wrapInErrorHandler(
+      wrapInErrorHandlerAsync(
         'removeBreakpoint',
         () => _removeBreakpoint(isolateId, breakpointId),
       );
@@ -1075,7 +1077,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String? step,
     int? frameIndex,
   }) =>
-      _wrapInErrorHandler(
+      wrapInErrorHandlerAsync(
         'resume',
         () => _resume(
           isolateId,
@@ -1138,7 +1140,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String? exceptionPauseMode,
     bool? shouldPauseOnExit,
   }) =>
-      _wrapInErrorHandler(
+      wrapInErrorHandlerAsync(
         'setIsolatePauseMode',
         () => _setIsolatePauseMode(
           isolateId,
@@ -1175,7 +1177,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> setName(String isolateId, String name) => _wrapInErrorHandler(
+  Future<Success> setName(String isolateId, String name) =>
+      wrapInErrorHandlerAsync(
         'setName',
         () => _setName(isolateId, name),
       );
@@ -1189,7 +1192,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> setVMName(String name) =>
-      _wrapInErrorHandler('setVMName', () => _setVMName(name));
+      wrapInErrorHandlerAsync('setVMName', () => _setVMName(name));
 
   Future<Success> _setVMName(String name) async {
     _vm.name = name;
@@ -1219,7 +1222,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> streamListen(String streamId) =>
-      _wrapInErrorHandler('streamListen', () => _streamListen(streamId));
+      wrapInErrorHandlerAsync('streamListen', () => _streamListen(streamId));
 
   Future<Success> _streamListen(String streamId) async {
     // TODO: This should return an error if the stream is already being listened
@@ -1476,7 +1479,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<ProtocolList> getSupportedProtocols() => _wrapInErrorHandler(
+  Future<ProtocolList> getSupportedProtocols() => wrapInErrorHandlerAsync(
         'getSupportedProtocols',
         _getSupportedProtocols,
       );
@@ -1509,23 +1512,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   static Future<T> _rpcNotSupportedFuture<T>(String method) {
     return Future.error(_rpcNotSupported(method));
-  }
-
-  Future<T> _wrapInErrorHandler<T>(
-    String command,
-    Future<T> Function() asyncCallback,
-  ) {
-    try {
-      return asyncCallback();
-    } on RPCError catch (_) {
-      rethrow;
-    } catch (e) {
-      throw RPCError(
-        command,
-        RPCErrorKind.kInternalError.code,
-        'Unexpected DWDS error for $command: $e',
-      );
-    }
   }
 
   @override
