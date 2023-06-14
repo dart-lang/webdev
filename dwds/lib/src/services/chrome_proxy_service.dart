@@ -740,7 +740,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<MemoryUsage> getMemoryUsage(String isolateId) =>
       wrapInErrorHandlerAsync(
-          'getMemoryUsage', () => _getMemoryUsage(isolateId));
+        'getMemoryUsage',
+        () => _getMemoryUsage(isolateId),
+      );
 
   Future<MemoryUsage> _getMemoryUsage(String isolateId) async {
     await isInitialized;
