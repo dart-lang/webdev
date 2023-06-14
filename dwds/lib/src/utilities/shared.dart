@@ -27,12 +27,16 @@ void safeUnawaited(
 }
 
 /// Throws an [RPCError] if the [asyncCallback] has an exception.
+///
+/// If the exception is of type [RPCError] or [SentinelException]
+/// (the two supported exception types of package:vm_service) then
+/// simply rethrow that exception.
 Future<T> wrapInErrorHandlerAsync<T>(
   String command,
   Future<T> Function() asyncCallback,
 ) {
   return asyncCallback().catchError((error) {
-    if (error is RPCError) {
+    if (error is RPCError || error is SentinelException) {
       throw error;
     }
     throw RPCError(
