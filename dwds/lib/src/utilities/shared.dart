@@ -37,10 +37,12 @@ Future<T> wrapInErrorHandlerAsync<T>(
 ) {
   return asyncCallback().catchError(
     (error) {
-      throw RPCError(
-        command,
-        RPCErrorKind.kInternalError.code,
-        'Unexpected DWDS error for $command: $error',
+      return Future<T>.error(
+        RPCError(
+          command,
+          RPCErrorKind.kInternalError.code,
+          'Unexpected DWDS error for $command: $error',
+        ),
       );
     },
     test: (e) => e is! RPCError && e is! SentinelException,

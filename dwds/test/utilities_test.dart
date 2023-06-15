@@ -32,12 +32,10 @@ void main() {
         );
       }
 
-      try {
-        await wrapInErrorHandlerAsync('rpcErrorCallback', rpcErrorCallback);
-        fail("RPCError not thrown.");
-      } catch (error) {
-        expect(error, isRPCErrorWithMessage('An error message'));
-      }
+      await expectLater(
+        wrapInErrorHandlerAsync('rpcErrorCallback', rpcErrorCallback),
+        throwsRPCErrorWithMessage('An error message'),
+      );
     });
 
     test('throws SentinelException if callback throws SentinelException',
@@ -50,13 +48,11 @@ void main() {
         );
       }
 
-      try {
-        await wrapInErrorHandlerAsync(
-            'sentinelExceptionCallback', sentinelExceptionCallback);
-        fail("SentinelException not thrown.");
-      } catch (error) {
-        expect(error, isSentinelException);
-      }
+      await expectLater(
+        wrapInErrorHandlerAsync(
+            'sentinelExceptionCallback', sentinelExceptionCallback),
+        throwsSentinelException,
+      );
     });
 
     test('throws RPCError if callback throws other error type', () async {
