@@ -25,3 +25,26 @@ void safeUnawaited(
       _logger.warning('Error in unawaited Future:', error, stackTrace);
   unawaited(future.catchError(onError));
 }
+
+/// Throws an [RPCError] if the [asyncCallback] has an exception.
+///
+/// Only throws a new exception if the original exception type was not
+/// [RPCError] or [SentinelException] (the two supported exception types of
+/// package:vm_service).
+Future<T> wrapInErrorHandlerAsync<T>(
+  String command,
+  Future<T> Function() asyncCallback,
+) {
+  return asyncCallback().catchError(
+    (error) {
+      return Future<T>.error(
+        RPCError(
+          command,
+          RPCErrorKind.kInternalError.code,
+          'Unexpected DWDS error for $command: $error',
+        ),
+      );
+    },
+    test: (e) => e is! RPCError && e is! SentinelException,
+  );
+}
