@@ -50,7 +50,9 @@ void main() {
 
       await expectLater(
         wrapInErrorHandlerAsync(
-            'sentinelExceptionCallback', sentinelExceptionCallback),
+          'sentinelExceptionCallback',
+          sentinelExceptionCallback,
+        ),
         throwsSentinelException,
       );
     });
