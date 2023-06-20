@@ -1,5 +1,7 @@
 ## 19.0.2-wip
 
+## 19.0.1
+
 - Do not show async frame errors on evaluation. - [#2073](https://github.com/dart-lang/webdev/pull/2073)
 - Refactor code for presenting record instances. - [#2074](https://github.com/dart-lang/webdev/pull/2074)
 - Display record types concisely. - [#2070](https://github.com/dart-lang/webdev/pull/2070)
