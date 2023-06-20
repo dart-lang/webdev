@@ -38,7 +38,7 @@ void main() {
             <String, Object?>{
               'id': isolate.id,
               'isolate': isolate.toJson(),
-            }
+            },
         ],
       };
 

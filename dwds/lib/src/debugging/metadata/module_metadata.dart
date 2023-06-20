@@ -83,7 +83,7 @@ class LibraryMetadata {
     return {
       'name': name,
       'importUri': importUri,
-      'partUris': [...partUris]
+      'partUris': [...partUris],
     };
   }
 }
@@ -174,7 +174,7 @@ class ModuleMetadata {
       'sourceMapUri': sourceMapUri,
       'moduleUri': moduleUri,
       'libraries': [for (var lib in libraries.values) lib.toJson()],
-      'soundNullSafety': soundNullSafety
+      'soundNullSafety': soundNullSafety,
     };
   }
 }

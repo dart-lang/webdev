@@ -133,7 +133,7 @@ void main() {
         injector.devHandlerPaths,
         emitsInOrder([
           'http://localhost:${server.port}/foo/\$dwdsSseHandler',
-          'http://localhost:${server.port}/blah/\$dwdsSseHandler'
+          'http://localhost:${server.port}/blah/\$dwdsSseHandler',
         ]),
       );
     });
@@ -367,7 +367,7 @@ void main() {
         injector.devHandlerPaths,
         emitsInOrder([
           'ws://localhost:${server.port}/foo/\$dwdsSseHandler',
-          'ws://localhost:${server.port}/blah/\$dwdsSseHandler'
+          'ws://localhost:${server.port}/blah/\$dwdsSseHandler',
         ]),
       );
     });

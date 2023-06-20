@@ -131,7 +131,7 @@ void main() {
                     breakpoints[i].script,
                     breakpoints[i].function,
                     lines[i],
-                  )
+                  ),
               ];
               expect(stack.frames, containsAll(expected));
 

@@ -36,7 +36,7 @@ Future<void> _updateManifestJson() async {
           oldLine: line,
           newKey: 'default_icon',
           newValue: 'static_assets/dart_dev.png',
-        )
+        ),
       ];
     } else {
       return [line];

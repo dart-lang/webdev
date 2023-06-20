@@ -126,7 +126,7 @@ void main() {
           emitsThrough(
             matchesEvent(DwdsEventKind.compilerUpdateDependencies, {
               'entrypoint': 'hello_world/main.dart.bootstrap.js',
-              'elapsedMilliseconds': isNotNull
+              'elapsedMilliseconds': isNotNull,
             }),
           ),
         );

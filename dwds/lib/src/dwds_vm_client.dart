@@ -87,9 +87,9 @@ class DwdsVmClient {
               <String, Object>{
                 'id': isolate.id,
                 'isolate': isolate.toJson(),
-              }
+              },
           ],
-        }
+        },
       };
     });
     await client.registerService('_flutter.listViews', 'DWDS');
@@ -231,7 +231,7 @@ Future<Map<String, dynamic>> _hotRestart(
       'error': {
         'code': RPCErrorKind.kInternalError.code,
         'message': e.message,
-      }
+      },
     };
   }
   // Start listening for isolate create events before issuing a hot
@@ -255,7 +255,7 @@ Future<Map<String, dynamic>> _hotRestart(
           'code': code,
           'message': message,
           'data': exception,
-        }
+        },
       };
     }
   } on ChromeDebugException catch (exception) {
@@ -264,7 +264,7 @@ Future<Map<String, dynamic>> _hotRestart(
       'error': {
         'code': RPCErrorKind.kInternalError.code,
         'message': '$exception',
-      }
+      },
     };
   }
   _logger.info('Waiting for Isolate Start event.');

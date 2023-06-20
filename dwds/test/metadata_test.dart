@@ -86,9 +86,9 @@ void main() {
         {
           'name': 'main',
           'importUri': 'org-dartlang-app:///web/main.dart',
-          'partUris': ['org-dartlang-app:///web/main.dart']
+          'partUris': ['org-dartlang-app:///web/main.dart'],
         }
-      ]
+      ],
     };
 
     final metadata = ModuleMetadata.fromJson(json);

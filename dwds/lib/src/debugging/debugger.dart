@@ -583,7 +583,7 @@ class Debugger extends Domain {
               'skipList': _skipLists.compute(
                 scriptId,
                 await _locations.locationsForUrl(url),
-              )
+              ),
             },
           );
           return;

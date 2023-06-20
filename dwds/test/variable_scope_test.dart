@@ -190,7 +190,7 @@ void main() {
           'localThatsNull',
           'nestedFunction',
           'parameter',
-          'testClass'
+          'testClass',
         ]),
       );
     });
