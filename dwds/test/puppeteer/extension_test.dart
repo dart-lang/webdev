@@ -104,8 +104,7 @@ void main() async {
                 await navigateToPage(browser, url: appUrl, isNew: true);
             // Verify that we have debug info for the Dart app:
             await workerEvalDelay();
-            final appTabId = await _getTabId(
-              appUrl,
+            final appTabId = await _getCurrentTabId(
               worker: worker,
               backgroundPage: backgroundPage,
             );
@@ -133,8 +132,7 @@ void main() async {
                 await navigateToPage(browser, url: appUrl, isNew: true);
             // Verify that we have debug info for the Dart app:
             await workerEvalDelay();
-            final appTabId = await _getTabId(
-              appUrl,
+            final appTabId = await _getCurrentTabId(
               worker: worker,
               backgroundPage: backgroundPage,
             );
@@ -186,6 +184,10 @@ void main() async {
             // Navigate to the Dart app:
             final appTab =
                 await navigateToPage(browser, url: appUrl, isNew: true);
+            var appWindowId = await _getCurrentWindowId(
+              worker: worker,
+              backgroundPage: backgroundPage,
+            );
             // Click on the Dart Debug Extension icon:
             await workerEvalDelay();
             await clickOnExtensionIcon(
@@ -197,13 +199,12 @@ void main() async {
               (target) => target.url.contains(devToolsUrlFragment),
             );
             var devToolsTab = await devToolsTabTarget.page;
-            var devToolsWindowId = await _getWindowId(
-              devToolsTab.url!,
-              worker: worker,
-              backgroundPage: backgroundPage,
+            // Navigate to the newly opened DevTools tab:
+            await navigateToPage(
+              browser,
+              url: devToolsTabTarget.url,
             );
-            var appWindowId = await _getWindowId(
-              appUrl,
+            var devToolsWindowId = await _getCurrentWindowId(
               worker: worker,
               backgroundPage: backgroundPage,
             );
@@ -237,13 +238,12 @@ void main() async {
               (target) => target.url.contains(devToolsUrlFragment),
             );
             devToolsTab = await devToolsTabTarget.page;
-            devToolsWindowId = await _getWindowId(
-              devToolsTab.url!,
-              worker: worker,
-              backgroundPage: backgroundPage,
+            // Navigate to the newly opened DevTools tab:
+            await navigateToPage(
+              browser,
+              url: devToolsTabTarget.url,
             );
-            appWindowId = await _getWindowId(
-              appUrl,
+            devToolsWindowId = await _getCurrentWindowId(
               worker: worker,
               backgroundPage: backgroundPage,
             );
@@ -488,8 +488,7 @@ void main() async {
                   await navigateToPage(browser, url: appUrl, isNew: true);
               // Verify that we have debug info for the Dart app:
               await workerEvalDelay();
-              final appTabId = await _getTabId(
-                appUrl,
+              final appTabId = await _getCurrentTabId(
                 worker: worker,
                 backgroundPage: backgroundPage,
               );
@@ -588,11 +587,9 @@ void main() async {
             test(
                 'isFlutterApp=$isFlutterApp and isInternalBuild=true are saved in storage',
                 () async {
-              final appUrl = context.appUrl;
               // Verify that we have debug info for the Dart app:
               await workerEvalDelay();
-              final appTabId = await _getTabId(
-                appUrl,
+              final appTabId = await _getCurrentTabId(
                 worker: worker,
                 backgroundPage: backgroundPage,
               );
@@ -778,8 +775,7 @@ void main() async {
               );
               // Set the 'data-multiple-dart-apps' attribute on the DOM.
               await appTab.evaluate(_setMultipleAppsAttributeJs);
-              final appTabId = await _getTabId(
-                context.appUrl,
+              final appTabId = await _getCurrentTabId(
                 worker: worker,
                 backgroundPage: backgroundPage,
               );
@@ -880,8 +876,7 @@ void main() async {
               await navigateToPage(browser, url: fakeAppUrl, isNew: true);
 
           // Verify that we have debug info for the fake "Dart" app:
-          final appTabId = await _getTabId(
-            fakeAppUrl,
+          final appTabId = await _getCurrentTabId(
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -914,8 +909,7 @@ void main() async {
               await navigateToPage(browser, url: fakeAppUrl, isNew: true);
 
           // Wait for debug info to be saved:
-          final appTabId = await _getTabId(
-            fakeAppUrl,
+          final appTabId = await _getCurrentTabId(
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -1021,27 +1015,23 @@ Future<void> _tabLeft(Page chromeDevToolsPage) async {
   await chromeDevToolsPage.keyboard.up(modifierKey);
 }
 
-Future<int> _getTabId(
-  String url, {
+Future<int> _getCurrentTabId({
   Worker? worker,
   Page? backgroundPage,
 }) async {
-  final jsExpression = _tabIdForTabJs(url);
   return (await evaluate(
-    jsExpression,
+    _currentTabIdJs,
     worker: worker,
     backgroundPage: backgroundPage,
   )) as int;
 }
 
-Future<int?> _getWindowId(
-  String url, {
+Future<int?> _getCurrentWindowId({
   Worker? worker,
   Page? backgroundPage,
 }) async {
-  final jsExpression = _windowIdForTabJs(url);
   return (await evaluate(
-    jsExpression,
+    _currentWindowIdJs,
     worker: worker,
     backgroundPage: backgroundPage,
   )) as int?;
@@ -1069,31 +1059,27 @@ Future<T> _fetchStorageObj<T>(
   return serializers.deserialize(jsonDecode(json)) as T;
 }
 
-String _tabIdForTabJs(String tabUrl) {
-  return '''
+String _currentTabIdJs = '''
     async () => {
       return new Promise((resolve, reject) => {
-        chrome.tabs.query({url:  "$tabUrl"}, (tabs) => {
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
           const tab = tabs[0];
           resolve(tab.id);
         });
       });
     }
 ''';
-}
 
-String _windowIdForTabJs(String tabUrl) {
-  return '''
+String _currentWindowIdJs = '''
     async () => {
       return new Promise((resolve, reject) => {
-        chrome.tabs.query({url:  "$tabUrl"}, (tabs) => {
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
           const tab = tabs[0];
           resolve(tab.windowId);
         });
       });
     }
 ''';
-}
 
 String _fetchStorageObjJs(
   String storageKey, {
