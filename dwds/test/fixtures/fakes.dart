@@ -444,5 +444,5 @@ class FakeExpressionCompiler implements ExpressionCompiler {
 
 final fakeWipResponse = WipResponse({
   'id': 1,
-  'result': {'fake': ''}
+  'result': {'fake': ''},
 });

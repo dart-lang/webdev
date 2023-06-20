@@ -51,7 +51,7 @@ class ExtensionBackend {
           headers: {
             if (request.headers.containsKey('origin'))
               'Access-Control-Allow-Origin': request.headers['origin']!,
-            'Access-Control-Allow-Credentials': 'true'
+            'Access-Control-Allow-Credentials': 'true',
           },
         );
       }

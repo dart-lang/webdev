@@ -479,7 +479,7 @@ class InstanceHelper extends Domain {
       for (var i = positionalOffset + 1;
           i <= positionalOffset + positionalRangeCount;
           i++)
-        i
+        i,
     ];
 
     // Collect named fields in the requested range.

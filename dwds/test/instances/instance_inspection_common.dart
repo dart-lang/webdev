@@ -146,7 +146,7 @@ class TestInspector {
   ) async {
     final refs = <String, InstanceRef>{
       for (var variable in frame.vars!)
-        variable.name!: variable.value as InstanceRef
+        variable.name!: variable.value as InstanceRef,
     };
     final instances = <String, Instance>{};
     for (final p in refs.entries) {

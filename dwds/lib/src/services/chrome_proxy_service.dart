@@ -1487,7 +1487,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           protocolName: 'VM Service',
           major: version.major,
           minor: version.minor,
-        )
+        ),
       ],
     );
   }

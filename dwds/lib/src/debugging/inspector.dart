@@ -536,7 +536,7 @@ class AppInspector implements AppInspectorInterface {
     // breakpoints. This is because the token positions are derived from the
     // DDC source maps which Chrome also uses.
     final tokenPositions = <int>[
-      for (var location in mappedLocations) location.tokenPos
+      for (var location in mappedLocations) location.tokenPos,
     ];
     tokenPositions.sort();
 
@@ -721,7 +721,7 @@ class AppInspector implements AppInspectorInterface {
         final parts = scripts[uri];
         final scriptRefs = [
           ScriptRef(uri: uri, id: createId()),
-          for (var part in parts ?? []) ScriptRef(uri: part, id: createId())
+          for (var part in parts ?? []) ScriptRef(uri: part, id: createId()),
         ];
         final libraryRef = await _libraryHelper.libraryRefFor(uri);
         final libraryId = libraryRef?.id;

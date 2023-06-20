@@ -264,24 +264,24 @@ Future<void> _runTests({
         expect(await getFields(instanceRef), {
           1: true,
           2: 3,
-          3: {'a': 1, 'b': 5}
+          3: {'a': 1, 'b': 5},
         });
         expect(await getFields(instanceRef, offset: 0), {
           1: true,
           2: 3,
-          3: {'a': 1, 'b': 5}
+          3: {'a': 1, 'b': 5},
         });
         expect(await getFields(instanceRef, offset: 1), {
           2: 3,
-          3: {'a': 1, 'b': 5}
+          3: {'a': 1, 'b': 5},
         });
         expect(await getFields(instanceRef, offset: 1, count: 1), {2: 3});
         expect(await getFields(instanceRef, offset: 1, count: 2), {
           2: 3,
-          3: {'a': 1, 'b': 5}
+          3: {'a': 1, 'b': 5},
         });
         expect(await getFields(instanceRef, offset: 2), {
-          3: {'a': 1, 'b': 5}
+          3: {'a': 1, 'b': 5},
         });
         expect(await getFields(instanceRef, offset: 3), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
@@ -293,7 +293,7 @@ Future<void> _runTests({
         expect(await getFields(instanceRef, offset: 0, count: 5), {
           1: true,
           2: 3,
-          3: {'a': 1, 'b': 5}
+          3: {'a': 1, 'b': 5},
         });
         expect(await getFields(instanceRef, offset: 3, count: 5), {});
       });
@@ -352,24 +352,24 @@ Future<void> _runTests({
         expect(await getFields(instanceRef), {
           1: true,
           2: 3,
-          'array': {'a': 1, 'b': 5}
+          'array': {'a': 1, 'b': 5},
         });
         expect(await getFields(instanceRef, offset: 0), {
           1: true,
           2: 3,
-          'array': {'a': 1, 'b': 5}
+          'array': {'a': 1, 'b': 5},
         });
         expect(await getFields(instanceRef, offset: 1), {
           2: 3,
-          'array': {'a': 1, 'b': 5}
+          'array': {'a': 1, 'b': 5},
         });
         expect(await getFields(instanceRef, offset: 1, count: 1), {2: 3});
         expect(await getFields(instanceRef, offset: 1, count: 2), {
           2: 3,
-          'array': {'a': 1, 'b': 5}
+          'array': {'a': 1, 'b': 5},
         });
         expect(await getFields(instanceRef, offset: 2), {
-          'array': {'a': 1, 'b': 5}
+          'array': {'a': 1, 'b': 5},
         });
         expect(await getFields(instanceRef, offset: 3), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
@@ -381,7 +381,7 @@ Future<void> _runTests({
         expect(await getFields(instanceRef, offset: 0, count: 5), {
           1: true,
           2: 3,
-          'array': {'a': 1, 'b': 5}
+          'array': {'a': 1, 'b': 5},
         });
         expect(await getFields(instanceRef, offset: 3, count: 5), {});
       });
@@ -439,25 +439,25 @@ Future<void> _runTests({
 
         expect(await getFields(instanceRef), {
           1: true,
-          2: {1: false, 2: 5}
+          2: {1: false, 2: 5},
         });
         expect(await getFields(instanceRef, offset: 0), {
           1: true,
-          2: {1: false, 2: 5}
+          2: {1: false, 2: 5},
         });
         expect(await getFields(instanceRef, offset: 1), {
-          2: {1: false, 2: 5}
+          2: {1: false, 2: 5},
         });
         expect(await getFields(instanceRef, offset: 2), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
-          2: {1: false, 2: 5}
+          2: {1: false, 2: 5},
         });
         expect(await getFields(instanceRef, offset: 0, count: 5), {
           1: true,
-          2: {1: false, 2: 5}
+          2: {1: false, 2: 5},
         });
         expect(await getFields(instanceRef, offset: 2, count: 5), {});
       });
@@ -510,31 +510,31 @@ Future<void> _runTests({
 
         expect(await getFields(instanceRef), {
           1: true,
-          'inner': {1: false, 2: 5}
+          'inner': {1: false, 2: 5},
         });
         expect(await getFields(instanceRef, offset: 0), {
           1: true,
-          'inner': {1: false, 2: 5}
+          'inner': {1: false, 2: 5},
         });
         expect(await getFields(instanceRef, offset: 1), {
-          'inner': {1: false, 2: 5}
+          'inner': {1: false, 2: 5},
         });
         expect(await getFields(instanceRef, offset: 1, count: 1), {
-          'inner': {1: false, 2: 5}
+          'inner': {1: false, 2: 5},
         });
         expect(await getFields(instanceRef, offset: 1, count: 2), {
-          'inner': {1: false, 2: 5}
+          'inner': {1: false, 2: 5},
         });
         expect(await getFields(instanceRef, offset: 2), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
-          'inner': {1: false, 2: 5}
+          'inner': {1: false, 2: 5},
         });
         expect(await getFields(instanceRef, offset: 0, count: 5), {
           1: true,
-          'inner': {1: false, 2: 5}
+          'inner': {1: false, 2: 5},
         });
         expect(await getFields(instanceRef, offset: 2, count: 5), {});
       });
