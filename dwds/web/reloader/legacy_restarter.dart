@@ -16,7 +16,7 @@ class LegacyRestarter implements Restarter {
       dartLibrary.callMethod('reload');
     } else {
       dartLibrary.callMethod('reload', [
-        JsObject.jsify({'runId': runId})
+        JsObject.jsify({'runId': runId}),
       ]);
     }
     final reloadCompleter = Completer<bool>();

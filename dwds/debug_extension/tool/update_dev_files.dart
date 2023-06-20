@@ -38,7 +38,7 @@ Future<void> _updateManifestJson() async {
           oldLine: line,
           newKey: 'default_icon',
           newValue: 'dart_dev.png',
-        )
+        ),
       ];
     }
     if (_matchesValue(line: line, value: 'background.js')) {
@@ -47,7 +47,7 @@ Future<void> _updateManifestJson() async {
           oldLine: line,
           newKey: null,
           newValue: 'background.dart.js',
-        )
+        ),
       ];
     } else {
       return [line];

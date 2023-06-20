@@ -580,6 +580,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String targetId,
     String expression, {
     Map<String, String>? scope,
+    // TODO(798) - respect disableBreakpoints.
     bool? disableBreakpoints,
   }) =>
       wrapInErrorHandlerAsync(
@@ -589,7 +590,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           targetId,
           expression,
           scope: scope,
-          disableBreakpoints: disableBreakpoints,
         ),
       );
 
@@ -598,7 +598,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String targetId,
     String expression, {
     Map<String, String>? scope,
-    bool? disableBreakpoints,
   }) {
     // TODO(798) - respect disableBreakpoints.
     return captureElapsedTime(
@@ -637,6 +636,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     int frameIndex,
     String expression, {
     Map<String, String>? scope,
+    // TODO(798) - respect disableBreakpoints.
     bool? disableBreakpoints,
   }) =>
       wrapInErrorHandlerAsync(
@@ -646,7 +646,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           frameIndex,
           expression,
           scope: scope,
-          disableBreakpoints: disableBreakpoints,
         ),
       );
 
@@ -655,7 +654,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     int frameIndex,
     String expression, {
     Map<String, String>? scope,
-    bool? disableBreakpoints,
   }) {
     // TODO(798) - respect disableBreakpoints.
 
@@ -908,6 +906,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String targetId,
     String selector,
     List argumentIds, {
+    // TODO(798) - respect disableBreakpoints.
     bool? disableBreakpoints,
   }) =>
       wrapInErrorHandlerAsync(
@@ -917,7 +916,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           targetId,
           selector,
           argumentIds,
-          disableBreakpoints: disableBreakpoints,
         ),
       );
 
@@ -925,12 +923,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String isolateId,
     String targetId,
     String selector,
-    List argumentIds, {
-    bool? disableBreakpoints,
-  }) async {
+    List argumentIds,
+  ) async {
     await isInitialized;
     _checkIsolate('invoke', isolateId);
-    // TODO(798) - respect disableBreakpoints.
     final remote = await inspector.invoke(targetId, selector, argumentIds);
     return _instanceRef(remote);
   }
@@ -1001,14 +997,13 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }) =>
       wrapInErrorHandlerAsync(
         'lookupResolvedPackageUris',
-        () => _lookupResolvedPackageUris(isolateId, uris, local: local),
+        () => _lookupResolvedPackageUris(isolateId, uris),
       );
 
   Future<UriList> _lookupResolvedPackageUris(
     String isolateId,
-    List<String> uris, {
-    bool? local,
-  }) async {
+    List<String> uris,
+  ) async {
     await isInitialized;
     _checkIsolate('lookupResolvedPackageUris', isolateId);
     return UriList(uris: uris.map(DartUri.toResolvedUri).toList());
@@ -1140,6 +1135,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Success> setIsolatePauseMode(
     String isolateId, {
     String? exceptionPauseMode,
+    // TODO(elliette): Is there a way to respect the shouldPauseOnExit parameter
+    // in Chrome?
     bool? shouldPauseOnExit,
   }) =>
       wrapInErrorHandlerAsync(
@@ -1147,17 +1144,13 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         () => _setIsolatePauseMode(
           isolateId,
           exceptionPauseMode: exceptionPauseMode,
-          shouldPauseOnExit: shouldPauseOnExit,
         ),
       );
 
   Future<Success> _setIsolatePauseMode(
     String isolateId, {
     String? exceptionPauseMode,
-    bool? shouldPauseOnExit,
   }) async {
-    // TODO(elliette): Is there a way to respect the shouldPauseOnExit parameter
-    // in Chrome?
     await isInitialized;
     _checkIsolate('setIsolatePauseMode', isolateId);
     return (await debuggerFuture)
@@ -1494,7 +1487,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           protocolName: 'VM Service',
           major: version.major,
           minor: version.minor,
-        )
+        ),
       ],
     );
   }

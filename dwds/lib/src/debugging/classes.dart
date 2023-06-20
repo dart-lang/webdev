@@ -20,7 +20,7 @@ class ClassHelper extends Domain {
     final staticClasses = [
       classRefForClosure,
       classRefForString,
-      classRefForUnknown
+      classRefForUnknown,
     ];
     for (var classRef in staticClasses) {
       final classId = classRef.id;

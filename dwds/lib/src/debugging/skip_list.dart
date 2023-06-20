@@ -65,6 +65,6 @@ class SkipLists {
       {
         'scriptId': scriptId,
         'start': {'lineNumber': startLine, 'columnNumber': startColumn},
-        'end': {'lineNumber': endLine, 'columnNumber': endColumn}
+        'end': {'lineNumber': endLine, 'columnNumber': endColumn},
       };
 }

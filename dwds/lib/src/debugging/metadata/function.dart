@@ -29,7 +29,7 @@ class FunctionMetaData {
       }
     ''';
     final arguments = [
-      {'objectId': remoteObject.objectId}
+      {'objectId': remoteObject.objectId},
     ];
     final response = await remoteDebugger.sendCommand(
       'Runtime.callFunctionOn',

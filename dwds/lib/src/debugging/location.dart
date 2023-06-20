@@ -276,8 +276,8 @@ class Locations {
         lineNumber,
         for (var location in locations) ...[
           location.tokenPos,
-          location.dartLocation.column
-        ]
+          location.dartLocation.column,
+        ],
       ]);
     }
     _sourceToTokenPosTable[serverPath] = tokenPosTable;
