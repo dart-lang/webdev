@@ -7,7 +7,6 @@ description: >-
   A CLI for Dart web development. Provides an easy and consistent set of
   features for users and tools to build and deploy web applications with Dart.
 repository: https://github.com/dart-lang/webdev/tree/master/webdev
-
 environment:
   sdk: ">=3.0.0-188.0.dev <4.0.0"
 
@@ -20,7 +19,7 @@ dependencies:
   crypto: ^3.0.2
   dds: ^2.2.0
   # Pin DWDS to avoid dependency conflicts with vm_service:
-  dwds: 19.0.0
+  dwds: 19.0.1
   http: ^0.13.4
   http_multi_server: ^3.2.0
   io: ^1.0.3
