@@ -56,8 +56,7 @@ void main() {
       });
 
       for (var useSse in [true, false]) {
-        group(useSse ? 'connected with SSE' : 'connected with WebSockets',
-            () {
+        group(useSse ? 'connected with SSE' : 'connected with WebSockets', () {
           late Browser browser;
           Worker? worker;
           Page? backgroundPage;
@@ -102,8 +101,7 @@ void main() {
                 await navigateToPage(browser, url: appUrl, isNew: true);
             // Verify that we have debug info for the Dart app:
             await workerEvalDelay();
-            final appTabId = await _getTabId(
-              appUrl,
+            final appTabId = await _getCurrentTabId(
               worker: worker,
               backgroundPage: backgroundPage,
             );
@@ -131,8 +129,7 @@ void main() {
                 await navigateToPage(browser, url: appUrl, isNew: true);
             // Verify that we have debug info for the Dart app:
             await workerEvalDelay();
-            final appTabId = await _getTabId(
-              appUrl,
+            final appTabId = await _getCurrentTabId(
               worker: worker,
               backgroundPage: backgroundPage,
             );
@@ -184,6 +181,11 @@ void main() {
             // Navigate to the Dart app:
             final appTab =
                 await navigateToPage(browser, url: appUrl, isNew: true);
+            // Get the window ID for the Dart app:
+            var appWindowId = await _getCurrentWindowId(
+              worker: worker,
+              backgroundPage: backgroundPage,
+            );
             // Click on the Dart Debug Extension icon:
             await workerEvalDelay();
             await clickOnExtensionIcon(
@@ -195,16 +197,17 @@ void main() {
               (target) => target.url.contains(devToolsUrlFragment),
             );
             var devToolsTab = await devToolsTabTarget.page;
-            var devToolsWindowId = await _getWindowId(
-              devToolsTab.url!,
+            // Navigate to the newly opened DevTools tab:
+            await navigateToPage(
+              browser,
+              url: devToolsTabTarget.url,
+            );
+            // Get the window ID for DevTools:
+            var devToolsWindowId = await _getCurrentWindowId(
               worker: worker,
               backgroundPage: backgroundPage,
             );
-            var appWindowId = await _getWindowId(
-              appUrl,
-              worker: worker,
-              backgroundPage: backgroundPage,
-            );
+            // Verfify the Dart app and DevTools are in the same window:
             expect(devToolsWindowId == appWindowId, isTrue);
             // Close the DevTools tab:
             devToolsTab = await devToolsTabTarget.page;
@@ -230,21 +233,20 @@ void main() {
               worker: worker,
               backgroundPage: backgroundPage,
             );
-            // Verify the extension opened DevTools in a different window:
             devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment),
             );
             devToolsTab = await devToolsTabTarget.page;
-            devToolsWindowId = await _getWindowId(
-              devToolsTab.url!,
+            // Navigate to the DevTools tab:
+            await navigateToPage(
+              browser,
+              url: devToolsTabTarget.url,
+            );
+            devToolsWindowId = await _getCurrentWindowId(
               worker: worker,
               backgroundPage: backgroundPage,
             );
-            appWindowId = await _getWindowId(
-              appUrl,
-              worker: worker,
-              backgroundPage: backgroundPage,
-            );
+            // Verify the Dart app and DevTools are in different windows:
             expect(devToolsWindowId == appWindowId, isFalse);
             // Close the DevTools tab:
             devToolsTab = await devToolsTabTarget.page;
@@ -486,8 +488,7 @@ void main() {
                   await navigateToPage(browser, url: appUrl, isNew: true);
               // Verify that we have debug info for the Dart app:
               await workerEvalDelay();
-              final appTabId = await _getTabId(
-                appUrl,
+              final appTabId = await _getCurrentTabId(
                 worker: worker,
                 backgroundPage: backgroundPage,
               );
@@ -594,8 +595,7 @@ void main() {
               final appUrl = context.appUrl;
               // Verify that we have debug info for the Dart app:
               await workerEvalDelay();
-              final appTabId = await _getTabId(
-                appUrl,
+              final appTabId = await _getCurrentTabId(
                 worker: worker,
                 backgroundPage: backgroundPage,
               );
@@ -789,8 +789,7 @@ void main() {
                 );
                 // Set the 'data-multiple-dart-apps' attribute on the DOM.
                 await appTab.evaluate(_setMultipleAppsAttributeJs);
-                final appTabId = await _getTabId(
-                  context.appUrl,
+                final appTabId = await _getCurrentTabId(
                   worker: worker,
                   backgroundPage: backgroundPage,
                 );
@@ -894,8 +893,7 @@ void main() {
               await navigateToPage(browser, url: fakeAppUrl, isNew: true);
 
           // Verify that we have debug info for the fake "Dart" app:
-          final appTabId = await _getTabId(
-            fakeAppUrl,
+          final appTabId = await _getCurrentTabId(
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -928,8 +926,7 @@ void main() {
               await navigateToPage(browser, url: fakeAppUrl, isNew: true);
 
           // Wait for debug info to be saved:
-          final appTabId = await _getTabId(
-            fakeAppUrl,
+          final appTabId = await _getCurrentTabId(
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -1035,12 +1032,11 @@ Future<void> _tabLeft(Page chromeDevToolsPage) async {
   await chromeDevToolsPage.keyboard.up(modifierKey);
 }
 
-Future<int> _getTabId(
-  String url, {
+Future<int> _getCurrentTabId({
   Worker? worker,
   Page? backgroundPage,
 }) async {
-  final jsExpression = _tabIdForTabJs(url);
+  final jsExpression = _currentTabIdJs;
   return (await evaluate(
     jsExpression,
     worker: worker,
@@ -1048,12 +1044,11 @@ Future<int> _getTabId(
   )) as int;
 }
 
-Future<int?> _getWindowId(
-  String url, {
+Future<int?> _getCurrentWindowId({
   Worker? worker,
   Page? backgroundPage,
 }) async {
-  final jsExpression = _windowIdForTabJs(url);
+  final jsExpression = _currentWindowIdJs;
   return (await evaluate(
     jsExpression,
     worker: worker,
@@ -1082,6 +1077,28 @@ Future<T> _fetchStorageObj<T>(
   if (T == String) return json as T;
   return serializers.deserialize(jsonDecode(json)) as T;
 }
+
+String _currentTabIdJs = '''
+    async () => {
+      return new Promise((resolve, reject) => {
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+          const tab = tabs[0];
+          resolve(tab.id);
+        });
+      });
+    }
+''';
+
+String _currentWindowIdJs = '''
+    async () => {
+      return new Promise((resolve, reject) => {
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+          const tab = tabs[0];
+          resolve(tab.windowId);
+        });
+      });
+    }
+''';
 
 String _tabIdForTabJs(String tabUrl) {
   return '''

@@ -32,10 +32,11 @@ Future<String> buildDebugExtension({required bool isMV3}) async {
     ],
     workingDirectory: extensionDir,
   );
-  print('stdout:');
-  print(result.stdout);
-  print('stderr:');
-  print(result.stderr);
+  final stderr = result.stderr ?? '';
+  if (stderr.isNotEmpty) {
+    print('stderr:');
+    print(stderr);
+  }
 
   final compiledDir = p.join(extensionDir, 'compiled');
   return compiledDir;
