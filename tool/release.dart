@@ -229,12 +229,7 @@ void _updateVersionStrings(
   final pubspec = File('../$package/pubspec.yaml');
   final changelog = File('../$package/CHANGELOG.md');
   if (isReset) {
-    final wasReplaced = _replaceInFile(
-      changelog,
-      query: currentVersion,
-      replaceWith: nextVersion,
-    );
-    if (!wasReplaced) _addNewLine(changelog, newLine: '## $nextVersion');
+    _addNewLine(changelog, newLine: '## $nextVersion');
     _replaceInFile(pubspec, query: currentVersion, replaceWith: nextVersion);
   } else {
     for (final file in [pubspec, changelog]) {
