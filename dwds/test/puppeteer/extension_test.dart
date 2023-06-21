@@ -184,7 +184,7 @@ void main() async {
             // Navigate to the Dart app:
             final appTab =
                 await navigateToPage(browser, url: appUrl, isNew: true);
-            var appWindowId = await _getCurrentWindowId(
+            final appWindowId = await _getCurrentWindowId(
               worker: worker,
               backgroundPage: backgroundPage,
             );
