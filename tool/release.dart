@@ -130,8 +130,12 @@ Future<int> runRelease({
   // Update the pinned version of DWDS for webdev releases.
   if (package == 'webdev') {
     _logInfo('Updating pinned version of DWDS.');
-    await _updateDwdsPin('webdev');
     await _updateDwdsPin('test_common');
+    final newVersion = await _updateDwdsPin('webdev');
+    _logInfo('Add pinned DWDS info to CHANGELOG.');
+    final changelog = File('../webdev/CHANGELOG.md');
+    _addNewLine(changelog,
+        newLine: '- Update `dwds` constraint to `${newVersion ?? 'TODO'}`.');
   }
 
   // Remove any dependency overrides for the package:
@@ -229,12 +233,7 @@ void _updateVersionStrings(
   final pubspec = File('../$package/pubspec.yaml');
   final changelog = File('../$package/CHANGELOG.md');
   if (isReset) {
-    final wasReplaced = _replaceInFile(
-      changelog,
-      query: currentVersion,
-      replaceWith: nextVersion,
-    );
-    if (!wasReplaced) _addNewLine(changelog, newLine: '## $nextVersion');
+    _addNewLine(changelog, newLine: '## $nextVersion');
     _replaceInFile(pubspec, query: currentVersion, replaceWith: nextVersion);
   } else {
     for (final file in [pubspec, changelog]) {
@@ -296,7 +295,8 @@ String _removeWip(String wipVersion) {
   return wipVersion.split('-wip').first;
 }
 
-Future<void> _updateDwdsPin(String package) async {
+/// Returns the new pinned DWDS version on success.
+Future<String?> _updateDwdsPin(String package) async {
   final pubOutdatedProcess = await Process.run(
     'dart',
     [
@@ -307,21 +307,31 @@ Future<void> _updateDwdsPin(String package) async {
     workingDirectory: '../$package',
   );
   final lines = pubOutdatedProcess.stdout.split('\n') as List<String>;
+  String? nextDwdsVersion;
+  String? currentDwdsVersion;
   for (final line in lines) {
     if (line.trim().startsWith('dwds')) {
       final segments =
           line.trim().split(' ').where((segment) => segment != ' ');
-      final nextVersion = segments.last;
-      final currentVersion =
+      nextDwdsVersion = segments.last;
+      currentDwdsVersion =
           segments.lastWhere((segment) => segment.startsWith('*')).substring(1);
-      _logInfo('Changing DWDS pin from $currentVersion to $nextVersion');
-      _replaceInFile(
-        File('../$package/pubspec.yaml'),
-        query: currentVersion,
-        replaceWith: nextVersion,
-      );
+      break;
     }
   }
+  final next = nextDwdsVersion ?? '';
+  final current = currentDwdsVersion ?? '';
+  if (next.isNotEmpty && current.isNotEmpty) {
+    _logInfo('Changing DWDS pin from $current to $next');
+    _replaceInFile(
+      File('../$package/pubspec.yaml'),
+      query: current,
+      replaceWith: next,
+    );
+    return nextDwdsVersion;
+  }
+  _logWarning('Unable to determine DWDS version to pin.');
+  return null;
 }
 
 void _logInfo(String message) {
