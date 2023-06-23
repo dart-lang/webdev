@@ -23,7 +23,7 @@ class ClassHelper extends Domain {
     final staticClasses = [
       classRefForClosure,
       classRefForString,
-      classRefForUnknown
+      classRefForUnknown,
     ];
     for (var classRef in staticClasses) {
       final classId = classRef.id;
@@ -80,7 +80,6 @@ class ClassHelper extends Domain {
 
     if (libraryUri == null || classId == null || className == null) return null;
 
-    //final rawName = className.split('<').first;
     final expression = '''
       (function() {
         const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
@@ -88,89 +87,6 @@ class ClassHelper extends Domain {
         return dart.getClassMetadata('$libraryUri', '$className');
       })()
     ''';
-
-    /*final expression = '''
-    (function() {
-      ${globalLoadStrategy.loadLibrarySnippet(libraryUri)}
-      var result = {};
-      var clazz = library["$rawName"];
-      var descriptor = {
-          'name': clazz.name,
-          'dartName': dart.typeName(clazz)
-        };
-
-      // TODO(grouma) - we display all inherited methods since we don't provide
-      // the superClass information. This is technically not correct.
-      var proto = clazz.prototype;
-      var methodNames = [];
-      for (; proto != null; proto = Object.getPrototypeOf(proto)) {
-        var methods = Object.getOwnPropertyNames(proto);
-        for (var i = 0; i < methods.length; i++) {
-          if (methodNames.indexOf(methods[i]) == -1
-              && methods[i] != 'constructor') {
-              methodNames.push(methods[i]);
-          }
-        }
-        if (proto.constructor.name == 'Object') break;
-      }
-
-      descriptor['methods'] = {};
-      for (var name of methodNames) {
-        descriptor['methods'][name] = {
-          // TODO(jakemac): how can we get actual const info?
-          "isConst": false,
-          "isStatic": false,
-        }
-      }
-
-      var fields = dart.getFields(clazz);
-      var fieldNames = fields ? Object.keys(fields) : [];
-      descriptor['fields'] = {};
-      for (var name of fieldNames) {
-        var field = fields[name];
-        var libraryUri = Object.getOwnPropertySymbols(fields[name]["type"])
-        .find(x => x.description == "libraryUri");
-        descriptor['fields'][name] = {
-          // TODO(jakemac): how can we get actual const info?
-          "isConst": false,
-          "isFinal": field.isFinal,
-          "isStatic": false,
-          "classRefName": fields[name]["type"]["name"],
-          "classRefDartName": dart.typeName(fields[name]["type"]),
-          "classRefLibraryId" : field["type"][libraryUri],
-        }
-      }
-
-      // TODO(elliette): The following static member information is minimal and 
-      // should be replaced once DDC provides full symbol information (see 
-      // https://github.com/dart-lang/sdk/issues/40273):
-
-      descriptor['staticFields'] = {};
-      var staticFieldNames = dart.getStaticFields(clazz) ?? [];
-      for (const name of staticFieldNames) {
-        descriptor['staticFields'][name] = {
-          "isStatic": true,
-          // DDC only provides names of static members, we set isConst/isFinal 
-          // to false even though they could be true.
-          "isConst": false,
-          "isFinal": false,
-        }
-      }
-
-      descriptor['staticMethods'] = {};
-      var staticMethodNames = dart.getStaticMethods(clazz) ?? [];
-      for (var name of staticMethodNames) {
-        descriptor['methods'][name] = {
-          // DDC only provides names of static members, we set isConst
-          // to false even though it could be true.
-          "isConst": false,
-          "isStatic": true,
-        } 
-      }
-
-      return descriptor;
-    })()
-    ''';*/
 
     RemoteObject result;
     try {
