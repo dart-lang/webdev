@@ -68,6 +68,7 @@ class _Compiler {
     bool soundNullSafety,
     SdkConfiguration sdkConfiguration,
     List<String> experiments,
+    bool canaryFeatures,
     bool verbose,
   ) async {
     sdkConfiguration.validateSdkDir();
@@ -95,6 +96,7 @@ class _Compiler {
       if (verbose) '--verbose',
       soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
       for (final experiment in experiments) '--enable-experiment=$experiment',
+      if (canaryFeatures) '--canary',
     ];
 
     _logger.info('Starting...');
@@ -240,6 +242,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
   final String _address;
   final FutureOr<int> _port;
   final List<String> experiments;
+  final bool canaryFeatures;
   final bool _verbose;
 
   final SdkConfigurationProvider sdkConfigurationProvider;
@@ -250,6 +253,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
     bool verbose = false,
     required this.sdkConfigurationProvider,
     this.experiments = const [],
+    this.canaryFeatures = false,
   }) : _verbose = verbose;
 
   @override
@@ -287,6 +291,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       soundNullSafety,
       await sdkConfigurationProvider.configuration,
       experiments,
+      canaryFeatures,
       _verbose,
     );
 

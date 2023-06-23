@@ -148,15 +148,22 @@ class TestContext {
     bool isFlutterApp = false,
     bool isInternalBuild = false,
     List<String> experiments = const <String>[],
+    bool canaryFeatures = false,
   }) async {
+    if (canaryFeatures && compilationMode == CompilationMode.buildDaemon) {
+      throw StateError('DDC canary mode is not supported with build daemon');
+    }
+
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
 
     try {
       // Make sure configuration was created correctly.
       final configuration = await sdkConfigurationProvider.configuration;
       configuration.validate();
+      await project.cleanUp();
 
       DartUri.currentDirectory = project.absolutePackageDirectory;
+
       configureLogWriter();
 
       _client = IOClient(
@@ -211,6 +218,7 @@ class TestContext {
       Stream<BuildResults> buildResults;
       RequireStrategy requireStrategy;
       String basePath = '';
+      String index = project.filePathToServe;
 
       _port = await findUnusedPort();
       switch (compilationMode) {
@@ -263,6 +271,7 @@ class TestContext {
                 verbose: verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
                 experiments: experiments,
+                canaryFeatures: canaryFeatures,
               );
               expressionCompiler = ddcService;
             }
@@ -279,7 +288,14 @@ class TestContext {
           break;
         case CompilationMode.frontendServer:
           {
-            _logger.info('Index: ${project.filePathToServe}');
+            index = webCompatiblePath([
+              project.directoryToServe,
+              project.filePathToServe,
+            ]);
+
+            _logger.info('Directory: ${project.directoryToServe}');
+            _logger.info('Index: $index');
+            _logger.info('WebAssetPath: ${project.webAssetsPath}');
 
             final entry = p.toUri(
               p.join(project.webAssetsPath, project.dartEntryFileName),
@@ -302,6 +318,7 @@ class TestContext {
               outputPath: outputDir.path,
               soundNullSafety: nullSafety == NullSafety.sound,
               experiments: experiments,
+              canaryFeatures: canaryFeatures,
               verbose: verboseCompiler,
               sdkLayout: sdkLayout,
             );
@@ -311,7 +328,7 @@ class TestContext {
               fileSystem,
               hostname,
               assetServerPort,
-              p.join(project.directoryToServe, project.filePathToServe),
+              index,
             );
 
             if (enableExpressionEvaluation) {
@@ -393,8 +410,8 @@ class TestContext {
       );
 
       _appUrl = basePath.isEmpty
-          ? 'http://localhost:$port/${project.filePathToServe}'
-          : 'http://localhost:$port/$basePath/${project.filePathToServe}';
+          ? 'http://localhost:$port/$index'
+          : 'http://localhost:$port/$basePath/$index';
 
       if (launchChrome) {
         await _webDriver?.get(appUrl);

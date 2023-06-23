@@ -644,20 +644,34 @@ class AppInspector implements AppInspectorInterface {
     // avoid doing a toList on a large map using skip/take to get the section we
     // want. To make those alternatives easier in JS, pass both count and end.
     final expression = '''
-        function (offset, count, end) {
+      function (offset, count, end) {
+        const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
+        const dart = sdk.dart;
+        return dart.getSubRange(this, offset, count, end);
+      }
+    ''';
+/*       function (offset, count, end) {
           const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
-          if (sdk.core.Map.is(this)) {
+          const dart_rti = sdk.dart_rti;
+          const dart = sdk.dart;
+
+          const _is = dart.privateName(dart_rti, "_is");
+          if (dart_rti.findType("core|Map<@,@>")[_is](this)) {
+
+          //if (sdk.core.Map.is(this)) {
             const entries = sdk.dart.dload(this, "entries");
             const skipped = sdk.dart.dsend(entries, "skip", [offset])
             const taken = sdk.dart.dsend(skipped, "take", [count]);
             return sdk.dart.dsend(taken, "toList", []);
-          } else  if (sdk.core.List.is(this)) {
+
+          } else if (dart_rti.findType("core|List<@>")[_is](this)) {
+          //} else  if (sdk.core.List.is(this)) {
             return sdk.dart.dsendRepl(this, "sublist", [offset, end]);
           } else {
             return this;
           }
         }
-        ''';
+        ''';*/
     return await jsCallFunctionOn(receiver, expression, args);
   }
 

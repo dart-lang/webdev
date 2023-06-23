@@ -90,7 +90,7 @@ class TestAssetServer implements AssetReader {
 
     var headers = <String, String>{};
 
-    if (request.url.path.endsWith('index.html')) {
+    if (request.url.path.endsWith('.html')) {
       var indexFile = _fileSystem.file(index);
       if (indexFile.existsSync()) {
         headers[HttpHeaders.contentTypeHeader] = 'text/html';
@@ -100,6 +100,8 @@ class TestAssetServer implements AssetReader {
       }
       return shelf.Response.notFound('');
     }
+
+    // TODO: main.dart.js is sometimes requested as scopes/main.dart.js - update the request url so we can find it.
 
     // If this is a JavaScript file, it must be in the in-memory cache.
     // Attempt to look up the file by URI.

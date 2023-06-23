@@ -164,72 +164,147 @@ class ClassMetaDataHelper {
       /// type representation in DDC. Replace by runtime API.
       /// https://github.com/dart-lang/sdk/issues/51583
       final evalExpression = '''
+        function(arg) {
+          const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+          const dart  = sdk.dart;
+          return dart.getObjectMetadata(arg);
+        }
+      ''';
+      /*
+      final evalExpression = '''
       function(arg) {
         const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+        const dart_rti = sdk.dart_rti;
         const dart = sdk.dart;
         const core = sdk.core;
         const interceptors = sdk._interceptors;
+        const jsHelper = sdk._js_helper;
+        const collection = sdk.collection;
         const reifiedType = dart.getReifiedType(arg);
-        const name = reifiedType.name;
+        const name = reifiedType.name; // this is always null
+
+        const dartName = dart.typeName(reifiedType);
+        const rtiKind = dart.dloadRepl(reifiedType, "_kind");
+
+        var libraryId = null;
+        if (arg.constructor != null) {
+          libraryId = dart.getLibraryUri(arg.constructor);
+        }
+
+        //const libraryId = dart.getLibraryUri(reifiedType);
+        
 
         const result = {};
         result['name'] = name;
-        result['libraryId'] = dart.getLibraryUri(reifiedType);
-        result['dartName'] = dart.typeName(reifiedType);
+        result['libraryId'] = libraryId;
+        result['dartName'] = dartName;
         result['length'] = arg['length'];
-        result['runtimeKind'] = '${RuntimeObjectKind.object.name}';
+        result['runtimeKind'] = 'object';
 
-        if (name == '_HashSet') {
-          result['runtimeKind'] = '${RuntimeObjectKind.set.name}';
+        //console.log(`library: \${libraryId}, dart name: \${dartName}, arg: \${arg}`);
+
+        const _is = dart.privateName(dart_rti, "_is");
+        if (dart_rti.findType("core|List<@>")[_is](arg)) {
+            result['runtimeKind'] = 'list';
         }
-        else if (name == 'JSArray') {
-          result['runtimeKind'] = '${RuntimeObjectKind.list.name}';
+        else if (dart_rti.findType("core|Map<@,@>")[_is](arg)) {
+            result['runtimeKind'] = 'map';
         }
-        else if (name == 'LinkedMap' || name == 'IdentityMap') {
-          result['runtimeKind'] = '${RuntimeObjectKind.map.name}';
+        else if (dart_rti.findType("core|Set<@>")[_is](arg)) {
+            result['runtimeKind'] = 'set';
         }
-        else if (reifiedType instanceof dart.AbstractFunctionType) {
-          result['runtimeKind'] = '${RuntimeObjectKind.function.name}';
-          result['name'] = 'Function';
+        //if (name == '_HashSet') {
+        //    result['runtimeKind'] = 'set';
+        //}
+        //else if (name == 'JSArray') {
+        //    result['runtimeKind'] = 'list';
+        //}
+        //else if (name == 'LinkedMap' || name == 'IdentityMap') {
+        //    result['runtimeKind'] = 'map';
+        //}
+        //else if (reifiedType instanceof dart.AbstractFunctionType) {
+        //    result['runtimeKind'] = 'function';
+        //    result['name'] = 'Function';
+        //}
+        else if (rtiKind == ${RtiKind.kindFunction}) {
+            result['runtimeKind'] = 'function';
+            result['name'] = 'Function';
         }
-        else if (reifiedType instanceof dart.RecordType) {
-          result['runtimeKind'] = '${RuntimeObjectKind.record.name}';
-          result['libraryId'] = 'dart:core';
-          result['name'] = 'Record';
-          result['dartName'] = 'Record';
-          var shape = reifiedType.shape;
-          var positionalCount = shape.positionals;
-          var namedCount = shape.named == null ? 0 : shape.named.length;
-          result['length'] = positionalCount + namedCount;
-        }
-        else if (arg instanceof dart._Type) {
-          var object = dart.dloadRepl(arg, "_type");
-          if (object instanceof dart.RecordType) {
-            result['libraryId'] = 'dart:_runtime';
-            result['name'] = 'RecordType';
-            result['dartName'] = 'RecordType';
-            result['runtimeKind'] = '${RuntimeObjectKind.recordType.name}';
-            result['length'] = object.types.length;
-          }
-          else if (dart.is(object, core.Type)) {
+        else if (arg instanceof dart.RecordImpl) {
+            result['runtimeKind'] = 'record';
             result['libraryId'] = 'dart:core';
-            result['name'] = 'Type';
-            result['dartName'] = 'Type';
-            result['runtimeKind'] = '${RuntimeObjectKind.type.name}';
-            result['typeName'] = dart.dsendRepl(arg, "toString", []);
-            result['length'] = object['length'];
-          }
+            result['name'] = 'Record';
+            result['dartName'] = 'Record';
+            var shape = arg.shape;
+            var positionalCount = shape.positionals;
+            var namedCount = shape.named == null ? 0 : shape.named.length;
+            result['length'] = positionalCount + namedCount;
         }
-        else if (dart.is(arg, interceptors.NativeError)) {
-          result['runtimeKind'] = '${RuntimeObjectKind.nativeError.name}';
+        // else if (arg instanceof dart._Type) {
+        //     var typeImpl = dart.dloadRepl(arg, "_type");
+        //     if (typeImpl instanceof dart.RecordType) {
+        //         result['libraryId'] = 'dart:_runtime';
+        //         result['name'] = 'RecordType';
+        //         result['dartName'] = 'RecordType';
+        //         result['runtimeKind'] = 'recordType';
+        //         result['length'] = typeImpl.types.length;
+        //     }
+        //     else if (dart.is(typeImpl, core.Type)) {
+        //         result['libraryId'] = 'dart:core';
+        //         result['name'] = 'Type';
+        //         result['dartName'] = 'Type';
+        //         result['runtimeKind'] = 'type';
+        //         result['typeName'] = dart.dsendRepl(arg, "toString", []);
+        //     }
+        // } 
+        else if (arg instanceof dart_rti._Type) {
+            var typeRti = dart.dloadRepl(arg, "_rti");
+            var typeKind = dart.dloadRepl(typeRti, "_kind");
+            if (typeKind == ${RtiKind.kindRecord}) {
+                var elements = dart.dloadRepl(typeRti, "_rest");
+                result['libraryId'] = 'dart:_runtime';
+                result['name'] = 'RecordType';
+                result['dartName'] = 'RecordType';
+                result['runtimeKind'] = 'recordType';
+                result['length'] = elements['length'];
+            }
+            else {
+                result['libraryId'] = 'dart:core';
+                result['name'] = 'Type';
+                result['dartName'] = 'Type';
+                result['runtimeKind'] = 'type';
+                result['typeName'] = dart.dsendRepl(arg, "toString", []);
+            }
         }
-        else if (dart.is(arg, interceptors.JavaScriptObject)) {
-          result['runtimeKind'] = '${RuntimeObjectKind.nativeObject.name}';
+        else if (arg instanceof interceptors.NativeError) {
+            result['runtimeKind'] = 'nativeError';
         }
+        else if (arg instanceof interceptors.JavaScriptObject) {
+            result['runtimeKind'] = 'nativeObject';
+        }
+        else if (arg instanceof dart.DartError) { // TODO: how is DartError different from NativeError?
+            result['dartName'] = 'DartError';
+            result['libraryId'] = 'dart:_runtime';
+            result['runtimeKind'] = 'nativeError';
+        }
+        else if (dartName == 'LegacyJavaScriptObject') {
+            // unknown JS object - no dart metadata.
+            // TODO(annagrin): dart.typeName returns 'LegacyJavaScriptObject' but
+            // the arg is not of type interceptors.LegacyJavaScriptObject.
+            // This happens for the main library `this` object, for example.
+            // Should it return something else?
+            return {};
+        }
+        //else if (dart.is(arg, interceptors.NativeError)) {
+        //    result['runtimeKind'] = 'nativeError';
+        //}
+        //else if (dart.is(arg, interceptors.JavaScriptObject)) {
+        //    result['runtimeKind'] = 'nativeObject';
+        //}
         return result;
-      }
+    }
     ''';
-
+*/
       final result = await _inspector.jsCallFunctionOn(
         remoteObject,
         evalExpression,
@@ -237,12 +312,25 @@ class ClassMetaDataHelper {
         returnByValue: true,
       );
       final metadata = result.value as Map;
-      final jsName = metadata['name'];
+      final jsName = metadata['dartName'];
+
+      _logger.severe('Keys: ${metadata.keys}');
+
+      _logger.severe(
+          'Dart metadata for remote $remoteObject: $metadata (${result.value.runtimeType}), name: $jsName');
+
+      if (jsName == null) {
+        return null;
+      }
+
       final typeName = metadata['typeName'];
       final dartName = metadata['dartName'];
       final library = metadata['libraryId'];
       final runtimeKind = RuntimeObjectKind.parse(metadata['runtimeKind']);
       final length = metadata['length'];
+
+      _logger.severe(
+          'Name: $dartName, library: $library, runtime kind: $runtimeKind');
 
       final classRef = classRefFor(library, dartName);
       _addRuntimeObjectKind(classRef, runtimeKind);
@@ -289,4 +377,26 @@ class ClassMetaDataHelper {
     return id != null &&
         _runtimeObjectKinds[id] == RuntimeObjectKind.nativeError;
   }
+}
+
+/// Runtime type kinds, from rti.dart
+class RtiKind {
+  // Terminal terms.
+  static const int kindNever = 1;
+  static const int kindDynamic = 2;
+  static const int kindVoid = 3; // TODO(sra): Use `dynamic` instead?
+  static const int kindAny = 4; // Dart1-style 'dynamic' for JS-interop.
+  static const int kindErased = 5;
+  // Unary terms.
+  static const int kindStar = 6;
+  static const int kindQuestion = 7;
+  static const int kindFutureOr = 8;
+  // More complex terms.
+  static const int kindInterface = 9;
+  // A vector of type parameters from enclosing functions and closures.
+  static const int kindBinding = 10;
+  static const int kindRecord = 11;
+  static const int kindFunction = 12;
+  static const int kindGenericFunction = 13;
+  static const int kindGenericFunctionParameter = 14;
 }

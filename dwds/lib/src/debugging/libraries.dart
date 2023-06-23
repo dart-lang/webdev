@@ -82,26 +82,50 @@ class LibraryHelper extends Domain {
     final libraryUri = libraryRef.uri;
     if (libraryId == null || libraryUri == null) return null;
 
-    // Fetch information about all the classes in this library.
     final expression = '''
+      (function() {
+        const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+        const dart = sdk.dart;
+        return dart.getLibraryMetadata('$libraryUri');
+      })()
+    ''';
+    // Fetch information about all the classes in this library.
+    /*final expression = '''
     (function() {
       ${globalLoadStrategy.loadLibrarySnippet(libraryUri)}
+
       var result = {};
       var classes = Object.values(Object.getOwnPropertyDescriptors(library))
         .filter((p) => 'value' in p)
         .map((p) => p.value)
-        .filter((l) => l && sdkUtils.isType(l));
+        .filter((l) => l && (l.prototype instanceof core.Object));
       var classList = classes.map(function(clazz) {
-        var descriptor = {
+      var descriptor = {
           'name': clazz.name,
-          'dartName': sdkUtils.typeName(clazz)
+          'dartName': dart.typeName(dart.getReifiedType(clazz.prototype))
         };
         return descriptor;
       });
       result['classes'] = classList;
       return result;
+
+
+      // var result = {};
+      // var classes = Object.values(Object.getOwnPropertyDescriptors(library))
+      //   .filter((p) => 'value' in p)
+      //   .map((p) => p.value)
+      //   .filter((l) => l && dart.isType(l));
+      // var classList = classes.map(function(clazz) {
+      //   var descriptor = {
+      //     'name': clazz.name,
+      //     'dartName': dart.typeName(clazz)
+      //   };
+      //   return descriptor;
+      // });
+      // result['classes'] = classList;
+      // return result;
     })()
-    ''';
+    ''';*/
     RemoteObject? result;
     try {
       result = await inspector.jsEvaluate(expression, returnByValue: true);
@@ -112,6 +136,7 @@ class LibraryHelper extends Domain {
       // TODO: Collect library and class information from debug symbols.
       _logger.warning('Library ${libraryRef.uri} is not loaded. '
           'This can happen for unreferenced libraries.');
+      rethrow;
     }
     final classRefs = <ClassRef>[];
     if (result != null) {

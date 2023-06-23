@@ -63,13 +63,16 @@ class WebDevFS {
     final outputDirectoryPath = fileSystem.file(mainPath).parent.path;
     final entryPoint = mainUri.toString();
 
+    final directory = p.dirname(entryPoint);
+
     assetServer.writeFile(
         entryPoint, fileSystem.file(mainPath).readAsStringSync());
-    assetServer.writeFile('require.js', requireJS.readAsStringSync());
     assetServer.writeFile(
-        'stack_trace_mapper.js', stackTraceMapper.readAsStringSync());
+        p.join(directory, 'require.js'), requireJS.readAsStringSync());
+    assetServer.writeFile(p.join(directory, 'stack_trace_mapper.js'),
+        stackTraceMapper.readAsStringSync());
     assetServer.writeFile(
-      'main.dart.js',
+      p.join(directory, 'main.dart.js'),
       generateBootstrapScript(
         requireUrl: 'require.js',
         mapperUrl: 'stack_trace_mapper.js',
@@ -77,7 +80,7 @@ class WebDevFS {
       ),
     );
     assetServer.writeFile(
-      'main_module.bootstrap.js',
+      p.join(directory, 'main_module.bootstrap.js'),
       generateMainModule(
         entrypoint: entryPoint,
       ),

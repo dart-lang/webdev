@@ -14,25 +14,42 @@ import '../fixtures/context.dart';
 import '../fixtures/project.dart';
 import 'instance_inspection_common.dart';
 
-void main() async {
+void main() {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  final provider = TestSdkConfigurationProvider(verbose: debug);
-  tearDownAll(provider.dispose);
-
-  for (var compilationMode in CompilationMode.values) {
-    await _runTests(
-      provider: provider,
-      compilationMode: compilationMode,
-      debug: debug,
-    );
+  for (var canaryFeatures in [false, true]) {
+    _runAllTests(canaryFeatures, debug);
   }
+}
+
+void _runAllTests(bool canaryFeatures, bool debug) {
+  group('canaryFeatures: $canaryFeatures |', () {
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+    );
+    tearDownAll(provider.dispose);
+
+    for (var compilationMode in CompilationMode.values) {
+      // TODO:(annagrin) support canary mode in build daemon mode.
+      if (canaryFeatures && compilationMode == CompilationMode.buildDaemon) {
+        continue;
+      }
+      _runTests(
+        provider: provider,
+        compilationMode: compilationMode,
+        canaryFeatures: canaryFeatures,
+        debug: debug,
+      );
+    }
+  });
 }
 
 Future<void> _runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
+  required bool canaryFeatures,
   required bool debug,
 }) async {
   final context =
@@ -71,6 +88,7 @@ Future<void> _runTests({
         enableExpressionEvaluation: true,
         verboseCompiler: debug,
         experiments: ['records', 'patterns'],
+        canaryFeatures: canaryFeatures,
       );
       service = context.debugConnection.vmService;
 

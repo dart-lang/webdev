@@ -14,21 +14,46 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
+import 'instance_inspection_common.dart';
 
-void main() {
+void main() async {
   // Enable verbose logging for debugging.
   final debug = false;
-  final provider = TestSdkConfigurationProvider();
-  tearDownAll(provider.dispose);
 
+  for (var canaryFeatures in [false, true]) {
+    _runAllTests(canaryFeatures, debug);
+  }
+}
+
+void _runAllTests(bool canaryFeatures, bool debug) {
+  group('canaryFeatures: $canaryFeatures |', () {
+    final provider =
+        TestSdkConfigurationProvider(canaryFeatures: canaryFeatures);
+    tearDownAll(provider.dispose);
+
+    _runTests(
+      provider: provider,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+  });
+}
+
+void _runTests({
+  required TestSdkConfigurationProvider provider,
+  bool canaryFeatures = false,
+  required bool debug,
+}) {
+  late AppInspector inspector;
   final context =
       TestContext(TestProject.testScopesWithSoundNullSafety, provider);
 
-  late AppInspector inspector;
-
   setUpAll(() async {
     setCurrentLogWriter(debug: debug);
-    await context.setUp();
+    await context.setUp(
+      canaryFeatures: canaryFeatures,
+      compilationMode: CompilationMode.frontendServer,
+    );
     final chromeProxyService = context.service;
     inspector = chromeProxyService.inspector;
   });
@@ -40,11 +65,13 @@ void main() {
   final url = 'org-dartlang-app:///example/scopes/main.dart';
 
   String libraryVariableExpression(String variable) =>
-      '${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("example/scopes/main")'
+      '${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("example/scopes/main.dart")'
       '["$url"]["$variable"];';
 
-  String interceptorsNewExpression(String type) =>
-      "require('dart_sdk')._interceptors.$type['_#new#tearOff']()";
+  String newInterceptorsExpression(String type) =>
+      'new (require("dart_sdk")._interceptors.$type).new()';
+
+  final String newDartError = 'new (require("dart_sdk").dart).DartError';
 
   /// A reference to the the variable `libraryPublicFinal`, an instance of
   /// `MyTestClass`.
@@ -116,7 +143,7 @@ void main() {
       final ref = await inspector.instanceRefFor(remoteObject);
       expect(ref!.length, greaterThan(0));
       expect(ref.kind, InstanceKind.kList);
-      expect(ref.classRef!.name, 'List<String>');
+      expect(ref.classRef!.name, matchListClassName('String'));
       expect(inspector.isDisplayableObject(ref), isTrue);
     });
 
@@ -140,9 +167,19 @@ void main() {
       expect(inspector.isDisplayableObject(ref), isTrue);
     });
 
+    test('for a Dart error', () async {
+      final remoteObject = await inspector.jsEvaluate(newDartError);
+      final ref = await inspector.instanceRefFor(remoteObject);
+      expect(ref!.kind, InstanceKind.kPlainInstance);
+      expect(ref.classRef!.name, 'NativeError');
+      expect(inspector.isDisplayableObject(ref), isFalse);
+      expect(inspector.isNativeJsError(ref), isTrue);
+      expect(inspector.isNativeJsObject(ref), isFalse);
+    });
+
     test('for a native JavaScript error', () async {
       final remoteObject =
-          await inspector.jsEvaluate(interceptorsNewExpression('NativeError'));
+          await inspector.jsEvaluate(newInterceptorsExpression('NativeError'));
       final ref = await inspector.instanceRefFor(remoteObject);
       expect(ref!.kind, InstanceKind.kPlainInstance);
       expect(ref.classRef!.name, 'NativeError');
@@ -153,7 +190,7 @@ void main() {
 
     test('for a native JavaScript type error', () async {
       final remoteObject = await inspector
-          .jsEvaluate(interceptorsNewExpression('JSNoSuchMethodError'));
+          .jsEvaluate(newInterceptorsExpression('JSNoSuchMethodError'));
       final ref = await inspector.instanceRefFor(remoteObject);
       expect(ref!.kind, InstanceKind.kPlainInstance);
       expect(ref.classRef!.name, 'JSNoSuchMethodError');
@@ -164,7 +201,7 @@ void main() {
 
     test('for a native JavaScript object', () async {
       final remoteObject = await inspector
-          .jsEvaluate(interceptorsNewExpression('LegacyJavaScriptObject'));
+          .jsEvaluate(newInterceptorsExpression('LegacyJavaScriptObject'));
       final ref = await inspector.instanceRefFor(remoteObject);
       expect(ref!.kind, InstanceKind.kPlainInstance);
       expect(ref.classRef!.name, 'LegacyJavaScriptObject');
@@ -234,7 +271,7 @@ void main() {
       expect(instance!.kind, InstanceKind.kList);
       final classRef = instance.classRef!;
       expect(classRef, isNotNull);
-      expect(classRef.name, 'List<String>');
+      expect(classRef.name, matchListClassName('String'));
       final first = instance.elements![0];
       expect(first.valueAsString, 'library');
       expect(inspector.isDisplayableObject(instance), isTrue);
@@ -280,11 +317,21 @@ void main() {
       final field = instance.fields!.first;
       expect(field.decl!.name, '_internal');
       expect(inspector.isDisplayableObject(instance), isTrue);
+    }, skip: true);
+
+    test('for a Dart error', () async {
+      final remoteObject = await inspector.jsEvaluate(newDartError);
+      final instance = await inspector.instanceFor(remoteObject);
+      expect(instance!.kind, InstanceKind.kPlainInstance);
+      expect(instance.classRef!.name, 'NativeError');
+      expect(inspector.isDisplayableObject(instance), isFalse);
+      expect(inspector.isNativeJsError(instance), isTrue);
+      expect(inspector.isNativeJsObject(instance), isFalse);
     });
 
     test('for a native JavaScript error', () async {
       final remoteObject =
-          await inspector.jsEvaluate(interceptorsNewExpression('NativeError'));
+          await inspector.jsEvaluate(newInterceptorsExpression('NativeError'));
       final instance = await inspector.instanceFor(remoteObject);
       expect(instance!.kind, InstanceKind.kPlainInstance);
       expect(instance.classRef!.name, 'NativeError');
@@ -295,7 +342,7 @@ void main() {
 
     test('for a native JavaScript type error', () async {
       final remoteObject = await inspector
-          .jsEvaluate(interceptorsNewExpression('JSNoSuchMethodError'));
+          .jsEvaluate(newInterceptorsExpression('JSNoSuchMethodError'));
       final instance = await inspector.instanceFor(remoteObject);
       expect(instance!.kind, InstanceKind.kPlainInstance);
       expect(instance.classRef!.name, 'JSNoSuchMethodError');
@@ -306,7 +353,7 @@ void main() {
 
     test('for a native JavaScript object', () async {
       final remoteObject = await inspector
-          .jsEvaluate(interceptorsNewExpression('LegacyJavaScriptObject'));
+          .jsEvaluate(newInterceptorsExpression('LegacyJavaScriptObject'));
       final instance = await inspector.instanceFor(remoteObject);
       expect(instance!.kind, InstanceKind.kPlainInstance);
       expect(instance.classRef!.name, 'LegacyJavaScriptObject');

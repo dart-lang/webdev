@@ -7,11 +7,14 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// Keeps track of Dart classes available in the running application.
 class ClassHelper extends Domain {
+  final _logger = Logger('ClassHelper');
+
   /// Map of class ID to [Class].
   final _classes = <String, Class>{};
 
@@ -77,15 +80,23 @@ class ClassHelper extends Domain {
 
     if (libraryUri == null || classId == null || className == null) return null;
 
-    final rawName = className.split('<').first;
+    //final rawName = className.split('<').first;
     final expression = '''
+      (function() {
+        const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+        const dart = sdk.dart;
+        return dart.getClassMetadata('$libraryUri', '$className');
+      })()
+    ''';
+
+    /*final expression = '''
     (function() {
       ${globalLoadStrategy.loadLibrarySnippet(libraryUri)}
       var result = {};
       var clazz = library["$rawName"];
       var descriptor = {
           'name': clazz.name,
-          'dartName': sdkUtils.typeName(clazz)
+          'dartName': dart.typeName(clazz)
         };
 
       // TODO(grouma) - we display all inherited methods since we don't provide
@@ -112,7 +123,7 @@ class ClassHelper extends Domain {
         }
       }
 
-      var fields = sdkUtils.getFields(clazz);
+      var fields = dart.getFields(clazz);
       var fieldNames = fields ? Object.keys(fields) : [];
       descriptor['fields'] = {};
       for (var name of fieldNames) {
@@ -125,7 +136,7 @@ class ClassHelper extends Domain {
           "isFinal": field.isFinal,
           "isStatic": false,
           "classRefName": fields[name]["type"]["name"],
-          "classRefDartName": sdkUtils.typeName(fields[name]["type"]),
+          "classRefDartName": dart.typeName(fields[name]["type"]),
           "classRefLibraryId" : field["type"][libraryUri],
         }
       }
@@ -135,7 +146,7 @@ class ClassHelper extends Domain {
       // https://github.com/dart-lang/sdk/issues/40273):
 
       descriptor['staticFields'] = {};
-      var staticFieldNames = sdkUtils.getStaticFields(clazz) ?? [];
+      var staticFieldNames = dart.getStaticFields(clazz) ?? [];
       for (const name of staticFieldNames) {
         descriptor['staticFields'][name] = {
           "isStatic": true,
@@ -147,7 +158,7 @@ class ClassHelper extends Domain {
       }
 
       descriptor['staticMethods'] = {};
-      var staticMethodNames = sdkUtils.getStaticMethods(clazz) ?? [];
+      var staticMethodNames = dart.getStaticMethods(clazz) ?? [];
       for (var name of staticMethodNames) {
         descriptor['methods'][name] = {
           // DDC only provides names of static members, we set isConst
@@ -159,7 +170,7 @@ class ClassHelper extends Domain {
 
       return descriptor;
     })()
-    ''';
+    ''';*/
 
     RemoteObject result;
     try {
@@ -171,6 +182,8 @@ class ClassHelper extends Domain {
     } on ExceptionDetails catch (e) {
       throw ChromeDebugException(e.json, evalContents: expression);
     }
+
+    _logger.severe('Result: ${result.json}');
 
     final classDescriptor = result.value as Map<String, dynamic>;
     final methodRefs = <FuncRef>[];

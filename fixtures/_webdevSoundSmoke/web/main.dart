@@ -19,5 +19,17 @@ void main() {
   var count = 0;
   Timer.periodic(const Duration(seconds: 1), (_) {
     print('Counter is: ${++count}'); // Breakpoint: printCounter
+
+    print('${Mine(0)}');
   });
+}
+
+class Mine {
+  static int y = 0;
+  int x;
+  Mine(this.x);
+}
+
+void foo() {
+  print('foo');
 }
