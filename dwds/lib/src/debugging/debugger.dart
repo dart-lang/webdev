@@ -158,7 +158,7 @@ class Debugger extends Domain {
     if (stackComputer == null) {
       throw RPCError(
         'getStack',
-        RPCError.kInternalError,
+        RPCErrorKind.kInternalError.code,
         'Cannot compute stack when application is not paused',
       );
     }
@@ -323,7 +323,7 @@ class Debugger extends Domain {
     if (jsId == null) {
       throw RPCError(
         'removeBreakpoint',
-        RPCError.kInternalError,
+        RPCErrorKind.kInternalError.code,
         'invalid JS breakpoint id $jsId',
       );
     }
@@ -583,7 +583,7 @@ class Debugger extends Domain {
               'skipList': _skipLists.compute(
                 scriptId,
                 await _locations.locationsForUrl(url),
-              )
+              ),
             },
           );
           return;
@@ -715,7 +715,7 @@ Future<T> sendCommandAndValidateResult<T>(
   if (result == null) {
     throw RPCError(
       method,
-      RPCError.kInternalError,
+      RPCErrorKind.kInternalError.code,
       '$resultField not found in result from sendCommand',
       params,
     );

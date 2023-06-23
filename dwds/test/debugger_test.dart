@@ -190,7 +190,7 @@ void main() async {
             'callFrames': [
               {'callFrameId': '', 'functionName': ''},
             ],
-          }
+          },
         }),
       );
       expect(

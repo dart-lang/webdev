@@ -136,9 +136,9 @@ class _Compiler {
           {
             'path': modules[moduleName]!.fullDillPath,
             'summaryPath': modules[moduleName]!.summaryPath,
-            'moduleName': moduleName
+            'moduleName': moduleName,
           },
-      ]
+      ],
     });
     final result = (response['succeeded'] as bool?) ?? false;
     if (result) {

@@ -87,9 +87,9 @@ class DwdsVmClient {
               <String, Object>{
                 'id': isolate.id,
                 'isolate': isolate.toJson(),
-              }
+              },
           ],
-        }
+        },
       };
     });
     await client.registerService('_flutter.listViews', 'DWDS');
@@ -142,7 +142,7 @@ class DwdsVmClient {
       if (ddsUri == null) {
         return RPCError(
           request['method'] as String,
-          RPCError.kInvalidParams,
+          RPCErrorKind.kInvalidParams.code,
           "'Missing parameter: 'uri'",
         ).toMap();
       }
@@ -229,9 +229,9 @@ Future<Map<String, dynamic>> _hotRestart(
     // triggered in the middle of a full reload.
     return {
       'error': {
-        'code': RPCError.kInternalError,
+        'code': RPCErrorKind.kInternalError.code,
         'message': e.message,
-      }
+      },
     };
   }
   // Start listening for isolate create events before issuing a hot
@@ -249,22 +249,22 @@ Future<Map<String, dynamic>> _hotRestart(
     final message = exception.error?['message'];
     // This corresponds to `Execution context was destroyed` which can
     // occur during a hot restart that must fall back to a full reload.
-    if (code != RPCError.kServerError) {
+    if (code != RPCErrorKind.kServerError.code) {
       return {
         'error': {
           'code': code,
           'message': message,
           'data': exception,
-        }
+        },
       };
     }
   } on ChromeDebugException catch (exception) {
     // Exceptions thrown by the injected client during hot restart.
     return {
       'error': {
-        'code': RPCError.kInternalError,
+        'code': RPCErrorKind.kInternalError.code,
         'message': '$exception',
-      }
+      },
     };
   }
   _logger.info('Waiting for Isolate Start event.');

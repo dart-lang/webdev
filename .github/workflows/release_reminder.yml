@@ -8,7 +8,7 @@ on:
 
 jobs:
   release-reminder:
-    if: ${{ !contains(github.event.*.labels.*.name, 'release-prep') }}
+    if: ${{ !contains(github.event.*.labels.*.name, 'prepare-release') }}
     name: Maybe prevent submission
     runs-on: ubuntu-latest
     steps:
@@ -20,5 +20,5 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
       - name: Run proper release test
-        run:  dart test test/proper_release_test.dart
+        run: dart test test/proper_release_test.dart
         working-directory: test_common

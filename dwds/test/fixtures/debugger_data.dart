@@ -20,7 +20,7 @@ List<Map<String, dynamic>> frames1Json = [
     "functionLocation": {
       "scriptId": "69",
       "lineNumber": 88,
-      "columnNumber": 72
+      "columnNumber": 72,
     },
     "location": {"scriptId": "69", "lineNumber": 37, "columnNumber": 0},
     "url": "http://127.0.0.1:8081/foo.ddc.js",
@@ -31,14 +31,14 @@ List<Map<String, dynamic>> frames1Json = [
           "type": "object",
           "className": "Object",
           "description": "Object",
-          "objectId": "{\"injectedScriptId\":2,\"id\":3}"
+          "objectId": "{\"injectedScriptId\":2,\"id\":3}",
         },
         "startLocation": {
           "scriptId": "69",
           "lineNumber": 88,
-          "columnNumber": 72
+          "columnNumber": 72,
         },
-        "endLocation": {"scriptId": "69", "lineNumber": 93, "columnNumber": 7}
+        "endLocation": {"scriptId": "69", "lineNumber": 93, "columnNumber": 7},
       },
       {
         "type": "closure",
@@ -46,15 +46,15 @@ List<Map<String, dynamic>> frames1Json = [
           "type": "object",
           "className": "Object",
           "description": "Object",
-          "objectId": "{\"injectedScriptId\":2,\"id\":4}"
+          "objectId": "{\"injectedScriptId\":2,\"id\":4}",
         },
         "name": "main",
         "startLocation": {
           "scriptId": "69",
           "lineNumber": 74,
-          "columnNumber": 48
+          "columnNumber": 48,
         },
-        "endLocation": {"scriptId": "69", "lineNumber": 100, "columnNumber": 5}
+        "endLocation": {"scriptId": "69", "lineNumber": 100, "columnNumber": 5},
       },
       {
         "type": "closure",
@@ -63,14 +63,14 @@ List<Map<String, dynamic>> frames1Json = [
           "type": "object",
           "className": "Object",
           "description": "Object",
-          "objectId": "{\"injectedScriptId\":2,\"id\":5}"
+          "objectId": "{\"injectedScriptId\":2,\"id\":5}",
         },
         "startLocation": {
           "scriptId": "69",
           "lineNumber": 0,
-          "columnNumber": 29
+          "columnNumber": 29,
         },
-        "endLocation": {"scriptId": "69", "lineNumber": 126, "columnNumber": 1}
+        "endLocation": {"scriptId": "69", "lineNumber": 126, "columnNumber": 1},
       },
       {
         "type": "global",
@@ -78,8 +78,8 @@ List<Map<String, dynamic>> frames1Json = [
           "type": "object",
           "className": "Window",
           "description": "Window",
-          "objectId": "{\"injectedScriptId\":2,\"id\":6}"
-        }
+          "objectId": "{\"injectedScriptId\":2,\"id\":6}",
+        },
       }
     ],
     "this": {"type": "undefined"},
@@ -93,7 +93,7 @@ List<Map<String, dynamic>> frames1Json = [
 var variables1 = [
   WipResponse({
     'id': 1,
-    'result': {'result': []}
+    'result': {'result': []},
   }),
   WipResponse({
     'id': 2,
@@ -101,18 +101,18 @@ var variables1 = [
       'result': [
         {
           'name': 'a',
-          'value': {'type': 'string', 'value': 'foo'}
+          'value': {'type': 'string', 'value': 'foo'},
         },
         {
           'name': 'b',
-          'value': {'type': 'string', 'value': 'bar'}
+          'value': {'type': 'string', 'value': 'bar'},
         }
-      ]
-    }
+      ],
+    },
   }),
   WipResponse({
     'id': 3,
-    'result': {'result': []}
+    'result': {'result': []},
   }),
   // Fake that the SDK is loaded.
   WipResponse({
@@ -120,17 +120,17 @@ var variables1 = [
     'result': {
       'result': [
         {'name': 'dart', 'value': null},
-        {'name': 'core', 'value': null}
-      ]
-    }
+        {'name': 'core', 'value': null},
+      ],
+    },
   }),
   WipResponse({
     'id': 5,
-    'result': {'result': []}
+    'result': {'result': []},
   }),
   WipResponse({
     'id': 6,
-    'result': {'result': []}
+    'result': {'result': []},
   }),
 ];
 
@@ -141,7 +141,7 @@ var scriptParsedParams = {
   "executionContextAuxData": {
     "frameId": "75DC0B9DAB420DD67036D4560E614998",
     "isDefault": true,
-    "type": "default"
+    "type": "default",
   },
   "executionContextId": 7,
   "hasSourceURL": false,
@@ -153,5 +153,5 @@ var scriptParsedParams = {
   "sourceMapURL": "main.ddc.js.map",
   "startColumn": 0,
   "startLine": 0,
-  "url": "http://localhost:8080/main.ddc.js"
+  "url": "http://localhost:8080/main.ddc.js",
 };

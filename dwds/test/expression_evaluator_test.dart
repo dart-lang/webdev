@@ -121,7 +121,7 @@ void main() async {
             'params': {
               'reason': 'other',
               'callFrames': [],
-            }
+            },
           }),
         );
 

@@ -1,4 +1,6 @@
-## 19.0.1-wip
+## 19.0.2-wip
+
+## 19.0.1
 
 - Do not show async frame errors on evaluation. - [#2073](https://github.com/dart-lang/webdev/pull/2073)
 - Refactor code for presenting record instances. - [#2074](https://github.com/dart-lang/webdev/pull/2074)
@@ -6,7 +8,8 @@
 - Display type objects concisely. - [#2103](https://github.com/dart-lang/webdev/pull/2103)
 - Support using scope in `ChromeProxyService.evaluateInFrame`. - [#2122](https://github.com/dart-lang/webdev/pull/2122)
 - Check for new events more often in batched stream. - [#2123](https://github.com/dart-lang/webdev/pull/2123)
-- Map Chrome error on `resume` to the same error returned by the Dart VM. - [#2133](https://github.com/dart-lang/webdev/issues/2133) 
+- Map Chrome error on `resume` to the same error returned by the Dart VM. - [#2133](https://github.com/dart-lang/webdev/issues/2133)
+- VM service API methods throw type `RPCError`, same as the Dart VM. - [#2144](https://github.com/dart-lang/webdev/pull/2144)
 
 ## 19.0.0
 
