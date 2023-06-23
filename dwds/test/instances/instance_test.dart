@@ -306,19 +306,23 @@ void _runTests({
       expect(inspector.isDisplayableObject(instance), isTrue);
     });
 
-    test('for a class that implements List', () async {
-      // The VM only uses kind List for SDK lists, and we follow that.
-      final remote =
-          await inspector.jsEvaluate(libraryVariableExpression('notAList'));
-      final instance = await inspector.instanceFor(remote);
-      expect(instance!.kind, InstanceKind.kPlainInstance);
-      final classRef = instance.classRef!;
-      expect(classRef.name, 'NotReallyAList');
-      expect(instance.elements, isNull);
-      final field = instance.fields!.first;
-      expect(field.decl!.name, '_internal');
-      expect(inspector.isDisplayableObject(instance), isTrue);
-    }, skip: true);
+    test(
+      'for a class that implements List',
+      () async {
+        // The VM only uses kind List for SDK lists, and we follow that.
+        final remote =
+            await inspector.jsEvaluate(libraryVariableExpression('notAList'));
+        final instance = await inspector.instanceFor(remote);
+        expect(instance!.kind, InstanceKind.kPlainInstance);
+        final classRef = instance.classRef!;
+        expect(classRef.name, 'NotReallyAList');
+        expect(instance.elements, isNull);
+        final field = instance.fields!.first;
+        expect(field.decl!.name, '_internal');
+        expect(inspector.isDisplayableObject(instance), isTrue);
+      },
+      skip: true,
+    );
 
     test('for a Dart error', () async {
       final remoteObject = await inspector.jsEvaluate(newDartError);

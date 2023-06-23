@@ -99,7 +99,7 @@ class ClassHelper extends Domain {
       throw ChromeDebugException(e.json, evalContents: expression);
     }
 
-    _logger.severe('Result: ${result.json}');
+    _logger.fine('Class info: ${result.json}');
 
     final classDescriptor = result.value as Map<String, dynamic>;
     final methodRefs = <FuncRef>[];
@@ -127,7 +127,6 @@ class ClassHelper extends Domain {
     final fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
     fieldDescriptors.forEach((name, descriptor) {
       final classMetaData = ClassMetaData(
-        jsName: descriptor['classRefName'],
         runtimeKind: RuntimeObjectKind.type,
         classRef: classRefFor(
           descriptor['classRefLibraryId'],

@@ -295,7 +295,9 @@ Matcher matchClass({dynamic name, String? libraryId}) => isA<Class>()
 Matcher matchRecordClassRef =
     matchClassRef(name: matchRecordClassName, libraryId: _dartCoreLibrary);
 Matcher matchRecordTypeClassRef = matchClassRef(
-    name: matchRecordTypeClassName, libraryId: _dartRuntimeLibrary);
+  name: matchRecordTypeClassName,
+  libraryId: _dartRuntimeLibrary,
+);
 Matcher matchTypeClassRef =
     matchClassRef(name: matchTypeClassName, libraryId: _dartCoreLibrary);
 Matcher matchListClassRef(dynamic type) =>

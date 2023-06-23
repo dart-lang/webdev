@@ -291,23 +291,7 @@ class InstanceHelper extends Domain {
         return sdkUtils.getMapElements(this);
       }
     ''';
-    /*final expression = '''
-      function() {
-        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-        var entries = sdkUtils.dloadRepl(this, "entries");
-        entries = sdkUtils.dsendRepl(entries, "toList", []);
-        function asKey(entry) {
-          return sdkUtils.dloadRepl(entry, "key");
-        }
-        function asValue(entry) {
-          return sdkUtils.dloadRepl(entry, "value");
-        }
-        return {
-          keys: entries.map(asKey),
-          values: entries.map(asValue)
-        };
-      }
-    ''';*/
+
     final keysAndValues = await inspector.jsCallFunctionOn(map, expression, []);
     final keys = await inspector.loadField(keysAndValues, 'keys');
     final values = await inspector.loadField(keysAndValues, 'values');
@@ -529,23 +513,7 @@ class InstanceHelper extends Domain {
         return sdkUtils.getRecordFields(this);
       }
     ''';
-    /*final expression = '''
-      function() {
-        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-        var shape = sdkUtils.dloadRepl(this, "shape");
-        var positionalCount = sdkUtils.dloadRepl(shape, "positionals");
-        var named = sdkUtils.dloadRepl(shape, "named");
-        named = named == null? null: sdkUtils.dsendRepl(named, "toList", []);
-        var values = sdkUtils.dloadRepl(this, "values");
-        values = sdkUtils.dsendRepl(values, "toList", []);
 
-        return {
-          positionalCount: positionalCount,
-          named: named,
-          values: values
-        };
-      }
-    ''';*/
     final result = await inspector.jsCallFunctionOn(record, expression, []);
     final fieldNameElements =
         await _recordShapeFields(result, offset: offset, count: count);
@@ -680,44 +648,6 @@ class InstanceHelper extends Domain {
     }
     ''';
 
-    /*
-    final expression = '''
-      function() {
-        const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
-        const dart_rti = sdk.dart_rti;
-        const dart = sdk.dart;
-
-        var type = null;
-        var shape = null;
-        var types = null;
-        if (type == null) { // new types
-          type = dart.dloadRepl(this, "_rti");
-          types = dart.dloadRepl(type, "_rest");
-          types = types.map(t => dart_rti.createRuntimeType(t));
-          var length = types['length'];
-          var recipe = dart.dloadRepl(type, "_primary");
-          var shapeKey = `\${length};\${recipe}`;
-          console.log(`shapeKey: \${shapeKey}`);
-          shape = dart.shapes.get(shapeKey);
-          console.log(`shape: \${shape}`);
-        } else { // old types
-          var type = dart.dloadRepl(this, "_type");
-          shape = dart.dloadRepl(type, "shape"); 
-          types = dart.dloadRepl(type, "types");
-          types = types.map(t => dart.wrapType(t));
-          types = dart.dsendRepl(types, "toList", []);
-        }
-        var positionalCount = dart.dloadRepl(shape, "positionals");
-        var named = dart.dloadRepl(shape, "named");
-        named = named == null? null: dart.dsendRepl(named, "toList", []);
-        
-        return {
-          positionalCount: positionalCount,
-          named: named,
-          types: types
-        };
-      }
-    ''';*/
     final result = await inspector.jsCallFunctionOn(record, expression, []);
     final fieldNameElements =
         await _recordShapeFields(result, offset: offset, count: count);
@@ -746,14 +676,6 @@ class InstanceHelper extends Domain {
         return sdkUtils.getSetElements(this);
       }
      ''';
-    /* 
-        const jsSet = sdkUtils.dloadRepl(this, "_map");
-        const entries = [...jsSet.values()];
-        return {
-          entries: entries
-        };
-      }
-    ''';*/
 
     final result =
         await inspector.jsCallFunctionOn(remoteObject, expression, []);
@@ -832,19 +754,6 @@ class InstanceHelper extends Domain {
         return dart.getTypeFields(this);
       }
      ''';
-    /* final expression = '''
-      function() {
-        var sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
-        var dart = sdk.dart;
-        var hashCode = dart.dloadRepl(this, "hashCode");
-        var runtimeType = dart.dloadRepl(this, "runtimeType");
-
-        return {
-          hashCode: hashCode,
-          runtimeType: runtimeType
-        };
-      }
-    ''';*/
 
     final result = await inspector.jsCallFunctionOn(type, expression, []);
     final hashCodeObject = await inspector.loadField(result, 'hashCode');
@@ -900,40 +809,6 @@ class InstanceHelper extends Domain {
     }
     ''';
 
-    /*'''function() {
-      const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
-      const dart_rti = sdk.dart_rti;
-      const dart = sdk.dart;
-
-      const fields = dart.getFields(dart.getType(this)) || [];
-      //if (!fields && (dart_sdk._interceptors.JSArray.is(this) ||
-      //    dart_sdk._js_helper.InternalMap.is(this))) {
-
-
-      const _is = dart.privateName(dart_rti, "_is");
-      if (!fields && 
-        (dart_rti.findType("core|List<@>")[_is](this)) ||
-        (dart_rti.findType("core|Map<@,@>")[_is](this))
-      ) {
-
-        // Trim off the 'length' property.
-        const fields = allJsProperties.slice(0, allJsProperties.length -1);
-        return fields.join(',');
-      }
-      const privateFields = dart.getOwnPropertySymbols(fields);
-      const nonSymbolNames = privateFields
-                            .map(sym => sym.description
-                              .split('#').slice(-1)[0]);
-      const publicFieldNames = dart.getOwnPropertyNames(fields);
-      const symbolNames =  Object.getOwnPropertySymbols(this)
-                            .map(sym => sym.description
-                              .split('#').slice(-1)[0]
-                              .split('.').slice(-1)[0]);
-      return nonSymbolNames
-        .concat(publicFieldNames)
-        .concat(symbolNames).join(',');
-    }
-    ''';*/
     final allNames = (await inspector
             .jsCallFunctionOn(remoteObject, fieldNameExpression, []))
         .value as String;
@@ -942,15 +817,6 @@ class InstanceHelper extends Domain {
     return allJsProperties
         .where((property) => names.contains(property.name))
         .toList();
-/*
-    final names = (await inspector
-            .jsCallFunctionOn(remoteObject, fieldNameExpression, []))
-        .value as List;
-
-    // TODO(#761): Better support for large collections.
-    return allJsProperties
-        .where((property) => names.contains(property.name))
-        .toList();*/
   }
 
   /// Create an InstanceRef for an object, which may be a RemoteObject, or may
