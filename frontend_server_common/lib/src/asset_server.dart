@@ -91,8 +91,6 @@ class TestAssetServer implements AssetReader {
     var headers = <String, String>{};
 
     if (request.url.path.endsWith('.html')) {
-      print('Index request: ${request.url.path}');
-      print('Index path: $index');
       var indexFile = _fileSystem.file(index);
       if (indexFile.existsSync()) {
         headers[HttpHeaders.contentTypeHeader] = 'text/html';
