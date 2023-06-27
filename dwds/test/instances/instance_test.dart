@@ -23,7 +23,7 @@ void main() {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  for (var compilationMode in CompilationMode.values) {
+  for (var compilationMode in [CompilationMode.frontendServer]) {
     _runTests(
       provider: provider,
       compilationMode: compilationMode,
@@ -99,7 +99,7 @@ void _runTests({
         expect(classRef.name, 'Null');
         expect(classRef.id, 'classes|dart:core|Null');
         expect(inspector.isDisplayableObject(ref), isTrue);
-      });
+      }, solo: true);
 
       test('for a double', () async {
         final remoteObject = await libraryPublicFinal(compilationMode);

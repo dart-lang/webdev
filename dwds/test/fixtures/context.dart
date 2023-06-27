@@ -285,7 +285,12 @@ class TestContext {
               project.filePathToServe,
             ]);
 
-            _logger.info('Index: $index');
+            print('Directory: ${project.directoryToServe}');
+            print('Index: ${project.filePathToServe}');
+
+            //index = project.filePathToServe;
+
+            print('Context Index: $index');
 
             final entry = p.toUri(
               p.join(project.webAssetsPath, project.dartEntryFileName),
@@ -318,6 +323,7 @@ class TestContext {
               hostname,
               assetServerPort,
               index,
+              //p.join(project.directoryToServe, project.filePathToServe),
             );
 
             if (enableExpressionEvaluation) {

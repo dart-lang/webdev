@@ -62,11 +62,17 @@ class WebDevFS {
     final mainPath = mainUri.toFilePath();
     final outputDirectoryPath = fileSystem.file(mainPath).parent.path;
     final entryPoint = mainUri.toString();
+    print('Entrypoint: $entryPoint');
     final directory = p.dirname(entryPoint);
     final require = p.join(directory, 'require.js');
     final stackMapper = p.join(directory, 'stack_trace_mapper.js');
     final main = p.join(directory, 'main.dart.js');
     final bootstrap = p.join(directory, 'main_module.bootstrap.js');
+
+    // final require = 'require.js';
+    // final stackMapper = 'stack_trace_mapper.js';
+    // final main = 'main.dart.js';
+    // final bootstrap = 'main_module.bootstrap.js';
 
     assetServer.writeFile(
         entryPoint, fileSystem.file(mainPath).readAsStringSync());

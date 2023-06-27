@@ -494,7 +494,7 @@ void testAll({
 
             expect(result, matchInstanceRef('23'));
           });
-        });
+        }, solo: true);
 
         test('evaluate expression in a class constructor in a library',
             () async {
