@@ -33,10 +33,6 @@ void _runAllTests(bool canaryFeatures, bool debug) {
     tearDownAll(provider.dispose);
 
     for (var compilationMode in CompilationMode.values) {
-      // TODO:(annagrin) support canary mode in build daemon mode.
-      if (canaryFeatures && compilationMode == CompilationMode.buildDaemon) {
-        continue;
-      }
       _runTests(
         provider: provider,
         compilationMode: compilationMode,

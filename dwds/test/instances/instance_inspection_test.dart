@@ -34,10 +34,6 @@ void _runAllTests(bool canaryFeatures, bool debug) {
 
     for (var compilationMode in CompilationMode.values) {
       for (var nullSafetyMode in NullSafety.values) {
-        // TODO:(annagrin) support canary mode in build daemon mode.
-        if (canaryFeatures && compilationMode == CompilationMode.buildDaemon) {
-          continue;
-        }
         _runTests(
           provider: provider,
           compilationMode: compilationMode,

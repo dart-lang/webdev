@@ -150,10 +150,6 @@ class TestContext {
     List<String> experiments = const <String>[],
     bool canaryFeatures = false,
   }) async {
-    if (canaryFeatures && compilationMode == CompilationMode.buildDaemon) {
-      throw StateError('DDC canary mode is not supported with build daemon');
-    }
-
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
 
     try {
@@ -228,6 +224,12 @@ class TestContext {
               if (enableExpressionEvaluation) ...[
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
+              ],
+              if (canaryFeatures) ...[
+                '--define',
+                'build_web_compilers|ddc=canary=true',
+                '--define',
+                'build_web_compilers|sdk_js=canary=true',
               ],
               for (final experiment in experiments)
                 '--enable-experiment=$experiment',
