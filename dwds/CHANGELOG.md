@@ -1,4 +1,6 @@
-## 19.0.2-wip
+## 20.0.0-wip
+
+- Allow clients to specify the `basePath` for connected app. - [#2160](https://github.com/dart-lang/webdev/pull/2160)
 
 ## 19.0.1
 

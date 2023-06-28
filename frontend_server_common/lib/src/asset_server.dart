@@ -13,7 +13,6 @@ import 'package:dwds/asset_reader.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
-import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test_common/test_sdk_layout.dart';
 
@@ -44,11 +43,7 @@ class TestAssetServer implements AssetReader {
     this._fileSystem,
     this._sdkLayout,
   ) {
-    // Base from index file replaces the base path in main.dart.js
-    // and everything that is loaded from there.
-    final baseFromIndex = _parseBasePathFromIndexHtml(index);
-    basePath = baseFromIndex.isNotEmpty ? baseFromIndex : p.dirname(index);
-    print('BASE PATH: $basePath');
+    basePath = _parseBasePathFromIndexHtml(index);
   }
 
   bool hasFile(String path) => _files.containsKey(path);
@@ -87,12 +82,10 @@ class TestAssetServer implements AssetReader {
       // Assets are served via GET only.
       return shelf.Response.notFound('');
     }
-    print('Request: ${request.url.path}');
     final requestPath = _stripBasePath(request.url.path, basePath);
     if (requestPath == null) {
       return shelf.Response.notFound('');
     }
-    print('Stripped request: $requestPath');
 
     var headers = <String, String>{};
 
@@ -252,12 +245,7 @@ class TestAssetServer implements AssetReader {
       return dartFile;
     }
 
-    var segments = path.split('/');
-    if (segments.contains('packages')) {
-      segments = segments.skipWhile((value) => value != 'packages').toList();
-      path = segments.join('/');
-    }
-    print('Segments: $segments');
+    final segments = path.split('/');
 
     // The file might have been a package file which is signaled by a
     // `/packages/<package>/<path>` request.

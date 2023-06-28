@@ -99,7 +99,7 @@ void _runTests({
         expect(classRef.name, 'Null');
         expect(classRef.id, 'classes|dart:core|Null');
         expect(inspector.isDisplayableObject(ref), isTrue);
-      }, solo: true);
+      });
 
       test('for a double', () async {
         final remoteObject = await libraryPublicFinal(compilationMode);

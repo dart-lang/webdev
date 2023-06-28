@@ -23,7 +23,6 @@ import 'package:dwds/src/dwds_vm_client.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
-import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
@@ -69,6 +68,7 @@ class DevHandler {
   final bool _launchDevToolsInNewWindow;
   final ExpressionCompiler? _expressionCompiler;
   final DwdsInjector _injected;
+  final String _basePath;
 
   /// Null until [close] is called.
   ///
@@ -91,6 +91,7 @@ class DevHandler {
     this._injected,
     this._spawnDds,
     this._launchDevToolsInNewWindow,
+    this._basePath,
   ) {
     _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
@@ -196,7 +197,7 @@ class DevHandler {
       'localhost',
       webkitDebugger,
       executionContext,
-      basePathForServerUri(appTab.url),
+      _basePath,
       _assetReader,
       appConnection,
       _urlEncoder,
@@ -587,7 +588,7 @@ class DevHandler {
         _hostname,
         extensionDebugger,
         executionContext,
-        basePathForServerUri(tabUrl),
+        _basePath,
         _assetReader,
         connection,
         _urlEncoder,

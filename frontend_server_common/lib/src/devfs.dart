@@ -62,17 +62,21 @@ class WebDevFS {
     final mainPath = mainUri.toFilePath();
     final outputDirectoryPath = fileSystem.file(mainPath).parent.path;
     final entryPoint = mainUri.toString();
-    print('Entrypoint: $entryPoint');
-    final directory = p.dirname(entryPoint);
-    final require = p.join(directory, 'require.js');
-    final stackMapper = p.join(directory, 'stack_trace_mapper.js');
-    final main = p.join(directory, 'main.dart.js');
-    final bootstrap = p.join(directory, 'main_module.bootstrap.js');
 
-    // final require = 'require.js';
-    // final stackMapper = 'stack_trace_mapper.js';
-    // final main = 'main.dart.js';
-    // final bootstrap = 'main_module.bootstrap.js';
+    var require = 'require.js';
+    var stackMapper = 'stack_trace_mapper.js';
+    var main = 'main.dart.js';
+    var bootstrap = 'main_module.bootstrap.js';
+
+    // If base path is not overwritten, use main's subdirectory
+    // to store all files, so the paths match the requests.
+    if (assetServer.basePath.isEmpty) {
+      final directory = p.dirname(entryPoint);
+      require = p.join(directory, 'require.js');
+      stackMapper = p.join(directory, 'stack_trace_mapper.js');
+      main = p.join(directory, 'main.dart.js');
+      bootstrap = p.join(directory, 'main_module.bootstrap.js');
+    }
 
     assetServer.writeFile(
         entryPoint, fileSystem.file(mainPath).readAsStringSync());

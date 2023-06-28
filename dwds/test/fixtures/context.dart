@@ -211,7 +211,7 @@ class TestContext {
       Stream<BuildResults> buildResults;
       RequireStrategy requireStrategy;
       String basePath = '';
-      String index = project.filePathToServe;
+      String filePathToServe = project.filePathToServe;
 
       _port = await findUnusedPort();
       switch (compilationMode) {
@@ -280,17 +280,12 @@ class TestContext {
           break;
         case CompilationMode.frontendServer:
           {
-            index = webCompatiblePath([
+            filePathToServe = webCompatiblePath([
               project.directoryToServe,
               project.filePathToServe,
             ]);
 
-            print('Directory: ${project.directoryToServe}');
-            print('Index: ${project.filePathToServe}');
-
-            //index = project.filePathToServe;
-
-            print('Context Index: $index');
+            _logger.info('Path to serve: $filePathToServe');
 
             final entry = p.toUri(
               p.join(project.webAssetsPath, project.dartEntryFileName),
@@ -322,8 +317,7 @@ class TestContext {
               fileSystem,
               hostname,
               assetServerPort,
-              index,
-              //p.join(project.directoryToServe, project.filePathToServe),
+              filePathToServe,
             );
 
             if (enableExpressionEvaluation) {
@@ -402,11 +396,12 @@ class TestContext {
         isFlutterApp,
         isInternalBuild,
         sdkLayout,
+        basePath,
       );
 
       _appUrl = basePath.isEmpty
-          ? 'http://localhost:$port/$index'
-          : 'http://localhost:$port/$basePath/$index';
+          ? 'http://localhost:$port/$filePathToServe'
+          : 'http://localhost:$port/$basePath/$filePathToServe';
 
       if (launchChrome) {
         await _webDriver?.get(appUrl);
