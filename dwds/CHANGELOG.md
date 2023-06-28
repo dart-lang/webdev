@@ -1,6 +1,6 @@
 ## 20.0.0-wip
 
-- Allow clients to specify the `basePath` for connected app. - [#2160](https://github.com/dart-lang/webdev/pull/2160)
+- Allow clients to specify the `basePath` on `AssetReader`. - [#2160](https://github.com/dart-lang/webdev/pull/2160)
 
 ## 19.0.1
 

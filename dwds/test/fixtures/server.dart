@@ -82,7 +82,6 @@ class TestServer {
     bool isFlutterApp,
     bool isInternalBuild,
     TestSdkLayout sdkLayout,
-    String basePath,
   ) async {
     var pipeline = const Pipeline();
 
@@ -133,7 +132,6 @@ class TestServer {
               return DevTools(server.address.host, server.port, server);
             }
           : null,
-      basePath: basePath,
     );
 
     final server = await startHttpServer('localhost', port: port);

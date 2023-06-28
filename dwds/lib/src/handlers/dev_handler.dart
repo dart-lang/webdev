@@ -68,7 +68,6 @@ class DevHandler {
   final bool _launchDevToolsInNewWindow;
   final ExpressionCompiler? _expressionCompiler;
   final DwdsInjector _injected;
-  final String _basePath;
 
   /// Null until [close] is called.
   ///
@@ -91,7 +90,6 @@ class DevHandler {
     this._injected,
     this._spawnDds,
     this._launchDevToolsInNewWindow,
-    this._basePath,
   ) {
     _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
@@ -197,7 +195,6 @@ class DevHandler {
       'localhost',
       webkitDebugger,
       executionContext,
-      _basePath,
       _assetReader,
       appConnection,
       _urlEncoder,
@@ -588,7 +585,6 @@ class DevHandler {
         _hostname,
         extensionDebugger,
         executionContext,
-        _basePath,
         _assetReader,
         connection,
         _urlEncoder,

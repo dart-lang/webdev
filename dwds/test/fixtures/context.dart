@@ -285,7 +285,7 @@ class TestContext {
               project.filePathToServe,
             ]);
 
-            _logger.info('Path to serve: $filePathToServe');
+            _logger.info('Serving: $filePathToServe');
 
             final entry = p.toUri(
               p.join(project.webAssetsPath, project.dartEntryFileName),
@@ -332,7 +332,6 @@ class TestContext {
               assetReader,
               packageUriMapper,
               () async => {},
-              basePath,
               project.dartEntryFilePackageUri,
             ).strategy;
 
@@ -396,7 +395,6 @@ class TestContext {
         isFlutterApp,
         isInternalBuild,
         sdkLayout,
-        basePath,
       );
 
       _appUrl = basePath.isEmpty

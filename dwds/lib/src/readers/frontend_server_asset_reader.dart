@@ -20,6 +20,7 @@ class FrontendServerAssetReader implements AssetReader {
   final File _jsonIncremental;
   final String _packageRoot;
   final Future<PackageConfig> _packageConfig;
+  final String _basePath;
 
   /// Map of Dart module server path to source map contents.
   final _mapContents = <String, String>{};
@@ -37,18 +38,24 @@ class FrontendServerAssetReader implements AssetReader {
   ///
   /// [_packageRoot] is the path to the directory that contains a
   /// `.dart_tool/package_config.json` file for the application.
-  FrontendServerAssetReader(
-    String outputPath,
-    this._packageRoot,
-  )   : _mapOriginal = File('$outputPath.map'),
+  FrontendServerAssetReader({
+    required String outputPath,
+    required String packageRoot,
+    String? basePath,
+  })  : _packageRoot = packageRoot,
+        _basePath = basePath ?? '',
+        _mapOriginal = File('$outputPath.map'),
         _mapIncremental = File('$outputPath.incremental.map'),
         _jsonOriginal = File('$outputPath.json'),
         _jsonIncremental = File('$outputPath.incremental.json'),
         _packageConfig = loadPackageConfig(
           File(
-            p.absolute(p.join(_packageRoot, '.dart_tool/package_config.json')),
+            p.absolute(p.join(packageRoot, '.dart_tool/package_config.json')),
           ),
         );
+
+  @override
+  String get basePath => _basePath;
 
   @override
   Future<String?> dartSourceContents(String serverPath) async {

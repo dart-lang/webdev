@@ -45,8 +45,8 @@ void main() {
   setUp(() async {
     await createTempFixtures();
     assetReader = FrontendServerAssetReader(
-      p.join(tempFixtures.path, 'main.dart.dill'),
-      packagesDir,
+      outputPath: p.join(tempFixtures.path, 'main.dart.dill'),
+      packageRoot: packagesDir,
     );
     assetReader.updateCaches();
   });
