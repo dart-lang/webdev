@@ -254,7 +254,9 @@ class ExpressionCompilerService implements ExpressionCompiler {
     required this.sdkConfigurationProvider,
     this.experiments = const [],
     this.canaryFeatures = false,
-  }) : _verbose = verbose;
+  }) : _verbose = verbose {
+    print('ExpressionCompilerService: canary: $canaryFeatures');
+  }
 
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(

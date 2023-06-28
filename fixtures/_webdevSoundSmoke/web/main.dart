@@ -21,6 +21,9 @@ void main() {
     print('Counter is: ${++count}'); // Breakpoint: printCounter
 
     print('${Mine(0)}');
+
+    var x = () => true;
+    print(x);
   });
 }
 

@@ -138,6 +138,7 @@ class WebDevServer {
           options.port,
           verbose: options.configuration.verbose,
           experiments: options.configuration.experiments,
+          canaryFeatures: options.configuration.canaryFeatures,
           sdkConfigurationProvider: const DefaultSdkConfigurationProvider(),
         );
       }
