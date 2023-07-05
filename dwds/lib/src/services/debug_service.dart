@@ -220,7 +220,6 @@ class DebugService {
     String hostname,
     RemoteDebugger remoteDebugger,
     ExecutionContext executionContext,
-    String root,
     AssetReader assetReader,
     AppConnection appConnection,
     UrlEncoder? urlEncoder, {
@@ -230,6 +229,7 @@ class DebugService {
     bool useSse = false,
     ExpressionCompiler? expressionCompiler,
   }) async {
+    final root = assetReader.basePath;
     final chromeProxyService = await ChromeProxyService.create(
       remoteDebugger,
       root,

@@ -211,6 +211,7 @@ class TestContext {
       Stream<BuildResults> buildResults;
       RequireStrategy requireStrategy;
       String basePath = '';
+      String filePathToServe = project.filePathToServe;
 
       _port = await findUnusedPort();
       switch (compilationMode) {
@@ -279,7 +280,12 @@ class TestContext {
           break;
         case CompilationMode.frontendServer:
           {
-            _logger.info('Index: ${project.filePathToServe}');
+            filePathToServe = webCompatiblePath([
+              project.directoryToServe,
+              project.filePathToServe,
+            ]);
+
+            _logger.info('Serving: $filePathToServe');
 
             final entry = p.toUri(
               p.join(project.webAssetsPath, project.dartEntryFileName),
@@ -311,7 +317,7 @@ class TestContext {
               fileSystem,
               hostname,
               assetServerPort,
-              p.join(project.directoryToServe, project.filePathToServe),
+              filePathToServe,
             );
 
             if (enableExpressionEvaluation) {
@@ -326,7 +332,6 @@ class TestContext {
               assetReader,
               packageUriMapper,
               () async => {},
-              basePath,
               project.dartEntryFilePackageUri,
             ).strategy;
 
@@ -393,8 +398,8 @@ class TestContext {
       );
 
       _appUrl = basePath.isEmpty
-          ? 'http://localhost:$port/${project.filePathToServe}'
-          : 'http://localhost:$port/$basePath/${project.filePathToServe}';
+          ? 'http://localhost:$port/$filePathToServe'
+          : 'http://localhost:$port/$basePath/$filePathToServe';
 
       if (launchChrome) {
         await _webDriver?.get(appUrl);
