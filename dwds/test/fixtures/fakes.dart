@@ -394,6 +394,9 @@ class FakeAssetReader implements AssetReader {
         _sourceMap = sourceMap;
 
   @override
+  String get basePath => '';
+
+  @override
   Future<String> dartSourceContents(String serverPath) {
     return _throwUnimplementedOrReturnContents(_dartSource);
   }

@@ -11,6 +11,18 @@ typedef UrlEncoder = Future<String> Function(String url);
 
 /// A reader for Dart sources and related source maps.
 abstract class AssetReader {
+  /// Base path of the application, for example, set up in the index file:
+  ///
+  /// ```
+  /// <html>
+  ///   <head>
+  ///     <base href="/abc/">
+  ///     <script src="main.dart.js"></script>
+  ///   </head>
+  /// </html>
+  /// ```
+  String get basePath;
+
   /// Returns the contents for a source map at the provided server path, or
   /// null if the resource does not exist.
   Future<String?> sourceMapContents(String serverPath);

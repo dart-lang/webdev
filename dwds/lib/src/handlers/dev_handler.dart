@@ -23,7 +23,6 @@ import 'package:dwds/src/dwds_vm_client.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
-import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
@@ -196,7 +195,6 @@ class DevHandler {
       'localhost',
       webkitDebugger,
       executionContext,
-      basePathForServerUri(appTab.url),
       _assetReader,
       appConnection,
       _urlEncoder,
@@ -587,7 +585,6 @@ class DevHandler {
         _hostname,
         extensionDebugger,
         executionContext,
-        basePathForServerUri(tabUrl),
         _assetReader,
         connection,
         _urlEncoder,

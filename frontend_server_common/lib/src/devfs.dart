@@ -63,13 +63,27 @@ class WebDevFS {
     final outputDirectoryPath = fileSystem.file(mainPath).parent.path;
     final entryPoint = mainUri.toString();
 
+    var require = 'require.js';
+    var stackMapper = 'stack_trace_mapper.js';
+    var main = 'main.dart.js';
+    var bootstrap = 'main_module.bootstrap.js';
+
+    // If base path is not overwritten, use main's subdirectory
+    // to store all files, so the paths match the requests.
+    if (assetServer.basePath.isEmpty) {
+      final directory = p.dirname(entryPoint);
+      require = '$directory/require.js';
+      stackMapper = '$directory/stack_trace_mapper.js';
+      main = '$directory/main.dart.js';
+      bootstrap = '$directory/main_module.bootstrap.js';
+    }
+
     assetServer.writeFile(
         entryPoint, fileSystem.file(mainPath).readAsStringSync());
-    assetServer.writeFile('require.js', requireJS.readAsStringSync());
+    assetServer.writeFile(require, requireJS.readAsStringSync());
+    assetServer.writeFile(stackMapper, stackTraceMapper.readAsStringSync());
     assetServer.writeFile(
-        'stack_trace_mapper.js', stackTraceMapper.readAsStringSync());
-    assetServer.writeFile(
-      'main.dart.js',
+      main,
       generateBootstrapScript(
         requireUrl: 'require.js',
         mapperUrl: 'stack_trace_mapper.js',
@@ -77,7 +91,7 @@ class WebDevFS {
       ),
     );
     assetServer.writeFile(
-      'main_module.bootstrap.js',
+      bootstrap,
       generateMainModule(
         entrypoint: entryPoint,
       ),
