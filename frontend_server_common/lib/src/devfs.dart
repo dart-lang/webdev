@@ -72,10 +72,10 @@ class WebDevFS {
     // to store all files, so the paths match the requests.
     if (assetServer.basePath.isEmpty) {
       final directory = p.dirname(entryPoint);
-      require = p.join(directory, 'require.js');
-      stackMapper = p.join(directory, 'stack_trace_mapper.js');
-      main = p.join(directory, 'main.dart.js');
-      bootstrap = p.join(directory, 'main_module.bootstrap.js');
+      require = '$directory/require.js';
+      stackMapper = '$directory/stack_trace_mapper.js';
+      main = '$directory/main.dart.js';
+      bootstrap = '$directory/main_module.bootstrap.js';
     }
 
     assetServer.writeFile(
