@@ -1,4 +1,4 @@
-## 19.0.2-wip
+## 19.0.2
 
 - Fix Flutter crash due to potential null value in `setUpChromeConsoleListener`. - [#2162](https://github.com/dart-lang/webdev/pull/2162)
 
