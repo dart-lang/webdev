@@ -148,6 +148,7 @@ class TestContext {
     bool isFlutterApp = false,
     bool isInternalBuild = false,
     List<String> experiments = const <String>[],
+    bool canaryFeatures = false,
   }) async {
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
 
@@ -155,6 +156,7 @@ class TestContext {
       // Make sure configuration was created correctly.
       final configuration = await sdkConfigurationProvider.configuration;
       configuration.validate();
+      await project.cleanUp();
 
       DartUri.currentDirectory = project.absolutePackageDirectory;
       configureLogWriter();
@@ -302,6 +304,7 @@ class TestContext {
               outputPath: outputDir.path,
               soundNullSafety: nullSafety == NullSafety.sound,
               experiments: experiments,
+              canaryFeatures: canaryFeatures,
               verbose: verboseCompiler,
               sdkLayout: sdkLayout,
             );
