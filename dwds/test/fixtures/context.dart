@@ -223,6 +223,12 @@ class TestContext {
               ],
               for (final experiment in experiments)
                 '--enable-experiment=$experiment',
+              if (canaryFeatures) ...[
+                '--define',
+                'build_web_compilers|ddc=canary=true',
+                '--define',
+                'build_web_compilers|sdk_js=canary=true',
+              ],
               '--verbose',
             ];
             _daemonClient = await connectClient(
@@ -263,6 +269,7 @@ class TestContext {
                 verbose: verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
                 experiments: experiments,
+                canaryFeatures: canaryFeatures,
               );
               expressionCompiler = ddcService;
             }
