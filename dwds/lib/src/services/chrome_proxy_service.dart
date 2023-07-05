@@ -1361,7 +1361,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       final isolate = inspector.isolate;
       if (isolateRef.id != isolate.id) return;
 
-      final firstArgValue = event.args[0].value as String;
+      final args = event.args;
+      final firstArgValue = (args.isNotEmpty ? args[0].value : null) as String?;
       // TODO(nshahan) - Migrate 'inspect' and 'log' events to the injected
       // client communication approach as well?
       switch (firstArgValue) {
