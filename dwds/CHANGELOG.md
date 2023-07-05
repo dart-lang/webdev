@@ -1,5 +1,7 @@
 ## 19.0.2-wip
 
+- Fix Flutter crash due to potential null value in `setUpChromeConsoleListener`. - [#2162](https://github.com/dart-lang/webdev/pull/2162)
+
 ## 19.0.1
 
 - Do not show async frame errors on evaluation. - [#2073](https://github.com/dart-lang/webdev/pull/2073)
