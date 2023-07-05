@@ -393,7 +393,7 @@ class ResidentCompiler {
       '--experimental-emit-debug-metadata',
       soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
       for (final experiment in experiments) '--enable-experiment=$experiment',
-      if (canaryFeatures) '--canary',
+      if (canaryFeatures) '--dartdevc-canary',
       if (verbose) '--verbose',
     ];
 
