@@ -148,6 +148,7 @@ class TestContext {
     bool isFlutterApp = false,
     bool isInternalBuild = false,
     List<String> experiments = const <String>[],
+    bool canaryFeatures = false,
   }) async {
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
 
@@ -308,6 +309,7 @@ class TestContext {
               outputPath: outputDir.path,
               soundNullSafety: nullSafety == NullSafety.sound,
               experiments: experiments,
+              canaryFeatures: canaryFeatures,
               verbose: verboseCompiler,
               sdkLayout: sdkLayout,
             );

@@ -2,6 +2,8 @@
 
 - Update `dwds` constraint to `19.0.2`.
 
+- Update SDK constraint to `>=3.1.0-254.0.dev <4.0.0`.
+
 ## 3.0.5
 
 - Update `dwds` constraint to `19.0.1`.
