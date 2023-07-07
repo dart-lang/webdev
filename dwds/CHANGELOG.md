@@ -1,4 +1,7 @@
-## 19.0.3-wip
+## 20.0.0-wip
+
+- Require clients to specify the `basePath` on `AssetReader`. - [#2160](https://github.com/dart-lang/webdev/pull/2160)
+- Update SDK constraint to `>=3.1.0-254.0.dev <4.0.0`. - [#2169](https://github.com/dart-lang/webdev/pull/2169)
 
 ## 19.0.2
 

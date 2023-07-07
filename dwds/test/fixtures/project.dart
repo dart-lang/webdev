@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:path/path.dart' as p;
 
 import 'package:test_common/utilities.dart';
@@ -220,5 +222,16 @@ class TestProject {
 
     // Verify that the web assets path has no starting slash:
     assert(!webAssetsPath.startsWith('/'));
+  }
+
+  /// Clean up the project.
+  /// Called when we need to rebuild sdk and the app from
+  /// previous test configurations.
+  Future<void> cleanUp() async {
+    await Process.run(
+      'dart',
+      ['run', 'build_runner', 'clean'],
+      workingDirectory: absolutePackageDirectory,
+    );
   }
 }

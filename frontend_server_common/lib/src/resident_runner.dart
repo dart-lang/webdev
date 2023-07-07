@@ -30,6 +30,7 @@ class ResidentWebRunner {
     required this.outputPath,
     required this.soundNullSafety,
     this.experiments = const <String>[],
+    bool canaryFeatures = false,
     required this.sdkLayout,
     bool verbose = false,
   }) {
@@ -47,6 +48,7 @@ class ResidentWebRunner {
       fileSystemScheme: fileSystemScheme,
       soundNullSafety: soundNullSafety,
       experiments: experiments,
+      canaryFeatures: canaryFeatures,
       sdkLayout: sdkLayout,
       verbose: verbose,
     );

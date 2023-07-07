@@ -258,6 +258,7 @@ class ResidentCompiler {
     required this.platformDill,
     required this.soundNullSafety,
     this.experiments = const <String>[],
+    this.canaryFeatures = false,
     required this.sdkLayout,
     this.verbose = false,
     CompilerMessageConsumer compilerMessageConsumer = defaultConsumer,
@@ -271,6 +272,7 @@ class ResidentCompiler {
   final String platformDill;
   final bool soundNullSafety;
   final List<String> experiments;
+  final bool canaryFeatures;
   final TestSdkLayout sdkLayout;
   final bool verbose;
 
@@ -391,6 +393,7 @@ class ResidentCompiler {
       '--experimental-emit-debug-metadata',
       soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
       for (final experiment in experiments) '--enable-experiment=$experiment',
+      if (canaryFeatures) '--dartdevc-canary',
       if (verbose) '--verbose',
     ];
 
