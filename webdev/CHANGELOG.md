@@ -1,3 +1,7 @@
+## 3.0.7-wip
+
+- Update `build_web_compilers` constraint to `^4.0.4`.
+
 ## 3.0.6
 
 - Update `dwds` constraint to `19.0.2`.

@@ -23,7 +23,7 @@ void main() {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  for (var compilationMode in [CompilationMode.frontendServer]) {
+  for (var compilationMode in CompilationMode.values) {
     _runTests(
       provider: provider,
       compilationMode: compilationMode,

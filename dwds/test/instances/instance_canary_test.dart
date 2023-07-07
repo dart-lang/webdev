@@ -18,11 +18,13 @@ void main() {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  _runAllTests(
-    canaryFeatures: true,
-    compilationMode: CompilationMode.frontendServer,
-    debug: debug,
-  );
+  for (var compilationMode in CompilationMode.values) {
+    _runAllTests(
+      canaryFeatures: true,
+      compilationMode: compilationMode,
+      debug: debug,
+    );
+  }
 }
 
 void _runAllTests({
