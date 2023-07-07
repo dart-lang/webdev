@@ -105,9 +105,9 @@ class ClassHelper extends Domain {
     final methodRefs = <FuncRef>[];
     final methodDescriptors =
         classDescriptor['methods'] as Map<String, dynamic>;
-    final staticMethodDescriptors =
-        classDescriptor['staticMethods'] as Map<String, dynamic>;
-    methodDescriptors.addAll(staticMethodDescriptors);
+    //final staticMethodDescriptors =
+    //    classDescriptor['staticMethods'] as Map<String, dynamic>;
+    //methodDescriptors.addAll(staticMethodDescriptors);
     methodDescriptors.forEach((name, descriptor) {
       final methodId = 'methods|$classId|$name';
       methodRefs.add(
@@ -126,13 +126,17 @@ class ClassHelper extends Domain {
     final fieldRefs = <FieldRef>[];
     final fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
     fieldDescriptors.forEach((name, descriptor) {
-      final classMetaData = ClassMetaData(
-        runtimeKind: RuntimeObjectKind.type,
-        classRef: classRefFor(
-          descriptor['classRefLibraryId'],
-          descriptor['classRefDartName'],
-        ),
-      );
+      final classMetaData = descriptor.containsKey('classRefLibraryId') &&
+              descriptor.containsKey('classRefDartName')
+          ? ClassMetaData(
+              runtimeKind: RuntimeObjectKind.type,
+              classRef: classRefFor(
+                descriptor['classRefLibraryId'],
+                descriptor['classRefDartName'],
+              ),
+            )
+          : _classMetadataForUnknown;
+
       fieldRefs.add(
         FieldRef(
           name: name,
@@ -150,7 +154,7 @@ class ClassHelper extends Domain {
         ),
       );
     });
-
+/*
     final staticFieldDescriptors =
         classDescriptor['staticFields'] as Map<String, dynamic>;
     staticFieldDescriptors.forEach((name, descriptor) {
@@ -170,7 +174,7 @@ class ClassHelper extends Domain {
           id: createId(),
         ),
       );
-    });
+    });*/
 
     // TODO: Implement the rest of these
     // https://github.com/dart-lang/webdev/issues/176.
@@ -188,3 +192,8 @@ class ClassHelper extends Domain {
     );
   }
 }
+
+final _classMetadataForUnknown = ClassMetaData(
+  runtimeKind: RuntimeObjectKind.object,
+  classRef: classRefForUnknown,
+);

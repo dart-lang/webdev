@@ -809,10 +809,14 @@ class InstanceHelper extends Domain {
     }
     ''';
 
-    final allNames = (await inspector
-            .jsCallFunctionOn(remoteObject, fieldNameExpression, []))
-        .value as String;
-    final names = allNames.split(',');
+    final result = await inspector.jsCallFunctionOn(
+      remoteObject,
+      fieldNameExpression,
+      [],
+      returnByValue: true,
+    );
+    final names = List<String>.from(result.value as List);
+
     // TODO(#761): Better support for large collections.
     return allJsProperties
         .where((property) => names.contains(property.name))

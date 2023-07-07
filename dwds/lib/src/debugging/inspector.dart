@@ -634,20 +634,22 @@ class AppInspector implements AppInspectorInterface {
     // TODO(#809): Sometimes we already know the type of the object, and
     // we could take advantage of that to short-circuit.
     final receiver = remoteObjectFor(id);
-    final end =
-        _calculateRangeEnd(count: count, offset: offset, length: length);
+    //final end =
+    //    _calculateRangeEnd(count: count, offset: offset, length: length);
     final rangeCount =
         _calculateRangeCount(count: count, offset: offset, length: length);
-    final args =
-        [offset, rangeCount, end].map(dartIdFor).map(remoteObjectFor).toList();
+    final args = [offset, rangeCount /*, end*/]
+        .map(dartIdFor)
+        .map(remoteObjectFor)
+        .toList();
     // If this is a List, just call sublist. If it's a Map, get the entries, but
     // avoid doing a toList on a large map using skip/take to get the section we
     // want. To make those alternatives easier in JS, pass both count and end.
     final expression = '''
-      function (offset, count, end) {
+      function (offset, count) {
         const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
         const dart = sdk.dart;
-        return dart.getSubRange(this, offset, count, end);
+        return dart.getSubRange(this, offset, count);
       }
     ''';
 
