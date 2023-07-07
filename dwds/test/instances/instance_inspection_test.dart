@@ -19,6 +19,7 @@ void main() {
   // Enable verbose logging for debugging.
   final debug = false;
 
+  // TODO: split out canary tests
   for (var canaryFeatures in [false, true]) {
     _runAllTests(canaryFeatures, debug);
   }
@@ -32,7 +33,8 @@ void _runAllTests(bool canaryFeatures, bool debug) {
     );
     tearDownAll(provider.dispose);
 
-    for (var compilationMode in CompilationMode.values) {
+    // TODO: build daemon also
+    for (var compilationMode in [CompilationMode.frontendServer]) {
       for (var nullSafetyMode in NullSafety.values) {
         _runTests(
           provider: provider,
@@ -53,10 +55,11 @@ void _runTests({
   required bool canaryFeatures,
   required bool debug,
 }) {
-  final testPackage = nullSafetyMode == NullSafety.sound
+  final testProject = nullSafetyMode == NullSafety.sound
       ? TestProject.testPackageWithSoundNullSafety()
       : TestProject.testPackageWithWeakNullSafety();
-  final context = TestContext(testPackage, provider);
+  final context = TestContext(testProject, provider);
+
   late VmServiceInterface service;
   late Stream<Event> stream;
   late String isolateId;

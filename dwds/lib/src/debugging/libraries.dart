@@ -100,7 +100,6 @@ class LibraryHelper extends Domain {
       // TODO: Collect library and class information from debug symbols.
       _logger.warning('Library ${libraryRef.uri} is not loaded. '
           'This can happen for unreferenced libraries.');
-      //rethrow;
     }
     final classRefs = <ClassRef>[];
     if (result != null) {

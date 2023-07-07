@@ -7,14 +7,16 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/shared.dart';
-import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+final _classMetadataForUnknown = ClassMetaData(
+  runtimeKind: RuntimeObjectKind.object,
+  classRef: classRefForUnknown,
+);
+
 /// Keeps track of Dart classes available in the running application.
 class ClassHelper extends Domain {
-  final _logger = Logger('ClassHelper');
-
   /// Map of class ID to [Class].
   final _classes = <String, Class>{};
 
@@ -99,15 +101,10 @@ class ClassHelper extends Domain {
       throw ChromeDebugException(e.json, evalContents: expression);
     }
 
-    _logger.fine('Class info: ${result.json}');
-
     final classDescriptor = result.value as Map<String, dynamic>;
     final methodRefs = <FuncRef>[];
     final methodDescriptors =
         classDescriptor['methods'] as Map<String, dynamic>;
-    //final staticMethodDescriptors =
-    //    classDescriptor['staticMethods'] as Map<String, dynamic>;
-    //methodDescriptors.addAll(staticMethodDescriptors);
     methodDescriptors.forEach((name, descriptor) {
       final methodId = 'methods|$classId|$name';
       methodRefs.add(
@@ -154,27 +151,6 @@ class ClassHelper extends Domain {
         ),
       );
     });
-/*
-    final staticFieldDescriptors =
-        classDescriptor['staticFields'] as Map<String, dynamic>;
-    staticFieldDescriptors.forEach((name, descriptor) {
-      fieldRefs.add(
-        FieldRef(
-          name: name,
-          owner: classRef,
-          declaredType: InstanceRef(
-            identityHashCode: createId().hashCode,
-            id: createId(),
-            kind: InstanceKind.kType,
-            classRef: classRef,
-          ),
-          isConst: descriptor['isConst'] as bool,
-          isFinal: descriptor['isFinal'] as bool,
-          isStatic: descriptor['isStatic'] as bool,
-          id: createId(),
-        ),
-      );
-    });*/
 
     // TODO: Implement the rest of these
     // https://github.com/dart-lang/webdev/issues/176.
@@ -192,8 +168,3 @@ class ClassHelper extends Domain {
     );
   }
 }
-
-final _classMetadataForUnknown = ClassMetaData(
-  runtimeKind: RuntimeObjectKind.object,
-  classRef: classRefForUnknown,
-);

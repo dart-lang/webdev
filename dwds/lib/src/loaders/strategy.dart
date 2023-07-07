@@ -64,11 +64,11 @@ abstract class LoadStrategy {
   /// parameter should be one of these Dart-specific scheme URIs, and we set
   /// `library` the corresponding library.
   String loadLibrarySnippet(String libraryUri) => '''
-    var sdk = $loadModuleSnippet('dart_sdk');
-    var dart = sdk.dart;
-    var dart_rti = sdk.dart_rti;
-    var core = sdk.core;
-    var library = dart.getLibrary('$libraryUri');
+    const sdk = $loadModuleSnippet('dart_sdk');
+    const dart = sdk.dart;
+    const dart_rti = sdk.dart_rti;
+    const core = sdk.core;
+    const library = dart.getLibrary('$libraryUri');
     if (!library) throw 'cannot find library for $libraryUri';
   ''';
 

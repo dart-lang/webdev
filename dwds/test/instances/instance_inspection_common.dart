@@ -150,9 +150,8 @@ class TestInspector {
     };
     final instances = <String, Instance>{};
     for (final p in refs.entries) {
-      final instance =
+      instances[p.key] =
           await service.getObject(isolateId, p.value.id!) as Instance;
-      instances[p.key] = instance;
     }
     return instances;
   }

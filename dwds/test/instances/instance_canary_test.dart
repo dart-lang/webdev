@@ -13,68 +13,69 @@ import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
+import 'instance_common.dart';
 
 void main() {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  _runAllTests(
-    canaryFeatures: true,
-    compilationMode: CompilationMode.frontendServer,
-    debug: debug,
-  );
+  // TODO: build daemon as well
+  for (var compilationMode in [CompilationMode.frontendServer]) {
+    _runCanaryModeVerificationTests(
+      compilationMode: compilationMode,
+      debug: debug,
+    );
+
+    runTests(
+      compilationMode: compilationMode,
+      canaryFeatures: true,
+      debug: debug,
+    );
+  }
 }
 
-void _runAllTests({
-  required bool canaryFeatures,
+void _runCanaryModeVerificationTests({
   required CompilationMode compilationMode,
   required bool debug,
 }) {
-  group('canaryFeatures: $canaryFeatures |', () {
-    final provider = TestSdkConfigurationProvider(
-      canaryFeatures: canaryFeatures,
-      verbose: debug,
-    );
+  final provider = TestSdkConfigurationProvider(
+    canaryFeatures: true,
+    verbose: debug,
+  );
 
-    final project = TestProject.testScopesWithSoundNullSafety;
+  final project = TestProject.testScopesWithSoundNullSafety;
+  tearDownAll(provider.dispose);
+
+  group('$compilationMode |', () {
+    final context = TestContext(project, provider);
+    late AppInspector inspector;
 
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
-      // Cleanup project including compiled dart sdk.
-      await project.cleanUp();
+      await context.setUp(
+        canaryFeatures: true,
+        compilationMode: compilationMode,
+      );
+      final chromeProxyService = context.service;
+      inspector = chromeProxyService.inspector;
     });
-    tearDownAll(provider.dispose);
 
-    group('$compilationMode |', () {
-      final context = TestContext(project, provider);
-      late AppInspector inspector;
+    tearDownAll(() async {
+      await context.tearDown();
+    });
 
-      setUpAll(() async {
-        setCurrentLogWriter(debug: debug);
-        await context.setUp(
-          canaryFeatures: canaryFeatures,
-          compilationMode: compilationMode,
-        );
-        final chromeProxyService = context.service;
-        inspector = chromeProxyService.inspector;
-      });
+    final url = 'org-dartlang-app:///example/scopes/main.dart';
 
-      tearDownAll(() async {
-        await context.tearDown();
-      });
+    String libraryName(CompilationMode compilationMode) =>
+        compilationMode == CompilationMode.frontendServer
+            ? "example/scopes/main.dart"
+            : "example/scopes/main";
 
-      final url = 'org-dartlang-app:///example/scopes/main.dart';
-
-      String libraryName(CompilationMode compilationMode) =>
-          compilationMode == CompilationMode.frontendServer
-              ? "example/scopes/main.dart"
-              : "example/scopes/main";
-
-      String libraryVariableTypeExpression(
-        String variable,
-        CompilationMode compilationMode,
-      ) =>
-          '''
+    String libraryVariableTypeExpression(
+      String variable,
+      CompilationMode compilationMode,
+    ) =>
+        '''
             (function() {
               var dart = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
               var libraryName = '${libraryName(compilationMode)}';
@@ -84,18 +85,17 @@ void _runAllTests({
             })();
           ''';
 
-      group('compiler', () {
-        setUp(() => setCurrentLogWriter(debug: debug));
+    group('compiler', () {
+      setUp(() => setCurrentLogWriter(debug: debug));
 
-        test('uses new type system', () async {
-          final remoteObject = await inspector.jsEvaluate(
-            libraryVariableTypeExpression(
-              'libraryPublicFinal',
-              compilationMode,
-            ),
-          );
-          expect(remoteObject.json['className'], 'dart_rti.Rti.new');
-        });
+      test('uses new type system', () async {
+        final remoteObject = await inspector.jsEvaluate(
+          libraryVariableTypeExpression(
+            'libraryPublicFinal',
+            compilationMode,
+          ),
+        );
+        expect(remoteObject.json['className'], 'dart_rti.Rti.new');
       });
     });
   });

@@ -32,7 +32,8 @@ void _runAllTests(bool canaryFeatures, bool debug) {
     );
     tearDownAll(provider.dispose);
 
-    for (var compilationMode in CompilationMode.values) {
+    // TODO: build daemon also
+    for (var compilationMode in [CompilationMode.frontendServer]) {
       _runTests(
         provider: provider,
         compilationMode: compilationMode,

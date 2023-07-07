@@ -167,14 +167,13 @@ class ClassMetaDataHelper {
         returnByValue: true,
       );
       final metadata = result.value as Map;
-      final jsName = metadata['dartName'];
+      final dartName = metadata['dartName'];
 
-      if (jsName == null) {
+      if (dartName == null) {
         return null;
       }
 
       final typeName = metadata['typeName'];
-      final dartName = metadata['dartName'];
       final library = metadata['libraryId'];
       final runtimeKind = RuntimeObjectKind.parse(metadata['runtimeKind']);
       final length = metadata['length'];
