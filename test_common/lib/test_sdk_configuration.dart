@@ -31,10 +31,10 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
   late final TestSdkLayout sdkLayout;
 
   TestSdkConfigurationProvider({
-    bool verbose = false,
     bool canaryFeatures = false,
-  })  : _verbose = verbose,
-        _canaryFeatures = canaryFeatures {
+    bool verbose = false,
+  })  : _canaryFeatures = canaryFeatures,
+        _verbose = verbose {
     _sdkDirectory = Directory.systemTemp.createTempSync('sdk copy');
     sdkLayout = TestSdkLayout.createDefault(_sdkDirectory.path);
   }

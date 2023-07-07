@@ -39,6 +39,9 @@ class ProxyServerAssetReader implements AssetReader {
   }
 
   @override
+  String get basePath => '';
+
+  @override
   Future<String?> dartSourceContents(String serverPath) =>
       _readResource(serverPath);
 

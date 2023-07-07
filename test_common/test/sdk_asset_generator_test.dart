@@ -16,21 +16,21 @@ void main() {
   group('SDK asset generator', () {
     final bool debug = false;
 
-    late final Directory tempDir;
+    late Directory tempDir;
     late String sdkDirectory;
-    late final String soundSdkSummaryPath;
-    late final String compilerWorkerPath;
+    late String soundSdkSummaryPath;
+    late String compilerWorkerPath;
 
     // Missing sound assets
-    late final String soundSdkFullDillPath;
-    late final String soundSdkJsPath;
-    late final String soundSdkJsMapPath;
+    late String soundSdkFullDillPath;
+    late String soundSdkJsPath;
+    late String soundSdkJsMapPath;
 
     // Missing weak assets
-    late final String weakSdkSummaryPath;
-    late final String weakSdkFullDillPath;
-    late final String weakSdkJsPath;
-    late final String weakSdkJsMapPath;
+    late String weakSdkSummaryPath;
+    late String weakSdkFullDillPath;
+    late String weakSdkJsPath;
+    late String weakSdkJsMapPath;
 
     setUp(() async {
       setCurrentLogWriter(debug: debug);
@@ -110,6 +110,24 @@ void main() {
       expect(sdkLayout.weakFullDillPath, _exists);
       expect(sdkLayout.weakJsPath, _exists);
       expect(sdkLayout.weakJsMapPath, _exists);
+    });
+
+    test('Can generate missing SDK assets with canary features enabled',
+        () async {
+      final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
+
+      final assetGenerator = SdkAssetGenerator(
+        sdkLayout: sdkLayout,
+        verbose: true,
+        canaryFeatures: true,
+      );
+      await assetGenerator.generateSdkAssets();
+
+      final soundSdk = File(soundSdkJsPath).readAsStringSync();
+      expect(soundSdk, contains('canary'));
+
+      final weakSdk = File(weakSdkJsPath).readAsStringSync();
+      expect(weakSdk, contains('canary'));
     });
   });
 }

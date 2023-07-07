@@ -21,47 +21,32 @@ void main() {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  for (var canaryFeatures in [false, true]) {
-    _runAllTests(canaryFeatures, debug);
-  }
-}
+  final provider = TestSdkConfigurationProvider(verbose: debug);
+  tearDownAll(provider.dispose);
 
-void _runAllTests(bool canaryFeatures, bool debug) {
-  group('canaryFeatures: $canaryFeatures |', () {
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
+  for (var compilationMode in [CompilationMode.frontendServer]) {
+    _runTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      debug: debug,
     );
-    tearDownAll(provider.dispose);
-
-    for (var compilationMode in CompilationMode.values) {
-      _runTests(
-        provider: provider,
-        compilationMode: compilationMode,
-        canaryFeatures: canaryFeatures,
-        debug: debug,
-      );
-    }
-  });
+  }
 }
 
 void _runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
-  required bool canaryFeatures,
   required bool debug,
 }) {
-  late AppInspector inspector;
   final context =
       TestContext(TestProject.testScopesWithSoundNullSafety, provider);
+
+  late AppInspector inspector;
 
   group('$compilationMode |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
-      await context.setUp(
-        canaryFeatures: canaryFeatures,
-        compilationMode: compilationMode,
-      );
+      await context.setUp(compilationMode: compilationMode);
       final chromeProxyService = context.service;
       inspector = chromeProxyService.inspector;
     });
