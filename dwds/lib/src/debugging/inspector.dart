@@ -601,15 +601,6 @@ class AppInspector implements AppInspectorInterface {
         .toList();
   }
 
-  /// Compute the last possible element index in the range of [offset]..end
-  /// that includes [count] elements, if available.
-  static int? _calculateRangeEnd({
-    int? count,
-    required int offset,
-    required int length,
-  }) =>
-      count == null ? null : math.min(offset + count, length);
-
   /// Calculate the number of available elements in the range.
   static int _calculateRangeCount({
     int? count,
@@ -634,14 +625,10 @@ class AppInspector implements AppInspectorInterface {
     // TODO(#809): Sometimes we already know the type of the object, and
     // we could take advantage of that to short-circuit.
     final receiver = remoteObjectFor(id);
-    //final end =
-    //    _calculateRangeEnd(count: count, offset: offset, length: length);
     final rangeCount =
         _calculateRangeCount(count: count, offset: offset, length: length);
-    final args = [offset, rangeCount /*, end*/]
-        .map(dartIdFor)
-        .map(remoteObjectFor)
-        .toList();
+    final args =
+        [offset, rangeCount].map(dartIdFor).map(remoteObjectFor).toList();
     // If this is a List, just call sublist. If it's a Map, get the entries, but
     // avoid doing a toList on a large map using skip/take to get the section we
     // want. To make those alternatives easier in JS, pass both count and end.

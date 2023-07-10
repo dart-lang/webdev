@@ -162,10 +162,6 @@ class RequireStrategy extends LoadStrategy {
   String get loadLibrariesModule => 'require.js';
 
   @override
-  String get loadLibrariesSnippet =>
-      'let libs = $loadModuleSnippet("dart_sdk").dart.getLibraries();\n';
-
-  @override
   String get loadModuleSnippet => 'require';
 
   /// Require JS config for ddc.
