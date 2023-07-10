@@ -19,8 +19,7 @@ void main() {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  // TODO: build daemon as well
-  for (var compilationMode in [CompilationMode.frontendServer]) {
+  for (var compilationMode in CompilationMode.values) {
     _runCanaryModeVerificationTests(
       compilationMode: compilationMode,
       debug: debug,

@@ -140,6 +140,7 @@ class WebDevServer {
           experiments: options.configuration.experiments,
           canaryFeatures: options.configuration.canaryFeatures,
           sdkConfigurationProvider: const DefaultSdkConfigurationProvider(),
+          canaryFeatures: options.configuration.canaryFeatures,
         );
       }
       var shouldServeDevTools =
