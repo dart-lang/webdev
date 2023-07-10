@@ -36,6 +36,7 @@ const nullSafetyUnsound = 'unsound';
 const nullSafetyAuto = 'auto';
 const disableDdsFlag = 'disable-dds';
 const enableExperimentOption = 'enable-experiment';
+const canaryFeaturesFlag = 'canary';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
   var auto = argResults.options.contains(autoOption)
@@ -105,6 +106,7 @@ class Configuration {
   final bool? _disableDds;
   final String? _nullSafety;
   final List<String>? _experiments;
+  final bool? _canaryFeatures;
 
   Configuration({
     bool? autoRun,
@@ -130,6 +132,7 @@ class Configuration {
     bool? disableDds,
     String? nullSafety,
     List<String>? experiments,
+    bool? canaryFeatures,
   })  : _autoRun = autoRun,
         _chromeDebugPort = chromeDebugPort,
         _debugExtension = debugExtension,
@@ -150,7 +153,8 @@ class Configuration {
         _enableExpressionEvaluation = enableExpressionEvaluation,
         _verbose = verbose,
         _nullSafety = nullSafety,
-        _experiments = experiments {
+        _experiments = experiments,
+        _canaryFeatures = canaryFeatures {
     _validateConfiguration();
   }
 
@@ -224,7 +228,8 @@ class Configuration {
           other._enableExpressionEvaluation ?? _enableExpressionEvaluation,
       verbose: other._verbose ?? _verbose,
       nullSafety: other._nullSafety ?? _nullSafety,
-      experiments: other._experiments ?? _experiments);
+      experiments: other._experiments ?? _experiments,
+      canaryFeatures: other._canaryFeatures ?? _canaryFeatures);
 
   factory Configuration.noInjectedClientDefaults() =>
       Configuration(autoRun: false, debug: false, debugExtension: false);
@@ -276,6 +281,8 @@ class Configuration {
   String get nullSafety => _nullSafety ?? 'auto';
 
   List<String> get experiments => _experiments ?? [];
+
+  bool get canaryFeatures => _canaryFeatures ?? false;
 
   /// Returns a new configuration with values updated from the parsed args.
   static Configuration fromArgs(ArgResults? argResults,
@@ -397,6 +404,10 @@ class Configuration {
         ? argResults[enableExperimentOption] as List<String>?
         : defaultConfiguration.experiments;
 
+    var canaryFeatures = argResults.options.contains(canaryFeaturesFlag)
+        ? argResults[canaryFeaturesFlag] as bool?
+        : defaultConfiguration.canaryFeatures;
+
     return Configuration(
       autoRun: defaultConfiguration.autoRun,
       chromeDebugPort: chromeDebugPort,
@@ -421,6 +432,7 @@ class Configuration {
       verbose: verbose,
       nullSafety: nullSafety,
       experiments: experiments,
+      canaryFeatures: canaryFeatures,
     );
   }
 }

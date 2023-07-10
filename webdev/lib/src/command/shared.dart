@@ -63,6 +63,12 @@ void addSharedArgs(ArgParser argParser,
         defaultsTo: null,
         hide: true,
         help: 'Enable experiment features in the debugger.')
+    ..addFlag(canaryFeaturesFlag,
+        abbr: 'c',
+        defaultsTo: false,
+        negatable: true,
+        hide: true,
+        help: 'Enables DDC canary features.')
     ..addFlag(verboseFlag,
         abbr: 'v',
         defaultsTo: false,

@@ -2,6 +2,7 @@
 
 - Require clients to specify the `basePath` on `AssetReader`. - [#2160](https://github.com/dart-lang/webdev/pull/2160)
 - Update SDK constraint to `>=3.1.0-254.0.dev <4.0.0`. - [#2169](https://github.com/dart-lang/webdev/pull/2169)
+- Require min `build_web_compilers` version `4.0.4` - [#2171](https://github.com/dart-lang/webdev/pull/2171)
 
 ## 19.0.2
 
