@@ -108,8 +108,8 @@ for PKG in ${PKGS}; do
         dart test -j 1 || EXIT_CODE=$?
         ;;
       test_6)
-        echo 'dart test'
-        dart test || EXIT_CODE=$?
+        echo 'dart test --exclude-tags=release'
+        dart test --exclude-tags=release || EXIT_CODE=$?
         ;;
       test_7)
         echo 'dart test test/build/ensure_build_test.dart'

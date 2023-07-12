@@ -76,7 +76,7 @@ class ExtensionDebugger implements RemoteDebugger {
         if (message is ExtensionResponse) {
           final encodedResult = {
             'result': json.decode(message.result),
-            'id': message.id
+            'id': message.id,
           };
           final completer = _completers[message.id];
           if (completer == null) {
@@ -88,7 +88,7 @@ class ExtensionDebugger implements RemoteDebugger {
         } else if (message is ExtensionEvent) {
           final map = {
             'method': json.decode(message.method),
-            'params': json.decode(message.params)
+            'params': json.decode(message.params),
           };
           // Note: package:sse will try to keep the connection alive, even after
           // the client has been closed. Therefore the extension sends an event to
@@ -104,7 +104,7 @@ class ExtensionDebugger implements RemoteDebugger {
           for (var event in message.events) {
             final map = {
               'method': json.decode(event.method),
-              'params': json.decode(event.params)
+              'params': json.decode(event.params),
             };
             _notificationController.sink.add(WipEvent(map));
           }

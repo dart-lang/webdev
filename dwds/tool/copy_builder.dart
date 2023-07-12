@@ -11,7 +11,7 @@ Builder copyBuilder(_) => _CopyBuilder();
 class _CopyBuilder extends Builder {
   @override
   Map<String, List<String>> get buildExtensions => {
-        _clientJsId.path: [_clientJsCopyId.path]
+        _clientJsId.path: [_clientJsCopyId.path],
       };
 
   @override

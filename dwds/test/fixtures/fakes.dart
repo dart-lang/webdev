@@ -394,6 +394,9 @@ class FakeAssetReader implements AssetReader {
         _sourceMap = sourceMap;
 
   @override
+  String get basePath => '';
+
+  @override
   Future<String> dartSourceContents(String serverPath) {
     return _throwUnimplementedOrReturnContents(_dartSource);
   }
@@ -444,5 +447,5 @@ class FakeExpressionCompiler implements ExpressionCompiler {
 
 final fakeWipResponse = WipResponse({
   'id': 1,
-  'result': {'fake': ''}
+  'result': {'fake': ''},
 });

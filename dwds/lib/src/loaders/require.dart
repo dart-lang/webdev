@@ -11,17 +11,6 @@ import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
-/// Find the path we are serving from the url.
-///
-/// Example:
-///   https://localhost/base/index.html => base
-///   https://localhost/base => base
-String basePathForServerUri(String url) {
-  final uri = Uri.parse(url);
-  var base = uri.path.endsWith('.html') ? p.dirname(uri.path) : uri.path;
-  return base = base.startsWith('/') ? base.substring(1) : base;
-}
-
 String removeJsExtension(String path) =>
     path.endsWith('.js') ? p.withoutExtension(path) : path;
 

@@ -36,9 +36,8 @@ class FrontendServerRequireStrategyProvider {
     this._assetReader,
     this._packageUriMapper,
     this._digestsProvider,
-    this._basePath,
     this._appEntrypoint,
-  );
+  ) : _basePath = _assetReader.basePath;
 
   RequireStrategy get strategy => _requireStrategy;
 

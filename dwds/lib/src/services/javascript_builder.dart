@@ -242,7 +242,7 @@ class JsBuilder {
     final args = params.where((e) => e != original);
     final substitutedParams = [
       ...params.where((e) => e != original),
-      substitute
+      substitute,
     ];
 
     writeFunctionDefinition(

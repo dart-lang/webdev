@@ -155,11 +155,15 @@ void testAll({
               scope: scope,
             );
 
-        getInstanceRef(frame, expr, {scope}) async => await evaluateInFrame(
-              frame,
-              expr,
-              scope: scope,
-            ) as InstanceRef;
+        getInstanceRef(frame, expr, {scope}) async {
+          final result = await evaluateInFrame(
+            frame,
+            expr,
+            scope: scope,
+          );
+          expect(result, isA<InstanceRef>());
+          return result as InstanceRef;
+        }
 
         getInstance(InstanceRef ref) async =>
             await context.service.getObject(isolateId, ref.id!) as Instance;
@@ -675,12 +679,15 @@ void testAll({
           libraryId,
           expr, {
           scope,
-        }) async =>
-            await evaluate(
-              libraryId,
-              expr,
-              scope: scope,
-            ) as InstanceRef;
+        }) async {
+          final result = await evaluate(
+            libraryId,
+            expr,
+            scope: scope,
+          );
+          expect(result, isA<InstanceRef>());
+          return result as InstanceRef;
+        }
 
         String getRootLibraryId() {
           expect(isolate.rootLib, isNotNull);

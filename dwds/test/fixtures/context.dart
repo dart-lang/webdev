@@ -148,6 +148,7 @@ class TestContext {
     bool isFlutterApp = false,
     bool isInternalBuild = false,
     List<String> experiments = const <String>[],
+    bool canaryFeatures = false,
   }) async {
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
 
@@ -211,6 +212,7 @@ class TestContext {
       Stream<BuildResults> buildResults;
       RequireStrategy requireStrategy;
       String basePath = '';
+      String filePathToServe = project.filePathToServe;
 
       _port = await findUnusedPort();
       switch (compilationMode) {
@@ -223,6 +225,12 @@ class TestContext {
               ],
               for (final experiment in experiments)
                 '--enable-experiment=$experiment',
+              if (canaryFeatures) ...[
+                '--define',
+                'build_web_compilers|ddc=canary=true',
+                '--define',
+                'build_web_compilers|sdk_js=canary=true',
+              ],
               '--verbose',
             ];
             _daemonClient = await connectClient(
@@ -263,6 +271,7 @@ class TestContext {
                 verbose: verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
                 experiments: experiments,
+                canaryFeatures: canaryFeatures,
               );
               expressionCompiler = ddcService;
             }
@@ -279,7 +288,12 @@ class TestContext {
           break;
         case CompilationMode.frontendServer:
           {
-            _logger.info('Index: ${project.filePathToServe}');
+            filePathToServe = webCompatiblePath([
+              project.directoryToServe,
+              project.filePathToServe,
+            ]);
+
+            _logger.info('Serving: $filePathToServe');
 
             final entry = p.toUri(
               p.join(project.webAssetsPath, project.dartEntryFileName),
@@ -302,6 +316,7 @@ class TestContext {
               outputPath: outputDir.path,
               soundNullSafety: nullSafety == NullSafety.sound,
               experiments: experiments,
+              canaryFeatures: canaryFeatures,
               verbose: verboseCompiler,
               sdkLayout: sdkLayout,
             );
@@ -311,7 +326,7 @@ class TestContext {
               fileSystem,
               hostname,
               assetServerPort,
-              p.join(project.directoryToServe, project.filePathToServe),
+              filePathToServe,
             );
 
             if (enableExpressionEvaluation) {
@@ -326,7 +341,6 @@ class TestContext {
               assetReader,
               packageUriMapper,
               () async => {},
-              basePath,
               project.dartEntryFilePackageUri,
             ).strategy;
 
@@ -355,9 +369,9 @@ class TestContext {
                 'remote-debugging-port=$debugPort',
                 if (enableDebugExtension)
                   '--load-extension=debug_extension/prod_build',
-                if (headless) '--headless'
-              ]
-            }
+                if (headless) '--headless',
+              ],
+            },
           });
         _webDriver = await createDriver(
           spec: WebDriverSpec.JsonWire,
@@ -393,8 +407,8 @@ class TestContext {
       );
 
       _appUrl = basePath.isEmpty
-          ? 'http://localhost:$port/${project.filePathToServe}'
-          : 'http://localhost:$port/$basePath/${project.filePathToServe}';
+          ? 'http://localhost:$port/$filePathToServe'
+          : 'http://localhost:$port/$basePath/$filePathToServe';
 
       if (launchChrome) {
         await _webDriver?.get(appUrl);

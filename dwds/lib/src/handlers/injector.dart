@@ -71,7 +71,7 @@ class DwdsInjector {
             return Response.ok(
               result,
               headers: {
-                HttpHeaders.contentTypeHeader: 'application/javascript'
+                HttpHeaders.contentTypeHeader: 'application/javascript',
               },
             );
           } else if (request.url.path.endsWith(bootstrapJsExtension)) {

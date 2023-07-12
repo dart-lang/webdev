@@ -35,7 +35,7 @@ void main() async {
       final extensionResponse = ExtensionResponse(
         (b) => b
           ..result = jsonEncode({
-            'result': {'value': 3.14}
+            'result': {'value': 3.14},
           })
           ..id = 0
           ..success = true,
@@ -119,7 +119,7 @@ void main() async {
 
     test('a request with some params', () async {
       final params = {
-        'location': {'scriptId': '555', 'lineNumber': 28}
+        'location': {'scriptId': '555', 'lineNumber': 28},
       };
       final extensionRequest = ExtensionRequest(
         (b) => b
@@ -170,7 +170,7 @@ void main() async {
       callToSendCommand() => extensionDebugger.sendCommand(
             'Debugger.setBreakpoint',
             params: {
-              'location': {'scriptId': '555', 'lineNumber': 28}
+              'location': {'scriptId': '555', 'lineNumber': 28},
             },
           );
       // Should not throw any errors:
