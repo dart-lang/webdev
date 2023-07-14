@@ -4,6 +4,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:dwds/src/debugging/metadata/class.dart';
+import 'package:dwds/src/debugging/runtime.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/domain.dart';
@@ -90,6 +91,10 @@ class LibraryHelper extends Domain {
       })()
     ''';
 
+    //final runtime = DebuggerRuntime(inspector);
+    //final result = await runtime.getLibraryMetadata(libraryUri);
+    //print('Library metadata: $result');
+
     RemoteObject? result;
     try {
       result = await inspector.jsEvaluate(expression, returnByValue: true);
@@ -103,7 +108,7 @@ class LibraryHelper extends Domain {
     }
     final classRefs = <ClassRef>[];
     if (result != null) {
-      final classNames = result.value as List<String>;
+      final classNames = result.value as List;
 
       for (final className in classNames) {
         final classMetaData = ClassMetaData(

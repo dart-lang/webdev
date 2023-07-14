@@ -12,7 +12,7 @@ import 'instance_common.dart';
 
 void main() {
   // Enable verbose logging for debugging.
-  final debug = false;
+  final debug = true;
 
   for (var compilationMode in CompilationMode.values) {
     runTests(

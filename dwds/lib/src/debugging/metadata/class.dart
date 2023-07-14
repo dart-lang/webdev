@@ -167,9 +167,9 @@ class ClassMetaDataHelper {
         returnByValue: true,
       );
       final metadata = result.value as Map;
-      final dartName = metadata['dartName'];
+      final className = metadata['className'];
 
-      if (dartName == null) {
+      if (className == null) {
         return null;
       }
 
@@ -178,7 +178,7 @@ class ClassMetaDataHelper {
       final runtimeKind = RuntimeObjectKind.parse(metadata['runtimeKind']);
       final length = metadata['length'];
 
-      final classRef = classRefFor(library, dartName);
+      final classRef = classRefFor(library, className);
       _addRuntimeObjectKind(classRef, runtimeKind);
 
       return ClassMetaData(

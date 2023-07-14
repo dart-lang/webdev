@@ -111,7 +111,7 @@ void runTests({
           expect(inspector.isDisplayableObject(ref), isTrue);
         });
 
-        test('for a class', () async {
+        test('for an object', () async {
           final remoteObject = await libraryPublicFinal(compilationMode);
           final count = await inspector.loadField(remoteObject, 'myselfField');
           final ref = await inspector.instanceRefFor(count);
@@ -125,7 +125,7 @@ void runTests({
           expect(inspector.isDisplayableObject(ref), isTrue);
         });
 
-        test('for closure', () async {
+        test('for a closure', () async {
           final remoteObject = await libraryPublicFinal(compilationMode);
           final properties =
               await inspector.getProperties(remoteObject.objectId!);
@@ -217,7 +217,7 @@ void runTests({
 
       group('instance', () {
         setUp(() => setCurrentLogWriter(debug: debug));
-        test('for class object', () async {
+        test('for an object', () async {
           final remoteObject = await libraryPublicFinal(compilationMode);
           final instance = await inspector.instanceFor(remoteObject);
           expect(instance!.kind, InstanceKind.kPlainInstance);
@@ -259,7 +259,7 @@ void runTests({
           expect(inspector.isDisplayableObject(instance), isTrue);
         });
 
-        test('for a nested class', () async {
+        test('for a nested object', () async {
           final libraryRemoteObject = await libraryPublicFinal(compilationMode);
           final fieldRemoteObject =
               await inspector.loadField(libraryRemoteObject, 'myselfField');
@@ -311,25 +311,6 @@ void runTests({
           expect(first.valueAsString, '1');
           expect(inspector.isDisplayableObject(instance), isTrue);
         });
-
-        test(
-          'for a class that implements List',
-          () async {
-            // The VM only uses kind List for SDK lists, and we follow that.
-            final remote = await inspector.jsEvaluate(
-              libraryVariableExpression('notAList', compilationMode),
-            );
-            final instance = await inspector.instanceFor(remote);
-            expect(instance!.kind, InstanceKind.kPlainInstance);
-            final classRef = instance.classRef!;
-            expect(classRef.name, 'NotReallyAList');
-            expect(instance.elements, isNull);
-            final field = instance.fields!.first;
-            expect(field.decl!.name, '_internal');
-            expect(inspector.isDisplayableObject(instance), isTrue);
-          },
-          skip: true,
-        );
 
         test('for a Dart error', () async {
           final remoteObject = await inspector.jsEvaluate(newDartError);

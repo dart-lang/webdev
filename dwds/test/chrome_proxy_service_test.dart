@@ -39,6 +39,7 @@ void main() {
       await context.setUp(
         enableExpressionEvaluation: true,
         verboseCompiler: false,
+        canaryFeatures: false,
       );
     });
 
@@ -598,16 +599,7 @@ void main() {
           testClass.functions,
           unorderedEquals([
             predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic!),
-            predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
-            predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
             predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
-            predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
-            predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
-            predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
-            predicate(
-              (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!,
-            ),
-            predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
           ]),
         );
         expect(
@@ -634,6 +626,22 @@ void main() {
                   f.name == 'staticMessage' &&
                   f.declaredType != null &&
                   f.isStatic! &&
+                  !f.isConst! &&
+                  !f.isFinal!,
+            ),
+            predicate(
+              (FieldRef f) =>
+                  f.name == 'hashCode' &&
+                  f.declaredType != null &&
+                  !f.isStatic! &&
+                  !f.isConst! &&
+                  !f.isFinal!,
+            ),
+            predicate(
+              (FieldRef f) =>
+                  f.name == 'runtimeType' &&
+                  f.declaredType != null &&
+                  !f.isStatic! &&
                   !f.isConst! &&
                   !f.isFinal!,
             ),
@@ -1088,18 +1096,7 @@ void main() {
               predicate(
                 (FuncRef f) => f.name == 'staticHello' && f.isStatic!,
               ),
-              predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
               predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
-              predicate(
-                (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!,
-              ),
-              predicate(
-                (FuncRef f) => f.name == 'runtimeType' && !f.isStatic!,
-              ),
             ]),
           );
           expect(
@@ -1126,6 +1123,22 @@ void main() {
                     f.name == 'staticMessage' &&
                     f.declaredType != null &&
                     f.isStatic! &&
+                    !f.isConst! &&
+                    !f.isFinal!,
+              ),
+              predicate(
+                (FieldRef f) =>
+                    f.name == 'hashCode' &&
+                    f.declaredType != null &&
+                    !f.isStatic! &&
+                    !f.isConst! &&
+                    !f.isFinal!,
+              ),
+              predicate(
+                (FieldRef f) =>
+                    f.name == 'runtimeType' &&
+                    f.declaredType != null &&
+                    !f.isStatic! &&
                     !f.isConst! &&
                     !f.isFinal!,
               ),
@@ -1147,18 +1160,7 @@ void main() {
               predicate(
                 (FuncRef f) => f.name == 'staticHello' && f.isStatic!,
               ),
-              predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
               predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
-              predicate(
-                (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!,
-              ),
-              predicate(
-                (FuncRef f) => f.name == 'runtimeType' && !f.isStatic!,
-              ),
             ]),
           );
           expect(
@@ -1185,6 +1187,22 @@ void main() {
                     f.name == 'staticMessage' &&
                     f.declaredType != null &&
                     f.isStatic! &&
+                    !f.isConst! &&
+                    !f.isFinal!,
+              ),
+              predicate(
+                (FieldRef f) =>
+                    f.name == 'hashCode' &&
+                    f.declaredType != null &&
+                    !f.isStatic! &&
+                    !f.isConst! &&
+                    !f.isFinal!,
+              ),
+              predicate(
+                (FieldRef f) =>
+                    f.name == 'runtimeType' &&
+                    f.declaredType != null &&
+                    !f.isStatic! &&
                     !f.isConst! &&
                     !f.isFinal!,
               ),

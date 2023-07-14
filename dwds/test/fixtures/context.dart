@@ -225,12 +225,6 @@ class TestContext {
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
               ],
-              if (canaryFeatures) ...[
-                '--define',
-                'build_web_compilers|ddc=canary=true',
-                '--define',
-                'build_web_compilers|sdk_js=canary=true',
-              ],
               for (final experiment in experiments)
                 '--enable-experiment=$experiment',
               if (canaryFeatures) ...[

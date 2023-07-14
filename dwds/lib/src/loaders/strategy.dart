@@ -48,26 +48,6 @@ abstract class LoadStrategy {
   /// should be a package URI, e.g. `package:myapp/main.dart`.
   Uri? get appEntrypoint;
 
-  /// Returns a snippet of JS code that initializes a `library` variable that
-  /// has the actual library object in DDC for [libraryUri].
-  ///
-  /// In DDC we have module libraries indexed by names of the form
-  /// 'packages/package/mainFile' with no .dart suffix on the file, or
-  /// 'directory/packageName/mainFile', also with no .dart suffix, and relative
-  /// to the serving root, normally /web within the package. These modules have
-  /// a map from the URI with a Dart-specific scheme
-  /// (package: or org-dartlang-app:) to the library objects. The [libraryUri]
-  /// parameter should be one of these Dart-specific scheme URIs, and we set
-  /// `library` the corresponding library.
-  String loadLibrarySnippet(String libraryUri) => '''
-    const sdk = $loadModuleSnippet('dart_sdk');
-    const dart = sdk.dart;
-    const dart_rti = sdk.dart_rti;
-    const core = sdk.core;
-    const library = dart.getLibrary('$libraryUri');
-    if (!library) throw 'cannot find library for $libraryUri';
-  ''';
-
   /// Returns the bootstrap required for this [LoadStrategy].
   ///
   /// The bootstrap is appended to the end of the entry point module.

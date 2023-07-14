@@ -349,11 +349,14 @@ class AppInspector implements AppInspectorInterface {
       throwInvalidParam('invoke', 'library uri is null');
     }
     final findLibrary = '''
-(function() {
-  ${globalLoadStrategy.loadLibrarySnippet(libraryUri)};
-  return library;
-})();
-''';
+      (function() {
+        const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+        const dart = sdk.dart;
+        const library = dart.getLibrary('$libraryUri');
+        if (!library) throw 'cannot find library for $libraryUri';
+        return library;
+      })();
+      ''';
     final remoteLibrary = await jsEvaluate(findLibrary);
     return jsCallFunctionOn(remoteLibrary, jsFunction, arguments);
   }
@@ -570,6 +573,10 @@ class AppInspector implements AppInspectorInterface {
     int? offset,
     int? count,
     int? length,
+    bool ownProperties = false,
+    bool accessorPropertiesOnly = false,
+    bool generatePreview = true,
+    bool nonIndexedPropertiesOnly = false,
   }) async {
     String rangeId = objectId;
     // Ignore offset/count if there is no length:
@@ -593,7 +600,10 @@ class AppInspector implements AppInspectorInterface {
       resultField: 'result',
       params: {
         'objectId': rangeId,
-        'ownProperties': true,
+        'ownProperties': ownProperties,
+        'accessorPropertiesOnly': accessorPropertiesOnly,
+        'generatePreview': generatePreview,
+        'nonIndexedPropertiesOnly': nonIndexedPropertiesOnly,
       },
     );
     return jsProperties

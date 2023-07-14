@@ -7,16 +7,14 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-final _classMetadataForUnknown = ClassMetaData(
-  runtimeKind: RuntimeObjectKind.object,
-  classRef: classRefForUnknown,
-);
-
 /// Keeps track of Dart classes available in the running application.
 class ClassHelper extends Domain {
+  final _logger = Logger('ClassHelper');
+
   /// Map of class ID to [Class].
   final _classes = <String, Class>{};
 
@@ -81,6 +79,7 @@ class ClassHelper extends Domain {
     final classId = classRef.id;
 
     if (libraryUri == null || classId == null || className == null) return null;
+    _logger.severe('Constructing class: $className, library: $libraryUri');
 
     final expression = '''
       (function() {
@@ -102,6 +101,7 @@ class ClassHelper extends Domain {
     }
 
     final classDescriptor = result.value as Map<String, dynamic>;
+    _logger.severe('Class descriptor for $className: $classDescriptor');
     final methodRefs = <FuncRef>[];
     final methodDescriptors =
         classDescriptor['methods'] as Map<String, dynamic>;
@@ -112,27 +112,23 @@ class ClassHelper extends Domain {
           id: methodId,
           name: name,
           owner: classRef,
-          isConst: descriptor['isConst'] as bool,
-          isStatic: descriptor['isStatic'] as bool,
-          // TODO(annagrin): get information about getters and setters from symbols.
-          // https://github.com/dart-lang/sdk/issues/46723
-          implicit: false,
+          isConst: descriptor['isConst'] as bool? ?? false,
+          isStatic: descriptor['isStatic'] as bool? ?? false,
+          implicit: descriptor['isImplicit'] as bool? ?? false,
         ),
       );
     });
     final fieldRefs = <FieldRef>[];
+
     final fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
     fieldDescriptors.forEach((name, descriptor) {
-      final classMetaData = descriptor.containsKey('classRefLibraryId') &&
-              descriptor.containsKey('classRefDartName')
-          ? ClassMetaData(
-              runtimeKind: RuntimeObjectKind.type,
-              classRef: classRefFor(
-                descriptor['classRefLibraryId'],
-                descriptor['classRefDartName'],
-              ),
-            )
-          : _classMetadataForUnknown;
+      final classMetaData = ClassMetaData(
+        runtimeKind: RuntimeObjectKind.type,
+        classRef: classRefFor(
+          descriptor['classLibraryId'],
+          descriptor['className'],
+        ),
+      );
 
       fieldRefs.add(
         FieldRef(
@@ -144,13 +140,19 @@ class ClassHelper extends Domain {
             kind: classMetaData.kind,
             classRef: classMetaData.classRef,
           ),
-          isConst: descriptor['isConst'] as bool,
-          isFinal: descriptor['isFinal'] as bool,
-          isStatic: descriptor['isStatic'] as bool,
+          isConst: descriptor['isConst'] as bool? ?? false,
+          isFinal: descriptor['isFinal'] as bool? ?? false,
+          isStatic: descriptor['isStatic'] as bool? ?? false,
           id: createId(),
         ),
       );
     });
+
+    final superClassLibraryId = classDescriptor['superClassLibraryId'];
+    final superClassName = classDescriptor['superClassName'];
+    final superClassRef = superClassName == null
+        ? null
+        : classRefFor(superClassLibraryId, superClassName);
 
     // TODO: Implement the rest of these
     // https://github.com/dart-lang/webdev/issues/176.
@@ -165,6 +167,7 @@ class ClassHelper extends Domain {
       subclasses: [],
       id: classId,
       traceAllocations: false,
+      superClass: superClassRef,
     );
   }
 }

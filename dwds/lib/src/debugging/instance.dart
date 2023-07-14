@@ -242,6 +242,10 @@ class InstanceHelper extends Domain {
       offset: offset,
       count: count,
       length: metaData.length,
+      ownProperties: false,
+      accessorPropertiesOnly: false,
+      generatePreview: true,
+      nonIndexedPropertiesOnly: true,
     );
     final dartProperties = await _dartFieldsFor(properties, remoteObject);
     var boundFields = await Future.wait(
@@ -785,6 +789,9 @@ class InstanceHelper extends Domain {
       returnByValue: true,
     );
     final names = List<String>.from(result.value as List);
+
+    _logger.severe('Fieldnames: $names');
+    _logger.severe('Properties: $allJsProperties');
 
     // TODO(#761): Better support for large collections.
     return allJsProperties

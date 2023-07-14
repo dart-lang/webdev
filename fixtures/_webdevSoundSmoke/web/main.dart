@@ -20,19 +20,29 @@ void main() {
   Timer.periodic(const Duration(seconds: 1), (_) {
     print('Counter is: ${++count}'); // Breakpoint: printCounter
 
-    print('${Mine(0)}');
+    var m = Mine(0);
+    print(m.x2);
+    print(m);
 
     var x = () => true;
     print(x);
   });
 }
 
-class Mine {
+class Mine extends A {
   static int y = 0;
   int x;
+  int _x = 15;
+
+  //late final x3 = 14;
+
+  int get x2 => x;
   Mine(this.x);
 }
 
-void foo() {
-  print('foo');
+class A {
+  int x1 = 1;
+  void foo() {
+    print('foo');
+  }
 }
