@@ -138,8 +138,7 @@ void _runTests({
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
 
-        final fields = await getFields(instanceRef, depth: 1);
-        expect(fields, matchTypeObject);
+        expect(await getFields(instanceRef, depth: 1), matchTypeObject);
         expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });
     });
