@@ -8,7 +8,7 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../fixtures/context.dart';
+import '../../fixtures/context.dart';
 
 class TestInspector {
   TestInspector(this.context);
