@@ -600,6 +600,8 @@ void main() {
           unorderedEquals([
             predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic!),
             predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
+            predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
+            predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
           ]),
         );
         expect(
@@ -611,7 +613,7 @@ void main() {
                   f.declaredType != null &&
                   !f.isStatic! &&
                   !f.isConst! &&
-                  f.isFinal!,
+                  !f.isFinal!,
             ),
             predicate(
               (FieldRef f) =>
@@ -626,22 +628,6 @@ void main() {
                   f.name == 'staticMessage' &&
                   f.declaredType != null &&
                   f.isStatic! &&
-                  !f.isConst! &&
-                  !f.isFinal!,
-            ),
-            predicate(
-              (FieldRef f) =>
-                  f.name == 'hashCode' &&
-                  f.declaredType != null &&
-                  !f.isStatic! &&
-                  !f.isConst! &&
-                  !f.isFinal!,
-            ),
-            predicate(
-              (FieldRef f) =>
-                  f.name == 'runtimeType' &&
-                  f.declaredType != null &&
-                  !f.isStatic! &&
                   !f.isConst! &&
                   !f.isFinal!,
             ),
@@ -1093,10 +1079,10 @@ void main() {
           expect(
             testClass.functions,
             unorderedEquals([
-              predicate(
-                (FuncRef f) => f.name == 'staticHello' && f.isStatic!,
-              ),
+              predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic!),
               predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
             ]),
           );
           expect(
@@ -1108,7 +1094,7 @@ void main() {
                     f.declaredType != null &&
                     !f.isStatic! &&
                     !f.isConst! &&
-                    f.isFinal!,
+                    !f.isFinal!,
               ),
               predicate(
                 (FieldRef f) =>
@@ -1123,22 +1109,6 @@ void main() {
                     f.name == 'staticMessage' &&
                     f.declaredType != null &&
                     f.isStatic! &&
-                    !f.isConst! &&
-                    !f.isFinal!,
-              ),
-              predicate(
-                (FieldRef f) =>
-                    f.name == 'hashCode' &&
-                    f.declaredType != null &&
-                    !f.isStatic! &&
-                    !f.isConst! &&
-                    !f.isFinal!,
-              ),
-              predicate(
-                (FieldRef f) =>
-                    f.name == 'runtimeType' &&
-                    f.declaredType != null &&
-                    !f.isStatic! &&
                     !f.isConst! &&
                     !f.isFinal!,
               ),
@@ -1157,10 +1127,10 @@ void main() {
           expect(
             testClass.functions,
             unorderedEquals([
-              predicate(
-                (FuncRef f) => f.name == 'staticHello' && f.isStatic!,
-              ),
+              predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic!),
               predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
             ]),
           );
           expect(
@@ -1172,7 +1142,7 @@ void main() {
                     f.declaredType != null &&
                     !f.isStatic! &&
                     !f.isConst! &&
-                    f.isFinal!,
+                    !f.isFinal!,
               ),
               predicate(
                 (FieldRef f) =>
@@ -1187,22 +1157,6 @@ void main() {
                     f.name == 'staticMessage' &&
                     f.declaredType != null &&
                     f.isStatic! &&
-                    !f.isConst! &&
-                    !f.isFinal!,
-              ),
-              predicate(
-                (FieldRef f) =>
-                    f.name == 'hashCode' &&
-                    f.declaredType != null &&
-                    !f.isStatic! &&
-                    !f.isConst! &&
-                    !f.isFinal!,
-              ),
-              predicate(
-                (FieldRef f) =>
-                    f.name == 'runtimeType' &&
-                    f.declaredType != null &&
-                    !f.isStatic! &&
                     !f.isConst! &&
                     !f.isFinal!,
               ),

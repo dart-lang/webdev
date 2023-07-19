@@ -103,10 +103,6 @@ abstract class AppInspectorInterface {
     int? offset,
     int? count,
     int? length,
-    bool ownProperties = true,
-    bool accessorPropertiesOnly = false,
-    bool generatePreview = false,
-    bool nonIndexedPropertiesOnly = false,
   });
 
   bool isDisplayableObject(Object? object);

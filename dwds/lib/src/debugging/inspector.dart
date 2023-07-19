@@ -573,10 +573,6 @@ class AppInspector implements AppInspectorInterface {
     int? offset,
     int? count,
     int? length,
-    bool ownProperties = false,
-    bool accessorPropertiesOnly = false,
-    bool generatePreview = true,
-    bool nonIndexedPropertiesOnly = false,
   }) async {
     String rangeId = objectId;
     // Ignore offset/count if there is no length:
@@ -600,10 +596,7 @@ class AppInspector implements AppInspectorInterface {
       resultField: 'result',
       params: {
         'objectId': rangeId,
-        'ownProperties': ownProperties,
-        'accessorPropertiesOnly': accessorPropertiesOnly,
-        'generatePreview': generatePreview,
-        'nonIndexedPropertiesOnly': nonIndexedPropertiesOnly,
+        'ownProperties': true,
       },
     );
     return jsProperties

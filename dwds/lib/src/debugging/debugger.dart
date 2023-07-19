@@ -712,10 +712,6 @@ Future<T> sendCommandAndValidateResult<T>(
 }) async {
   final response = await remoteDebugger.sendCommand(method, params: params);
   final result = response.result?[resultField];
-  final internalProperties = response.result?['internalProperties'];
-  if (internalProperties != null) {
-    Logger.root.severe('Properties: $result');
-  }
   if (result == null) {
     throw RPCError(
       method,

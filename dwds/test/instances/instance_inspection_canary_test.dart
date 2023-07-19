@@ -1,4 +1,4 @@
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17,7 +17,7 @@ void main() {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  _runAllTests(canaryFeatures: false, debug: debug);
+  _runAllTests(canaryFeatures: true, debug: debug);
 }
 
 void _runAllTests({bool canaryFeatures = false, bool debug = false}) {
@@ -29,15 +29,13 @@ void _runAllTests({bool canaryFeatures = false, bool debug = false}) {
     tearDownAll(provider.dispose);
 
     for (var compilationMode in CompilationMode.values) {
-      for (var nullSafetyMode in NullSafety.values) {
-        runTests(
-          provider: provider,
-          compilationMode: compilationMode,
-          nullSafetyMode: nullSafetyMode,
-          canaryFeatures: canaryFeatures,
-          debug: debug,
-        );
-      }
+      runTests(
+        provider: provider,
+        compilationMode: compilationMode,
+        nullSafetyMode: NullSafety.sound,
+        canaryFeatures: canaryFeatures,
+        debug: debug,
+      );
     }
   });
 }

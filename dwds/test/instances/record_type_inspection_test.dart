@@ -13,7 +13,7 @@ import 'package:vm_service/vm_service.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
-import 'instance_inspection_common.dart';
+import 'test_inspector.dart';
 
 void main() {
   // Enable verbose logging for debugging.

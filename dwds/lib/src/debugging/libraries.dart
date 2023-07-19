@@ -4,7 +4,6 @@
 
 import 'package:collection/collection.dart';
 import 'package:dwds/src/debugging/metadata/class.dart';
-import 'package:dwds/src/debugging/runtime.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/domain.dart';
@@ -90,10 +89,6 @@ class LibraryHelper extends Domain {
         return dart.getLibraryMetadata('$libraryUri');
       })()
     ''';
-
-    //final runtime = DebuggerRuntime(inspector);
-    //final result = await runtime.getLibraryMetadata(libraryUri);
-    //print('Library metadata: $result');
 
     RemoteObject? result;
     try {

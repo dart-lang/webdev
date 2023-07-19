@@ -15,7 +15,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
-import 'instance_inspection_common.dart';
+import 'test_inspector.dart';
 
 void runTests({
   required CompilationMode compilationMode,
