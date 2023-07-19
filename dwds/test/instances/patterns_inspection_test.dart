@@ -16,7 +16,7 @@ import 'package:vm_service/vm_service.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
-import 'instance_inspection_common.dart';
+import 'common/test_inspector.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
