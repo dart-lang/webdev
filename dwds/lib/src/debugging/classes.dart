@@ -7,14 +7,11 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/shared.dart';
-import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// Keeps track of Dart classes available in the running application.
 class ClassHelper extends Domain {
-  final _logger = Logger('ClassHelper');
-
   /// Map of class ID to [Class].
   final _classes = <String, Class>{};
 
@@ -79,7 +76,6 @@ class ClassHelper extends Domain {
     final classId = classRef.id;
 
     if (libraryUri == null || classId == null || className == null) return null;
-    _logger.severe('Constructing class: $className, library: $libraryUri');
 
     final expression = '''
       (function() {
@@ -101,7 +97,6 @@ class ClassHelper extends Domain {
     }
 
     final classDescriptor = result.value as Map<String, dynamic>;
-    _logger.severe('Class descriptor for $className: $classDescriptor');
     final methodRefs = <FuncRef>[];
     final methodDescriptors =
         classDescriptor['methods'] as Map<String, dynamic>;
@@ -115,6 +110,9 @@ class ClassHelper extends Domain {
           isConst: descriptor['isConst'] as bool? ?? false,
           isStatic: descriptor['isStatic'] as bool? ?? false,
           implicit: descriptor['isImplicit'] as bool? ?? false,
+          isAbstract: descriptor['isAbstract'] as bool? ?? false,
+          isGetter: descriptor['isGetter'] as bool? ?? false,
+          isSetter: descriptor['isSetter'] as bool? ?? false,
         ),
       );
     });

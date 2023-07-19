@@ -72,7 +72,8 @@ void runTests({
       /// A reference to the the variable `libraryPublicFinal`, an instance of
       /// `MyTestClass`.
       Future<RemoteObject> libraryPublicFinal(
-              CompilationMode compilationMode) =>
+        CompilationMode compilationMode,
+      ) =>
           inspector.jsEvaluate(
             libraryVariableExpression('libraryPublicFinal', compilationMode),
           );

@@ -39,7 +39,7 @@ void main() {
       await context.setUp(
         enableExpressionEvaluation: true,
         verboseCompiler: false,
-        canaryFeatures: false,
+        canaryFeatures: true,
       );
     });
 
@@ -613,7 +613,7 @@ void main() {
                   f.declaredType != null &&
                   !f.isStatic! &&
                   !f.isConst! &&
-                  !f.isFinal!,
+                  f.isFinal!,
             ),
             predicate(
               (FieldRef f) =>
@@ -1094,7 +1094,7 @@ void main() {
                     f.declaredType != null &&
                     !f.isStatic! &&
                     !f.isConst! &&
-                    !f.isFinal!,
+                    f.isFinal!,
               ),
               predicate(
                 (FieldRef f) =>
@@ -1142,7 +1142,7 @@ void main() {
                     f.declaredType != null &&
                     !f.isStatic! &&
                     !f.isConst! &&
-                    !f.isFinal!,
+                    f.isFinal!,
               ),
               predicate(
                 (FieldRef f) =>
