@@ -78,7 +78,7 @@ Future<void> runTests({
         final frame = event.topFrame!;
 
         expect(await getFrameVariables(frame), {
-          'obj': matchListInstance(type: matchListClassName('Object')),
+          'obj': matchListInstance(type: 'Object'),
           'a': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'a'),
           'n': matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
         });
@@ -90,7 +90,7 @@ Future<void> runTests({
         final frame = event.topFrame!;
 
         expect(await getFrameVariables(frame), {
-          'obj': matchListInstance(type: matchListClassName('Object')),
+          'obj': matchListInstance(type: 'Object'),
           'a': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'b'),
           'n': matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3.14),
         });
@@ -105,7 +105,7 @@ Future<void> runTests({
         expect(await getFields(instanceRef), [0, 1]);
 
         expect(await getFrameVariables(frame), {
-          'obj': matchListInstance(type: matchListClassName('int')),
+          'obj': matchListInstance(type: 'int'),
         });
       });
     });
@@ -153,7 +153,7 @@ Future<void> runTests({
         final vars = await getFrameVariables(frame);
         expect(vars, {
           'dog': matchPrimitiveInstance(kind: 'String', value: 'Prismo'),
-          'cats': matchListInstance(type: matchListClassName('String')),
+          'cats': matchListInstance(type: 'String'),
           'firstCat': matchPrimitiveInstance(kind: 'String', value: 'Garfield'),
           'secondCat': matchPrimitiveInstance(kind: 'String', value: 'Tom'),
         });

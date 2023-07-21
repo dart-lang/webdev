@@ -17,8 +17,8 @@ void runTests({
   required bool canaryFeatures,
   required bool debug,
 }) {
-  final context =
-      TestContext(TestProject.testExperimentWithSoundNullSafety, provider);
+  final project = TestProject.testExperimentWithSoundNullSafety;
+  final context = TestContext(project, provider);
   final testInspector = TestInspector(context);
 
   late VmServiceInterface service;
@@ -105,7 +105,6 @@ void runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
-
         expect(await getFields(instanceRef, depth: 1), matchTypeObject);
         expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
       });

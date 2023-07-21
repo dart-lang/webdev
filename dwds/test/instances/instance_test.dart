@@ -16,7 +16,7 @@ void main() {
   final debug = false;
   final canaryFeatures = false;
 
-  group('canaryFeatures: $canaryFeatures |', () {
+  group('canary: $canaryFeatures |', () {
     final provider = TestSdkConfigurationProvider(
       canaryFeatures: canaryFeatures,
       verbose: debug,

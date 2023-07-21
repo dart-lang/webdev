@@ -184,12 +184,7 @@ void runTests({
             final instanceRef = await getInstanceRef(frame, 'list');
 
             final instanceId = instanceRef.id!;
-            expect(
-              await getObject(instanceId),
-              matchListInstance(
-                type: canaryFeatures ? 'JSArray<int>' : 'List<int>',
-              ),
-            );
+            expect(await getObject(instanceId), matchListInstance(type: 'int'));
 
             expect(await getFields(instanceRef), [0, 1, 2]);
             expect(await getFields(instanceRef, offset: 1, count: 0), []);

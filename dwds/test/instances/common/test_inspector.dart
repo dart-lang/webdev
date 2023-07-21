@@ -296,8 +296,10 @@ Matcher matchRecordTypeClassRef = matchClassRef(
 );
 Matcher matchTypeClassRef =
     matchClassRef(name: matchTypeClassName, libraryId: _dartCoreLibrary);
-Matcher matchListClassRef(dynamic type) =>
-    matchClassRef(name: type, libraryId: _matchListLibraryName);
+Matcher matchListClassRef(String type) => matchClassRef(
+      name: matchListClassName(type),
+      libraryId: _matchListLibraryName,
+    );
 Matcher matchMapClassRef(String type) =>
     matchClassRef(name: type, libraryId: _dartJsHelperLibrary);
 Matcher matchSetClassRef(String type) =>
