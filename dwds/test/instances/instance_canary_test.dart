@@ -13,37 +13,43 @@ import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
-import 'instance_common.dart';
+import 'common/instance_common.dart';
 
 void main() {
   // Enable verbose logging for debugging.
-  final debug = true;
+  final debug = false;
+  final canaryFeatures = true;
 
-  for (var compilationMode in CompilationMode.values) {
-    _runCanaryModeVerificationTests(
-      compilationMode: compilationMode,
-      debug: debug,
+  group('canaryFeatures: $canaryFeatures |', () {
+    final provider = TestSdkConfigurationProvider(
+      canaryFeatures: canaryFeatures,
+      verbose: debug,
     );
+    tearDownAll(provider.dispose);
 
-    runTests(
-      compilationMode: compilationMode,
-      canaryFeatures: true,
-      debug: debug,
-    );
-  }
+    for (var compilationMode in CompilationMode.values) {
+      _runCanaryModeVerificationTests(
+        provider: provider,
+        compilationMode: compilationMode,
+        debug: debug,
+      );
+
+      runTests(
+        provider: provider,
+        compilationMode: compilationMode,
+        canaryFeatures: canaryFeatures,
+        debug: debug,
+      );
+    }
+  });
 }
 
 void _runCanaryModeVerificationTests({
+  required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   required bool debug,
 }) {
-  final provider = TestSdkConfigurationProvider(
-    canaryFeatures: true,
-    verbose: debug,
-  );
-
   final project = TestProject.testScopesWithSoundNullSafety;
-  tearDownAll(provider.dispose);
 
   group('$compilationMode |', () {
     final context = TestContext(project, provider);

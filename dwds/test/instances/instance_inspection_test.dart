@@ -11,16 +11,13 @@ import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
-import 'instance_inspection_common.dart';
+import 'common/instance_inspection_common.dart';
 
 void main() {
   // Enable verbose logging for debugging.
   final debug = false;
+  final canaryFeatures = false;
 
-  _runAllTests(canaryFeatures: false, debug: debug);
-}
-
-void _runAllTests({bool canaryFeatures = false, bool debug = false}) {
   group('canaryFeatures: $canaryFeatures |', () {
     final provider = TestSdkConfigurationProvider(
       verbose: debug,

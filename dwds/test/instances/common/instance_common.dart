@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Tags(['daily'])
-@Timeout(Duration(minutes: 2))
-
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
@@ -13,24 +10,19 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
+import '../../fixtures/context.dart';
+import '../../fixtures/project.dart';
 import 'test_inspector.dart';
 
 void runTests({
+  required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   required bool canaryFeatures,
   required bool debug,
 }) {
   group('canaryFeatures: $canaryFeatures |', () {
-    final provider = TestSdkConfigurationProvider(
-      canaryFeatures: canaryFeatures,
-      verbose: debug,
-    );
     final project = TestProject.testScopesWithSoundNullSafety;
     final context = TestContext(project, provider);
-
-    tearDownAll(provider.dispose);
 
     late AppInspector inspector;
 

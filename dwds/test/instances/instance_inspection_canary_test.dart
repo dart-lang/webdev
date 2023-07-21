@@ -1,4 +1,4 @@
-// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,16 +11,13 @@ import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
-import 'instance_inspection_common.dart';
+import 'common/instance_inspection_common.dart';
 
 void main() {
   // Enable verbose logging for debugging.
   final debug = false;
+  final canaryFeatures = true;
 
-  _runAllTests(canaryFeatures: true, debug: debug);
-}
-
-void _runAllTests({bool canaryFeatures = false, bool debug = false}) {
   group('canaryFeatures: $canaryFeatures |', () {
     final provider = TestSdkConfigurationProvider(
       verbose: debug,

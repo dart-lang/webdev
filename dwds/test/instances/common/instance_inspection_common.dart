@@ -7,23 +7,21 @@ import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
+import '../../fixtures/context.dart';
+import '../../fixtures/project.dart';
 import 'test_inspector.dart';
-
-const _mainLibraryUri = 'org-dartlang-app:///web/main.dart';
 
 void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
-  required NullSafety nullSafetyMode,
   required bool canaryFeatures,
+  required NullSafety nullSafetyMode,
   required bool debug,
 }) {
-  final testProject = nullSafetyMode == NullSafety.sound
+  final project = nullSafetyMode == NullSafety.sound
       ? TestProject.testPackageWithSoundNullSafety()
       : TestProject.testPackageWithWeakNullSafety();
-  final context = TestContext(testProject, provider);
+  final context = TestContext(project, provider);
 
   late VmServiceInterface service;
   late Stream<Event> stream;
@@ -66,7 +64,6 @@ void runTests({
 
         final vm = await service.getVM();
         isolateId = vm.isolates!.first.id!;
-
         final scripts = await service.getScripts(isolateId);
 
         await service.streamListen('Debug');
@@ -86,34 +83,33 @@ void runTests({
       });
 
       group('Library |', () {
-        test('class names', () async {
-          final library = await service.getObject(isolateId, _mainLibraryUri);
+        test('classes', () async {
+          const libraryId = 'org-dartlang-app:///web/main.dart';
+          final library = await getObject(libraryId);
 
           expect(
             library,
-            isA<Library>()
-                .having((l) => l.name, 'library name', endsWith('main.dart'))
-                .having((l) => l.classes!.map((e) => e.name), 'class names', [
-              'MainClass',
-              'EnclosedClass',
-              'ClassWithMethod',
-              'EnclosingClass',
-            ]),
+            isA<Library>().having(
+              (l) => l.classes,
+              'classes',
+              [
+                matchClassRef(name: 'MainClass', libraryId: libraryId),
+                matchClassRef(name: 'EnclosedClass', libraryId: libraryId),
+                matchClassRef(name: 'ClassWithMethod', libraryId: libraryId),
+                matchClassRef(name: 'EnclosingClass', libraryId: libraryId),
+              ],
+            ),
           );
         });
       });
 
       group('Class |', () {
-        test('name', () async {
-          final cls = await service.getObject(
-            isolateId,
-            'classes|$_mainLibraryUri|MainClass',
-          );
+        test('name and library', () async {
+          const libraryId = 'org-dartlang-app:///web/main.dart';
+          const className = 'MainClass';
+          final cls = await getObject('classes|$libraryId|$className');
 
-          expect(
-            cls,
-            matchClass(name: 'MainClass', libraryId: _mainLibraryUri),
-          );
+          expect(cls, matchClass(name: className, libraryId: libraryId));
         });
       });
 
@@ -127,7 +123,7 @@ void runTests({
             expect(
               await getObject(instanceId),
               matchPlainInstance(
-                libraryId: _mainLibraryUri,
+                libraryId: 'org-dartlang-app:///web/main.dart',
                 type: 'MainClass',
               ),
             );
@@ -190,7 +186,9 @@ void runTests({
             final instanceId = instanceRef.id!;
             expect(
               await getObject(instanceId),
-              matchListInstance(type: matchListClassName('int')),
+              matchListInstance(
+                type: canaryFeatures ? 'JSArray<int>' : 'List<int>',
+              ),
             );
 
             expect(await getFields(instanceRef), [0, 1, 2]);
