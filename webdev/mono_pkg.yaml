@@ -5,18 +5,19 @@ stages:
       - format
       - analyze: --fatal-infos .
       - test: test/build/ensure_build_test.dart
-      sdk: dev
+      # sdk: dev
+      sdk: main
   - unit_test:
     - group:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
       - test: -j 1
       sdk:
-        - dev
+      # - dev
         - main
     - test: -j 1
       os: windows
       sdk:
-        - dev
+      # - dev
         - main
   - beta_cron:
     - analyze: .
