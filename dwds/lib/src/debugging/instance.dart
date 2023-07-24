@@ -868,17 +868,16 @@ class InstanceHelper extends Domain {
           id: objectId,
           identityHashCode: objectId.hashCode,
           classRef: classRefForClosure,
-          // TODO(grouma) - fill this in properly.
+          // TODO(annagrin) - fill this in properly.
           closureFunction: FuncRef(
             name: functionMetaData.name,
             id: createId(),
-            // TODO(alanknight): The right ClassRef
             owner: classRefForUnknown,
             isConst: false,
             isStatic: false,
-            // TODO(annagrin): get information about getters and setters from symbols.
-            // https://github.com/dart-lang/sdk/issues/46723
             implicit: false,
+            isGetter: false,
+            isSetter: false,
           ),
           closureContext: ContextRef(length: 0, id: createId()),
         );

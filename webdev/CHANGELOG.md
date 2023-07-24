@@ -1,6 +1,7 @@
 ## 3.0.7-wip
 
 - Update `build_web_compilers` constraint to `^4.0.4`.
+- Update SDK constraint to `>=3.1.0-340.0.dev <4.0.0`.
 
 ## 3.0.6
 

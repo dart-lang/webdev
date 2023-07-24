@@ -39,7 +39,6 @@ void main() {
       await context.setUp(
         enableExpressionEvaluation: true,
         verboseCompiler: false,
-        canaryFeatures: true,
       );
     });
 
