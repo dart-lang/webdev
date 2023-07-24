@@ -338,7 +338,7 @@ final matchRecordClassName = 'Record';
 final matchRecordTypeClassName = 'RecordType';
 
 /// Match types for old and new type systems.
-/// - Old type system has `dart:core|List` and `dart:_runtime|_Type`.
+/// - Old type system has `dart:_interceptors|List` and `dart:_runtime|_Type`.
 /// - New type system has `dart:_interceptors|JSArray` and `dart:core|Type`.
 /// TODO(annagrin): update when DDC enables new type system.
 final matchTypeClassName = anyOf(['Type', '_Type']);

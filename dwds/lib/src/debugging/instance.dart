@@ -204,6 +204,8 @@ class InstanceHelper extends Domain {
   /// Create a bound field for [property] in an instance of [classRef].
   Future<BoundField> _fieldFor(Property property, ClassRef classRef) async {
     final instance = await _instanceRefForRemote(property.value);
+    // TODO(annagrin): convert JS name to dart and fill missing information.
+    //https://github.com/dart-lang/sdk/issues/46723
     return BoundField(
       name: property.name,
       decl: FieldRef(
@@ -216,7 +218,6 @@ class InstanceHelper extends Domain {
           id: createId(),
         ),
         owner: classRef,
-        // TODO(grouma) - Fill these in.
         isConst: false,
         isFinal: false,
         isStatic: false,
@@ -863,12 +864,13 @@ class InstanceHelper extends Domain {
           inspector.remoteDebugger,
           remoteObject,
         );
+        // TODO(annagrin) - fill missing information.
+        // https://github.com/dart-lang/sdk/issues/46723
         return InstanceRef(
           kind: InstanceKind.kClosure,
           id: objectId,
           identityHashCode: objectId.hashCode,
           classRef: classRefForClosure,
-          // TODO(annagrin) - fill this in properly.
           closureFunction: FuncRef(
             name: functionMetaData.name,
             id: createId(),
