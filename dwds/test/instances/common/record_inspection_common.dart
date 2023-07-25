@@ -11,12 +11,12 @@ import '../../fixtures/context.dart';
 import '../../fixtures/project.dart';
 import 'test_inspector.dart';
 
-Future<void> runTests({
+void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   required bool canaryFeatures,
   required bool debug,
-}) async {
+}) {
   final context =
       TestContext(TestProject.testExperimentWithSoundNullSafety, provider);
   final testInspector = TestInspector(context);
