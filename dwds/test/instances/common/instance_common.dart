@@ -14,6 +14,72 @@ import '../../fixtures/context.dart';
 import '../../fixtures/project.dart';
 import 'test_inspector.dart';
 
+void runTypeSystemVerificationTests({
+  required TestSdkConfigurationProvider provider,
+  required CompilationMode compilationMode,
+  required bool canaryFeatures,
+  required bool debug,
+}) {
+  final project = TestProject.testScopesWithSoundNullSafety;
+
+  group('$compilationMode |', () {
+    final context = TestContext(project, provider);
+    late AppInspector inspector;
+
+    setUpAll(() async {
+      setCurrentLogWriter(debug: debug);
+      await context.setUp(
+        canaryFeatures: canaryFeatures,
+        compilationMode: compilationMode,
+      );
+      final chromeProxyService = context.service;
+      inspector = chromeProxyService.inspector;
+    });
+
+    tearDownAll(() async {
+      await context.tearDown();
+    });
+
+    final url = 'org-dartlang-app:///example/scopes/main.dart';
+
+    String libraryName(CompilationMode compilationMode) =>
+        compilationMode == CompilationMode.frontendServer
+            ? "example/scopes/main.dart"
+            : "example/scopes/main";
+
+    String libraryVariableTypeExpression(
+      String variable,
+      CompilationMode compilationMode,
+    ) =>
+        '''
+            (function() {
+              var dart = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
+              var libraryName = '${libraryName(compilationMode)}';
+              var library = dart.getModuleLibraries(libraryName)['$url'];
+              var x = library['$variable'];
+              return dart.getReifiedType(x);
+            })();
+          ''';
+
+    group('compiler', () {
+      setUp(() => setCurrentLogWriter(debug: debug));
+
+      test('uses correct type system', () async {
+        final remoteObject = await inspector.jsEvaluate(
+          libraryVariableTypeExpression(
+            'libraryPublicFinal',
+            compilationMode,
+          ),
+        );
+        expect(
+          remoteObject.json['className'],
+          canaryFeatures ? 'dart_rti.Rti.new' : 'Function',
+        );
+      });
+    });
+  });
+}
+
 void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,

@@ -24,6 +24,13 @@ void main() {
     tearDownAll(provider.dispose);
 
     for (var compilationMode in CompilationMode.values) {
+      runTypeSystemVerificationTests(
+        provider: provider,
+        compilationMode: compilationMode,
+        canaryFeatures: canaryFeatures,
+        debug: debug,
+      );
+
       runTests(
         provider: provider,
         compilationMode: compilationMode,
