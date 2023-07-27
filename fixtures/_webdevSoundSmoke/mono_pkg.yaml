@@ -4,8 +4,7 @@ stages:
     - group:
       - format
       - analyze: --fatal-infos .
-      # sdk: dev
-      sdk: main
+      sdk: dev
 
 cache:
   directories:
