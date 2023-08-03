@@ -143,20 +143,22 @@ void main() {
         await context.tearDown();
       });
 
-      test('emits DEBUGGER_READY and DEVTOOLS_LOAD events', () async {
-        await expectEventsDuring(
-          [
-            matchesEvent(DwdsEventKind.debuggerReady, {
-              'elapsedMilliseconds': isNotNull,
-              'screen': equals('debugger'),
-            }),
-            matchesEvent(DwdsEventKind.devToolsLoad, {
-              'elapsedMilliseconds': isNotNull,
-              'screen': equals('debugger'),
-            }),
-          ],
-          () => keyboard.sendChord([Keyboard.alt, 'd']),
-        );
+      test(
+        'emits DEBUGGER_READY and DEVTOOLS_LOAD events',
+        () async {
+          await expectEventsDuring(
+            [
+              matchesEvent(DwdsEventKind.debuggerReady, {
+                'elapsedMilliseconds': isNotNull,
+                'screen': equals('debugger'),
+              }),
+              matchesEvent(DwdsEventKind.devToolsLoad, {
+                'elapsedMilliseconds': isNotNull,
+                'screen': equals('debugger'),
+              }),
+            ],
+            () => keyboard.sendChord([Keyboard.alt, 'd']),
+          );
         },
         skip: 'https://github.com/dart-lang/webdev/issues/2181',
       );
