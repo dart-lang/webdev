@@ -157,7 +157,9 @@ void main() {
           ],
           () => keyboard.sendChord([Keyboard.alt, 'd']),
         );
-      });
+        },
+        skip: 'https://github.com/dart-lang/webdev/issues/2181',
+      );
 
       test('emits DEVTOOLS_LAUNCH event', () async {
         await expectEventDuring(
