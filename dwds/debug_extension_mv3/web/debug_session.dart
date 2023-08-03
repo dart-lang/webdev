@@ -485,11 +485,8 @@ bool _shouldSkipEventForChrome115Bug(String command) {
   if (unsupportedOnChrome115) {
     final chromeVersionMatch =
         RegExp('Chrome/([0-9.]+)').firstMatch(window.navigator.userAgent);
-    final chromeVersion =
-        chromeVersionMatch == null ? '' : chromeVersionMatch[0];
-    if (chromeVersion?.startsWith('Chrome/115') ?? false) {
-      return true;
-    }
+    final chromeVersion = chromeVersionMatch?[0];
+    return chromeVersion?.startsWith('Chrome/115') ?? false;
   }
   return false;
 }
