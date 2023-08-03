@@ -81,27 +81,15 @@ class LibraryHelper extends Domain {
     final libraryId = libraryRef.id;
     final libraryUri = libraryRef.uri;
     if (libraryId == null || libraryUri == null) return null;
-
     // Fetch information about all the classes in this library.
     final expression = '''
-    (function() {
-      ${globalLoadStrategy.loadLibrarySnippet(libraryUri)}
-      var result = {};
-      var classes = Object.values(Object.getOwnPropertyDescriptors(library))
-        .filter((p) => 'value' in p)
-        .map((p) => p.value)
-        .filter((l) => l && sdkUtils.isType(l));
-      var classList = classes.map(function(clazz) {
-        var descriptor = {
-          'name': clazz.name,
-          'dartName': sdkUtils.typeName(clazz)
-        };
-        return descriptor;
-      });
-      result['classes'] = classList;
-      return result;
-    })()
+      (function() {
+        const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+        const dart = sdk.dart;
+        return dart.getLibraryMetadata('$libraryUri');
+      })()
     ''';
+
     RemoteObject? result;
     try {
       result = await inspector.jsEvaluate(expression, returnByValue: true);
@@ -115,16 +103,14 @@ class LibraryHelper extends Domain {
     }
     final classRefs = <ClassRef>[];
     if (result != null) {
-      final jsonValues = result.value as Map<String, dynamic>;
-      final classDescriptors =
-          List<Map<String, dynamic>>.from(jsonValues['classes'] ?? []);
-      for (final classDescriptor in classDescriptors) {
+      final classNames = result.value as List;
+
+      for (final className in classNames) {
         final classMetaData = ClassMetaData(
-          jsName: classDescriptor['name'],
           runtimeKind: RuntimeObjectKind.type,
           classRef: classRefFor(
             libraryRef.id,
-            classDescriptor['dartName'],
+            className,
           ),
         );
         classRefs.add(classMetaData.classRef);

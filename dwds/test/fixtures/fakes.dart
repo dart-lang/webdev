@@ -331,12 +331,6 @@ class FakeStrategy implements LoadStrategy {
   String get loadLibrariesModule => '';
 
   @override
-  String get loadLibrariesSnippet => '';
-
-  @override
-  String loadLibrarySnippet(String libraryUri) => '';
-
-  @override
   String get loadModuleSnippet => '';
 
   @override

@@ -10,12 +10,12 @@ import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
-import 'common/record_inspection_common.dart';
+import 'common/type_inspection_common.dart';
 
 void main() {
   // Enable verbose logging for debugging.
   final debug = false;
-  final canaryFeatures = false;
+  final canaryFeatures = true;
 
   group('canary: $canaryFeatures |', () {
     final provider = TestSdkConfigurationProvider(

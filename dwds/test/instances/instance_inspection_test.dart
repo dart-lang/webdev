@@ -13,21 +13,28 @@ import '../fixtures/context.dart';
 import '../fixtures/project.dart';
 import 'common/instance_inspection_common.dart';
 
-void main() async {
+void main() {
   // Enable verbose logging for debugging.
   final debug = false;
+  final canaryFeatures = false;
 
-  final provider = TestSdkConfigurationProvider(verbose: debug);
-  tearDownAll(provider.dispose);
+  group('canary: $canaryFeatures |', () {
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+    );
+    tearDownAll(provider.dispose);
 
-  for (var compilationMode in CompilationMode.values) {
-    for (var nullSafetyMode in NullSafety.values) {
-      await runTests(
-        provider: provider,
-        compilationMode: compilationMode,
-        nullSafetyMode: nullSafetyMode,
-        debug: debug,
-      );
+    for (var compilationMode in CompilationMode.values) {
+      for (var nullSafetyMode in NullSafety.values) {
+        runTests(
+          provider: provider,
+          compilationMode: compilationMode,
+          nullSafetyMode: nullSafetyMode,
+          canaryFeatures: canaryFeatures,
+          debug: debug,
+        );
+      }
     }
-  }
+  });
 }

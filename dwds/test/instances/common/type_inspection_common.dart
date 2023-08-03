@@ -11,13 +11,14 @@ import '../../fixtures/context.dart';
 import '../../fixtures/project.dart';
 import 'test_inspector.dart';
 
-Future<void> runTests({
+void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
+  required bool canaryFeatures,
   required bool debug,
-}) async {
-  final context =
-      TestContext(TestProject.testExperimentWithSoundNullSafety, provider);
+}) {
+  final project = TestProject.testExperimentWithSoundNullSafety;
+  final context = TestContext(project, provider);
   final testInspector = TestInspector(context);
 
   late VmServiceInterface service;
@@ -55,14 +56,13 @@ Future<void> runTests({
 
   final matchTypeObject = {
     'hashCode': matchPrimitiveInstanceRef(kind: InstanceKind.kDouble),
-    'runtimeType': matchTypeInstanceRef('Type'),
+    'runtimeType': matchTypeInstanceRef(matchTypeClassName),
   };
 
   final matchDisplayedTypeObject = [
     matches('[0-9]*'),
-    'Type',
+    matchTypeClassName,
   ];
-
   group('$compilationMode |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
@@ -71,6 +71,7 @@ Future<void> runTests({
         enableExpressionEvaluation: true,
         verboseCompiler: debug,
         experiments: ['records', 'patterns'],
+        canaryFeatures: canaryFeatures,
       );
       service = context.debugConnection.vmService;
 

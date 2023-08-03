@@ -35,10 +35,6 @@ abstract class LoadStrategy {
   /// Used for preventing stepping into the library loading code.
   String get loadLibrariesModule;
 
-  /// Returns a snippet of JS code that loads all Dart libraries into a `libs`
-  /// variable.
-  String get loadLibrariesSnippet;
-
   /// Returns a snippet of JS code that can be used to load a JS module.
   ///
   /// The snippet should be a reference to a function that takes a single
@@ -51,23 +47,6 @@ abstract class LoadStrategy {
   /// The URI for the app's entrypoint file, which is usually `main.dart`. It
   /// should be a package URI, e.g. `package:myapp/main.dart`.
   Uri? get appEntrypoint;
-
-  /// Returns a snippet of JS code that initializes a `library` variable that
-  /// has the actual library object in DDC for [libraryUri].
-  ///
-  /// In DDC we have module libraries indexed by names of the form
-  /// 'packages/package/mainFile' with no .dart suffix on the file, or
-  /// 'directory/packageName/mainFile', also with no .dart suffix, and relative
-  /// to the serving root, normally /web within the package. These modules have
-  /// a map from the URI with a Dart-specific scheme
-  /// (package: or org-dartlang-app:) to the library objects. The [libraryUri]
-  /// parameter should be one of these Dart-specific scheme URIs, and we set
-  /// `library` the corresponding library.
-  String loadLibrarySnippet(String libraryUri) => '''
-   var sdkUtils = $loadModuleSnippet('dart_sdk').dart;
-   var library = sdkUtils.getLibrary('$libraryUri');
-   if (!library) throw 'cannot find library for $libraryUri';
-  ''';
 
   /// Returns the bootstrap required for this [LoadStrategy].
   ///

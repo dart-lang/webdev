@@ -156,8 +156,10 @@ class TestContext {
       // Make sure configuration was created correctly.
       final configuration = await sdkConfigurationProvider.configuration;
       configuration.validate();
+      await project.cleanUp();
 
       DartUri.currentDirectory = project.absolutePackageDirectory;
+
       configureLogWriter();
 
       _client = IOClient(

@@ -15,7 +15,7 @@ import 'common/record_inspection_common.dart';
 void main() {
   // Enable verbose logging for debugging.
   final debug = false;
-  final canaryFeatures = false;
+  final canaryFeatures = true;
 
   group('canary: $canaryFeatures |', () {
     final provider = TestSdkConfigurationProvider(

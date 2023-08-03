@@ -63,5 +63,5 @@ class Property {
   }
 
   @override
-  String toString() => '$name $value';
+  String toString() => '$name: $value';
 }

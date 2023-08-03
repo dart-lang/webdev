@@ -14,15 +14,29 @@ import 'common/instance_common.dart';
 void main() {
   // Enable verbose logging for debugging.
   final debug = false;
+  final canaryFeatures = false;
 
-  final provider = TestSdkConfigurationProvider(verbose: debug);
-  tearDownAll(provider.dispose);
-
-  for (var compilationMode in CompilationMode.values) {
-    runTests(
-      provider: provider,
-      compilationMode: compilationMode,
-      debug: debug,
+  group('canary: $canaryFeatures |', () {
+    final provider = TestSdkConfigurationProvider(
+      canaryFeatures: canaryFeatures,
+      verbose: debug,
     );
-  }
+    tearDownAll(provider.dispose);
+
+    for (var compilationMode in CompilationMode.values) {
+      runTypeSystemVerificationTests(
+        provider: provider,
+        compilationMode: compilationMode,
+        canaryFeatures: canaryFeatures,
+        debug: debug,
+      );
+
+      runTests(
+        provider: provider,
+        compilationMode: compilationMode,
+        canaryFeatures: canaryFeatures,
+        debug: debug,
+      );
+    }
+  });
 }
