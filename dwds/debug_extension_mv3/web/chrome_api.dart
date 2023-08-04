@@ -134,6 +134,16 @@ class Notifications {
     NotificationOptions options,
     Function? callback,
   );
+
+  external OnClickedHandler get onClicked;
+}
+
+@JS()
+@anonymous
+class OnClickedHandler {
+  external void addListener(
+    void Function(String) callback,
+  );
 }
 
 @JS()
