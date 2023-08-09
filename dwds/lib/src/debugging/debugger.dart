@@ -121,32 +121,45 @@ class Debugger extends Domain {
   /// Note that stepping will automatically continue until Chrome is paused at
   /// a location for which we have source information.
   Future<Success> resume({String? step, int? frameIndex}) async {
-    if (frameIndex != null) {
-      throw ArgumentError('FrameIndex is currently unsupported.');
-    }
-    WipResponse? result;
-    if (step != null) {
-      _isStepping = true;
-      switch (step) {
-        case 'Over':
-          result = await _remoteDebugger.stepOver();
-          break;
-        case 'Out':
-          result = await _remoteDebugger.stepOut();
-          break;
-        case 'Into':
-          result = await _remoteDebugger.stepInto();
-          break;
-        default:
-          throwInvalidParam('resume', 'Unexpected value for step: $step');
+    try {
+      if (frameIndex != null) {
+        throw ArgumentError('FrameIndex is currently unsupported.');
       }
-    } else {
-      _isStepping = false;
-      _previousSteppingLocation = null;
-      result = await _remoteDebugger.resume();
+      WipResponse? result;
+      if (step != null) {
+        _isStepping = true;
+        switch (step) {
+          case 'Over':
+            result = await _remoteDebugger.stepOver();
+            break;
+          case 'Out':
+            result = await _remoteDebugger.stepOut();
+            break;
+          case 'Into':
+            result = await _remoteDebugger.stepInto();
+            break;
+          default:
+            throwInvalidParam('resume', 'Unexpected value for step: $step');
+        }
+      } else {
+        _isStepping = false;
+        _previousSteppingLocation = null;
+        result = await _remoteDebugger.resume();
+      }
+      handleErrorIfPresent(result);
+      return Success();
+    } on WipError catch (e) {
+      final errorMessage = e.message;
+      if (errorMessage != null &&
+          errorMessage.contains('Can only perform operation while paused')) {
+        throw RPCError(
+          'resume',
+          RPCErrorKind.kIsolateMustBePaused.code,
+          errorMessage,
+        );
+      }
+      rethrow;
     }
-    handleErrorIfPresent(result);
-    return Success();
   }
 
   /// Returns the current Dart stack for the paused debugger.
