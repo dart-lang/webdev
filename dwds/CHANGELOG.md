@@ -1,3 +1,7 @@
+## 19.0.1+1
+
+- Fix for Flutter crash when resuming and app is not paused. - [#132160](https://github.com/flutter/flutter/issues/132160)
+
 ## 19.0.1
 
 - Do not show async frame errors on evaluation. - [#2073](https://github.com/dart-lang/webdev/pull/2073)
