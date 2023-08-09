@@ -5,6 +5,7 @@
 - Require min `build_web_compilers` version `4.0.4` - [#2171](https://github.com/dart-lang/webdev/pull/2171)
 - Switch to using new debugging API from DDC to support new type system. - [#2159](https://github.com/dart-lang/webdev/pull/2159)
 - Fix Flutter crash when calling `resume` when app is not paused. - [#2188](https://github.com/dart-lang/webdev/pull/2188)
+- Update file dependency to `7.0.0`.
 
 ## 19.0.2
 
