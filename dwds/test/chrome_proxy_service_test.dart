@@ -1373,11 +1373,11 @@ void main() {
         await service.resume(isolateId!);
       });
 
-      test('resuming throws error if not paused', () async {
+      test('resuming throws kIsolateMustBePaused error if not paused',
+          () async {
         await expectLater(
           service.resume(isolateId!),
-          // Note: 106 is the `kIsolateMustBePaused` error code.
-          throwsRPCErrorWithMessage('106'),
+          throwsRPCErrorWithCode(RPCErrorKind.kIsolateMustBePaused.code),
         );
       });
     });

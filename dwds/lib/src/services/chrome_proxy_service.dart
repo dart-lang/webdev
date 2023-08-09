@@ -1080,17 +1080,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           isolateId,
           step: step,
           frameIndex: frameIndex,
-        ).catchError(
-          (error) => Future<Success>.error(
-            RPCError(
-              'resume',
-              RPCErrorKind.kIsolateMustBePaused.code,
-              error,
-            ),
-          ),
-          test: (e) => e.toString().contains(
-                'Can only perform operation while paused',
-              ),
         ),
       );
 
