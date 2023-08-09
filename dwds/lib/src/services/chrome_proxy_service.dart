@@ -1088,33 +1088,20 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String? step,
     int? frameIndex,
   }) async {
-    try {
-      if (inspector.appConnection.isStarted) {
-        return captureElapsedTime(
-          () async {
-            await isInitialized;
-            await isStarted;
-            _checkIsolate('resume', isolateId);
-            return await (await debuggerFuture)
-                .resume(step: step, frameIndex: frameIndex);
-          },
-          (result) => DwdsEvent.resume(step),
-        );
-      } else {
-        inspector.appConnection.runMain();
-        return Success();
-      }
-    } on WipError catch (e) {
-      final errorMessage = e.message;
-      if (errorMessage != null &&
-          errorMessage.contains('Can only perform operation while paused')) {
-        throw RPCError(
-          'resume',
-          RPCErrorKind.kIsolateMustBePaused.code,
-          errorMessage,
-        );
-      }
-      rethrow;
+    if (inspector.appConnection.isStarted) {
+      return captureElapsedTime(
+        () async {
+          await isInitialized;
+          await isStarted;
+          _checkIsolate('resume', isolateId);
+          return await (await debuggerFuture)
+              .resume(step: step, frameIndex: frameIndex);
+        },
+        (result) => DwdsEvent.resume(step),
+      );
+    } else {
+      inspector.appConnection.runMain();
+      return Success();
     }
   }
 

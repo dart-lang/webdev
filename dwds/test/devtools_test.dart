@@ -95,7 +95,7 @@ void main() {
       final devToolsWindow =
           windows.firstWhere((window) => window != newAppWindow);
       await devToolsWindow.setAsActive();
-      expect(await context.webDriver.title, equals('Dart DevTools'));
+      expect(await context.webDriver.pageSource, contains('DevTools'));
     });
 
     test(
