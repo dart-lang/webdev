@@ -1,3 +1,7 @@
+## 20.0.1
+
+- Update file dependency to `>=6.0.0 < 8.0.0` - [#123260](https://github.com/flutter/flutter/pull/123260#issuecomment-1674001623).
+
 ## 20.0.0
 
 - Require clients to specify the `basePath` on `AssetReader`. - [#2160](https://github.com/dart-lang/webdev/pull/2160)

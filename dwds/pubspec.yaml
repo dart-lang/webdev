@@ -1,6 +1,6 @@
 name: dwds
 # Every time this changes you need to run `dart run build_runner build`.
-version: 20.0.0
+version: 20.0.1
 description: >-
   A service that proxies between the Chrome debug protocol and the Dart VM
   service protocol.
@@ -15,7 +15,7 @@ dependencies:
   collection: ^1.15.0
   crypto: ^3.0.2
   dds: ^2.7.1
-  file: ^7.0.0
+  file: ">=6.0.0 <8.0.0"
   http: ^0.13.4
   http_multi_server: ^3.2.0
   logging: ^1.0.2
