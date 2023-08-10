@@ -1,6 +1,6 @@
 ## 19.0.2+1
 
-- Fix for Flutter crash when resuming and app is not paused. - [#132160](https://github.com/flutter/flutter/issues/132160)
+- Fix for Flutter crash when resuming and the app is not paused. - [#132160](https://github.com/flutter/flutter/issues/132160)
 
 ## 19.0.2
 
