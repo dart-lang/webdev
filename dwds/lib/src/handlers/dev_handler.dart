@@ -684,6 +684,7 @@ class DevHandler {
       scheme: 'http',
       host: devTools.hostname,
       port: devTools.port,
+      path: 'debugger',
       queryParameters: {
         'uri': debugServiceUri,
         if (ideQueryParam.isNotEmpty) 'ide': ideQueryParam,
