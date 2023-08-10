@@ -1,3 +1,7 @@
+## 19.0.2+1
+
+- Fix for Flutter crash when resuming and the app is not paused. - [#132160](https://github.com/flutter/flutter/issues/132160)
+
 ## 19.0.2
 
 - Fix Flutter crash due to potential null value in `setUpChromeConsoleListener`. - [#2162](https://github.com/dart-lang/webdev/pull/2162)

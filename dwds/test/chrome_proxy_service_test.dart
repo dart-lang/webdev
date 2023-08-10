@@ -1368,11 +1368,16 @@ void main() {
         expect(pauseBreakpoints, hasLength(1));
         expect(pauseBreakpoints.first.id, bp.id);
         await service.removeBreakpoint(isolateId!, bp.id!);
-      });
-
-      tearDown(() async {
         // Resume execution to not impact other tests.
         await service.resume(isolateId!);
+      });
+
+      test('resuming throws kIsolateMustBePaused error if not paused',
+          () async {
+        await expectLater(
+          service.resume(isolateId!),
+          throwsRPCErrorWithCode(RPCErrorKind.kIsolateMustBePaused.code),
+        );
       });
     });
 
