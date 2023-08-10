@@ -4,6 +4,7 @@
 - Update SDK constraint to `>=3.1.0-254.0.dev <4.0.0`. - [#2169](https://github.com/dart-lang/webdev/pull/2169)
 - Require min `build_web_compilers` version `4.0.4` - [#2171](https://github.com/dart-lang/webdev/pull/2171)
 - Switch to using new debugging API from DDC to support new type system. - [#2159](https://github.com/dart-lang/webdev/pull/2159)
+- Fix Flutter crash when calling `resume` when app is not paused. - [#2188](https://github.com/dart-lang/webdev/pull/2188)
 
 ## 19.0.2
 

@@ -55,6 +55,10 @@ Matcher isRPCErrorWithMessage(String message) =>
 Matcher throwsRPCErrorWithMessage(String message) =>
     throwsA(isRPCErrorWithMessage(message));
 
+Matcher isRPCErrorWithCode(int code) =>
+    isA<RPCError>().having((e) => e.code, 'code', equals(code));
+Matcher throwsRPCErrorWithCode(int code) => throwsA(isRPCErrorWithCode(code));
+
 enum CompilationMode { buildDaemon, frontendServer }
 
 class TestContext {
