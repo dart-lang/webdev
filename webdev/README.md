@@ -21,7 +21,7 @@ dev_dependencies:
 ["activated"][activating].
 
 ```console
-$ pub global activate webdev
+$ dart pub global activate webdev
 ```
 
 Learn more about activating and using packages [here][pub global].
