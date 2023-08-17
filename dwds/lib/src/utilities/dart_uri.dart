@@ -6,6 +6,7 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
+import 'package:dwds/src/utilities/globals.dart';
 
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
@@ -151,11 +152,10 @@ class DartUri {
 
   /// Record library and script uris to enable resolving library and script paths.
   static Future<void> initialize() async {
-    final packagesUri =
-        p.toUri(p.join(currentDirectory, '.dart_tool/package_config.json'));
-
+    final packagesPath = packageConfigPath ??
+        p.join(currentDirectory, '.dart_tool/package_config.json');
     clear();
-    await _loadPackageConfig(packagesUri);
+    await _loadPackageConfig(p.toUri(packagesPath));
   }
 
   /// Clear the uri resolution tables.

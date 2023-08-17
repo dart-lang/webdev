@@ -283,4 +283,8 @@ if(!window.\$requireLoader) {
   @override
   Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
       _moduleInfoForProvider(metadataProviderFor(entrypoint));
+
+  @override
+  String? packageConfigPath(String entrypoint) =>
+      p.join(p.current, '.dart_tool/package_config.json');
 }

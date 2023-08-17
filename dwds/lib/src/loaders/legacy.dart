@@ -68,6 +68,8 @@ class LegacyStrategy extends LoadStrategy {
 
   final Uri? _appEntrypoint;
 
+  final String? Function(String entrypoint) _packageConfigLocator;
+
   LegacyStrategy(
     this.reloadConfiguration,
     this._moduleForServerPath,
@@ -77,6 +79,7 @@ class LegacyStrategy extends LoadStrategy {
     this._moduleInfoForProvider,
     AssetReader assetReader,
     this._appEntrypoint,
+    this._packageConfigLocator,
   ) : super(assetReader);
 
   @override
@@ -122,4 +125,8 @@ class LegacyStrategy extends LoadStrategy {
 
   @override
   Uri? get appEntrypoint => _appEntrypoint;
+
+  @override
+  String? packageConfigPath(String entrypoint) =>
+      _packageConfigLocator(entrypoint);
 }

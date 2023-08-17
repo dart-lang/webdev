@@ -6,6 +6,7 @@ import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:shelf/shelf.dart';
+import 'package:dwds/src/utilities/globals.dart';
 
 late LoadStrategy _globalLoadStrategy;
 
@@ -103,6 +104,15 @@ abstract class LoadStrategy {
   /// an app URI.
   String? serverPathForAppUri(String appUri);
 
+  /// Returns the absolute path to the app's package config, determined by the
+  /// app's [entrypoint] path.
+  ///
+  /// Example:
+  ///
+  ///  TODO ADD ENTRYPOINT -> /Users/john_doe/my_dart_app/.dart_tool/package_config.json
+  ///
+  String? packageConfigPath(String entrypoint);
+
   /// Returns the [MetadataProvider] for the application located at the provided
   /// [entrypoint].
   MetadataProvider metadataProviderFor(String entrypoint) {
@@ -115,8 +125,9 @@ abstract class LoadStrategy {
 
   /// Initializes a [MetadataProvider] for the application located at the
   /// provided [entrypoint].
-  void trackEntrypoint(String entrypoint) {
+  Future<void> trackEntrypoint(String entrypoint) async {
     final metadataProvider = MetadataProvider(entrypoint, _assetReader);
+    setPackageConfigPath(await metadataProvider.packageConfigPath);
     _providers[metadataProvider.entrypoint] = metadataProvider;
   }
 }
