@@ -337,6 +337,9 @@ class FakeStrategy implements LoadStrategy {
   Uri? get appEntrypoint => Uri.parse('package:myapp/main.dart');
 
   @override
+  String? packageConfigPath(String entrypoint) => null;
+
+  @override
   ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
 
   @override
@@ -368,7 +371,9 @@ class FakeStrategy implements LoadStrategy {
       MetadataProvider(entrypoint, FakeAssetReader());
 
   @override
-  void trackEntrypoint(String entrypoint) {}
+  Future<void> trackEntrypoint(String entrypoint) {
+    return Future.value(null);
+  }
 
   @override
   Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
