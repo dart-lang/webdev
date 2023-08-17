@@ -371,9 +371,7 @@ class FakeStrategy implements LoadStrategy {
       MetadataProvider(entrypoint, FakeAssetReader());
 
   @override
-  Future<void> trackEntrypoint(String entrypoint) {
-    return Future.value(null);
-  }
+  Future<void> trackEntrypoint(String entrypoint) => Future.value(null);
 
   @override
   Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
