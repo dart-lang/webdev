@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
-import 'package:dwds/src/utilities/globals.dart';
 
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.

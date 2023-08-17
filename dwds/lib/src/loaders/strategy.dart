@@ -5,8 +5,8 @@
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:shelf/shelf.dart';
 import 'package:dwds/src/utilities/globals.dart';
+import 'package:shelf/shelf.dart';
 
 late LoadStrategy _globalLoadStrategy;
 
@@ -109,7 +109,8 @@ abstract class LoadStrategy {
   ///
   /// Example:
   ///
-  ///  TODO ADD ENTRYPOINT -> /Users/john_doe/my_dart_app/.dart_tool/package_config.json
+  ///  main_module.bootstrap.js
+  ///   -> /Users/john_doe/my_dart_app/.dart_tool/package_config.json
   ///
   String? packageConfigPath(String entrypoint);
 

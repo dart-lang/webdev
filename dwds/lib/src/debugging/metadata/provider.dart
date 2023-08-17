@@ -6,10 +6,10 @@ import 'dart:convert';
 
 import 'package:async/async.dart';
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-import 'package:dwds/src/loaders/strategy.dart';
 
 /// A provider of metadata in which data is collected through DDC outputs.
 class MetadataProvider {

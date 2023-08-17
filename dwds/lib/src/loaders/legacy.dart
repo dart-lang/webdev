@@ -66,9 +66,17 @@ class LegacyStrategy extends LoadStrategy {
   /// an app URI.
   final String? Function(String appUri) _serverPathForAppUri;
 
-  final Uri? _appEntrypoint;
-
+  /// Returns the absolute path to the app's package config, determined by the
+  /// app's [entrypoint] path.
+  ///
+  /// Example:
+  ///
+  ///  main_module.bootstrap.js
+  ///   -> /Users/john_doe/my_dart_app/.dart_tool/package_config.json
+  ///
   final String? Function(String entrypoint) _packageConfigLocator;
+
+  final Uri? _appEntrypoint;
 
   LegacyStrategy(
     this.reloadConfiguration,
