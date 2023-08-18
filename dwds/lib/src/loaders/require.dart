@@ -285,6 +285,5 @@ if(!window.\$requireLoader) {
       _moduleInfoForProvider(metadataProviderFor(entrypoint));
 
   @override
-  String? packageConfigPath(String entrypoint) =>
-      p.join(p.current, '.dart_tool/package_config.json');
+  String? packageConfigPath(String entrypoint) => null;
 }
