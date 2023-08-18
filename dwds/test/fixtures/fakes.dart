@@ -311,7 +311,11 @@ class FakeExecutionContext extends ExecutionContext {
   FakeExecutionContext();
 }
 
-class FakeStrategy implements LoadStrategy {
+class FakeStrategy extends LoadStrategy {
+  FakeStrategy(
+    AssetReader assetReader,
+  ) : super(assetReader);
+
   @override
   Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
 
@@ -337,7 +341,7 @@ class FakeStrategy implements LoadStrategy {
   Uri? get appEntrypoint => Uri.parse('package:myapp/main.dart');
 
   @override
-  String? packageConfigPath(String entrypoint) => null;
+  String? packageConfigLocator(String entrypoint) => null;
 
   @override
   ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
@@ -369,9 +373,6 @@ class FakeStrategy implements LoadStrategy {
   @override
   MetadataProvider metadataProviderFor(String entrypoint) =>
       MetadataProvider(entrypoint, FakeAssetReader());
-
-  @override
-  Future<void> trackEntrypoint(String entrypoint) => Future.value(null);
 
   @override
   Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>

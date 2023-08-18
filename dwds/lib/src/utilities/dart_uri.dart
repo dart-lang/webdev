@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/loaders/strategy.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
@@ -153,7 +152,7 @@ class DartUri {
   /// Record library and script uris to enable resolving library and script paths.
   static Future<void> initialize() async {
     clear();
-    await _loadPackageConfig(p.toUri(packageConfigPath));
+    await _loadPackageConfig(p.toUri(globalLoadStrategy.packageConfigPath));
   }
 
   /// Clear the uri resolution tables.

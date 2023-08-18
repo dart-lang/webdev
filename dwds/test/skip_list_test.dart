@@ -4,6 +4,7 @@
 
 @Timeout(Duration(minutes: 2))
 
+import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/loaders/strategy.dart';
@@ -14,6 +15,10 @@ import 'package:test/test.dart';
 import 'fixtures/fakes.dart';
 
 class TestStrategy extends FakeStrategy {
+  TestStrategy(
+    AssetReader assetReader,
+  ) : super(assetReader);
+
   @override
   String serverPathForAppUri(String appUri) {
     return 'foo';
@@ -21,7 +26,7 @@ class TestStrategy extends FakeStrategy {
 }
 
 void main() {
-  globalLoadStrategy = TestStrategy();
+  globalLoadStrategy = TestStrategy(FakeAssetReader());
 
   late SkipLists skipLists;
   final dartUri = DartUri('org-dartlang-app://web/main.dart');

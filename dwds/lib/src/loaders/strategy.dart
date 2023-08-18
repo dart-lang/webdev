@@ -5,7 +5,8 @@
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/utilities/globals.dart';
+import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
 late LoadStrategy _globalLoadStrategy;
@@ -17,6 +18,7 @@ LoadStrategy get globalLoadStrategy => _globalLoadStrategy;
 abstract class LoadStrategy {
   final AssetReader _assetReader;
   final _providers = <String, MetadataProvider>{};
+  String? _packageConfigPath;
 
   LoadStrategy(this._assetReader);
 
@@ -112,7 +114,19 @@ abstract class LoadStrategy {
   ///  main_module.bootstrap.js
   ///   -> /Users/john_doe/my_dart_app/.dart_tool/package_config.json
   ///
-  String? packageConfigPath(String entrypoint);
+  String? packageConfigLocator(String entrypoint);
+
+  /// The absolute path to the app's package config, or null if not provided by
+  /// [packageConfigLocator].
+  String get packageConfigPath {
+    return _packageConfigPath ?? _defaultPackageConfigPath;
+  }
+
+  /// The default package config path, if none is provided by the load strategy.
+  String get _defaultPackageConfigPath => p.join(
+        DartUri.currentDirectory,
+        '.dart_tool/package_config.json',
+      );
 
   /// Returns the [MetadataProvider] for the application located at the provided
   /// [entrypoint].
@@ -126,9 +140,9 @@ abstract class LoadStrategy {
 
   /// Initializes a [MetadataProvider] for the application located at the
   /// provided [entrypoint].
-  Future<void> trackEntrypoint(String entrypoint) async {
+  void trackEntrypoint(String entrypoint) {
     final metadataProvider = MetadataProvider(entrypoint, _assetReader);
-    setPackageConfigPath(await metadataProvider.packageConfigPath);
+    _packageConfigPath = packageConfigLocator(entrypoint);
     _providers[metadataProvider.entrypoint] = metadataProvider;
   }
 }

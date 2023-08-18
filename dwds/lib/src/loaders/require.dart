@@ -285,5 +285,5 @@ if(!window.\$requireLoader) {
       _moduleInfoForProvider(metadataProviderFor(entrypoint));
 
   @override
-  String? packageConfigPath(String entrypoint) => null;
+  String? packageConfigLocator(String entrypoint) => null;
 }

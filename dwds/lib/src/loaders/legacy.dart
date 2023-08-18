@@ -135,6 +135,6 @@ class LegacyStrategy extends LoadStrategy {
   Uri? get appEntrypoint => _appEntrypoint;
 
   @override
-  String? packageConfigPath(String entrypoint) =>
+  String? packageConfigLocator(String entrypoint) =>
       _packageConfigLocator(entrypoint);
 }

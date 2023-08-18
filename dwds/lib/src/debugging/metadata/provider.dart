@@ -24,7 +24,6 @@ class MetadataProvider {
   final Map<String, String> _moduleToModulePath = {};
   final Map<String, List<String>> _scripts = {};
   final _metadataMemoizer = AsyncMemoizer();
-  String? _packageConfigPath;
 
   /// Implicitly imported libraries in any DDC component.
   ///
@@ -90,17 +89,6 @@ class MetadataProvider {
   Future<List<String>> get libraries async {
     await _initialize();
     return _libraries;
-  }
-
-  /// The absolute path to the app's package config.
-  ///
-  /// Example:
-  ///
-  ///  /Users/john_doe/my_dart_app/.dart_tool/package_config.json
-  ///
-  Future<String?> get packageConfigPath async {
-    await _initialize();
-    return _packageConfigPath;
   }
 
   /// A map of library uri to dart scripts.
@@ -196,7 +184,6 @@ class MetadataProvider {
       // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
       if (entrypoint.endsWith('.bootstrap.js')) {
         _logger.info('Loading debug metadata...');
-        _packageConfigPath = _createPackageConfigPath(entrypoint);
         final serverPath =
             entrypoint.replaceAll('.bootstrap.js', '.ddc_merged_metadata');
         final merged = await _assetReader.metadataContents(serverPath);
@@ -266,7 +253,7 @@ class MetadataProvider {
   }
 
   String? _createPackageConfigPath(String entrypoint) =>
-      globalLoadStrategy.packageConfigPath(entrypoint);
+      globalLoadStrategy.packageConfigLocator(entrypoint);
 }
 
 class AbsoluteImportUriException implements Exception {
