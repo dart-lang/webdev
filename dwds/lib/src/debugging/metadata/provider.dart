@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:async/async.dart';
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
@@ -251,9 +250,6 @@ class MetadataProvider {
       _scriptToModule[lib] = moduleName;
     }
   }
-
-  String? _createPackageConfigPath(String entrypoint) =>
-      globalLoadStrategy.packageConfigLocator(entrypoint);
 }
 
 class AbsoluteImportUriException implements Exception {
