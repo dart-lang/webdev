@@ -125,7 +125,8 @@ abstract class LoadStrategy {
   /// The default package config path, if none is provided by the load strategy.
   String get _defaultPackageConfigPath => p.join(
         DartUri.currentDirectory,
-        '.dart_tool/package_config.json',
+        '.dart_tool',
+        'package_config.json',
       );
 
   /// Returns the [MetadataProvider] for the application located at the provided

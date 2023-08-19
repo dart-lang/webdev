@@ -6,6 +6,7 @@
 @Timeout(Duration(minutes: 1))
 
 import 'package:dwds/asset_reader.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
@@ -46,7 +47,7 @@ void main() {
       test('defaults to "./dart_tool/packageconfig.json"', () {
         strategy.trackEntrypoint('my_app/entrypoint');
         expect(
-          strategy.packageConfigPath,
+          p.split(strategy.packageConfigPath).join('/'),
           endsWith('_testSound/.dart_tool/package_config.json'),
         );
       });
