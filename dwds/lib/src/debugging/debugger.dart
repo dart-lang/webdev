@@ -13,6 +13,7 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/objects.dart' show Property;
 import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds/src/utilities/shared.dart';

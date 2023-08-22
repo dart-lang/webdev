@@ -9,9 +9,9 @@ import 'dart:async';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/batched_expression_evaluator.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
+import 'package:dwds/src/utilities/globals.dart';
 
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' hide LogRecord;

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 

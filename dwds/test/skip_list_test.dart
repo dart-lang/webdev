@@ -7,8 +7,8 @@
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
 

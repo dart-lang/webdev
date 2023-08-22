@@ -16,6 +16,7 @@ import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
@@ -342,6 +343,9 @@ class FakeStrategy extends LoadStrategy {
 
   @override
   String? packageConfigLocator(String entrypoint) => null;
+
+  @override
+  String? g3RelativePath(String absolutePath) => null;
 
   @override
   ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;

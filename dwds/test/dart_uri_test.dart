@@ -6,8 +6,8 @@
 @Timeout(Duration(minutes: 2))
 
 import 'package:dwds/asset_reader.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 

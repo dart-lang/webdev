@@ -6,7 +6,7 @@
 
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:test/test.dart';
 
 import 'fixtures/fakes.dart';
