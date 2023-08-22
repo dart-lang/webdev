@@ -8,6 +8,7 @@
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/globals.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 
@@ -34,9 +35,21 @@ class TestStrategy extends FakeStrategy {
   }
 }
 
+class G3TestStrategy extends FakeStrategy {
+  G3TestStrategy(
+    AssetReader assetReader,
+  ) : super(assetReader);
+
+  @override
+  String? g3RelativePath(String absolutePath) =>
+      'g3:///${p.split(absolutePath).last}';
+}
+
 void main() {
-  globalLoadStrategy = TestStrategy(FakeAssetReader());
   group('DartUri', () {
+    setUpAll(() {
+      globalLoadStrategy = TestStrategy(FakeAssetReader());
+    });
     test('parses package : paths', () {
       final uri = DartUri('package:path/path.dart');
       expect(uri.serverPath, 'packages/path/path.dart');
@@ -184,5 +197,30 @@ void main() {
         skip: 'https://github.com/dart-lang/webdev/issues/1584',
       );
     });
+  });
+
+  group('initialized to handle g3-relative paths', () {
+    setUpAll(() {
+      globalLoadStrategy = G3TestStrategy(FakeAssetReader());
+    });
+
+    setUpAll(() async {
+      await DartUri.initialize();
+      globalIsInternalBuild = true;
+      DartUri.recordAbsoluteUris(['package:path/path.dart']);
+    });
+
+    tearDownAll(() {
+      DartUri.clear();
+      globalIsInternalBuild = false;
+    });
+
+    test(
+      'can resolve g3-relative paths',
+      () {
+        final resolved = DartUri.toPackageUri('g3:///path.dart');
+        expect(resolved, 'package:path/path.dart');
+      },
+    );
   });
 }
