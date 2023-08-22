@@ -183,7 +183,6 @@ class DartUri {
   /// Record all of the libraries, indexed by their absolute file: URI.
   static void recordAbsoluteUris(Iterable<String> libraryUris) {
     for (var uri in libraryUris) {
-      print('recording $uri');
       _recordAbsoluteUri(uri);
       if (globalIsInternalBuild) {
         _recordG3RelativeUri(uri);
@@ -196,7 +195,6 @@ class DartUri {
     if (absoluteUri == null) return;
 
     final g3RelativeUri = globalLoadStrategy.g3RelativePath(absoluteUri);
-    print('now recording $g3RelativeUri');
     if (g3RelativeUri != null) {
       _g3RelativeUriToResolvedUri[g3RelativeUri] = absoluteUri;
     }
