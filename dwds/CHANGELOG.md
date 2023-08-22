@@ -1,4 +1,8 @@
-## 20.0.2-wip
+## 21.0.0-wip
+
+**Breaking changes**
+
+- Allow clients to specify where to find the package config. - [#2199](https://github.com/dart-lang/webdev/pull/2199).
 
 ## 20.0.1
 

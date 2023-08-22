@@ -6,6 +6,7 @@
 @Timeout(Duration(minutes: 2))
 import 'dart:async';
 
+import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/frame_computer.dart';
 import 'package:dwds/src/debugging/inspector.dart';
@@ -29,6 +30,10 @@ late Locations locations;
 late SkipLists skipLists;
 
 class TestStrategy extends FakeStrategy {
+  TestStrategy(
+    AssetReader assetReader,
+  ) : super(assetReader);
+
   @override
   Future<String> moduleForServerPath(String entrypoint, String appUri) async =>
       'foo.ddc.js';
@@ -82,7 +87,7 @@ void main() async {
     webkitDebugger = FakeWebkitDebugger(scripts: scripts);
     pausedController = StreamController<DebuggerPausedEvent>();
     webkitDebugger.onPaused = pausedController.stream;
-    globalLoadStrategy = TestStrategy();
+    globalLoadStrategy = TestStrategy(FakeAssetReader());
     final root = 'fakeRoot';
     locations = Locations(
       FakeAssetReader(sourceMap: sourceMapContents),

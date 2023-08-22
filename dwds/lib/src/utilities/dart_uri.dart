@@ -151,11 +151,8 @@ class DartUri {
 
   /// Record library and script uris to enable resolving library and script paths.
   static Future<void> initialize() async {
-    final packagesUri =
-        p.toUri(p.join(currentDirectory, '.dart_tool/package_config.json'));
-
     clear();
-    await _loadPackageConfig(packagesUri);
+    await _loadPackageConfig(p.toUri(globalLoadStrategy.packageConfigPath));
   }
 
   /// Clear the uri resolution tables.

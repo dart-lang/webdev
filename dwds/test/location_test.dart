@@ -4,6 +4,7 @@
 
 @Timeout(Duration(minutes: 2))
 
+import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -23,10 +24,10 @@ void main() {
   const lines = 100;
   const lineLength = 150;
 
-  globalLoadStrategy = MockLoadStrategy();
+  final assetReader = FakeAssetReader(sourceMap: sourceMapContents);
+  globalLoadStrategy = MockLoadStrategy(assetReader);
   final dartUri = DartUri('org-dartlang-app://web/main.dart');
 
-  final assetReader = FakeAssetReader(sourceMap: sourceMapContents);
   final modules = FakeModules(module: _module);
   final locations = Locations(assetReader, modules, '');
   locations.initialize('fake_entrypoint');
@@ -183,6 +184,10 @@ const _serverPath = 'web/main.dart';
 const _sourceMapPath = 'packages/module.js.map';
 
 class MockLoadStrategy extends FakeStrategy {
+  MockLoadStrategy(
+    AssetReader assetReader,
+  ) : super(assetReader);
+
   @override
   Future<String?> moduleForServerPath(
     String entrypoint,

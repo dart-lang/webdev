@@ -35,9 +35,9 @@ void main() async {
     late StreamController<DebuggerPausedEvent> pausedController;
     late StreamController<Event> debugEventController;
     setUp(() async {
-      globalLoadStrategy = FakeStrategy();
-
       final assetReader = FakeAssetReader(sourceMap: '');
+      globalLoadStrategy = FakeStrategy(assetReader);
+
       final modules = FakeModules();
 
       final webkitDebugger = FakeWebkitDebugger();

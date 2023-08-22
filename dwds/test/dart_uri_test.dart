@@ -5,6 +5,7 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
 
+import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:test/test.dart';
@@ -13,6 +14,10 @@ import 'package:test_common/logging.dart';
 import 'fixtures/fakes.dart';
 
 class TestStrategy extends FakeStrategy {
+  TestStrategy(
+    AssetReader assetReader,
+  ) : super(assetReader);
+
   @override
   String? serverPathForAppUri(String appUrl) {
     final appUri = Uri.parse(appUrl);
@@ -30,7 +35,7 @@ class TestStrategy extends FakeStrategy {
 }
 
 void main() {
-  globalLoadStrategy = TestStrategy();
+  globalLoadStrategy = TestStrategy(FakeAssetReader());
   group('DartUri', () {
     test('parses package : paths', () {
       final uri = DartUri('package:path/path.dart');

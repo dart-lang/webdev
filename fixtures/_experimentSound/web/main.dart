@@ -67,7 +67,7 @@ String testPattern(Object obj) {
 }
 
 String testPattern2() {
-  final dog = 'Prismo'; 
+  final dog = 'Prismo';
   final cats = ['Garfield', 'Tom']; // Breakpoint: testPattern2Case1
   final [firstCat, secondCat] = cats;
   print(firstCat); // Breakpoint: testPattern2Case2

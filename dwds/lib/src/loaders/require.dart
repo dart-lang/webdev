@@ -283,4 +283,7 @@ if(!window.\$requireLoader) {
   @override
   Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
       _moduleInfoForProvider(metadataProviderFor(entrypoint));
+
+  @override
+  String? packageConfigLocator(String entrypoint) => null;
 }
