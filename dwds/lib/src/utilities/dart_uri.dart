@@ -140,6 +140,8 @@ class DartUri {
 
     // If this is an internal app, then the given uri might be g3-relative:
     if (globalIsInternalBuild) {
+      // TODO(https://github.com/dart-lang/webdev/issues/2198): Verify if the
+      // intermediary conversion to resolvedUri is causing performance issues.
       final resolvedUri = _g3RelativeUriToResolvedUri[uri];
       return _resolvedUriToUri[resolvedUri];
     }

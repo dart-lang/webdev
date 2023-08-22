@@ -989,6 +989,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   // Note: Ignore the optional local parameter, it is there to keep the method
   // signature consistent with the VM service interface.
+  // TODO(https://github.com/dart-lang/webdev/issues/2198): Add support for g3-
+  // relative URIs, and support the `local` parameter.
   @override
   Future<UriList> lookupResolvedPackageUris(
     String isolateId,
