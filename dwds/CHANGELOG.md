@@ -3,6 +3,7 @@
 **Breaking changes**
 
 - Allow clients to specify where to find the package config. - [#2199](https://github.com/dart-lang/webdev/pull/2199).
+- Allow clients to specify a way to convert absolute paths to g3-relative paths. - [#2200](https://github.com/dart-lang/webdev/pull/2200)
 
 ## 20.0.1
 

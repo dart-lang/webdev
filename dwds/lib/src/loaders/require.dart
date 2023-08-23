@@ -286,4 +286,7 @@ if(!window.\$requireLoader) {
 
   @override
   String? packageConfigLocator(String entrypoint) => null;
+
+  @override
+  String? g3RelativePath(String absolutePath) => null;
 }

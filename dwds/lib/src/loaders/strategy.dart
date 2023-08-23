@@ -9,12 +9,6 @@ import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
-late LoadStrategy _globalLoadStrategy;
-
-set globalLoadStrategy(LoadStrategy strategy) => _globalLoadStrategy = strategy;
-
-LoadStrategy get globalLoadStrategy => _globalLoadStrategy;
-
 abstract class LoadStrategy {
   final AssetReader _assetReader;
   final _providers = <String, MetadataProvider>{};
@@ -115,6 +109,11 @@ abstract class LoadStrategy {
   ///   -> /Users/john_doe/my_dart_app/.dart_tool/package_config.json
   ///
   String? packageConfigLocator(String entrypoint);
+
+  /// Returns the relative path in google3, determined by the [absolutePath].
+  ///
+  /// Returns `null` if not a google3 app.
+  String? g3RelativePath(String absolutePath);
 
   /// The absolute path to the app's package config, or null if not provided by
   /// [packageConfigLocator].

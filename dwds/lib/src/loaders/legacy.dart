@@ -76,6 +76,11 @@ class LegacyStrategy extends LoadStrategy {
   ///
   final String? Function(String entrypoint) _packageConfigLocator;
 
+  /// Returns the relative path in google3, determined by the [absolutePath].
+  ///
+  /// Returns `null` if not a google3 app.
+  final String? Function(String absolutePath) _g3RelativePath;
+
   final Uri? _appEntrypoint;
 
   LegacyStrategy(
@@ -88,6 +93,7 @@ class LegacyStrategy extends LoadStrategy {
     AssetReader assetReader,
     this._appEntrypoint,
     this._packageConfigLocator,
+    this._g3RelativePath,
   ) : super(assetReader);
 
   @override
@@ -137,4 +143,7 @@ class LegacyStrategy extends LoadStrategy {
   @override
   String? packageConfigLocator(String entrypoint) =>
       _packageConfigLocator(entrypoint);
+
+  @override
+  String? g3RelativePath(String absolutePath) => _g3RelativePath(absolutePath);
 }

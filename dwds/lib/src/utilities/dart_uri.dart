@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
@@ -134,10 +134,28 @@ class DartUri {
   static final Map<String, String> _resolvedUriToUri = {};
 
   /// Returns package, app, or dart uri for a resolved path.
-  static String? toPackageUri(String uri) => _resolvedUriToUri[uri];
+  static String? toPackageUri(String uri) {
+    final packageUri = _resolvedUriToUri[uri];
+    if (packageUri != null) return packageUri;
+
+    // If this is an internal app, then the given uri might be g3-relative:
+    if (globalIsInternalBuild) {
+      // TODO(https://github.com/dart-lang/webdev/issues/2198): Verify if the
+      // intermediary conversion to resolvedUri is causing performance issues.
+      final resolvedUri = _g3RelativeUriToResolvedUri[uri];
+      return _resolvedUriToUri[resolvedUri];
+    }
+
+    return null;
+  }
 
   /// Returns resolved path for a package, app, or dart uri.
   static String? toResolvedUri(String uri) => _uriToResolvedUri[uri];
+
+  /// Returns a resolved path for a g3-relative URI.
+  ///
+  /// This map is empty if not a google3 app.
+  static final Map<String, String> _g3RelativeUriToResolvedUri = {};
 
   /// The directory in which we're running.
   ///
@@ -166,6 +184,19 @@ class DartUri {
   static void recordAbsoluteUris(Iterable<String> libraryUris) {
     for (var uri in libraryUris) {
       _recordAbsoluteUri(uri);
+      if (globalIsInternalBuild) {
+        _recordG3RelativeUri(uri);
+      }
+    }
+  }
+
+  static void _recordG3RelativeUri(String libraryUri) {
+    final absoluteUri = _uriToResolvedUri[libraryUri];
+    if (absoluteUri == null) return;
+
+    final g3RelativeUri = globalLoadStrategy.g3RelativePath(absoluteUri);
+    if (g3RelativeUri != null) {
+      _g3RelativeUriToResolvedUri[g3RelativeUri] = absoluteUri;
     }
   }
 

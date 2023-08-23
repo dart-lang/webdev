@@ -16,6 +16,7 @@ import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -87,6 +88,7 @@ class Dwds {
     Future<bool> Function()? isFlutterApp,
   }) async {
     globalLoadStrategy = loadStrategy;
+    globalIsInternalBuild = isInternalBuild;
     isFlutterApp ??= () => Future.value(true);
 
     DevTools? devTools;
