@@ -66,16 +66,6 @@ class LegacyStrategy extends LoadStrategy {
   /// an app URI.
   final String? Function(String appUri) _serverPathForAppUri;
 
-  /// Returns the absolute path to the app's package config, determined by the
-  /// app's [entrypoint] path.
-  ///
-  /// Example:
-  ///
-  ///  main_module.bootstrap.js
-  ///   -> /Users/john_doe/my_dart_app/.dart_tool/package_config.json
-  ///
-  final String? Function(String entrypoint) _packageConfigLocator;
-
   /// Returns the relative path in google3, determined by the [absolutePath].
   ///
   /// Returns `null` if not a google3 app.
@@ -92,9 +82,9 @@ class LegacyStrategy extends LoadStrategy {
     this._moduleInfoForProvider,
     AssetReader assetReader,
     this._appEntrypoint,
-    this._packageConfigLocator,
     this._g3RelativePath,
-  ) : super(assetReader);
+    String? packageConfigPath,
+  ) : super(assetReader, packageConfigPath: packageConfigPath);
 
   @override
   Handler get handler => (request) => Response.notFound(request.url.toString());
@@ -139,10 +129,6 @@ class LegacyStrategy extends LoadStrategy {
 
   @override
   Uri? get appEntrypoint => _appEntrypoint;
-
-  @override
-  String? packageConfigLocator(String entrypoint) =>
-      _packageConfigLocator(entrypoint);
 
   @override
   String? g3RelativePath(String absolutePath) => _g3RelativePath(absolutePath);
