@@ -41,7 +41,7 @@ void main() {
       });
     });
 
-    group('When the packageConfigLocator specifies a package config path', () {
+    group('When a custom package config path is specified', () {
       final strategy = FakeStrategy(
         FakeAssetReader(),
         packageConfigPath: 'custom/package_config/path',
