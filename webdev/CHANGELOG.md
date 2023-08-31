@@ -1,5 +1,7 @@
 ## 3.0.8-wip
 
+- Hide and deprecate now unsupported `--null-safety` flag.
+
 ## 3.0.7
 
 - Update `build_web_compilers` constraint to `^4.0.4`.
