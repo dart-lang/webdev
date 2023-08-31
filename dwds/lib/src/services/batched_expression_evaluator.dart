@@ -156,7 +156,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
             length: requests.length,
           )
               .then((v) {
-            final result = v.first.value;
+            final result = v.first.value!;
             _logger.fine(
               'Got result out of a batch for ${request.expression}: $result',
             );
