@@ -285,8 +285,5 @@ if(!window.\$requireLoader) {
       _moduleInfoForProvider(metadataProviderFor(entrypoint));
 
   @override
-  String? packageConfigLocator(String entrypoint) => null;
-
-  @override
   String? g3RelativePath(String absolutePath) => null;
 }

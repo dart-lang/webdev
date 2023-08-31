@@ -314,8 +314,9 @@ class FakeExecutionContext extends ExecutionContext {
 
 class FakeStrategy extends LoadStrategy {
   FakeStrategy(
-    AssetReader assetReader,
-  ) : super(assetReader);
+    AssetReader assetReader, {
+    String? packageConfigPath,
+  }) : super(assetReader, packageConfigPath: packageConfigPath);
 
   @override
   Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
@@ -340,9 +341,6 @@ class FakeStrategy extends LoadStrategy {
 
   @override
   Uri? get appEntrypoint => Uri.parse('package:myapp/main.dart');
-
-  @override
-  String? packageConfigLocator(String entrypoint) => null;
 
   @override
   String? g3RelativePath(String absolutePath) => null;

@@ -11,10 +11,13 @@ import 'package:shelf/shelf.dart';
 
 abstract class LoadStrategy {
   final AssetReader _assetReader;
+  final String? _packageConfigPath;
   final _providers = <String, MetadataProvider>{};
-  String? _packageConfigPath;
 
-  LoadStrategy(this._assetReader);
+  LoadStrategy(
+    this._assetReader, {
+    String? packageConfigPath,
+  }) : _packageConfigPath = packageConfigPath;
 
   /// The ID for this strategy.
   ///
@@ -100,28 +103,17 @@ abstract class LoadStrategy {
   /// an app URI.
   String? serverPathForAppUri(String appUri);
 
-  /// Returns the absolute path to the app's package config, determined by the
-  /// app's [entrypoint] path.
-  ///
-  /// Example:
-  ///
-  ///  main_module.bootstrap.js
-  ///   -> /Users/john_doe/my_dart_app/.dart_tool/package_config.json
-  ///
-  String? packageConfigLocator(String entrypoint);
-
   /// Returns the relative path in google3, determined by the [absolutePath].
   ///
   /// Returns `null` if not a google3 app.
   String? g3RelativePath(String absolutePath);
 
-  /// The absolute path to the app's package config, or null if not provided by
-  /// [packageConfigLocator].
+  /// The absolute path to the app's package configuration.
   String get packageConfigPath {
     return _packageConfigPath ?? _defaultPackageConfigPath;
   }
 
-  /// The default package config path, if none is provided by the load strategy.
+  /// The default package config path if none is provided.
   String get _defaultPackageConfigPath => p.join(
         DartUri.currentDirectory,
         '.dart_tool',
@@ -142,7 +134,6 @@ abstract class LoadStrategy {
   /// provided [entrypoint].
   void trackEntrypoint(String entrypoint) {
     final metadataProvider = MetadataProvider(entrypoint, _assetReader);
-    _packageConfigPath = packageConfigLocator(entrypoint);
     _providers[metadataProvider.entrypoint] = metadataProvider;
   }
 }

@@ -5,7 +5,6 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 1))
 
-import 'package:dwds/asset_reader.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -13,16 +12,6 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'fixtures/context.dart';
 import 'fixtures/fakes.dart';
 import 'fixtures/project.dart';
-
-class LoadStrategyCustomPackageConfig extends FakeStrategy {
-  LoadStrategyCustomPackageConfig(
-    AssetReader assetReader,
-  ) : super(assetReader);
-
-  @override
-  String? packageConfigLocator(String entrypoint) =>
-      '$entrypoint/custom/package_config/path';
-}
 
 void main() {
   final provider = TestSdkConfigurationProvider();
@@ -45,7 +34,6 @@ void main() {
       final strategy = FakeStrategy(FakeAssetReader());
 
       test('defaults to "./dart_tool/packageconfig.json"', () {
-        strategy.trackEntrypoint('my_app/entrypoint');
         expect(
           p.split(strategy.packageConfigPath).join('/'),
           endsWith('_testSound/.dart_tool/package_config.json'),
@@ -53,14 +41,16 @@ void main() {
       });
     });
 
-    group('When the packageConfigLocator specifies a package config path', () {
-      final strategy = LoadStrategyCustomPackageConfig(FakeAssetReader());
+    group('When a custom package config path is specified', () {
+      final strategy = FakeStrategy(
+        FakeAssetReader(),
+        packageConfigPath: 'custom/package_config/path',
+      );
 
       test('uses the specified package config path', () {
-        strategy.trackEntrypoint('my_app/entrypoint');
         expect(
           strategy.packageConfigPath,
-          equals('my_app/entrypoint/custom/package_config/path'),
+          equals('custom/package_config/path'),
         );
       });
     });
