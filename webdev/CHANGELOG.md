@@ -1,6 +1,6 @@
 ## 3.0.8-wip
 
-- Hide and deprecate now unsupported `--null-safety` flag.
+- Hide and deprecate now unsupported `--null-safety` option.
 
 ## 3.0.7
 
