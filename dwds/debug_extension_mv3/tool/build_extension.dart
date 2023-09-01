@@ -4,8 +4,8 @@
 
 // INSTRUCTIONS:
 
-// Builds the unminifed dart2js extension (see DDC issue:
-// see DDC issue: https://github.com/dart-lang/sdk/issues/49869).
+// Builds the unminified dart2js extension (see DDC issue:
+// https://github.com/dart-lang/sdk/issues/49869).
 
 // Run from the extension root directory:
 //    - For dev: dart run tool/build_extension.dart

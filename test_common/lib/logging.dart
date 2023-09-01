@@ -17,7 +17,7 @@ StreamSubscription<LogRecord>? _loggerSub;
 /// If [debug] is false, messages are stored and reported on test failure.
 /// If [debug] is true, messages are always printed to the console.
 ///
-/// Note that the logwriter uses [printOnFailure] that stores the messages
+/// Note that the [LogWriter] uses [printOnFailure] that stores the messages
 /// on the current zone. As a result, [setCurrentLogWriter] needs to be set
 /// in both `setUpAll` and `setUp` to store messages for the same zone as the
 /// failure in order to report all stored messages on that failure.

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 abstract class Restarter {
-  /// Attemps to perform a hot restart and returns whether it was successful or
+  /// Attempts to perform a hot restart and returns whether it was successful or
   /// not.
   Future<bool> restart({String? runId});
 }

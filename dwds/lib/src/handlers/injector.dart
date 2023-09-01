@@ -77,7 +77,7 @@ class DwdsInjector {
           } else if (request.url.path.endsWith(bootstrapJsExtension)) {
             final ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
             if (ifNoneMatch != null) {
-              // Disable caching of the inner hander by manually modifying the
+              // Disable caching of the inner handler by manually modifying the
               // if-none-match header before forwarding the request.
               request = request.change(
                 headers: {

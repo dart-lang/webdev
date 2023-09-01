@@ -20,7 +20,7 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
 
   /// Contexts that may contain a Dart application.
   ///
-  /// Context can be null if an error has occured and we cannot detect
+  /// Context can be null if an error has occurred and we cannot detect
   /// and parse the context ID.
   late StreamQueue<int> _contexts;
 

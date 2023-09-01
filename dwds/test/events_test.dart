@@ -370,7 +370,7 @@ void main() {
         });
       });
 
-      group('getSripts', () {
+      group('getScripts', () {
         late VmServiceInterface service;
         late String isolateId;
 

@@ -60,7 +60,7 @@ class ClassHelper extends Domain {
     final classRef = classRefFor(libraryId, splitId.last);
     clazz = await _constructClass(libraryRef, classRef);
     if (clazz == null) {
-      throw Exception('Could not contruct class: $classRef');
+      throw Exception('Could not construct class: $classRef');
     }
     return _classes[objectId] = clazz;
   }

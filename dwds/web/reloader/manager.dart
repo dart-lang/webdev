@@ -17,7 +17,7 @@ class ReloadingManager {
 
   ReloadingManager(this._client, this._restarter);
 
-  /// Attemps to perform a hot restart and returns whether it was successful or
+  /// Attempts to perform a hot restart and returns whether it was successful or
   /// not.
   ///
   /// [runId] is used to hot restart code in the browser for all apps that

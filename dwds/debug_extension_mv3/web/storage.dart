@@ -24,25 +24,25 @@ enum StorageObject {
   isAuthenticated,
   multipleAppsDetected;
 
-  Persistance get persistance {
+  Persistence get persistence {
     switch (this) {
       case StorageObject.debugInfo:
-        return Persistance.sessionOnly;
+        return Persistence.sessionOnly;
       case StorageObject.devToolsOpener:
-        return Persistance.acrossSessions;
+        return Persistence.acrossSessions;
       case StorageObject.devToolsUri:
-        return Persistance.sessionOnly;
+        return Persistence.sessionOnly;
       case StorageObject.encodedUri:
-        return Persistance.sessionOnly;
+        return Persistence.sessionOnly;
       case StorageObject.isAuthenticated:
-        return Persistance.sessionOnly;
+        return Persistence.sessionOnly;
       case StorageObject.multipleAppsDetected:
-        return Persistance.sessionOnly;
+        return Persistence.sessionOnly;
     }
   }
 }
 
-enum Persistance {
+enum Persistence {
   sessionOnly,
   acrossSessions;
 }
@@ -58,7 +58,7 @@ Future<bool> setStorageObject<T>({
       value is String ? value : jsonEncode(serializers.serialize(value));
   final storageObj = <String, String>{storageKey: json};
   final completer = Completer<bool>();
-  final storageArea = _getStorageArea(type.persistance);
+  final storageArea = _getStorageArea(type.persistence);
   storageArea.set(
     jsify(storageObj),
     allowInterop(() {
@@ -75,7 +75,7 @@ Future<bool> setStorageObject<T>({
 Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
   final storageKey = _createStorageKey(type, tabId);
   final completer = Completer<T?>();
-  final storageArea = _getStorageArea(type.persistance);
+  final storageArea = _getStorageArea(type.persistence);
   storageArea.get(
     [storageKey],
     allowInterop((Object? storageObj) {
@@ -105,7 +105,7 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
 Future<bool> removeStorageObject<T>({required StorageObject type, int? tabId}) {
   final storageKey = _createStorageKey(type, tabId);
   final completer = Completer<bool>();
-  final storageArea = _getStorageArea(type.persistance);
+  final storageArea = _getStorageArea(type.persistence);
   storageArea.remove(
     [storageKey],
     allowInterop(() {
@@ -144,14 +144,14 @@ void interceptStorageChange<T>({
   }
 }
 
-StorageArea _getStorageArea(Persistance persistance) {
+StorageArea _getStorageArea(Persistence persistence) {
   // MV2 extensions don't have access to session storage:
   if (!isMV3) return chrome.storage.local;
 
-  switch (persistance) {
-    case Persistance.acrossSessions:
+  switch (persistence) {
+    case Persistence.acrossSessions:
       return chrome.storage.local;
-    case Persistance.sessionOnly:
+    case Persistence.sessionOnly:
       return chrome.storage.session;
   }
 }
