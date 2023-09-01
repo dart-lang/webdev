@@ -287,7 +287,7 @@ packages:
     dependency: "direct dev"
     description:
       name: build_runner
-      url: "https://pub.dartlang.org"
+      url: "https://pub.dev"
     source: hosted
     version: "$runnerVersion"
 ''');
@@ -299,7 +299,7 @@ packages:
     dependency: "direct dev"
     description:
       name: build_web_compilers
-      url: "https://pub.dartlang.org"
+      url: "https://pub.dev"
     source: hosted
     version: "$webCompilersVersion"
 ''');
@@ -311,7 +311,7 @@ packages:
     dependency: "direct transitive"
     description:
       name: build_daemon
-      url: "https://pub.dartlang.org"
+      url: "https://pub.dev"
     source: hosted
     version: "$daemonVersion"
 ''');
@@ -323,7 +323,7 @@ packages:
     dependency: "direct"
     description:
       name: $pkg
-      url: "https://pub.dartlang.org"
+      url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
 ''');
