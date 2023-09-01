@@ -4,7 +4,7 @@ description: A test fixture for webdev testing with sound support.
 publish_to: none
 
 environment:
-  sdk: ">=3.1.0-340.0.dev <4.0.0"
+  sdk: ^3.2.0-36.0.dev
 
 dev_dependencies:
   build_runner: ^2.4.0

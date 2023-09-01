@@ -6,7 +6,7 @@ description: >-
   service protocol.
 repository: https://github.com/dart-lang/webdev/tree/master/dwds
 environment:
-  sdk: ">=3.1.0-340.0.dev <4.0.0"
+  sdk: ^3.2.0-36.0.dev
 
 dependencies:
   async: ^2.9.0

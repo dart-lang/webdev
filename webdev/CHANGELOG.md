@@ -1,5 +1,7 @@
 ## 3.0.8-wip
 
+- Update Dart SDK constraint to `>=3.2.0-36.0.dev <4.0.0`.
+
 ## 3.0.7
 
 - Update `build_web_compilers` constraint to `^4.0.4`.
