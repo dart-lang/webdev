@@ -736,6 +736,14 @@ void testAll({
           expect(result, matchInstanceRef(expected));
         });
 
+        test('instance of a generic class', () async {
+          final libraryId = getRootLibraryId();
+          final result =
+              await getInstanceRef(libraryId, '<String>[].toString()');
+
+          expect(result, matchInstanceRef('[]'));
+        });
+
         test('in parallel (in a batch)', () async {
           final libraryId = getRootLibraryId();
 
