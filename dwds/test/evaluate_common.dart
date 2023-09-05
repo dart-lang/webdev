@@ -5,8 +5,10 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dwds/src/services/expression_evaluator.dart';
+import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -736,26 +738,38 @@ void testAll({
           expect(result, matchInstanceRef(expected));
         });
 
-        test('instance of a generic class', () async {
-          final libraryId = getRootLibraryId();
-          final result =
-              await getInstanceRef(libraryId, '<String>[].toString()');
+        test(
+          'instance of a generic class',
+          () async {
+            final libraryId = getRootLibraryId();
+            final result =
+                await getInstanceRef(libraryId, '<String>[].toString()');
 
-          expect(result, matchInstanceRef('[]'));
-        });
+            expect(result, matchInstanceRef('[]'));
+          }, // TODO:(annagrin): remove when dev version updates to 3.2.0-126.0.dev or later.
+          skip: semver.Version.parse(Platform.version.split(' ')[0])
+                  .compareTo(semver.Version.parse('3.2.0-126.0.dev')) <
+              0,
+        );
 
-        test('in parallel (in a batch)', () async {
-          final libraryId = getRootLibraryId();
+        test(
+          'in parallel (in a batch)',
+          () async {
+            final libraryId = getRootLibraryId();
 
-          final evaluation1 =
-              getInstanceRef(libraryId, 'MainClass(1,0).toString()');
-          final evaluation2 =
-              getInstanceRef(libraryId, 'MainClass(1,1).toString()');
+            final evaluation1 =
+                getInstanceRef(libraryId, 'MainClass(1,0).toString()');
+            final evaluation2 =
+                getInstanceRef(libraryId, 'MainClass(1,1).toString()');
 
-          final results = await Future.wait([evaluation1, evaluation2]);
-          expect(results[0], matchInstanceRef('1, 0'));
-          expect(results[1], matchInstanceRef('1, 1'));
-        });
+            final results = await Future.wait([evaluation1, evaluation2]);
+            expect(results[0], matchInstanceRef('1, 0'));
+            expect(results[1], matchInstanceRef('1, 1'));
+          }, // TODO:(annagrin): remove when dev version updates to 3.2.0-126.0.dev or later.
+          skip: semver.Version.parse(Platform.version.split(' ')[0])
+                  .compareTo(semver.Version.parse('3.2.0-126.0.dev')) <
+              0,
+        );
 
         test('in parallel (in a batch) handles errors', () async {
           final libraryId = getRootLibraryId();
