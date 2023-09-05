@@ -7,9 +7,9 @@ import 'dart:math';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:dwds/src/debugging/metadata/function.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
@@ -204,6 +204,8 @@ class InstanceHelper extends Domain {
   /// Create a bound field for [property] in an instance of [classRef].
   Future<BoundField> _fieldFor(Property property, ClassRef classRef) async {
     final instance = await _instanceRefForRemote(property.value);
+    // TODO(annagrin): convert JS name to dart and fill missing information.
+    //https://github.com/dart-lang/sdk/issues/46723
     return BoundField(
       name: property.name,
       decl: FieldRef(
@@ -216,7 +218,6 @@ class InstanceHelper extends Domain {
           id: createId(),
         ),
         owner: classRef,
-        // TODO(grouma) - Fill these in.
         isConst: false,
         isFinal: false,
         isStatic: false,
@@ -285,23 +286,8 @@ class InstanceHelper extends Domain {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression = '''
-      function() {
-        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-        var entries = sdkUtils.dloadRepl(this, "entries");
-        entries = sdkUtils.dsendRepl(entries, "toList", []);
-        function asKey(entry) {
-          return sdkUtils.dloadRepl(entry, "key");
-        }
-        function asValue(entry) {
-          return sdkUtils.dloadRepl(entry, "value");
-        }
-        return {
-          keys: entries.map(asKey),
-          values: entries.map(asValue)
-        };
-      }
-    ''';
+    final expression = _jsRuntimeFunctionCall('getMapElements(this)');
+
     final keysAndValues = await inspector.jsCallFunctionOn(map, expression, []);
     final keys = await inspector.loadField(keysAndValues, 'keys');
     final values = await inspector.loadField(keysAndValues, 'values');
@@ -517,23 +503,8 @@ class InstanceHelper extends Domain {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression = '''
-      function() {
-        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-        var shape = sdkUtils.dloadRepl(this, "shape");
-        var positionalCount = sdkUtils.dloadRepl(shape, "positionals");
-        var named = sdkUtils.dloadRepl(shape, "named");
-        named = named == null? null: sdkUtils.dsendRepl(named, "toList", []);
-        var values = sdkUtils.dloadRepl(this, "values");
-        values = sdkUtils.dsendRepl(values, "toList", []);
+    final expression = _jsRuntimeFunctionCall('getRecordFields(this)');
 
-        return {
-          positionalCount: positionalCount,
-          named: named,
-          values: values
-        };
-      }
-    ''';
     final result = await inspector.jsCallFunctionOn(record, expression, []);
     final fieldNameElements =
         await _recordShapeFields(result, offset: offset, count: count);
@@ -660,25 +631,8 @@ class InstanceHelper extends Domain {
     // We do this in in awkward way because we want the names and types, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression = '''
-      function() {
-        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-        var type = sdkUtils.dloadRepl(this, "_type");
-        var shape = sdkUtils.dloadRepl(type, "shape");
-        var positionalCount = sdkUtils.dloadRepl(shape, "positionals");
-        var named = sdkUtils.dloadRepl(shape, "named");
-        named = named == null? null: sdkUtils.dsendRepl(named, "toList", []);
-        var types = sdkUtils.dloadRepl(type, "types");
-        types = types.map(t => sdkUtils.wrapType(t));
-        types = sdkUtils.dsendRepl(types, "toList", []);
+    final expression = _jsRuntimeFunctionCall('getRecordTypeFields(this)');
 
-        return {
-          positionalCount: positionalCount,
-          named: named,
-          types: types
-        };
-      }
-    ''';
     final result = await inspector.jsCallFunctionOn(record, expression, []);
     final fieldNameElements =
         await _recordShapeFields(result, offset: offset, count: count);
@@ -701,16 +655,7 @@ class InstanceHelper extends Domain {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
 
-    final expression = '''
-      function() {
-        const sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-        const jsSet = sdkUtils.dloadRepl(this, "_map");
-        const entries = [...jsSet.values()];
-        return {
-          entries: entries
-        };
-      }
-    ''';
+    final expression = _jsRuntimeFunctionCall('getSetElements(this)');
 
     final result =
         await inspector.jsCallFunctionOn(remoteObject, expression, []);
@@ -782,18 +727,7 @@ class InstanceHelper extends Domain {
   ) async {
     // Present the type as an instance of `core.Type` class and
     // hide the internal implementation.
-    final expression = '''
-      function() {
-        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-        var hashCode = sdkUtils.dloadRepl(this, "hashCode");
-        var runtimeType = sdkUtils.dloadRepl(this, "runtimeType");
-
-        return {
-          hashCode: hashCode,
-          runtimeType: runtimeType
-        };
-      }
-    ''';
+    final expression = _jsRuntimeFunctionCall('getTypeFields(this)');
 
     final result = await inspector.jsCallFunctionOn(type, expression, []);
     final hashCodeObject = await inspector.loadField(result, 'hashCode');
@@ -842,34 +776,16 @@ class InstanceHelper extends Domain {
     //
     // For maps and lists it's more complicated. Treat the actual SDK versions
     // of these as special.
-    final fieldNameExpression = '''function() {
-      const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
-      const sdk_utils = sdk.dart;
-      const fields = sdk_utils.getFields(sdk_utils.getType(this)) || [];
-      if (!fields && (dart_sdk._interceptors.JSArray.is(this) ||
-          dart_sdk._js_helper.InternalMap.is(this))) {
-        // Trim off the 'length' property.
-        const fields = allJsProperties.slice(0, allJsProperties.length -1);
-        return fields.join(',');
-      }
-      const privateFields = sdk_utils.getOwnPropertySymbols(fields);
-      const nonSymbolNames = privateFields
-                            .map(sym => sym.description
-                              .split('#').slice(-1)[0]);
-      const publicFieldNames = sdk_utils.getOwnPropertyNames(fields);
-      const symbolNames =  Object.getOwnPropertySymbols(this)
-                            .map(sym => sym.description
-                              .split('#').slice(-1)[0]
-                              .split('.').slice(-1)[0]);
-      return nonSymbolNames
-        .concat(publicFieldNames)
-        .concat(symbolNames).join(',');
-    }
-    ''';
-    final allNames = (await inspector
-            .jsCallFunctionOn(remoteObject, fieldNameExpression, []))
-        .value as String;
-    final names = allNames.split(',');
+    final fieldNameExpression =
+        _jsRuntimeFunctionCall('getObjectFieldNames(this)');
+
+    final result = await inspector.jsCallFunctionOn(
+      remoteObject,
+      fieldNameExpression,
+      [],
+      returnByValue: true,
+    );
+    final names = List<String>.from(result.value as List);
     // TODO(#761): Better support for large collections.
     return allJsProperties
         .where((property) => names.contains(property.name))
@@ -948,22 +864,22 @@ class InstanceHelper extends Domain {
           inspector.remoteDebugger,
           remoteObject,
         );
+        // TODO(annagrin) - fill missing information.
+        // https://github.com/dart-lang/sdk/issues/46723
         return InstanceRef(
           kind: InstanceKind.kClosure,
           id: objectId,
           identityHashCode: objectId.hashCode,
           classRef: classRefForClosure,
-          // TODO(grouma) - fill this in properly.
           closureFunction: FuncRef(
             name: functionMetaData.name,
             id: createId(),
-            // TODO(alanknight): The right ClassRef
             owner: classRefForUnknown,
             isConst: false,
             isStatic: false,
-            // TODO(annagrin): get information about getters and setters from symbols.
-            // https://github.com/dart-lang/sdk/issues/46723
             implicit: false,
+            isGetter: false,
+            isSetter: false,
           ),
           closureContext: ContextRef(length: 0, id: createId()),
         );
@@ -973,3 +889,11 @@ class InstanceHelper extends Domain {
     }
   }
 }
+
+String _jsRuntimeFunctionCall(String expression) => '''
+  function() {
+    const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+    const dart = sdk.dart;
+    return dart.$expression;
+  }
+''';

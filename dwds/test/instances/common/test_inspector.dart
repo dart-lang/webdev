@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
-@Timeout(Duration(minutes: 2))
-
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../fixtures/context.dart';
+import '../../fixtures/context.dart';
 
 class TestInspector {
   TestInspector(this.context);
@@ -223,9 +220,9 @@ Matcher matchRecordTypeInstanceRef({required int length}) => isA<InstanceRef>()
     .having((e) => e.length, 'length', length)
     .having((e) => e.classRef!, 'classRef', matchRecordTypeClassRef);
 
-Matcher matchTypeInstanceRef(String name) => isA<InstanceRef>()
+Matcher matchTypeInstanceRef(dynamic name) => isA<InstanceRef>()
     .having((e) => e.kind, 'kind', InstanceKind.kType)
-    .having((e) => e.name, 'name', name)
+    .having((e) => e.name, 'type ref name', name)
     .having((e) => e.classRef, 'classRef', matchTypeClassRef);
 
 Matcher matchPrimitiveInstanceRef({
@@ -250,7 +247,7 @@ Matcher matchPlainInstance({required libraryId, required String type}) =>
           matchClassRef(name: type, libraryId: libraryId),
         );
 
-Matcher matchListInstance({required String type}) => isA<Instance>()
+Matcher matchListInstance({required dynamic type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kList)
     .having((e) => e.classRef, 'classRef', matchListClassRef(type));
 
@@ -272,44 +269,48 @@ Matcher matchRecordTypeInstance({required int length}) => isA<Instance>()
     .having((e) => e.length, 'length', length)
     .having((e) => e.classRef, 'classRef', matchRecordTypeClassRef);
 
-Matcher matchTypeStringInstance(String name) =>
+Matcher matchTypeStringInstance(dynamic name) =>
     matchPrimitiveInstance(kind: InstanceKind.kString, value: name);
 
-Matcher matchTypeInstance(String name) => isA<Instance>()
+Matcher matchTypeInstance(dynamic name) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kType)
-    .having((e) => e.name, 'name', name)
+    .having((e) => e.name, 'type name', name)
     .having((e) => e.classRef, 'classRef', matchTypeClassRef);
 
 Matcher matchRecordClass =
-    matchClass(name: _recordClass, libraryId: _dartCoreLibrary);
+    matchClass(name: matchRecordClassName, libraryId: _dartCoreLibrary);
 Matcher matchRecordTypeClass =
-    matchClass(name: _recordTypeClass, libraryId: _dartRuntimeLibrary);
+    matchClass(name: matchRecordTypeClassName, libraryId: _dartRuntimeLibrary);
 Matcher matchTypeClass =
-    matchClass(name: _typeClass, libraryId: _dartCoreLibrary);
+    matchClass(name: matchTypeClassName, libraryId: _dartCoreLibrary);
 
-Matcher matchClass({String? name, String? libraryId}) => isA<Class>()
-    .having((e) => e.name, 'name', name)
+Matcher matchClass({dynamic name, String? libraryId}) => isA<Class>()
+    .having((e) => e.name, 'class name', name)
     .having((e) => e.library, 'library', matchLibraryRef(libraryId));
 
 Matcher matchRecordClassRef =
-    matchClassRef(name: _recordClass, libraryId: _dartCoreLibrary);
-Matcher matchRecordTypeClassRef =
-    matchClassRef(name: _recordTypeClass, libraryId: _dartRuntimeLibrary);
+    matchClassRef(name: matchRecordClassName, libraryId: _dartCoreLibrary);
+Matcher matchRecordTypeClassRef = matchClassRef(
+  name: matchRecordTypeClassName,
+  libraryId: _dartRuntimeLibrary,
+);
 Matcher matchTypeClassRef =
-    matchClassRef(name: _typeClass, libraryId: _dartCoreLibrary);
-Matcher matchListClassRef(String type) =>
-    matchClassRef(name: type, libraryId: _dartInterceptorsLibrary);
+    matchClassRef(name: matchTypeClassName, libraryId: _dartCoreLibrary);
+Matcher matchListClassRef(String type) => matchClassRef(
+      name: matchListClassName(type),
+      libraryId: _matchListLibraryName,
+    );
 Matcher matchMapClassRef(String type) =>
     matchClassRef(name: type, libraryId: _dartJsHelperLibrary);
 Matcher matchSetClassRef(String type) =>
     matchClassRef(name: type, libraryId: _dartCollectionLibrary);
 
-Matcher matchClassRef({String? name, String? libraryId}) => isA<ClassRef>()
-    .having((e) => e.name, 'class name', name)
+Matcher matchClassRef({dynamic name, dynamic libraryId}) => isA<ClassRef>()
+    .having((e) => e.name, 'class ref name', name)
     .having((e) => e.library, 'library', matchLibraryRef(libraryId));
 
-Matcher matchLibraryRef(String? libraryId) => isA<LibraryRef>()
-    .having((e) => e.name, 'name', libraryId)
+Matcher matchLibraryRef(dynamic libraryId) => isA<LibraryRef>()
+    .having((e) => e.name, 'library name', libraryId)
     .having((e) => e.id, 'id', libraryId)
     .having((e) => e.uri, 'uri', libraryId);
 
@@ -333,6 +334,17 @@ final _dartInterceptorsLibrary = 'dart:_interceptors';
 final _dartJsHelperLibrary = 'dart:_js_helper';
 final _dartCollectionLibrary = 'dart:collection';
 
-final _recordClass = 'Record';
-final _recordTypeClass = 'RecordType';
-final _typeClass = 'Type';
+final matchRecordClassName = 'Record';
+final matchRecordTypeClassName = 'RecordType';
+
+/// Match types for old and new type systems.
+/// - Old type system has `dart:_interceptors|List` and `dart:_runtime|_Type`.
+/// - New type system has `dart:_interceptors|JSArray` and `dart:core|Type`.
+/// TODO(annagrin): update when DDC enables new type system.
+final matchTypeClassName = anyOf(['Type', '_Type']);
+
+Matcher matchListClassName(String elementType) =>
+    anyOf(['JSArray<$elementType>', 'List<$elementType>']);
+
+final _matchListLibraryName =
+    anyOf([_dartInterceptorsLibrary, _dartCoreLibrary]);

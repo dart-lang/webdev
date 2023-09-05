@@ -162,10 +162,6 @@ class RequireStrategy extends LoadStrategy {
   String get loadLibrariesModule => 'require.js';
 
   @override
-  String get loadLibrariesSnippet =>
-      'let libs = $loadModuleSnippet("dart_sdk").dart.getLibraries();\n';
-
-  @override
   String get loadModuleSnippet => 'require';
 
   /// Require JS config for ddc.
@@ -287,4 +283,10 @@ if(!window.\$requireLoader) {
   @override
   Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
       _moduleInfoForProvider(metadataProviderFor(entrypoint));
+
+  @override
+  String? packageConfigLocator(String entrypoint) => null;
+
+  @override
+  String? g3RelativePath(String absolutePath) => null;
 }

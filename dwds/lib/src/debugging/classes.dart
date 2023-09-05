@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/debugging/metadata/class.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -77,88 +77,12 @@ class ClassHelper extends Domain {
 
     if (libraryUri == null || classId == null || className == null) return null;
 
-    final rawName = className.split('<').first;
     final expression = '''
-    (function() {
-      ${globalLoadStrategy.loadLibrarySnippet(libraryUri)}
-      var result = {};
-      var clazz = library["$rawName"];
-      var descriptor = {
-          'name': clazz.name,
-          'dartName': sdkUtils.typeName(clazz)
-        };
-
-      // TODO(grouma) - we display all inherited methods since we don't provide
-      // the superClass information. This is technically not correct.
-      var proto = clazz.prototype;
-      var methodNames = [];
-      for (; proto != null; proto = Object.getPrototypeOf(proto)) {
-        var methods = Object.getOwnPropertyNames(proto);
-        for (var i = 0; i < methods.length; i++) {
-          if (methodNames.indexOf(methods[i]) == -1
-              && methods[i] != 'constructor') {
-              methodNames.push(methods[i]);
-          }
-        }
-        if (proto.constructor.name == 'Object') break;
-      }
-
-      descriptor['methods'] = {};
-      for (var name of methodNames) {
-        descriptor['methods'][name] = {
-          // TODO(jakemac): how can we get actual const info?
-          "isConst": false,
-          "isStatic": false,
-        }
-      }
-
-      var fields = sdkUtils.getFields(clazz);
-      var fieldNames = fields ? Object.keys(fields) : [];
-      descriptor['fields'] = {};
-      for (var name of fieldNames) {
-        var field = fields[name];
-        var libraryUri = Object.getOwnPropertySymbols(fields[name]["type"])
-        .find(x => x.description == "libraryUri");
-        descriptor['fields'][name] = {
-          // TODO(jakemac): how can we get actual const info?
-          "isConst": false,
-          "isFinal": field.isFinal,
-          "isStatic": false,
-          "classRefName": fields[name]["type"]["name"],
-          "classRefDartName": sdkUtils.typeName(fields[name]["type"]),
-          "classRefLibraryId" : field["type"][libraryUri],
-        }
-      }
-
-      // TODO(elliette): The following static member information is minimal and 
-      // should be replaced once DDC provides full symbol information (see 
-      // https://github.com/dart-lang/sdk/issues/40273):
-
-      descriptor['staticFields'] = {};
-      var staticFieldNames = sdkUtils.getStaticFields(clazz) ?? [];
-      for (const name of staticFieldNames) {
-        descriptor['staticFields'][name] = {
-          "isStatic": true,
-          // DDC only provides names of static members, we set isConst/isFinal 
-          // to false even though they could be true.
-          "isConst": false,
-          "isFinal": false,
-        }
-      }
-
-      descriptor['staticMethods'] = {};
-      var staticMethodNames = sdkUtils.getStaticMethods(clazz) ?? [];
-      for (var name of staticMethodNames) {
-        descriptor['methods'][name] = {
-          // DDC only provides names of static members, we set isConst
-          // to false even though it could be true.
-          "isConst": false,
-          "isStatic": true,
-        } 
-      }
-
-      return descriptor;
-    })()
+      (function() {
+        const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+        const dart = sdk.dart;
+        return dart.getClassMetadata('$libraryUri', '$className');
+      })()
     ''';
 
     RemoteObject result;
@@ -176,9 +100,6 @@ class ClassHelper extends Domain {
     final methodRefs = <FuncRef>[];
     final methodDescriptors =
         classDescriptor['methods'] as Map<String, dynamic>;
-    final staticMethodDescriptors =
-        classDescriptor['staticMethods'] as Map<String, dynamic>;
-    methodDescriptors.addAll(staticMethodDescriptors);
     methodDescriptors.forEach((name, descriptor) {
       final methodId = 'methods|$classId|$name';
       methodRefs.add(
@@ -186,25 +107,27 @@ class ClassHelper extends Domain {
           id: methodId,
           name: name,
           owner: classRef,
-          isConst: descriptor['isConst'] as bool,
-          isStatic: descriptor['isStatic'] as bool,
-          // TODO(annagrin): get information about getters and setters from symbols.
-          // https://github.com/dart-lang/sdk/issues/46723
-          implicit: false,
+          isConst: descriptor['isConst'] as bool? ?? false,
+          isStatic: descriptor['isStatic'] as bool? ?? false,
+          implicit: descriptor['isImplicit'] as bool? ?? false,
+          isAbstract: descriptor['isAbstract'] as bool? ?? false,
+          isGetter: descriptor['isGetter'] as bool? ?? false,
+          isSetter: descriptor['isSetter'] as bool? ?? false,
         ),
       );
     });
     final fieldRefs = <FieldRef>[];
+
     final fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
     fieldDescriptors.forEach((name, descriptor) {
       final classMetaData = ClassMetaData(
-        jsName: descriptor['classRefName'],
         runtimeKind: RuntimeObjectKind.type,
         classRef: classRefFor(
-          descriptor['classRefLibraryId'],
-          descriptor['classRefDartName'],
+          descriptor['classLibraryId'],
+          descriptor['className'],
         ),
       );
+
       fieldRefs.add(
         FieldRef(
           name: name,
@@ -215,34 +138,19 @@ class ClassHelper extends Domain {
             kind: classMetaData.kind,
             classRef: classMetaData.classRef,
           ),
-          isConst: descriptor['isConst'] as bool,
-          isFinal: descriptor['isFinal'] as bool,
-          isStatic: descriptor['isStatic'] as bool,
+          isConst: descriptor['isConst'] as bool? ?? false,
+          isFinal: descriptor['isFinal'] as bool? ?? false,
+          isStatic: descriptor['isStatic'] as bool? ?? false,
           id: createId(),
         ),
       );
     });
 
-    final staticFieldDescriptors =
-        classDescriptor['staticFields'] as Map<String, dynamic>;
-    staticFieldDescriptors.forEach((name, descriptor) {
-      fieldRefs.add(
-        FieldRef(
-          name: name,
-          owner: classRef,
-          declaredType: InstanceRef(
-            identityHashCode: createId().hashCode,
-            id: createId(),
-            kind: InstanceKind.kType,
-            classRef: classRef,
-          ),
-          isConst: descriptor['isConst'] as bool,
-          isFinal: descriptor['isFinal'] as bool,
-          isStatic: descriptor['isStatic'] as bool,
-          id: createId(),
-        ),
-      );
-    });
+    final superClassLibraryId = classDescriptor['superClassLibraryId'];
+    final superClassName = classDescriptor['superClassName'];
+    final superClassRef = superClassName == null
+        ? null
+        : classRefFor(superClassLibraryId, superClassName);
 
     // TODO: Implement the rest of these
     // https://github.com/dart-lang/webdev/issues/176.
@@ -257,6 +165,7 @@ class ClassHelper extends Domain {
       subclasses: [],
       id: classId,
       traceAllocations: false,
+      superClass: superClassRef,
     );
   }
 }

@@ -18,12 +18,12 @@ import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/events.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/batched_expression_evaluator.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:pub_semver/pub_semver.dart' as semver;
@@ -989,6 +989,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   // Note: Ignore the optional local parameter, it is there to keep the method
   // signature consistent with the VM service interface.
+  // TODO(https://github.com/dart-lang/webdev/issues/2198): Add support for g3-
+  // relative URIs, and support the `local` parameter.
   @override
   Future<UriList> lookupResolvedPackageUris(
     String isolateId,
@@ -1088,33 +1090,20 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String? step,
     int? frameIndex,
   }) async {
-    try {
-      if (inspector.appConnection.isStarted) {
-        return captureElapsedTime(
-          () async {
-            await isInitialized;
-            await isStarted;
-            _checkIsolate('resume', isolateId);
-            return await (await debuggerFuture)
-                .resume(step: step, frameIndex: frameIndex);
-          },
-          (result) => DwdsEvent.resume(step),
-        );
-      } else {
-        inspector.appConnection.runMain();
-        return Success();
-      }
-    } on WipError catch (e) {
-      final errorMessage = e.message;
-      if (errorMessage != null &&
-          errorMessage.contains('Can only perform operation while paused')) {
-        throw RPCError(
-          'resume',
-          RPCErrorKind.kIsolateMustBePaused.code,
-          errorMessage,
-        );
-      }
-      rethrow;
+    if (inspector.appConnection.isStarted) {
+      return captureElapsedTime(
+        () async {
+          await isInitialized;
+          await isStarted;
+          _checkIsolate('resume', isolateId);
+          return await (await debuggerFuture)
+              .resume(step: step, frameIndex: frameIndex);
+        },
+        (result) => DwdsEvent.resume(step),
+      );
+    } else {
+      inspector.appConnection.runMain();
+      return Success();
     }
   }
 

@@ -1,8 +1,22 @@
-## 20.0.0-wip
+## 21.0.0-wip
+
+**Breaking changes**
+
+- Allow clients to specify where to find the package config. - [#2199](https://github.com/dart-lang/webdev/pull/2199).
+- Allow clients to specify a way to convert absolute paths to g3-relative paths. - [#2200](https://github.com/dart-lang/webdev/pull/2200)
+
+## 20.0.1
+
+- Update file dependency to `>=6.0.0 < 8.0.0` - [#123260](https://github.com/flutter/flutter/pull/123260#issuecomment-1674001623).
+
+## 20.0.0
 
 - Require clients to specify the `basePath` on `AssetReader`. - [#2160](https://github.com/dart-lang/webdev/pull/2160)
 - Update SDK constraint to `>=3.1.0-254.0.dev <4.0.0`. - [#2169](https://github.com/dart-lang/webdev/pull/2169)
 - Require min `build_web_compilers` version `4.0.4` - [#2171](https://github.com/dart-lang/webdev/pull/2171)
+- Switch to using new debugging API from DDC to support new type system. - [#2159](https://github.com/dart-lang/webdev/pull/2159)
+- Fix Flutter crash when calling `resume` when app is not paused. - [#2188](https://github.com/dart-lang/webdev/pull/2188)
+- Update file dependency to `7.0.0`.
 
 ## 19.0.2
 

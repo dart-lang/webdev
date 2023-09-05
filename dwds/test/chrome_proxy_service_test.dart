@@ -9,9 +9,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
@@ -598,15 +598,8 @@ void main() {
           testClass.functions,
           unorderedEquals([
             predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic!),
-            predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
-            predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
             predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
-            predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
             predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
-            predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
-            predicate(
-              (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!,
-            ),
             predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
           ]),
         );
@@ -1085,21 +1078,10 @@ void main() {
           expect(
             testClass.functions,
             unorderedEquals([
-              predicate(
-                (FuncRef f) => f.name == 'staticHello' && f.isStatic!,
-              ),
-              predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic!),
               predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
               predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
-              predicate(
-                (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!,
-              ),
-              predicate(
-                (FuncRef f) => f.name == 'runtimeType' && !f.isStatic!,
-              ),
+              predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
             ]),
           );
           expect(
@@ -1144,21 +1126,10 @@ void main() {
           expect(
             testClass.functions,
             unorderedEquals([
-              predicate(
-                (FuncRef f) => f.name == 'staticHello' && f.isStatic!,
-              ),
-              predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic!),
               predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
               predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
-              predicate(
-                (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!,
-              ),
-              predicate(
-                (FuncRef f) => f.name == 'runtimeType' && !f.isStatic!,
-              ),
+              predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
             ]),
           );
           expect(
@@ -1368,11 +1339,16 @@ void main() {
         expect(pauseBreakpoints, hasLength(1));
         expect(pauseBreakpoints.first.id, bp.id);
         await service.removeBreakpoint(isolateId!, bp.id!);
-      });
-
-      tearDown(() async {
         // Resume execution to not impact other tests.
         await service.resume(isolateId!);
+      });
+
+      test('resuming throws kIsolateMustBePaused error if not paused',
+          () async {
+        await expectLater(
+          service.resume(isolateId!),
+          throwsRPCErrorWithCode(RPCErrorKind.kIsolateMustBePaused.code),
+        );
       });
     });
 

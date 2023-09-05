@@ -19,7 +19,7 @@ void main() {
   late HttpServer server;
   const entryEtag = 'entry etag';
   const nonEntryEtag = 'some etag';
-  final loadStrategy = FakeStrategy();
+  final loadStrategy = FakeStrategy(FakeAssetReader());
 
   group('InjectedHandlerWithoutExtension', () {
     late DwdsInjector injector;

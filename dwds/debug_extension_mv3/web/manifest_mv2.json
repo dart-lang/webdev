@@ -1,6 +1,6 @@
 {
   "name": "Dart Debug Extension",
-  "version": "1.34",
+  "version": "1.35",
   "manifest_version": 2,
   "devtools_page": "static_assets/devtools.html",
   "browser_action": {
@@ -9,12 +9,7 @@
   "externally_connectable": {
     "ids": ["nbkbficgbembimioedhceniahniffgpl"]
   },
-  "permissions": [
-    "debugger",
-    "notifications",
-    "storage",
-    "webNavigation"
-  ],
+  "permissions": ["debugger", "notifications", "storage", "webNavigation"],
   "background": {
     "scripts": ["background.dart.js"]
   },

@@ -5,100 +5,38 @@
 @Tags(['daily'])
 @Timeout(Duration(minutes: 2))
 
-import 'package:dwds/src/debugging/inspector.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
-import '../fixtures/project.dart';
+import 'common/instance_common.dart';
 
 void main() {
   // Enable verbose logging for debugging.
   final debug = false;
+  final canaryFeatures = true;
 
-  for (var compilationMode in CompilationMode.values) {
-    _runAllTests(
-      canaryFeatures: true,
-      compilationMode: compilationMode,
-      debug: debug,
-    );
-  }
-}
-
-void _runAllTests({
-  required bool canaryFeatures,
-  required CompilationMode compilationMode,
-  required bool debug,
-}) {
-  group('canaryFeatures: $canaryFeatures |', () {
+  group('canary: $canaryFeatures |', () {
     final provider = TestSdkConfigurationProvider(
       canaryFeatures: canaryFeatures,
       verbose: debug,
     );
-
-    final project = TestProject.testScopesWithSoundNullSafety;
-
-    setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
-      // Cleanup project including compiled dart sdk.
-      await project.cleanUp();
-    });
     tearDownAll(provider.dispose);
 
-    group('$compilationMode |', () {
-      final context = TestContext(project, provider);
-      late AppInspector inspector;
+    for (var compilationMode in CompilationMode.values) {
+      runTypeSystemVerificationTests(
+        provider: provider,
+        compilationMode: compilationMode,
+        canaryFeatures: canaryFeatures,
+        debug: debug,
+      );
 
-      setUpAll(() async {
-        setCurrentLogWriter(debug: debug);
-        await context.setUp(
-          canaryFeatures: canaryFeatures,
-          compilationMode: compilationMode,
-        );
-        final chromeProxyService = context.service;
-        inspector = chromeProxyService.inspector;
-      });
-
-      tearDownAll(() async {
-        await context.tearDown();
-      });
-
-      final url = 'org-dartlang-app:///example/scopes/main.dart';
-
-      String libraryName(CompilationMode compilationMode) =>
-          compilationMode == CompilationMode.frontendServer
-              ? "example/scopes/main.dart"
-              : "example/scopes/main";
-
-      String libraryVariableTypeExpression(
-        String variable,
-        CompilationMode compilationMode,
-      ) =>
-          '''
-            (function() {
-              var dart = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-              var libraryName = '${libraryName(compilationMode)}';
-              var library = dart.getModuleLibraries(libraryName)['$url'];
-              var x = library['$variable'];
-              return dart.getReifiedType(x);
-            })();
-          ''';
-
-      group('compiler', () {
-        setUp(() => setCurrentLogWriter(debug: debug));
-
-        test('uses new type system', () async {
-          final remoteObject = await inspector.jsEvaluate(
-            libraryVariableTypeExpression(
-              'libraryPublicFinal',
-              compilationMode,
-            ),
-          );
-          expect(remoteObject.json['className'], 'dart_rti.Rti.new');
-        });
-      });
-    });
+      runTests(
+        provider: provider,
+        compilationMode: compilationMode,
+        canaryFeatures: canaryFeatures,
+        debug: debug,
+      );
+    }
   });
 }

@@ -5,17 +5,14 @@
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
-
-late LoadStrategy _globalLoadStrategy;
-
-set globalLoadStrategy(LoadStrategy strategy) => _globalLoadStrategy = strategy;
-
-LoadStrategy get globalLoadStrategy => _globalLoadStrategy;
 
 abstract class LoadStrategy {
   final AssetReader _assetReader;
   final _providers = <String, MetadataProvider>{};
+  String? _packageConfigPath;
 
   LoadStrategy(this._assetReader);
 
@@ -35,10 +32,6 @@ abstract class LoadStrategy {
   /// Used for preventing stepping into the library loading code.
   String get loadLibrariesModule;
 
-  /// Returns a snippet of JS code that loads all Dart libraries into a `libs`
-  /// variable.
-  String get loadLibrariesSnippet;
-
   /// Returns a snippet of JS code that can be used to load a JS module.
   ///
   /// The snippet should be a reference to a function that takes a single
@@ -51,23 +44,6 @@ abstract class LoadStrategy {
   /// The URI for the app's entrypoint file, which is usually `main.dart`. It
   /// should be a package URI, e.g. `package:myapp/main.dart`.
   Uri? get appEntrypoint;
-
-  /// Returns a snippet of JS code that initializes a `library` variable that
-  /// has the actual library object in DDC for [libraryUri].
-  ///
-  /// In DDC we have module libraries indexed by names of the form
-  /// 'packages/package/mainFile' with no .dart suffix on the file, or
-  /// 'directory/packageName/mainFile', also with no .dart suffix, and relative
-  /// to the serving root, normally /web within the package. These modules have
-  /// a map from the URI with a Dart-specific scheme
-  /// (package: or org-dartlang-app:) to the library objects. The [libraryUri]
-  /// parameter should be one of these Dart-specific scheme URIs, and we set
-  /// `library` the corresponding library.
-  String loadLibrarySnippet(String libraryUri) => '''
-   var sdkUtils = $loadModuleSnippet('dart_sdk').dart;
-   var library = sdkUtils.getLibrary('$libraryUri');
-   if (!library) throw 'cannot find library for $libraryUri';
-  ''';
 
   /// Returns the bootstrap required for this [LoadStrategy].
   ///
@@ -124,6 +100,34 @@ abstract class LoadStrategy {
   /// an app URI.
   String? serverPathForAppUri(String appUri);
 
+  /// Returns the absolute path to the app's package config, determined by the
+  /// app's [entrypoint] path.
+  ///
+  /// Example:
+  ///
+  ///  main_module.bootstrap.js
+  ///   -> /Users/john_doe/my_dart_app/.dart_tool/package_config.json
+  ///
+  String? packageConfigLocator(String entrypoint);
+
+  /// Returns the relative path in google3, determined by the [absolutePath].
+  ///
+  /// Returns `null` if not a google3 app.
+  String? g3RelativePath(String absolutePath);
+
+  /// The absolute path to the app's package config, or null if not provided by
+  /// [packageConfigLocator].
+  String get packageConfigPath {
+    return _packageConfigPath ?? _defaultPackageConfigPath;
+  }
+
+  /// The default package config path, if none is provided by the load strategy.
+  String get _defaultPackageConfigPath => p.join(
+        DartUri.currentDirectory,
+        '.dart_tool',
+        'package_config.json',
+      );
+
   /// Returns the [MetadataProvider] for the application located at the provided
   /// [entrypoint].
   MetadataProvider metadataProviderFor(String entrypoint) {
@@ -138,6 +142,7 @@ abstract class LoadStrategy {
   /// provided [entrypoint].
   void trackEntrypoint(String entrypoint) {
     final metadataProvider = MetadataProvider(entrypoint, _assetReader);
+    _packageConfigPath = packageConfigLocator(entrypoint);
     _providers[metadataProvider.entrypoint] = metadataProvider;
   }
 }

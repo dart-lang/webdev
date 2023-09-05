@@ -66,6 +66,21 @@ class LegacyStrategy extends LoadStrategy {
   /// an app URI.
   final String? Function(String appUri) _serverPathForAppUri;
 
+  /// Returns the absolute path to the app's package config, determined by the
+  /// app's [entrypoint] path.
+  ///
+  /// Example:
+  ///
+  ///  main_module.bootstrap.js
+  ///   -> /Users/john_doe/my_dart_app/.dart_tool/package_config.json
+  ///
+  final String? Function(String entrypoint) _packageConfigLocator;
+
+  /// Returns the relative path in google3, determined by the [absolutePath].
+  ///
+  /// Returns `null` if not a google3 app.
+  final String? Function(String absolutePath) _g3RelativePath;
+
   final Uri? _appEntrypoint;
 
   LegacyStrategy(
@@ -77,6 +92,8 @@ class LegacyStrategy extends LoadStrategy {
     this._moduleInfoForProvider,
     AssetReader assetReader,
     this._appEntrypoint,
+    this._packageConfigLocator,
+    this._g3RelativePath,
   ) : super(assetReader);
 
   @override
@@ -90,13 +107,6 @@ class LegacyStrategy extends LoadStrategy {
 
   @override
   String get loadLibrariesModule => 'dart_library.ddk.js';
-
-  @override
-  String get loadLibrariesSnippet =>
-      'for(let module of dart_library.libraries()) {\n'
-      'dart_library.import(module)[module];\n'
-      '}\n'
-      'let libs = $loadModuleSnippet("dart_sdk").dart.getLibraries();\n';
 
   @override
   String get loadModuleSnippet => 'dart_library.import';
@@ -129,4 +139,11 @@ class LegacyStrategy extends LoadStrategy {
 
   @override
   Uri? get appEntrypoint => _appEntrypoint;
+
+  @override
+  String? packageConfigLocator(String entrypoint) =>
+      _packageConfigLocator(entrypoint);
+
+  @override
+  String? g3RelativePath(String absolutePath) => _g3RelativePath(absolutePath);
 }

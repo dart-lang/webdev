@@ -6,6 +6,7 @@
 
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:test/test.dart';
 
 import 'fixtures/fakes.dart';
@@ -40,6 +41,7 @@ const _fileUriMetadata =
     '// intentionally empty: package blah has no dart sources';
 
 void main() {
+  globalLoadStrategy = FakeStrategy(FakeAssetReader());
   test('can parse metadata with empty sources', () async {
     final provider = MetadataProvider(
       'foo.bootstrap.js',

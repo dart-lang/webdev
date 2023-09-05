@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -18,24 +18,17 @@ class FunctionMetaData {
     RemoteObject remoteObject,
   ) async {
     final evalExpression = '''
-      function(remoteObject) {
-        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-        var name = remoteObject.name;
-        if(remoteObject._boundObject) {
-         name = sdkUtils.getType(remoteObject._boundObject).name +
-                 '.' + remoteObject._boundMethod.name;
-        }
-        return name;
+      function() {
+        const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+        const dart = sdk.dart;
+        return dart.getFunctionMetadata(this);
       }
     ''';
-    final arguments = [
-      {'objectId': remoteObject.objectId},
-    ];
+
     final response = await remoteDebugger.sendCommand(
       'Runtime.callFunctionOn',
       params: {
         'functionDeclaration': evalExpression,
-        'arguments': arguments,
         'objectId': remoteObject.objectId,
         'returnByValue': true,
       },

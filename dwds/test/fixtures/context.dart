@@ -55,6 +55,10 @@ Matcher isRPCErrorWithMessage(String message) =>
 Matcher throwsRPCErrorWithMessage(String message) =>
     throwsA(isRPCErrorWithMessage(message));
 
+Matcher isRPCErrorWithCode(int code) =>
+    isA<RPCError>().having((e) => e.code, 'code', equals(code));
+Matcher throwsRPCErrorWithCode(int code) => throwsA(isRPCErrorWithCode(code));
+
 enum CompilationMode { buildDaemon, frontendServer }
 
 class TestContext {
@@ -156,8 +160,10 @@ class TestContext {
       // Make sure configuration was created correctly.
       final configuration = await sdkConfigurationProvider.configuration;
       configuration.validate();
+      await project.cleanUp();
 
       DartUri.currentDirectory = project.absolutePackageDirectory;
+
       configureLogWriter();
 
       _client = IOClient(

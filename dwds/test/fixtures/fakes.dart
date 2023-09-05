@@ -16,6 +16,7 @@ import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
@@ -311,7 +312,11 @@ class FakeExecutionContext extends ExecutionContext {
   FakeExecutionContext();
 }
 
-class FakeStrategy implements LoadStrategy {
+class FakeStrategy extends LoadStrategy {
+  FakeStrategy(
+    AssetReader assetReader,
+  ) : super(assetReader);
+
   @override
   Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
 
@@ -331,16 +336,16 @@ class FakeStrategy implements LoadStrategy {
   String get loadLibrariesModule => '';
 
   @override
-  String get loadLibrariesSnippet => '';
-
-  @override
-  String loadLibrarySnippet(String libraryUri) => '';
-
-  @override
   String get loadModuleSnippet => '';
 
   @override
   Uri? get appEntrypoint => Uri.parse('package:myapp/main.dart');
+
+  @override
+  String? packageConfigLocator(String entrypoint) => null;
+
+  @override
+  String? g3RelativePath(String absolutePath) => null;
 
   @override
   ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
@@ -372,9 +377,6 @@ class FakeStrategy implements LoadStrategy {
   @override
   MetadataProvider metadataProviderFor(String entrypoint) =>
       MetadataProvider(entrypoint, FakeAssetReader());
-
-  @override
-  void trackEntrypoint(String entrypoint) {}
 
   @override
   Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
