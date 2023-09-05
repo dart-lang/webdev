@@ -28,5 +28,5 @@ jobs:
         run: dart test/puppeteer/download_chromium.dart
         working-directory: dwds
       - name: Run Puppeteer tests
-        run: dart test test/puppeteer/extension_test.dart --no-retry --platform vm 
+        run: dart test test/puppeteer/extension_test_mv2.dart --no-retry --platform vm 
         working-directory: dwds

@@ -736,9 +736,6 @@ void testAll({
                 containsPair('backgroundColor', isNotEmpty),
               );
             },
-            // TODO(elliette): Figure out why this test passes when run locally
-            // but fails on CI.
-            skip: true,
           );
 
           test(
