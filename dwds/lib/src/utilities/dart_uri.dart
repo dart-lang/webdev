@@ -133,6 +133,11 @@ class DartUri {
   /// All of the known libraries, indexed by their absolute file URL.
   static final Map<String, String> _resolvedUriToUri = {};
 
+  /// Returns a resolved path for a g3-relative URI.
+  ///
+  /// This map is empty if not a google3 app.
+  static final Map<String, String> _g3RelativeUriToResolvedUri = {};
+
   /// Returns package, app, or dart uri for a resolved path.
   static String? toPackageUri(String uri) {
     final packageUri = _resolvedUriToUri[uri];
@@ -151,11 +156,6 @@ class DartUri {
 
   /// Returns resolved path for a package, app, or dart uri.
   static String? toResolvedUri(String uri) => _uriToResolvedUri[uri];
-
-  /// Returns a resolved path for a g3-relative URI.
-  ///
-  /// This map is empty if not a google3 app.
-  static final Map<String, String> _g3RelativeUriToResolvedUri = {};
 
   /// The directory in which we're running.
   ///
@@ -178,6 +178,7 @@ class DartUri {
     _packageConfig = null;
     _resolvedUriToUri.clear();
     _uriToResolvedUri.clear();
+    _g3RelativeUriToResolvedUri.clear();
   }
 
   /// Record all of the libraries, indexed by their absolute file: URI.
