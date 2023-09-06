@@ -243,19 +243,23 @@ void testAll({
         });
 
         test('DevTools is opened with the correct query parameters', () async {
+          print('[debug log] starting test');
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
               useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
           // Navigate to the Dart app:
+          print('[debug log] navigating to $appUrl');
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
+          print('[debug log] clicking on extension icon');
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
           );
           // Wait for DevTools to open:
+          print('[debug log] wait for devtools to open');
           final devToolsTabTarget = await browser.waitForTarget(
             (target) => target.url.contains(devToolsUrlFragment),
           );
@@ -263,12 +267,16 @@ void testAll({
           // Expect the correct query parameters to be on the DevTools url:
           final uri = Uri.parse(devToolsUrl);
           final queryParameters = uri.queryParameters;
+          print('[debug log] check query params');
           expect(queryParameters.keys, unorderedMatches(['uri', 'ide']));
           expect(queryParameters, containsPair('ide', 'DebugExtension'));
           expect(queryParameters, containsPair('uri', isNotEmpty));
           // Close the DevTools tab:
+          print('[debug log] get devtools tab');
           final devToolsTab = await devToolsTabTarget.page;
+          print('[debug log] close devtools tab');
           await devToolsTab.close();
+          print('[debug log] close app tab');
           await appTab.close();
         });
 
@@ -328,22 +336,27 @@ void testAll({
         });
 
         test('Clicking extension icon while debugging shows warning', () async {
+          print('[debug log] starting test');
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
               useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
           // Navigate to the Dart app:
+          print('[debug log] navigate to page');
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
+          print('[debug log] click on extension icon');
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
           );
           // Wait for Dart Devtools to open:
+          print('[debug log] wait for devtools');
           final devToolsTabTarget = await browser.waitForTarget(
             (target) => target.url.contains(devToolsUrlFragment),
           );
+          print('[debug log] wait for notifications');
           // There should be no warning notifications:
           var chromeNotifications = await evaluate(
             _getNotifications(),
@@ -352,6 +365,7 @@ void testAll({
           );
           expect(chromeNotifications, isEmpty);
           // Navigate back to Dart app:
+          print('[debug log] navigate to page');
           await navigateToPage(browser, url: appUrl, isNew: false);
           // Click on the Dart Debug Extension icon again:
           await workerEvalDelay();
