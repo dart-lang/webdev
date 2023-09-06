@@ -758,6 +758,7 @@ void testAll({
             expect(result, matchInstanceRef('[]'));
           }, // TODO:(annagrin): remove when dev version updates to 3.2.0-126.0.dev or later.
           skip: classTableIsNotDefinedSdkVersions.allows(currentSdkVersion),
+          retry: 0,
         );
 
         test(
@@ -775,6 +776,7 @@ void testAll({
             expect(results[1], matchInstanceRef('1, 1'));
           }, // TODO:(annagrin): remove when dev version updates to 3.2.0-126.0.dev or later.
           skip: classTableIsNotDefinedSdkVersions.allows(currentSdkVersion),
+          retry: 0,
         );
 
         test('in parallel (in a batch) handles errors', () async {
