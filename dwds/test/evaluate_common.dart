@@ -18,6 +18,16 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
+final semver.Version currentSdkVersion =
+    semver.Version.parse(Platform.version.split(' ')[0]);
+
+final classTableIsNotDefinedSdkVersions = semver.VersionRange(
+  min: semver.Version.parse('3.2.0-123.0.dev'),
+  max: semver.Version.parse('3.2.0-126.0.dev'),
+  includeMin: true,
+  includeMax: false,
+);
+
 void testAll({
   required TestSdkConfigurationProvider provider,
   CompilationMode compilationMode = CompilationMode.buildDaemon,
@@ -747,9 +757,7 @@ void testAll({
 
             expect(result, matchInstanceRef('[]'));
           }, // TODO:(annagrin): remove when dev version updates to 3.2.0-126.0.dev or later.
-          skip: semver.Version.parse(Platform.version.split(' ')[0])
-                  .compareTo(semver.Version.parse('3.2.0-126.0.dev')) <
-              0,
+          skip: classTableIsNotDefinedSdkVersions.allows(currentSdkVersion),
         );
 
         test(
@@ -766,9 +774,7 @@ void testAll({
             expect(results[0], matchInstanceRef('1, 0'));
             expect(results[1], matchInstanceRef('1, 1'));
           }, // TODO:(annagrin): remove when dev version updates to 3.2.0-126.0.dev or later.
-          skip: semver.Version.parse(Platform.version.split(' ')[0])
-                  .compareTo(semver.Version.parse('3.2.0-126.0.dev')) <
-              0,
+          skip: classTableIsNotDefinedSdkVersions.allows(currentSdkVersion),
         );
 
         test('in parallel (in a batch) handles errors', () async {
