@@ -570,7 +570,7 @@ Future<void> _startSseClient(
         'Authentication required.\n\nClick OK to authenticate then try again.',
       )) {
         // TODO(grouma) - see if we can get a callback on a successful auth
-        // and automatically initiate the dev workflow.
+        // and automatically reinitiate the dev workflow.
         window.open(authUrl, 'Dart DevTools Authentication');
         chrome.debugger
             .detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
