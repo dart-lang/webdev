@@ -198,8 +198,7 @@ class _PackageInfo {
 
 /// Returns the package info for the latest webdev release.
 Future<_PackageInfo> _latestPackageInfo() async {
-  var response = await get(
-      Uri.parse('https://pub.dev/api/packages/webdev'),
+  var response = await get(Uri.parse('https://pub.dev/api/packages/webdev'),
       headers: {HttpHeaders.userAgentHeader: 'webdev $packageVersion'});
   var responseObj = json.decode(response.body);
   var pubspec = Pubspec.fromJson(
