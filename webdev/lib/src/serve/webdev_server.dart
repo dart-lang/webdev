@@ -139,7 +139,6 @@ class WebDevServer {
           verbose: options.configuration.verbose,
           experiments: options.configuration.experiments,
           sdkConfigurationProvider: const DefaultSdkConfigurationProvider(),
-          canaryFeatures: options.configuration.canaryFeatures,
         );
       }
       var shouldServeDevTools =
