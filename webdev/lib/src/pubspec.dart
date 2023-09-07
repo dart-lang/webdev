@@ -91,7 +91,7 @@ class PubspecLock {
         PackageExceptionDetails.missingDep(pkgName, constraint);
 
     var pkgDataMap =
-        (_packages == null) ? null : _packages![pkgName] as YamlMap?;
+        (_packages == null) ? null : _packages[pkgName] as YamlMap?;
     if (pkgDataMap == null) {
       issues.add(missingDetails);
     } else {
