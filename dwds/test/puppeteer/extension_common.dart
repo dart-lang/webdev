@@ -602,8 +602,10 @@ void testAll({
             expect(debugInfo.isFlutterApp, equals(isFlutterApp));
           });
 
+          // THIS TEST FAILS:
           test('the correct extension panels are added to Chrome DevTools',
               () async {
+            await appTab.bringToFront();
             final chromeDevToolsPage = await getChromeDevToolsPage(browser);
             // There are no hooks for when a panel is added to Chrome DevTools,
             // therefore we rely on a slight delay:
@@ -635,8 +637,10 @@ void testAll({
             );
           });
 
+          // THIS TEST FAILS:
           test('Dart DevTools is embedded for debug session lifetime',
               () async {
+            await appTab.bringToFront();
             final chromeDevToolsPage = await getChromeDevToolsPage(browser);
             // There are no hooks for when a panel is added to Chrome DevTools,
             // therefore we rely on a slight delay:
@@ -706,9 +710,11 @@ void testAll({
           // origin, and being able to connect to the embedded Dart app.
           // See https://github.com/dart-lang/webdev/issues/1779
 
+          // This test fails:
           test(
             'The Dart DevTools IFRAME has the correct query parameters',
             () async {
+              await appTab.bringToFront();
               final chromeDevToolsPage = await getChromeDevToolsPage(browser);
               // There are no hooks for when a panel is added to Chrome DevTools,
               // therefore we rely on a slight delay:
@@ -752,9 +758,11 @@ void testAll({
             },
           );
 
+          // This one is skipped:
           test(
             'Trying to debug a page with multiple Dart apps shows warning',
             () async {
+              await appTab.bringToFront();
               final chromeDevToolsPage = await getChromeDevToolsPage(browser);
               // There are no hooks for when a panel is added to Chrome DevTools,
               // therefore we rely on a slight delay:
