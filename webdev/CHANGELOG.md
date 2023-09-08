@@ -1,3 +1,7 @@
+## 3.0.7+1
+
+- Downgrade `dwds` constraint to `19.0.2+1` to fix a versioning conflict with the Dart SDK. - [#53459](https://github.com/dart-lang/sdk/issues/53459).
+
 ## 3.0.7
 
 - Update `build_web_compilers` constraint to `^4.0.4`.
