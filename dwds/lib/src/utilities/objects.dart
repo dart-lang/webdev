@@ -21,7 +21,7 @@ class Property {
   ///
   /// Useful for getting access to properties of particular types of
   /// RemoteObject.
-  Object? get rawValue => _map == null ? null : _map!['value'];
+  Object? get rawValue => _map == null ? null : _map['value'];
 
   /// Remote object value in case of primitive values or JSON values (if it was
   /// requested). (optional)
@@ -29,7 +29,7 @@ class Property {
     if (_remoteObjectValue != null) return _remoteObjectValue!;
     if (_map == null) return null;
     if (rawValue == null) return null;
-    final val = _map!['value'];
+    final val = _map['value'];
     if (val is RemoteObject) {
       _remoteObjectValue = val;
     } else {
@@ -59,7 +59,7 @@ class Property {
   /// Will be of the form 'Symbol(_actualName)' for private fields.
   String? get rawName {
     if (_map == null) return null;
-    return _map!['name'] as String;
+    return _map['name'] as String;
   }
 
   @override
