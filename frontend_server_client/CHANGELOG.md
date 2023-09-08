@@ -1,6 +1,6 @@
-## 3.3.0-dev
+## 3.3.0-wip
 
-- Update SDK constraint to `>=3.0.0-134.0.dev <4.0.0`.
+- Update Dart SDK constraint to `>=3.0.0 <4.0.0`.
 - Support changes in the SDK layout for Dart 3.0.
 
 ## 3.2.0
