@@ -420,15 +420,13 @@ class DevHandler {
       debuggerStart: debuggerStart,
       devToolsStart: DateTime.now(),
     );
-    if (_devTools != null) {
-      await _launchDevTools(
-        appServices.chromeProxyService.remoteDebugger,
-        _constructDevToolsUri(
-          appServices.debugService.uri,
-          ideQueryParam: 'Dwds',
-        ),
-      );
-    }
+    await _launchDevTools(
+      appServices.chromeProxyService.remoteDebugger,
+      _constructDevToolsUri(
+        appServices.debugService.uri,
+        ideQueryParam: 'Dwds',
+      ),
+    );
   }
 
   Future<AppConnection> _handleConnectRequest(

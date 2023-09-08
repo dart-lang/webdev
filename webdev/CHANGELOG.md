@@ -1,6 +1,7 @@
 ## 3.0.8-wip
 
-- Hide and deprecate now unsupported `--null-safety` option.
+- Hide and deprecate now unsupported `--null-safety` option. - [#2206](https://github.com/dart-lang/webdev/pull/2206)
+- Update Dart SDK constraint to `>=3.2.0-36.0.dev <4.0.0`. - [#2207](https://github.com/dart-lang/webdev/pull/2207)
 
 ## 3.0.7
 

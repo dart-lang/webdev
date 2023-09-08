@@ -203,7 +203,7 @@ class DebugService {
   Future<String> get encodedUri async {
     if (_encodedUri != null) return _encodedUri!;
     var encoded = uri;
-    if (_urlEncoder != null) encoded = await _urlEncoder!(encoded);
+    if (_urlEncoder != null) encoded = await _urlEncoder(encoded);
     return _encodedUri = encoded;
   }
 

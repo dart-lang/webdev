@@ -5,7 +5,7 @@ description: >-
 publish_to: none
 
 environment:
-  sdk: ">=3.1.0-254.0.dev<4.0.0"
+  sdk: ^3.2.0-36.0.dev
 
 dependencies:
   intl: ^0.17.0
