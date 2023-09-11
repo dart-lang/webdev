@@ -33,12 +33,13 @@ void addSharedArgs(ArgParser argParser,
         defaultsTo: nullSafetyAuto,
         allowed: [nullSafetySound, nullSafetyUnsound, nullSafetyAuto],
         help:
-            'If "sound", `package:build_web_compilers` will be run with sound '
-            'null safety support. '
+            'DEPRECATED: If "sound", `package:build_web_compilers` will be run '
+            'with sound null safety support. '
             'If "unsound", `package:build_web_compilers` will be run without '
             'sound null safety support. '
             'If "auto", the default `package:build_web_compilers` '
-            'behavior is used.')
+            'behavior is used.',
+        hide: true)
     ..addFlag(releaseFlag,
         abbr: 'r',
         defaultsTo: releaseDefault,

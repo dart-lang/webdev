@@ -103,16 +103,6 @@ Common:
                                            "--output" value should be passed to
                                            `build_runner`.
                                            (defaults to "NONE")
--n, --null-safety                          If "sound",
-                                           `package:build_web_compilers` will be
-                                           run with sound null safety support.
-                                           If "unsound",
-                                           `package:build_web_compilers` will be
-                                           run without sound null safety
-                                           support. If "auto", the default
-                                           `package:build_web_compilers`
-                                           behavior is used.
-                                           [sound, unsound, auto (default)]
 -r, --[no-]release                         Build with release mode defaults for
                                            builders.
     --[no-]build-web-compilers             If a dependency on
@@ -145,16 +135,6 @@ Usage: webdev build [arguments]
                                            "--output" value should be passed to
                                            `build_runner`.
                                            (defaults to "web:build")
--n, --null-safety                          If "sound",
-                                           `package:build_web_compilers` will be
-                                           run with sound null safety support.
-                                           If "unsound",
-                                           `package:build_web_compilers` will be
-                                           run without sound null safety
-                                           support. If "auto", the default
-                                           `package:build_web_compilers`
-                                           behavior is used.
-                                           [sound, unsound, auto (default)]
 -r, --[no-]release                         Build with release mode defaults for
                                            builders.
                                            (defaults to on)
