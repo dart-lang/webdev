@@ -2,8 +2,8 @@
 
 The Dart Web Developer Service (DWDS) allows developer tools designed to work
 with the native Dart VM to also work with Dart Web applications compiled with
-[DDC](https://webdev.dartlang.org/tools/dartdevc), built / served with
-[webdev](https://webdev.dartlang.org/tools/webdev), and run in Chrome.
+[DDC](https://dart.dev/tools/dartdevc), built / served with
+[webdev](https://dart.dev/tools/webdev), and run in Chrome.
 
 `package:dwds` is integrated into `webdev serve` as well as `flutter run`.
 

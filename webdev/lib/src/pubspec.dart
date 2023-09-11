@@ -105,7 +105,7 @@ class PubspecLock {
       var source = pkgDataMap['source'] as String?;
       if (source == 'hosted') {
         // NOTE: pkgDataMap['description'] should be:
-        //           `{url: https://pub.dartlang.org, name: [pkgName]}`
+        //           `{url: https://pub.dev, name: [pkgName]}`
         //       If a user is playing around here, they are on their own.
 
         var version = pkgDataMap['version'] as String;
@@ -198,8 +198,7 @@ class _PackageInfo {
 
 /// Returns the package info for the latest webdev release.
 Future<_PackageInfo> _latestPackageInfo() async {
-  var response = await get(
-      Uri.parse('https://pub.dartlang.org/api/packages/webdev'),
+  var response = await get(Uri.parse('https://pub.dev/api/packages/webdev'),
       headers: {HttpHeaders.userAgentHeader: 'webdev $packageVersion'});
   var responseObj = json.decode(response.body);
   var pubspec = Pubspec.fromJson(

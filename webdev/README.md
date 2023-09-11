@@ -171,5 +171,5 @@ Run "webdev help" to see global options.
 
 ```
 
-[activating]: https://www.dartlang.org/tools/pub/cmd/pub-global#activating-a-package
-[pub global]: https://www.dartlang.org/tools/pub/cmd/pub-global
+[activating]: https://dart.dev/tools/pub/cmd/pub-global#activating-a-package
+[pub global]: https://dart.dev/tools/pub/cmd/pub-global

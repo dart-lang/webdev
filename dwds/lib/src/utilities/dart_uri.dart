@@ -124,10 +124,10 @@ class DartUri {
   ///   file:///source/webdev/fixtures/_test/example/hello_world/part.dart,
   ///
   /// package:path/path.dart <->
-  ///   file:///.pub-cache/hosted/pub.dartlang.org/path-1.8.0/lib/path.dart,
+  ///   file:///.pub-cache/hosted/pub.dev/path-1.8.0/lib/path.dart,
   ///
   /// package:path/src/path_set.dart <->
-  ///   file:///.pub-cache/hosted/pub.dartlang.org/path-1.8.0/lib/src/path_set.dart,
+  ///   file:///.pub-cache/hosted/pub.dev/path-1.8.0/lib/src/path_set.dart,
   static final Map<String, String> _uriToResolvedUri = {};
 
   /// All of the known libraries, indexed by their absolute file URL.
