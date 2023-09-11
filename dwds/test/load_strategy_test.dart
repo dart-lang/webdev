@@ -33,7 +33,7 @@ void main() {
         () {
       final strategy = FakeStrategy(FakeAssetReader());
 
-      test('defaults to "./dart_tool/packageconfig.json"', () {
+      test('defaults to "./dart_tool/package_config.json"', () {
         expect(
           p.split(strategy.packageConfigPath).join('/'),
           endsWith('_testSound/.dart_tool/package_config.json'),

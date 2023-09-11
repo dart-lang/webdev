@@ -67,8 +67,8 @@ the example app and connect to DWDS.
 - If DWDS / Webdev was just released, then you will need to update the version
   in the `CHANGELOG`, and the `pubspec.yaml` file as well (eg,
   https://github.com/dart-lang/webdev/pull/1462)
-- For any directories you’ve touched, `run dart run build_runner` build to check
-  in the any file that should be built. This will make sure the integration
+- For any directories you’ve touched, run `dart run build_runner build` to 
+  check in any file that should be built. This will make sure the integration
   tests are run against the built files.
 
 ## Release steps
@@ -127,7 +127,7 @@ you need to:
 >
 > This is so that we don’t need to support older versions of the SDK and test
 > against them, therefore every time the Dart SDK is bumped to a new major or
-> minor version, DWDS and Webdev’s min Dart SDK constraint needs to to be
+> minor version, DWDS and Webdev’s min Dart SDK constraint needs to be
 > changed and DWDS and Webdev have to be released. Since DWDS is dependent on
 > DDC and the runtime API, if we had a looser min constraint we would need to
 > run tests for all earlier stable releases of the SDK that match the
@@ -146,7 +146,7 @@ DWDS in Flutter.
 
 1. Create a branch off the release that needs a hotfix:
 
-   a. In the Github UI's
+   a. In the GitHub UI's
    [commit history view](https://github.com/dart-lang/webdev/commits/master),
    find the commit that prepared the release of DWDS that you would like to
    hotfix.
@@ -177,7 +177,7 @@ DWDS in Flutter.
 
 1. Make the fix:
 
-   a. You can now make the change you would like to hotfix. From the Github UI,
+   a. You can now make the change you would like to hotfix. From the GitHub UI,
    open a PR to merge your change into the branch you created in step #3,
    **not** `master`. See https://github.com/dart-lang/webdev/pull/1867 as an
    example.

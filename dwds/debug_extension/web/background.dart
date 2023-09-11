@@ -39,7 +39,7 @@ const _notADartAppAlert = 'No Dart application detected.'
 // Extensions allowed for cross-extension communication.
 //
 // This is only used to forward outgoing messages, as incoming messages are
-// restricted by `externally_connectable` in the extension manijest.json.
+// restricted by `externally_connectable` in the extension manifest.json.
 const _allowedExtensions = {
   'nbkbficgbembimioedhceniahniffgpl', // AngularDart DevTools
 };

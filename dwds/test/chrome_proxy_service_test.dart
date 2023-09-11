@@ -1232,10 +1232,10 @@ void main() {
         hasLength(1),
       );
 
-      // Containts a known script.
+      // Contains a known script.
       expect(scriptUris, contains('package:path/path.dart'));
 
-      // Containts part files as well.
+      // Contains part files as well.
       expect(scriptUris, contains(endsWith('part.dart')));
       expect(
         scriptUris,
@@ -1979,7 +1979,7 @@ void main() {
       skip: 'https://github.com/dart-lang/webdev/issues/1584',
     );
 
-    test('registerservice', () async {
+    test('registerService', () async {
       final service = context.service;
       await expectLater(
         service.registerService('ext.foo.bar', ''),

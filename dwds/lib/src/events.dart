@@ -15,7 +15,7 @@ class DwdsStats {
   DateTime? _devToolsStart;
   DateTime? get devToolsStart => _devToolsStart;
 
-  /// Records and returns weither the debugger is ready.
+  /// Records and returns whether the debugger is ready.
   bool _isFirstDebuggerReady = true;
   bool get isFirstDebuggerReady {
     final wasReady = _isFirstDebuggerReady;

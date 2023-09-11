@@ -360,7 +360,7 @@ void testAll({
             backgroundPage: backgroundPage,
           );
           await workerEvalDelay();
-          // There should now be a warning notificiation:
+          // There should now be a warning notification:
           chromeNotifications = await evaluate(
             _getNotifications(),
             worker: worker,
@@ -386,7 +386,7 @@ void testAll({
             worker: worker,
             backgroundPage: backgroundPage,
           );
-          // There should now be a warning notificiation:
+          // There should now be a warning notification:
           final chromeNotifications = await evaluate(
             _getNotifications(),
             worker: worker,
@@ -989,7 +989,7 @@ Future<ElementHandle?> _getPanelElement(
 }
 
 Future<void> _tabLeft(Page chromeDevToolsPage) async {
-  // TODO(elliette): Detect which enviroment we are OS we are running
+  // TODO(elliette): Detect which environment we are OS we are running
   // in and update modifier key accordingly. Meta key for MacOs and
   // Ctrl key for Linux/Windows.
   final modifierKey = Key.meta;

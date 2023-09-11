@@ -78,7 +78,7 @@ void main() {
   });
 
   test(
-      'must not provide debug related configuartion when enableInjectedClient '
+      'must not provide debug related configuration when enableInjectedClient '
       'is false', () {
     expect(() => Configuration(enableInjectedClient: false, debug: true),
         throwsA(isA<InvalidConfiguration>()));

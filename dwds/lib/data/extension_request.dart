@@ -26,7 +26,7 @@ abstract class ExtensionRequest
 
   String get command;
 
-  /// Contains JSON-encoded parameters, if avaiable.
+  /// Contains JSON-encoded parameters, if available.
   String? get commandParams;
 }
 
@@ -49,7 +49,7 @@ abstract class ExtensionResponse
   /// Contains a JSON-encoded payload.
   String get result;
 
-  /// Contains an error, if avaiable.
+  /// Contains an error, if available.
   String? get error;
 }
 

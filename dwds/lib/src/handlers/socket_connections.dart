@@ -24,14 +24,14 @@ abstract class SocketConnection {
   void shutdown();
 }
 
-/// A handler that accepts (transport-agnostic) bidirection socket connections.
+/// A handler that accepts (transport-agnostic) bidirectional socket connections.
 abstract class SocketHandler {
   StreamQueue<SocketConnection> get connections;
   FutureOr<Response> handler(Request request);
   void shutdown();
 }
 
-/// An implemenation of [SocketConnection] that users server-sent events (SSE)
+/// An implementation of [SocketConnection] that users server-sent events (SSE)
 /// and HTTP POSTS for bidirectional communication by wrapping an [SseConnection].
 class SseSocketConnection extends SocketConnection {
   final SseConnection _connection;
@@ -48,7 +48,7 @@ class SseSocketConnection extends SocketConnection {
   void shutdown() => _connection.shutdown();
 }
 
-/// An implemenation of [SocketHandler] that accepts server-sent events (SSE)
+/// An implementation of [SocketHandler] that accepts server-sent events (SSE)
 /// connections and wraps them in an [SseSocketConnection].
 class SseSocketHandler extends SocketHandler {
   final SseHandler _sseHandler;
@@ -75,7 +75,7 @@ class SseSocketHandler extends SocketHandler {
   void shutdown() => _sseHandler.shutdown();
 }
 
-/// An implemenation of [SocketConnection] that uses WebSockets for communication
+/// An implementation of [SocketConnection] that uses WebSockets for communication
 /// by wrapping [WebSocketChannel].
 class WebSocketConnection extends SocketConnection {
   final WebSocketChannel _channel;
@@ -94,7 +94,7 @@ class WebSocketConnection extends SocketConnection {
   void shutdown() => _channel.sink.close();
 }
 
-/// An implemenation of [SocketHandler] that accepts WebSocket connections and
+/// An implementation of [SocketHandler] that accepts WebSocket connections and
 /// wraps them in a [WebSocketConnection].
 class WebSocketSocketHandler extends SocketHandler {
   late Handler _handler;

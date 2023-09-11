@@ -192,8 +192,8 @@ void _saveConsoleMsg({
   required String msg,
 }) {
   if (msg.isEmpty) return;
-  final consiseMsg = msg.startsWith('JSHandle:') ? msg.substring(9) : msg;
-  final formatted = 'console.$type: $consiseMsg';
+  final conciseMsg = msg.startsWith('JSHandle:') ? msg.substring(9) : msg;
+  final formatted = 'console.$type: $conciseMsg';
   switch (source) {
     case ConsoleSource.background:
       _backgroundLogs.add(formatted);

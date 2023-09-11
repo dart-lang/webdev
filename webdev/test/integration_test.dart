@@ -22,7 +22,7 @@ void main() {
   setUpAll(testRunner.setUpAll);
   tearDownAll(testRunner.tearDownAll);
 
-  test('non-existant commands create errors', () async {
+  test('non-existent commands create errors', () async {
     var process = await testRunner.runWebDev(['monkey']);
 
     await expectLater(
