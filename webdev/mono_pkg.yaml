@@ -13,11 +13,13 @@ stages:
       sdk:
         - dev
         - main
+        - stable
     - test: -j 1
       os: windows
       sdk:
         - dev
         - main
+        - stable
   - beta_cron:
     - analyze: .
       sdk: beta

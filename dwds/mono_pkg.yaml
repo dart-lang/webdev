@@ -16,6 +16,7 @@ stages:
       sdk:
         - dev
         - main
+        - stable
       os:
         - linux
      # Windows extension tests:
@@ -24,6 +25,7 @@ stages:
       sdk:
         - dev
         - main
+        - stable
       os:
         - windows
     # First test shard:
@@ -32,6 +34,7 @@ stages:
       sdk:
         - dev
         - main
+        - stable
       os: 
         - linux
         - windows
@@ -50,6 +53,7 @@ stages:
       sdk:
         - dev
         - main
+        - stable
       os: 
         - linux
         - windows
