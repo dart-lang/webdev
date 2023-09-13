@@ -144,7 +144,7 @@ class DartUri {
     if (packageUri != null) return packageUri;
 
     // If this is an internal app, then the given uri might be g3-relative:
-    if (globalIsInternalBuild) {
+    if (globalAppMetadata.isInternalBuild) {
       // TODO(https://github.com/dart-lang/webdev/issues/2198): Verify if the
       // intermediary conversion to resolvedUri is causing performance issues.
       final resolvedUri = _g3RelativeUriToResolvedUri[uri];
@@ -185,7 +185,7 @@ class DartUri {
   static void recordAbsoluteUris(Iterable<String> libraryUris) {
     for (var uri in libraryUris) {
       _recordAbsoluteUri(uri);
-      if (globalIsInternalBuild) {
+      if (globalAppMetadata.isInternalBuild) {
         _recordG3RelativeUri(uri);
       }
     }

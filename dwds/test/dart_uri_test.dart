@@ -6,6 +6,7 @@
 @Timeout(Duration(minutes: 2))
 
 import 'package:dwds/asset_reader.dart';
+import 'package:dwds/src/config/app_metadata.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/globals.dart';
 import 'package:path/path.dart' as p;
@@ -206,13 +207,13 @@ void main() {
 
     setUpAll(() async {
       await DartUri.initialize();
-      globalIsInternalBuild = true;
+      globalAppMetadata = AppMetadata(isInternalBuild: false);
       DartUri.recordAbsoluteUris(['package:path/path.dart']);
     });
 
     tearDownAll(() {
       DartUri.clear();
-      globalIsInternalBuild = false;
+      globalAppMetadata = AppMetadata(isInternalBuild: false);
     });
 
     test(

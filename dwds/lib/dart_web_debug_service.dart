@@ -5,6 +5,8 @@
 import 'dart:async';
 
 import 'package:dwds/data/build_result.dart';
+import 'package:dwds/src/config/app_metadata.dart';
+import 'package:dwds/src/config/debug_settings.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/events.dart';
@@ -15,7 +17,6 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/globals.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
@@ -67,35 +68,18 @@ class Dwds {
     required Stream<BuildResult> buildResults,
     required ConnectionProvider chromeConnection,
     required LoadStrategy loadStrategy,
-    required bool enableDebugging,
-    // TODO(annagrin): make expressionCompiler argument required
-    // [issue 881](https://github.com/dart-lang/webdev/issues/881)
-    ExpressionCompiler? expressionCompiler,
-    bool enableDebugExtension = false,
-    String hostname = 'localhost',
-    bool useSseForDebugProxy = true,
-    bool useSseForDebugBackend = true,
-    bool useSseForInjectedClient = true,
-    UrlEncoder? urlEncoder,
-    bool spawnDds = true,
-    // TODO(elliette): DevTools is inconsistently capitalized throughout this
-    // file. Change all occurrences of devtools/Devtools to devTools/DevTools.
-    bool enableDevtoolsLaunch = true,
-    DevtoolsLauncher? devtoolsLauncher,
-    bool launchDevToolsInNewWindow = true,
-    bool emitDebugEvents = true,
-    bool isInternalBuild = false,
-    Future<bool> Function()? isFlutterApp,
+    required DebugSettings debugSettings,
+    required AppMetadata appMetadata,
   }) async {
     globalLoadStrategy = loadStrategy;
-    globalIsInternalBuild = isInternalBuild;
-    isFlutterApp ??= () => Future.value(true);
+    globalAppMetadata = appMetadata;
+    globalDebugSettings = debugSettings;
 
     DevTools? devTools;
     Future<String>? extensionUri;
     ExtensionBackend? extensionBackend;
-    if (enableDebugExtension) {
-      final handler = useSseForDebugBackend
+    if (debugSettings.enableDebugExtension) {
+      final handler = debugSettings.useSseForDebugBackend
           ? SseSocketHandler(
               SseHandler(
                 Uri.parse('/\$debug'),
@@ -108,34 +92,32 @@ class Dwds {
             )
           : WebSocketSocketHandler();
 
-      extensionBackend = await ExtensionBackend.start(handler, hostname);
+      extensionBackend =
+          await ExtensionBackend.start(handler, appMetadata.hostname);
       extensionUri = Future.value(
         Uri(
-          scheme: useSseForDebugBackend ? 'http' : 'ws',
+          scheme: debugSettings.useSseForDebugBackend ? 'http' : 'ws',
           host: extensionBackend.hostname,
           port: extensionBackend.port,
           path: r'$debug',
         ).toString(),
       );
-      if (urlEncoder != null) extensionUri = urlEncoder(await extensionUri);
+      final urlEncoder = debugSettings.urlEncoder;
+      if (urlEncoder != null) {
+        extensionUri = urlEncoder(await extensionUri);
+      }
     }
 
-    final serveDevTools = devtoolsLauncher != null;
-    if (serveDevTools) {
-      devTools = await devtoolsLauncher(hostname);
+    final devToolsLauncher = debugSettings.devToolsLauncher;
+    if (devToolsLauncher != null) {
+      devTools = await devToolsLauncher(appMetadata.hostname);
       final uri =
           Uri(scheme: 'http', host: devTools.hostname, port: devTools.port);
       _logger.info('Serving DevTools at $uri\n');
     }
 
     final injected = DwdsInjector(
-      loadStrategy,
-      useSseForInjectedClient: useSseForInjectedClient,
       extensionUri: extensionUri,
-      enableDevtoolsLaunch: enableDevtoolsLaunch,
-      emitDebugEvents: emitDebugEvents,
-      isInternalBuild: isInternalBuild,
-      isFlutterApp: isFlutterApp,
     );
 
     final devHandler = DevHandler(
@@ -143,15 +125,15 @@ class Dwds {
       buildResults,
       devTools,
       assetReader,
-      hostname,
+      appMetadata.hostname,
       extensionBackend,
-      urlEncoder,
-      useSseForDebugProxy,
-      useSseForInjectedClient,
-      expressionCompiler,
+      debugSettings.urlEncoder,
+      debugSettings.useSseForDebugProxy,
+      debugSettings.useSseForInjectedClient,
+      debugSettings.expressionCompiler,
       injected,
-      spawnDds,
-      launchDevToolsInNewWindow,
+      debugSettings.spawnDds,
+      debugSettings.launchDevToolsInNewWindow,
     );
 
     return Dwds._(
@@ -159,7 +141,7 @@ class Dwds {
       devTools,
       devHandler,
       assetReader,
-      enableDebugging,
+      debugSettings.enableDebugging,
     );
   }
 }

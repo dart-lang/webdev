@@ -5,6 +5,7 @@
 // Note: this is a copy from flutter tools, updated to work with dwds tests
 
 import 'package:dwds/asset_reader.dart';
+import 'package:dwds/config.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 import 'package:test_common/test_sdk_layout.dart';

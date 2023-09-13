@@ -10,6 +10,8 @@ import 'package:dwds/asset_reader.dart';
 import 'package:dwds/dart_web_debug_service.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds/src/config/app_metadata.dart';
+import 'package:dwds/src/config/debug_settings.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
@@ -108,30 +110,34 @@ class TestServer {
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
       loadStrategy: strategy,
-      spawnDds: spawnDds,
-      enableDebugExtension: enableDebugExtension,
-      enableDebugging: enableDebugging,
-      useSseForDebugProxy: useSse,
-      useSseForDebugBackend: useSse,
-      useSseForInjectedClient: useSse,
-      hostname: hostname,
-      urlEncoder: urlEncoder,
-      expressionCompiler: expressionCompiler,
-      isInternalBuild: isInternalBuild,
-      isFlutterApp: () => Future.value(isFlutterApp),
-      devtoolsLauncher: serveDevTools
-          ? (hostname) async {
-              final server = await DevToolsServer().serveDevTools(
-                hostname: hostname,
-                enableStdinCommands: false,
-                customDevToolsPath: sdkLayout.devToolsDirectory,
-              );
-              if (server == null) {
-                throw StateError('DevTools server could not be started.');
+      debugSettings: DebugSettings(
+        spawnDds: spawnDds,
+        enableDebugExtension: enableDebugExtension,
+        enableDebugging: enableDebugging,
+        useSseForDebugProxy: useSse,
+        useSseForDebugBackend: useSse,
+        useSseForInjectedClient: useSse,
+        urlEncoder: urlEncoder,
+        expressionCompiler: expressionCompiler,
+        devToolsLauncher: serveDevTools
+            ? (hostname) async {
+                final server = await DevToolsServer().serveDevTools(
+                  hostname: hostname,
+                  enableStdinCommands: false,
+                  customDevToolsPath: sdkLayout.devToolsDirectory,
+                );
+                if (server == null) {
+                  throw StateError('DevTools server could not be started.');
+                }
+                return DevTools(server.address.host, server.port, server);
               }
-              return DevTools(server.address.host, server.port, server);
-            }
-          : null,
+            : null,
+      ),
+      appMetadata: AppMetadata(
+        hostname: hostname,
+        isInternalBuild: isInternalBuild,
+        isFlutterApp: () => Future.value(isFlutterApp),
+      ),
     );
 
     final server = await startHttpServer('localhost', port: port);

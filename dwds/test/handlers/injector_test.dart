@@ -6,32 +6,24 @@
 
 import 'dart:io';
 
+import 'package:dwds/src/config/debug_settings.dart';
 import 'package:dwds/src/handlers/injector.dart';
+import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/version.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
 
-import '../fixtures/fakes.dart';
-
 void main() {
   late HttpServer server;
   const entryEtag = 'entry etag';
   const nonEntryEtag = 'some etag';
-  final loadStrategy = FakeStrategy(FakeAssetReader());
 
   group('InjectedHandlerWithoutExtension', () {
     late DwdsInjector injector;
     setUp(() async {
-      injector = DwdsInjector(
-        loadStrategy,
-        useSseForInjectedClient: true,
-        enableDevtoolsLaunch: true,
-        emitDebugEvents: true,
-        isInternalBuild: false,
-        isFlutterApp: () => Future.value(true),
-      );
+      injector = DwdsInjector();
       final pipeline = const Pipeline().addMiddleware(injector.middleware);
       server = await shelf_io.serve(
         pipeline.addHandler((request) {
@@ -237,7 +229,7 @@ void main() {
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
         ),
       );
-      expect(result.body.contains('dwdsEnableDevtoolsLaunch'), isTrue);
+      expect(result.body.contains('dwdsEnableDevToolsLaunch'), isTrue);
     });
 
     test('Delegates to strategy handler', () async {
@@ -304,14 +296,11 @@ void main() {
   group('InjectedHandlerWithoutExtension using WebSockets', () {
     late DwdsInjector injector;
     setUp(() async {
-      injector = DwdsInjector(
-        loadStrategy,
+      globalDebugSettings = DebugSettings(
+        enableDebugging: true,
         useSseForInjectedClient: false,
-        enableDevtoolsLaunch: true,
-        emitDebugEvents: true,
-        isInternalBuild: false,
-        isFlutterApp: () => Future.value(true),
       );
+      injector = DwdsInjector();
       final pipeline = const Pipeline().addMiddleware(injector.middleware);
       server = await shelf_io.serve(
         pipeline.addHandler((request) {
@@ -378,13 +367,7 @@ void main() {
       final extensionUri = 'http://localhost:4000';
       final pipeline = const Pipeline().addMiddleware(
         DwdsInjector(
-          loadStrategy,
           extensionUri: Future.value(extensionUri),
-          useSseForInjectedClient: true,
-          enableDevtoolsLaunch: true,
-          emitDebugEvents: true,
-          isInternalBuild: false,
-          isFlutterApp: () => Future.value(true),
         ).middleware,
       );
       server = await shelf_io.serve(

@@ -145,17 +145,12 @@ class WebDevServer {
       var shouldServeDevTools =
           options.configuration.debug || options.configuration.debugExtension;
       dwds = await Dwds.start(
-          hostname: options.configuration.hostname,
-          assetReader: assetReader,
-          buildResults: filteredBuildResults,
-          chromeConnection: () async =>
-              (await Chrome.connectedInstance).chromeConnection,
-          loadStrategy: loadStrategy,
+        debugSettings: DebugSettings(
           enableDebugExtension: options.configuration.debugExtension,
           enableDebugging: options.configuration.debug,
           spawnDds: !options.configuration.disableDds,
           expressionCompiler: ddcService,
-          devtoolsLauncher: shouldServeDevTools
+          devToolsLauncher: shouldServeDevTools
               ? (String hostname) async {
                   var server = await DevToolsServer().serveDevTools(
                     hostname: hostname,
@@ -164,7 +159,17 @@ class WebDevServer {
                   );
                   return DevTools(server!.address.host, server.port, server);
                 }
-              : null);
+              : null,
+        ),
+        appMetadata: AppMetadata(
+          hostname: options.configuration.hostname,
+        ),
+        assetReader: assetReader,
+        buildResults: filteredBuildResults,
+        chromeConnection: () async =>
+            (await Chrome.connectedInstance).chromeConnection,
+        loadStrategy: loadStrategy,
+      );
       pipeline = pipeline.addMiddleware(dwds.middleware);
       cascade = cascade.add(dwds.handler);
       cascade = cascade.add(assetHandler);

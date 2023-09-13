@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:dwds/asset_reader.dart';
+import 'package:dwds/config.dart';
 import 'package:dwds/expression_compiler.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';

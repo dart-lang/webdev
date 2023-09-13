@@ -169,7 +169,7 @@ Future<void>? main() {
       },
     );
 
-    if (dwdsEnableDevtoolsLaunch) {
+    if (dwdsEnableDevToolsLaunch) {
       window.onKeyDown.listen((Event e) {
         if (e is KeyboardEvent &&
             const [
@@ -337,8 +337,8 @@ external String get reloadConfiguration;
 @JS(r'$dartEntrypointPath')
 external String get dartEntrypointPath;
 
-@JS(r'$dwdsEnableDevtoolsLaunch')
-external bool get dwdsEnableDevtoolsLaunch;
+@JS(r'$dwdsEnableDevToolsLaunch')
+external bool get dwdsEnableDevToolsLaunch;
 
 @JS('window.top.document.dispatchEvent')
 external void dispatchEvent(CustomEvent event);

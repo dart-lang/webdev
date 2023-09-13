@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export 'dart_web_debug_service.dart' show Dwds, ConnectionProvider;
+export 'src/config/app_metadata.dart' show AppMetadata;
+export 'src/config/debug_settings.dart'
+    show UrlEncoder, DevToolsLauncher, DebugSettings;
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
 export 'src/debugging/metadata/provider.dart'
@@ -17,8 +20,7 @@ export 'src/loaders/frontend_server_require.dart'
 export 'src/loaders/legacy.dart' show LegacyStrategy;
 export 'src/loaders/require.dart' show RequireStrategy;
 export 'src/loaders/strategy.dart' show LoadStrategy, ReloadConfiguration;
-export 'src/readers/asset_reader.dart'
-    show AssetReader, UrlEncoder, PackageUriMapper;
+export 'src/readers/asset_reader.dart' show AssetReader, PackageUriMapper;
 export 'src/readers/frontend_server_asset_reader.dart'
     show FrontendServerAssetReader;
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;

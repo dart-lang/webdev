@@ -10,6 +10,7 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds/src/config/debug_settings.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
