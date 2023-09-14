@@ -14,7 +14,7 @@ targets:
 
 builders:
   client_js_copy_builder:
-    required_inputs: [".js",".png", ".html", ".css", ".json"]
+    required_inputs: [".js"]
     import: "tool/copy_builder.dart"
     builder_factories:
         - copyBuilder
