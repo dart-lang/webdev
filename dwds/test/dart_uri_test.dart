@@ -14,6 +14,7 @@ import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 
 import 'fixtures/fakes.dart';
+import 'fixtures/utilities.dart';
 
 class TestStrategy extends FakeStrategy {
   TestStrategy(
@@ -49,7 +50,9 @@ class G3TestStrategy extends FakeStrategy {
 void main() {
   group('DartUri', () {
     setUpAll(() {
-      globalLoadStrategy = TestStrategy(FakeAssetReader());
+      setGlobalsForTesting(
+        loadStrategy: TestStrategy(FakeAssetReader()),
+      );
     });
     test('parses package : paths', () {
       final uri = DartUri('package:path/path.dart');
@@ -201,13 +204,12 @@ void main() {
   });
 
   group('initialized to handle g3-relative paths', () {
-    setUpAll(() {
-      globalLoadStrategy = G3TestStrategy(FakeAssetReader());
-    });
-
     setUpAll(() async {
+      setGlobalsForTesting(
+        loadStrategy: G3TestStrategy(FakeAssetReader()),
+        appMetadata: AppMetadata(isInternalBuild: true),
+      );
       await DartUri.initialize();
-      globalAppMetadata = AppMetadata(isInternalBuild: false);
       DartUri.recordAbsoluteUris(['package:path/path.dart']);
     });
 

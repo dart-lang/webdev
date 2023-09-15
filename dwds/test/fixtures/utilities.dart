@@ -7,6 +7,11 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/server_log.dart';
+import 'package:dwds/config.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/globals.dart';
+
+import 'fakes.dart';
 
 /// Connects to the `build_runner` daemon.
 Future<BuildDaemonClient> connectClient(
@@ -86,4 +91,14 @@ Future<T> retryFnAsync<T>(
     delayInMs: delayInMs,
     failureMessage: failureMessage,
   );
+}
+
+void setGlobalsForTesting({
+  LoadStrategy? loadStrategy,
+  AppMetadata? appMetadata,
+  DebugSettings? debugSettings,
+}) {
+  globalLoadStrategy = loadStrategy ?? FakeStrategy(FakeAssetReader());
+  globalAppMetadata = appMetadata ?? AppMetadata();
+  globalDebugSettings = debugSettings ?? DebugSettings();
 }

@@ -29,7 +29,7 @@ class DebugSettings {
   final UrlEncoder? urlEncoder;
 
   DebugSettings({
-    required this.enableDebugging,
+    this.enableDebugging = true,
     this.enableDebugExtension = false,
     this.useSseForDebugProxy = true,
     this.useSseForDebugBackend = true,
