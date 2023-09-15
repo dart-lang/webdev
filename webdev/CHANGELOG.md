@@ -1,5 +1,7 @@
 ## 3.1.0-wip
 
+- Update the parameters passed to `Dwds.start`. - [#2231](https://github.com/dart-lang/webdev/pull/2231).
+
 ## 3.0.8
 
 - Hide and deprecate now unsupported `--null-safety` option. - [#2206](https://github.com/dart-lang/webdev/pull/2206)
