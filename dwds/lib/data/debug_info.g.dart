@@ -89,12 +89,25 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
         ..add(
             serializers.serialize(value, specifiedType: const FullType(bool)));
     }
+    value = object.workspaceName;
+    if (value != null) {
+      result
+        ..add('workspaceName')
+        ..add(serializers.serialize(value,
+            specifiedType: const FullType(String)));
+    }
     value = object.tabUrl;
     if (value != null) {
       result
         ..add('tabUrl')
         ..add(serializers.serialize(value,
             specifiedType: const FullType(String)));
+    }
+    value = object.tabId;
+    if (value != null) {
+      result
+        ..add('tabId')
+        ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     }
     return result;
   }
@@ -150,9 +163,17 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
           result.isFlutterApp = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool?;
           break;
+        case 'workspaceName':
+          result.workspaceName = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
+          break;
         case 'tabUrl':
           result.tabUrl = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
+          break;
+        case 'tabId':
+          result.tabId = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int?;
           break;
       }
     }
@@ -183,7 +204,11 @@ class _$DebugInfo extends DebugInfo {
   @override
   final bool? isFlutterApp;
   @override
+  final String? workspaceName;
+  @override
   final String? tabUrl;
+  @override
+  final int? tabId;
 
   factory _$DebugInfo([void Function(DebugInfoBuilder)? updates]) =>
       (new DebugInfoBuilder()..update(updates))._build();
@@ -199,7 +224,9 @@ class _$DebugInfo extends DebugInfo {
       this.extensionUrl,
       this.isInternalBuild,
       this.isFlutterApp,
-      this.tabUrl})
+      this.workspaceName,
+      this.tabUrl,
+      this.tabId})
       : super._();
 
   @override
@@ -223,7 +250,9 @@ class _$DebugInfo extends DebugInfo {
         extensionUrl == other.extensionUrl &&
         isInternalBuild == other.isInternalBuild &&
         isFlutterApp == other.isFlutterApp &&
-        tabUrl == other.tabUrl;
+        workspaceName == other.workspaceName &&
+        tabUrl == other.tabUrl &&
+        tabId == other.tabId;
   }
 
   @override
@@ -239,7 +268,9 @@ class _$DebugInfo extends DebugInfo {
     _$hash = $jc(_$hash, extensionUrl.hashCode);
     _$hash = $jc(_$hash, isInternalBuild.hashCode);
     _$hash = $jc(_$hash, isFlutterApp.hashCode);
+    _$hash = $jc(_$hash, workspaceName.hashCode);
     _$hash = $jc(_$hash, tabUrl.hashCode);
+    _$hash = $jc(_$hash, tabId.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -257,7 +288,9 @@ class _$DebugInfo extends DebugInfo {
           ..add('extensionUrl', extensionUrl)
           ..add('isInternalBuild', isInternalBuild)
           ..add('isFlutterApp', isFlutterApp)
-          ..add('tabUrl', tabUrl))
+          ..add('workspaceName', workspaceName)
+          ..add('tabUrl', tabUrl)
+          ..add('tabId', tabId))
         .toString();
   }
 }
@@ -308,9 +341,18 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
   bool? get isFlutterApp => _$this._isFlutterApp;
   set isFlutterApp(bool? isFlutterApp) => _$this._isFlutterApp = isFlutterApp;
 
+  String? _workspaceName;
+  String? get workspaceName => _$this._workspaceName;
+  set workspaceName(String? workspaceName) =>
+      _$this._workspaceName = workspaceName;
+
   String? _tabUrl;
   String? get tabUrl => _$this._tabUrl;
   set tabUrl(String? tabUrl) => _$this._tabUrl = tabUrl;
+
+  int? _tabId;
+  int? get tabId => _$this._tabId;
+  set tabId(int? tabId) => _$this._tabId = tabId;
 
   DebugInfoBuilder();
 
@@ -327,7 +369,9 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
       _extensionUrl = $v.extensionUrl;
       _isInternalBuild = $v.isInternalBuild;
       _isFlutterApp = $v.isFlutterApp;
+      _workspaceName = $v.workspaceName;
       _tabUrl = $v.tabUrl;
+      _tabId = $v.tabId;
       _$v = null;
     }
     return this;
@@ -360,7 +404,9 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
             extensionUrl: extensionUrl,
             isInternalBuild: isInternalBuild,
             isFlutterApp: isFlutterApp,
-            tabUrl: tabUrl);
+            workspaceName: workspaceName,
+            tabUrl: tabUrl,
+            tabId: tabId);
     replace(_$result);
     return _$result;
   }
