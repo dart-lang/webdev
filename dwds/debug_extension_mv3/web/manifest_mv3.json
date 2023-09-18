@@ -9,9 +9,6 @@
   "externally_connectable": {
     "ids": ["nbkbficgbembimioedhceniahniffgpl"],
     "matches": [
-      "https://cider.corp.google.com/*",
-      "https://cider-staging.corp.google.com/*",
-      "https://cider-test.corp.google.com/*",
       "https://cider-v.corp.google.com/*",
       "https://cider-v-staging.corp.google.com/*",
       "https://cider-v-test.corp.google.com/*"
