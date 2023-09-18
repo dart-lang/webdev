@@ -15,33 +15,40 @@ import 'debug_session.dart';
 import 'logger.dart';
 import 'storage.dart';
 
-const ciderPortName = 'cider';
-
+/// Defines the message types that can be passed to/from Cider.
+///
+/// The types must match those defined by ChromeExtensionMessageType in the
+/// Cider extension.
 enum CiderMessageType {
-  startDebugRequest,
-  startDebugResponse,
-  stopDebugRequest,
-  stopDebugResponse,
   error,
+  startDebugResponse,
+  startDebugRequest,
+  stopDebugResponse,
+  stopDebugRequest,
 }
 
+/// Defines the error types that can be sent to Cider.
+///
+/// The types must match those defined by ChromeExtensionErrorType in the
+/// Cider extension.
 enum CiderErrorType {
-  invalidRequest,
-  noWorkspace,
-  noDartTab,
-  multipleDartTabs,
   chromeError,
   internalError,
+  invalidRequest,
+  multipleDartTabs,
+  noDartTab,
+  noWorkspace,
 }
 
+const _ciderPortName = 'cider';
 Port? _ciderPort;
 
-// The only site allowed to connect with this extension is Cider.
-//
-// The allowed URIs for Cider are set in the externally_connectable field in the
-// manifest.json.
+/// Handles a connect request from Cider.
+///
+/// The only site allowed to connect with this extension is Cider. The allowed
+/// URIs for Cider are set in the externally_connectable field in the manifest.
 void handleCiderConnectRequest(Port port) {
-  if (port.name == ciderPortName) {
+  if (port.name == _ciderPortName) {
     _ciderPort = port;
 
     port.onMessage.addListener(
@@ -50,7 +57,7 @@ void handleCiderConnectRequest(Port port) {
   }
 }
 
-// Sends a message to the Cider-connected port.
+/// Sends a message to the Cider-connected port.
 void sendMessageToCider({
   required CiderMessageType messageType,
   String? messageBody,
@@ -63,7 +70,7 @@ void sendMessageToCider({
   _ciderPort!.postMessage(message);
 }
 
-// Sends an error message to the Cider-connected port.
+/// Sends an error message to the Cider-connected port.
 void sendErrorMessageToCider({
   required CiderErrorType errorType,
   String? errorDetails,
