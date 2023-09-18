@@ -164,7 +164,7 @@ void testAll({
         });
 
         test(
-            'can configure opening DevTools in a tab/window with extension settings',
+            '[!] can configure opening DevTools in a tab/window with extension settings',
             () async {
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
@@ -177,7 +177,7 @@ void testAll({
             backgroundPage: backgroundPage,
           );
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
+          await workerEvalDelay(secondsToWait: 2);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -281,7 +281,7 @@ void testAll({
         });
 
         test(
-            'navigating away from the Dart app while debugging closes DevTools',
+            '[!] navigating away from the Dart app while debugging closes DevTools',
             () async {
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
@@ -290,7 +290,7 @@ void testAll({
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
+          await workerEvalDelay(secondsToWait: 2);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -311,7 +311,8 @@ void testAll({
           await appTab.close();
         });
 
-        test('closing the Dart app while debugging closes DevTools', () async {
+        test('[!] closing the Dart app while debugging closes DevTools',
+            () async {
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
               useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
@@ -319,7 +320,7 @@ void testAll({
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
+          await workerEvalDelay(secondsToWait: 2);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -335,7 +336,8 @@ void testAll({
           await devToolsTabTarget.onClose;
         });
 
-        test('Clicking extension icon while debugging shows warning', () async {
+        test('[!] Clicking extension icon while debugging shows warning',
+            () async {
           print('[debug log] starting test');
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
@@ -345,7 +347,7 @@ void testAll({
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
+          await workerEvalDelay(secondsToWait: 2);
           print('[debug log] click on extension icon');
           await clickOnExtensionIcon(
             worker: worker,
@@ -412,7 +414,7 @@ void testAll({
           await tab.close();
         });
 
-        test('Refreshing the Dart app does not open a new Dart DevTools',
+        test('[!] Refreshing the Dart app does not open a new Dart DevTools',
             () async {
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
@@ -421,7 +423,7 @@ void testAll({
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
+          await workerEvalDelay(secondsToWait: 2);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,

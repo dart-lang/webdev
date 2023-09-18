@@ -166,8 +166,8 @@ Future<void> clickOnExtensionIcon({
 
 // Note: The following delay is required to reduce flakiness. It makes
 // sure the service worker execution context is ready.
-Future<void> workerEvalDelay() async {
-  await Future.delayed(Duration(seconds: 1));
+Future<void> workerEvalDelay({int? secondsToWait}) async {
+  await Future.delayed(Duration(seconds: secondsToWait ?? 1));
   return;
 }
 
