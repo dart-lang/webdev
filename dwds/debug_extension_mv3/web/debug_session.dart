@@ -22,6 +22,7 @@ import 'package:sse/client/sse_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'chrome_api.dart';
+import 'cider_connection.dart';
 import 'cross_extension_communication.dart';
 import 'data_serializers.dart';
 import 'data_types.dart';
@@ -79,6 +80,7 @@ enum TabType {
 
 enum Trigger {
   angularDartDevTools,
+  cider,
   extensionPanel,
   extensionIcon,
 }
@@ -408,7 +410,15 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
       tabId: tabId,
     );
     if (message.method == 'dwds.devtoolsUri') {
-      _openDevTools(message.params, dartAppTabId: tabId);
+      if (_tabIdToTrigger[tabId] != Trigger.cider) {
+        _openDevTools(message.params, dartAppTabId: tabId);
+      }
+    }
+    if (message.method == 'dwds.plainUri') {
+      sendMessageToCider(
+        messageType: CiderMessageType.startDebugResponse,
+        messageBody: message.params,
+      );
     }
     if (message.method == 'dwds.encodedUri') {
       setStorageObject(
@@ -774,6 +784,8 @@ DebuggerLocation? _debuggerLocation(int dartAppTabId) {
       return DebuggerLocation.angularDartDevTools;
     case Trigger.extensionPanel:
       return DebuggerLocation.chromeDevTools;
+    case Trigger.cider:
+      return DebuggerLocation.ide;
   }
 }
 

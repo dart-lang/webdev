@@ -102,6 +102,36 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
   return completer.future;
 }
 
+Future<List<T>> fetchAllStorageObjectsOfType<T>({required StorageObject type}) {
+  final completer = Completer<List<T>>();
+  final storageArea = _getStorageArea(type.persistence);
+  storageArea.get(
+    null,
+    allowInterop((Object? storageContents) {
+      if (storageContents == null) {
+        debugWarn('No storage objects of type exist.', prefix: type.name);
+        completer.complete([]);
+        return;
+      }
+      final allKeys = List<String>.from(objectKeys(storageContents));
+      final storageKeys = allKeys.where((key) => key.contains(type.name));
+      final result = <T>[];
+      for (final key in storageKeys) {
+        final json = getProperty(storageContents, key) as String?;
+        if (json != null) {
+          if (T == String) {
+            result.add(json as T);
+          } else {
+            result.add(serializers.deserialize(jsonDecode(json)) as T);
+          }
+        }
+      }
+      completer.complete(result);
+    }),
+  );
+  return completer.future;
+}
+
 Future<bool> removeStorageObject<T>({required StorageObject type, int? tabId}) {
   final storageKey = _createStorageKey(type, tabId);
   final completer = Completer<bool>();

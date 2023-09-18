@@ -7,7 +7,15 @@
     "default_icon": "static_assets/dart_grey.png"
   },
   "externally_connectable": {
-    "ids": ["nbkbficgbembimioedhceniahniffgpl"]
+    "ids": ["nbkbficgbembimioedhceniahniffgpl"],
+    "matches": [
+      "https://cider.corp.google.com/*",
+      "https://cider-staging.corp.google.com/*",
+      "https://cider-test.corp.google.com/*",
+      "https://cider-v.corp.google.com/*",
+      "https://cider-v-staging.corp.google.com/*",
+      "https://cider-v-test.corp.google.com/*"
+    ]
   },
   "permissions": ["debugger", "notifications", "storage", "webNavigation"],
   "background": {
