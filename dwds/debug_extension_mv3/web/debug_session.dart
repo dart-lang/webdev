@@ -416,7 +416,7 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
     }
     if (message.method == 'dwds.plainUri') {
       sendMessageToCider(
-        messageType: CiderMessageType.startDebug,
+        messageType: CiderMessageType.startDebugResponse,
         messageBody: message.params,
       );
     }

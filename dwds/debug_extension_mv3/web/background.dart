@@ -200,6 +200,7 @@ DebugInfo _addTabInfo(DebugInfo debugInfo, {required Tab tab}) {
       ..extensionUrl = debugInfo.extensionUrl
       ..isInternalBuild = debugInfo.isInternalBuild
       ..isFlutterApp = debugInfo.isFlutterApp
+      ..workspaceName = debugInfo.workspaceName
       ..tabUrl = tab.url
       ..tabId = tab.id,
   );

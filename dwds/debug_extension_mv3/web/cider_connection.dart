@@ -18,8 +18,10 @@ import 'storage.dart';
 const ciderPortName = 'cider';
 
 enum CiderMessageType {
-  startDebug,
-  stopDebug,
+  startDebugRequest,
+  startDebugResponse,
+  stopDebugRequest,
+  stopDebugResponse,
   error,
 }
 
@@ -29,6 +31,7 @@ enum CiderErrorType {
   noDartTab,
   multipleDartTabs,
   chromeError,
+  internalError,
 }
 
 Port? _ciderPort;
@@ -76,7 +79,7 @@ void sendErrorMessageToCider({
 }
 
 Future<void> _handleMessageFromCider(dynamic message, Port _) async {
-  if (message! is String) {
+  if (message is! String) {
     sendErrorMessageToCider(
       errorType: CiderErrorType.invalidRequest,
       errorDetails: 'Expected request to be a string: $message',
@@ -84,13 +87,13 @@ Future<void> _handleMessageFromCider(dynamic message, Port _) async {
     return;
   }
 
-  final decoded = jsonDecode(message as String) as Map<String, dynamic>;
+  final decoded = jsonDecode(message) as Map<String, dynamic>;
   final messageType = decoded['messageType'] as String?;
   final messageBody = decoded['messageBody'] as String?;
 
-  if (messageType == CiderMessageType.startDebug.name) {
+  if (messageType == CiderMessageType.startDebugRequest.name) {
     await _startDebugging(workspaceName: messageBody);
-  } else if (messageType == CiderMessageType.stopDebug.name) {
+  } else if (messageType == CiderMessageType.stopDebugRequest.name) {
     await _stopDebugging(workspaceName: messageBody);
   }
 }
@@ -103,6 +106,8 @@ Future<void> _startDebugging({String? workspaceName}) async {
 
   final dartTab = await _findDartTabIdForWorkspace(workspaceName);
   if (dartTab != null) {
+    // TODO(https://github.com/dart-lang/webdev/issues/2198): When debugging
+    // with Cider, disable debugging with DevTools.
     await attachDebugger(dartTab, trigger: Trigger.cider);
   }
 }
@@ -114,11 +119,19 @@ Future<void> _stopDebugging({String? workspaceName}) async {
   }
 
   final dartTab = await _findDartTabIdForWorkspace(workspaceName);
-  if (dartTab != null) {
-    await detachDebugger(
-      dartTab,
-      type: TabType.dartApp,
-      reason: DetachReason.canceledByUser,
+  if (dartTab == null) return;
+  final successfullyDetached = await detachDebugger(
+    dartTab,
+    type: TabType.dartApp,
+    reason: DetachReason.canceledByUser,
+  );
+
+  if (successfullyDetached) {
+    sendMessageToCider(messageType: CiderMessageType.stopDebugResponse);
+  } else {
+    sendErrorMessageToCider(
+      errorType: CiderErrorType.internalError,
+      errorDetails: 'Unable to detach debugger.',
     );
   }
 }
