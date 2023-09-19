@@ -53,7 +53,7 @@ void runTypeSystemVerificationTests({
     ) =>
         '''
             (function() {
-              var dart = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
+              var dart = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk').dart;
               var libraryName = '${libraryName(compilationMode)}';
               var library = dart.getModuleLibraries(libraryName)['$url'];
               var x = library['$variable'];
@@ -117,7 +117,7 @@ void runTests({
       String variable,
       CompilationMode compilationMode,
     ) =>
-        '${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.'
+        '${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").dart.'
         'getModuleLibraries("${libraryName(compilationMode)}")'
         '["$url"]["$variable"];';
 

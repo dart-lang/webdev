@@ -79,7 +79,7 @@ class ClassHelper extends Domain {
 
     final expression = '''
       (function() {
-        const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+        const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk');
         const dart = sdk.dart;
         return dart.getClassMetadata('$libraryUri', '$className');
       })()

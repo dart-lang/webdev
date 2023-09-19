@@ -447,7 +447,7 @@ class ExpressionEvaluator {
       } else if (error.startsWith('NetworkError: ')) {
         var modulePath = _loadModuleErrorRegex.firstMatch(error)?.group(1);
         final module = modulePath != null
-            ? await globalLoadStrategy.moduleForServerPath(
+            ? await globalToolConfiguration.loadStrategy.moduleForServerPath(
                 _entrypoint,
                 modulePath,
               )

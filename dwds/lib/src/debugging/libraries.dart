@@ -32,9 +32,11 @@ class LibraryHelper extends Domain {
     // TODO: read entrypoint from app metadata.
     // Issue: https://github.com/dart-lang/webdev/issues/1290
     final libraries = await libraryRefs;
-    if (globalLoadStrategy.appEntrypoint != null) {
+    if (globalToolConfiguration.loadStrategy.appEntrypoint != null) {
       _rootLib = libraries.firstWhereOrNull(
-        (lib) => Uri.parse(lib.uri ?? '') == globalLoadStrategy.appEntrypoint,
+        (lib) =>
+            Uri.parse(lib.uri ?? '') ==
+            globalToolConfiguration.loadStrategy.appEntrypoint,
       );
     }
     _rootLib = _rootLib ??
@@ -53,7 +55,7 @@ class LibraryHelper extends Domain {
   /// Note this can return a cached result.
   Future<List<LibraryRef>> get libraryRefs async {
     if (_libraryRefsById.isNotEmpty) return _libraryRefsById.values.toList();
-    final libraries = await globalLoadStrategy
+    final libraries = await globalToolConfiguration.loadStrategy
         .metadataProviderFor(inspector.appConnection.request.entrypointPath)
         .libraries;
     for (var library in libraries) {
@@ -84,7 +86,7 @@ class LibraryHelper extends Domain {
     // Fetch information about all the classes in this library.
     final expression = '''
       (function() {
-        const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+        const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk');
         const dart = sdk.dart;
         return dart.getLibraryMetadata('$libraryUri');
       })()

@@ -215,7 +215,7 @@ void main() {
 
     tearDownAll(() {
       DartUri.clear();
-      globalAppMetadata = AppMetadata(isInternalBuild: false);
+      globalToolConfiguration.appMetadata = AppMetadata(isInternalBuild: false);
     });
 
     test(

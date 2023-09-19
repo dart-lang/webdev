@@ -41,7 +41,7 @@ const _fileUriMetadata =
     '// intentionally empty: package blah has no dart sources';
 
 void main() {
-  globalLoadStrategy = FakeStrategy(FakeAssetReader());
+  globalToolConfiguration.loadStrategy = FakeStrategy(FakeAssetReader());
   test('can parse metadata with empty sources', () async {
     final provider = MetadataProvider(
       'foo.bootstrap.js',

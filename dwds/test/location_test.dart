@@ -25,7 +25,7 @@ void main() {
   const lineLength = 150;
 
   final assetReader = FakeAssetReader(sourceMap: sourceMapContents);
-  globalLoadStrategy = MockLoadStrategy(assetReader);
+  globalToolConfiguration.loadStrategy = MockLoadStrategy(assetReader);
   final dartUri = DartUri('org-dartlang-app://web/main.dart');
 
   final modules = FakeModules(module: _module);

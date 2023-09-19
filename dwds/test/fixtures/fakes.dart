@@ -180,7 +180,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Future enable() async => null;
 
   FakeWebkitDebugger({Map<String, WipScript>? scripts}) : _scripts = scripts {
-    globalLoadStrategy = RequireStrategy(
+    globalToolConfiguration.loadStrategy = RequireStrategy(
       ReloadConfiguration.none,
       (_) async => {},
       (_) async => {},

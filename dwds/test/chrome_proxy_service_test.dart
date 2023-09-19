@@ -668,7 +668,7 @@ void main() {
       Future<RemoteObject> createList() {
         final expr = '''
           (function () {
-            const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
+            const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk");
             const list = sdk.dart.dsend(sdk.core.List,"filled", [1001, 5]);
             list[4] = 100;
             return list;
@@ -680,7 +680,7 @@ void main() {
       Future<RemoteObject> createMap() {
         final expr = '''
           (function () {
-            const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
+            const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk");
             const iterable = sdk.dart.dsend(sdk.core.Iterable, "generate", [1001]);
             const list1 = sdk.dart.dsend(iterable, "toList", []);
             const reversed = sdk.dart.dload(list1, "reversed");

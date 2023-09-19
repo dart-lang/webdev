@@ -64,7 +64,8 @@ class Modules {
 
   /// Initializes [_sourceToModule] and [_sourceToLibrary].
   Future<void> _initializeMapping() async {
-    final provider = globalLoadStrategy.metadataProviderFor(_entrypoint);
+    final provider =
+        globalToolConfiguration.loadStrategy.metadataProviderFor(_entrypoint);
 
     final libraryToScripts = await provider.scripts;
     final scriptToModule = await provider.scriptToModule;

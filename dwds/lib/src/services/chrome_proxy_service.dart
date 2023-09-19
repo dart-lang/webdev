@@ -173,8 +173,9 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<void> _updateCompilerDependencies(String entrypoint) async {
-    final metadataProvider = globalLoadStrategy.metadataProviderFor(entrypoint);
-    final moduleFormat = globalLoadStrategy.moduleFormat;
+    final metadataProvider =
+        globalToolConfiguration.loadStrategy.metadataProviderFor(entrypoint);
+    final moduleFormat = globalToolConfiguration.loadStrategy.moduleFormat;
     final soundNullSafety = await metadataProvider.soundNullSafety;
 
     _logger.info('Initializing expression compiler for $entrypoint '
@@ -187,7 +188,8 @@ class ChromeProxyService implements VmServiceInterface {
         soundNullSafety: soundNullSafety,
       );
       final dependencies =
-          await globalLoadStrategy.moduleInfoForEntrypoint(entrypoint);
+          await globalToolConfiguration.loadStrategy
+          .moduleInfoForEntrypoint(entrypoint);
       await captureElapsedTime(
         () async {
           final result = await compiler.updateDependencies(dependencies);
@@ -485,7 +487,7 @@ class ChromeProxyService implements VmServiceInterface {
       ),
     );
     final expression = '''
-${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
+${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
     final result = await inspector.jsEvaluate(expression, awaitPromise: true);

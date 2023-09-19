@@ -71,10 +71,11 @@ class Dwds {
     required DebugSettings debugSettings,
     required AppMetadata appMetadata,
   }) async {
-    globalLoadStrategy = loadStrategy;
-    globalAppMetadata = appMetadata;
-    globalDebugSettings = debugSettings;
-
+    globalToolConfiguration = ToolConfiguration(
+      loadStrategy: loadStrategy,
+      debugSettings: debugSettings,
+      appMetadata: appMetadata,
+    );
     DevTools? devTools;
     Future<String>? extensionUri;
     ExtensionBackend? extensionBackend;

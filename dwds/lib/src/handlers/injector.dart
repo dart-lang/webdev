@@ -80,7 +80,8 @@ class DwdsInjector {
               final appId = base64
                   .encode(md5.convert(utf8.encode('$requestedUri')).bytes);
               var scheme = request.requestedUri.scheme;
-              if (!globalDebugSettings.useSseForInjectedClient) {
+              if (!globalToolConfiguration
+                  .debugSettings.useSseForInjectedClient) {
                 // Switch http->ws and https->wss.
                 scheme = scheme.replaceFirst('http', 'ws');
               }
@@ -95,7 +96,7 @@ class DwdsInjector {
               devHandlerPath = '$requestedUriBase/$devHandlerPath';
               _devHandlerPaths.add(devHandlerPath);
               final entrypoint = request.url.path;
-              globalLoadStrategy.trackEntrypoint(entrypoint);
+              globalToolConfiguration.loadStrategy.trackEntrypoint(entrypoint);
               body = await _injectClientAndHoistMain(
                 body,
                 appId,
@@ -103,7 +104,8 @@ class DwdsInjector {
                 entrypoint,
                 await _extensionUri,
               );
-              body += await globalLoadStrategy.bootstrapFor(entrypoint);
+              body += await globalToolConfiguration.loadStrategy
+                  .bootstrapFor(entrypoint);
               _logger.info('Injected debugging metadata for '
                   'entrypoint at $requestedUri');
               etag = base64.encode(md5.convert(body.codeUnits).bytes);
@@ -114,7 +116,8 @@ class DwdsInjector {
             }
             return response.change(body: body, headers: newHeaders);
           } else {
-            final loadResponse = await globalLoadStrategy.handler(request);
+            final loadResponse =
+                await globalToolConfiguration.loadStrategy.handler(request);
             if (loadResponse.statusCode != HttpStatus.notFound) {
               return loadResponse;
             }
@@ -181,19 +184,19 @@ Future<String> _injectedClientSnippet(
   String entrypointPath,
   String? extensionUri,
 ) async {
-  final isFlutterApp = await globalAppMetadata.isFlutterApp();
+  final isFlutterApp = await globalToolConfiguration.appMetadata.isFlutterApp();
   var injectedBody = 'window.\$dartAppId = "$appId";\n'
-      'window.\$dartReloadConfiguration = "${globalLoadStrategy.reloadConfiguration}";\n'
-      'window.\$dartModuleStrategy = "${globalLoadStrategy.id}";\n'
-      'window.\$loadModuleConfig = ${globalLoadStrategy.loadModuleSnippet};\n'
+      'window.\$dartReloadConfiguration = "${globalToolConfiguration.loadStrategy.reloadConfiguration}";\n'
+      'window.\$dartModuleStrategy = "${globalToolConfiguration.loadStrategy.id}";\n'
+      'window.\$loadModuleConfig = ${globalToolConfiguration.loadStrategy.loadModuleSnippet};\n'
       'window.\$dwdsVersion = "$packageVersion";\n'
       'window.\$dwdsDevHandlerPath = "$devHandlerPath";\n'
-      'window.\$dwdsEnableDevToolsLaunch = ${globalDebugSettings.enableDevToolsLaunch};\n'
+      'window.\$dwdsEnableDevToolsLaunch = ${globalToolConfiguration.debugSettings.enableDevToolsLaunch};\n'
       'window.\$dartEntrypointPath = "$entrypointPath";\n'
-      'window.\$dartEmitDebugEvents = ${globalDebugSettings.emitDebugEvents};\n'
-      'window.\$isInternalBuild = ${globalAppMetadata.isInternalBuild};\n'
+      'window.\$dartEmitDebugEvents = ${globalToolConfiguration.debugSettings.emitDebugEvents};\n'
+      'window.\$isInternalBuild = ${globalToolConfiguration.appMetadata.isInternalBuild};\n'
       'window.\$isFlutterApp = $isFlutterApp;\n'
-      '${globalLoadStrategy.loadClientSnippet(_clientScript)}';
+      '${globalToolConfiguration.loadStrategy.loadClientSnippet(_clientScript)}';
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';
   }

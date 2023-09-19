@@ -585,7 +585,8 @@ class Debugger extends Domain {
           throw StateError('Stepping failed in script $scriptId');
         }
 
-        if (url.contains(globalLoadStrategy.loadLibrariesModule)) {
+        if (url.contains(
+            globalToolConfiguration.loadStrategy.loadLibrariesModule)) {
           await _remoteDebugger.stepOut();
           return;
         } else if ((await _sourceLocation(e)) == null) {

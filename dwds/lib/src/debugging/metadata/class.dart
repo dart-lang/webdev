@@ -154,7 +154,7 @@ class ClassMetaDataHelper {
     try {
       final evalExpression = '''
         function(arg) {
-          const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+          const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk');
           const dart  = sdk.dart;
           return dart.getObjectMetadata(arg);
         }
