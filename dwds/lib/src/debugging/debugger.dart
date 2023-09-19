@@ -586,7 +586,8 @@ class Debugger extends Domain {
         }
 
         if (url.contains(
-            globalToolConfiguration.loadStrategy.loadLibrariesModule)) {
+          globalToolConfiguration.loadStrategy.loadLibrariesModule,
+        )) {
           await _remoteDebugger.stepOut();
           return;
         } else if ((await _sourceLocation(e)) == null) {

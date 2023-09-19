@@ -173,7 +173,8 @@ class DartUri {
   static Future<void> initialize() async {
     clear();
     await _loadPackageConfig(
-        p.toUri(globalToolConfiguration.loadStrategy.packageConfigPath));
+      p.toUri(globalToolConfiguration.loadStrategy.packageConfigPath),
+    );
   }
 
   /// Clear the uri resolution tables.

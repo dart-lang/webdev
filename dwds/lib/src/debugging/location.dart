@@ -177,8 +177,7 @@ class Locations {
 
     final dartUri = DartUri(url, _root);
     final serverPath = dartUri.serverPath;
-    final module =
-        await globalToolConfiguration.loadStrategy
+    final module = await globalToolConfiguration.loadStrategy
         .moduleForServerPath(_entrypoint, serverPath);
 
     final cache = _moduleToLocations[module];
@@ -302,15 +301,13 @@ class Locations {
       if (module.endsWith('dart_sdk') || module.endsWith('dart_library')) {
         return result;
       }
-      final modulePath =
-          await globalToolConfiguration.loadStrategy
+      final modulePath = await globalToolConfiguration.loadStrategy
           .serverPathForModule(_entrypoint, module);
       if (modulePath == null) {
         _logger.warning('No module path for module: $module');
         return result;
       }
-      final sourceMapPath =
-          await globalToolConfiguration.loadStrategy
+      final sourceMapPath = await globalToolConfiguration.loadStrategy
           .sourceMapPathForModule(_entrypoint, module);
       if (sourceMapPath == null) {
         _logger.warning('No sourceMap path for module: $module');

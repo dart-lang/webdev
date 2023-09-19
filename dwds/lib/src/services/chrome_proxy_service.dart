@@ -187,8 +187,7 @@ class ChromeProxyService implements VmServiceInterface {
         moduleFormat: moduleFormat,
         soundNullSafety: soundNullSafety,
       );
-      final dependencies =
-          await globalToolConfiguration.loadStrategy
+      final dependencies = await globalToolConfiguration.loadStrategy
           .moduleInfoForEntrypoint(entrypoint);
       await captureElapsedTime(
         () async {
