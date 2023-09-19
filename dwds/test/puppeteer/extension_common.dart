@@ -74,6 +74,11 @@ void testAll({
         });
 
         tearDown(() async {
+          await evaluate(
+            _clearNotifications,
+            worker: worker,
+            backgroundPage: backgroundPage,
+          );
           await tearDownHelper(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -284,30 +289,38 @@ void testAll({
         test(
             '[X X] [!] navigating away from the Dart app while debugging closes DevTools',
             () async {
+          print('[debug log] at start of test');
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
               useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
           // Navigate to the Dart app:
+          print('[debug log] navigating to page');
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
+          print('[debug log] waiting for dart detection');
           await _waitForDartDetection(hasServiceWorker: isMV3);
+          print('[debug log] click extension icon');
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
           );
           // Verify that the Dart DevTools tab is open:
+          print('[debug log] wait for devtools target');
           final devToolsTabTarget = await browser.waitForTarget(
             (target) => target.url.contains(devToolsUrlFragment),
           );
           expect(devToolsTabTarget.type, equals('page'));
           // Navigate away from the Dart app:
+          print(' [debug log] navigated away');
           await appTab.goto(
             'https://dart.dev/',
             wait: Until.domContentLoaded,
           );
+          print('[debug log] bring tab to front');
           await appTab.bringToFront();
           // Verify that the Dart DevTools tab closes:
+          print('[debug log] verify devtools closes');
           await devToolsTabTarget.onClose;
           await appTab.close();
         });
@@ -362,7 +375,7 @@ void testAll({
           print('[debug log] wait for notifications');
           // There should be no warning notifications:
           var chromeNotifications = await evaluate(
-            _getNotifications(),
+            _getNotifications,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -379,7 +392,7 @@ void testAll({
           await workerEvalDelay();
           // There should now be a warning notificiation:
           chromeNotifications = await evaluate(
-            _getNotifications(),
+            _getNotifications,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -405,7 +418,7 @@ void testAll({
           );
           // There should now be a warning notificiation:
           final chromeNotifications = await evaluate(
-            _getNotifications(),
+            _getNotifications,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -1129,8 +1142,7 @@ String _fetchStorageObjJs(
 ''';
 }
 
-String _getNotifications() {
-  return '''
+String _getNotifications = '''
     async () => {
       return new Promise((resolve, reject) => {
         chrome.notifications.getAll((notifications) => {
@@ -1139,7 +1151,12 @@ String _getNotifications() {
       });
     }
 ''';
-}
+
+String _clearNotifications = '''
+  chrome.notifications.getAll((notifications) => {
+    notifications.forEach((notification) => chrome.notifications.clear(notification));
+  });
+''';
 
 String _setMultipleAppsAttributeJs = '''
   document.documentElement.setAttribute("data-multiple-dart-apps", true);
