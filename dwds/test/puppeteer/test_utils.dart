@@ -217,6 +217,7 @@ Future<bool> waitForConsoleLog(
       logs = _workerLogs;
       break;
   }
+  print('!!!! Looking for $textToMatch in ${logs.join('')}');
   final foundText = logs.where((log) => log.contains(textToMatch)).isNotEmpty;
   if (foundText) {
     return true;
