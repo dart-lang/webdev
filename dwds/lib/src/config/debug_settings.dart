@@ -23,8 +23,6 @@ class DebugSettings {
   final bool launchDevToolsInNewWindow;
   final bool emitDebugEvents;
   final DevToolsLauncher? devToolsLauncher;
-  // TODO(annagrin): make expressionCompiler argument required
-  // [issue 881](https://github.com/dart-lang/webdev/issues/881)
   final ExpressionCompiler? expressionCompiler;
   final UrlEncoder? urlEncoder;
 

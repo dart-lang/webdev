@@ -8,7 +8,6 @@
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/config/app_metadata.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
@@ -213,10 +212,7 @@ void main() {
       DartUri.recordAbsoluteUris(['package:path/path.dart']);
     });
 
-    tearDownAll(() {
-      DartUri.clear();
-      globalToolConfiguration.appMetadata = AppMetadata(isInternalBuild: false);
-    });
+    tearDownAll(DartUri.clear);
 
     test(
       'can resolve g3-relative paths',

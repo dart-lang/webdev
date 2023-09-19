@@ -98,8 +98,9 @@ void setGlobalsForTesting({
   AppMetadata? appMetadata,
   DebugSettings? debugSettings,
 }) {
-  globalToolConfiguration.loadStrategy =
-      loadStrategy ?? FakeStrategy(FakeAssetReader());
-  globalToolConfiguration.appMetadata = appMetadata ?? AppMetadata();
-  globalToolConfiguration.debugSettings = debugSettings ?? DebugSettings();
+  globalToolConfiguration = ToolConfiguration(
+    loadStrategy: loadStrategy ?? FakeStrategy(FakeAssetReader()),
+    debugSettings: debugSettings ?? DebugSettings(),
+    appMetadata: appMetadata ?? AppMetadata(),
+  );
 }
