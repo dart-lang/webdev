@@ -3,9 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export 'dart_web_debug_service.dart' show Dwds, ConnectionProvider;
-export 'src/config/app_metadata.dart' show AppMetadata;
-export 'src/config/debug_settings.dart'
-    show UrlEncoder, DevToolsLauncher, DebugSettings;
+export 'src/config/tool_configuration.dart'
+    show
+        AppMetadata,
+        UrlEncoder,
+        DevToolsLauncher,
+        DebugSettings,
+        ToolConfiguration;
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
 export 'src/debugging/metadata/provider.dart'

@@ -10,8 +10,7 @@ import 'package:dwds/asset_reader.dart';
 import 'package:dwds/dart_web_debug_service.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds/src/config/app_metadata.dart';
-import 'package:dwds/src/config/debug_settings.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
@@ -105,39 +104,47 @@ class TestServer {
       throw StateError('Unexpected Daemon build result: $result');
     });
 
+    final debugSettings = DebugSettings(
+      spawnDds: spawnDds,
+      enableDebugExtension: enableDebugExtension,
+      enableDebugging: enableDebugging,
+      useSseForDebugProxy: useSse,
+      useSseForDebugBackend: useSse,
+      useSseForInjectedClient: useSse,
+      urlEncoder: urlEncoder,
+      expressionCompiler: expressionCompiler,
+      devToolsLauncher: serveDevTools
+          ? (hostname) async {
+              final server = await DevToolsServer().serveDevTools(
+                hostname: hostname,
+                enableStdinCommands: false,
+                customDevToolsPath: sdkLayout.devToolsDirectory,
+              );
+              if (server == null) {
+                throw StateError('DevTools server could not be started.');
+              }
+              return DevTools(server.address.host, server.port, server);
+            }
+          : null,
+    );
+
+    final appMetadata = AppMetadata(
+      hostname: hostname,
+      isInternalBuild: isInternalBuild,
+      isFlutterApp: () => Future.value(isFlutterApp),
+    );
+
+    final toolConfiguration = ToolConfiguration(
+      loadStrategy: strategy,
+      debugSettings: debugSettings,
+      appMetadata: appMetadata,
+    );
+
     final dwds = await Dwds.start(
       assetReader: assetReader,
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
-      loadStrategy: strategy,
-      debugSettings: DebugSettings(
-        spawnDds: spawnDds,
-        enableDebugExtension: enableDebugExtension,
-        enableDebugging: enableDebugging,
-        useSseForDebugProxy: useSse,
-        useSseForDebugBackend: useSse,
-        useSseForInjectedClient: useSse,
-        urlEncoder: urlEncoder,
-        expressionCompiler: expressionCompiler,
-        devToolsLauncher: serveDevTools
-            ? (hostname) async {
-                final server = await DevToolsServer().serveDevTools(
-                  hostname: hostname,
-                  enableStdinCommands: false,
-                  customDevToolsPath: sdkLayout.devToolsDirectory,
-                );
-                if (server == null) {
-                  throw StateError('DevTools server could not be started.');
-                }
-                return DevTools(server.address.host, server.port, server);
-              }
-            : null,
-      ),
-      appMetadata: AppMetadata(
-        hostname: hostname,
-        isInternalBuild: isInternalBuild,
-        isFlutterApp: () => Future.value(isFlutterApp),
-      ),
+      toolConfiguration: toolConfiguration,
     );
 
     final server = await startHttpServer('localhost', port: port);

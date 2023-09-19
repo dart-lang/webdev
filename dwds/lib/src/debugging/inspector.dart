@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:async/async.dart';
 import 'package:collection/collection.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/classes.dart';
 import 'package:dwds/src/debugging/debugger.dart';
@@ -18,7 +19,6 @@ import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/domain.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds/src/utilities/shared.dart';

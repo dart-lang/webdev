@@ -9,9 +9,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;

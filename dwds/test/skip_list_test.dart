@@ -26,8 +26,12 @@ class TestStrategy extends FakeStrategy {
 }
 
 void main() {
-  setGlobalsForTesting(loadStrategy: TestStrategy(FakeAssetReader()));
-
+  final toolConfiguration = createToolConfiguration(
+    loadStrategy: TestStrategy(FakeAssetReader()),
+  );
+  setGlobalsForTesting(
+    toolConfiguration: toolConfiguration,
+  );
   late SkipLists skipLists;
   final dartUri = DartUri('org-dartlang-app://web/main.dart');
   group('SkipLists', () {

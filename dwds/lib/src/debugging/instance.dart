@@ -4,12 +4,12 @@
 
 import 'dart:math';
 
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:dwds/src/debugging/metadata/function.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/domain.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';

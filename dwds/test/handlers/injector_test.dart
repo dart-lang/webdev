@@ -6,7 +6,7 @@
 
 import 'dart:io';
 
-import 'package:dwds/src/config/debug_settings.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:dwds/src/version.dart';
 import 'package:http/http.dart' as http;
@@ -302,10 +302,13 @@ void main() {
     group('InjectedHandlerWithoutExtension using WebSockets', () {
       late DwdsInjector injector;
       setUp(() async {
-        setGlobalsForTesting(
+        final toolConfiguration = createToolConfiguration(
           debugSettings: DebugSettings(
             useSseForInjectedClient: false,
           ),
+        );
+        setGlobalsForTesting(
+          toolConfiguration: toolConfiguration,
         );
         injector = DwdsInjector();
         final pipeline = const Pipeline().addMiddleware(injector.middleware);

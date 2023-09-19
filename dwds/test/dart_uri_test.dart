@@ -6,7 +6,7 @@
 @Timeout(Duration(minutes: 2))
 
 import 'package:dwds/asset_reader.dart';
-import 'package:dwds/src/config/app_metadata.dart';
+import 'package:dwds/config.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -49,8 +49,13 @@ class G3TestStrategy extends FakeStrategy {
 void main() {
   group('DartUri', () {
     setUpAll(() {
+      final toolConfiguration = createToolConfiguration(
+        loadStrategy: TestStrategy(
+          FakeAssetReader(),
+        ),
+      );
       setGlobalsForTesting(
-        loadStrategy: TestStrategy(FakeAssetReader()),
+        toolConfiguration: toolConfiguration,
       );
     });
     test('parses package : paths', () {
@@ -204,9 +209,12 @@ void main() {
 
   group('initialized to handle g3-relative paths', () {
     setUpAll(() async {
-      setGlobalsForTesting(
+      final toolConfiguration = createToolConfiguration(
         loadStrategy: G3TestStrategy(FakeAssetReader()),
         appMetadata: AppMetadata(isInternalBuild: true),
+      );
+      setGlobalsForTesting(
+        toolConfiguration: toolConfiguration,
       );
       await DartUri.initialize();
       DartUri.recordAbsoluteUris(['package:path/path.dart']);

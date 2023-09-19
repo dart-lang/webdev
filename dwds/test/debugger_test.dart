@@ -87,7 +87,12 @@ void main() async {
     webkitDebugger = FakeWebkitDebugger(scripts: scripts);
     pausedController = StreamController<DebuggerPausedEvent>();
     webkitDebugger.onPaused = pausedController.stream;
-    setGlobalsForTesting(loadStrategy: TestStrategy(FakeAssetReader()));
+    final toolConfiguration = createToolConfiguration(
+      loadStrategy: TestStrategy(FakeAssetReader()),
+    );
+    setGlobalsForTesting(
+      toolConfiguration: toolConfiguration,
+    );
     final root = 'fakeRoot';
     locations = Locations(
       FakeAssetReader(sourceMap: sourceMapContents),

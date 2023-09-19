@@ -181,17 +181,19 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   FakeWebkitDebugger({Map<String, WipScript>? scripts}) : _scripts = scripts {
     setGlobalsForTesting(
-      loadStrategy: RequireStrategy(
-        ReloadConfiguration.none,
-        (_) async => {},
-        (_) async => {},
-        (_, __) async => null,
-        (MetadataProvider _, String __) async => '',
-        (MetadataProvider _, String __) async => '',
-        (String _) => '',
-        (MetadataProvider _) async => <String, ModuleInfo>{},
-        FakeAssetReader(),
-        Uri.parse('package:fakeapp/main.dart'),
+      toolConfiguration: createToolConfiguration(
+        loadStrategy: RequireStrategy(
+          ReloadConfiguration.none,
+          (_) async => {},
+          (_) async => {},
+          (_, __) async => null,
+          (MetadataProvider _, String __) async => '',
+          (MetadataProvider _, String __) async => '',
+          (String _) => '',
+          (MetadataProvider _) async => <String, ModuleInfo>{},
+          FakeAssetReader(),
+          Uri.parse('package:fakeapp/main.dart'),
+        ),
       ),
     );
   }

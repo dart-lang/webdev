@@ -2,8 +2,48 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
+
+/// Configuration about the app, debug settings, and file system.
+///
+/// This is set by the code runner and passed to DWDS on start up.
+class ToolConfiguration {
+  final LoadStrategy loadStrategy;
+  final DebugSettings debugSettings;
+  final AppMetadata appMetadata;
+
+  ToolConfiguration({
+    required this.loadStrategy,
+    required this.debugSettings,
+    required this.appMetadata,
+  });
+}
+
+/// The tool configuration for the connected app.
+///
+/// TODO(elliette): Consider making this final (would require updating tests
+/// that currently depend on changing the configuration between test cases).
+late ToolConfiguration _globalToolConfiguration;
+set globalToolConfiguration(ToolConfiguration configuration) =>
+    _globalToolConfiguration = configuration;
+ToolConfiguration get globalToolConfiguration => _globalToolConfiguration;
+
+/// Metadata for the connected app.
+///
+/// These are set by the code runner and passed to DWDS on start up.
+class AppMetadata {
+  final String hostname;
+  final bool isInternalBuild;
+  Future<bool> Function() isFlutterApp;
+
+  AppMetadata({
+    this.hostname = 'localhost',
+    this.isInternalBuild = false,
+    Future<bool> Function()? isFlutterApp,
+  }) : isFlutterApp = isFlutterApp ?? (() => Future.value(true));
+}
 
 typedef UrlEncoder = Future<String> Function(String url);
 

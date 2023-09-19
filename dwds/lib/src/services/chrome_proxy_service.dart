@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/register_event.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
@@ -23,7 +24,6 @@ import 'package:dwds/src/services/batched_expression_evaluator.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:pub_semver/pub_semver.dart' as semver;

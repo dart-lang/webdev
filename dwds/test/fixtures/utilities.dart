@@ -7,9 +7,8 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/server_log.dart';
-import 'package:dwds/config.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/loaders/strategy.dart';
-import 'package:dwds/src/utilities/globals.dart';
 
 import 'fakes.dart';
 
@@ -93,14 +92,21 @@ Future<T> retryFnAsync<T>(
   );
 }
 
-void setGlobalsForTesting({
+ToolConfiguration createToolConfiguration({
   LoadStrategy? loadStrategy,
   AppMetadata? appMetadata,
   DebugSettings? debugSettings,
+}) =>
+    ToolConfiguration(
+      loadStrategy: loadStrategy ?? FakeStrategy(FakeAssetReader()),
+      debugSettings: debugSettings ?? DebugSettings(),
+      appMetadata: appMetadata ?? AppMetadata(),
+    );
+
+final defaultToolConfiguration = createToolConfiguration();
+
+void setGlobalsForTesting({
+  ToolConfiguration? toolConfiguration,
 }) {
-  globalToolConfiguration = ToolConfiguration(
-    loadStrategy: loadStrategy ?? FakeStrategy(FakeAssetReader()),
-    debugSettings: debugSettings ?? DebugSettings(),
-    appMetadata: appMetadata ?? AppMetadata(),
-  );
+  globalToolConfiguration = toolConfiguration ?? defaultToolConfiguration;
 }

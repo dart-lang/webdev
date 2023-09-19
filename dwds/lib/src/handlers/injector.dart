@@ -8,7 +8,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
-import 'package:dwds/src/utilities/globals.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/version.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';

@@ -5,19 +5,16 @@
 import 'dart:async';
 
 import 'package:dwds/data/build_result.dart';
-import 'package:dwds/src/config/app_metadata.dart';
-import 'package:dwds/src/config/debug_settings.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/handlers/dev_handler.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -67,15 +64,11 @@ class Dwds {
     required AssetReader assetReader,
     required Stream<BuildResult> buildResults,
     required ConnectionProvider chromeConnection,
-    required LoadStrategy loadStrategy,
-    required DebugSettings debugSettings,
-    required AppMetadata appMetadata,
+    required ToolConfiguration toolConfiguration,
   }) async {
-    globalToolConfiguration = ToolConfiguration(
-      loadStrategy: loadStrategy,
-      debugSettings: debugSettings,
-      appMetadata: appMetadata,
-    );
+    globalToolConfiguration = toolConfiguration;
+    final debugSettings = toolConfiguration.debugSettings;
+    final appMetadata = toolConfiguration.appMetadata;
     DevTools? devTools;
     Future<String>? extensionUri;
     ExtensionBackend? extensionBackend;

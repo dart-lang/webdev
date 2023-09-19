@@ -36,8 +36,12 @@ void main() async {
     late StreamController<Event> debugEventController;
     setUp(() async {
       final assetReader = FakeAssetReader(sourceMap: '');
-      setGlobalsForTesting(loadStrategy: FakeStrategy(assetReader));
-
+      final toolConfiguration = createToolConfiguration(
+        loadStrategy: FakeStrategy(assetReader),
+      );
+      setGlobalsForTesting(
+        toolConfiguration: toolConfiguration,
+      );
       final modules = FakeModules();
 
       final webkitDebugger = FakeWebkitDebugger();
