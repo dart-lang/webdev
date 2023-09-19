@@ -19,7 +19,6 @@ import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:test_common/utilities.dart';
 
-import '../../debug_extension_mv3/web/background.dart';
 import '../../debug_extension_mv3/web/data_serializers.dart';
 import '../../debug_extension_mv3/web/data_types.dart';
 import '../fixtures/context.dart';
@@ -970,7 +969,7 @@ Future<bool> _waitForDartDetection({
 }) {
   final source =
       hasServiceWorker ? ConsoleSource.worker : ConsoleSource.background;
-  return waitForConsoleLog(dartAppDetectedMsg, source: source);
+  return waitForConsoleLog('Dart app detected.', source: source);
 }
 
 Future<bool> _clickLaunchButton(
