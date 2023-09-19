@@ -7,10 +7,10 @@
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:test/test.dart';
 
 import 'fixtures/fakes.dart';
+import 'fixtures/utilities.dart';
 
 final sourceMapContents =
     '{"version":3,"sourceRoot":"","sources":["main.dart"],"names":[],'
@@ -25,7 +25,7 @@ void main() {
   const lineLength = 150;
 
   final assetReader = FakeAssetReader(sourceMap: sourceMapContents);
-  globalToolConfiguration.loadStrategy = MockLoadStrategy(assetReader);
+  setGlobalsForTesting(loadStrategy: MockLoadStrategy(assetReader));
   final dartUri = DartUri('org-dartlang-app://web/main.dart');
 
   final modules = FakeModules(module: _module);

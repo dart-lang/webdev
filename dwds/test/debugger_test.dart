@@ -12,7 +12,6 @@ import 'package:dwds/src/debugging/frame_computer.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' hide LogRecord;
@@ -21,6 +20,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
 
 import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
+import 'fixtures/utilities.dart';
 
 late AppInspector inspector;
 late Debugger debugger;
@@ -87,7 +87,7 @@ void main() async {
     webkitDebugger = FakeWebkitDebugger(scripts: scripts);
     pausedController = StreamController<DebuggerPausedEvent>();
     webkitDebugger.onPaused = pausedController.stream;
-    globalToolConfiguration.loadStrategy = TestStrategy(FakeAssetReader());
+    setGlobalsForTesting(loadStrategy: TestStrategy(FakeAssetReader()));
     final root = 'fakeRoot';
     locations = Locations(
       FakeAssetReader(sourceMap: sourceMapContents),
