@@ -17,6 +17,10 @@ import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';
 
+// Note: The extension tests wait for this string to be logged to the console to
+// ensure that the Dart app has been detected:
+const dartAppDetectedMsg = 'Dart app detected.';
+
 void main() {
   _registerListeners();
 }
@@ -210,6 +214,9 @@ Future<void> _updateIcon(int activeTabId) async {
     tabId: activeTabId,
   );
   multipleApps == null ? _setDebuggableIcon() : _setWarningIcon();
+  // Do not remove. This is required by the tests to wait for detection of the
+  // Dart app:
+  debugLog(dartAppDetectedMsg);
 }
 
 void _setDebuggableIcon() {

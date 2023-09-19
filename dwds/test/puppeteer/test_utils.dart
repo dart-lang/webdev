@@ -17,9 +17,9 @@ enum ConsoleSource {
   worker,
 }
 
-final _backgroundLogs = [];
-final _devToolsLogs = [];
-final _workerLogs = [];
+final _backgroundLogs = <String>[];
+final _devToolsLogs = <String>[];
+final _workerLogs = <String>[];
 
 Future<String> buildDebugExtension({required bool isMV3}) async {
   final extensionDir = absolutePath(pathFromDwds: 'debug_extension_mv3');
@@ -196,6 +196,41 @@ String getExtensionOrigin(Browser browser) {
   final urlSegments = p.split(extensionUrl);
   final extensionId = urlSegments[urlSegments.indexOf(chromeExtension) + 1];
   return '$chromeExtension//$extensionId';
+}
+
+Future<bool> waitForConsoleLog(
+  String textToMatch, {
+  required ConsoleSource source,
+  Duration timeBetween = const Duration(milliseconds: 500),
+  int retries = 10,
+}) async {
+  await Future.delayed(timeBetween);
+  List<String> logs;
+  switch (source) {
+    case ConsoleSource.background:
+      logs = _backgroundLogs;
+      break;
+    case ConsoleSource.devTools:
+      logs = _devToolsLogs;
+      break;
+    case ConsoleSource.worker:
+      logs = _workerLogs;
+      break;
+  }
+  final foundText = logs.where((log) => log.contains(textToMatch)).isNotEmpty;
+  if (foundText) {
+    return true;
+  }
+  if (retries > 0) {
+    final retriesLeft = retries - 1;
+    return waitForConsoleLog(
+      textToMatch,
+      source: source,
+      timeBetween: timeBetween,
+      retries: retriesLeft,
+    );
+  }
+  return false;
 }
 
 void _saveConsoleMsg({

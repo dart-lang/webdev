@@ -177,6 +177,7 @@ void testAll({
             backgroundPage: backgroundPage,
           );
           // Click on the Dart Debug Extension icon:
+          await _waitForDartDetection(hasServiceWorker: isMV3);
           await workerEvalDelay(secondsToWait: 2);
           await clickOnExtensionIcon(
             worker: worker,
@@ -290,7 +291,7 @@ void testAll({
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay(secondsToWait: 2);
+          await _waitForDartDetection(hasServiceWorker: isMV3);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -320,7 +321,7 @@ void testAll({
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay(secondsToWait: 2);
+          await _waitForDartDetection(hasServiceWorker: isMV3);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -347,7 +348,7 @@ void testAll({
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay(secondsToWait: 2);
+          await _waitForDartDetection(hasServiceWorker: isMV3);
           print('[debug log] click on extension icon');
           await clickOnExtensionIcon(
             worker: worker,
@@ -423,7 +424,7 @@ void testAll({
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay(secondsToWait: 2);
+          await _waitForDartDetection(hasServiceWorker: isMV3);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -961,6 +962,14 @@ void testAll({
       });
     });
   });
+}
+
+Future<bool> _waitForDartDetection({
+  required bool hasServiceWorker,
+}) {
+  final source =
+      hasServiceWorker ? ConsoleSource.worker : ConsoleSource.background;
+  return waitForConsoleLog('Dart app detected.', source: source);
 }
 
 Future<bool> _clickLaunchButton(
