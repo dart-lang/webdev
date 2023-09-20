@@ -1,5 +1,7 @@
 ## 21.1.0-wip
 
+- Update the interface for ChromeProxyService.getSourceReport to match the VM service. - [#2235](https://github.com/dart-lang/webdev/pull/2235)
+
 ## 21.0.0
 
 - Update Dart SDK constraint to `>=3.2.0-36.0.dev <4.0.0`. - [#2207](https://github.com/dart-lang/webdev/pull/2207)
