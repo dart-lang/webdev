@@ -4,8 +4,6 @@
 
 import 'dart:io';
 
-typedef DevtoolsLauncher = Future<DevTools> Function(String hostname);
-
 /// A server for Dart Devtools.
 class DevTools {
   final String hostname;

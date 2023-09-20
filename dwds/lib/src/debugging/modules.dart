@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async/async.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:logging/logging.dart';
 
 /// Tracks modules for the compiled application.
@@ -64,7 +64,8 @@ class Modules {
 
   /// Initializes [_sourceToModule] and [_sourceToLibrary].
   Future<void> _initializeMapping() async {
-    final provider = globalLoadStrategy.metadataProviderFor(_entrypoint);
+    final provider =
+        globalToolConfiguration.loadStrategy.metadataProviderFor(_entrypoint);
 
     final libraryToScripts = await provider.scripts;
     final scriptToModule = await provider.scriptToModule;

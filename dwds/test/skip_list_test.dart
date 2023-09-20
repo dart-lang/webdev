@@ -8,11 +8,11 @@ import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
 
 import 'fixtures/fakes.dart';
+import 'fixtures/utilities.dart';
 
 class TestStrategy extends FakeStrategy {
   TestStrategy(
@@ -26,8 +26,12 @@ class TestStrategy extends FakeStrategy {
 }
 
 void main() {
-  globalLoadStrategy = TestStrategy(FakeAssetReader());
-
+  final toolConfiguration = createToolConfiguration(
+    loadStrategy: TestStrategy(FakeAssetReader()),
+  );
+  setGlobalsForTesting(
+    toolConfiguration: toolConfiguration,
+  );
   late SkipLists skipLists;
   final dartUri = DartUri('org-dartlang-app://web/main.dart');
   group('SkipLists', () {

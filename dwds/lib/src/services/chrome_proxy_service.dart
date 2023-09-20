@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/register_event.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
@@ -23,7 +24,6 @@ import 'package:dwds/src/services/batched_expression_evaluator.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:pub_semver/pub_semver.dart' as semver;
@@ -173,8 +173,9 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<void> _updateCompilerDependencies(String entrypoint) async {
-    final metadataProvider = globalLoadStrategy.metadataProviderFor(entrypoint);
-    final moduleFormat = globalLoadStrategy.moduleFormat;
+    final metadataProvider =
+        globalToolConfiguration.loadStrategy.metadataProviderFor(entrypoint);
+    final moduleFormat = globalToolConfiguration.loadStrategy.moduleFormat;
     final soundNullSafety = await metadataProvider.soundNullSafety;
 
     _logger.info('Initializing expression compiler for $entrypoint '
@@ -186,8 +187,8 @@ class ChromeProxyService implements VmServiceInterface {
         moduleFormat: moduleFormat,
         soundNullSafety: soundNullSafety,
       );
-      final dependencies =
-          await globalLoadStrategy.moduleInfoForEntrypoint(entrypoint);
+      final dependencies = await globalToolConfiguration.loadStrategy
+          .moduleInfoForEntrypoint(entrypoint);
       await captureElapsedTime(
         () async {
           final result = await compiler.updateDependencies(dependencies);
@@ -485,7 +486,7 @@ class ChromeProxyService implements VmServiceInterface {
       ),
     );
     final expression = '''
-${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
+${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
     final result = await inspector.jsEvaluate(expression, awaitPromise: true);

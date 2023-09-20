@@ -6,13 +6,14 @@
 @Timeout(Duration(minutes: 2))
 
 import 'package:dwds/asset_reader.dart';
+import 'package:dwds/config.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 
 import 'fixtures/fakes.dart';
+import 'fixtures/utilities.dart';
 
 class TestStrategy extends FakeStrategy {
   TestStrategy(
@@ -48,7 +49,14 @@ class G3TestStrategy extends FakeStrategy {
 void main() {
   group('DartUri', () {
     setUpAll(() {
-      globalLoadStrategy = TestStrategy(FakeAssetReader());
+      final toolConfiguration = createToolConfiguration(
+        loadStrategy: TestStrategy(
+          FakeAssetReader(),
+        ),
+      );
+      setGlobalsForTesting(
+        toolConfiguration: toolConfiguration,
+      );
     });
     test('parses package : paths', () {
       final uri = DartUri('package:path/path.dart');
@@ -200,20 +208,19 @@ void main() {
   });
 
   group('initialized to handle g3-relative paths', () {
-    setUpAll(() {
-      globalLoadStrategy = G3TestStrategy(FakeAssetReader());
-    });
-
     setUpAll(() async {
+      final toolConfiguration = createToolConfiguration(
+        loadStrategy: G3TestStrategy(FakeAssetReader()),
+        appMetadata: AppMetadata(isInternalBuild: true),
+      );
+      setGlobalsForTesting(
+        toolConfiguration: toolConfiguration,
+      );
       await DartUri.initialize();
-      globalIsInternalBuild = true;
       DartUri.recordAbsoluteUris(['package:path/path.dart']);
     });
 
-    tearDownAll(() {
-      DartUri.clear();
-      globalIsInternalBuild = false;
-    });
+    tearDownAll(DartUri.clear);
 
     test(
       'can resolve g3-relative paths',

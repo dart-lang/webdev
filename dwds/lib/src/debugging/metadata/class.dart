@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/domain.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -154,7 +154,7 @@ class ClassMetaDataHelper {
     try {
       final evalExpression = '''
         function(arg) {
-          const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+          const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk');
           const dart  = sdk.dart;
           return dart.getObjectMetadata(arg);
         }

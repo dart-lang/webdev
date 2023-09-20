@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/utilities/globals.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
@@ -56,7 +56,8 @@ class DartUri {
 
   /// Construct from a package: URI
   factory DartUri._fromDartLangUri(String uri) {
-    var serverPath = globalLoadStrategy.serverPathForAppUri(uri);
+    var serverPath =
+        globalToolConfiguration.loadStrategy.serverPathForAppUri(uri);
     if (serverPath == null) {
       _logger.severe('Cannot find server path for $uri');
       serverPath = uri;
@@ -66,7 +67,8 @@ class DartUri {
 
   /// Construct from a package: URI
   factory DartUri._fromPackageUri(String uri, {String? root}) {
-    var serverPath = globalLoadStrategy.serverPathForAppUri(uri);
+    var serverPath =
+        globalToolConfiguration.loadStrategy.serverPathForAppUri(uri);
     if (serverPath == null) {
       _logger.severe('Cannot find server path for $uri');
       serverPath = uri;
@@ -144,7 +146,7 @@ class DartUri {
     if (packageUri != null) return packageUri;
 
     // If this is an internal app, then the given uri might be g3-relative:
-    if (globalIsInternalBuild) {
+    if (globalToolConfiguration.appMetadata.isInternalBuild) {
       // TODO(https://github.com/dart-lang/webdev/issues/2198): Verify if the
       // intermediary conversion to resolvedUri is causing performance issues.
       final resolvedUri = _g3RelativeUriToResolvedUri[uri];
@@ -170,7 +172,9 @@ class DartUri {
   /// Record library and script uris to enable resolving library and script paths.
   static Future<void> initialize() async {
     clear();
-    await _loadPackageConfig(p.toUri(globalLoadStrategy.packageConfigPath));
+    await _loadPackageConfig(
+      p.toUri(globalToolConfiguration.loadStrategy.packageConfigPath),
+    );
   }
 
   /// Clear the uri resolution tables.
@@ -185,7 +189,7 @@ class DartUri {
   static void recordAbsoluteUris(Iterable<String> libraryUris) {
     for (var uri in libraryUris) {
       _recordAbsoluteUri(uri);
-      if (globalIsInternalBuild) {
+      if (globalToolConfiguration.appMetadata.isInternalBuild) {
         _recordG3RelativeUri(uri);
       }
     }
@@ -195,7 +199,8 @@ class DartUri {
     final absoluteUri = _uriToResolvedUri[libraryUri];
     if (absoluteUri == null) return;
 
-    final g3RelativeUri = globalLoadStrategy.g3RelativePath(absoluteUri);
+    final g3RelativeUri =
+        globalToolConfiguration.loadStrategy.g3RelativePath(absoluteUri);
     if (g3RelativeUri != null) {
       _g3RelativeUriToResolvedUri[g3RelativeUri] = absoluteUri;
     }

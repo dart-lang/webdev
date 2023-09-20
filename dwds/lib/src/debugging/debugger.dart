@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/debugging/frame_computer.dart';
 import 'package:dwds/src/debugging/location.dart';
@@ -12,7 +13,6 @@ import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/domain.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/objects.dart' show Property;
 import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds/src/utilities/shared.dart';
@@ -585,7 +585,9 @@ class Debugger extends Domain {
           throw StateError('Stepping failed in script $scriptId');
         }
 
-        if (url.contains(globalLoadStrategy.loadLibrariesModule)) {
+        if (url.contains(
+          globalToolConfiguration.loadStrategy.loadLibrariesModule,
+        )) {
           await _remoteDebugger.stepOut();
           return;
         } else if ((await _sourceLocation(e)) == null) {

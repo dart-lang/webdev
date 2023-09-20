@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async/async.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/parser.dart';
@@ -177,8 +177,8 @@ class Locations {
 
     final dartUri = DartUri(url, _root);
     final serverPath = dartUri.serverPath;
-    final module =
-        await globalLoadStrategy.moduleForServerPath(_entrypoint, serverPath);
+    final module = await globalToolConfiguration.loadStrategy
+        .moduleForServerPath(_entrypoint, serverPath);
 
     final cache = _moduleToLocations[module];
     if (cache != null) return cache;
@@ -301,14 +301,14 @@ class Locations {
       if (module.endsWith('dart_sdk') || module.endsWith('dart_library')) {
         return result;
       }
-      final modulePath =
-          await globalLoadStrategy.serverPathForModule(_entrypoint, module);
+      final modulePath = await globalToolConfiguration.loadStrategy
+          .serverPathForModule(_entrypoint, module);
       if (modulePath == null) {
         _logger.warning('No module path for module: $module');
         return result;
       }
-      final sourceMapPath =
-          await globalLoadStrategy.sourceMapPathForModule(_entrypoint, module);
+      final sourceMapPath = await globalToolConfiguration.loadStrategy
+          .sourceMapPathForModule(_entrypoint, module);
       if (sourceMapPath == null) {
         _logger.warning('No sourceMap path for module: $module');
         return result;

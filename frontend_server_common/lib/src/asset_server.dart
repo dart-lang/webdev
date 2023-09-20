@@ -10,6 +10,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dwds/asset_reader.dart';
+import 'package:dwds/config.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;

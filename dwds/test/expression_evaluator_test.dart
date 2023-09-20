@@ -11,7 +11,6 @@ import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/services/batched_expression_evaluator.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
-import 'package:dwds/src/utilities/globals.dart';
 
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' hide LogRecord;
@@ -19,6 +18,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/fakes.dart';
+import 'fixtures/utilities.dart';
 
 late ExpressionEvaluator? _evaluator;
 late ExpressionEvaluator? _batchedEvaluator;
@@ -36,8 +36,12 @@ void main() async {
     late StreamController<Event> debugEventController;
     setUp(() async {
       final assetReader = FakeAssetReader(sourceMap: '');
-      globalLoadStrategy = FakeStrategy(assetReader);
-
+      final toolConfiguration = createToolConfiguration(
+        loadStrategy: FakeStrategy(assetReader),
+      );
+      setGlobalsForTesting(
+        toolConfiguration: toolConfiguration,
+      );
       final modules = FakeModules();
 
       final webkitDebugger = FakeWebkitDebugger();

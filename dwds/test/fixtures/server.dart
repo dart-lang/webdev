@@ -10,6 +10,7 @@ import 'package:dwds/asset_reader.dart';
 import 'package:dwds/dart_web_debug_service.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
@@ -103,23 +104,16 @@ class TestServer {
       throw StateError('Unexpected Daemon build result: $result');
     });
 
-    final dwds = await Dwds.start(
-      assetReader: assetReader,
-      buildResults: filteredBuildResults,
-      chromeConnection: chromeConnection,
-      loadStrategy: strategy,
+    final debugSettings = DebugSettings(
       spawnDds: spawnDds,
       enableDebugExtension: enableDebugExtension,
       enableDebugging: enableDebugging,
       useSseForDebugProxy: useSse,
       useSseForDebugBackend: useSse,
       useSseForInjectedClient: useSse,
-      hostname: hostname,
       urlEncoder: urlEncoder,
       expressionCompiler: expressionCompiler,
-      isInternalBuild: isInternalBuild,
-      isFlutterApp: () => Future.value(isFlutterApp),
-      devtoolsLauncher: serveDevTools
+      devToolsLauncher: serveDevTools
           ? (hostname) async {
               final server = await DevToolsServer().serveDevTools(
                 hostname: hostname,
@@ -132,6 +126,25 @@ class TestServer {
               return DevTools(server.address.host, server.port, server);
             }
           : null,
+    );
+
+    final appMetadata = AppMetadata(
+      hostname: hostname,
+      isInternalBuild: isInternalBuild,
+      isFlutterApp: () => Future.value(isFlutterApp),
+    );
+
+    final toolConfiguration = ToolConfiguration(
+      loadStrategy: strategy,
+      debugSettings: debugSettings,
+      appMetadata: appMetadata,
+    );
+
+    final dwds = await Dwds.start(
+      assetReader: assetReader,
+      buildResults: filteredBuildResults,
+      chromeConnection: chromeConnection,
+      toolConfiguration: toolConfiguration,
     );
 
     final server = await startHttpServer('localhost', port: port);

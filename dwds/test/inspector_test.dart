@@ -6,9 +6,9 @@
 @Timeout(Duration(minutes: 2))
 
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/utilities/conversions.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
@@ -40,7 +40,7 @@ void main() {
 
   /// A convenient way to get a library variable without boilerplate.
   String libraryVariableExpression(String variable) =>
-      '${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("example/scopes/main")["$url"]["$variable"];';
+      '${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("example/scopes/main")["$url"]["$variable"];';
 
   Future<RemoteObject> libraryPublicFinal() =>
       inspector.jsEvaluate(libraryVariableExpression('libraryPublicFinal'));

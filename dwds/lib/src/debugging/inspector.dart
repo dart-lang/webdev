@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:async/async.dart';
 import 'package:collection/collection.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/classes.dart';
 import 'package:dwds/src/debugging/debugger.dart';
@@ -18,7 +19,6 @@ import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/domain.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds/src/utilities/shared.dart';
@@ -195,7 +195,7 @@ class AppInspector implements AppInspectorInterface {
   Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {
     final load = '''
         function() {
-          return ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.dloadRepl(this, "$fieldName");
+          return ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").dart.dloadRepl(this, "$fieldName");
         }
         ''';
     return jsCallFunctionOn(receiver, load, []);
@@ -217,7 +217,7 @@ class AppInspector implements AppInspectorInterface {
     final send = '''
         function () {
           if (!(this.__proto__)) { return 'Instance of PlainJavaScriptObject';}
-          return ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.dsendRepl(this, "$methodName", arguments);
+          return ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").dart.dsendRepl(this, "$methodName", arguments);
         }
         ''';
     final remote = await jsCallFunctionOn(receiver, send, positionalArgs);
@@ -350,7 +350,7 @@ class AppInspector implements AppInspectorInterface {
     }
     final findLibrary = '''
       (function() {
-        const sdk = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk');
+        const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk');
         const dart = sdk.dart;
         const library = dart.getLibrary('$libraryUri');
         if (!library) throw 'cannot find library for $libraryUri';
@@ -637,7 +637,7 @@ class AppInspector implements AppInspectorInterface {
     // want. To make those alternatives easier in JS, pass both count and end.
     final expression = '''
       function (offset, count) {
-        const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
+        const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk");
         const dart = sdk.dart;
         return dart.getSubRange(this, offset, count);
       }
@@ -695,7 +695,7 @@ class AppInspector implements AppInspectorInterface {
   /// Returns the list of scripts refs cached.
   Future<List<ScriptRef>> _populateScriptCaches() {
     return _scriptCacheMemoizer.runOnce(() async {
-      final scripts = await globalLoadStrategy
+      final scripts = await globalToolConfiguration.loadStrategy
           .metadataProviderFor(appConnection.request.entrypointPath)
           .scripts;
       // For all the non-dart: libraries, find their parts and create scriptRefs
@@ -746,7 +746,7 @@ class AppInspector implements AppInspectorInterface {
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
     final expression =
-        "${globalLoadStrategy.loadModuleSnippet}('dart_sdk').developer._extensions.keys.toList();";
+        "${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk').developer._extensions.keys.toList();";
     final extensionRpcs = <String>[];
     final params = {
       'expression': expression,

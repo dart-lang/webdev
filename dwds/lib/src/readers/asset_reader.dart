@@ -7,8 +7,6 @@ import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 
-typedef UrlEncoder = Future<String> Function(String url);
-
 /// A reader for Dart sources and related source maps.
 abstract class AssetReader {
   /// Base path of the application, for example, set up in the index file:

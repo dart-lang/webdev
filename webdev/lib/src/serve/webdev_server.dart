@@ -144,27 +144,39 @@ class WebDevServer {
       }
       var shouldServeDevTools =
           options.configuration.debug || options.configuration.debugExtension;
-      dwds = await Dwds.start(
-          hostname: options.configuration.hostname,
-          assetReader: assetReader,
-          buildResults: filteredBuildResults,
-          chromeConnection: () async =>
-              (await Chrome.connectedInstance).chromeConnection,
+
+      final debugSettings = DebugSettings(
+        enableDebugExtension: options.configuration.debugExtension,
+        enableDebugging: options.configuration.debug,
+        spawnDds: !options.configuration.disableDds,
+        expressionCompiler: ddcService,
+        devToolsLauncher: shouldServeDevTools
+            ? (String hostname) async {
+                var server = await DevToolsServer().serveDevTools(
+                  hostname: hostname,
+                  enableStdinCommands: false,
+                  customDevToolsPath: devToolsPath,
+                );
+                return DevTools(server!.address.host, server.port, server);
+              }
+            : null,
+      );
+
+      final appMetadata = AppMetadata(
+        hostname: options.configuration.hostname,
+      );
+
+      final toolConfiguration = ToolConfiguration(
           loadStrategy: loadStrategy,
-          enableDebugExtension: options.configuration.debugExtension,
-          enableDebugging: options.configuration.debug,
-          spawnDds: !options.configuration.disableDds,
-          expressionCompiler: ddcService,
-          devtoolsLauncher: shouldServeDevTools
-              ? (String hostname) async {
-                  var server = await DevToolsServer().serveDevTools(
-                    hostname: hostname,
-                    enableStdinCommands: false,
-                    customDevToolsPath: devToolsPath,
-                  );
-                  return DevTools(server!.address.host, server.port, server);
-                }
-              : null);
+          debugSettings: debugSettings,
+          appMetadata: appMetadata);
+      dwds = await Dwds.start(
+        toolConfiguration: toolConfiguration,
+        assetReader: assetReader,
+        buildResults: filteredBuildResults,
+        chromeConnection: () async =>
+            (await Chrome.connectedInstance).chromeConnection,
+      );
       pipeline = pipeline.addMiddleware(dwds.middleware);
       cascade = cascade.add(dwds.handler);
       cascade = cascade.add(assetHandler);

@@ -9,6 +9,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dds/dds.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';

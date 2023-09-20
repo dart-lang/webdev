@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/debugging/inspector.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -53,7 +53,7 @@ void runTypeSystemVerificationTests({
     ) =>
         '''
             (function() {
-              var dart = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
+              var dart = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk').dart;
               var libraryName = '${libraryName(compilationMode)}';
               var library = dart.getModuleLibraries(libraryName)['$url'];
               var x = library['$variable'];
@@ -117,7 +117,7 @@ void runTests({
       String variable,
       CompilationMode compilationMode,
     ) =>
-        '${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.'
+        '${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").dart.'
         'getModuleLibraries("${libraryName(compilationMode)}")'
         '["$url"]["$variable"];';
 

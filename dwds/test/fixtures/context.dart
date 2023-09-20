@@ -10,6 +10,7 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
@@ -155,7 +156,24 @@ class TestContext {
     bool canaryFeatures = false,
   }) async {
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
-
+    final toolConfiguration = createToolConfiguration(
+      debugSettings: DebugSettings(
+        enableDebugging: enableDebugging,
+        enableDebugExtension: enableDebugExtension,
+        useSseForDebugBackend: useSse,
+        useSseForDebugProxy: useSse,
+        useSseForInjectedClient: useSse,
+        spawnDds: spawnDds,
+        enableDevToolsLaunch: serveDevTools,
+        urlEncoder: urlEncoder,
+      ),
+      appMetadata: AppMetadata(
+        hostname: hostname,
+        isInternalBuild: isInternalBuild,
+        isFlutterApp: () => Future.value(isFlutterApp),
+      ),
+    );
+    setGlobalsForTesting(toolConfiguration: toolConfiguration);
     try {
       // Make sure configuration was created correctly.
       final configuration = await sdkConfigurationProvider.configuration;

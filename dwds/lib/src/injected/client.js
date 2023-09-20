@@ -25487,7 +25487,7 @@
               self.$emitRegisterEvent = A.allowInterop(new A.main__closure2(client), type$.void_Function_String);
               self.$launchDevTools = A.allowInterop(new A.main__closure3(client), type$.void_Function);
               client.get$stream(client).listen$2$onError(new A.main__closure4(manager), new A.main__closure5());
-              if (A.boolConversionCheck(self.$dwdsEnableDevtoolsLaunch)) {
+              if (A.boolConversionCheck(self.$dwdsEnableDevToolsLaunch)) {
                 t1 = window;
                 t1.toString;
                 A._EventStreamSubscription$(t1, "keydown", type$.nullable_void_Function_KeyboardEvent._as(new A.main__closure6()), false, type$.KeyboardEvent);

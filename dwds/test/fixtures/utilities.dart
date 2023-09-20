@@ -7,6 +7,10 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/server_log.dart';
+import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+
+import 'fakes.dart';
 
 /// Connects to the `build_runner` daemon.
 Future<BuildDaemonClient> connectClient(
@@ -86,4 +90,23 @@ Future<T> retryFnAsync<T>(
     delayInMs: delayInMs,
     failureMessage: failureMessage,
   );
+}
+
+ToolConfiguration createToolConfiguration({
+  LoadStrategy? loadStrategy,
+  AppMetadata? appMetadata,
+  DebugSettings? debugSettings,
+}) =>
+    ToolConfiguration(
+      loadStrategy: loadStrategy ?? FakeStrategy(FakeAssetReader()),
+      debugSettings: debugSettings ?? DebugSettings(),
+      appMetadata: appMetadata ?? AppMetadata(),
+    );
+
+final defaultToolConfiguration = createToolConfiguration();
+
+void setGlobalsForTesting({
+  ToolConfiguration? toolConfiguration,
+}) {
+  globalToolConfiguration = toolConfiguration ?? defaultToolConfiguration;
 }

@@ -16,7 +16,6 @@ import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
-import 'package:dwds/src/utilities/globals.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
@@ -26,6 +25,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'debugger_data.dart';
+import 'utilities.dart';
 
 /// Constructs a trivial Isolate we can use when we need to provide one but
 /// don't want go through initialization.
@@ -180,17 +180,21 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Future enable() async => null;
 
   FakeWebkitDebugger({Map<String, WipScript>? scripts}) : _scripts = scripts {
-    globalLoadStrategy = RequireStrategy(
-      ReloadConfiguration.none,
-      (_) async => {},
-      (_) async => {},
-      (_, __) async => null,
-      (MetadataProvider _, String __) async => '',
-      (MetadataProvider _, String __) async => '',
-      (String _) => '',
-      (MetadataProvider _) async => <String, ModuleInfo>{},
-      FakeAssetReader(),
-      Uri.parse('package:fakeapp/main.dart'),
+    setGlobalsForTesting(
+      toolConfiguration: createToolConfiguration(
+        loadStrategy: RequireStrategy(
+          ReloadConfiguration.none,
+          (_) async => {},
+          (_) async => {},
+          (_, __) async => null,
+          (MetadataProvider _, String __) async => '',
+          (MetadataProvider _, String __) async => '',
+          (String _) => '',
+          (MetadataProvider _) async => <String, ModuleInfo>{},
+          FakeAssetReader(),
+          Uri.parse('package:fakeapp/main.dart'),
+        ),
+      ),
     );
   }
 
