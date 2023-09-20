@@ -1,10 +1,11 @@
 ## 22.0.0-wip
 
+- Update the interface for ChromeProxyService.getSourceReport to match the VM service. - [#2235](https://github.com/dart-lang/webdev/pull/2235)
+
 **Breaking changes**
 
 - Refactor the parameters to `Dwds.start`. - [#2231](https://github.com/dart-lang/webdev/pull/2231).
-
-- Update the interface for ChromeProxyService.getSourceReport to match the VM service. - [#2235](https://github.com/dart-lang/webdev/pull/2235)
+- Add a new parameter `workspaceName` to the `ToolConfiguration` passed to `Dwds.start`. - [#2237](https://github.com/dart-lang/webdev/pull/2237)
 
 ## 21.0.0
 
