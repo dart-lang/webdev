@@ -154,6 +154,7 @@ class TestContext {
     bool isInternalBuild = false,
     List<String> experiments = const <String>[],
     bool canaryFeatures = false,
+    String? workspaceName,
   }) async {
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
     final toolConfiguration = createToolConfiguration(
@@ -171,6 +172,7 @@ class TestContext {
         hostname: hostname,
         isInternalBuild: isInternalBuild,
         isFlutterApp: () => Future.value(isFlutterApp),
+        workspaceName: workspaceName,
       ),
     );
     setGlobalsForTesting(toolConfiguration: toolConfiguration);
@@ -427,6 +429,7 @@ class TestContext {
         ddcService,
         isFlutterApp,
         isInternalBuild,
+        workspaceName,
         sdkLayout,
       );
 

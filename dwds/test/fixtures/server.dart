@@ -82,6 +82,7 @@ class TestServer {
     ExpressionCompilerService? ddcService,
     bool isFlutterApp,
     bool isInternalBuild,
+    String? workspaceName,
     TestSdkLayout sdkLayout,
   ) async {
     var pipeline = const Pipeline();
@@ -132,6 +133,7 @@ class TestServer {
       hostname: hostname,
       isInternalBuild: isInternalBuild,
       isFlutterApp: () => Future.value(isFlutterApp),
+      workspaceName: workspaceName,
     );
 
     final toolConfiguration = ToolConfiguration(

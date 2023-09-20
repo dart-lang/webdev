@@ -59,6 +59,7 @@ void testAll({
             extensionPath: extensionPath,
             serveDevTools: true,
             useSse: useSse,
+            workspaceName: 'test-workspace',
           );
 
           if (isMV3) {
@@ -111,6 +112,7 @@ void testAll({
           expect(debugInfo.appUrl, isNotNull);
           expect(debugInfo.isInternalBuild, isNotNull);
           expect(debugInfo.isFlutterApp, isNotNull);
+          expect(debugInfo.workspaceName, isNotNull);
           await appTab.close();
         });
 
