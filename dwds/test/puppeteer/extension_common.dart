@@ -177,7 +177,7 @@ void testAll({
             backgroundPage: backgroundPage,
           );
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
+          await _waitForDartDetection(hasServiceWorker: isMV3);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -250,7 +250,7 @@ void testAll({
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
+          await _waitForDartDetection(hasServiceWorker: isMV3);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -282,7 +282,7 @@ void testAll({
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
+            await _waitForDartDetection(hasServiceWorker: isMV3);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -301,7 +301,9 @@ void testAll({
           // Verify that the Dart DevTools tab closes:
           await devToolsTabTarget.onClose;
           await appTab.close();
-        });
+          },
+          skip: 'https://github.com/dart-lang/webdev/issues/2239',
+        );
 
         test('closing the Dart app while debugging closes DevTools', () async {
           final appUrl = context.appUrl;
@@ -311,7 +313,7 @@ void testAll({
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
+          await _waitForDartDetection(hasServiceWorker: isMV3);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -335,7 +337,7 @@ void testAll({
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
+            await _waitForDartDetection(hasServiceWorker: isMV3);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -354,7 +356,7 @@ void testAll({
           // Navigate back to Dart app:
           await navigateToPage(browser, url: appUrl, isNew: false);
           // Click on the Dart Debug Extension icon again:
-          await workerEvalDelay();
+            await _waitForDartDetection(hasServiceWorker: isMV3);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -370,7 +372,9 @@ void testAll({
           // Close the Dart app and the associated Dart DevTools:
           await appTab.close();
           await devToolsTabTarget.onClose;
-        });
+          },
+          skip: '//github.com/dart-lang/webdev/issues/2239',
+        );
 
         test('Clicking extension icon for a non Dart app shows warning',
             () async {
@@ -381,7 +385,7 @@ void testAll({
             isNew: true,
           );
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
+          await _waitForDartDetection(hasServiceWorker: isMV3);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -407,7 +411,7 @@ void testAll({
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
+          await _waitForDartDetection(hasServiceWorker: isMV3);
           await clickOnExtensionIcon(
             worker: worker,
             backgroundPage: backgroundPage,
@@ -464,6 +468,7 @@ void testAll({
           tearDownAll(() async {
             await browser.close();
           });
+
           test(
               'isFlutterApp=$isFlutterApp and isInternalBuild=false are saved in storage',
               () async {
@@ -487,7 +492,9 @@ void testAll({
             expect(debugInfo.isInternalBuild, equals(false));
             expect(debugInfo.isFlutterApp, equals(isFlutterApp));
             await appTab.close();
-          });
+            },
+            skip: 'https://github.com/dart-lang/webdev/issues/2239',
+          );
 
           test('no additional panels are added in Chrome DevTools', () async {
             final appUrl = context.appUrl;
@@ -619,7 +626,9 @@ void testAll({
               screenshotName:
                   'debuggerPanelLandingPage_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
             );
-          });
+            },
+            skip: 'https://github.com/dart-lang/webdev/issues/2239',
+          );
 
           test('Dart DevTools is embedded for debug session lifetime',
               () async {
@@ -682,7 +691,9 @@ void testAll({
               (target) => target.url.contains(devToolsUrlFragment),
             );
             expect(iframeTarget, isNotNull);
-          });
+            },
+            skip: 'https://github.com/dart-lang/webdev/issues/2239',
+          );
 
           // TODO(elliette): Pull TestServer out of TestContext, so we can add:
           // 1. a test case for starting another test app, loading that app in
@@ -734,7 +745,9 @@ void testAll({
               queryParameters,
               containsPair('backgroundColor', isNotEmpty),
             );
-          });
+            },
+            skip: 'https://github.com/dart-lang/webdev/issues/2239',
+          );
 
           test('Trying to debug a page with multiple Dart apps shows warning',
               () async {
@@ -787,7 +800,9 @@ void testAll({
               warningMsg,
               equals('Cannot debug multiple apps in a page.'),
             );
-          });
+            },
+            skip: 'https://github.com/dart-lang/webdev/issues/2239',
+          );
         });
       }
     });
@@ -1136,4 +1151,12 @@ Response _fakeAuthHandler(request) {
     return Response.ok(authenticationResponse);
   }
   return Response.notFound('Not found');
+}
+
+Future<bool> _waitForDartDetection({
+  required bool hasServiceWorker,
+}) {
+  final source =
+      hasServiceWorker ? ConsoleSource.worker : ConsoleSource.background;
+  return waitForConsoleLog('Dart app detected.', source: source);
 }

@@ -17,9 +17,9 @@ enum ConsoleSource {
   worker,
 }
 
-final _backgroundLogs = [];
-final _devToolsLogs = [];
-final _workerLogs = [];
+final _backgroundLogs = <String>[];
+final _devToolsLogs = <String>[];
+final _workerLogs = <String>[];
 
 Future<String> buildDebugExtension({required bool isMV3}) async {
   final extensionDir = absolutePath(pathFromDwds: 'debug_extension_mv3');
@@ -57,6 +57,10 @@ Future<Browser> setUpExtensionTest(
     devTools: openChromeDevTools,
     headless: false,
     timeout: Duration(seconds: 60),
+    ignoreDefaultArgs: [
+      '--disable-extensions',
+      '--disable-component-extensions-with-background-pages',
+    ],
     args: [
       '--load-extension=$extensionPath',
       '--disable-extensions-except=$extensionPath',
@@ -126,6 +130,41 @@ Future<Page> getChromeDevToolsPage(Browser browser) async {
     );
   });
   return chromeDevToolsPage;
+}
+
+Future<bool> waitForConsoleLog(
+  String textToMatch, {
+  required ConsoleSource source,
+  Duration timeBetween = const Duration(milliseconds: 500),
+  int retries = 10,
+}) async {
+  await Future.delayed(timeBetween);
+  List<String> logs;
+  switch (source) {
+    case ConsoleSource.background:
+      logs = _backgroundLogs;
+      break;
+    case ConsoleSource.devTools:
+      logs = _devToolsLogs;
+      break;
+    case ConsoleSource.worker:
+      logs = _workerLogs;
+      break;
+  }
+  final foundText = logs.where((log) => log.contains(textToMatch)).isNotEmpty;
+  if (foundText) {
+    return true;
+  }
+  if (retries > 0) {
+    final retriesLeft = retries - 1;
+    return waitForConsoleLog(
+      textToMatch,
+      source: source,
+      timeBetween: timeBetween,
+      retries: retriesLeft,
+    );
+  }
+  return false;
 }
 
 Future evaluate(
