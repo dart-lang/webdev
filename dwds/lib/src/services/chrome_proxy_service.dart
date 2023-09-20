@@ -805,7 +805,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     List<String>? libraryFilters,
     // Note: Ignore the optional librariesAlreadyCompiled parameter. It is here
     // to match the VM service interface.
-    bool? librariesAlreadyCompiled,
+    List<String>? librariesAlreadyCompiled,
   }) =>
       wrapInErrorHandlerAsync(
         'getSourceReport',
