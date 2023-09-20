@@ -36,11 +36,13 @@ ToolConfiguration get globalToolConfiguration => _globalToolConfiguration;
 class AppMetadata {
   final String hostname;
   final bool isInternalBuild;
+  final String? workspaceName;
   Future<bool> Function() isFlutterApp;
 
   AppMetadata({
     this.hostname = 'localhost',
     this.isInternalBuild = false,
+    this.workspaceName,
     Future<bool> Function()? isFlutterApp,
   }) : isFlutterApp = isFlutterApp ?? (() => Future.value(true));
 }

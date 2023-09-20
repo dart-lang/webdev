@@ -271,7 +271,8 @@ void _launchCommunicationWithDebugExtension() {
           ..authUrl = _authUrl
           ..extensionUrl = _extensionUrl
           ..isInternalBuild = _isInternalBuild
-          ..isFlutterApp = _isFlutterApp,
+          ..isFlutterApp = _isFlutterApp
+          ..workspaceName = dartWorkspaceName,
       ),
     ),
   );
@@ -357,6 +358,9 @@ external bool get isInternalBuild;
 
 @JS(r'$isFlutterApp')
 external bool get isFlutterApp;
+
+@JS(r'$dartWorkspaceName')
+external String? get dartWorkspaceName;
 
 bool get _isChromium => window.navigator.vendor.contains('Google');
 

@@ -42,6 +42,7 @@ Future<Browser> setUpExtensionTest(
   bool isInternalBuild = false,
   bool isFlutterApp = false,
   bool openChromeDevTools = false,
+  String? workspaceName,
 }) async {
   // TODO(elliette): Only start a TestServer, that way we can get rid of the
   // launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
@@ -52,6 +53,7 @@ Future<Browser> setUpExtensionTest(
     enableDebugExtension: true,
     isInternalBuild: isInternalBuild,
     isFlutterApp: isFlutterApp,
+    workspaceName: workspaceName,
   );
   return await puppeteer.launch(
     devTools: openChromeDevTools,
