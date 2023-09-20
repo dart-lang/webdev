@@ -181,6 +181,8 @@ class Runtime {
 
   external ConnectionHandler get onConnect;
 
+  external ConnectionHandler get onConnectExternal;
+
   external OnMessageHandler get onMessage;
 
   external OnMessageHandler get onMessageExternal;
@@ -203,7 +205,17 @@ class ConnectInfo {
 class Port {
   external String? get name;
   external void disconnect();
+  external void postMessage(Object message);
+  external OnPortMessageHandler get onMessage;
   external ConnectionHandler get onDisconnect;
+}
+
+@JS()
+@anonymous
+class OnPortMessageHandler {
+  external void addListener(
+    void Function(dynamic, Port) callback,
+  );
 }
 
 @JS()
@@ -252,7 +264,10 @@ class Storage {
 @JS()
 @anonymous
 class StorageArea {
-  external Object get(List<String> keys, void Function(Object result) callback);
+  external Object get(
+    List<String>? keys,
+    void Function(Object result) callback,
+  );
 
   external Object set(Object items, void Function()? callback);
 

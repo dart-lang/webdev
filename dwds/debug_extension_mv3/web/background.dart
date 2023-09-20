@@ -9,6 +9,7 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
+import 'cider_connection.dart';
 import 'cross_extension_communication.dart';
 import 'data_types.dart';
 import 'debug_session.dart';
@@ -31,6 +32,10 @@ void _registerListeners() {
   chrome.runtime.onMessageExternal.addListener(
     allowInterop(handleMessagesFromAngularDartDevTools),
   );
+  // The only external service that sends messages to the Dart Debug Extension
+  // is Cider.
+  chrome.runtime.onConnectExternal
+      .addListener(allowInterop(handleCiderConnectRequest));
   // Update the extension icon on tab navigation:
   chrome.tabs.onActivated.addListener(
     allowInterop((ActiveInfo info) async {
@@ -105,7 +110,7 @@ Future<void> _handleRuntimeMessages(
       // Save the debug info for the Dart app in storage:
       await setStorageObject<DebugInfo>(
         type: StorageObject.debugInfo,
-        value: _addTabUrl(debugInfo, tabUrl: dartTab.url),
+        value: _addTabInfo(debugInfo, tab: dartTab),
         tabId: dartTab.id,
       );
       // Update the icon to show that a Dart app has been detected:
@@ -183,7 +188,7 @@ bool _isInternalNavigation(NavigationInfo navigationInfo) {
   ].contains(navigationInfo.transitionType);
 }
 
-DebugInfo _addTabUrl(DebugInfo debugInfo, {required String tabUrl}) {
+DebugInfo _addTabInfo(DebugInfo debugInfo, {required Tab tab}) {
   return DebugInfo(
     (b) => b
       ..appEntrypointPath = debugInfo.appEntrypointPath
@@ -195,7 +200,9 @@ DebugInfo _addTabUrl(DebugInfo debugInfo, {required String tabUrl}) {
       ..extensionUrl = debugInfo.extensionUrl
       ..isInternalBuild = debugInfo.isInternalBuild
       ..isFlutterApp = debugInfo.isFlutterApp
-      ..tabUrl = tabUrl,
+      ..workspaceName = debugInfo.workspaceName
+      ..tabUrl = tab.url
+      ..tabId = tab.id,
   );
 }
 

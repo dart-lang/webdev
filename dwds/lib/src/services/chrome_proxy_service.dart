@@ -804,6 +804,9 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     bool? forceCompile,
     bool? reportLines,
     List<String>? libraryFilters,
+    // Note: Ignore the optional librariesAlreadyCompiled parameter. It is here
+    // to match the VM service interface.
+    List<String>? librariesAlreadyCompiled,
   }) =>
       wrapInErrorHandlerAsync(
         'getSourceReport',
