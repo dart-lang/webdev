@@ -598,6 +598,7 @@ class DevHandler {
       appServices = await _createAppDebugServices(
         debugService,
       );
+      extensionDebugger.sendEvent('dwds.debugUri', debugService.uri);
       final encodedUri = await debugService.encodedUri;
       extensionDebugger.sendEvent('dwds.encodedUri', encodedUri);
       safeUnawaited(
