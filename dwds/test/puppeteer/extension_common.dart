@@ -270,7 +270,9 @@ void testAll({
           final devToolsTab = await devToolsTabTarget.page;
           await devToolsTab.close();
           await appTab.close();
-        });
+          },
+          skip: 'https://github.com/dart-lang/webdev/issues/2239',
+        );
 
         test(
             'navigating away from the Dart app while debugging closes DevTools',
@@ -521,7 +523,9 @@ void testAll({
             final debuggerPanelTarget = browser.targets
                 .firstWhereOrNull((target) => target.url == 'debugger_panel');
             expect(debuggerPanelTarget, isNull);
-          });
+            },
+            skip: 'https://github.com/dart-lang/webdev/issues/2239',
+          );
         });
       }
     });
