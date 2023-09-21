@@ -11,6 +11,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         sdk: ['dev']
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Set up Dart SDK
         uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
