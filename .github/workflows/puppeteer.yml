@@ -34,3 +34,9 @@ jobs:
       - name: Run Puppeteer tests
         run: dart test --tags=puppeteer --no-retry --platform vm 
         working-directory: dwds
+      - name: Run Puppeteer tests
+        run: xvfb-run --auto-servernum dart test --tags=puppeteer --platform vm 
+        if: runner.os == 'Linux'
+      - name: Run Puppeteer tests 
+        run: dart test --tags=puppeteer --platform vm 
+        if: runner.os != 'Linux'
