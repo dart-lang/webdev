@@ -165,6 +165,7 @@ Future<bool> waitForConsoleLog(
       retries: retriesLeft,
     );
   }
+  printOnFailure('Did not find console.log matching $textToMatch');
   return false;
 }
 
