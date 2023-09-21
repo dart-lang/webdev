@@ -694,7 +694,8 @@ void testAll({
           // origin, and being able to connect to the embedded Dart app.
           // See https://github.com/dart-lang/webdev/issues/1779
 
-          test('The Dart DevTools IFRAME has the correct query parameters',
+          test(
+              'The Dart DevTools IFRAME has the correct query parameters and path',
               () async {
             final chromeDevToolsPage = await getChromeDevToolsPage(browser);
             // There are no hooks for when a panel is added to Chrome DevTools,
@@ -736,6 +737,7 @@ void testAll({
               queryParameters,
               containsPair('backgroundColor', isNotEmpty),
             );
+            expect(uri.path, equals('/'));
           });
 
           test('Trying to debug a page with multiple Dart apps shows warning',
