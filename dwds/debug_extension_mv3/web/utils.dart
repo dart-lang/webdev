@@ -143,6 +143,7 @@ String addQueryParameters(
 }) {
   final originalUri = Uri.parse(uri);
   final newUri = originalUri.replace(
+    path: '', // Replace the /debugger path so that the inspector url works.
     queryParameters: {
       ...originalUri.queryParameters,
       ...queryParameters,
