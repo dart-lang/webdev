@@ -9,7 +9,8 @@ jobs:
     name: Run tests ${{matrix.sdk}} on ${{matrix.os}}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        # TODO(https://github.com/dart-lang/webdev/issues/2239) Run tests on linux, windows.
+        os: [macos-latest]
         sdk: ['dev']
     runs-on: ${{ matrix.os }}
     steps:
@@ -34,9 +35,5 @@ jobs:
       - name: Run Puppeteer tests
         run: dart test --tags=puppeteer --no-retry --platform vm 
         working-directory: dwds
-      - name: Run Puppeteer tests
-        run: xvfb-run --auto-servernum dart test --tags=puppeteer --platform vm 
-        if: runner.os == 'Linux'
       - name: Run Puppeteer tests 
         run: dart test --tags=puppeteer --platform vm 
-        if: runner.os != 'Linux'
