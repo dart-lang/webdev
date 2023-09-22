@@ -208,6 +208,7 @@ class TestContext {
         workingDirectory: project.absolutePackageDirectory,
       );
 
+      ExpressionCompiler? expressionCompiler;
       AssetReader assetReader;
       Stream<BuildResults> buildResults;
       RequireStrategy requireStrategy;
@@ -273,6 +274,7 @@ class TestContext {
                 experiments: experiments,
                 canaryFeatures: canaryFeatures,
               );
+              expressionCompiler = ddcService;
             }
 
             requireStrategy = BuildRunnerRequireStrategyProvider(
@@ -327,6 +329,10 @@ class TestContext {
               assetServerPort,
               filePathToServe,
             );
+
+            if (enableExpressionEvaluation) {
+              expressionCompiler = webRunner.expressionCompiler;
+            }
 
             basePath = webRunner.devFS.assetServer.basePath;
             assetReader = webRunner.devFS.assetServer;
