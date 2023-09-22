@@ -37,10 +37,23 @@ class TestRunner {
   }
 
   Future<TestProcess> runWebDev(List<String> args,
-      {String? workingDirectory}) async {
+      {
+    String? workingDirectory,
+    bool useWebdevFromPub = false,
+  }) async {
+    if (useWebdevFromPub) {
+      return _runWebdevFromPub(args, workingDirectory: workingDirectory);
+    }
     var fullArgs = [_webdevBin, ...args];
-
     return TestProcess.start(sdkLayout.dartPath, fullArgs,
+        workingDirectory: workingDirectory);
+  }
+
+  Future<TestProcess> _runWebdevFromPub(List<String> args,
+      {String? workingDirectory}) async {
+    final fullArgs = ['pub', 'global', 'run', 'webdev', ...args];
+    print('running webdev with $fullArgs');
+    return TestProcess.start('dart', fullArgs,
         workingDirectory: workingDirectory);
   }
 

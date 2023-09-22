@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(minutes: 5))
 import 'dart:io';
 
 import 'package:io/io.dart';
@@ -32,7 +31,11 @@ final _testItems = <String, bool?>{
   'main.ddc.js': true,
 };
 
-void main() {
+void testAll({
+  // If true, will activate webdev from pub. Otherwise, will use the checked-in
+  // version of webdev.
+  bool useWebdevFromPub = false,
+}) {
   // Change to true for debugging.
   final debug = false;
 
@@ -62,6 +65,14 @@ void main() {
         .file('.dart_tool/package_config.json', isNotEmpty)
         .validate(soundExampleDirectory);
     await d.file('pubspec.lock', isNotEmpty).validate(soundExampleDirectory);
+
+    if (useWebdevFromPub) {
+      final activateProcess = await TestProcess.start(
+        'dart',
+        ['pub', 'global', 'activate', 'webdev'],
+      );
+      await activateProcess.shouldExit(0);
+    }
   });
 
   tearDownAll(testRunner.tearDownAll);
@@ -85,8 +96,11 @@ void main() {
 
     var args = ['build', '-o', 'web:${d.sandbox}'];
 
-    var process = await testRunner.runWebDev(args,
-        workingDirectory: soundExampleDirectory);
+    var process = await testRunner.runWebDev(
+      args,
+      workingDirectory: soundExampleDirectory,
+      useWebdevFromPub: useWebdevFromPub,
+    );
 
     // NOTE: We'd like this to be more useful
     // See https://github.com/dart-lang/build/issues/1283
@@ -113,8 +127,11 @@ void main() {
       '--delete-conflicting-outputs'
     ];
 
-    var process = await testRunner.runWebDev(args,
-        workingDirectory: soundExampleDirectory);
+    var process = await testRunner.runWebDev(
+      args,
+      workingDirectory: soundExampleDirectory,
+      useWebdevFromPub: useWebdevFromPub,
+    );
 
     await checkProcessStdout(process, ['Succeeded']);
     await process.shouldExit(0);
@@ -128,8 +145,11 @@ void main() {
           args.add('--no-release');
         }
 
-        var process = await testRunner.runWebDev(args,
-            workingDirectory: soundExampleDirectory);
+        var process = await testRunner.runWebDev(
+          args,
+          workingDirectory: soundExampleDirectory,
+          useWebdevFromPub: useWebdevFromPub,
+        );
 
         var expectedItems = <Object>['Succeeded'];
 
@@ -156,8 +176,11 @@ void main() {
         '--null-safety=sound'
       ];
 
-      var process = await testRunner.runWebDev(args,
-          workingDirectory: soundExampleDirectory);
+      var process = await testRunner.runWebDev(
+        args,
+        workingDirectory: soundExampleDirectory,
+        useWebdevFromPub: useWebdevFromPub,
+      );
 
       var expectedItems = <Object>['Succeeded'];
 
@@ -176,8 +199,11 @@ void main() {
         '--null-safety=unsound'
       ];
 
-      var process =
-          await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
+      var process = await testRunner.runWebDev(
+        args,
+        workingDirectory: exampleDirectory,
+        useWebdevFromPub: useWebdevFromPub,
+      );
 
       var expectedItems = <Object>['Succeeded'];
 
@@ -196,8 +222,11 @@ void main() {
           args.add('--no-release');
         }
 
-        var process = await testRunner.runWebDev(args,
-            workingDirectory: soundExampleDirectory);
+        var process = await testRunner.runWebDev(
+          args,
+          workingDirectory: soundExampleDirectory,
+          useWebdevFromPub: useWebdevFromPub,
+        );
 
         var expectedItems = <Object>['Succeeded'];
 
@@ -219,8 +248,11 @@ void main() {
           args.add('--release');
         }
 
-        var process = await testRunner.runWebDev(args,
-            workingDirectory: soundExampleDirectory);
+        var process = await testRunner.runWebDev(
+          args,
+          workingDirectory: soundExampleDirectory,
+          useWebdevFromPub: useWebdevFromPub,
+        );
 
         var hostUrl = 'http://localhost:$openPort';
 
@@ -261,8 +293,11 @@ void main() {
             if (command == 'build') '--output=$dir:foo' else dir
           ];
 
-          var process = await testRunner.runWebDev(args,
-              workingDirectory: soundExampleDirectory);
+          var process = await testRunner.runWebDev(
+            args,
+            workingDirectory: soundExampleDirectory,
+            useWebdevFromPub: useWebdevFromPub,
+          );
           await expectLater(
               process.stdout,
               emitsThrough(contains(
@@ -299,9 +334,12 @@ void main() {
               '--null-safety=$nullSafetyOption',
               '--verbose',
             ];
-            var process = await testRunner.runWebDev(args,
-                workingDirectory:
-                    soundNullSafety ? soundExampleDirectory : exampleDirectory);
+            var process = await testRunner.runWebDev(
+              args,
+              workingDirectory:
+                  soundNullSafety ? soundExampleDirectory : exampleDirectory,
+              useWebdevFromPub: useWebdevFromPub,
+            );
             VmService? vmService;
 
             process.stdoutStream().listen(Logger.root.fine);
@@ -365,9 +403,12 @@ void main() {
               '--enable-expression-evaluation',
               '--verbose',
             ];
-            var process = await testRunner.runWebDev(args,
-                workingDirectory:
-                    soundNullSafety ? soundExampleDirectory : exampleDirectory);
+            var process = await testRunner.runWebDev(
+              args,
+              workingDirectory:
+                  soundNullSafety ? soundExampleDirectory : exampleDirectory,
+              useWebdevFromPub: useWebdevFromPub,
+            );
             VmService? vmService;
 
             try {
@@ -423,9 +464,12 @@ void main() {
               '--no-enable-expression-evaluation',
               '--verbose',
             ];
-            var process = await testRunner.runWebDev(args,
-                workingDirectory:
-                    soundNullSafety ? soundExampleDirectory : exampleDirectory);
+            var process = await testRunner.runWebDev(
+              args,
+              workingDirectory:
+                  soundNullSafety ? soundExampleDirectory : exampleDirectory,
+              useWebdevFromPub: useWebdevFromPub,
+            );
             VmService? vmService;
 
             try {
@@ -478,9 +522,12 @@ void main() {
               '--no-enable-expression-evaluation',
               '--verbose',
             ];
-            var process = await testRunner.runWebDev(args,
-                workingDirectory:
-                    soundNullSafety ? soundExampleDirectory : exampleDirectory);
+            var process = await testRunner.runWebDev(
+              args,
+              workingDirectory:
+                  soundNullSafety ? soundExampleDirectory : exampleDirectory,
+              useWebdevFromPub: useWebdevFromPub,
+            );
             VmService? vmService;
 
             try {
