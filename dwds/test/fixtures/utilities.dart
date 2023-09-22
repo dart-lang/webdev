@@ -7,8 +7,11 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/server_log.dart';
+import 'package:dds/devtools_server.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/servers/devtools.dart';
+import 'package:test_common/test_sdk_layout.dart';
 
 import 'fakes.dart';
 
@@ -92,21 +95,80 @@ Future<T> retryFnAsync<T>(
   );
 }
 
-ToolConfiguration createToolConfiguration({
-  LoadStrategy? loadStrategy,
-  AppMetadata? appMetadata,
-  DebugSettings? debugSettings,
-}) =>
-    ToolConfiguration(
-      loadStrategy: loadStrategy ?? FakeStrategy(FakeAssetReader()),
-      debugSettings: debugSettings ?? DebugSettings(),
-      appMetadata: appMetadata ?? AppMetadata(),
-    );
+class TestDebugSettings extends DebugSettings {
+  TestDebugSettings.withDevTools({
+    required TestSdkLayout sdkLayout,
+    bool? enableDebugExtension,
+    bool? useSse,
+  }) : super(
+          enableDebugExtension: enableDebugExtension ?? false,
+          useSseForDebugProxy: useSse ?? true,
+          useSseForDebugBackend: useSse ?? true,
+          useSseForInjectedClient: useSse ?? true,
+          enableDevToolsLaunch: true,
+          devToolsLauncher: (hostname) async {
+            final server = await DevToolsServer().serveDevTools(
+              hostname: hostname,
+              enableStdinCommands: false,
+              customDevToolsPath: sdkLayout.devToolsDirectory,
+            );
+            if (server == null) {
+              throw StateError('DevTools server could not be started.');
+            }
+            return DevTools(server.address.host, server.port, server);
+          },
+        );
 
-final defaultToolConfiguration = createToolConfiguration();
+  TestDebugSettings.noDevTools({
+    bool? enableDebugExtension,
+    bool? useSse,
+  }) : super(
+          enableDebugExtension: enableDebugExtension ?? false,
+          useSseForDebugProxy: useSse ?? true,
+          useSseForDebugBackend: useSse ?? true,
+          useSseForInjectedClient: useSse ?? true,
+          enableDevToolsLaunch: false,
+        );
+}
+
+class TestAppMetadata extends AppMetadata {
+  TestAppMetadata.internalFlutterApp()
+      : super(
+          isFlutterApp: () => Future.value(true),
+          isInternalBuild: true,
+        );
+  TestAppMetadata.internalDartApp()
+      : super(
+          isFlutterApp: () => Future.value(false),
+          isInternalBuild: true,
+        );
+  TestAppMetadata.externalFlutterApp()
+      : super(
+          isFlutterApp: () => Future.value(true),
+          isInternalBuild: false,
+        );
+  TestAppMetadata.externalDartApp()
+      : super(
+          isFlutterApp: () => Future.value(false),
+          isInternalBuild: false,
+        );
+}
+
+class TestToolConfiguration extends ToolConfiguration {
+  TestToolConfiguration.forTests({
+    LoadStrategy? loadStrategy,
+    DebugSettings? debugSettings,
+    AppMetadata? appMetadata,
+  }) : super(
+          loadStrategy: loadStrategy ?? FakeStrategy(FakeAssetReader()),
+          debugSettings: debugSettings ?? TestDebugSettings.noDevTools(),
+          appMetadata: TestAppMetadata.externalDartApp(),
+        );
+}
 
 void setGlobalsForTesting({
   ToolConfiguration? toolConfiguration,
 }) {
-  globalToolConfiguration = toolConfiguration ?? defaultToolConfiguration;
+  globalToolConfiguration =
+      toolConfiguration ?? TestToolConfiguration.forTests();
 }

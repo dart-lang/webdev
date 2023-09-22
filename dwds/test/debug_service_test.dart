@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/config.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
@@ -22,7 +23,7 @@ void main() {
 
   setUpAll(() async {
     // Disable DDS as we're testing DWDS behavior.
-    await context.setUp(spawnDds: false);
+    await context.setUp(debugSettings: DebugSettings(spawnDds: false));
   });
 
   tearDownAll(() async {

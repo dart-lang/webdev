@@ -49,7 +49,7 @@ class G3TestStrategy extends FakeStrategy {
 void main() {
   group('DartUri', () {
     setUpAll(() {
-      final toolConfiguration = createToolConfiguration(
+      final toolConfiguration = TestToolConfiguration.forTests(
         loadStrategy: TestStrategy(
           FakeAssetReader(),
         ),
@@ -209,7 +209,7 @@ void main() {
 
   group('initialized to handle g3-relative paths', () {
     setUpAll(() async {
-      final toolConfiguration = createToolConfiguration(
+      final toolConfiguration = TestToolConfiguration.forTests(
         loadStrategy: G3TestStrategy(FakeAssetReader()),
         appMetadata: AppMetadata(isInternalBuild: true),
       );

@@ -4,7 +4,7 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 5))
-import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/dwds.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -70,7 +70,9 @@ void main() {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.liveReload,
-          enableDebugging: false,
+          debugSettings: DebugSettings(
+            enableDebugging: false,
+          ),
         );
       });
 
@@ -95,8 +97,12 @@ void main() {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.liveReload,
-          enableDebugging: false,
-          useSse: false,
+          debugSettings: DebugSettings(
+            enableDebugging: false,
+            useSseForDebugProxy: false,
+            useSseForDebugBackend: false,
+            useSseForInjectedClient: false,
+          ),
         );
       });
 
@@ -480,7 +486,7 @@ void main() {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.hotRestart,
-          enableDebugging: false,
+          debugSettings: DebugSettings(enableDebugging: false),
         );
       });
 
