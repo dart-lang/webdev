@@ -51,12 +51,11 @@ Future<Browser> setUpExtensionTest(
   await context.setUp(
     launchChrome: false,
     debugSettings: serveDevTools
-        ? TestDebugSettings.withDevTools(
-            sdkLayout: context.sdkConfigurationProvider.sdkLayout,
+        ? TestDebugSettings.withDevTools(context).copyWith(
             enableDebugExtension: true,
             useSse: useSse,
           )
-        : TestDebugSettings.noDevTools(
+        : TestDebugSettings.noDevTools().copyWith(
             enableDebugExtension: true,
             useSse: useSse,
           ),

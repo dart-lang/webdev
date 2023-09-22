@@ -11,8 +11,9 @@ import 'package:dds/devtools_server.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/servers/devtools.dart';
-import 'package:test_common/test_sdk_layout.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 
+import 'context.dart';
 import 'fakes.dart';
 
 /// Connects to the `build_runner` daemon.
@@ -96,21 +97,14 @@ Future<T> retryFnAsync<T>(
 }
 
 class TestDebugSettings extends DebugSettings {
-  TestDebugSettings.withDevTools({
-    required TestSdkLayout sdkLayout,
-    bool? enableDebugExtension,
-    bool? useSse,
-  }) : super(
-          enableDebugExtension: enableDebugExtension ?? false,
-          useSseForDebugProxy: useSse ?? true,
-          useSseForDebugBackend: useSse ?? true,
-          useSseForInjectedClient: useSse ?? true,
-          enableDevToolsLaunch: true,
+  TestDebugSettings.withDevTools(TestContext context)
+      : super(
           devToolsLauncher: (hostname) async {
             final server = await DevToolsServer().serveDevTools(
               hostname: hostname,
               enableStdinCommands: false,
-              customDevToolsPath: sdkLayout.devToolsDirectory,
+              customDevToolsPath:
+                  context.sdkConfigurationProvider.sdkLayout.devToolsDirectory,
             );
             if (server == null) {
               throw StateError('DevTools server could not be started.');
@@ -119,16 +113,64 @@ class TestDebugSettings extends DebugSettings {
           },
         );
 
-  TestDebugSettings.noDevTools({
+  TestDebugSettings.noDevTools() : super(enableDevToolsLaunch: false);
+
+  TestDebugSettings._({
+    required bool enableDebugging,
+    required bool enableDebugExtension,
+    required bool useSseForDebugBackend,
+    required bool useSseForDebugProxy,
+    required bool useSseForInjectedClient,
+    required bool spawnDds,
+    required bool enableDevToolsLaunch,
+    required bool launchDevToolsInNewWindow,
+    required bool emitDebugEvents,
+    required DevToolsLauncher? devToolsLauncher,
+    required ExpressionCompiler? expressionCompiler,
+    required UrlEncoder? urlEncoder,
+  }) : super(
+          enableDebugging: enableDebugging,
+          enableDebugExtension: enableDebugExtension,
+          useSseForDebugBackend: useSseForDebugBackend,
+          useSseForDebugProxy: useSseForDebugProxy,
+          useSseForInjectedClient: useSseForInjectedClient,
+          spawnDds: spawnDds,
+          enableDevToolsLaunch: enableDevToolsLaunch,
+          launchDevToolsInNewWindow: launchDevToolsInNewWindow,
+          emitDebugEvents: emitDebugEvents,
+          devToolsLauncher: devToolsLauncher,
+          expressionCompiler: expressionCompiler,
+          urlEncoder: urlEncoder,
+        );
+
+  TestDebugSettings copyWith({
+    bool? enableDebugging,
     bool? enableDebugExtension,
     bool? useSse,
-  }) : super(
-          enableDebugExtension: enableDebugExtension ?? false,
-          useSseForDebugProxy: useSse ?? true,
-          useSseForDebugBackend: useSse ?? true,
-          useSseForInjectedClient: useSse ?? true,
-          enableDevToolsLaunch: false,
-        );
+    bool? spawnDds,
+    bool? enableDevToolsLaunch,
+    bool? launchDevToolsInNewWindow,
+    bool? emitDebugEvents,
+    DevToolsLauncher? devToolsLauncher,
+    ExpressionCompiler? expressionCompiler,
+    UrlEncoder? urlEncoder,
+  }) {
+    return TestDebugSettings._(
+      enableDebugging: enableDebugging ?? this.enableDebugging,
+      enableDebugExtension: enableDebugExtension ?? this.enableDebugExtension,
+      useSseForDebugProxy: useSse ?? useSseForDebugProxy,
+      useSseForDebugBackend: useSse ?? useSseForDebugBackend,
+      useSseForInjectedClient: useSse ?? useSseForInjectedClient,
+      spawnDds: spawnDds ?? this.spawnDds,
+      enableDevToolsLaunch: enableDevToolsLaunch ?? this.enableDevToolsLaunch,
+      launchDevToolsInNewWindow:
+          launchDevToolsInNewWindow ?? this.launchDevToolsInNewWindow,
+      emitDebugEvents: emitDebugEvents ?? this.emitDebugEvents,
+      devToolsLauncher: devToolsLauncher ?? this.devToolsLauncher,
+      expressionCompiler: expressionCompiler ?? this.expressionCompiler,
+      urlEncoder: urlEncoder ?? this.urlEncoder,
+    );
+  }
 }
 
 class TestAppMetadata extends AppMetadata {

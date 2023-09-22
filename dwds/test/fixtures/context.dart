@@ -137,7 +137,7 @@ class TestContext {
   Future<void> setUp({
     ReloadConfiguration reloadConfiguration = ReloadConfiguration.none,
     AppMetadata? appMetadata,
-    DebugSettings? debugSettings,
+    TestDebugSettings? debugSettings,
     bool autoRun = true,
     bool waitToDebug = false,
     CompilationMode compilationMode = CompilationMode.buildDaemon,
@@ -386,7 +386,8 @@ class TestContext {
       final connection = ChromeConnection('localhost', debugPort);
 
       _testServer = await TestServer.start(
-        debugSettings: debugSettings,
+        debugSettings:
+            debugSettings.copyWith(expressionCompiler: expressionCompiler),
         appMetadata: appMetadata,
         port: port,
         assetHandler: assetHandler,

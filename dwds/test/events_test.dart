@@ -132,9 +132,7 @@ void main() {
           ),
         );
         await context.setUp(
-          debugSettings: TestDebugSettings.withDevTools(
-            sdkLayout: context.sdkConfigurationProvider.sdkLayout,
-          ),
+          debugSettings: TestDebugSettings.withDevTools(context),
           enableExpressionEvaluation: true,
         );
         vmService = context.debugConnection.vmService;

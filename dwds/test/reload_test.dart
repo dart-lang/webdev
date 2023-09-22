@@ -12,6 +12,7 @@ import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 const originalString = 'Hello World!';
 const newString = 'Bonjour le monde!';
@@ -70,7 +71,7 @@ void main() {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.liveReload,
-          debugSettings: DebugSettings(
+          debugSettings: TestDebugSettings.noDevTools().copyWith(
             enableDebugging: false,
           ),
         );
@@ -97,11 +98,9 @@ void main() {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.liveReload,
-          debugSettings: DebugSettings(
+          debugSettings: TestDebugSettings.noDevTools().copyWith(
             enableDebugging: false,
-            useSseForDebugProxy: false,
-            useSseForDebugBackend: false,
-            useSseForInjectedClient: false,
+            useSse: false,
           ),
         );
       });
@@ -486,7 +485,8 @@ void main() {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.hotRestart,
-          debugSettings: DebugSettings(enableDebugging: false),
+          debugSettings:
+              TestDebugSettings.noDevTools().copyWith(enableDebugging: false),
         );
       });
 

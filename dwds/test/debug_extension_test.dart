@@ -62,8 +62,7 @@ void main() async {
       group('Without encoding', () {
         setUp(() async {
           await context.setUp(
-            debugSettings: TestDebugSettings.withDevTools(
-              sdkLayout: context.sdkConfigurationProvider.sdkLayout,
+            debugSettings: TestDebugSettings.withDevTools(context).copyWith(
               enableDebugExtension: true,
               useSse: useSse,
             ),
@@ -127,8 +126,7 @@ void main() async {
       group('With a sharded Dart app', () {
         setUp(() async {
           await context.setUp(
-            debugSettings: TestDebugSettings.withDevTools(
-              sdkLayout: context.sdkConfigurationProvider.sdkLayout,
+            debugSettings: TestDebugSettings.withDevTools(context).copyWith(
               enableDebugExtension: true,
               useSse: useSse,
             ),
@@ -163,8 +161,7 @@ void main() async {
       group('With an internal Dart app', () {
         setUp(() async {
           await context.setUp(
-            debugSettings: TestDebugSettings.withDevTools(
-              sdkLayout: context.sdkConfigurationProvider.sdkLayout,
+            debugSettings: TestDebugSettings.withDevTools(context).copyWith(
               enableDebugExtension: true,
               useSse: false,
             ),
@@ -234,7 +231,7 @@ void main() async {
   group('With encoding', () {
     setUp(() async {
       await context.setUp(
-        debugSettings: DebugSettings(
+        debugSettings: TestDebugSettings.noDevTools().copyWith(
           enableDebugExtension: true,
           urlEncoder: (url) async =>
               url.endsWith(r'/$debug') ? 'http://some-encoded-url:8081/' : url,
@@ -262,7 +259,8 @@ void main() async {
 
     setUp(() async {
       await context.setUp(
-        debugSettings: DebugSettings(enableDebugExtension: true),
+        debugSettings:
+            TestDebugSettings.noDevTools().copyWith(enableDebugExtension: true),
         appMetadata: AppMetadata(hostname: 'any'),
       );
     });

@@ -35,9 +35,7 @@ void main() {
   group('Injected client', () {
     setUp(() async {
       await context.setUp(
-        debugSettings: TestDebugSettings.withDevTools(
-          sdkLayout: context.sdkConfigurationProvider.sdkLayout,
-        ),
+        debugSettings: TestDebugSettings.withDevTools(context),
       );
       await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
       // Wait for DevTools to actually open.
@@ -164,8 +162,8 @@ void main() {
     () {
       setUp(() async {
         await context.setUp(
-          debugSettings:
-              TestDebugSettings.noDevTools(enableDebugExtension: true),
+          debugSettings: TestDebugSettings.noDevTools()
+              .copyWith(enableDebugExtension: true),
         );
       });
 
