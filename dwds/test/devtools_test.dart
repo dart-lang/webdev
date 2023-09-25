@@ -137,9 +137,13 @@ void main() {
     );
   });
 
-  group('Injected client without DevTools', () {
+  group('Injected client without a DevTools server', () {
     setUp(() async {
-      await context.setUp(debugSettings: TestDebugSettings.noDevTools());
+      await context.setUp(
+        debugSettings: TestDebugSettings.noDevTools().copyWith(
+          enableDevToolsLaunch: true,
+        ),
+      );
     });
 
     tearDown(() async {
