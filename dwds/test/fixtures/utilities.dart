@@ -204,7 +204,7 @@ class TestToolConfiguration extends ToolConfiguration {
   }) : super(
           loadStrategy: loadStrategy ?? FakeStrategy(FakeAssetReader()),
           debugSettings: debugSettings ?? TestDebugSettings.noDevTools(),
-          appMetadata: TestAppMetadata.externalDartApp(),
+          appMetadata: appMetadata ?? TestAppMetadata.externalDartApp(),
         );
 }
 
