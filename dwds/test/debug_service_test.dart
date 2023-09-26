@@ -13,6 +13,7 @@ import 'package:test_common/test_sdk_configuration.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider();
@@ -22,7 +23,11 @@ void main() {
 
   setUpAll(() async {
     // Disable DDS as we're testing DWDS behavior.
-    await context.setUp(spawnDds: false);
+    await context.setUp(
+      debugSettings: TestDebugSettings.noDevTools().copyWith(
+        spawnDds: false,
+      ),
+    );
   });
 
   tearDownAll(() async {

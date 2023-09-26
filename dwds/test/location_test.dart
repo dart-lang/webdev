@@ -24,7 +24,7 @@ void main() {
   const lines = 100;
   const lineLength = 150;
   final assetReader = FakeAssetReader(sourceMap: sourceMapContents);
-  final toolConfiguration = createToolConfiguration(
+  final toolConfiguration = TestToolConfiguration.forTests(
     loadStrategy: MockLoadStrategy(assetReader),
   );
   setGlobalsForTesting(

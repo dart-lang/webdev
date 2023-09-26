@@ -14,6 +14,7 @@ import 'package:webdriver/io.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 Future<void> _waitForPageReady(TestContext context) async {
   var attempt = 100;
@@ -34,7 +35,7 @@ void main() {
   group('Injected client', () {
     setUp(() async {
       await context.setUp(
-        serveDevTools: true,
+        debugSettings: TestDebugSettings.withDevTools(context),
       );
       await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
       // Wait for DevTools to actually open.
@@ -136,9 +137,13 @@ void main() {
     );
   });
 
-  group('Injected client without DevTools', () {
+  group('Injected client without a DevTools server', () {
     setUp(() async {
-      await context.setUp(serveDevTools: false);
+      await context.setUp(
+        debugSettings: TestDebugSettings.noDevTools().copyWith(
+          enableDevToolsLaunch: true,
+        ),
+      );
     });
 
     tearDown(() async {
@@ -160,7 +165,10 @@ void main() {
     'Injected client with debug extension and without DevTools',
     () {
       setUp(() async {
-        await context.setUp(enableDebugExtension: true, serveDevTools: false);
+        await context.setUp(
+          debugSettings: TestDebugSettings.noDevTools()
+              .copyWith(enableDebugExtension: true),
+        );
       });
 
       tearDown(() async {

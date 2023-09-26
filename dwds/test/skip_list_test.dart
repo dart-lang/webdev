@@ -26,7 +26,7 @@ class TestStrategy extends FakeStrategy {
 }
 
 void main() {
-  final toolConfiguration = createToolConfiguration(
+  final toolConfiguration = TestToolConfiguration.forTests(
     loadStrategy: TestStrategy(FakeAssetReader()),
   );
   setGlobalsForTesting(
