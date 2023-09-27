@@ -25792,6 +25792,8 @@
       t1.toString;
       t1 = A._asBoolQ(A.JsObject_JsObject$fromBrowserObject(t1).$index(0, "$isFlutterApp"));
       b.get$_$this()._isFlutterApp = t1;
+      t1 = A._asStringQ(self.$dartWorkspaceName);
+      b.get$_$this()._workspaceName = t1;
       return b;
     },
     $signature: 76

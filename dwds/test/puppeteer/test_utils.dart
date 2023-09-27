@@ -4,12 +4,14 @@
 
 import 'dart:io';
 
+import 'package:dwds/dwds.dart';
 import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 import 'package:test_common/utilities.dart';
 
 import '../fixtures/context.dart';
+import '../fixtures/utilities.dart';
 
 enum ConsoleSource {
   background,
@@ -43,16 +45,26 @@ Future<Browser> setUpExtensionTest(
   bool isInternalBuild = false,
   bool isFlutterApp = false,
   bool openChromeDevTools = false,
+  String? workspaceName,
 }) async {
   // TODO(elliette): Only start a TestServer, that way we can get rid of the
   // launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
   await context.setUp(
     launchChrome: false,
-    serveDevTools: serveDevTools,
-    useSse: useSse,
-    enableDebugExtension: true,
-    isInternalBuild: isInternalBuild,
-    isFlutterApp: isFlutterApp,
+    debugSettings: serveDevTools
+        ? TestDebugSettings.withDevTools(context).copyWith(
+            enableDebugExtension: true,
+            useSse: useSse,
+          )
+        : TestDebugSettings.noDevTools().copyWith(
+            enableDebugExtension: true,
+            useSse: useSse,
+          ),
+    appMetadata: AppMetadata(
+      isInternalBuild: isInternalBuild,
+      isFlutterApp: () => Future.value(isFlutterApp),
+      workspaceName: workspaceName,
+    ),
   );
   return await puppeteer.launch(
     devTools: openChromeDevTools,

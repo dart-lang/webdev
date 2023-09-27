@@ -11,6 +11,7 @@
   'linux': Skip('https://github.com/dart-lang/webdev/issues/2114'),
 })
 
+import 'package:dwds/config.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:http/http.dart' as http;
@@ -61,9 +62,10 @@ void main() async {
       group('Without encoding', () {
         setUp(() async {
           await context.setUp(
-            enableDebugExtension: true,
-            serveDevTools: true,
-            useSse: useSse,
+            debugSettings: TestDebugSettings.withDevTools(context).copyWith(
+              enableDebugExtension: true,
+              useSse: useSse,
+            ),
           );
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
             'expression': 'fakeClick()',
@@ -124,9 +126,10 @@ void main() async {
       group('With a sharded Dart app', () {
         setUp(() async {
           await context.setUp(
-            enableDebugExtension: true,
-            serveDevTools: true,
-            useSse: useSse,
+            debugSettings: TestDebugSettings.withDevTools(context).copyWith(
+              enableDebugExtension: true,
+              useSse: useSse,
+            ),
           );
           final htmlTag =
               await context.webDriver.findElement(const By.tagName('html'));
@@ -158,9 +161,10 @@ void main() async {
       group('With an internal Dart app', () {
         setUp(() async {
           await context.setUp(
-            enableDebugExtension: true,
-            serveDevTools: true,
-            useSse: false,
+            debugSettings: TestDebugSettings.withDevTools(context).copyWith(
+              enableDebugExtension: true,
+              useSse: false,
+            ),
           );
           final htmlTag =
               await context.webDriver.findElement(const By.tagName('html'));
@@ -227,9 +231,11 @@ void main() async {
   group('With encoding', () {
     setUp(() async {
       await context.setUp(
-        enableDebugExtension: true,
-        urlEncoder: (url) async =>
-            url.endsWith(r'/$debug') ? 'http://some-encoded-url:8081/' : url,
+        debugSettings: TestDebugSettings.noDevTools().copyWith(
+          enableDebugExtension: true,
+          urlEncoder: (url) async =>
+              url.endsWith(r'/$debug') ? 'http://some-encoded-url:8081/' : url,
+        ),
       );
     });
 
@@ -252,7 +258,11 @@ void main() async {
     final uriPattern = RegExp(r'dartExtensionUri = "([^"]+)";');
 
     setUp(() async {
-      await context.setUp(enableDebugExtension: true, hostname: 'any');
+      await context.setUp(
+        debugSettings:
+            TestDebugSettings.noDevTools().copyWith(enableDebugExtension: true),
+        appMetadata: AppMetadata(hostname: 'any'),
+      );
     });
 
     tearDown(() async {

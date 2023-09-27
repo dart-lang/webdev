@@ -5,19 +5,14 @@
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart' as daemon;
-import 'package:dds/devtools_server.dart';
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/dart_web_debug_service.dart';
 import 'package:dwds/data/build_result.dart';
-import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/loaders/require.dart';
-import 'package:dwds/src/servers/devtools.dart';
-import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
-import 'package:test_common/test_sdk_layout.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 Logger _logger = Logger('TestServer');
@@ -62,28 +57,18 @@ class TestServer {
     await _server.close(force: true);
   }
 
-  static Future<TestServer> start(
-    String hostname,
+  static Future<TestServer> start({
+    required DebugSettings debugSettings,
+    required AppMetadata appMetadata,
+    required Handler assetHandler,
+    required AssetReader assetReader,
+    required RequireStrategy strategy,
+    required String target,
+    required Stream<daemon.BuildResults> buildResults,
+    required Future<ChromeConnection> Function() chromeConnection,
+    required bool autoRun,
     int? port,
-    Handler assetHandler,
-    AssetReader assetReader,
-    RequireStrategy strategy,
-    String target,
-    Stream<daemon.BuildResults> buildResults,
-    Future<ChromeConnection> Function() chromeConnection,
-    bool serveDevTools,
-    bool enableDebugExtension,
-    bool autoRun,
-    bool enableDebugging,
-    bool useSse,
-    UrlEncoder? urlEncoder,
-    ExpressionCompiler? expressionCompiler,
-    bool spawnDds,
-    ExpressionCompilerService? ddcService,
-    bool isFlutterApp,
-    bool isInternalBuild,
-    TestSdkLayout sdkLayout,
-  ) async {
+  }) async {
     var pipeline = const Pipeline();
 
     pipeline = pipeline.addMiddleware(_interceptFavicon);
@@ -103,36 +88,6 @@ class TestServer {
       }
       throw StateError('Unexpected Daemon build result: $result');
     });
-
-    final debugSettings = DebugSettings(
-      spawnDds: spawnDds,
-      enableDebugExtension: enableDebugExtension,
-      enableDebugging: enableDebugging,
-      useSseForDebugProxy: useSse,
-      useSseForDebugBackend: useSse,
-      useSseForInjectedClient: useSse,
-      urlEncoder: urlEncoder,
-      expressionCompiler: expressionCompiler,
-      devToolsLauncher: serveDevTools
-          ? (hostname) async {
-              final server = await DevToolsServer().serveDevTools(
-                hostname: hostname,
-                enableStdinCommands: false,
-                customDevToolsPath: sdkLayout.devToolsDirectory,
-              );
-              if (server == null) {
-                throw StateError('DevTools server could not be started.');
-              }
-              return DevTools(server.address.host, server.port, server);
-            }
-          : null,
-    );
-
-    final appMetadata = AppMetadata(
-      hostname: hostname,
-      isInternalBuild: isInternalBuild,
-      isFlutterApp: () => Future.value(isFlutterApp),
-    );
 
     final toolConfiguration = ToolConfiguration(
       loadStrategy: strategy,

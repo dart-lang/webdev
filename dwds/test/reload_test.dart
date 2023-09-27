@@ -4,7 +4,7 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 5))
-import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/dwds.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -12,6 +12,7 @@ import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 const originalString = 'Hello World!';
 const newString = 'Bonjour le monde!';
@@ -70,7 +71,9 @@ void main() {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.liveReload,
-          enableDebugging: false,
+          debugSettings: TestDebugSettings.noDevTools().copyWith(
+            enableDebugging: false,
+          ),
         );
       });
 
@@ -95,8 +98,10 @@ void main() {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.liveReload,
-          enableDebugging: false,
-          useSse: false,
+          debugSettings: TestDebugSettings.noDevTools().copyWith(
+            enableDebugging: false,
+            useSse: false,
+          ),
         );
       });
 
@@ -480,7 +485,8 @@ void main() {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.hotRestart,
-          enableDebugging: false,
+          debugSettings:
+              TestDebugSettings.noDevTools().copyWith(enableDebugging: false),
         );
       });
 

@@ -136,44 +136,21 @@ class TestContext {
 
   Future<void> setUp({
     ReloadConfiguration reloadConfiguration = ReloadConfiguration.none,
-    bool serveDevTools = false,
-    bool enableDebugExtension = false,
+    AppMetadata? appMetadata,
+    TestDebugSettings? debugSettings,
     bool autoRun = true,
-    bool enableDebugging = true,
-    bool useSse = true,
-    bool spawnDds = true,
-    String hostname = 'localhost',
     bool waitToDebug = false,
-    UrlEncoder? urlEncoder,
     CompilationMode compilationMode = CompilationMode.buildDaemon,
     bool enableExpressionEvaluation = false,
     bool verboseCompiler = false,
     bool useDebuggerModuleNames = false,
     bool launchChrome = true,
-    bool isFlutterApp = false,
-    bool isInternalBuild = false,
     List<String> experiments = const <String>[],
     bool canaryFeatures = false,
   }) async {
+    appMetadata ??= TestAppMetadata.externalDartApp();
+    debugSettings ??= TestDebugSettings.noDevTools();
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
-    final toolConfiguration = createToolConfiguration(
-      debugSettings: DebugSettings(
-        enableDebugging: enableDebugging,
-        enableDebugExtension: enableDebugExtension,
-        useSseForDebugBackend: useSse,
-        useSseForDebugProxy: useSse,
-        useSseForInjectedClient: useSse,
-        spawnDds: spawnDds,
-        enableDevToolsLaunch: serveDevTools,
-        urlEncoder: urlEncoder,
-      ),
-      appMetadata: AppMetadata(
-        hostname: hostname,
-        isInternalBuild: isInternalBuild,
-        isFlutterApp: () => Future.value(isFlutterApp),
-      ),
-    );
-    setGlobalsForTesting(toolConfiguration: toolConfiguration);
     try {
       // Make sure configuration was created correctly.
       final configuration = await sdkConfigurationProvider.configuration;
@@ -331,7 +308,7 @@ class TestContext {
 
             _webRunner = ResidentWebRunner(
               mainUri: entry,
-              urlTunneler: urlEncoder,
+              urlTunneler: debugSettings.urlEncoder,
               projectDirectory: p.toUri(project.absolutePackageDirectory),
               packageConfigFile: project.packageConfigFile,
               packageUriMapper: packageUriMapper,
@@ -348,7 +325,7 @@ class TestContext {
             final assetServerPort = await findUnusedPort();
             await webRunner.run(
               fileSystem,
-              hostname,
+              appMetadata.hostname,
               assetServerPort,
               filePathToServe,
             );
@@ -381,6 +358,7 @@ class TestContext {
         // then Chrome will be launched with a UI rather than headless.
         // If the extension is enabled, then Chrome will be launched with a UI
         // since headless Chrome does not support extensions.
+        final enableDebugExtension = debugSettings.enableDebugExtension;
         final headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
             !enableDebugExtension;
         if (enableDebugExtension) {
@@ -408,26 +386,17 @@ class TestContext {
       final connection = ChromeConnection('localhost', debugPort);
 
       _testServer = await TestServer.start(
-        hostname,
-        port,
-        assetHandler,
-        assetReader,
-        requireStrategy,
-        project.directoryToServe,
-        buildResults,
-        () async => connection,
-        serveDevTools,
-        enableDebugExtension,
-        autoRun,
-        enableDebugging,
-        useSse,
-        urlEncoder,
-        expressionCompiler,
-        spawnDds,
-        ddcService,
-        isFlutterApp,
-        isInternalBuild,
-        sdkLayout,
+        debugSettings:
+            debugSettings.copyWith(expressionCompiler: expressionCompiler),
+        appMetadata: appMetadata,
+        port: port,
+        assetHandler: assetHandler,
+        assetReader: assetReader,
+        strategy: requireStrategy,
+        target: project.directoryToServe,
+        buildResults: buildResults,
+        chromeConnection: () async => connection,
+        autoRun: autoRun,
       );
 
       _appUrl = basePath.isEmpty
@@ -445,14 +414,14 @@ class TestContext {
           throw StateError('Unable to connect to tab.');
         }
 
-        if (enableDebugExtension) {
+        if (debugSettings.enableDebugExtension) {
           final extensionTab = await _fetchDartDebugExtensionTab(connection);
           extensionConnection = await extensionTab.connect();
           await extensionConnection.runtime.enable();
         }
 
         appConnection = await testServer.dwds.connectedApps.first;
-        if (enableDebugging && !waitToDebug) {
+        if (debugSettings.enableDebugging && !waitToDebug) {
           await startDebugging();
         }
       }

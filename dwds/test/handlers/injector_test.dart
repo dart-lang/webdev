@@ -302,7 +302,7 @@ void main() {
     group('InjectedHandlerWithoutExtension using WebSockets', () {
       late DwdsInjector injector;
       setUp(() async {
-        final toolConfiguration = createToolConfiguration(
+        final toolConfiguration = TestToolConfiguration.forTests(
           debugSettings: DebugSettings(
             useSseForInjectedClient: false,
           ),

@@ -59,6 +59,7 @@ void testAll({
             extensionPath: extensionPath,
             serveDevTools: true,
             useSse: useSse,
+            workspaceName: 'test-workspace',
           );
 
           if (isMV3) {
@@ -111,6 +112,7 @@ void testAll({
           expect(debugInfo.appUrl, isNotNull);
           expect(debugInfo.isInternalBuild, isNotNull);
           expect(debugInfo.isFlutterApp, isNotNull);
+          expect(debugInfo.workspaceName, isNotNull);
           await appTab.close();
         });
 
@@ -717,49 +719,50 @@ void testAll({
           // See https://github.com/dart-lang/webdev/issues/1779
 
           test(
-            'The Dart DevTools IFRAME has the correct query parameters',
-            () async {
-              final chromeDevToolsPage = await getChromeDevToolsPage(browser);
-              // There are no hooks for when a panel is added to Chrome DevTools,
-              // therefore we rely on a slight delay:
-              await Future.delayed(Duration(seconds: 1));
-              // Navigate to the Dart Debugger panel:
+              'The Dart DevTools IFRAME has the correct query parameters and path',
+              () async {
+            final chromeDevToolsPage = await getChromeDevToolsPage(browser);
+            // There are no hooks for when a panel is added to Chrome DevTools,
+            // therefore we rely on a slight delay:
+            await Future.delayed(Duration(seconds: 1));
+            // Navigate to the Dart Debugger panel:
+            await _tabLeft(chromeDevToolsPage);
+            if (isFlutterApp) {
               await _tabLeft(chromeDevToolsPage);
-              if (isFlutterApp) {
-                await _tabLeft(chromeDevToolsPage);
-              }
-              await _clickLaunchButton(
-                browser,
-                panel: Panel.debugger,
-              );
-              // Expect the Dart DevTools IFRAME to be added:
-              final devToolsUrlFragment =
-                  'ide=ChromeDevTools&embed=true&page=debugger';
-              final iframeTarget = await browser.waitForTarget(
-                (target) => target.url.contains(devToolsUrlFragment),
-              );
-              final iframeUrl = iframeTarget.url;
-              // Expect the correct query parameters to be on the IFRAME url:
-              final uri = Uri.parse(iframeUrl);
-              final queryParameters = uri.queryParameters;
-              expect(
-                queryParameters.keys,
-                unorderedMatches([
-                  'uri',
-                  'ide',
-                  'embed',
-                  'page',
-                  'backgroundColor',
-                ]),
-              );
-              expect(queryParameters, containsPair('ide', 'ChromeDevTools'));
-              expect(queryParameters, containsPair('uri', isNotEmpty));
-              expect(queryParameters, containsPair('page', isNotEmpty));
-              expect(
-                queryParameters,
-                containsPair('backgroundColor', isNotEmpty),
-              );
-            },
+            }
+            await _clickLaunchButton(
+              browser,
+              panel: Panel.debugger,
+            );
+            // Expect the Dart DevTools IFRAME to be added:
+            final devToolsUrlFragment =
+                'ide=ChromeDevTools&embed=true&page=debugger';
+            final iframeTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment),
+            );
+            final iframeUrl = iframeTarget.url;
+            // Expect the correct query parameters to be on the IFRAME url:
+            final uri = Uri.parse(iframeUrl);
+            final queryParameters = uri.queryParameters;
+            expect(
+              queryParameters.keys,
+              unorderedMatches([
+                'uri',
+                'ide',
+                'embed',
+                'page',
+                'backgroundColor',
+              ]),
+            );
+            expect(queryParameters, containsPair('ide', 'ChromeDevTools'));
+            expect(queryParameters, containsPair('uri', isNotEmpty));
+            expect(queryParameters, containsPair('page', isNotEmpty));
+            expect(
+              queryParameters,
+              containsPair('backgroundColor', isNotEmpty),
+            );
+            expect(uri.path, equals('/'));
+          },
             skip: 'https://github.com/dart-lang/webdev/issues/2239',
           );
 

@@ -414,7 +414,7 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
         _openDevTools(message.params, dartAppTabId: tabId);
       }
     }
-    if (message.method == 'dwds.plainUri') {
+    if (message.method == 'dwds.debugUri') {
       sendMessageToCider(
         messageType: CiderMessageType.startDebugResponse,
         messageBody: message.params,

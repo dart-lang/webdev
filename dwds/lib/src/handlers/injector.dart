@@ -200,5 +200,9 @@ Future<String> _injectedClientSnippet(
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';
   }
+  final workspaceName = globalToolConfiguration.appMetadata.workspaceName;
+  if (workspaceName != null) {
+    injectedBody += 'window.\$dartWorkspaceName = "$workspaceName";\n';
+  }
   return injectedBody;
 }

@@ -36,7 +36,7 @@ void main() async {
     late StreamController<Event> debugEventController;
     setUp(() async {
       final assetReader = FakeAssetReader(sourceMap: '');
-      final toolConfiguration = createToolConfiguration(
+      final toolConfiguration = TestToolConfiguration.forTests(
         loadStrategy: FakeStrategy(assetReader),
       );
       setGlobalsForTesting(
