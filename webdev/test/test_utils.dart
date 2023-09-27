@@ -36,8 +36,8 @@ class TestRunner {
     sdkConfigurationProvider.dispose();
   }
 
-  Future<TestProcess> runWebDev(List<String> args,
-      {
+  Future<TestProcess> runWebDev(
+    List<String> args, {
     String? workingDirectory,
     bool useWebdevFromPub = false,
   }) async {
