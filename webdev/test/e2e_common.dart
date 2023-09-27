@@ -68,7 +68,7 @@ void testAll({
 
     if (useWebdevFromPub) {
       final activateProcess = await TestProcess.start(
-        'dart',
+        dartPath,
         ['pub', 'global', 'activate', 'webdev'],
       );
       await activateProcess.shouldExit(0);
