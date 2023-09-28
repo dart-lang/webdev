@@ -368,6 +368,10 @@ void main() {
             var process = await testRunner.runWebDev(args,
                 workingDirectory:
                     soundNullSafety ? soundExampleDirectory : exampleDirectory);
+
+            process.stdoutStream().listen(Logger.root.fine);
+            process.stderrStream().listen(Logger.root.warning);
+
             VmService? vmService;
 
             try {
@@ -406,6 +410,66 @@ void main() {
                       (instance) => instance.valueAsString,
                       'valueAsString',
                       contains('Hello World!!')));
+            } finally {
+              await vmService?.dispose();
+              await exitWebdev(process);
+              await process.shouldExit();
+            }
+          }, timeout: const Timeout.factor(2));
+
+          test('evaluate in a batch', () async {
+            var openPort = await findUnusedPort();
+            // running daemon command that starts dwds without keyboard input
+            var args = [
+              'daemon',
+              'web:$openPort',
+              '--enable-expression-evaluation',
+              '--verbose',
+            ];
+            var process = await testRunner.runWebDev(args,
+                workingDirectory:
+                    soundNullSafety ? soundExampleDirectory : exampleDirectory);
+
+            process.stdoutStream().listen(Logger.root.fine);
+            process.stderrStream().listen(Logger.root.warning);
+
+            VmService? vmService;
+
+            try {
+              // Wait for debug service Uri
+              String? wsUri;
+              await expectLater(process.stdout, emitsThrough((message) {
+                wsUri = getDebugServiceUri(message as String);
+                return wsUri != null;
+              }));
+              expect(wsUri, isNotNull);
+
+              vmService = await vmServiceConnectUri(wsUri!);
+              var vm = await vmService.getVM();
+              var isolateId = vm.isolates!.first.id!;
+              var isolate = await vmService.getIsolate(isolateId);
+              var libraryId = isolate.rootLib!.id!;
+
+              await vmService.streamListen('Debug');
+
+              final results = await Future.wait([
+                vmService.evaluate(isolateId, libraryId, 'true'),
+                vmService.evaluate(isolateId, libraryId, 'false'),
+              ]);
+
+              expect(
+                  results[0],
+                  const TypeMatcher<InstanceRef>().having(
+                      (instance) => instance.valueAsString,
+                      'valueAsString',
+                      'true'));
+
+              expect(
+                  results[1],
+                  const TypeMatcher<InstanceRef>().having(
+                      (instance) => instance.valueAsString,
+                      'valueAsString',
+                      'false'));
             } finally {
               await vmService?.dispose();
               await exitWebdev(process);
