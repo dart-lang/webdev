@@ -96,7 +96,7 @@ void _sendMessageToCider(String json) {
     'key': _ciderDartMessageKey,
     'json': json,
   };
-  _ciderPort!.postMessage(message);
+  _ciderPort!.postMessage(jsify(message));
 }
 
 Future<void> _handleMessageFromCider(dynamic message, Port _) async {
@@ -188,7 +188,7 @@ Future<int?> _findDartTabIdForWorkspace(String workspaceName) async {
   }
   if (dartTabIds.length > 1) {
     sendErrorMessageToCider(
-      errorType: CiderErrorType.noDartTab,
+      errorType: CiderErrorType.multipleDartTabs,
       errorDetails: 'Too many debuggable Dart tabs found.',
     );
     return null;
