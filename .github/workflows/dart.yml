@@ -30,7 +30,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: stable
       - id: checkout
@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
       - name: mono_repo self validate
         run: dart pub global activate mono_repo 6.5.7
-      # TODO: Disabled to test the latest setup-dart action.  
+      # TODO: Disabled to test the latest setup-dart action.
       # - name: mono_repo self validate
       #   run: dart pub global run mono_repo generate --validate
   job_002:
@@ -56,7 +56,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -94,7 +94,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -180,7 +180,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -218,7 +218,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -257,7 +257,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -292,7 +292,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -327,7 +327,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -362,7 +362,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -397,7 +397,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -436,7 +436,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -475,7 +475,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -514,7 +514,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -549,7 +549,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -584,7 +584,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -619,7 +619,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -654,7 +654,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -693,7 +693,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -722,7 +722,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -747,7 +747,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -772,7 +772,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -797,7 +797,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -822,7 +822,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -847,7 +847,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -872,7 +872,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: dev
       - id: checkout
@@ -897,7 +897,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -922,7 +922,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -947,7 +947,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -972,7 +972,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -997,7 +997,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -1022,7 +1022,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -1047,7 +1047,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: main
       - id: checkout
@@ -1083,7 +1083,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: beta
       - id: checkout
@@ -1151,7 +1151,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: beta
       - id: checkout
@@ -1219,7 +1219,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: beta
       - id: checkout
@@ -1283,7 +1283,7 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: beta
       - id: checkout
@@ -1337,7 +1337,7 @@ jobs:
     if: "github.event_name == 'schedule'"
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: beta
       - id: checkout
@@ -1391,7 +1391,7 @@ jobs:
     if: "github.event_name == 'schedule'"
     steps:
       - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: beta
       - id: checkout
