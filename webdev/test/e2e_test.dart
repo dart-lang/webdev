@@ -417,7 +417,7 @@ void main() {
             }
           }, timeout: const Timeout.factor(2));
 
-          test('evaluate in a batch', () async {
+          test('evaluate and get objects', () async {
             var openPort = await findUnusedPort();
             // running daemon command that starts dwds without keyboard input
             var args = [
@@ -452,24 +452,32 @@ void main() {
 
               await vmService.streamListen('Debug');
 
-              final results = await Future.wait([
-                vmService.evaluate(isolateId, libraryId, 'true'),
-                vmService.evaluate(isolateId, libraryId, 'false'),
+              final result = await vmService.evaluate(
+                  isolateId, libraryId, '[true, false]');
+              expect(
+                  result,
+                  const TypeMatcher<InstanceRef>().having(
+                      (instance) => instance.classRef?.name,
+                      'class name',
+                      'List<bool>'));
+
+              final instanceRef = result as InstanceRef;
+              final list =
+                  await vmService.getObject(isolateId, instanceRef.id!);
+              expect(
+                  list,
+                  const TypeMatcher<Instance>().having(
+                      (instance) => instance.classRef?.name,
+                      'class name',
+                      'List<bool>'));
+
+              final elements = (list as Instance).elements;
+              expect(elements, [
+                const TypeMatcher<InstanceRef>().having(
+                    (instance) => instance.valueAsString, 'value', 'true'),
+                const TypeMatcher<InstanceRef>().having(
+                    (instance) => instance.valueAsString, 'value', 'false'),
               ]);
-
-              expect(
-                  results[0],
-                  const TypeMatcher<InstanceRef>().having(
-                      (instance) => instance.valueAsString,
-                      'valueAsString',
-                      'true'));
-
-              expect(
-                  results[1],
-                  const TypeMatcher<InstanceRef>().having(
-                      (instance) => instance.valueAsString,
-                      'valueAsString',
-                      'false'));
             } finally {
               await vmService?.dispose();
               await exitWebdev(process);
