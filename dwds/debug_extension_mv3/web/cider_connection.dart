@@ -16,7 +16,7 @@ import 'debug_session.dart';
 import 'logger.dart';
 import 'storage.dart';
 
-/// Used to identify messages passed to/fron Cider.
+/// Used to identify messages passed to/from Cider.
 ///
 /// This must match the key defined in the Cider extension.
 const _ciderDartMessageKey = 'CIDER_DART';
