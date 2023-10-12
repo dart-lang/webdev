@@ -283,9 +283,9 @@ void testAll({
           await process.kill();
           await process.shouldExit();
         },
-        // TODO(elliette): The pub-downloaded webdev fails to exit for these
+        // TODO(elliette): The pub-downloaded Webdev fails to exit for these
         // test cases, causing the tests after them to fail. Figure out how to
-        // exit Webdeb, and re-enable.
+        // exit Webdev, and re-enable.
         skip: useWebdevFromPub,
       );
     }
