@@ -18,10 +18,10 @@ stages:
       sdk:
         - dev
         - main
-     # Run specified tests against the stable Dart SDK:
-    - group:
-      - test: --tags=stable
-        - stable
+    # Run specified tests against the stable Dart SDK:
+    - test: --tags=stable
+      sdk:
+      - stable
       os:
         - linux
         - windows
