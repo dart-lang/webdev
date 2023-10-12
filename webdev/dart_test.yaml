@@ -1,2 +1,7 @@
 retry: 3
 
+tags:
+  daily: # Daily tests also run on a scheduled daily cron job.
+  stable: # Stable tests also run on a scheduled daily cron job.
+
+
