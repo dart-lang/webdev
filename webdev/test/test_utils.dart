@@ -45,7 +45,6 @@ class TestRunner {
       return _runWebdevFromPub(args, workingDirectory: workingDirectory);
     }
     var fullArgs = [_webdevBin, ...args];
-    print('[LOCAL TEST] running webdev with $fullArgs');
     return TestProcess.start(sdkLayout.dartPath, fullArgs,
         workingDirectory: workingDirectory);
   }
@@ -53,7 +52,6 @@ class TestRunner {
   Future<TestProcess> _runWebdevFromPub(List<String> args,
       {String? workingDirectory}) async {
     final fullArgs = ['pub', 'global', 'run', 'webdev', ...args];
-    print('[PUB TEST] running webdev with $fullArgs');
     return TestProcess.start(sdkLayout.dartPath, fullArgs,
         workingDirectory: workingDirectory);
   }

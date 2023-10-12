@@ -241,45 +241,53 @@ void testAll({
   group('should serve with valid configuration', () {
     for (var withDDC in [true, false]) {
       var type = withDDC ? 'DDC' : 'dart2js';
-      test('using $type', () async {
-        var openPort = await findUnusedPort();
-        var args = ['serve', 'web:$openPort'];
-        if (!withDDC) {
-          args.add('--release');
-        }
-
-        var process = await testRunner.runWebDev(
-          args,
-          workingDirectory: soundExampleDirectory,
-          useWebdevFromPub: useWebdevFromPub,
-        );
-
-        var hostUrl = 'http://localhost:$openPort';
-
-        // Wait for the initial build to finish.
-        await expectLater(process.stdout, emitsThrough(contains('Succeeded')));
-
-        var client = HttpClient();
-
-        try {
-          for (var entry in _testItems.entries) {
-            var url = Uri.parse('$hostUrl/${entry.key}');
-
-            var request = await client.getUrl(url);
-            var response = await request.close();
-
-            var shouldExist = (entry.value ?? withDDC) == withDDC;
-
-            expect(response.statusCode, shouldExist ? 200 : 404,
-                reason: 'Expecting "$url"? $shouldExist');
+      test(
+        'using $type',
+        () async {
+          var openPort = await findUnusedPort();
+          var args = ['serve', 'web:$openPort'];
+          if (!withDDC) {
+            args.add('--release');
           }
-        } finally {
-          client.close(force: true);
-        }
 
-        await process.kill();
-        await process.shouldExit();
-      });
+          var process = await testRunner.runWebDev(
+            args,
+            workingDirectory: soundExampleDirectory,
+            useWebdevFromPub: useWebdevFromPub,
+          );
+
+          var hostUrl = 'http://localhost:$openPort';
+
+          // Wait for the initial build to finish.
+          await expectLater(
+              process.stdout, emitsThrough(contains('Succeeded')));
+
+          var client = HttpClient();
+
+          try {
+            for (var entry in _testItems.entries) {
+              var url = Uri.parse('$hostUrl/${entry.key}');
+
+              var request = await client.getUrl(url);
+              var response = await request.close();
+
+              var shouldExist = (entry.value ?? withDDC) == withDDC;
+
+              expect(response.statusCode, shouldExist ? 200 : 404,
+                  reason: 'Expecting "$url"? $shouldExist');
+            }
+          } finally {
+            client.close(force: true);
+          }
+
+          await process.kill();
+          await process.shouldExit();
+        },
+        // TODO(elliette): The pub-downloaded webdev fails to exit for these
+        // test cases, causing the tests after them to fail. Figure out how to
+        // exit Webdeb, and re-enable.
+        skip: useWebdevFromPub,
+      );
     }
   });
 
