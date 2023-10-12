@@ -7,8 +7,8 @@ on:
     - cron: "00 14 * * *" # Everyday at 3:00 PM UTC (8:00 AM PST)
 
 jobs:
-  daily_testing_main:
-    name: Daily Testing (main)
+  daily_testing:
+    name: Daily Testing
     runs-on: ubuntu-latest
     steps:
       - name: Setup Dart SDK
@@ -51,35 +51,4 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" -X POST -d \
             "{'text':'Daily Webdev tests failed (main)! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
-            "${{ secrets.WEBDEV_NOTIFICATION_CHAT_WEBHOOK }}"
-  daily_testing_stable:
-    name: Daily Testing (stable)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
-        with:
-          sdk: stable
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac
-      - id: webdev_pub_upgrade
-        name: webdev; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: webdev
-      - name: webdev; dart analyze .
-        run: dart analyze .
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-      - id: webdev_stable_tests
-        name: "webdev; dart test --tags=stable"
-        run: "dart test --tags=stable"
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-      - name: "Notify failure"
-        if: "always() && steps.webdev_stable_tests.conclusion == 'failure'"
-        run: |
-          curl -H "Content-Type: application/json" -X POST -d \
-            "{'text':'Daily Webdev tests failed (stable)! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
             "${{ secrets.WEBDEV_NOTIFICATION_CHAT_WEBHOOK }}"
