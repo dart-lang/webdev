@@ -1,7 +1,7 @@
 ## 3.1.0-wip
 
 - Update the parameters passed to `Dwds.start`. - [#2231](https://github.com/dart-lang/webdev/pull/2231).
-- Update `package:vm_service` constraint to `>= 10.1.0 <13.0.0`. - [#2248](https://github.com/dart-lang/webdev/pull/2248)
+- Update `package:vm_service` constraint to `>=10.1.0 <13.0.0`. - [#2248](https://github.com/dart-lang/webdev/pull/2248)
 
 ## 3.0.8
 
