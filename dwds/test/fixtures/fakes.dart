@@ -181,7 +181,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   FakeWebkitDebugger({Map<String, WipScript>? scripts}) : _scripts = scripts {
     setGlobalsForTesting(
-      toolConfiguration: createToolConfiguration(
+      toolConfiguration: TestToolConfiguration.forTests(
         loadStrategy: RequireStrategy(
           ReloadConfiguration.none,
           (_) async => {},

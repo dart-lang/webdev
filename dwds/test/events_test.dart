@@ -16,6 +16,7 @@ import 'package:webdriver/async_core.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider();
@@ -131,7 +132,7 @@ void main() {
           ),
         );
         await context.setUp(
-          serveDevTools: true,
+          debugSettings: TestDebugSettings.withDevTools(context),
           enableExpressionEvaluation: true,
         );
         vmService = context.debugConnection.vmService;

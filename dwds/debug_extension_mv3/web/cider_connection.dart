@@ -6,6 +6,7 @@
 library cider_connection;
 
 import 'dart:convert';
+import 'dart:js_util';
 
 import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
@@ -14,6 +15,11 @@ import 'chrome_api.dart';
 import 'debug_session.dart';
 import 'logger.dart';
 import 'storage.dart';
+
+/// Used to identify messages passed to/from Cider.
+///
+/// This must match the key defined in the Cider extension.
+const _ciderDartMessageKey = 'CIDER_DART';
 
 /// Defines the message types that can be passed to/from Cider.
 ///
@@ -67,7 +73,7 @@ void sendMessageToCider({
     'messageType': messageType.name,
     'messageBody': messageBody,
   });
-  _ciderPort!.postMessage(message);
+  _sendMessageToCider(message);
 }
 
 /// Sends an error message to the Cider-connected port.
@@ -82,19 +88,29 @@ void sendErrorMessageToCider({
     'errorType': errorType.name,
     'messageBody': errorDetails,
   });
-  _ciderPort!.postMessage(message);
+  _sendMessageToCider(message);
+}
+
+void _sendMessageToCider(String json) {
+  final message = {
+    'key': _ciderDartMessageKey,
+    'json': json,
+  };
+  _ciderPort!.postMessage(jsify(message));
 }
 
 Future<void> _handleMessageFromCider(dynamic message, Port _) async {
-  if (message is! String) {
+  final key = getProperty(message, 'key');
+  final json = getProperty(message, 'json');
+  if (key != _ciderDartMessageKey || json is! String) {
     sendErrorMessageToCider(
       errorType: CiderErrorType.invalidRequest,
-      errorDetails: 'Expected request to be a string: $message',
+      errorDetails: 'Invalid message format: $message',
     );
     return;
   }
 
-  final decoded = jsonDecode(message) as Map<String, dynamic>;
+  final decoded = jsonDecode(json) as Map<String, dynamic>;
   final messageType = decoded['messageType'] as String?;
   final messageBody = decoded['messageBody'] as String?;
 
@@ -172,7 +188,7 @@ Future<int?> _findDartTabIdForWorkspace(String workspaceName) async {
   }
   if (dartTabIds.length > 1) {
     sendErrorMessageToCider(
-      errorType: CiderErrorType.noDartTab,
+      errorType: CiderErrorType.multipleDartTabs,
       errorDetails: 'Too many debuggable Dart tabs found.',
     );
     return null;
