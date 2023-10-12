@@ -116,8 +116,8 @@ for PKG in ${PKGS}; do
         dart test test/build/ensure_build_test.dart || EXIT_CODE=$?
         ;;
       test_8)
-        echo 'dart test --tags=stable'
-        dart test --tags=stable || EXIT_CODE=$?
+        echo 'dart test -j 1 --exclude-tags=extension'
+        dart test -j 1 --exclude-tags=extension || EXIT_CODE=$?
         ;;
       *)
         echo -e "\033[31mUnknown TASK '${TASK}' - TERMINATING JOB\033[0m"

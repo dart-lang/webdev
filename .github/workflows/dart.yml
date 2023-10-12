@@ -421,14 +421,14 @@ jobs:
       - job_003
       - job_004
   job_011:
-    name: "unit_test; linux; Dart dev; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
+    name: "unit_test; linux; Dart dev; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:command-test_5"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:command-test_8"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -450,8 +450,8 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
-      - name: "webdev; dart test -j 1"
-        run: dart test -j 1
+      - name: "webdev; dart test -j 1 --exclude-tags=extension"
+        run: "dart test -j 1 --exclude-tags=extension"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
     needs:
@@ -678,14 +678,14 @@ jobs:
       - job_003
       - job_004
   job_018:
-    name: "unit_test; linux; Dart main; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
+    name: "unit_test; linux; Dart main; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:main;packages:webdev;commands:command-test_5"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:main;packages:webdev;commands:command-test_8"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:main;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:main
@@ -707,8 +707,8 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
-      - name: "webdev; dart test -j 1"
-        run: dart test -j 1
+      - name: "webdev; dart test -j 1 --exclude-tags=extension"
+        run: "dart test -j 1 --exclude-tags=extension"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
     needs:
@@ -717,41 +717,6 @@ jobs:
       - job_003
       - job_004
   job_019:
-    name: "unit_test; linux; Dart stable; PKG: webdev; `dart test --tags=stable`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev;commands:test_8"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev
-            os:ubuntu-latest;pub-cache-hosted;sdk:stable
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
-        with:
-          sdk: stable
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
-      - id: webdev_pub_upgrade
-        name: webdev; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: webdev
-      - name: "webdev; dart test --tags=stable"
-        run: "dart test --tags=stable"
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-  job_020:
     name: "unit_test; windows; Dart dev; PKG: dwds; `dart test --tags=extension`"
     runs-on: windows-latest
     steps:
@@ -776,7 +741,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_021:
+  job_020:
     name: "unit_test; windows; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 0 --exclude-tags=extension`"
     runs-on: windows-latest
     steps:
@@ -801,7 +766,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_022:
+  job_021:
     name: "unit_test; windows; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 1 --exclude-tags=extension`"
     runs-on: windows-latest
     steps:
@@ -826,7 +791,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_023:
+  job_022:
     name: "unit_test; windows; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 2 --exclude-tags=extension`"
     runs-on: windows-latest
     steps:
@@ -851,7 +816,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_024:
+  job_023:
     name: "unit_test; windows; Dart dev; PKG: frontend_server_client; `dart test -j 1`"
     runs-on: windows-latest
     steps:
@@ -876,32 +841,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_025:
-    name: "unit_test; windows; Dart dev; PKG: webdev; `dart test -j 1`"
-    runs-on: windows-latest
-    steps:
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
-        with:
-          sdk: dev
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
-      - id: webdev_pub_upgrade
-        name: webdev; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: webdev
-      - name: "webdev; dart test -j 1"
-        run: dart test -j 1
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-  job_026:
+  job_024:
     name: "unit_test; windows; Dart dev; PKG: test_common; `dart test --exclude-tags=release`"
     runs-on: windows-latest
     steps:
@@ -926,7 +866,32 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_027:
+  job_025:
+    name: "unit_test; windows; Dart dev; PKG: webdev; `dart test -j 1 --exclude-tags=extension`"
+    runs-on: windows-latest
+    steps:
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
+        with:
+          sdk: dev
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
+      - id: webdev_pub_upgrade
+        name: webdev; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: webdev
+      - name: "webdev; dart test -j 1 --exclude-tags=extension"
+        run: "dart test -j 1 --exclude-tags=extension"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+  job_026:
     name: "unit_test; windows; Dart main; PKG: dwds; `dart test --tags=extension`"
     runs-on: windows-latest
     steps:
@@ -951,7 +916,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_028:
+  job_027:
     name: "unit_test; windows; Dart main; PKG: dwds; `dart test --total-shards 3 --shard-index 0 --exclude-tags=extension`"
     runs-on: windows-latest
     steps:
@@ -976,7 +941,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_029:
+  job_028:
     name: "unit_test; windows; Dart main; PKG: dwds; `dart test --total-shards 3 --shard-index 1 --exclude-tags=extension`"
     runs-on: windows-latest
     steps:
@@ -1001,7 +966,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_030:
+  job_029:
     name: "unit_test; windows; Dart main; PKG: dwds; `dart test --total-shards 3 --shard-index 2 --exclude-tags=extension`"
     runs-on: windows-latest
     steps:
@@ -1026,7 +991,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_031:
+  job_030:
     name: "unit_test; windows; Dart main; PKG: frontend_server_client; `dart test -j 1`"
     runs-on: windows-latest
     steps:
@@ -1051,32 +1016,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_032:
-    name: "unit_test; windows; Dart main; PKG: webdev; `dart test -j 1`"
-    runs-on: windows-latest
-    steps:
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
-        with:
-          sdk: main
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
-      - id: webdev_pub_upgrade
-        name: webdev; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: webdev
-      - name: "webdev; dart test -j 1"
-        run: dart test -j 1
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-  job_033:
+  job_031:
     name: "unit_test; windows; Dart main; PKG: test_common; `dart test --exclude-tags=release`"
     runs-on: windows-latest
     steps:
@@ -1101,14 +1041,14 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_034:
-    name: "unit_test; windows; Dart stable; PKG: webdev; `dart test --tags=stable`"
+  job_032:
+    name: "unit_test; windows; Dart main; PKG: webdev; `dart test -j 1 --exclude-tags=extension`"
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
         with:
-          sdk: stable
+          sdk: main
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
@@ -1117,8 +1057,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: webdev
-      - name: "webdev; dart test --tags=stable"
-        run: "dart test --tags=stable"
+      - name: "webdev; dart test -j 1 --exclude-tags=extension"
+        run: "dart test -j 1 --exclude-tags=extension"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
     needs:
@@ -1126,7 +1066,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_035:
+  job_033:
     name: "beta_cron; linux; Dart beta; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
     runs-on: ubuntu-latest
     if: "github.event_name == 'schedule'"
@@ -1194,9 +1134,7 @@ jobs:
       - job_030
       - job_031
       - job_032
-      - job_033
-      - job_034
-  job_036:
+  job_034:
     name: "beta_cron; linux; Dart beta; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
     runs-on: ubuntu-latest
     if: "github.event_name == 'schedule'"
@@ -1264,9 +1202,7 @@ jobs:
       - job_030
       - job_031
       - job_032
-      - job_033
-      - job_034
-  job_037:
+  job_035:
     name: "beta_cron; linux; Dart beta; PKG: dwds; `dart analyze .`"
     runs-on: ubuntu-latest
     if: "github.event_name == 'schedule'"
@@ -1330,9 +1266,7 @@ jobs:
       - job_030
       - job_031
       - job_032
-      - job_033
-      - job_034
-  job_038:
+  job_036:
     name: "beta_cron; linux; Dart beta; PKG: webdev; `dart analyze .`"
     runs-on: ubuntu-latest
     if: "github.event_name == 'schedule'"
@@ -1396,9 +1330,7 @@ jobs:
       - job_030
       - job_031
       - job_032
-      - job_033
-      - job_034
-  job_039:
+  job_037:
     name: "beta_cron; windows; Dart beta; PKG: dwds; `dart test -j 1`"
     runs-on: windows-latest
     if: "github.event_name == 'schedule'"
@@ -1452,9 +1384,7 @@ jobs:
       - job_030
       - job_031
       - job_032
-      - job_033
-      - job_034
-  job_040:
+  job_038:
     name: "beta_cron; windows; Dart beta; PKG: webdev; `dart test -j 1`"
     runs-on: windows-latest
     if: "github.event_name == 'schedule'"
@@ -1508,9 +1438,7 @@ jobs:
       - job_030
       - job_031
       - job_032
-      - job_033
-      - job_034
-  job_041:
+  job_039:
     name: Notify failure
     runs-on: ubuntu-latest
     if: "(github.event_name == 'push' || github.event_name == 'schedule') && failure()"
@@ -1560,5 +1488,3 @@ jobs:
       - job_036
       - job_037
       - job_038
-      - job_039
-      - job_040
