@@ -11,6 +11,10 @@ on:
   schedule:
     - cron: "00 14 * * *" # Everyday at 3:00 PM UTC (8:00 AM PST)
 
+env:
+  PUB_ENVIRONMENT: bot.github
+  DISPLAY: ":99"
+
 jobs:
   testing_stable:
     name: Testing Dart Stable SDK
