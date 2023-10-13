@@ -1,0 +1,50 @@
+# A CI workflow to run stable tests on a daily cron job.
+
+name: Daily Stable Testing
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  schedule:
+    - cron: "00 14 * * *" # Everyday at 3:00 PM UTC (8:00 AM PST)
+
+jobs:
+  testing_stable:
+    name: Testing Dart Stable SDK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup stable Dart SDK
+        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        with:
+          sdk: stable
+      - name: Activate Webdev 
+        run: dart pub global activate webdev
+      - name: Get Webdev version
+        id: version
+        run: |
+          echo "VERSION_TAG=$(webdev --version)"
+      - name: Checkout Webdev repository     
+        id: checkout
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac
+      - name: Switch to release branch
+        run: |
+          git checkout ${{ steps.version.outputs.VERSION_TAG }}
+      - name: Upgrade deps
+        id: webdev_pub_upgrade
+        run: dart pub upgrade
+        working-directory: webdev
+      - name: Run stable tests
+        id: webdev_stable_tests
+        # TODO(elliette): Switch to using a stable tag once it hits the stable release.
+        run: "dart test test/e2e_test.dart"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+      - name: "Notify failure"
+        if: "always() && steps.webdev_stable_tests.conclusion == 'failure'"
+        run: |
+          curl -H "Content-Type: application/json" -X POST -d \
+            "{'text':'Webdev tests failed (stable)! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
+            "${{ secrets.WEBDEV_NOTIFICATION_CHAT_WEBHOOK }}"
