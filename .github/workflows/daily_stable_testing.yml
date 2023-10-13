@@ -29,9 +29,14 @@ jobs:
       - name: Checkout Webdev repository     
         id: checkout
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac
-      - name: Switch to release branch
-        run: |
-          git checkout webdev-v${{ steps.version.outputs.VERSION_TAG }}
+        with:
+          ref: webdev-v${{ steps.version.outputs.VERSION_TAG }}
+      # - name: Switch to release branch
+      #   run: |
+      #     git checkout webdev-v${{ steps.version.outputs.VERSION_TAG }}
+      # - name: Switch to release branch
+      #   run: |
+      #     git checkout webdev-v${{ steps.version.outputs.VERSION_TAG }}
       - name: Upgrade deps
         id: webdev_pub_upgrade
         run: dart pub upgrade
