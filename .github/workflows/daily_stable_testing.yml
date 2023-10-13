@@ -25,13 +25,13 @@ jobs:
       - name: Get Webdev version
         id: version
         run: |
-          echo "VERSION_TAG=$(webdev --version)"
+          echo "VERSION_TAG=$(webdev --version)" >> $GITHUB_OUTPUT
       - name: Checkout Webdev repository     
         id: checkout
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac
       - name: Switch to release branch
         run: |
-          git checkout ${{ steps.version.outputs.VERSION_TAG }}
+          git checkout webdev-v${{ steps.version.outputs.VERSION_TAG }}
       - name: Upgrade deps
         id: webdev_pub_upgrade
         run: dart pub upgrade
