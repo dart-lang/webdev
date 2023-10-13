@@ -23,35 +23,28 @@ jobs:
       - name: Setup stable Dart SDK
         uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
         with:
-          sdk: dev
-          # sdk: stable
+          sdk: stable
       - name: Activate Webdev 
         run: dart pub global activate webdev
-      - name: Get Webdev version
+      - name: Get Webdev version tag
         id: version
         run: |
           echo "VERSION_TAG=$(webdev --version)" >> $GITHUB_OUTPUT
-      - name: Checkout Webdev repository     
+      - name: Checkout Webdev at version tag 
         id: checkout
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac
-        # with:
-        #   ref: webdev-v${{ steps.version.outputs.VERSION_TAG }}
-      # - name: Switch to release branch
-      #   run: |
-      #     git checkout webdev-v${{ steps.version.outputs.VERSION_TAG }}
-      # - name: Switch to release branch
-      #   run: |
-      #     git checkout webdev-v${{ steps.version.outputs.VERSION_TAG }}
+        with:
+          ref: webdev-v${{ steps.version.outputs.VERSION_TAG }}
       - name: Upgrade deps
         id: webdev_pub_upgrade
         run: dart pub upgrade
         working-directory: webdev
-      - name: "Xvfb :99"
+      # Required for Chrome headless tests on Linux:
+      - name: Set up X virtual frame buffer
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         working-directory: webdev
       - name: Run stable tests
         id: webdev_stable_tests
-        # TODO(elliette): Switch to using a stable tag once it hits the stable release.
         run: "dart test test/e2e_test.dart"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
@@ -59,5 +52,5 @@ jobs:
         if: "always() && steps.webdev_stable_tests.conclusion == 'failure'"
         run: |
           curl -H "Content-Type: application/json" -X POST -d \
-            "{'text':'Daily Webdev stable tests failed! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
+            "{'text':'Daily stable tests failed! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
             "${{ secrets.WEBDEV_NOTIFICATION_CHAT_WEBHOOK }}"
