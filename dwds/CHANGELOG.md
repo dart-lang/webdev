@@ -1,6 +1,7 @@
 ## 22.0.0-wip
 
 - Update the interface for ChromeProxyService.getSourceReport to match the VM service. - [#2235](https://github.com/dart-lang/webdev/pull/2235)
+- Update `package:vm_service` constraint to `^12.0.0`. - [#2248](https://github.com/dart-lang/webdev/pull/2248)
 
 **Breaking changes**
 
