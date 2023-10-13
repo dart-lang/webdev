@@ -41,6 +41,9 @@ jobs:
         id: webdev_pub_upgrade
         run: dart pub upgrade
         working-directory: webdev
+      - name: "Xvfb :99"
+        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        working-directory: webdev
       - name: Run stable tests
         id: webdev_stable_tests
         # TODO(elliette): Switch to using a stable tag once it hits the stable release.
@@ -51,5 +54,5 @@ jobs:
         if: "always() && steps.webdev_stable_tests.conclusion == 'failure'"
         run: |
           curl -H "Content-Type: application/json" -X POST -d \
-            "{'text':'Webdev tests failed (stable)! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
+            "{'text':'Daily Webdev stable tests failed! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
             "${{ secrets.WEBDEV_NOTIFICATION_CHAT_WEBHOOK }}"
