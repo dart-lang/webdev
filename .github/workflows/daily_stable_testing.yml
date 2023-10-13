@@ -15,22 +15,24 @@ env:
   PUB_ENVIRONMENT: bot.github
   DISPLAY: ":99"
 
+# TODO(elliette): Consider parsing the Webdev pubspec to find the pinned DWDS
+# version, and running tests against DWDS as well.
 jobs:
   testing_stable:
     name: Testing Dart Stable SDK
     runs-on: ubuntu-latest
     steps:
-      - name: Setup stable Dart SDK
+      - name: Set up stable Dart SDK
         uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
         with:
           sdk: stable
-      - name: Activate Webdev 
+      - name: Activate Webdev
         run: dart pub global activate webdev
       - name: Get Webdev version tag
         id: version
         run: |
           echo "VERSION_TAG=$(webdev --version)" >> $GITHUB_OUTPUT
-      - name: Checkout Webdev at version tag 
+      - name: Checkout Webdev at version tag
         id: checkout
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac
         with:
@@ -41,11 +43,11 @@ jobs:
         working-directory: webdev
       # Required for Chrome headless tests on Linux:
       - name: Set up X virtual frame buffer
-        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        run: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
         working-directory: webdev
       - name: Run stable tests
         id: webdev_stable_tests
-        run: "dart test test/e2e_test.dart"
+        run: dart test -j 1
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
       - name: "Notify failure"
