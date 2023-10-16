@@ -1,0 +1,54 @@
+# A CI workflow to run stable tests on a daily cron job.
+
+name: Daily Stable Testing
+
+on:
+  schedule:
+    - cron: "00 14 * * *" # Everyday at 3:00 PM UTC (8:00 AM PST)
+
+env:
+  PUB_ENVIRONMENT: bot.github
+  DISPLAY: ":99"
+
+# TODO(elliette): Consider parsing the Webdev pubspec to find the pinned DWDS
+# version, and running tests against DWDS as well.
+jobs:
+  testing_stable:
+    name: Testing Dart Stable SDK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up stable Dart SDK
+        uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+        with:
+          sdk: stable
+      - name: Activate Webdev
+        run: dart pub global activate webdev
+      - name: Get Webdev version tag
+        id: version
+        run: |
+          echo "VERSION_TAG=$(webdev --version)" >> $GITHUB_OUTPUT
+      - name: Checkout Webdev at version tag
+        id: checkout
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac
+        with:
+          ref: webdev-v${{ steps.version.outputs.VERSION_TAG }}
+      - name: Upgrade deps
+        id: webdev_pub_upgrade
+        run: dart pub upgrade
+        working-directory: webdev
+      # Note: xvfb is required to run Chrome headless tests on Linux.
+      - name: Set up X virtual frame buffer
+        run: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+        working-directory: webdev
+      - name: Run stable tests
+        id: webdev_stable_tests
+        run: dart test -j 1
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+      - name: "Notify failure"
+        # TODO(elliette): Uncomment after determining that notifications are working.
+        # if: "always() && steps.webdev_stable_tests.conclusion == 'failure'"
+        run: |
+          curl -H "Content-Type: application/json" -X POST -d \
+            "{'text':'Daily stable tests failed! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
+            "${{ secrets.WEBDEV_NOTIFICATION_CHAT_WEBHOOK }}"
