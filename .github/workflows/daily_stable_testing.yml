@@ -46,8 +46,7 @@ jobs:
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
       - name: "Notify failure"
-        # TODO(elliette): Uncomment after determining that notifications are working.
-        # if: "always() && steps.webdev_stable_tests.conclusion == 'failure'"
+        if: "always() && steps.webdev_stable_tests.conclusion == 'failure'"
         run: |
           curl -H "Content-Type: application/json" -X POST -d \
             "{'text':'Daily stable tests failed! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
