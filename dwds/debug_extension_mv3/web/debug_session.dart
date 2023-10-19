@@ -7,7 +7,6 @@ library debug_session;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart' show IterableExtension;
@@ -44,9 +43,6 @@ const _devToolsAlreadyOpenedAlert =
 
 final _debugSessions = <_DebugSession>[];
 final _tabIdToTrigger = <int, Trigger>{};
-
-// TODO(elliette): Remove once regression is fixed in Chrome.
-const _chrome115Error = 'chrome115Error';
 
 enum DetachReason {
   canceledByUser,
@@ -120,8 +116,6 @@ Future<void> attachDebugger(
 
   _tabIdToTrigger[dartAppTabId] = trigger;
   _registerDebugEventListeners();
-  // TODO(elliette): Remove once regression is fixed in Chrome.
-  _registerChrome115NotificationListeners();
   chrome.debugger.attach(
     Debuggee(tabId: dartAppTabId),
     '1.3',
@@ -441,12 +435,6 @@ void _forwardDwdsEventToChromeDebugger(
         ? <String, Object>{}
         : BuiltMap<String, Object>(json.decode(messageParams)).toMap();
 
-    // TODO(elliette): Remove once regression is fixed in Chrome.
-    if (_shouldSkipEventForChrome115Bug(message.command)) {
-      _showChrome115ErrorNotification(message.command, tabId);
-      return;
-    }
-
     chrome.debugger.sendCommand(
       Debuggee(tabId: tabId),
       message.command,
@@ -487,52 +475,6 @@ void _forwardDwdsEventToChromeDebugger(
       'Error forwarding ${message.command} with ${message.commandParams} to chrome.debugger: $error',
     );
   }
-}
-
-bool _shouldSkipEventForChrome115Bug(String command) {
-  final unsupportedOnChrome115 = command.contains('Debugger.setBreakpoint') ||
-      command.contains('Debugger.pause');
-  if (unsupportedOnChrome115) {
-    final chromeVersionMatch =
-        RegExp('Chrome/([0-9.]+)').firstMatch(window.navigator.userAgent);
-    final chromeVersion = chromeVersionMatch?[0];
-    return chromeVersion?.startsWith('Chrome/115') ?? false;
-  }
-  return false;
-}
-
-void _showChrome115ErrorNotification(String command, int tabId) {
-  chrome.notifications.create(
-    // notificationId
-    '$_chrome115Error-$tabId',
-    NotificationOptions(
-      title: '[Error] Dart Debug Extension',
-      message:
-          'Regression in Chrome 115 prevents $command. Click here for more details.',
-      iconUrl: 'static_assets/dart.png',
-      type: 'basic',
-    ),
-    // callback
-    null,
-  );
-}
-
-void _registerChrome115NotificationListeners() {
-  chrome.notifications.onClicked.addListener(
-    allowInterop((notificationId) async {
-      if (notificationId.startsWith(_chrome115Error)) {
-        final tabId = notificationId.split('-')[1];
-        final debugInfo = await fetchStorageObject<DebugInfo>(
-          type: StorageObject.debugInfo,
-          tabId: int.parse(tabId),
-        );
-        final bugLink = debugInfo?.isInternalBuild ?? false
-            ? 'https://bugs.chromium.org/p/chromium/issues/detail?id=1469092'
-            : 'https://github.com/Dart-Code/Dart-Code/issues/4664';
-        await createTab(bugLink);
-      }
-    }),
-  );
 }
 
 void _forwardChromeDebuggerEventToDwds(
