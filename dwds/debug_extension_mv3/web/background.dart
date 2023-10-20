@@ -54,15 +54,22 @@ void _registerListeners() {
       .addListener(allowInterop(_detectNavigationAwayFromDartApp));
 
   // Detect clicks on the Dart Debug Extension icon.
-  onExtensionIconClicked(
-    allowInterop(
-      (Tab tab) => attachDebugger(
-        tab.id,
-        trigger: Trigger.extensionIcon,
-      ),
-    ),
-  );
+  // onExtensionIconClicked(
+  //   allowInterop(
+  //     (Tab tab) => attachDebugger(
+  //       tab.id,
+  //       trigger: Trigger.extensionIcon,
+  //     ),
+  //   ),
+  // );
 }
+
+// void _handleExtensionIconClick(Tab tab) {
+//   if (!isDevMode) {
+//     attachDebugger(tab.id, trigger: Trigger.extensionIcon);
+//     return;
+//   }
+// }
 
 Future<void> _handleRuntimeMessages(
   dynamic jsRequest,
@@ -152,7 +159,7 @@ Future<void> _handleRuntimeMessages(
         value: multipleAppsDetected,
         tabId: dartTab.id,
       );
-      _setWarningIcon();
+      _setWarningIcon(dartTab.id);
     },
   );
 }
@@ -167,7 +174,7 @@ Future<void> _detectNavigationAwayFromDartApp(
   final debugInfo = await _fetchDebugInfo(navigationInfo.tabId);
   if (debugInfo == null) return;
   if (debugInfo.tabUrl != navigationInfo.url) {
-    _setDefaultIcon();
+    _setDefaultIcon(navigationInfo.tabId);
     await clearStaleDebugSession(tabId);
     await removeStorageObject(type: StorageObject.debugInfo, tabId: tabId);
     await detachDebugger(
@@ -209,28 +216,38 @@ DebugInfo _addTabInfo(DebugInfo debugInfo, {required Tab tab}) {
 Future<void> _updateIcon(int activeTabId) async {
   final debugInfo = await _fetchDebugInfo(activeTabId);
   if (debugInfo == null) {
-    _setDefaultIcon();
+    _setDefaultIcon(activeTabId);
     return;
   }
   final multipleApps = await fetchStorageObject<String>(
     type: StorageObject.multipleAppsDetected,
     tabId: activeTabId,
   );
-  multipleApps == null ? _setDebuggableIcon() : _setWarningIcon();
+  multipleApps == null
+      ? _setDebuggableIcon(activeTabId)
+      : _setWarningIcon(activeTabId);
 }
 
-void _setDebuggableIcon() {
+void _setDebuggableIcon(int tabId) {
   setExtensionIcon(IconInfo(path: 'static_assets/dart.png'));
+  setExtensionPopup(
+    PopupDetails(popup: 'static_assets/popup.html', tabId: tabId),
+  );
 }
 
-void _setWarningIcon() {
-  setExtensionIcon(IconInfo(path: 'static_assets/dart_warning.png'));
+void _setWarningIcon(int tabId) {
+  setExtensionPopup(
+    PopupDetails(popup: 'static_assets/popup.html', tabId: tabId),
+  );
 }
 
-void _setDefaultIcon() {
+void _setDefaultIcon(int tabId) {
   final iconPath =
       isDevMode ? 'static_assets/dart_dev.png' : 'static_assets/dart_grey.png';
   setExtensionIcon(IconInfo(path: iconPath));
+  setExtensionPopup(
+    PopupDetails(popup: '', tabId: tabId),
+  );
 }
 
 Future<DebugInfo?> _fetchDebugInfo(int tabId) {

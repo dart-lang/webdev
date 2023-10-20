@@ -110,6 +110,22 @@ void setExtensionIcon(IconInfo info) {
   }
 }
 
+void setExtensionPopup(PopupDetails details) {
+  if (isMV3) {
+    _setExtensionPopupMV3(
+      details,
+      // callback
+      null,
+    );
+  } else {
+    _setExtensionPopupMV2(
+      details,
+      // callback
+      null,
+    );
+  }
+}
+
 bool? _isDevMode;
 
 bool get isDevMode {
@@ -164,11 +180,25 @@ external void _setExtensionIconMV2(IconInfo iconInfo, Function? callback);
 @JS('chrome.action.setIcon')
 external void _setExtensionIconMV3(IconInfo iconInfo, Function? callback);
 
+@JS('chrome.browserAction.setPopup')
+external void _setExtensionPopupMV2(PopupDetails details, Function? callback);
+
+@JS('chrome.action.setPopup')
+external void _setExtensionPopupMV3(PopupDetails details, Function? callback);
+
 @JS()
 @anonymous
 class IconInfo {
   external String get path;
   external factory IconInfo({required String path});
+}
+
+@JS()
+@anonymous
+class PopupDetails {
+  external int get tabId;
+  external String get popup;
+  external factory PopupDetails({required int tabId, required String popup});
 }
 
 @JS('chrome.scripting.executeScript')
