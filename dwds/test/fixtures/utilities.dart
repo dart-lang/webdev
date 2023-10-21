@@ -116,32 +116,19 @@ class TestDebugSettings extends DebugSettings {
   TestDebugSettings.noDevTools() : super(enableDevToolsLaunch: false);
 
   TestDebugSettings._({
-    required bool enableDebugging,
-    required bool enableDebugExtension,
-    required bool useSseForDebugBackend,
-    required bool useSseForDebugProxy,
-    required bool useSseForInjectedClient,
-    required bool spawnDds,
-    required bool enableDevToolsLaunch,
-    required bool launchDevToolsInNewWindow,
-    required bool emitDebugEvents,
-    required DevToolsLauncher? devToolsLauncher,
-    required ExpressionCompiler? expressionCompiler,
-    required UrlEncoder? urlEncoder,
-  }) : super(
-          enableDebugging: enableDebugging,
-          enableDebugExtension: enableDebugExtension,
-          useSseForDebugBackend: useSseForDebugBackend,
-          useSseForDebugProxy: useSseForDebugProxy,
-          useSseForInjectedClient: useSseForInjectedClient,
-          spawnDds: spawnDds,
-          enableDevToolsLaunch: enableDevToolsLaunch,
-          launchDevToolsInNewWindow: launchDevToolsInNewWindow,
-          emitDebugEvents: emitDebugEvents,
-          devToolsLauncher: devToolsLauncher,
-          expressionCompiler: expressionCompiler,
-          urlEncoder: urlEncoder,
-        );
+    required super.enableDebugging,
+    required super.enableDebugExtension,
+    required super.useSseForDebugBackend,
+    required super.useSseForDebugProxy,
+    required super.useSseForInjectedClient,
+    required super.spawnDds,
+    required super.enableDevToolsLaunch,
+    required super.launchDevToolsInNewWindow,
+    required super.emitDebugEvents,
+    required super.devToolsLauncher,
+    required super.expressionCompiler,
+    required super.urlEncoder,
+  });
 
   TestDebugSettings copyWith({
     bool? enableDebugging,
