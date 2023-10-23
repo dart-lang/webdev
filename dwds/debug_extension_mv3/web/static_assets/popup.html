@@ -15,7 +15,7 @@
     <style>
       html {
         width: 300px;
-        height: 300px;
+        height: 100px;
       }
     </style>
   </head>
@@ -25,27 +25,30 @@
       <li class="mdl-list__item">
         <button
           id="launchDevToolsButton"
-          class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+          class="mdl-button mdl-js-button mdl-button--accent"
         >
           Launch DevTools
         </button>
       </li>
 
-      <li id="appIdContainer" class="mdl-list__item mdl-list__item--two-line hidden">
+      <li id="appIdContainer" class="mdl-list__item mdl-list__item--two-line">
         <span class="mdl-list__item-primary-content">
           <button
             id="copyIdButton"
-            class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+            class="mdl-button mdl-js-button mdl-button--accent"
           >
             Copy ID
           </button>
-          <span id="copiedSuccess" class="mdl-list__item-sub-title hidden">Copied!</span>
+          <span id="copiedSuccess" class="mdl-list__item-sub-title small-padding hidden">Copied!</span>
         </span>
         <span id="appId" class="mdl-list__item-secondary-content">
+          blah-blah-blah
         </span>
       </li>
     </ul>
-    <!-- <div id="loadingSpinner" class="mdl-spinner mdl-js-spinner is-active"></div> -->
+    <div id="loadingSpinner" class="spinner-overlay hidden">
+      <div class="spinner"></div>
+    </div>
     <!-- Load script: -->
     <script src="../popup.dart.js"></script>
   </body>

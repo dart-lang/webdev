@@ -14,6 +14,7 @@ import 'package:js/js.dart';
 
 import 'data_serializers.dart';
 import 'data_types.dart';
+import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';
@@ -36,7 +37,9 @@ String? _appId;
 Future<void> main() async {
   _registerListeners();
 
+  debugLog('inserting app id');
   final inserted = await _insertAppId();
+  debugLog('done inserting app id');
   if (inserted) {
     _updateElementVisibility(_appIdContainerId, visible: true);
   }
