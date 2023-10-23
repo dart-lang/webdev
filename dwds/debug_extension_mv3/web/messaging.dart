@@ -17,7 +17,8 @@ import 'logger.dart';
 enum Script {
   background,
   debuggerPanel,
-  detector;
+  detector,
+  popup;
 
   factory Script.fromString(String value) {
     return Script.values.byName(value);

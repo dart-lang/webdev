@@ -14,18 +14,17 @@ import 'package:js/js.dart';
 
 import 'data_serializers.dart';
 import 'data_types.dart';
-import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';
 
+const _appIdContainerId = 'appIdContainer';
+const _appIdSpanId = 'appId';
+const _copyIdButtonId = 'copyIdButton';
+const _copiedSuccessId = "copiedSuccess";
 const _hiddenClass = 'hidden';
 const _launchDevToolsButtonId = 'launchDevToolsButton';
-const _copyButtonId = 'copyButton';
-const _appIdSpanId = 'appId';
-const _appIdContainerId = 'appIdContainer';
 const _loadingSpinnerId = "loadingSpinner";
-const _copiedSuccessId = "copiedSuccess";
 
 Future<int?> get _tabId async {
   final tab = await activeTab;
@@ -37,13 +36,11 @@ String? _appId;
 Future<void> main() async {
   _registerListeners();
 
-  debugLog('inserting app id');
   final inserted = await _insertAppId();
-  debugLog('done inserting app id');
   if (inserted) {
     _updateElementVisibility(_appIdContainerId, visible: true);
   }
-  // _updateElementVisibility(_loadingSpinnerId, visible: false);
+  _updateElementVisibility(_loadingSpinnerId, visible: false);
 }
 
 void _registerListeners() {
@@ -51,7 +48,7 @@ void _registerListeners() {
       document.getElementById(_launchDevToolsButtonId) as ButtonElement;
   launchDevToolsButton.addEventListener('click', _launchDevTools);
 
-  final copyButton = document.getElementById(_copyButtonId) as ButtonElement;
+  final copyButton = document.getElementById(_copyIdButtonId) as ButtonElement;
   copyButton.addEventListener('click', _copyAppId);
 }
 
@@ -62,19 +59,15 @@ Future<bool> _insertAppId() async {
     tabId: tabId,
   );
   if (debugInfo == null || tabId == null) return false;
-  // final isInternalBuild = debugInfo.isInternalBuild ?? false;
-  // if (isInternalBuild) {
-  final _appId = _createAppId(debugInfo: debugInfo, tabId: tabId);
-  final appIdSpan = document.getElementById(_appIdSpanId) as SpanElement;
-  appIdSpan.setInnerHtml(_appId);
-  // }
-  // return isInternalBuild;
-  return true;
-}
-
-String _createAppId({required DebugInfo debugInfo, required int tabId}) {
+  final isInternalBuild = debugInfo.isInternalBuild ?? false;
   final workspaceName = debugInfo.workspaceName;
-  return '$workspaceName-$tabId';
+  if (isInternalBuild && workspaceName != null) {
+    _appId = '$workspaceName-$tabId';
+    final appIdSpan = document.getElementById(_appIdSpanId) as SpanElement;
+    appIdSpan.setInnerHtml(_appId);
+    return true;
+  }
+  return false;
 }
 
 Future<void> _launchDevTools(Event _) async {
@@ -91,7 +84,7 @@ Future<void> _launchDevTools(Event _) async {
   await sendRuntimeMessage(
     type: MessageType.debugStateChange,
     body: json,
-    sender: Script.debuggerPanel, // change to popup
+    sender: Script.popup, // change to popup
     recipient: Script.background,
   );
 }

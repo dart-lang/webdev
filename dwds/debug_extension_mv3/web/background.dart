@@ -142,6 +142,20 @@ Future<void> _handleRuntimeMessages(
     },
   );
 
+  interceptMessage<DebugStateChange>(
+    message: jsRequest,
+    expectedType: MessageType.debugStateChange,
+    expectedSender: Script.popup,
+    expectedRecipient: Script.background,
+    messageHandler: (DebugStateChange debugStateChange) {
+      final newState = debugStateChange.newState;
+      final tabId = debugStateChange.tabId;
+      if (newState == DebugStateChange.startDebugging) {
+        attachDebugger(tabId, trigger: Trigger.extensionIcon);
+      }
+    },
+  );
+
   interceptMessage<String>(
     message: jsRequest,
     expectedType: MessageType.multipleAppsDetected,

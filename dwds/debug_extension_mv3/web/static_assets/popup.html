@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="styles.css" type="text/css" />
     <style>
       html {
-        width: 300px;
+        width: 350px;
         height: 100px;
       }
     </style>
@@ -25,7 +25,7 @@
       <li class="mdl-list__item">
         <button
           id="launchDevToolsButton"
-          class="mdl-button mdl-js-button mdl-button--accent"
+          class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
         >
           Launch DevTools
         </button>
@@ -41,12 +41,12 @@
           </button>
           <span id="copiedSuccess" class="mdl-list__item-sub-title small-padding hidden">Copied!</span>
         </span>
-        <span id="appId" class="mdl-list__item-secondary-content">
-          blah-blah-blah
+        <span class="mdl-list__item-secondary-content">
+          <span id="appId"></span>
         </span>
       </li>
     </ul>
-    <div id="loadingSpinner" class="spinner-overlay hidden">
+    <div id="loadingSpinner" class="spinner-overlay">
       <div class="spinner"></div>
     </div>
     <!-- Load script: -->
