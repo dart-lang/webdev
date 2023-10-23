@@ -27,7 +27,9 @@ import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:pub_semver/pub_semver.dart' as semver;
-import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service.dart'
+    hide VmServiceInterface, vmServiceVersion;
+import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.

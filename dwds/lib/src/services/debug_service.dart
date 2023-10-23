@@ -24,7 +24,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart' hide Response;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
-import 'package:vm_service/vm_service.dart';
+import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 bool _acceptNewConnections = true;

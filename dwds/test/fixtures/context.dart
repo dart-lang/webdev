@@ -118,7 +118,7 @@ class TestContext {
   ChromeProxyService get service => fetchChromeProxyService(debugConnection);
 
   /// External VM service.
-  VmServiceInterface get vmService => debugConnection.vmService;
+  VmService get vmService => debugConnection.vmService;
 
   TestContext(this.project, this.sdkConfigurationProvider)
       : nullSafety = project.nullSafety {

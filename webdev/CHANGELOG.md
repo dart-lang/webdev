@@ -1,5 +1,7 @@
 ## 3.2.0-wip
 
+- Add dependency on `package:vm_service_interface`.
+
 ## 3.1.0
 
 - Update the parameters passed to `Dwds.start`. - [#2231](https://github.com/dart-lang/webdev/pull/2231).
