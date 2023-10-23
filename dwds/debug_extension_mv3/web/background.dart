@@ -52,24 +52,7 @@ void _registerListeners() {
   );
   chrome.webNavigation.onCommitted
       .addListener(allowInterop(_detectNavigationAwayFromDartApp));
-
-  // Detect clicks on the Dart Debug Extension icon.
-  // onExtensionIconClicked(
-  //   allowInterop(
-  //     (Tab tab) => attachDebugger(
-  //       tab.id,
-  //       trigger: Trigger.extensionIcon,
-  //     ),
-  //   ),
-  // );
 }
-
-// void _handleExtensionIconClick(Tab tab) {
-//   if (!isDevMode) {
-//     attachDebugger(tab.id, trigger: Trigger.extensionIcon);
-//     return;
-//   }
-// }
 
 Future<void> _handleRuntimeMessages(
   dynamic jsRequest,

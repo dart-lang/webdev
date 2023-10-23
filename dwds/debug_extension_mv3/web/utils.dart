@@ -86,14 +86,6 @@ Future<bool> injectScript(String scriptName, {required int tabId}) async {
   }
 }
 
-void onExtensionIconClicked(void Function(Tab) callback) {
-  if (isMV3) {
-    _onExtensionIconClickedMV3(callback);
-  } else {
-    _onExtensionIconClickedMV2(callback);
-  }
-}
-
 void setExtensionIcon(IconInfo info) {
   if (isMV3) {
     _setExtensionIconMV3(
@@ -167,12 +159,6 @@ String addQueryParameters(
   );
   return newUri.toString();
 }
-
-@JS('chrome.browserAction.onClicked.addListener')
-external void _onExtensionIconClickedMV2(void Function(Tab tab) callback);
-
-@JS('chrome.action.onClicked.addListener')
-external void _onExtensionIconClickedMV3(void Function(Tab tab) callback);
 
 @JS('chrome.browserAction.setIcon')
 external void _setExtensionIconMV2(IconInfo iconInfo, Function? callback);
