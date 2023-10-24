@@ -21,7 +21,7 @@ void runTests({
   final context = TestContext(project, provider);
   final testInspector = TestInspector(context);
 
-  late VmServiceInterface service;
+  late VmService service;
   late Stream<Event> stream;
   late String isolateId;
   late ScriptRef mainScript;
