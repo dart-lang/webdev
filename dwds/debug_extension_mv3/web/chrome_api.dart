@@ -314,6 +314,13 @@ class Tabs {
 
   external dynamic remove(int tabId, void Function()? callback);
 
+  external Object sendMessage(
+    int tabId,
+    Object? message,
+    Object? options,
+    void Function() callback,
+  );
+
   external OnActivatedHandler get onActivated;
 
   external OnRemovedHandler get onRemoved;
