@@ -9,7 +9,8 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
-import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service.dart' hide VmServiceInterface;
+import 'package:vm_service_interface/vm_service_interface.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';

@@ -23,7 +23,7 @@ void runTests({
       : TestProject.testPackageWithWeakNullSafety();
   final context = TestContext(project, provider);
 
-  late VmServiceInterface service;
+  late VmService service;
   late Stream<Event> stream;
   late String isolateId;
   late ScriptRef mainScript;
