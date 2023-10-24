@@ -154,14 +154,24 @@ Future evaluate(
 }
 
 Future<void> clickOnExtensionIcon({
+  required Browser browser,
   Worker? worker,
   Page? backgroundPage,
 }) async {
-  return evaluate(
+  await evaluate(
     _clickIconJs(isMV3: worker != null),
     worker: worker,
     backgroundPage: backgroundPage,
   );
+  final popupTarget = await browser.waitForTarget(
+    (target) => target.url.contains('popup'),
+  );
+  print('FOUND POPUP TARGET: ${popupTarget.url}');
+  final popupPage = await popupTarget.page;
+  print('POPUP PAGE IS $popupPage');
+  final launchDevToolsButton = await popupPage.$OrNull('#launchDevToolsButton');
+  print('LAUNCH DEVTOOLS BUTTON IS $launchDevToolsButton');
+  await launchDevToolsButton?.click();
 }
 
 // Note: The following delay is required to reduce flakiness. It makes

@@ -181,6 +181,7 @@ void testAll({
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -220,6 +221,7 @@ void testAll({
           await navigateToPage(browser, url: appUrl);
           // Click on the Dart Debug Extension icon:
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -254,6 +256,7 @@ void testAll({
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -286,6 +289,7 @@ void testAll({
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -315,6 +319,7 @@ void testAll({
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -339,6 +344,7 @@ void testAll({
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -358,6 +364,7 @@ void testAll({
           // Click on the Dart Debug Extension icon again:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -385,6 +392,7 @@ void testAll({
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -411,6 +419,7 @@ void testAll({
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -915,6 +924,7 @@ void testAll({
 
         // Click on the extension icon:
         await clickOnExtensionIcon(
+          browser: browser,
           worker: worker,
           backgroundPage: backgroundPage,
         );
