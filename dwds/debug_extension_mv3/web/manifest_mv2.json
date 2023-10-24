@@ -28,6 +28,15 @@
       "run_at": "document_end"
     }
   ],
+  "commands": {
+    "copyAppId": {
+      "suggestedKey": {
+        "default": "Alt+D",
+        "mac": "Option+D"
+      },
+      "description": "Copies the app ID to the clipboard."
+    }
+  },
   "web_accessible_resources": ["debug_info.dart.js"],
   "options_page": "static_assets/settings.html"
 }

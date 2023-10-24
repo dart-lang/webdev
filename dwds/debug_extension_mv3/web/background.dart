@@ -53,6 +53,8 @@ void _registerListeners() {
   chrome.webNavigation.onCommitted
       .addListener(allowInterop(_detectNavigationAwayFromDartApp));
 
+  chrome.commands.onCommand.addListener(allowInterop(_maybeCopyAppId));
+
   // Detect clicks on the Dart Debug Extension icon.
   onExtensionIconClicked(
     allowInterop(
@@ -204,6 +206,15 @@ DebugInfo _addTabInfo(DebugInfo debugInfo, {required Tab tab}) {
       ..tabUrl = tab.url
       ..tabId = tab.id,
   );
+}
+
+Future<void> _maybeCopyAppId(String command, [Tab? tab]) async {
+  final currentTab = tab ?? await activeTab;
+  if (currentTab == null) return;
+  final debugInfo = await _fetchDebugInfo(currentTab.id);
+  final workspaceName = debugInfo?.workspaceName;
+  if (workspaceName == null) return;
+  // Send message to the copier.
 }
 
 Future<void> _updateIcon(int activeTabId) async {

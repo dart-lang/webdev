@@ -12,6 +12,7 @@ external Chrome get chrome;
 @JS()
 @anonymous
 class Chrome {
+  external Commands get commands;
   external Debugger get debugger;
   external Devtools get devtools;
   external Notifications get notifications;
@@ -24,6 +25,20 @@ class Chrome {
 
 /// chrome.debugger APIs:
 /// https://developer.chrome.com/docs/extensions/reference/debugger
+
+@JS()
+@anonymous
+class Commands {
+  external OnCommandHandler get onCommand;
+}
+
+@JS()
+@anonymous
+class OnCommandHandler {
+  external void addListener(
+    void Function(String commandName, [Tab? tab]) callback,
+  );
+}
 
 @JS()
 @anonymous
