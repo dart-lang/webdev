@@ -56,7 +56,8 @@ void main() async {
         }
       });
       // Click on the Dart Debug Extension icon to initiate a debug session:
-      await clickOnExtensionIcon(worker: worker, backgroundPage: null);
+      await clickOnExtensionIcon(
+          browser: browser, worker: worker, backgroundPage: null);
       final connectedToPort = await portConnectionFuture;
       // Verify that we have connected to the port:
       expect(connectedToPort, isTrue);

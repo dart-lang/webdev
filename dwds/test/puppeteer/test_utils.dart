@@ -166,11 +166,8 @@ Future<void> clickOnExtensionIcon({
   final popupTarget = await browser.waitForTarget(
     (target) => target.url.contains('popup'),
   );
-  print('FOUND POPUP TARGET: ${popupTarget.url}');
   final popupPage = await popupTarget.page;
-  print('POPUP PAGE IS $popupPage');
   final launchDevToolsButton = await popupPage.$OrNull('#launchDevToolsButton');
-  print('LAUNCH DEVTOOLS BUTTON IS $launchDevToolsButton');
   await launchDevToolsButton?.click();
 }
 
