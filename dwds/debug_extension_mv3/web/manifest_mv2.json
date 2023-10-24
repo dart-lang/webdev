@@ -24,7 +24,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["detector.dart.js"],
+      "js": ["detector.dart.js", "copier.dart.js"],
       "run_at": "document_end"
     }
   ],

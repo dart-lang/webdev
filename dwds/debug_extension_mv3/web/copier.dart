@@ -9,11 +9,33 @@ import 'dart:html';
 
 import 'package:js/js.dart';
 
+import 'chrome_api.dart';
+import 'messaging.dart';
+
 void main() {
   _registerListeners();
 }
 
-void _registerListeners() {}
+void _registerListeners() {
+  chrome.runtime.onMessage.addListener(
+    allowInterop(_handleRuntimeMessages),
+  );
+}
+
+void _handleRuntimeMessages(
+  dynamic jsRequest,
+  MessageSender sender,
+  // ignore: avoid-unused-parameters
+  Function sendResponse,
+) {
+  interceptMessage<String>(
+    message: jsRequest,
+    expectedType: MessageType.appId,
+    expectedSender: Script.background,
+    expectedRecipient: Script.copier,
+    messageHandler: _copyAppId,
+  );
+}
 
 void _copyAppId(String appId) {
   final clipboard = window.navigator.clipboard;
@@ -22,4 +44,11 @@ void _copyAppId(String appId) {
   _showCopiedMessage(appId);
 }
 
-void _showCopiedMessage(String appId) {}
+Future<void> _showCopiedMessage(String appId) async {
+  final snackbar = document.createElement('div');
+  snackbar.setInnerHtml('Copied $appId!');
+  snackbar.classes.add('snackbar snackbar--info show');
+  document.body?.append(snackbar);
+  await Future.delayed(Duration(seconds: 2));
+  snackbar.remove();
+}

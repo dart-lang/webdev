@@ -16,6 +16,7 @@ import 'logger.dart';
 
 enum Script {
   background,
+  copier,
   debuggerPanel,
   detector;
 
@@ -27,6 +28,7 @@ enum Script {
 enum MessageType {
   isAuthenticated,
   connectFailure,
+  appId,
   debugInfo,
   debugStateChange,
   devToolsUrl,
@@ -122,6 +124,39 @@ Future<bool> sendRuntimeMessage({
     null,
     message.toJSON(),
     // options
+    null,
+    allowInterop(() {
+      final error = chrome.runtime.lastError;
+      if (error != null) {
+        debugError(
+          'Error sending $type to $recipient from $sender: ${error.message}',
+        );
+      }
+      completer.complete(error != null);
+    }),
+  );
+  return completer.future;
+}
+
+/// Send a message using the chrome.tabs.sendMessage API.
+Future<bool> sendTabsMessage({
+  required int tabId,
+  required MessageType type,
+  required String body,
+  required Script sender,
+  required Script recipient,
+}) {
+  final message = Message(
+    to: recipient,
+    from: sender,
+    type: type,
+    body: body,
+  );
+  final completer = Completer<bool>();
+  debugLog('sending tabs message');
+  chrome.tabs.sendMessage(
+    tabId,
+    message.toJSON(),
     null,
     allowInterop(() {
       final error = chrome.runtime.lastError;

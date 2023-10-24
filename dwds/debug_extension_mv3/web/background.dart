@@ -53,7 +53,9 @@ void _registerListeners() {
   chrome.webNavigation.onCommitted
       .addListener(allowInterop(_detectNavigationAwayFromDartApp));
 
-  chrome.commands.onCommand.addListener(allowInterop(_maybeCopyAppId));
+  debugLog('listening for commands...');
+  chrome.commands.onCommand
+      .addListener(allowInterop(_maybeSendCopyAppIdRequest));
 
   // Detect clicks on the Dart Debug Extension icon.
   onExtensionIconClicked(
@@ -208,13 +210,22 @@ DebugInfo _addTabInfo(DebugInfo debugInfo, {required Tab tab}) {
   );
 }
 
-Future<void> _maybeCopyAppId(String command, [Tab? tab]) async {
-  final currentTab = tab ?? await activeTab;
-  if (currentTab == null) return;
-  final debugInfo = await _fetchDebugInfo(currentTab.id);
+Future<bool> _maybeSendCopyAppIdRequest(String command, [Tab? tab]) async {
+  debugLog('==== Received $command command');
+  if (command != 'copyAppId') return false;
+  final tabId = (tab ?? await activeTab)?.id;
+  if (tabId == null) return false;
+  final debugInfo = await _fetchDebugInfo(tabId);
   final workspaceName = debugInfo?.workspaceName;
-  if (workspaceName == null) return;
-  // Send message to the copier.
+  if (workspaceName == null) return false;
+  final appId = '$workspaceName-$tabId';
+  return sendTabsMessage(
+    tabId: tabId,
+    type: MessageType.appId,
+    body: appId,
+    sender: Script.background,
+    recipient: Script.copier,
+  );
 }
 
 Future<void> _updateIcon(int activeTabId) async {
