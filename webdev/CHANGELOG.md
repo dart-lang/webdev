@@ -1,6 +1,7 @@
 ## 3.2.0-wip
 
 - Add dependency on `package:vm_service_interface`. - [#2262](https://github.com/dart-lang/webdev/pull/2262)
+- Update `package:vm_service` constraint to `>=10.1.0 <14.0.0`. - [#2235](https://github.com/dart-lang/webdev/pull/2265)
 
 ## 3.1.0
 
