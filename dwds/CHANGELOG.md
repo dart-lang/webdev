@@ -1,4 +1,5 @@
 ## 22.1.0-wip
+- Update `package:vm_service` constraint to `^13.0.0`. - []()
 
 ## 22.0.0
 
