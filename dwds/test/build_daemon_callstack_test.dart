@@ -13,6 +13,7 @@ import 'package:vm_service_interface/vm_service_interface.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider();
@@ -32,9 +33,11 @@ void main() {
           setUpAll(() async {
             setCurrentLogWriter(debug: debug);
             await context.setUp(
-              compilationMode: CompilationMode.buildDaemon,
-              enableExpressionEvaluation: true,
-              verboseCompiler: debug,
+              testSettings: TestSettings(
+                compilationMode: CompilationMode.buildDaemon,
+                enableExpressionEvaluation: true,
+                verboseCompiler: debug,
+              ),
             );
           });
 

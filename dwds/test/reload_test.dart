@@ -47,7 +47,9 @@ void main() {
       setUp(() async {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
-          reloadConfiguration: ReloadConfiguration.liveReload,
+          testSettings: TestSettings(
+            reloadConfiguration: ReloadConfiguration.liveReload,
+          ),
         );
       });
 
@@ -70,7 +72,9 @@ void main() {
       setUp(() async {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
-          reloadConfiguration: ReloadConfiguration.liveReload,
+          testSettings: TestSettings(
+            reloadConfiguration: ReloadConfiguration.liveReload,
+          ),
           debugSettings: TestDebugSettings.noDevTools().copyWith(
             enableDebugging: false,
           ),
@@ -97,7 +101,9 @@ void main() {
       setUp(() async {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
-          reloadConfiguration: ReloadConfiguration.liveReload,
+          testSettings: TestSettings(
+            reloadConfiguration: ReloadConfiguration.liveReload,
+          ),
           debugSettings: TestDebugSettings.noDevTools().copyWith(
             enableDebugging: false,
             useSse: false,
@@ -125,7 +131,11 @@ void main() {
   group('Injected client', () {
     setUp(() async {
       setCurrentLogWriter(debug: debug);
-      await context.setUp(enableExpressionEvaluation: true);
+      await context.setUp(
+        testSettings: TestSettings(
+          enableExpressionEvaluation: true,
+        ),
+      );
     });
 
     tearDown(() async {
@@ -435,7 +445,9 @@ void main() {
       setUp(() async {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
-          reloadConfiguration: ReloadConfiguration.hotRestart,
+          testSettings: TestSettings(
+            reloadConfiguration: ReloadConfiguration.hotRestart,
+          ),
         );
       });
 
@@ -484,7 +496,9 @@ void main() {
       setUp(() async {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
-          reloadConfiguration: ReloadConfiguration.hotRestart,
+          testSettings: TestSettings(
+            reloadConfiguration: ReloadConfiguration.hotRestart,
+          ),
           debugSettings:
               TestDebugSettings.noDevTools().copyWith(enableDebugging: false),
         );

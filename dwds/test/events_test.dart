@@ -133,8 +133,8 @@ void main() {
           ),
         );
         await context.setUp(
+          testSettings: TestSettings(enableExpressionEvaluation: true),
           debugSettings: TestDebugSettings.withDevTools(context),
-          enableExpressionEvaluation: true,
         );
         vmService = context.debugConnection.vmService;
         keyboard = context.webDriver.driver.keyboard;

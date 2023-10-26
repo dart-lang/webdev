@@ -48,6 +48,12 @@ abstract class LoadStrategy {
   /// should be a package URI, e.g. `package:myapp/main.dart`.
   Uri? get appEntrypoint;
 
+  /// True for flutter apps.
+  bool get isFlutterApp;
+
+  /// True is canary features are enabled.
+  bool get canaryFeatures;
+
   /// Returns the bootstrap required for this [LoadStrategy].
   ///
   /// The bootstrap is appended to the end of the entry point module.
@@ -132,7 +138,7 @@ abstract class LoadStrategy {
 
   /// Initializes a [MetadataProvider] for the application located at the
   /// provided [entrypoint].
-  void trackEntrypoint(String entrypoint) {
+  Future<void> trackEntrypoint(String entrypoint) async {
     final metadataProvider = MetadataProvider(entrypoint, _assetReader);
     _providers[metadataProvider.entrypoint] = metadataProvider;
   }

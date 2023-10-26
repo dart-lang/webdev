@@ -13,6 +13,7 @@ import 'package:vm_service_interface/vm_service_interface.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -34,8 +35,10 @@ void main() {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        compilationMode: CompilationMode.frontendServer,
-        verboseCompiler: verboseCompiler,
+        testSettings: TestSettings(
+          compilationMode: CompilationMode.frontendServer,
+          verboseCompiler: verboseCompiler,
+        ),
       );
     });
 

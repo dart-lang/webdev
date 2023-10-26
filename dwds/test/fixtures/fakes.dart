@@ -180,8 +180,9 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Future enable() async => null;
 
   FakeWebkitDebugger({Map<String, WipScript>? scripts}) : _scripts = scripts {
+    final loadStrategySettings = TestLoadStrategySettings();
     setGlobalsForTesting(
-      toolConfiguration: TestToolConfiguration.forTests(
+      toolConfiguration: TestToolConfiguration.withLoadStrategy(
         loadStrategy: RequireStrategy(
           ReloadConfiguration.none,
           (_) async => {},
@@ -193,6 +194,8 @@ class FakeWebkitDebugger implements WebkitDebugger {
           (MetadataProvider _) async => <String, ModuleInfo>{},
           FakeAssetReader(),
           Uri.parse('package:fakeapp/main.dart'),
+          loadStrategySettings.isFlutterApp,
+          loadStrategySettings.canaryFeatures,
         ),
       ),
     );
@@ -317,10 +320,17 @@ class FakeExecutionContext extends ExecutionContext {
 }
 
 class FakeStrategy extends LoadStrategy {
+  final bool _isFlutterApp;
+  final bool _canaryFeatures;
+
   FakeStrategy(
     AssetReader assetReader, {
     String? packageConfigPath,
-  }) : super(assetReader, packageConfigPath: packageConfigPath);
+    bool isFlutterApp = false,
+    bool canaryFeatures = false,
+  })  : _isFlutterApp = isFlutterApp,
+        _canaryFeatures = canaryFeatures,
+        super(assetReader, packageConfigPath: packageConfigPath);
 
   @override
   Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
@@ -330,6 +340,12 @@ class FakeStrategy extends LoadStrategy {
       (request) => (request.url.path == 'someDummyPath')
           ? shelf.Response.ok('some dummy response')
           : shelf.Response.notFound('someDummyPath');
+
+  @override
+  bool get isFlutterApp => _isFlutterApp;
+
+  @override
+  bool get canaryFeatures => _canaryFeatures;
 
   @override
   String get id => 'dummy-id';
@@ -389,7 +405,7 @@ class FakeAssetReader implements AssetReader {
   final String? _metadata;
   final String? _dartSource;
   final String? _sourceMap;
-  FakeAssetReader({
+  const FakeAssetReader({
     metadata,
     dartSource,
     sourceMap,
@@ -446,6 +462,7 @@ class FakeExpressionCompiler implements ExpressionCompiler {
   Future<void> initialize({
     required String moduleFormat,
     bool soundNullSafety = false,
+    bool canaryFeatures = false,
   }) async {}
 }
 

@@ -178,6 +178,7 @@ class ChromeProxyService implements VmServiceInterface {
     final metadataProvider =
         globalToolConfiguration.loadStrategy.metadataProviderFor(entrypoint);
     final moduleFormat = globalToolConfiguration.loadStrategy.moduleFormat;
+    final canaryFeatures = globalToolConfiguration.loadStrategy.canaryFeatures;
     final soundNullSafety = await metadataProvider.soundNullSafety;
 
     _logger.info('Initializing expression compiler for $entrypoint '
@@ -188,6 +189,7 @@ class ChromeProxyService implements VmServiceInterface {
       await compiler.initialize(
         moduleFormat: moduleFormat,
         soundNullSafety: soundNullSafety,
+        canaryFeatures: canaryFeatures,
       );
       final dependencies = await globalToolConfiguration.loadStrategy
           .moduleInfoForEntrypoint(entrypoint);

@@ -11,6 +11,7 @@ import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
+import '../fixtures/utilities.dart';
 
 void main() {
   group('Asset handler', () {
@@ -20,8 +21,10 @@ void main() {
     setUpAll(() async {
       setCurrentLogWriter();
       await context.setUp(
-        enableExpressionEvaluation: true,
-        verboseCompiler: false,
+        testSettings: TestSettings(
+          enableExpressionEvaluation: true,
+          verboseCompiler: false,
+        ),
       );
     });
 

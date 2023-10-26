@@ -79,7 +79,11 @@ void main() async {
         sdkConfigurationProvider: DefaultSdkConfigurationProvider(),
       );
 
-      await service.initialize(moduleFormat: 'amd', soundNullSafety: true);
+      await service.initialize(
+        moduleFormat: 'amd',
+        soundNullSafety: true,
+        canaryFeatures: false,
+      );
 
       // setup asset server
       serveHttpRequests(server, assetHandler, (e, s) {

@@ -70,7 +70,8 @@ abstract class ExpressionCompiler {
   /// May be called multiple times and always before [updateDependencies].
   Future<void> initialize({
     required String moduleFormat,
-    bool soundNullSafety = false,
+    required bool soundNullSafety,
+    required bool canaryFeatures,
   });
 }
 

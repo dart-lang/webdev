@@ -126,6 +126,14 @@ class RequireStrategy extends LoadStrategy {
   Uri? get appEntrypoint => _appEntrypoint;
   final Uri? _appEntrypoint;
 
+  @override
+  bool get isFlutterApp => _isFlutterApp;
+  final bool _isFlutterApp;
+
+  @override
+  bool get canaryFeatures => _canaryFeatures;
+  final bool _canaryFeatures;
+
   RequireStrategy(
     this.reloadConfiguration,
     this._moduleProvider,
@@ -137,6 +145,8 @@ class RequireStrategy extends LoadStrategy {
     this._moduleInfoForProvider,
     AssetReader assetReader,
     this._appEntrypoint,
+    this._isFlutterApp,
+    this._canaryFeatures,
   ) : super(assetReader);
 
   @override

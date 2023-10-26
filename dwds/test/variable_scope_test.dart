@@ -13,6 +13,7 @@ import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 void main() {
   // set to true for debug logging.
@@ -26,7 +27,9 @@ void main() {
 
   setUpAll(() async {
     setCurrentLogWriter(debug: debug);
-    await context.setUp(verboseCompiler: debug);
+    await context.setUp(
+      testSettings: TestSettings(verboseCompiler: debug),
+    );
   });
 
   tearDownAll(() async {

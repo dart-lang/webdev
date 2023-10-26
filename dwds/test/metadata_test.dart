@@ -41,7 +41,7 @@ const _fileUriMetadata =
     '// intentionally empty: package blah has no dart sources';
 
 void main() {
-  final toolConfiguration = TestToolConfiguration.forTests(
+  final toolConfiguration = TestToolConfiguration.withLoadStrategy(
     loadStrategy: FakeStrategy(FakeAssetReader()),
   );
   setGlobalsForTesting(

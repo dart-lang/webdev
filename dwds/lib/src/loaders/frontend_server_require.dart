@@ -17,6 +17,8 @@ class FrontendServerRequireStrategyProvider {
   final Future<Map<String, String>> Function() _digestsProvider;
   final String _basePath;
   final Uri? _appEntrypoint;
+  final bool _isFlutterApp;
+  final bool _canaryFeatures;
 
   late final RequireStrategy _requireStrategy = RequireStrategy(
     _configuration,
@@ -29,6 +31,8 @@ class FrontendServerRequireStrategyProvider {
     _moduleInfoForProvider,
     _assetReader,
     _appEntrypoint,
+    _isFlutterApp,
+    _canaryFeatures,
   );
 
   FrontendServerRequireStrategyProvider(
@@ -36,8 +40,12 @@ class FrontendServerRequireStrategyProvider {
     this._assetReader,
     this._packageUriMapper,
     this._digestsProvider,
-    this._appEntrypoint,
-  ) : _basePath = _assetReader.basePath;
+    this._appEntrypoint, {
+    bool isFlutterApp = true,
+    bool canaryFeatures = false,
+  })  : _basePath = _assetReader.basePath,
+        _isFlutterApp = isFlutterApp,
+        _canaryFeatures = canaryFeatures;
 
   RequireStrategy get strategy => _requireStrategy;
 

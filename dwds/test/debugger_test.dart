@@ -87,7 +87,7 @@ void main() async {
     webkitDebugger = FakeWebkitDebugger(scripts: scripts);
     pausedController = StreamController<DebuggerPausedEvent>();
     webkitDebugger.onPaused = pausedController.stream;
-    final toolConfiguration = TestToolConfiguration.forTests(
+    final toolConfiguration = TestToolConfiguration.withLoadStrategy(
       loadStrategy: TestStrategy(FakeAssetReader()),
     );
     setGlobalsForTesting(

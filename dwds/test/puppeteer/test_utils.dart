@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:dwds/dwds.dart';
 import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
@@ -49,7 +48,13 @@ Future<Browser> setUpExtensionTest(
   // TODO(elliette): Only start a TestServer, that way we can get rid of the
   // launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
   await context.setUp(
-    launchChrome: false,
+    testSettings: TestSettings(
+      launchChrome: false,
+    ),
+    appMetadata: TestAppMetadata(
+      isInternalBuild: isInternalBuild,
+      workspaceName: workspaceName,
+    ),
     debugSettings: serveDevTools
         ? TestDebugSettings.withDevTools(context).copyWith(
             enableDebugExtension: true,
@@ -59,10 +64,8 @@ Future<Browser> setUpExtensionTest(
             enableDebugExtension: true,
             useSse: useSse,
           ),
-    appMetadata: AppMetadata(
-      isInternalBuild: isInternalBuild,
-      isFlutterApp: () => Future.value(isFlutterApp),
-      workspaceName: workspaceName,
+    loadStrategySettings: TestLoadStrategySettings(
+      isFlutterApp: isFlutterApp,
     ),
   );
   return await puppeteer.launch(

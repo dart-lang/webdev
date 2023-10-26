@@ -96,7 +96,8 @@ class DwdsInjector {
               devHandlerPath = '$requestedUriBase/$devHandlerPath';
               _devHandlerPaths.add(devHandlerPath);
               final entrypoint = request.url.path;
-              globalToolConfiguration.loadStrategy.trackEntrypoint(entrypoint);
+              await globalToolConfiguration.loadStrategy
+                  .trackEntrypoint(entrypoint);
               body = await _injectClientAndHoistMain(
                 body,
                 appId,
@@ -184,7 +185,7 @@ Future<String> _injectedClientSnippet(
   String entrypointPath,
   String? extensionUri,
 ) async {
-  final isFlutterApp = await globalToolConfiguration.appMetadata.isFlutterApp();
+  final isFlutterApp = globalToolConfiguration.loadStrategy.isFlutterApp;
   var injectedBody = 'window.\$dartAppId = "$appId";\n'
       'window.\$dartReloadConfiguration = "${globalToolConfiguration.loadStrategy.reloadConfiguration}";\n'
       'window.\$dartModuleStrategy = "${globalToolConfiguration.loadStrategy.id}";\n'

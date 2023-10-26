@@ -11,7 +11,6 @@
   'linux': Skip('https://github.com/dart-lang/webdev/issues/2114'),
 })
 
-import 'package:dwds/config.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:http/http.dart' as http;
@@ -259,9 +258,9 @@ void main() async {
 
     setUp(() async {
       await context.setUp(
+        appMetadata: TestAppMetadata.externalApp().copyWith(hostname: 'any'),
         debugSettings:
             TestDebugSettings.noDevTools().copyWith(enableDebugExtension: true),
-        appMetadata: AppMetadata(hostname: 'any'),
       );
     });
 

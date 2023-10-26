@@ -22,6 +22,8 @@ class BuildRunnerRequireStrategyProvider {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
   final Uri? _appEntrypoint;
+  final bool _isFlutterApp;
+  final bool _canaryFeatures;
 
   late final RequireStrategy _requireStrategy = RequireStrategy(
     _configuration,
@@ -34,6 +36,8 @@ class BuildRunnerRequireStrategyProvider {
     _moduleInfoForProvider,
     _assetReader,
     _appEntrypoint,
+    _isFlutterApp,
+    _canaryFeatures,
   );
 
   BuildRunnerRequireStrategyProvider(
@@ -41,6 +45,8 @@ class BuildRunnerRequireStrategyProvider {
     this._configuration,
     this._assetReader,
     this._appEntrypoint,
+    this._isFlutterApp,
+    this._canaryFeatures,
   );
 
   RequireStrategy get strategy => _requireStrategy;
