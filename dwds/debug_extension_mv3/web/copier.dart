@@ -6,10 +6,12 @@
 library copier;
 
 import 'dart:html';
+import 'dart:js_util';
 
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
+import 'logger.dart';
 import 'messaging.dart';
 
 void main() {
@@ -21,7 +23,6 @@ void _registerListeners() {
     allowInterop(_handleRuntimeMessages),
   );
 }
-
 void _handleRuntimeMessages(
   dynamic jsRequest,
   MessageSender sender,
@@ -35,19 +36,26 @@ void _handleRuntimeMessages(
     expectedRecipient: Script.copier,
     messageHandler: _copyAppId,
   );
+
+  final response = {'response': 'received'};
+  debugLog('sending back response');
+  sendResponse(jsify(response));
 }
 
 void _copyAppId(String appId) {
+  debugLog('RECEIVED $appId');
   final clipboard = window.navigator.clipboard;
+  debugLog('CLIPBOARD IS $clipboard');
   if (clipboard == null) return;
   clipboard.writeText(appId);
+  debugLog('WROTE TEXT');
   _showCopiedMessage(appId);
 }
 
 Future<void> _showCopiedMessage(String appId) async {
   final snackbar = document.createElement('div');
   snackbar.setInnerHtml('Copied $appId!');
-  snackbar.classes.add('snackbar snackbar--info show');
+  snackbar.classes.addAll(['snackbar', 'snackbar--info', 'show']);
   document.body?.append(snackbar);
   await Future.delayed(Duration(seconds: 2));
   snackbar.remove();

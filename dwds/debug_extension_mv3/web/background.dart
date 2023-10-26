@@ -5,6 +5,8 @@
 @JS()
 library background;
 
+import 'dart:js_util';
+
 import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
 
@@ -159,6 +161,10 @@ Future<void> _handleRuntimeMessages(
       _setWarningIcon();
     },
   );
+
+  final response = {'response': 'received'};
+  debugLog('sending back response');
+  sendResponse(jsify(response));
 }
 
 Future<void> _detectNavigationAwayFromDartApp(
@@ -216,8 +222,8 @@ Future<bool> _maybeSendCopyAppIdRequest(String command, [Tab? tab]) async {
   final tabId = (tab ?? await activeTab)?.id;
   if (tabId == null) return false;
   final debugInfo = await _fetchDebugInfo(tabId);
-  final workspaceName = debugInfo?.workspaceName;
-  if (workspaceName == null) return false;
+  final workspaceName = debugInfo?.workspaceName ?? 'fake-workspace';
+  // if (workspaceName == null) return false;
   final appId = '$workspaceName-$tabId';
   return sendTabsMessage(
     tabId: tabId,

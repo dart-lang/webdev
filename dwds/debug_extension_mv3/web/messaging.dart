@@ -125,7 +125,7 @@ Future<bool> sendRuntimeMessage({
     message.toJSON(),
     // options
     null,
-    allowInterop(() {
+    allowInterop(([dynamic response]) {
       final error = chrome.runtime.lastError;
       if (error != null) {
         debugError(
@@ -158,7 +158,7 @@ Future<bool> sendTabsMessage({
     tabId,
     message.toJSON(),
     null,
-    allowInterop(() {
+    allowInterop(([dynamic response]) {
       final error = chrome.runtime.lastError;
       if (error != null) {
         debugError(

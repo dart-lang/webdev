@@ -243,7 +243,7 @@ class ConnectionHandler {
 @anonymous
 class OnMessageHandler {
   external void addListener(
-    void Function(dynamic, MessageSender, Function) callback,
+    dynamic Function(dynamic, MessageSender, Function) callback,
   );
 }
 
