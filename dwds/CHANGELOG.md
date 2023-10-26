@@ -1,4 +1,4 @@
-## 22.1.0-wip
+## 22.1.0
 - Update `package:vm_service` constraint to `^13.0.0`. - [#2235](https://github.com/dart-lang/webdev/pull/2265)
 
 ## 22.0.0
