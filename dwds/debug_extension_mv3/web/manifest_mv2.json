@@ -32,10 +32,10 @@
   "commands": {
     "copyAppId": {
       "suggestedKey": {
-        "default": "Alt+D",
-        "mac": "Option+D"
+        "default": "Ctrl+Shift+7",
+        "mac": "Command+Shift+7"
       },
-      "description": "Copies the app ID to the clipboard."
+      "description": "Copy the app ID"
     }
   },
   "web_accessible_resources": ["debug_info.dart.js"],
