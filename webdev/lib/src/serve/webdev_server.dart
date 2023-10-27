@@ -124,8 +124,6 @@ class WebDevServer {
         root: options.target,
       );
 
-      _logger.severe('Target: ${options.target}');
-
       // TODO(https://github.com/flutter/devtools/issues/5350): Figure out how
       // to determine the build settings from the build.
       // Can we save build metadata in build_web_compilers and and read it in
