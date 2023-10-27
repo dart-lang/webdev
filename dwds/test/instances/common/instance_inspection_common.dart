@@ -59,10 +59,8 @@ void runTests({
             compilationMode: compilationMode,
             enableExpressionEvaluation: true,
             verboseCompiler: debug,
-            experiments: ['records'],
-          ),
-          testBuildSettings: TestBuildSettings(
             canaryFeatures: canaryFeatures,
+            experiments: ['records'],
           ),
         );
         service = context.debugConnection.vmService;

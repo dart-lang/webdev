@@ -131,10 +131,13 @@ class WebDevServer {
         assetReader,
         // TODO(https://github.com/flutter/devtools/issues/5350): Figure out how
         // to determine the build settings from the build.
+        // Can we save build metadata in build_web_compilers and and read it in
+        // the load strategy?
         const BuildSettings.dart().copyWith(
           appEntrypoint:
               Uri.parse('org-dartlang-app:///${options.target}/main.dart'),
           canaryFeatures: options.configuration.canaryFeatures,
+          experiments: options.configuration.experiments,
         ),
       ).strategy;
       if (options.configuration.enableExpressionEvaluation) {
@@ -142,7 +145,6 @@ class WebDevServer {
           options.configuration.hostname,
           options.port,
           verbose: options.configuration.verbose,
-          experiments: options.configuration.experiments,
           sdkConfigurationProvider: const DefaultSdkConfigurationProvider(),
         );
       }

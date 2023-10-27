@@ -258,13 +258,18 @@ class TestStrategy extends FakeStrategy {
 
 /// Settings defining how to run the tests.
 class TestSettings {
+  // Scenario settings.
   final ReloadConfiguration reloadConfiguration;
   final bool autoRun;
   final bool waitToDebug;
   final bool enableExpressionEvaluation;
   final bool verboseCompiler;
   final bool launchChrome;
+
+  // Build settings.
   final CompilationMode compilationMode;
+  final bool canaryFeatures;
+  final bool isFlutterApp;
   final List<String> experiments;
   final bool useDebuggerModuleNames;
 
@@ -274,20 +279,13 @@ class TestSettings {
     this.waitToDebug = false,
     this.enableExpressionEvaluation = false,
     this.verboseCompiler = false,
-    this.useDebuggerModuleNames = false,
     this.launchChrome = true,
     this.compilationMode = CompilationMode.buildDaemon,
-    this.experiments = const <String>[],
-  });
-}
-
-class TestBuildSettings {
-  // All configurable test build settings.
-  final bool canaryFeatures;
-  final bool isFlutterApp;
-
-  const TestBuildSettings({
     this.canaryFeatures = false,
     this.isFlutterApp = false,
+    this.experiments = const <String>[],
+    this.useDebuggerModuleNames = false,
   });
+
+  // Common scenarios
 }

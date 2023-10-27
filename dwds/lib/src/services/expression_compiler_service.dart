@@ -241,7 +241,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
   final _compiler = Completer<_Compiler>();
   final String _address;
   final FutureOr<int> _port;
-  final List<String> experiments;
   final bool _verbose;
 
   final SdkConfigurationProvider sdkConfigurationProvider;
@@ -251,7 +250,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
     this._port, {
     bool verbose = false,
     required this.sdkConfigurationProvider,
-    this.experiments = const [],
   }) : _verbose = verbose;
 
   @override
@@ -280,6 +278,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
     required String moduleFormat,
     required bool soundNullSafety,
     required bool canaryFeatures,
+    required List<String> experiments,
   }) async {
     if (_compiler.isCompleted) return;
 

@@ -32,8 +32,6 @@ void runTypeSystemVerificationTests({
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
-        ),
-        testBuildSettings: TestBuildSettings(
           canaryFeatures: canaryFeatures,
         ),
       );
@@ -102,8 +100,6 @@ void runTests({
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
-        ),
-        testBuildSettings: TestBuildSettings(
           canaryFeatures: canaryFeatures,
         ),
       );

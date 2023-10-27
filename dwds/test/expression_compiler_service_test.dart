@@ -83,6 +83,7 @@ void main() async {
         moduleFormat: 'amd',
         soundNullSafety: true,
         canaryFeatures: false,
+        experiments: const <String>[],
       );
 
       // setup asset server

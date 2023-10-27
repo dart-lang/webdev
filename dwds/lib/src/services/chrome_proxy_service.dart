@@ -174,11 +174,13 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<void> _updateCompilerDependencies(String entrypoint) async {
-    final metadataProvider =
-        globalToolConfiguration.loadStrategy.metadataProviderFor(entrypoint);
-    final moduleFormat = globalToolConfiguration.loadStrategy.moduleFormat;
-    final canaryFeatures =
-        globalToolConfiguration.loadStrategy.buildSettings.canaryFeatures;
+    final loadStrategy = globalToolConfiguration.loadStrategy;
+    final moduleFormat = loadStrategy.moduleFormat;
+    final canaryFeatures = loadStrategy.buildSettings.canaryFeatures;
+    final experiments = loadStrategy.buildSettings.experiments;
+
+    // TODO(annagrin): Read null safety setting from the build settings.
+    final metadataProvider = loadStrategy.metadataProviderFor(entrypoint);
     final soundNullSafety = await metadataProvider.soundNullSafety;
 
     _logger.info('Initializing expression compiler for $entrypoint '
@@ -190,9 +192,10 @@ class ChromeProxyService implements VmServiceInterface {
         moduleFormat: moduleFormat,
         soundNullSafety: soundNullSafety,
         canaryFeatures: canaryFeatures,
+        experiments: experiments,
       );
-      final dependencies = await globalToolConfiguration.loadStrategy
-          .moduleInfoForEntrypoint(entrypoint);
+      final dependencies =
+          await loadStrategy.moduleInfoForEntrypoint(entrypoint);
       await captureElapsedTime(
         () async {
           final result = await compiler.updateDependencies(dependencies);

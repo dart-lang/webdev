@@ -641,6 +641,7 @@ class TestExpressionCompiler implements ExpressionCompiler {
     required String moduleFormat,
     bool soundNullSafety = false,
     bool canaryFeatures = false,
+    required List<String> experiments,
   }) async {}
 }
 

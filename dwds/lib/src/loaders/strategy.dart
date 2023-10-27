@@ -141,19 +141,21 @@ enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
 
 /// App build settings.
 ///
-/// Used in load strategy in cases we know the settings upfront.
-///
-/// Note that some load strategies  need to read them from a build
-/// metadata file after the build is completed.
+/// We use load strategy to determine the build settings for the app.
+/// Note that some load strategies need to read those arguments from
+/// the build metadata as they are not always available until the app
+/// is built and loaded.
 class BuildSettings {
   final Uri? appEntrypoint;
   final bool canaryFeatures;
   final bool isFlutterApp;
+  final List<String> experiments;
 
   const BuildSettings({
     this.appEntrypoint,
     this.canaryFeatures = false,
     this.isFlutterApp = false,
+    this.experiments = const <String>[],
   });
 
   const BuildSettings.dart({Uri? appEntrypoint})
@@ -170,12 +172,14 @@ class BuildSettings {
 
   BuildSettings copyWith({
     Uri? appEntrypoint,
-    bool? isFlutterApp,
     bool? canaryFeatures,
+    bool? isFlutterApp,
+    List<String>? experiments,
   }) =>
       BuildSettings(
         appEntrypoint: appEntrypoint ?? this.appEntrypoint,
-        isFlutterApp: isFlutterApp ?? this.isFlutterApp,
         canaryFeatures: canaryFeatures ?? this.isFlutterApp,
+        isFlutterApp: isFlutterApp ?? this.isFlutterApp,
+        experiments: experiments ?? this.experiments,
       );
 }

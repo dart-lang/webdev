@@ -55,8 +55,6 @@ void runTests({
           enableExpressionEvaluation: true,
           verboseCompiler: debug,
           experiments: ['records', 'patterns'],
-        ),
-        testBuildSettings: TestBuildSettings(
           canaryFeatures: canaryFeatures,
         ),
       );

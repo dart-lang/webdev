@@ -50,6 +50,7 @@ Future<Browser> setUpExtensionTest(
   await context.setUp(
     testSettings: TestSettings(
       launchChrome: false,
+      isFlutterApp: isFlutterApp,
     ),
     appMetadata: TestAppMetadata(
       isInternalBuild: isInternalBuild,
@@ -64,11 +65,6 @@ Future<Browser> setUpExtensionTest(
             enableDebugExtension: true,
             useSse: useSse,
           ),
-    // TODO(annagrin): Use an actual flutter project here,
-    // and make the project provide the app kind.
-    testBuildSettings: TestBuildSettings(
-      isFlutterApp: isFlutterApp,
-    ),
   );
   return await puppeteer.launch(
     devTools: openChromeDevTools,

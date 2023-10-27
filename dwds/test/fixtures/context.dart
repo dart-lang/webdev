@@ -137,17 +137,18 @@ class TestContext {
     TestSettings testSettings = const TestSettings(),
     TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
     TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
-    TestBuildSettings testBuildSettings = const TestBuildSettings(),
   }) async {
-    final buildSettings = BuildSettings.dart(
-      appEntrypoint: project.dartEntryFilePackageUri,
-    ).copyWith(
-      canaryFeatures: testBuildSettings.canaryFeatures,
-    );
-
-    final sdkLayout = sdkConfigurationProvider.sdkLayout;
     try {
+      // Create build settings for the app.
+      final buildSettings = BuildSettings(
+        isFlutterApp: testSettings.isFlutterApp,
+        appEntrypoint: project.dartEntryFilePackageUri,
+        canaryFeatures: testSettings.canaryFeatures,
+        experiments: testSettings.experiments,
+      );
+
       // Make sure configuration was created correctly.
+      final sdkLayout = sdkConfigurationProvider.sdkLayout;
       final configuration = await sdkConfigurationProvider.configuration;
       configuration.validate();
       await project.cleanUp();
@@ -219,7 +220,7 @@ class TestContext {
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
               ],
-              for (final experiment in testSettings.experiments)
+              for (final experiment in buildSettings.experiments)
                 '--enable-experiment=$experiment',
               if (buildSettings.canaryFeatures) ...[
                 '--define',
@@ -266,7 +267,6 @@ class TestContext {
                 port,
                 verbose: testSettings.verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
-                experiments: testSettings.experiments,
               );
               expressionCompiler = ddcService;
             }
@@ -310,7 +310,7 @@ class TestContext {
               fileSystemScheme: 'org-dartlang-app',
               outputPath: outputDir.path,
               soundNullSafety: nullSafety == NullSafety.sound,
-              experiments: testSettings.experiments,
+              experiments: buildSettings.experiments,
               canaryFeatures: buildSettings.canaryFeatures,
               verbose: testSettings.verboseCompiler,
               sdkLayout: sdkLayout,

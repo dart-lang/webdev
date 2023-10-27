@@ -65,13 +65,14 @@ abstract class ExpressionCompiler {
   /// [updateDependencies] is called during isolate creation.
   Future<bool> updateDependencies(Map<String, ModuleInfo> modules);
 
-  /// Initializes the compiler with null safety mode and module format.
+  /// Initializes the compiler with the app build settings.
   ///
   /// May be called multiple times and always before [updateDependencies].
   Future<void> initialize({
     required String moduleFormat,
     required bool soundNullSafety,
     required bool canaryFeatures,
+    required List<String> experiments,
   });
 }
 

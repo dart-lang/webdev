@@ -458,6 +458,7 @@ class FakeExpressionCompiler implements ExpressionCompiler {
     required String moduleFormat,
     bool soundNullSafety = false,
     bool canaryFeatures = false,
+    List<String> experiments = const <String>[],
   }) async {}
 }
 
