@@ -207,11 +207,9 @@ class TestToolConfiguration extends ToolConfiguration {
     TestSettings testSettings = const TestSettings(),
     TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
     TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
-    TestLoadStrategySettings loadStrategySettings =
-        const TestLoadStrategySettings.dart(),
+    TestBuildSettings buildSettings = const TestBuildSettings.dart(),
   }) : super(
-          loadStrategy:
-              TestStrategy(const FakeAssetReader(), loadStrategySettings),
+          loadStrategy: TestStrategy(const FakeAssetReader(), buildSettings),
           debugSettings: debugSettings,
           appMetadata: appMetadata,
         );
@@ -236,18 +234,17 @@ void setGlobalsForTesting({
 }
 
 void createAndSetGlobalsForTesting({
-  TestLoadStrategySettings loadStrategySettings =
-      const TestLoadStrategySettings.dart(),
+  TestBuildSettings loadStrategySettings = const TestBuildSettings.dart(),
 }) {
   globalToolConfiguration = TestToolConfiguration.withDefaultLoadStrategy(
-    loadStrategySettings: loadStrategySettings,
+    buildSettings: loadStrategySettings,
   );
 }
 
 class TestStrategy extends FakeStrategy {
   TestStrategy(
     AssetReader assetReader,
-    TestLoadStrategySettings settings,
+    TestBuildSettings settings,
   ) : super(
           assetReader,
           isFlutterApp: settings.isFlutterApp,
@@ -260,39 +257,40 @@ class TestStrategy extends FakeStrategy {
   }
 }
 
-class TestLoadStrategySettings {
+/// Settings for load strategy.
+///
+/// Used to set and propagate the build settings to a load strategy used in tests.
+class TestBuildSettings {
   final bool canaryFeatures;
   final bool isFlutterApp;
 
-  const TestLoadStrategySettings({
+  const TestBuildSettings({
     this.canaryFeatures = false,
     this.isFlutterApp = false,
   });
 
-  const TestLoadStrategySettings.dart() : this(isFlutterApp: true);
+  const TestBuildSettings.dart() : this(isFlutterApp: true);
 
-  const TestLoadStrategySettings.flutter() : this(isFlutterApp: true);
+  const TestBuildSettings.flutter() : this(isFlutterApp: true);
 
-  TestLoadStrategySettings copyWith({
+  TestBuildSettings copyWith({
     bool? isFlutterApp,
     bool? canaryFeatures,
   }) =>
-      TestLoadStrategySettings(
+      TestBuildSettings(
         isFlutterApp: isFlutterApp ?? this.isFlutterApp,
         canaryFeatures: canaryFeatures ?? this.isFlutterApp,
       );
 }
 
+/// Settings defining how to run the tests.
 class TestSettings {
-  /// Scenario settings.
   final ReloadConfiguration reloadConfiguration;
   final bool autoRun;
   final bool waitToDebug;
   final bool enableExpressionEvaluation;
   final bool verboseCompiler;
   final bool launchChrome;
-
-  /// Build settings.
   final CompilationMode compilationMode;
   final List<String> experiments;
   final bool useDebuggerModuleNames;

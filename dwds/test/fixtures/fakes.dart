@@ -180,7 +180,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Future enable() async => null;
 
   FakeWebkitDebugger({Map<String, WipScript>? scripts}) : _scripts = scripts {
-    final loadStrategySettings = TestLoadStrategySettings();
+    final loadStrategySettings = TestBuildSettings.dart();
     setGlobalsForTesting(
       toolConfiguration: TestToolConfiguration.withLoadStrategy(
         loadStrategy: RequireStrategy(

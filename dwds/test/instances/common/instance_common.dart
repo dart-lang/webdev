@@ -33,7 +33,7 @@ void runTypeSystemVerificationTests({
         testSettings: TestSettings(
           compilationMode: compilationMode,
         ),
-        loadStrategySettings: TestLoadStrategySettings(
+        loadStrategySettings: TestBuildSettings(
           canaryFeatures: canaryFeatures,
         ),
       );
@@ -103,7 +103,7 @@ void runTests({
         testSettings: TestSettings(
           compilationMode: compilationMode,
         ),
-        loadStrategySettings: TestLoadStrategySettings(
+        loadStrategySettings: TestBuildSettings(
           canaryFeatures: canaryFeatures,
         ),
       );

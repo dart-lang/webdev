@@ -64,7 +64,7 @@ Future<Browser> setUpExtensionTest(
             enableDebugExtension: true,
             useSse: useSse,
           ),
-    loadStrategySettings: TestLoadStrategySettings(
+    loadStrategySettings: TestBuildSettings(
       isFlutterApp: isFlutterApp,
     ),
   );

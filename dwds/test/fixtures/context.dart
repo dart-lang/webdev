@@ -136,8 +136,7 @@ class TestContext {
     TestSettings testSettings = const TestSettings(),
     TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
     TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
-    TestLoadStrategySettings loadStrategySettings =
-        const TestLoadStrategySettings.dart(),
+    TestBuildSettings loadStrategySettings = const TestBuildSettings.dart(),
   }) async {
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
     try {
