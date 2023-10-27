@@ -8,13 +8,11 @@ library cider_connection;
 import 'dart:convert';
 import 'dart:js_util';
 
-import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
 import 'debug_session.dart';
 import 'logger.dart';
-import 'storage.dart';
 
 /// Used to identify messages passed to/from Cider.
 ///
@@ -42,6 +40,7 @@ enum CiderErrorType {
   internalError,
   invalidRequest,
   multipleDartTabs,
+  noAppId,
   noDartTab,
   noWorkspace,
 }
@@ -115,36 +114,32 @@ Future<void> _handleMessageFromCider(dynamic message, Port _) async {
   final messageBody = decoded['messageBody'] as String?;
 
   if (messageType == CiderMessageType.startDebugRequest.name) {
-    await _startDebugging(workspaceName: messageBody);
+    await _startDebugging(appId: messageBody);
   } else if (messageType == CiderMessageType.stopDebugRequest.name) {
-    await _stopDebugging(workspaceName: messageBody);
+    await _stopDebugging(appId: messageBody);
   }
 }
 
-Future<void> _startDebugging({String? workspaceName}) async {
-  if (workspaceName == null) {
-    _sendNoWorkspaceError();
+Future<void> _startDebugging({String? appId}) async {
+  if (appId == null) {
+    _sendNoAppIdError();
     return;
   }
-
-  final dartTab = await _findDartTabIdForWorkspace(workspaceName);
-  if (dartTab != null) {
-    // TODO(https://github.com/dart-lang/webdev/issues/2198): When debugging
-    // with Cider, disable debugging with DevTools.
-    await attachDebugger(dartTab, trigger: Trigger.cider);
-  }
+  final tabId = _tabId(appId);
+  // TODO(https://github.com/dart-lang/webdev/issues/2198): When debugging
+  // with Cider, disable debugging with DevTools.
+  await attachDebugger(tabId, trigger: Trigger.cider);
 }
 
-Future<void> _stopDebugging({String? workspaceName}) async {
-  if (workspaceName == null) {
-    _sendNoWorkspaceError();
+Future<void> _stopDebugging({String? appId}) async {
+  if (appId == null) {
+    _sendNoAppIdError();
     return;
   }
+  final tabId = _tabId(appId);
 
-  final dartTab = await _findDartTabIdForWorkspace(workspaceName);
-  if (dartTab == null) return;
   final successfullyDetached = await detachDebugger(
-    dartTab,
+    tabId,
     type: TabType.dartApp,
     reason: DetachReason.canceledByUser,
   );
@@ -159,48 +154,14 @@ Future<void> _stopDebugging({String? workspaceName}) async {
   }
 }
 
-void _sendNoWorkspaceError() {
-  sendErrorMessageToCider(
-    errorType: CiderErrorType.noWorkspace,
-    errorDetails: 'Cannot find a debuggable Dart tab without a workspace',
-  );
+int _tabId(String appId) {
+  final tabId = appId.split('-').last;
+  return int.parse(tabId);
 }
 
-Future<int?> _findDartTabIdForWorkspace(String workspaceName) async {
-  final allTabsInfo = await fetchAllStorageObjectsOfType<DebugInfo>(
-    type: StorageObject.debugInfo,
+void _sendNoAppIdError() {
+  sendErrorMessageToCider(
+    errorType: CiderErrorType.noAppId,
+    errorDetails: 'Cannot find a debuggable Dart tab without an app ID',
   );
-  final dartTabIds = allTabsInfo
-      .where(
-        (debugInfo) => debugInfo.workspaceName == workspaceName,
-      )
-      .map(
-        (info) => info.tabId,
-      )
-      .toList();
-
-  if (dartTabIds.isEmpty) {
-    sendErrorMessageToCider(
-      errorType: CiderErrorType.noDartTab,
-      errorDetails: 'No debuggable Dart tabs found.',
-    );
-    return null;
-  }
-  if (dartTabIds.length > 1) {
-    sendErrorMessageToCider(
-      errorType: CiderErrorType.multipleDartTabs,
-      errorDetails: 'Too many debuggable Dart tabs found.',
-    );
-    return null;
-  }
-  final tabId = dartTabIds.first;
-  if (tabId == null) {
-    sendErrorMessageToCider(
-      errorType: CiderErrorType.chromeError,
-      errorDetails: 'Debuggable Dart tab is null.',
-    );
-    return null;
-  }
-
-  return tabId;
 }
