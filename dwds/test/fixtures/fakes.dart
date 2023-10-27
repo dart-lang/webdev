@@ -326,11 +326,10 @@ class FakeStrategy extends LoadStrategy {
     AssetReader assetReader, {
     String? packageConfigPath,
     BuildSettings? buildSettings,
-  })  : _buildSettings = BuildSettings(
-          appEntrypoint: Uri.parse('package:myapp/main.dart'),
-          isFlutterApp: false,
-          canaryFeatures: false,
-        ),
+  })  : _buildSettings = buildSettings ??
+            BuildSettings.dart().copyWith(
+              appEntrypoint: Uri.parse('package:myapp/main.dart'),
+            ),
         super(assetReader, packageConfigPath: packageConfigPath);
 
   @override

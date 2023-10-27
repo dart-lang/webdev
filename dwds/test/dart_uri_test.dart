@@ -204,6 +204,7 @@ void main() {
     setUpAll(() async {
       final toolConfiguration = TestToolConfiguration.withLoadStrategy(
         loadStrategy: G3TestStrategy(FakeAssetReader()),
+        appMetadata: TestAppMetadata.internalApp(),
       );
       setGlobalsForTesting(
         toolConfiguration: toolConfiguration,

@@ -141,9 +141,9 @@ class TestContext {
     try {
       // Create build settings for the app.
       final buildSettings = BuildSettings(
-        isFlutterApp: testSettings.isFlutterApp,
         appEntrypoint: project.dartEntryFilePackageUri,
         canaryFeatures: testSettings.canaryFeatures,
+        isFlutterApp: testSettings.isFlutterApp,
         experiments: testSettings.experiments,
       );
 
