@@ -57,7 +57,7 @@ void main() {
     group('When default build settings defined', () {
       final strategy = FakeStrategy(
         FakeAssetReader(),
-        buildSettings: BuildSettings(),
+        buildSettings: TestBuildSettings.dart(),
       );
 
       test('uses the default app entrypoint', () {

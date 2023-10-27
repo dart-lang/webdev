@@ -157,21 +157,4 @@ class BuildSettings {
     this.isFlutterApp = false,
     this.experiments = const <String>[],
   });
-
-  const BuildSettings.dart() : this(isFlutterApp: false);
-
-  const BuildSettings.flutter() : this(isFlutterApp: true);
-
-  BuildSettings copyWith({
-    Uri? appEntrypoint,
-    bool? canaryFeatures,
-    bool? isFlutterApp,
-    List<String>? experiments,
-  }) =>
-      BuildSettings(
-        appEntrypoint: appEntrypoint ?? this.appEntrypoint,
-        canaryFeatures: canaryFeatures ?? this.isFlutterApp,
-        isFlutterApp: isFlutterApp ?? this.isFlutterApp,
-        experiments: experiments ?? this.experiments,
-      );
 }

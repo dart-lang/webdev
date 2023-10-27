@@ -207,7 +207,7 @@ class TestToolConfiguration extends ToolConfiguration {
     TestSettings testSettings = const TestSettings(),
     TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
     TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
-    BuildSettings buildSettings = const BuildSettings.dart(),
+    TestBuildSettings buildSettings = const TestBuildSettings.dart(),
   }) : super(
           loadStrategy: TestStrategy(const FakeAssetReader(), buildSettings),
           debugSettings: debugSettings,
@@ -234,7 +234,7 @@ void setGlobalsForTesting({
 }
 
 void setGlobalsForTestingFromBuild({
-  BuildSettings buildSettings = const BuildSettings.dart(),
+  TestBuildSettings buildSettings = const TestBuildSettings.dart(),
 }) {
   globalToolConfiguration = TestToolConfiguration.withDefaultLoadStrategy(
     buildSettings: buildSettings,
@@ -286,6 +286,38 @@ class TestSettings {
     this.experiments = const <String>[],
     this.useDebuggerModuleNames = false,
   });
+}
 
-  // Common scenarios
+/// App build settings for tests.
+class TestBuildSettings extends BuildSettings {
+  const TestBuildSettings({
+    Uri? appEntrypoint,
+    bool canaryFeatures = false,
+    bool isFlutterApp = false,
+    List<String> experiments = const <String>[],
+  }) : super(
+          appEntrypoint: appEntrypoint,
+          canaryFeatures: canaryFeatures,
+          isFlutterApp: isFlutterApp,
+          experiments: experiments,
+        );
+
+  const TestBuildSettings.dart({Uri? appEntrypoint})
+      : this(appEntrypoint: appEntrypoint, isFlutterApp: false);
+
+  const TestBuildSettings.flutter({Uri? appEntrypoint})
+      : this(appEntrypoint: appEntrypoint, isFlutterApp: true);
+
+  TestBuildSettings copyWith({
+    Uri? appEntrypoint,
+    bool? canaryFeatures,
+    bool? isFlutterApp,
+    List<String>? experiments,
+  }) =>
+      TestBuildSettings(
+        appEntrypoint: appEntrypoint ?? this.appEntrypoint,
+        canaryFeatures: canaryFeatures ?? this.canaryFeatures,
+        isFlutterApp: isFlutterApp ?? this.isFlutterApp,
+        experiments: experiments ?? this.experiments,
+      );
 }

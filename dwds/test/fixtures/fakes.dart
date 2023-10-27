@@ -180,7 +180,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Future enable() async => null;
 
   FakeWebkitDebugger({Map<String, WipScript>? scripts}) : _scripts = scripts {
-    final buildSettings = BuildSettings.dart().copyWith(
+    final buildSettings = TestBuildSettings.dart(
       appEntrypoint: Uri.parse('package:fakeapp/main.dart'),
     );
     setGlobalsForTesting(
@@ -327,7 +327,7 @@ class FakeStrategy extends LoadStrategy {
     String? packageConfigPath,
     BuildSettings? buildSettings,
   })  : _buildSettings = buildSettings ??
-            BuildSettings.dart().copyWith(
+            TestBuildSettings.dart(
               appEntrypoint: Uri.parse('package:myapp/main.dart'),
             ),
         super(assetReader, packageConfigPath: packageConfigPath);

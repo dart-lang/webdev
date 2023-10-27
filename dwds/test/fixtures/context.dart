@@ -16,7 +16,6 @@ import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/build_runner_require.dart';
 import 'package:dwds/src/loaders/frontend_server_require.dart';
 import 'package:dwds/src/loaders/require.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
@@ -140,7 +139,7 @@ class TestContext {
   }) async {
     try {
       // Create build settings for the app.
-      final buildSettings = BuildSettings(
+      final buildSettings = TestBuildSettings(
         appEntrypoint: project.dartEntryFilePackageUri,
         canaryFeatures: testSettings.canaryFeatures,
         isFlutterApp: testSettings.isFlutterApp,
