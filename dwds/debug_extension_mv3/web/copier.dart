@@ -21,6 +21,7 @@ void _registerListeners() {
     allowInterop(_handleRuntimeMessages),
   );
 }
+
 void _handleRuntimeMessages(
   dynamic jsRequest,
   MessageSender sender,
