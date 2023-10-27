@@ -36,13 +36,9 @@ enum CiderMessageType {
 /// The types must match those defined by ChromeExtensionErrorType in the
 /// Cider extension.
 enum CiderErrorType {
-  chromeError,
   internalError,
   invalidRequest,
-  multipleDartTabs,
   noAppId,
-  noDartTab,
-  noWorkspace,
 }
 
 const _ciderPortName = 'cider';
