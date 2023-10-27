@@ -6,7 +6,6 @@
 library copier;
 
 import 'dart:html';
-import 'dart:js_util';
 
 import 'package:js/js.dart';
 
@@ -35,8 +34,7 @@ void _handleRuntimeMessages(
     messageHandler: _copyAppId,
   );
 
-  final response = {'response': 'received'};
-  sendResponse(jsify(response));
+  sendResponse(defaultResponse);
 }
 
 void _copyAppId(String appId) {

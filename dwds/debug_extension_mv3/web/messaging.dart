@@ -113,37 +113,19 @@ void interceptMessage<T>({
   }
 }
 
+/// Send a message using the chrome.runtime.sendMessage API.
 Future<bool> sendRuntimeMessage({
   required MessageType type,
   required String body,
   required Script sender,
   required Script recipient,
-}) {
-  final message = Message(
-    to: recipient,
-    from: sender,
-    type: type,
-    body: body,
-  );
-  final completer = Completer<bool>();
-  chrome.runtime.sendMessage(
-    // id
-    null,
-    message.toJSON(),
-    // options
-    null,
-    allowInterop(([dynamic response]) {
-      final error = chrome.runtime.lastError;
-      if (error != null) {
-        debugError(
-          'Error sending $type to $recipient from $sender: ${error.message}',
-        );
-      }
-      completer.complete(error != null);
-    }),
-  );
-  return completer.future;
-}
+}) =>
+    _sendMessage(
+      type: type,
+      body: body,
+      sender: sender,
+      recipient: recipient,
+    );
 
 /// Send a message using the chrome.tabs.sendMessage API.
 Future<bool> sendTabsMessage({
@@ -152,27 +134,55 @@ Future<bool> sendTabsMessage({
   required String body,
   required Script sender,
   required Script recipient,
+}) =>
+    _sendMessage(
+      tabId: tabId,
+      type: type,
+      body: body,
+      sender: sender,
+      recipient: recipient,
+    );
+
+Future<bool> _sendMessage({
+  required MessageType type,
+  required String body,
+  required Script sender,
+  required Script recipient,
+  int? tabId,
 }) {
   final message = Message(
     to: recipient,
     from: sender,
     type: type,
     body: body,
-  );
+  ).toJSON();
   final completer = Completer<bool>();
-  chrome.tabs.sendMessage(
-    tabId,
-    message.toJSON(),
-    null,
-    allowInterop(([dynamic response]) {
-      final error = chrome.runtime.lastError;
-      if (error != null) {
-        debugError(
-          'Error sending $type to $recipient from $sender: ${error.message}',
-        );
-      }
-      completer.complete(error != null);
-    }),
-  );
+  final responseHandler = ([dynamic response]) {
+    final error = chrome.runtime.lastError;
+    if (error != null) {
+      debugError(
+        'Error sending $type to $recipient from $sender: ${error.message}',
+      );
+    }
+    completer.complete(error != null);
+  };
+  if (tabId != null) {
+    chrome.tabs.sendMessage(
+      tabId,
+      message,
+      // options
+      null,
+      allowInterop(responseHandler),
+    );
+  } else {
+    chrome.runtime.sendMessage(
+      // id
+      null,
+      message,
+      // options
+      null,
+      allowInterop(responseHandler),
+    );
+  }
   return completer.future;
 }
