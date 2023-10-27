@@ -157,7 +157,7 @@ Future<bool> _sendMessage({
     body: body,
   ).toJSON();
   final completer = Completer<bool>();
-  final responseHandler = ([dynamic response]) {
+  void responseHandler([dynamic _]) {
     final error = chrome.runtime.lastError;
     if (error != null) {
       debugError(
@@ -165,7 +165,7 @@ Future<bool> _sendMessage({
       );
     }
     completer.complete(error != null);
-  };
+  }
   if (tabId != null) {
     chrome.tabs.sendMessage(
       tabId,
