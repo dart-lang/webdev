@@ -7,6 +7,7 @@ library messaging;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:js_util';
 
 import 'package:js/js.dart';
 
@@ -14,8 +15,15 @@ import 'chrome_api.dart';
 import 'data_serializers.dart';
 import 'logger.dart';
 
+// A default response for the sendResponse callback.
+//
+// Prevents the message port from closing. See:
+// https://developer.chrome.com/docs/extensions/mv3/messaging/#simple
+final defaultResponse = jsify({'response': 'received'});
+
 enum Script {
   background,
+  copier,
   debuggerPanel,
   detector;
 
@@ -27,6 +35,7 @@ enum Script {
 enum MessageType {
   isAuthenticated,
   connectFailure,
+  appId,
   debugInfo,
   debugStateChange,
   devToolsUrl,
@@ -104,34 +113,77 @@ void interceptMessage<T>({
   }
 }
 
+/// Send a message using the chrome.runtime.sendMessage API.
 Future<bool> sendRuntimeMessage({
   required MessageType type,
   required String body,
   required Script sender,
   required Script recipient,
+}) =>
+    _sendMessage(
+      type: type,
+      body: body,
+      sender: sender,
+      recipient: recipient,
+    );
+
+/// Send a message using the chrome.tabs.sendMessage API.
+Future<bool> sendTabsMessage({
+  required int tabId,
+  required MessageType type,
+  required String body,
+  required Script sender,
+  required Script recipient,
+}) =>
+    _sendMessage(
+      tabId: tabId,
+      type: type,
+      body: body,
+      sender: sender,
+      recipient: recipient,
+    );
+
+Future<bool> _sendMessage({
+  required MessageType type,
+  required String body,
+  required Script sender,
+  required Script recipient,
+  int? tabId,
 }) {
   final message = Message(
     to: recipient,
     from: sender,
     type: type,
     body: body,
-  );
+  ).toJSON();
   final completer = Completer<bool>();
-  chrome.runtime.sendMessage(
-    // id
-    null,
-    message.toJSON(),
-    // options
-    null,
-    allowInterop(() {
-      final error = chrome.runtime.lastError;
-      if (error != null) {
-        debugError(
-          'Error sending $type to $recipient from $sender: ${error.message}',
-        );
-      }
-      completer.complete(error != null);
-    }),
-  );
+  void responseHandler([dynamic _]) {
+    final error = chrome.runtime.lastError;
+    if (error != null) {
+      debugError(
+        'Error sending $type to $recipient from $sender: ${error.message}',
+      );
+    }
+    completer.complete(error != null);
+  }
+
+  if (tabId != null) {
+    chrome.tabs.sendMessage(
+      tabId,
+      message,
+      // options
+      null,
+      allowInterop(responseHandler),
+    );
+  } else {
+    chrome.runtime.sendMessage(
+      // id
+      null,
+      message,
+      // options
+      null,
+      allowInterop(responseHandler),
+    );
+  }
   return completer.future;
 }

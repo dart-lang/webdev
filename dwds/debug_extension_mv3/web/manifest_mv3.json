@@ -31,10 +31,20 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["detector.dart.js"],
+      "js": ["detector.dart.js", "copier.dart.js"],
+      "css": ["static_assets/styles.css"],
       "run_at": "document_end"
     }
   ],
+  "commands": {
+    "copyAppId": {
+      "suggestedKey": {
+        "default": "Ctrl+Shift+7",
+        "mac": "Command+Shift+7"
+      },
+      "description": "Copy the app ID"
+    }
+  },
   "web_accessible_resources": [
     {
       "matches": ["<all_urls>"],
