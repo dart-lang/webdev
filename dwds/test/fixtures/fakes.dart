@@ -180,7 +180,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Future enable() async => null;
 
   FakeWebkitDebugger({Map<String, WipScript>? scripts}) : _scripts = scripts {
-    final buildSettings = BuildSettings.dart(
+    final buildSettings = BuildSettings.dart().copyWith(
       appEntrypoint: Uri.parse('package:fakeapp/main.dart'),
     );
     setGlobalsForTesting(
@@ -456,9 +456,9 @@ class FakeExpressionCompiler implements ExpressionCompiler {
   @override
   Future<void> initialize({
     required String moduleFormat,
-    bool soundNullSafety = false,
-    bool canaryFeatures = false,
-    List<String> experiments = const <String>[],
+    required soundNullSafety,
+    required canaryFeatures,
+    required List<String> experiments,
   }) async {}
 }
 

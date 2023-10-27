@@ -639,8 +639,8 @@ class TestExpressionCompiler implements ExpressionCompiler {
   @override
   Future<void> initialize({
     required String moduleFormat,
-    bool soundNullSafety = false,
-    bool canaryFeatures = false,
+    required soundNullSafety,
+    required canaryFeatures,
     required List<String> experiments,
   }) async {}
 }

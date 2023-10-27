@@ -158,17 +158,9 @@ class BuildSettings {
     this.experiments = const <String>[],
   });
 
-  const BuildSettings.dart({Uri? appEntrypoint})
-      : this(
-          appEntrypoint: appEntrypoint,
-          isFlutterApp: false,
-        );
+  const BuildSettings.dart() : this(isFlutterApp: false);
 
-  const BuildSettings.flutter({Uri? appEntrypoint})
-      : this(
-          appEntrypoint: appEntrypoint,
-          isFlutterApp: true,
-        );
+  const BuildSettings.flutter() : this(isFlutterApp: true);
 
   BuildSettings copyWith({
     Uri? appEntrypoint,
