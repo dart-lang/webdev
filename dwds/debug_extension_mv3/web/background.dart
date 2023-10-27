@@ -113,6 +113,7 @@ Future<void> _handleRuntimeMessages(
         value: _addTabInfo(debugInfo, tab: dartTab),
         tabId: dartTab.id,
       );
+      debugLog('===== DART APP ID: ${debugInfo.workspaceName}-${dartTab.id}');
       // Update the icon to show that a Dart app has been detected:
       final currentTab = await activeTab;
       if (currentTab?.id == dartTab.id) {
