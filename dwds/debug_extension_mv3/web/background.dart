@@ -55,7 +55,6 @@ void _registerListeners() {
   chrome.webNavigation.onCommitted
       .addListener(allowInterop(_detectNavigationAwayFromDartApp));
 
-  debugLog('listening for commands...');
   chrome.commands.onCommand
       .addListener(allowInterop(_maybeSendCopyAppIdRequest));
 
@@ -73,7 +72,6 @@ void _registerListeners() {
 Future<void> _handleRuntimeMessages(
   dynamic jsRequest,
   MessageSender sender,
-  // ignore: avoid-unused-parameters
   Function sendResponse,
 ) async {
   if (jsRequest is! String) return;
@@ -162,9 +160,7 @@ Future<void> _handleRuntimeMessages(
     },
   );
 
-  final response = {'response': 'received'};
-  debugLog('sending back response');
-  sendResponse(jsify(response));
+  sendResponse(defaultResponse);
 }
 
 Future<void> _detectNavigationAwayFromDartApp(
@@ -217,13 +213,12 @@ DebugInfo _addTabInfo(DebugInfo debugInfo, {required Tab tab}) {
 }
 
 Future<bool> _maybeSendCopyAppIdRequest(String command, [Tab? tab]) async {
-  debugLog('==== Received $command command');
   if (command != 'copyAppId') return false;
   final tabId = (tab ?? await activeTab)?.id;
   if (tabId == null) return false;
   final debugInfo = await _fetchDebugInfo(tabId);
-  final workspaceName = debugInfo?.workspaceName ?? 'fake-workspace';
-  // if (workspaceName == null) return false;
+  final workspaceName = debugInfo?.workspaceName;
+  if (workspaceName == null) return false;
   final appId = '$workspaceName-$tabId';
   return sendTabsMessage(
     tabId: tabId,

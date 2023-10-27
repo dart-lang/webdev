@@ -7,12 +7,19 @@ library messaging;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:js_util';
 
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
 import 'data_serializers.dart';
 import 'logger.dart';
+
+// A default response to for the sendResponse callback.
+//
+// Prevents the message port from closing. See:
+// https://developer.chrome.com/docs/extensions/mv3/messaging/#simple
+final defaultResponse = jsify({'response': 'received'});
 
 enum Script {
   background,
@@ -153,7 +160,6 @@ Future<bool> sendTabsMessage({
     body: body,
   );
   final completer = Completer<bool>();
-  debugLog('sending tabs message');
   chrome.tabs.sendMessage(
     tabId,
     message.toJSON(),
