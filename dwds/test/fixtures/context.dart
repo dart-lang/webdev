@@ -16,6 +16,7 @@ import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/build_runner_require.dart';
 import 'package:dwds/src/loaders/frontend_server_require.dart';
 import 'package:dwds/src/loaders/require.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
@@ -136,8 +137,14 @@ class TestContext {
     TestSettings testSettings = const TestSettings(),
     TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
     TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
-    TestBuildSettings loadStrategySettings = const TestBuildSettings.dart(),
+    TestBuildSettings testBuildSettings = const TestBuildSettings(),
   }) async {
+    final buildSettings = BuildSettings.dart(
+      appEntrypoint: project.dartEntryFilePackageUri,
+    ).copyWith(
+      canaryFeatures: testBuildSettings.canaryFeatures,
+    );
+
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
     try {
       // Make sure configuration was created correctly.
@@ -214,7 +221,7 @@ class TestContext {
               ],
               for (final experiment in testSettings.experiments)
                 '--enable-experiment=$experiment',
-              if (loadStrategySettings.canaryFeatures) ...[
+              if (buildSettings.canaryFeatures) ...[
                 '--define',
                 'build_web_compilers|ddc=canary=true',
                 '--define',
@@ -268,9 +275,7 @@ class TestContext {
               assetHandler,
               testSettings.reloadConfiguration,
               assetReader,
-              project.dartEntryFilePackageUri,
-              loadStrategySettings.isFlutterApp,
-              loadStrategySettings.canaryFeatures,
+              buildSettings,
             ).strategy;
 
             buildResults = daemonClient.buildResults;
@@ -306,7 +311,7 @@ class TestContext {
               outputPath: outputDir.path,
               soundNullSafety: nullSafety == NullSafety.sound,
               experiments: testSettings.experiments,
-              canaryFeatures: loadStrategySettings.canaryFeatures,
+              canaryFeatures: buildSettings.canaryFeatures,
               verbose: testSettings.verboseCompiler,
               sdkLayout: sdkLayout,
             );
@@ -331,9 +336,7 @@ class TestContext {
               assetReader,
               packageUriMapper,
               () async => {},
-              project.dartEntryFilePackageUri,
-              isFlutterApp: loadStrategySettings.isFlutterApp,
-              canaryFeatures: loadStrategySettings.canaryFeatures,
+              buildSettings,
             ).strategy;
 
             buildResults = const Stream<BuildResults>.empty();

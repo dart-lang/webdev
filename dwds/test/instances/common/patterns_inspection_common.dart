@@ -54,7 +54,7 @@ void runTests({
           verboseCompiler: debug,
           experiments: ['records', 'patterns'],
         ),
-        loadStrategySettings: TestBuildSettings(
+        testBuildSettings: TestBuildSettings(
           canaryFeatures: canaryFeatures,
         ),
       );

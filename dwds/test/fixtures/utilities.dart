@@ -207,7 +207,7 @@ class TestToolConfiguration extends ToolConfiguration {
     TestSettings testSettings = const TestSettings(),
     TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
     TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
-    TestBuildSettings buildSettings = const TestBuildSettings.dart(),
+    BuildSettings buildSettings = const BuildSettings.dart(),
   }) : super(
           loadStrategy: TestStrategy(const FakeAssetReader(), buildSettings),
           debugSettings: debugSettings,
@@ -233,54 +233,27 @@ void setGlobalsForTesting({
       toolConfiguration ?? TestToolConfiguration.withDefaultLoadStrategy();
 }
 
-void createAndSetGlobalsForTesting({
-  TestBuildSettings loadStrategySettings = const TestBuildSettings.dart(),
+void setGlobalsForTestingFromBuild({
+  BuildSettings buildSettings = const BuildSettings.dart(),
 }) {
   globalToolConfiguration = TestToolConfiguration.withDefaultLoadStrategy(
-    buildSettings: loadStrategySettings,
+    buildSettings: buildSettings,
   );
 }
 
 class TestStrategy extends FakeStrategy {
   TestStrategy(
     AssetReader assetReader,
-    TestBuildSettings settings,
+    BuildSettings buildSettings,
   ) : super(
           assetReader,
-          isFlutterApp: settings.isFlutterApp,
-          canaryFeatures: settings.canaryFeatures,
+          buildSettings: buildSettings,
         );
 
   @override
   String serverPathForAppUri(String appUri) {
     return 'foo';
   }
-}
-
-/// Settings for load strategy.
-///
-/// Used to set and propagate the build settings to a load strategy used in tests.
-class TestBuildSettings {
-  final bool canaryFeatures;
-  final bool isFlutterApp;
-
-  const TestBuildSettings({
-    this.canaryFeatures = false,
-    this.isFlutterApp = false,
-  });
-
-  const TestBuildSettings.dart() : this(isFlutterApp: true);
-
-  const TestBuildSettings.flutter() : this(isFlutterApp: true);
-
-  TestBuildSettings copyWith({
-    bool? isFlutterApp,
-    bool? canaryFeatures,
-  }) =>
-      TestBuildSettings(
-        isFlutterApp: isFlutterApp ?? this.isFlutterApp,
-        canaryFeatures: canaryFeatures ?? this.isFlutterApp,
-      );
 }
 
 /// Settings defining how to run the tests.
@@ -305,5 +278,16 @@ class TestSettings {
     this.launchChrome = true,
     this.compilationMode = CompilationMode.buildDaemon,
     this.experiments = const <String>[],
+  });
+}
+
+class TestBuildSettings {
+  // All configurable test build settings.
+  final bool canaryFeatures;
+  final bool isFlutterApp;
+
+  const TestBuildSettings({
+    this.canaryFeatures = false,
+    this.isFlutterApp = false,
   });
 }

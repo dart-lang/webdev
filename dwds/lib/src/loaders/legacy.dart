@@ -71,9 +71,7 @@ class LegacyStrategy extends LoadStrategy {
   /// Returns `null` if not a google3 app.
   final String? Function(String absolutePath) _g3RelativePath;
 
-  final Uri? _appEntrypoint;
-  final bool _isFlutterApp;
-  final bool _canaryFeatures;
+  final BuildSettings _buildSettings;
 
   LegacyStrategy(
     this.reloadConfiguration,
@@ -83,9 +81,7 @@ class LegacyStrategy extends LoadStrategy {
     this._serverPathForAppUri,
     this._moduleInfoForProvider,
     AssetReader assetReader,
-    this._appEntrypoint,
-    this._isFlutterApp,
-    this._canaryFeatures,
+    this._buildSettings,
     this._g3RelativePath,
     String? packageConfigPath,
   ) : super(assetReader, packageConfigPath: packageConfigPath);
@@ -132,13 +128,7 @@ class LegacyStrategy extends LoadStrategy {
   String? serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);
 
   @override
-  Uri? get appEntrypoint => _appEntrypoint;
-
-  @override
-  bool get isFlutterApp => _isFlutterApp;
-
-  @override
-  bool get canaryFeatures => _canaryFeatures;
+  BuildSettings get buildSettings => _buildSettings;
 
   @override
   String? g3RelativePath(String absolutePath) => _g3RelativePath(absolutePath);

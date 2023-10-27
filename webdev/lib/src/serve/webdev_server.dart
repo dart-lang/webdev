@@ -124,15 +124,17 @@ class WebDevServer {
         root: options.target,
       );
 
+      _logger.severe('Target: ${options.target}');
       var loadStrategy = BuildRunnerRequireStrategyProvider(
         assetHandler,
         options.configuration.reload,
         assetReader,
         // TODO(https://github.com/flutter/devtools/issues/5350): Figure out how
         // to determine the app's entrypoint:
-        /* appEntrypoint */ null,
-        false,
-        options.configuration.canaryFeatures,
+        const BuildSettings.copyWith(
+          appEntrypoint: null,
+          canaryFeatures: options.configuration.canaryFeatures,
+        ),
       ).strategy;
       if (options.configuration.enableExpressionEvaluation) {
         ddcService = ExpressionCompilerService(

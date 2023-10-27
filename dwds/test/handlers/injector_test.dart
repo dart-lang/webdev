@@ -21,7 +21,7 @@ void main() {
   const nonEntryEtag = 'some etag';
 
   group('Injector test', () {
-    setUpAll(createAndSetGlobalsForTesting);
+    setUpAll(setGlobalsForTestingFromBuild);
 
     group('InjectedHandlerWithoutExtension', () {
       late DwdsInjector injector;

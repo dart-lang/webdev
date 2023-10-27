@@ -44,15 +44,8 @@ abstract class LoadStrategy {
   /// The reload configuration for this strategy, e.g. liveReload.
   ReloadConfiguration get reloadConfiguration;
 
-  /// The URI for the app's entrypoint file, which is usually `main.dart`. It
-  /// should be a package URI, e.g. `package:myapp/main.dart`.
-  Uri? get appEntrypoint;
-
-  /// True for flutter apps.
-  bool get isFlutterApp;
-
-  /// True is canary features are enabled.
-  bool get canaryFeatures;
+  /// App build settings, such as entry point, build flags, app kind etc.
+  BuildSettings get buildSettings;
 
   /// Returns the bootstrap required for this [LoadStrategy].
   ///
@@ -145,3 +138,44 @@ abstract class LoadStrategy {
 }
 
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
+
+/// App build settings.
+///
+/// Used in load strategy in cases we know the settings upfront.
+///
+/// Note that some load strategies  need to read them from a build
+/// metadata file after the build is completed.
+class BuildSettings {
+  final Uri? appEntrypoint;
+  final bool canaryFeatures;
+  final bool isFlutterApp;
+
+  const BuildSettings({
+    this.appEntrypoint,
+    this.canaryFeatures = false,
+    this.isFlutterApp = false,
+  });
+
+  const BuildSettings.dart({Uri? appEntrypoint})
+      : this(
+          appEntrypoint: appEntrypoint,
+          isFlutterApp: false,
+        );
+
+  const BuildSettings.flutter({Uri? appEntrypoint})
+      : this(
+          appEntrypoint: appEntrypoint,
+          isFlutterApp: true,
+        );
+
+  BuildSettings copyWith({
+    Uri? appEntrypoint,
+    bool? isFlutterApp,
+    bool? canaryFeatures,
+  }) =>
+      BuildSettings(
+        appEntrypoint: appEntrypoint ?? this.appEntrypoint,
+        isFlutterApp: isFlutterApp ?? this.isFlutterApp,
+        canaryFeatures: canaryFeatures ?? this.isFlutterApp,
+      );
+}

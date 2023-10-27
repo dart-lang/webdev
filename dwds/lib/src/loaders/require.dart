@@ -123,16 +123,8 @@ class RequireStrategy extends LoadStrategy {
   ) _moduleInfoForProvider;
 
   @override
-  Uri? get appEntrypoint => _appEntrypoint;
-  final Uri? _appEntrypoint;
-
-  @override
-  bool get isFlutterApp => _isFlutterApp;
-  final bool _isFlutterApp;
-
-  @override
-  bool get canaryFeatures => _canaryFeatures;
-  final bool _canaryFeatures;
+  BuildSettings get buildSettings => _buildSettings;
+  final BuildSettings _buildSettings;
 
   RequireStrategy(
     this.reloadConfiguration,
@@ -144,9 +136,7 @@ class RequireStrategy extends LoadStrategy {
     this._serverPathForAppUri,
     this._moduleInfoForProvider,
     AssetReader assetReader,
-    this._appEntrypoint,
-    this._isFlutterApp,
-    this._canaryFeatures,
+    this._buildSettings,
   ) : super(assetReader);
 
   @override

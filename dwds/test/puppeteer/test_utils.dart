@@ -64,7 +64,9 @@ Future<Browser> setUpExtensionTest(
             enableDebugExtension: true,
             useSse: useSse,
           ),
-    loadStrategySettings: TestBuildSettings(
+    // TODO(annagrin): Use an actual flutter project here,
+    // and make the project provide the app kind.
+    testBuildSettings: TestBuildSettings(
       isFlutterApp: isFlutterApp,
     ),
   );

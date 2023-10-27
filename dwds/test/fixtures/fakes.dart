@@ -180,7 +180,9 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Future enable() async => null;
 
   FakeWebkitDebugger({Map<String, WipScript>? scripts}) : _scripts = scripts {
-    final loadStrategySettings = TestBuildSettings.dart();
+    final buildSettings = BuildSettings.dart(
+      appEntrypoint: Uri.parse('package:fakeapp/main.dart'),
+    );
     setGlobalsForTesting(
       toolConfiguration: TestToolConfiguration.withLoadStrategy(
         loadStrategy: RequireStrategy(
@@ -193,9 +195,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
           (String _) => '',
           (MetadataProvider _) async => <String, ModuleInfo>{},
           FakeAssetReader(),
-          Uri.parse('package:fakeapp/main.dart'),
-          loadStrategySettings.isFlutterApp,
-          loadStrategySettings.canaryFeatures,
+          buildSettings,
         ),
       ),
     );
@@ -320,16 +320,17 @@ class FakeExecutionContext extends ExecutionContext {
 }
 
 class FakeStrategy extends LoadStrategy {
-  final bool _isFlutterApp;
-  final bool _canaryFeatures;
+  final BuildSettings _buildSettings;
 
   FakeStrategy(
     AssetReader assetReader, {
     String? packageConfigPath,
-    bool isFlutterApp = false,
-    bool canaryFeatures = false,
-  })  : _isFlutterApp = isFlutterApp,
-        _canaryFeatures = canaryFeatures,
+    BuildSettings? buildSettings,
+  })  : _buildSettings = BuildSettings(
+          appEntrypoint: Uri.parse('package:myapp/main.dart'),
+          isFlutterApp: false,
+          canaryFeatures: false,
+        ),
         super(assetReader, packageConfigPath: packageConfigPath);
 
   @override
@@ -342,10 +343,7 @@ class FakeStrategy extends LoadStrategy {
           : shelf.Response.notFound('someDummyPath');
 
   @override
-  bool get isFlutterApp => _isFlutterApp;
-
-  @override
-  bool get canaryFeatures => _canaryFeatures;
+  BuildSettings get buildSettings => _buildSettings;
 
   @override
   String get id => 'dummy-id';
@@ -358,9 +356,6 @@ class FakeStrategy extends LoadStrategy {
 
   @override
   String get loadModuleSnippet => '';
-
-  @override
-  Uri? get appEntrypoint => Uri.parse('package:myapp/main.dart');
 
   @override
   String? g3RelativePath(String absolutePath) => null;

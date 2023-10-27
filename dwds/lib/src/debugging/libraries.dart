@@ -30,7 +30,8 @@ class LibraryHelper extends Domain {
   Future<LibraryRef> get rootLib async {
     if (_rootLib != null) return _rootLib!;
     final libraries = await libraryRefs;
-    final mainLibrary = globalToolConfiguration.loadStrategy.appEntrypoint;
+    final mainLibrary =
+        globalToolConfiguration.loadStrategy.buildSettings.appEntrypoint;
     if (mainLibrary != null) {
       _rootLib = libraries.firstWhereOrNull(
         (lib) => Uri.parse(lib.uri ?? '') == mainLibrary,

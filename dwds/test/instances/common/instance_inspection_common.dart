@@ -61,7 +61,7 @@ void runTests({
             verboseCompiler: debug,
             experiments: ['records'],
           ),
-          loadStrategySettings: TestBuildSettings(
+          testBuildSettings: TestBuildSettings(
             canaryFeatures: canaryFeatures,
           ),
         );
