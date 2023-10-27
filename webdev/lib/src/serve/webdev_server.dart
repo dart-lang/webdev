@@ -130,9 +130,10 @@ class WebDevServer {
         options.configuration.reload,
         assetReader,
         // TODO(https://github.com/flutter/devtools/issues/5350): Figure out how
-        // to determine the app's entrypoint:
-        const BuildSettings.copyWith(
-          appEntrypoint: null,
+        // to determine the build settings from the build.
+        const BuildSettings.dart().copyWith(
+          appEntrypoint:
+              Uri.parse('org-dartlang-app:///${options.target}/main.dart'),
           canaryFeatures: options.configuration.canaryFeatures,
         ),
       ).strategy;
