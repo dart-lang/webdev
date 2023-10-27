@@ -15,7 +15,7 @@ import 'chrome_api.dart';
 import 'data_serializers.dart';
 import 'logger.dart';
 
-// A default response to for the sendResponse callback.
+// A default response for the sendResponse callback.
 //
 // Prevents the message port from closing. See:
 // https://developer.chrome.com/docs/extensions/mv3/messaging/#simple
@@ -166,6 +166,7 @@ Future<bool> _sendMessage({
     }
     completer.complete(error != null);
   }
+
   if (tabId != null) {
     chrome.tabs.sendMessage(
       tabId,
