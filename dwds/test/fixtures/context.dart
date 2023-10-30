@@ -138,7 +138,7 @@ class TestContext {
     TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
   }) async {
     try {
-      // Create build settings for the app.
+      // Build settings to return from load strategy.
       final buildSettings = TestBuildSettings(
         appEntrypoint: project.dartEntryFilePackageUri,
         canaryFeatures: testSettings.canaryFeatures,
@@ -299,6 +299,13 @@ class TestContext {
               useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
             );
 
+            final compilerOptions = CompilerOptions(
+              moduleFormat: 'amd',
+              soundNullSafety: nullSafety == NullSafety.sound,
+              experiments: buildSettings.experiments,
+              canaryFeatures: buildSettings.canaryFeatures,
+            );
+
             _webRunner = ResidentWebRunner(
               mainUri: entry,
               urlTunneler: debugSettings.urlEncoder,
@@ -308,11 +315,9 @@ class TestContext {
               fileSystemRoots: [p.toUri(project.absolutePackageDirectory)],
               fileSystemScheme: 'org-dartlang-app',
               outputPath: outputDir.path,
-              soundNullSafety: nullSafety == NullSafety.sound,
-              experiments: buildSettings.experiments,
-              canaryFeatures: buildSettings.canaryFeatures,
-              verbose: testSettings.verboseCompiler,
+              compilerOptions: compilerOptions,
               sdkLayout: sdkLayout,
+              verbose: testSettings.verboseCompiler,
             );
 
             final assetServerPort = await findUnusedPort();

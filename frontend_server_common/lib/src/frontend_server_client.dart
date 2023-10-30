@@ -256,9 +256,7 @@ class ResidentCompiler {
     required this.fileSystemRoots,
     required this.fileSystemScheme,
     required this.platformDill,
-    required this.soundNullSafety,
-    this.experiments = const <String>[],
-    this.canaryFeatures = false,
+    required this.compilerOptions,
     required this.sdkLayout,
     this.verbose = false,
     CompilerMessageConsumer compilerMessageConsumer = defaultConsumer,
@@ -270,10 +268,8 @@ class ResidentCompiler {
   final List<Uri> fileSystemRoots;
   final String fileSystemScheme;
   final String platformDill;
-  final bool soundNullSafety;
-  final List<String> experiments;
-  final bool canaryFeatures;
   final TestSdkLayout sdkLayout;
+  final CompilerOptions compilerOptions;
   final bool verbose;
 
   /// The path to the root of the Dart SDK used to compile.
@@ -391,9 +387,12 @@ class ResidentCompiler {
       ],
       if (useDebuggerModuleNames) '--debugger-module-names',
       '--experimental-emit-debug-metadata',
-      soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
-      for (final experiment in experiments) '--enable-experiment=$experiment',
-      if (canaryFeatures) '--dartdevc-canary',
+      compilerOptions.soundNullSafety
+          ? '--sound-null-safety'
+          : '--no-sound-null-safety',
+      for (final experiment in compilerOptions.experiments)
+        '--enable-experiment=$experiment',
+      if (compilerOptions.canaryFeatures) '--dartdevc-canary',
       if (verbose) '--verbose',
     ];
 
@@ -637,8 +636,7 @@ class TestExpressionCompiler implements ExpressionCompiler {
       true;
 
   @override
-  Future<void> initialize(
-      ExpressionCompilerBuildSettings buildSettings) async {}
+  Future<void> initialize(CompilerOptions options) async {}
 }
 
 /// Convert a file URI into a multi-root scheme URI if provided, otherwise

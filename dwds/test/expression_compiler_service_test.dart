@@ -79,14 +79,14 @@ void main() async {
         sdkConfigurationProvider: DefaultSdkConfigurationProvider(),
       );
 
-      final buildSettings = ExpressionCompilerBuildSettings(
+      final compilerOptions = CompilerOptions(
         moduleFormat: 'amd',
         soundNullSafety: true,
         canaryFeatures: false,
         experiments: const <String>[],
       );
 
-      await service.initialize(buildSettings);
+      await service.initialize(compilerOptions);
 
       // setup asset server
       serveHttpRequests(server, assetHandler, (e, s) {

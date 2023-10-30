@@ -65,18 +65,18 @@ class _Compiler {
     String address,
     int port,
     SdkConfiguration sdkConfiguration,
-    ExpressionCompilerBuildSettings buildSettings,
+    CompilerOptions compilerOptions,
     bool verbose,
   ) async {
     sdkConfiguration.validateSdkDir();
-    if (buildSettings.soundNullSafety) {
+    if (compilerOptions.soundNullSafety) {
       sdkConfiguration.validateSoundSummaries();
     } else {
       sdkConfiguration.validateWeakSummaries();
     }
 
     final workerUri = sdkConfiguration.compilerWorkerUri!;
-    final sdkSummaryUri = buildSettings.soundNullSafety
+    final sdkSummaryUri = compilerOptions.soundNullSafety
         ? sdkConfiguration.soundSdkSummaryUri!
         : sdkConfiguration.weakSdkSummaryUri!;
 
@@ -89,14 +89,14 @@ class _Compiler {
       '--asset-server-port',
       '$port',
       '--module-format',
-      buildSettings.moduleFormat,
+      compilerOptions.moduleFormat,
       if (verbose) '--verbose',
-      buildSettings.soundNullSafety
+      compilerOptions.soundNullSafety
           ? '--sound-null-safety'
           : '--no-sound-null-safety',
-      for (final experiment in buildSettings.experiments)
+      for (final experiment in compilerOptions.experiments)
         '--enable-experiment=$experiment',
-      if (buildSettings.canaryFeatures) '--canary',
+      if (compilerOptions.canaryFeatures) '--canary',
     ];
 
     _logger.info('Starting...');
@@ -274,14 +274,14 @@ class ExpressionCompilerService implements ExpressionCompiler {
       );
 
   @override
-  Future<void> initialize(ExpressionCompilerBuildSettings buildSettings) async {
+  Future<void> initialize(CompilerOptions options) async {
     if (_compiler.isCompleted) return;
 
     final compiler = await _Compiler.start(
       _address,
       await _port,
       await sdkConfigurationProvider.configuration,
-      buildSettings,
+      options,
       _verbose,
     );
 

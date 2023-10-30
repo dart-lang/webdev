@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Build settings used to initialize an expression compiler.
-class ExpressionCompilerBuildSettings {
+/// Options passed to DDC and the expression compiler.
+class CompilerOptions {
   final String moduleFormat;
   final bool soundNullSafety;
   final bool canaryFeatures;
   final List<String> experiments;
 
-  ExpressionCompilerBuildSettings({
+  CompilerOptions({
     required this.moduleFormat,
     required this.soundNullSafety,
     required this.canaryFeatures,
@@ -83,7 +83,7 @@ abstract class ExpressionCompiler {
   /// Initializes the compiler with the app build settings.
   ///
   /// May be called multiple times and always before [updateDependencies].
-  Future<void> initialize(ExpressionCompilerBuildSettings buildSettings);
+  Future<void> initialize(CompilerOptions options);
 }
 
 class ModuleInfo {

@@ -453,9 +453,7 @@ class FakeExpressionCompiler implements ExpressionCompiler {
       true;
 
   @override
-  Future<void> initialize(
-    ExpressionCompilerBuildSettings buildSettings,
-  ) async {}
+  Future<void> initialize(CompilerOptions options) async {}
 }
 
 final fakeWipResponse = WipResponse({
