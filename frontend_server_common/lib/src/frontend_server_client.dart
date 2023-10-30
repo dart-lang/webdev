@@ -637,12 +637,8 @@ class TestExpressionCompiler implements ExpressionCompiler {
       true;
 
   @override
-  Future<void> initialize({
-    required String moduleFormat,
-    required soundNullSafety,
-    required canaryFeatures,
-    required List<String> experiments,
-  }) async {}
+  Future<void> initialize(
+      ExpressionCompilerBuildSettings buildSettings) async {}
 }
 
 /// Convert a file URI into a multi-root scheme URI if provided, otherwise

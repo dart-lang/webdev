@@ -2,6 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Build settings used to initialize an expression compiler.
+class ExpressionCompilerBuildSettings {
+  final String moduleFormat;
+  final bool soundNullSafety;
+  final bool canaryFeatures;
+  final List<String> experiments;
+
+  ExpressionCompilerBuildSettings({
+    required this.moduleFormat,
+    required this.soundNullSafety,
+    required this.canaryFeatures,
+    required this.experiments,
+  });
+}
+
 /// Result of compilation of dart expression to JavaScript
 class ExpressionCompilationResult {
   final bool isError;
@@ -68,12 +83,7 @@ abstract class ExpressionCompiler {
   /// Initializes the compiler with the app build settings.
   ///
   /// May be called multiple times and always before [updateDependencies].
-  Future<void> initialize({
-    required String moduleFormat,
-    required bool soundNullSafety,
-    required bool canaryFeatures,
-    required List<String> experiments,
-  });
+  Future<void> initialize(ExpressionCompilerBuildSettings buildSettings);
 }
 
 class ModuleInfo {

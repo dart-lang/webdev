@@ -186,14 +186,16 @@ class ChromeProxyService implements VmServiceInterface {
     _logger.info('Initializing expression compiler for $entrypoint '
         'with sound null safety: $soundNullSafety');
 
+    final buildSettings = ExpressionCompilerBuildSettings(
+      moduleFormat: moduleFormat,
+      soundNullSafety: soundNullSafety,
+      canaryFeatures: canaryFeatures,
+      experiments: experiments,
+    );
+
     final compiler = _compiler;
     if (compiler != null) {
-      await compiler.initialize(
-        moduleFormat: moduleFormat,
-        soundNullSafety: soundNullSafety,
-        canaryFeatures: canaryFeatures,
-        experiments: experiments,
-      );
+      await compiler.initialize(buildSettings);
       final dependencies =
           await loadStrategy.moduleInfoForEntrypoint(entrypoint);
       await captureElapsedTime(

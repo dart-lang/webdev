@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:dwds/asset_reader.dart';
-import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
@@ -16,6 +15,7 @@ import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
@@ -453,12 +453,9 @@ class FakeExpressionCompiler implements ExpressionCompiler {
       true;
 
   @override
-  Future<void> initialize({
-    required String moduleFormat,
-    required soundNullSafety,
-    required canaryFeatures,
-    required List<String> experiments,
-  }) async {}
+  Future<void> initialize(
+    ExpressionCompilerBuildSettings buildSettings,
+  ) async {}
 }
 
 final fakeWipResponse = WipResponse({

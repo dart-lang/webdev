@@ -64,22 +64,19 @@ class _Compiler {
   static Future<_Compiler> start(
     String address,
     int port,
-    String moduleFormat,
-    bool soundNullSafety,
     SdkConfiguration sdkConfiguration,
-    List<String> experiments,
-    bool canaryFeatures,
+    ExpressionCompilerBuildSettings buildSettings,
     bool verbose,
   ) async {
     sdkConfiguration.validateSdkDir();
-    if (soundNullSafety) {
+    if (buildSettings.soundNullSafety) {
       sdkConfiguration.validateSoundSummaries();
     } else {
       sdkConfiguration.validateWeakSummaries();
     }
 
     final workerUri = sdkConfiguration.compilerWorkerUri!;
-    final sdkSummaryUri = soundNullSafety
+    final sdkSummaryUri = buildSettings.soundNullSafety
         ? sdkConfiguration.soundSdkSummaryUri!
         : sdkConfiguration.weakSdkSummaryUri!;
 
@@ -92,11 +89,14 @@ class _Compiler {
       '--asset-server-port',
       '$port',
       '--module-format',
-      moduleFormat,
+      buildSettings.moduleFormat,
       if (verbose) '--verbose',
-      soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
-      for (final experiment in experiments) '--enable-experiment=$experiment',
-      if (canaryFeatures) '--canary',
+      buildSettings.soundNullSafety
+          ? '--sound-null-safety'
+          : '--no-sound-null-safety',
+      for (final experiment in buildSettings.experiments)
+        '--enable-experiment=$experiment',
+      if (buildSettings.canaryFeatures) '--canary',
     ];
 
     _logger.info('Starting...');
@@ -274,22 +274,14 @@ class ExpressionCompilerService implements ExpressionCompiler {
       );
 
   @override
-  Future<void> initialize({
-    required String moduleFormat,
-    required bool soundNullSafety,
-    required bool canaryFeatures,
-    required List<String> experiments,
-  }) async {
+  Future<void> initialize(ExpressionCompilerBuildSettings buildSettings) async {
     if (_compiler.isCompleted) return;
 
     final compiler = await _Compiler.start(
       _address,
       await _port,
-      moduleFormat,
-      soundNullSafety,
       await sdkConfigurationProvider.configuration,
-      experiments,
-      canaryFeatures,
+      buildSettings,
       _verbose,
     );
 
