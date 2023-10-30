@@ -204,7 +204,6 @@ class TestAppMetadata extends AppMetadata {
 
 class TestToolConfiguration extends ToolConfiguration {
   TestToolConfiguration.withDefaultLoadStrategy({
-    TestSettings testSettings = const TestSettings(),
     TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
     TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
     TestBuildSettings buildSettings = const TestBuildSettings.dart(),
@@ -215,7 +214,6 @@ class TestToolConfiguration extends ToolConfiguration {
         );
 
   TestToolConfiguration.withLoadStrategy({
-    TestSettings testSettings = const TestSettings(),
     TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
     TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
     required LoadStrategy loadStrategy,
