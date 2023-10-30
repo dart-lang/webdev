@@ -16,6 +16,7 @@ import 'package:dwds/src/services/expression_compiler.dart';
 
 import 'context.dart';
 import 'fakes.dart';
+import 'project.dart';
 
 /// Connects to the `build_runner` daemon.
 Future<BuildDaemonClient> connectClient(
@@ -318,4 +319,17 @@ class TestBuildSettings extends BuildSettings {
         isFlutterApp: isFlutterApp ?? this.isFlutterApp,
         experiments: experiments ?? this.experiments,
       );
+}
+
+class TestCompilerOptions extends CompilerOptions {
+  TestCompilerOptions({
+    required NullSafety nullSafety,
+    required bool canaryFeatures,
+    required List<String> experiments,
+  }) : super(
+          moduleFormat: 'amd',
+          soundNullSafety: nullSafety == NullSafety.sound,
+          canaryFeatures: canaryFeatures,
+          experiments: const <String>[],
+        );
 }

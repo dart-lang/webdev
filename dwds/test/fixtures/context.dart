@@ -62,7 +62,6 @@ enum CompilationMode { buildDaemon, frontendServer }
 
 class TestContext {
   final TestProject project;
-  final NullSafety nullSafety;
   final TestSdkConfigurationProvider sdkConfigurationProvider;
 
   String get appUrl => _appUrl!;
@@ -118,8 +117,7 @@ class TestContext {
   /// External VM service.
   VmService get vmService => debugConnection.vmService;
 
-  TestContext(this.project, this.sdkConfigurationProvider)
-      : nullSafety = project.nullSafety {
+  TestContext(this.project, this.sdkConfigurationProvider) {
     DartUri.currentDirectory = project.absolutePackageDirectory;
 
     project.validate();
@@ -299,9 +297,8 @@ class TestContext {
               useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
             );
 
-            final compilerOptions = CompilerOptions(
-              moduleFormat: 'amd',
-              soundNullSafety: nullSafety == NullSafety.sound,
+            final compilerOptions = TestCompilerOptions(
+              nullSafety: project.nullSafety,
               experiments: buildSettings.experiments,
               canaryFeatures: buildSettings.canaryFeatures,
             );
