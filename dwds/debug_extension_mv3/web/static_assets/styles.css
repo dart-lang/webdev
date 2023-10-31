@@ -75,7 +75,7 @@ h6 {
 }
 
 .snackbar {
-  bottom: 0px;
+  top: 0px;
   color: #eeeeee;
   font-family:  Roboto, 'Helvetica Neue', sans-serif;
   left: 0px;
@@ -85,7 +85,7 @@ h6 {
   text-align: center;
   visibility: hidden;
   width: 100%;
-  z-index: 1;
+  z-index: 2147483647;
 }
 
 .snackbar > a {
@@ -113,44 +113,44 @@ h6 {
 
 @-webkit-keyframes fadein {
   from {
-    bottom: 0;
+    top: 0;
     opacity: 0;
   }
   to {
-    bottom: 0px;
+    top: 0px;
     opacity: 1;
   }
 }
 
 @keyframes fadein {
   from {
-    bottom: 0;
+    top: 0;
     opacity: 0;
   }
   to {
-    bottom: 0px;
+    top: 0px;
     opacity: 1;
   }
 }
 
 @-webkit-keyframes fadeout {
   from {
-    bottom: 0px;
+    top: 0px;
     opacity: 1;
   }
   to {
-    bottom: 0;
+    top: 0;
     opacity: 0;
   }
 }
 
 @keyframes fadeout {
   from {
-    bottom: 0px;
+    top: 0px;
     opacity: 1;
   }
   to {
-    bottom: 0;
+    top: 0;
     opacity: 0;
   }
 }
