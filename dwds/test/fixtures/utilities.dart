@@ -292,7 +292,7 @@ class TestBuildSettings extends BuildSettings {
   const TestBuildSettings({
     Uri? appEntrypoint,
     bool canaryFeatures = false,
-    bool isFlutterApp = false,
+    bool isFlutterApp = true,
     List<String> experiments = const <String>[],
   }) : super(
           appEntrypoint: appEntrypoint,

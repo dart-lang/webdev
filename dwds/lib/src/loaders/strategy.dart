@@ -154,7 +154,7 @@ class BuildSettings {
   const BuildSettings({
     this.appEntrypoint,
     this.canaryFeatures = false,
-    this.isFlutterApp = false,
+    this.isFlutterApp = true,
     this.experiments = const <String>[],
   });
 }
