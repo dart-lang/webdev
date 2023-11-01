@@ -6,6 +6,8 @@
  */
 
 .dart-debug-extension-snackbar {
+  -webkit-animation: dart-debug-extension-fadein 0.5s;
+  animation: dart-debug-extension-fadein 0.5s;
   background-color: #303030;
   color: #eeeeee;
   font-family:  Roboto, 'Helvetica Neue', sans-serif;
@@ -15,20 +17,9 @@
   right: 0px;
   text-align: center;
   top: 0px;
-  visibility: hidden;
+  visibility: visible;
   width: 100%;
   z-index: 2147483647;
- }
-
-.dart-debug-extension-snackbar > a {
-  color: #eeeeee;
-  font-weight: bold;
- }
-
-.dart-debug-extension-show {
-  -webkit-animation: dart-debug-extension-fadein 0.5s;
-  animation: dart-debug-extension-fadein 0.5s;
-  visibility: visible;
  }
 
 @-webkit-keyframes dart-debug-extension-fadein {

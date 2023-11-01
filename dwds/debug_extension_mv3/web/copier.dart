@@ -50,7 +50,6 @@ Future<void> _showCopiedMessage(String appId) async {
   snackbar.setInnerHtml('Copied app ID: <i>$appId</i>');
   snackbar.classes.addAll([
     'dart-debug-extension-snackbar',
-    'dart-debug-extension-show',
   ]);
   document.body?.append(snackbar);
   await Future.delayed(Duration(seconds: 4));
