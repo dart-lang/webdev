@@ -13,6 +13,7 @@ import 'package:vm_service_interface/vm_service_interface.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 void testAll({
   required TestSdkConfigurationProvider provider,
@@ -62,10 +63,12 @@ void testAll({
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        compilationMode: compilationMode,
-        enableExpressionEvaluation: true,
-        useDebuggerModuleNames: useDebuggerModuleNames,
-        verboseCompiler: debug,
+        testSettings: TestSettings(
+          compilationMode: compilationMode,
+          enableExpressionEvaluation: true,
+          useDebuggerModuleNames: useDebuggerModuleNames,
+          verboseCompiler: debug,
+        ),
       );
     });
 

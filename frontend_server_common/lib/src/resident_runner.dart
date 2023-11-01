@@ -29,13 +29,11 @@ class ResidentWebRunner {
     required this.fileSystemRoots,
     required this.fileSystemScheme,
     required this.outputPath,
-    required this.soundNullSafety,
-    this.experiments = const <String>[],
-    bool canaryFeatures = false,
+    required this.compilerOptions,
     required this.sdkLayout,
     bool verbose = false,
   }) {
-    final platformDillUri = Uri.file(soundNullSafety
+    final platformDillUri = Uri.file(compilerOptions.soundNullSafety
         ? sdkLayout.soundSummaryPath
         : sdkLayout.weakSummaryPath);
 
@@ -47,9 +45,7 @@ class ResidentWebRunner {
       platformDill: '$platformDillUri',
       fileSystemRoots: fileSystemRoots,
       fileSystemScheme: fileSystemScheme,
-      soundNullSafety: soundNullSafety,
-      experiments: experiments,
-      canaryFeatures: canaryFeatures,
+      compilerOptions: compilerOptions,
       sdkLayout: sdkLayout,
       verbose: verbose,
     );
@@ -64,8 +60,7 @@ class ResidentWebRunner {
   final String outputPath;
   final List<Uri> fileSystemRoots;
   final String fileSystemScheme;
-  final bool soundNullSafety;
-  final List<String> experiments;
+  final CompilerOptions compilerOptions;
   final TestSdkLayout sdkLayout;
 
   late ResidentCompiler generator;
@@ -84,7 +79,7 @@ class ResidentWebRunner {
       packageUriMapper: packageUriMapper,
       index: index,
       urlTunneler: urlTunneler,
-      soundNullSafety: soundNullSafety,
+      soundNullSafety: compilerOptions.soundNullSafety,
       sdkLayout: sdkLayout,
     );
     uri = await devFS.create();

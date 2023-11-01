@@ -12,6 +12,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../fixtures/context.dart';
 import '../../fixtures/project.dart';
+import '../../fixtures/utilities.dart';
 import 'test_inspector.dart';
 
 void runTypeSystemVerificationTests({
@@ -29,8 +30,10 @@ void runTypeSystemVerificationTests({
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        canaryFeatures: canaryFeatures,
-        compilationMode: compilationMode,
+        testSettings: TestSettings(
+          compilationMode: compilationMode,
+          canaryFeatures: canaryFeatures,
+        ),
       );
       final chromeProxyService = context.service;
       inspector = chromeProxyService.inspector;
@@ -95,8 +98,10 @@ void runTests({
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        compilationMode: compilationMode,
-        canaryFeatures: canaryFeatures,
+        testSettings: TestSettings(
+          compilationMode: compilationMode,
+          canaryFeatures: canaryFeatures,
+        ),
       );
       final chromeProxyService = context.service;
       inspector = chromeProxyService.inspector;

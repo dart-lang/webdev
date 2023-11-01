@@ -21,7 +21,7 @@ class BuildRunnerRequireStrategyProvider {
   final Handler _assetHandler;
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
-  final Uri? _appEntrypoint;
+  final BuildSettings _buildSettings;
 
   late final RequireStrategy _requireStrategy = RequireStrategy(
     _configuration,
@@ -33,14 +33,14 @@ class BuildRunnerRequireStrategyProvider {
     _serverPathForAppUri,
     _moduleInfoForProvider,
     _assetReader,
-    _appEntrypoint,
+    _buildSettings,
   );
 
   BuildRunnerRequireStrategyProvider(
     this._assetHandler,
     this._configuration,
     this._assetReader,
-    this._appEntrypoint,
+    this._buildSettings,
   );
 
   RequireStrategy get strategy => _requireStrategy;

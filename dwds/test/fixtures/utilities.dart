@@ -8,6 +8,7 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/server_log.dart';
 import 'package:dds/devtools_server.dart';
+import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/servers/devtools.dart';
@@ -15,6 +16,7 @@ import 'package:dwds/src/services/expression_compiler.dart';
 
 import 'context.dart';
 import 'fakes.dart';
+import 'project.dart';
 
 /// Connects to the `build_runner` daemon.
 Future<BuildDaemonClient> connectClient(
@@ -113,9 +115,9 @@ class TestDebugSettings extends DebugSettings {
           },
         );
 
-  TestDebugSettings.noDevTools() : super(enableDevToolsLaunch: false);
+  const TestDebugSettings.noDevTools() : super(enableDevToolsLaunch: false);
 
-  TestDebugSettings._({
+  const TestDebugSettings._({
     required bool enableDebugging,
     required bool enableDebugExtension,
     required bool useSseForDebugBackend,
@@ -174,37 +176,52 @@ class TestDebugSettings extends DebugSettings {
 }
 
 class TestAppMetadata extends AppMetadata {
-  TestAppMetadata.internalFlutterApp()
-      : super(
-          isFlutterApp: () => Future.value(true),
-          isInternalBuild: true,
+  const TestAppMetadata({
+    bool isInternalBuild = false,
+    String? workspaceName,
+    String hostname = 'localhost',
+  }) : super(
+          isInternalBuild: isInternalBuild,
+          workspaceName: workspaceName,
+          hostname: hostname,
         );
-  TestAppMetadata.internalDartApp()
-      : super(
-          isFlutterApp: () => Future.value(false),
-          isInternalBuild: true,
-        );
-  TestAppMetadata.externalFlutterApp()
-      : super(
-          isFlutterApp: () => Future.value(true),
-          isInternalBuild: false,
-        );
-  TestAppMetadata.externalDartApp()
-      : super(
-          isFlutterApp: () => Future.value(false),
-          isInternalBuild: false,
-        );
+
+  TestAppMetadata copyWith({
+    bool? isFlutterApp,
+    bool? isInternalBuild,
+    String? workspaceName,
+    String? hostname = 'localhost',
+  }) =>
+      TestAppMetadata(
+        isInternalBuild: isInternalBuild ?? this.isInternalBuild,
+        workspaceName: workspaceName ?? this.workspaceName,
+        hostname: hostname ?? this.hostname,
+      );
+
+  const TestAppMetadata.externalApp() : super(isInternalBuild: false);
+
+  const TestAppMetadata.internalApp() : super(isInternalBuild: true);
 }
 
 class TestToolConfiguration extends ToolConfiguration {
-  TestToolConfiguration.forTests({
-    LoadStrategy? loadStrategy,
-    DebugSettings? debugSettings,
-    AppMetadata? appMetadata,
+  TestToolConfiguration.withDefaultLoadStrategy({
+    TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
+    TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
+    TestBuildSettings buildSettings = const TestBuildSettings.dart(),
   }) : super(
-          loadStrategy: loadStrategy ?? FakeStrategy(FakeAssetReader()),
-          debugSettings: debugSettings ?? TestDebugSettings.noDevTools(),
-          appMetadata: appMetadata ?? TestAppMetadata.externalDartApp(),
+          loadStrategy: TestStrategy(const FakeAssetReader(), buildSettings),
+          debugSettings: debugSettings,
+          appMetadata: appMetadata,
+        );
+
+  TestToolConfiguration.withLoadStrategy({
+    TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
+    TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
+    required LoadStrategy loadStrategy,
+  }) : super(
+          loadStrategy: loadStrategy,
+          debugSettings: debugSettings,
+          appMetadata: appMetadata,
         );
 }
 
@@ -212,5 +229,107 @@ void setGlobalsForTesting({
   ToolConfiguration? toolConfiguration,
 }) {
   globalToolConfiguration =
-      toolConfiguration ?? TestToolConfiguration.forTests();
+      toolConfiguration ?? TestToolConfiguration.withDefaultLoadStrategy();
+}
+
+void setGlobalsForTestingFromBuild({
+  TestBuildSettings buildSettings = const TestBuildSettings.dart(),
+}) {
+  globalToolConfiguration = TestToolConfiguration.withDefaultLoadStrategy(
+    buildSettings: buildSettings,
+  );
+}
+
+class TestStrategy extends FakeStrategy {
+  TestStrategy(
+    AssetReader assetReader,
+    BuildSettings buildSettings,
+  ) : super(
+          assetReader,
+          buildSettings: buildSettings,
+        );
+
+  @override
+  String serverPathForAppUri(String appUri) {
+    return 'foo';
+  }
+}
+
+/// Settings defining how to run the tests.
+class TestSettings {
+  // Scenario settings.
+  final ReloadConfiguration reloadConfiguration;
+  final bool autoRun;
+  final bool waitToDebug;
+  final bool enableExpressionEvaluation;
+  final bool verboseCompiler;
+  final bool launchChrome;
+
+  // Build settings.
+  final CompilationMode compilationMode;
+  final bool canaryFeatures;
+  final bool isFlutterApp;
+  final List<String> experiments;
+  final bool useDebuggerModuleNames;
+
+  const TestSettings({
+    this.reloadConfiguration = ReloadConfiguration.none,
+    this.autoRun = true,
+    this.waitToDebug = false,
+    this.enableExpressionEvaluation = false,
+    this.verboseCompiler = false,
+    this.launchChrome = true,
+    this.compilationMode = CompilationMode.buildDaemon,
+    this.canaryFeatures = false,
+    this.isFlutterApp = false,
+    this.experiments = const <String>[],
+    this.useDebuggerModuleNames = false,
+  });
+}
+
+/// App build settings for tests.
+class TestBuildSettings extends BuildSettings {
+  const TestBuildSettings({
+    Uri? appEntrypoint,
+    bool canaryFeatures = false,
+    bool isFlutterApp = true,
+    List<String> experiments = const <String>[],
+  }) : super(
+          appEntrypoint: appEntrypoint,
+          canaryFeatures: canaryFeatures,
+          isFlutterApp: isFlutterApp,
+          experiments: experiments,
+        );
+
+  const TestBuildSettings.dart({Uri? appEntrypoint})
+      : this(appEntrypoint: appEntrypoint, isFlutterApp: false);
+
+  const TestBuildSettings.flutter({Uri? appEntrypoint})
+      : this(appEntrypoint: appEntrypoint, isFlutterApp: true);
+
+  TestBuildSettings copyWith({
+    Uri? appEntrypoint,
+    bool? canaryFeatures,
+    bool? isFlutterApp,
+    List<String>? experiments,
+  }) =>
+      TestBuildSettings(
+        appEntrypoint: appEntrypoint ?? this.appEntrypoint,
+        canaryFeatures: canaryFeatures ?? this.canaryFeatures,
+        isFlutterApp: isFlutterApp ?? this.isFlutterApp,
+        experiments: experiments ?? this.experiments,
+      );
+}
+
+class TestCompilerOptions extends CompilerOptions {
+  TestCompilerOptions({
+    required NullSafety nullSafety,
+    required bool canaryFeatures,
+    required List<String> experiments,
+  }) : super(
+          moduleFormat: 'amd',
+          soundNullSafety: nullSafety == NullSafety.sound,
+          canaryFeatures: canaryFeatures,
+          experiments: const <String>[],
+        );
 }

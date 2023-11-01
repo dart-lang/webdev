@@ -91,8 +91,8 @@ class WebDevServer {
     pipeline = pipeline.addMiddleware(interceptFavicon);
 
     // Only provide relevant build results
-    var filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
-      var result = results.results
+    final filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
+      final result = results.results
           .firstWhere((result) => result.target == options.target);
       switch (result.status) {
         case daemon.BuildStatus.started:
@@ -108,41 +108,50 @@ class WebDevServer {
     });
 
     var cascade = Cascade();
-    var client = IOClient(HttpClient()
+    final client = IOClient(HttpClient()
       ..maxConnectionsPerHost = 200
       ..idleTimeout = const Duration(seconds: 30)
       ..connectionTimeout = const Duration(seconds: 30));
-    var assetHandler = proxyHandler(
+    final assetHandler = proxyHandler(
         'http://localhost:${options.daemonPort}/${options.target}/',
         client: client);
 
     Dwds? dwds;
     ExpressionCompilerService? ddcService;
     if (options.configuration.enableInjectedClient) {
-      var assetReader = ProxyServerAssetReader(
+      final assetReader = ProxyServerAssetReader(
         options.daemonPort,
         root: options.target,
       );
 
-      var loadStrategy = BuildRunnerRequireStrategyProvider(
+      // TODO(https://github.com/flutter/devtools/issues/5350): Figure out how
+      // to determine the build settings from the build.
+      // Can we save build metadata in build_web_compilers and and read it in
+      // the load strategy?
+      final buildSettings = BuildSettings(
+        appEntrypoint:
+            Uri.parse('org-dartlang-app:///${options.target}/main.dart'),
+        canaryFeatures: options.configuration.canaryFeatures,
+        isFlutterApp: false,
+        experiments: options.configuration.experiments,
+      );
+
+      final loadStrategy = BuildRunnerRequireStrategyProvider(
         assetHandler,
         options.configuration.reload,
         assetReader,
-        // TODO(https://github.com/flutter/devtools/issues/5350): Figure out how
-        // to determine the app's entrypoint:
-        /* appEntrypoint */ null,
+        buildSettings,
       ).strategy;
+
       if (options.configuration.enableExpressionEvaluation) {
         ddcService = ExpressionCompilerService(
           options.configuration.hostname,
           options.port,
           verbose: options.configuration.verbose,
-          experiments: options.configuration.experiments,
           sdkConfigurationProvider: const DefaultSdkConfigurationProvider(),
-          canaryFeatures: options.configuration.canaryFeatures,
         );
       }
-      var shouldServeDevTools =
+      final shouldServeDevTools =
           options.configuration.debug || options.configuration.debugExtension;
 
       final debugSettings = DebugSettings(
@@ -152,7 +161,7 @@ class WebDevServer {
         expressionCompiler: ddcService,
         devToolsLauncher: shouldServeDevTools
             ? (String hostname) async {
-                var server = await DevToolsServer().serveDevTools(
+                final server = await DevToolsServer().serveDevTools(
                   hostname: hostname,
                   enableStdinCommands: false,
                   customDevToolsPath: devToolsPath,
@@ -184,15 +193,15 @@ class WebDevServer {
       cascade = cascade.add(assetHandler);
     }
 
-    var hostname = options.configuration.hostname;
-    var tlsCertChain = options.configuration.tlsCertChain ?? '';
-    var tlsCertKey = options.configuration.tlsCertKey ?? '';
+    final hostname = options.configuration.hostname;
+    final tlsCertChain = options.configuration.tlsCertChain ?? '';
+    final tlsCertKey = options.configuration.tlsCertKey ?? '';
 
     HttpServer server;
     var protocol =
         (tlsCertChain.isNotEmpty && tlsCertKey.isNotEmpty) ? 'https' : 'http';
     if (protocol == 'https') {
-      var serverContext = SecurityContext()
+      final serverContext = SecurityContext()
         ..useCertificateChain(tlsCertChain)
         ..usePrivateKey(tlsCertKey);
       server =

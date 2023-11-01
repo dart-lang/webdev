@@ -14,7 +14,7 @@ class ToolConfiguration {
   final DebugSettings debugSettings;
   final AppMetadata appMetadata;
 
-  ToolConfiguration({
+  const ToolConfiguration({
     required this.loadStrategy,
     required this.debugSettings,
     required this.appMetadata,
@@ -37,14 +37,12 @@ class AppMetadata {
   final String hostname;
   final bool isInternalBuild;
   final String? workspaceName;
-  Future<bool> Function() isFlutterApp;
 
-  AppMetadata({
+  const AppMetadata({
     this.hostname = 'localhost',
     this.isInternalBuild = false,
     this.workspaceName,
-    Future<bool> Function()? isFlutterApp,
-  }) : isFlutterApp = isFlutterApp ?? (() => Future.value(true));
+  });
 }
 
 typedef UrlEncoder = Future<String> Function(String url);
@@ -68,7 +66,7 @@ class DebugSettings {
   final ExpressionCompiler? expressionCompiler;
   final UrlEncoder? urlEncoder;
 
-  DebugSettings({
+  const DebugSettings({
     this.enableDebugging = true,
     this.enableDebugExtension = false,
     this.useSseForDebugProxy = true,

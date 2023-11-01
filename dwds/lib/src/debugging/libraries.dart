@@ -29,14 +29,12 @@ class LibraryHelper extends Domain {
 
   Future<LibraryRef> get rootLib async {
     if (_rootLib != null) return _rootLib!;
-    // TODO: read entrypoint from app metadata.
-    // Issue: https://github.com/dart-lang/webdev/issues/1290
     final libraries = await libraryRefs;
-    if (globalToolConfiguration.loadStrategy.appEntrypoint != null) {
+    final mainLibrary =
+        globalToolConfiguration.loadStrategy.buildSettings.appEntrypoint;
+    if (mainLibrary != null) {
       _rootLib = libraries.firstWhereOrNull(
-        (lib) =>
-            Uri.parse(lib.uri ?? '') ==
-            globalToolConfiguration.loadStrategy.appEntrypoint,
+        (lib) => Uri.parse(lib.uri ?? '') == mainLibrary,
       );
     }
     _rootLib = _rootLib ??
