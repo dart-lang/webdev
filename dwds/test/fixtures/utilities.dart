@@ -165,14 +165,14 @@ class TestAppMetadata extends AppMetadata {
   const TestAppMetadata({
     super.isInternalBuild,
     super.workspaceName,
-    super.hostname,
+    super.hostname = 'localhost',
   });
 
   TestAppMetadata copyWith({
     bool? isFlutterApp,
     bool? isInternalBuild,
     String? workspaceName,
-    String? hostname = 'localhost',
+    String? hostname,
   }) =>
       TestAppMetadata(
         isInternalBuild: isInternalBuild ?? this.isInternalBuild,

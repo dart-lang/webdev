@@ -33,9 +33,7 @@ class TestStrategy extends FakeStrategy {
 }
 
 class G3TestStrategy extends FakeStrategy {
-  G3TestStrategy(
-    super.assetReader,
-  );
+  G3TestStrategy(super.assetReader);
 
   @override
   String? g3RelativePath(String absolutePath) =>
