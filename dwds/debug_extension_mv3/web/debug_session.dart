@@ -246,13 +246,7 @@ _enableExecutionContextReporting(int tabId) {
       final chromeError = chrome.runtime.lastError;
       if (chromeError != null) {
         final errorMessage = _translateChromeError(chromeError.message);
-        chrome.notifications.create(
-          // notificationId
-          null,
-          NotificationOptions(message: errorMessage),
-          // callback
-          null,
-        );
+        displayNotification(errorMessage, isError: true);
         return;
       }
     }),
@@ -720,16 +714,10 @@ Future<bool> _showWarning(
 
 Future<bool> _showWarningNotification(String message) {
   final completer = Completer<bool>();
-  chrome.notifications.create(
-    // notificationId
-    null,
-    NotificationOptions(
-      title: '[Error] Dart Debug Extension',
-      message: message,
-      iconUrl: 'static_assets/dart.png',
-      type: 'basic',
-    ),
-    allowInterop((_) {
+  displayNotification(
+    message,
+    isError: true,
+    callback: allowInterop((_) {
       completer.complete(true);
     }),
   );

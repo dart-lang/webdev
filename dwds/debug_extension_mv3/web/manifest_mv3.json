@@ -32,7 +32,6 @@
     {
       "matches": ["<all_urls>"],
       "js": ["detector.dart.js", "copier.dart.js"],
-      "css": ["static_assets/styles.css"],
       "run_at": "document_end"
     }
   ],

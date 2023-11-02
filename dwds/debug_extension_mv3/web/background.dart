@@ -158,6 +158,16 @@ Future<void> _handleRuntimeMessages(
     },
   );
 
+  interceptMessage<String>(
+    message: jsRequest,
+    expectedType: MessageType.appId,
+    expectedSender: Script.copier,
+    expectedRecipient: Script.background,
+    messageHandler: (String appId) {
+      displayNotification('Copied app ID: $appId');
+    },
+  );
+
   sendResponse(defaultResponse);
 }
 
