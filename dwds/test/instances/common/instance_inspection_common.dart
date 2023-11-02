@@ -9,6 +9,7 @@ import 'package:vm_service/vm_service.dart';
 
 import '../../fixtures/context.dart';
 import '../../fixtures/project.dart';
+import '../../fixtures/utilities.dart';
 import 'test_inspector.dart';
 
 void runTests({
@@ -23,7 +24,7 @@ void runTests({
       : TestProject.testPackageWithWeakNullSafety();
   final context = TestContext(project, provider);
 
-  late VmServiceInterface service;
+  late VmService service;
   late Stream<Event> stream;
   late String isolateId;
   late ScriptRef mainScript;
@@ -54,11 +55,13 @@ void runTests({
       setUpAll(() async {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
-          compilationMode: compilationMode,
-          enableExpressionEvaluation: true,
-          verboseCompiler: debug,
-          experiments: ['records'],
-          canaryFeatures: canaryFeatures,
+          testSettings: TestSettings(
+            compilationMode: compilationMode,
+            enableExpressionEvaluation: true,
+            verboseCompiler: debug,
+            canaryFeatures: canaryFeatures,
+            experiments: ['records'],
+          ),
         );
         service = context.debugConnection.vmService;
 

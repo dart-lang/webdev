@@ -1,9 +1,7 @@
 ## Building
 
-> Note: First make the script executable: `chmod +x tool/build_extension.sh`
-
-- For development: `./tool/build_extension.sh`
-- For release: `./tool/build_extension.sh prod`
+- For development: `dart run tool/build_extension.dart`
+- For release: ` dart run tool/build_extension.dart --prod`
 
 The dart2js-compiled extension will be located in the `/compiled` directory.
 
@@ -37,7 +35,7 @@ The dart2js-compiled extension will be located in the `/compiled` directory.
 
 ## Release process
 
-- Update the version in `web/manifest.json`, `pubspec.yaml`, and in the
+- Update the version in `web/manifest_mv2.json`, `web/manifest_mv3.json`, `pubspec.yaml`, and in the
   `CHANGELOG`.
 - Follow the instructions above to build the release version of the extension.
 
@@ -53,20 +51,20 @@ The dart2js-compiled extension will be located in the `/compiled` directory.
 - Rename the zip `version_XX.XX.XX.zip` (eg, `version_1.24.0.zip`) and add it to
   the go/dart-debug-extension-zips folder
 
-> *You must be a Googler to do this. Ask for help if not.*
+> _You must be a Googler to do this. Ask for help if not._
 
 - Go to the
   [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 - At the top-right, under Publisher, select dart-bat.
 
-> *If you don’t see dart-bat as an option, you will need someone on the Dart
-> team to add you to the dart-bat Google group.*
+> _If you don’t see dart-bat as an option, you will need someone on the Dart
+> team to add you to the dart-bat Google group._
 
 - Under Items, select the "Dart Debug Extension".
 - Go to “Package” then select “Upload new package”.
 
-> *The first time you do this, you will be asked to pay a $5 registration fee.
-> The registration fee can be expensed.*
+> _The first time you do this, you will be asked to pay a $5 registration fee.
+> The registration fee can be expensed._
 
 - Upload the zip file you created in step 4.
 - Save as draft, and verify that the new version is correct.
@@ -83,7 +81,7 @@ The dart2js-compiled extension will be located in the `/compiled` directory.
 - Find the previous version you want to rollback to in the
   go/dart-debug-extension-zips folder.
 
-> *You must be a Googler to do this. Ask for help if not.*
+> _You must be a Googler to do this. Ask for help if not._
 
 - Unzip the version you have chosen, and in `manifest.json` edit the version
   number to be the next sequential version after the current "bad" version (eg,

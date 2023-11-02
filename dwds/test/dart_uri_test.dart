@@ -5,7 +5,6 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
 
-import 'package:dwds/config.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -46,10 +45,8 @@ class G3TestStrategy extends FakeStrategy {
 void main() {
   group('DartUri', () {
     setUpAll(() {
-      final toolConfiguration = TestToolConfiguration.forTests(
-        loadStrategy: TestStrategy(
-          FakeAssetReader(),
-        ),
+      final toolConfiguration = TestToolConfiguration.withLoadStrategy(
+        loadStrategy: TestStrategy(FakeAssetReader()),
       );
       setGlobalsForTesting(
         toolConfiguration: toolConfiguration,
@@ -206,9 +203,9 @@ void main() {
 
   group('initialized to handle g3-relative paths', () {
     setUpAll(() async {
-      final toolConfiguration = TestToolConfiguration.forTests(
+      final toolConfiguration = TestToolConfiguration.withLoadStrategy(
         loadStrategy: G3TestStrategy(FakeAssetReader()),
-        appMetadata: AppMetadata(isInternalBuild: true),
+        appMetadata: TestAppMetadata.internalApp(),
       );
       setGlobalsForTesting(
         toolConfiguration: toolConfiguration,

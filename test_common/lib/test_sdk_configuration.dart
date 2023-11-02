@@ -24,17 +24,16 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
   final _logger = Logger('TestSdkConfigurationProvider');
 
   final bool _verbose;
-  final bool _canaryFeatures;
+  final bool canaryFeatures;
   late final Directory _sdkDirectory;
   SdkConfiguration? _configuration;
 
   late final TestSdkLayout sdkLayout;
 
   TestSdkConfigurationProvider({
-    bool canaryFeatures = false,
+    this.canaryFeatures = false,
     bool verbose = false,
-  })  : _canaryFeatures = canaryFeatures,
-        _verbose = verbose {
+  }) : _verbose = verbose {
     _sdkDirectory = Directory.systemTemp.createTempSync('sdk copy');
     sdkLayout = TestSdkLayout.createDefault(_sdkDirectory.path);
   }
@@ -61,7 +60,7 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
     try {
       final assetGenerator = SdkAssetGenerator(
         sdkLayout: sdkLayout,
-        canaryFeatures: _canaryFeatures,
+        canaryFeatures: canaryFeatures,
         verbose: _verbose,
       );
 

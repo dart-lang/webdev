@@ -67,37 +67,31 @@ the example app and connect to DWDS.
 - If DWDS / Webdev was just released, then you will need to update the version
   in the `CHANGELOG`, and the `pubspec.yaml` file as well (eg,
   https://github.com/dart-lang/webdev/pull/1462)
-- For any directories you’ve touched, run `dart run build_runner build` to 
+- For any directories you’ve touched, run `dart run build_runner build` to
   check in any file that should be built. This will make sure the integration
   tests are run against the built files.
 
+## g3 Rolls
+
+DWDS is rolled automatically into g3 along with the Dart SDK. For more information, or to learn how to handle breaking changes, see go/roll-dwds.
+
 ## Release steps
 
-### Step 1: Roll DWDS into g3
-
-> _NOTE: You must be a Googler to do this step. If you are not, please ask
-> someone for help._
-
-- See directions at: go/roll-dwds
-- Wait a few days after rolling into g3 before continuing to step 2. We do so to
-  have time to catch new bugs internally before publishing externally. Look for
-  any new exceptions at go/ddt-web-dashboard
-
-## Step 2: Publish DWDS to pub
+## Step 1: Publish DWDS to pub
 
 - From the `/tool` directory in the mono-repo root, run: `dart run release.dart -p dwds`
 - Submit a PR with those changes (example PR: https://github.com/dart-lang/webdev/pull/1456)
 - Once the PR is submitted, go to https://github.com/dart-lang/webdev/releases and create a new
   release, eg https://github.com/dart-lang/webdev/releases/tag/dwds-v12.0.0. This should trigger
   the auto-publisher. Verify that the package is published.
-- From the `/tool` directory in the mono-repo root, run: `dart run release.dart --reset -p dwds`
+- From the `/tool` directory in the mono-repo root, run: `dart run release.dart --reset -p dwds -v <<new version tag>>` where the new version tag is the next minor version postfixed with `-wip` ([example PR](https://github.com/dart-lang/webdev/pull/2267/files))
 - Submit a PR with those changes.
 
 > _Note: To have the right permissions for publishing, you need to be invited to
 > the tools.dart.dev. A member of the Dart team should be able to add you at
 > https://pub.dev/publishers/tools.dart.dev/admin._
 
-## Step 3: Publish Webdev to pub
+## Step 2: Publish Webdev to pub
 
 > _Note: DWDS is a dependency of Webdev, which is why DWDS must be published
 > before Webdev can be published._

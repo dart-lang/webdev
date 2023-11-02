@@ -11,7 +11,7 @@ class TestInspector {
   TestInspector(this.context);
   TestContext context;
 
-  VmServiceInterface get service => context.debugConnection.vmService;
+  VmService get service => context.debugConnection.vmService;
 
   Future<void> onBreakPoint(
     Stream<Event> stream,

@@ -298,7 +298,9 @@ class Locations {
       }
       final result = <Location>{};
       if (module.isEmpty) return _moduleToLocations[module] = result;
-      if (module.endsWith('dart_sdk') || module.endsWith('dart_library')) {
+      if (module.endsWith('dart_sdk') ||
+          (module.endsWith('dart_library') &&
+              !module.endsWith('.dart_library'))) {
         return result;
       }
       final modulePath = await globalToolConfiguration.loadStrategy

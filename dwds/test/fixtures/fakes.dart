@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:dwds/asset_reader.dart';
-import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
@@ -16,6 +15,7 @@ import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
@@ -180,8 +180,11 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Future enable() async => null;
 
   FakeWebkitDebugger({Map<String, WipScript>? scripts}) : _scripts = scripts {
+    final buildSettings = TestBuildSettings.dart(
+      appEntrypoint: Uri.parse('package:fakeapp/main.dart'),
+    );
     setGlobalsForTesting(
-      toolConfiguration: TestToolConfiguration.forTests(
+      toolConfiguration: TestToolConfiguration.withLoadStrategy(
         loadStrategy: RequireStrategy(
           ReloadConfiguration.none,
           (_) async => {},
@@ -192,7 +195,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
           (String _) => '',
           (MetadataProvider _) async => <String, ModuleInfo>{},
           FakeAssetReader(),
-          Uri.parse('package:fakeapp/main.dart'),
+          buildSettings,
         ),
       ),
     );
@@ -317,10 +320,16 @@ class FakeExecutionContext extends ExecutionContext {
 }
 
 class FakeStrategy extends LoadStrategy {
+  final BuildSettings _buildSettings;
+
   FakeStrategy(
     super.assetReader, {
     super.packageConfigPath,
-  });
+    BuildSettings? buildSettings,
+  }) : _buildSettings = buildSettings ??
+            TestBuildSettings.dart(
+              appEntrypoint: Uri.parse('package:myapp/main.dart'),
+            );
 
   @override
   Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
@@ -330,6 +339,9 @@ class FakeStrategy extends LoadStrategy {
       (request) => (request.url.path == 'someDummyPath')
           ? shelf.Response.ok('some dummy response')
           : shelf.Response.notFound('someDummyPath');
+
+  @override
+  BuildSettings get buildSettings => _buildSettings;
 
   @override
   String get id => 'dummy-id';
@@ -342,9 +354,6 @@ class FakeStrategy extends LoadStrategy {
 
   @override
   String get loadModuleSnippet => '';
-
-  @override
-  Uri? get appEntrypoint => Uri.parse('package:myapp/main.dart');
 
   @override
   String? g3RelativePath(String absolutePath) => null;
@@ -389,7 +398,7 @@ class FakeAssetReader implements AssetReader {
   final String? _metadata;
   final String? _dartSource;
   final String? _sourceMap;
-  FakeAssetReader({
+  const FakeAssetReader({
     metadata,
     dartSource,
     sourceMap,
@@ -443,10 +452,7 @@ class FakeExpressionCompiler implements ExpressionCompiler {
       true;
 
   @override
-  Future<void> initialize({
-    required String moduleFormat,
-    bool soundNullSafety = false,
-  }) async {}
+  Future<void> initialize(CompilerOptions options) async {}
 }
 
 final fakeWipResponse = WipResponse({

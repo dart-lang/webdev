@@ -24,9 +24,7 @@ void main() {
   setUpAll(() async {
     // Disable DDS as we're testing DWDS behavior.
     await context.setUp(
-      debugSettings: TestDebugSettings.noDevTools().copyWith(
-        spawnDds: false,
-      ),
+      debugSettings: TestDebugSettings.noDevTools().copyWith(spawnDds: false),
     );
   });
 

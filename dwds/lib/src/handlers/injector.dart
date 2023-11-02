@@ -96,7 +96,8 @@ class DwdsInjector {
               devHandlerPath = '$requestedUriBase/$devHandlerPath';
               _devHandlerPaths.add(devHandlerPath);
               final entrypoint = request.url.path;
-              globalToolConfiguration.loadStrategy.trackEntrypoint(entrypoint);
+              await globalToolConfiguration.loadStrategy
+                  .trackEntrypoint(entrypoint);
               body = await _injectClientAndHoistMain(
                 body,
                 appId,
@@ -184,25 +185,32 @@ Future<String> _injectedClientSnippet(
   String entrypointPath,
   String? extensionUri,
 ) async {
-  final isFlutterApp = await globalToolConfiguration.appMetadata.isFlutterApp();
+  final loadStrategy = globalToolConfiguration.loadStrategy;
+  final buildSettings = loadStrategy.buildSettings;
+  final appMetadata = globalToolConfiguration.appMetadata;
+  final debugSettings = globalToolConfiguration.debugSettings;
+
   var injectedBody = 'window.\$dartAppId = "$appId";\n'
-      'window.\$dartReloadConfiguration = "${globalToolConfiguration.loadStrategy.reloadConfiguration}";\n'
-      'window.\$dartModuleStrategy = "${globalToolConfiguration.loadStrategy.id}";\n'
-      'window.\$loadModuleConfig = ${globalToolConfiguration.loadStrategy.loadModuleSnippet};\n'
+      'window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
+      'window.\$dartModuleStrategy = "${loadStrategy.id}";\n'
+      'window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
       'window.\$dwdsVersion = "$packageVersion";\n'
       'window.\$dwdsDevHandlerPath = "$devHandlerPath";\n'
-      'window.\$dwdsEnableDevToolsLaunch = ${globalToolConfiguration.debugSettings.enableDevToolsLaunch};\n'
+      'window.\$dwdsEnableDevToolsLaunch = ${debugSettings.enableDevToolsLaunch};\n'
       'window.\$dartEntrypointPath = "$entrypointPath";\n'
-      'window.\$dartEmitDebugEvents = ${globalToolConfiguration.debugSettings.emitDebugEvents};\n'
-      'window.\$isInternalBuild = ${globalToolConfiguration.appMetadata.isInternalBuild};\n'
-      'window.\$isFlutterApp = $isFlutterApp;\n'
-      '${globalToolConfiguration.loadStrategy.loadClientSnippet(_clientScript)}';
+      'window.\$dartEmitDebugEvents = ${debugSettings.emitDebugEvents};\n'
+      'window.\$isInternalBuild = ${appMetadata.isInternalBuild};\n'
+      'window.\$isFlutterApp = ${buildSettings.isFlutterApp};\n'
+      '${loadStrategy.loadClientSnippet(_clientScript)}';
+
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';
   }
-  final workspaceName = globalToolConfiguration.appMetadata.workspaceName;
+
+  final workspaceName = appMetadata.workspaceName;
   if (workspaceName != null) {
     injectedBody += 'window.\$dartWorkspaceName = "$workspaceName";\n';
   }
+
   return injectedBody;
 }

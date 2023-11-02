@@ -111,7 +111,10 @@ Future<void> attachDebugger(
   required Trigger trigger,
 }) async {
   // Validate that the tab can be debugged:
-  final tabIsDebuggable = await _validateTabIsDebuggable(dartAppTabId);
+  final tabIsDebuggable = await _validateTabIsDebuggable(
+    dartAppTabId,
+    forwardErrorsToCider: trigger == Trigger.cider,
+  );
   if (!tabIsDebuggable) return;
 
   _tabIdToTrigger[dartAppTabId] = trigger;
@@ -168,12 +171,16 @@ Future<void> clearStaleDebugSession(int tabId) async {
   }
 }
 
-Future<bool> _validateTabIsDebuggable(int dartAppTabId) async {
+Future<bool> _validateTabIsDebuggable(
+  int dartAppTabId, {
+  bool forwardErrorsToCider = false,
+}) async {
   // Check if a debugger is already attached:
   final existingDebuggerLocation = _debuggerLocation(dartAppTabId);
   if (existingDebuggerLocation != null) {
-    await _showWarningNotification(
+    await _showWarning(
       'Already debugging in ${existingDebuggerLocation.displayName}.',
+      forwardToCider: forwardErrorsToCider,
     );
     return false;
   }
@@ -183,7 +190,10 @@ Future<bool> _validateTabIsDebuggable(int dartAppTabId) async {
     tabId: dartAppTabId,
   );
   if (debugInfo == null) {
-    await _showWarningNotification('Not a Dart app.');
+    await _showWarning(
+      'Not a Dart app.',
+      forwardToCider: forwardErrorsToCider,
+    );
     return false;
   }
   // Determine if there are multiple apps in the tab:
@@ -192,8 +202,9 @@ Future<bool> _validateTabIsDebuggable(int dartAppTabId) async {
     tabId: dartAppTabId,
   );
   if (multipleApps != null) {
-    await _showWarningNotification(
+    await _showWarning(
       'Dart debugging is not supported in a multi-app environment.',
+      forwardToCider: forwardErrorsToCider,
     );
     return false;
   }
@@ -690,6 +701,21 @@ Future<bool> _sendAuthRequest(String authUrl) async {
   final response = await fetchRequest(authUrl);
   final responseBody = response.body ?? '';
   return responseBody.contains('Dart Debug Authentication Success!');
+}
+
+Future<bool> _showWarning(
+  String message, {
+  bool forwardToCider = false,
+}) {
+  if (forwardToCider) {
+    sendErrorMessageToCider(
+      errorType: CiderErrorType.invalidRequest,
+      errorDetails: message,
+    );
+    return Future.value(true);
+  } else {
+    return _showWarningNotification(message);
+  }
 }
 
 Future<bool> _showWarningNotification(String message) {

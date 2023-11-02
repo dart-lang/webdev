@@ -123,8 +123,8 @@ class RequireStrategy extends LoadStrategy {
   ) _moduleInfoForProvider;
 
   @override
-  Uri? get appEntrypoint => _appEntrypoint;
-  final Uri? _appEntrypoint;
+  BuildSettings get buildSettings => _buildSettings;
+  final BuildSettings _buildSettings;
 
   RequireStrategy(
     this.reloadConfiguration,
@@ -136,7 +136,7 @@ class RequireStrategy extends LoadStrategy {
     this._serverPathForAppUri,
     this._moduleInfoForProvider,
     AssetReader assetReader,
-    this._appEntrypoint,
+    this._buildSettings,
   ) : super(assetReader);
 
   @override

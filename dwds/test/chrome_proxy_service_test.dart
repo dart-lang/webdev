@@ -19,10 +19,12 @@ import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 void main() {
   // Change to true to see verbose output from the tests.
@@ -37,8 +39,10 @@ void main() {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        enableExpressionEvaluation: true,
-        verboseCompiler: false,
+        testSettings: TestSettings(
+          enableExpressionEvaluation: true,
+          verboseCompiler: false,
+        ),
       );
     });
 
