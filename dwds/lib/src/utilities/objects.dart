@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// A library for WebKit mirror objects and support code. These probably should
-/// get migrated into webkit_inspection_protocol over time.
+/// A library for WebKit mirror objects and support code.
+///
+/// These probably should get migrated into
+/// `package:webkit_inspection_protocol` over time.
+library;
 
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 

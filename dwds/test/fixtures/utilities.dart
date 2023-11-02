@@ -8,7 +8,6 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/server_log.dart';
 import 'package:dds/devtools_server.dart';
-import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/servers/devtools.dart';
@@ -117,33 +116,20 @@ class TestDebugSettings extends DebugSettings {
 
   const TestDebugSettings.noDevTools() : super(enableDevToolsLaunch: false);
 
-  const TestDebugSettings._({
-    required bool enableDebugging,
-    required bool enableDebugExtension,
-    required bool useSseForDebugBackend,
-    required bool useSseForDebugProxy,
-    required bool useSseForInjectedClient,
-    required bool spawnDds,
-    required bool enableDevToolsLaunch,
-    required bool launchDevToolsInNewWindow,
-    required bool emitDebugEvents,
-    required DevToolsLauncher? devToolsLauncher,
-    required ExpressionCompiler? expressionCompiler,
-    required UrlEncoder? urlEncoder,
-  }) : super(
-          enableDebugging: enableDebugging,
-          enableDebugExtension: enableDebugExtension,
-          useSseForDebugBackend: useSseForDebugBackend,
-          useSseForDebugProxy: useSseForDebugProxy,
-          useSseForInjectedClient: useSseForInjectedClient,
-          spawnDds: spawnDds,
-          enableDevToolsLaunch: enableDevToolsLaunch,
-          launchDevToolsInNewWindow: launchDevToolsInNewWindow,
-          emitDebugEvents: emitDebugEvents,
-          devToolsLauncher: devToolsLauncher,
-          expressionCompiler: expressionCompiler,
-          urlEncoder: urlEncoder,
-        );
+  TestDebugSettings._({
+    required super.enableDebugging,
+    required super.enableDebugExtension,
+    required super.useSseForDebugBackend,
+    required super.useSseForDebugProxy,
+    required super.useSseForInjectedClient,
+    required super.spawnDds,
+    required super.enableDevToolsLaunch,
+    required super.launchDevToolsInNewWindow,
+    required super.emitDebugEvents,
+    required super.devToolsLauncher,
+    required super.expressionCompiler,
+    required super.urlEncoder,
+  });
 
   TestDebugSettings copyWith({
     bool? enableDebugging,
@@ -177,20 +163,16 @@ class TestDebugSettings extends DebugSettings {
 
 class TestAppMetadata extends AppMetadata {
   const TestAppMetadata({
-    bool isInternalBuild = false,
-    String? workspaceName,
-    String hostname = 'localhost',
-  }) : super(
-          isInternalBuild: isInternalBuild,
-          workspaceName: workspaceName,
-          hostname: hostname,
-        );
+    super.isInternalBuild,
+    super.workspaceName,
+    super.hostname = 'localhost',
+  });
 
   TestAppMetadata copyWith({
     bool? isFlutterApp,
     bool? isInternalBuild,
     String? workspaceName,
-    String? hostname = 'localhost',
+    String? hostname,
   }) =>
       TestAppMetadata(
         isInternalBuild: isInternalBuild ?? this.isInternalBuild,
@@ -205,24 +187,20 @@ class TestAppMetadata extends AppMetadata {
 
 class TestToolConfiguration extends ToolConfiguration {
   TestToolConfiguration.withDefaultLoadStrategy({
-    TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
-    TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
+    TestAppMetadata super.appMetadata = const TestAppMetadata.externalApp(),
+    TestDebugSettings super.debugSettings =
+        const TestDebugSettings.noDevTools(),
     TestBuildSettings buildSettings = const TestBuildSettings.dart(),
   }) : super(
           loadStrategy: TestStrategy(const FakeAssetReader(), buildSettings),
-          debugSettings: debugSettings,
-          appMetadata: appMetadata,
         );
 
   TestToolConfiguration.withLoadStrategy({
-    TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
-    TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
-    required LoadStrategy loadStrategy,
-  }) : super(
-          loadStrategy: loadStrategy,
-          debugSettings: debugSettings,
-          appMetadata: appMetadata,
-        );
+    TestAppMetadata super.appMetadata = const TestAppMetadata.externalApp(),
+    TestDebugSettings super.debugSettings =
+        const TestDebugSettings.noDevTools(),
+    required super.loadStrategy,
+  });
 }
 
 void setGlobalsForTesting({
@@ -242,12 +220,9 @@ void setGlobalsForTestingFromBuild({
 
 class TestStrategy extends FakeStrategy {
   TestStrategy(
-    AssetReader assetReader,
+    super.assetReader,
     BuildSettings buildSettings,
-  ) : super(
-          assetReader,
-          buildSettings: buildSettings,
-        );
+  ) : super(buildSettings: buildSettings);
 
   @override
   String serverPathForAppUri(String appUri) {
@@ -290,16 +265,11 @@ class TestSettings {
 /// App build settings for tests.
 class TestBuildSettings extends BuildSettings {
   const TestBuildSettings({
-    Uri? appEntrypoint,
-    bool canaryFeatures = false,
-    bool isFlutterApp = true,
-    List<String> experiments = const <String>[],
-  }) : super(
-          appEntrypoint: appEntrypoint,
-          canaryFeatures: canaryFeatures,
-          isFlutterApp: isFlutterApp,
-          experiments: experiments,
-        );
+    super.appEntrypoint,
+    super.canaryFeatures,
+    super.isFlutterApp,
+    super.experiments,
+  });
 
   const TestBuildSettings.dart({Uri? appEntrypoint})
       : this(appEntrypoint: appEntrypoint, isFlutterApp: false);
@@ -324,12 +294,11 @@ class TestBuildSettings extends BuildSettings {
 class TestCompilerOptions extends CompilerOptions {
   TestCompilerOptions({
     required NullSafety nullSafety,
-    required bool canaryFeatures,
+    required super.canaryFeatures,
     required List<String> experiments,
   }) : super(
           moduleFormat: 'amd',
           soundNullSafety: nullSafety == NullSafety.sound,
-          canaryFeatures: canaryFeatures,
           experiments: const <String>[],
         );
 }

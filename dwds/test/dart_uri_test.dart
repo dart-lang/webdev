@@ -5,7 +5,6 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
 
-import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -15,7 +14,7 @@ import 'fixtures/fakes.dart';
 import 'fixtures/utilities.dart';
 
 class TestStrategy extends FakeStrategy {
-  TestStrategy(AssetReader assetReader) : super(assetReader);
+  TestStrategy(super.assetReader);
 
   @override
   String? serverPathForAppUri(String appUrl) {
@@ -34,7 +33,7 @@ class TestStrategy extends FakeStrategy {
 }
 
 class G3TestStrategy extends FakeStrategy {
-  G3TestStrategy(AssetReader assetReader) : super(assetReader);
+  G3TestStrategy(super.assetReader);
 
   @override
   String? g3RelativePath(String absolutePath) =>

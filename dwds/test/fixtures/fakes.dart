@@ -323,14 +323,13 @@ class FakeStrategy extends LoadStrategy {
   final BuildSettings _buildSettings;
 
   FakeStrategy(
-    AssetReader assetReader, {
-    String? packageConfigPath,
+    super.assetReader, {
+    super.packageConfigPath,
     BuildSettings? buildSettings,
-  })  : _buildSettings = buildSettings ??
+  }) : _buildSettings = buildSettings ??
             TestBuildSettings.dart(
               appEntrypoint: Uri.parse('package:myapp/main.dart'),
-            ),
-        super(assetReader, packageConfigPath: packageConfigPath);
+            );
 
   @override
   Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
