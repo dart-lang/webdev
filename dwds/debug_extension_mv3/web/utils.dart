@@ -84,7 +84,6 @@ void displayNotification(
           isError ? 'static_assets/dart_warning.png' : 'static_assets/dart.png',
       type: 'basic',
     ),
-    // callback
     callback,
   );
 }
