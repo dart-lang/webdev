@@ -1,6 +1,6 @@
 {
   "name": "Dart Debug Extension",
-  "version": "1.38",
+  "version": "1.40",
   "manifest_version": 3,
   "devtools_page": "static_assets/devtools.html",
   "action": {
@@ -32,7 +32,6 @@
     {
       "matches": ["<all_urls>"],
       "js": ["detector.dart.js", "copier.dart.js"],
-      "css": ["static_assets/styles.css"],
       "run_at": "document_end"
     }
   ],

@@ -42,14 +42,12 @@ void _copyAppId(String appId) {
   final clipboard = window.navigator.clipboard;
   if (clipboard == null) return;
   clipboard.writeText(appId);
-  _showCopiedMessage(appId);
+  _notifyCopiedSuccess(appId);
 }
 
-Future<void> _showCopiedMessage(String appId) async {
-  final snackbar = document.createElement('div');
-  snackbar.setInnerHtml('Copied app ID: <i>$appId</i>');
-  snackbar.classes.addAll(['snackbar', 'snackbar--info', 'show']);
-  document.body?.append(snackbar);
-  await Future.delayed(Duration(seconds: 4));
-  snackbar.remove();
-}
+Future<bool> _notifyCopiedSuccess(String appId) => sendRuntimeMessage(
+      type: MessageType.appId,
+      body: appId,
+      sender: Script.copier,
+      recipient: Script.background,
+    );

@@ -75,7 +75,7 @@ h6 {
 }
 
 .snackbar {
-  top: 0px;
+  bottom: 0px;
   color: #eeeeee;
   font-family:  Roboto, 'Helvetica Neue', sans-serif;
   left: 0px;
@@ -113,44 +113,22 @@ h6 {
 
 @-webkit-keyframes fadein {
   from {
-    top: 0;
+    bottom: 0;
     opacity: 0;
   }
   to {
-    top: 0px;
+    bottom: 0px;
     opacity: 1;
   }
 }
 
 @keyframes fadein {
   from {
-    top: 0;
+    bottom: 0;
     opacity: 0;
   }
   to {
-    top: 0px;
+    bottom: 0px;
     opacity: 1;
-  }
-}
-
-@-webkit-keyframes fadeout {
-  from {
-    top: 0px;
-    opacity: 1;
-  }
-  to {
-    top: 0;
-    opacity: 0;
-  }
-}
-
-@keyframes fadeout {
-  from {
-    top: 0px;
-    opacity: 1;
-  }
-  to {
-    top: 0;
-    opacity: 0;
   }
 }
