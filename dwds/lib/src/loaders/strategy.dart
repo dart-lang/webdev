@@ -120,20 +120,26 @@ abstract class LoadStrategy {
       );
 
   /// Returns the [MetadataProvider] for the application located at the provided
-  /// [entrypoint].
-  MetadataProvider metadataProviderFor(String entrypoint) {
-    if (_providers.containsKey(entrypoint)) {
-      return _providers[entrypoint]!;
+  /// [appName].
+  MetadataProvider metadataProviderFor(String appName) {
+    if (_providers.containsKey(appName)) {
+      return _providers[appName]!;
     } else {
-      throw StateError('No metadata provider for $entrypoint');
+      throw StateError('No metadata provider for $appName');
     }
   }
 
+  /// A hook for the implementers read data after the first entrypoint is loaded
+  Future<void> trackEntrypoint(String entrypoint) async {}
+
   /// Initializes a [MetadataProvider] for the application located at the
   /// provided [entrypoint].
-  Future<void> trackEntrypoint(String entrypoint) async {
-    final metadataProvider = MetadataProvider(entrypoint, _assetReader);
-    _providers[metadataProvider.entrypoint] = metadataProvider;
+  void trackAppEntrypoint(String appName, String entrypoint) {
+    final MetadataProvider metadataProvider = _providers.putIfAbsent(
+      appName,
+      () => MetadataProvider(appName, _assetReader),
+    );
+    metadataProvider.update(entrypoint);
   }
 }
 

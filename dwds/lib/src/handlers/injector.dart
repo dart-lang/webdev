@@ -96,9 +96,11 @@ class DwdsInjector {
               devHandlerPath = '$requestedUriBase/$devHandlerPath';
               _devHandlerPaths.add(devHandlerPath);
               final entrypoint = request.url.path;
+
+              // TODO: define a separate API for reading build metadata and app's metadata?
               await globalToolConfiguration.loadStrategy
                   .trackEntrypoint(entrypoint);
-              body = await _injectClientAndHoistMain(
+              body = _injectClientAndHoistMain(
                 body,
                 appId,
                 devHandlerPath,
@@ -130,13 +132,13 @@ class DwdsInjector {
 
 /// Returns the provided body with the main function hoisted into a global
 /// variable and a snippet of JS that loads the injected client.
-Future<String> _injectClientAndHoistMain(
+String _injectClientAndHoistMain(
   String body,
   String appId,
   String devHandlerPath,
   String entrypointPath,
   String? extensionUri,
-) async {
+) {
   final bodyLines = body.split('\n');
   final extensionIndex =
       bodyLines.indexWhere((line) => line.contains(mainExtensionMarker));
@@ -148,7 +150,7 @@ Future<String> _injectClientAndHoistMain(
   // We inject the client in the entry point module as the client expects the
   // application to be in a ready state, that is the main function is hoisted
   // and the Dart SDK is loaded.
-  final injectedClientSnippet = await _injectedClientSnippet(
+  final injectedClientSnippet = _injectedClientSnippet(
     appId,
     devHandlerPath,
     entrypointPath,
@@ -167,10 +169,18 @@ Future<String> _injectClientAndHoistMain(
     }
     $injectedClientSnippet
   } else {
-    if(window.\$dartMainExecuted){
-     $mainFunction();
-    }else {
-     window.\$dartMainTearOffs.push($mainFunction);
+    console.log("INJECTOR: registering entrypoint...");
+    if (typeof window.\$dartRegisterEntrypoint != "undefined") {
+      console.log("INJECTOR: registering entrypoint with dev handler");
+      window.\$dartRegisterEntrypoint(
+          /* app name */ appName,
+          /* entrypoint */ "$entrypointPath",
+      );
+    } 
+    if (window.\$dartMainExecuted) {
+      $mainFunction();
+    } else {
+      window.\$dartMainTearOffs.push($mainFunction);
     }
   }
   ''';
@@ -179,38 +189,49 @@ Future<String> _injectClientAndHoistMain(
 }
 
 /// JS snippet which includes global variables required for debugging.
-Future<String> _injectedClientSnippet(
+String _injectedClientSnippet(
   String appId,
   String devHandlerPath,
   String entrypointPath,
   String? extensionUri,
-) async {
+) {
   final loadStrategy = globalToolConfiguration.loadStrategy;
   final buildSettings = loadStrategy.buildSettings;
   final appMetadata = globalToolConfiguration.appMetadata;
   final debugSettings = globalToolConfiguration.debugSettings;
 
-  var injectedBody = 'window.\$dartAppId = "$appId";\n'
-      'window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
-      'window.\$dartModuleStrategy = "${loadStrategy.id}";\n'
-      'window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
-      'window.\$dwdsVersion = "$packageVersion";\n'
-      'window.\$dwdsDevHandlerPath = "$devHandlerPath";\n'
-      'window.\$dwdsEnableDevToolsLaunch = ${debugSettings.enableDevToolsLaunch};\n'
-      'window.\$dartEntrypointPath = "$entrypointPath";\n'
-      'window.\$dartEmitDebugEvents = ${debugSettings.emitDebugEvents};\n'
-      'window.\$isInternalBuild = ${appMetadata.isInternalBuild};\n'
-      'window.\$isFlutterApp = ${buildSettings.isFlutterApp};\n'
-      '${loadStrategy.loadClientSnippet(_clientScript)}';
+  var injectedBody = '\n'
+      '    console.log("INJECTOR: registering app: \${appName}.");\n'
+      '    window.\$dwdsVersion = "$packageVersion";\n' // used by DDC
+      '\n'
+      '    let appRecord = {};\n'
+      '    appRecord.moduleStrategy = "${loadStrategy.id}";\n'
+      '    appRecord.reloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
+      '    appRecord.loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
+      '    appRecord.dwdsVersion = "$packageVersion";\n'
+      '    appRecord.enableDevtoolsLaunch = ${debugSettings.enableDevToolsLaunch};\n'
+      '    appRecord.emitDebugEvents = ${debugSettings.emitDebugEvents};\n'
+      '    appRecord.isInternalBuild = ${appMetadata.isInternalBuild};\n'
+      '    appRecord.appName = appName;\n'
+      '    appRecord.appId = "$appId";\n'
+      '    appRecord.isFlutterApp = ${buildSettings.isFlutterApp};\n'
+      '    appRecord.devHandlerPath = "$devHandlerPath";\n'
+      '    appRecord.entrypoints = new Array();\n'
+      '    appRecord.entrypoints.push("$entrypointPath");\n';
 
   if (extensionUri != null) {
-    injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';
+    injectedBody += '    appRecord.extensionUrl = "$extensionUri";\n';
   }
 
   final workspaceName = appMetadata.workspaceName;
   if (workspaceName != null) {
-    injectedBody += 'window.\$dartWorkspaceName = "$workspaceName";\n';
+    injectedBody += '    appRecord.workspaceName = "$workspaceName";\n';
   }
+
+  injectedBody += '\n'
+      '    window.\$dartAppInfo = appRecord;\n'
+      '    console.log("INJECTOR: Loading injected client...");\n'
+      '    ${loadStrategy.loadClientSnippet(_clientScript)};\n';
 
   return injectedBody;
 }

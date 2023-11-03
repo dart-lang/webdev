@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -18,6 +19,9 @@ abstract class ConnectRequest
 
   ConnectRequest._();
 
+  /// Whole app name.
+  String get appName;
+
   /// Identifies a given application, across tabs/windows.
   String get appId;
 
@@ -25,5 +29,5 @@ abstract class ConnectRequest
   String get instanceId;
 
   /// The entrypoint for the Dart application.
-  String get entrypointPath;
+  BuiltList<String> get entrypoints;
 }

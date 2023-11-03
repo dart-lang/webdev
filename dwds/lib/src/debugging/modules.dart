@@ -21,7 +21,7 @@ class Modules {
 
   final Map<String, String> _libraryToModule = {};
 
-  late String _entrypoint;
+  late String _appName;
 
   Modules(this._root);
 
@@ -29,14 +29,14 @@ class Modules {
   ///
   /// Intended to be called multiple times throughout the development workflow,
   /// e.g. after a hot-reload.
-  void initialize(String entrypoint) {
+  void initialize(String appName) {
     // We only clear the source to module mapping as script IDs may persist
     // across hot reloads.
     _sourceToModule.clear();
     _sourceToLibrary.clear();
     _libraryToModule.clear();
     _moduleMemoizer = AsyncMemoizer();
-    _entrypoint = entrypoint;
+    _appName = appName;
   }
 
   /// Returns the containing module for the provided Dart server path.
@@ -65,7 +65,7 @@ class Modules {
   /// Initializes [_sourceToModule] and [_sourceToLibrary].
   Future<void> _initializeMapping() async {
     final provider =
-        globalToolConfiguration.loadStrategy.metadataProviderFor(_entrypoint);
+        globalToolConfiguration.loadStrategy.metadataProviderFor(_appName);
 
     final libraryToScripts = await provider.scripts;
     final scriptToModule = await provider.scriptToModule;

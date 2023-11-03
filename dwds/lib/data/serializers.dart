@@ -13,6 +13,7 @@ import 'devtools_request.dart';
 import 'error_response.dart';
 import 'extension_request.dart';
 import 'isolate_events.dart';
+import 'register_entrypoint_request.dart';
 import 'register_event.dart';
 import 'run_request.dart';
 
@@ -34,6 +35,7 @@ part 'serializers.g.dart';
   ExtensionResponse,
   ExtensionEvent,
   ErrorResponse,
+  RegisterEntrypointRequest,
   RegisterEvent,
   RunRequest,
 ])

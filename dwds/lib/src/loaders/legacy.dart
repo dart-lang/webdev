@@ -106,7 +106,7 @@ class LegacyStrategy extends LoadStrategy {
 
   @override
   String loadClientSnippet(String clientScript) =>
-      'window.\$dartLoader.forceLoadModule("$clientScript");\n';
+      'window.\$dartLoader.forceLoadModule("$clientScript")';
 
   @override
   Future<String?> moduleForServerPath(String entrypoint, String serverPath) =>

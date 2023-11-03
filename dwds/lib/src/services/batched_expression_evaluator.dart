@@ -34,13 +34,13 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
   bool _closed = false;
 
   BatchedExpressionEvaluator(
-    String entrypoint,
+    String appName,
     this._inspector,
     Debugger debugger,
     Locations locations,
     Modules modules,
     ExpressionCompiler compiler,
-  ) : super(entrypoint, _inspector, debugger, locations, modules, compiler) {
+  ) : super(appName, _inspector, debugger, locations, modules, compiler) {
     _requestController.stream.listen(_processRequest);
   }
 

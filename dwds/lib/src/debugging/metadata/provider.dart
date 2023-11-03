@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 
-import 'package:async/async.dart';
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:logging/logging.dart';
@@ -14,7 +14,7 @@ import 'package:path/path.dart' as p;
 class MetadataProvider {
   final AssetReader _assetReader;
   final _logger = Logger('MetadataProvider');
-  final String entrypoint;
+  final String appName;
   bool _soundNullSafety;
   final List<String> _libraries = [];
   final Map<String, String> _scriptToModule = {};
@@ -22,7 +22,11 @@ class MetadataProvider {
   final Map<String, String> _modulePathToModule = {};
   final Map<String, String> _moduleToModulePath = {};
   final Map<String, List<String>> _scripts = {};
-  final _metadataMemoizer = AsyncMemoizer();
+
+  final _mainEntrypointCompleter = Completer<String>();
+  Future<String> get mainEntrypoint => _mainEntrypointCompleter.future;
+
+  final _entryPoints = <String, Future<void>>{};
 
   /// Implicitly imported libraries in any DDC component.
   ///
@@ -64,8 +68,7 @@ class MetadataProvider {
         'dart:ui',
       ];
 
-  MetadataProvider(this.entrypoint, this._assetReader)
-      : _soundNullSafety = false;
+  MetadataProvider(this.appName, this._assetReader) : _soundNullSafety = false;
 
   /// A sound null safety mode for the whole app.
   ///
@@ -176,44 +179,55 @@ class MetadataProvider {
   }
 
   Future<void> _initialize() async {
-    await _metadataMemoizer.runOnce(() async {
-      var hasSoundNullSafety = true;
-      var hasUnsoundNullSafety = true;
-      // The merged metadata resides next to the entrypoint.
-      // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
-      if (entrypoint.endsWith('.bootstrap.js')) {
-        _logger.info('Loading debug metadata...');
-        final serverPath =
-            entrypoint.replaceAll('.bootstrap.js', '.ddc_merged_metadata');
-        final merged = await _assetReader.metadataContents(serverPath);
-        if (merged != null) {
-          _addSdkMetadata();
-          for (var contents in merged.split('\n')) {
-            try {
-              if (contents.isEmpty ||
-                  contents.startsWith('// intentionally empty:')) continue;
-              final moduleJson = json.decode(contents);
-              final metadata =
-                  ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
-              _addMetadata(metadata);
-              hasUnsoundNullSafety &= !metadata.soundNullSafety;
-              hasSoundNullSafety &= metadata.soundNullSafety;
-              _logger
-                  .fine('Loaded debug metadata for module: ${metadata.name}');
-            } catch (e) {
-              _logger.warning('Failed to read metadata: $e');
-              rethrow;
-            }
+    // TODO: run in a sequence? not sure if there are races.
+    await mainEntrypoint;
+    await Future.wait(_entryPoints.values);
+  }
+
+  void update(String entrypoint) {
+    // The first registered entrypoint is the main one.
+    if (!_mainEntrypointCompleter.isCompleted) {
+      _mainEntrypointCompleter.complete(entrypoint);
+    }
+    _entryPoints.putIfAbsent(entrypoint, () => _update(entrypoint));
+  }
+
+  Future<void> _update(String entrypoint) async {
+    var hasSoundNullSafety = true;
+    var hasUnsoundNullSafety = true;
+    // The merged metadata resides next to the entrypoint.
+    // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
+    if (entrypoint.endsWith('.bootstrap.js')) {
+      _logger.info('Loading debug metadata...');
+      final serverPath =
+          entrypoint.replaceAll('.bootstrap.js', '.ddc_merged_metadata');
+      final merged = await _assetReader.metadataContents(serverPath);
+      if (merged != null) {
+        _addSdkMetadata();
+        for (var contents in merged.split('\n')) {
+          try {
+            if (contents.isEmpty ||
+                contents.startsWith('// intentionally empty:')) continue;
+            final moduleJson = json.decode(contents);
+            final metadata =
+                ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
+            _addMetadata(metadata);
+            hasUnsoundNullSafety &= !metadata.soundNullSafety;
+            hasSoundNullSafety &= metadata.soundNullSafety;
+            _logger.fine('Loaded debug metadata for module: ${metadata.name}');
+          } catch (e) {
+            _logger.warning('Failed to read metadata: $e');
+            rethrow;
           }
-          if (!hasSoundNullSafety && !hasUnsoundNullSafety) {
-            throw Exception('Metadata contains modules with mixed null safety');
-          }
-          _soundNullSafety = hasSoundNullSafety;
         }
-        _logger.info('Loaded debug metadata '
-            '(${_soundNullSafety ? "sound" : "weak"} null safety)');
+        if (!hasSoundNullSafety && !hasUnsoundNullSafety) {
+          throw Exception('Metadata contains modules with mixed null safety');
+        }
+        _soundNullSafety = hasSoundNullSafety;
       }
-    });
+      _logger.info('Loaded debug metadata '
+          '(${_soundNullSafety ? "sound" : "weak"} null safety)');
+    }
   }
 
   void _addMetadata(ModuleMetadata metadata) {
