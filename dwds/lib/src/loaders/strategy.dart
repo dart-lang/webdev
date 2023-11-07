@@ -131,7 +131,7 @@ abstract class LoadStrategy {
 
   /// Initializes a [MetadataProvider] for the application located at the
   /// provided [entrypoint].
-  Future<void> trackEntrypoint(String entrypoint) async {
+  void trackEntrypoint(String entrypoint) {
     final metadataProvider = MetadataProvider(entrypoint, _assetReader);
     _providers[metadataProvider.entrypoint] = metadataProvider;
   }
