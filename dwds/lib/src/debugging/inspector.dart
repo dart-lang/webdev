@@ -366,7 +366,7 @@ class AppInspector implements AppInspectorInterface {
   Future<RemoteObject> callFunction(
     String function,
     Iterable<String> argumentIds,
-  ) async {
+  ) {
     final arguments = argumentIds.map(remoteObjectFor).toList();
     return _jsCallFunction(function, arguments);
   }
