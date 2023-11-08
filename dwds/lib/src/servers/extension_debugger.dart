@@ -192,7 +192,7 @@ class ExtensionDebugger implements RemoteDebugger {
   int newId() => _completerId++;
 
   @override
-  void close() => _closed ??= () {
+  Future<void> close() => _closed ??= () {
         _closeController.add({});
         return Future.wait([
           sseConnection.sink.close(),

@@ -72,5 +72,5 @@ abstract class RemoteDebugger {
 
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer);
 
-  void close();
+  Future<void> close();
 }
