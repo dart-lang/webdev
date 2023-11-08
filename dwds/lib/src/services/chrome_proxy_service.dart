@@ -392,7 +392,7 @@ class ChromeProxyService implements VmServiceInterface {
     String scriptId,
     int line, {
     int? column,
-  }) async {
+  }) {
     return wrapInErrorHandlerAsync(
       'addBreakpoint',
       () => _addBreakpoint(isolateId, scriptId, line),
