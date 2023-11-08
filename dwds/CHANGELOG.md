@@ -1,5 +1,6 @@
 ## 23.0.0-wip
 - Restructure `LoadStrategy` to provide build settings. - [#2270](https://github.com/dart-lang/webdev/pull/2270)
+- Tolerate failures to detect a dart execution context. - [#2286](https://github.com/dart-lang/webdev/pull/2286) 
 
 ## 22.1.0
 - Update `package:vm_service` constraint to `^13.0.0`. - [#2265](https://github.com/dart-lang/webdev/pull/2265)
