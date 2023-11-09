@@ -79,6 +79,7 @@ Future<void> _handleRuntimeMessages(
     expectedType: MessageType.isAuthenticated,
     expectedSender: Script.detector,
     expectedRecipient: Script.background,
+    sender: sender,
     messageHandler: (String isAuthenticated) async {
       final dartTab = sender.tab;
       if (dartTab == null) {
@@ -99,6 +100,7 @@ Future<void> _handleRuntimeMessages(
     expectedType: MessageType.debugInfo,
     expectedSender: Script.detector,
     expectedRecipient: Script.background,
+    sender: sender,
     messageHandler: (DebugInfo debugInfo) async {
       final dartTab = sender.tab;
       if (dartTab == null) {
@@ -128,6 +130,7 @@ Future<void> _handleRuntimeMessages(
     expectedType: MessageType.debugStateChange,
     expectedSender: Script.debuggerPanel,
     expectedRecipient: Script.background,
+    sender: sender,
     messageHandler: (DebugStateChange debugStateChange) {
       final newState = debugStateChange.newState;
       final tabId = debugStateChange.tabId;
@@ -142,6 +145,7 @@ Future<void> _handleRuntimeMessages(
     expectedType: MessageType.multipleAppsDetected,
     expectedSender: Script.detector,
     expectedRecipient: Script.background,
+    sender: sender,
     messageHandler: (String multipleAppsDetected) async {
       final dartTab = sender.tab;
       if (dartTab == null) {
@@ -163,6 +167,7 @@ Future<void> _handleRuntimeMessages(
     expectedType: MessageType.appId,
     expectedSender: Script.copier,
     expectedRecipient: Script.background,
+    sender: sender,
     messageHandler: (String appId) {
       displayNotification('Copied app ID: $appId');
     },

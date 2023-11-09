@@ -89,6 +89,7 @@ void _handleRuntimeMessages(
     expectedType: MessageType.debugStateChange,
     expectedSender: Script.background,
     expectedRecipient: Script.debuggerPanel,
+    sender: sender,
     messageHandler: (DebugStateChange debugStateChange) async {
       if (debugStateChange.tabId != _tabId) {
         debugWarn(
@@ -107,6 +108,7 @@ void _handleRuntimeMessages(
     expectedType: MessageType.connectFailure,
     expectedSender: Script.background,
     expectedRecipient: Script.debuggerPanel,
+    sender: sender,
     messageHandler: (ConnectFailure connectFailure) async {
       debugLog(
         'Received connect failure for ${connectFailure.tabId} vs $_tabId',

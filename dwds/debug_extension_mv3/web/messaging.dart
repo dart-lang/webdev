@@ -89,9 +89,12 @@ void interceptMessage<T>({
   required MessageType expectedType,
   required Script expectedSender,
   required Script expectedRecipient,
+  required MessageSender sender,
   required void Function(T message) messageHandler,
 }) {
   if (message == null) return;
+  if (!_isLegitimateSender(sender)) return;
+
   try {
     final decodedMessage = Message.fromJSON(message);
     if (decodedMessage.type != expectedType ||
@@ -186,4 +189,18 @@ Future<bool> _sendMessage({
     );
   }
   return completer.future;
+}
+
+// Verify the message sender is either a content script with the Dart app origin
+// or from this extension.
+bool _isLegitimateSender(MessageSender sender) {
+  final senderHost = Uri.parse(sender.origin ?? '').host;
+  final isDartAppHost = senderHost == 'localhost' ||
+      senderHost == '127.0.0.1' ||
+      senderHost.endsWith('.googlers.com');
+  if (isDartAppHost) return true;
+
+  final isExtensionHost =
+      senderHost == Uri.parse(chrome.runtime.getURL('')).host;
+  return isExtensionHost;
 }
