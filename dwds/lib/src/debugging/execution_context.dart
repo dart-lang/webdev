@@ -53,13 +53,14 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
           },
         );
         if (result.result?['result']?['value'] != null) {
-          _logger.fine('Found valid execution context: $context');
+          _logger.fine('Found dart execution context: $context');
           return context;
         }
       } catch (_) {
         // Errors may be thrown if we attempt to evaluate in a stale a context.
         // Ignore and continue.
-        _logger.fine('Invalid execution context: $context');
+        _logger.fine('Stale execution context: $context');
+        _seenContexts.remove(context);
       }
     }
     return null;
@@ -67,9 +68,9 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
 
   @override
   Future<int?> get id async {
-    if (_id != null) return _id!;
-    _id = await _lookUpId();
+    if (_id != null) return _id;
 
+    _id = await _lookUpId();
     if (_id == null) {
       // Add seen contexts back to the queue in case the injected
       // client is still loading, so the next call to `id` succeeds.

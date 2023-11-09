@@ -13,6 +13,7 @@ import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/servers/extension_debugger.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/fakes.dart';
 
@@ -38,70 +39,136 @@ void main() async {
 
     test('is created on devtools request', () async {
       final debugger = getDebugger();
-      await debugger.createDebuggerExecutionContext(contextId: 1);
+      await debugger.createDebuggerExecutionContext(TestContextId.dartDefault);
 
       // Expect the context ID to be set.
-      expect(await debugger.getDefaultContextId(), 1);
+      expect(await debugger.defaultContextId(), TestContextId.dartDefault);
     });
 
     test('clears context ID', () async {
       final debugger = getDebugger();
-      await debugger.createDebuggerExecutionContext(contextId: 1);
+      await debugger.createDebuggerExecutionContext(TestContextId.dartDefault);
 
       debugger.sendContextsClearedEvent();
 
       // Expect non-dart context.
-      expect(await debugger.getDefaultContextId(), isNull);
+      expect(await debugger.defaultContextId(), TestContextId.none);
     });
 
     test('finds dart context ID', () async {
       final debugger = getDebugger();
+      await debugger.createDebuggerExecutionContext(TestContextId.none);
 
-      await debugger.createDebuggerExecutionContext(contextId: null);
-      debugger.sendContextCreatedEvent(2);
+      debugger.sendContextCreatedEvent(TestContextId.dartNormal);
 
       // Expect dart context.
-      expect(await debugger.getContextId(isDart: true), 2);
+      expect(await debugger.dartContextId(), TestContextId.dartNormal);
     });
 
     test('does not find dart context ID if not available', () async {
       final debugger = getDebugger();
-
-      await debugger.createDebuggerExecutionContext(contextId: null);
+      await debugger.createDebuggerExecutionContext(TestContextId.none);
 
       // No context IDs received yet.
-      expect(await debugger.getDefaultContextId(), null);
+      expect(await debugger.defaultContextId(), TestContextId.none);
 
-      // Send 'context created' event
-      final contextId = 2;
-      debugger.sendContextCreatedEvent(contextId);
+      debugger.sendContextCreatedEvent(TestContextId.dartLate);
 
-      // Expect non-dart context
+      // Expect no dart context.
       // This mocks injected client still loading.
-      expect(await debugger.getContextId(isDart: false), null);
+      expect(await debugger.noContextId(), TestContextId.none);
 
       // Expect dart context.
       // This mocks injected client loading later for previously
       // received context ID.
-      expect(await debugger.getContextId(isDart: true), contextId);
+      expect(await debugger.dartContextId(), TestContextId.dartLate);
+    });
+
+    test('works with stale contexts', () async {
+      final debugger = getDebugger();
+      await debugger.createDebuggerExecutionContext(TestContextId.none);
+
+      debugger.sendContextCreatedEvent(TestContextId.stale);
+      debugger.sendContextsClearedEvent();
+
+      // Expect no dart context.
+      // This mocks the previous context going stale.
+      expect(await debugger.noContextId(), TestContextId.none);
+
+      debugger.sendContextCreatedEvent(TestContextId.dartNormal);
+
+      // Expect dart context.
+      expect(await debugger.dartContextId(), TestContextId.dartNormal);
     });
   });
 }
 
+class TestExtensionDebugger extends ExtensionDebugger {
+  TestExtensionDebugger(FakeSseConnection super.sseConnection);
+
+  @override
+  Future<WipResponse> sendCommand(
+    String command, {
+    Map<String, dynamic>? params,
+  }) {
+    final id = params?['contextId'];
+    final response = super.sendCommand(command, params: params);
+
+    /// Mock stale contexts that cause the evaluation to throw.
+    if (command == 'Runtime.evaluate' &&
+        TestContextId.from(id) == TestContextId.stale) {
+      throw Exception('Stale execution context');
+    }
+    return response;
+  }
+}
+
+enum TestContextId {
+  none,
+  dartDefault,
+  dartNormal,
+  dartLate,
+  nonDart,
+  stale;
+
+  factory TestContextId.from(int? value) {
+    return switch (value) {
+      null => none,
+      0 => dartDefault,
+      1 => dartNormal,
+      2 => dartLate,
+      3 => nonDart,
+      4 => stale,
+      _ => throw StateError('$value is not a TestContextId'),
+    };
+  }
+
+  int? get id {
+    return switch (this) {
+      none => null,
+      dartDefault => 0,
+      dartNormal => 1,
+      dartLate => 2,
+      nonDart => 3,
+      stale => 4,
+    };
+  }
+}
+
 class TestDebuggerConnection {
-  late final ExtensionDebugger extensionDebugger;
+  late final TestExtensionDebugger extensionDebugger;
   late final FakeSseConnection connection;
 
   int _evaluateRequestId = 0;
 
   TestDebuggerConnection() {
     connection = FakeSseConnection();
-    extensionDebugger = ExtensionDebugger(connection);
+    extensionDebugger = TestExtensionDebugger(connection);
   }
 
   /// Create a new execution context in the debugger.
-  Future<void> createDebuggerExecutionContext({int? contextId}) {
-    _sendDevToolsRequest(contextId: contextId);
+  Future<void> createDebuggerExecutionContext(TestContextId contextId) {
+    _sendDevToolsRequest(contextId: contextId.id);
     return _executionContext();
   }
 
@@ -117,39 +184,50 @@ class TestDebuggerConnection {
   }
 
   /// Return the initial context ID from the DevToolsRequest.
-  Future<int?> getDefaultContextId() async {
+  Future<TestContextId> defaultContextId() async {
     // Give the previous events time to propagate.
     await Future.delayed(Duration(milliseconds: 100));
-    return await extensionDebugger.executionContext!.id;
+    return TestContextId.from(await extensionDebugger.executionContext!.id);
   }
 
-  /// Mock receiving context IDs in the execution context.
+  /// Mock receiving dart context ID in the execution context.
   ///
-  /// [isDart] will cause a dart context to be created.
-  ///
-  /// Dart context is detected by evaluation of
+  /// Note: dart context is detected by evaluation of
   /// `window.$dartAppInstanceId` in that context returning
   /// a non-null value.
-  Future<int?> getContextId({bool isDart = false}) async {
+  Future<TestContextId> dartContextId() async {
     // Try getting execution id.
     final executionContextId = extensionDebugger.executionContext!.id;
 
     // Give it time to send the evaluate request.
     await Future.delayed(Duration(milliseconds: 100));
 
-    // Respond to the evaluate request
-    final extensionResponse = ExtensionResponse(
-      (b) => b
-        ..result = jsonEncode({
-          'result': {'value': isDart ? 'dart' : null},
-        })
-        ..id = _evaluateRequestId++
-        ..success = true,
-    );
-    connection.controllerIncoming.sink
-        .add(jsonEncode(serializers.serialize(extensionResponse)));
+    // Respond to the evaluate request.
+    _sendEvaluationResponse({
+      'result': {'value': 'dart'},
+    });
 
-    return await executionContextId;
+    return TestContextId.from(await executionContextId);
+  }
+
+  /// Mock receiving non-dart context ID in the execution context.
+  ///
+  /// Note: dart context is detected by evaluation of
+  /// `window.$dartAppInstanceId` in that context returning
+  /// a null value.
+  Future<TestContextId> noContextId() async {
+    // Try getting execution id.
+    final executionContextId = extensionDebugger.executionContext!.id;
+
+    // Give it time to send the evaluate request.
+    await Future.delayed(Duration(milliseconds: 100));
+
+    // Respond to the evaluate request.
+    _sendEvaluationResponse({
+      'result': {'value': null},
+    });
+
+    return TestContextId.from(await executionContextId);
   }
 
   /// Send `Runtime.executionContextsCleared` event to the execution
@@ -166,16 +244,28 @@ class TestDebuggerConnection {
 
   /// Send `Runtime.executionContextCreated` event to the execution
   /// context in the extension debugger.
-  void sendContextCreatedEvent(int contextId) {
+  void sendContextCreatedEvent(TestContextId contextId) {
     final extensionEvent = ExtensionEvent(
       (b) => b
         ..method = jsonEncode('Runtime.executionContextCreated')
         ..params = jsonEncode({
-          "context": {"id": "$contextId"},
+          'context': {'id': '${contextId.id}'},
         }),
     );
     connection.controllerIncoming.sink
         .add(jsonEncode(serializers.serialize(extensionEvent)));
+  }
+
+  void _sendEvaluationResponse(Map<String, dynamic> response) {
+    // Respond to the evaluate request.
+    final extensionResponse = ExtensionResponse(
+      (b) => b
+        ..result = jsonEncode(response)
+        ..id = _evaluateRequestId++
+        ..success = true,
+    );
+    connection.controllerIncoming.sink
+        .add(jsonEncode(serializers.serialize(extensionResponse)));
   }
 
   void _sendDevToolsRequest({int? contextId}) {
