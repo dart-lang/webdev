@@ -32,7 +32,7 @@ class WebkitDebugger implements RemoteDebugger {
       _wipDebugger.sendCommand(command, params: params);
 
   @override
-  void close() => _closed ??= _wipDebugger.connection.close();
+  Future<void> close() => _closed ??= _wipDebugger.connection.close();
 
   @override
   Future<void> disable() => _wipDebugger.disable();

@@ -66,6 +66,7 @@ class LegacyStrategy extends LoadStrategy {
   ///   packages/path/path -> d348c2a4647e998011fe305f74f22961
   ///
   final Future<Map<String, String>> Function(MetadataProvider metadataProvider)
+      // ignore: unused_field
       _digestsProvider;
 
   /// Returns the module for the corresponding server path.

@@ -37,7 +37,7 @@ class DebugConnection {
   VmService get vmService => _appDebugServices.dwdsVmClient.client;
 
   Future<void> close() => _closed ??= () async {
-        _appDebugServices.chromeProxyService.remoteDebugger.close();
+        await _appDebugServices.chromeProxyService.remoteDebugger.close();
         await _appDebugServices.close();
         _onDoneCompleter.complete();
       }();
