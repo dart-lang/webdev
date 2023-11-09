@@ -1,5 +1,6 @@
 ## 23.0.0-wip
 - Restructure `LoadStrategy` to provide build settings. - [#2270](https://github.com/dart-lang/webdev/pull/2270)
+- Add `FrontendServerLegacyStrategyProvider` and update bootstrap generation logic for `LegacyStrategy` - [#2285](https://github.com/dart-lang/webdev/pull/2285)
 
 ## 22.1.0
 - Update `package:vm_service` constraint to `^13.0.0`. - [#2265](https://github.com/dart-lang/webdev/pull/2265)
