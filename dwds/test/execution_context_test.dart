@@ -89,12 +89,11 @@ void main() async {
       await debugger.createDebuggerExecutionContext(TestContextId.none);
 
       debugger.sendContextCreatedEvent(TestContextId.stale);
-      debugger.sendContextsClearedEvent();
 
       // Expect no dart context.
-      // This mocks the previous context going stale.
       expect(await debugger.noContextId(), TestContextId.none);
 
+      debugger.sendContextsClearedEvent();
       debugger.sendContextCreatedEvent(TestContextId.dartNormal);
 
       // Expect dart context.
