@@ -103,26 +103,6 @@ void main() async {
   });
 }
 
-class TestExtensionDebugger extends ExtensionDebugger {
-  TestExtensionDebugger(FakeSseConnection super.sseConnection);
-
-  @override
-  Future<WipResponse> sendCommand(
-    String command, {
-    Map<String, dynamic>? params,
-  }) {
-    final id = params?['contextId'];
-    final response = super.sendCommand(command, params: params);
-
-    /// Mock stale contexts that cause the evaluation to throw.
-    if (command == 'Runtime.evaluate' &&
-        TestContextId.from(id) == TestContextId.stale) {
-      throw Exception('Stale execution context');
-    }
-    return response;
-  }
-}
-
 enum TestContextId {
   none,
   dartDefault,
@@ -152,6 +132,26 @@ enum TestContextId {
       nonDart => 3,
       stale => 4,
     };
+  }
+}
+
+class TestExtensionDebugger extends ExtensionDebugger {
+  TestExtensionDebugger(FakeSseConnection super.sseConnection);
+
+  @override
+  Future<WipResponse> sendCommand(
+    String command, {
+    Map<String, dynamic>? params,
+  }) {
+    final id = params?['contextId'];
+    final response = super.sendCommand(command, params: params);
+
+    /// Mock stale contexts that cause the evaluation to throw.
+    if (command == 'Runtime.evaluate' &&
+        TestContextId.from(id) == TestContextId.stale) {
+      throw Exception('Stale execution context');
+    }
+    return response;
   }
 }
 
