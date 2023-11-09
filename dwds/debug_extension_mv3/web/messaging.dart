@@ -191,16 +191,6 @@ Future<bool> _sendMessage({
   return completer.future;
 }
 
-// Verify the message sender is either a content script with the Dart app origin
-// or from this extension.
-bool _isLegitimateSender(MessageSender sender) {
-  final senderHost = Uri.parse(sender.origin ?? '').host;
-  final isDartAppHost = senderHost == 'localhost' ||
-      senderHost == '127.0.0.1' ||
-      senderHost.endsWith('.googlers.com');
-  if (isDartAppHost) return true;
-
-  final isExtensionHost =
-      senderHost == Uri.parse(chrome.runtime.getURL('')).host;
-  return isExtensionHost;
-}
+// Verify the message sender is our extension.
+bool _isLegitimateSender(MessageSender sender) =>
+    sender.id == chrome.runtime.id;

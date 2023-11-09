@@ -191,6 +191,8 @@ class Runtime {
 
   external String getURL(String path);
 
+  external String get id;
+
   // Note: Not checking the lastError when one occurs throws a runtime exception.
   external ChromeError? get lastError;
 
