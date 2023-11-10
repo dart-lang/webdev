@@ -626,7 +626,7 @@ class DevHandler {
     );
 
     emitEvent(DwdsEvent.devtoolsLaunch());
-    // Send the DevTools URI to the Dart Debug Extension so that if can open it:
+    // Send the DevTools URI to the Dart Debug Extension so that it can open it:
     final devToolsUri = _constructDevToolsUri(
       encodedUri,
       ideQueryParam: 'ChromeDevTools',
