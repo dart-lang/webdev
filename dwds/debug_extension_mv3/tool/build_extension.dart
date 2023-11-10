@@ -43,16 +43,7 @@ Future<int> run({required bool isProd, required bool isMV3}) async {
   _logInfo('Compiling extension with dart2js to /compiled directory');
   final compileStep = await Process.start(
     'dart',
-    [
-      'run',
-      'build_runner',
-      'build',
-      'web',
-      '--output',
-      'build',
-      '--release',
-      '--delete-conflicting-outputs',
-    ],
+    ['run', 'build_runner', 'build', 'web', '--output', 'build', '--release'],
   );
   final compileExitCode = await _handleProcess(compileStep);
   // Terminate early if compilation failed:
