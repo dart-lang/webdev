@@ -625,27 +625,13 @@ class DevHandler {
       devToolsStart: DateTime.now(),
     );
 
-    // TODO(elliette): Remove handling requests from the MV2 extension after
-    // MV3 release.
-    // If we only want the URI, this means the Dart Debug Extension should
-    // handle how to open it. Therefore return early before opening a new
-    // tab or window:
-    if (devToolsRequest.uriOnly ?? false) {
-      final devToolsUri = _constructDevToolsUri(
-        encodedUri,
-        ideQueryParam: 'ChromeDevTools',
-      );
-      return extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
-    }
-
-    // Otherwise, launch DevTools in a new tab / window:
-    await _launchDevTools(
-      extensionDebugger,
-      _constructDevToolsUri(
-        encodedUri,
-        ideQueryParam: 'DebugExtension',
-      ),
+    emitEvent(DwdsEvent.devtoolsLaunch());
+    // Send the DevTools URI to the Dart Debug Extension so that if can open it:
+    final devToolsUri = _constructDevToolsUri(
+      encodedUri,
+      ideQueryParam: 'ChromeDevTools',
     );
+    return extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
   }
 
   DevTools _ensureDevTools() {
