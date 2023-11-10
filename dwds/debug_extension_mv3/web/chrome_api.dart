@@ -255,6 +255,7 @@ class MessageSender {
   external String? get id;
   external Tab? get tab;
   external String? get url;
+  external String? get origin;
   external factory MessageSender({String? id, String? url, Tab? tab});
 }
 

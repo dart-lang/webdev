@@ -14,6 +14,7 @@ import 'package:js/js.dart';
 import 'chrome_api.dart';
 import 'data_serializers.dart';
 import 'logger.dart';
+import 'utils.dart';
 
 // A default response for the sendResponse callback.
 //
@@ -192,5 +193,23 @@ Future<bool> _sendMessage({
 }
 
 // Verify the message sender is our extension.
-bool _isLegitimateSender(MessageSender sender) =>
-    sender.id == chrome.runtime.id;
+bool _isLegitimateSender(MessageSender sender) {
+  // Check that the sender ID matches our extension ID:
+  if (sender.id != chrome.runtime.id) return false;
+
+  final senderHost = Uri.parse(sender.origin ?? '').host;
+  final isDartAppHost = senderHost == 'localhost' ||
+      senderHost == '127.0.0.1' ||
+      senderHost.endsWith('.googlers.com');
+  final isExtensionHost =
+      senderHost == Uri.parse(chrome.runtime.getURL('')).host;
+
+  if (isDartAppHost || isExtensionHost) return true;
+
+  // If the sender's host is unexpected, display an error.
+  displayNotification(
+    'Unexpected sender $senderHost. Please file a bug at https://github.com/dart-lang/webdev',
+    isError: true,
+  );
+  return false;
+}
