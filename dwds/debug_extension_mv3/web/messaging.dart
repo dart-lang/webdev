@@ -197,18 +197,19 @@ bool _isLegitimateSender(MessageSender sender) {
   // Check that the sender ID matches our extension ID:
   if (sender.id != chrome.runtime.id) return false;
 
-  final senderHost = Uri.parse(sender.origin ?? '').host;
+  final senderUri = Uri.parse(sender.origin ?? '');
+  final senderHost = senderUri.host;
   final isDartAppHost = senderHost == 'localhost' ||
       senderHost == '127.0.0.1' ||
       senderHost.endsWith('.googlers.com');
-  final isExtensionHost =
-      senderHost == Uri.parse(chrome.runtime.getURL('')).host;
+  final isExtensionOrigin =
+      senderHost == chrome.runtime.id && senderUri.scheme == 'chrome-extension';
 
-  if (isDartAppHost || isExtensionHost) return true;
+  if (isDartAppHost || isExtensionOrigin) return true;
 
   // If the sender's host is unexpected, display an error.
   displayNotification(
-    'Unexpected sender $senderHost. Please file a bug at https://github.com/dart-lang/webdev',
+    'Unexpected sender ${sender.origin}. Please file a bug at https://github.com/dart-lang/webdev',
     isError: true,
   );
   return false;
