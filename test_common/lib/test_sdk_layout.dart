@@ -94,7 +94,7 @@ class TestSdkLayout {
           sdkLayout.sdkDirectory,
           'bin',
           'snapshots',
-          'frontend_server.dart.snapshot',
+          'frontend_server_aot.dart.snapshot',
         ),
         dartdevcSnapshotPath: sdkLayout.dartdevcSnapshotPath,
         kernelWorkerSnapshotPath: p.join(

@@ -1,4 +1,11 @@
-## 3.3.0-wip
+## 4.0.0-wip
+
+- By default, start the frontend server from the AOT snapshot shipped in the
+  Dart SDK.
+- Throw an `ArgumentError` when `FrontendServerClient.start` is called with the
+  `frontendServerPath` argument omitted and the `debug` argument set to true.
+
+## 3.3.0
 
 - Update Dart SDK constraint to `>=3.0.0 <4.0.0`.
 - Support changes in the SDK layout for Dart 3.0.

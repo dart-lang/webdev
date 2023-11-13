@@ -47,8 +47,8 @@ class FrontendServerClient {
   ///
   /// When the [frontendServerPath] argument is provided, setting [debug] to
   /// true permits debuggers to attach to the frontend server. When the
-  /// [frontendServerPath] argument is omitted, the value of the [debug]
-  /// argument is ignored.
+  /// [frontendServerPath] argument is omitted, setting [debug] to true will
+  /// cause an [ArgumentError] to be thrown.
   static Future<FrontendServerClient> start(
     String entrypoint,
     String outputDillPath,
@@ -109,6 +109,10 @@ class FrontendServerClient {
             commonArguments,
       );
     } else if (File(_feServerAotSnapshotPath).existsSync()) {
+      if (debug) {
+        throw ArgumentError('The debug argument cannot be set to true when the '
+            'frontendServerPath argument is omitted.');
+      }
       feServer = await Process.start(
         _dartAotRuntimePath,
         <String>[_feServerAotSnapshotPath] + commonArguments,
