@@ -105,8 +105,8 @@ class FrontendServerClient {
         <String>[
               if (debug) '--observe',
               frontendServerPath,
-            ] +
-            commonArguments,
+              ...commonArguments,
+            ],
       );
     } else if (File(_feServerAotSnapshotPath).existsSync()) {
       if (debug) {
@@ -115,7 +115,7 @@ class FrontendServerClient {
       }
       feServer = await Process.start(
         _dartAotRuntimePath,
-        <String>[_feServerAotSnapshotPath] + commonArguments,
+        <String>[_feServerAotSnapshotPath, ...commonArguments],
       );
     } else {
       // AOT snapshots cannot be generated on IA32, so we need this fallback
@@ -125,8 +125,8 @@ class FrontendServerClient {
         <String>[
               if (debug) '--observe',
               _feServerAppJitSnapshotPath,
-            ] +
-            commonArguments,
+              ...commonArguments,
+            ],
       );
     }
     var feServerStdoutLines = StreamQueue(feServer.stdout
