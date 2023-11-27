@@ -6,6 +6,7 @@
 
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/config.dart';
+import 'package:dwds/utilities.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 import 'package:test_common/test_sdk_layout.dart';
@@ -25,6 +26,7 @@ class WebDevFS {
     required this.soundNullSafety,
     this.urlTunneler,
     required this.sdkLayout,
+    required this.ddcModuleSystem,
   });
 
   final FileSystem fileSystem;
@@ -37,6 +39,7 @@ class WebDevFS {
   final UrlEncoder? urlTunneler;
   final bool soundNullSafety;
   final TestSdkLayout sdkLayout;
+  final bool ddcModuleSystem;
   late final Directory _savedCurrentDirectory;
 
   Future<Uri> create() async {
@@ -44,8 +47,16 @@ class WebDevFS {
 
     fileSystem.currentDirectory = projectDirectory.toFilePath();
 
-    assetServer = await TestAssetServer.start(sdkLayout.sdkDirectory,
-        fileSystem, index, hostname, port, urlTunneler, packageUriMapper);
+    assetServer = await TestAssetServer.start(
+      sdkLayout.sdkDirectory,
+      fileSystem,
+      index,
+      hostname,
+      port,
+      urlTunneler,
+      packageUriMapper,
+      ddcModuleSystem,
+    );
     return Uri.parse('http://$hostname:$port');
   }
 
@@ -64,15 +75,18 @@ class WebDevFS {
     final outputDirectoryPath = fileSystem.file(mainPath).parent.path;
     final entryPoint = mainUri.toString();
 
+    var ddcModuleLoader = 'ddc_module_loader.js';
     var require = 'require.js';
     var stackMapper = 'stack_trace_mapper.js';
     var main = 'main.dart.js';
     var bootstrap = 'main_module.bootstrap.js';
+    var dartSdkName = 'dart_sdk.js';
 
     // If base path is not overwritten, use main's subdirectory
     // to store all files, so the paths match the requests.
     if (assetServer.basePath.isEmpty) {
       final directory = p.dirname(entryPoint);
+      ddcModuleLoader = '$directory/ddc_module_loader.js';
       require = '$directory/require.js';
       stackMapper = '$directory/stack_trace_mapper.js';
       main = '$directory/main.dart.js';
@@ -81,30 +95,53 @@ class WebDevFS {
 
     assetServer.writeFile(
         entryPoint, fileSystem.file(mainPath).readAsStringSync());
-    assetServer.writeFile(require, requireJS.readAsStringSync());
+    if (ddcModuleSystem) {
+      assetServer.writeFile(
+          ddcModuleLoader, ddcModuleLoaderJS.readAsStringSync());
+    } else {
+      assetServer.writeFile(require, requireJS.readAsStringSync());
+    }
     assetServer.writeFile(stackMapper, stackTraceMapper.readAsStringSync());
-    assetServer.writeFile(
-      main,
-      generateBootstrapScript(
-        requireUrl: 'require.js',
-        mapperUrl: 'stack_trace_mapper.js',
-        entrypoint: entryPoint,
-      ),
-    );
-    assetServer.writeFile(
-      bootstrap,
-      generateMainModule(
-        entrypoint: entryPoint,
-      ),
-    );
+    if (ddcModuleSystem) {
+      assetServer.writeFile(
+        main,
+        generateDDCBootstrapScript(
+          ddcModuleLoaderUrl: ddcModuleLoader,
+          mapperUrl: stackMapper,
+          entrypoint: entryPoint,
+          bootstrapUrl: bootstrap,
+        ),
+      );
+      assetServer.writeFile(
+        bootstrap,
+        generateDDCMainModule(
+            entrypoint: entryPoint,
+            exportedMain: pathToJSIdentifier(entryPoint.split('.')[0])),
+      );
+    } else {
+      assetServer.writeFile(
+        main,
+        generateBootstrapScript(
+          requireUrl: 'require.js',
+          mapperUrl: 'stack_trace_mapper.js',
+          entrypoint: entryPoint,
+        ),
+      );
+      assetServer.writeFile(
+        bootstrap,
+        generateMainModule(
+          entrypoint: entryPoint,
+        ),
+      );
+    }
 
     assetServer.writeFile('main_module.digests', '{}');
 
     var sdk = soundNullSafety ? dartSdk : dartSdkWeak;
     var sdkSourceMap =
         soundNullSafety ? dartSdkSourcemap : dartSdkSourcemapWeak;
-    assetServer.writeFile('dart_sdk.js', sdk.readAsStringSync());
-    assetServer.writeFile('dart_sdk.js.map', sdkSourceMap.readAsStringSync());
+    assetServer.writeFile(dartSdkName, sdk.readAsStringSync());
+    assetServer.writeFile('$dartSdkName.map', sdkSourceMap.readAsStringSync());
 
     generator.reset();
     var compilerOutput = await generator.recompile(
@@ -144,6 +181,8 @@ class WebDevFS {
     )..invalidatedModules = modules;
   }
 
+  File get ddcModuleLoaderJS =>
+      fileSystem.file(sdkLayout.ddcModuleLoaderJsPath);
   File get requireJS => fileSystem.file(sdkLayout.requireJsPath);
   File get dartSdkWeak => fileSystem.file(sdkLayout.weakJsPath);
   File get dartSdk => fileSystem.file(sdkLayout.soundJsPath);

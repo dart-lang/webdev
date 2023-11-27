@@ -18,6 +18,7 @@ class SdkAssetGenerator {
 
   final FileSystem fileSystem;
   final bool canaryFeatures;
+  final bool ddcModuleSystem;
   final bool verbose;
 
   late final TestSdkLayout sdkLayout;
@@ -26,6 +27,7 @@ class SdkAssetGenerator {
     this.fileSystem = const LocalFileSystem(),
     required this.sdkLayout,
     required this.canaryFeatures,
+    required this.ddcModuleSystem,
     this.verbose = false,
   });
 
@@ -98,7 +100,7 @@ class SdkAssetGenerator {
         '--libraries-file',
         'org-dartlang-sdk:///lib/libraries.json',
         '--modules',
-        'amd',
+        ddcModuleSystem ? 'ddc' : 'amd',
         soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
         'dart:core',
         '-o',

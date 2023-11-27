@@ -81,6 +81,7 @@ class ResidentWebRunner {
       urlTunneler: urlTunneler,
       soundNullSafety: compilerOptions.soundNullSafety,
       sdkLayout: sdkLayout,
+      ddcModuleSystem: compilerOptions.usesDDCModuleSystem,
     );
     uri = await devFS.create();
 

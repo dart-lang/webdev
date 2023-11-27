@@ -15,6 +15,9 @@ class CompilerOptions {
     required this.canaryFeatures,
     required this.experiments,
   });
+
+  bool get usesDDCModuleSystem =>
+      moduleFormat == 'ddc' || moduleFormat == 'legacy';
 }
 
 /// Result of compilation of dart expression to JavaScript

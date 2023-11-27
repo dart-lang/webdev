@@ -9,7 +9,7 @@ import 'package:dwds/asset_reader.dart';
 import 'package:dwds/dart_web_debug_service.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/loaders/require.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
@@ -62,12 +62,13 @@ class TestServer {
     required AppMetadata appMetadata,
     required Handler assetHandler,
     required AssetReader assetReader,
-    required RequireStrategy strategy,
+    required LoadStrategy strategy,
     required String target,
     required Stream<daemon.BuildResults> buildResults,
     required Future<ChromeConnection> Function() chromeConnection,
     required bool autoRun,
     int? port,
+    Future? completeBeforeHandlingConnections,
   }) async {
     var pipeline = const Pipeline();
 
@@ -100,6 +101,7 @@ class TestServer {
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
       toolConfiguration: toolConfiguration,
+      completeBeforeHandlingConnections: completeBeforeHandlingConnections,
     );
 
     final server = await startHttpServer('localhost', port: port);

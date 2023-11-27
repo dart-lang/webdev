@@ -25,6 +25,7 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
 
   final bool _verbose;
   final bool canaryFeatures;
+  final bool ddcModuleSystem;
   late final Directory _sdkDirectory;
   SdkConfiguration? _configuration;
 
@@ -33,9 +34,13 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
   TestSdkConfigurationProvider({
     this.canaryFeatures = false,
     bool verbose = false,
+    this.ddcModuleSystem = false,
   }) : _verbose = verbose {
     _sdkDirectory = Directory.systemTemp.createTempSync('sdk copy');
-    sdkLayout = TestSdkLayout.createDefault(_sdkDirectory.path);
+    sdkLayout = TestSdkLayout.createDefault(
+      _sdkDirectory.path,
+      ddcModuleSystem: ddcModuleSystem,
+    );
   }
 
   @override
@@ -62,6 +67,7 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
         sdkLayout: sdkLayout,
         canaryFeatures: canaryFeatures,
         verbose: _verbose,
+        ddcModuleSystem: ddcModuleSystem,
       );
 
       await assetGenerator.generateSdkAssets();

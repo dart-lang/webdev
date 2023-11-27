@@ -14,102 +14,98 @@ import 'package:path/path.dart' as p;
 class TestSdkLayout {
   static final defaultSdkDirectory = SdkLayout.defaultSdkDirectory;
   static TestSdkLayout defaultSdkLayout =
-      TestSdkLayout.createDefault(defaultSdkDirectory);
+      TestSdkLayout.createDefault(defaultSdkDirectory, ddcModuleSystem: false);
+  static TestSdkLayout defaultDdcSdkLayout =
+      TestSdkLayout.createDefault(defaultSdkDirectory, ddcModuleSystem: true);
   static SdkConfiguration defaultSdkConfiguration =
       createConfiguration(defaultSdkLayout);
+  static SdkConfiguration defaultDdcSdkConfiguration =
+      createConfiguration(defaultDdcSdkLayout);
 
-  factory TestSdkLayout.createDefault(String sdkDirectory) =>
+  factory TestSdkLayout.createDefault(String sdkDirectory,
+          {required bool ddcModuleSystem}) =>
       TestSdkLayout.createDefaultFromSdkLayout(
-          SdkLayout.createDefault(sdkDirectory));
+          SdkLayout.createDefault(sdkDirectory),
+          ddcModuleSystem: ddcModuleSystem);
 
-  factory TestSdkLayout.createDefaultFromSdkLayout(SdkLayout sdkLayout) =>
-      TestSdkLayout(
-        sdkDirectory: sdkLayout.sdkDirectory,
-        soundSummaryPath: sdkLayout.soundSummaryPath,
-        soundFullDillPath: p.join(
-          sdkLayout.sdkDirectory,
-          'lib',
-          '_internal',
-          'ddc_platform.dill',
-        ),
-        soundJsPath: p.join(
-          sdkLayout.sdkDirectory,
-          'lib',
-          'dev_compiler',
-          'kernel',
-          'amd',
-          'dart_sdk.js',
-        ),
-        soundJsMapPath: p.join(
-          sdkLayout.sdkDirectory,
-          'lib',
-          'dev_compiler',
-          'kernel',
-          'amd',
-          'dart_sdk.js.map',
-        ),
-        weakSummaryPath: sdkLayout.weakSummaryPath,
-        weakFullDillPath: p.join(
-          sdkLayout.sdkDirectory,
-          'lib',
-          '_internal',
-          'ddc_platform_unsound.dill',
-        ),
-        weakJsPath: p.join(
-          sdkLayout.sdkDirectory,
-          'lib',
-          'dev_compiler',
-          'kernel',
-          'amd',
-          'dart_sdk_unsound.js',
-        ),
-        weakJsMapPath: p.join(
-          sdkLayout.sdkDirectory,
-          'lib',
-          'dev_compiler',
-          'kernel',
-          'amd',
-          'dart_sdk_unsound.js.map',
-        ),
-        requireJsPath: p.join(
-          sdkLayout.sdkDirectory,
-          'lib',
-          'dev_compiler',
-          'amd',
-          'require.js',
-        ),
-        stackTraceMapperPath: p.join(
-          sdkLayout.sdkDirectory,
-          'lib',
-          'dev_compiler',
-          'web',
-          'dart_stack_trace_mapper.js',
-        ),
-        dartPath: p.join(
-          sdkLayout.sdkDirectory,
-          'bin',
-          Platform.isWindows ? 'dart.exe' : 'dart',
-        ),
-        frontendServerSnapshotPath: p.join(
-          sdkLayout.sdkDirectory,
-          'bin',
-          'snapshots',
-          'frontend_server.dart.snapshot',
-        ),
-        dartdevcSnapshotPath: sdkLayout.dartdevcSnapshotPath,
-        kernelWorkerSnapshotPath: p.join(
-          sdkLayout.sdkDirectory,
-          'bin',
-          'snapshots',
-          'kernel_worker.dart.snapshot',
-        ),
-        devToolsDirectory: p.join(
-          sdkLayout.sdkDirectory,
-          'bin',
-          'resources',
-          'devtools',
-        ),
-      );
+  factory TestSdkLayout.createDefaultFromSdkLayout(SdkLayout sdkLayout,
+      {required bool ddcModuleSystem}) {
+    final sdkPathSegment = ddcModuleSystem ? 'legacy' : 'amd';
+    return TestSdkLayout(
+      sdkDirectory: sdkLayout.sdkDirectory,
+      soundSummaryPath: sdkLayout.soundSummaryPath,
+      soundFullDillPath: p.join(
+        sdkLayout.sdkDirectory,
+        'lib',
+        '_internal',
+        'ddc_platform.dill',
+      ),
+      soundJsPath: p.join(sdkLayout.sdkDirectory,
+          '../gen/utils/ddc/stable/sdk/$sdkPathSegment/dart_sdk.js'),
+      soundJsMapPath: p.join(sdkLayout.sdkDirectory,
+          '../gen/utils/ddc/stable/sdk/$sdkPathSegment/dart_sdk.js.map'),
+      weakSummaryPath: sdkLayout.weakSummaryPath,
+      weakFullDillPath: p.join(
+        sdkLayout.sdkDirectory,
+        'lib',
+        '_internal',
+        'ddc_platform_unsound.dill',
+      ),
+      weakJsPath: p.join(sdkLayout.sdkDirectory,
+          '../gen/utils/ddc/stable_unsound/sdk/$sdkPathSegment/dart_sdk.js'),
+      weakJsMapPath: p.join(sdkLayout.sdkDirectory,
+          '../gen/utils/ddc/stable_unsound/sdk/$sdkPathSegment/dart_sdk.js.map'),
+      ddcModuleLoaderJsPath: ddcModuleSystem
+          ? p.join(
+              sdkLayout.sdkDirectory,
+              'lib',
+              'dev_compiler',
+              'ddc',
+              'ddc_module_loader.js',
+            )
+          : '',
+      requireJsPath: ddcModuleSystem
+          ? ''
+          : p.join(
+              sdkLayout.sdkDirectory,
+              'lib',
+              'dev_compiler',
+              'amd',
+              'require.js',
+            ),
+      stackTraceMapperPath: p.join(
+        sdkLayout.sdkDirectory,
+        'lib',
+        'dev_compiler',
+        'web',
+        'dart_stack_trace_mapper.js',
+      ),
+      dartPath: p.join(
+        sdkLayout.sdkDirectory,
+        'bin',
+        Platform.isWindows ? 'dart.exe' : 'dart',
+      ),
+      frontendServerSnapshotPath: p.join(
+        sdkLayout.sdkDirectory,
+        'bin',
+        'snapshots',
+        'frontend_server.dart.snapshot',
+      ),
+      dartdevcSnapshotPath: sdkLayout.dartdevcSnapshotPath,
+      kernelWorkerSnapshotPath: p.join(
+        sdkLayout.sdkDirectory,
+        'bin',
+        'snapshots',
+        'kernel_worker.dart.snapshot',
+      ),
+      devToolsDirectory: p.join(
+        sdkLayout.sdkDirectory,
+        'bin',
+        'resources',
+        'devtools',
+      ),
+    );
+  }
 
   final String sdkDirectory;
 
@@ -133,6 +129,7 @@ class TestSdkLayout {
   final String weakSummaryPath;
   final String weakFullDillPath;
 
+  final String ddcModuleLoaderJsPath;
   final String requireJsPath;
   final String stackTraceMapperPath;
 
@@ -152,6 +149,7 @@ class TestSdkLayout {
     required this.weakJsMapPath,
     required this.weakSummaryPath,
     required this.weakFullDillPath,
+    required this.ddcModuleLoaderJsPath,
     required this.requireJsPath,
     required this.stackTraceMapperPath,
     required this.dartPath,

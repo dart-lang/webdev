@@ -296,8 +296,8 @@ class TestCompilerOptions extends CompilerOptions {
     required NullSafety nullSafety,
     required super.canaryFeatures,
     required List<String> experiments,
+    super.moduleFormat = 'amd',
   }) : super(
-          moduleFormat: 'amd',
           soundNullSafety: nullSafety == NullSafety.sound,
           experiments: const <String>[],
         );

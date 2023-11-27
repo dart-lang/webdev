@@ -65,6 +65,7 @@ class Dwds {
     required Stream<BuildResult> buildResults,
     required ConnectionProvider chromeConnection,
     required ToolConfiguration toolConfiguration,
+    Future? completeBeforeHandlingConnections,
   }) async {
     globalToolConfiguration = toolConfiguration;
     final debugSettings = toolConfiguration.debugSettings;
@@ -128,6 +129,7 @@ class Dwds {
       injected,
       debugSettings.spawnDds,
       debugSettings.launchDevToolsInNewWindow,
+      completeBeforeHandlingConnections,
     );
 
     return Dwds._(

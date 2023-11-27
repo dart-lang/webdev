@@ -67,6 +67,7 @@ class DevHandler {
   final bool _useSseForInjectedClient;
   final bool _spawnDds;
   final bool _launchDevToolsInNewWindow;
+  final Future? _completeBeforeHandlingConnections;
   final ExpressionCompiler? _expressionCompiler;
   final DwdsInjector _injected;
 
@@ -91,6 +92,7 @@ class DevHandler {
     this._injected,
     this._spawnDds,
     this._launchDevToolsInNewWindow,
+    this._completeBeforeHandlingConnections,
   ) {
     _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
@@ -494,6 +496,7 @@ class DevHandler {
               : WebSocketSocketHandler();
           _sseHandlers[uri.path] = handler;
           final injectedConnections = handler.connections;
+          await _completeBeforeHandlingConnections;
           while (await injectedConnections.hasNext) {
             _handleConnection(await injectedConnections.next);
           }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -14,8 +15,9 @@ import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/build_runner_require.dart';
+import 'package:dwds/src/loaders/frontend_server_legacy.dart';
 import 'package:dwds/src/loaders/frontend_server_require.dart';
-import 'package:dwds/src/loaders/require.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
@@ -58,7 +60,17 @@ Matcher isRPCErrorWithCode(int code) =>
     isA<RPCError>().having((e) => e.code, 'code', equals(code));
 Matcher throwsRPCErrorWithCode(int code) => throwsA(isRPCErrorWithCode(code));
 
-enum CompilationMode { buildDaemon, frontendServer }
+enum CompilationMode {
+  buildDaemon,
+  // Uses DDC's AMD module system
+  frontendServer,
+  // Uses DDC's DDC/legacy module system
+  frontendServerDdc;
+
+  bool get usesFrontendServer =>
+      this == CompilationMode.frontendServer ||
+      this == CompilationMode.frontendServerDdc;
+}
 
 class TestContext {
   final TestProject project;
@@ -204,7 +216,7 @@ class TestContext {
       ExpressionCompiler? expressionCompiler;
       AssetReader assetReader;
       Stream<BuildResults> buildResults;
-      RequireStrategy requireStrategy;
+      LoadStrategy loadStrategy;
       String basePath = '';
       String filePathToServe = project.filePathToServe;
 
@@ -268,7 +280,7 @@ class TestContext {
               expressionCompiler = ddcService;
             }
 
-            requireStrategy = BuildRunnerRequireStrategyProvider(
+            loadStrategy = BuildRunnerRequireStrategyProvider(
               assetHandler,
               testSettings.reloadConfiguration,
               assetReader,
@@ -332,7 +344,73 @@ class TestContext {
             basePath = webRunner.devFS.assetServer.basePath;
             assetReader = webRunner.devFS.assetServer;
             _assetHandler = webRunner.devFS.assetServer.handleRequest;
-            requireStrategy = FrontendServerRequireStrategyProvider(
+            loadStrategy = FrontendServerRequireStrategyProvider(
+              testSettings.reloadConfiguration,
+              assetReader,
+              packageUriMapper,
+              () async => {},
+              buildSettings,
+            ).strategy;
+
+            buildResults = const Stream<BuildResults>.empty();
+          }
+          break;
+        case CompilationMode.frontendServerDdc:
+          {
+            filePathToServe = webCompatiblePath([
+              project.directoryToServe,
+              project.filePathToServe,
+            ]);
+
+            _logger.info('Serving: $filePathToServe');
+
+            final entry = p.toUri(
+              p.join(project.webAssetsPath, project.dartEntryFileName),
+            );
+            final fileSystem = LocalFileSystem();
+            final packageUriMapper = await PackageUriMapper.create(
+              fileSystem,
+              project.packageConfigFile,
+              useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
+            );
+
+            final compilerOptions = TestCompilerOptions(
+              nullSafety: project.nullSafety,
+              experiments: buildSettings.experiments,
+              canaryFeatures: buildSettings.canaryFeatures,
+              moduleFormat: 'ddc',
+            );
+
+            _webRunner = ResidentWebRunner(
+              mainUri: entry,
+              urlTunneler: debugSettings.urlEncoder,
+              projectDirectory: p.toUri(project.absolutePackageDirectory),
+              packageConfigFile: project.packageConfigFile,
+              packageUriMapper: packageUriMapper,
+              fileSystemRoots: [p.toUri(project.absolutePackageDirectory)],
+              fileSystemScheme: 'org-dartlang-app',
+              outputPath: outputDir.path,
+              compilerOptions: compilerOptions,
+              sdkLayout: sdkLayout,
+              verbose: testSettings.verboseCompiler,
+            );
+
+            final assetServerPort = await findUnusedPort();
+            await webRunner.run(
+              fileSystem,
+              appMetadata.hostname,
+              assetServerPort,
+              filePathToServe,
+            );
+
+            if (testSettings.enableExpressionEvaluation) {
+              expressionCompiler = webRunner.expressionCompiler;
+            }
+
+            basePath = webRunner.devFS.assetServer.basePath;
+            assetReader = webRunner.devFS.assetServer;
+            _assetHandler = webRunner.devFS.assetServer.handleRequest;
+            loadStrategy = FrontendServerLegacyStrategyProvider(
               testSettings.reloadConfiguration,
               assetReader,
               packageUriMapper,
@@ -380,6 +458,10 @@ class TestContext {
           ),
         );
       }
+
+      // The debugger tab must be enabled and connected before certain
+      // listeners in DWDS run.
+      final tabConnectionCompleter = Completer();
       final connection = ChromeConnection('localhost', debugPort);
 
       _testServer = await TestServer.start(
@@ -389,11 +471,12 @@ class TestContext {
         port: port,
         assetHandler: assetHandler,
         assetReader: assetReader,
-        strategy: requireStrategy,
+        strategy: loadStrategy,
         target: project.directoryToServe,
         buildResults: buildResults,
         chromeConnection: () async => connection,
         autoRun: testSettings.autoRun,
+        completeBeforeHandlingConnections: tabConnectionCompleter.future,
       );
 
       _appUrl = basePath.isEmpty
@@ -406,7 +489,9 @@ class TestContext {
         if (tab != null) {
           _tabConnection = await tab.connect();
           await tabConnection.runtime.enable();
-          await tabConnection.debugger.enable();
+          await tabConnection.debugger
+              .enable()
+              .then((_) => tabConnectionCompleter.complete());
         } else {
           throw StateError('Unable to connect to tab.');
         }
