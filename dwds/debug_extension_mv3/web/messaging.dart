@@ -201,7 +201,7 @@ bool _isLegitimateSender(MessageSender sender) {
   final senderHost = senderUri.host;
   final isDartAppHost = senderHost == 'localhost' ||
       senderHost == '127.0.0.1' ||
-      senderHost.endsWith('.googlers.com');
+      _isGoogleHost(senderHost);
   final isExtensionOrigin =
       senderHost == chrome.runtime.id && senderUri.scheme == 'chrome-extension';
 
@@ -209,8 +209,13 @@ bool _isLegitimateSender(MessageSender sender) {
 
   // If the sender's host is unexpected, display an error.
   displayNotification(
-    'Unexpected sender ${sender.origin}. Please file a bug at https://github.com/dart-lang/webdev',
+    'Unexpected sender ${sender.origin}. Please file a bug at go/dde-bug or https://github.com/dart-lang/webdev',
     isError: true,
   );
   return false;
+}
+
+bool _isGoogleHost(String host) {
+  const googleSuffices = ['.googlers.com', '.google.com', '.googleprod.com'];
+  return googleSuffices.any((suffix) => host.endsWith(suffix));
 }

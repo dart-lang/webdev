@@ -187,7 +187,7 @@ Future<void> _maybeUpdateFileABugLink() async {
     if (bugLink == null) return;
     bugLink.setAttribute(
       'href',
-      'http://b/issues/new?component=775375&template=1791321',
+      'http://go/dde-bug',
     );
   }
 }
