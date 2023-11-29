@@ -137,32 +137,13 @@ h6 {
   }
 }
 
-@-webkit-keyframes fadeout {
-  from {
-    bottom: 0px;
-    opacity: 1;
-  }
-  to {
-    bottom: 0;
-    opacity: 0;
-  }
-}
-
-@keyframes fadeout {
-  from {
-    bottom: 0px;
-    opacity: 1;
-  }
-  to {
-    bottom: 0;
-    opacity: 0;
-  }
-}
-
-@keyframes spinner {
-  to {
-    transform: rotate(360deg);
-  }
+.spinner-overlay {
+  background: #ffffff;
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
 }
 
 .spinner:before {
@@ -181,11 +162,8 @@ h6 {
   width: 50px;
 }
 
-.spinner-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: #ffffff;
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
 }
