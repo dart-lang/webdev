@@ -88,23 +88,6 @@ void displayNotification(
   );
 }
 
-Future<bool> injectScript(String scriptName, {required int tabId}) async {
-  if (isMV3) {
-    await promiseToFuture(
-      _executeScriptMV3(
-        _InjectDetails(
-          target: Target(tabId: tabId),
-          files: [scriptName],
-        ),
-      ),
-    );
-    return true;
-  } else {
-    debugWarn('Script injection is only supported in Manifest V3.');
-    return false;
-  }
-}
-
 void onExtensionIconClicked(void Function(Tab) callback) {
   if (isMV3) {
     _onExtensionIconClickedMV3(callback);
@@ -188,18 +171,4 @@ external void _setExtensionIconMV3(IconInfo iconInfo, Function? callback);
 class IconInfo {
   external String get path;
   external factory IconInfo({required String path});
-}
-
-@JS('chrome.scripting.executeScript')
-external Object _executeScriptMV3(_InjectDetails details);
-
-@JS()
-@anonymous
-class _InjectDetails {
-  external Target get target;
-  external List<String>? get files;
-  external factory _InjectDetails({
-    Target target,
-    List<String>? files,
-  });
 }
