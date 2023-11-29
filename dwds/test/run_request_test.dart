@@ -8,11 +8,12 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
-import 'package:vm_service/vm_service.dart' hide VmServiceInterface;
+import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -27,7 +28,12 @@ void main() {
     late VmServiceInterface service;
     setUp(() async {
       setCurrentLogWriter(debug: debug);
-      await context.setUp(autoRun: false, verboseCompiler: debug);
+      await context.setUp(
+        testSettings: TestSettings(
+          autoRun: false,
+          verboseCompiler: debug,
+        ),
+      );
       service = context.service;
     });
 
@@ -67,7 +73,12 @@ void main() {
   group('while debugger is not attached', () {
     setUp(() async {
       setCurrentLogWriter(debug: debug);
-      await context.setUp(autoRun: false, waitToDebug: true);
+      await context.setUp(
+        testSettings: TestSettings(
+          autoRun: false,
+          waitToDebug: true,
+        ),
+      );
     });
 
     tearDown(() async {

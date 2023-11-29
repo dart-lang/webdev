@@ -9,5 +9,5 @@
 - Once the PR is submitted, go to https://github.com/dart-lang/webdev/releases and create a new
   release, eg https://github.com/dart-lang/webdev/releases/tag/webdev-3.0.0. This should trigger
   the auto-publisher. Verify that the package is published.
-- From the `/tool` directory in the mono-repo root, run: `dart run release.dart --reset -p webdev`
+- From the `/tool` directory in the mono-repo root, run: `dart run release.dart --reset -p webdev -v <<new version of webdev>>`
 - Submit a PR with those changes.

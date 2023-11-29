@@ -75,15 +75,17 @@ h6 {
 }
 
 .snackbar {
-  border-radius: 2px;
   bottom: 0px;
   color: #eeeeee;
+  font-family:  Roboto, 'Helvetica Neue', sans-serif;
+  left: 0px;
   padding: 16px;
   position: fixed;
+  right: 0px;
   text-align: center;
   visibility: hidden;
   width: 100%;
-  z-index: 1;
+  z-index: 2147483647;
 }
 
 .snackbar > a {

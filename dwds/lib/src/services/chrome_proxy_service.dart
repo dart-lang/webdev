@@ -27,8 +27,7 @@ import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:pub_semver/pub_semver.dart' as semver;
-import 'package:vm_service/vm_service.dart'
-    hide VmServiceInterface, vmServiceVersion;
+import 'package:vm_service/vm_service.dart' hide vmServiceVersion;
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -175,22 +174,30 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<void> _updateCompilerDependencies(String entrypoint) async {
-    final metadataProvider =
-        globalToolConfiguration.loadStrategy.metadataProviderFor(entrypoint);
-    final moduleFormat = globalToolConfiguration.loadStrategy.moduleFormat;
+    final loadStrategy = globalToolConfiguration.loadStrategy;
+    final moduleFormat = loadStrategy.moduleFormat;
+    final canaryFeatures = loadStrategy.buildSettings.canaryFeatures;
+    final experiments = loadStrategy.buildSettings.experiments;
+
+    // TODO(annagrin): Read null safety setting from the build settings.
+    final metadataProvider = loadStrategy.metadataProviderFor(entrypoint);
     final soundNullSafety = await metadataProvider.soundNullSafety;
 
     _logger.info('Initializing expression compiler for $entrypoint '
         'with sound null safety: $soundNullSafety');
 
+    final compilerOptions = CompilerOptions(
+      moduleFormat: moduleFormat,
+      soundNullSafety: soundNullSafety,
+      canaryFeatures: canaryFeatures,
+      experiments: experiments,
+    );
+
     final compiler = _compiler;
     if (compiler != null) {
-      await compiler.initialize(
-        moduleFormat: moduleFormat,
-        soundNullSafety: soundNullSafety,
-      );
-      final dependencies = await globalToolConfiguration.loadStrategy
-          .moduleInfoForEntrypoint(entrypoint);
+      await compiler.initialize(compilerOptions);
+      final dependencies =
+          await loadStrategy.moduleInfoForEntrypoint(entrypoint);
       await captureElapsedTime(
         () async {
           final result = await compiler.updateDependencies(dependencies);
@@ -385,7 +392,7 @@ class ChromeProxyService implements VmServiceInterface {
     String scriptId,
     int line, {
     int? column,
-  }) async {
+  }) {
     return wrapInErrorHandlerAsync(
       'addBreakpoint',
       () => _addBreakpoint(isolateId, scriptId, line),

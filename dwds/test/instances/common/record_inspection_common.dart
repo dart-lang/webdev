@@ -9,6 +9,7 @@ import 'package:vm_service/vm_service.dart';
 
 import '../../fixtures/context.dart';
 import '../../fixtures/project.dart';
+import '../../fixtures/utilities.dart';
 import 'test_inspector.dart';
 
 void runTests({
@@ -55,11 +56,13 @@ void runTests({
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        compilationMode: compilationMode,
-        enableExpressionEvaluation: true,
-        verboseCompiler: debug,
-        experiments: ['records', 'patterns'],
-        canaryFeatures: canaryFeatures,
+        testSettings: TestSettings(
+          compilationMode: compilationMode,
+          enableExpressionEvaluation: true,
+          verboseCompiler: debug,
+          experiments: ['records', 'patterns'],
+          canaryFeatures: canaryFeatures,
+        ),
       );
       service = context.debugConnection.vmService;
 

@@ -9,8 +9,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/sdk_configuration.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
@@ -79,7 +79,14 @@ void main() async {
         sdkConfigurationProvider: DefaultSdkConfigurationProvider(),
       );
 
-      await service.initialize(moduleFormat: 'amd', soundNullSafety: true);
+      final compilerOptions = CompilerOptions(
+        moduleFormat: 'amd',
+        soundNullSafety: true,
+        canaryFeatures: false,
+        experiments: const <String>[],
+      );
+
+      await service.initialize(compilerOptions);
 
       // setup asset server
       serveHttpRequests(server, assetHandler, (e, s) {

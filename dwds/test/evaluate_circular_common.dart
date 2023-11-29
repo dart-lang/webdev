@@ -8,11 +8,12 @@
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
-import 'package:vm_service/vm_service.dart' hide VmServiceInterface;
+import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 void testAll({
   required TestSdkConfigurationProvider provider,
@@ -62,10 +63,12 @@ void testAll({
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        compilationMode: compilationMode,
-        enableExpressionEvaluation: true,
-        useDebuggerModuleNames: useDebuggerModuleNames,
-        verboseCompiler: debug,
+        testSettings: TestSettings(
+          compilationMode: compilationMode,
+          enableExpressionEvaluation: true,
+          useDebuggerModuleNames: useDebuggerModuleNames,
+          verboseCompiler: debug,
+        ),
       );
     });
 

@@ -52,12 +52,14 @@ void _registerListeners() {
   );
   chrome.webNavigation.onCommitted
       .addListener(allowInterop(_detectNavigationAwayFromDartApp));
+      
+  chrome.commands.onCommand
+      .addListener(allowInterop(_maybeSendCopyAppIdRequest));
 }
 
 Future<void> _handleRuntimeMessages(
   dynamic jsRequest,
   MessageSender sender,
-  // ignore: avoid-unused-parameters
   Function sendResponse,
 ) async {
   if (jsRequest is! String) return;
@@ -159,6 +161,18 @@ Future<void> _handleRuntimeMessages(
       _setWarningIcon(dartTab.id);
     },
   );
+
+  interceptMessage<String>(
+    message: jsRequest,
+    expectedType: MessageType.appId,
+    expectedSender: Script.copier,
+    expectedRecipient: Script.background,
+    messageHandler: (String appId) {
+      displayNotification('Copied app ID: $appId');
+    },
+  );
+
+  sendResponse(defaultResponse);
 }
 
 Future<void> _detectNavigationAwayFromDartApp(
@@ -207,6 +221,23 @@ DebugInfo _addTabInfo(DebugInfo debugInfo, {required Tab tab}) {
       ..workspaceName = debugInfo.workspaceName
       ..tabUrl = tab.url
       ..tabId = tab.id,
+  );
+}
+
+Future<bool> _maybeSendCopyAppIdRequest(String command, [Tab? tab]) async {
+  if (command != 'copyAppId') return false;
+  final tabId = (tab ?? await activeTab)?.id;
+  if (tabId == null) return false;
+  final debugInfo = await _fetchDebugInfo(tabId);
+  final workspaceName = debugInfo?.workspaceName;
+  if (workspaceName == null) return false;
+  final appId = '$workspaceName-$tabId';
+  return sendTabsMessage(
+    tabId: tabId,
+    type: MessageType.appId,
+    body: appId,
+    sender: Script.background,
+    recipient: Script.copier,
   );
 }
 

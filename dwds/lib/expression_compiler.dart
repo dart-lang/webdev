@@ -3,4 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export 'src/services/expression_compiler.dart'
-    show ExpressionCompilationResult, ExpressionCompiler, ModuleInfo;
+    show
+        ExpressionCompilationResult,
+        ExpressionCompiler,
+        CompilerOptions,
+        ModuleInfo;

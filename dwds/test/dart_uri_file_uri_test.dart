@@ -12,6 +12,7 @@ import 'package:test_common/test_sdk_configuration.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 // This tests converting file Uris into our internal paths.
 //
@@ -56,8 +57,10 @@ void main() {
 
           setUpAll(() async {
             await context.setUp(
-              compilationMode: compilationMode,
-              useDebuggerModuleNames: useDebuggerModuleNames,
+              testSettings: TestSettings(
+                compilationMode: compilationMode,
+                useDebuggerModuleNames: useDebuggerModuleNames,
+              ),
             );
           });
 

@@ -64,22 +64,19 @@ class _Compiler {
   static Future<_Compiler> start(
     String address,
     int port,
-    String moduleFormat,
-    bool soundNullSafety,
     SdkConfiguration sdkConfiguration,
-    List<String> experiments,
-    bool canaryFeatures,
+    CompilerOptions compilerOptions,
     bool verbose,
   ) async {
     sdkConfiguration.validateSdkDir();
-    if (soundNullSafety) {
+    if (compilerOptions.soundNullSafety) {
       sdkConfiguration.validateSoundSummaries();
     } else {
       sdkConfiguration.validateWeakSummaries();
     }
 
     final workerUri = sdkConfiguration.compilerWorkerUri!;
-    final sdkSummaryUri = soundNullSafety
+    final sdkSummaryUri = compilerOptions.soundNullSafety
         ? sdkConfiguration.soundSdkSummaryUri!
         : sdkConfiguration.weakSdkSummaryUri!;
 
@@ -92,11 +89,14 @@ class _Compiler {
       '--asset-server-port',
       '$port',
       '--module-format',
-      moduleFormat,
+      compilerOptions.moduleFormat,
       if (verbose) '--verbose',
-      soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
-      for (final experiment in experiments) '--enable-experiment=$experiment',
-      if (canaryFeatures) '--canary',
+      compilerOptions.soundNullSafety
+          ? '--sound-null-safety'
+          : '--no-sound-null-safety',
+      for (final experiment in compilerOptions.experiments)
+        '--enable-experiment=$experiment',
+      if (compilerOptions.canaryFeatures) '--canary',
     ];
 
     _logger.info('Starting...');
@@ -241,8 +241,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
   final _compiler = Completer<_Compiler>();
   final String _address;
   final FutureOr<int> _port;
-  final List<String> experiments;
-  final bool canaryFeatures;
   final bool _verbose;
 
   final SdkConfigurationProvider sdkConfigurationProvider;
@@ -252,8 +250,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
     this._port, {
     bool verbose = false,
     required this.sdkConfigurationProvider,
-    this.experiments = const [],
-    this.canaryFeatures = false,
   }) : _verbose = verbose;
 
   @override
@@ -278,20 +274,14 @@ class ExpressionCompilerService implements ExpressionCompiler {
       );
 
   @override
-  Future<void> initialize({
-    required String moduleFormat,
-    bool soundNullSafety = false,
-  }) async {
+  Future<void> initialize(CompilerOptions options) async {
     if (_compiler.isCompleted) return;
 
     final compiler = await _Compiler.start(
       _address,
       await _port,
-      moduleFormat,
-      soundNullSafety,
       await sdkConfigurationProvider.configuration,
-      experiments,
-      canaryFeatures,
+      options,
       _verbose,
     );
 

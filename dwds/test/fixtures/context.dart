@@ -10,14 +10,12 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/build_runner_require.dart';
 import 'package:dwds/src/loaders/frontend_server_require.dart';
 import 'package:dwds/src/loaders/require.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
@@ -64,7 +62,6 @@ enum CompilationMode { buildDaemon, frontendServer }
 
 class TestContext {
   final TestProject project;
-  final NullSafety nullSafety;
   final TestSdkConfigurationProvider sdkConfigurationProvider;
 
   String get appUrl => _appUrl!;
@@ -120,8 +117,7 @@ class TestContext {
   /// External VM service.
   VmService get vmService => debugConnection.vmService;
 
-  TestContext(this.project, this.sdkConfigurationProvider)
-      : nullSafety = project.nullSafety {
+  TestContext(this.project, this.sdkConfigurationProvider) {
     DartUri.currentDirectory = project.absolutePackageDirectory;
 
     project.validate();
@@ -135,24 +131,21 @@ class TestContext {
   }
 
   Future<void> setUp({
-    ReloadConfiguration reloadConfiguration = ReloadConfiguration.none,
-    AppMetadata? appMetadata,
-    TestDebugSettings? debugSettings,
-    bool autoRun = true,
-    bool waitToDebug = false,
-    CompilationMode compilationMode = CompilationMode.buildDaemon,
-    bool enableExpressionEvaluation = false,
-    bool verboseCompiler = false,
-    bool useDebuggerModuleNames = false,
-    bool launchChrome = true,
-    List<String> experiments = const <String>[],
-    bool canaryFeatures = false,
+    TestSettings testSettings = const TestSettings(),
+    TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
+    TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
   }) async {
-    appMetadata ??= TestAppMetadata.externalDartApp();
-    debugSettings ??= TestDebugSettings.noDevTools();
-    final sdkLayout = sdkConfigurationProvider.sdkLayout;
     try {
+      // Build settings to return from load strategy.
+      final buildSettings = TestBuildSettings(
+        appEntrypoint: project.dartEntryFilePackageUri,
+        canaryFeatures: testSettings.canaryFeatures,
+        isFlutterApp: testSettings.isFlutterApp,
+        experiments: testSettings.experiments,
+      );
+
       // Make sure configuration was created correctly.
+      final sdkLayout = sdkConfigurationProvider.sdkLayout;
       final configuration = await sdkConfigurationProvider.configuration;
       configuration.validate();
       await project.cleanUp();
@@ -216,17 +209,17 @@ class TestContext {
       String filePathToServe = project.filePathToServe;
 
       _port = await findUnusedPort();
-      switch (compilationMode) {
+      switch (testSettings.compilationMode) {
         case CompilationMode.buildDaemon:
           {
             final options = [
-              if (enableExpressionEvaluation) ...[
+              if (testSettings.enableExpressionEvaluation) ...[
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
               ],
-              for (final experiment in experiments)
+              for (final experiment in buildSettings.experiments)
                 '--enable-experiment=$experiment',
-              if (canaryFeatures) ...[
+              if (buildSettings.canaryFeatures) ...[
                 '--define',
                 'build_web_compilers|ddc=canary=true',
                 '--define',
@@ -265,23 +258,21 @@ class TestContext {
               root: project.directoryToServe,
             );
 
-            if (enableExpressionEvaluation) {
+            if (testSettings.enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
                 'localhost',
                 port,
-                verbose: verboseCompiler,
+                verbose: testSettings.verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
-                experiments: experiments,
-                canaryFeatures: canaryFeatures,
               );
               expressionCompiler = ddcService;
             }
 
             requireStrategy = BuildRunnerRequireStrategyProvider(
               assetHandler,
-              reloadConfiguration,
+              testSettings.reloadConfiguration,
               assetReader,
-              project.dartEntryFilePackageUri,
+              buildSettings,
             ).strategy;
 
             buildResults = daemonClient.buildResults;
@@ -303,7 +294,13 @@ class TestContext {
             final packageUriMapper = await PackageUriMapper.create(
               fileSystem,
               project.packageConfigFile,
-              useDebuggerModuleNames: useDebuggerModuleNames,
+              useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
+            );
+
+            final compilerOptions = TestCompilerOptions(
+              nullSafety: project.nullSafety,
+              experiments: buildSettings.experiments,
+              canaryFeatures: buildSettings.canaryFeatures,
             );
 
             _webRunner = ResidentWebRunner(
@@ -315,11 +312,9 @@ class TestContext {
               fileSystemRoots: [p.toUri(project.absolutePackageDirectory)],
               fileSystemScheme: 'org-dartlang-app',
               outputPath: outputDir.path,
-              soundNullSafety: nullSafety == NullSafety.sound,
-              experiments: experiments,
-              canaryFeatures: canaryFeatures,
-              verbose: verboseCompiler,
+              compilerOptions: compilerOptions,
               sdkLayout: sdkLayout,
+              verbose: testSettings.verboseCompiler,
             );
 
             final assetServerPort = await findUnusedPort();
@@ -330,7 +325,7 @@ class TestContext {
               filePathToServe,
             );
 
-            if (enableExpressionEvaluation) {
+            if (testSettings.enableExpressionEvaluation) {
               expressionCompiler = webRunner.expressionCompiler;
             }
 
@@ -338,22 +333,24 @@ class TestContext {
             assetReader = webRunner.devFS.assetServer;
             _assetHandler = webRunner.devFS.assetServer.handleRequest;
             requireStrategy = FrontendServerRequireStrategyProvider(
-              reloadConfiguration,
+              testSettings.reloadConfiguration,
               assetReader,
               packageUriMapper,
               () async => {},
-              project.dartEntryFilePackageUri,
+              buildSettings,
             ).strategy;
 
             buildResults = const Stream<BuildResults>.empty();
           }
           break;
         default:
-          throw Exception('Unsupported compilation mode: $compilationMode');
+          throw Exception(
+            'Unsupported compilation mode: ${testSettings.compilationMode}',
+          );
       }
 
       final debugPort = await findUnusedPort();
-      if (launchChrome) {
+      if (testSettings.launchChrome) {
         // If the environment variable DWDS_DEBUG_CHROME is set to the string true
         // then Chrome will be launched with a UI rather than headless.
         // If the extension is enabled, then Chrome will be launched with a UI
@@ -396,14 +393,14 @@ class TestContext {
         target: project.directoryToServe,
         buildResults: buildResults,
         chromeConnection: () async => connection,
-        autoRun: autoRun,
+        autoRun: testSettings.autoRun,
       );
 
       _appUrl = basePath.isEmpty
           ? 'http://localhost:$port/$filePathToServe'
           : 'http://localhost:$port/$basePath/$filePathToServe';
 
-      if (launchChrome) {
+      if (testSettings.launchChrome) {
         await _webDriver?.get(appUrl);
         final tab = await connection.getTab((t) => t.url == appUrl);
         if (tab != null) {
@@ -421,11 +418,12 @@ class TestContext {
         }
 
         appConnection = await testServer.dwds.connectedApps.first;
-        if (debugSettings.enableDebugging && !waitToDebug) {
+        if (debugSettings.enableDebugging && !testSettings.waitToDebug) {
           await startDebugging();
         }
       }
-    } catch (e) {
+    } catch (e, s) {
+      _logger.severe('Failed to setup the service, $e:$s');
       await tearDown();
       rethrow;
     }

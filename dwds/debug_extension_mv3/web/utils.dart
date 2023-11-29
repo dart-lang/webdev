@@ -69,6 +69,25 @@ Future<bool> removeTab(int tabId) {
   return completer.future;
 }
 
+void displayNotification(
+  String message, {
+  bool isError = false,
+  Function? callback,
+}) {
+  chrome.notifications.create(
+    // notificationId
+    null,
+    NotificationOptions(
+      title: '${isError ? '[Error] ' : ''}Dart Debug Extension',
+      message: message,
+      iconUrl:
+          isError ? 'static_assets/dart_warning.png' : 'static_assets/dart.png',
+      type: 'basic',
+    ),
+    callback,
+  );
+}
+
 Future<bool> injectScript(String scriptName, {required int tabId}) async {
   if (isMV3) {
     await promiseToFuture(

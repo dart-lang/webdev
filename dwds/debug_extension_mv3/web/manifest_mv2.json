@@ -1,6 +1,6 @@
 {
   "name": "Dart Debug Extension",
-  "version": "1.37",
+  "version": "1.40",
   "manifest_version": 2,
   "devtools_page": "static_assets/devtools.html",
   "browser_action": {
@@ -24,10 +24,19 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["detector.dart.js"],
+      "js": ["detector.dart.js", "copier.dart.js"],
       "run_at": "document_end"
     }
   ],
+  "commands": {
+    "copyAppId": {
+      "suggestedKey": {
+        "default": "Ctrl+Shift+7",
+        "mac": "Command+Shift+7"
+      },
+      "description": "Copy the app ID"
+    }
+  },
   "web_accessible_resources": ["debug_info.dart.js"],
   "options_page": "static_assets/settings.html"
 }

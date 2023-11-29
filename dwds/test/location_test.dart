@@ -4,7 +4,6 @@
 
 @Timeout(Duration(minutes: 2))
 
-import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:test/test.dart';
@@ -24,7 +23,7 @@ void main() {
   const lines = 100;
   const lineLength = 150;
   final assetReader = FakeAssetReader(sourceMap: sourceMapContents);
-  final toolConfiguration = TestToolConfiguration.forTests(
+  final toolConfiguration = TestToolConfiguration.withLoadStrategy(
     loadStrategy: MockLoadStrategy(assetReader),
   );
   setGlobalsForTesting(
@@ -188,9 +187,7 @@ const _serverPath = 'web/main.dart';
 const _sourceMapPath = 'packages/module.js.map';
 
 class MockLoadStrategy extends FakeStrategy {
-  MockLoadStrategy(
-    AssetReader assetReader,
-  ) : super(assetReader);
+  MockLoadStrategy(super.assetReader);
 
   @override
   Future<String?> moduleForServerPath(

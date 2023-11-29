@@ -44,9 +44,8 @@ abstract class LoadStrategy {
   /// The reload configuration for this strategy, e.g. liveReload.
   ReloadConfiguration get reloadConfiguration;
 
-  /// The URI for the app's entrypoint file, which is usually `main.dart`. It
-  /// should be a package URI, e.g. `package:myapp/main.dart`.
-  Uri? get appEntrypoint;
+  /// App build settings, such as entry point, build flags, app kind etc.
+  BuildSettings get buildSettings;
 
   /// Returns the bootstrap required for this [LoadStrategy].
   ///
@@ -132,10 +131,33 @@ abstract class LoadStrategy {
 
   /// Initializes a [MetadataProvider] for the application located at the
   /// provided [entrypoint].
-  void trackEntrypoint(String entrypoint) {
+  Future<void> trackEntrypoint(String entrypoint) {
     final metadataProvider = MetadataProvider(entrypoint, _assetReader);
     _providers[metadataProvider.entrypoint] = metadataProvider;
+    // Returns a Future so that the asynchronous g3-implementation can override
+    // this method:
+    return Future.value();
   }
 }
 
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
+
+/// App build settings.
+///
+/// We use load strategy to determine the build settings for the app.
+/// Note that some load strategies need to read those arguments from
+/// the build metadata as they are not always available until the app
+/// is built and loaded.
+class BuildSettings {
+  final Uri? appEntrypoint;
+  final bool canaryFeatures;
+  final bool isFlutterApp;
+  final List<String> experiments;
+
+  const BuildSettings({
+    this.appEntrypoint,
+    this.canaryFeatures = false,
+    this.isFlutterApp = true,
+    this.experiments = const <String>[],
+  });
+}

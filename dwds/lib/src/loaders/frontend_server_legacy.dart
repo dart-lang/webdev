@@ -1,16 +1,16 @@
-// Copyright 2020 The Dart Authors. All rights reserved.
+// Copyright 2023 The Dart Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/loaders/require.dart';
+import 'package:dwds/src/loaders/legacy.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:path/path.dart' as p;
 
-/// Provides a [RequireStrategy] suitable for use with Frontend Server.
-class FrontendServerRequireStrategyProvider {
+/// Provides a [LegacyStrategy] suitable for use with Frontend Server.
+class FrontendServerLegacyStrategyProvider {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
   final PackageUriMapper _packageUriMapper;
@@ -18,7 +18,7 @@ class FrontendServerRequireStrategyProvider {
   final String _basePath;
   final BuildSettings _buildSettings;
 
-  late final RequireStrategy _requireStrategy = RequireStrategy(
+  late final LegacyStrategy _legacyStrategy = LegacyStrategy(
     _configuration,
     _moduleProvider,
     (_) => _digestsProvider(),
@@ -29,9 +29,11 @@ class FrontendServerRequireStrategyProvider {
     _moduleInfoForProvider,
     _assetReader,
     _buildSettings,
+    (String _) => null,
+    null,
   );
 
-  FrontendServerRequireStrategyProvider(
+  FrontendServerLegacyStrategyProvider(
     this._configuration,
     this._assetReader,
     this._packageUriMapper,
@@ -39,7 +41,7 @@ class FrontendServerRequireStrategyProvider {
     this._buildSettings,
   ) : _basePath = _assetReader.basePath;
 
-  RequireStrategy get strategy => _requireStrategy;
+  LegacyStrategy get strategy => _legacyStrategy;
 
   String _removeBasePath(String path) {
     if (_basePath.isEmpty) return path;

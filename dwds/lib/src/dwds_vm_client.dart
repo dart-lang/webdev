@@ -12,7 +12,7 @@ import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
-import 'package:vm_service/vm_service.dart' hide VmServerConnection;
+import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -213,6 +213,19 @@ void _recordDwdsStats(DwdsStats dwdsStats, String screen) {
   }
 }
 
+Future<int> tryGetContextId(
+  ChromeProxyService chromeProxyService, {
+  int retries = 3,
+}) async {
+  const waitInMs = 50;
+  for (var retry = 0; retry < retries; retry++) {
+    final tryId = await chromeProxyService.executionContext.id;
+    if (tryId != null) return tryId;
+    await Future.delayed(const Duration(milliseconds: waitInMs));
+  }
+  throw StateError('No context with the running Dart application.');
+}
+
 Future<Map<String, dynamic>> _hotRestart(
   ChromeProxyService chromeProxyService,
   VmService client,
@@ -223,7 +236,7 @@ Future<Map<String, dynamic>> _hotRestart(
   await _disableBreakpointsAndResume(client, chromeProxyService);
   try {
     _logger.info('Attempting to get execution context ID.');
-    await chromeProxyService.executionContext.id;
+    await tryGetContextId(chromeProxyService);
     _logger.info('Got execution context ID.');
   } on StateError catch (e) {
     // We couldn't find the execution context. `hotRestart` may have been

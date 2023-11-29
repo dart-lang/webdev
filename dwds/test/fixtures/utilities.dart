@@ -15,6 +15,7 @@ import 'package:dwds/src/services/expression_compiler.dart';
 
 import 'context.dart';
 import 'fakes.dart';
+import 'project.dart';
 
 /// Connects to the `build_runner` daemon.
 Future<BuildDaemonClient> connectClient(
@@ -113,35 +114,22 @@ class TestDebugSettings extends DebugSettings {
           },
         );
 
-  TestDebugSettings.noDevTools() : super(enableDevToolsLaunch: false);
+  const TestDebugSettings.noDevTools() : super(enableDevToolsLaunch: false);
 
   TestDebugSettings._({
-    required bool enableDebugging,
-    required bool enableDebugExtension,
-    required bool useSseForDebugBackend,
-    required bool useSseForDebugProxy,
-    required bool useSseForInjectedClient,
-    required bool spawnDds,
-    required bool enableDevToolsLaunch,
-    required bool launchDevToolsInNewWindow,
-    required bool emitDebugEvents,
-    required DevToolsLauncher? devToolsLauncher,
-    required ExpressionCompiler? expressionCompiler,
-    required UrlEncoder? urlEncoder,
-  }) : super(
-          enableDebugging: enableDebugging,
-          enableDebugExtension: enableDebugExtension,
-          useSseForDebugBackend: useSseForDebugBackend,
-          useSseForDebugProxy: useSseForDebugProxy,
-          useSseForInjectedClient: useSseForInjectedClient,
-          spawnDds: spawnDds,
-          enableDevToolsLaunch: enableDevToolsLaunch,
-          launchDevToolsInNewWindow: launchDevToolsInNewWindow,
-          emitDebugEvents: emitDebugEvents,
-          devToolsLauncher: devToolsLauncher,
-          expressionCompiler: expressionCompiler,
-          urlEncoder: urlEncoder,
-        );
+    required super.enableDebugging,
+    required super.enableDebugExtension,
+    required super.useSseForDebugBackend,
+    required super.useSseForDebugProxy,
+    required super.useSseForInjectedClient,
+    required super.spawnDds,
+    required super.enableDevToolsLaunch,
+    required super.launchDevToolsInNewWindow,
+    required super.emitDebugEvents,
+    required super.devToolsLauncher,
+    required super.expressionCompiler,
+    required super.urlEncoder,
+  });
 
   TestDebugSettings copyWith({
     bool? enableDebugging,
@@ -174,43 +162,143 @@ class TestDebugSettings extends DebugSettings {
 }
 
 class TestAppMetadata extends AppMetadata {
-  TestAppMetadata.internalFlutterApp()
-      : super(
-          isFlutterApp: () => Future.value(true),
-          isInternalBuild: true,
-        );
-  TestAppMetadata.internalDartApp()
-      : super(
-          isFlutterApp: () => Future.value(false),
-          isInternalBuild: true,
-        );
-  TestAppMetadata.externalFlutterApp()
-      : super(
-          isFlutterApp: () => Future.value(true),
-          isInternalBuild: false,
-        );
-  TestAppMetadata.externalDartApp()
-      : super(
-          isFlutterApp: () => Future.value(false),
-          isInternalBuild: false,
-        );
+  const TestAppMetadata({
+    super.isInternalBuild,
+    super.workspaceName,
+    super.hostname = 'localhost',
+  });
+
+  TestAppMetadata copyWith({
+    bool? isFlutterApp,
+    bool? isInternalBuild,
+    String? workspaceName,
+    String? hostname,
+  }) =>
+      TestAppMetadata(
+        isInternalBuild: isInternalBuild ?? this.isInternalBuild,
+        workspaceName: workspaceName ?? this.workspaceName,
+        hostname: hostname ?? this.hostname,
+      );
+
+  const TestAppMetadata.externalApp() : super(isInternalBuild: false);
+
+  const TestAppMetadata.internalApp() : super(isInternalBuild: true);
 }
 
 class TestToolConfiguration extends ToolConfiguration {
-  TestToolConfiguration.forTests({
-    LoadStrategy? loadStrategy,
-    DebugSettings? debugSettings,
-    AppMetadata? appMetadata,
+  TestToolConfiguration.withDefaultLoadStrategy({
+    TestAppMetadata super.appMetadata = const TestAppMetadata.externalApp(),
+    TestDebugSettings super.debugSettings =
+        const TestDebugSettings.noDevTools(),
+    TestBuildSettings buildSettings = const TestBuildSettings.dart(),
   }) : super(
-          loadStrategy: loadStrategy ?? FakeStrategy(FakeAssetReader()),
-          debugSettings: debugSettings ?? TestDebugSettings.noDevTools(),
-          appMetadata: appMetadata ?? TestAppMetadata.externalDartApp(),
+          loadStrategy: TestStrategy(const FakeAssetReader(), buildSettings),
         );
+
+  TestToolConfiguration.withLoadStrategy({
+    TestAppMetadata super.appMetadata = const TestAppMetadata.externalApp(),
+    TestDebugSettings super.debugSettings =
+        const TestDebugSettings.noDevTools(),
+    required super.loadStrategy,
+  });
 }
 
 void setGlobalsForTesting({
   ToolConfiguration? toolConfiguration,
 }) {
   globalToolConfiguration =
-      toolConfiguration ?? TestToolConfiguration.forTests();
+      toolConfiguration ?? TestToolConfiguration.withDefaultLoadStrategy();
+}
+
+void setGlobalsForTestingFromBuild({
+  TestBuildSettings buildSettings = const TestBuildSettings.dart(),
+}) {
+  globalToolConfiguration = TestToolConfiguration.withDefaultLoadStrategy(
+    buildSettings: buildSettings,
+  );
+}
+
+class TestStrategy extends FakeStrategy {
+  TestStrategy(
+    super.assetReader,
+    BuildSettings buildSettings,
+  ) : super(buildSettings: buildSettings);
+
+  @override
+  String serverPathForAppUri(String appUri) {
+    return 'foo';
+  }
+}
+
+/// Settings defining how to run the tests.
+class TestSettings {
+  // Scenario settings.
+  final ReloadConfiguration reloadConfiguration;
+  final bool autoRun;
+  final bool waitToDebug;
+  final bool enableExpressionEvaluation;
+  final bool verboseCompiler;
+  final bool launchChrome;
+
+  // Build settings.
+  final CompilationMode compilationMode;
+  final bool canaryFeatures;
+  final bool isFlutterApp;
+  final List<String> experiments;
+  final bool useDebuggerModuleNames;
+
+  const TestSettings({
+    this.reloadConfiguration = ReloadConfiguration.none,
+    this.autoRun = true,
+    this.waitToDebug = false,
+    this.enableExpressionEvaluation = false,
+    this.verboseCompiler = false,
+    this.launchChrome = true,
+    this.compilationMode = CompilationMode.buildDaemon,
+    this.canaryFeatures = false,
+    this.isFlutterApp = false,
+    this.experiments = const <String>[],
+    this.useDebuggerModuleNames = false,
+  });
+}
+
+/// App build settings for tests.
+class TestBuildSettings extends BuildSettings {
+  const TestBuildSettings({
+    super.appEntrypoint,
+    super.canaryFeatures,
+    super.isFlutterApp,
+    super.experiments,
+  });
+
+  const TestBuildSettings.dart({Uri? appEntrypoint})
+      : this(appEntrypoint: appEntrypoint, isFlutterApp: false);
+
+  const TestBuildSettings.flutter({Uri? appEntrypoint})
+      : this(appEntrypoint: appEntrypoint, isFlutterApp: true);
+
+  TestBuildSettings copyWith({
+    Uri? appEntrypoint,
+    bool? canaryFeatures,
+    bool? isFlutterApp,
+    List<String>? experiments,
+  }) =>
+      TestBuildSettings(
+        appEntrypoint: appEntrypoint ?? this.appEntrypoint,
+        canaryFeatures: canaryFeatures ?? this.canaryFeatures,
+        isFlutterApp: isFlutterApp ?? this.isFlutterApp,
+        experiments: experiments ?? this.experiments,
+      );
+}
+
+class TestCompilerOptions extends CompilerOptions {
+  TestCompilerOptions({
+    required NullSafety nullSafety,
+    required super.canaryFeatures,
+    required List<String> experiments,
+  }) : super(
+          moduleFormat: 'amd',
+          soundNullSafety: nullSafety == NullSafety.sound,
+          experiments: const <String>[],
+        );
 }
