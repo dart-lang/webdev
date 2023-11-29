@@ -14,6 +14,7 @@ import 'package:js/js.dart';
 
 import 'data_serializers.dart';
 import 'data_types.dart';
+import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';
@@ -25,6 +26,8 @@ const _copiedSuccessId = "copiedSuccess";
 const _hiddenClass = 'hidden';
 const _launchDevToolsButtonId = 'launchDevToolsButton';
 const _loadingSpinnerId = "loadingSpinner";
+const _windowOption = "windowOption";
+const _tabOption = "tabOption";
 
 Future<int?> get _tabId async {
   final tab = await activeTab;
@@ -50,6 +53,18 @@ void _registerListeners() {
 
   final copyButton = document.getElementById(_copyIdButtonId) as ButtonElement;
   copyButton.addEventListener('click', _copyAppId);
+
+  document.addEventListener('DOMContentLoaded', _updateSettingsFromStorage);
+
+  final windowOption = document.getElementById(_windowOption) as InputElement;
+  windowOption.addEventListener('change', (Event _) {
+    _saveSettingsToStorage(windowOption.value);
+  });
+
+  final tabOption = document.getElementById(_tabOption) as InputElement;
+  tabOption.addEventListener('change', (Event _) {
+    _saveSettingsToStorage(tabOption.value);
+  });
 }
 
 Future<bool> _insertAppId() async {
@@ -95,6 +110,29 @@ void _copyAppId(Event _) {
   if (clipboard == null) return;
   clipboard.writeText(_appId!);
   _updateElementVisibility(_copiedSuccessId, visible: true);
+}
+
+Future<void> _updateSettingsFromStorage(Event _) async {
+  final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
+    type: StorageObject.devToolsOpener,
+  );
+  final openInNewWindow = devToolsOpener?.newWindow ?? false;
+  _getRadioButton(_windowOption).checked = openInNewWindow;
+  _getRadioButton(_tabOption).checked = !openInNewWindow;
+}
+
+Future<void> _saveSettingsToStorage(String? devToolsOpener) async {
+  if (devToolsOpener == null) return;
+  await setStorageObject<DevToolsOpener>(
+    type: StorageObject.devToolsOpener,
+    value: DevToolsOpener(
+      (b) => b..newWindow = devToolsOpener == 'window',
+    ),
+  );
+}
+
+RadioButtonInputElement _getRadioButton(String id) {
+  return document.getElementById(id) as RadioButtonInputElement;
 }
 
 void _updateElementVisibility(String elementId, {required bool visible}) {

@@ -27,9 +27,31 @@
           id="launchDevToolsButton"
           class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
         >
-          Launch DevTools
+          Open DevTools
         </button>
       </li>
+
+      <li class="mdl-list__item">
+        <span class="mdl-list__item-primary-content">
+          Open in a:
+        </span>
+        <span class="mdl-list__item-secondary-action">
+          <form>
+            <fieldset>
+              <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="tabOpt">
+                <input type="radio" id="tabOption" class="mdl-radio__button" name="devToolsOpener" value="tab" checked>
+                <span class="mdl-radio__label">New tab</span>
+              </label>
+              <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="windowOpt">
+                <input type="radio" id="windowOption" class="mdl-radio__button" name="devToolsOpener" value="window">
+                <span class="mdl-radio__label">New window</span>
+              </label>
+            </fieldset>
+          </form>
+        </span>
+      </li>
+
+      <hr></hr>
 
       <li id="appIdContainer" class="mdl-list__item mdl-list__item--two-line">
         <span class="mdl-list__item-primary-content">
@@ -45,6 +67,7 @@
           <span id="appId"></span>
         </span>
       </li>
+
     </ul>
     <div id="loadingSpinner" class="spinner-overlay">
       <div class="spinner"></div>
