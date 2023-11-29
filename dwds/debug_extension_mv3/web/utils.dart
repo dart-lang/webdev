@@ -11,7 +11,6 @@ import 'dart:js_util';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
-import 'logger.dart';
 
 Future<Tab> createTab(String url, {bool inNewWindow = false}) {
   final completer = Completer<Tab>();
