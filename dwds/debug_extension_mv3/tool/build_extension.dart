@@ -9,8 +9,8 @@
 
 // Run from the extension root directory:
 //    - For dev: dart run tool/build_extension.dart
-//    - For prod: dart run tool/build_extension.dart prod
-//    - For MV3: dart run tool/build_extension.dart --mv3
+//    - For prod: dart run tool/build_extension.dart --prod
+//    - For MV2: dart run tool/build_extension.dart --mv2
 
 import 'dart:convert';
 import 'dart:io';
@@ -19,26 +19,26 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 
 const _prodFlag = 'prod';
-const _mv3Flag = 'mv3';
+const _mv2Flag = 'mv2';
 
 void main(List<String> arguments) async {
   final parser = ArgParser()
     ..addFlag(_prodFlag, negatable: true, defaultsTo: false)
-    ..addFlag(_mv3Flag, negatable: true, defaultsTo: false);
+    ..addFlag(_mv2Flag, negatable: true, defaultsTo: false);
   final argResults = parser.parse(arguments);
 
   exitCode = await run(
     isProd: argResults[_prodFlag] as bool,
-    isMV3: argResults[_mv3Flag] as bool,
+    isMV2: argResults[_mv2Flag] as bool,
   );
   if (exitCode != 0) {
     _logWarning('Run terminated unexpectedly with exit code: $exitCode');
   }
 }
 
-Future<int> run({required bool isProd, required bool isMV3}) async {
+Future<int> run({required bool isProd, required bool isMV2}) async {
   _logInfo(
-    'Building ${isMV3 ? 'MV3' : 'MV2'} extension for ${isProd ? 'prod' : 'dev'}',
+    'Building ${isMV2 ? 'MV2' : 'MV3'} extension for ${isProd ? 'prod' : 'dev'}',
   );
   _logInfo('Compiling extension with dart2js to /compiled directory');
   final compileStep = await Process.start(
@@ -50,7 +50,7 @@ Future<int> run({required bool isProd, required bool isMV3}) async {
   if (compileExitCode != 0) {
     return compileExitCode;
   }
-  final manifestFileName = isMV3 ? 'manifest_mv3' : 'manifest_mv2';
+  final manifestFileName = isMV2 ? 'manifest_mv2' : 'manifest_mv3';
   _logInfo('Copying manifest.json to /compiled directory');
   try {
     File(p.join('web', '$manifestFileName.json')).copySync(
