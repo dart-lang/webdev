@@ -13,24 +13,94 @@ import 'package:path/path.dart' as p;
 /// We keep all the path constants in one place for ease of update.
 class TestSdkLayout {
   static final defaultSdkDirectory = SdkLayout.defaultSdkDirectory;
+
   static TestSdkLayout defaultSdkLayout =
-      TestSdkLayout.createDefault(defaultSdkDirectory, ddcModuleSystem: false);
+      TestSdkLayout.createDefault(defaultSdkDirectory);
   static TestSdkLayout defaultDdcSdkLayout =
-      TestSdkLayout.createDefault(defaultSdkDirectory, ddcModuleSystem: true);
+      TestSdkLayout.createDdcDefault(defaultSdkDirectory);
+
   static SdkConfiguration defaultSdkConfiguration =
       createConfiguration(defaultSdkLayout);
   static SdkConfiguration defaultDdcSdkConfiguration =
       createConfiguration(defaultDdcSdkLayout);
 
-  factory TestSdkLayout.createDefault(String sdkDirectory,
-          {required bool ddcModuleSystem}) =>
+  factory TestSdkLayout.createDefault(String sdkDirectory) =>
       TestSdkLayout.createDefaultFromSdkLayout(
-          SdkLayout.createDefault(sdkDirectory),
-          ddcModuleSystem: ddcModuleSystem);
+          SdkLayout.createDefault(sdkDirectory));
 
-  factory TestSdkLayout.createDefaultFromSdkLayout(SdkLayout sdkLayout,
-      {required bool ddcModuleSystem}) {
-    final sdkPathSegment = ddcModuleSystem ? 'legacy' : 'amd';
+  factory TestSdkLayout.createDdcDefault(String sdkDirectory) =>
+      TestSdkLayout.createDdcDefaultFromSdkLayout(
+          SdkLayout.createDefault(sdkDirectory));
+
+  factory TestSdkLayout.createDefaultFromSdkLayout(SdkLayout sdkLayout) {
+    return TestSdkLayout(
+      sdkDirectory: sdkLayout.sdkDirectory,
+      soundSummaryPath: sdkLayout.soundSummaryPath,
+      soundFullDillPath: p.join(
+        sdkLayout.sdkDirectory,
+        'lib',
+        '_internal',
+        'ddc_platform.dill',
+      ),
+      soundJsPath: p.join(sdkLayout.sdkDirectory,
+          '../gen/utils/ddc/stable/sdk/amd/dart_sdk.js'),
+      soundJsMapPath: p.join(sdkLayout.sdkDirectory,
+          '../gen/utils/ddc/stable/sdk/amd/dart_sdk.js.map'),
+      weakSummaryPath: sdkLayout.weakSummaryPath,
+      weakFullDillPath: p.join(
+        sdkLayout.sdkDirectory,
+        'lib',
+        '_internal',
+        'ddc_platform_unsound.dill',
+      ),
+      weakJsPath: p.join(sdkLayout.sdkDirectory,
+          '../gen/utils/ddc/stable_unsound/sdk/amd/dart_sdk.js'),
+      weakJsMapPath: p.join(sdkLayout.sdkDirectory,
+          '../gen/utils/ddc/stable_unsound/sdk/amd/dart_sdk.js.map'),
+      ddcModuleLoaderJsPath: '',
+      requireJsPath: p.join(
+        sdkLayout.sdkDirectory,
+        'lib',
+        'dev_compiler',
+        'amd',
+        'require.js',
+      ),
+      stackTraceMapperPath: p.join(
+        sdkLayout.sdkDirectory,
+        'lib',
+        'dev_compiler',
+        'web',
+        'dart_stack_trace_mapper.js',
+      ),
+      dartPath: p.join(
+        sdkLayout.sdkDirectory,
+        'bin',
+        Platform.isWindows ? 'dart.exe' : 'dart',
+      ),
+      frontendServerSnapshotPath: p.join(
+        sdkLayout.sdkDirectory,
+        'bin',
+        'snapshots',
+        'frontend_server.dart.snapshot',
+      ),
+      dartdevcSnapshotPath: sdkLayout.dartdevcSnapshotPath,
+      kernelWorkerSnapshotPath: p.join(
+        sdkLayout.sdkDirectory,
+        'bin',
+        'snapshots',
+        'kernel_worker.dart.snapshot',
+      ),
+      devToolsDirectory: p.join(
+        sdkLayout.sdkDirectory,
+        'bin',
+        'resources',
+        'devtools',
+      ),
+    );
+  }
+
+  factory TestSdkLayout.createDdcDefaultFromSdkLayout(SdkLayout sdkLayout) {
+    final sdkPathSegment = 'legacy';
     return TestSdkLayout(
       sdkDirectory: sdkLayout.sdkDirectory,
       soundSummaryPath: sdkLayout.soundSummaryPath,
@@ -55,24 +125,14 @@ class TestSdkLayout {
           '../gen/utils/ddc/stable_unsound/sdk/$sdkPathSegment/dart_sdk.js'),
       weakJsMapPath: p.join(sdkLayout.sdkDirectory,
           '../gen/utils/ddc/stable_unsound/sdk/$sdkPathSegment/dart_sdk.js.map'),
-      ddcModuleLoaderJsPath: ddcModuleSystem
-          ? p.join(
-              sdkLayout.sdkDirectory,
-              'lib',
-              'dev_compiler',
-              'ddc',
-              'ddc_module_loader.js',
-            )
-          : '',
-      requireJsPath: ddcModuleSystem
-          ? ''
-          : p.join(
-              sdkLayout.sdkDirectory,
-              'lib',
-              'dev_compiler',
-              'amd',
-              'require.js',
-            ),
+      ddcModuleLoaderJsPath: p.join(
+        sdkLayout.sdkDirectory,
+        'lib',
+        'dev_compiler',
+        'ddc',
+        'ddc_module_loader.js',
+      ),
+      requireJsPath: '',
       stackTraceMapperPath: p.join(
         sdkLayout.sdkDirectory,
         'lib',

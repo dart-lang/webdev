@@ -75,8 +75,9 @@ class TestAssetServer implements AssetReader {
   ) async {
     final address = (await InternetAddress.lookup(hostname)).first;
     final httpServer = await HttpServer.bind(address, port);
-    final sdkLayout = TestSdkLayout.createDefault(sdkDirectory,
-        ddcModuleSystem: ddcModuleSystem);
+    final sdkLayout = ddcModuleSystem
+        ? TestSdkLayout.createDdcDefault(sdkDirectory)
+        : TestSdkLayout.createDefault(sdkDirectory);
     final server = TestAssetServer(
         index, httpServer, packageUriMapper, address, fileSystem, sdkLayout);
     return server;

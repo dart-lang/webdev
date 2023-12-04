@@ -37,10 +37,9 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
     this.ddcModuleSystem = false,
   }) : _verbose = verbose {
     _sdkDirectory = Directory.systemTemp.createTempSync('sdk copy');
-    sdkLayout = TestSdkLayout.createDefault(
-      _sdkDirectory.path,
-      ddcModuleSystem: ddcModuleSystem,
-    );
+    sdkLayout = this.ddcModuleSystem
+        ? TestSdkLayout.createDdcDefault(_sdkDirectory.path)
+        : TestSdkLayout.createDefault(_sdkDirectory.path);
   }
 
   @override

@@ -80,7 +80,6 @@ class WebDevFS {
     var stackMapper = 'stack_trace_mapper.js';
     var main = 'main.dart.js';
     var bootstrap = 'main_module.bootstrap.js';
-    var dartSdkName = 'dart_sdk.js';
 
     // If base path is not overwritten, use main's subdirectory
     // to store all files, so the paths match the requests.
@@ -112,11 +111,15 @@ class WebDevFS {
           bootstrapUrl: bootstrap,
         ),
       );
+
+      // DDC uses a simple heuristic to determine exported identifier names.
+      // The module name (entrypoint name here) has its extension removed, and
+      // special path elements like '/', '\', and '..' are replaced with '__'.
+      final exportedMainName = pathToJSIdentifier(entryPoint.split('.')[0]);
       assetServer.writeFile(
         bootstrap,
         generateDDCMainModule(
-            entrypoint: entryPoint,
-            exportedMain: pathToJSIdentifier(entryPoint.split('.')[0])),
+            entrypoint: entryPoint, exportedMain: exportedMainName),
       );
     } else {
       assetServer.writeFile(
@@ -140,8 +143,8 @@ class WebDevFS {
     var sdk = soundNullSafety ? dartSdk : dartSdkWeak;
     var sdkSourceMap =
         soundNullSafety ? dartSdkSourcemap : dartSdkSourcemapWeak;
-    assetServer.writeFile(dartSdkName, sdk.readAsStringSync());
-    assetServer.writeFile('$dartSdkName.map', sdkSourceMap.readAsStringSync());
+    assetServer.writeFile('dart_sdk.js', sdk.readAsStringSync());
+    assetServer.writeFile('dart_sdk.js.map', sdkSourceMap.readAsStringSync());
 
     generator.reset();
     var compilerOutput = await generator.recompile(

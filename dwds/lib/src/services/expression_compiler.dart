@@ -16,6 +16,7 @@ class CompilerOptions {
     required this.experiments,
   });
 
+  // TODO(markzipan): Remove this after DDC migrates to a single module system.
   bool get usesDDCModuleSystem =>
       moduleFormat == 'ddc' || moduleFormat == 'legacy';
 }

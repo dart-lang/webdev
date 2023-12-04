@@ -37,8 +37,7 @@ void main() {
       tempDir = Directory.systemTemp.createTempSync();
 
       sdkDirectory = tempDir.path;
-      final copySdkLayout =
-          TestSdkLayout.createDefault(sdkDirectory, ddcModuleSystem: false);
+      final copySdkLayout = TestSdkLayout.createDefault(sdkDirectory);
 
       soundSdkSummaryPath = copySdkLayout.soundSummaryPath;
       compilerWorkerPath = copySdkLayout.dartdevcSnapshotPath;
@@ -73,8 +72,7 @@ void main() {
 
     test('Can generate missing SDK assets and validate SDK configuration',
         () async {
-      final sdkLayout =
-          TestSdkLayout.createDefault(sdkDirectory, ddcModuleSystem: false);
+      final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
       final configuration = TestSdkLayout.createConfiguration(sdkLayout);
 
       final assetGenerator = SdkAssetGenerator(
@@ -117,8 +115,7 @@ void main() {
 
     test('Can generate missing SDK assets with canary features enabled',
         () async {
-      final sdkLayout =
-          TestSdkLayout.createDefault(sdkDirectory, ddcModuleSystem: false);
+      final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
 
       final assetGenerator = SdkAssetGenerator(
         sdkLayout: sdkLayout,
