@@ -41,6 +41,5 @@ export 'src/services/expression_compiler.dart'
         CompilerOptions;
 export 'src/services/expression_compiler_service.dart'
     show ExpressionCompilerService;
-export 'src/utilities/ddc_names.dart';
 export 'src/utilities/sdk_configuration.dart'
     show SdkLayout, SdkConfiguration, SdkConfigurationProvider;
