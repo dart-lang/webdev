@@ -6,6 +6,7 @@
 
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/config.dart';
+import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/utilities.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
@@ -26,7 +27,7 @@ class WebDevFS {
     required this.soundNullSafety,
     this.urlTunneler,
     required this.sdkLayout,
-    required this.ddcModuleSystem,
+    required this.ddcModuleFormat,
   });
 
   final FileSystem fileSystem;
@@ -39,7 +40,7 @@ class WebDevFS {
   final UrlEncoder? urlTunneler;
   final bool soundNullSafety;
   final TestSdkLayout sdkLayout;
-  final bool ddcModuleSystem;
+  final ModuleFormat ddcModuleFormat;
   late final Directory _savedCurrentDirectory;
 
   Future<Uri> create() async {
@@ -55,7 +56,6 @@ class WebDevFS {
       port,
       urlTunneler,
       packageUriMapper,
-      ddcModuleSystem,
     );
     return Uri.parse('http://$hostname:$port');
   }
@@ -94,48 +94,50 @@ class WebDevFS {
 
     assetServer.writeFile(
         entryPoint, fileSystem.file(mainPath).readAsStringSync());
-    if (ddcModuleSystem) {
-      assetServer.writeFile(
-          ddcModuleLoader, ddcModuleLoaderJS.readAsStringSync());
-    } else {
-      assetServer.writeFile(require, requireJS.readAsStringSync());
-    }
     assetServer.writeFile(stackMapper, stackTraceMapper.readAsStringSync());
-    if (ddcModuleSystem) {
-      assetServer.writeFile(
-        main,
-        generateDDCBootstrapScript(
-          ddcModuleLoaderUrl: ddcModuleLoader,
-          mapperUrl: stackMapper,
-          entrypoint: entryPoint,
-          bootstrapUrl: bootstrap,
-        ),
-      );
 
-      // DDC uses a simple heuristic to determine exported identifier names.
-      // The module name (entrypoint name here) has its extension removed, and
-      // special path elements like '/', '\', and '..' are replaced with '__'.
-      final exportedMainName = pathToJSIdentifier(entryPoint.split('.')[0]);
-      assetServer.writeFile(
-        bootstrap,
-        generateDDCMainModule(
-            entrypoint: entryPoint, exportedMain: exportedMainName),
-      );
-    } else {
-      assetServer.writeFile(
-        main,
-        generateBootstrapScript(
-          requireUrl: 'require.js',
-          mapperUrl: 'stack_trace_mapper.js',
-          entrypoint: entryPoint,
-        ),
-      );
-      assetServer.writeFile(
-        bootstrap,
-        generateMainModule(
-          entrypoint: entryPoint,
-        ),
-      );
+    switch (ddcModuleFormat) {
+      case ModuleFormat.amd:
+        assetServer.writeFile(require, requireJS.readAsStringSync());
+        assetServer.writeFile(
+          main,
+          generateBootstrapScript(
+            requireUrl: 'require.js',
+            mapperUrl: 'stack_trace_mapper.js',
+            entrypoint: entryPoint,
+          ),
+        );
+        assetServer.writeFile(
+          bootstrap,
+          generateMainModule(
+            entrypoint: entryPoint,
+          ),
+        );
+        break;
+      case ModuleFormat.ddc:
+        assetServer.writeFile(
+            ddcModuleLoader, ddcModuleLoaderJS.readAsStringSync());
+        assetServer.writeFile(
+          main,
+          generateDDCBootstrapScript(
+            ddcModuleLoaderUrl: ddcModuleLoader,
+            mapperUrl: stackMapper,
+            entrypoint: entryPoint,
+            bootstrapUrl: bootstrap,
+          ),
+        );
+        // DDC uses a simple heuristic to determine exported identifier names.
+        // The module name (entrypoint name here) has its extension removed, and
+        // special path elements like '/', '\', and '..' are replaced with '__'.
+        final exportedMainName = pathToJSIdentifier(entryPoint.split('.')[0]);
+        assetServer.writeFile(
+          bootstrap,
+          generateDDCMainModule(
+              entrypoint: entryPoint, exportedMain: exportedMainName),
+        );
+        break;
+      default:
+        throw Exception('Unsupported DDC module format $ddcModuleFormat.');
     }
 
     assetServer.writeFile('main_module.digests', '{}');
@@ -187,10 +189,26 @@ class WebDevFS {
   File get ddcModuleLoaderJS =>
       fileSystem.file(sdkLayout.ddcModuleLoaderJsPath);
   File get requireJS => fileSystem.file(sdkLayout.requireJsPath);
-  File get dartSdkWeak => fileSystem.file(sdkLayout.weakJsPath);
-  File get dartSdk => fileSystem.file(sdkLayout.soundJsPath);
-  File get dartSdkSourcemapWeak => fileSystem.file(sdkLayout.weakJsMapPath);
-  File get dartSdkSourcemap => fileSystem.file(sdkLayout.soundJsMapPath);
+  File get dartSdkWeak => fileSystem.file(switch (ddcModuleFormat) {
+        ModuleFormat.amd => sdkLayout.weakAmdJsPath,
+        ModuleFormat.ddc => sdkLayout.weakDdcJsPath,
+        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
+      });
+  File get dartSdk => fileSystem.file(switch (ddcModuleFormat) {
+        ModuleFormat.amd => sdkLayout.soundAmdJsPath,
+        ModuleFormat.ddc => sdkLayout.soundDdcJsPath,
+        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
+      });
+  File get dartSdkSourcemapWeak => fileSystem.file(switch (ddcModuleFormat) {
+        ModuleFormat.amd => sdkLayout.weakAmdJsMapPath,
+        ModuleFormat.ddc => sdkLayout.weakDdcJsMapPath,
+        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
+      });
+  File get dartSdkSourcemap => fileSystem.file(switch (ddcModuleFormat) {
+        ModuleFormat.amd => sdkLayout.soundAmdJsMapPath,
+        ModuleFormat.ddc => sdkLayout.soundDdcJsMapPath,
+        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
+      });
   File get stackTraceMapper => fileSystem.file(sdkLayout.stackTraceMapperPath);
 }
 

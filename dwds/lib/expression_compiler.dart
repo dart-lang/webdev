@@ -7,4 +7,5 @@ export 'src/services/expression_compiler.dart'
         ExpressionCompilationResult,
         ExpressionCompiler,
         CompilerOptions,
+        ModuleFormat,
         ModuleInfo;

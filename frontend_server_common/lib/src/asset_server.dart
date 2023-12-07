@@ -71,13 +71,10 @@ class TestAssetServer implements AssetReader {
     int port,
     UrlEncoder? urlTunneler,
     PackageUriMapper packageUriMapper,
-    bool ddcModuleSystem,
   ) async {
     final address = (await InternetAddress.lookup(hostname)).first;
     final httpServer = await HttpServer.bind(address, port);
-    final sdkLayout = ddcModuleSystem
-        ? TestSdkLayout.createDdcDefault(sdkDirectory)
-        : TestSdkLayout.createDefault(sdkDirectory);
+    final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
     final server = TestAssetServer(
         index, httpServer, packageUriMapper, address, fileSystem, sdkLayout);
     return server;

@@ -8,6 +8,7 @@
 
 import 'dart:io';
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
@@ -19,8 +20,10 @@ void main() async {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  final provider =
-      TestSdkConfigurationProvider(verbose: debug, ddcModuleSystem: true);
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    ddcModuleFormat: ModuleFormat.ddc,
+  );
   tearDownAll(provider.dispose);
 
   for (var useDebuggerModuleNames in [false, true]) {
@@ -33,7 +36,7 @@ void main() async {
             () {
               testAll(
                 provider: provider,
-                compilationMode: CompilationMode.frontendServerDdc,
+                compilationMode: CompilationMode.frontendServer,
                 indexBaseMode: indexBaseMode,
                 nullSafety: nullSafety,
                 useDebuggerModuleNames: useDebuggerModuleNames,

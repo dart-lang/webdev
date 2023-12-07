@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart';
@@ -18,7 +19,7 @@ class SdkAssetGenerator {
 
   final FileSystem fileSystem;
   final bool canaryFeatures;
-  final bool ddcModuleSystem;
+  final ModuleFormat ddcModuleFormat;
   final bool verbose;
 
   late final TestSdkLayout sdkLayout;
@@ -27,7 +28,7 @@ class SdkAssetGenerator {
     this.fileSystem = const LocalFileSystem(),
     required this.sdkLayout,
     required this.canaryFeatures,
-    required this.ddcModuleSystem,
+    required this.ddcModuleFormat,
     this.verbose = false,
   });
 
@@ -61,10 +62,20 @@ class SdkAssetGenerator {
     Directory? outputDir;
     try {
       // Files to copy generated files to.
-      final outputJsPath =
-          soundNullSafety ? sdkLayout.soundJsPath : sdkLayout.weakJsPath;
-      final outputJsMapPath =
-          soundNullSafety ? sdkLayout.soundJsMapPath : sdkLayout.weakJsMapPath;
+      final outputJsPath = switch ((soundNullSafety, ddcModuleFormat)) {
+        (true, ModuleFormat.amd) => sdkLayout.soundAmdJsPath,
+        (false, ModuleFormat.amd) => sdkLayout.weakAmdJsPath,
+        (true, ModuleFormat.ddc) => sdkLayout.soundDdcJsPath,
+        (false, ModuleFormat.ddc) => sdkLayout.weakDdcJsPath,
+        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
+      };
+      final outputJsMapPath = switch ((soundNullSafety, ddcModuleFormat)) {
+        (true, ModuleFormat.amd) => sdkLayout.soundAmdJsMapPath,
+        (false, ModuleFormat.amd) => sdkLayout.weakAmdJsMapPath,
+        (true, ModuleFormat.ddc) => sdkLayout.soundDdcJsMapPath,
+        (false, ModuleFormat.ddc) => sdkLayout.weakDdcJsMapPath,
+        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
+      };
       final outputFullDillPath = soundNullSafety
           ? sdkLayout.soundFullDillPath
           : sdkLayout.weakFullDillPath;
@@ -81,9 +92,17 @@ class SdkAssetGenerator {
       outputDir = fileSystem.systemTempDirectory.createTempSync();
 
       // Files to generate
-      final jsPath = soundNullSafety
-          ? p.join(outputDir.path, sdkLayout.soundJsFileName)
-          : p.join(outputDir.path, sdkLayout.weakJsFileName);
+      final jsPath = switch ((soundNullSafety, ddcModuleFormat)) {
+        (true, ModuleFormat.amd) =>
+          p.join(outputDir.path, sdkLayout.soundAmdJsFileName),
+        (false, ModuleFormat.amd) =>
+          p.join(outputDir.path, sdkLayout.weakAmdJsFileName),
+        (true, ModuleFormat.ddc) =>
+          p.join(outputDir.path, sdkLayout.soundDdcJsFileName),
+        (false, ModuleFormat.ddc) =>
+          p.join(outputDir.path, sdkLayout.weakDdcJsFileName),
+        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
+      };
       final jsMapPath = p.setExtension(jsPath, '.js.map');
       final fullDillPath = p.setExtension(jsPath, '.dill');
 
@@ -100,7 +119,7 @@ class SdkAssetGenerator {
         '--libraries-file',
         'org-dartlang-sdk:///lib/libraries.json',
         '--modules',
-        ddcModuleSystem ? 'ddc' : 'amd',
+        ddcModuleFormat.name,
         soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
         'dart:core',
         '-o',
@@ -243,12 +262,17 @@ class SdkAssetGenerator {
   Future<void> _moveAndValidate(String from, String to) async {
     _logger.fine('Renaming $from to $to');
 
+    if (!_exists(from)) {
+      _logger.severe('Failed to generate SDK asset at $to');
+      throw Exception('File "$from" does not exist.');
+    }
+
     if (_exists(to)) _delete(to);
     await fileSystem.file(from).rename(to);
 
     if (!_exists(to)) {
       _logger.severe('Failed to generate SDK asset at $to');
-      throw Exception('File does not exist.');
+      throw Exception('File "$to" does not exist.');
     }
   }
 }

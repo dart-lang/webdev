@@ -7,6 +7,7 @@
 
 import 'dart:io';
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/sdk_asset_generator.dart';
@@ -47,8 +48,8 @@ void main() {
 
       // Simulate missing sound assets.
       soundSdkFullDillPath = copySdkLayout.soundFullDillPath;
-      soundSdkJsPath = copySdkLayout.soundJsPath;
-      soundSdkJsMapPath = copySdkLayout.soundJsMapPath;
+      soundSdkJsPath = copySdkLayout.soundAmdJsPath;
+      soundSdkJsMapPath = copySdkLayout.soundAmdJsMapPath;
 
       _deleteIfExists(soundSdkFullDillPath);
       _deleteIfExists(soundSdkJsPath);
@@ -57,8 +58,8 @@ void main() {
       // Simulate missing weak assets.
       weakSdkSummaryPath = copySdkLayout.weakSummaryPath;
       weakSdkFullDillPath = copySdkLayout.weakFullDillPath;
-      weakSdkJsPath = copySdkLayout.weakJsPath;
-      weakSdkJsMapPath = copySdkLayout.weakJsMapPath;
+      weakSdkJsPath = copySdkLayout.weakAmdJsPath;
+      weakSdkJsMapPath = copySdkLayout.weakAmdJsMapPath;
 
       _deleteIfExists(weakSdkSummaryPath);
       _deleteIfExists(weakSdkFullDillPath);
@@ -79,7 +80,7 @@ void main() {
         sdkLayout: sdkLayout,
         verbose: true,
         canaryFeatures: false,
-        ddcModuleSystem: false,
+        ddcModuleFormat: ModuleFormat.amd,
       );
       await assetGenerator.generateSdkAssets();
 
@@ -89,13 +90,13 @@ void main() {
 
       expect(sdkLayout.soundSummaryPath, equals(soundSdkSummaryPath));
       expect(sdkLayout.soundFullDillPath, equals(soundSdkFullDillPath));
-      expect(sdkLayout.soundJsPath, equals(soundSdkJsPath));
-      expect(sdkLayout.soundJsMapPath, equals(soundSdkJsMapPath));
+      expect(sdkLayout.soundAmdJsPath, equals(soundSdkJsPath));
+      expect(sdkLayout.soundAmdJsMapPath, equals(soundSdkJsMapPath));
 
       expect(sdkLayout.weakSummaryPath, equals(weakSdkSummaryPath));
       expect(sdkLayout.weakFullDillPath, equals(weakSdkFullDillPath));
-      expect(sdkLayout.weakJsPath, equals(weakSdkJsPath));
-      expect(sdkLayout.weakJsMapPath, equals(weakSdkJsMapPath));
+      expect(sdkLayout.weakAmdJsPath, equals(weakSdkJsPath));
+      expect(sdkLayout.weakAmdJsMapPath, equals(weakSdkJsMapPath));
 
       // Validate that configuration files exist.
       configuration.validateSdkDir();
@@ -104,13 +105,13 @@ void main() {
       // Validate all assets exist.
       expect(sdkLayout.soundSummaryPath, _exists);
       expect(sdkLayout.soundFullDillPath, _exists);
-      expect(sdkLayout.soundJsPath, _exists);
-      expect(sdkLayout.soundJsMapPath, _exists);
+      expect(sdkLayout.soundAmdJsPath, _exists);
+      expect(sdkLayout.soundAmdJsMapPath, _exists);
 
       expect(sdkLayout.weakSummaryPath, _exists);
       expect(sdkLayout.weakFullDillPath, _exists);
-      expect(sdkLayout.weakJsPath, _exists);
-      expect(sdkLayout.weakJsMapPath, _exists);
+      expect(sdkLayout.weakAmdJsPath, _exists);
+      expect(sdkLayout.weakAmdJsMapPath, _exists);
     });
 
     test('Can generate missing SDK assets with canary features enabled',
@@ -121,7 +122,7 @@ void main() {
         sdkLayout: sdkLayout,
         verbose: true,
         canaryFeatures: true,
-        ddcModuleSystem: false,
+        ddcModuleFormat: ModuleFormat.amd,
       );
       await assetGenerator.generateSdkAssets();
 

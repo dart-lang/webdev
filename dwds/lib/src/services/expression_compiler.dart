@@ -4,7 +4,7 @@
 
 /// Options passed to DDC and the expression compiler.
 class CompilerOptions {
-  final String moduleFormat;
+  final ModuleFormat moduleFormat;
   final bool soundNullSafety;
   final bool canaryFeatures;
   final List<String> experiments;
@@ -15,11 +15,10 @@ class CompilerOptions {
     required this.canaryFeatures,
     required this.experiments,
   });
-
-  // TODO(markzipan): Remove this after DDC migrates to a single module system.
-  bool get usesDDCModuleSystem =>
-      moduleFormat == 'ddc' || moduleFormat == 'legacy';
 }
+
+// Indicates the module system DDC is targeting.
+enum ModuleFormat { amd, ddc, es6 }
 
 /// Result of compilation of dart expression to JavaScript
 class ExpressionCompilationResult {
