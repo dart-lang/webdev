@@ -351,7 +351,7 @@ class TestContext {
                   buildSettings,
                 ).strategy,
               _ => throw Exception(
-                  'Unsupported DDC module format ${testSettings.moduleFormat}.')
+                  'Unsupported DDC module format ${testSettings.moduleFormat.name}.')
             };
             buildResults = const Stream<BuildResults>.empty();
           }

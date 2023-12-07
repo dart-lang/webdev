@@ -56,13 +56,13 @@ void main() {
       final sdkLayout = provider.sdkLayout;
 
       expect(sdkLayout.sdkDirectory, _directoryExists);
-      expect(sdkLayout.soundJsPath, _fileExists);
-      expect(sdkLayout.soundJsMapPath, _fileExists);
+      expect(sdkLayout.soundAmdJsPath, _fileExists);
+      expect(sdkLayout.soundAmdJsMapPath, _fileExists);
       expect(sdkLayout.soundSummaryPath, _fileExists);
       expect(sdkLayout.soundFullDillPath, _fileExists);
 
-      expect(sdkLayout.weakJsPath, _fileExists);
-      expect(sdkLayout.weakJsMapPath, _fileExists);
+      expect(sdkLayout.weakAmdJsPath, _fileExists);
+      expect(sdkLayout.weakAmdJsMapPath, _fileExists);
       expect(sdkLayout.weakSummaryPath, _fileExists);
       expect(sdkLayout.weakFullDillPath, _fileExists);
 
