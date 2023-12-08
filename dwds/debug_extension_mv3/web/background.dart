@@ -52,7 +52,7 @@ void _registerListeners() {
   );
   chrome.webNavigation.onCommitted
       .addListener(allowInterop(_detectNavigationAwayFromDartApp));
-      
+
   chrome.commands.onCommand
       .addListener(allowInterop(_maybeSendCopyAppIdRequest));
 }

@@ -41,7 +41,7 @@ Future<void> main() async {
   _registerListeners();
   await _loadUiAndHideSpinner();
 }
- 
+
 void _registerListeners() {
   final launchDevToolsButton =
       document.getElementById(_launchDevToolsButtonId) as ButtonElement;
