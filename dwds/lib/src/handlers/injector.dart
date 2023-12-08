@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
+import 'package:dwds/dwds.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/version.dart';
 import 'package:logging/logging.dart';
@@ -97,9 +98,10 @@ class DwdsInjector {
               _devHandlerPaths.add(devHandlerPath);
               final entrypoint = request.url.path;
 
-              // TODO: define a separate API for reading build metadata and app's metadata?
+              // Track the main entrypoint for the app read the build metadata.
               await globalToolConfiguration.loadStrategy
-                  .trackEntrypoint(entrypoint);
+                  .trackAppEntrypoint(entrypoint);
+
               body = _injectClientAndHoistMain(
                 body,
                 appId,
@@ -107,6 +109,8 @@ class DwdsInjector {
                 entrypoint,
                 await _extensionUri,
               );
+              _logger.info('Injecting debugging metadata for '
+                  'entrypoint at $requestedUri');
               body += await globalToolConfiguration.loadStrategy
                   .bootstrapFor(entrypoint);
               _logger.info('Injected debugging metadata for '
@@ -200,38 +204,118 @@ String _injectedClientSnippet(
   final appMetadata = globalToolConfiguration.appMetadata;
   final debugSettings = globalToolConfiguration.debugSettings;
 
-  var injectedBody = '\n'
-      '    console.log("INJECTOR: registering app: \${appName}.");\n'
-      '    window.\$dwdsVersion = "$packageVersion";\n' // used by DDC
-      '\n'
-      '    let appRecord = {};\n'
-      '    appRecord.moduleStrategy = "${loadStrategy.id}";\n'
-      '    appRecord.reloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
-      '    appRecord.loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
-      '    appRecord.dwdsVersion = "$packageVersion";\n'
-      '    appRecord.enableDevtoolsLaunch = ${debugSettings.enableDevToolsLaunch};\n'
-      '    appRecord.emitDebugEvents = ${debugSettings.emitDebugEvents};\n'
-      '    appRecord.isInternalBuild = ${appMetadata.isInternalBuild};\n'
-      '    appRecord.appName = appName;\n'
-      '    appRecord.appId = "$appId";\n'
-      '    appRecord.isFlutterApp = ${buildSettings.isFlutterApp};\n'
-      '    appRecord.devHandlerPath = "$devHandlerPath";\n'
-      '    appRecord.entrypoints = new Array();\n'
-      '    appRecord.entrypoints.push("$entrypointPath");\n';
+  final appInfo = JSAppInfo(
+    appId: appId,
+    devHandlerPath: devHandlerPath,
+    dwdsVersion: packageVersion,
+    emitDebugEvents: debugSettings.emitDebugEvents,
+    enableDevToolsLaunch: debugSettings.enableDevToolsLaunch,
+    entrypointPath: entrypointPath,
+    extensionUrl: extensionUri,
+    isFlutterApp: buildSettings.isFlutterApp,
+    isInternalBuild: appMetadata.isInternalBuild,
+    loadModuleConfig: loadStrategy.loadModuleSnippet,
+    moduleStrategy: loadStrategy.id,
+    reloadConfiguration: loadStrategy.reloadConfiguration,
+    workspaceName: appMetadata.workspaceName,
+  );
 
-  if (extensionUri != null) {
-    injectedBody += '    appRecord.extensionUrl = "$extensionUri";\n';
-  }
-
-  final workspaceName = appMetadata.workspaceName;
-  if (workspaceName != null) {
-    injectedBody += '    appRecord.workspaceName = "$workspaceName";\n';
-  }
-
-  injectedBody += '\n'
-      '    window.\$dartAppInfo = appRecord;\n'
-      '    console.log("INJECTOR: Loading injected client...");\n'
+  final injectedBody = '\n'
+      //'    console.log("INJECTOR: registering app: " +  appName);\n'
+      // Used by DDC runtime to detect if a debugger is attached.
+      '    window.\$dwdsVersion = "$packageVersion";\n'
+      // Used by the injected client to communicate with the debugger.
+      '    window.\$dartAppInfo = ${appInfo.toJs()};\n'
+      // Load the injected client.
       '    ${loadStrategy.loadClientSnippet(_clientScript)};\n';
 
+  Logger.root.warning(injectedBody);
+
+  // injectedBody += '\n'
+  //     '    let appRecord = {};\n'
+  //     '    appRecord.moduleStrategy = "${loadStrategy.id}";\n'
+  //     '    appRecord.reloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
+  //     '    appRecord.loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
+  //     '    appRecord.dwdsVersion = "$packageVersion";\n'
+  //     '    appRecord.enableDevToolsLaunch = ${debugSettings.enableDevToolsLaunch};\n'
+  //     '    appRecord.emitDebugEvents = ${debugSettings.emitDebugEvents};\n'
+  //     '    appRecord.isInternalBuild = ${appMetadata.isInternalBuild};\n'
+  //     '    appRecord.appName = appName;\n'
+  //     '    appRecord.appId = "$appId";\n'
+  //     '    appRecord.isFlutterApp = ${buildSettings.isFlutterApp};\n'
+  //     '    appRecord.devHandlerPath = "$devHandlerPath";\n'
+  //     '    appRecord.entrypoints = new Array();\n'
+  //     '    appRecord.entrypoints.push("$entrypointPath");\n';
+
+  // if (extensionUri != null) {
+  //   injectedBody += '    appRecord.extensionUrl = "$extensionUri";\n';
+  // }
+
+  // final workspaceName = appMetadata.workspaceName;
+  // if (workspaceName != null) {
+  //   injectedBody += '    appRecord.workspaceName = "$workspaceName";\n';
+  // }
+
+  // injectedBody += '\n'
+  //     '    window.\$dartAppInfo = $appInfo;\n'
+  //     '    console.log("INJECTOR: Loading injected client...");\n'
+  //     '    ${loadStrategy.loadClientSnippet(_clientScript)};\n';
+
   return injectedBody;
+}
+
+/// Generate JS app info object for the injected client.
+/// TODO(annagrin): ensure client's AppInfo can read this object.
+class JSAppInfo {
+  String moduleStrategy;
+  ReloadConfiguration reloadConfiguration;
+  String loadModuleConfig;
+  String dwdsVersion;
+  bool enableDevToolsLaunch;
+  bool emitDebugEvents;
+  bool isInternalBuild;
+  String appId;
+  bool isFlutterApp;
+  String? extensionUrl;
+  String devHandlerPath;
+  String entrypointPath;
+  String? workspaceName;
+
+  JSAppInfo({
+    required this.appId,
+    required this.devHandlerPath,
+    required this.dwdsVersion,
+    required this.emitDebugEvents,
+    required this.enableDevToolsLaunch,
+    required this.entrypointPath,
+    required this.extensionUrl,
+    required this.isFlutterApp,
+    required this.isInternalBuild,
+    required this.loadModuleConfig,
+    required this.moduleStrategy,
+    required this.reloadConfiguration,
+    required this.workspaceName,
+  });
+
+  String toJs() {
+    final fields = {
+      'moduleStrategy': '"$moduleStrategy"',
+      'reloadConfiguration': '"$reloadConfiguration"',
+      'loadModuleConfig': loadModuleConfig,
+      'dwdsVersion': '"$dwdsVersion"',
+      'enableDevToolsLaunch': enableDevToolsLaunch,
+      'emitDebugEvents': emitDebugEvents,
+      'isInternalBuild': isInternalBuild,
+      'appName': 'appName',
+      'appId': '"$appId"',
+      'isFlutterApp': isFlutterApp,
+      'devHandlerPath': '"$devHandlerPath"',
+      'entrypoints': '["$entrypointPath"]',
+      if (extensionUrl != null) 'extensionUrl': '"$extensionUrl"',
+      if (workspaceName != null) 'workspaceName': '"$workspaceName"',
+    };
+
+    final lines = fields.entries.map((e) => '  ${e.key}: ${e.value},');
+    return ['{', ...lines, '}'].join('\n    ');
+  }
 }

@@ -36,6 +36,7 @@ dependencies:
   vm_service: ^13.0.0
   vm_service_interface: 1.0.0
   web_socket_channel: ^2.2.0
+  web: ^0.4.0
   webkit_inspection_protocol: ^1.0.1
 
 dev_dependencies:
@@ -50,7 +51,7 @@ dev_dependencies:
   frontend_server_common:
     path: ../frontend_server_common
   js: ^0.6.4
-  lints: ^2.0.0
+  lints: ^3.0.0
   pubspec_parse: ^1.2.0
   puppeteer: ^3.0.0
   stream_channel: ^2.1.0

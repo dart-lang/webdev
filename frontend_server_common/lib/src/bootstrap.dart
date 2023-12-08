@@ -21,6 +21,8 @@ String generateBootstrapScript({
   return '''
 "use strict";
 
+var appName = 'FrontendServerApp';
+
 // Attach source mapping.
 var mapperEl = document.createElement("script");
 mapperEl.defer = true;

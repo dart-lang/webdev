@@ -275,7 +275,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Stream<ExceptionThrownEvent> get onExceptionThrown => Stream.empty();
 
   @override
-  void close() {}
+  Future<void> close() async {}
 
   @override
   Stream<WipConnection> get onClose => Stream.empty();
@@ -323,14 +323,13 @@ class FakeStrategy extends LoadStrategy {
   final BuildSettings _buildSettings;
 
   FakeStrategy(
-    AssetReader assetReader, {
-    String? packageConfigPath,
+    super.assetReader, {
+    super.packageConfigPath,
     BuildSettings? buildSettings,
-  })  : _buildSettings = buildSettings ??
+  }) : _buildSettings = buildSettings ??
             TestBuildSettings.dart(
               appEntrypoint: Uri.parse('package:myapp/main.dart'),
-            ),
-        super(assetReader, packageConfigPath: packageConfigPath);
+            );
 
   @override
   Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
@@ -373,8 +372,7 @@ class FakeStrategy extends LoadStrategy {
       '';
 
   @override
-  Future<String> serverPathForModule(String entrypoint, String module) async =>
-      '';
+  Future<String> serverPathForModule(String appName, String module) async => '';
 
   @override
   Future<String> sourceMapPathForModule(
@@ -387,11 +385,11 @@ class FakeStrategy extends LoadStrategy {
   String? serverPathForAppUri(String appUri) => '';
 
   @override
-  MetadataProvider metadataProviderFor(String entrypoint) =>
-      MetadataProvider(entrypoint, FakeAssetReader());
+  MetadataProvider metadataProviderFor(String? appName) =>
+      MetadataProvider(FakeAssetReader());
 
   @override
-  Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
+  Future<Map<String, ModuleInfo>> moduleInfoFor(String appName) =>
       throw UnimplementedError();
 }
 

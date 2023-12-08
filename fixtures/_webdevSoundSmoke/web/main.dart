@@ -7,8 +7,11 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:html';
 
+int global = 3;
+
 void main() {
   print('Initial Print');
+  global = 4;
 
   registerExtension('ext.print', (_, __) async {
     print('Hello World');

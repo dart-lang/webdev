@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Functions for converting between the different object references we use.
+library;
+
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// Convert [argument] to a form usable in WIP evaluation calls.

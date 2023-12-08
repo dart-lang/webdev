@@ -25,7 +25,6 @@ import 'cider_connection.dart';
 import 'cross_extension_communication.dart';
 import 'data_serializers.dart';
 import 'data_types.dart';
-import 'lifeline_ports.dart';
 import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
@@ -246,13 +245,7 @@ _enableExecutionContextReporting(int tabId) {
       final chromeError = chrome.runtime.lastError;
       if (chromeError != null) {
         final errorMessage = _translateChromeError(chromeError.message);
-        chrome.notifications.create(
-          // notificationId
-          null,
-          NotificationOptions(message: errorMessage),
-          // callback
-          null,
-        );
+        displayNotification(errorMessage, isError: true);
         return;
       }
     }),
@@ -387,8 +380,6 @@ Future<bool> _connectToDwds({
     cancelOnError: true,
   );
   _debugSessions.add(debugSession);
-  // Create a connection with the lifeline port to keep the debug session alive:
-  await maybeCreateLifelinePort(dartAppTabId);
   // Send a DevtoolsRequest to the event stream:
   final tabUrl = await _getTabUrl(dartAppTabId);
   debugSession.sendEvent(
@@ -598,10 +589,7 @@ void _removeDebugSession(_DebugSession debugSession) {
   debugSession.sendEvent(event);
   debugSession.close();
   final removed = _debugSessions.remove(debugSession);
-  if (removed) {
-    // Maybe remove the corresponding lifeline connection:
-    maybeRemoveLifelinePort(debugSession.appTabId);
-  } else {
+  if (!removed) {
     debugWarn('Could not remove debug session.');
   }
 }
@@ -720,16 +708,10 @@ Future<bool> _showWarning(
 
 Future<bool> _showWarningNotification(String message) {
   final completer = Completer<bool>();
-  chrome.notifications.create(
-    // notificationId
-    null,
-    NotificationOptions(
-      title: '[Error] Dart Debug Extension',
-      message: message,
-      iconUrl: 'static_assets/dart.png',
-      type: 'basic',
-    ),
-    allowInterop((_) {
+  displayNotification(
+    message,
+    isError: true,
+    callback: allowInterop((_) {
       completer.complete(true);
     }),
   );

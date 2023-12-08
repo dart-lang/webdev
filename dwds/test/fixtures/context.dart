@@ -382,6 +382,7 @@ class TestContext {
       }
       final connection = ChromeConnection('localhost', debugPort);
 
+      _logger.info('Starting server...');
       _testServer = await TestServer.start(
         debugSettings:
             debugSettings.copyWith(expressionCompiler: expressionCompiler),
@@ -395,6 +396,7 @@ class TestContext {
         chromeConnection: () async => connection,
         autoRun: testSettings.autoRun,
       );
+      _logger.info('Started server.');
 
       _appUrl = basePath.isEmpty
           ? 'http://localhost:$port/$filePathToServe'
@@ -402,11 +404,13 @@ class TestContext {
 
       if (testSettings.launchChrome) {
         await _webDriver?.get(appUrl);
+        _logger.info('Connecting to the app...');
         final tab = await connection.getTab((t) => t.url == appUrl);
         if (tab != null) {
           _tabConnection = await tab.connect();
           await tabConnection.runtime.enable();
           await tabConnection.debugger.enable();
+          _logger.info('Connected.');
         } else {
           throw StateError('Unable to connect to tab.');
         }
@@ -417,8 +421,11 @@ class TestContext {
           await extensionConnection.runtime.enable();
         }
 
+        _logger.info('Waiting for app connection...');
         appConnection = await testServer.dwds.connectedApps.first;
+        _logger.info('Connected.');
         if (debugSettings.enableDebugging && !testSettings.waitToDebug) {
+          _logger.info('Debugging...');
           await startDebugging();
         }
       }

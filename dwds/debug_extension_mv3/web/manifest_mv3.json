@@ -1,6 +1,6 @@
 {
   "name": "Dart Debug Extension",
-  "version": "1.38",
+  "version": "2.0",
   "manifest_version": 3,
   "devtools_page": "static_assets/devtools.html",
   "action": {
@@ -17,13 +17,7 @@
       "https://cider-v-test.corp.google.com/*"
     ]
   },
-  "permissions": [
-    "debugger",
-    "notifications",
-    "scripting",
-    "storage",
-    "webNavigation"
-  ],
+  "permissions": ["debugger", "notifications", "storage", "webNavigation"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.dart.js"
@@ -32,7 +26,6 @@
     {
       "matches": ["<all_urls>"],
       "js": ["detector.dart.js", "copier.dart.js"],
-      "css": ["static_assets/styles.css"],
       "run_at": "document_end"
     }
   ],

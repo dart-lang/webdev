@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 3.3
+
 @JS()
 library hot_reload_client;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
+import 'dart:js_interop';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/build_result.dart';
@@ -26,6 +28,7 @@ import 'package:dwds/src/sockets.dart';
 import 'package:js/js.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
+import 'package:web/helpers.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'promise.dart';
@@ -66,21 +69,27 @@ Future<void> runClient() async {
   dartAppId = appInfo.appId;
 
   // used by require restarter
-  loadModuleConfig = appInfo.loadModuleConfig;
+  loadModuleConfig = appInfo.loadModuleConfig as Object Function(String);
 
-  print(
-      'Injected Client $dartAppInstanceId: Dart app info: ${appInfo.appName} ${appInfo.appId} ${appInfo.appInstanceId} ${appInfo.devHandlerPath} ${appInfo.moduleStrategy}');
+  // print(
+  //   'Injected Client $dartAppInstanceId: '
+  //   'Dart app info: ${appInfo.appName} ${appInfo.appId} '
+  //   '${appInfo.appInstanceId} ${appInfo.devHandlerPath} ${appInfo.moduleStrategy}',
+  // );
 
-  final connection = DevHandlerConnection(appInfo.devHandlerPath);
+  final dwdsConnection = DevHandlerConnection(appInfo.devHandlerPath);
 
   registerEntrypoint = allowInterop((String appName, String entrypointPath) {
-    if (appInfo.entrypoints.contains(entrypointPath)) return;
-    appInfo.entrypoints.add(entrypointPath);
+    if (appInfo.dartEntrypoints.contains(entrypointPath)) return;
+    appInfo.dartEntrypoints.add(entrypointPath);
 
     if (_isChromium) {
-      print(
-          'Injected Client $dartAppInstanceId: sending registerEntrypoint request for $appName ($entrypointPath)');
-      connection.sendRegisterEntrypointRequest(appName, entrypointPath);
+      // print(
+      //   'Injected Client $dartAppInstanceId: '
+      //   'sending registerEntrypoint request for'
+      //   ' $appName ($entrypointPath)',
+      // );
+      dwdsConnection.sendRegisterEntrypointRequest(appName, entrypointPath);
     }
   });
 
@@ -92,7 +101,7 @@ Future<void> runClient() async {
     'legacy' => LegacyRestarter(),
     _ => throw StateError('Unknown module strategy: ${appInfo.moduleStrategy}'),
   };
-  final manager = ReloadingManager(connection.client, restarter);
+  final manager = ReloadingManager(dwdsConnection.client, restarter);
   hotRestartJs = allowInterop((String runId) {
     return toPromise(manager.hotRestart(runId: runId));
   });
@@ -100,12 +109,12 @@ Future<void> runClient() async {
   // Setup debug events
   emitDebugEvent = allowInterop((String kind, String eventData) {
     if (appInfo.emitDebugEvents) {
-      connection.sendDebugEvent(kind, eventData);
+      dwdsConnection.sendDebugEvent(kind, eventData);
     }
   });
 
   // Setup registerExtension events
-  emitRegisterEvent = allowInterop(connection.sendRegisterEvent);
+  emitRegisterEvent = allowInterop(dwdsConnection.sendRegisterEvent);
 
   // setup launching devtools
   launchDevToolsJs = allowInterop(() {
@@ -115,11 +124,11 @@ Future<void> runClient() async {
       );
       return;
     }
-    connection.sendDevToolsRequest(appInfo.appId, appInfo.appInstanceId);
+    dwdsConnection.sendDevToolsRequest(appInfo.appId, appInfo.appInstanceId);
   });
 
   // Listen to commands from dwds dev handler
-  connection.client.stream.listen(
+  dwdsConnection.client.stream.listen(
     (serialized) async {
       final event = serializers.deserialize(jsonDecode(serialized));
       if (event is BuildResult) {
@@ -144,8 +153,12 @@ Future<void> runClient() async {
       } else if (event is RunRequest) {
         runMain();
       } else if (event is ErrorResponse) {
-        window.console.error('Error from backend:\n\nError: ${event.error}\n\n'
-            'Stack Trace:\n${event.stackTrace}');
+        window.reportError(
+          'Error from backend:\n\n'
+                  'Error: ${event.error}\n\n'
+                  'Stack Trace:\n${event.stackTrace}'
+              .toJS,
+        );
       }
     },
     onError: (error) {
@@ -177,89 +190,112 @@ Future<void> runClient() async {
 
   // Connect to the server
   if (_isChromium) {
-    print(
-        'Injected Client $dartAppInstanceId: sending connect request with ${appInfo.appName} (${appInfo.entrypoints})');
-    connection.sendConnectRequest(
+    // print(
+    //   'Injected Client $dartAppInstanceId: '
+    //   'sending connect request with ${appInfo.appName}'
+    //   ' (${appInfo.entrypoints})',
+    // );
+    dwdsConnection.sendConnectRequest(
       appInfo.appName,
       appInfo.appId,
       appInfo.appInstanceId,
-      appInfo.entrypoints,
+      appInfo.dartEntrypoints,
     );
   } else {
     // If not Chromium we just invoke main, devtools aren't supported.
     runMain();
   }
-  _launchCommunicationWithDebugExtension(appInfo);
+
+  final debugConnection = DebugExtensionConnection(appInfo);
+  debugConnection.launchCommunication();
 }
 
-void _launchCommunicationWithDebugExtension(AppInfo appInfo) {
-  // Listen for an event from the Dart Debug Extension to authenticate the
-  // user (sent once the extension receives the dart-app-read event):
-  _listenForDebugExtensionAuthRequest(appInfo);
+class DebugExtensionConnection {
+  final AppInfo appInfo;
 
-  // Send the dart-app-ready event along with debug info to the Dart Debug
-  // Extension so that it can debug the Dart app:
-  final debugInfoJson = jsonEncode(
-    serializers.serialize(
-      DebugInfo(
-        (b) => b
-          ..appEntrypointPath = appInfo.appName
-          ..appId = appInfo.appId
-          ..appInstanceId = appInfo.appInstanceId
-          ..appOrigin = window.location.origin
-          ..appUrl = window.location.href
-          ..authUrl = authUrl(appInfo.extensionUrl)
-          ..extensionUrl = appInfo.extensionUrl
-          ..isInternalBuild = appInfo.isInternalBuild
-          ..isFlutterApp = appInfo.isFlutterApp
-          ..workspaceName = appInfo.workspaceName,
+  DebugExtensionConnection(this.appInfo);
+
+  void launchCommunication() {
+    // Listen for an event from the Dart Debug Extension to authenticate the
+    // user (sent once the extension receives the dart-app-read event):
+    _listenForAuthRequest();
+
+    // Send the dart-app-ready event along with debug info to the Dart Debug
+    // Extension so that it can debug the Dart app:
+    final debugInfoJson = jsonEncode(
+      serializers.serialize(
+        DebugInfo(
+          (b) => b
+            ..appEntrypointPath = appInfo.appName
+            ..appId = appInfo.appId
+            ..appInstanceId = appInfo.appInstanceId
+            ..appOrigin = window.location.origin
+            ..appUrl = window.location.href
+            ..authUrl = _getAuthUrl(appInfo.extensionUrl)
+            ..extensionUrl = appInfo.extensionUrl
+            ..isInternalBuild = appInfo.isInternalBuild
+            ..isFlutterApp = appInfo.isFlutterApp
+            ..workspaceName = appInfo.workspaceName,
+        ),
       ),
-    ),
-  );
-  dispatchEvent(CustomEvent('dart-app-ready', detail: debugInfoJson));
-}
+    );
 
-String? authUrl(String? extensionUrl) {
-  if (extensionUrl == null) return null;
-  final authUrl = Uri.parse(extensionUrl).replace(path: authenticationPath);
-  switch (authUrl.scheme) {
-    case 'ws':
-      return authUrl.replace(scheme: 'http').toString();
-    case 'wss':
-      return authUrl.replace(scheme: 'https').toString();
-    default:
-      return authUrl.toString();
+    _dispatchEvent('dart-app-ready', debugInfoJson);
   }
-}
 
-void _listenForDebugExtensionAuthRequest(AppInfo appInfo) {
-  window.addEventListener(
-    'message',
-    allowInterop((event) async {
-      final messageEvent = event as MessageEvent;
-      if (messageEvent.data is! String) return;
-      if (messageEvent.data as String != 'dart-auth-request') return;
+  String? _getAuthUrl(String? extensionUrl) {
+    if (extensionUrl == null) return null;
+    final authUrl = Uri.parse(extensionUrl).replace(path: authenticationPath);
+    switch (authUrl.scheme) {
+      case 'ws':
+        return authUrl.replace(scheme: 'http').toString();
+      case 'wss':
+        return authUrl.replace(scheme: 'https').toString();
+      default:
+        return authUrl.toString();
+    }
+  }
 
-      // Notify the Dart Debug Extension of authentication status:
-      final auth = authUrl(appInfo.extensionUrl);
-      if (auth != null) {
-        final isAuthenticated = await _authenticateUser(auth);
-        dispatchEvent(
-          CustomEvent('dart-auth-response', detail: '$isAuthenticated'),
-        );
-      }
-    }),
-  );
-}
+  void _listenForAuthRequest() {
+    window.addEventListener(
+      'message',
+      _handleAuthRequest.toJS,
+    );
+  }
 
-Future<bool> _authenticateUser(String authUrl) async {
-  final response = await HttpRequest.request(
-    authUrl,
-    method: 'GET',
-    withCredentials: true,
-  );
-  final responseText = response.responseText ?? '';
-  return responseText.contains('Dart Debug Authentication Success!');
+  void _dispatchEvent(String message, String detail) {
+    window.dispatchEvent(
+      CustomEvent(
+        'dart-auth-response',
+        CustomEventInit(detail: detail.toJS),
+      ),
+    );
+  }
+
+  void _handleAuthRequest(Event event) {
+    final messageEvent = event as MessageEvent;
+    if (messageEvent.data is! String) return;
+    if (messageEvent.data as String != 'dart-auth-request') return;
+
+    // Notify the Dart Debug Extension of authentication status:
+    final authUrl = _getAuthUrl(appInfo.extensionUrl);
+    if (authUrl != null) {
+      _authenticateUser(authUrl).then(
+        (isAuthenticated) =>
+            _dispatchEvent('dart-auth-response', '$isAuthenticated'),
+      );
+    }
+  }
+
+  static Future<bool> _authenticateUser(String authUrl) async {
+    final response = await HttpRequest.request(
+      authUrl,
+      method: 'GET',
+      withCredentials: true,
+    );
+    final responseText = response.responseText;
+    return responseText.contains('Dart Debug Authentication Success!');
+  }
 }
 
 class DevHandlerConnection {
@@ -284,59 +320,70 @@ class DevHandlerConnection {
     String? appInstanceId,
     List<String> entrypoints,
   ) {
-    _serializeAndTrySendEvent(ConnectRequest(
-      (b) => b
-        ..appName = appName
-        ..appId = appId
-        ..instanceId = appInstanceId
-        ..entrypoints = ListBuilder<String>(entrypoints),
-    ));
+    _serializeAndTrySendEvent(
+      ConnectRequest(
+        (b) => b
+          ..appName = appName
+          ..appId = appId
+          ..instanceId = appInstanceId
+          ..entrypoints = ListBuilder<String>(entrypoints),
+      ),
+    );
   }
 
   void sendRegisterEntrypointRequest(
     String appName,
     String entrypointPath,
   ) {
-    _serializeAndTrySendEvent(RegisterEntrypointRequest(
-      (b) => b
-        ..appName = appName
-        ..entrypointPath = entrypointPath,
-    ));
+    _serializeAndTrySendEvent(
+      RegisterEntrypointRequest(
+        (b) => b
+          ..appName = appName
+          ..entrypointPath = entrypointPath,
+      ),
+    );
   }
 
   void _sendBatchedDebugEvents(
     List<DebugEvent> events,
   ) {
-    _serializeAndTrySendEvent(BatchedDebugEvents(
-      (b) => b.events = ListBuilder<DebugEvent>(events),
-    ));
+    _serializeAndTrySendEvent(
+      BatchedDebugEvents(
+        (b) => b.events = ListBuilder<DebugEvent>(events),
+      ),
+    );
   }
 
   void sendDebugEvent(String kind, String eventData) {
     _trySendEvent(
-        debugEventController.sink,
-        DebugEvent(
-          (b) => b
-            ..timestamp = (DateTime.now().millisecondsSinceEpoch)
-            ..kind = kind
-            ..eventData = eventData,
-        ));
+      debugEventController.sink,
+      DebugEvent(
+        (b) => b
+          ..timestamp = (DateTime.now().millisecondsSinceEpoch)
+          ..kind = kind
+          ..eventData = eventData,
+      ),
+    );
   }
 
   void sendRegisterEvent(String eventData) {
-    _serializeAndTrySendEvent(RegisterEvent(
-      (b) => b
-        ..timestamp = (DateTime.now().millisecondsSinceEpoch)
-        ..eventData = eventData,
-    ));
+    _serializeAndTrySendEvent(
+      RegisterEvent(
+        (b) => b
+          ..timestamp = (DateTime.now().millisecondsSinceEpoch)
+          ..eventData = eventData,
+      ),
+    );
   }
 
   void sendDevToolsRequest(String appId, String appInstanceId) {
-    _serializeAndTrySendEvent(DevToolsRequest(
-      (b) => b
-        ..appId = appId
-        ..instanceId = appInstanceId,
-    ));
+    _serializeAndTrySendEvent(
+      DevToolsRequest(
+        (b) => b
+          ..appId = appId
+          ..instanceId = appInstanceId,
+      ),
+    );
   }
 
   void _trySendEvent<T>(StreamSink<T> sink, T event) {
@@ -373,6 +420,8 @@ class DevHandlerConnection {
   }
 }
 
+// Runtime API. TODO: pull into a separate file.
+
 @JS(r'$dartAppId')
 external String? get dartAppId; // used in extension and tests
 
@@ -397,9 +446,6 @@ external void Function() get launchDevToolsJs;
 @JS(r'$launchDevTools')
 external set launchDevToolsJs(void Function() cb);
 
-@JS('window.top.document.dispatchEvent')
-external void dispatchEvent(CustomEvent event);
-
 @JS(r'$emitDebugEvent')
 external set emitDebugEvent(void Function(String, String) func);
 
@@ -419,12 +465,10 @@ external set registerEntrypoint(
 
 bool get _isChromium => window.navigator.vendor.contains('Google');
 
-@JS()
-@anonymous
-class AppInfo {
+extension type AppInfo(JSObject object) {
   external String get moduleStrategy;
   external String get reloadConfiguration;
-  external Object Function(String module) get loadModuleConfig;
+  external JSFunction get loadModuleConfig;
   external String get dwdsVersion;
   external bool get enableDevToolsLaunch;
   external bool get emitDebugEvents;
@@ -436,6 +480,13 @@ class AppInfo {
   external bool get isFlutterApp;
   external String? get extensionUrl;
   external String get devHandlerPath;
-  external List<String> get entrypoints;
+  external StringList get entrypoints;
   external String? get workspaceName;
+
+  List<String> get dartEntrypoints => entrypoints.toDart;
+}
+
+extension type StringList(JSArray array) {
+  List<String> get toDart =>
+      List<String>.from(array.toDart.map((e) => (e as JSString).toDart));
 }

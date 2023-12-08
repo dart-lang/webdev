@@ -44,12 +44,10 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// Note: this should not be checked in enabled.
 const _enableLogging = false;
 
-final _logger = Logger('DevHandler');
-
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.
 class DevHandler {
-  Logger _logger = Logger('DevHandler');
+  final _logger = Logger('DevHandler');
   final _subs = <StreamSubscription>[];
   final _sseHandlers = <String, SocketHandler>{};
   final _injectedConnections = <SocketConnection>{};
@@ -274,7 +272,7 @@ class DevHandler {
               await _handleConnectRequest(message, injectedConnection);
           for (var entrypoint in connection.request.entrypoints) {
             globalToolConfiguration.loadStrategy
-                .trackAppEntrypoint(connection.request.appName, entrypoint);
+                .trackEntrypoint(connection.request.appName, entrypoint);
           }
           appConnection = connection;
         } else {
@@ -283,11 +281,11 @@ class DevHandler {
             throw StateError('Not connected to an application.');
           }
           if (message is RegisterEntrypointRequest) {
-            globalToolConfiguration.loadStrategy.trackAppEntrypoint(
+            globalToolConfiguration.loadStrategy.trackEntrypoint(
               connection.request.appName,
               message.entrypointPath,
             );
-            _servicesByAppId[connection.request.appId]
+            await _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
                 .parseRegisterEntrypointRequest(message);
           }
@@ -645,27 +643,13 @@ class DevHandler {
       devToolsStart: DateTime.now(),
     );
 
-    // TODO(elliette): Remove handling requests from the MV2 extension after
-    // MV3 release.
-    // If we only want the URI, this means the Dart Debug Extension should
-    // handle how to open it. Therefore return early before opening a new
-    // tab or window:
-    if (devToolsRequest.uriOnly ?? false) {
-      final devToolsUri = _constructDevToolsUri(
-        encodedUri,
-        ideQueryParam: 'ChromeDevTools',
-      );
-      return extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
-    }
-
-    // Otherwise, launch DevTools in a new tab / window:
-    await _launchDevTools(
-      extensionDebugger,
-      _constructDevToolsUri(
-        encodedUri,
-        ideQueryParam: 'DebugExtension',
-      ),
+    emitEvent(DwdsEvent.devtoolsLaunch());
+    // Send the DevTools URI to the Dart Debug Extension so that it can open it:
+    final devToolsUri = _constructDevToolsUri(
+      encodedUri,
+      ideQueryParam: 'ChromeDevTools',
     );
+    return extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
   }
 
   DevTools _ensureDevTools() {

@@ -208,7 +208,7 @@ class ChromeProxyService implements VmServiceInterface {
     final compiler = _compiler;
     if (compiler != null) {
       await compiler.initialize(compilerOptions);
-      final dependencies = await loadStrategy.moduleInfoForEntrypoint(appName);
+      final dependencies = await loadStrategy.moduleInfoFor(appName);
       await captureElapsedTime(
         () async {
           final result = await compiler.updateDependencies(dependencies);
@@ -404,7 +404,7 @@ class ChromeProxyService implements VmServiceInterface {
     String scriptId,
     int line, {
     int? column,
-  }) async {
+  }) {
     return wrapInErrorHandlerAsync(
       'addBreakpoint',
       () => _addBreakpoint(isolateId, scriptId, line),

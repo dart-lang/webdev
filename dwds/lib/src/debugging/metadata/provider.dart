@@ -14,7 +14,6 @@ import 'package:path/path.dart' as p;
 class MetadataProvider {
   final AssetReader _assetReader;
   final _logger = Logger('MetadataProvider');
-  final String appName;
   bool _soundNullSafety;
   final List<String> _libraries = [];
   final Map<String, String> _scriptToModule = {};
@@ -68,7 +67,9 @@ class MetadataProvider {
         'dart:ui',
       ];
 
-  MetadataProvider(this.appName, this._assetReader) : _soundNullSafety = false;
+  MetadataProvider(this._assetReader) : _soundNullSafety = false {
+    _logger.info('Created metadata provider');
+  }
 
   /// A sound null safety mode for the whole app.
   ///
@@ -179,9 +180,10 @@ class MetadataProvider {
   }
 
   Future<void> _initialize() async {
-    // TODO: run in a sequence? not sure if there are races.
+    _logger.info('Initializing... ');
     await mainEntrypoint;
     await Future.wait(_entryPoints.values);
+    _logger.info('Initialized.');
   }
 
   void update(String entrypoint) {
