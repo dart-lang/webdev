@@ -21,6 +21,7 @@ dev_dependencies:
   built_value_generator: ^8.3.0
   build_web_compilers: ^4.0.4
   dwds: ^16.0.0
+  path: ^1.8.1
   sse: ^4.1.2
   web_socket_channel: ^2.2.0
 

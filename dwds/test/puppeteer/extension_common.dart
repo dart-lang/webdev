@@ -948,17 +948,6 @@ String _currentTabIdJs = '''
     }
 ''';
 
-String _currentWindowIdJs = '''
-    async () => {
-      return new Promise((resolve, reject) => {
-        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-          const tab = tabs[0];
-          resolve(tab.windowId);
-        });
-      });
-    }
-''';
-
 String _fetchStorageObjJs(
   String storageKey, {
   required String storageArea,
