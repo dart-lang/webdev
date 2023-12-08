@@ -17,6 +17,9 @@
         width: 350px;
         height: 100px;
       }
+      hr {
+        margin: 0;
+      }
     </style>
   </head>
 
@@ -51,7 +54,7 @@
         </span>
       </li>
 
-      <hr></hr>
+      <hr id="appIdDivider"></hr>
 
       <li id="appIdContainer" class="mdl-list__item mdl-list__item--two-line">
         <span class="mdl-list__item-primary-content">
@@ -65,6 +68,20 @@
         </span>
         <span class="mdl-list__item-secondary-content">
           <span id="appId"></span>
+        </span>
+      </li>
+
+      <li class="mdl-list__item mdl-list__item--two-line list-footer">
+        <span class="mdl-list__item-primary-content">
+          <!-- Empty to right-align the "file a bug" button. -->
+        </span>
+        <span class="mdl-list__item-secondary-content">
+          <button
+            id="fileBugButton"
+            class="mdl-button mdl-js-button mdl-button--accent"
+          >
+            File a bug
+          </button>
         </span>
       </li>
 

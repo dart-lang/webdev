@@ -14,20 +14,21 @@ import 'package:js/js.dart';
 
 import 'data_serializers.dart';
 import 'data_types.dart';
-import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';
 
 const _appIdContainerId = 'appIdContainer';
+const _appIdDividerId = 'appIdDivider';
 const _appIdSpanId = 'appId';
 const _copyIdButtonId = 'copyIdButton';
-const _copiedSuccessId = "copiedSuccess";
+const _copiedSuccessId = 'copiedSuccess';
+const _fileBugButtonId = 'fileBugButton';
 const _hiddenClass = 'hidden';
 const _launchDevToolsButtonId = 'launchDevToolsButton';
-const _loadingSpinnerId = "loadingSpinner";
-const _windowOption = "windowOption";
-const _tabOption = "tabOption";
+const _loadingSpinnerId = 'loadingSpinner';
+const _windowOption = 'windowOption';
+const _tabOption = 'tabOption';
 
 Future<int?> get _tabId async {
   final tab = await activeTab;
@@ -38,14 +39,9 @@ String? _appId;
 
 Future<void> main() async {
   _registerListeners();
-
-  final inserted = await _insertAppId();
-  if (inserted) {
-    _updateElementVisibility(_appIdContainerId, visible: true);
-  }
-  _updateElementVisibility(_loadingSpinnerId, visible: false);
+  await _loadUiAndHideSpinner();
 }
-
+ 
 void _registerListeners() {
   final launchDevToolsButton =
       document.getElementById(_launchDevToolsButtonId) as ButtonElement;
@@ -53,6 +49,10 @@ void _registerListeners() {
 
   final copyButton = document.getElementById(_copyIdButtonId) as ButtonElement;
   copyButton.addEventListener('click', _copyAppId);
+
+  final fileABugButton =
+      document.getElementById(_fileBugButtonId) as ButtonElement;
+  fileABugButton.addEventListener('click', _openIssueTracker);
 
   document.addEventListener('DOMContentLoaded', _updateSettingsFromStorage);
 
@@ -67,13 +67,28 @@ void _registerListeners() {
   });
 }
 
-Future<bool> _insertAppId() async {
-  final tabId = await _tabId;
+Future<void> _loadUiAndHideSpinner() async {
+  final inserted = await _insertAppId();
+  if (inserted) {
+    _updateElementVisibility(_appIdContainerId, visible: true);
+    _updateElementVisibility(_appIdDividerId, visible: true);
+  }
+  _updateElementVisibility(_loadingSpinnerId, visible: false);
+}
+
+Future<DebugInfo?> _fetchDebugInfo(int? tabId) async {
+  if (tabId == null) return null;
   final debugInfo = await fetchStorageObject<DebugInfo>(
     type: StorageObject.debugInfo,
     tabId: tabId,
   );
-  if (debugInfo == null || tabId == null) return false;
+  return debugInfo;
+}
+
+Future<bool> _insertAppId() async {
+  final tabId = await _tabId;
+  final debugInfo = await _fetchDebugInfo(tabId);
+  if (debugInfo == null) return false;
   final isInternalBuild = debugInfo.isInternalBuild ?? false;
   final workspaceName = debugInfo.workspaceName;
   if (isInternalBuild && workspaceName != null) {
@@ -83,6 +98,15 @@ Future<bool> _insertAppId() async {
     return true;
   }
   return false;
+}
+
+Future<void> _openIssueTracker(Event _) async {
+  final debugInfo = await _fetchDebugInfo(await _tabId);
+  final isInternalBuild = debugInfo?.isInternalBuild ?? false;
+  final issueTrackerLink = isInternalBuild
+      ? 'http://b/issues/new?component=775375&template=1791321'
+      : 'https://github.com/dart-lang/webdev/issues/new?labels=dart-debug-extension&projects=&template=dart_debug_extension.md';
+  await createTab(issueTrackerLink);
 }
 
 Future<void> _launchDevTools(Event _) async {

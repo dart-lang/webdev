@@ -47,8 +47,16 @@ iframe {
   margin-top: 15px;
 }
 
+.mdl-list {
+  padding-bottom: 0;
+}
+
 .mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent {
   background-color: #0091ea;
+}
+
+.list-footer {
+  background-color: lightgrey;
 }
 
 .dart-card.mdl-card {
