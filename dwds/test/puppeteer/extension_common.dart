@@ -915,17 +915,6 @@ Future<int> _getCurrentTabId({
   )) as int;
 }
 
-Future<int?> _getCurrentWindowId({
-  Worker? worker,
-  Page? backgroundPage,
-}) async {
-  return (await evaluate(
-    _currentWindowIdJs,
-    worker: worker,
-    backgroundPage: backgroundPage,
-  )) as int?;
-}
-
 Future<T> _fetchStorageObj<T>(
   String storageKey, {
   required String storageArea,
