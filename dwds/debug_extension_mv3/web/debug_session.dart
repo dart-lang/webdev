@@ -170,6 +170,14 @@ Future<void> clearStaleDebugSession(int tabId) async {
   }
 }
 
+Future<String?> fetchDevToolsUri(int tabId) {
+  final devToolsUri = fetchStorageObject<String>(
+    type: StorageObject.devToolsUri,
+    tabId: tabId,
+  );
+  return devToolsUri;
+}
+
 Future<bool> _validateTabIsDebuggable(
   int dartAppTabId, {
   bool forwardErrorsToCider = false,
@@ -405,8 +413,16 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
       params: message.params,
       tabId: tabId,
     );
+    final debuggingFromCider = _tabIdToTrigger[tabId] == Trigger.cider;
     if (message.method == 'dwds.devtoolsUri') {
-      if (_tabIdToTrigger[tabId] != Trigger.cider) {
+      if (debuggingFromCider) {
+        // Save the DevTools URI so that Cider can request it later:
+        setStorageObject(
+          type: StorageObject.devToolsUri,
+          value: message.params,
+          tabId: tabId,
+        );
+      } else {
         _openDevTools(message.params, dartAppTabId: tabId);
       }
     }
