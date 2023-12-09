@@ -405,9 +405,8 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
       params: message.params,
       tabId: tabId,
     );
-    final debuggingFromCider = _tabIdToTrigger[tabId] == Trigger.cider;
     if (message.method == 'dwds.devtoolsUri') {
-      if (debuggingFromCider) {
+      if (_tabIdToTrigger[tabId] == Trigger.cider) {
         // Save the DevTools URI so that Cider can request it later:
         setStorageObject(
           type: StorageObject.devToolsUri,
