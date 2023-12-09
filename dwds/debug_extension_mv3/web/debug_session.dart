@@ -170,14 +170,6 @@ Future<void> clearStaleDebugSession(int tabId) async {
   }
 }
 
-Future<String?> fetchDevToolsUri(int tabId) {
-  final devToolsUri = fetchStorageObject<String>(
-    type: StorageObject.devToolsUri,
-    tabId: tabId,
-  );
-  return devToolsUri;
-}
-
 Future<bool> _validateTabIsDebuggable(
   int dartAppTabId, {
   bool forwardErrorsToCider = false,

@@ -13,6 +13,7 @@ import 'package:js/js.dart';
 import 'chrome_api.dart';
 import 'debug_session.dart';
 import 'logger.dart';
+import 'storage.dart';
 import 'utils.dart';
 
 /// Used to identify messages passed to/from Cider.
@@ -170,7 +171,10 @@ Future<void> _sendInspectorUrl({String? appId}) async {
     );
     return;
   }
-  final devToolsUri = await fetchDevToolsUri(tabId);
+  final devToolsUri = await fetchStorageObject<String>(
+    type: StorageObject.devToolsUri,
+    tabId: tabId,
+  );
   if (devToolsUri == null) {
     sendErrorMessageToCider(
       errorType: CiderErrorType.internalError,
