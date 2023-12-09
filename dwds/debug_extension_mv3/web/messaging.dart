@@ -25,7 +25,8 @@ enum Script {
   background,
   copier,
   debuggerPanel,
-  detector;
+  detector,
+  popup;
 
   factory Script.fromString(String value) {
     return Script.values.byName(value);

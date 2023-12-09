@@ -87,14 +87,6 @@ void displayNotification(
   );
 }
 
-void onExtensionIconClicked(void Function(Tab) callback) {
-  if (isMV3) {
-    _onExtensionIconClickedMV3(callback);
-  } else {
-    _onExtensionIconClickedMV2(callback);
-  }
-}
-
 void setExtensionIcon(IconInfo info) {
   if (isMV3) {
     _setExtensionIconMV3(
@@ -105,6 +97,22 @@ void setExtensionIcon(IconInfo info) {
   } else {
     _setExtensionIconMV2(
       info,
+      // callback
+      null,
+    );
+  }
+}
+
+void setExtensionPopup(PopupDetails details) {
+  if (isMV3) {
+    _setExtensionPopupMV3(
+      details,
+      // callback
+      null,
+    );
+  } else {
+    _setExtensionPopupMV2(
+      details,
       // callback
       null,
     );
@@ -153,21 +161,29 @@ String addQueryParameters(
   return newUri.toString();
 }
 
-@JS('chrome.browserAction.onClicked.addListener')
-external void _onExtensionIconClickedMV2(void Function(Tab tab) callback);
-
-@JS('chrome.action.onClicked.addListener')
-external void _onExtensionIconClickedMV3(void Function(Tab tab) callback);
-
 @JS('chrome.browserAction.setIcon')
 external void _setExtensionIconMV2(IconInfo iconInfo, Function? callback);
 
 @JS('chrome.action.setIcon')
 external void _setExtensionIconMV3(IconInfo iconInfo, Function? callback);
 
+@JS('chrome.browserAction.setPopup')
+external void _setExtensionPopupMV2(PopupDetails details, Function? callback);
+
+@JS('chrome.action.setPopup')
+external void _setExtensionPopupMV3(PopupDetails details, Function? callback);
+
 @JS()
 @anonymous
 class IconInfo {
   external String get path;
   external factory IconInfo({required String path});
+}
+
+@JS()
+@anonymous
+class PopupDetails {
+  external int get tabId;
+  external String get popup;
+  external factory PopupDetails({required int tabId, required String popup});
 }
