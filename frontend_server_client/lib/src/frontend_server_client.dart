@@ -103,10 +103,10 @@ class FrontendServerClient {
       feServer = await Process.start(
         Platform.resolvedExecutable,
         <String>[
-              if (debug) '--observe',
-              frontendServerPath,
-              ...commonArguments,
-            ],
+          if (debug) '--observe',
+          frontendServerPath,
+          ...commonArguments,
+        ],
       );
     } else if (File(_feServerAotSnapshotPath).existsSync()) {
       if (debug) {
@@ -123,10 +123,10 @@ class FrontendServerClient {
       feServer = await Process.start(
         Platform.resolvedExecutable,
         <String>[
-              if (debug) '--observe',
-              _feServerAppJitSnapshotPath,
-              ...commonArguments,
-            ],
+          if (debug) '--observe',
+          _feServerAppJitSnapshotPath,
+          ...commonArguments,
+        ],
       );
     }
     var feServerStdoutLines = StreamQueue(feServer.stdout
