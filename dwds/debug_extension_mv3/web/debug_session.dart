@@ -406,7 +406,14 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
       tabId: tabId,
     );
     if (message.method == 'dwds.devtoolsUri') {
-      if (_tabIdToTrigger[tabId] != Trigger.cider) {
+      if (_tabIdToTrigger[tabId] == Trigger.cider) {
+        // Save the DevTools URI so that Cider can request it later:
+        setStorageObject(
+          type: StorageObject.devToolsUri,
+          value: message.params,
+          tabId: tabId,
+        );
+      } else {
         _openDevTools(message.params, dartAppTabId: tabId);
       }
     }
