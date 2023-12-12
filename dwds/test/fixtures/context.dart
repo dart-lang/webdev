@@ -395,8 +395,9 @@ class TestContext {
       }
 
       // The debugger tab must be enabled and connected before certain
-      // listeners in DWDS run.
+      // listeners in DWDS or `main` is run.
       final tabConnectionCompleter = Completer();
+      final appConnectionCompleter = Completer();
       final connection = ChromeConnection('localhost', debugPort);
 
       _testServer = await TestServer.start(
@@ -410,9 +411,16 @@ class TestContext {
         target: project.directoryToServe,
         buildResults: buildResults,
         chromeConnection: () async => connection,
-        autoRun: testSettings.autoRun,
-        completeBeforeHandlingConnections: tabConnectionCompleter.future,
+        autoRun: false,
       );
+
+      _testServer!.dwds.connectedApps.listen((connection) async {
+        // Ensure that we've established a tab connection before running main.
+        await tabConnectionCompleter.future;
+        connection.runMain();
+        appConnection = connection;
+        appConnectionCompleter.complete();
+      });
 
       _appUrl = basePath.isEmpty
           ? 'http://localhost:$port/$filePathToServe'
@@ -437,7 +445,7 @@ class TestContext {
           await extensionConnection.runtime.enable();
         }
 
-        appConnection = await testServer.dwds.connectedApps.first;
+        await appConnectionCompleter.future;
         if (debugSettings.enableDebugging && !testSettings.waitToDebug) {
           await startDebugging();
         }

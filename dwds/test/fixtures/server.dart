@@ -68,7 +68,6 @@ class TestServer {
     required Future<ChromeConnection> Function() chromeConnection,
     required bool autoRun,
     int? port,
-    Future? completeBeforeHandlingConnections,
   }) async {
     var pipeline = const Pipeline();
 
@@ -101,7 +100,6 @@ class TestServer {
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
       toolConfiguration: toolConfiguration,
-      completeBeforeHandlingConnections: completeBeforeHandlingConnections,
     );
 
     final server = await startHttpServer('localhost', port: port);
