@@ -55,6 +55,42 @@ class SdkAssetGenerator {
     }
   }
 
+  String resolveSdkJsPath({
+    required bool soundNullSafety,
+    required bool canaryFeatures,
+  }) =>
+      switch ((soundNullSafety, ddcModuleFormat)) {
+        (true, ModuleFormat.amd) => sdkLayout.soundAmdJsPath,
+        (false, ModuleFormat.amd) => sdkLayout.weakAmdJsPath,
+        (true, ModuleFormat.ddc) => sdkLayout.soundDdcJsPath,
+        (false, ModuleFormat.ddc) => sdkLayout.weakDdcJsPath,
+        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
+      };
+
+  String resolveSdkSourcemapPath({
+    required bool soundNullSafety,
+    required bool canaryFeatures,
+  }) =>
+      switch ((soundNullSafety, ddcModuleFormat)) {
+        (true, ModuleFormat.amd) => sdkLayout.soundAmdJsMapPath,
+        (false, ModuleFormat.amd) => sdkLayout.weakAmdJsMapPath,
+        (true, ModuleFormat.ddc) => sdkLayout.soundDdcJsMapPath,
+        (false, ModuleFormat.ddc) => sdkLayout.weakDdcJsMapPath,
+        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
+      };
+
+  String resolveSdkJsFilename({
+    required bool soundNullSafety,
+    required bool canaryFeatures,
+  }) =>
+      switch ((soundNullSafety, ddcModuleFormat)) {
+        (true, ModuleFormat.amd) => sdkLayout.soundAmdJsFileName,
+        (false, ModuleFormat.amd) => sdkLayout.weakAmdJsFileName,
+        (true, ModuleFormat.ddc) => sdkLayout.soundDdcJsFileName,
+        (false, ModuleFormat.ddc) => sdkLayout.weakDdcJsFileName,
+        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
+      };
+
   Future<void> _generateSdkJavaScript({
     required bool soundNullSafety,
     required bool canaryFeatures,
@@ -62,20 +98,10 @@ class SdkAssetGenerator {
     Directory? outputDir;
     try {
       // Files to copy generated files to.
-      final outputJsPath = switch ((soundNullSafety, ddcModuleFormat)) {
-        (true, ModuleFormat.amd) => sdkLayout.soundAmdJsPath,
-        (false, ModuleFormat.amd) => sdkLayout.weakAmdJsPath,
-        (true, ModuleFormat.ddc) => sdkLayout.soundDdcJsPath,
-        (false, ModuleFormat.ddc) => sdkLayout.weakDdcJsPath,
-        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
-      };
-      final outputJsMapPath = switch ((soundNullSafety, ddcModuleFormat)) {
-        (true, ModuleFormat.amd) => sdkLayout.soundAmdJsMapPath,
-        (false, ModuleFormat.amd) => sdkLayout.weakAmdJsMapPath,
-        (true, ModuleFormat.ddc) => sdkLayout.soundDdcJsMapPath,
-        (false, ModuleFormat.ddc) => sdkLayout.weakDdcJsMapPath,
-        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
-      };
+      final outputJsPath = resolveSdkJsPath(
+          soundNullSafety: soundNullSafety, canaryFeatures: canaryFeatures);
+      final outputJsMapPath = resolveSdkSourcemapPath(
+          soundNullSafety: soundNullSafety, canaryFeatures: canaryFeatures);
       final outputFullDillPath = soundNullSafety
           ? sdkLayout.soundFullDillPath
           : sdkLayout.weakFullDillPath;
@@ -92,17 +118,11 @@ class SdkAssetGenerator {
       outputDir = fileSystem.systemTempDirectory.createTempSync();
 
       // Files to generate
-      final jsPath = switch ((soundNullSafety, ddcModuleFormat)) {
-        (true, ModuleFormat.amd) =>
-          p.join(outputDir.path, sdkLayout.soundAmdJsFileName),
-        (false, ModuleFormat.amd) =>
-          p.join(outputDir.path, sdkLayout.weakAmdJsFileName),
-        (true, ModuleFormat.ddc) =>
-          p.join(outputDir.path, sdkLayout.soundDdcJsFileName),
-        (false, ModuleFormat.ddc) =>
-          p.join(outputDir.path, sdkLayout.weakDdcJsFileName),
-        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
-      };
+      final jsPath = p.join(
+          outputDir.path,
+          resolveSdkJsFilename(
+              soundNullSafety: soundNullSafety,
+              canaryFeatures: canaryFeatures));
       final jsMapPath = p.setExtension(jsPath, '.js.map');
       final fullDillPath = p.setExtension(jsPath, '.dill');
 

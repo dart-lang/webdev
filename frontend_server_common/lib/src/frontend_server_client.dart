@@ -395,7 +395,7 @@ class ResidentCompiler {
       if (compilerOptions.canaryFeatures) '--dartdevc-canary',
       if (verbose) '--verbose',
       if (compilerOptions.moduleFormat == ModuleFormat.ddc)
-        '--dartdevc-module-format=legacy'
+        '--dartdevc-module-format=ddc'
     ];
 
     _logger.info(args.join(' '));

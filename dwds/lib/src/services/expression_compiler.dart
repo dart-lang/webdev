@@ -17,7 +17,7 @@ class CompilerOptions {
   });
 }
 
-// Indicates the module system DDC is targeting.
+/// Indicates the module system DDC is targeting.
 enum ModuleFormat { amd, ddc, es6 }
 
 /// Result of compilation of dart expression to JavaScript
