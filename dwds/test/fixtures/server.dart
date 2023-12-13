@@ -39,15 +39,8 @@ class TestServer {
     this._server,
     this.dwds,
     this.buildResults,
-    bool autoRun,
     this.assetReader,
-  ) {
-    if (autoRun) {
-      dwds.connectedApps.listen((connection) {
-        connection.runMain();
-      });
-    }
-  }
+  );
 
   String get host => _server.address.host;
   int get port => _server.port;
@@ -66,7 +59,6 @@ class TestServer {
     required String target,
     required Stream<daemon.BuildResults> buildResults,
     required Future<ChromeConnection> Function() chromeConnection,
-    required bool autoRun,
     int? port,
   }) async {
     var pipeline = const Pipeline();
@@ -121,7 +113,6 @@ class TestServer {
       server,
       dwds,
       filteredBuildResults,
-      autoRun,
       assetReader,
     );
   }

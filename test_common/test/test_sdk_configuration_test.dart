@@ -58,15 +58,20 @@ void main() {
       expect(sdkLayout.sdkDirectory, _directoryExists);
       expect(sdkLayout.soundAmdJsPath, _fileExists);
       expect(sdkLayout.soundAmdJsMapPath, _fileExists);
+      expect(sdkLayout.soundDdcJsPath, _fileExists);
+      expect(sdkLayout.soundDdcJsMapPath, _fileExists);
       expect(sdkLayout.soundSummaryPath, _fileExists);
       expect(sdkLayout.soundFullDillPath, _fileExists);
 
       expect(sdkLayout.weakAmdJsPath, _fileExists);
       expect(sdkLayout.weakAmdJsMapPath, _fileExists);
+      expect(sdkLayout.weakDdcJsPath, _fileExists);
+      expect(sdkLayout.weakDdcJsMapPath, _fileExists);
       expect(sdkLayout.weakSummaryPath, _fileExists);
       expect(sdkLayout.weakFullDillPath, _fileExists);
 
       expect(sdkLayout.requireJsPath, _fileExists);
+      expect(sdkLayout.ddcModuleLoaderJsPath, _fileExists);
       expect(sdkLayout.stackTraceMapperPath, _fileExists);
 
       expect(sdkLayout.dartPath, _fileExists);

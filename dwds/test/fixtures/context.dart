@@ -411,13 +411,14 @@ class TestContext {
         target: project.directoryToServe,
         buildResults: buildResults,
         chromeConnection: () async => connection,
-        autoRun: false,
       );
 
       _testServer!.dwds.connectedApps.listen((connection) async {
         // Ensure that we've established a tab connection before running main.
         await tabConnectionCompleter.future;
-        connection.runMain();
+        if (testSettings.autoRun) {
+          connection.runMain();
+        }
         appConnection = connection;
         appConnectionCompleter.complete();
       });
