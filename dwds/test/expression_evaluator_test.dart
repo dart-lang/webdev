@@ -96,8 +96,8 @@ void main() async {
       });
 
       test('can evaluate expression', () async {
-        final result =
-            await evaluator.evaluateExpression('1', 'main.dart', 'true', {});
+        final result = await evaluator
+            .evaluateExpression('1', 'main.dart', 'main.dart', 'true', {});
         expect(
           result,
           const TypeMatcher<RemoteObject>()
@@ -162,8 +162,8 @@ void main() async {
 
       test('returns error if closed', () async {
         evaluator.close();
-        final result =
-            await evaluator.evaluateExpression('1', 'main.dart', 'true', {});
+        final result = await evaluator
+            .evaluateExpression('1', 'main.dart', 'main.dart', 'true', {});
         expect(
           result,
           const TypeMatcher<RemoteObject>()
@@ -181,8 +181,8 @@ void main() async {
       });
 
       test('can evaluate expression', () async {
-        final result =
-            await evaluator.evaluateExpression('1', 'main.dart', 'true', {});
+        final result = await evaluator
+            .evaluateExpression('1', 'main.dart', 'main.dart', 'true', {});
         expect(
           result,
           const TypeMatcher<RemoteObject>()
@@ -192,8 +192,8 @@ void main() async {
 
       test('returns error if closed', () async {
         evaluator.close();
-        final result =
-            await evaluator.evaluateExpression('1', 'main.dart', 'true', {});
+        final result = await evaluator
+            .evaluateExpression('1', 'main.dart', 'main.dart', 'true', {});
         expect(
           result,
           const TypeMatcher<RemoteObject>()

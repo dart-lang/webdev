@@ -624,6 +624,8 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
             () => evaluator.evaluateExpression(
               isolateId,
               library?.uri,
+              // TODO: Get correct script uri.
+              library?.uri,
               expression,
               scope,
             ),

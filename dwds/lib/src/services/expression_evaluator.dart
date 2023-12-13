@@ -84,10 +84,12 @@ class ExpressionEvaluator {
   ///
   /// [isolateId] current isolate ID.
   /// [libraryUri] dart library to evaluate the expression in.
+  /// [scriptUri] dart script or file to evaluate the expression in.
   /// [expression] dart expression to evaluate.
   Future<RemoteObject> evaluateExpression(
     String isolateId,
     String? libraryUri,
+    String? scriptUri,
     String expression,
     Map<String, String>? scope,
   ) async {
@@ -114,6 +116,13 @@ class ExpressionEvaluator {
       );
     }
 
+    if (scriptUri == null) {
+      return createError(
+        EvaluationErrorKind.invalidInput,
+        'no script uri',
+      );
+    }
+
     final module = await _modules.moduleForLibrary(libraryUri);
     if (module == null) {
       return createError(
@@ -130,6 +139,7 @@ class ExpressionEvaluator {
     // frontend server or expression compiler worker.
     final compilationResult = await _compiler.compileExpressionToJs(
       isolateId,
+      libraryUri.toString(),
       libraryUri.toString(),
       0,
       0,
@@ -283,7 +293,11 @@ class ExpressionEvaluator {
 
     final dartLocation = locationMap.dartLocation;
     final dartSourcePath = dartLocation.uri.serverPath;
+    print("dartSourcePath = $dartSourcePath");
     final libraryUri = await _modules.libraryForSource(dartSourcePath);
+    print("libraryUri = $libraryUri");
+    final resolvedUri = await _modules.resolvedUriForSource(dartSourcePath);
+    print("resolvedUri = $resolvedUri");
     if (libraryUri == null) {
       return createError(
         EvaluationErrorKind.internal,
@@ -319,6 +333,7 @@ class ExpressionEvaluator {
     final compilationResult = await _compiler.compileExpressionToJs(
       isolateId,
       libraryUri.toString(),
+      (resolvedUri ?? libraryUri).toString(),
       dartLocation.line,
       dartLocation.column,
       {},

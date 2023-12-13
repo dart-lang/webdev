@@ -213,6 +213,7 @@ class _CompileExpressionToJsRequest extends _CompilationRequest {
   _CompileExpressionToJsRequest(
       Completer<CompilerOutput?> completer,
       this.libraryUri,
+      this.scriptUri,
       this.line,
       this.column,
       this.jsModules,
@@ -222,6 +223,7 @@ class _CompileExpressionToJsRequest extends _CompilationRequest {
       : super(completer);
 
   String libraryUri;
+  String scriptUri;
   int line;
   int column;
   Map<String, String> jsModules;
@@ -478,6 +480,7 @@ class ResidentCompiler {
   /// Compiles dart expression to JavaScript.
   Future<CompilerOutput?> compileExpressionToJs(
       String libraryUri,
+      String scriptUri,
       int line,
       int column,
       Map<String, String> jsModules,
@@ -489,8 +492,16 @@ class ResidentCompiler {
     }
 
     var completer = Completer<CompilerOutput?>();
-    _controller.add(_CompileExpressionToJsRequest(completer, libraryUri, line,
-        column, jsModules, jsFrameValues, moduleName, expression));
+    _controller.add(_CompileExpressionToJsRequest(
+        completer,
+        libraryUri,
+        scriptUri,
+        line,
+        column,
+        jsModules,
+        jsFrameValues,
+        moduleName,
+        expression));
     return completer.future;
   }
 
@@ -509,6 +520,7 @@ class ResidentCompiler {
     var inputKey = Uuid().generateV4();
     server.stdin.writeln('compile-expression-to-js $inputKey');
     server.stdin.writeln(request.libraryUri);
+    server.stdin.writeln(request.scriptUri);
     server.stdin.writeln(request.line);
     server.stdin.writeln(request.column);
     request.jsModules.forEach((k, v) {
@@ -611,14 +623,22 @@ class TestExpressionCompiler implements ExpressionCompiler {
   Future<ExpressionCompilationResult> compileExpressionToJs(
       String isolateId,
       String libraryUri,
+      String scriptUri,
       int line,
       int column,
       Map<String, String> jsModules,
       Map<String, String> jsFrameValues,
       String moduleName,
       String expression) async {
-    var compilerOutput = await _generator.compileExpressionToJs(libraryUri,
-        line, column, jsModules, jsFrameValues, moduleName, expression);
+    var compilerOutput = await _generator.compileExpressionToJs(
+        libraryUri,
+        scriptUri,
+        line,
+        column,
+        jsModules,
+        jsFrameValues,
+        moduleName,
+        expression);
 
     if (compilerOutput != null) {
       var content = utf8.decode(localFileSystem

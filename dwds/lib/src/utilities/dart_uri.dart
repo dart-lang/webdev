@@ -132,6 +132,8 @@ class DartUri {
   ///   file:///.pub-cache/hosted/pub.dev/path-1.8.0/lib/src/path_set.dart,
   static final Map<String, String> _uriToResolvedUri = {};
 
+  static Map<String, String> get uriToResolvedUri => _uriToResolvedUri;
+
   /// All of the known libraries, indexed by their absolute file URL.
   static final Map<String, String> _resolvedUriToUri = {};
 
@@ -139,6 +141,8 @@ class DartUri {
   ///
   /// This map is empty if not a google3 app.
   static final Map<String, String> _g3RelativeUriToResolvedUri = {};
+
+  static Map<String, String> get resolvedUriToUri => _resolvedUriToUri;
 
   /// Returns package, app, or dart uri for a resolved path.
   static String? toPackageUri(String uri) {
