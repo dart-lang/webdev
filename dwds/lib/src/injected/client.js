@@ -9474,33 +9474,30 @@
       this.completer = t0;
       this.stackTrace = t1;
     },
-    _createScript() {
-      var t2, t3, t1 = {};
-      t1.nonce = null;
-      t2 = self;
-      t3 = type$.JavaScriptObject;
-      t3._as(t3._as(t3._as(t2.window).document).querySelectorAll("script")).forEach(A.allowInterop(new A._createScript_closure(t1), type$.Function));
-      t2 = t1.nonce == null ? t3._as(new t2.HTMLScriptElement()) : t3._as(new t2.HTMLScriptElement());
-      t1 = t1.nonce;
-      t1.toString;
-      t2.setAttribute("nonce", t1);
-      return t2;
+    _findNonce() {
+      var t1 = type$.JavaScriptObject;
+      t1._as(t1._as(t1._as(self.window).document).querySelectorAll("script")).forEach(A.allowInterop(new A._findNonce_closure(), type$.Function));
+      return null;
     },
     runMain() {
-      var t1, t2, box,
-        scriptElement = A._createScript();
-      scriptElement.htmlFor = "window.$dartRunMain();";
-      t1 = type$.JavaScriptObject;
-      t2 = type$.nullable_JavaScriptObject._as(t1._as(self.document).body);
-      t1 = t2 == null ? t1._as(t2) : t2;
+      var t3, box,
+        nonce = A._findNonce(),
+        t1 = self,
+        t2 = type$.JavaScriptObject._as(new t1.HTMLScriptElement());
+      nonce.toString;
+      t2.setAttribute("nonce", nonce);
+      t2.htmlFor = "window.$dartRunMain();";
+      t3 = type$.JavaScriptObject;
+      t1 = type$.nullable_JavaScriptObject._as(t3._as(t1.document).body);
+      if (t1 == null)
+        t1 = t3._as(t1);
       A.throwExpression("Attempting to box non-Dart object.");
       box = {};
-      box[$.$get$_jsBoxedDartObjectProperty()] = scriptElement;
+      box[$.$get$_jsBoxedDartObjectProperty()] = t2;
       t1.append(box);
-      A.Future_Future$microtask(new A.runMain_closure(scriptElement), type$.void);
+      A.Future_Future$microtask(new A.runMain_closure(t2), type$.void);
     },
-    _createScript_closure: function _createScript_closure(t0) {
-      this._box_0 = t0;
+    _findNonce_closure: function _findNonce_closure() {
     },
     runMain_closure: function runMain_closure(t0) {
       this.scriptElement = t0;
@@ -24857,12 +24854,12 @@
     },
     $signature: 76
   };
-  A._createScript_closure.prototype = {
+  A._findNonce_closure.prototype = {
     call$1(element) {
       var nonceValue = A._asString(type$.JavaScriptObject._as(element).nonce),
         t1 = $.$get$_noncePattern();
       if (t1._nativeRegExp.test(nonceValue))
-        return this._box_0.nonce = nonceValue;
+        return nonceValue;
     },
     $signature: 77
   };
@@ -25000,7 +24997,7 @@
     _inherit(A.CastIterable, A._CastIterableBase);
     _inherit(A._EfficientLengthCastIterable, A.CastIterable);
     _inheritMany(A.MapBase, [A.CastMap, A.JsLinkedHashMap, A._HashMap, A._JsonMap]);
-    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._Future__chainForeignFuture_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._CustomHashMap_closure, A.SplayTreeSet_closure, A._BigIntImpl_hashCode_finish, A._Uri__makePath_closure, A._createTables_setChars, A._createTables_setRange, A._EventStreamSubscription_closure0, A._EventStreamSubscription_onData_closure0, A.JsObject__convertDataTree__convert, A._convertToJS_closure, A._convertToJS_closure0, A._wrapToDart_closure, A._wrapToDart_closure0, A._wrapToDart_closure1, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.BuiltListMultimap_BuiltListMultimap_closure, A.BuiltListMultimap_hashCode_closure, A.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.BuiltSet_hashCode_closure, A.BuiltSetMultimap_hashCode_closure, A.SetMultimapBuilder_replace_closure, A.newBuiltValueToStringHelper_closure, A.BuiltListMultimapSerializer_serialize_closure, A.BuiltListMultimapSerializer_deserialize_closure, A.BuiltListSerializer_serialize_closure, A.BuiltListSerializer_deserialize_closure, A.BuiltSetMultimapSerializer_serialize_closure, A.BuiltSetMultimapSerializer_deserialize_closure, A.BuiltSetSerializer_serialize_closure, A.BuiltSetSerializer_deserialize_closure, A.WebSocketClient_stream_closure, A.Pool__runOnRelease_closure, A.SseClient_closure0, A.SseClient_closure1, A.generateUuidV4_generateBits, A._GuaranteeSink__addError_closure, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.HttpRequest_request_closure, A.HtmlWebSocketChannel_closure, A.HtmlWebSocketChannel_closure0, A.HtmlWebSocketChannel_closure1, A.HtmlWebSocketChannel_closure2, A.main__closure, A.main__closure0, A.main___closure2, A.main___closure1, A.main__closure2, A.main___closure0, A.main___closure, A.main__closure4, A.main__closure5, A.main__closure6, A.main__closure7, A._launchCommunicationWithDebugExtension_closure, A._handleAuthRequest_closure, A.LegacyRestarter_restart_closure0, A.LegacyRestarter_restart_closure, A.toFuture_closure, A.RequireRestarter__reloadModule_closure, A._createScript_closure, A.JSArrayToIterable_toDartIterable_closure]);
+    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._Future__chainForeignFuture_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._CustomHashMap_closure, A.SplayTreeSet_closure, A._BigIntImpl_hashCode_finish, A._Uri__makePath_closure, A._createTables_setChars, A._createTables_setRange, A._EventStreamSubscription_closure0, A._EventStreamSubscription_onData_closure0, A.JsObject__convertDataTree__convert, A._convertToJS_closure, A._convertToJS_closure0, A._wrapToDart_closure, A._wrapToDart_closure0, A._wrapToDart_closure1, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.BuiltListMultimap_BuiltListMultimap_closure, A.BuiltListMultimap_hashCode_closure, A.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.BuiltSet_hashCode_closure, A.BuiltSetMultimap_hashCode_closure, A.SetMultimapBuilder_replace_closure, A.newBuiltValueToStringHelper_closure, A.BuiltListMultimapSerializer_serialize_closure, A.BuiltListMultimapSerializer_deserialize_closure, A.BuiltListSerializer_serialize_closure, A.BuiltListSerializer_deserialize_closure, A.BuiltSetMultimapSerializer_serialize_closure, A.BuiltSetMultimapSerializer_deserialize_closure, A.BuiltSetSerializer_serialize_closure, A.BuiltSetSerializer_deserialize_closure, A.WebSocketClient_stream_closure, A.Pool__runOnRelease_closure, A.SseClient_closure0, A.SseClient_closure1, A.generateUuidV4_generateBits, A._GuaranteeSink__addError_closure, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.HttpRequest_request_closure, A.HtmlWebSocketChannel_closure, A.HtmlWebSocketChannel_closure0, A.HtmlWebSocketChannel_closure1, A.HtmlWebSocketChannel_closure2, A.main__closure, A.main__closure0, A.main___closure2, A.main___closure1, A.main__closure2, A.main___closure0, A.main___closure, A.main__closure4, A.main__closure5, A.main__closure6, A.main__closure7, A._launchCommunicationWithDebugExtension_closure, A._handleAuthRequest_closure, A.LegacyRestarter_restart_closure0, A.LegacyRestarter_restart_closure, A.toFuture_closure, A.RequireRestarter__reloadModule_closure, A._findNonce_closure, A.JSArrayToIterable_toDartIterable_closure]);
     _inheritMany(A.Closure2Args, [A.CastMap_forEach_closure, A.ConstantMap_map_closure, A.Primitives_functionNoSuchMethod_closure, A.JsLinkedHashMap_addAll_closure, A.initHooks_closure0, A._awaitOnObject_closure0, A._wrapJsFunctionForAsync_closure, A._Future__chainForeignFuture_closure0, A._Future_timeout_closure1, A._BufferingStreamSubscription_asFuture_closure0, A.LinkedHashMap_LinkedHashMap$from_closure, A.MapBase_mapToString_closure, A._JsonStringifier_writeMap_closure, A._BigIntImpl_hashCode_combine, A._symbolMapToStringMap_closure, A.NoSuchMethodError_toString_closure, A.Uri__parseIPv4Address_error, A.Uri_parseIPv6Address_error, A.Uri_parseIPv6Address_parseHex, A._createTables_build, A.MidiInputMap_keys_closure, A.MidiOutputMap_keys_closure, A.RtcStatsReport_keys_closure, A.Storage_keys_closure, A._AcceptStructuredClone_walk_closure, A.AudioParamMap_keys_closure, A.StreamQueue__ensureListening_closure1, A.hashObjects_closure, A.MapBuilder_replace_closure, A.safeUnawaited_closure, A.Pool__runOnRelease_closure0, A.generateUuidV4_printDigits, A.generateUuidV4_bitsDigits, A.main__closure1, A.main_closure0, A.toPromise_closure]);
     _inheritMany(A.Error, [A.LateError, A.TypeError, A.JsNoSuchMethodError, A.UnknownJsTypeError, A._CyclicInitializationError, A.RuntimeError, A.AssertionError, A._Error, A.JsonUnsupportedObjectError, A.ArgumentError, A.NoSuchMethodError, A.UnsupportedError, A.UnimplementedError, A.StateError, A.ConcurrentModificationError, A.BuiltValueNullFieldError, A.BuiltValueNestedFieldError, A.DeserializationError]);
     _inheritMany(A.Closure0Args, [A.nullFuture_closure, A._AsyncRun__scheduleImmediateJsOverride_internalCallback, A._AsyncRun__scheduleImmediateWithSetImmediate_internalCallback, A._TimerImpl_internalCallback, A._TimerImpl$periodic_closure, A.Future_Future$microtask_closure, A._Future__addListener_closure, A._Future__prependListeners_closure, A._Future__chainForeignFuture_closure1, A._Future__chainCoreFutureAsync_closure, A._Future__asyncCompleteWithValue_closure, A._Future__asyncCompleteError_closure, A._Future__propagateToListeners_handleWhenCompleteCallback, A._Future__propagateToListeners_handleValueCallback, A._Future__propagateToListeners_handleError, A._Future_timeout_closure, A.Stream_length_closure0, A.Stream_first_closure, A._StreamController__subscribe_closure, A._StreamController__recordCancel_complete, A._BufferingStreamSubscription_asFuture_closure, A._BufferingStreamSubscription_asFuture__closure, A._BufferingStreamSubscription__sendError_sendError, A._BufferingStreamSubscription__sendDone_sendDone, A._PendingEvents_schedule_closure, A._cancelAndValue_closure, A._CustomZone_bindCallback_closure, A._CustomZone_bindCallbackGuarded_closure, A._rootHandleError_closure, A._RootZone_bindCallback_closure, A._RootZone_bindCallbackGuarded_closure, A.StreamQueue__ensureListening_closure0, A.Serializers_Serializers_closure, A.Serializers_Serializers_closure0, A.Serializers_Serializers_closure1, A.Serializers_Serializers_closure2, A.Serializers_Serializers_closure3, A._$serializers_closure, A._$serializers_closure0, A.BatchedStreamController__hasEventOrTimeOut_closure, A.BatchedStreamController__hasEventDuring_closure, A.Logger_Logger_closure, A.SseClient_closure, A.SseClient__closure, A.SseClient__onOutgoingMessage_closure, A.GuaranteeChannel_closure, A.GuaranteeChannel__closure, A.HtmlWebSocketChannel__listen_closure, A.main_closure, A.main__closure3, A.RequireRestarter__reload_closure, A.runMain_closure]);

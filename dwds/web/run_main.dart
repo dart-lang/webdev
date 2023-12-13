@@ -11,7 +11,7 @@ import 'web_utils.dart';
 final _noncePattern = RegExp('^[\\w+/_-]+[=]{0,2}\$');
 
 /// Returns CSP nonce, if set for any script tag.
-String? findNonce() {
+String? _findNonce() {
   final elements = window.document.querySelectorAll('script');
   elements.forEach(
     (Node element) {
@@ -28,17 +28,7 @@ String? findNonce() {
 ///
 /// More specifically, the script has the correct `nonce` value set.
 HTMLScriptElement _createScript() {
-  //final nonce = findNonce();
-  String? nonce;
-  final elements = window.document.querySelectorAll('script');
-  elements.forEach(
-    (Node element) {
-      final nonceValue = (element as HtmlElement).nonce;
-      if (_noncePattern.hasMatch(nonceValue)) {
-        return nonce = nonceValue;
-      }
-    }.toJS,
-  );
+  final nonce = _findNonce();
 
   return nonce == null ? HTMLScriptElement() : HTMLScriptElement()
     ..setAttribute('nonce', nonce!);
