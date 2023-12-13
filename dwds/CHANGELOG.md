@@ -2,6 +2,7 @@
 - Restructure `LoadStrategy` to provide build settings. - [#2270](https://github.com/dart-lang/webdev/pull/2270)
 - Add `FrontendServerLegacyStrategyProvider` and update bootstrap generation logic for `LegacyStrategy` - [#2285](https://github.com/dart-lang/webdev/pull/2285)
 - Tolerate failures to detect a dart execution context. - [#2286](https://github.com/dart-lang/webdev/pull/2286)
+- Fix a null cast error when debugging a `Class` from VS Code. - [#2303](https://github.com/dart-lang/webdev/pull/2303)
 
 ## 22.1.0
 - Update `package:vm_service` constraint to `^13.0.0`. - [#2265](https://github.com/dart-lang/webdev/pull/2265)
