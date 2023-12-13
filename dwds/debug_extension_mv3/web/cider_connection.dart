@@ -26,6 +26,7 @@ const _ciderDartMessageKey = 'CIDER_DART';
 /// The types must match those defined by ChromeExtensionMessageType in the
 /// Cider extension.
 enum CiderMessageType {
+  connected,
   error,
   inspectorUrlResponse,
   inspectorUrlRequest,
@@ -54,11 +55,14 @@ Port? _ciderPort;
 /// URIs for Cider are set in the externally_connectable field in the manifest.
 void handleCiderConnectRequest(Port port) {
   if (port.name == _ciderPortName) {
+    debugLog('Received connect request from Cider', verbose: true);
     _ciderPort = port;
 
     port.onMessage.addListener(
       allowInterop(_handleMessageFromCider),
     );
+
+    sendMessageToCider(messageType: CiderMessageType.connected);
   }
 }
 
@@ -130,6 +134,7 @@ Future<void> _startDebugging({String? appId}) async {
   final tabId = _tabId(appId);
   // TODO(https://github.com/dart-lang/webdev/issues/2198): When debugging
   // with Cider, disable debugging with DevTools.
+  debugLog('Attach debugger to Cider', verbose: true);
   await attachDebugger(tabId, trigger: Trigger.cider);
 }
 
