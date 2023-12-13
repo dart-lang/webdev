@@ -7,8 +7,8 @@ library hot_reload_client;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
 import 'dart:js';
+import 'dart:js_interop';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/build_result.dart';
@@ -26,6 +26,7 @@ import 'package:dwds/src/sockets.dart';
 import 'package:js/js.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
+import 'package:web/helpers.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'promise.dart';
@@ -156,9 +157,12 @@ Future<void>? main() {
         } else if (event is RunRequest) {
           runMain();
         } else if (event is ErrorResponse) {
-          window.console
-              .error('Error from backend:\n\nError: ${event.error}\n\n'
-                  'Stack Trace:\n${event.stackTrace}');
+          window.reportError(
+            'Error from backend:\n\n'
+                    'Error: ${event.error}\n\n'
+                    'Stack Trace:\n${event.stackTrace}'
+                .toJS,
+          );
         }
       },
       onError: (error) {
@@ -276,26 +280,37 @@ void _launchCommunicationWithDebugExtension() {
       ),
     ),
   );
-  dispatchEvent(CustomEvent('dart-app-ready', detail: debugInfoJson));
+  _dispatchEvent('dart-app-ready', debugInfoJson);
+}
+
+void _dispatchEvent(String message, String detail) {
+  window.dispatchEvent(
+    CustomEvent(
+      'dart-auth-response',
+      CustomEventInit(detail: detail.toJS),
+    ),
+  );
 }
 
 void _listenForDebugExtensionAuthRequest() {
   window.addEventListener(
     'message',
-    allowInterop((event) async {
-      final messageEvent = event as MessageEvent;
-      if (messageEvent.data is! String) return;
-      if (messageEvent.data as String != 'dart-auth-request') return;
-
-      // Notify the Dart Debug Extension of authentication status:
-      if (_authUrl != null) {
-        final isAuthenticated = await _authenticateUser(_authUrl!);
-        dispatchEvent(
-          CustomEvent('dart-auth-response', detail: '$isAuthenticated'),
-        );
-      }
-    }),
+    _handleAuthRequest.toJS,
   );
+}
+
+void _handleAuthRequest(Event event) {
+  final messageEvent = event as MessageEvent;
+  if (messageEvent.data is! String) return;
+  if (messageEvent.data as String != 'dart-auth-request') return;
+
+  // Notify the Dart Debug Extension of authentication status:
+  if (_authUrl != null) {
+    _authenticateUser(_authUrl!).then(
+      (isAuthenticated) =>
+          _dispatchEvent('dart-auth-response', '$isAuthenticated'),
+    );
+  }
 }
 
 Future<bool> _authenticateUser(String authUrl) async {
@@ -304,7 +319,7 @@ Future<bool> _authenticateUser(String authUrl) async {
     method: 'GET',
     withCredentials: true,
   );
-  final responseText = response.responseText ?? '';
+  final responseText = response.responseText;
   return responseText.contains('Dart Debug Authentication Success!');
 }
 

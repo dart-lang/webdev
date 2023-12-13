@@ -2,32 +2,46 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
+import 'dart:js_interop';
+import 'package:web/helpers.dart';
 
-/// Creates a script that will run properly when strict CSP is enforced.
-///
-/// More specifically, the script has the correct `nonce` value set.
-final ScriptElement Function() _createScript = (() {
-  final nonce = _findNonce();
-  if (nonce == null) return ScriptElement.new;
-
-  return () => ScriptElement()..setAttribute('nonce', nonce);
-})();
+import 'web_utils.dart';
 
 // According to the CSP3 spec a nonce must be a valid base64 string.
 final _noncePattern = RegExp('^[\\w+/_-]+[=]{0,2}\$');
 
 /// Returns CSP nonce, if set for any script tag.
-String? _findNonce() {
+String? findNonce() {
   final elements = window.document.querySelectorAll('script');
-  for (final element in elements) {
-    final nonceValue =
-        (element as HtmlElement).nonce ?? element.attributes['nonce'];
-    if (nonceValue != null && _noncePattern.hasMatch(nonceValue)) {
-      return nonceValue;
-    }
-  }
+  elements.forEach(
+    (Node element) {
+      final nonceValue = (element as HtmlElement).nonce;
+      if (_noncePattern.hasMatch(nonceValue)) {
+        return nonceValue;
+      }
+    }.toJS,
+  );
   return null;
+}
+
+/// Creates a script that will run properly when strict CSP is enforced.
+///
+/// More specifically, the script has the correct `nonce` value set.
+HTMLScriptElement _createScript() {
+  //final nonce = findNonce();
+  String? nonce;
+  final elements = window.document.querySelectorAll('script');
+  elements.forEach(
+    (Node element) {
+      final nonceValue = (element as HtmlElement).nonce;
+      if (_noncePattern.hasMatch(nonceValue)) {
+        return nonce = nonceValue;
+      }
+    }.toJS,
+  );
+
+  return nonce == null ? HTMLScriptElement() : HTMLScriptElement()
+    ..setAttribute('nonce', nonce!);
 }
 
 /// Runs `window.$dartRunMain()` by injecting a script tag.
@@ -35,7 +49,9 @@ String? _findNonce() {
 /// We do this so that we don't see user exceptions bubble up in our own error
 /// handling zone.
 void runMain() {
-  final scriptElement = _createScript()..innerHtml = r'window.$dartRunMain();';
-  document.body!.append(scriptElement);
-  Future.microtask(scriptElement.remove);
+  final scriptElement = _createScript()..htmlFor = r'window.$dartRunMain();';
+  (document.body as HTMLBodyElement).append(scriptElement.toJSBox);
+  // External tear-offs are not allowed.
+  // ignore: unnecessary_lambdas
+  Future.microtask(() => scriptElement.remove());
 }
