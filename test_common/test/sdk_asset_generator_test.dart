@@ -68,8 +68,8 @@ void main() {
       weakSdkFullDillPath = copySdkLayout.weakFullDillPath;
       weakAmdSdkJsPath = copySdkLayout.weakAmdJsPath;
       weakAmdSdkJsMapPath = copySdkLayout.weakAmdJsMapPath;
-      weakDdcSdkJsPath = copySdkLayout.weakAmdJsPath;
-      weakDdcSdkJsMapPath = copySdkLayout.weakAmdJsMapPath;
+      weakDdcSdkJsPath = copySdkLayout.weakDdcJsPath;
+      weakDdcSdkJsMapPath = copySdkLayout.weakDdcJsMapPath;
 
       _deleteIfExists(weakSdkSummaryPath);
       _deleteIfExists(weakSdkFullDillPath);
