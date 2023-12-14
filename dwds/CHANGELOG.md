@@ -2,6 +2,7 @@
 - Restructure `LoadStrategy` to provide build settings. - [#2270](https://github.com/dart-lang/webdev/pull/2270)
 - Add `FrontendServerLegacyStrategyProvider` and update bootstrap generation logic for `LegacyStrategy` - [#2285](https://github.com/dart-lang/webdev/pull/2285)
 - Tolerate failures to detect a dart execution context. - [#2286](https://github.com/dart-lang/webdev/pull/2286)
+- Fix a null cast error when debugging a `Class` from VS Code. - [#2303](https://github.com/dart-lang/webdev/pull/2303)
 - Enabling tests that run with the DDC module system and exposing `utilities/ddc_names.dart` - [#2295](https://github.com/dart-lang/webdev/pull/2295)
 
 ## 22.1.0
