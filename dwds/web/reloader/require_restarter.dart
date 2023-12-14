@@ -115,7 +115,7 @@ class RequireRestarter implements Restarter {
     return result;
   }
 
-  Iterable<String> _allModules() => requireLoader.moduleParentsGraph.dartKeys;
+  Iterable<String> _allModules() => requireLoader.moduleParentsGraph.modules;
 
   Future<Map<String, String>> _getDigests() async {
     final request = await HttpRequest.request(
@@ -133,7 +133,7 @@ class RequireRestarter implements Restarter {
   }
 
   List<String> _moduleParents(String module) =>
-      requireLoader.moduleParentsGraph.get(module) ?? [];
+      requireLoader.moduleParentsGraph.parents(module);
 
   int _moduleTopologicalCompare(String module1, String module2) {
     var topological = 0;

@@ -8,7 +8,6 @@ library require_reloading_manager;
 import 'dart:js_interop';
 
 import 'package:js/js.dart';
-import 'package:web/helpers.dart';
 
 @JS('Array.from')
 external JSArray _jsArrayFrom(Object any);
@@ -27,28 +26,25 @@ abstract class JsError {
 
 @JS('Map')
 abstract class JsMap<K, V> {
-  @JS()
+  @JS('Map.get')
   external V? get(K key);
 
   @JS()
   external Object keys();
-
-  @JS()
-  external Object values();
 }
 
-extension ObjectValues on JSObject {
+extension ObjectExtension on JSObject {
   Iterable<Object?> get values => _jsObjectValues(this).toDartIterable();
 }
 
-extension JSArrayToIterable on JSArray {
+extension JSArrayExtension on JSArray {
   Iterable<T> toDartIterable<T>() => toDart.map((e) => e.dartify() as T);
+  List<T> toDartList<T>() => toDartIterable<T>().toList();
 }
 
-extension JSMapToMap<K, V> on JsMap<K, V> {
-  Iterable<K> get dartKeys => _jsArrayFrom(keys()).toDartIterable<K>();
-}
+extension ModuleDependencyGraph on JsMap<String, List<String>> {
+  Iterable<String> get modules => _jsArrayFrom(keys()).toDartIterable<String>();
 
-extension NodeListExtension on NodeList {
-  external void forEach(JSFunction callback);
+  List<String> parents(String key) =>
+      (get(key) as JSArray?)?.toDartList<String>() ?? [];
 }
