@@ -3,7 +3,7 @@
 - Add `FrontendServerLegacyStrategyProvider` and update bootstrap generation logic for `LegacyStrategy` - [#2285](https://github.com/dart-lang/webdev/pull/2285)
 - Tolerate failures to detect a dart execution context. - [#2286](https://github.com/dart-lang/webdev/pull/2286)
 - Fix a null cast error when debugging a `Class` from VS Code. - [#2303](https://github.com/dart-lang/webdev/pull/2303)
-- Migrate injected client code to `package:web`. - 
+- Migrate injected client code to `package:web`. - [#2306](https://github.com/dart-lang/webdev/pull/2306)
 
 
 ## 22.1.0
