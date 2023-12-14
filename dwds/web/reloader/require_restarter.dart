@@ -235,7 +235,7 @@ class RequireRestarter implements Restarter {
 
   void _updateGraph() {
     final allModules = _allModules();
-    print('Modules: $allModules');
+
     final stronglyConnectedComponents =
         graphs.stronglyConnectedComponents(allModules, _moduleParents);
     _moduleOrdering.clear();
