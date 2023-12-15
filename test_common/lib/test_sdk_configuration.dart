@@ -80,7 +80,9 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
       }
     } catch (e, s) {
       _logger.warning('Failed delete SDK directory copy', e, s);
-      dispose(retry: false);
+      if (retry) {
+        dispose(retry: false);
+      }
     }
   }
 }
