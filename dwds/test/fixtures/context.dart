@@ -420,8 +420,13 @@ class TestContext {
         if (testSettings.autoRun) {
           connection.runMain();
         }
-        appConnection = connection;
-        appConnectionCompleter.complete();
+
+        // We may reuse the app connection, so only save it the first time
+        // it's encountered.
+        if (!appConnectionCompleter.isCompleted) {
+          appConnection = connection;
+          appConnectionCompleter.complete();
+        }
       });
 
       _appUrl = basePath.isEmpty
@@ -451,6 +456,9 @@ class TestContext {
         if (debugSettings.enableDebugging && !testSettings.waitToDebug) {
           await startDebugging();
         }
+      } else {
+        // No tab needs to be dicovered, so fulfill the relevant completer.
+        tabConnectionCompleter.complete();
       }
     } catch (e, s) {
       _logger.severe('Failed to setup the service, $e:$s');
