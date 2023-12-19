@@ -78,7 +78,9 @@ class DartLocation {
   int get hashCode => Object.hashAll([uri, line, column]);
 
   @override
-  bool operator ==(Object other) {
+  // TODO(elliette): Make Object non-nullable and fix related test failures.
+  // ignore: non_nullable_equals_parameter
+  bool operator ==(Object? other) {
     if (other is! DartLocation) {
       return false;
     }
