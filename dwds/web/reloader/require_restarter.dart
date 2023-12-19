@@ -7,15 +7,17 @@ library require_reloading_manager;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:html';
+import 'dart:js_interop';
 import 'dart:js_util';
 
 import 'package:graphs/graphs.dart' as graphs;
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
+import 'package:web/helpers.dart';
 
 import '../promise.dart';
 import '../run_main.dart';
+import '../web_utils.dart';
 import 'restarter.dart';
 
 /// The last known digests of all the modules in the application.
@@ -35,16 +37,6 @@ external set dartRunMain(Function() func);
 
 @JS(r'$dartRunMain')
 external Function() get dartRunMain;
-
-List<K> keys<K, V>(JsMap<K, V> map) {
-  return List.from(_jsArrayFrom(map.keys()));
-}
-
-@JS('Array.from')
-external List _jsArrayFrom(Object any);
-
-@JS('Object.values')
-external List _jsObjectValues(Object any);
 
 @anonymous
 @JS()
@@ -69,24 +61,6 @@ class HotReloadFailedException implements Exception {
   HotReloadFailedException(this._s);
   @override
   String toString() => "HotReloadFailedException: '$_s'";
-}
-
-@JS('Error')
-abstract class JsError {
-  @JS()
-  external String get message;
-
-  @JS()
-  external String get stack;
-}
-
-@JS('Map')
-abstract class JsMap<K, V> {
-  @JS()
-  external V? get(K key);
-
-  @JS()
-  external Object keys();
 }
 
 /// Handles hot restart reloading for use with the require module system.
@@ -141,7 +115,7 @@ class RequireRestarter implements Restarter {
     return result;
   }
 
-  List<String> _allModules() => keys(requireLoader.moduleParentsGraph);
+  Iterable<String> _allModules() => requireLoader.moduleParentsGraph.dartKeys;
 
   Future<Map<String, String>> _getDigests() async {
     final request = await HttpRequest.request(
@@ -149,7 +123,9 @@ class RequireRestarter implements Restarter {
       responseType: 'json',
       method: 'GET',
     );
-    return (request.response as Map).cast<String, String>();
+
+    final response = request.response.dartify();
+    return (response as Map).cast<String, String>();
   }
 
   Future<void> _initialize() async {
@@ -157,7 +133,7 @@ class RequireRestarter implements Restarter {
   }
 
   List<String> _moduleParents(String module) =>
-      requireLoader.moduleParentsGraph.get(module)?.cast() ?? [];
+      requireLoader.moduleParentsGraph.get(module) ?? [];
 
   int _moduleTopologicalCompare(String module1, String module2) {
     var topological = 0;
@@ -207,13 +183,17 @@ class RequireRestarter implements Restarter {
         if (parentIds.isEmpty) {
           // The bootstrap module is not reloaded but we need to update the
           // $dartRunMain reference to the newly loaded child module.
-          final childModule = callMethod(
+          final childModule = callMethod<JSObject>(
             getProperty(require('dart_sdk'), 'dart'),
             'getModuleLibraries',
             [previousModuleId],
           );
           dartRunMain = allowInterop(() {
-            callMethod(_jsObjectValues(childModule).first, 'main', []);
+            callMethod(
+              childModule.values.first!,
+              'main',
+              [],
+            );
           });
         } else {
           ++reloadedModules;
@@ -255,6 +235,7 @@ class RequireRestarter implements Restarter {
 
   void _updateGraph() {
     final allModules = _allModules();
+    print('Modules: $allModules');
     final stronglyConnectedComponents =
         graphs.stronglyConnectedComponents(allModules, _moduleParents);
     _moduleOrdering.clear();

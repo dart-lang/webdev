@@ -11,7 +11,7 @@ void main() {
   print('Initial Print');
 
   registerExtension('ext.print', (_, __) async {
-    print('Hello World');
+    print('Hello World1');
     return ServiceExtensionResponse.result(json.encode({'success': true}));
   });
   document.body?.append(SpanElement()..text = 'Hello World!!');
