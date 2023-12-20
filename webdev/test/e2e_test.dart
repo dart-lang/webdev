@@ -459,7 +459,7 @@ void main() {
                   const TypeMatcher<InstanceRef>().having(
                       (instance) => instance.classRef?.name,
                       'class name',
-                      'JsArray<bool>'));
+                      'JSArray<bool>'));
 
               final instanceRef = result as InstanceRef;
               final list =
@@ -469,7 +469,7 @@ void main() {
                   const TypeMatcher<Instance>().having(
                       (instance) => instance.classRef?.name,
                       'class name',
-                      'JsArray<bool>'));
+                      'JSArray<bool>'));
 
               final elements = (list as Instance).elements;
               expect(elements, [

@@ -74,7 +74,10 @@ void runTypeSystemVerificationTests({
             compilationMode,
           ),
         );
-        expect(remoteObject.json['className'], 'dart_rti.Rti.new');
+        expect(
+          remoteObject.json['className'],
+          canaryFeatures ? 'dart_rti.Rti.new' : 'Function',
+        );
       });
     });
   });
