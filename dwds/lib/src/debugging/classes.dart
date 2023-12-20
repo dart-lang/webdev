@@ -96,7 +96,6 @@ class ClassHelper extends Domain {
       throw ChromeDebugException(e.json, evalContents: expression);
     }
 
-    if (result.value == null) return null;
     final classDescriptor = _mapify(result.value);
     final methodRefs = <FuncRef>[];
     final methodDescriptors = _mapify(classDescriptor['methods']);
