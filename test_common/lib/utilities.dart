@@ -65,11 +65,7 @@ String absolutePath({
 }
 
 bool dartSdkIsAtLeast(String sdkVersion) {
-  print('expected: $sdkVersion');
   final expectedVersion = Version.parse(sdkVersion);
   final actualVersion = Version.parse(Platform.version.split(' ')[0]);
-  print('actual: ${Platform.version}');
-  final isAtLeast = actualVersion >= expectedVersion;
-  print('DART SDK IS AT LEAST THE SPECIFIED VERSION? $isAtLeast');
-  return isAtLeast;
+  return actualVersion >= expectedVersion;
 }
