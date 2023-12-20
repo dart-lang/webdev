@@ -9,6 +9,7 @@ import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
+import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
@@ -206,7 +207,16 @@ void main() {
       final variableNames = variables.keys.toList()..sort();
       expect(
         variableNames,
-        ['T', 'closureLocalInsideMethod', 'local', 'parameter', 'this'],
+        [
+          if (dartSdkIsAtLeast(
+            '3.3.0-edge.bf22c59509d57bbaa0a91d9b9f27b28fec1604a2',
+          ))
+            'T',
+          'closureLocalInsideMethod',
+          'local',
+          'parameter',
+          'this',
+        ],
       );
     });
 
@@ -216,7 +226,13 @@ void main() {
       await expectDartVariables(variables);
 
       final variableNames = variables.keys.toList()..sort();
-      expect(variableNames, ['T', 'this']);
+      expect(variableNames, [
+        if (dartSdkIsAtLeast(
+          '3.3.0-edge.bf22c59509d57bbaa0a91d9b9f27b28fec1604a2',
+        ))
+          'T',
+        'this',
+      ]);
     });
 
     test('variables in extension method', () async {

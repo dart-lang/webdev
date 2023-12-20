@@ -7,6 +7,7 @@ import 'package:dwds/src/debugging/inspector.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
+import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -76,7 +77,12 @@ void runTypeSystemVerificationTests({
         );
         expect(
           remoteObject.json['className'],
-          canaryFeatures ? 'dart_rti.Rti.new' : 'Function',
+          canaryFeatures ||
+                  dartSdkIsAtLeast(
+                    '3.3.0-edge.bf22c59509d57bbaa0a91d9b9f27b28fec1604a2',
+                  )
+              ? 'dart_rti.Rti.new'
+              : 'Function',
         );
       });
     });
