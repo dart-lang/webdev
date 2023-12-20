@@ -209,7 +209,7 @@ void main() {
         variableNames,
         [
           if (dartSdkIsAtLeast(
-            '3.3.0-edge.bf22c59509d57bbaa0a91d9b9f27b28fec1604a2',
+            '3.3.0-242.0.dev',
           ))
             'T',
           'closureLocalInsideMethod',
@@ -228,7 +228,7 @@ void main() {
       final variableNames = variables.keys.toList()..sort();
       expect(variableNames, [
         if (dartSdkIsAtLeast(
-          '3.3.0-edge.bf22c59509d57bbaa0a91d9b9f27b28fec1604a2',
+          '3.3.0-242.0.dev',
         ))
           'T',
         'this',
