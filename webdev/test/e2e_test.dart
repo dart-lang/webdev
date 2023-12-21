@@ -9,6 +9,7 @@ import 'package:io/io.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:test_common/utilities.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 import 'package:vm_service/vm_service.dart';
@@ -459,7 +460,9 @@ void main() {
                   const TypeMatcher<InstanceRef>().having(
                       (instance) => instance.classRef?.name,
                       'class name',
-                      'JSArray<bool>'));
+                      dartSdkIsAtLeast('3.3.0-242.0.dev')
+                          ? 'JSArray<bool>'
+                          : 'List<bool>'));
 
               final instanceRef = result as InstanceRef;
               final list =
@@ -469,7 +472,9 @@ void main() {
                   const TypeMatcher<Instance>().having(
                       (instance) => instance.classRef?.name,
                       'class name',
-                      'JSArray<bool>'));
+                      dartSdkIsAtLeast('3.3.0-242.0.dev')
+                          ? 'JSArray<bool>'
+                          : 'List<bool>'));
 
               final elements = (list as Instance).elements;
               expect(elements, [
