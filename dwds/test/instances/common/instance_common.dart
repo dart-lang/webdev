@@ -79,7 +79,7 @@ void runTypeSystemVerificationTests({
           remoteObject.json['className'],
           canaryFeatures ||
                   dartSdkIsAtLeast(
-                    '3.3.0-242.0.dev',
+                    newDdcTypeSystemVersion,
                   )
               ? 'dart_rti.Rti.new'
               : 'Function',

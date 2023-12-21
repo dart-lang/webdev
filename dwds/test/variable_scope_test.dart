@@ -208,8 +208,10 @@ void main() {
       expect(
         variableNames,
         [
+          // TODO(https://github.com/dart-lang/webdev/issues/2316): Make sure T
+          // doesn't show up here.
           if (dartSdkIsAtLeast(
-            '3.3.0-242.0.dev',
+            newDdcTypeSystemVersion,
           ))
             'T',
           'closureLocalInsideMethod',
@@ -227,8 +229,10 @@ void main() {
 
       final variableNames = variables.keys.toList()..sort();
       expect(variableNames, [
+        // TODO(https://github.com/dart-lang/webdev/issues/2316): Make sure T
+        // doesn't show up here.
         if (dartSdkIsAtLeast(
-          '3.3.0-242.0.dev',
+          newDdcTypeSystemVersion,
         ))
           'T',
         'this',

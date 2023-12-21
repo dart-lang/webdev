@@ -10,6 +10,8 @@ const webdevDirName = 'webdev';
 const dwdsDirName = 'dwds';
 const fixturesDirName = 'fixtures';
 
+const newDdcTypeSystemVersion = '3.3.0-242.0.dev';
+
 /// The path to the webdev directory in the local machine, e.g.
 /// '/workstation/webdev'.
 String get webdevPath {
