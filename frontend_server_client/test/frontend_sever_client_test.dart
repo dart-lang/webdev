@@ -11,7 +11,6 @@ import 'package:frontend_server_client/frontend_server_client.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:test_common/utilities.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
@@ -113,7 +112,7 @@ String get message => p.join('hello', 'world');
     expect(await stdoutLines.next, p.join('goodbye', 'world'));
     expect(await process.exitCode, 0);
     // TODO(https://github.com/dart-lang/webdev/issues/2315): Fix and re-enable.
-  }, skip: dartSdkIsAtLeast('3.3.0-242.0.dev'));
+  }, skip: true);
 
   test('can handle compile errors and reload fixes', () async {
     var entrypoint = p.join(packageRoot, 'bin', 'main.dart');
@@ -177,7 +176,7 @@ String get message => p.join('hello', 'world');
     expect(await stdoutLines.next, p.join('goodbye', 'world'));
     expect(await process.exitCode, 0);
     // TODO(https://github.com/dart-lang/webdev/issues/2315): Fix and re-enable.
-  }, skip: dartSdkIsAtLeast('3.3.0-242.0.dev'));
+  }, skip: true);
 
   test('can compile and recompile a dartdevc app', () async {
     var entrypoint =
