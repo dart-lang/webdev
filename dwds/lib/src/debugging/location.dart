@@ -78,14 +78,11 @@ class DartLocation {
   int get hashCode => Object.hashAll([uri, line, column]);
 
   @override
-  bool operator ==(Object? other) {
-    if (other is! DartLocation) {
-      return false;
-    }
-    return uri.serverPath == other.uri.serverPath &&
-        line == other.line &&
-        column == other.column;
-  }
+  bool operator ==(Object other) =>
+      other is DartLocation &&
+      uri.serverPath == other.uri.serverPath &&
+      line == other.line &&
+      column == other.column;
 
   @override
   String toString() => '[${uri.serverPath}:$line:$column]';
