@@ -13,7 +13,6 @@ import 'package:vm_service/vm_service.dart';
 
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
 import 'common/test_inspector.dart';
 
 void main() {
@@ -51,11 +50,9 @@ void main() {
         setUpAll(() async {
           setCurrentLogWriter(debug: debug);
           await context.setUp(
-            testSettings: TestSettings(
-              compilationMode: compilationMode,
-              enableExpressionEvaluation: true,
-              verboseCompiler: debug,
-            ),
+            compilationMode: compilationMode,
+            enableExpressionEvaluation: true,
+            verboseCompiler: debug,
           );
           service = context.debugConnection.vmService;
 
