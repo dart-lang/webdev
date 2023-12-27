@@ -1,12 +1,16 @@
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 
 const webdevDirName = 'webdev';
 const dwdsDirName = 'dwds';
 const fixturesDirName = 'fixtures';
+
+const newDdcTypeSystemVersion = '3.3.0-242.0.dev';
 
 /// The path to the webdev directory in the local machine, e.g.
 /// '/workstation/webdev'.
@@ -60,4 +64,10 @@ String absolutePath({
     return p.normalize(p.join(fixturesPath, pathFromFixtures));
   }
   throw Exception('Expected a path parameter.');
+}
+
+bool dartSdkIsAtLeast(String sdkVersion) {
+  final expectedVersion = Version.parse(sdkVersion);
+  final actualVersion = Version.parse(Platform.version.split(' ')[0]);
+  return actualVersion >= expectedVersion;
 }
