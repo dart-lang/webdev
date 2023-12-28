@@ -1,3 +1,7 @@
+## 21.0.0+1
+
+- Fix a null cast error when debugging a `Class` from VS Code. - [#2303](https://github.com/dart-lang/webdev/pull/2303)
+
 ## 21.0.0
 
 - Update Dart SDK constraint to `>=3.2.0-36.0.dev <4.0.0`. - [#2207](https://github.com/dart-lang/webdev/pull/2207)
