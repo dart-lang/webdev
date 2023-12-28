@@ -15,7 +15,6 @@ stages:
       - test: --tags=extension
       sdk:
         - dev
-        - main
       os:
         - linux
      # Windows extension tests:
@@ -23,7 +22,6 @@ stages:
       - test: --tags=extension
       sdk:
         - dev
-        - main
       os:
         - windows
     # First test shard:
@@ -31,7 +29,6 @@ stages:
       - test: --total-shards 3 --shard-index 0 --exclude-tags=extension
       sdk:
         - dev
-        - main
       os: 
         - linux
         - windows
@@ -40,7 +37,6 @@ stages:
       - test: --total-shards 3 --shard-index 1 --exclude-tags=extension
       sdk:
         - dev
-        - main
       os: 
         - linux
         - windows
@@ -49,7 +45,6 @@ stages:
       - test: --total-shards 3 --shard-index 2 --exclude-tags=extension
       sdk:
         - dev
-        - main
       os: 
         - linux
         - windows
