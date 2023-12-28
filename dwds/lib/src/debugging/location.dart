@@ -78,7 +78,7 @@ class DartLocation {
   int get hashCode => Object.hashAll([uri, line, column]);
 
   @override
-  bool operator ==(Object? other) {
+  bool operator ==(Object other) {
     if (other is! DartLocation) {
       return false;
     }

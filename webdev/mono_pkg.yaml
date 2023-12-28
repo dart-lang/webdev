@@ -12,12 +12,10 @@ stages:
       - test: -j 1
       sdk:
         - dev
-        - main
     - test: -j 1
       os: windows
       sdk:
         - dev
-        - main
   - beta_cron:
     - analyze: .
       sdk: beta
