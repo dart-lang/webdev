@@ -14,6 +14,7 @@ import 'package:js/js.dart';
 import 'chrome_api.dart';
 import 'data_serializers.dart';
 import 'logger.dart';
+import 'utils.dart';
 
 // A default response for the sendResponse callback.
 //
@@ -90,9 +91,12 @@ void interceptMessage<T>({
   required MessageType expectedType,
   required Script expectedSender,
   required Script expectedRecipient,
+  required MessageSender sender,
   required void Function(T message) messageHandler,
 }) {
   if (message == null) return;
+  if (!_isLegitimateSender(sender)) return;
+
   try {
     final decodedMessage = Message.fromJSON(message);
     if (decodedMessage.type != expectedType ||
@@ -187,4 +191,32 @@ Future<bool> _sendMessage({
     );
   }
   return completer.future;
+}
+
+// Verify the message sender is our extension.
+bool _isLegitimateSender(MessageSender sender) {
+  // Check that the sender ID matches our extension ID:
+  if (sender.id != chrome.runtime.id) return false;
+
+  final senderUri = Uri.parse(sender.origin ?? '');
+  final senderHost = senderUri.host;
+  final isDartAppHost = senderHost == 'localhost' ||
+      senderHost == '127.0.0.1' ||
+      _isGoogleHost(senderHost);
+  final isExtensionOrigin =
+      senderHost == chrome.runtime.id && senderUri.scheme == 'chrome-extension';
+
+  if (isDartAppHost || isExtensionOrigin) return true;
+
+  // If the sender's host is unexpected, display an error.
+  displayNotification(
+    'Unexpected sender ${sender.origin}. Please file a bug at go/dde-bug or https://github.com/dart-lang/webdev',
+    isError: true,
+  );
+  return false;
+}
+
+bool _isGoogleHost(String host) {
+  const googleSuffices = ['.googlers.com', '.google.com', '.googleprod.com'];
+  return googleSuffices.any((suffix) => host.endsWith(suffix));
 }
