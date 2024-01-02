@@ -20,6 +20,8 @@ void main() {
     testPattern([3.14, 'b']);
     testPattern([0, 1]);
     testPattern2();
+    print('Classes');
+    testClass();
   });
 
   document.body!.appendText('Program is running!');
@@ -55,6 +57,11 @@ void printNestedNamedLocalRecord() {
   print(record); // Breakpoint: printNestedNamedLocalRecord
 }
 
+void testClass() {
+  final greeter = GreeterClass(greeteeName: 'Charlie Brown');
+  greeter.sayHello();
+}
+
 String testPattern(Object obj) {
   switch (obj) {
     case [var a, int n] || [int n, var a] when n == 1 && a is String:
@@ -72,4 +79,26 @@ String testPattern2() {
   final [firstCat, secondCat] = cats;
   print(firstCat); // Breakpoint: testPattern2Case2
   return '$dog, $firstCat, $secondCat';
+}
+
+class GreeterClass {
+  final String greeteeName;
+  final bool useFrench;
+
+  GreeterClass({
+    this.greeteeName = 'Snoopy',
+    this.useFrench = false,
+  });
+
+  void sayHello() {
+    useFrench ? greetInFrench() : greetInEnglish();
+  }
+
+  void greetInEnglish() {
+    print('Hello $greeteeName'); // Breakpoint: testClass1Case1
+  }
+
+  void greetInFrench() {
+    print('Bonjour $greeteeName');
+  }
 }
