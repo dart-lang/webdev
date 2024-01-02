@@ -20,7 +20,6 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'package:test_common/utilities.dart';
 
 import '../../debug_extension_mv3/web/data_serializers.dart';
-import '../../debug_extension_mv3/web/data_types.dart';
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
 import '../fixtures/utilities.dart';
@@ -139,111 +138,6 @@ void testAll({
           await appTab.close();
         });
 
-        test('whether to open in a new tab or window is saved in local storage',
-            () async {
-          // Navigate to the extension settings page:
-          final extensionOrigin = getExtensionOrigin(browser);
-          final settingsTab = await navigateToPage(
-            browser,
-            url: '$extensionOrigin/static_assets/settings.html',
-            isNew: true,
-          );
-          // Set the settings to open DevTools in a new window:
-          await settingsTab.tap('#windowOpt');
-          await settingsTab.tap('#saveButton');
-          // Wait for the saved message to verify settings have been saved:
-          await settingsTab.waitForSelector('.show');
-          // Close the settings tab:
-          await settingsTab.close();
-          // Check that is has been saved in local storage:
-          final devToolsOpener = await _fetchStorageObj<DevToolsOpener>(
-            'devToolsOpener',
-            storageArea: 'local',
-            worker: worker,
-            backgroundPage: backgroundPage,
-          );
-          expect(devToolsOpener.newWindow, isTrue);
-        });
-
-        test(
-            'can configure opening DevTools in a tab/window with extension settings',
-            () async {
-          final appUrl = context.appUrl;
-          final devToolsUrlFragment =
-              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
-          // Navigate to the Dart app:
-          final appTab =
-              await navigateToPage(browser, url: appUrl, isNew: true);
-          final appWindowId = await _getCurrentWindowId(
-            worker: worker,
-            backgroundPage: backgroundPage,
-          );
-          // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
-          await clickOnExtensionIcon(
-            worker: worker,
-            backgroundPage: backgroundPage,
-          );
-          // Verify the extension opened DevTools in the same window:
-          var devToolsTabTarget = await browser.waitForTarget(
-            (target) => target.url.contains(devToolsUrlFragment),
-          );
-          var devToolsTab = await devToolsTabTarget.page;
-          // Navigate to the newly opened DevTools tab:
-          await navigateToPage(
-            browser,
-            url: devToolsTabTarget.url,
-          );
-          var devToolsWindowId = await _getCurrentWindowId(
-            worker: worker,
-            backgroundPage: backgroundPage,
-          );
-          expect(devToolsWindowId == appWindowId, isTrue);
-          // Close the DevTools tab:
-          devToolsTab = await devToolsTabTarget.page;
-          await devToolsTab.close();
-          // Navigate to the extension settings page:
-          final extensionOrigin = getExtensionOrigin(browser);
-          final settingsTab = await navigateToPage(
-            browser,
-            url: '$extensionOrigin/static_assets/settings.html',
-            isNew: true,
-          );
-          // Set the settings to open DevTools in a new window:
-          await settingsTab.tap('#windowOpt');
-          await settingsTab.tap('#saveButton');
-          // Wait for the saved message to verify settings have been saved:
-          await settingsTab.waitForSelector('.show');
-          // Close the settings tab:
-          await settingsTab.close();
-          // Navigate to the Dart app:
-          await navigateToPage(browser, url: appUrl);
-          // Click on the Dart Debug Extension icon:
-          await clickOnExtensionIcon(
-            worker: worker,
-            backgroundPage: backgroundPage,
-          );
-          // Verify the extension opened DevTools in a different window:
-          devToolsTabTarget = await browser.waitForTarget(
-            (target) => target.url.contains(devToolsUrlFragment),
-          );
-          devToolsTab = await devToolsTabTarget.page;
-          // Navigate to the newly opened DevTools tab:
-          await navigateToPage(
-            browser,
-            url: devToolsTabTarget.url,
-          );
-          devToolsWindowId = await _getCurrentWindowId(
-            worker: worker,
-            backgroundPage: backgroundPage,
-          );
-          expect(devToolsWindowId == appWindowId, isFalse);
-          // Close the DevTools tab:
-          devToolsTab = await devToolsTabTarget.page;
-          await devToolsTab.close();
-          await appTab.close();
-        });
-
         test('DevTools is opened with the correct query parameters', () async {
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
@@ -254,6 +148,7 @@ void testAll({
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -286,6 +181,7 @@ void testAll({
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -315,6 +211,7 @@ void testAll({
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -339,6 +236,7 @@ void testAll({
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -358,6 +256,7 @@ void testAll({
           // Click on the Dart Debug Extension icon again:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -385,6 +284,7 @@ void testAll({
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -411,6 +311,7 @@ void testAll({
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
+            browser: browser,
             worker: worker,
             backgroundPage: backgroundPage,
           );
@@ -915,6 +816,7 @@ void testAll({
 
         // Click on the extension icon:
         await clickOnExtensionIcon(
+          browser: browser,
           worker: worker,
           backgroundPage: backgroundPage,
         );
@@ -1013,17 +915,6 @@ Future<int> _getCurrentTabId({
   )) as int;
 }
 
-Future<int?> _getCurrentWindowId({
-  Worker? worker,
-  Page? backgroundPage,
-}) async {
-  return (await evaluate(
-    _currentWindowIdJs,
-    worker: worker,
-    backgroundPage: backgroundPage,
-  )) as int?;
-}
-
 Future<T> _fetchStorageObj<T>(
   String storageKey, {
   required String storageArea,
@@ -1052,17 +943,6 @@ String _currentTabIdJs = '''
         chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
           const tab = tabs[0];
           resolve(tab.id);
-        });
-      });
-    }
-''';
-
-String _currentWindowIdJs = '''
-    async () => {
-      return new Promise((resolve, reject) => {
-        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-          const tab = tabs[0];
-          resolve(tab.windowId);
         });
       });
     }

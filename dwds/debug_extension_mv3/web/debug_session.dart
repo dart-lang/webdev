@@ -25,7 +25,6 @@ import 'cider_connection.dart';
 import 'cross_extension_communication.dart';
 import 'data_serializers.dart';
 import 'data_types.dart';
-import 'lifeline_ports.dart';
 import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
@@ -116,7 +115,7 @@ Future<void> attachDebugger(
     forwardErrorsToCider: trigger == Trigger.cider,
   );
   if (!tabIsDebuggable) return;
-
+  debugLog('Attaching to tab $dartAppTabId', verbose: true);
   _tabIdToTrigger[dartAppTabId] = trigger;
   _registerDebugEventListeners();
   chrome.debugger.attach(
@@ -358,6 +357,7 @@ Future<bool> _connectToDwds({
       ? WebSocketClient(WebSocketChannel.connect(uri))
       : SseSocketClient(SseClient(uri.toString(), debugKey: 'DebugExtension'));
   final trigger = _tabIdToTrigger[dartAppTabId];
+  debugLog('Connecting to DWDS...', verbose: true);
   final debugSession = _DebugSession(
     client: client,
     appTabId: dartAppTabId,
@@ -381,8 +381,6 @@ Future<bool> _connectToDwds({
     cancelOnError: true,
   );
   _debugSessions.add(debugSession);
-  // Create a connection with the lifeline port to keep the debug session alive:
-  await maybeCreateLifelinePort(dartAppTabId);
   // Send a DevtoolsRequest to the event stream:
   final tabUrl = await _getTabUrl(dartAppTabId);
   debugSession.sendEvent(
@@ -409,11 +407,19 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
       tabId: tabId,
     );
     if (message.method == 'dwds.devtoolsUri') {
-      if (_tabIdToTrigger[tabId] != Trigger.cider) {
+      if (_tabIdToTrigger[tabId] == Trigger.cider) {
+        // Save the DevTools URI so that Cider can request it later:
+        setStorageObject(
+          type: StorageObject.devToolsUri,
+          value: message.params,
+          tabId: tabId,
+        );
+      } else {
         _openDevTools(message.params, dartAppTabId: tabId);
       }
     }
     if (message.method == 'dwds.debugUri') {
+      debugLog('Sending debug URI to Cider ${message.params}', verbose: true);
       sendMessageToCider(
         messageType: CiderMessageType.startDebugResponse,
         messageBody: message.params,
@@ -592,10 +598,7 @@ void _removeDebugSession(_DebugSession debugSession) {
   debugSession.sendEvent(event);
   debugSession.close();
   final removed = _debugSessions.remove(debugSession);
-  if (removed) {
-    // Maybe remove the corresponding lifeline connection:
-    maybeRemoveLifelinePort(debugSession.appTabId);
-  } else {
+  if (!removed) {
     debugWarn('Could not remove debug session.');
   }
 }

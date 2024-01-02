@@ -11,7 +11,6 @@ import 'dart:js_util';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
-import 'logger.dart';
 
 Future<Tab> createTab(String url, {bool inNewWindow = false}) {
   final completer = Completer<Tab>();
@@ -88,31 +87,6 @@ void displayNotification(
   );
 }
 
-Future<bool> injectScript(String scriptName, {required int tabId}) async {
-  if (isMV3) {
-    await promiseToFuture(
-      _executeScriptMV3(
-        _InjectDetails(
-          target: Target(tabId: tabId),
-          files: [scriptName],
-        ),
-      ),
-    );
-    return true;
-  } else {
-    debugWarn('Script injection is only supported in Manifest V3.');
-    return false;
-  }
-}
-
-void onExtensionIconClicked(void Function(Tab) callback) {
-  if (isMV3) {
-    _onExtensionIconClickedMV3(callback);
-  } else {
-    _onExtensionIconClickedMV2(callback);
-  }
-}
-
 void setExtensionIcon(IconInfo info) {
   if (isMV3) {
     _setExtensionIconMV3(
@@ -123,6 +97,22 @@ void setExtensionIcon(IconInfo info) {
   } else {
     _setExtensionIconMV2(
       info,
+      // callback
+      null,
+    );
+  }
+}
+
+void setExtensionPopup(PopupDetails details) {
+  if (isMV3) {
+    _setExtensionPopupMV3(
+      details,
+      // callback
+      null,
+    );
+  } else {
+    _setExtensionPopupMV2(
+      details,
       // callback
       null,
     );
@@ -171,17 +161,17 @@ String addQueryParameters(
   return newUri.toString();
 }
 
-@JS('chrome.browserAction.onClicked.addListener')
-external void _onExtensionIconClickedMV2(void Function(Tab tab) callback);
-
-@JS('chrome.action.onClicked.addListener')
-external void _onExtensionIconClickedMV3(void Function(Tab tab) callback);
-
 @JS('chrome.browserAction.setIcon')
 external void _setExtensionIconMV2(IconInfo iconInfo, Function? callback);
 
 @JS('chrome.action.setIcon')
 external void _setExtensionIconMV3(IconInfo iconInfo, Function? callback);
+
+@JS('chrome.browserAction.setPopup')
+external void _setExtensionPopupMV2(PopupDetails details, Function? callback);
+
+@JS('chrome.action.setPopup')
+external void _setExtensionPopupMV3(PopupDetails details, Function? callback);
 
 @JS()
 @anonymous
@@ -190,16 +180,10 @@ class IconInfo {
   external factory IconInfo({required String path});
 }
 
-@JS('chrome.scripting.executeScript')
-external Object _executeScriptMV3(_InjectDetails details);
-
 @JS()
 @anonymous
-class _InjectDetails {
-  external Target get target;
-  external List<String>? get files;
-  external factory _InjectDetails({
-    Target target,
-    List<String>? files,
-  });
+class PopupDetails {
+  external int get tabId;
+  external String get popup;
+  external factory PopupDetails({required int tabId, required String popup});
 }

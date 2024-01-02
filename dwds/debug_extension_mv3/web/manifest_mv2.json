@@ -1,6 +1,6 @@
 {
   "name": "Dart Debug Extension",
-  "version": "1.40",
+  "version": "2.1",
   "manifest_version": 2,
   "devtools_page": "static_assets/devtools.html",
   "browser_action": {
@@ -37,6 +37,5 @@
       "description": "Copy the app ID"
     }
   },
-  "web_accessible_resources": ["debug_info.dart.js"],
-  "options_page": "static_assets/settings.html"
+  "web_accessible_resources": ["debug_info.dart.js"]
 }

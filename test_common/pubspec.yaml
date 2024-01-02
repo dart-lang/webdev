@@ -10,9 +10,9 @@ dependencies:
   file: ">=6.0.0 <8.0.0"
   logging: ^1.0.1
   path: ^1.8.1
+  pub_semver: ^2.1.1
   test: ^1.21.1
 
 dev_dependencies:
   lints: ^3.0.0
   pubspec_parse: ^1.2.2
-  pub_semver: ^2.1.1
