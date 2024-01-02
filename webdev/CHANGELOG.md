@@ -1,10 +1,6 @@
-## 3.3.0-wip
+## 3.3.0
 
-## 3.3.0-wip
-
-## 3.3.0-wip
-
-## 3.3.0-wip
+- Update `dwds` constraint to `23.0.0`.
 
 ## 3.2.0
 
@@ -33,7 +29,6 @@
 ## 3.0.6
 
 - Update `dwds` constraint to `19.0.2`.
-
 - Update SDK constraint to `>=3.1.0-254.0.dev <4.0.0`.
 
 ## 3.0.5
