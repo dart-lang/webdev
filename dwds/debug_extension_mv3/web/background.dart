@@ -135,6 +135,7 @@ Future<void> _handleRuntimeMessages(
     expectedType: MessageType.debugStateChange,
     expectedSender: Script.popup,
     expectedRecipient: Script.background,
+    sender: sender,
     messageHandler: (DebugStateChange debugStateChange) {
       final newState = debugStateChange.newState;
       final tabId = debugStateChange.tabId;
