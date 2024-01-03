@@ -111,8 +111,7 @@ String get message => p.join('hello', 'world');
 
     expect(await stdoutLines.next, p.join('goodbye', 'world'));
     expect(await process.exitCode, 0);
-    // TODO(https://github.com/dart-lang/webdev/issues/2315): Fix and re-enable.
-  }, skip: true);
+  });
 
   test('can handle compile errors and reload fixes', () async {
     var entrypoint = p.join(packageRoot, 'bin', 'main.dart');
@@ -175,8 +174,7 @@ String get message => p.join('hello', 'world');
 
     expect(await stdoutLines.next, p.join('goodbye', 'world'));
     expect(await process.exitCode, 0);
-    // TODO(https://github.com/dart-lang/webdev/issues/2315): Fix and re-enable.
-  }, skip: true);
+  });
 
   test('can compile and recompile a dartdevc app', () async {
     var entrypoint =
