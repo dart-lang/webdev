@@ -3,6 +3,7 @@
 - Update `package:vm_service` constraints to allow version `14.x.x` - [#2307](https://github.com/dart-lang/webdev/pull/2307)
 
 ## 23.0.0
+
 - Restructure `LoadStrategy` to provide build settings. - [#2270](https://github.com/dart-lang/webdev/pull/2270)
 - Add `FrontendServerLegacyStrategyProvider` and update bootstrap generation logic for `LegacyStrategy` - [#2285](https://github.com/dart-lang/webdev/pull/2285)
 - Tolerate failures to detect a Dart execution context. - [#2286](https://github.com/dart-lang/webdev/pull/2286)
@@ -11,6 +12,7 @@
 - Update `package:vm_service_interface` constraint to `1.0.1`. - [#2307](https://github.com/dart-lang/webdev/pull/2307)
 
 ## 22.1.0
+
 - Update `package:vm_service` constraint to `^13.0.0`. - [#2265](https://github.com/dart-lang/webdev/pull/2265)
 
 ## 22.0.0
