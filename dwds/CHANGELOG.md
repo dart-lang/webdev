@@ -1,6 +1,6 @@
 ## 23.1.1
 
-- Loosen `package:vm_service` constraints to allow `>=13.0.0 <15.0.0`.  - [#TODO](TODO)
+- Loosen `package:vm_service` constraints to allow `>=13.0.0 <15.0.0`.  - [#2329](https://github.com/dart-lang/webdev/pull/2329)
 
 ## 23.1.0
 
