@@ -1,5 +1,5 @@
 name: frontend_server_client
-version: 3.3.0-wip
+version: 4.0.0-wip
 description: >-
   Client code to start and interact with the frontend_server compiler from the
   Dart SDK.
@@ -20,4 +20,4 @@ dev_dependencies:
   test: ^1.16.0
   test_descriptor: ^2.0.0
   test_process: ^2.0.0
-  vm_service: ^8.0.0
+  vm_service: ^14.0.0
