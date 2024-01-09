@@ -18,7 +18,7 @@ dependencies:
 
 dev_dependencies:
   build: ^2.0.0
-  build_web_compilers: ^4.0.4
+  build_web_compilers: ^4.0.8
   build_runner: ^2.4.0
   built_collection: ^5.0.0
   dwds: ^11.0.0
