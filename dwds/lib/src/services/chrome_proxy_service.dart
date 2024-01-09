@@ -1265,7 +1265,6 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
           final isolateRef = inspector.isolateRef;
           if (!filter(e)) return;
           final args = e.params?['args'] as List?;
-          print('ARGS ARE $args');
           final item = args?[0] as Map?;
           final value = '${item?["value"]}\n';
           controller.add(
@@ -1384,7 +1383,13 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
           );
           break;
         case 'dart.developer.log':
-          await _handleDeveloperLog(isolateRef, event);
+          await _handleDeveloperLog(isolateRef, event).catchError(
+            (error, stackTrace) => _logger.warning(
+              'Error handling developer log:',
+              error,
+              stackTrace,
+            ),
+          );
           break;
         default:
           break;
@@ -1403,12 +1408,13 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     ConsoleAPIEvent event,
   ) async {
     final logObject = event.params?['args'][1] as Map?;
-    final logParams = <String, RemoteObject>{};
-    for (dynamic obj in logObject?['preview']?['properties'] ?? {}) {
-      if (obj['name'] != null && obj is Map<String, dynamic>) {
-        logParams[obj['name'] as String] = RemoteObject(obj);
-      }
-    }
+    final objectId = logObject?["objectId"];
+    // Always attempt to fetch the full properties instead of `RemoteObject`
+    // abbreviated properties (this prevents the message from being truncated):
+    // https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-RemoteObject
+    final logParams = objectId != null
+        ? await _fetchFullLogParams(objectId)
+        : _fetchAbbreviatedLogParams(logObject);
 
     final logRecord = LogRecord(
       message: await _instanceRef(logParams['message']),
@@ -1435,6 +1441,28 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
         ..logRecord = logRecord
         ..timestamp = event.timestamp.toInt(),
     );
+  }
+
+  Future<Map<String, RemoteObject>> _fetchFullLogParams(String objectId) async {
+    final logParams = <String, RemoteObject>{};
+    for (final property in await inspector.getProperties(objectId)) {
+      final name = property.name;
+      final value = property.value;
+      if (name != null && value != null) {
+        logParams[name] = value;
+      }
+    }
+    return logParams;
+  }
+
+  Map<String, RemoteObject> _fetchAbbreviatedLogParams(Map? logObject) {
+    final logParams = <String, RemoteObject>{};
+    for (dynamic obj in logObject?['preview']?['properties'] ?? []) {
+      if (obj is Map<String, dynamic> && obj['name'] != null) {
+        logParams[obj['name'] as String] = RemoteObject(obj);
+      }
+    }
+    return logParams;
   }
 
   @override
