@@ -1,7 +1,12 @@
-## 3.3.0-wip
+## 4.0.0-wip
 
-- Update Dart SDK constraint to `>=3.0.0 <4.0.0`.
+- Update Dart SDK constraint to `^3.0.0`.
 - Support changes in the SDK layout for Dart 3.0.
+- By default, start the frontend server from the AOT snapshot shipped in the
+  Dart SDK.
+- Throw an `ArgumentError` when `FrontendServerClient.start` is called with the
+  `frontendServerPath` argument omitted and the `debug` argument set to true.
+- Update `package:vm_service` constraint to `^14.0.0`.
 
 ## 3.2.0
 

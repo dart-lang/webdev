@@ -40,6 +40,15 @@ class FrontendServerClient {
   /// The [outputDillPath] determines where the primary output should be, and
   /// some targets may output additional files based on that file name (by
   /// adding file extensions for instance).
+  ///
+  /// When the [frontendServerPath] argument is provided, the frontend server
+  /// will be started from the specified file. The specified file can either be
+  /// a Dart source file or an AppJIT snapshot.
+  ///
+  /// When the [frontendServerPath] argument is provided, setting [debug] to
+  /// true permits debuggers to attach to the frontend server. When the
+  /// [frontendServerPath] argument is omitted, setting [debug] to true will
+  /// cause an [ArgumentError] to be thrown.
   static Future<FrontendServerClient> start(
     String entrypoint,
     String outputDillPath,
@@ -60,9 +69,7 @@ class FrontendServerClient {
     List<String> additionalSources = const [],
     String? nativeAssets,
   }) async {
-    var feServer = await Process.start(Platform.resolvedExecutable, [
-      if (debug) '--observe',
-      frontendServerPath ?? _feServerPath,
+    final commonArguments = <String>[
       '--sdk-root',
       sdkRoot ?? sdkDir,
       '--platform=$platformKernel',
@@ -90,7 +97,38 @@ class FrontendServerClient {
         '--native-assets',
         nativeAssets,
       ],
-    ]);
+    ];
+    late final Process feServer;
+    if (frontendServerPath != null) {
+      feServer = await Process.start(
+        Platform.resolvedExecutable,
+        <String>[
+          if (debug) '--observe',
+          frontendServerPath,
+          ...commonArguments,
+        ],
+      );
+    } else if (File(_feServerAotSnapshotPath).existsSync()) {
+      if (debug) {
+        throw ArgumentError('The debug argument cannot be set to true when the '
+            'frontendServerPath argument is omitted.');
+      }
+      feServer = await Process.start(
+        _dartAotRuntimePath,
+        <String>[_feServerAotSnapshotPath, ...commonArguments],
+      );
+    } else {
+      // AOT snapshots cannot be generated on IA32, so we need this fallback
+      // branch until support for IA32 is dropped (https://dartbug.com/49969).
+      feServer = await Process.start(
+        Platform.resolvedExecutable,
+        <String>[
+          if (debug) '--observe',
+          _feServerAppJitSnapshotPath,
+          ...commonArguments,
+        ],
+      );
+    }
     var feServerStdoutLines = StreamQueue(feServer.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter()));
@@ -407,5 +445,10 @@ enum _RejectState {
   done,
 }
 
-final _feServerPath =
+final _dartAotRuntimePath = p.join(sdkDir, 'bin', 'dartaotruntime');
+
+final _feServerAppJitSnapshotPath =
     p.join(sdkDir, 'bin', 'snapshots', 'frontend_server.dart.snapshot');
+
+final _feServerAotSnapshotPath =
+    p.join(sdkDir, 'bin', 'snapshots', 'frontend_server_aot.dart.snapshot');

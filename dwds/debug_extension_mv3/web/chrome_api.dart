@@ -191,6 +191,8 @@ class Runtime {
 
   external String getURL(String path);
 
+  external String get id;
+
   // Note: Not checking the lastError when one occurs throws a runtime exception.
   external ChromeError? get lastError;
 
@@ -253,6 +255,7 @@ class MessageSender {
   external String? get id;
   external Tab? get tab;
   external String? get url;
+  external String? get origin;
   external factory MessageSender({String? id, String? url, Tab? tab});
 }
 

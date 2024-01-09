@@ -32,6 +32,7 @@ void _handleRuntimeMessages(
     expectedType: MessageType.appId,
     expectedSender: Script.background,
     expectedRecipient: Script.copier,
+    sender: sender,
     messageHandler: _copyAppId,
   );
 
