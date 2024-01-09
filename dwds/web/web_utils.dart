@@ -2,49 +2,47 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@JS()
-library require_reloading_manager;
-
 import 'dart:js_interop';
 
-import 'package:js/js.dart';
+@JS('window')
+external JSObject get windowContext;
 
 @JS('Array.from')
-external JSArray _jsArrayFrom(Object any);
+external JSArray _jsArrayFrom(JSAny any);
 
 @JS('Object.values')
-external JSArray _jsObjectValues(Object any);
+external JSArray _jsObjectValues(JSAny any);
 
 @JS('Error')
-abstract class JsError {
-  @JS()
-  external String get message;
+@staticInterop
+abstract class JsError {}
 
-  @JS()
+extension JsErrorExtension on JsError {
+  external String get message;
   external String get stack;
 }
 
 @JS('Map')
-abstract class JsMap<K, V> {
-  @JS('Map.get')
-  external V? get(K key);
+@staticInterop
+abstract class JsMap<K extends JSAny, V extends JSAny> {}
 
-  @JS()
-  external Object keys();
+extension JsMapExtension<K extends JSAny, V extends JSAny> on JsMap<K, V> {
+  external V? get(K key);
+  external JSObject keys();
 }
 
-extension ObjectExtension on JSObject {
+extension JSObjectExtension on JSObject {
   Iterable<Object?> get values => _jsObjectValues(this).toDartIterable();
 }
 
 extension JSArrayExtension on JSArray {
   Iterable<T> toDartIterable<T>() => toDart.map((e) => e.dartify() as T);
+
   List<T> toDartList<T>() => toDartIterable<T>().toList();
 }
 
-extension ModuleDependencyGraph on JsMap<String, List<String>> {
-  Iterable<String> get modules => _jsArrayFrom(keys()).toDartIterable<String>();
+extension ModuleDependencyGraph on JsMap<JSString, JSArray> {
+  Iterable<String> get modules => _jsArrayFrom(keys()).toDartIterable();
 
-  List<String> parents(String key) =>
-      (get(key) as JSArray?)?.toDartList<String>() ?? [];
+  List<String> parents(String key) => get(key.toJS)?.toDartList() ?? [];
 }

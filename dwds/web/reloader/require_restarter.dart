@@ -2,56 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@JS()
-library require_reloading_manager;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:js_interop';
-import 'dart:js_util';
+import 'dart:js_interop_unsafe';
 
 import 'package:graphs/graphs.dart' as graphs;
-import 'package:js/js.dart';
-import 'package:js/js_util.dart';
 import 'package:web/helpers.dart';
 
-import '../promise.dart';
 import '../run_main.dart';
 import '../web_utils.dart';
 import 'restarter.dart';
-
-/// The last known digests of all the modules in the application.
-///
-/// This is updated in place during calls to hotRestart.
-/// TODO(annagrin): can this be a private field in RequireRestarter?
-late Map<String, String> _lastKnownDigests;
 
 @JS(r'$requireLoader')
 external RequireLoader get requireLoader;
 
 @JS(r'$loadModuleConfig')
-external Object Function(String module) get require;
+external JSFunction get require;
 
 @JS(r'$dartRunMain')
-external set dartRunMain(Function() func);
+external set dartRunMain(JSFunction func);
 
 @JS(r'$dartRunMain')
-external Function() get dartRunMain;
+external JSFunction get dartRunMain;
 
 @anonymous
 @JS()
-class RequireLoader {
-  @JS()
+@staticInterop
+class RequireLoader {}
+
+extension RequireLoaderExtension on RequireLoader {
   external String get digestsPath;
 
-  @JS()
-  external JsMap<String, List<String>> get moduleParentsGraph;
+  external JsMap<JSString, JSArray> get moduleParentsGraph;
 
-  @JS()
   external void forceLoadModule(
-    String moduleId,
-    void Function() callback,
-    void Function(JsError e) onError,
+    JSString moduleId,
+    JSFunction callback,
+    JSFunction onError,
   );
 }
 
@@ -65,6 +53,11 @@ class HotReloadFailedException implements Exception {
 
 /// Handles hot restart reloading for use with the require module system.
 class RequireRestarter implements Restarter {
+  /// The last known digests of all the modules in the application.
+  ///
+  /// This is updated in place during calls to hotRestart.
+  static late Map<String, String> _lastKnownDigests;
+
   final _moduleOrdering = HashMap<String, int>();
   late SplayTreeSet<String> _dirtyModules;
   var _running = Completer<bool>()..complete(true);
@@ -77,19 +70,24 @@ class RequireRestarter implements Restarter {
 
   @override
   Future<bool> restart({String? runId}) async {
-    final developer = getProperty(require('dart_sdk'), 'developer');
-    if (callMethod(
-      getProperty(developer, '_extensions'),
-      'containsKey',
-      ['ext.flutter.disassemble'],
-    ) as bool) {
-      await toFuture(
-        callMethod(
-          developer,
-          'invokeExtension',
-          ['ext.flutter.disassemble', '{}'],
-        ) as Promise<void>,
-      );
+    final sdk = require.callAsFunction(null, 'dart_sdk'.toJS) as JSObject;
+    final dart = sdk['dart'] as JSObject;
+    final developer = sdk['developer'] as JSObject;
+    final extensions = developer['_extensions'] as JSObject;
+
+    if (extensions
+        .callMethod(
+          'containsKey'.toJS,
+          'ext.flutter.disassemble'.toJS,
+        )
+        .dartify() as bool) {
+      await (developer
+          .callMethod(
+            'invokeExtension'.toJS,
+            'ext.flutter.disassemble'.toJS,
+            '{}'.toJS,
+          )
+          .dartify() as Future<Object?>);
     }
 
     final newDigests = await _getDigests();
@@ -110,7 +108,7 @@ class RequireRestarter implements Restarter {
       _updateGraph();
       result = await _reload(modulesToLoad);
     }
-    callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
+    dart.callMethod('hotRestart'.toJS, runId?.toJS);
     runMain();
     return result;
   }
@@ -165,6 +163,9 @@ class RequireRestarter implements Restarter {
   /// Returns `true` if the reload was fully handled, `false` if it failed
   /// explicitly, or `null` for an unhandled reload.
   Future<bool> _reload(List<String> modules) async {
+    final sdk = require.callAsFunction(null, 'dart_sdk'.toJS) as JSObject;
+    final dart = sdk['dart'] as JSObject;
+
     // As function is async, it can potentially be called second time while
     // first invocation is still running. In this case just mark as dirty and
     // wait until loop from the first call will do the work
@@ -183,18 +184,14 @@ class RequireRestarter implements Restarter {
         if (parentIds.isEmpty) {
           // The bootstrap module is not reloaded but we need to update the
           // $dartRunMain reference to the newly loaded child module.
-          final childModule = callMethod<JSObject>(
-            getProperty(require('dart_sdk'), 'dart'),
-            'getModuleLibraries',
-            [previousModuleId],
+          final childModule = dart.callMethod<JSObject>(
+            'getModuleLibraries'.toJS,
+            previousModuleId?.toJS,
           );
-          dartRunMain = allowInterop(() {
-            callMethod(
-              childModule.values.first!,
-              'main',
-              [],
-            );
-          });
+          final mainLibrary = childModule.values.first! as JSObject;
+          dartRunMain = () {
+            mainLibrary.callMethod('main'.toJS);
+          }.toJS;
         } else {
           ++reloadedModules;
           await _reloadModule(moduleId);
@@ -217,14 +214,18 @@ class RequireRestarter implements Restarter {
     final completer = Completer();
     final stackTrace = StackTrace.current;
     requireLoader.forceLoadModule(
-      moduleId,
-      allowInterop(completer.complete),
-      allowInterop((e) {
+      moduleId.toJS,
+      // Removing the argument type in complete()
+      // ignore: unnecessary_lambdas
+      () {
+        completer.complete();
+      }.toJS,
+      (JsError e) {
         completer.completeError(
           HotReloadFailedException(e.message),
           stackTrace,
         );
-      }),
+      }.toJS,
     );
     return completer.future;
   }

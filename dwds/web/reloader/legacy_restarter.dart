@@ -3,23 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:js';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:web/helpers.dart';
 
+import '../web_utils.dart';
 import 'restarter.dart';
 
 class LegacyRestarter implements Restarter {
   @override
   Future<bool> restart({String? runId}) async {
-    final dartLibrary = context['dart_library'] as JsObject;
+    final dartLibrary = windowContext['dart_library'] as JSObject;
     if (runId == null) {
-      dartLibrary.callMethod('reload');
+      dartLibrary.callMethod('reload'.toJS);
     } else {
-      dartLibrary.callMethod('reload', [
-        JsObject.jsify({'runId': runId}),
-      ]);
+      dartLibrary.callMethod('reload'.toJS, runId.toJS);
     }
     final reloadCompleter = Completer<bool>();
     final sub = window.onMessage.listen((event) {

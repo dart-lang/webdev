@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@JS()
-library hot_reload_client;
-
 import 'dart:async';
 import 'dart:convert';
-import 'dart:js';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/build_result.dart';
@@ -23,18 +20,17 @@ import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/shared/batched_stream.dart';
 import 'package:dwds/src/sockets.dart';
-import 'package:js/js.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web/helpers.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import 'promise.dart';
 import 'reloader/legacy_restarter.dart';
 import 'reloader/manager.dart';
 import 'reloader/require_restarter.dart';
 import 'reloader/restarter.dart';
 import 'run_main.dart';
+import 'web_utils.dart';
 
 const _batchDelayMilliseconds = 1000;
 
@@ -63,9 +59,9 @@ Future<void>? main() {
 
     final manager = ReloadingManager(client, restarter);
 
-    hotRestartJs = allowInterop((String runId) {
-      return toPromise(manager.hotRestart(runId: runId));
-    });
+    hotRestartJs = (String runId) {
+      return manager.hotRestart(runId: runId).toJS;
+    }.toJS;
 
     final debugEventController =
         BatchedStreamController<DebugEvent>(delay: _batchDelayMilliseconds);
@@ -84,7 +80,7 @@ Future<void>? main() {
       }
     });
 
-    emitDebugEvent = allowInterop((String kind, String eventData) {
+    emitDebugEvent = (String kind, String eventData) {
       if (dartEmitDebugEvents) {
         _trySendEvent(
           debugEventController.sink,
@@ -96,9 +92,9 @@ Future<void>? main() {
           ),
         );
       }
-    });
+    }.toJS;
 
-    emitRegisterEvent = allowInterop((String eventData) {
+    emitRegisterEvent = (String eventData) {
       _trySendEvent(
         client.sink,
         jsonEncode(
@@ -111,9 +107,9 @@ Future<void>? main() {
           ),
         ),
       );
-    });
+    }.toJS;
 
-    launchDevToolsJs = allowInterop(() {
+    launchDevToolsJs = () {
       if (!_isChromium) {
         window.alert(
           'Dart DevTools is only supported on Chromium based browsers.',
@@ -132,7 +128,7 @@ Future<void>? main() {
           ),
         ),
       );
-    });
+    }.toJS;
 
     client.stream.listen(
       (serialized) async {
@@ -186,7 +182,7 @@ Future<void>? main() {
             !e.ctrlKey &&
             !e.metaKey) {
           e.preventDefault();
-          launchDevToolsJs();
+          launchDevToolsJs.callAsFunction();
         }
       });
     }
@@ -284,12 +280,8 @@ void _launchCommunicationWithDebugExtension() {
 }
 
 void _dispatchEvent(String message, String detail) {
-  window.dispatchEvent(
-    CustomEvent(
-      'dart-auth-response',
-      CustomEventInit(detail: detail.toJS),
-    ),
-  );
+  final event = CustomEvent(message, CustomEventInit(detail: detail.toJS));
+  document.dispatchEvent(event);
 }
 
 void _listenForDebugExtensionAuthRequest() {
@@ -339,13 +331,13 @@ external set dartAppInstanceId(String? id);
 external String get dartModuleStrategy;
 
 @JS(r'$dartHotRestartDwds')
-external set hotRestartJs(Promise<bool> Function(String runId) cb);
+external set hotRestartJs(JSFunction cb);
 
 @JS(r'$launchDevTools')
-external void Function() get launchDevToolsJs;
+external JSFunction get launchDevToolsJs;
 
 @JS(r'$launchDevTools')
-external set launchDevToolsJs(void Function() cb);
+external set launchDevToolsJs(JSFunction cb);
 
 @JS(r'$dartReloadConfiguration')
 external String get reloadConfiguration;
@@ -363,10 +355,10 @@ external void dispatchEvent(CustomEvent event);
 external bool get dartEmitDebugEvents;
 
 @JS(r'$emitDebugEvent')
-external set emitDebugEvent(void Function(String, String) func);
+external set emitDebugEvent(JSFunction func);
 
 @JS(r'$emitRegisterEvent')
-external set emitRegisterEvent(void Function(String) func);
+external set emitRegisterEvent(JSFunction func);
 
 @JS(r'$isInternalBuild')
 external bool get isInternalBuild;
@@ -379,15 +371,15 @@ external String? get dartWorkspaceName;
 
 bool get _isChromium => window.navigator.vendor.contains('Google');
 
-JsObject get _windowContext => JsObject.fromBrowserObject(window);
+bool? get _isInternalBuild =>
+    windowContext['\$isInternalBuild'].dartify() as bool?;
 
-bool? get _isInternalBuild => _windowContext['\$isInternalBuild'];
+bool? get _isFlutterApp => windowContext['\$isFlutterApp'].dartify() as bool?;
 
-bool? get _isFlutterApp => _windowContext['\$isFlutterApp'];
+String? get _appId => windowContext['\$dartAppId'].dartify() as String?;
 
-String? get _appId => _windowContext['\$dartAppId'];
-
-String? get _extensionUrl => _windowContext['\$dartExtensionUri'];
+String? get _extensionUrl =>
+    windowContext['\$dartExtensionUri'].dartify() as String?;
 
 String? get _authUrl {
   final extensionUrl = _extensionUrl;
