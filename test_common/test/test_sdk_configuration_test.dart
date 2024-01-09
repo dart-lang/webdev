@@ -70,6 +70,7 @@ void main() {
       expect(sdkLayout.stackTraceMapperPath, _fileExists);
 
       expect(sdkLayout.dartPath, _fileExists);
+      expect(sdkLayout.dartAotRuntimePath, _fileExists);
       expect(sdkLayout.frontendServerSnapshotPath, _fileExists);
       expect(sdkLayout.dartdevcSnapshotPath, _fileExists);
       expect(sdkLayout.kernelWorkerSnapshotPath, _fileExists);

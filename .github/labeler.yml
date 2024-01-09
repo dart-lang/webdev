@@ -1,17 +1,22 @@
 # This configures the .github/workflows/pull_request_label.yml workflow. 
 
 'type-infra':
-  - '.github/**'
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'
 
 'package:dwds':
-  - dwds/**/*
+  - changed-files:
+      - any-glob-to-any-file: 'dwds/**/*'
 
 'package:frontend_server_client':
-  - frontend_server_client/**/*
+  - changed-files:
+      - any-glob-to-any-file: 'frontend_server_client/**/*'
 
 'package:webdev':
-  - webdev/**/*
+  - changed-files:
+      - any-glob-to-any-file: 'webdev/**/*'
 
 'dart-debug-extension':
-  - dwds/debug_extension/**/*
-  - dwds/debug_extension_mv3/**/*
+  - changed-files:
+      - any-glob-to-any-file: 'dwds/debug_extension/**/*'
+      - any-glob-to-any-file: 'dwds/debug_extension_mv3/**/*'

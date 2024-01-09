@@ -90,11 +90,16 @@ class TestSdkLayout {
           'bin',
           Platform.isWindows ? 'dart.exe' : 'dart',
         ),
+        dartAotRuntimePath: p.join(
+          sdkLayout.sdkDirectory,
+          'bin',
+          Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
+        ),
         frontendServerSnapshotPath: p.join(
           sdkLayout.sdkDirectory,
           'bin',
           'snapshots',
-          'frontend_server.dart.snapshot',
+          'frontend_server_aot.dart.snapshot',
         ),
         dartdevcSnapshotPath: sdkLayout.dartdevcSnapshotPath,
         kernelWorkerSnapshotPath: p.join(
@@ -137,6 +142,7 @@ class TestSdkLayout {
   final String stackTraceMapperPath;
 
   final String dartPath;
+  final String dartAotRuntimePath;
   final String frontendServerSnapshotPath;
   final String dartdevcSnapshotPath;
   final String kernelWorkerSnapshotPath;
@@ -155,6 +161,7 @@ class TestSdkLayout {
     required this.requireJsPath,
     required this.stackTraceMapperPath,
     required this.dartPath,
+    required this.dartAotRuntimePath,
     required this.frontendServerSnapshotPath,
     required this.dartdevcSnapshotPath,
     required this.kernelWorkerSnapshotPath,

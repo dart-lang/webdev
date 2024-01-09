@@ -89,6 +89,7 @@ void _handleRuntimeMessages(
     expectedType: MessageType.debugStateChange,
     expectedSender: Script.background,
     expectedRecipient: Script.debuggerPanel,
+    sender: sender,
     messageHandler: (DebugStateChange debugStateChange) async {
       if (debugStateChange.tabId != _tabId) {
         debugWarn(
@@ -107,6 +108,7 @@ void _handleRuntimeMessages(
     expectedType: MessageType.connectFailure,
     expectedSender: Script.background,
     expectedRecipient: Script.debuggerPanel,
+    sender: sender,
     messageHandler: (ConnectFailure connectFailure) async {
       debugLog(
         'Received connect failure for ${connectFailure.tabId} vs $_tabId',
@@ -185,7 +187,7 @@ Future<void> _maybeUpdateFileABugLink() async {
     if (bugLink == null) return;
     bugLink.setAttribute(
       'href',
-      'http://b/issues/new?component=775375&template=1791321',
+      'http://go/dde-bug',
     );
   }
 }

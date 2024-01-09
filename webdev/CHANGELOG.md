@@ -1,10 +1,10 @@
-## 3.3.0-wip
+## 3.4.0-wip
 
-## 3.3.0-wip
+- Update `package:vm_service` constraint to `>=10.1.0 <15.0.0`. - [#2307](https://github.com/dart-lang/webdev/pull/2307)
 
-## 3.3.0-wip
+## 3.3.0
 
-## 3.3.0-wip
+- Update `dwds` constraint to `23.0.0`.
 
 ## 3.2.0
 
@@ -33,7 +33,6 @@
 ## 3.0.6
 
 - Update `dwds` constraint to `19.0.2`.
-
 - Update SDK constraint to `>=3.1.0-254.0.dev <4.0.0`.
 
 ## 3.0.5
