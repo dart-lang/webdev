@@ -1265,6 +1265,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
           final isolateRef = inspector.isolateRef;
           if (!filter(e)) return;
           final args = e.params?['args'] as List?;
+          print('ARGS ARE $args');
           final item = args?[0] as Map?;
           final value = '${item?["value"]}\n';
           controller.add(
