@@ -2399,7 +2399,8 @@ void main() {
       test('long dart:developer log messages are not truncated', () async {
         final logStream = context.service.onEvent(EventStreams.kLogging);
         final longMessage =
-            'A very long log message that Chrome truncates by default and requires users to expand in order to see the entire message.';
+            'A very long log message that Chrome truncates by default and '
+            'requires users to expand in order to see the entire message.';
         safeUnawaited(
           context.tabConnection.runtime.evaluate("sendLog('$longMessage');"),
         );

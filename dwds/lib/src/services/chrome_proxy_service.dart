@@ -1411,7 +1411,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     // `RemoteObject.preview` which only has truncated log messages:
     // https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-RemoteObject
     final logParams = objectId != null
-        ? await _fetchFullLogParams(objectId)
+        ? await _fetchFullLogParams(objectId, logObject: logObject)
         : _fetchAbbreviatedLogParams(logObject);
 
     final logRecord = LogRecord(
@@ -1441,7 +1441,10 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     );
   }
 
-  Future<Map<String, RemoteObject>> _fetchFullLogParams(String objectId) async {
+  Future<Map<String, RemoteObject>> _fetchFullLogParams(
+    String objectId, {
+    required Map? logObject,
+  }) async {
     final logParams = <String, RemoteObject>{};
     for (final property in await inspector.getProperties(objectId)) {
       final name = property.name;
@@ -1449,6 +1452,12 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
       if (name != null && value != null) {
         logParams[name] = value;
       }
+    }
+
+    // If for some reason we don't get the full log params, then return the
+    // abbreviated version instead:
+    if (logParams.isEmpty) {
+      return _fetchAbbreviatedLogParams(logObject);
     }
     return logParams;
   }
