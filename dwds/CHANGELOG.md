@@ -1,5 +1,7 @@
 ## 23.2.0-wip
 
+- Enabling tests that run with the DDC module system and exposing `utilities/ddc_names.dart` - [#2295](https://github.com/dart-lang/webdev/pull/2295)
+
 ## 23.1.1
 
 - Loosen `package:vm_service` constraints to allow `>=13.0.0 <15.0.0`.  - [#2329](https://github.com/dart-lang/webdev/pull/2329)
