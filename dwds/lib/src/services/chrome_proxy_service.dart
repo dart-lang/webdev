@@ -1363,9 +1363,9 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
 
       final args = event.args;
       final firstArgValue = (args.isNotEmpty ? args[0].value : null) as String?;
-      // TODO(nshahan) - Migrate 'inspect' and 'log' events to the injected
-      // client communication approach as well?
       switch (firstArgValue) {
+        // TODO(https://github.com/dart-lang/webdev/issues/2335): Make sure that
+        // inspect properties are not being truncated.
         case 'dart.developer.inspect':
           // All inspected objects should be real objects.
           if (event.args[1].type != 'object') break;
@@ -1408,9 +1408,9 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     ConsoleAPIEvent event,
   ) async {
     final logObject = event.params?['args'][1] as Map?;
-    final objectId = logObject?["objectId"];
-    // Always attempt to fetch the full properties instead of `RemoteObject`
-    // abbreviated properties (this prevents the message from being truncated):
+    final objectId = logObject?['objectId'];
+    // Always attempt to fetch the full properties instead of relying on
+    // `RemoteObject.preview` which only has truncated log messages:
     // https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-RemoteObject
     final logParams = objectId != null
         ? await _fetchFullLogParams(objectId)
@@ -1457,9 +1457,9 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
 
   Map<String, RemoteObject> _fetchAbbreviatedLogParams(Map? logObject) {
     final logParams = <String, RemoteObject>{};
-    for (dynamic obj in logObject?['preview']?['properties'] ?? []) {
-      if (obj is Map<String, dynamic> && obj['name'] != null) {
-        logParams[obj['name'] as String] = RemoteObject(obj);
+    for (dynamic property in logObject?['preview']?['properties'] ?? []) {
+      if (property is Map<String, dynamic> && property['name'] != null) {
+        logParams[property['name'] as String] = RemoteObject(property);
       }
     }
     return logParams;
