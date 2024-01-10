@@ -1364,8 +1364,6 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
       final args = event.args;
       final firstArgValue = (args.isNotEmpty ? args[0].value : null) as String?;
       switch (firstArgValue) {
-        // TODO(https://github.com/dart-lang/webdev/issues/2335): Make sure that
-        // inspect properties are not being truncated.
         case 'dart.developer.inspect':
           // All inspected objects should be real objects.
           if (event.args[1].type != 'object') break;
