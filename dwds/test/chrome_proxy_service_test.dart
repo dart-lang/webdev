@@ -2379,7 +2379,7 @@ void main() {
         );
       });
 
-      test('dart.developer logs are correctly converted to log records',
+      test('dart:developer logs are correctly converted to log records',
           () async {
         final logStream = context.service.onEvent(EventStreams.kLogging);
         final message = 'myMessage';
@@ -2396,7 +2396,7 @@ void main() {
         expect(logRecord.loggerName!.valueAsString, 'testLogCategory');
       });
 
-      test('long dart.developer log messages are not truncated', () async {
+      test('long dart:developer log messages are not truncated', () async {
         final logStream = context.service.onEvent(EventStreams.kLogging);
         final longMessage =
             'A very long log message that Chrome truncates by default and requires users to expand in order to see the entire message.';
