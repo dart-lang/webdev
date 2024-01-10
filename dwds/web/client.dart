@@ -293,8 +293,10 @@ void _listenForDebugExtensionAuthRequest() {
 
 void _handleAuthRequest(Event event) {
   final messageEvent = event as MessageEvent;
-  if (messageEvent.data is! String) return;
-  if (messageEvent.data as String != 'dart-auth-request') return;
+  final data = messageEvent.data;
+
+  if (!data.typeofEquals('string')) return;
+  if ((data as JSString).toDart != 'dart-auth-request') return;
 
   // Notify the Dart Debug Extension of authentication status:
   if (_authUrl != null) {

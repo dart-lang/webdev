@@ -8562,11 +8562,11 @@
       A._asBool(t2._as(t1.document).dispatchEvent($event));
     },
     _handleAuthRequest($event) {
-      var t1;
-      type$.JavaScriptObject._as($event);
-      if (typeof $event.data != "string")
+      var t1,
+        data = type$.JavaScriptObject._as($event).data;
+      if (!(typeof data === "string"))
         return;
-      if (A._asString($event.data) !== "dart-auth-request")
+      if (A._asString(data) !== "dart-auth-request")
         return;
       if (A._authUrl() != null) {
         t1 = A._authUrl();
