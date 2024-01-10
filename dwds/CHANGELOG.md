@@ -8,7 +8,7 @@
 
 ## 23.1.0
 
-- Update `package:vm_service` constraints to allow version `14.x.x` - [#2307](https://github.com/dart-lang/webdev/pull/2307)
+- Update `package:vm_service` constraints to allow version `14.x.x`. - [#2307](https://github.com/dart-lang/webdev/pull/2307)
 
 ## 23.0.0
 
