@@ -2370,25 +2370,44 @@ void main() {
       });
     });
 
-    test('Logging', () async {
-      final service = context.service;
-      expect(
-        service.streamListen(EventStreams.kLogging),
-        completion(_isSuccess),
-      );
-      final stream = service.onEvent(EventStreams.kLogging);
-      final message = 'myMessage';
+    group('Logging |', () {
+      test('logging stream is registered', () {
+        final service = context.service;
+        expect(
+          service.streamListen(EventStreams.kLogging),
+          completion(_isSuccess),
+        );
+      });
 
-      safeUnawaited(
-        context.tabConnection.runtime.evaluate("sendLog('$message');"),
-      );
+      test('dart:developer logs are correctly converted to log records',
+          () async {
+        final logStream = context.service.onEvent(EventStreams.kLogging);
+        final message = 'myMessage';
 
-      final event = await stream.first;
-      expect(event.kind, EventKind.kLogging);
+        safeUnawaited(
+          context.tabConnection.runtime.evaluate("sendLog('$message');"),
+        );
 
-      final logRecord = event.logRecord!;
-      expect(logRecord.message!.valueAsString, message);
-      expect(logRecord.loggerName!.valueAsString, 'testLogCategory');
+        final event = await logStream.first;
+        expect(event.kind, EventKind.kLogging);
+
+        final logRecord = event.logRecord!;
+        expect(logRecord.message!.valueAsString, message);
+        expect(logRecord.loggerName!.valueAsString, 'testLogCategory');
+      });
+
+      test('long dart:developer log messages are not truncated', () async {
+        final logStream = context.service.onEvent(EventStreams.kLogging);
+        final longMessage =
+            'A very long log message that Chrome truncates by default and '
+            'requires users to expand in order to see the entire message.';
+        safeUnawaited(
+          context.tabConnection.runtime.evaluate("sendLog('$longMessage');"),
+        );
+
+        final event = await logStream.first;
+        expect(event.logRecord!.message!.valueAsString, longMessage);
+      });
     });
   });
 }

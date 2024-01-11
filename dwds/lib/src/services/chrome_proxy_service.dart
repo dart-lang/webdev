@@ -1363,8 +1363,6 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
 
       final args = event.args;
       final firstArgValue = (args.isNotEmpty ? args[0].value : null) as String?;
-      // TODO(nshahan) - Migrate 'inspect' and 'log' events to the injected
-      // client communication approach as well?
       switch (firstArgValue) {
         case 'dart.developer.inspect':
           // All inspected objects should be real objects.
@@ -1383,7 +1381,13 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
           );
           break;
         case 'dart.developer.log':
-          await _handleDeveloperLog(isolateRef, event);
+          await _handleDeveloperLog(isolateRef, event).catchError(
+            (error, stackTrace) => _logger.warning(
+              'Error handling developer log:',
+              error,
+              stackTrace,
+            ),
+          );
           break;
         default:
           break;
@@ -1402,12 +1406,13 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     ConsoleAPIEvent event,
   ) async {
     final logObject = event.params?['args'][1] as Map?;
-    final logParams = <String, RemoteObject>{};
-    for (dynamic obj in logObject?['preview']?['properties'] ?? {}) {
-      if (obj['name'] != null && obj is Map<String, dynamic>) {
-        logParams[obj['name'] as String] = RemoteObject(obj);
-      }
-    }
+    final objectId = logObject?['objectId'];
+    // Always attempt to fetch the full properties instead of relying on
+    // `RemoteObject.preview` which only has truncated log messages:
+    // https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-RemoteObject
+    final logParams = objectId != null
+        ? await _fetchFullLogParams(objectId, logObject: logObject)
+        : _fetchAbbreviatedLogParams(logObject);
 
     final logRecord = LogRecord(
       message: await _instanceRef(logParams['message']),
@@ -1434,6 +1439,37 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
         ..logRecord = logRecord
         ..timestamp = event.timestamp.toInt(),
     );
+  }
+
+  Future<Map<String, RemoteObject>> _fetchFullLogParams(
+    String objectId, {
+    required Map? logObject,
+  }) async {
+    final logParams = <String, RemoteObject>{};
+    for (final property in await inspector.getProperties(objectId)) {
+      final name = property.name;
+      final value = property.value;
+      if (name != null && value != null) {
+        logParams[name] = value;
+      }
+    }
+
+    // If for some reason we don't get the full log params, then return the
+    // abbreviated version instead:
+    if (logParams.isEmpty) {
+      return _fetchAbbreviatedLogParams(logObject);
+    }
+    return logParams;
+  }
+
+  Map<String, RemoteObject> _fetchAbbreviatedLogParams(Map? logObject) {
+    final logParams = <String, RemoteObject>{};
+    for (dynamic property in logObject?['preview']?['properties'] ?? []) {
+      if (property is Map<String, dynamic> && property['name'] != null) {
+        logParams[property['name'] as String] = RemoteObject(property);
+      }
+    }
+    return logParams;
   }
 
   @override
