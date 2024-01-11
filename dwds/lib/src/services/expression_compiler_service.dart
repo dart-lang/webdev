@@ -89,7 +89,7 @@ class _Compiler {
       '--asset-server-port',
       '$port',
       '--module-format',
-      compilerOptions.moduleFormat,
+      compilerOptions.moduleFormat.name,
       if (verbose) '--verbose',
       compilerOptions.soundNullSafety
           ? '--sound-null-safety'

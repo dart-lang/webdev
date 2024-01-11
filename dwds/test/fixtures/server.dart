@@ -9,7 +9,7 @@ import 'package:dwds/asset_reader.dart';
 import 'package:dwds/dart_web_debug_service.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/loaders/require.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
@@ -39,15 +39,8 @@ class TestServer {
     this._server,
     this.dwds,
     this.buildResults,
-    bool autoRun,
     this.assetReader,
-  ) {
-    if (autoRun) {
-      dwds.connectedApps.listen((connection) {
-        connection.runMain();
-      });
-    }
-  }
+  );
 
   String get host => _server.address.host;
   int get port => _server.port;
@@ -62,11 +55,10 @@ class TestServer {
     required AppMetadata appMetadata,
     required Handler assetHandler,
     required AssetReader assetReader,
-    required RequireStrategy strategy,
+    required LoadStrategy strategy,
     required String target,
     required Stream<daemon.BuildResults> buildResults,
     required Future<ChromeConnection> Function() chromeConnection,
-    required bool autoRun,
     int? port,
   }) async {
     var pipeline = const Pipeline();
@@ -121,7 +113,6 @@ class TestServer {
       server,
       dwds,
       filteredBuildResults,
-      autoRun,
       assetReader,
     );
   }

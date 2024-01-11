@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/sdk_configuration.dart';
 import 'package:logging/logging.dart';
 
@@ -25,6 +26,7 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
 
   final bool _verbose;
   final bool canaryFeatures;
+  final ModuleFormat ddcModuleFormat;
   late final Directory _sdkDirectory;
   SdkConfiguration? _configuration;
 
@@ -33,6 +35,7 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
   TestSdkConfigurationProvider({
     this.canaryFeatures = false,
     bool verbose = false,
+    this.ddcModuleFormat = ModuleFormat.amd,
   }) : _verbose = verbose {
     _sdkDirectory = Directory.systemTemp.createTempSync('sdk copy');
     sdkLayout = TestSdkLayout.createDefault(_sdkDirectory.path);
@@ -62,6 +65,7 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
         sdkLayout: sdkLayout,
         canaryFeatures: canaryFeatures,
         verbose: _verbose,
+        ddcModuleFormat: ddcModuleFormat,
       );
 
       await assetGenerator.generateSdkAssets();

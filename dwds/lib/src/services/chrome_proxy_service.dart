@@ -187,7 +187,7 @@ class ChromeProxyService implements VmServiceInterface {
         'with sound null safety: $soundNullSafety');
 
     final compilerOptions = CompilerOptions(
-      moduleFormat: moduleFormat,
+      moduleFormat: ModuleFormat.values.byName(moduleFormat),
       soundNullSafety: soundNullSafety,
       canaryFeatures: canaryFeatures,
       experiments: experiments,

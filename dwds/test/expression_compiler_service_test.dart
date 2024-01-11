@@ -80,7 +80,7 @@ void main() async {
       );
 
       final compilerOptions = CompilerOptions(
-        moduleFormat: 'amd',
+        moduleFormat: ModuleFormat.amd,
         soundNullSafety: true,
         canaryFeatures: false,
         experiments: const <String>[],
