@@ -43,6 +43,16 @@ extension RequireLoaderExtension on RequireLoader {
   );
 }
 
+extension RequireExtension on JSFunction {
+  JSObject get sdk => callAsFunction(null, 'dart-sdk'.toJS) as JSObject;
+}
+
+extension SDK on JSObject {
+  JSObject get dart => this['dart'] as JSObject;
+  JSObject get developer => this['developer'] as JSObject;
+  JSObject get extensions => developer['_extensions'] as JSObject;
+}
+
 class HotReloadFailedException implements Exception {
   final String _s;
 
@@ -70,10 +80,10 @@ class RequireRestarter implements Restarter {
 
   @override
   Future<bool> restart({String? runId}) async {
-    final sdk = require.callAsFunction(null, 'dart_sdk'.toJS) as JSObject;
-    final dart = sdk['dart'] as JSObject;
-    final developer = sdk['developer'] as JSObject;
-    final extensions = developer['_extensions'] as JSObject;
+    final sdk = require.sdk;
+    final dart = sdk.dart;
+    final developer = sdk.developer;
+    final extensions = sdk.extensions;
 
     if (extensions
         .callMethod(
@@ -162,8 +172,8 @@ class RequireRestarter implements Restarter {
   /// Returns `true` if the reload was fully handled, `false` if it failed
   /// explicitly, or `null` for an unhandled reload.
   Future<bool> _reload(List<String> modules) async {
-    final sdk = require.callAsFunction(null, 'dart_sdk'.toJS) as JSObject;
-    final dart = sdk['dart'] as JSObject;
+    final sdk = require.sdk;
+    final dart = sdk.dart;
 
     // As function is async, it can potentially be called second time while
     // first invocation is still running. In this case just mark as dirty and
