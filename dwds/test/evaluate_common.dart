@@ -699,14 +699,18 @@ void testAll({
           return isolate.rootLib!.id!;
         }
 
-        test('RecordType getters', () async {
-          final libraryId = getRootLibraryId();
+        test(
+          'RecordType getters',
+          () async {
+            final libraryId = getRootLibraryId();
 
-          final type = await getInstanceRef(libraryId, '(0,1).runtimeType');
-          final result = await getInstanceRef(type.id, 'hashCode');
+            final type = await getInstanceRef(libraryId, '(0,1).runtimeType');
+            final result = await getInstanceRef(type.id, 'hashCode');
 
-          expect(result, matchInstanceRefKind('Double'));
-        }, skip: 'https://github.com/dart-lang/sdk/issues/54609');
+            expect(result, matchInstanceRefKind('Double'));
+          },
+          skip: 'https://github.com/dart-lang/sdk/issues/54609',
+        );
 
         test('Object getters', () async {
           final libraryId = getRootLibraryId();
