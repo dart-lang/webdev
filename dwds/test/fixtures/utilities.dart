@@ -242,6 +242,7 @@ class TestSettings {
 
   // Build settings.
   final CompilationMode compilationMode;
+  final ModuleFormat moduleFormat;
   final bool canaryFeatures;
   final bool isFlutterApp;
   final List<String> experiments;
@@ -255,6 +256,7 @@ class TestSettings {
     this.verboseCompiler = false,
     this.launchChrome = true,
     this.compilationMode = CompilationMode.buildDaemon,
+    this.moduleFormat = ModuleFormat.amd,
     this.canaryFeatures = false,
     this.isFlutterApp = false,
     this.experiments = const <String>[],
@@ -296,8 +298,8 @@ class TestCompilerOptions extends CompilerOptions {
     required NullSafety nullSafety,
     required super.canaryFeatures,
     required List<String> experiments,
+    super.moduleFormat = ModuleFormat.amd,
   }) : super(
-          moduleFormat: 'amd',
           soundNullSafety: nullSafety == NullSafety.sound,
           experiments: const <String>[],
         );

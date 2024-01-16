@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,15 +10,16 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/asset_reader.dart';
-import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/build_runner_require.dart';
+import 'package:dwds/src/loaders/frontend_server_legacy.dart';
 import 'package:dwds/src/loaders/frontend_server_require.dart';
-import 'package:dwds/src/loaders/require.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/server.dart';
@@ -204,7 +206,7 @@ class TestContext {
       ExpressionCompiler? expressionCompiler;
       AssetReader assetReader;
       Stream<BuildResults> buildResults;
-      RequireStrategy requireStrategy;
+      LoadStrategy loadStrategy;
       String basePath = '';
       String filePathToServe = project.filePathToServe;
 
@@ -268,7 +270,7 @@ class TestContext {
               expressionCompiler = ddcService;
             }
 
-            requireStrategy = BuildRunnerRequireStrategyProvider(
+            loadStrategy = BuildRunnerRequireStrategyProvider(
               assetHandler,
               testSettings.reloadConfiguration,
               assetReader,
@@ -301,6 +303,7 @@ class TestContext {
               nullSafety: project.nullSafety,
               experiments: buildSettings.experiments,
               canaryFeatures: buildSettings.canaryFeatures,
+              moduleFormat: testSettings.moduleFormat,
             );
 
             _webRunner = ResidentWebRunner(
@@ -332,14 +335,25 @@ class TestContext {
             basePath = webRunner.devFS.assetServer.basePath;
             assetReader = webRunner.devFS.assetServer;
             _assetHandler = webRunner.devFS.assetServer.handleRequest;
-            requireStrategy = FrontendServerRequireStrategyProvider(
-              testSettings.reloadConfiguration,
-              assetReader,
-              packageUriMapper,
-              () async => {},
-              buildSettings,
-            ).strategy;
-
+            loadStrategy = switch (testSettings.moduleFormat) {
+              ModuleFormat.amd => FrontendServerRequireStrategyProvider(
+                  testSettings.reloadConfiguration,
+                  assetReader,
+                  packageUriMapper,
+                  () async => {},
+                  buildSettings,
+                ).strategy,
+              ModuleFormat.ddc => FrontendServerLegacyStrategyProvider(
+                  testSettings.reloadConfiguration,
+                  assetReader,
+                  packageUriMapper,
+                  () async => {},
+                  buildSettings,
+                ).strategy,
+              _ => throw Exception(
+                  'Unsupported DDC module format ${testSettings.moduleFormat.name}.',
+                )
+            };
             buildResults = const Stream<BuildResults>.empty();
           }
           break;
@@ -380,6 +394,11 @@ class TestContext {
           ),
         );
       }
+
+      // The debugger tab must be enabled and connected before certain
+      // listeners in DWDS or `main` is run.
+      final tabConnectionCompleter = Completer();
+      final appConnectionCompleter = Completer();
       final connection = ChromeConnection('localhost', debugPort);
 
       _testServer = await TestServer.start(
@@ -389,12 +408,26 @@ class TestContext {
         port: port,
         assetHandler: assetHandler,
         assetReader: assetReader,
-        strategy: requireStrategy,
+        strategy: loadStrategy,
         target: project.directoryToServe,
         buildResults: buildResults,
         chromeConnection: () async => connection,
-        autoRun: testSettings.autoRun,
       );
+
+      _testServer!.dwds.connectedApps.listen((connection) async {
+        // Ensure that we've established a tab connection before running main.
+        await tabConnectionCompleter.future;
+        if (testSettings.autoRun) {
+          connection.runMain();
+        }
+
+        // We may reuse the app connection, so only save it the first time
+        // it's encountered.
+        if (!appConnectionCompleter.isCompleted) {
+          appConnection = connection;
+          appConnectionCompleter.complete();
+        }
+      });
 
       _appUrl = basePath.isEmpty
           ? 'http://localhost:$port/$filePathToServe'
@@ -406,7 +439,9 @@ class TestContext {
         if (tab != null) {
           _tabConnection = await tab.connect();
           await tabConnection.runtime.enable();
-          await tabConnection.debugger.enable();
+          await tabConnection.debugger
+              .enable()
+              .then((_) => tabConnectionCompleter.complete());
         } else {
           throw StateError('Unable to connect to tab.');
         }
@@ -417,10 +452,13 @@ class TestContext {
           await extensionConnection.runtime.enable();
         }
 
-        appConnection = await testServer.dwds.connectedApps.first;
+        await appConnectionCompleter.future;
         if (debugSettings.enableDebugging && !testSettings.waitToDebug) {
           await startDebugging();
         }
+      } else {
+        // No tab needs to be dicovered, so fulfill the relevant completer.
+        tabConnectionCompleter.complete();
       }
     } catch (e, s) {
       _logger.severe('Failed to setup the service, $e:$s');

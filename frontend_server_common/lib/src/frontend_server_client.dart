@@ -394,6 +394,8 @@ class ResidentCompiler {
         '--enable-experiment=$experiment',
       if (compilerOptions.canaryFeatures) '--dartdevc-canary',
       if (verbose) '--verbose',
+      if (compilerOptions.moduleFormat == ModuleFormat.ddc)
+        '--dartdevc-module-format=ddc'
     ];
 
     _logger.info(args.join(' '));

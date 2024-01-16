@@ -71,6 +71,7 @@ void testAll({
         await context.setUp(
           testSettings: TestSettings(
             compilationMode: compilationMode,
+            moduleFormat: provider.ddcModuleFormat,
             enableExpressionEvaluation: true,
             useDebuggerModuleNames: useDebuggerModuleNames,
             verboseCompiler: debug,
@@ -821,6 +822,7 @@ void testAll({
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
+          moduleFormat: provider.ddcModuleFormat,
           enableExpressionEvaluation: false,
           verboseCompiler: debug,
         ),
