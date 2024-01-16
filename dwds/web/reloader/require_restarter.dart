@@ -81,13 +81,12 @@ class RequireRestarter implements Restarter {
           'ext.flutter.disassemble'.toJS,
         )
         .dartify() as bool) {
-      await (developer
-          .callMethod(
-            'invokeExtension'.toJS,
-            'ext.flutter.disassemble'.toJS,
-            '{}'.toJS,
-          )
-          .dartify() as Future<Object?>);
+      await (developer.callMethod(
+        'invokeExtension'.toJS,
+        'ext.flutter.disassemble'.toJS,
+        '{}'.toJS,
+      ) as JSPromise)
+          .toDart;
     }
 
     final newDigests = await _getDigests();
