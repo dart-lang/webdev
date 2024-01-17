@@ -30,6 +30,8 @@ enum CiderMessageType {
   error,
   inspectorUrlResponse,
   inspectorUrlRequest,
+  ping,
+  pong,
   startDebugResponse,
   startDebugRequest,
   stopDebugResponse,
@@ -123,6 +125,8 @@ Future<void> _handleMessageFromCider(dynamic message, Port _) async {
     await _stopDebugging(appId: messageBody);
   } else if (messageType == CiderMessageType.inspectorUrlRequest.name) {
     await _sendInspectorUrl(appId: messageBody);
+  } else if (messageType == CiderMessageType.ping.name) {
+    sendMessageToCider(messageType: CiderMessageType.pong);
   }
 }
 
