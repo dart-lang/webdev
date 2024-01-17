@@ -105,7 +105,6 @@ void _sendMessageToCider(String json) {
 }
 
 Future<void> _handleMessageFromCider(dynamic message, Port _) async {
-  debugLog('Received message from Cider $message');
   final key = getProperty(message, 'key');
   final json = getProperty(message, 'json');
   if (key != _ciderDartMessageKey || json is! String) {
@@ -120,8 +119,6 @@ Future<void> _handleMessageFromCider(dynamic message, Port _) async {
   final messageType = decoded['messageType'] as String?;
   final messageBody = decoded['messageBody'] as String?;
 
-  debugLog('Message type is $messageType');
-
   if (messageType == CiderMessageType.startDebugRequest.name) {
     await _startDebugging(appId: messageBody);
   } else if (messageType == CiderMessageType.stopDebugRequest.name) {
@@ -129,7 +126,6 @@ Future<void> _handleMessageFromCider(dynamic message, Port _) async {
   } else if (messageType == CiderMessageType.inspectorUrlRequest.name) {
     await _sendInspectorUrl(appId: messageBody);
   } else if (messageType == CiderMessageType.ping.name) {
-    debugLog('Sending back PONG!');
     sendMessageToCider(messageType: CiderMessageType.pong);
   }
 }
