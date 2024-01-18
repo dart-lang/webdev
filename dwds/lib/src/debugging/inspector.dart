@@ -609,7 +609,7 @@ class AppInspector implements AppInspectorInterface {
     // Filter out any RTI objects from the new DDC type system. See:
     // https://github.com/dart-lang/webdev/issues/2316
     final isRtiObject =
-        property.value?.className?.startsWith('dart_rti') ?? false;
+        property.value?.className?.startsWith('dart_rti.Rti') ?? false;
     return !isRtiObject;
   }
 
