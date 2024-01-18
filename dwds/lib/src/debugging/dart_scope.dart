@@ -63,7 +63,6 @@ Future<List<Property>> visibleVariables({
   }
 
   allProperties.removeWhere((property) {
-    // print('looking at $property');
     final value = property.value;
     if (value == null) return true;
 
@@ -77,7 +76,6 @@ Future<List<Property>> visibleVariables({
     // We should never see a raw JS class. The only case where this happens is a
     // Dart generic function, where the type arguments get passed in as
     // parameters. Hide those.
-    // print('looking at $name');
     return (type == 'function' && description.startsWith('class ')) ||
         previousDdcTemporaryVariableRegExp.hasMatch(name) ||
         ddcTemporaryVariableRegExp.hasMatch(name) ||
