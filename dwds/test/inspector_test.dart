@@ -161,10 +161,6 @@ void main() {
     final names =
         properties.map((p) => p.name).where((x) => x != '__proto__').toList();
     final expected = [
-      if (dartSdkIsAtLeast(
-        newDdcTypeSystemVersion,
-      ))
-        '\$ti',
       '_privateField',
       'abstractField',
       'closure',

@@ -20,11 +20,11 @@ final ddcTemporaryTypeVariableRegExp = RegExp(r'^__t[\$\w*]+$');
 final previousDdcTemporaryVariableRegExp =
     RegExp(r'^(t[0-9]+\$?[0-9]*|__t[\$\w*]+)$');
 
-/// Find the visible Dart properties from a JS Scope Chain, coming from the
+/// Find the visible Dart variables from a JS Scope Chain, coming from the
 /// scopeChain attribute of a Chrome CallFrame corresponding to [frame].
 ///
 /// See chromedevtools.github.io/devtools-protocol/tot/Debugger#type-CallFrame.
-Future<List<Property>> visibleProperties({
+Future<List<Property>> visibleVariables({
   required AppInspectorInterface inspector,
   required WipCallFrame frame,
 }) async {
@@ -63,6 +63,7 @@ Future<List<Property>> visibleProperties({
   }
 
   allProperties.removeWhere((property) {
+    // print('looking at $property');
     final value = property.value;
     if (value == null) return true;
 
@@ -76,6 +77,7 @@ Future<List<Property>> visibleProperties({
     // We should never see a raw JS class. The only case where this happens is a
     // Dart generic function, where the type arguments get passed in as
     // parameters. Hide those.
+    // print('looking at $name');
     return (type == 'function' && description.startsWith('class ')) ||
         previousDdcTemporaryVariableRegExp.hasMatch(name) ||
         ddcTemporaryVariableRegExp.hasMatch(name) ||
