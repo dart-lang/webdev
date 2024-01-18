@@ -117,7 +117,9 @@ class TestInspector {
     ]);
 
     return Map<String, InstanceRef>.fromIterables(
-        getters.map((e) => e.name!), results.map((e) => e as InstanceRef));
+      getters.map((e) => e.name!),
+      results.map((e) => e as InstanceRef),
+    );
   }
 
   Future<InstanceRef> getInstanceRef(
@@ -359,13 +361,11 @@ Object? _getValue(InstanceRef instanceRef) {
 }
 
 final _dartCoreLibrary = 'dart:core';
-final _dartRuntimeLibrary = 'dart:_runtime';
 final _dartInterceptorsLibrary = 'dart:_interceptors';
 final _dartJsHelperLibrary = 'dart:_js_helper';
 final _dartCollectionLibrary = 'dart:collection';
 
 final matchRecordClassName = 'Record';
-final matchRecordTypeClassName = 'RecordType';
 
 /// Match types for old and new type systems.
 /// - Old type system has `dart:_interceptors|List` and `dart:_runtime|_Type`.
