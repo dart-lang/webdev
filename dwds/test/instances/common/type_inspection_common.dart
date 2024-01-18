@@ -7,6 +7,7 @@ import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
+import '../../evaluate_common.dart';
 import '../../fixtures/context.dart';
 import '../../fixtures/project.dart';
 import '../../fixtures/utilities.dart';
@@ -40,6 +41,9 @@ void runTests({
   getDisplayedFields(instanceRef) =>
       testInspector.getDisplayedFields(isolateId, instanceRef);
 
+  getDisplayedGetters(instanceRef) =>
+      testInspector.getDisplayedGetters(isolateId, instanceRef);
+
   getInstanceRef(frame, expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
@@ -55,15 +59,19 @@ void runTests({
   getElements(String instanceId) =>
       testInspector.getElements(isolateId, instanceId);
 
-  final matchTypeObject = {
-    'hashCode': matchPrimitiveInstanceRef(kind: InstanceKind.kDouble),
-    'runtimeType': matchTypeInstanceRef(matchTypeClassName),
+  final matchTypeObjectFields = {
+    '_rti': matchInstanceRefClassName('Rti'),
   };
 
-  final matchDisplayedTypeObject = [
-    matches('[0-9]*'),
-    matchTypeClassName,
-  ];
+  final matchDisplayedTypeObjectFields = {
+    '_rti': 'Instance of \'Rti\'',
+  };
+
+  final matchDisplayedTypeObjectGetters = {
+    'hashCode': matches('[0-9]*'),
+    'runtimeType': matchTypeClassName,
+  };
+
   group('$compilationMode |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
@@ -108,8 +116,18 @@ void runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
-        expect(await getFields(instanceRef, depth: 1), matchTypeObject);
-        expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
+        expect(
+          await getFields(instanceRef, depth: 1),
+          matchTypeObjectFields,
+        );
+        expect(
+          await getDisplayedFields(instanceRef),
+          matchDisplayedTypeObjectFields,
+        );
+        expect(
+          await getDisplayedGetters(instanceRef),
+          matchDisplayedTypeObjectGetters,
+        );
       });
     });
 
@@ -125,8 +143,18 @@ void runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
-        expect(await getFields(instanceRef, depth: 1), matchTypeObject);
-        expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
+        expect(
+          await getFields(instanceRef, depth: 1),
+          matchTypeObjectFields,
+        );
+        expect(
+          await getDisplayedFields(instanceRef),
+          matchDisplayedTypeObjectFields,
+        );
+        expect(
+          await getDisplayedGetters(instanceRef),
+          matchDisplayedTypeObjectGetters,
+        );
       });
     });
 
@@ -142,8 +170,18 @@ void runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
-        expect(await getFields(instanceRef, depth: 1), matchTypeObject);
-        expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
+        expect(
+          await getFields(instanceRef, depth: 1),
+          matchTypeObjectFields,
+        );
+        expect(
+          await getDisplayedFields(instanceRef),
+          matchDisplayedTypeObjectFields,
+        );
+        expect(
+          await getDisplayedGetters(instanceRef),
+          matchDisplayedTypeObjectGetters,
+        );
       });
     });
 
@@ -160,8 +198,15 @@ void runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
-        expect(await getFields(instanceRef, depth: 1), matchTypeObject);
-        expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
+        expect(await getFields(instanceRef, depth: 1), matchTypeObjectFields);
+        expect(
+          await getDisplayedFields(instanceRef),
+          matchDisplayedTypeObjectFields,
+        );
+        expect(
+          await getDisplayedGetters(instanceRef),
+          matchDisplayedTypeObjectGetters,
+        );
       });
     });
 
@@ -177,8 +222,18 @@ void runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
-        expect(await getFields(instanceRef, depth: 1), matchTypeObject);
-        expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
+        expect(
+          await getFields(instanceRef, depth: 1),
+          matchTypeObjectFields,
+        );
+        expect(
+          await getDisplayedFields(instanceRef),
+          matchDisplayedTypeObjectFields,
+        );
+        expect(
+          await getDisplayedGetters(instanceRef),
+          matchDisplayedTypeObjectGetters,
+        );
       });
     });
 
@@ -197,14 +252,18 @@ void runTests({
         );
 
         final classId = instanceRef.classRef!.id;
-        expect(await getObject(classId), matchRecordTypeClass);
+        expect(await getObject(classId), matchTypeClass);
         expect(
           await getFields(instanceRef, depth: 2),
-          {1: matchTypeObject, 2: matchTypeObject},
+          {1: matchTypeObjectFields, 2: matchTypeObjectFields},
         );
         expect(
           await getDisplayedFields(instanceRef),
-          ['int', 'String'],
+          {1: 'int', 2: 'String'},
+        );
+        expect(
+          await getDisplayedGetters(instanceRef),
+          matchDisplayedTypeObjectGetters,
         );
       });
     });
@@ -222,8 +281,15 @@ void runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
-        expect(await getFields(instanceRef, depth: 1), matchTypeObject);
-        expect(await getDisplayedFields(instanceRef), matchDisplayedTypeObject);
+        expect(await getFields(instanceRef, depth: 1), matchTypeObjectFields);
+        expect(
+          await getDisplayedFields(instanceRef),
+          matchDisplayedTypeObjectFields,
+        );
+        expect(
+          await getDisplayedGetters(instanceRef),
+          matchDisplayedTypeObjectGetters,
+        );
       });
     });
   });

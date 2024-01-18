@@ -88,7 +88,7 @@ void runTests({
         expect(await getObject(instanceId), matchRecordTypeInstance(length: 2));
 
         final classId = instanceRef.classRef!.id;
-        expect(await getObject(classId), matchRecordTypeClass);
+        expect(await getObject(classId), matchTypeClass);
       });
     });
 
@@ -136,7 +136,7 @@ void runTests({
         expect(await getObject(instanceId), matchRecordTypeInstance(length: 3));
 
         final classId = instanceRef.classRef!.id;
-        expect(await getObject(classId), matchRecordTypeClass);
+        expect(await getObject(classId), matchTypeClass);
       });
     });
 
@@ -188,7 +188,7 @@ void runTests({
         expect(await getObject(instanceId), matchRecordTypeInstance(length: 3));
 
         final classId = instanceRef.classRef!.id;
-        expect(await getObject(classId), matchRecordTypeClass);
+        expect(await getObject(classId), matchTypeClass);
       });
     });
 
@@ -241,7 +241,7 @@ void runTests({
         expect(await getObject(instanceId), matchRecordTypeInstance(length: 2));
 
         final classId = instanceRef.classRef!.id;
-        expect(await getObject(classId), matchRecordTypeClass);
+        expect(await getObject(classId), matchTypeClass);
       });
     });
 
@@ -299,7 +299,7 @@ void runTests({
         expect(instance, matchRecordTypeInstance(length: 2));
 
         final classId = instanceRef.classRef!.id;
-        expect(await getObject(classId), matchRecordTypeClass);
+        expect(await getObject(classId), matchTypeClass);
       });
     });
 
@@ -336,7 +336,7 @@ void runTests({
         final instance = await getObject(instanceRef.id!);
         final typeClassId = instance.classRef!.id;
 
-        expect(await getObject(typeClassId), matchRecordTypeClass);
+        expect(await getObject(typeClassId), matchTypeClass);
 
         final typeStringRef =
             await getInstanceRef(frame, 'record.runtimeType.toString()');

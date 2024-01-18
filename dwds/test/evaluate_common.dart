@@ -321,7 +321,7 @@ void testAll({
                 await getInstanceRef(event.topFrame!.index!, 'stream');
             final instance = await getInstance(instanceRef);
 
-            expect(instance, matchInstance('_AsBroadcastStream<int>'));
+            expect(instance, matchInstanceClassName('_AsBroadcastStream<int>'));
           });
         });
 
@@ -928,7 +928,14 @@ Matcher matchInstanceRefKind(String kind) =>
 Matcher matchInstanceRef(dynamic value) => isA<InstanceRef>()
     .having((instance) => instance.valueAsString, 'valueAsString', value);
 
-Matcher matchInstance(dynamic className) => isA<Instance>().having(
+Matcher matchInstanceClassName(dynamic className) => isA<Instance>().having(
+      (instance) => instance.classRef!.name,
+      'class name',
+      className,
+    );
+
+Matcher matchInstanceRefClassName(dynamic className) =>
+    isA<InstanceRef>().having(
       (instance) => instance.classRef!.name,
       'class name',
       className,

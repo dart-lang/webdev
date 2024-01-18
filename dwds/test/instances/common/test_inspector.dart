@@ -42,7 +42,7 @@ class TestInspector {
     }
   }
 
-  Future<dynamic> getFields(
+  Future<Map<dynamic, Object?>> getFields(
     String isolateId,
     InstanceRef instanceRef, {
     int? offset,
@@ -87,7 +87,7 @@ class TestInspector {
       depth--;
     }
     if (depth == 0) {
-      return elements == null ? fieldRefs : fieldRefs.values.toList();
+      return fieldRefs;
     }
 
     final fieldValues = <dynamic, Object?>{};
@@ -99,7 +99,25 @@ class TestInspector {
             depth: depth,
           );
     }
-    return elements == null ? fieldValues : fieldValues.values.toList();
+    return fieldValues;
+  }
+
+  Future<Map<String, InstanceRef>> getGetters(
+    String isolateId,
+    InstanceRef instanceRef,
+  ) async {
+    final cls =
+        await service.getObject(isolateId, instanceRef.classRef!.id!) as Class;
+    final getters =
+        cls.functions?.where((f) => f.isGetter ?? false).toList() ?? [];
+
+    final results = await Future.wait([
+      for (var getter in getters)
+        service.evaluate(isolateId, instanceRef.id!, getter.name!),
+    ]);
+
+    return Map<String, InstanceRef>.fromIterables(
+        getters.map((e) => e.name!), results.map((e) => e as InstanceRef));
   }
 
   Future<InstanceRef> getInstanceRef(
@@ -160,7 +178,7 @@ class TestInspector {
       await service.invoke(isolateId, instanceId, 'toString', [])
           as InstanceRef;
 
-  Future<List<String?>> getDisplayedFields(
+  Future<Map<dynamic, String?>> getDisplayedFields(
     String isolateId,
     InstanceRef ref,
   ) async {
@@ -172,7 +190,22 @@ class TestInspector {
         (await getDisplayedRef(isolateId, ref.id!)).valueAsString;
 
     final fields = await Future.wait(fieldRefs.values.map(toStringValue));
-    return fields.toList();
+    return Map<dynamic, String?>.fromIterables(fieldRefs.keys, fields);
+  }
+
+  Future<Map<dynamic, String?>> getDisplayedGetters(
+    String isolateId,
+    InstanceRef ref,
+  ) async {
+    final fieldRefs =
+        await getGetters(isolateId, ref) as Map<dynamic, InstanceRef>;
+
+    Future<String?> toStringValue(InstanceRef ref) async =>
+        ref.valueAsString ??
+        (await getDisplayedRef(isolateId, ref.id!)).valueAsString;
+
+    final fields = await Future.wait(fieldRefs.values.map(toStringValue));
+    return Map<dynamic, String?>.fromIterables(fieldRefs.keys, fields);
   }
 
   Future<List<Instance>> getElements(
@@ -218,7 +251,7 @@ Matcher matchRecordInstanceRef({required int length}) => isA<InstanceRef>()
 Matcher matchRecordTypeInstanceRef({required int length}) => isA<InstanceRef>()
     .having((e) => e.kind, 'kind', InstanceKind.kRecordType)
     .having((e) => e.length, 'length', length)
-    .having((e) => e.classRef!, 'classRef', matchRecordTypeClassRef);
+    .having((e) => e.classRef!, 'classRef', matchTypeClassRef);
 
 Matcher matchTypeInstanceRef(dynamic name) => isA<InstanceRef>()
     .having((e) => e.kind, 'kind', InstanceKind.kType)
@@ -267,7 +300,7 @@ Matcher matchRecordInstance({required int length}) => isA<Instance>()
 Matcher matchRecordTypeInstance({required int length}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kRecordType)
     .having((e) => e.length, 'length', length)
-    .having((e) => e.classRef, 'classRef', matchRecordTypeClassRef);
+    .having((e) => e.classRef, 'classRef', matchTypeClassRef);
 
 Matcher matchTypeStringInstance(dynamic name) =>
     matchPrimitiveInstance(kind: InstanceKind.kString, value: name);
@@ -279,8 +312,6 @@ Matcher matchTypeInstance(dynamic name) => isA<Instance>()
 
 Matcher matchRecordClass =
     matchClass(name: matchRecordClassName, libraryId: _dartCoreLibrary);
-Matcher matchRecordTypeClass =
-    matchClass(name: matchRecordTypeClassName, libraryId: _dartRuntimeLibrary);
 Matcher matchTypeClass =
     matchClass(name: matchTypeClassName, libraryId: _dartCoreLibrary);
 
@@ -290,12 +321,11 @@ Matcher matchClass({dynamic name, String? libraryId}) => isA<Class>()
 
 Matcher matchRecordClassRef =
     matchClassRef(name: matchRecordClassName, libraryId: _dartCoreLibrary);
-Matcher matchRecordTypeClassRef = matchClassRef(
-  name: matchRecordTypeClassName,
-  libraryId: _dartRuntimeLibrary,
+Matcher matchRecordTypeClassRef = matchTypeClassRef;
+Matcher matchTypeClassRef = matchClassRef(
+  name: matchTypeClassName,
+  libraryId: _dartCoreLibrary,
 );
-Matcher matchTypeClassRef =
-    matchClassRef(name: matchTypeClassName, libraryId: _dartCoreLibrary);
 Matcher matchListClassRef(String type) => matchClassRef(
       name: matchListClassName(type),
       libraryId: _matchListLibraryName,
