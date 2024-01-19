@@ -208,7 +208,7 @@ class TestProject {
 
   static const testHotRestart1 = TestProject._(
     packageName: '_test_hot_restart1',
-    packageDirectory: '_testHotRestart1',
+    packageDirectory: '_testHotRestart1Sound',
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
@@ -217,7 +217,7 @@ class TestProject {
 
   static const testHotRestart2 = TestProject._(
     packageName: '_test_hot_restart2',
-    packageDirectory: '_testHotRestart2',
+    packageDirectory: '_testHotRestart2Sound',
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
