@@ -207,7 +207,9 @@ void runTests({
           ['int', 'String'],
         );
       });
-    });
+      },
+      skip: 'https://github.com/dart-lang/webdev/issues/2351',
+    );
 
     test('class type', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {

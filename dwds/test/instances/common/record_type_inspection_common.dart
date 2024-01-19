@@ -89,8 +89,11 @@ void runTests({
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchRecordTypeClass);
-      });
-    });
+          },
+        );
+      },
+      skip: 'https://github.com/dart-lang/webdev/issues/2351',
+    );
 
     test('simple record type elements', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -138,7 +141,9 @@ void runTests({
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchRecordTypeClass);
       });
-    });
+      },
+      skip: 'https://github.com/dart-lang/webdev/issues/2351',
+    );
 
     test('complex record type elements', () async {
       await onBreakPoint('printComplexLocalRecord', (event) async {
@@ -190,7 +195,9 @@ void runTests({
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchRecordTypeClass);
       });
-    });
+      },
+      skip: 'https://github.com/dart-lang/webdev/issues/2351',
+    );
 
     test('complex record type  with named fields elements', () async {
       await onBreakPoint('printComplexNamedLocalRecord', (event) async {
@@ -243,7 +250,9 @@ void runTests({
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchRecordTypeClass);
       });
-    });
+      },
+      skip: 'https://github.com/dart-lang/webdev/issues/2351',
+    );
 
     test('nested record type elements', () async {
       await onBreakPoint('printNestedLocalRecord', (event) async {
@@ -301,7 +310,9 @@ void runTests({
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchRecordTypeClass);
       });
-    });
+      },
+      skip: 'https://github.com/dart-lang/webdev/issues/2351',
+    );
 
     test('nested record type with named fields elements', () async {
       await onBreakPoint('printNestedNamedLocalRecord', (event) async {
@@ -350,6 +361,8 @@ void runTests({
           ),
         );
       });
-    });
+      },
+      skip: 'https://github.com/dart-lang/webdev/issues/2351',
+    );
   });
 }
