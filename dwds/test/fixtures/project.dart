@@ -215,6 +215,8 @@ class TestProject {
     nullSafety: NullSafety.sound,
   );
 
+  /// This series of hot restart tests is divided across multiple packages in
+  /// order to test correctness when only a subset of libraries are updated.
   static const testHotRestart2 = TestProject._(
     packageName: '_test_hot_restart2',
     packageDirectory: '_testHotRestart2Sound',
