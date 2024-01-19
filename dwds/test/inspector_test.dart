@@ -11,7 +11,6 @@ import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
-import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -161,10 +160,6 @@ void main() {
     final names =
         properties.map((p) => p.name).where((x) => x != '__proto__').toList();
     final expected = [
-      if (dartSdkIsAtLeast(
-        newDdcTypeSystemVersion,
-      ))
-        '\$ti',
       '_privateField',
       'abstractField',
       'closure',
