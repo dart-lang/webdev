@@ -20,11 +20,11 @@ final ddcTemporaryTypeVariableRegExp = RegExp(r'^__t[\$\w*]+$');
 final previousDdcTemporaryVariableRegExp =
     RegExp(r'^(t[0-9]+\$?[0-9]*|__t[\$\w*]+)$');
 
-/// Find the visible Dart properties from a JS Scope Chain, coming from the
+/// Find the visible Dart variables from a JS Scope Chain, coming from the
 /// scopeChain attribute of a Chrome CallFrame corresponding to [frame].
 ///
 /// See chromedevtools.github.io/devtools-protocol/tot/Debugger#type-CallFrame.
-Future<List<Property>> visibleProperties({
+Future<List<Property>> visibleVariables({
   required AppInspectorInterface inspector,
   required WipCallFrame frame,
 }) async {
