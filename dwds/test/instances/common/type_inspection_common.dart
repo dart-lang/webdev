@@ -182,31 +182,34 @@ void runTests({
       });
     });
 
-    test('record type', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, "(0,'a').runtimeType");
-        expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
+    test(
+      'record type',
+      () async {
+        await onBreakPoint('printSimpleLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef =
+              await getInstanceRef(frame, "(0,'a').runtimeType");
+          expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
 
-        final instanceId = instanceRef.id!;
-        final instance = await getObject(instanceId);
-        expect(instance, matchRecordTypeInstance(length: 2));
-        expect(
-          await getElements(instanceId),
-          [matchTypeInstance('int'), matchTypeInstance('String')],
-        );
+          final instanceId = instanceRef.id!;
+          final instance = await getObject(instanceId);
+          expect(instance, matchRecordTypeInstance(length: 2));
+          expect(
+            await getElements(instanceId),
+            [matchTypeInstance('int'), matchTypeInstance('String')],
+          );
 
-        final classId = instanceRef.classRef!.id;
-        expect(await getObject(classId), matchRecordTypeClass);
-        expect(
-          await getFields(instanceRef, depth: 2),
-          {1: matchTypeObject, 2: matchTypeObject},
-        );
-        expect(
-          await getDisplayedFields(instanceRef),
-          ['int', 'String'],
-        );
-      });
+          final classId = instanceRef.classRef!.id;
+          expect(await getObject(classId), matchRecordTypeClass);
+          expect(
+            await getFields(instanceRef, depth: 2),
+            {1: matchTypeObject, 2: matchTypeObject},
+          );
+          expect(
+            await getDisplayedFields(instanceRef),
+            ['int', 'String'],
+          );
+        });
       },
       skip: 'https://github.com/dart-lang/webdev/issues/2351',
     );

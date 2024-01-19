@@ -78,17 +78,23 @@ void runTests({
     setUp(() => setCurrentLogWriter(debug: debug));
     tearDown(() => service.resume(isolateId));
 
-    test('simple record type', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
-        final instanceId = instanceRef.id!;
+    test(
+      'simple record type',
+      () async {
+        await onBreakPoint(
+          'printSimpleLocalRecord',
+          (event) async {
+            final frame = event.topFrame!.index!;
+            final instanceRef =
+                await getInstanceRef(frame, 'record.runtimeType');
+            final instanceId = instanceRef.id!;
 
-        expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
-        expect(await getObject(instanceId), matchRecordTypeInstance(length: 2));
+            expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
+            expect(await getObject(instanceId),
+                matchRecordTypeInstance(length: 2));
 
-        final classId = instanceRef.classRef!.id;
-        expect(await getObject(classId), matchRecordTypeClass);
+            final classId = instanceRef.classRef!.id;
+            expect(await getObject(classId), matchRecordTypeClass);
           },
         );
       },
@@ -129,18 +135,21 @@ void runTests({
       });
     });
 
-    test('complex record type', () async {
-      await onBreakPoint('printComplexLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
-        final instanceId = instanceRef.id!;
+    test(
+      'complex record type',
+      () async {
+        await onBreakPoint('printComplexLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+          final instanceId = instanceRef.id!;
 
-        expect(instanceRef, matchRecordTypeInstanceRef(length: 3));
-        expect(await getObject(instanceId), matchRecordTypeInstance(length: 3));
+          expect(instanceRef, matchRecordTypeInstanceRef(length: 3));
+          expect(
+              await getObject(instanceId), matchRecordTypeInstance(length: 3));
 
-        final classId = instanceRef.classRef!.id;
-        expect(await getObject(classId), matchRecordTypeClass);
-      });
+          final classId = instanceRef.classRef!.id;
+          expect(await getObject(classId), matchRecordTypeClass);
+        });
       },
       skip: 'https://github.com/dart-lang/webdev/issues/2351',
     );
@@ -183,18 +192,21 @@ void runTests({
       });
     });
 
-    test('complex record type with named fields ', () async {
-      await onBreakPoint('printComplexNamedLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
-        final instanceId = instanceRef.id!;
+    test(
+      'complex record type with named fields ',
+      () async {
+        await onBreakPoint('printComplexNamedLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+          final instanceId = instanceRef.id!;
 
-        expect(instanceRef, matchRecordTypeInstanceRef(length: 3));
-        expect(await getObject(instanceId), matchRecordTypeInstance(length: 3));
+          expect(instanceRef, matchRecordTypeInstanceRef(length: 3));
+          expect(
+              await getObject(instanceId), matchRecordTypeInstance(length: 3));
 
-        final classId = instanceRef.classRef!.id;
-        expect(await getObject(classId), matchRecordTypeClass);
-      });
+          final classId = instanceRef.classRef!.id;
+          expect(await getObject(classId), matchRecordTypeClass);
+        });
       },
       skip: 'https://github.com/dart-lang/webdev/issues/2351',
     );
@@ -238,18 +250,21 @@ void runTests({
       });
     });
 
-    test('nested record type', () async {
-      await onBreakPoint('printNestedLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
-        final instanceId = instanceRef.id!;
+    test(
+      'nested record type',
+      () async {
+        await onBreakPoint('printNestedLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+          final instanceId = instanceRef.id!;
 
-        expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
-        expect(await getObject(instanceId), matchRecordTypeInstance(length: 2));
+          expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
+          expect(
+              await getObject(instanceId), matchRecordTypeInstance(length: 2));
 
-        final classId = instanceRef.classRef!.id;
-        expect(await getObject(classId), matchRecordTypeClass);
-      });
+          final classId = instanceRef.classRef!.id;
+          expect(await getObject(classId), matchRecordTypeClass);
+        });
       },
       skip: 'https://github.com/dart-lang/webdev/issues/2351',
     );
@@ -297,19 +312,21 @@ void runTests({
       });
     });
 
-    test('nested record type with named fields', () async {
-      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
-        final instanceId = instanceRef.id!;
-        final instance = await getObject(instanceId);
+    test(
+      'nested record type with named fields',
+      () async {
+        await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+          final instanceId = instanceRef.id!;
+          final instance = await getObject(instanceId);
 
-        expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
-        expect(instance, matchRecordTypeInstance(length: 2));
+          expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
+          expect(instance, matchRecordTypeInstance(length: 2));
 
-        final classId = instanceRef.classRef!.id;
-        expect(await getObject(classId), matchRecordTypeClass);
-      });
+          final classId = instanceRef.classRef!.id;
+          expect(await getObject(classId), matchRecordTypeClass);
+        });
       },
       skip: 'https://github.com/dart-lang/webdev/issues/2351',
     );
@@ -340,27 +357,29 @@ void runTests({
       });
     });
 
-    test('nested record type with named fields display', () async {
-      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
-        final instance = await getObject(instanceRef.id!);
-        final typeClassId = instance.classRef!.id;
+    test(
+      'nested record type with named fields display',
+      () async {
+        await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+          final instance = await getObject(instanceRef.id!);
+          final typeClassId = instance.classRef!.id;
 
-        expect(await getObject(typeClassId), matchRecordTypeClass);
+          expect(await getObject(typeClassId), matchRecordTypeClass);
 
-        final typeStringRef =
-            await getInstanceRef(frame, 'record.runtimeType.toString()');
-        final typeStringId = typeStringRef.id!;
+          final typeStringRef =
+              await getInstanceRef(frame, 'record.runtimeType.toString()');
+          final typeStringId = typeStringRef.id!;
 
-        expect(
-          await getObject(typeStringId),
-          matchPrimitiveInstance(
-            kind: InstanceKind.kString,
-            value: '(bool, {(bool, int) inner})',
-          ),
-        );
-      });
+          expect(
+            await getObject(typeStringId),
+            matchPrimitiveInstance(
+              kind: InstanceKind.kString,
+              value: '(bool, {(bool, int) inner})',
+            ),
+          );
+        });
       },
       skip: 'https://github.com/dart-lang/webdev/issues/2351',
     );

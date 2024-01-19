@@ -287,8 +287,7 @@ Matcher matchTypeInstance(dynamic name) => isA<Instance>()
 
 Matcher matchRecordClass =
     matchClass(name: matchRecordClassName, libraryId: _dartCoreLibrary);
-Matcher matchRecordTypeClass =
-    matchClass(
+Matcher matchRecordTypeClass = matchClass(
   name:
       // TODO(https://github.com/dart-lang/webdev/issues/2351) Switch to dev version check.
       dartSdkIsAtLeast('3.4.0-edge.eeec4d36e3ea9b166da277a46f62d7d3b9ce645a')
