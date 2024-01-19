@@ -601,7 +601,16 @@ class AppInspector implements AppInspectorInterface {
     );
     return jsProperties
         .map<Property>((each) => Property(each as Map<String, dynamic>))
+        .where(_isVisibleProperty)
         .toList();
+  }
+
+  bool _isVisibleProperty(Property property) {
+    // Filter out any RTI objects from the new DDC type system. See:
+    // https://github.com/dart-lang/webdev/issues/2316
+    final isRtiObject =
+        property.value?.className?.startsWith('dart_rti.Rti') ?? false;
+    return !isRtiObject;
   }
 
   /// Calculate the number of available elements in the range.

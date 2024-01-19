@@ -93,6 +93,7 @@ class MyTestClass<T> extends MyAbstractClass {
   String hello() => message;
 
   String Function(String) methodWithVariables() {
+    print('Test class is of type $T');
     var local = '$message + something';
     print(local);
     return (String parameter) {
