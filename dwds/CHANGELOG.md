@@ -1,5 +1,7 @@
 ## 23.3.0-wip
 
+- Adding tests for constants in DDC after a hot restart - [#2349](https://github.com/dart-lang/webdev/pull/2349)
+
 ## 23.2.0
 
 - Send untruncated `dart:developer` logs to debugging clients. - [#2333](https://github.com/dart-lang/webdev/pull/2333)
