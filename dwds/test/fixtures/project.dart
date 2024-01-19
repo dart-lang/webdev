@@ -206,6 +206,24 @@ class TestProject {
     nullSafety: NullSafety.sound,
   );
 
+  static const testHotRestart1 = TestProject._(
+    packageName: '_test_hot_restart1',
+    packageDirectory: '_testHotRestart1',
+    webAssetsPath: 'web',
+    dartEntryFileName: 'main.dart',
+    htmlEntryFileName: 'index.html',
+    nullSafety: NullSafety.sound,
+  );
+
+  static const testHotRestart2 = TestProject._(
+    packageName: '_test_hot_restart2',
+    packageDirectory: '_testHotRestart2',
+    webAssetsPath: 'web',
+    dartEntryFileName: 'main.dart',
+    htmlEntryFileName: 'index.html',
+    nullSafety: NullSafety.sound,
+  );
+
   const TestProject._({
     required this.packageName,
     required this.packageDirectory,
@@ -234,4 +252,16 @@ class TestProject {
       workingDirectory: absolutePackageDirectory,
     );
   }
+
+  /// The path to the Dart specified file in the 'lib' directory, e.g,
+  /// "/workstation/webdev/fixtures/_testSound/lib/library.dart":
+  String dartLibFilePath(String dartLibFileName) => absolutePath(
+        pathFromFixtures: p.joinAll(
+          [
+            packageDirectory,
+            'lib',
+            dartLibFileName,
+          ],
+        ),
+      );
 }
