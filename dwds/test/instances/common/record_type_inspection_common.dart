@@ -277,31 +277,35 @@ void runTests({
       skip: 'https://github.com/dart-lang/webdev/issues/2351',
     );
 
-    test('nested record type elements', () async {
-      await onBreakPoint('printNestedLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
-        final instanceId = instanceRef.id!;
+    test(
+      'nested record type elements',
+      () async {
+        await onBreakPoint('printNestedLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+          final instanceId = instanceRef.id!;
 
-        final elements = await getElements(instanceId);
-        expect(
-          elements,
-          [matchTypeInstance('bool'), matchRecordTypeInstance(length: 2)],
-        );
-        expect(
-          await getElements(elements[1].id!),
-          [matchTypeInstance('bool'), matchTypeInstance('int')],
-        );
-        expect(
-          await getDisplayedFields(instanceRef),
-          ['bool', '(bool, int)'],
-        );
-        expect(
-          await getDisplayedFields(elements[1]),
-          ['bool', 'int'],
-        );
-      });
-    });
+          final elements = await getElements(instanceId);
+          expect(
+            elements,
+            [matchTypeInstance('bool'), matchRecordTypeInstance(length: 2)],
+          );
+          expect(
+            await getElements(elements[1].id!),
+            [matchTypeInstance('bool'), matchTypeInstance('int')],
+          );
+          expect(
+            await getDisplayedFields(instanceRef),
+            ['bool', '(bool, int)'],
+          );
+          expect(
+            await getDisplayedFields(elements[1]),
+            ['bool', 'int'],
+          );
+        });
+      },
+      skip: 'https://github.com/dart-lang/webdev/issues/2351',
+    );
 
     test('nested record type display', () async {
       await onBreakPoint('printNestedLocalRecord', (event) async {
@@ -339,31 +343,35 @@ void runTests({
       skip: 'https://github.com/dart-lang/webdev/issues/2351',
     );
 
-    test('nested record type with named fields elements', () async {
-      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
-        final instanceId = instanceRef.id!;
+    test(
+      'nested record type with named fields elements',
+      () async {
+        await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+          final instanceId = instanceRef.id!;
 
-        final elements = await getElements(instanceId);
-        expect(
-          elements,
-          [matchTypeInstance('bool'), matchRecordTypeInstance(length: 2)],
-        );
-        expect(
-          await getElements(elements[1].id!),
-          [matchTypeInstance('bool'), matchTypeInstance('int')],
-        );
-        expect(
-          await getDisplayedFields(instanceRef),
-          ['bool', '(bool, int)'],
-        );
-        expect(
-          await getDisplayedFields(elements[1]),
-          ['bool', 'int'],
-        );
-      });
-    });
+          final elements = await getElements(instanceId);
+          expect(
+            elements,
+            [matchTypeInstance('bool'), matchRecordTypeInstance(length: 2)],
+          );
+          expect(
+            await getElements(elements[1].id!),
+            [matchTypeInstance('bool'), matchTypeInstance('int')],
+          );
+          expect(
+            await getDisplayedFields(instanceRef),
+            ['bool', '(bool, int)'],
+          );
+          expect(
+            await getDisplayedFields(elements[1]),
+            ['bool', 'int'],
+          );
+        });
+      },
+      skip: 'https://github.com/dart-lang/webdev/issues/2351',
+    );
 
     test(
       'nested record type with named fields display',

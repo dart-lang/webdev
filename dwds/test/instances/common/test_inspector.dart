@@ -220,7 +220,8 @@ Matcher matchRecordTypeInstanceRef({required int length}) => isA<InstanceRef>()
     .having(
       (e) => e.kind,
       'kind',
-      // TODO(https://github.com/dart-lang/webdev/issues/2351) Switch to dev version check.
+      // See https://github.com/dart-lang/sdk/commit/67e052d7e996be8ad9d02970117ffef07eab1c77.
+      // TODO() Can't compare edge verisons, wait for this to get to a dev release.
       dartSdkIsAtLeast('3.4.0-edge.eeec4d36e3ea9b166da277a46f62d7d3b9ce645a')
           ? InstanceKind.kType
           : InstanceKind.kRecordType,
@@ -289,7 +290,7 @@ Matcher matchRecordClass =
     matchClass(name: matchRecordClassName, libraryId: _dartCoreLibrary);
 Matcher matchRecordTypeClass = matchClass(
   name:
-      // TODO(https://github.com/dart-lang/webdev/issues/2351) Switch to dev version check.
+      // See https://github.com/dart-lang/sdk/commit/67e052d7e996be8ad9d02970117ffef07eab1c77:
       dartSdkIsAtLeast('3.4.0-edge.eeec4d36e3ea9b166da277a46f62d7d3b9ce645a')
           ? InstanceKind.kType
           : InstanceKind.kRecordType,
