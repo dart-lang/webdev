@@ -8,7 +8,6 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../../evaluate_common.dart';
 import '../../fixtures/context.dart';
 import '../../fixtures/project.dart';
 import '../../fixtures/utilities.dart';
@@ -60,13 +59,9 @@ void runTests({
   getElements(String instanceId) =>
       testInspector.getElements(isolateId, instanceId);
 
-  final matchTypeObjectFields = {
-    '_rti': matchInstanceRefClassName('Rti'),
-  };
+  final matchTypeObjectFields = {};
 
-  final matchDisplayedTypeObjectFields = {
-    '_rti': 'Instance of \'Rti\'',
-  };
+  final matchDisplayedTypeObjectFields = {};
 
   final matchDisplayedTypeObjectGetters = {
     'hashCode': matches('[0-9]*'),

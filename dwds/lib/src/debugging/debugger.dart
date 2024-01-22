@@ -405,7 +405,7 @@ class Debugger extends Domain {
   Future<List<BoundVariable>> variablesFor(WipCallFrame frame) async {
     // TODO(alanknight): Can these be moved to dart_scope.dart?
     final properties =
-        await visibleProperties(inspector: inspector, frame: frame);
+        await visibleVariables(inspector: inspector, frame: frame);
     final boundVariables = await Future.wait(
       properties.map(_boundVariable),
     );

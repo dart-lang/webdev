@@ -9,7 +9,6 @@ import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
-import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
@@ -208,12 +207,6 @@ void main() {
       expect(
         variableNames,
         [
-          // TODO(https://github.com/dart-lang/webdev/issues/2316): Make sure T
-          // doesn't show up here.
-          if (dartSdkIsAtLeast(
-            newDdcTypeSystemVersion,
-          ))
-            'T',
           'closureLocalInsideMethod',
           'local',
           'parameter',
@@ -229,12 +222,6 @@ void main() {
 
       final variableNames = variables.keys.toList()..sort();
       expect(variableNames, [
-        // TODO(https://github.com/dart-lang/webdev/issues/2316): Make sure T
-        // doesn't show up here.
-        if (dartSdkIsAtLeast(
-          newDdcTypeSystemVersion,
-        ))
-          'T',
         'this',
       ]);
     });

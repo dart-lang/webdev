@@ -1,4 +1,8 @@
-## 23.2.0-wip
+## 23.3.0-wip
+
+- Filter out internal type properties from the new DDC type system. - [#2348](https://github.com/dart-lang/webdev/pull/2348)
+
+## 23.2.0
 
 - Send untruncated `dart:developer` logs to debugging clients. - [#2333](https://github.com/dart-lang/webdev/pull/2333)
 - Enabling tests that run with the DDC module system and exposing `utilities/ddc_names.dart` - [#2295](https://github.com/dart-lang/webdev/pull/2295)
