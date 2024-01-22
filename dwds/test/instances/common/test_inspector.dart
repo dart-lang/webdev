@@ -253,7 +253,7 @@ Matcher matchRecordInstanceRef({required int length}) => isA<InstanceRef>()
 Matcher matchRecordTypeInstanceRef({required int length}) => isA<InstanceRef>()
     .having((e) => e.kind, 'kind', InstanceKind.kRecordType)
     .having((e) => e.length, 'length', length)
-    .having((e) => e.classRef!, 'classRef', matchTypeClassRef);
+    .having((e) => e.classRef!, 'classRef', matchRecordTypeClassRef);
 
 Matcher matchTypeInstanceRef(dynamic name) => isA<InstanceRef>()
     .having((e) => e.kind, 'kind', InstanceKind.kType)
@@ -302,7 +302,7 @@ Matcher matchRecordInstance({required int length}) => isA<Instance>()
 Matcher matchRecordTypeInstance({required int length}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kRecordType)
     .having((e) => e.length, 'length', length)
-    .having((e) => e.classRef, 'classRef', matchTypeClassRef);
+    .having((e) => e.classRef, 'classRef', matchRecordTypeClassRef);
 
 Matcher matchTypeStringInstance(dynamic name) =>
     matchPrimitiveInstance(kind: InstanceKind.kString, value: name);
@@ -317,13 +317,28 @@ Matcher matchRecordClass =
 Matcher matchTypeClass =
     matchClass(name: matchTypeClassName, libraryId: _dartCoreLibrary);
 
+/// TODO(annagrin): record type class is reported incorrectly
+/// in ddc https://github.com/dart-lang/sdk/issues/54609,
+/// remove when fixed.
+Matcher matchRecordTypeClass = anyOf(
+  matchTypeClass,
+  matchClass(name: matchRecordTypeClassName, libraryId: _dartRuntimeLibrary),
+);
+
 Matcher matchClass({dynamic name, String? libraryId}) => isA<Class>()
     .having((e) => e.name, 'class name', name)
     .having((e) => e.library, 'library', matchLibraryRef(libraryId));
 
 Matcher matchRecordClassRef =
     matchClassRef(name: matchRecordClassName, libraryId: _dartCoreLibrary);
-Matcher matchRecordTypeClassRef = matchTypeClassRef;
+
+/// TODO(annagrin): record type class is reported incorrectly
+/// in ddc https://github.com/dart-lang/sdk/issues/54609,
+/// remove when fixed.
+Matcher matchRecordTypeClassRef = anyOf(
+  matchTypeClassRef,
+  matchClassRef(name: matchRecordTypeClassName, libraryId: _dartRuntimeLibrary),
+);
 Matcher matchTypeClassRef = matchClassRef(
   name: matchTypeClassName,
   libraryId: _dartCoreLibrary,
@@ -364,14 +379,22 @@ final _dartCoreLibrary = 'dart:core';
 final _dartInterceptorsLibrary = 'dart:_interceptors';
 final _dartJsHelperLibrary = 'dart:_js_helper';
 final _dartCollectionLibrary = 'dart:collection';
+final _dartRuntimeLibrary = 'dart:_runtime';
 
 final matchRecordClassName = 'Record';
 
 /// Match types for old and new type systems.
-/// - Old type system has `dart:_interceptors|List` and `dart:_runtime|_Type`.
-/// - New type system has `dart:_interceptors|JSArray` and `dart:core|Type`.
-/// TODO(annagrin): update when DDC enables new type system.
+/// - Old type system has
+///   - for arrays: `dart:_interceptors|List`
+///   - for type: `dart:_runtime|_Type`.
+/// - New type system has
+///   - for arrays: dart:_interceptors|JSArray`, and
+///   - for type: `dart:core|Type`.
+/// TODO(annagrin): remove old matchers when DDC enables new type system.
+/// TODO(annagrin): `matchTypeClassName` is reported incorrectly
+/// in ddc https://github.com/dart-lang/sdk/issues/54609,
 final matchTypeClassName = anyOf(['Type', '_Type']);
+final matchRecordTypeClassName = 'RecordType';
 
 Matcher matchListClassName(String elementType) =>
     anyOf(['JSArray<$elementType>', 'List<$elementType>']);
