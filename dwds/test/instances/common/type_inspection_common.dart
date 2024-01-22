@@ -5,6 +5,7 @@
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
+import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../../evaluate_common.dart';
@@ -124,12 +125,24 @@ void runTests({
           await getDisplayedFields(instanceRef),
           matchDisplayedTypeObjectFields,
         );
-        expect(
-          await getDisplayedGetters(instanceRef),
-          matchDisplayedTypeObjectGetters,
-        );
       });
     });
+
+    test(
+      'String type getters',
+      () async {
+        await onBreakPoint('printSimpleLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, "'1'.runtimeType");
+
+          expect(
+            await getDisplayedGetters(instanceRef),
+            matchDisplayedTypeObjectGetters,
+          );
+        });
+      },
+      skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),
+    );
 
     test('int type', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -151,12 +164,24 @@ void runTests({
           await getDisplayedFields(instanceRef),
           matchDisplayedTypeObjectFields,
         );
-        expect(
-          await getDisplayedGetters(instanceRef),
-          matchDisplayedTypeObjectGetters,
-        );
       });
     });
+
+    test(
+      'int type getters',
+      () async {
+        await onBreakPoint('printSimpleLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, '1.runtimeType');
+
+          expect(
+            await getDisplayedGetters(instanceRef),
+            matchDisplayedTypeObjectGetters,
+          );
+        });
+      },
+      skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),
+    );
 
     test('list type', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -203,12 +228,25 @@ void runTests({
           await getDisplayedFields(instanceRef),
           matchDisplayedTypeObjectFields,
         );
-        expect(
-          await getDisplayedGetters(instanceRef),
-          matchDisplayedTypeObjectGetters,
-        );
       });
     });
+
+    test(
+      'map type getters',
+      () async {
+        await onBreakPoint('printSimpleLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef =
+              await getInstanceRef(frame, '<int, String>{}.runtimeType');
+
+          expect(
+            await getDisplayedGetters(instanceRef),
+            matchDisplayedTypeObjectGetters,
+          );
+        });
+      },
+      skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),
+    );
 
     test('set type', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -230,12 +268,25 @@ void runTests({
           await getDisplayedFields(instanceRef),
           matchDisplayedTypeObjectFields,
         );
-        expect(
-          await getDisplayedGetters(instanceRef),
-          matchDisplayedTypeObjectGetters,
-        );
       });
     });
+
+    test(
+      'set type getters',
+      () async {
+        await onBreakPoint('printSimpleLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef =
+              await getInstanceRef(frame, '<int>{}.runtimeType');
+
+          expect(
+            await getDisplayedGetters(instanceRef),
+            matchDisplayedTypeObjectGetters,
+          );
+        });
+      },
+      skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),
+    );
 
     test('record type', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -252,7 +303,7 @@ void runTests({
         );
 
         final classId = instanceRef.classRef!.id;
-        expect(await getObject(classId), matchTypeClass);
+        expect(await getObject(classId), matchRecordTypeClass);
         expect(
           await getFields(instanceRef, depth: 2),
           {1: matchTypeObjectFields, 2: matchTypeObjectFields},
@@ -261,12 +312,25 @@ void runTests({
           await getDisplayedFields(instanceRef),
           {1: 'int', 2: 'String'},
         );
-        expect(
-          await getDisplayedGetters(instanceRef),
-          matchDisplayedTypeObjectGetters,
-        );
       });
     });
+
+    test(
+      'record type getters',
+      () async {
+        await onBreakPoint('printSimpleLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef =
+              await getInstanceRef(frame, "(0,'a').runtimeType");
+
+          expect(
+            await getDisplayedGetters(instanceRef),
+            matchDisplayedTypeObjectGetters,
+          );
+        });
+      },
+      skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),
+    );
 
     test('class type', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -286,11 +350,24 @@ void runTests({
           await getDisplayedFields(instanceRef),
           matchDisplayedTypeObjectFields,
         );
-        expect(
-          await getDisplayedGetters(instanceRef),
-          matchDisplayedTypeObjectGetters,
-        );
       });
     });
+
+    test(
+      'class type getters',
+      () async {
+        await onBreakPoint('printSimpleLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef =
+              await getInstanceRef(frame, "Uri.file('').runtimeType");
+
+          expect(
+            await getDisplayedGetters(instanceRef),
+            matchDisplayedTypeObjectGetters,
+          );
+        });
+      },
+      skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),
+    );
   });
 }
