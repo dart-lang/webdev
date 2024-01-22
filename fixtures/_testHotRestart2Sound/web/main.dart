@@ -10,21 +10,12 @@ import 'package:_test_hot_restart2/library2.dart';
 
 class ConstObject {
   const ConstObject();
-  String get text => 'ConstObject, '
+  String get text => 'ConstObject('
       'reloadVariable: $variableToModifyToForceRecompile, '
-      'comparison: ${value1 == value2 ? 'ConstantEqualitySuccess' : 'ConstantEqualityFailure'}';
-}
-
-class ConstObjectWithField {
-  final int? a = null;
-  const ConstObjectWithField();
-  String get text => 'ConstObjectWithField, '
-      'reloadVariable: $variableToModifyToForceRecompile, '
-      'comparison: ${value1 == value2 ? 'ConstantEqualitySuccess' : 'ConstantEqualityFailure'}';
+      '${value1 == value2 ? 'ConstantEqualitySuccess' : 'ConstantEqualityFailure'})';
 }
 
 void main() {
-  document.body!.appendText('Program is running!\n');
-  document.body!.appendText('${const ConstObject().text}\n');
-  document.body!.appendText('${const ConstObjectWithField().text}\n');
+  document.body!.innerHtml =
+      'Program is running!\n${const ConstObject().text}\n';
 }

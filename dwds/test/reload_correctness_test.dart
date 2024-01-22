@@ -72,10 +72,12 @@ void main() {
         await client.streamListen('Isolate');
 
         var source = await context.webDriver.pageSource;
-        expect(source, contains(constantSuccessString));
-        expect(source, isNot(contains(constantFailureString)));
-        expect(source, contains('reloadVariable: 23'));
-        expect(source, isNot(contains('reloadVariable: 45')));
+        expect(
+          source,
+          contains(
+            'ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
+          ),
+        );
 
         await makeEditAndWaitForRebuild();
 
@@ -98,10 +100,12 @@ void main() {
         await eventsDone;
 
         source = await context.webDriver.pageSource;
-        expect(source, contains(constantSuccessString));
-        expect(source, isNot(contains(constantFailureString)));
-        expect(source, contains('reloadVariable: 23'));
-        expect(source, contains('reloadVariable: 45'));
+        expect(
+          source,
+          contains(
+            'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
+          ),
+        );
       });
     },
     timeout: Timeout.factor(2),
@@ -127,18 +131,22 @@ void main() {
 
         test('properly compares constants after hot restart', () async {
           var source = await context.webDriver.pageSource;
-          expect(source, contains(constantSuccessString));
-          expect(source, isNot(contains(constantFailureString)));
-          expect(source, contains('reloadVariable: 23'));
-          expect(source, isNot(contains('reloadVariable: 45')));
+          expect(
+            source,
+            contains(
+              'ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
+            ),
+          );
 
           await makeEditAndWaitForRebuild();
 
           source = await context.webDriver.pageSource;
-          expect(source, contains(constantSuccessString));
-          expect(source, isNot(contains(constantFailureString)));
-          expect(source, contains('reloadVariable: 23'));
-          expect(source, contains('reloadVariable: 45'));
+          expect(
+            source,
+            contains(
+              'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
+            ),
+          );
         });
       });
 
@@ -161,18 +169,22 @@ void main() {
 
         test('properly compares constants after hot restart', () async {
           var source = await context.webDriver.pageSource;
-          expect(source, contains(constantSuccessString));
-          expect(source, isNot(contains(constantFailureString)));
-          expect(source, contains('reloadVariable: 23'));
-          expect(source, isNot(contains('reloadVariable: 45')));
+          expect(
+            source,
+            contains(
+              'ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
+            ),
+          );
 
           await makeEditAndWaitForRebuild();
 
           source = await context.webDriver.pageSource;
-          expect(source, contains(constantSuccessString));
-          expect(source, isNot(contains(constantFailureString)));
-          expect(source, contains('reloadVariable: 23'));
-          expect(source, contains('reloadVariable: 45'));
+          expect(
+            source,
+            contains(
+              'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
+            ),
+          );
         });
       });
     },
