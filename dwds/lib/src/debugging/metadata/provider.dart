@@ -44,6 +44,7 @@ class MetadataProvider {
         'dart:_js_primitives',
         'dart:_metadata',
         'dart:_native_typed_data',
+        'dart:_rti',
         'dart:async',
         'dart:collection',
         'dart:convert',
