@@ -6,6 +6,7 @@
 
 - Send untruncated `dart:developer` logs to debugging clients. - [#2333](https://github.com/dart-lang/webdev/pull/2333)
 - Enabling tests that run with the DDC module system and exposing `utilities/ddc_names.dart` - [#2295](https://github.com/dart-lang/webdev/pull/2295)
+- Fix errors on displaying getters. - [#2343](https://github.com/dart-lang/webdev/pull/2343)
 
 ## 23.1.1
 

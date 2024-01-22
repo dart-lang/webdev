@@ -43,7 +43,7 @@ class TestInspector {
     }
   }
 
-  Future<dynamic> getFields(
+  Future<Map<dynamic, Object?>> getFields(
     String isolateId,
     InstanceRef instanceRef, {
     int? offset,
@@ -88,7 +88,7 @@ class TestInspector {
       depth--;
     }
     if (depth == 0) {
-      return elements == null ? fieldRefs : fieldRefs.values.toList();
+      return fieldRefs;
     }
 
     final fieldValues = <dynamic, Object?>{};
@@ -100,7 +100,27 @@ class TestInspector {
             depth: depth,
           );
     }
-    return elements == null ? fieldValues : fieldValues.values.toList();
+    return fieldValues;
+  }
+
+  Future<Map<String, InstanceRef>> getGetters(
+    String isolateId,
+    InstanceRef instanceRef,
+  ) async {
+    final cls =
+        await service.getObject(isolateId, instanceRef.classRef!.id!) as Class;
+    final getters =
+        cls.functions?.where((f) => f.isGetter ?? false).toList() ?? [];
+
+    final results = await Future.wait([
+      for (var getter in getters)
+        service.evaluate(isolateId, instanceRef.id!, getter.name!),
+    ]);
+
+    return Map<String, InstanceRef>.fromIterables(
+      getters.map((e) => e.name!),
+      results.map((e) => e as InstanceRef),
+    );
   }
 
   Future<InstanceRef> getInstanceRef(
@@ -161,7 +181,7 @@ class TestInspector {
       await service.invoke(isolateId, instanceId, 'toString', [])
           as InstanceRef;
 
-  Future<List<String?>> getDisplayedFields(
+  Future<Map<dynamic, String?>> getDisplayedFields(
     String isolateId,
     InstanceRef ref,
   ) async {
@@ -173,7 +193,22 @@ class TestInspector {
         (await getDisplayedRef(isolateId, ref.id!)).valueAsString;
 
     final fields = await Future.wait(fieldRefs.values.map(toStringValue));
-    return fields.toList();
+    return Map<dynamic, String?>.fromIterables(fieldRefs.keys, fields);
+  }
+
+  Future<Map<dynamic, String?>> getDisplayedGetters(
+    String isolateId,
+    InstanceRef ref,
+  ) async {
+    final fieldRefs =
+        await getGetters(isolateId, ref) as Map<dynamic, InstanceRef>;
+
+    Future<String?> toStringValue(InstanceRef ref) async =>
+        ref.valueAsString ??
+        (await getDisplayedRef(isolateId, ref.id!)).valueAsString;
+
+    final fields = await Future.wait(fieldRefs.values.map(toStringValue));
+    return Map<dynamic, String?>.fromIterables(fieldRefs.keys, fields);
   }
 
   Future<List<Instance>> getElements(
@@ -288,16 +323,16 @@ Matcher matchTypeInstance(dynamic name) => isA<Instance>()
 
 Matcher matchRecordClass =
     matchClass(name: matchRecordClassName, libraryId: _dartCoreLibrary);
-Matcher matchRecordTypeClass = matchClass(
-  name:
-      // See https://github.com/dart-lang/sdk/commit/67e052d7e996be8ad9d02970117ffef07eab1c77:
-      dartSdkIsAtLeast('3.4.0-edge.eeec4d36e3ea9b166da277a46f62d7d3b9ce645a')
-          ? InstanceKind.kType
-          : InstanceKind.kRecordType,
-  libraryId: _dartRuntimeLibrary,
-);
 Matcher matchTypeClass =
     matchClass(name: matchTypeClassName, libraryId: _dartCoreLibrary);
+
+/// TODO(annagrin): record type class is reported incorrectly
+/// in ddc https://github.com/dart-lang/sdk/issues/54609,
+/// remove when fixed.
+Matcher matchRecordTypeClass = anyOf(
+  matchTypeClass,
+  matchClass(name: matchRecordTypeClassName, libraryId: _dartRuntimeLibrary),
+);
 
 Matcher matchClass({dynamic name, String? libraryId}) => isA<Class>()
     .having((e) => e.name, 'class name', name)
@@ -305,12 +340,18 @@ Matcher matchClass({dynamic name, String? libraryId}) => isA<Class>()
 
 Matcher matchRecordClassRef =
     matchClassRef(name: matchRecordClassName, libraryId: _dartCoreLibrary);
-Matcher matchRecordTypeClassRef = matchClassRef(
-  name: matchRecordTypeClassName,
-  libraryId: _dartRuntimeLibrary,
+
+/// TODO(annagrin): record type class is reported incorrectly
+/// in ddc https://github.com/dart-lang/sdk/issues/54609,
+/// remove when fixed.
+Matcher matchRecordTypeClassRef = anyOf(
+  matchTypeClassRef,
+  matchClassRef(name: matchRecordTypeClassName, libraryId: _dartRuntimeLibrary),
 );
-Matcher matchTypeClassRef =
-    matchClassRef(name: matchTypeClassName, libraryId: _dartCoreLibrary);
+Matcher matchTypeClassRef = matchClassRef(
+  name: matchTypeClassName,
+  libraryId: _dartCoreLibrary,
+);
 Matcher matchListClassRef(String type) => matchClassRef(
       name: matchListClassName(type),
       libraryId: _matchListLibraryName,
@@ -344,19 +385,25 @@ Object? _getValue(InstanceRef instanceRef) {
 }
 
 final _dartCoreLibrary = 'dart:core';
-final _dartRuntimeLibrary = 'dart:_runtime';
 final _dartInterceptorsLibrary = 'dart:_interceptors';
 final _dartJsHelperLibrary = 'dart:_js_helper';
 final _dartCollectionLibrary = 'dart:collection';
+final _dartRuntimeLibrary = 'dart:_runtime';
 
 final matchRecordClassName = 'Record';
-final matchRecordTypeClassName = 'RecordType';
 
 /// Match types for old and new type systems.
-/// - Old type system has `dart:_interceptors|List` and `dart:_runtime|_Type`.
-/// - New type system has `dart:_interceptors|JSArray` and `dart:core|Type`.
-/// TODO(annagrin): update when DDC enables new type system.
+/// - Old type system has
+///   - for arrays: `dart:_interceptors|List`
+///   - for type: `dart:_runtime|_Type`.
+/// - New type system has
+///   - for arrays: dart:_interceptors|JSArray`, and
+///   - for type: `dart:core|Type`.
+/// TODO(annagrin): remove old matchers when DDC enables new type system.
+/// TODO(annagrin): `matchTypeClassName` is reported incorrectly
+/// in ddc https://github.com/dart-lang/sdk/issues/54609,
 final matchTypeClassName = anyOf(['Type', '_Type']);
+final matchRecordTypeClassName = 'RecordType';
 
 Matcher matchListClassName(String elementType) =>
     anyOf(['JSArray<$elementType>', 'List<$elementType>']);

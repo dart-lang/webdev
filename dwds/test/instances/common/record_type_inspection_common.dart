@@ -5,6 +5,7 @@
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
+import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../../fixtures/context.dart';
@@ -43,8 +44,16 @@ void runTests({
   getDisplayedFields(InstanceRef ref) =>
       testInspector.getDisplayedFields(isolateId, ref);
 
+  getDisplayedGetters(InstanceRef ref) =>
+      testInspector.getDisplayedGetters(isolateId, ref);
+
   getElements(String instanceId) =>
       testInspector.getElements(isolateId, instanceId);
+
+  final matchDisplayedTypeObjectGetters = {
+    'hashCode': matches('[0-9]*'),
+    'runtimeType': matchTypeClassName,
+  };
 
   group('$compilationMode |', () {
     setUpAll(() async {
@@ -78,30 +87,25 @@ void runTests({
     setUp(() => setCurrentLogWriter(debug: debug));
     tearDown(() => service.resume(isolateId));
 
-    test(
-      'simple record type',
-      () async {
-        await onBreakPoint(
-          'printSimpleLocalRecord',
-          (event) async {
-            final frame = event.topFrame!.index!;
-            final instanceRef =
-                await getInstanceRef(frame, 'record.runtimeType');
-            final instanceId = instanceRef.id!;
+    test('simple record type', () async {
+      await onBreakPoint(
+        'printSimpleLocalRecord',
+        (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+          final instanceId = instanceRef.id!;
 
-            expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
-            expect(
-              await getObject(instanceId),
-              matchRecordTypeInstance(length: 2),
-            );
+          expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
+          expect(
+            await getObject(instanceId),
+            matchRecordTypeInstance(length: 2),
+          );
 
-            final classId = instanceRef.classRef!.id;
-            expect(await getObject(classId), matchRecordTypeClass);
-          },
-        );
-      },
-      skip: 'https://github.com/dart-lang/webdev/issues/2351',
-    );
+          final classId = instanceRef.classRef!.id;
+          expect(await getObject(classId), matchRecordTypeClass);
+        },
+      );
+    });
 
     test('simple record type elements', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -115,10 +119,26 @@ void runTests({
         );
         expect(
           await getDisplayedFields(instanceRef),
-          ['bool', 'int'],
+          {1: 'bool', 2: 'int'},
         );
       });
     });
+
+    test(
+      'simple record type getters',
+      () async {
+        await onBreakPoint('printSimpleLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+
+          expect(
+            await getDisplayedGetters(instanceRef),
+            matchDisplayedTypeObjectGetters,
+          );
+        });
+      },
+      skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),
+    );
 
     test('simple record type display', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -155,7 +175,6 @@ void runTests({
           expect(await getObject(classId), matchRecordTypeClass);
         });
       },
-      skip: 'https://github.com/dart-lang/webdev/issues/2351',
     );
 
     test('complex record type elements', () async {
@@ -174,10 +193,26 @@ void runTests({
         );
         expect(
           await getDisplayedFields(instanceRef),
-          ['bool', 'int', 'IdentityMap<String, int>'],
+          {1: 'bool', 2: 'int', 3: 'IdentityMap<String, int>'},
         );
       });
     });
+
+    test(
+      'complex record type getters',
+      () async {
+        await onBreakPoint('printComplexLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+
+          expect(
+            await getDisplayedGetters(instanceRef),
+            matchDisplayedTypeObjectGetters,
+          );
+        });
+      },
+      skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),
+    );
 
     test('complex record type display', () async {
       await onBreakPoint('printComplexLocalRecord', (event) async {
@@ -196,28 +231,24 @@ void runTests({
       });
     });
 
-    test(
-      'complex record type with named fields ',
-      () async {
-        await onBreakPoint('printComplexNamedLocalRecord', (event) async {
-          final frame = event.topFrame!.index!;
-          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
-          final instanceId = instanceRef.id!;
+    test('complex record type with named fields ', () async {
+      await onBreakPoint('printComplexNamedLocalRecord', (event) async {
+        final frame = event.topFrame!.index!;
+        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+        final instanceId = instanceRef.id!;
 
-          expect(instanceRef, matchRecordTypeInstanceRef(length: 3));
-          expect(
-            await getObject(instanceId),
-            matchRecordTypeInstance(length: 3),
-          );
+        expect(instanceRef, matchRecordTypeInstanceRef(length: 3));
+        expect(
+          await getObject(instanceId),
+          matchRecordTypeInstance(length: 3),
+        );
 
-          final classId = instanceRef.classRef!.id;
-          expect(await getObject(classId), matchRecordTypeClass);
-        });
-      },
-      skip: 'https://github.com/dart-lang/webdev/issues/2351',
-    );
+        final classId = instanceRef.classRef!.id;
+        expect(await getObject(classId), matchRecordTypeClass);
+      });
+    });
 
-    test('complex record type  with named fields elements', () async {
+    test('complex record type with named fields elements', () async {
       await onBreakPoint('printComplexNamedLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
@@ -234,10 +265,26 @@ void runTests({
 
         expect(
           await getDisplayedFields(instanceRef),
-          ['bool', 'int', 'IdentityMap<String, int>'],
+          {1: 'bool', 2: 'int', 'array': 'IdentityMap<String, int>'},
         );
       });
     });
+
+    test(
+      'complex record type with named fields getters',
+      () async {
+        await onBreakPoint('printComplexNamedLocalRecord', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+
+          expect(
+            await getDisplayedGetters(instanceRef),
+            matchDisplayedTypeObjectGetters,
+          );
+        });
+      },
+      skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),
+    );
 
     test('complex record type with named fields display', () async {
       await onBreakPoint('printComplexNamedLocalRecord', (event) async {
@@ -274,37 +321,53 @@ void runTests({
           expect(await getObject(classId), matchRecordTypeClass);
         });
       },
-      skip: 'https://github.com/dart-lang/webdev/issues/2351',
     );
 
+    test('nested record type elements', () async {
+      await onBreakPoint('printNestedLocalRecord', (event) async {
+        final frame = event.topFrame!.index!;
+        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+        final instanceId = instanceRef.id!;
+
+        final elements = await getElements(instanceId);
+        expect(
+          elements,
+          [matchTypeInstance('bool'), matchRecordTypeInstance(length: 2)],
+        );
+        expect(
+          await getElements(elements[1].id!),
+          [matchTypeInstance('bool'), matchTypeInstance('int')],
+        );
+        expect(
+          await getDisplayedFields(instanceRef),
+          {1: 'bool', 2: '(bool, int)'},
+        );
+        expect(
+          await getDisplayedFields(elements[1]),
+          {1: 'bool', 2: 'int'},
+        );
+      });
+    });
+
     test(
-      'nested record type elements',
+      'nested record type getters',
       () async {
         await onBreakPoint('printNestedLocalRecord', (event) async {
           final frame = event.topFrame!.index!;
           final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
-          final instanceId = instanceRef.id!;
+          final elements = await getElements(instanceRef.id!);
 
-          final elements = await getElements(instanceId);
           expect(
-            elements,
-            [matchTypeInstance('bool'), matchRecordTypeInstance(length: 2)],
+            await getDisplayedGetters(instanceRef),
+            matchDisplayedTypeObjectGetters,
           );
           expect(
-            await getElements(elements[1].id!),
-            [matchTypeInstance('bool'), matchTypeInstance('int')],
-          );
-          expect(
-            await getDisplayedFields(instanceRef),
-            ['bool', '(bool, int)'],
-          );
-          expect(
-            await getDisplayedFields(elements[1]),
-            ['bool', 'int'],
+            await getDisplayedGetters(elements[1]),
+            matchDisplayedTypeObjectGetters,
           );
         });
       },
-      skip: 'https://github.com/dart-lang/webdev/issues/2351',
+      skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),
     );
 
     test('nested record type display', () async {
@@ -324,53 +387,67 @@ void runTests({
       });
     });
 
+    test('nested record type with named fields', () async {
+      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+        final frame = event.topFrame!.index!;
+        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+        final instanceId = instanceRef.id!;
+        final instance = await getObject(instanceId);
+
+        expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
+        expect(instance, matchRecordTypeInstance(length: 2));
+
+        final classId = instanceRef.classRef!.id;
+        expect(await getObject(classId), matchRecordTypeClass);
+      });
+    });
+
+    test('nested record type with named fields elements', () async {
+      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+        final frame = event.topFrame!.index!;
+        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+        final instanceId = instanceRef.id!;
+
+        final elements = await getElements(instanceId);
+        expect(
+          elements,
+          [matchTypeInstance('bool'), matchRecordTypeInstance(length: 2)],
+        );
+        expect(
+          await getElements(elements[1].id!),
+          [matchTypeInstance('bool'), matchTypeInstance('int')],
+        );
+        expect(
+          await getDisplayedFields(instanceRef),
+          {1: 'bool', 'inner': '(bool, int)'},
+        );
+
+        expect(
+          await getDisplayedFields(elements[1]),
+          {1: 'bool', 2: 'int'},
+        );
+      });
+    });
+
     test(
-      'nested record type with named fields',
+      'nested record type with named fields getters',
       () async {
         await onBreakPoint('printNestedNamedLocalRecord', (event) async {
           final frame = event.topFrame!.index!;
           final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
-          final instanceId = instanceRef.id!;
-          final instance = await getObject(instanceId);
+          final elements = await getElements(instanceRef.id!);
 
-          expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
-          expect(instance, matchRecordTypeInstance(length: 2));
-
-          final classId = instanceRef.classRef!.id;
-          expect(await getObject(classId), matchRecordTypeClass);
-        });
-      },
-      skip: 'https://github.com/dart-lang/webdev/issues/2351',
-    );
-
-    test(
-      'nested record type with named fields elements',
-      () async {
-        await onBreakPoint('printNestedNamedLocalRecord', (event) async {
-          final frame = event.topFrame!.index!;
-          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
-          final instanceId = instanceRef.id!;
-
-          final elements = await getElements(instanceId);
           expect(
-            elements,
-            [matchTypeInstance('bool'), matchRecordTypeInstance(length: 2)],
+            await getDisplayedGetters(instanceRef),
+            matchDisplayedTypeObjectGetters,
           );
           expect(
-            await getElements(elements[1].id!),
-            [matchTypeInstance('bool'), matchTypeInstance('int')],
-          );
-          expect(
-            await getDisplayedFields(instanceRef),
-            ['bool', '(bool, int)'],
-          );
-          expect(
-            await getDisplayedFields(elements[1]),
-            ['bool', 'int'],
+            await getDisplayedGetters(elements[1]),
+            matchDisplayedTypeObjectGetters,
           );
         });
       },
-      skip: 'https://github.com/dart-lang/webdev/issues/2351',
+      skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),
     );
 
     test(
@@ -397,7 +474,6 @@ void runTests({
           );
         });
       },
-      skip: 'https://github.com/dart-lang/webdev/issues/2351',
     );
   });
 }
