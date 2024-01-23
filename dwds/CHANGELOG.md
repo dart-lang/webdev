@@ -1,4 +1,4 @@
-## 23.3.0-wip
+## 23.3.0
 
 - Filter out internal type properties from the new DDC type system. - [#2348](https://github.com/dart-lang/webdev/pull/2348)
 
