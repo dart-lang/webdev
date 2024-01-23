@@ -1,3 +1,8 @@
+## 23.0.0+1
+
+- Filter out internal type properties from the new DDC type system. - [#2348](https://github.com/dart-lang/webdev/pull/2348)
+- Fix errors on displaying getters when debugging in VS Code. - [#2343](https://github.com/dart-lang/webdev/pull/2343)
+
 ## 23.0.0
 - Restructure `LoadStrategy` to provide build settings. - [#2270](https://github.com/dart-lang/webdev/pull/2270)
 - Add `FrontendServerLegacyStrategyProvider` and update bootstrap generation logic for `LegacyStrategy` - [#2285](https://github.com/dart-lang/webdev/pull/2285)

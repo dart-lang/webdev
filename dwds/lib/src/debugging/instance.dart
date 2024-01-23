@@ -238,29 +238,49 @@ class InstanceHelper extends Domain {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
 
+    final fields = await _getInstanceFields(
+      metaData,
+      remoteObject,
+      offset: offset,
+      count: count,
+    );
+
+    final result = Instance(
+      kind: InstanceKind.kPlainInstance,
+      id: objectId,
+      identityHashCode: remoteObject.objectId.hashCode,
+      classRef: metaData.classRef,
+      fields: fields,
+    );
+    return result;
+  }
+
+  Future<List<BoundField>> _getInstanceFields(
+    ClassMetaData metaData,
+    RemoteObject remoteObject, {
+    int? offset,
+    int? count,
+  }) async {
+    final objectId = remoteObject.objectId;
+    if (objectId == null) throw StateError('Object id is null for instance');
+
     final properties = await inspector.getProperties(
       objectId,
       offset: offset,
       count: count,
       length: metaData.length,
     );
+
     final dartProperties = await _dartFieldsFor(properties, remoteObject);
-    var boundFields = await Future.wait(
+    final boundFields = await Future.wait(
       dartProperties
           .map<Future<BoundField>>((p) => _fieldFor(p, metaData.classRef)),
     );
-    boundFields = boundFields
+
+    return boundFields
         .where((bv) => inspector.isDisplayableObject(bv.value))
         .toList()
       ..sort(_compareBoundFields);
-    final result = Instance(
-      kind: InstanceKind.kPlainInstance,
-      id: objectId,
-      identityHashCode: remoteObject.objectId.hashCode,
-      classRef: metaData.classRef,
-      fields: boundFields,
-    );
-    return result;
   }
 
   int _compareBoundFields(BoundField a, BoundField b) {
@@ -700,7 +720,13 @@ class InstanceHelper extends Domain {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
 
-    final fields = await _typeFields(metaData.classRef, remoteObject);
+    final fields = await _getInstanceFields(
+      metaData,
+      remoteObject,
+      offset: offset,
+      count: count,
+    );
+
     return Instance(
       identityHashCode: objectId.hashCode,
       kind: InstanceKind.kType,
@@ -712,36 +738,6 @@ class InstanceHelper extends Domain {
       count: count,
       fields: fields,
     );
-  }
-
-  /// The field types for a Dart RecordType.
-  ///
-  /// Returns a range of [count] field types, if available, starting from
-  /// the [offset].
-  ///
-  /// If [offset] is `null`, assumes 0 offset.
-  /// If [count] is `null`, return all field types starting from the offset.
-  Future<List<BoundField>> _typeFields(
-    ClassRef classRef,
-    RemoteObject type,
-  ) async {
-    // Present the type as an instance of `core.Type` class and
-    // hide the internal implementation.
-    final expression = _jsRuntimeFunctionCall('getTypeFields(this)');
-
-    final result = await inspector.jsCallFunctionOn(type, expression, []);
-    final hashCodeObject = await inspector.loadField(result, 'hashCode');
-    final runtimeTypeObject = await inspector.loadField(result, 'runtimeType');
-
-    final properties = [
-      Property({'name': 'hashCode', 'value': hashCodeObject}),
-      Property({'name': 'runtimeType', 'value': runtimeTypeObject}),
-    ];
-
-    final boundFields = await Future.wait(
-      properties.map<Future<BoundField>>((p) => _fieldFor(p, classRef)),
-    );
-    return boundFields;
   }
 
   /// Return the available count of elements in the requested range.
