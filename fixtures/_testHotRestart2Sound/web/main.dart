@@ -18,8 +18,8 @@ import 'package:_test_hot_restart2/library2.dart';
 ///   An old 'ConstObject' is returned, which fails to reflect the edited
 ///   'variableToModifyToForceRecompile'.
 /// 2) Clearing constant caches but failing to clear constant containers.
-///   Reloaded constants fail to compare with constants in the cache,
-///   causing 'ConstantEqualityFailure's.
+///   Constants in reloaded modules fail to compare with constants in stale
+///   constant containers, causing 'ConstantEqualityFailure's.
 
 class ConstObject {
   const ConstObject();
