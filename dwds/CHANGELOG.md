@@ -1,13 +1,16 @@
-## 23.3.0-wip
+## 23.4.0-wip
+
+- Migrate injected client code to `package:web`. - [#2306](https://github.com/dart-lang/webdev/pull/2306)
+
+## 23.3.0
 
 - Filter out internal type properties from the new DDC type system. - [#2348](https://github.com/dart-lang/webdev/pull/2348)
-- Migrate injected client code to `package:web`. - [#2306](https://github.com/dart-lang/webdev/pull/2306)
+- Fix errors on displaying getters when debugging in VS Code. - [#2343](https://github.com/dart-lang/webdev/pull/2343)
 
 ## 23.2.0
 
 - Send untruncated `dart:developer` logs to debugging clients. - [#2333](https://github.com/dart-lang/webdev/pull/2333)
 - Enabling tests that run with the DDC module system and exposing `utilities/ddc_names.dart` - [#2295](https://github.com/dart-lang/webdev/pull/2295)
-- Fix errors on displaying getters. - [#2343](https://github.com/dart-lang/webdev/pull/2343)
 
 ## 23.1.1
 
