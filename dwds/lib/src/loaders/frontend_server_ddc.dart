@@ -3,14 +3,14 @@
 // found in the LICENSE file.
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/loaders/legacy.dart';
+import 'package:dwds/src/loaders/ddc.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:path/path.dart' as p;
 
-/// Provides a [LegacyStrategy] suitable for use with Frontend Server.
-class FrontendServerLegacyStrategyProvider {
+/// Provides a [DdcStrategy] suitable for use with Frontend Server.
+class FrontendServerDdcStrategyProvider {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
   final PackageUriMapper _packageUriMapper;
@@ -18,7 +18,7 @@ class FrontendServerLegacyStrategyProvider {
   final String _basePath;
   final BuildSettings _buildSettings;
 
-  late final LegacyStrategy _legacyStrategy = LegacyStrategy(
+  late final DdcStrategy _ddcStrategy = DdcStrategy(
     _configuration,
     _moduleProvider,
     (_) => _digestsProvider(),
@@ -33,7 +33,7 @@ class FrontendServerLegacyStrategyProvider {
     null,
   );
 
-  FrontendServerLegacyStrategyProvider(
+  FrontendServerDdcStrategyProvider(
     this._configuration,
     this._assetReader,
     this._packageUriMapper,
@@ -41,7 +41,7 @@ class FrontendServerLegacyStrategyProvider {
     this._buildSettings,
   ) : _basePath = _assetReader.basePath;
 
-  LegacyStrategy get strategy => _legacyStrategy;
+  DdcStrategy get strategy => _ddcStrategy;
 
   String _removeBasePath(String path) {
     if (_basePath.isEmpty) return path;
