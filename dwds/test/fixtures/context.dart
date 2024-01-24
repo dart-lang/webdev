@@ -504,6 +504,16 @@ class TestContext {
     file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
   }
 
+  void makeEditToDartLibFile({
+    required String libFileName,
+    required String toReplace,
+    required String replaceWith,
+  }) {
+    final file = File(project.dartLibFilePath(libFileName));
+    final fileContents = file.readAsStringSync();
+    file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
+  }
+
   Future<void> waitForSuccessfulBuild({
     Duration? timeout,
     bool propagateToBrowser = false,

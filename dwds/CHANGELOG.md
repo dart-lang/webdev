@@ -1,5 +1,7 @@
 ## 23.4.0-wip
 
+- Adding tests for constants in DDC after a hot restart - [#2349](https://github.com/dart-lang/webdev/pull/2349)
+
 ## 23.3.0
 
 - Filter out internal type properties from the new DDC type system. - [#2348](https://github.com/dart-lang/webdev/pull/2348)
