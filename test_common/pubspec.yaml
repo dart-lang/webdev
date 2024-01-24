@@ -6,7 +6,7 @@ environment:
   sdk: ^3.1.0
 
 dependencies:
-  dwds: any
+  dwds: 23.3.0
   file: ">=6.0.0 <8.0.0"
   logging: ^1.0.1
   path: ^1.8.1
