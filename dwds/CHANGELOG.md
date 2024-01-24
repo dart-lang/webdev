@@ -1,8 +1,9 @@
 ## 23.4.0-wip
 
+- Adding tests for constants in DDC after a hot restart - [#2349](https://github.com/dart-lang/webdev/pull/2349)
+
 ## 23.3.0
 
-- Adding tests for constants in DDC after a hot restart - [#2349](https://github.com/dart-lang/webdev/pull/2349)
 - Filter out internal type properties from the new DDC type system. - [#2348](https://github.com/dart-lang/webdev/pull/2348)
 - Fix errors on displaying getters when debugging in VS Code. - [#2343](https://github.com/dart-lang/webdev/pull/2343)
 
