@@ -14,17 +14,14 @@ import '../run_main.dart';
 import '../web_utils.dart';
 import 'restarter.dart';
 
-@JS(r'$requireLoader')
-external RequireLoader get requireLoader;
-
-@JS(r'$loadModuleConfig')
-external JSFunction get require;
-
 @JS(r'$dartRunMain')
 external set dartRunMain(JSFunction func);
 
 @JS(r'$dartRunMain')
 external JSFunction get dartRunMain;
+
+@JS(r'$requireLoader')
+external RequireLoader get requireLoader;
 
 @anonymous
 @JS()
@@ -43,13 +40,19 @@ extension RequireLoaderExtension on RequireLoader {
   );
 }
 
-extension RequireExtension on JSFunction {
-  JSObject get sdk => callAsFunction(null, 'dart-sdk'.toJS) as JSObject;
-}
+@anonymous
+@JS()
+@staticInterop
+class Sdk {}
 
-extension SDK on JSObject {
-  JSObject get dart => this['dart'] as JSObject;
-  JSObject get developer => this['developer'] as JSObject;
+@JS(r'$loadModuleConfig')
+external Sdk require(String value);
+
+Sdk get sdk => require('dart_sdk');
+
+extension SdkExtension on Sdk {
+  JSObject get dart => (this as JSObject)['dart'] as JSObject;
+  JSObject get developer => (this as JSObject)['developer'] as JSObject;
   JSObject get extensions => developer['_extensions'] as JSObject;
 }
 
@@ -80,7 +83,6 @@ class RequireRestarter implements Restarter {
 
   @override
   Future<bool> restart({String? runId}) async {
-    final sdk = require.sdk;
     final dart = sdk.dart;
     final developer = sdk.developer;
     final extensions = sdk.extensions;
@@ -172,7 +174,6 @@ class RequireRestarter implements Restarter {
   /// Returns `true` if the reload was fully handled, `false` if it failed
   /// explicitly, or `null` for an unhandled reload.
   Future<bool> _reload(List<String> modules) async {
-    final sdk = require.sdk;
     final dart = sdk.dart;
 
     // As function is async, it can potentially be called second time while

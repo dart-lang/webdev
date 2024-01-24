@@ -373,13 +373,13 @@ external String? get dartWorkspaceName;
 
 bool get _isChromium => window.navigator.vendor.contains('Google');
 
-bool? get _isInternalBuild => _toBool(windowContext['\$isInternalBuild']);
+bool? get _isInternalBuild => toDartBool(windowContext['\$isInternalBuild']);
 
-bool? get _isFlutterApp => _toBool(windowContext['\$isFlutterApp']);
+bool? get _isFlutterApp => toDartBool(windowContext['\$isFlutterApp']);
 
-String? get _appId => _toString(windowContext['\$dartAppId']);
+String? get _appId => toDartString(windowContext['\$dartAppId']);
 
-String? get _extensionUrl => _toString(windowContext['\$dartExtensionUri']);
+String? get _extensionUrl => toDartString(windowContext['\$dartExtensionUri']);
 
 String? get _authUrl {
   final extensionUrl = _extensionUrl;
@@ -394,6 +394,3 @@ String? get _authUrl {
       return authUrl.toString();
   }
 }
-
-bool? _toBool(JSAny? object) => (object as JSBoolean?)?.toDart;
-String? _toString(JSAny? object) => (object as JSString?)?.toDart;

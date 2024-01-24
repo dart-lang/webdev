@@ -46,3 +46,6 @@ extension ModuleDependencyGraph on JsMap<JSString, JSArray> {
 
   List<String> parents(String key) => get(key.toJS)?.toDartList() ?? [];
 }
+
+bool? toDartBool(JSAny? object) => (object as JSBoolean?)?.toDart;
+String? toDartString(JSAny? object) => (object as JSString?)?.toDart;
