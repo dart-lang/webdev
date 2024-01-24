@@ -105,7 +105,7 @@ void runTests({
         final frame = event.topFrame!;
         final frameIndex = frame.index!;
         final instanceRef = await getInstanceRef(frameIndex, 'obj');
-        expect(await getFields(instanceRef), [0, 1]);
+        expect(await getFields(instanceRef), {0: 0.0, 1: 1.0});
 
         expect(await getFrameVariables(frame), {
           'obj': matchListInstance(type: 'int'),
