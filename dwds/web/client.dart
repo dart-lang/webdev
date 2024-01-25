@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 3.3
-
-@JS()
-library hot_reload_client;
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
@@ -25,17 +20,16 @@ import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/shared/batched_stream.dart';
 import 'package:dwds/src/sockets.dart';
-import 'package:js/js.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web/helpers.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import 'promise.dart';
 import 'reloader/legacy_restarter.dart';
 import 'reloader/manager.dart';
 import 'reloader/require_restarter.dart';
 import 'run_main.dart';
+import 'web_utils.dart';
 
 const _batchDelayMilliseconds = 1000;
 
@@ -45,31 +39,26 @@ Future<void>? main() {
   return runZonedGuarded(() async {
     await runClient();
   }, (error, stackTrace) {
-    print('''
-Unhandled error detected in the injected client.js script.
-
-You can disable this script in webdev by passing --no-injected-client if it
-is preventing your app from loading, but note that this will also prevent
-all debugging and hot reload/restart functionality from working.
-
-The original error is below, please file an issue at
-https://github.com/dart-lang/webdev/issues/new and attach this output:
-
-$error
-$stackTrace
-''');
+    print('Unhandled error detected in the injected client.js script.'
+        '\nYou can disable this script in webdev by passing --no-injected-client if it'
+        '\nis preventing your app from loading, but note that this will also prevent'
+        '\nall debugging and hot reload/restart functionality from working.'
+        '\nThe original error is below, please file an issue at'
+        '\nhttps://github.com/dart-lang/webdev/issues/new and attach this output:'
+        '\n$error'
+        '\n$stackTrace');
   });
 }
 
 Future<void> runClient() async {
   final appInfo = dartAppInfo..appInstanceId = const Uuid().v1();
 
-  // used by tests and tools
+  // Used by tests and tools.
   dartAppInstanceId = appInfo.appInstanceId;
   dartAppId = appInfo.appId;
 
-  // used by require restarter
-  loadModuleConfig = appInfo.loadModuleConfig as Object Function(String);
+  // Used by the require restarter.
+  loadModuleConfig = appInfo.loadModuleConfig;
 
   // print(
   //   'Injected Client $dartAppInstanceId: '
@@ -79,7 +68,7 @@ Future<void> runClient() async {
 
   final dwdsConnection = DevHandlerConnection(appInfo.devHandlerPath);
 
-  registerEntrypoint = allowInterop((String appName, String entrypointPath) {
+  registerEntrypoint = (String appName, String entrypointPath) {
     if (appInfo.dartEntrypoints.contains(entrypointPath)) return;
     appInfo.dartEntrypoints.add(entrypointPath);
 
@@ -91,7 +80,7 @@ Future<void> runClient() async {
       // );
       dwdsConnection.sendRegisterEntrypointRequest(appName, entrypointPath);
     }
-  });
+  }.toJS;
 
   print('Injected Client $dartAppInstanceId: set registerEntrypoint');
 
@@ -102,22 +91,23 @@ Future<void> runClient() async {
     _ => throw StateError('Unknown module strategy: ${appInfo.moduleStrategy}'),
   };
   final manager = ReloadingManager(dwdsConnection.client, restarter);
-  hotRestartJs = allowInterop((String runId) {
-    return toPromise(manager.hotRestart(runId: runId));
-  });
+
+  hotRestartJs = (String runId) {
+    return manager.hotRestart(runId: runId).toJS;
+  }.toJS;
 
   // Setup debug events
-  emitDebugEvent = allowInterop((String kind, String eventData) {
+  emitDebugEvent = (String kind, String eventData) {
     if (appInfo.emitDebugEvents) {
       dwdsConnection.sendDebugEvent(kind, eventData);
     }
-  });
+  }.toJS;
 
   // Setup registerExtension events
-  emitRegisterEvent = allowInterop(dwdsConnection.sendRegisterEvent);
+  emitRegisterEvent = dwdsConnection.sendRegisterEvent.toJS;
 
   // setup launching devtools
-  launchDevToolsJs = allowInterop(() {
+  launchDevToolsJs = () {
     if (!_isChromium) {
       window.alert(
         'Dart DevTools is only supported on Chromium based browsers.',
@@ -125,21 +115,20 @@ Future<void> runClient() async {
       return;
     }
     dwdsConnection.sendDevToolsRequest(appInfo.appId, appInfo.appInstanceId);
-  });
+  }.toJS;
 
   // Listen to commands from dwds dev handler
   dwdsConnection.client.stream.listen(
     (serialized) async {
       final event = serializers.deserialize(jsonDecode(serialized));
       if (event is BuildResult) {
-        if (appInfo.reloadConfiguration == 'ReloadConfiguration.liveReload') {
-          manager.reloadPage();
-        } else if (appInfo.reloadConfiguration ==
-            'ReloadConfiguration.hotRestart') {
-          await manager.hotRestart();
-        } else if (appInfo.reloadConfiguration ==
-            'ReloadConfiguration.hotReload') {
-          print('Hot reload is currently unsupported. Ignoring change.');
+        switch (appInfo.reloadConfiguration) {
+          case 'ReloadConfiguration.liveReload':
+            manager.reloadPage();
+          case 'ReloadConfiguration.hotRestart':
+            await manager.hotRestart();
+          default:
+            print('Hot reload is currently unsupported. Ignoring change.');
         }
       } else if (event is DevToolsResponse) {
         if (!event.success) {
@@ -169,7 +158,6 @@ Future<void> runClient() async {
     },
   );
 
-  // Launch devtools on key press
   if (appInfo.enableDevToolsLaunch) {
     window.onKeyDown.listen((Event e) {
       if (e is KeyboardEvent &&
@@ -183,7 +171,7 @@ Future<void> runClient() async {
           !e.ctrlKey &&
           !e.metaKey) {
         e.preventDefault();
-        launchDevToolsJs();
+        launchDevToolsJs.callAsFunction();
       }
     });
   }
@@ -420,52 +408,56 @@ class DevHandlerConnection {
   }
 }
 
-// Runtime API. TODO: pull into a separate file.
-
+// Used in extension and tests.
 @JS(r'$dartAppId')
-external String? get dartAppId; // used in extension and tests
+external String? get dartAppId;
 
+// Used in extension and tests.
 @JS(r'$dartAppId')
-external set dartAppId(String? id); // used in extension and tests
+external set dartAppId(String? id);
 
+// Used in extension and tests.
 @JS(r'$dartAppInstanceId')
-external String? get dartAppInstanceId; // used in extension and tests
+external String? get dartAppInstanceId;
 
+// Used in extension and tests.
 @JS(r'$dartAppInstanceId')
-external set dartAppInstanceId(String? id); // used in extension and tests
+external set dartAppInstanceId(String? id);
 
-@JS(r'$loadModuleConfig') // used by require restarter
-external set loadModuleConfig(Object Function(String module) load);
+// Used by require restarter.
+@JS(r'$loadModuleConfig')
+external set loadModuleConfig(JSFunction load);
 
 @JS(r'$dartHotRestartDwds')
-external set hotRestartJs(Promise<bool> Function(String runId) cb);
+external set hotRestartJs(JSFunction cb);
 
 @JS(r'$launchDevTools')
-external void Function() get launchDevToolsJs;
+external JSFunction get launchDevToolsJs;
 
 @JS(r'$launchDevTools')
-external set launchDevToolsJs(void Function() cb);
+external set launchDevToolsJs(JSFunction cb);
 
 @JS(r'$emitDebugEvent')
-external set emitDebugEvent(void Function(String, String) func);
+external set emitDebugEvent(JSFunction func);
 
 @JS(r'$emitRegisterEvent')
-external set emitRegisterEvent(void Function(String) func);
+external set emitRegisterEvent(JSFunction func);
 
 @JS(r'$dartAppInfo')
 external AppInfo get dartAppInfo;
 
 @JS(r'$dartRegisterEntrypoint')
-external set registerEntrypoint(
-  void Function(
-    String appName,
-    String entrypointPath,
-  ) func,
-);
+external set registerEntrypoint(JSFunction func);
 
 bool get _isChromium => window.navigator.vendor.contains('Google');
 
-extension type AppInfo(JSObject object) {
+@anonymous
+@JS()
+@staticInterop
+class AppInfo {}
+
+/// App registration entry.
+extension AppInfoExtension on AppInfo {
   external String get moduleStrategy;
   external String get reloadConfiguration;
   external JSFunction get loadModuleConfig;
@@ -480,13 +472,8 @@ extension type AppInfo(JSObject object) {
   external bool get isFlutterApp;
   external String? get extensionUrl;
   external String get devHandlerPath;
-  external StringList get entrypoints;
+  external JSArray get entrypoints;
   external String? get workspaceName;
 
-  List<String> get dartEntrypoints => entrypoints.toDart;
-}
-
-extension type StringList(JSArray array) {
-  List<String> get toDart =>
-      List<String>.from(array.toDart.map((e) => (e as JSString).toDart));
+  List<String> get dartEntrypoints => entrypoints.toDartList();
 }

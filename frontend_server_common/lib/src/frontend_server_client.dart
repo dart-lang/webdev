@@ -394,11 +394,13 @@ class ResidentCompiler {
         '--enable-experiment=$experiment',
       if (compilerOptions.canaryFeatures) '--dartdevc-canary',
       if (verbose) '--verbose',
+      if (compilerOptions.moduleFormat == ModuleFormat.ddc)
+        '--dartdevc-module-format=ddc'
     ];
 
     _logger.info(args.join(' '));
     final workingDirectory = projectDirectory.toFilePath();
-    _server = await Process.start(sdkLayout.dartPath, args,
+    _server = await Process.start(sdkLayout.dartAotRuntimePath, args,
         workingDirectory: workingDirectory);
 
     var server = _server!;

@@ -96,10 +96,9 @@ class ClassHelper extends Domain {
       throw ChromeDebugException(e.json, evalContents: expression);
     }
 
-    final classDescriptor = result.value as Map<String, dynamic>;
+    final classDescriptor = _mapify(result.value);
     final methodRefs = <FuncRef>[];
-    final methodDescriptors =
-        classDescriptor['methods'] as Map<String, dynamic>;
+    final methodDescriptors = _mapify(classDescriptor['methods']);
     methodDescriptors.forEach((name, descriptor) {
       final methodId = 'methods|$classId|$name';
       methodRefs.add(
@@ -118,7 +117,7 @@ class ClassHelper extends Domain {
     });
     final fieldRefs = <FieldRef>[];
 
-    final fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
+    final fieldDescriptors = _mapify(classDescriptor['fields']);
     fieldDescriptors.forEach((name, descriptor) {
       final classMetaData = ClassMetaData(
         runtimeKind: RuntimeObjectKind.type,
@@ -168,4 +167,7 @@ class ClassHelper extends Domain {
       superClass: superClassRef,
     );
   }
+
+  Map<String, dynamic> _mapify(dynamic map) =>
+      (map as Map<String, dynamic>?) ?? <String, dynamic>{};
 }

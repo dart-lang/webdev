@@ -206,7 +206,12 @@ void main() {
       final variableNames = variables.keys.toList()..sort();
       expect(
         variableNames,
-        ['closureLocalInsideMethod', 'local', 'parameter', 'this'],
+        [
+          'closureLocalInsideMethod',
+          'local',
+          'parameter',
+          'this',
+        ],
       );
     });
 
@@ -216,7 +221,9 @@ void main() {
       await expectDartVariables(variables);
 
       final variableNames = variables.keys.toList()..sort();
-      expect(variableNames, ['this']);
+      expect(variableNames, [
+        'this',
+      ]);
     });
 
     test('variables in extension method', () async {

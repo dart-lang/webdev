@@ -13,6 +13,8 @@ import 'package:js/js.dart';
 import 'chrome_api.dart';
 import 'debug_session.dart';
 import 'logger.dart';
+import 'storage.dart';
+import 'utils.dart';
 
 /// Used to identify messages passed to/from Cider.
 ///
@@ -24,7 +26,12 @@ const _ciderDartMessageKey = 'CIDER_DART';
 /// The types must match those defined by ChromeExtensionMessageType in the
 /// Cider extension.
 enum CiderMessageType {
+  connected,
   error,
+  inspectorUrlResponse,
+  inspectorUrlRequest,
+  ping,
+  pong,
   startDebugResponse,
   startDebugRequest,
   stopDebugResponse,
@@ -50,11 +57,14 @@ Port? _ciderPort;
 /// URIs for Cider are set in the externally_connectable field in the manifest.
 void handleCiderConnectRequest(Port port) {
   if (port.name == _ciderPortName) {
+    debugLog('Received connect request from Cider', verbose: true);
     _ciderPort = port;
 
     port.onMessage.addListener(
       allowInterop(_handleMessageFromCider),
     );
+
+    sendMessageToCider(messageType: CiderMessageType.connected);
   }
 }
 
@@ -113,6 +123,10 @@ Future<void> _handleMessageFromCider(dynamic message, Port _) async {
     await _startDebugging(appId: messageBody);
   } else if (messageType == CiderMessageType.stopDebugRequest.name) {
     await _stopDebugging(appId: messageBody);
+  } else if (messageType == CiderMessageType.inspectorUrlRequest.name) {
+    await _sendInspectorUrl(appId: messageBody);
+  } else if (messageType == CiderMessageType.ping.name) {
+    sendMessageToCider(messageType: CiderMessageType.pong);
   }
 }
 
@@ -124,6 +138,7 @@ Future<void> _startDebugging({String? appId}) async {
   final tabId = _tabId(appId);
   // TODO(https://github.com/dart-lang/webdev/issues/2198): When debugging
   // with Cider, disable debugging with DevTools.
+  debugLog('Attach debugger to Cider', verbose: true);
   await attachDebugger(tabId, trigger: Trigger.cider);
 }
 
@@ -148,6 +163,45 @@ Future<void> _stopDebugging({String? appId}) async {
       errorDetails: 'Unable to detach debugger.',
     );
   }
+}
+
+Future<void> _sendInspectorUrl({String? appId}) async {
+  if (appId == null) {
+    _sendNoAppIdError();
+    return;
+  }
+  final tabId = _tabId(appId);
+  final alreadyDebugging = isActiveDebugSession(tabId);
+  if (!alreadyDebugging) {
+    sendErrorMessageToCider(
+      errorType: CiderErrorType.invalidRequest,
+      errorDetails:
+          'Cannot send the inspector URL before the debugger has been attached.',
+    );
+    return;
+  }
+  final devToolsUri = await fetchStorageObject<String>(
+    type: StorageObject.devToolsUri,
+    tabId: tabId,
+  );
+  if (devToolsUri == null) {
+    sendErrorMessageToCider(
+      errorType: CiderErrorType.internalError,
+      errorDetails: 'Failed to fetch the DevTools URI for the inspector.',
+    );
+    return;
+  }
+  final inspectorUrl = addQueryParameters(
+    devToolsUri,
+    queryParameters: {
+      'embed': 'true',
+      'page': 'inspector',
+    },
+  );
+  sendMessageToCider(
+    messageType: CiderMessageType.inspectorUrlResponse,
+    messageBody: inspectorUrl,
+  );
 }
 
 int _tabId(String appId) {

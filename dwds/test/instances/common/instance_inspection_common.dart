@@ -189,14 +189,32 @@ void runTests({
             final instanceId = instanceRef.id!;
             expect(await getObject(instanceId), matchListInstance(type: 'int'));
 
-            expect(await getFields(instanceRef), [0, 1, 2]);
-            expect(await getFields(instanceRef, offset: 1, count: 0), []);
-            expect(await getFields(instanceRef, offset: 0), [0, 1, 2]);
-            expect(await getFields(instanceRef, offset: 0, count: 1), [0]);
-            expect(await getFields(instanceRef, offset: 1), [1, 2]);
-            expect(await getFields(instanceRef, offset: 1, count: 1), [1]);
-            expect(await getFields(instanceRef, offset: 1, count: 3), [1, 2]);
-            expect(await getFields(instanceRef, offset: 3, count: 3), []);
+            expect(
+              await getFields(instanceRef),
+              {0: 0.0, 1: 1.0, 2: 2.0},
+            );
+            expect(await getFields(instanceRef, offset: 1, count: 0), {});
+            expect(
+              await getFields(instanceRef, offset: 0),
+              {0: 0.0, 1: 1.0, 2: 2.0},
+            );
+            expect(
+              await getFields(instanceRef, offset: 0, count: 1),
+              {0: 0.0},
+            );
+            expect(
+              await getFields(instanceRef, offset: 1),
+              {0: 1.0, 1: 2.0},
+            );
+            expect(
+              await getFields(instanceRef, offset: 1, count: 1),
+              {0: 1.0},
+            );
+            expect(
+              await getFields(instanceRef, offset: 1, count: 3),
+              {0: 1.0, 1: 2.0},
+            );
+            expect(await getFields(instanceRef, offset: 3, count: 3), {});
           });
         });
 
@@ -284,13 +302,28 @@ void runTests({
               matchSetInstance(type: '_HashSet<int>'),
             );
 
-            expect(await getFields(instanceRef), [1, 4, 5, 7]);
-            expect(await getFields(instanceRef, offset: 0), [1, 4, 5, 7]);
-            expect(await getFields(instanceRef, offset: 1, count: 2), [4, 5]);
-            expect(await getFields(instanceRef, offset: 2), [5, 7]);
-            expect(await getFields(instanceRef, offset: 2, count: 10), [5, 7]);
-            expect(await getFields(instanceRef, offset: 1, count: 0), []);
-            expect(await getFields(instanceRef, offset: 10, count: 2), []);
+            expect(
+              await getFields(instanceRef),
+              {0: 1.0, 1: 4.0, 2: 5.0, 3: 7.0},
+            );
+            expect(
+              await getFields(instanceRef, offset: 0),
+              {0: 1.0, 1: 4.0, 2: 5.0, 3: 7.0},
+            );
+            expect(
+              await getFields(instanceRef, offset: 1, count: 2),
+              {0: 4.0, 1: 5.0},
+            );
+            expect(
+              await getFields(instanceRef, offset: 2),
+              {0: 5.0, 1: 7.0},
+            );
+            expect(
+              await getFields(instanceRef, offset: 2, count: 10),
+              {0: 5.0, 1: 7.0},
+            );
+            expect(await getFields(instanceRef, offset: 1, count: 0), {});
+            expect(await getFields(instanceRef, offset: 10, count: 2), {});
           });
         });
 

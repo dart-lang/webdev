@@ -7,6 +7,7 @@
 
 import 'dart:io';
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -40,7 +41,45 @@ void main() {
     });
   });
 
-  group('Test SDK configuration |', () {
+  group('Test SDK configuration | DDC with DDC modules |', () {
+    setCurrentLogWriter(debug: debug);
+    final provider = TestSdkConfigurationProvider(
+        verbose: debug, ddcModuleFormat: ModuleFormat.ddc);
+    tearDownAll(provider.dispose);
+
+    test('Can validate configuration with generated assets', () async {
+      final sdkConfiguration = await provider.configuration;
+      sdkConfiguration.validateSdkDir();
+      sdkConfiguration.validate();
+    });
+
+    test('SDK layout exists', () async {
+      await provider.configuration;
+      final sdkLayout = provider.sdkLayout;
+
+      expect(sdkLayout.sdkDirectory, _directoryExists);
+      expect(sdkLayout.soundDdcJsPath, _fileExists);
+      expect(sdkLayout.soundDdcJsMapPath, _fileExists);
+      expect(sdkLayout.soundSummaryPath, _fileExists);
+      expect(sdkLayout.soundFullDillPath, _fileExists);
+
+      expect(sdkLayout.weakDdcJsPath, _fileExists);
+      expect(sdkLayout.weakDdcJsMapPath, _fileExists);
+      expect(sdkLayout.weakSummaryPath, _fileExists);
+      expect(sdkLayout.weakFullDillPath, _fileExists);
+
+      expect(sdkLayout.ddcModuleLoaderJsPath, _fileExists);
+      expect(sdkLayout.stackTraceMapperPath, _fileExists);
+
+      expect(sdkLayout.dartPath, _fileExists);
+      expect(sdkLayout.frontendServerSnapshotPath, _fileExists);
+      expect(sdkLayout.dartdevcSnapshotPath, _fileExists);
+      expect(sdkLayout.kernelWorkerSnapshotPath, _fileExists);
+      expect(sdkLayout.devToolsDirectory, _directoryExists);
+    });
+  });
+
+  group('Test SDK configuration | DDC with AMD modules |', () {
     setCurrentLogWriter(debug: debug);
     final provider = TestSdkConfigurationProvider(verbose: debug);
     tearDownAll(provider.dispose);
@@ -56,13 +95,13 @@ void main() {
       final sdkLayout = provider.sdkLayout;
 
       expect(sdkLayout.sdkDirectory, _directoryExists);
-      expect(sdkLayout.soundJsPath, _fileExists);
-      expect(sdkLayout.soundJsMapPath, _fileExists);
+      expect(sdkLayout.soundAmdJsPath, _fileExists);
+      expect(sdkLayout.soundAmdJsMapPath, _fileExists);
       expect(sdkLayout.soundSummaryPath, _fileExists);
       expect(sdkLayout.soundFullDillPath, _fileExists);
 
-      expect(sdkLayout.weakJsPath, _fileExists);
-      expect(sdkLayout.weakJsMapPath, _fileExists);
+      expect(sdkLayout.weakAmdJsPath, _fileExists);
+      expect(sdkLayout.weakAmdJsMapPath, _fileExists);
       expect(sdkLayout.weakSummaryPath, _fileExists);
       expect(sdkLayout.weakFullDillPath, _fileExists);
 
@@ -70,6 +109,7 @@ void main() {
       expect(sdkLayout.stackTraceMapperPath, _fileExists);
 
       expect(sdkLayout.dartPath, _fileExists);
+      expect(sdkLayout.dartAotRuntimePath, _fileExists);
       expect(sdkLayout.frontendServerSnapshotPath, _fileExists);
       expect(sdkLayout.dartdevcSnapshotPath, _fileExists);
       expect(sdkLayout.kernelWorkerSnapshotPath, _fileExists);

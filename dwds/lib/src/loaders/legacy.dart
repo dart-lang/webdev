@@ -181,7 +181,11 @@ class LegacyStrategy extends LoadStrategy {
     return '''
 $_baseUrlScript
 var scripts = ${const JsonEncoder.withIndent(" ").convert(scripts)};
-window.\$dartLoader.loadScripts(scripts);
+window.\$dartLoader.loadConfig.loadScriptFn = function(loader) {
+  loader.addScriptsToQueue(scripts, null);
+  loader.loadEnqueuedModules();
+};
+window.\$dartLoader.loader.nextAttempt();
 ''';
   }
 

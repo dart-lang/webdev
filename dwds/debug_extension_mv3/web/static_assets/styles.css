@@ -47,8 +47,16 @@ iframe {
   margin-top: 15px;
 }
 
+.mdl-list {
+  padding-bottom: 0;
+}
+
 .mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent {
   background-color: #0091ea;
+}
+
+.list-footer {
+  background-color: lightgrey;
 }
 
 .dart-card.mdl-card {
@@ -111,6 +119,10 @@ h6 {
   visibility: none;
 }
 
+.small-padding {
+  margin: 0 16px;
+}
+
 @-webkit-keyframes fadein {
   from {
     bottom: 0;
@@ -130,5 +142,36 @@ h6 {
   to {
     bottom: 0px;
     opacity: 1;
+  }
+}
+
+.spinner-overlay {
+  background: #ffffff;
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+}
+
+.spinner:before {
+  animation: spinner 0.9s linear infinite;
+  border: 6px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: #4489ff;
+  box-sizing: border-box;
+  content: "";
+  height: 50px;
+  left: 50%;
+  margin-left: -10px;
+  margin-top: -10px;
+  position: absolute;
+  top: 50%;
+  width: 50px;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
   }
 }

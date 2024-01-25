@@ -73,6 +73,7 @@ void testAll({
         await context.setUp(
           testSettings: TestSettings(
             compilationMode: compilationMode,
+            moduleFormat: provider.ddcModuleFormat,
             enableExpressionEvaluation: true,
             useDebuggerModuleNames: useDebuggerModuleNames,
             verboseCompiler: debug,
@@ -326,7 +327,7 @@ void testAll({
                 await getInstanceRef(event.topFrame!.index!, 'stream');
             final instance = await getInstance(instanceRef);
 
-            expect(instance, matchInstance('_AsBroadcastStream<int>'));
+            expect(instance, matchInstanceClassName('_AsBroadcastStream<int>'));
           });
         });
 
@@ -673,24 +674,24 @@ void testAll({
         tearDown(() async {});
 
         evaluate(
-          libraryId,
+          targetId,
           expr, {
           scope,
         }) async =>
             await context.service.evaluate(
               isolateId,
-              libraryId,
+              targetId,
               expr,
               scope: scope,
             );
 
         getInstanceRef(
-          libraryId,
+          targetId,
           expr, {
           scope,
         }) async {
           final result = await evaluate(
-            libraryId,
+            targetId,
             expr,
             scope: scope,
           );
@@ -703,6 +704,28 @@ void testAll({
           expect(isolate.rootLib!.id, isNotNull);
           return isolate.rootLib!.id!;
         }
+
+        test(
+          'RecordType getters',
+          () async {
+            final libraryId = getRootLibraryId();
+
+            final type = await getInstanceRef(libraryId, '(0,1).runtimeType');
+            final result = await getInstanceRef(type.id, 'hashCode');
+
+            expect(result, matchInstanceRefKind('Double'));
+          },
+          skip: 'https://github.com/dart-lang/sdk/issues/54609',
+        );
+
+        test('Object getters', () async {
+          final libraryId = getRootLibraryId();
+
+          final type = await getInstanceRef(libraryId, 'Object()');
+          final result = await getInstanceRef(type.id, 'hashCode');
+
+          expect(result, matchInstanceRefKind('Double'));
+        });
 
         test('with scope', () async {
           final libraryId = getRootLibraryId();
@@ -767,15 +790,13 @@ void testAll({
           final evaluation2 = evaluate(libraryId, 'MainClass(1,1).toString()');
 
           final results = await Future.wait([evaluation1, evaluation2]);
-
           expect(
             results[0],
-            matchErrorRef(contains('No batch result object ID')),
+            matchErrorRef(
+              contains('Evaluate is called on an unsupported target'),
+            ),
           );
-          expect(
-            results[1],
-            matchErrorRef(contains('No batch result object ID')),
-          );
+          expect(results[1], matchInstanceRef('1, 1'));
         });
 
         test('with scope override', () async {
@@ -827,6 +848,7 @@ void testAll({
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
+          moduleFormat: provider.ddcModuleFormat,
           enableExpressionEvaluation: false,
           verboseCompiler: debug,
         ),
@@ -906,13 +928,20 @@ Future<String> _setBreakpointInInjectedClient(WipDebugger debugger) async {
   return result.json['result']['breakpointId'];
 }
 
-Matcher matchInstanceRef(dynamic value) => isA<InstanceRef>().having(
-      (instance) => instance.valueAsString,
-      'valueAsString',
-      value,
+Matcher matchInstanceRefKind(String kind) =>
+    isA<InstanceRef>().having((instance) => instance.kind, 'kind', kind);
+
+Matcher matchInstanceRef(dynamic value) => isA<InstanceRef>()
+    .having((instance) => instance.valueAsString, 'valueAsString', value);
+
+Matcher matchInstanceClassName(dynamic className) => isA<Instance>().having(
+      (instance) => instance.classRef!.name,
+      'class name',
+      className,
     );
 
-Matcher matchInstance(dynamic className) => isA<Instance>().having(
+Matcher matchInstanceRefClassName(dynamic className) =>
+    isA<InstanceRef>().having(
       (instance) => instance.classRef!.name,
       'class name',
       className,

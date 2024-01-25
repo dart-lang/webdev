@@ -115,7 +115,7 @@ Future<void> attachDebugger(
     forwardErrorsToCider: trigger == Trigger.cider,
   );
   if (!tabIsDebuggable) return;
-
+  debugLog('Attaching to tab $dartAppTabId', verbose: true);
   _tabIdToTrigger[dartAppTabId] = trigger;
   _registerDebugEventListeners();
   chrome.debugger.attach(
@@ -357,6 +357,7 @@ Future<bool> _connectToDwds({
       ? WebSocketClient(WebSocketChannel.connect(uri))
       : SseSocketClient(SseClient(uri.toString(), debugKey: 'DebugExtension'));
   final trigger = _tabIdToTrigger[dartAppTabId];
+  debugLog('Connecting to DWDS...', verbose: true);
   final debugSession = _DebugSession(
     client: client,
     appTabId: dartAppTabId,
@@ -406,11 +407,19 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
       tabId: tabId,
     );
     if (message.method == 'dwds.devtoolsUri') {
-      if (_tabIdToTrigger[tabId] != Trigger.cider) {
+      if (_tabIdToTrigger[tabId] == Trigger.cider) {
+        // Save the DevTools URI so that Cider can request it later:
+        setStorageObject(
+          type: StorageObject.devToolsUri,
+          value: message.params,
+          tabId: tabId,
+        );
+      } else {
         _openDevTools(message.params, dartAppTabId: tabId);
       }
     }
     if (message.method == 'dwds.debugUri') {
+      debugLog('Sending debug URI to Cider ${message.params}', verbose: true);
       sendMessageToCider(
         messageType: CiderMessageType.startDebugResponse,
         messageBody: message.params,

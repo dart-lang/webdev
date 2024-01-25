@@ -199,7 +199,7 @@ class ChromeProxyService implements VmServiceInterface {
         'with sound null safety: $soundNullSafety');
 
     final compilerOptions = CompilerOptions(
-      moduleFormat: moduleFormat,
+      moduleFormat: ModuleFormat.values.byName(moduleFormat),
       soundNullSafety: soundNullSafety,
       canaryFeatures: canaryFeatures,
       experiments: experiments,
@@ -630,7 +630,35 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
           await isCompilerInitialized;
           _checkIsolate('evaluate', isolateId);
 
-          final library = await inspector.getLibrary(targetId);
+          late Obj object;
+          try {
+            object = await inspector.getObject(targetId);
+          } catch (_) {
+            return ErrorRef(
+              kind: 'error',
+              message: 'Evaluate is called on an unsupported target:'
+                  '$targetId',
+              id: createId(),
+            );
+          }
+
+          final library =
+              object is Library ? object : inspector.isolate.rootLib;
+
+          if (object is Instance) {
+            // Evaluate is called on a target - convert this to a dart
+            // expression and scope by adding a target variable to the
+            // expression and the scope, for example:
+            //
+            // Library: 'package:hello_world/main.dart'
+            // Expression: 'hashCode' => 'x.hashCode'
+            // Scope: {} => { 'x' : targetId }
+
+            final target = _newVariableForScope(scope);
+            expression = '$target.$expression';
+            scope = (scope ?? {})..addAll({target: targetId});
+          }
+
           return await _getEvaluationResult(
             isolateId,
             () => evaluator.evaluateExpression(
@@ -643,13 +671,22 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
           );
         }
         throw RPCError(
-          'evaluateInFrame',
+          'evaluate',
           RPCErrorKind.kInvalidRequest.code,
           'Expression evaluation is not supported for this configuration.',
         );
       },
       (result) => DwdsEvent.evaluate(expression, result),
     );
+  }
+
+  String _newVariableForScope(Map<String, String>? scope) {
+    // Find a new variable not in scope.
+    var candidate = 'x';
+    while (scope?.containsKey(candidate) ?? false) {
+      candidate += '\$1';
+    }
+    return candidate;
   }
 
   @override
@@ -1409,8 +1446,6 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
 
       final args = event.args;
       final firstArgValue = (args.isNotEmpty ? args[0].value : null) as String?;
-      // TODO(nshahan) - Migrate 'inspect' and 'log' events to the injected
-      // client communication approach as well?
       switch (firstArgValue) {
         case 'dart.developer.inspect':
           // All inspected objects should be real objects.
@@ -1429,7 +1464,13 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
           );
           break;
         case 'dart.developer.log':
-          await _handleDeveloperLog(isolateRef, event);
+          await _handleDeveloperLog(isolateRef, event).catchError(
+            (error, stackTrace) => _logger.warning(
+              'Error handling developer log:',
+              error,
+              stackTrace,
+            ),
+          );
           break;
         default:
           break;
@@ -1448,12 +1489,13 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     ConsoleAPIEvent event,
   ) async {
     final logObject = event.params?['args'][1] as Map?;
-    final logParams = <String, RemoteObject>{};
-    for (dynamic obj in logObject?['preview']?['properties'] ?? {}) {
-      if (obj['name'] != null && obj is Map<String, dynamic>) {
-        logParams[obj['name'] as String] = RemoteObject(obj);
-      }
-    }
+    final objectId = logObject?['objectId'];
+    // Always attempt to fetch the full properties instead of relying on
+    // `RemoteObject.preview` which only has truncated log messages:
+    // https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-RemoteObject
+    final logParams = objectId != null
+        ? await _fetchFullLogParams(objectId, logObject: logObject)
+        : _fetchAbbreviatedLogParams(logObject);
 
     final logRecord = LogRecord(
       message: await _instanceRef(logParams['message']),
@@ -1480,6 +1522,37 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
         ..logRecord = logRecord
         ..timestamp = event.timestamp.toInt(),
     );
+  }
+
+  Future<Map<String, RemoteObject>> _fetchFullLogParams(
+    String objectId, {
+    required Map? logObject,
+  }) async {
+    final logParams = <String, RemoteObject>{};
+    for (final property in await inspector.getProperties(objectId)) {
+      final name = property.name;
+      final value = property.value;
+      if (name != null && value != null) {
+        logParams[name] = value;
+      }
+    }
+
+    // If for some reason we don't get the full log params, then return the
+    // abbreviated version instead:
+    if (logParams.isEmpty) {
+      return _fetchAbbreviatedLogParams(logObject);
+    }
+    return logParams;
+  }
+
+  Map<String, RemoteObject> _fetchAbbreviatedLogParams(Map? logObject) {
+    final logParams = <String, RemoteObject>{};
+    for (dynamic property in logObject?['preview']?['properties'] ?? []) {
+      if (property is Map<String, dynamic> && property['name'] != null) {
+        logParams[property['name'] as String] = RemoteObject(property);
+      }
+    }
+    return logParams;
   }
 
   @override
