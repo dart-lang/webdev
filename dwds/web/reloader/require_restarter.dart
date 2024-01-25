@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
 
 import 'package:graphs/graphs.dart' as graphs;
 import 'package:web/helpers.dart';
@@ -45,15 +44,64 @@ extension RequireLoaderExtension on RequireLoader {
 @staticInterop
 class Sdk {}
 
+@anonymous
+@JS()
+@staticInterop
+class SdkDeveloper {}
+
+@anonymous
+@JS()
+@staticInterop
+class SdkDart {}
+
+@anonymous
+@JS()
+@staticInterop
+class SdkExt {}
+
+@anonymous
+@JS()
+@staticInterop
+class MainLibrary {}
+
 @JS(r'$loadModuleConfig')
 external Sdk require(String value);
 
 Sdk get sdk => require('dart_sdk');
 
 extension SdkExtension on Sdk {
-  JSObject get dart => (this as JSObject)['dart'] as JSObject;
-  JSObject get developer => (this as JSObject)['developer'] as JSObject;
-  JSObject get extensions => developer['_extensions'] as JSObject;
+  external SdkDart get dart;
+  external SdkDeveloper get developer;
+}
+
+extension SdkDeveloperExtension on SdkDeveloper {
+  external JSPromise<JSString> invokeExtension(String key, String params);
+  external SdkExt get _extensions;
+
+  Future<void> maybeInvokeFlutterDisassemble() async {
+    final method = 'ext.flutter.disassemble';
+    if (_extensions.containsKey(method)) {
+      await invokeExtension(method, '{}').toDart;
+    }
+  }
+}
+
+extension SdkDartExtension on SdkDart {
+  external void hotRestart();
+  external JSObject getModuleLibraries(String? moduleId);
+
+  MainLibrary getMainLibrary(String? moduleId) {
+    final libraries = getModuleLibraries(moduleId).values;
+    return libraries.first! as MainLibrary;
+  }
+}
+
+extension SdkExtExtension on SdkExt {
+  external bool containsKey(String key);
+}
+
+extension MainLibraryExtension on MainLibrary {
+  external void main();
 }
 
 class HotReloadFailedException implements Exception {
@@ -83,23 +131,7 @@ class RequireRestarter implements Restarter {
 
   @override
   Future<bool> restart({String? runId}) async {
-    final dart = sdk.dart;
-    final developer = sdk.developer;
-    final extensions = sdk.extensions;
-
-    if (extensions
-        .callMethod(
-          'containsKey'.toJS,
-          'ext.flutter.disassemble'.toJS,
-        )
-        .dartify() as bool) {
-      await (developer.callMethod(
-        'invokeExtension'.toJS,
-        'ext.flutter.disassemble'.toJS,
-        '{}'.toJS,
-      ) as JSPromise)
-          .toDart;
-    }
+    await sdk.developer.maybeInvokeFlutterDisassemble();
 
     final newDigests = await _getDigests();
     final modulesToLoad = <String>[];
@@ -119,7 +151,7 @@ class RequireRestarter implements Restarter {
       _updateGraph();
       result = await _reload(modulesToLoad);
     }
-    dart.callMethod('hotRestart'.toJS, runId?.toJS);
+    sdk.dart.hotRestart();
     runMain();
     return result;
   }
@@ -194,13 +226,9 @@ class RequireRestarter implements Restarter {
         if (parentIds.isEmpty) {
           // The bootstrap module is not reloaded but we need to update the
           // $dartRunMain reference to the newly loaded child module.
-          final childModule = dart.callMethod<JSObject>(
-            'getModuleLibraries'.toJS,
-            previousModuleId?.toJS,
-          );
-          final mainLibrary = childModule.values.first! as JSObject;
+          // ignore: unnecessary_lambdas
           dartRunMain = () {
-            mainLibrary.callMethod('main'.toJS);
+            dart.getMainLibrary(previousModuleId).main();
           }.toJS;
         } else {
           ++reloadedModules;

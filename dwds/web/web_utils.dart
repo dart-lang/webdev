@@ -5,7 +5,18 @@
 import 'dart:js_interop';
 
 @JS('window')
-external JSObject get windowContext;
+external WindowContext get windowContext;
+
+@JS('Error')
+@staticInterop
+abstract class WindowContext {}
+
+extension WindowContextExtension on WindowContext {
+  external bool? get $isInternalBuild;
+  external bool? get $isFlutterApp;
+  external String? get $dartAppId;
+  external String? get $dartExtensionUri;
+}
 
 @JS('Array.from')
 external JSArray _jsArrayFrom(JSAny any);

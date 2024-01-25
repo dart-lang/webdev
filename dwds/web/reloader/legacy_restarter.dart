@@ -4,22 +4,27 @@
 
 import 'dart:async';
 import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
 
 import 'package:web/helpers.dart';
 
-import '../web_utils.dart';
 import 'restarter.dart';
+
+@anonymous
+@JS()
+@staticInterop
+class DartLibrary {}
+
+@JS(r'dart_library')
+external DartLibrary dartLibrary;
+
+extension DartLibraryExtension on DartLibrary {
+  external void reload(String? runId);
+}
 
 class LegacyRestarter implements Restarter {
   @override
   Future<bool> restart({String? runId}) async {
-    final dartLibrary = windowContext['dart_library'] as JSObject;
-    if (runId == null) {
-      dartLibrary.callMethod('reload'.toJS);
-    } else {
-      dartLibrary.callMethod('reload'.toJS, runId.toJS);
-    }
+    dartLibrary.reload(runId);
     final reloadCompleter = Completer<bool>();
     final sub = window.onMessage.listen((event) {
       final message = event.data?.dartify();

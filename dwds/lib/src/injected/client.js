@@ -8608,9 +8608,7 @@
     },
     _authUrl() {
       var authUrl,
-        extensionUrl = A._asStringQ(type$.JSObject._as(self.window).$dartExtensionUri);
-      if (extensionUrl == null)
-        extensionUrl = null;
+        extensionUrl = A._asStringQ(type$.JavaScriptObject._as(self.window).$dartExtensionUri);
       if (extensionUrl == null)
         return null;
       authUrl = A.Uri_parse(extensionUrl).replace$1$path("$dwdsExtensionAuthentication");
@@ -8678,6 +8676,32 @@
     ReloadingManager: function ReloadingManager(t0, t1) {
       this._client = t0;
       this._restarter = t1;
+    },
+    SdkDeveloperExtension_maybeInvokeFlutterDisassemble(_this) {
+      var $async$goto = 0,
+        $async$completer = A._makeAsyncAwaitCompleter(type$.void);
+      var $async$SdkDeveloperExtension_maybeInvokeFlutterDisassemble = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
+        if ($async$errorCode === 1)
+          return A._asyncRethrow($async$result, $async$completer);
+        while (true)
+          switch ($async$goto) {
+            case 0:
+              // Function start
+              $async$goto = A._asBool(type$.JavaScriptObject._as(_this._extensions).containsKey("ext.flutter.disassemble")) ? 2 : 3;
+              break;
+            case 2:
+              // then
+              $async$goto = 4;
+              return A._asyncAwait(A.promiseToFuture(type$.JSObject._as(_this.invokeExtension("ext.flutter.disassemble", "{}")), type$.String), $async$SdkDeveloperExtension_maybeInvokeFlutterDisassemble);
+            case 4:
+              // returning from await.
+            case 3:
+              // join
+              // implicit return
+              return A._asyncReturn(null, $async$completer);
+          }
+      });
+      return A._asyncStartSync($async$SdkDeveloperExtension_maybeInvokeFlutterDisassemble, $async$completer);
     },
     HotReloadFailedException$(_s) {
       return new A.HotReloadFailedException(_s);
@@ -8796,20 +8820,6 @@
         return;
       }
       throw "Unable to print message: " + String(string);
-    },
-    JSObjectUnsafeUtilExtension__callMethod(_this, method, arg1, arg2, arg3, arg4) {
-      var t1;
-      if (arg1 == null)
-        return _this[method]();
-      else if (arg2 == null)
-        return _this[method](arg1);
-      else {
-        t1 = _this[method](arg1, arg2);
-        return t1;
-      }
-    },
-    JSObjectUnsafeUtilExtension_callMethod(_this, method, arg1, arg2, $T) {
-      return $T._as(A.JSObjectUnsafeUtilExtension__callMethod(_this, method, arg1, arg2, null, null));
     },
     decodeDigit(c) {
       var letter,
@@ -22165,35 +22175,26 @@
   };
   A._launchCommunicationWithDebugExtension_closure.prototype = {
     call$1(b) {
-      var t3, t4, _null = null,
+      var t3,
         t1 = self,
         t2 = A._asString(t1.$dartEntrypointPath);
       b.get$_$this()._appEntrypointPath = t2;
-      t2 = type$.JSObject;
+      t2 = type$.JavaScriptObject;
       t3 = A._asStringQ(t2._as(t1.window).$dartAppId);
-      if (t3 == null)
-        t3 = _null;
       b.get$_$this()._debug_info$_appId = t3;
       t3 = A._asStringQ(t1.$dartAppInstanceId);
       b.get$_$this()._appInstanceId = t3;
-      t3 = type$.JavaScriptObject;
-      t4 = A._asString(t3._as(t3._as(t1.window).location).origin);
-      b.get$_$this()._appOrigin = t4;
-      t3 = A._asString(t3._as(t3._as(t1.window).location).href);
+      t3 = A._asString(t2._as(t2._as(t1.window).location).origin);
+      b.get$_$this()._appOrigin = t3;
+      t3 = A._asString(t2._as(t2._as(t1.window).location).href);
       b.get$_$this()._appUrl = t3;
       t3 = A._authUrl();
       b.get$_$this()._authUrl = t3;
       t3 = A._asStringQ(t2._as(t1.window).$dartExtensionUri);
-      if (t3 == null)
-        t3 = _null;
       b.get$_$this()._extensionUrl = t3;
       t3 = A._asBoolQ(t2._as(t1.window).$isInternalBuild);
-      if (t3 == null)
-        t3 = _null;
       b.get$_$this()._isInternalBuild = t3;
       t2 = A._asBoolQ(t2._as(t1.window).$isFlutterApp);
-      if (t2 == null)
-        t2 = _null;
       b.get$_$this()._isFlutterApp = t2;
       t1 = A._asStringQ(t1.$dartWorkspaceName);
       b.get$_$this()._workspaceName = t1;
@@ -22211,7 +22212,7 @@
     restart$1$runId(runId) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.bool),
-        $async$returnValue, t3, t1, t2, dartLibrary;
+        $async$returnValue, t3, t1, t2;
       var $async$restart$1$runId = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -22220,16 +22221,10 @@
             case 0:
               // Function start
               t1 = self;
-              t2 = type$.JSObject;
-              dartLibrary = t2._as(t2._as(t1.window).dart_library);
-              t2 = type$.nullable_Object;
-              if (runId == null)
-                A.JSObjectUnsafeUtilExtension_callMethod(dartLibrary, "reload", null, null, t2);
-              else
-                A.JSObjectUnsafeUtilExtension_callMethod(dartLibrary, "reload", runId, null, t2);
-              t2 = new A._Future($.Zone__current, type$._Future_bool);
-              t3 = type$.JavaScriptObject;
-              $async$returnValue = t2.then$1$1(new A.LegacyRestarter_restart_closure(A._EventStreamSubscription$(t3._as(t1.window), "message", type$.nullable_void_Function_JavaScriptObject._as(new A.LegacyRestarter_restart_closure0(new A._AsyncCompleter(t2, type$._AsyncCompleter_bool))), false, t3)), type$.bool);
+              t2 = type$.JavaScriptObject;
+              t2._as(t1.dart_library).reload(runId);
+              t3 = new A._Future($.Zone__current, type$._Future_bool);
+              $async$returnValue = t3.then$1$1(new A.LegacyRestarter_restart_closure(A._EventStreamSubscription$(t2._as(t1.window), "message", type$.nullable_void_Function_JavaScriptObject._as(new A.LegacyRestarter_restart_closure0(new A._AsyncCompleter(t3, type$._AsyncCompleter_bool))), false, t2)), type$.bool);
               // goto return
               $async$goto = 1;
               break;
@@ -22312,7 +22307,7 @@
     restart$1$runId(runId) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.bool),
-        $async$returnValue, $async$self = this, newDigests, modulesToLoad, t5, t6, t7, line, toZone, t8, result, t1, t2, t3, dart, developer, t4;
+        $async$returnValue, $async$self = this, newDigests, modulesToLoad, t3, t4, t5, t6, line, toZone, t7, result, t1, t2;
       var $async$restart$1$runId = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -22322,33 +22317,23 @@
               // Function start
               t1 = self;
               t2 = type$.JavaScriptObject;
-              t3 = type$.JSObject;
-              dart = t3._as(t2._as(t1.$loadModuleConfig("dart_sdk")).dart);
-              developer = t3._as(t2._as(t1.$loadModuleConfig("dart_sdk")).developer);
-              t4 = type$.nullable_Object;
-              $async$goto = A._asBool(A.dartify(A.JSObjectUnsafeUtilExtension_callMethod(t3._as(t3._as(t2._as(t1.$loadModuleConfig("dart_sdk")).developer)._extensions), "containsKey", "ext.flutter.disassemble", null, t4))) ? 3 : 4;
-              break;
+              $async$goto = 3;
+              return A._asyncAwait(A.SdkDeveloperExtension_maybeInvokeFlutterDisassemble(t2._as(t2._as(t1.$loadModuleConfig("dart_sdk")).developer)), $async$restart$1$runId);
             case 3:
-              // then
-              $async$goto = 5;
-              return A._asyncAwait(A.promiseToFuture(t3._as(A.JSObjectUnsafeUtilExtension_callMethod(developer, "invokeExtension", "ext.flutter.disassemble", "{}", t4)), t4), $async$restart$1$runId);
-            case 5:
               // returning from await.
-            case 4:
-              // join
-              $async$goto = 6;
+              $async$goto = 4;
               return A._asyncAwait($async$self._getDigests$0(), $async$restart$1$runId);
-            case 6:
+            case 4:
               // returning from await.
               newDigests = $async$result;
               modulesToLoad = A._setArrayType([], type$.JSArray_String);
-              for (t3 = newDigests.get$keys(), t3 = t3.get$iterator(t3), t5 = $.RequireRestarter____lastKnownDigests._name; t3.moveNext$0();) {
-                t6 = t3.get$current();
-                t7 = $.RequireRestarter____lastKnownDigests.__late_helper$_value;
-                if (t7 === $.RequireRestarter____lastKnownDigests)
-                  A.throwExpression(A.LateError$fieldNI(t5));
-                if (!t7.containsKey$1(t6)) {
-                  line = "Error during script reloading, refreshing the page. \nUnable to find an existing digest for module: " + t6 + ".";
+              for (t3 = newDigests.get$keys(), t3 = t3.get$iterator(t3), t4 = $.RequireRestarter____lastKnownDigests._name; t3.moveNext$0();) {
+                t5 = t3.get$current();
+                t6 = $.RequireRestarter____lastKnownDigests.__late_helper$_value;
+                if (t6 === $.RequireRestarter____lastKnownDigests)
+                  A.throwExpression(A.LateError$fieldNI(t4));
+                if (!t6.containsKey$1(t5)) {
+                  line = "Error during script reloading, refreshing the page. \nUnable to find an existing digest for module: " + t5 + ".";
                   toZone = $.printToZone;
                   if (toZone == null)
                     A.printString(line);
@@ -22356,39 +22341,39 @@
                     toZone.call$1(line);
                   t2._as(t2._as(t1.window).location).reload();
                 } else {
-                  t7 = $.RequireRestarter____lastKnownDigests.__late_helper$_value;
-                  if (t7 === $.RequireRestarter____lastKnownDigests)
-                    A.throwExpression(A.LateError$fieldNI(t5));
-                  if (!J.$eq$(t7.$index(0, t6), newDigests.$index(0, t6))) {
-                    t7 = $.RequireRestarter____lastKnownDigests.__late_helper$_value;
-                    if (t7 === $.RequireRestarter____lastKnownDigests)
-                      A.throwExpression(A.LateError$fieldNI(t5));
-                    t8 = newDigests.$index(0, t6);
-                    t8.toString;
-                    t7.$indexSet(0, t6, t8);
-                    B.JSArray_methods.add$1(modulesToLoad, t6);
+                  t6 = $.RequireRestarter____lastKnownDigests.__late_helper$_value;
+                  if (t6 === $.RequireRestarter____lastKnownDigests)
+                    A.throwExpression(A.LateError$fieldNI(t4));
+                  if (!J.$eq$(t6.$index(0, t5), newDigests.$index(0, t5))) {
+                    t6 = $.RequireRestarter____lastKnownDigests.__late_helper$_value;
+                    if (t6 === $.RequireRestarter____lastKnownDigests)
+                      A.throwExpression(A.LateError$fieldNI(t4));
+                    t7 = newDigests.$index(0, t5);
+                    t7.toString;
+                    t6.$indexSet(0, t5, t7);
+                    B.JSArray_methods.add$1(modulesToLoad, t5);
                   }
                 }
               }
-              $async$goto = modulesToLoad.length !== 0 ? 7 : 9;
+              $async$goto = modulesToLoad.length !== 0 ? 5 : 7;
               break;
-            case 7:
+            case 5:
               // then
               $async$self._updateGraph$0();
-              $async$goto = 10;
+              $async$goto = 8;
               return A._asyncAwait($async$self._reload$1(modulesToLoad), $async$restart$1$runId);
-            case 10:
+            case 8:
               // returning from await.
               result = $async$result;
               // goto join
-              $async$goto = 8;
+              $async$goto = 6;
               break;
-            case 9:
+            case 7:
               // else
               result = true;
-            case 8:
+            case 6:
               // join
-              A.JSObjectUnsafeUtilExtension_callMethod(dart, "hotRestart", runId == null ? null : runId, null, t4);
+              t2._as(t2._as(t1.$loadModuleConfig("dart_sdk")).dart).hotRestart();
               A.runMain();
               $async$returnValue = result;
               // goto return
@@ -22489,7 +22474,7 @@
     _reload$body$RequireRestarter(modules) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.bool),
-        $async$returnValue, $async$handler = 2, $async$currentError, $async$self = this, reloadedModules, previousModuleId, moduleId, parentIds, childModule, mainLibrary, e, t5, t6, t7, t8, t9, exception, t1, t2, t3, dart, t4, $async$exception;
+        $async$returnValue, $async$handler = 2, $async$currentError, $async$self = this, reloadedModules, previousModuleId, moduleId, parentIds, mainLibrary, e, t4, t5, t6, t7, t8, t9, t10, libraries, exception, t1, t2, dart, t3, $async$exception;
       var $async$_reload$1 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1) {
           $async$currentError = $async$result;
@@ -22501,15 +22486,14 @@
               // Function start
               t1 = self;
               t2 = type$.JavaScriptObject;
-              t3 = type$.JSObject;
-              dart = t3._as(t2._as(t1.$loadModuleConfig("dart_sdk")).dart);
-              t4 = $async$self._running.future;
-              $async$goto = (t4._state & 30) === 0 ? 3 : 4;
+              dart = t2._as(t2._as(t1.$loadModuleConfig("dart_sdk")).dart);
+              t3 = $async$self._running.future;
+              $async$goto = (t3._state & 30) === 0 ? 3 : 4;
               break;
             case 3:
               // then
               $async$goto = 5;
-              return A._asyncAwait(t4, $async$_reload$1);
+              return A._asyncAwait(t3, $async$_reload$1);
             case 5:
               // returning from await.
               $async$returnValue = $async$result;
@@ -22521,11 +22505,11 @@
               $async$self.set$_running(new A._AsyncCompleter(new A._Future($.Zone__current, type$._Future_bool), type$._AsyncCompleter_bool));
               reloadedModules = 0;
               $async$handler = 7;
-              t4 = $async$self.__RequireRestarter__dirtyModules_A;
-              t4 === $ && A.throwLateFieldNI("_dirtyModules");
-              t4.addAll$1(0, modules);
+              t3 = $async$self.__RequireRestarter__dirtyModules_A;
+              t3 === $ && A.throwLateFieldNI("_dirtyModules");
+              t3.addAll$1(0, modules);
               previousModuleId = null;
-              t4 = $async$self.get$_moduleTopologicalCompare(), t5 = type$.Function, t6 = type$.JavaScriptFunction, t7 = type$.JSArray_nullable_Object, t8 = type$.nullable_Object;
+              t3 = $async$self.get$_moduleTopologicalCompare(), t4 = type$.Function, t5 = type$.JavaScriptFunction, t6 = type$.JSObject, t7 = type$.JSArray_nullable_Object, t8 = type$.nullable_Object;
             case 10:
               // for condition
               if (!(t9 = $async$self.__RequireRestarter__dirtyModules_A, t9._root != null)) {
@@ -22543,18 +22527,15 @@
               break;
             case 12:
               // then
-              t9 = previousModuleId;
-              if (t9 == null)
-                t9 = null;
-              childModule = t3._as(A.JSObjectUnsafeUtilExtension__callMethod(dart, "getModuleLibraries", t9, null, null, null));
-              t9 = t1.Object;
-              t9 = A.JSArrayExtension_toDartIterable(t7._as(t9.values.apply(t9, [childModule])), t8);
-              if (t9.get$length(0) === 0)
+              t9 = t6._as(dart.getModuleLibraries(previousModuleId));
+              t10 = t1.Object;
+              libraries = A.JSArrayExtension_toDartIterable(t7._as(t10.values.apply(t10, [t9])), t8);
+              if (libraries.get$length(0) === 0)
                 A.throwExpression(A.IterableElementError_noElement());
-              t9 = t9.elementAt$1(0, 0);
+              t9 = libraries.elementAt$1(0, 0);
               t9.toString;
-              mainLibrary = t3._as(t9);
-              t1.$dartRunMain = t6._as(A.allowInterop(new A.RequireRestarter__reload_closure(mainLibrary), t5));
+              mainLibrary = t2._as(t9);
+              t1.$dartRunMain = t5._as(A.allowInterop(new A.RequireRestarter__reload_closure(mainLibrary), t4));
               // goto join
               $async$goto = 13;
               break;
@@ -22572,7 +22553,7 @@
               return A._asyncAwait($async$self._reloadModule$1(moduleId), $async$_reload$1);
             case 15:
               // returning from await.
-              J.sort$1$ax(parentIds, t4);
+              J.sort$1$ax(parentIds, t3);
               $async$self.__RequireRestarter__dirtyModules_A.addAll$1(0, parentIds);
               previousModuleId = moduleId;
             case 13:
@@ -22659,7 +22640,7 @@
   };
   A.RequireRestarter__reload_closure.prototype = {
     call$0() {
-      A.JSObjectUnsafeUtilExtension_callMethod(this.mainLibrary, "main", null, null, type$.nullable_Object);
+      this.mainLibrary.main();
     },
     $signature: 2
   };

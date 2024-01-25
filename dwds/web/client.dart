@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/build_result.dart';
@@ -264,14 +263,14 @@ void _launchCommunicationWithDebugExtension() {
       DebugInfo(
         (b) => b
           ..appEntrypointPath = dartEntrypointPath
-          ..appId = _appId
+          ..appId = windowContext.$dartAppId
           ..appInstanceId = dartAppInstanceId
           ..appOrigin = window.location.origin
           ..appUrl = window.location.href
           ..authUrl = _authUrl
-          ..extensionUrl = _extensionUrl
-          ..isInternalBuild = _isInternalBuild
-          ..isFlutterApp = _isFlutterApp
+          ..extensionUrl = windowContext.$dartExtensionUri
+          ..isInternalBuild = windowContext.$isInternalBuild
+          ..isFlutterApp = windowContext.$isFlutterApp
           ..workspaceName = dartWorkspaceName,
       ),
     ),
@@ -373,16 +372,8 @@ external String? get dartWorkspaceName;
 
 bool get _isChromium => window.navigator.vendor.contains('Google');
 
-bool? get _isInternalBuild => toDartBool(windowContext['\$isInternalBuild']);
-
-bool? get _isFlutterApp => toDartBool(windowContext['\$isFlutterApp']);
-
-String? get _appId => toDartString(windowContext['\$dartAppId']);
-
-String? get _extensionUrl => toDartString(windowContext['\$dartExtensionUri']);
-
 String? get _authUrl {
-  final extensionUrl = _extensionUrl;
+  final extensionUrl = windowContext.$dartExtensionUri;
   if (extensionUrl == null) return null;
   final authUrl = Uri.parse(extensionUrl).replace(path: authenticationPath);
   switch (authUrl.scheme) {
