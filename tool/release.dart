@@ -87,12 +87,6 @@ Future<int> runReset({
   // Reset the dependency overrides for the package:
   _updateOverrides(package, includeOverrides: true);
 
-  // If updating webdev, also reset the dwds override for test_common to prevent
-  // conflicts:
-  if (package == 'webdev') {
-    _updateOverrides('test_common', includeOverrides: true);
-  }
-
   // Update the version strings in CHANGELOG and pubspec.yaml.
   _updateVersionStrings(
     package,
@@ -129,24 +123,18 @@ Future<int> runRelease({
 
   // Update the pinned version of DWDS for webdev releases.
   if (package == 'webdev') {
-    _logInfo('Updating pinned version of DWDS.');
-    await _updateDwdsPin('test_common');
     final newVersion = await _updateDwdsPin('webdev');
     _logInfo('Add pinned DWDS info to CHANGELOG.');
     final changelog = File('../webdev/CHANGELOG.md');
     _addNewLine(changelog,
-        newLine: '- Update `dwds` constraint to `${newVersion ?? 'TODO'}`.');
+      newLine: '- Update `dwds` constraint to `${newVersion ?? 'TODO'}`.',
+      insertAt: 2,
+    );
   }
 
   // Remove any dependency overrides for the package:
   _logInfo('Removing dependency overrides for $package.');
   _updateOverrides(package, includeOverrides: false);
-
-  // If updating webdev, also remove the dwds override for test_common to
-  // prevent conflicts:
-  if (package == 'webdev') {
-    _updateOverrides('test_common', includeOverrides: false);
-  }
 
   // Run dart pub upgrade.
   for (final packagePath in [
@@ -245,8 +233,12 @@ void _updateVersionStrings(
 void _addNewLine(
   File file, {
   required String newLine,
+  int insertAt = 0,
 }) {
-  final newLines = [newLine, '', ...file.readAsLinesSync()];
+  final currentLines = file.readAsLinesSync();
+  final linesBefore = currentLines.sublist(0, insertAt);
+  final linesAfter = currentLines.sublist(insertAt);
+  final newLines = [...linesBefore, newLine, '', ...linesAfter];
   final content = newLines.joinWithNewLine();
   return file.writeAsStringSync(content);
 }
