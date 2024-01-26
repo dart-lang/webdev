@@ -1,5 +1,7 @@
 ## 3.5.0-wip
 
+- Support lazy build debugging - [#2364](https://github.com/dart-lang/webdev/pull/2364)
+
 ## 3.4.0
 
 - Update `dwds` constraint to `23.3.0`.
