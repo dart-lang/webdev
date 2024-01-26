@@ -175,7 +175,6 @@ class RequireStrategy extends LoadStrategy {
   /// Adds error handler code for require.js which requests a `.errors` file for
   /// any failed module, and logs it to the console.
   String get _requireJsConfig => '''
-$_baseUrlScript;
 require.config({
     baseUrl: baseUrl,
     waitSeconds: 0,
@@ -224,7 +223,6 @@ requirejs.onResourceLoad = function (context, map, depArray) {
     final moduleNames =
         modulePaths.map((key, value) => MapEntry<String, String>(value, key));
     return '''
-let appName = "TestApp"; // TODO: this needs to be set by the build's bootstrap.
 $_baseUrlScript
 let modulePaths = ${const JsonEncoder.withIndent(" ").convert(modulePaths)};
 let moduleNames = ${const JsonEncoder.withIndent(" ").convert(moduleNames)};

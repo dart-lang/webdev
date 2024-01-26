@@ -42,7 +42,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// traffic to disk.
 ///
 /// Note: this should not be checked in enabled.
-const _enableLogging = false;
+const _enableLogging = true;
 
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.

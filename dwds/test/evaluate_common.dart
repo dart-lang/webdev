@@ -69,7 +69,6 @@ void testAll({
     () {
       setUpAll(() async {
         setCurrentLogWriter(debug: debug);
-        print('SETUP1');
         await context.setUp(
           testSettings: TestSettings(
             compilationMode: compilationMode,
@@ -79,7 +78,6 @@ void testAll({
             verboseCompiler: debug,
           ),
         );
-        print('SETUP2');
       });
 
       tearDownAll(() async {
@@ -113,7 +111,6 @@ void testAll({
               }
             },
           );
-          print('SETUP3');
           context.service.onEvent('Stdout').listen(Logger.root.info);
           context.service.onEvent('Stderr').listen(Logger.root.warning);
 

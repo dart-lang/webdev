@@ -143,10 +143,21 @@ String _injectClientAndHoistMain(
   String entrypointPath,
   String? extensionUri,
 ) {
+  // TODO(annagrin): google3 already sets appName in the bootstrap file, so we need
+  // other build system to do the same before rolling this to google3, or figure a
+  // way to set appName here only if not defined already.
   final bodyLines = body.split('\n');
+  final entrypointExtensionIndex =
+      bodyLines.indexWhere((line) => line.contains(entrypointExtensionMarker));
+  var result = bodyLines.sublist(0, entrypointExtensionIndex).join('\n');
+  result += '''
+    var appName = 'TestApp';
+  ''';
+
   final extensionIndex =
       bodyLines.indexWhere((line) => line.contains(mainExtensionMarker));
-  var result = bodyLines.sublist(0, extensionIndex).join('\n');
+  result +=
+      bodyLines.sublist(entrypointExtensionIndex, extensionIndex).join('\n');
   // The line after the marker calls `main`. We prevent `main` from
   // being called and make it runnable through a global variable.
   final mainFunction =
@@ -173,9 +184,7 @@ String _injectClientAndHoistMain(
     }
     $injectedClientSnippet
   } else {
-    console.log("INJECTOR: registering entrypoint...");
     if (typeof window.\$dartRegisterEntrypoint != "undefined") {
-      console.log("INJECTOR: registering entrypoint with dev handler");
       window.\$dartRegisterEntrypoint(
           /* app name */ appName,
           /* entrypoint */ "$entrypointPath",
@@ -220,48 +229,13 @@ String _injectedClientSnippet(
     workspaceName: appMetadata.workspaceName,
   );
 
-  final injectedBody = '\n'
-      //'    console.log("INJECTOR: registering app: " +  appName);\n'
+  return '\n'
       // Used by DDC runtime to detect if a debugger is attached.
       '    window.\$dwdsVersion = "$packageVersion";\n'
       // Used by the injected client to communicate with the debugger.
       '    window.\$dartAppInfo = ${appInfo.toJs()};\n'
       // Load the injected client.
       '    ${loadStrategy.loadClientSnippet(_clientScript)};\n';
-
-  Logger.root.warning(injectedBody);
-
-  // injectedBody += '\n'
-  //     '    let appRecord = {};\n'
-  //     '    appRecord.moduleStrategy = "${loadStrategy.id}";\n'
-  //     '    appRecord.reloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
-  //     '    appRecord.loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
-  //     '    appRecord.dwdsVersion = "$packageVersion";\n'
-  //     '    appRecord.enableDevToolsLaunch = ${debugSettings.enableDevToolsLaunch};\n'
-  //     '    appRecord.emitDebugEvents = ${debugSettings.emitDebugEvents};\n'
-  //     '    appRecord.isInternalBuild = ${appMetadata.isInternalBuild};\n'
-  //     '    appRecord.appName = appName;\n'
-  //     '    appRecord.appId = "$appId";\n'
-  //     '    appRecord.isFlutterApp = ${buildSettings.isFlutterApp};\n'
-  //     '    appRecord.devHandlerPath = "$devHandlerPath";\n'
-  //     '    appRecord.entrypoints = new Array();\n'
-  //     '    appRecord.entrypoints.push("$entrypointPath");\n';
-
-  // if (extensionUri != null) {
-  //   injectedBody += '    appRecord.extensionUrl = "$extensionUri";\n';
-  // }
-
-  // final workspaceName = appMetadata.workspaceName;
-  // if (workspaceName != null) {
-  //   injectedBody += '    appRecord.workspaceName = "$workspaceName";\n';
-  // }
-
-  // injectedBody += '\n'
-  //     '    window.\$dartAppInfo = $appInfo;\n'
-  //     '    console.log("INJECTOR: Loading injected client...");\n'
-  //     '    ${loadStrategy.loadClientSnippet(_clientScript)};\n';
-
-  return injectedBody;
 }
 
 /// Generate JS app info object for the injected client.
