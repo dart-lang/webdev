@@ -12,6 +12,7 @@ import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/isolate_events.dart';
+import 'package:dwds/data/register_entrypoint_request.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
@@ -41,13 +42,12 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// traffic to disk.
 ///
 /// Note: this should not be checked in enabled.
-const _enableLogging = false;
-
-final _logger = Logger('DevHandler');
+const _enableLogging = true;
 
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.
 class DevHandler {
+  final _logger = Logger('DevHandler');
   final _subs = <StreamSubscription>[];
   final _sseHandlers = <String, SocketHandler>{};
   final _injectedConnections = <SocketConnection>{};
@@ -256,6 +256,7 @@ class DevHandler {
     _injectedConnections.add(injectedConnection);
     AppConnection? appConnection;
     injectedConnection.stream.listen((data) async {
+      _logger.fine('Received injected connection request: $data');
       try {
         final message = serializers.deserialize(jsonDecode(data));
         if (message is ConnectRequest) {
@@ -266,10 +267,27 @@ class DevHandler {
           }
           appConnection =
               await _handleConnectRequest(message, injectedConnection);
+          _logger.severe('Connecting to app id ${message.appId}');
+          final connection =
+              await _handleConnectRequest(message, injectedConnection);
+          for (var entrypoint in connection.request.entrypoints) {
+            globalToolConfiguration.loadStrategy
+                .trackEntrypoint(connection.request.appName, entrypoint);
+          }
+          appConnection = connection;
         } else {
           final connection = appConnection;
           if (connection == null) {
             throw StateError('Not connected to an application.');
+          }
+          if (message is RegisterEntrypointRequest) {
+            globalToolConfiguration.loadStrategy.trackEntrypoint(
+              connection.request.appName,
+              message.entrypointPath,
+            );
+            await _servicesByAppId[connection.request.appId]
+                ?.chromeProxyService
+                .parseRegisterEntrypointRequest(message);
           }
           if (message is DevToolsRequest) {
             await _handleDebugRequest(connection, injectedConnection);

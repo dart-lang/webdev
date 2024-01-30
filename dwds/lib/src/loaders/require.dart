@@ -144,8 +144,7 @@ class RequireStrategy extends LoadStrategy {
         if (request.url.path.endsWith(_requireDigestsPath)) {
           final entrypoint = request.url.queryParameters['entrypoint'];
           if (entrypoint == null) return Response.notFound('${request.url}');
-          final metadataProvider =
-              metadataProviderFor(request.url.queryParameters['entrypoint']!);
+          final metadataProvider = metadataProviderFor(null);
           final digests = await _digestsProvider(metadataProvider);
           return Response.ok(json.encode(digests));
         }
@@ -176,7 +175,6 @@ class RequireStrategy extends LoadStrategy {
   /// Adds error handler code for require.js which requests a `.errors` file for
   /// any failed module, and logs it to the console.
   String get _requireJsConfig => '''
-$_baseUrlScript;
 require.config({
     baseUrl: baseUrl,
     waitSeconds: 0,
@@ -217,10 +215,10 @@ requirejs.onResourceLoad = function (context, map, depArray) {
 
   @override
   String loadClientSnippet(String clientScript) =>
-      'window.\$requireLoader.forceLoadModule("$clientScript");\n';
+      'window.\$requireLoader.forceLoadModule("$clientScript")';
 
   Future<String> _requireLoaderSetup(String entrypoint) async {
-    final metadataProvider = metadataProviderFor(entrypoint);
+    final metadataProvider = metadataProviderFor(null);
     final modulePaths = await _moduleProvider(metadataProvider);
     final moduleNames =
         modulePaths.map((key, value) => MapEntry<String, String>(value, key));
@@ -260,20 +258,20 @@ if(!window.\$requireLoader) {
   }
 
   @override
-  Future<String?> moduleForServerPath(String entrypoint, String serverPath) {
-    final metadataProvider = metadataProviderFor(entrypoint);
+  Future<String?> moduleForServerPath(String appName, String serverPath) {
+    final metadataProvider = metadataProviderFor(appName);
     return _moduleForServerPath(metadataProvider, serverPath);
   }
 
   @override
-  Future<String?> serverPathForModule(String entrypoint, String module) {
-    final metadataProvider = metadataProviderFor(entrypoint);
+  Future<String?> serverPathForModule(String appName, String module) {
+    final metadataProvider = metadataProviderFor(appName);
     return _serverPathForModule(metadataProvider, module);
   }
 
   @override
-  Future<String?> sourceMapPathForModule(String entrypoint, String module) {
-    final metadataProvider = metadataProviderFor(entrypoint);
+  Future<String?> sourceMapPathForModule(String appName, String module) {
+    final metadataProvider = metadataProviderFor(appName);
     return _sourceMapPathForModule(metadataProvider, module);
   }
 
@@ -281,8 +279,8 @@ if(!window.\$requireLoader) {
   String? serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);
 
   @override
-  Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
-      _moduleInfoForProvider(metadataProviderFor(entrypoint));
+  Future<Map<String, ModuleInfo>> moduleInfoFor(String appName) =>
+      _moduleInfoForProvider(metadataProviderFor(appName));
 
   @override
   String? g3RelativePath(String absolutePath) => null;

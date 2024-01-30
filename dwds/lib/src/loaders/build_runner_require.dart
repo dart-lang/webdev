@@ -50,7 +50,9 @@ class BuildRunnerRequireStrategyProvider {
   ) async {
     final modules = await metadataProvider.modulePathToModule;
 
-    final digestsPath = metadataProvider.entrypoint
+    // TODO: make sure this works... we don't support lazy ddr modules
+    // in require mode so maybe it does?
+    final digestsPath = (await metadataProvider.mainEntrypoint)
         .replaceAll('.dart.bootstrap.js', '.digests');
     final response = await _assetHandler(
       Request('GET', Uri.parse('http://foo:0000/$digestsPath')),

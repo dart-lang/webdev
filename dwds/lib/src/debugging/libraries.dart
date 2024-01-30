@@ -54,7 +54,7 @@ class LibraryHelper extends Domain {
   Future<List<LibraryRef>> get libraryRefs async {
     if (_libraryRefsById.isNotEmpty) return _libraryRefsById.values.toList();
     final libraries = await globalToolConfiguration.loadStrategy
-        .metadataProviderFor(inspector.appConnection.request.entrypointPath)
+        .metadataProviderFor(inspector.appConnection.request.appName)
         .libraries;
     for (var library in libraries) {
       _libraryRefsById[library] =

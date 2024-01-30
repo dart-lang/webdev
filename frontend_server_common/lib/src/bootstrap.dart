@@ -93,6 +93,8 @@ String generateBootstrapScript({
   return '''
 "use strict";
 
+var appName = 'FrontendServerApp';
+
 // Attach source mapping.
 var mapperEl = document.createElement("script");
 mapperEl.defer = true;
@@ -360,7 +362,7 @@ String generateDDCMainModule(
   return '''/* ENTRYPOINT_EXTENTION_MARKER */
 
 (function() {
-  let appName = "$entrypoint";
+  //let appName = "$entrypoint";
 
   // A uuid that identifies a subapp.
   let uuid = "00000000-0000-0000-0000-000000000000";

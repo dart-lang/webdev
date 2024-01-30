@@ -401,6 +401,7 @@ class TestContext {
       final appConnectionCompleter = Completer();
       final connection = ChromeConnection('localhost', debugPort);
 
+      _logger.info('Starting server...');
       _testServer = await TestServer.start(
         debugSettings:
             debugSettings.copyWith(expressionCompiler: expressionCompiler),
@@ -413,6 +414,7 @@ class TestContext {
         buildResults: buildResults,
         chromeConnection: () async => connection,
       );
+      _logger.info('Started server.');
 
       _testServer!.dwds.connectedApps.listen((connection) async {
         // Ensure that we've established a tab connection before running main.
@@ -435,6 +437,7 @@ class TestContext {
 
       if (testSettings.launchChrome) {
         await _webDriver?.get(appUrl);
+        _logger.info('Connecting to the app...');
         final tab = await connection.getTab((t) => t.url == appUrl);
         if (tab != null) {
           _tabConnection = await tab.connect();
@@ -454,6 +457,7 @@ class TestContext {
 
         await appConnectionCompleter.future;
         if (debugSettings.enableDebugging && !testSettings.waitToDebug) {
+          _logger.info('Debugging...');
           await startDebugging();
         }
       } else {

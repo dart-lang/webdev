@@ -372,8 +372,7 @@ class FakeStrategy extends LoadStrategy {
       '';
 
   @override
-  Future<String> serverPathForModule(String entrypoint, String module) async =>
-      '';
+  Future<String> serverPathForModule(String appName, String module) async => '';
 
   @override
   Future<String> sourceMapPathForModule(
@@ -386,11 +385,11 @@ class FakeStrategy extends LoadStrategy {
   String? serverPathForAppUri(String appUri) => '';
 
   @override
-  MetadataProvider metadataProviderFor(String entrypoint) =>
-      MetadataProvider(entrypoint, FakeAssetReader());
+  MetadataProvider metadataProviderFor(String? appName) =>
+      MetadataProvider(FakeAssetReader());
 
   @override
-  Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
+  Future<Map<String, ModuleInfo>> moduleInfoFor(String appName) =>
       throw UnimplementedError();
 }
 

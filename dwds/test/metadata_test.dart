@@ -49,7 +49,6 @@ void main() {
   );
   test('can parse metadata with empty sources', () async {
     final provider = MetadataProvider(
-      'foo.bootstrap.js',
       FakeAssetReader(metadata: _emptySourceMetadata),
     );
     expect(
@@ -61,7 +60,6 @@ void main() {
 
   test('can parse metadata with no null safety information', () async {
     final provider = MetadataProvider(
-      'foo.bootstrap.js',
       FakeAssetReader(metadata: _noNullSafetyMetadata),
     );
     expect(
@@ -73,7 +71,6 @@ void main() {
 
   test('throws on metadata with absolute import uris', () async {
     final provider = MetadataProvider(
-      'foo.bootstrap.js',
       FakeAssetReader(metadata: _fileUriMetadata),
     );
     await expectLater(

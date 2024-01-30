@@ -32,7 +32,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// Provides information about currently loaded scripts and objects and support
 /// for eval.
 class AppInspector implements AppInspectorInterface {
-  final _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
+  late AsyncMemoizer<List<ScriptRef>> _scriptCacheMemoizer;
 
   Future<List<ScriptRef>> get scriptRefs => _populateScriptCaches();
 
@@ -106,6 +106,7 @@ class AppInspector implements AppInspectorInterface {
   }
 
   Future<void> initialize() async {
+    _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
     final libraries = await _libraryHelper.libraryRefs;
     isolate.rootLib = await _libraryHelper.rootLib;
     isolate.libraries?.addAll(libraries);
@@ -119,6 +120,18 @@ class AppInspector implements AppInspectorInterface {
     );
 
     isolate.extensionRPCs?.addAll(await _getExtensionRpcs());
+  }
+
+  Future<void> registerEntrypoint(
+    String appName,
+    String entrypoint,
+    Debugger debugger,
+  ) {
+    // TODO: incremental update?
+    _libraryHelper = LibraryHelper(this);
+    _classHelper = ClassHelper(this);
+    _instanceHelper = InstanceHelper(this);
+    return initialize();
   }
 
   static IsolateRef _toIsolateRef(Isolate isolate) => IsolateRef(
@@ -705,7 +718,7 @@ class AppInspector implements AppInspectorInterface {
   Future<List<ScriptRef>> _populateScriptCaches() {
     return _scriptCacheMemoizer.runOnce(() async {
       final scripts = await globalToolConfiguration.loadStrategy
-          .metadataProviderFor(appConnection.request.entrypointPath)
+          .metadataProviderFor(appConnection.request.appName)
           .scripts;
       // For all the non-dart: libraries, find their parts and create scriptRefs
       // for them.

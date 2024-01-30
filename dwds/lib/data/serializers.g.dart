@@ -22,6 +22,7 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(ExtensionResponse.serializer)
       ..add(IsolateExit.serializer)
       ..add(IsolateStart.serializer)
+      ..add(RegisterEntrypointRequest.serializer)
       ..add(RegisterEvent.serializer)
       ..add(RunRequest.serializer)
       ..addBuilderFactory(
@@ -29,7 +30,10 @@ Serializers _$serializers = (new Serializers().toBuilder()
           () => new ListBuilder<DebugEvent>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(ExtensionEvent)]),
-          () => new ListBuilder<ExtensionEvent>()))
+          () => new ListBuilder<ExtensionEvent>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => new ListBuilder<String>()))
     .build();
 
 // ignore_for_file: deprecated_member_use_from_same_package,type=lint

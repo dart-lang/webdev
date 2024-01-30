@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
+import 'package:dwds/dwds.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/version.dart';
 import 'package:logging/logging.dart';
@@ -96,15 +97,20 @@ class DwdsInjector {
               devHandlerPath = '$requestedUriBase/$devHandlerPath';
               _devHandlerPaths.add(devHandlerPath);
               final entrypoint = request.url.path;
+
+              // Track the main entrypoint for the app read the build metadata.
               await globalToolConfiguration.loadStrategy
-                  .trackEntrypoint(entrypoint);
-              body = await _injectClientAndHoistMain(
+                  .trackAppEntrypoint(entrypoint);
+
+              body = _injectClientAndHoistMain(
                 body,
                 appId,
                 devHandlerPath,
                 entrypoint,
                 await _extensionUri,
               );
+              _logger.info('Injecting debugging metadata for '
+                  'entrypoint at $requestedUri');
               body += await globalToolConfiguration.loadStrategy
                   .bootstrapFor(entrypoint);
               _logger.info('Injected debugging metadata for '
@@ -130,17 +136,28 @@ class DwdsInjector {
 
 /// Returns the provided body with the main function hoisted into a global
 /// variable and a snippet of JS that loads the injected client.
-Future<String> _injectClientAndHoistMain(
+String _injectClientAndHoistMain(
   String body,
   String appId,
   String devHandlerPath,
   String entrypointPath,
   String? extensionUri,
-) async {
+) {
+  // TODO(annagrin): google3 already sets appName in the bootstrap file, so we need
+  // other build system to do the same before rolling this to google3, or figure a
+  // way to set appName here only if not defined already.
   final bodyLines = body.split('\n');
+  final entrypointExtensionIndex =
+      bodyLines.indexWhere((line) => line.contains(entrypointExtensionMarker));
+  var result = bodyLines.sublist(0, entrypointExtensionIndex).join('\n');
+  result += '''
+    var appName = 'TestApp';
+  ''';
+
   final extensionIndex =
       bodyLines.indexWhere((line) => line.contains(mainExtensionMarker));
-  var result = bodyLines.sublist(0, extensionIndex).join('\n');
+  result +=
+      bodyLines.sublist(entrypointExtensionIndex, extensionIndex).join('\n');
   // The line after the marker calls `main`. We prevent `main` from
   // being called and make it runnable through a global variable.
   final mainFunction =
@@ -148,7 +165,7 @@ Future<String> _injectClientAndHoistMain(
   // We inject the client in the entry point module as the client expects the
   // application to be in a ready state, that is the main function is hoisted
   // and the Dart SDK is loaded.
-  final injectedClientSnippet = await _injectedClientSnippet(
+  final injectedClientSnippet = _injectedClientSnippet(
     appId,
     devHandlerPath,
     entrypointPath,
@@ -167,10 +184,16 @@ Future<String> _injectClientAndHoistMain(
     }
     $injectedClientSnippet
   } else {
-    if(window.\$dartMainExecuted){
-     $mainFunction();
-    }else {
-     window.\$dartMainTearOffs.push($mainFunction);
+    if (typeof window.\$dartRegisterEntrypoint != "undefined") {
+      window.\$dartRegisterEntrypoint(
+          /* app name */ appName,
+          /* entrypoint */ "$entrypointPath",
+      );
+    } 
+    if (window.\$dartMainExecuted) {
+      $mainFunction();
+    } else {
+      window.\$dartMainTearOffs.push($mainFunction);
     }
   }
   ''';
@@ -179,38 +202,94 @@ Future<String> _injectClientAndHoistMain(
 }
 
 /// JS snippet which includes global variables required for debugging.
-Future<String> _injectedClientSnippet(
+String _injectedClientSnippet(
   String appId,
   String devHandlerPath,
   String entrypointPath,
   String? extensionUri,
-) async {
+) {
   final loadStrategy = globalToolConfiguration.loadStrategy;
   final buildSettings = loadStrategy.buildSettings;
   final appMetadata = globalToolConfiguration.appMetadata;
   final debugSettings = globalToolConfiguration.debugSettings;
 
-  var injectedBody = 'window.\$dartAppId = "$appId";\n'
-      'window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
-      'window.\$dartModuleStrategy = "${loadStrategy.id}";\n'
-      'window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
-      'window.\$dwdsVersion = "$packageVersion";\n'
-      'window.\$dwdsDevHandlerPath = "$devHandlerPath";\n'
-      'window.\$dwdsEnableDevToolsLaunch = ${debugSettings.enableDevToolsLaunch};\n'
-      'window.\$dartEntrypointPath = "$entrypointPath";\n'
-      'window.\$dartEmitDebugEvents = ${debugSettings.emitDebugEvents};\n'
-      'window.\$isInternalBuild = ${appMetadata.isInternalBuild};\n'
-      'window.\$isFlutterApp = ${buildSettings.isFlutterApp};\n'
-      '${loadStrategy.loadClientSnippet(_clientScript)}';
+  final appInfo = JSAppInfo(
+    appId: appId,
+    devHandlerPath: devHandlerPath,
+    dwdsVersion: packageVersion,
+    emitDebugEvents: debugSettings.emitDebugEvents,
+    enableDevToolsLaunch: debugSettings.enableDevToolsLaunch,
+    entrypointPath: entrypointPath,
+    extensionUrl: extensionUri,
+    isFlutterApp: buildSettings.isFlutterApp,
+    isInternalBuild: appMetadata.isInternalBuild,
+    loadModuleConfig: loadStrategy.loadModuleSnippet,
+    moduleStrategy: loadStrategy.id,
+    reloadConfiguration: loadStrategy.reloadConfiguration,
+    workspaceName: appMetadata.workspaceName,
+  );
 
-  if (extensionUri != null) {
-    injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';
+  return '\n'
+      // Used by DDC runtime to detect if a debugger is attached.
+      '    window.\$dwdsVersion = "$packageVersion";\n'
+      // Used by the injected client to communicate with the debugger.
+      '    window.\$dartAppInfo = ${appInfo.toJs()};\n'
+      // Load the injected client.
+      '    ${loadStrategy.loadClientSnippet(_clientScript)};\n';
+}
+
+/// Generate JS app info object for the injected client.
+/// TODO(annagrin): ensure client's AppInfo can read this object.
+class JSAppInfo {
+  String moduleStrategy;
+  ReloadConfiguration reloadConfiguration;
+  String loadModuleConfig;
+  String dwdsVersion;
+  bool enableDevToolsLaunch;
+  bool emitDebugEvents;
+  bool isInternalBuild;
+  String appId;
+  bool isFlutterApp;
+  String? extensionUrl;
+  String devHandlerPath;
+  String entrypointPath;
+  String? workspaceName;
+
+  JSAppInfo({
+    required this.appId,
+    required this.devHandlerPath,
+    required this.dwdsVersion,
+    required this.emitDebugEvents,
+    required this.enableDevToolsLaunch,
+    required this.entrypointPath,
+    required this.extensionUrl,
+    required this.isFlutterApp,
+    required this.isInternalBuild,
+    required this.loadModuleConfig,
+    required this.moduleStrategy,
+    required this.reloadConfiguration,
+    required this.workspaceName,
+  });
+
+  String toJs() {
+    final fields = {
+      'moduleStrategy': '"$moduleStrategy"',
+      'reloadConfiguration': '"$reloadConfiguration"',
+      'loadModuleConfig': loadModuleConfig,
+      'dwdsVersion': '"$dwdsVersion"',
+      'enableDevToolsLaunch': enableDevToolsLaunch,
+      'emitDebugEvents': emitDebugEvents,
+      'isInternalBuild': isInternalBuild,
+      'appName': 'appName',
+      'appId': '"$appId"',
+      'isFlutterApp': isFlutterApp,
+      'devHandlerPath': '"$devHandlerPath"',
+      'entrypoints': '["$entrypointPath"]',
+      if (extensionUrl != null) 'extensionUrl': '"$extensionUrl"',
+      if (workspaceName != null) 'workspaceName': '"$workspaceName"',
+    };
+
+    final lines = fields.entries.map((e) => '  ${e.key}: ${e.value},');
+    return ['{', ...lines, '}'].join('\n    ');
   }
-
-  final workspaceName = appMetadata.workspaceName;
-  if (workspaceName != null) {
-    injectedBody += 'window.\$dartWorkspaceName = "$workspaceName";\n';
-  }
-
-  return injectedBody;
 }

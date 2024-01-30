@@ -12,7 +12,8 @@ import 'package:shelf/shelf.dart';
 abstract class LoadStrategy {
   final AssetReader _assetReader;
   final String? _packageConfigPath;
-  final _providers = <String, MetadataProvider>{};
+  late MetadataProvider _provider;
+  String? _appName;
 
   LoadStrategy(
     this._assetReader, {
@@ -66,7 +67,7 @@ abstract class LoadStrategy {
   ///
   /// /packages/path/path.ddc.js -> packages/path/path
   ///
-  Future<String?> moduleForServerPath(String entrypoint, String serverPath);
+  Future<String?> moduleForServerPath(String appName, String serverPath);
 
   /// Returns the server path for the provided module.
   ///
@@ -74,7 +75,7 @@ abstract class LoadStrategy {
   ///
   ///   web/main -> main.ddc.js
   ///
-  Future<String?> serverPathForModule(String entrypoint, String module);
+  Future<String?> serverPathForModule(String appName, String module);
 
   /// Returns the source map path for the provided module.
   ///
@@ -82,7 +83,7 @@ abstract class LoadStrategy {
   ///
   ///   web/main -> main.ddc.js.map
   ///
-  Future<String?> sourceMapPathForModule(String entrypoint, String module);
+  Future<String?> sourceMapPathForModule(String appName, String module);
 
   /// Returns a map from module id to module info for the provided entrypoint.
   ///
@@ -90,7 +91,7 @@ abstract class LoadStrategy {
   ///
   ///   web/main -> {main.ddc.full.dill, main.ddc.dill}
   ///
-  Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint);
+  Future<Map<String, ModuleInfo>> moduleInfoFor(String appName);
 
   /// Returns the server path for the app uri.
   ///
@@ -119,24 +120,43 @@ abstract class LoadStrategy {
         'package_config.json',
       );
 
-  /// Returns the [MetadataProvider] for the application located at the provided
-  /// [entrypoint].
-  MetadataProvider metadataProviderFor(String entrypoint) {
-    if (_providers.containsKey(entrypoint)) {
-      return _providers[entrypoint]!;
-    } else {
-      throw StateError('No metadata provider for $entrypoint');
-    }
-  }
+  /// Returns the [MetadataProvider] for the application [appName].
+  ///
+  /// Note: We  only support one app debugging at a time, so the
+  /// [appName] is currently ignored.
+  ///
+  /// TODO(annagrin): Support multi-app debugging.
+  /// Issue: https://github.com/dart-lang/webdev/issues/1769
+  MetadataProvider metadataProviderFor(String? appName) => _provider;
 
   /// Initializes a [MetadataProvider] for the application located at the
-  /// provided [entrypoint].
-  Future<void> trackEntrypoint(String entrypoint) {
-    final metadataProvider = MetadataProvider(entrypoint, _assetReader);
-    _providers[metadataProvider.entrypoint] = metadataProvider;
-    // Returns a Future so that the asynchronous g3-implementation can override
-    // this method:
-    return Future.value();
+  /// provided main [entrypoint].
+  ///
+  /// Currently we don't have a way to detect an app name at this stage
+  /// so we only support one app debugging at a time, with lazy-compilation
+  /// sub-apps allowed.
+  ///
+  /// TODO(annagrin): Support multi-app debugging.
+  /// Issue: https://github.com/dart-lang/webdev/issues/1769
+  Future<void> trackAppEntrypoint(String entrypoint) async {
+    _provider = MetadataProvider(_assetReader)..update(entrypoint);
+
+    // Some implementers need to do more work.
+    // Make sure we always await on the result.
+    return Future<void>.value();
+  }
+
+  /// Initializes a [MetadataProvider] for the sub-application of [appName]
+  /// located at the provided [entrypoint].
+  ///
+  /// TODO(annagrin): Support multi-app debugging.
+  /// Issue: https://github.com/dart-lang/webdev/issues/1769
+  void trackEntrypoint(String appName, String entrypoint) {
+    _appName ??= appName;
+    if (_appName != appName) {
+      throw StateError('Multi-app debugging is not supported yet');
+    }
+    _provider.update(entrypoint);
   }
 }
 

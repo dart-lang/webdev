@@ -169,10 +169,10 @@ class LegacyStrategy extends LoadStrategy {
 
   @override
   String loadClientSnippet(String clientScript) =>
-      'window.\$dartLoader.forceLoadModule("$clientScript");\n';
+      'window.\$dartLoader.forceLoadModule("$clientScript")';
 
   Future<String> _legacyLoaderSetup(String entrypoint) async {
-    final metadataProvider = metadataProviderFor(entrypoint);
+    final metadataProvider = metadataProviderFor(null);
     final modulePaths = await _moduleProvider(metadataProvider);
     final scripts = <Map<String, String?>>[];
     modulePaths.forEach((name, path) {
@@ -190,20 +190,20 @@ window.\$dartLoader.loader.nextAttempt();
   }
 
   @override
-  Future<String?> moduleForServerPath(String entrypoint, String serverPath) =>
-      _moduleForServerPath(metadataProviderFor(entrypoint), serverPath);
+  Future<String?> moduleForServerPath(String appName, String serverPath) =>
+      _moduleForServerPath(metadataProviderFor(appName), serverPath);
 
   @override
-  Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
-      _moduleInfoForProvider(metadataProviderFor(entrypoint));
+  Future<Map<String, ModuleInfo>> moduleInfoFor(String appName) =>
+      _moduleInfoForProvider(metadataProviderFor(appName));
 
   @override
-  Future<String?> serverPathForModule(String entrypoint, String module) =>
-      _serverPathForModule(metadataProviderFor(entrypoint), module);
+  Future<String?> serverPathForModule(String appName, String module) =>
+      _serverPathForModule(metadataProviderFor(appName), module);
 
   @override
-  Future<String?> sourceMapPathForModule(String entrypoint, String module) =>
-      _sourceMapPathForModule(metadataProviderFor(entrypoint), module);
+  Future<String?> sourceMapPathForModule(String appName, String module) =>
+      _sourceMapPathForModule(metadataProviderFor(appName), module);
 
   @override
   String? serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);

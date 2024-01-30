@@ -146,18 +146,18 @@ class Locations {
   final Modules _modules;
   final String _root;
 
-  late String _entrypoint;
+  late String _appName;
 
   Locations(this._assetReader, this._modules, this._root);
 
   Modules get modules => _modules;
 
-  void initialize(String entrypoint) {
+  void initialize(String appName) {
     _sourceToTokenPosTable.clear();
     _sourceToLocation.clear();
     _locationMemoizer.clear();
     _moduleToLocations.clear();
-    _entrypoint = entrypoint;
+    _appName = appName;
   }
 
   /// Returns all [Location] data for a provided Dart source.
@@ -178,7 +178,7 @@ class Locations {
     final dartUri = DartUri(url, _root);
     final serverPath = dartUri.serverPath;
     final module = await globalToolConfiguration.loadStrategy
-        .moduleForServerPath(_entrypoint, serverPath);
+        .moduleForServerPath(_appName, serverPath);
 
     final cache = _moduleToLocations[module];
     if (cache != null) return cache;
@@ -304,13 +304,13 @@ class Locations {
         return result;
       }
       final modulePath = await globalToolConfiguration.loadStrategy
-          .serverPathForModule(_entrypoint, module);
+          .serverPathForModule(_appName, module);
       if (modulePath == null) {
         _logger.warning('No module path for module: $module');
         return result;
       }
       final sourceMapPath = await globalToolConfiguration.loadStrategy
-          .sourceMapPathForModule(_entrypoint, module);
+          .sourceMapPathForModule(_appName, module);
       if (sourceMapPath == null) {
         _logger.warning('No sourceMap path for module: $module');
         return result;

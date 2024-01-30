@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/data/debug_event.dart';
+import 'package:dwds/data/register_entrypoint_request.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
@@ -163,27 +164,38 @@ class ChromeProxyService implements VmServiceInterface {
     return service;
   }
 
+  Future<void> _initializeApp(String appName, List<String> entrypoints) async {
+    _locations.initialize(appName);
+    _modules.initialize(appName);
+    _skipLists.initialize();
+
+    // We do not need to wait for compiler dependencies to be updated as the
+    // [ExpressionEvaluator] is robust to evaluation requests during updates.
+    await _updateCompilerDependencies(appName);
+  }
+
   /// Initializes metadata in [Locations], [Modules], and [ExpressionCompiler].
-  void _initializeEntrypoint(String entrypoint) {
-    _locations.initialize(entrypoint);
-    _modules.initialize(entrypoint);
+  Future<void> _initializeEntrypoint(String appName, String entrypoint) async {
+    // TODO: incremental update?
+    _locations.initialize(appName);
+    _modules.initialize(appName);
     _skipLists.initialize();
     // We do not need to wait for compiler dependencies to be updated as the
     // [ExpressionEvaluator] is robust to evaluation requests during updates.
-    safeUnawaited(_updateCompilerDependencies(entrypoint));
+    await _updateCompilerDependencies(appName);
   }
 
-  Future<void> _updateCompilerDependencies(String entrypoint) async {
+  Future<void> _updateCompilerDependencies(String appName) async {
     final loadStrategy = globalToolConfiguration.loadStrategy;
     final moduleFormat = loadStrategy.moduleFormat;
     final canaryFeatures = loadStrategy.buildSettings.canaryFeatures;
     final experiments = loadStrategy.buildSettings.experiments;
 
     // TODO(annagrin): Read null safety setting from the build settings.
-    final metadataProvider = loadStrategy.metadataProviderFor(entrypoint);
+    final metadataProvider = loadStrategy.metadataProviderFor(appName);
     final soundNullSafety = await metadataProvider.soundNullSafety;
 
-    _logger.info('Initializing expression compiler for $entrypoint '
+    _logger.info('Initializing expression compiler for $appName '
         'with sound null safety: $soundNullSafety');
 
     final compilerOptions = CompilerOptions(
@@ -196,8 +208,7 @@ class ChromeProxyService implements VmServiceInterface {
     final compiler = _compiler;
     if (compiler != null) {
       await compiler.initialize(compilerOptions);
-      final dependencies =
-          await loadStrategy.moduleInfoForEntrypoint(entrypoint);
+      final dependencies = await loadStrategy.moduleInfoFor(appName);
       await captureElapsedTime(
         () async {
           final result = await compiler.updateDependencies(dependencies);
@@ -205,7 +216,7 @@ class ChromeProxyService implements VmServiceInterface {
           if (!_compilerCompleter.isCompleted) _compilerCompleter.complete();
           return result;
         },
-        (result) => DwdsEvent.compilerUpdateDependencies(entrypoint),
+        (result) => DwdsEvent.compilerUpdateDependencies(appName),
       );
     }
   }
@@ -253,14 +264,15 @@ class ChromeProxyService implements VmServiceInterface {
     }
     // Waiting for the debugger to be ready before initializing the entrypoint.
     //
-    // Note: moving `await debugger` after the `_initializeEntryPoint` call
+    // Note: moving `await debugger` after the `_initializeApp` call
     // causes `getcwd` system calls to fail. Since that system call is used
     // in first `Uri.base` call in the expression compiler service isolate,
     // the expression compiler service will fail to start.
     // Issue: https://github.com/dart-lang/webdev/issues/1282
     final debugger = await debuggerFuture;
-    final entrypoint = appConnection.request.entrypointPath;
-    _initializeEntrypoint(entrypoint);
+    final appName = appConnection.request.appName;
+    final entrypoints = appConnection.request.entrypoints.asList();
+    safeUnawaited(_initializeApp(appName, entrypoints));
 
     debugger.notifyPausedAtStart();
     _inspector = await AppInspector.create(
@@ -277,7 +289,7 @@ class ChromeProxyService implements VmServiceInterface {
     _expressionEvaluator = compiler == null
         ? null
         : BatchedExpressionEvaluator(
-            entrypoint,
+            appName,
             inspector,
             debugger,
             _locations,
@@ -1384,6 +1396,40 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
         timestamp: DateTime.now().millisecondsSinceEpoch,
         isolate: isolateRef,
       )..extensionRPC = service,
+    );
+  }
+
+  /// Parses the [RegisterEntrypointRequest] and emits a corresponding Dart VM Service
+  /// protocol [Event].
+  Future<void> parseRegisterEntrypointRequest(
+    RegisterEntrypointRequest request,
+  ) async {
+    _logger.severe('received RegisterEntrypointRequest: $request');
+    if (terminatingIsolates) return;
+    if (!_isIsolateRunning) return;
+
+    final isolateRef = inspector.isolateRef;
+    final appName = request.appName;
+    final entrypoint = request.entrypointPath;
+
+    // update expression compiler
+    // TODO: Incremental update?
+    safeUnawaited(_initializeEntrypoint(appName, entrypoint));
+
+    // update inspector's data structures
+    await inspector.registerEntrypoint(
+      appName,
+      entrypoint,
+      await debuggerFuture,
+    );
+
+    _streamNotify(
+      EventStreams.kIsolate,
+      Event(
+        kind: EventKind.kIsolateReload,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isolate: isolateRef,
+      ),
     );
   }
 

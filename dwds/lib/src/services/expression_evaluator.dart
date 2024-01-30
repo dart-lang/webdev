@@ -32,7 +32,7 @@ class EvaluationErrorKind {
 /// collect context for evaluation (scope, types, modules), and using
 /// ExpressionCompilerInterface to compile dart expressions to JavaScript.
 class ExpressionEvaluator {
-  final String _entrypoint;
+  final String _appName;
   final AppInspectorInterface _inspector;
   final Debugger _debugger;
   final Locations _locations;
@@ -53,7 +53,7 @@ class ExpressionEvaluator {
       RegExp(r".*Failed to load '.*\.com/(.*\.js).*");
 
   ExpressionEvaluator(
-    this._entrypoint,
+    this._appName,
     this._inspector,
     this._debugger,
     this._locations,
@@ -448,7 +448,7 @@ class ExpressionEvaluator {
         var modulePath = _loadModuleErrorRegex.firstMatch(error)?.group(1);
         final module = modulePath != null
             ? await globalToolConfiguration.loadStrategy.moduleForServerPath(
-                _entrypoint,
+                _appName,
                 modulePath,
               )
             : 'unknown';

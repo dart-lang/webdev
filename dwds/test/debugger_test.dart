@@ -32,11 +32,11 @@ class TestStrategy extends FakeStrategy {
   TestStrategy(super.assetReader);
 
   @override
-  Future<String> moduleForServerPath(String entrypoint, String appUri) async =>
+  Future<String> moduleForServerPath(String appName, String appUri) async =>
       'foo.ddc.js';
 
   @override
-  Future<String> serverPathForModule(String entrypoint, String module) async =>
+  Future<String> serverPathForModule(String appName, String module) async =>
       'foo/ddc';
 }
 
