@@ -287,10 +287,6 @@ class ChromeProxyService implements VmServiceInterface {
 
     safeUnawaited(_prewarmExpressionCompilerCache());
 
-    await debugger.reestablishBreakpoints(
-      _previousBreakpoints,
-      _disabledBreakpoints,
-    );
     _disabledBreakpoints.clear();
 
     safeUnawaited(
@@ -393,6 +389,7 @@ class ChromeProxyService implements VmServiceInterface {
     int line, {
     int? column,
   }) {
+    print('ADD BREAKPOINT: $line');
     return wrapInErrorHandlerAsync(
       'addBreakpoint',
       () => _addBreakpoint(isolateId, scriptId, line),
@@ -438,6 +435,7 @@ class ChromeProxyService implements VmServiceInterface {
     int line, {
     int? column,
   }) async {
+    print('add breakpoint with script uri $line');
     await isInitialized;
     _checkIsolate('addBreakpointWithScriptUri', isolateId);
     if (Uri.parse(scriptUri).scheme == 'dart') {

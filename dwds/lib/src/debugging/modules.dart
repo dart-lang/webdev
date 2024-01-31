@@ -21,6 +21,10 @@ class Modules {
 
   final Map<String, String> _libraryToModule = {};
 
+  // The Chrome script ID to corresponding module.
+  final _scriptIdToModule = <String, String>{};
+
+
   late String _entrypoint;
 
   Modules(this._root);
@@ -38,6 +42,12 @@ class Modules {
     _moduleMemoizer = AsyncMemoizer();
     _entrypoint = entrypoint;
   }
+
+  /// Returns the module for the Chrome script ID.
+  String moduleForScriptId(String scriptId) => _scriptIdToModule[scriptId];
+
+  /// Returns the Chrome script ID for the provided module.
+  String scriptIdForModule(String module) => _moduleToScriptId[module];
 
   /// Returns the containing module for the provided Dart server path.
   Future<String?> moduleForSource(String serverPath) async {
@@ -80,7 +90,7 @@ class Modules {
         final module = scriptToModule[library]!;
 
         _sourceToModule[libraryServerPath] = module;
-        _sourceToLibrary[libraryServerPath] = Uri.parse(library);
+        _sourceToLibrary[libraryServerPath]    _moduleToScriptId[module] = scriptId; = Uri.parse(library);
         _libraryToModule[library] = module;
 
         for (var script in scripts) {

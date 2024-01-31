@@ -253,66 +253,7 @@ class Debugger extends Domain {
     return breakpoint;
   }
 
-  Future<ScriptRef?> _updatedScriptRefFor(Breakpoint breakpoint) async {
-    final oldRef = (breakpoint.location as SourceLocation).script;
-    final uri = oldRef?.uri;
-    if (uri == null) return null;
-    final dartUri = DartUri(uri, _root);
-    return await inspector.scriptRefFor(dartUri.serverPath);
-  }
 
-  Future<void> reestablishBreakpoints(
-    Set<Breakpoint> previousBreakpoints,
-    Set<Breakpoint> disabledBreakpoints,
-  ) async {
-    // Previous breakpoints were never removed from Chrome since we use
-    // `setBreakpointByUrl`. We simply need to update the references.
-    for (var breakpoint in previousBreakpoints) {
-      final dartBpId = breakpoint.id!;
-      final scriptRef = await _updatedScriptRefFor(breakpoint);
-      final scriptUri = scriptRef?.uri;
-      if (scriptRef != null && scriptUri != null) {
-        final jsBpId = _breakpoints.jsIdFor(dartBpId)!;
-        final updatedLocation = await _locations.locationForDart(
-          DartUri(scriptUri, _root),
-          _lineNumberFor(breakpoint),
-          _columnNumberFor(breakpoint),
-        );
-        if (updatedLocation != null) {
-          final updatedBreakpoint = _breakpoints._dartBreakpoint(
-            scriptRef,
-            updatedLocation,
-            dartBpId,
-          );
-          _breakpoints._note(bp: updatedBreakpoint, jsId: jsBpId);
-          _notifyBreakpoint(updatedBreakpoint);
-        } else {
-          logger.warning('Cannot update breakpoint $dartBpId:'
-              ' cannot update location.');
-        }
-      } else {
-        logger.warning('Cannot update breakpoint $dartBpId:'
-            ' cannot find script ref.');
-      }
-    }
-
-    // Disabled breakpoints were actually removed from Chrome so simply add
-    // them back.
-    for (var breakpoint in disabledBreakpoints) {
-      final scriptRef = await _updatedScriptRefFor(breakpoint);
-      final scriptId = scriptRef?.id;
-      if (scriptId != null) {
-        await addBreakpoint(
-          scriptId,
-          _lineNumberFor(breakpoint),
-          column: _columnNumberFor(breakpoint),
-        );
-      } else {
-        logger.warning('Cannot update disabled breakpoint ${breakpoint.id}:'
-            ' cannot find script ref.');
-      }
-    }
-  }
 
   void _notifyBreakpoint(Breakpoint breakpoint) {
     final event = Event(
@@ -858,6 +799,15 @@ class _Breakpoints extends Domain {
     // Prevent `Aww, snap!` errors when setting multiple breakpoints
     // simultaneously by serializing the requests.
     return _queue.run(() async {
+
+      // final response =
+      //     await remoteDebugger.sendCommand('Debugger.setBreakpoint', params: {
+      //   'location': {
+      //     'scriptId': location.jsLocation.scriptId,
+      //     'lineNumber': location.jsLocation.line - 1,
+      //   }
+
+
       final breakPointId = await sendCommandAndValidateResult<String>(
         remoteDebugger,
         method: 'Debugger.setBreakpointByUrl',
