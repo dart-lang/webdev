@@ -314,6 +314,7 @@ class ChromeProxyService implements VmServiceInterface {
         isolate: isolateRef,
       ),
     );
+    print('==== NOTIFY kIsolateRunnable!!!!');
     _streamNotify(
       'Isolate',
       Event(
