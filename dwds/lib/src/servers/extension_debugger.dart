@@ -131,6 +131,7 @@ class ExtensionDebugger implements RemoteDebugger {
     });
     // Listens for a page reload.
     onGlobalObjectCleared.listen((_) {
+      // Note: Can listen for page-reload here.
       _scripts.clear();
     });
   }

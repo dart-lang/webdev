@@ -742,7 +742,7 @@ class _Breakpoints extends Domain {
 
     try {
       final dartBreakpoint = _dartBreakpoint(dartScript!, location, id);
-      final jsBreakpointId = await _setJsBreakpoint(location);
+      final jsBreakpointId = await _setJsBreakpoint(location, scriptId);
       if (jsBreakpointId == null) {
         _logger.fine('Failed to set breakpoint $id '
             '($scriptId:$line:$column): '
@@ -793,27 +793,16 @@ class _Breakpoints extends Domain {
   }
 
   /// Calls the Chrome protocol setBreakpoint and returns the remote ID.
-  Future<String?> _setJsBreakpoint(Location location) {
-    // The module can be loaded from a nested path and contain an ETAG suffix.
-    final urlRegex = '.*${location.jsLocation.module}.*';
+  Future<String?> _setJsBreakpoint(Location location, String scriptId) {
     // Prevent `Aww, snap!` errors when setting multiple breakpoints
     // simultaneously by serializing the requests.
     return _queue.run(() async {
-
-      // final response =
-      //     await remoteDebugger.sendCommand('Debugger.setBreakpoint', params: {
-      //   'location': {
-      //     'scriptId': location.jsLocation.scriptId,
-      //     'lineNumber': location.jsLocation.line - 1,
-      //   }
-
-
       final breakPointId = await sendCommandAndValidateResult<String>(
         remoteDebugger,
-        method: 'Debugger.setBreakpointByUrl',
+        method: 'Debugger.setBreakpoint',
         resultField: 'breakpointId',
         params: {
-          'urlRegex': urlRegex,
+          'scriptId': scriptId,
           'lineNumber': location.jsLocation.line,
           'columnNumber': location.jsLocation.column,
         },

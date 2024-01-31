@@ -29,7 +29,6 @@ class Location {
   ) : tokenPos = _startTokenId++;
 
   static Location from(
-    String scriptId,
     String module,
     TargetLineEntry lineEntry,
     TargetEntry entry,
@@ -43,7 +42,7 @@ class Location {
     // lineEntry data is 0 based according to:
     // https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k
     return Location._(
-      JsLocation.fromZeroBased(scriptId, module, jsLine, jsColumn),
+      JsLocation.fromZeroBased(module, jsLine, jsColumn),
       DartLocation.fromZeroBased(dartUri, dartLine ?? 0, dartColumn ?? 0),
     );
   }
@@ -97,9 +96,6 @@ class DartLocation {
 
 /// Location information for a JS source.
 class JsLocation {
-  /// The script ID as provided by Chrome.
-  final String scriptId;
-
   final String module;
 
   /// 0 based row offset within the JS source code.
@@ -109,7 +105,6 @@ class JsLocation {
   final int column;
 
   JsLocation._(
-    this.scriptId,
     this.module,
     this.line,
     this.column,
@@ -128,12 +123,11 @@ class JsLocation {
   // JS Location is 0 based according to:
   // https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Location
   factory JsLocation.fromZeroBased(
-    String scriptId,
     String module,
     int line,
     int column,
   ) =>
-      JsLocation._(scriptId, module, line, column);
+      JsLocation._(module, line, column);
 }
 
 /// Contains meta data for known [Location]s.

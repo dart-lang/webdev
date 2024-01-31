@@ -43,12 +43,6 @@ class Modules {
     _entrypoint = entrypoint;
   }
 
-  /// Returns the module for the Chrome script ID.
-  String moduleForScriptId(String scriptId) => _scriptIdToModule[scriptId];
-
-  /// Returns the Chrome script ID for the provided module.
-  String scriptIdForModule(String module) => _moduleToScriptId[module];
-
   /// Returns the containing module for the provided Dart server path.
   Future<String?> moduleForSource(String serverPath) async {
     await _moduleMemoizer.runOnce(_initializeMapping);
