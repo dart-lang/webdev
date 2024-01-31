@@ -90,7 +90,7 @@ class Modules {
         final module = scriptToModule[library]!;
 
         _sourceToModule[libraryServerPath] = module;
-        _sourceToLibrary[libraryServerPath]    _moduleToScriptId[module] = scriptId; = Uri.parse(library);
+        _sourceToLibrary[libraryServerPath] = Uri.parse(library);
         _libraryToModule[library] = module;
 
         for (var script in scripts) {
