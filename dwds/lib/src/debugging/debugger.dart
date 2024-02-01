@@ -207,6 +207,7 @@ class Debugger extends Domain {
     // miss events.
     // Allow a null debugger/connection for unit tests.
     runZonedGuarded(() {
+      _remoteDebugger.onScriptParsed.listen(_scriptParsedHandler);
       _remoteDebugger.onPaused.listen(_pauseHandler);
       _remoteDebugger.onResumed.listen(_resumeHandler);
       _remoteDebugger.onTargetCrashed.listen(_crashHandler);
@@ -459,6 +460,11 @@ class Debugger extends Domain {
     }
 
     return dartFrame;
+  }
+
+  void _scriptParsedHandler(ScriptParsedEvent e) {
+    final script = e.script;
+    print('=== GOT SCRIPT: ${script.scriptId} -> ${script.url}');
   }
 
   /// Handles pause events coming from the Chrome connection.
@@ -796,18 +802,29 @@ class _Breakpoints extends Domain {
   Future<String?> _setJsBreakpoint(Location location, String scriptId) {
     // Prevent `Aww, snap!` errors when setting multiple breakpoints
     // simultaneously by serializing the requests.
+
+    // The module can be loaded from a nested path and contain an ETAG suffix.
+    final urlRegex = '.*${location.jsLocation.module}.*';
+    
     return _queue.run(() async {
+      final chromeScriptId = location.jsLocation.chromeScriptId;
+      if (chromeScriptId != null) {
       final breakPointId = await sendCommandAndValidateResult<String>(
         remoteDebugger,
         method: 'Debugger.setBreakpoint',
         resultField: 'breakpointId',
         params: {
-          'scriptId': scriptId,
+            'scriptId': location.jsLocation.chromeScriptId,
           'lineNumber': location.jsLocation.line,
           'columnNumber': location.jsLocation.column,
         },
       );
       return breakPointId;
+      } else {
+        print('CHROME SCRIPT ID IS NULL FOR $scriptId');
+        return null;
+      }
+
     });
   }
 

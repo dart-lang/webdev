@@ -21,9 +21,11 @@ class Modules {
 
   final Map<String, String> _libraryToModule = {};
 
-  // The Chrome script ID to corresponding module.
-  final _scriptIdToModule = <String, String>{};
+  // The Chrome script ID to corresponding url.
+  final _scriptIdToScriptUrl = <String, String>{};
 
+  // The Chrome script url to corresponding Chrome script ID.
+  final _scriptUrlToScriptId = <String, String>{};
 
   late String _entrypoint;
 
@@ -64,6 +66,22 @@ class Modules {
   Future<Map<String, String>> modules() async {
     await _moduleMemoizer.runOnce(_initializeMapping);
     return _sourceToModule;
+  }
+
+  void saveScriptId(
+    String scriptId, {
+    required String scriptUrl,
+  }) {
+    _scriptIdToScriptUrl[scriptUrl] = scriptId;
+    _scriptUrlToScriptId[scriptId] = scriptUrl;
+  }
+
+  Future<String?> getScriptIdForModule(String entrypoint, String module) async {
+    final serverPath = await globalToolConfiguration.loadStrategy
+        .serverPathForModule(entrypoint, module);
+    final scriptId = _scriptUrlToScriptId[serverPath];
+    print('found $scriptId for $module');
+    return scriptId;
   }
 
   /// Initializes [_sourceToModule] and [_sourceToLibrary].

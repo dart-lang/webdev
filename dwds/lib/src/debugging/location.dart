@@ -33,6 +33,7 @@ class Location {
     TargetLineEntry lineEntry,
     TargetEntry entry,
     DartUri dartUri,
+    String? chromeScriptId,
   ) {
     final dartLine = entry.sourceLine;
     final dartColumn = entry.sourceColumn;
@@ -42,7 +43,7 @@ class Location {
     // lineEntry data is 0 based according to:
     // https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k
     return Location._(
-      JsLocation.fromZeroBased(module, jsLine, jsColumn),
+      JsLocation.fromZeroBased(module, jsLine, jsColumn, chromeScriptId),
       DartLocation.fromZeroBased(dartUri, dartLine ?? 0, dartColumn ?? 0),
     );
   }
@@ -104,10 +105,13 @@ class JsLocation {
   /// 0 based column offset within the JS source code.
   final int column;
 
+  String? chromeScriptId;
+
   JsLocation._(
     this.module,
     this.line,
     this.column,
+    this.chromeScriptId,
   );
 
   int compareTo(JsLocation other) => compareToLine(other.line, other.column);
@@ -126,8 +130,9 @@ class JsLocation {
     String module,
     int line,
     int column,
+    String? chromeScriptId,
   ) =>
-      JsLocation._(module, line, column);
+      JsLocation._(module, line, column, chromeScriptId);
 }
 
 /// Contains meta data for known [Location]s.
@@ -315,6 +320,9 @@ class Locations {
       }
       final sourceMapPath = await globalToolConfiguration.loadStrategy
           .sourceMapPathForModule(_entrypoint, module);
+      final chromeScriptId =
+          await _modules.getScriptIdForModule(_entrypoint, module);
+      print('=== CHROME SCRIPT ID IS $chromeScriptId');
       if (sourceMapPath == null) {
         _logger.warning('No sourceMap path for module: $module');
         return result;
@@ -343,12 +351,14 @@ class Locations {
             );
 
             final dartUri = DartUri(path, _root);
+
             result.add(
               Location.from(
                 modulePath,
                 lineEntry,
                 entry,
                 dartUri,
+                chromeScriptId,
               ),
             );
           }
