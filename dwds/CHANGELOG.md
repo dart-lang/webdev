@@ -1,5 +1,6 @@
 ## 23.4.0-wip
 
+- Migrate injected client code to `package:web`. - [#2306](https://github.com/dart-lang/webdev/pull/2306)
 - Adding tests for constants in DDC after a hot restart - [#2349](https://github.com/dart-lang/webdev/pull/2349)
 
 ## 23.3.0

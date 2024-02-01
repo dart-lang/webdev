@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:html';
 
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/sockets.dart';
+import 'package:web/helpers.dart';
 
 import 'restarter.dart';
 
