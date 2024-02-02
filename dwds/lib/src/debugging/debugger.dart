@@ -21,6 +21,7 @@ import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
+import 'package:path/path.dart' as p;
 
 /// Adds [event] to the stream with [streamId] if there is anybody listening
 /// on that stream.
@@ -35,6 +36,9 @@ const _pauseModePauseStates = {
   'all': PauseState.all,
   'unhandled': PauseState.uncaught,
 };
+
+final chromeScriptIdToUrl = <String, String>{};
+final chromeScriptUrlToId = <String, String>{};
 
 class Debugger extends Domain {
   static final logger = Logger('Debugger');
@@ -254,8 +258,6 @@ class Debugger extends Domain {
     return breakpoint;
   }
 
-
-
   void _notifyBreakpoint(Breakpoint breakpoint) {
     final event = Event(
       kind: EventKind.kBreakpointAdded,
@@ -464,7 +466,18 @@ class Debugger extends Domain {
 
   void _scriptParsedHandler(ScriptParsedEvent e) {
     final script = e.script;
-    print('=== GOT SCRIPT: ${script.scriptId} -> ${script.url}');
+    final scriptId = script.scriptId;
+    final scriptPath = p.joinAll(Uri.parse(script.url).pathSegments);
+    print('received script parsed event: $scriptPath');
+    _saveScriptId(scriptId, scriptUrl: scriptPath);
+  }
+
+  void _saveScriptId(
+    String scriptId, {
+    required String scriptUrl,
+  }) {
+    chromeScriptIdToUrl[scriptId] = scriptUrl;
+    chromeScriptUrlToId[scriptUrl] = scriptId;
   }
 
   /// Handles pause events coming from the Chrome connection.
@@ -805,26 +818,28 @@ class _Breakpoints extends Domain {
 
     // The module can be loaded from a nested path and contain an ETAG suffix.
     final urlRegex = '.*${location.jsLocation.module}.*';
-    
+
     return _queue.run(() async {
       final chromeScriptId = location.jsLocation.chromeScriptId;
+      print('requesting breakpoint with id $chromeScriptId');
       if (chromeScriptId != null) {
-      final breakPointId = await sendCommandAndValidateResult<String>(
-        remoteDebugger,
-        method: 'Debugger.setBreakpoint',
-        resultField: 'breakpointId',
-        params: {
-            'scriptId': location.jsLocation.chromeScriptId,
-          'lineNumber': location.jsLocation.line,
-          'columnNumber': location.jsLocation.column,
-        },
-      );
-      return breakPointId;
+        final breakPointId = await sendCommandAndValidateResult<String>(
+          remoteDebugger,
+          method: 'Debugger.setBreakpoint',
+          resultField: 'breakpointId',
+          params: {
+            'location': {
+              'lineNumber': location.jsLocation.line,
+              'columnNumber': location.jsLocation.column,
+              'scriptId': location.jsLocation.chromeScriptId,
+            },
+          },
+        );
+        return breakPointId;
       } else {
         print('CHROME SCRIPT ID IS NULL FOR $scriptId');
         return null;
       }
-
     });
   }
 

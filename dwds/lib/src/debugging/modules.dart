@@ -6,6 +6,7 @@ import 'package:async/async.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:logging/logging.dart';
+import 'package:dwds/src/debugging/debugger.dart';
 
 /// Tracks modules for the compiled application.
 class Modules {
@@ -20,12 +21,6 @@ class Modules {
   var _moduleMemoizer = AsyncMemoizer<void>();
 
   final Map<String, String> _libraryToModule = {};
-
-  // The Chrome script ID to corresponding url.
-  final _scriptIdToScriptUrl = <String, String>{};
-
-  // The Chrome script url to corresponding Chrome script ID.
-  final _scriptUrlToScriptId = <String, String>{};
 
   late String _entrypoint;
 
@@ -68,18 +63,11 @@ class Modules {
     return _sourceToModule;
   }
 
-  void saveScriptId(
-    String scriptId, {
-    required String scriptUrl,
-  }) {
-    _scriptIdToScriptUrl[scriptUrl] = scriptId;
-    _scriptUrlToScriptId[scriptId] = scriptUrl;
-  }
-
   Future<String?> getScriptIdForModule(String entrypoint, String module) async {
     final serverPath = await globalToolConfiguration.loadStrategy
         .serverPathForModule(entrypoint, module);
-    final scriptId = _scriptUrlToScriptId[serverPath];
+    print('looking for server path $serverPath');
+    final scriptId = chromeScriptUrlToId[serverPath];
     print('found $scriptId for $module');
     return scriptId;
   }
