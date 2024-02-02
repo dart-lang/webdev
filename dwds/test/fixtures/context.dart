@@ -14,7 +14,7 @@ import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/build_runner_require.dart';
-import 'package:dwds/src/loaders/frontend_server_legacy.dart';
+import 'package:dwds/src/loaders/frontend_server_ddc.dart';
 import 'package:dwds/src/loaders/frontend_server_require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
@@ -343,7 +343,7 @@ class TestContext {
                   () async => {},
                   buildSettings,
                 ).strategy,
-              ModuleFormat.ddc => FrontendServerLegacyStrategyProvider(
+              ModuleFormat.ddc => FrontendServerDdcStrategyProvider(
                   testSettings.reloadConfiguration,
                   assetReader,
                   packageUriMapper,

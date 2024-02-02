@@ -42,8 +42,8 @@ var baseUrl = (function () {
 }());
 ''';
 
-/// A load strategy for the legacy module system.
-class LegacyStrategy extends LoadStrategy {
+/// A load strategy for the DDC module system.
+class DdcStrategy extends LoadStrategy {
   @override
   final ReloadConfiguration reloadConfiguration;
 
@@ -129,7 +129,7 @@ class LegacyStrategy extends LoadStrategy {
 
   final BuildSettings _buildSettings;
 
-  LegacyStrategy(
+  DdcStrategy(
     this.reloadConfiguration,
     this._moduleProvider,
     this._digestsProvider,
@@ -152,26 +152,26 @@ class LegacyStrategy extends LoadStrategy {
       };
 
   @override
-  String get id => 'legacy';
+  String get id => 'ddc';
 
   @override
   String get moduleFormat => 'ddc';
 
   @override
-  String get loadLibrariesModule => 'dart_library.ddk.js';
+  String get loadLibrariesModule => 'ddc_module_loader.ddk.js';
 
   @override
   String get loadModuleSnippet => 'dart_library.import';
 
   @override
   Future<String> bootstrapFor(String entrypoint) async =>
-      await _legacyLoaderSetup(entrypoint);
+      await _ddcLoaderSetup(entrypoint);
 
   @override
   String loadClientSnippet(String clientScript) =>
       'window.\$dartLoader.forceLoadModule("$clientScript");\n';
 
-  Future<String> _legacyLoaderSetup(String entrypoint) async {
+  Future<String> _ddcLoaderSetup(String entrypoint) async {
     final metadataProvider = metadataProviderFor(entrypoint);
     final modulePaths = await _moduleProvider(metadataProvider);
     final scripts = <Map<String, String?>>[];
