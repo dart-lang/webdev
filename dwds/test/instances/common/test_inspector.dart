@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:test/test.dart';
-import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../../fixtures/context.dart';
@@ -255,11 +254,7 @@ Matcher matchRecordTypeInstanceRef({required int length}) => isA<InstanceRef>()
     .having(
       (e) => e.kind,
       'kind',
-      // See https://github.com/dart-lang/sdk/commit/67e052d7e996be8ad9d02970117ffef07eab1c77.
-      // TODO() Can't compare edge verisons, wait for this to get to a dev release.
-      dartSdkIsAtLeast('3.4.0-edge.eeec4d36e3ea9b166da277a46f62d7d3b9ce645a')
-          ? InstanceKind.kType
-          : InstanceKind.kRecordType,
+      InstanceKind.kRecordType,
     )
     .having((e) => e.length, 'length', length)
     .having((e) => e.classRef!, 'classRef', matchRecordTypeClassRef);
