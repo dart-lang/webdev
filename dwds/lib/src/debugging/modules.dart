@@ -63,13 +63,13 @@ class Modules {
     return _sourceToModule;
   }
 
-  Future<String?> getScriptIdForModule(String entrypoint, String module) async {
+  Future<String?> getRuntimeScriptIdForModule(
+    String entrypoint,
+    String module,
+  ) async {
     final serverPath = await globalToolConfiguration.loadStrategy
         .serverPathForModule(entrypoint, module);
-    print('looking for server path $serverPath');
-    final scriptId = chromeScriptUrlToId[serverPath];
-    print('found $scriptId for $module');
-    return scriptId;
+    return chromePathToRuntimeScriptId[serverPath];
   }
 
   /// Initializes [_sourceToModule] and [_sourceToLibrary].

@@ -314,7 +314,6 @@ class ChromeProxyService implements VmServiceInterface {
         isolate: isolateRef,
       ),
     );
-    print('==== NOTIFY kIsolateRunnable!!!!');
     _streamNotify(
       'Isolate',
       Event(
@@ -390,7 +389,6 @@ class ChromeProxyService implements VmServiceInterface {
     int line, {
     int? column,
   }) {
-    print('ADD BREAKPOINT: $line');
     return wrapInErrorHandlerAsync(
       'addBreakpoint',
       () => _addBreakpoint(isolateId, scriptId, line),
@@ -436,7 +434,6 @@ class ChromeProxyService implements VmServiceInterface {
     int line, {
     int? column,
   }) async {
-    print('add breakpoint with script uri $line');
     await isInitialized;
     _checkIsolate('addBreakpointWithScriptUri', isolateId);
     if (Uri.parse(scriptUri).scheme == 'dart') {

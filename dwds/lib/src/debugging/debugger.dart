@@ -37,8 +37,13 @@ const _pauseModePauseStates = {
   'unhandled': PauseState.uncaught,
 };
 
-final chromeScriptIdToUrl = <String, String>{};
-final chromeScriptUrlToId = <String, String>{};
+/// Mapping from the path of a script in Chrome to the Runtime.ScriptId Chrome
+/// uses to reference it.
+///
+/// See https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-ScriptId
+///
+/// e.g. 'packages/myapp/main.dart.lib.js' -> '12'
+final chromePathToRuntimeScriptId = <String, String>{};
 
 class Debugger extends Domain {
   static final logger = Logger('Debugger');
@@ -465,19 +470,10 @@ class Debugger extends Domain {
   }
 
   void _scriptParsedHandler(ScriptParsedEvent e) {
-    final script = e.script;
-    final scriptId = script.scriptId;
-    final scriptPath = p.joinAll(Uri.parse(script.url).pathSegments);
-    print('received script parsed event: $scriptPath');
-    _saveScriptId(scriptId, scriptUrl: scriptPath);
-  }
-
-  void _saveScriptId(
-    String scriptId, {
-    required String scriptUrl,
-  }) {
-    chromeScriptIdToUrl[scriptId] = scriptUrl;
-    chromeScriptUrlToId[scriptUrl] = scriptId;
+    final scriptPath = p.joinAll(Uri.parse(e.script.url).pathSegments);
+    if (scriptPath.isNotEmpty) {
+      chromePathToRuntimeScriptId[scriptPath] = e.script.scriptId;
+    }
   }
 
   /// Handles pause events coming from the Chrome connection.
@@ -761,7 +757,7 @@ class _Breakpoints extends Domain {
 
     try {
       final dartBreakpoint = _dartBreakpoint(dartScript!, location, id);
-      final jsBreakpointId = await _setJsBreakpoint(location, scriptId);
+      final jsBreakpointId = await _setJsBreakpoint(location);
       if (jsBreakpointId == null) {
         _logger.fine('Failed to set breakpoint $id '
             '($scriptId:$line:$column): '
@@ -812,18 +808,13 @@ class _Breakpoints extends Domain {
   }
 
   /// Calls the Chrome protocol setBreakpoint and returns the remote ID.
-  Future<String?> _setJsBreakpoint(Location location, String scriptId) {
+  Future<String?> _setJsBreakpoint(Location location) {
     // Prevent `Aww, snap!` errors when setting multiple breakpoints
     // simultaneously by serializing the requests.
-
-    // The module can be loaded from a nested path and contain an ETAG suffix.
-    final urlRegex = '.*${location.jsLocation.module}.*';
-
     return _queue.run(() async {
-      final chromeScriptId = location.jsLocation.chromeScriptId;
-      print('requesting breakpoint with id $chromeScriptId');
-      if (chromeScriptId != null) {
-        final breakPointId = await sendCommandAndValidateResult<String>(
+      final scriptId = location.jsLocation.runtimeScriptId;
+      if (scriptId != null) {
+        return sendCommandAndValidateResult<String>(
           remoteDebugger,
           method: 'Debugger.setBreakpoint',
           resultField: 'breakpointId',
@@ -831,13 +822,12 @@ class _Breakpoints extends Domain {
             'location': {
               'lineNumber': location.jsLocation.line,
               'columnNumber': location.jsLocation.column,
-              'scriptId': location.jsLocation.chromeScriptId,
+              'scriptId': scriptId,
             },
           },
         );
-        return breakPointId;
       } else {
-        print('CHROME SCRIPT ID IS NULL FOR $scriptId');
+        _logger.fine('No runtime script ID for location $location');
         return null;
       }
     });
