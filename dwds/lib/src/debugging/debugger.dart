@@ -18,10 +18,10 @@ import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
-import 'package:path/path.dart' as p;
 
 /// Adds [event] to the stream with [streamId] if there is anybody listening
 /// on that stream.
@@ -53,18 +53,17 @@ class Debugger extends Domain {
   final StreamNotify _streamNotify;
   final Locations _locations;
   final SkipLists _skipLists;
-  final String _root;
 
   Debugger._(
     this._remoteDebugger,
     this._streamNotify,
     this._locations,
     this._skipLists,
-    this._root,
+    root,
   ) : _breakpoints = _Breakpoints(
           locations: _locations,
           remoteDebugger: _remoteDebugger,
-          root: _root,
+          root: root,
         );
 
   /// The breakpoints we have set so far, indexable by either

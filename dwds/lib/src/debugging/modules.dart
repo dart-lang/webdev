@@ -4,9 +4,9 @@
 
 import 'package:async/async.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:logging/logging.dart';
-import 'package:dwds/src/debugging/debugger.dart';
 
 /// Tracks modules for the compiled application.
 class Modules {

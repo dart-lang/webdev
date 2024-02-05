@@ -36,17 +36,24 @@ void main() {
   locations.initialize('fake_entrypoint');
 
   group('JS locations |', () {
+    const fakeRuntimeScriptId = '12';
+
     group('location |', () {
-      test('is zero based', () async {
-        final loc = JsLocation.fromZeroBased(_module, 0, 0);
+      test('is zero based', () {
+        final loc =
+            JsLocation.fromZeroBased(_module, 0, 0, fakeRuntimeScriptId);
         expect(loc, _matchJsLocation(0, 0));
       });
 
-      test('can compare to other location', () async {
-        final loc00 = JsLocation.fromZeroBased(_module, 0, 0);
-        final loc01 = JsLocation.fromZeroBased(_module, 0, 1);
-        final loc10 = JsLocation.fromZeroBased(_module, 1, 0);
-        final loc11 = JsLocation.fromZeroBased(_module, 1, 1);
+      test('can compare to other location', () {
+        final loc00 =
+            JsLocation.fromZeroBased(_module, 0, 0, fakeRuntimeScriptId);
+        final loc01 =
+            JsLocation.fromZeroBased(_module, 0, 1, fakeRuntimeScriptId);
+        final loc10 =
+            JsLocation.fromZeroBased(_module, 1, 0, fakeRuntimeScriptId);
+        final loc11 =
+            JsLocation.fromZeroBased(_module, 1, 1, fakeRuntimeScriptId);
 
         expect(loc00.compareTo(loc01), isNegative);
         expect(loc00.compareTo(loc10), isNegative);
