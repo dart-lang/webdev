@@ -469,10 +469,22 @@ class Debugger extends Domain {
   }
 
   void _scriptParsedHandler(ScriptParsedEvent e) {
-    final scriptPath = p.joinAll(Uri.parse(e.script.url).pathSegments);
-    if (scriptPath.isNotEmpty) {
+    final scriptPath = _packagesPathForChromeScript(e.script.url);
+    if (scriptPath != null) {
       chromePathToRuntimeScriptId[scriptPath] = e.script.scriptId;
     }
+  }
+
+  String? _packagesPathForChromeScript(String scriptUrl) {
+    final scriptPathSegments = Uri.parse(scriptUrl).pathSegments;
+    const packagesDir = 'packages';
+    if (scriptPathSegments.isEmpty ||
+        !scriptPathSegments.contains(packagesDir)) {
+      return null;
+    }
+
+    final packagesIdx = scriptPathSegments.indexOf(packagesDir);
+    return p.joinAll(scriptPathSegments.sublist(packagesIdx));
   }
 
   /// Handles pause events coming from the Chrome connection.
