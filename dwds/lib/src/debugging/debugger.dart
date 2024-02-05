@@ -705,14 +705,6 @@ Future<T> sendCommandAndValidateResult<T>(
   return result;
 }
 
-/// Returns the Dart line number for the provided breakpoint.
-int _lineNumberFor(Breakpoint breakpoint) =>
-    int.parse(breakpoint.id!.split('#').last.split(':').first);
-
-/// Returns the Dart column number for the provided breakpoint.
-int _columnNumberFor(Breakpoint breakpoint) =>
-    int.parse(breakpoint.id!.split('#').last.split(':').last);
-
 /// Returns the breakpoint ID for the provided Dart script ID and Dart line
 /// number.
 String breakpointIdFor(String scriptId, int line, int column) =>
