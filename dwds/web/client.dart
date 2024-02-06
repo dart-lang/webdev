@@ -29,7 +29,7 @@ import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'promise.dart';
-import 'reloader/legacy_restarter.dart';
+import 'reloader/ddc_restarter.dart';
 import 'reloader/manager.dart';
 import 'reloader/require_restarter.dart';
 import 'reloader/restarter.dart';
@@ -54,8 +54,8 @@ Future<void>? main() {
     Restarter restarter;
     if (dartModuleStrategy == 'require-js') {
       restarter = await RequireRestarter.create();
-    } else if (dartModuleStrategy == 'legacy') {
-      restarter = LegacyRestarter();
+    } else if (dartModuleStrategy == 'ddc' || dartModuleStrategy == 'legacy') {
+      restarter = DdcRestarter();
     } else {
       throw StateError('Unknown module strategy: $dartModuleStrategy');
     }

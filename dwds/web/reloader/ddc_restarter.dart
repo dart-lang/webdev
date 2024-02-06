@@ -8,7 +8,7 @@ import 'dart:js';
 
 import 'restarter.dart';
 
-class LegacyRestarter implements Restarter {
+class DdcRestarter implements Restarter {
   @override
   Future<bool> restart({String? runId}) async {
     final dartLibrary = context['dart_library'] as JsObject;
