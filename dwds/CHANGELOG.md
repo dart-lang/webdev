@@ -1,6 +1,7 @@
 ## 23.4.0-wip
 
-- Adding tests for constants in DDC after a hot restart - [#2349](https://github.com/dart-lang/webdev/pull/2349)
+- Adding tests for constants in DDC after a hot restart. - [#2349](https://github.com/dart-lang/webdev/pull/2349)
+- Do not try to persist breakpoints across hot restarts or page reloads. - [#2371](https://github.com/dart-lang/webdev/pull/2371)
 
 ## 23.3.0
 
