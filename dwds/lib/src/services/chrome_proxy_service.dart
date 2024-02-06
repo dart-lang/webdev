@@ -91,9 +91,6 @@ class ChromeProxyService implements VmServiceInterface {
 
   StreamSubscription<ConsoleAPIEvent>? _consoleSubscription;
 
-  final _disabledBreakpoints = <Breakpoint>{};
-  final _previousBreakpoints = <Breakpoint>{};
-
   final _logger = Logger('ChromeProxyService');
 
   final ExpressionCompiler? _compiler;
@@ -287,8 +284,6 @@ class ChromeProxyService implements VmServiceInterface {
 
     safeUnawaited(_prewarmExpressionCompilerCache());
 
-    _disabledBreakpoints.clear();
-
     safeUnawaited(
       appConnection.onStart.then((_) {
         debugger.resumeFromStart();
@@ -364,19 +359,15 @@ class ChromeProxyService implements VmServiceInterface {
     );
     _vm.isolates?.removeWhere((ref) => ref.id == isolate.id);
     _inspector = null;
-    _previousBreakpoints.clear();
-    _previousBreakpoints.addAll(isolate.breakpoints ?? []);
     _expressionEvaluator?.close();
     _consoleSubscription?.cancel();
     _consoleSubscription = null;
   }
 
   Future<void> disableBreakpoints() async {
-    _disabledBreakpoints.clear();
     if (!_isIsolateRunning) return;
     final isolate = inspector.isolate;
 
-    _disabledBreakpoints.addAll(isolate.breakpoints ?? []);
     for (var breakpoint in isolate.breakpoints?.toList() ?? []) {
       await (await debuggerFuture).removeBreakpoint(breakpoint.id);
     }
@@ -1109,8 +1100,6 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
   ) async {
     await isInitialized;
     _checkIsolate('removeBreakpoint', isolateId);
-    _disabledBreakpoints
-        .removeWhere((breakpoint) => breakpoint.id == breakpointId);
     return (await debuggerFuture).removeBreakpoint(breakpointId);
   }
 
