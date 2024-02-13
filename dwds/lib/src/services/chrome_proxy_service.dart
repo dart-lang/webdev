@@ -375,16 +375,24 @@ class ChromeProxyService implements VmServiceInterface {
     _consoleSubscription = null;
   }
 
-  Future<void> disableBreakpoints() async {
-    _disabledBreakpoints.clear();
+  Future<void> disableBreakpointsForHotRestart() async {
     if (!_isIsolateRunning) return;
     final isolate = inspector.isolate;
 
     _disabledBreakpoints.addAll(isolate.breakpoints ?? []);
     for (var breakpoint in isolate.breakpoints?.toList() ?? []) {
-      await (await debuggerFuture).removeBreakpoint(breakpoint.id);
+      await (await debuggerFuture)
+          .removeBreakpoint(breakpoint.id, notifyClients: false);
     }
   }
+
+  // Future<void> disableBreakpoints() async {
+  //   await (await debuggerFuture).setBreakpointsActive(false);
+  // }
+
+  // Future<void> enableBreakpoints() async {
+  //   await (await debuggerFuture).setBreakpointsActive(true);
+  // }
 
   @override
   Future<Breakpoint> addBreakpoint(
@@ -393,6 +401,7 @@ class ChromeProxyService implements VmServiceInterface {
     int line, {
     int? column,
   }) {
+    print('ADDING BREAKPOINT AT $line');
     return wrapInErrorHandlerAsync(
       'addBreakpoint',
       () => _addBreakpoint(isolateId, scriptId, line),

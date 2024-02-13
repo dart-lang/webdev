@@ -249,6 +249,7 @@ class Debugger extends Domain {
   }) async {
     column ??= 0;
     final breakpoint = await _breakpoints.add(scriptId, line, column);
+    print('BREAKPOINT IS ${breakpoint.id}');
     _notifyBreakpoint(breakpoint);
     return breakpoint;
   }
@@ -315,6 +316,7 @@ class Debugger extends Domain {
   }
 
   void _notifyBreakpoint(Breakpoint breakpoint) {
+    print('NOTIFY BREAKPOINT ${breakpoint.id} WAS ADDED');
     final event = Event(
       kind: EventKind.kBreakpointAdded,
       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -324,8 +326,23 @@ class Debugger extends Domain {
     _streamNotify('Debug', event);
   }
 
+  Future<void> setBreakpointsActive(bool active) async {
+    print(active ? 'activating breakpoints' : 'de activating breakpoints');
+    await _remoteDebugger.sendCommand(
+      'Debugger.setBreakpointsActive',
+      params: {
+        'active': active,
+      },
+    );
+  }
+
   /// Remove a Dart breakpoint.
-  Future<Success> removeBreakpoint(String breakpointId) async {
+  Future<Success> removeBreakpoint(
+    String breakpointId, {
+    notifyClients = true,
+  }) async {
+    print('REMOVING A BREAKPOINT');
+    print(StackTrace.current);
     if (_breakpoints.breakpointFor(breakpointId) == null) {
       throwInvalidParam(
         'removeBreakpoint',
@@ -343,7 +360,7 @@ class Debugger extends Domain {
     await _removeBreakpoint(jsId);
 
     final bp = await _breakpoints.remove(jsId: jsId, dartId: breakpointId);
-    if (bp != null) {
+    if (bp != null && notifyClients) {
       _streamNotify(
         'Debug',
         Event(

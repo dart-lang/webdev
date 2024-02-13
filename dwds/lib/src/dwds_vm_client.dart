@@ -313,7 +313,7 @@ Future<void> _disableBreakpointsAndResume(
   if (isolateId == null) {
     throw StateError('No active isolate to resume.');
   }
-  await chromeProxyService.disableBreakpoints();
+  await chromeProxyService.disableBreakpointsForHotRestart();
   try {
     // Any checks for paused status result in race conditions or hangs
     // at this point:
