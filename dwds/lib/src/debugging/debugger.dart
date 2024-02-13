@@ -249,7 +249,6 @@ class Debugger extends Domain {
   }) async {
     column ??= 0;
     final breakpoint = await _breakpoints.add(scriptId, line, column);
-    print('BREAKPOINT IS ${breakpoint.id}');
     _notifyBreakpoint(breakpoint);
     return breakpoint;
   }
@@ -316,7 +315,6 @@ class Debugger extends Domain {
   }
 
   void _notifyBreakpoint(Breakpoint breakpoint) {
-    print('NOTIFY BREAKPOINT ${breakpoint.id} WAS ADDED');
     final event = Event(
       kind: EventKind.kBreakpointAdded,
       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -326,22 +324,15 @@ class Debugger extends Domain {
     _streamNotify('Debug', event);
   }
 
-  Future<void> setBreakpointsActive(bool active) async {
-    print(active ? 'activating breakpoints' : 'de activating breakpoints');
-    await _remoteDebugger.sendCommand(
-      'Debugger.setBreakpointsActive',
-      params: {
-        'active': active,
-      },
-    );
-  }
-
   /// Remove a Dart breakpoint.
+  ///
+  /// [notifyClients] should only ever be false during a hot-restart, so that we
+  /// don't notify clients of the breakpoints we've removed before resuming and
+  /// then hot-restarting.
   Future<Success> removeBreakpoint(
     String breakpointId, {
     notifyClients = true,
   }) async {
-    print('REMOVING A BREAKPOINT');
     print(StackTrace.current);
     if (_breakpoints.breakpointFor(breakpointId) == null) {
       throwInvalidParam(

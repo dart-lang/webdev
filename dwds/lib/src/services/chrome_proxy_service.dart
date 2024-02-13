@@ -375,6 +375,8 @@ class ChromeProxyService implements VmServiceInterface {
     _consoleSubscription = null;
   }
 
+  /// This should only ever be called before a hot-restart when we are disabling
+  /// all breakpoints before resuming and then starting the restart.
   Future<void> disableBreakpointsForHotRestart() async {
     if (!_isIsolateRunning) return;
     final isolate = inspector.isolate;
@@ -386,14 +388,6 @@ class ChromeProxyService implements VmServiceInterface {
     }
   }
 
-  // Future<void> disableBreakpoints() async {
-  //   await (await debuggerFuture).setBreakpointsActive(false);
-  // }
-
-  // Future<void> enableBreakpoints() async {
-  //   await (await debuggerFuture).setBreakpointsActive(true);
-  // }
-
   @override
   Future<Breakpoint> addBreakpoint(
     String isolateId,
@@ -401,7 +395,6 @@ class ChromeProxyService implements VmServiceInterface {
     int line, {
     int? column,
   }) {
-    print('ADDING BREAKPOINT AT $line');
     return wrapInErrorHandlerAsync(
       'addBreakpoint',
       () => _addBreakpoint(isolateId, scriptId, line),
