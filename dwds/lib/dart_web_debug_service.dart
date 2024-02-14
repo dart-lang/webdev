@@ -47,6 +47,9 @@ class Dwds {
   StreamController<DebugConnection> get extensionDebugConnections =>
       _devHandler.extensionDebugConnections;
 
+  bool get shouldPauseIsolatesOnStart => _shouldPauseIsolatesOnStart;
+  bool _shouldPauseIsolatesOnStart = false;
+
   Future<void> stop() async {
     await _devTools?.close();
     await _devHandler.close();
@@ -56,7 +59,11 @@ class Dwds {
   Future<DebugConnection> debugConnection(AppConnection appConnection) async {
     if (!_enableDebugging) throw StateError('Debugging is not enabled.');
     final appDebugServices = await _devHandler.loadAppServices(appConnection);
-    await appDebugServices.chromeProxyService.isInitialized;
+    final chromeProxyService = appDebugServices.chromeProxyService;
+    await chromeProxyService.isInitialized;
+    chromeProxyService.pauseIsolatesOnStartStream.listen((value) {
+      _shouldPauseIsolatesOnStart = value;
+    });
     return DebugConnection(appDebugServices);
   }
 

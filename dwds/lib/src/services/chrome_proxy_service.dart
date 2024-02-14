@@ -91,6 +91,14 @@ class ChromeProxyService implements VmServiceInterface {
 
   StreamSubscription<ConsoleAPIEvent>? _consoleSubscription;
 
+  final _pauseIsolatesOnStartController = StreamController<bool>.broadcast();
+
+  /// A global stream of the value of the [_pauseIsolatesOnStartFlag].
+  ///
+  /// The flag's value can be updated during runtime.
+  Stream<bool> get pauseIsolatesOnStartStream =>
+      _pauseIsolatesOnStartController.stream;
+
   final _disabledBreakpoints = <Breakpoint>{};
   final _previousBreakpoints = <Breakpoint>{};
 
@@ -1195,8 +1203,22 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
   }
 
   @override
-  Future<Success> setFlag(String name, String value) {
-    return _rpcNotSupportedFuture('setFlag');
+  Future<Success> setFlag(String name, String value) => wrapInErrorHandlerAsync(
+        'setFlag',
+        () => _setFlag(name, value),
+      );
+
+  Future<Success> _setFlag(String name, String value) async {
+    if (!_supportedVmServiceFlags.contains(name)) {
+      return _rpcNotSupportedFuture('setFlag');
+    }
+
+    if (name == _pauseIsolatesOnStartFlag) {
+      assert(value == 'true' || value == 'false');
+      _pauseIsolatesOnStartController.sink.add(value == 'true' ? true : false);
+    }
+
+    return Success();
   }
 
   @override
@@ -1657,3 +1679,10 @@ const _stderrTypes = ['error'];
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stdout` logs.
 const _stdoutTypes = ['log', 'info', 'warning'];
+
+const _pauseIsolatesOnStartFlag = 'pause_isolates_on_start';
+
+/// The flags that can be set at runtime via [setFlag].
+const _supportedVmServiceFlags = {
+  _pauseIsolatesOnStartFlag,
+};
