@@ -10,6 +10,7 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/asset_reader.dart';
+import 'package:dwds/dart_web_debug_service.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
@@ -74,6 +75,8 @@ class TestContext {
 
   TestServer get testServer => _testServer!;
   TestServer? _testServer;
+
+  Dwds? get dwds => _testServer?.dwds;
 
   BuildDaemonClient get daemonClient => _daemonClient!;
   BuildDaemonClient? _daemonClient;

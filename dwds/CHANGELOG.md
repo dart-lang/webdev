@@ -1,7 +1,7 @@
 ## 23.4.0-wip
 
-- Adding tests for constants in DDC after a hot restart - [#2349](https://github.com/dart-lang/webdev/pull/2349)
-- Renaming `dart_library.js` to `ddc_module_loader.js` to match SDK naming changes - [#2360](https://github.com/dart-lang/webdev/pull/2360)
+- Rename `dart_library.js` to `ddc_module_loader.js` to match SDK naming changes. - [#2360](https://github.com/dart-lang/webdev/pull/2360)
+- Implement `setFlag` when it is called with `pause_isolates_on_start`. - [#2373](https://github.com/dart-lang/webdev/pull/2373)
 
 ## 23.3.0
 
