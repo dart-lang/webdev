@@ -1215,7 +1215,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
 
     if (name == _pauseIsolatesOnStartFlag) {
       assert(value == 'true' || value == 'false');
-      _pauseIsolatesOnStartController.sink.add(value == 'true' ? true : false);
+      _pauseIsolatesOnStartController.sink.add(value == 'true');
     }
 
     return Success();
