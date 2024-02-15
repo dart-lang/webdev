@@ -98,11 +98,20 @@ class DwdsVmClient {
     client.registerServiceCallback(
       'hotRestart',
       (request) => captureElapsedTime(
-        () => dwdsVmClient.hotRestart(chromeProxyService, client),
+        () => dwdsVmClient.hotRestart(chromeProxyService),
         (_) => DwdsEvent.hotRestart(),
       ),
     );
     await client.registerService('hotRestart', 'DWDS');
+
+    client.registerServiceCallback(
+      'legacyHotRestart',
+      (request) => captureElapsedTime(
+        () => dwdsVmClient.legacyHotRestart(chromeProxyService, client),
+        (_) => DwdsEvent.legacyHotRestart(),
+      ),
+    );
+    await client.registerService('legacyHotRestart', 'DWDS');
 
     client.registerServiceCallback(
       'fullReload',
@@ -165,9 +174,16 @@ class DwdsVmClient {
 
   Future<Map<String, dynamic>> hotRestart(
     ChromeProxyService chromeProxyService,
+  ) {
+    return _hotRestartQueue.run(() => _hotRestart(chromeProxyService));
+  }
+
+  Future<Map<String, dynamic>> legacyHotRestart(
+    ChromeProxyService chromeProxyService,
     VmService client,
   ) {
-    return _hotRestartQueue.run(() => _hotRestart(chromeProxyService, client));
+    return _hotRestartQueue
+        .run(() => _legacyHotRestart(chromeProxyService, client));
   }
 }
 
@@ -227,6 +243,11 @@ Future<int> tryGetContextId(
 }
 
 Future<Map<String, dynamic>> _hotRestart(
+  ChromeProxyService chromeProxyService,
+) =>
+    _fullReload(chromeProxyService);
+
+Future<Map<String, dynamic>> _legacyHotRestart(
   ChromeProxyService chromeProxyService,
   VmService client,
 ) async {
@@ -292,10 +313,8 @@ Future<Map<String, dynamic>> _hotRestart(
 Future<Map<String, dynamic>> _fullReload(
   ChromeProxyService chromeProxyService,
 ) async {
-  _logger.info('Attempting a full reload');
   await chromeProxyService.remoteDebugger.enablePage();
   await chromeProxyService.remoteDebugger.pageReload();
-  _logger.info('Successful full reload');
   return {'result': Success().toJson()};
 }
 

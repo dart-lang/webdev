@@ -49,6 +49,7 @@ class DwdsEventKind {
   static const String getVM = 'GET_VM';
   static const String hotRestart = 'HOT_RESTART';
   static const String httpRequestException = 'HTTP_REQUEST_EXCEPTION';
+  static const String legacyHotRestart = 'LEGACY_HOT_RESTART';
   static const String resume = 'RESUME';
 
   DwdsEventKind._();
@@ -93,6 +94,8 @@ class DwdsEvent {
   DwdsEvent.getSourceReport() : this(DwdsEventKind.getSourceReport, {});
 
   DwdsEvent.hotRestart() : this(DwdsEventKind.hotRestart, {});
+
+  DwdsEvent.legacyHotRestart() : this(DwdsEventKind.legacyHotRestart, {});
 
   DwdsEvent.fullReload() : this(DwdsEventKind.fullReload, {});
 
