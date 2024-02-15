@@ -2063,6 +2063,34 @@ void main() {
       await expectLater(service.streamCancel(''), throwsRPCError);
     });
 
+    group('setFlag', () {
+      test('pause_isolates_on_start set to true', () {
+        final service = context.service;
+        expect(
+          service.setFlag('pause_isolates_on_start', 'true'),
+          completion(_isSuccess),
+        );
+        expect(context.dwds!.shouldPauseIsolatesOnStart, equals(true));
+      });
+
+      test('pause_isolates_on_start set to false', () {
+        final service = context.service;
+        expect(
+          service.setFlag('pause_isolates_on_start', 'false'),
+          completion(_isSuccess),
+        );
+        expect(context.dwds!.shouldPauseIsolatesOnStart, equals(false));
+      });
+
+      test('pause_isolates_on_start set to invalid value', () {
+        final service = context.service;
+        expect(
+          service.setFlag('pause_isolates_on_start', 'pizza'),
+          throwsRPCError,
+        );
+      });
+    });
+
     group('streamListen/onEvent', () {
       late ChromeProxyService service;
 
