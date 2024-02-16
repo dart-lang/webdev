@@ -313,8 +313,10 @@ Future<Map<String, dynamic>> _legacyHotRestart(
 Future<Map<String, dynamic>> _fullReload(
   ChromeProxyService chromeProxyService,
 ) async {
+  _logger.info('Attempting a full reload');
   await chromeProxyService.remoteDebugger.enablePage();
   await chromeProxyService.remoteDebugger.pageReload();
+  _logger.info('Successful full reload');
   return {'result': Success().toJson()};
 }
 
