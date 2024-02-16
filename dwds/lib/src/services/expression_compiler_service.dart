@@ -160,6 +160,7 @@ class _Compiler {
 
   Future<ExpressionCompilationResult> compileExpressionToJs(
     String libraryUri,
+    String scriptUri,
     int line,
     int column,
     Map<String, String> jsModules,
@@ -256,6 +257,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
   Future<ExpressionCompilationResult> compileExpressionToJs(
     String isolateId,
     String libraryUri,
+    String scriptUri,
     int line,
     int column,
     Map<String, String> jsModules,
@@ -265,6 +267,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
   ) async =>
       (await _compiler.future).compileExpressionToJs(
         libraryUri,
+        scriptUri,
         line,
         column,
         jsModules,

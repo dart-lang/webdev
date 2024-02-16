@@ -19,11 +19,18 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 class EvaluateRequest {
   final String isolateId;
   final String? libraryUri;
+  final String? scriptUri;
   final String expression;
   final Map<String, String>? scope;
   final completer = Completer<RemoteObject>();
 
-  EvaluateRequest(this.isolateId, this.libraryUri, this.expression, this.scope);
+  EvaluateRequest(
+    this.isolateId,
+    this.libraryUri,
+    this.scriptUri,
+    this.expression,
+    this.scope,
+  );
 }
 
 class BatchedExpressionEvaluator extends ExpressionEvaluator {
@@ -56,6 +63,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
   Future<RemoteObject> evaluateExpression(
     String isolateId,
     String? libraryUri,
+    String? scriptUri,
     String expression,
     Map<String, String>? scope,
   ) async {
@@ -65,7 +73,8 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
         'Batched expression evaluator closed',
       );
     }
-    final request = EvaluateRequest(isolateId, libraryUri, expression, scope);
+    final request =
+        EvaluateRequest(isolateId, libraryUri, scriptUri, expression, scope);
     _requestController.sink.add(request);
     return request.completer.future;
   }
@@ -116,6 +125,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
           .evaluateExpression(
             first.isolateId,
             first.libraryUri,
+            first.scriptUri,
             first.expression,
             first.scope,
           )
@@ -130,6 +140,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
     final RemoteObject list = await super.evaluateExpression(
       first.isolateId,
       first.libraryUri,
+      first.scriptUri,
       batchedExpression,
       first.scope,
     );

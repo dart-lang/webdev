@@ -162,6 +162,10 @@ class FakeModules implements Modules {
   Future<Uri> libraryForSource(String serverPath) async => Uri(path: _library);
 
   @override
+  Future<Uri> resolvedUriForSource(String serverPath) async =>
+      Uri(path: _library);
+
+  @override
   Future<String> moduleForSource(String serverPath) async => _module;
 
   @override
@@ -438,6 +442,7 @@ class FakeExpressionCompiler implements ExpressionCompiler {
   Future<ExpressionCompilationResult> compileExpressionToJs(
     String isolateId,
     String libraryUri,
+    String scriptUri,
     int line,
     int column,
     Map<String, String> jsModules,
