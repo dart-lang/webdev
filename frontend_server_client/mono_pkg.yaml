@@ -11,4 +11,5 @@ stages:
         - dev
         - main
       os:
+        - windows
         - linux

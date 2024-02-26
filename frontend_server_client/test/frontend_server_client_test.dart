@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 @TestOn('vm')
+@TestOn('!windows')
 import 'dart:convert';
 import 'dart:io';
 
