@@ -169,6 +169,13 @@ class FakeModules implements Modules {
 
   @override
   Future<String> moduleForLibrary(String libraryUri) async => _module;
+
+  @override
+  Future<String?> getRuntimeScriptIdForModule(
+    String entrypoint,
+    String module,
+  ) async =>
+      null;
 }
 
 class FakeWebkitDebugger implements WebkitDebugger {

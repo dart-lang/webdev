@@ -4,6 +4,7 @@
 
 import 'package:async/async.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:logging/logging.dart';
 
@@ -60,6 +61,15 @@ class Modules {
   Future<Map<String, String>> modules() async {
     await _moduleMemoizer.runOnce(_initializeMapping);
     return _sourceToModule;
+  }
+
+  Future<String?> getRuntimeScriptIdForModule(
+    String entrypoint,
+    String module,
+  ) async {
+    final serverPath = await globalToolConfiguration.loadStrategy
+        .serverPathForModule(entrypoint, module);
+    return chromePathToRuntimeScriptId[serverPath];
   }
 
   /// Initializes [_sourceToModule] and [_sourceToLibrary].

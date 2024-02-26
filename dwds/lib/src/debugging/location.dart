@@ -33,6 +33,7 @@ class Location {
     TargetLineEntry lineEntry,
     TargetEntry entry,
     DartUri dartUri,
+    String? runtimeScriptId,
   ) {
     final dartLine = entry.sourceLine;
     final dartColumn = entry.sourceColumn;
@@ -42,7 +43,7 @@ class Location {
     // lineEntry data is 0 based according to:
     // https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k
     return Location._(
-      JsLocation.fromZeroBased(module, jsLine, jsColumn),
+      JsLocation.fromZeroBased(module, jsLine, jsColumn, runtimeScriptId),
       DartLocation.fromZeroBased(dartUri, dartLine ?? 0, dartColumn ?? 0),
     );
   }
@@ -104,10 +105,16 @@ class JsLocation {
   /// 0 based column offset within the JS source code.
   final int column;
 
+  /// The Runtime.ScriptId of a script in Chrome.
+  ///
+  /// See https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-ScriptId
+  String? runtimeScriptId;
+
   JsLocation._(
     this.module,
     this.line,
     this.column,
+    this.runtimeScriptId,
   );
 
   int compareTo(JsLocation other) => compareToLine(other.line, other.column);
@@ -122,8 +129,13 @@ class JsLocation {
 
   // JS Location is 0 based according to:
   // https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Location
-  factory JsLocation.fromZeroBased(String module, int line, int column) =>
-      JsLocation._(module, line, column);
+  factory JsLocation.fromZeroBased(
+    String module,
+    int line,
+    int column,
+    String? runtimeScriptId,
+  ) =>
+      JsLocation._(module, line, column, runtimeScriptId);
 }
 
 /// Contains meta data for known [Location]s.
@@ -321,6 +333,10 @@ class Locations {
           p.url.dirname('/${stripLeadingSlashes(modulePath)}');
 
       if (sourceMapContents == null) return result;
+
+      final runtimeScriptId =
+          await _modules.getRuntimeScriptIdForModule(_entrypoint, module);
+
       // This happens to be a [SingleMapping] today in DDC.
       final mapping = parse(sourceMapContents);
       if (mapping is SingleMapping) {
@@ -339,12 +355,14 @@ class Locations {
             );
 
             final dartUri = DartUri(path, _root);
+
             result.add(
               Location.from(
                 modulePath,
                 lineEntry,
                 entry,
                 dartUri,
+                runtimeScriptId,
               ),
             );
           }
