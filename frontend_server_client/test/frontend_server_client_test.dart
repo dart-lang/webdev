@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 @TestOn('vm')
-@TestOn('!windows')
 import 'dart:convert';
 import 'dart:io';
 
@@ -112,7 +111,10 @@ String get message => p.join('hello', 'world');
 
     expect(await stdoutLines.next, p.join('goodbye', 'world'));
     expect(await process.exitCode, 0);
-  });
+    },
+    // Issue: https://github.com/dart-lang/webdev/issues/2377
+    skip: Platform.isWindows,
+  );
 
   test('can handle compile errors and reload fixes', () async {
     var entrypoint = p.join(packageRoot, 'bin', 'main.dart');
