@@ -488,7 +488,9 @@ class Debugger extends Domain {
       return p.joinAll(scriptPathSegments.sublist(packagesIdx));
     }
 
-    return p.joinAll(scriptPathSegments);
+    // Note: Replacing "\" with "/" is necessary because `joinAll` uses "\" if
+    // the platform is Windows. However, only "/" is expected by the browser.
+    return p.joinAll(scriptPathSegments).replaceAll('\\', '/');
   }
 
   /// Handles pause events coming from the Chrome connection.
@@ -742,8 +744,10 @@ class _Breakpoints extends Domain {
     int line,
     int column,
   ) async {
+    print('creating breakpoint at $scriptId:$line:$column)');
     final dartScript = inspector.scriptWithId(scriptId);
     final dartScriptUri = dartScript?.uri;
+    print('dart script uri is $dartScriptUri');
     Location? location;
     if (dartScriptUri != null) {
       final dartUri = DartUri(dartScriptUri, root);
