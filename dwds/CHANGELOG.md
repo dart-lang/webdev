@@ -2,6 +2,7 @@
 
 - Rename `dart_library.js` to `ddc_module_loader.js` to match SDK naming changes. - [#2360](https://github.com/dart-lang/webdev/pull/2360)
 - Implement `setFlag` when it is called with `pause_isolates_on_start`. - [#2373](https://github.com/dart-lang/webdev/pull/2373)
+- Hot restart now triggers a full page reload. - [#2374](https://github.com/dart-lang/webdev/pull/2374)
 
 ## 23.3.0
 
