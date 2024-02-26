@@ -18,6 +18,7 @@ import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
@@ -36,6 +37,14 @@ const _pauseModePauseStates = {
   'unhandled': PauseState.uncaught,
 };
 
+/// Mapping from the path of a script in Chrome to the Runtime.ScriptId Chrome
+/// uses to reference it.
+///
+/// See https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-ScriptId
+///
+/// e.g. 'packages/myapp/main.dart.lib.js' -> '12'
+final chromePathToRuntimeScriptId = <String, String>{};
+
 class Debugger extends Domain {
   static final logger = Logger('Debugger');
 
@@ -44,18 +53,17 @@ class Debugger extends Domain {
   final StreamNotify _streamNotify;
   final Locations _locations;
   final SkipLists _skipLists;
-  final String _root;
 
   Debugger._(
     this._remoteDebugger,
     this._streamNotify,
     this._locations,
     this._skipLists,
-    this._root,
+    root,
   ) : _breakpoints = _Breakpoints(
           locations: _locations,
           remoteDebugger: _remoteDebugger,
-          root: _root,
+          root: root,
         );
 
   /// The breakpoints we have set so far, indexable by either
@@ -207,6 +215,7 @@ class Debugger extends Domain {
     // miss events.
     // Allow a null debugger/connection for unit tests.
     runZonedGuarded(() {
+      _remoteDebugger.onScriptParsed.listen(_scriptParsedHandler);
       _remoteDebugger.onPaused.listen(_pauseHandler);
       _remoteDebugger.onResumed.listen(_resumeHandler);
       _remoteDebugger.onTargetCrashed.listen(_crashHandler);
@@ -251,67 +260,6 @@ class Debugger extends Domain {
     final breakpoint = await _breakpoints.add(scriptId, line, column);
     _notifyBreakpoint(breakpoint);
     return breakpoint;
-  }
-
-  Future<ScriptRef?> _updatedScriptRefFor(Breakpoint breakpoint) async {
-    final oldRef = (breakpoint.location as SourceLocation).script;
-    final uri = oldRef?.uri;
-    if (uri == null) return null;
-    final dartUri = DartUri(uri, _root);
-    return await inspector.scriptRefFor(dartUri.serverPath);
-  }
-
-  Future<void> reestablishBreakpoints(
-    Set<Breakpoint> previousBreakpoints,
-    Set<Breakpoint> disabledBreakpoints,
-  ) async {
-    // Previous breakpoints were never removed from Chrome since we use
-    // `setBreakpointByUrl`. We simply need to update the references.
-    for (var breakpoint in previousBreakpoints) {
-      final dartBpId = breakpoint.id!;
-      final scriptRef = await _updatedScriptRefFor(breakpoint);
-      final scriptUri = scriptRef?.uri;
-      if (scriptRef != null && scriptUri != null) {
-        final jsBpId = _breakpoints.jsIdFor(dartBpId)!;
-        final updatedLocation = await _locations.locationForDart(
-          DartUri(scriptUri, _root),
-          _lineNumberFor(breakpoint),
-          _columnNumberFor(breakpoint),
-        );
-        if (updatedLocation != null) {
-          final updatedBreakpoint = _breakpoints._dartBreakpoint(
-            scriptRef,
-            updatedLocation,
-            dartBpId,
-          );
-          _breakpoints._note(bp: updatedBreakpoint, jsId: jsBpId);
-          _notifyBreakpoint(updatedBreakpoint);
-        } else {
-          logger.warning('Cannot update breakpoint $dartBpId:'
-              ' cannot update location.');
-        }
-      } else {
-        logger.warning('Cannot update breakpoint $dartBpId:'
-            ' cannot find script ref.');
-      }
-    }
-
-    // Disabled breakpoints were actually removed from Chrome so simply add
-    // them back.
-    for (var breakpoint in disabledBreakpoints) {
-      final scriptRef = await _updatedScriptRefFor(breakpoint);
-      final scriptId = scriptRef?.id;
-      if (scriptId != null) {
-        await addBreakpoint(
-          scriptId,
-          _lineNumberFor(breakpoint),
-          column: _columnNumberFor(breakpoint),
-        );
-      } else {
-        logger.warning('Cannot update disabled breakpoint ${breakpoint.id}:'
-            ' cannot find script ref.');
-      }
-    }
   }
 
   void _notifyBreakpoint(Breakpoint breakpoint) {
@@ -518,6 +466,31 @@ class Debugger extends Domain {
     }
 
     return dartFrame;
+  }
+
+  void _scriptParsedHandler(ScriptParsedEvent e) {
+    final scriptPath = _pathForChromeScript(e.script.url);
+    if (scriptPath != null) {
+      chromePathToRuntimeScriptId[scriptPath] = e.script.scriptId;
+    }
+  }
+
+  String? _pathForChromeScript(String scriptUrl) {
+    final scriptPathSegments = Uri.parse(scriptUrl).pathSegments;
+    if (scriptPathSegments.isEmpty) {
+      return null;
+    }
+
+    final isInternal = globalToolConfiguration.appMetadata.isInternalBuild;
+    const packagesDir = 'packages';
+    if (isInternal && scriptUrl.contains(packagesDir)) {
+      final packagesIdx = scriptPathSegments.indexOf(packagesDir);
+      return p.joinAll(scriptPathSegments.sublist(packagesIdx));
+    }
+
+    // Note: Replacing "\" with "/" is necessary because `joinAll` uses "\" if
+    // the platform is Windows. However, only "/" is expected by the browser.
+    return p.joinAll(scriptPathSegments).replaceAll('\\', '/');
   }
 
   /// Handles pause events coming from the Chrome connection.
@@ -738,14 +711,6 @@ Future<T> sendCommandAndValidateResult<T>(
   return result;
 }
 
-/// Returns the Dart line number for the provided breakpoint.
-int _lineNumberFor(Breakpoint breakpoint) =>
-    int.parse(breakpoint.id!.split('#').last.split(':').first);
-
-/// Returns the Dart column number for the provided breakpoint.
-int _columnNumberFor(Breakpoint breakpoint) =>
-    int.parse(breakpoint.id!.split('#').last.split(':').last);
-
 /// Returns the breakpoint ID for the provided Dart script ID and Dart line
 /// number.
 String breakpointIdFor(String scriptId, int line, int column) =>
@@ -779,8 +744,10 @@ class _Breakpoints extends Domain {
     int line,
     int column,
   ) async {
+    print('creating breakpoint at $scriptId:$line:$column)');
     final dartScript = inspector.scriptWithId(scriptId);
     final dartScriptUri = dartScript?.uri;
+    print('dart script uri is $dartScriptUri');
     Location? location;
     if (dartScriptUri != null) {
       final dartUri = DartUri(dartScriptUri, root);
@@ -853,22 +820,27 @@ class _Breakpoints extends Domain {
 
   /// Calls the Chrome protocol setBreakpoint and returns the remote ID.
   Future<String?> _setJsBreakpoint(Location location) {
-    // The module can be loaded from a nested path and contain an ETAG suffix.
-    final urlRegex = '.*${location.jsLocation.module}.*';
     // Prevent `Aww, snap!` errors when setting multiple breakpoints
     // simultaneously by serializing the requests.
     return _queue.run(() async {
-      final breakPointId = await sendCommandAndValidateResult<String>(
-        remoteDebugger,
-        method: 'Debugger.setBreakpointByUrl',
-        resultField: 'breakpointId',
-        params: {
-          'urlRegex': urlRegex,
-          'lineNumber': location.jsLocation.line,
-          'columnNumber': location.jsLocation.column,
-        },
-      );
-      return breakPointId;
+      final scriptId = location.jsLocation.runtimeScriptId;
+      if (scriptId != null) {
+        return sendCommandAndValidateResult<String>(
+          remoteDebugger,
+          method: 'Debugger.setBreakpoint',
+          resultField: 'breakpointId',
+          params: {
+            'location': {
+              'lineNumber': location.jsLocation.line,
+              'columnNumber': location.jsLocation.column,
+              'scriptId': scriptId,
+            },
+          },
+        );
+      } else {
+        _logger.fine('No runtime script ID for location $location');
+        return null;
+      }
     });
   }
 

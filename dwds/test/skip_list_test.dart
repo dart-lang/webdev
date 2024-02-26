@@ -16,24 +16,27 @@ void main() {
   setGlobalsForTesting();
   late SkipLists skipLists;
   final dartUri = DartUri('org-dartlang-app://web/main.dart');
+  const fakeRuntimeScriptId = '12';
   group('SkipLists', () {
     setUp(() {
       skipLists = SkipLists();
     });
 
-    test('do not include known ranges', () async {
+    test('do not include known ranges', () {
       final skipList = skipLists.compute('123', {
         Location.from(
           'foo',
           TargetLineEntry(1, []),
           TargetEntry(2, 0, 0, 0),
           dartUri,
+          fakeRuntimeScriptId,
         ),
         Location.from(
           'foo',
           TargetLineEntry(10, []),
           TargetEntry(20, 0, 0, 0),
           dartUri,
+          fakeRuntimeScriptId,
         ),
       });
       expect(skipList.length, 3);
@@ -42,19 +45,21 @@ void main() {
       _validateRange(skipList.last, 10, 21, maxValue, maxValue);
     });
 
-    test('do not include start of the file', () async {
+    test('do not include start of the file', () {
       final skipList = skipLists.compute('123', {
         Location.from(
           'foo',
           TargetLineEntry(0, []),
           TargetEntry(0, 0, 0, 0),
           dartUri,
+          fakeRuntimeScriptId,
         ),
         Location.from(
           'foo',
           TargetLineEntry(10, []),
           TargetEntry(20, 0, 0, 0),
           dartUri,
+          fakeRuntimeScriptId,
         ),
       });
       expect(skipList.length, 2);
@@ -62,19 +67,21 @@ void main() {
       _validateRange(skipList.last, 10, 21, maxValue, maxValue);
     });
 
-    test('does not depend on order of locations', () async {
+    test('does not depend on order of locations', () {
       final skipList = skipLists.compute('123', {
         Location.from(
           'foo',
           TargetLineEntry(10, []),
           TargetEntry(20, 0, 0, 0),
           dartUri,
+          fakeRuntimeScriptId,
         ),
         Location.from(
           'foo',
           TargetLineEntry(0, []),
           TargetEntry(0, 0, 0, 0),
           dartUri,
+          fakeRuntimeScriptId,
         ),
       });
       expect(skipList.length, 2);
@@ -82,7 +89,7 @@ void main() {
       _validateRange(skipList.last, 10, 21, maxValue, maxValue);
     });
 
-    test('contains the provided id', () async {
+    test('contains the provided id', () {
       final id = '123';
       final skipList = skipLists.compute(id, {});
       for (var range in skipList) {
@@ -90,7 +97,7 @@ void main() {
       }
     });
 
-    test('ignores the whole file if provided no locations', () async {
+    test('ignores the whole file if provided no locations', () {
       final skipList = skipLists.compute('123', {});
       expect(skipList.length, 1);
       _validateRange(skipList.first, 0, 0, maxValue, maxValue);
