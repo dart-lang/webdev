@@ -61,9 +61,7 @@ Future<void>? main() {
 
     final manager = ReloadingManager(client, restarter);
 
-    hotRestartJs = allowInterop(() {
-      return manager.hotRestart();
-    });
+    hotRestartJs = allowInterop(manager.hotRestart);
 
     final debugEventController =
         BatchedStreamController<DebugEvent>(delay: _batchDelayMilliseconds);
