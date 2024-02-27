@@ -273,8 +273,7 @@ Future<Map<String, dynamic>> _legacyHotRestart(
   final stream = chromeProxyService.onEvent('Isolate');
   try {
     _logger.info('Issuing \$dartHotRestartDwds request');
-    await chromeProxyService.inspector
-        .jsEvaluate('\$dartHotRestartDwds();');
+    await chromeProxyService.inspector.jsEvaluate('\$dartHotRestartDwds();');
     _logger.info('\$dartHotRestartDwds request complete.');
   } on WipError catch (exception) {
     final code = exception.error?['code'];
