@@ -5,6 +5,8 @@
 @Tags(['daily'])
 @TestOn('vm')
 @Timeout(Duration(minutes: 5))
+import 'dart:async';
+
 import 'package:dwds/dwds.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
@@ -155,7 +157,7 @@ void main() {
         await client.streamListen('Isolate');
         await makeEditAndWaitForRebuild();
 
-        final eventsDone = expectLater(
+        final restartComplete = expectLater(
           client.onIsolateEvent,
           emitsThrough(
             emitsInOrder([
@@ -171,7 +173,7 @@ void main() {
           const TypeMatcher<Success>(),
         );
 
-        await eventsDone;
+        await restartComplete;
       });
 
       test('can execute simultaneous hot restarts', () async {
@@ -179,7 +181,7 @@ void main() {
         await client.streamListen('Isolate');
         await makeEditAndWaitForRebuild();
 
-        final eventsDone = expectLater(
+        final restartComplete = expectLater(
           client.onIsolateEvent,
           emitsThrough(
             emitsInOrder([
@@ -200,6 +202,8 @@ void main() {
           [const TypeMatcher<Success>(), const TypeMatcher<Success>()],
         );
 
+        await restartComplete;
+
         // The debugger is still working.
         final vm = await client.getVM();
         final isolateId = vm.isolates!.first.id!;
@@ -215,8 +219,6 @@ void main() {
             'true',
           ),
         );
-
-        await eventsDone;
       });
 
       test('destroys and recreates the isolate during a page refresh',
@@ -225,7 +227,7 @@ void main() {
         await client.streamListen('Isolate');
         await makeEditAndWaitForRebuild();
 
-        final eventsDone = expectLater(
+        final restartComplete = expectLater(
           client.onIsolateEvent,
           emitsThrough(
             emitsInOrder([
@@ -238,7 +240,7 @@ void main() {
 
         await context.webDriver.driver.refresh();
 
-        await eventsDone;
+        await restartComplete;
       });
 
       test('can hot restart via the service extension', () async {
@@ -246,7 +248,7 @@ void main() {
         await client.streamListen('Isolate');
         await makeEditAndWaitForRebuild();
 
-        final eventsDone = expectLater(
+        final restartComplete = expectLater(
           client.onIsolateEvent,
           emitsThrough(
             emitsInOrder([
@@ -262,11 +264,11 @@ void main() {
           const TypeMatcher<Success>(),
         );
 
-        await eventsDone;
+        await restartComplete;
 
         final source = await context.webDriver.pageSource;
-        // Main is re-invoked which shouldn't clear the state.
-        expect(source, contains(originalString));
+        // Hot-restart triggers a full reload which clears the state.
+        expect(source.contains(originalString), isFalse);
         expect(source, contains(newString));
       });
 
@@ -277,7 +279,7 @@ void main() {
         // The event just before hot restart might never be received,
         // but the injected client continues to work and send events
         // after hot restart.
-        final eventsDone = expectLater(
+        final eventReceived = expectLater(
           client.onIsolateEvent,
           emitsThrough(
             _hasKind(EventKind.kServiceExtensionAdded)
@@ -299,10 +301,23 @@ void main() {
           "registerExtension('ext.foo', $callback)",
         );
 
+        final restartComplete = expectLater(
+          client.onIsolateEvent,
+          emitsThrough(
+            emitsInOrder([
+              _hasKind(EventKind.kIsolateExit),
+              _hasKind(EventKind.kIsolateStart),
+              _hasKind(EventKind.kIsolateRunnable),
+            ]),
+          ),
+        );
+
         expect(
           await client.callServiceExtension('hotRestart'),
           const TypeMatcher<Success>(),
         );
+
+        await restartComplete;
 
         vm = await client.getVM();
         isolateId = vm.isolates!.first.id!;
@@ -315,7 +330,7 @@ void main() {
           "registerExtension('ext.bar', $callback)",
         );
 
-        await eventsDone;
+        await eventReceived;
 
         final source = await context.webDriver.pageSource;
         // Main is re-invoked which shouldn't clear the state.
@@ -328,7 +343,7 @@ void main() {
         await client.streamListen('Isolate');
         await makeEditAndWaitForRebuild();
 
-        final eventsDone = expectLater(
+        final restartComplete = expectLater(
           client.onIsolateEvent,
           emitsThrough(
             emitsInOrder([
@@ -341,7 +356,7 @@ void main() {
 
         expect(await client.callServiceExtension('fullReload'), isA<Success>());
 
-        await eventsDone;
+        await restartComplete;
 
         final source = await context.webDriver.pageSource;
         // Should see only the new text
@@ -365,12 +380,27 @@ void main() {
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
         await makeEditAndWaitForRebuild();
+
+        final restartComplete = expectLater(
+          client.onIsolateEvent,
+          emitsThrough(
+            emitsInOrder([
+              _hasKind(EventKind.kIsolateExit),
+              _hasKind(EventKind.kIsolateStart),
+              _hasKind(EventKind.kIsolateRunnable),
+            ]),
+          ),
+        );
+
         await client.callServiceExtension('hotRestart');
+
+        await restartComplete;
+
         final source = await context.webDriver.pageSource;
 
-        // Main is re-invoked which shouldn't clear the state.
-        expect(source.contains(originalString), isTrue);
-        expect(source.contains(newString), isTrue);
+        // Hot-restart triggers a full reload which clears the state.
+        expect(source.contains(originalString), isFalse);
+        expect(source, contains(newString));
 
         vm = await client.getVM();
         isolateId = vm.isolates!.first.id!;
@@ -383,7 +413,20 @@ void main() {
       test('can evaluate expressions after hot restart', () async {
         final client = context.debugConnection.vmService;
 
+        final restartComplete = expectLater(
+          client.onIsolateEvent,
+          emitsThrough(
+            emitsInOrder([
+              _hasKind(EventKind.kIsolateExit),
+              _hasKind(EventKind.kIsolateStart),
+              _hasKind(EventKind.kIsolateRunnable),
+            ]),
+          ),
+        );
+
         await client.callServiceExtension('hotRestart');
+
+        await restartComplete;
 
         final vm = await client.getVM();
         final isolateId = vm.isolates!.first.id!;
@@ -428,14 +471,9 @@ void main() {
 
           final source = await context.webDriver.pageSource;
 
-          // Main is re-invoked which shouldn't clear the state.
-          expect(source.contains(originalString), isTrue);
+          // Hot-restart triggers a full reload which clears the state.
+          expect(source.contains(originalString), isFalse);
           expect(source.contains(newString), isTrue);
-          // The ext.flutter.disassemble callback is invoked and waited for.
-          expect(
-            source,
-            contains('start disassemble end disassemble $newString'),
-          );
         });
 
         test('fires isolate create/destroy events during hot restart',
@@ -443,7 +481,7 @@ void main() {
           final client = context.debugConnection.vmService;
           await client.streamListen('Isolate');
 
-          final eventsDone = expectLater(
+          final restartComplete = expectLater(
             client.onIsolateEvent,
             emitsThrough(
               emitsInOrder([
@@ -456,7 +494,7 @@ void main() {
 
           await makeEditAndWaitForRebuild();
 
-          await eventsDone;
+          await restartComplete;
         });
       });
 
@@ -482,14 +520,9 @@ void main() {
 
           final source = await context.webDriver.pageSource;
 
-          // Main is re-invoked which shouldn't clear the state.
-          expect(source.contains(originalString), isTrue);
+          // Hot-restart triggers a full reload which clears the state.
+          expect(source.contains(originalString), isFalse);
           expect(source.contains(newString), isTrue);
-          // The ext.flutter.disassemble callback is invoked and waited for.
-          expect(
-            source,
-            contains('start disassemble end disassemble $newString'),
-          );
         });
       });
     },
