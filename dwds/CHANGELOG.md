@@ -3,7 +3,7 @@
 - Rename `dart_library.js` to `ddc_module_loader.js` to match SDK naming changes. - [#2360](https://github.com/dart-lang/webdev/pull/2360)
 - Implement `setFlag` when it is called with `pause_isolates_on_start`. - [#2373](https://github.com/dart-lang/webdev/pull/2373)
 - Do not persist breakpoints across hot restarts or page reloads. - [#2371](https://github.com/dart-lang/webdev/pull/2371)
-- Hot restart now triggers a full page reload. - [#2374](https://github.com/dart-lang/webdev/pull/2374)
+- Hot restart now triggers a full page reload for external apps. - [#2374](https://github.com/dart-lang/webdev/pull/2374)
 
 ## 23.3.0
 
@@ -17,7 +17,7 @@
 
 ## 23.1.1
 
-- Loosen `package:vm_service` constraints to allow `>=13.0.0 <15.0.0`.  - [#2329](https://github.com/dart-lang/webdev/pull/2329)
+- Loosen `package:vm_service` constraints to allow `>=13.0.0 <15.0.0`. - [#2329](https://github.com/dart-lang/webdev/pull/2329)
 
 ## 23.1.0
 
