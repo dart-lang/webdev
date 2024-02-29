@@ -12,6 +12,7 @@ import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
+import 'package:uuid/uuid.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -263,8 +264,11 @@ Future<Map<String, dynamic>> _hotRestart(
   // restart. Only return success after the isolate has fully started.
   final stream = chromeProxyService.onEvent('Isolate');
   try {
+    // Generate run id to hot restart all apps loaded into the tab.
+    final runId = const Uuid().v4().toString();
     _logger.info('Issuing \$dartHotRestartDwds request');
-    await chromeProxyService.inspector.jsEvaluate('\$dartHotRestartDwds();');
+    await chromeProxyService.inspector
+        .jsEvaluate('\$dartHotRestartDwds(\'$runId\');', awaitPromise: true);
     _logger.info('\$dartHotRestartDwds request complete.');
   } on WipError catch (exception) {
     final code = exception.error?['code'];
