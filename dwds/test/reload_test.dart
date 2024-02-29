@@ -368,6 +368,7 @@ void main() {
         final client = context.debugConnection.vmService;
         var vm = await client.getVM();
         var isolateId = vm.isolates!.first.id!;
+        await client.streamListen('Isolate');
         await client.streamListen('Debug');
         final stream = client.onEvent('Debug');
         final scriptList = await client.getScripts(isolateId);
@@ -392,7 +393,10 @@ void main() {
           ),
         );
 
-        await client.callServiceExtension('hotRestart');
+        expect(
+          await client.callServiceExtension('hotRestart'),
+          const TypeMatcher<Success>(),
+        );
 
         await restartComplete;
 
@@ -412,6 +416,7 @@ void main() {
 
       test('can evaluate expressions after hot restart', () async {
         final client = context.debugConnection.vmService;
+        await client.streamListen('Isolate');
 
         final restartComplete = expectLater(
           client.onIsolateEvent,
