@@ -4,20 +4,23 @@
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:js';
+import 'dart:js_util';
 
+import '../promise.dart';
 import 'restarter.dart';
 
 class DdcRestarter implements Restarter {
   @override
-  Future<bool> restart({String? runId}) async {
-    final dartLibrary = context['dart_library'] as JsObject;
-    if (runId == null) {
+  Future<bool> restart({String? runId, Future? readyToRunMain}) async {
+    final dartLibrary = getProperty(globalThis, 'dart_library');
+    if (runId == null && readyToRunMain == null) {
       dartLibrary.callMethod('reload');
     } else {
-      dartLibrary.callMethod('reload', [
-        JsObject.jsify({'runId': runId}),
-      ]);
+      final restartConfig = {
+        if (runId != null) 'runId': runId,
+        if (readyToRunMain != null) 'readyToRunMain': toPromise(readyToRunMain),
+      };
+      dartLibrary.callMethod('reload', [jsify(restartConfig)]);
     }
     final reloadCompleter = Completer<bool>();
     final sub = window.onMessage.listen((event) {

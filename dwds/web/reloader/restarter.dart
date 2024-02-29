@@ -5,5 +5,5 @@
 abstract class Restarter {
   /// Attempts to perform a hot restart and returns whether it was successful or
   /// not.
-  Future<bool> restart({String? runId});
+  Future<bool> restart({String? runId, Future? readyToRunMain});
 }

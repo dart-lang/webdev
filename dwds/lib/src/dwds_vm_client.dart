@@ -252,6 +252,14 @@ Future<Map<String, dynamic>> _hotRestart(
   // restart. Only return success after the isolate has fully started.
   final stream = chromeProxyService.onEvent('Isolate');
   try {
+    // If we should pause isolates on start, then only run main once we get a
+    // resume event.
+    if (chromeProxyService.pauseIsolatesOnStart) {
+      chromeProxyService.resumeEventsStream.listen((_) async {
+        await chromeProxyService.inspector
+            .jsEvaluate('\$dartReadyToRunMain();');
+      });
+    }
     // Generate run id to hot restart all apps loaded into the tab.
     final runId = const Uuid().v4().toString();
     _logger.info('Issuing \$dartHotRestartDwds request');

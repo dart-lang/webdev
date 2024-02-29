@@ -102,7 +102,7 @@ class RequireRestarter implements Restarter {
   }
 
   @override
-  Future<bool> restart({String? runId}) async {
+  Future<bool> restart({String? runId, Future? readyToRunMain}) async {
     final developer = getProperty(require('dart_sdk'), 'developer');
     if (callMethod(
       getProperty(developer, '_extensions'),

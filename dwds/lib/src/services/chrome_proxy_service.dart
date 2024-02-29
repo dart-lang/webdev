@@ -93,11 +93,18 @@ class ChromeProxyService implements VmServiceInterface {
 
   final _pauseIsolatesOnStartController = StreamController<bool>.broadcast();
 
+  bool pauseIsolatesOnStart = false;
+
   /// A global stream of the value of the [_pauseIsolatesOnStartFlag].
   ///
   /// The flag's value can be updated during runtime.
   Stream<bool> get pauseIsolatesOnStartStream =>
       _pauseIsolatesOnStartController.stream;
+
+  final _resumeEventsController = StreamController<String>.broadcast();
+
+  /// A global stream of resume events.
+  Stream<String> get resumeEventsStream => _resumeEventsController.stream;
 
   final _logger = Logger('ChromeProxyService');
 
@@ -1131,6 +1138,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     String? step,
     int? frameIndex,
   }) async {
+    _resumeEventsController.add(isolateId);
     if (inspector.appConnection.isStarted) {
       return captureElapsedTime(
         () async {
@@ -1200,7 +1208,8 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
 
     if (name == _pauseIsolatesOnStartFlag) {
       assert(value == 'true' || value == 'false');
-      _pauseIsolatesOnStartController.sink.add(value == 'true');
+      pauseIsolatesOnStart = value == 'true';
+      _pauseIsolatesOnStartController.sink.add(pauseIsolatesOnStart);
     }
 
     return Success();
