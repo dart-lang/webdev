@@ -28,6 +28,7 @@ import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import 'promise.dart';
 import 'reloader/ddc_restarter.dart';
 import 'reloader/manager.dart';
 import 'reloader/require_restarter.dart';
@@ -61,7 +62,9 @@ Future<void>? main() {
 
     final manager = ReloadingManager(client, restarter);
 
-    hotRestartJs = allowInterop(manager.hotRestart);
+    hotRestartJs = allowInterop((String runId) {
+      return toPromise(manager.hotRestart(runId: runId));
+    });
 
     final debugEventController =
         BatchedStreamController<DebugEvent>(delay: _batchDelayMilliseconds);
@@ -131,13 +134,17 @@ Future<void>? main() {
     });
 
     client.stream.listen(
-      (serialized) {
+      (serialized) async {
         final event = serializers.deserialize(jsonDecode(serialized));
         if (event is BuildResult) {
           if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
             manager.reloadPage();
           } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
-            manager.hotRestart();
+            if (isInternalBuild) {
+              await manager.hotRestart();
+            } else {
+              manager.reloadPage();
+            }
           } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
             print('Hot reload is currently unsupported. Ignoring change.');
           }
@@ -321,7 +328,7 @@ external set dartAppInstanceId(String? id);
 external String get dartModuleStrategy;
 
 @JS(r'$dartHotRestartDwds')
-external set hotRestartJs(void Function() cb);
+external set hotRestartJs(Promise<bool> Function(String runId) cb);
 
 @JS(r'$launchDevTools')
 external void Function() get launchDevToolsJs;

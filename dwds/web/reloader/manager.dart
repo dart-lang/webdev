@@ -17,16 +17,6 @@ class ReloadingManager {
 
   ReloadingManager(this._client, this._restarter);
 
-  /// Hot-restart does a hard reload of the application.
-  void hotRestart() {
-    reloadPage();
-  }
-
-  /// Does a hard reload of the application.
-  void reloadPage() {
-    window.location.reload();
-  }
-
   /// Attempts to perform a hot restart and returns whether it was successful or
   /// not.
   ///
@@ -35,11 +25,16 @@ class ReloadingManager {
   /// - called hotRestart with the same runId
   ///
   /// The apps are restarted at the same time on the first call.
-  Future<bool> legacyHotRestart({String? runId}) async {
+  Future<bool> hotRestart({String? runId}) async {
     _beforeRestart();
     final result = await _restarter.restart(runId: runId);
     _afterRestart(result);
     return result;
+  }
+
+  /// Does a hard reload of the application.
+  void reloadPage() {
+    window.location.reload();
   }
 
   void _afterRestart(bool succeeded) {

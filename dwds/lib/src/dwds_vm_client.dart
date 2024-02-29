@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
@@ -34,6 +35,9 @@ class DwdsVmClient {
 
   /// Synchronizes hot restarts to avoid races.
   final _hotRestartQueue = AtomicQueue();
+
+  /// Synchronizes full reloads to avoid races.
+  final _fullReloadQueue = AtomicQueue();
 
   DwdsVmClient(this.client, this._requestController, this._responseController);
 
@@ -97,25 +101,18 @@ class DwdsVmClient {
     client.registerServiceCallback(
       'hotRestart',
       (request) => captureElapsedTime(
-        () => dwdsVmClient.hotRestart(chromeProxyService),
+        () => globalToolConfiguration.appMetadata.isInternalBuild
+            ? dwdsVmClient.hotRestart(chromeProxyService, client)
+            : dwdsVmClient.fullReload(chromeProxyService),
         (_) => DwdsEvent.hotRestart(),
       ),
     );
     await client.registerService('hotRestart', 'DWDS');
 
     client.registerServiceCallback(
-      'legacyHotRestart',
-      (request) => captureElapsedTime(
-        () => dwdsVmClient.legacyHotRestart(chromeProxyService, client),
-        (_) => DwdsEvent.legacyHotRestart(),
-      ),
-    );
-    await client.registerService('legacyHotRestart', 'DWDS');
-
-    client.registerServiceCallback(
       'fullReload',
       (request) => captureElapsedTime(
-        () => _fullReload(chromeProxyService),
+        () => dwdsVmClient.fullReload(chromeProxyService),
         (_) => DwdsEvent.fullReload(),
       ),
     );
@@ -173,16 +170,15 @@ class DwdsVmClient {
 
   Future<Map<String, dynamic>> hotRestart(
     ChromeProxyService chromeProxyService,
-  ) {
-    return _hotRestartQueue.run(() => _hotRestart(chromeProxyService));
-  }
-
-  Future<Map<String, dynamic>> legacyHotRestart(
-    ChromeProxyService chromeProxyService,
     VmService client,
   ) {
-    return _hotRestartQueue
-        .run(() => _legacyHotRestart(chromeProxyService, client));
+    return _hotRestartQueue.run(() => _hotRestart(chromeProxyService, client));
+  }
+
+  Future<Map<String, dynamic>> fullReload(
+    ChromeProxyService chromeProxyService,
+  ) {
+    return _fullReloadQueue.run(() => _fullReload(chromeProxyService));
   }
 }
 
@@ -242,11 +238,6 @@ Future<int> tryGetContextId(
 }
 
 Future<Map<String, dynamic>> _hotRestart(
-  ChromeProxyService chromeProxyService,
-) =>
-    _fullReload(chromeProxyService);
-
-Future<Map<String, dynamic>> _legacyHotRestart(
   ChromeProxyService chromeProxyService,
   VmService client,
 ) async {
