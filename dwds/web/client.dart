@@ -79,7 +79,10 @@ Future<void>? main() {
     });
 
     readyToRunMainJs = allowInterop(() {
-      readyToRunMainCompleter?.complete();
+      if (readyToRunMainCompleter == null) return;
+      if (readyToRunMainCompleter!.isCompleted) return;
+      readyToRunMainCompleter!.complete();
+      readyToRunMainCompleter = null;
     });
 
     final debugEventController =

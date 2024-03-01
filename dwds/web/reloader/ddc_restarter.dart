@@ -14,13 +14,13 @@ class DdcRestarter implements Restarter {
   Future<bool> restart({String? runId, Future? readyToRunMain}) async {
     final dartLibrary = getProperty(globalThis, 'dart_library');
     if (runId == null && readyToRunMain == null) {
-      dartLibrary.callMethod('reload');
+      callMethod(dartLibrary, 'reload', []);
     } else {
       final restartConfig = {
         if (runId != null) 'runId': runId,
         if (readyToRunMain != null) 'readyToRunMain': toPromise(readyToRunMain),
       };
-      dartLibrary.callMethod('reload', [jsify(restartConfig)]);
+      callMethod(dartLibrary, 'reload', [jsify(restartConfig)]);
     }
     final reloadCompleter = Completer<bool>();
     final sub = window.onMessage.listen((event) {

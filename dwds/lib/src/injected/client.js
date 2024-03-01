@@ -19590,9 +19590,6 @@
       }
       return A._convertToDart(t1[method].apply(t1, t2));
     },
-    callMethod$1(method) {
-      return this.callMethod$2(method, null);
-    },
     get$hashCode(_) {
       return 0;
     }
@@ -25792,9 +25789,14 @@
   };
   A.main__closure0.prototype = {
     call$0() {
-      var t1 = this._box_0.readyToRunMainCompleter;
-      if (t1 != null)
-        t1.complete$0(0);
+      var t1 = this._box_0,
+        t2 = t1.readyToRunMainCompleter;
+      if (t2 == null)
+        return;
+      if ((t2.future._state & 30) !== 0)
+        return;
+      t2.complete$0(0);
+      t1.readyToRunMainCompleter = null;
     },
     $signature: 0
   };
@@ -26135,7 +26137,7 @@
     restart$2$readyToRunMain$runId(readyToRunMain, runId) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.bool),
-        $async$returnValue, t2, dartLibrary, t1;
+        $async$returnValue, t2, t3, dartLibrary, t1;
       var $async$restart$2$readyToRunMain$runId = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -26145,15 +26147,18 @@
               // Function start
               dartLibrary = globalThis.dart_library;
               t1 = runId == null;
-              if (t1 && readyToRunMain == null)
-                dartLibrary.callMethod$1("reload");
-              else {
-                t2 = A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.Object);
+              if (t1 && readyToRunMain == null) {
+                t1 = dartLibrary == null ? type$.Object._as(dartLibrary) : dartLibrary;
+                t1.reload();
+              } else {
+                t2 = type$.Object;
+                t3 = A.LinkedHashMap_LinkedHashMap$_empty(type$.String, t2);
                 if (!t1)
-                  t2.$indexSet(0, "runId", runId);
+                  t3.$indexSet(0, "runId", runId);
                 if (readyToRunMain != null)
-                  t2.$indexSet(0, "readyToRunMain", A.toPromise(readyToRunMain, type$.dynamic));
-                dartLibrary.callMethod$2("reload", [A.jsify(t2)]);
+                  t3.$indexSet(0, "readyToRunMain", A.toPromise(readyToRunMain, type$.dynamic));
+                t1 = dartLibrary == null ? t2._as(dartLibrary) : dartLibrary;
+                t1.reload(A.jsify(t3));
               }
               t1 = new A._Future($.Zone__current, type$._Future_bool);
               t2 = window;
