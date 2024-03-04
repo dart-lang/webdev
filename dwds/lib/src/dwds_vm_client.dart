@@ -256,23 +256,8 @@ Future<Map<String, dynamic>> _hotRestart(
     // If we should pause isolates on start, then only run main once we get a
     // resume event.
     final pauseIsolatesOnStart = chromeProxyService.pauseIsolatesOnStart;
-    if (chromeProxyService.pauseIsolatesOnStart) {
-      final issuedReadyToRunMainCompleter = Completer<void>();
-
-      final resumeEventsSubscription =
-          chromeProxyService.resumeEventsStream.listen((_) async {
-        await chromeProxyService.inspector
-            .jsEvaluate('\$dartReadyToRunMain();');
-        if (!issuedReadyToRunMainCompleter.isCompleted) {
-          issuedReadyToRunMainCompleter.complete();
-        }
-      });
-
-      safeUnawaited(
-        issuedReadyToRunMainCompleter.future.then((_) {
-          resumeEventsSubscription.cancel();
-        }),
-      );
+    if (pauseIsolatesOnStart) {
+      _waitForResumeEventToRunMain(chromeProxyService);
     }
     // Generate run id to hot restart all apps loaded into the tab.
     final runId = const Uuid().v4().toString();
@@ -311,6 +296,26 @@ Future<Map<String, dynamic>> _hotRestart(
 
   _logger.info('Successful hot restart');
   return {'result': Success().toJson()};
+}
+
+void _waitForResumeEventToRunMain(
+  ChromeProxyService chromeProxyService,
+) {
+  final issuedReadyToRunMainCompleter = Completer<void>();
+
+  final resumeEventsSubscription =
+      chromeProxyService.resumeEventsStream.listen((_) async {
+    await chromeProxyService.inspector.jsEvaluate('\$dartReadyToRunMain();');
+    if (!issuedReadyToRunMainCompleter.isCompleted) {
+      issuedReadyToRunMainCompleter.complete();
+    }
+  });
+
+  safeUnawaited(
+    issuedReadyToRunMainCompleter.future.then((_) {
+      resumeEventsSubscription.cancel();
+    }),
+  );
 }
 
 Future<Map<String, dynamic>> _fullReload(
