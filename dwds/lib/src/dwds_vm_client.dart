@@ -277,8 +277,7 @@ Future<Map<String, dynamic>> _hotRestart(
     // Generate run id to hot restart all apps loaded into the tab.
     final runId = const Uuid().v4().toString();
     _logger.info('Issuing \$dartHotRestartDwds request');
-    await chromeProxyService.inspector
-        .jsEvaluate(
+    await chromeProxyService.inspector.jsEvaluate(
       '\$dartHotRestartDwds(\'$runId\', $pauseIsolatesOnStart);',
       awaitPromise: true,
     );
