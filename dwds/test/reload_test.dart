@@ -496,6 +496,8 @@ void main() {
     timeout: Timeout.factor(2),
   );
 
+  // TODO(https://github.com/dart-lang/webdev/issues/2380): Run these tests with
+  // the FrontendServer as well.
   group('when isolates_paused_on_start is true', () {
     late VmService client;
 
