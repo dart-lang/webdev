@@ -62,8 +62,27 @@ Future<void>? main() {
 
     final manager = ReloadingManager(client, restarter);
 
-    hotRestartJs = allowInterop((String runId) {
-      return toPromise(manager.hotRestart(runId: runId));
+    Completer? readyToRunMainCompleter;
+
+    hotRestartJs = allowInterop((String runId, bool pauseIsolatesOnStart) {
+      if (pauseIsolatesOnStart) {
+        readyToRunMainCompleter = Completer();
+        return toPromise(
+          manager.hotRestart(
+            runId: runId,
+            readyToRunMain: readyToRunMainCompleter!.future,
+          ),
+        );
+      } else {
+        return toPromise(manager.hotRestart(runId: runId));
+      }
+    });
+
+    readyToRunMainJs = allowInterop(() {
+      if (readyToRunMainCompleter == null) return;
+      if (readyToRunMainCompleter!.isCompleted) return;
+      readyToRunMainCompleter!.complete();
+      readyToRunMainCompleter = null;
     });
 
     final debugEventController =
@@ -324,7 +343,12 @@ external set dartAppInstanceId(String? id);
 external String get dartModuleStrategy;
 
 @JS(r'$dartHotRestartDwds')
-external set hotRestartJs(Promise<bool> Function(String runId) cb);
+external set hotRestartJs(
+  Promise<bool> Function(String runId, bool pauseIsolatesOnStart) cb,
+);
+
+@JS(r'$dartReadyToRunMain')
+external set readyToRunMainJs(void Function() cb);
 
 @JS(r'$launchDevTools')
 external void Function() get launchDevToolsJs;

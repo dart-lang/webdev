@@ -9,6 +9,7 @@ import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/debug_service.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
@@ -252,11 +253,19 @@ Future<Map<String, dynamic>> _hotRestart(
   // restart. Only return success after the isolate has fully started.
   final stream = chromeProxyService.onEvent('Isolate');
   try {
+    // If we should pause isolates on start, then only run main once we get a
+    // resume event.
+    final pauseIsolatesOnStart = chromeProxyService.pauseIsolatesOnStart;
+    if (pauseIsolatesOnStart) {
+      _waitForResumeEventToRunMain(chromeProxyService);
+    }
     // Generate run id to hot restart all apps loaded into the tab.
     final runId = const Uuid().v4().toString();
     _logger.info('Issuing \$dartHotRestartDwds request');
-    await chromeProxyService.inspector
-        .jsEvaluate('\$dartHotRestartDwds(\'$runId\');', awaitPromise: true);
+    await chromeProxyService.inspector.jsEvaluate(
+      '\$dartHotRestartDwds(\'$runId\', $pauseIsolatesOnStart);',
+      awaitPromise: true,
+    );
     _logger.info('\$dartHotRestartDwds request complete.');
   } on WipError catch (exception) {
     final code = exception.error?['code'];
@@ -287,6 +296,26 @@ Future<Map<String, dynamic>> _hotRestart(
 
   _logger.info('Successful hot restart');
   return {'result': Success().toJson()};
+}
+
+void _waitForResumeEventToRunMain(
+  ChromeProxyService chromeProxyService,
+) {
+  final issuedReadyToRunMainCompleter = Completer<void>();
+
+  final resumeEventsSubscription =
+      chromeProxyService.resumeAfterHotRestartEventsStream.listen((_) async {
+    await chromeProxyService.inspector.jsEvaluate('\$dartReadyToRunMain();');
+    if (!issuedReadyToRunMainCompleter.isCompleted) {
+      issuedReadyToRunMainCompleter.complete();
+    }
+  });
+
+  safeUnawaited(
+    issuedReadyToRunMainCompleter.future.then((_) {
+      resumeEventsSubscription.cancel();
+    }),
+  );
 }
 
 Future<Map<String, dynamic>> _fullReload(
