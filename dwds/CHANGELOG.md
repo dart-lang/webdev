@@ -3,7 +3,7 @@
 - Rename `dart_library.js` to `ddc_module_loader.js` to match SDK naming changes. - [#2360](https://github.com/dart-lang/webdev/pull/2360)
 - Implement `setFlag` when it is called with `pause_isolates_on_start`. - [#2373](https://github.com/dart-lang/webdev/pull/2373)
 - Do not persist breakpoints across hot restarts or page reloads. - [#2371](https://github.com/dart-lang/webdev/pull/2371)
-- If `pause_isolates_on_start` is `true`, tell DDC to wait to run the `main` method. - [#2378](https://github.com/dart-lang/webdev/pull/2378)
+- If `pause_isolates_on_start` is `true`, wait for `resume` to run the app's `main` method. - [#2378](https://github.com/dart-lang/webdev/pull/2378)
 
 ## 23.3.0
 
