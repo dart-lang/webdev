@@ -26143,7 +26143,7 @@
     restart$2$readyToRunMain$runId(readyToRunMain, runId) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.bool),
-        $async$returnValue, t1, t2, dartLibrary, t3;
+        $async$returnValue, t2, t3, dartLibrary, t1;
       var $async$restart$2$readyToRunMain$runId = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -26151,12 +26151,6 @@
           switch ($async$goto) {
             case 0:
               // Function start
-              window.toString;
-              t1 = A.S(readyToRunMain);
-              t2 = typeof console != "undefined";
-              t2.toString;
-              if (t2)
-                window.console.log("CALLED RESTART WITH " + t1);
               dartLibrary = globalThis.dart_library;
               t1 = runId == null;
               if (t1 && readyToRunMain == null) {
@@ -26287,7 +26281,7 @@
     restart$2$readyToRunMain$runId(readyToRunMain, runId) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.bool),
-        $async$returnValue, $async$self = this, newDigests, modulesToLoad, t4, t5, t6, t7, line, toZone, t8, result, developer, t1, t2, t3;
+        $async$returnValue, $async$self = this, t1, developer, t2, t3, newDigests, modulesToLoad, t4, t5, t6, t7, line, toZone, t8, result;
       var $async$restart$2$readyToRunMain$runId = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -26295,6 +26289,11 @@
           switch ($async$goto) {
             case 0:
               // Function start
+              window.toString;
+              t1 = typeof console != "undefined";
+              t1.toString;
+              if (t1)
+                window.console.log("[!IMPORTANT] Restart called in the REQUIRE  restarter.");
               developer = self.$loadModuleConfig.call$1("dart_sdk").developer;
               t1 = developer == null;
               t2 = t1 ? type$.Object._as(developer) : developer;
@@ -26363,7 +26362,7 @@
             case 8:
               // join
               t3._as(self.$loadModuleConfig.call$1("dart_sdk").dart).hotRestart();
-              A.runMain();
+              A.safeUnawaited($async$self._runMainWhenReady$1(readyToRunMain));
               $async$returnValue = result;
               // goto return
               $async$goto = 1;
@@ -26374,6 +26373,33 @@
           }
       });
       return A._asyncStartSync($async$restart$2$readyToRunMain$runId, $async$completer);
+    },
+    _runMainWhenReady$1(readyToRunMain) {
+      var $async$goto = 0,
+        $async$completer = A._makeAsyncAwaitCompleter(type$.void);
+      var $async$_runMainWhenReady$1 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
+        if ($async$errorCode === 1)
+          return A._asyncRethrow($async$result, $async$completer);
+        while (true)
+          switch ($async$goto) {
+            case 0:
+              // Function start
+              $async$goto = readyToRunMain != null ? 2 : 3;
+              break;
+            case 2:
+              // then
+              $async$goto = 4;
+              return A._asyncAwait(readyToRunMain, $async$_runMainWhenReady$1);
+            case 4:
+              // returning from await.
+            case 3:
+              // join
+              A.runMain();
+              // implicit return
+              return A._asyncReturn(null, $async$completer);
+          }
+      });
+      return A._asyncStartSync($async$_runMainWhenReady$1, $async$completer);
     },
     _getDigests$0() {
       var $async$goto = 0,
@@ -26611,7 +26637,12 @@
   };
   A.RequireRestarter__reload_closure.prototype = {
     call$0() {
-      var t1 = this.childModule;
+      window.toString;
+      var t1 = typeof console != "undefined";
+      t1.toString;
+      if (t1)
+        window.console.log("===== CALLING MAIN FROM REQUIRE RESTARTER");
+      t1 = this.childModule;
       t1 = J.get$first$ax(self.Object.values(t1 == null ? type$.Object._as(t1) : t1));
       if (t1 == null)
         t1 = type$.Object._as(t1);

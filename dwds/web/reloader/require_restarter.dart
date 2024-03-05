@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'dart:html';
 import 'dart:js_util';
 
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:graphs/graphs.dart' as graphs;
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
@@ -137,8 +138,15 @@ class RequireRestarter implements Restarter {
       result = await _reload(modulesToLoad);
     }
     callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
-    runMain();
+    safeUnawaited(_runMainWhenReady(readyToRunMain));
     return result;
+  }
+
+  Future<void> _runMainWhenReady(Future? readyToRunMain) async {
+    if (readyToRunMain != null) {
+      await readyToRunMain;
+    }
+    runMain();
   }
 
   List<String> _allModules() => keys(requireLoader.moduleParentsGraph);

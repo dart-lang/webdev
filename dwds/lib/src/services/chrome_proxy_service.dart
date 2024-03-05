@@ -106,12 +106,18 @@ class ChromeProxyService implements VmServiceInterface {
   Stream<bool> get pauseIsolatesOnStartStream =>
       _pauseIsolatesOnStartController.stream;
 
-  final _resumeEventsController = StreamController<String>.broadcast();
+  final _resumeAfterHotRestartEventsController =
+      StreamController<String>.broadcast();
 
   /// A global stream of resume events.
   ///
   /// The values in the stream are the isolates IDs for the resume event.
-  Stream<String> get resumeEventsStream => _resumeEventsController.stream;
+  ///
+  /// IMPORTANT: This should only be listened to during a hot-restart. The
+  /// debugger ignores any resume events as long as their is a subscriber to
+  /// this stream.
+  Stream<String> get resumeAfterHotRestartEventsStream =>
+      _resumeAfterHotRestartEventsController.stream;
 
   final _logger = Logger('ChromeProxyService');
 
@@ -1145,7 +1151,12 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     String? step,
     int? frameIndex,
   }) async {
-    _resumeEventsController.add(isolateId);
+    // If there is a subscriber listening for a resume event after hot-restart,
+    // then add the event to the stream and skip processing it.
+    if (_resumeAfterHotRestartEventsController.hasListener) {
+      _resumeAfterHotRestartEventsController.add(isolateId);
+      return Success();
+    }
     if (inspector.appConnection.isStarted) {
       return captureElapsedTime(
         () async {

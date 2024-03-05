@@ -304,7 +304,7 @@ void _waitForResumeEventToRunMain(
   final issuedReadyToRunMainCompleter = Completer<void>();
 
   final resumeEventsSubscription =
-      chromeProxyService.resumeEventsStream.listen((_) async {
+      chromeProxyService.resumeAfterHotRestartEventsStream.listen((_) async {
     await chromeProxyService.inspector.jsEvaluate('\$dartReadyToRunMain();');
     if (!issuedReadyToRunMainCompleter.isCompleted) {
       issuedReadyToRunMainCompleter.complete();
