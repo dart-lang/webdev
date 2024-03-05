@@ -114,7 +114,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// The values in the stream are the isolates IDs for the resume event.
   ///
   /// IMPORTANT: This should only be listened to during a hot-restart. The
-  /// debugger ignores any resume events as long as their is a subscriber to
+  /// debugger ignores any resume events as long as there is a subscriber to
   /// this stream.
   Stream<String> get resumeAfterHotRestartEventsStream =>
       _resumeAfterHotRestartEventsController.stream;
