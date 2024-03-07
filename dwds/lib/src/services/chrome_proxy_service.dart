@@ -99,6 +99,12 @@ class ChromeProxyService implements VmServiceInterface {
   Stream<bool> get pauseIsolatesOnStartStream =>
       _pauseIsolatesOnStartController.stream;
 
+  final _streamListenEventsController = StreamController<String>.broadcast();
+
+  /// A global stream of stream IDs that a client has listened to.
+  Stream<String> get streamListenEventsStream =>
+      _streamListenEventsController.stream;
+
   final _logger = Logger('ChromeProxyService');
 
   final ExpressionCompiler? _compiler;
@@ -1266,6 +1272,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
   Future<Success> _streamListen(String streamId) async {
     // TODO: This should return an error if the stream is already being listened
     // to.
+    _streamListenEventsController.add(streamId);
     onEvent(streamId);
     return Success();
   }

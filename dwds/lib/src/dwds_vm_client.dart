@@ -9,6 +9,7 @@ import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/debug_service.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
@@ -73,6 +74,35 @@ class DwdsVmClient {
     final dwdsVmClient =
         DwdsVmClient(client, requestController, responseController);
 
+    chromeProxyService.streamListenEventsStream.listen((streamId) {
+      if (streamId == EventStreams.kService) {
+        safeUnawaited(
+          _registerServiceCallbacks(
+            client: client,
+            chromeProxyService: chromeProxyService,
+            dwdsVmClient: dwdsVmClient,
+            dwdsStats: dwdsStats,
+          ),
+        );
+      }
+    });
+
+    await _registerServiceCallbacks(
+      client: client,
+      chromeProxyService: chromeProxyService,
+      dwdsVmClient: dwdsVmClient,
+      dwdsStats: dwdsStats,
+    );
+
+    return dwdsVmClient;
+  }
+
+  static Future<void> _registerServiceCallbacks({
+    required VmService client,
+    required ChromeProxyService chromeProxyService,
+    required DwdsVmClient dwdsVmClient,
+    required DwdsStats dwdsStats,
+  }) async {
     // Register '_flutter.listViews' method on the chrome proxy service vm.
     // In native world, this method is provided by the engine, but the web
     // engine is not aware of the VM uri or the isolates.
@@ -159,8 +189,6 @@ class DwdsVmClient {
             };
     });
     await client.registerService('_yieldControlToDDS', 'DWDS');
-
-    return dwdsVmClient;
   }
 
   Future<Map<String, dynamic>> hotRestart(
