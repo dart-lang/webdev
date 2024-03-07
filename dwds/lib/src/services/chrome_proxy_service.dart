@@ -91,6 +91,13 @@ class ChromeProxyService implements VmServiceInterface {
 
   StreamSubscription<ConsoleAPIEvent>? _consoleSubscription;
 
+  bool _pauseIsolatesOnStart = false;
+
+  /// The value of the [_pauseIsolatesOnStartFlag].
+  ///
+  /// This value can be updated at runtime via [setFlag].
+  bool get pauseIsolatesOnStart => _pauseIsolatesOnStart;
+
   final _pauseIsolatesOnStartController = StreamController<bool>.broadcast();
 
   /// A global stream of the value of the [_pauseIsolatesOnStartFlag].
@@ -98,6 +105,19 @@ class ChromeProxyService implements VmServiceInterface {
   /// The flag's value can be updated during runtime.
   Stream<bool> get pauseIsolatesOnStartStream =>
       _pauseIsolatesOnStartController.stream;
+
+  final _resumeAfterHotRestartEventsController =
+      StreamController<String>.broadcast();
+
+  /// A global stream of resume events.
+  ///
+  /// The values in the stream are the isolates IDs for the resume event.
+  ///
+  /// IMPORTANT: This should only be listened to during a hot-restart. The
+  /// debugger ignores any resume events as long as there is a subscriber to
+  /// this stream.
+  Stream<String> get resumeAfterHotRestartEventsStream =>
+      _resumeAfterHotRestartEventsController.stream;
 
   final _streamListenEventsController = StreamController<String>.broadcast();
 
@@ -1137,6 +1157,12 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     String? step,
     int? frameIndex,
   }) async {
+    // If there is a subscriber listening for a resume event after hot-restart,
+    // then add the event to the stream and skip processing it.
+    if (_resumeAfterHotRestartEventsController.hasListener) {
+      _resumeAfterHotRestartEventsController.add(isolateId);
+      return Success();
+    }
     if (inspector.appConnection.isStarted) {
       return captureElapsedTime(
         () async {
@@ -1206,7 +1232,8 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
 
     if (name == _pauseIsolatesOnStartFlag) {
       assert(value == 'true' || value == 'false');
-      _pauseIsolatesOnStartController.sink.add(value == 'true');
+      _pauseIsolatesOnStart = value == 'true';
+      _pauseIsolatesOnStartController.sink.add(_pauseIsolatesOnStart);
     }
 
     return Success();

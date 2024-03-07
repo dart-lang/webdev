@@ -495,6 +495,61 @@ void main() {
     },
     timeout: Timeout.factor(2),
   );
+
+  // TODO(https://github.com/dart-lang/webdev/issues/2380): Run these tests with
+  // the FrontendServer as well.
+  group('when isolates_paused_on_start is true', () {
+    late VmService client;
+
+    setUp(() async {
+      setCurrentLogWriter(debug: debug);
+      await context.setUp(
+        testSettings: TestSettings(
+          enableExpressionEvaluation: true,
+        ),
+      );
+      client = context.debugConnection.vmService;
+      await client.setFlag('pause_isolates_on_start', 'true');
+      await client.streamListen('Isolate');
+    });
+
+    tearDown(() async {
+      await context.tearDown();
+      undoEdit();
+    });
+
+    test('does not run app until there is a resume event', () async {
+      await makeEditAndWaitForRebuild();
+
+      final eventsDone = expectLater(
+        client.onIsolateEvent,
+        emitsThrough(
+          emitsInOrder([
+            _hasKind(EventKind.kIsolateExit),
+            _hasKind(EventKind.kIsolateStart),
+            _hasKind(EventKind.kIsolateRunnable),
+          ]),
+        ),
+      );
+
+      expect(
+        await client.callServiceExtension('hotRestart'),
+        const TypeMatcher<Success>(),
+      );
+
+      await eventsDone;
+
+      final sourceBeforeResume = await context.webDriver.pageSource;
+      expect(sourceBeforeResume.contains(newString), isFalse);
+
+      final vm = await client.getVM();
+      final isolateId = vm.isolates!.first.id!;
+      await client.resume(isolateId);
+
+      final sourceAfterResume = await context.webDriver.pageSource;
+      expect(sourceAfterResume.contains(newString), isTrue);
+    });
+  });
 }
 
 TypeMatcher<Event> _hasKind(String kind) =>
