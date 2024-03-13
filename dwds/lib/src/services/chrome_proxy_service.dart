@@ -1098,6 +1098,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
 
   @override
   Future<Success> registerService(String service, String alias) {
+    print('[dwds] registering service: $service');
     return _rpcNotSupportedFuture('registerService');
   }
 

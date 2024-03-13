@@ -506,10 +506,20 @@ class DevHandler {
     DebugService debugService,
   ) async {
     final dwdsStats = DwdsStats();
-    final webdevClient = await DwdsVmClient.create(debugService, dwdsStats);
+    print('[dwds] spawn dds is $_spawnDds');
+    final ddsHasTakenControlCompleter = Completer<bool>();
+    final webdevClient = await DwdsVmClient.create(
+      debugService,
+      dwdsStats,
+      ddsHasTakenControlCompleter.future,
+    );
     if (_spawnDds) {
       await debugService.startDartDevelopmentService();
+      ddsHasTakenControlCompleter.complete(true);
+    } else {
+      ddsHasTakenControlCompleter.complete(false);
     }
+    // await DwdsVmClient.registerServiceCallbacks(client: webdevClient, chromeProxyService: chromeProxyService, dwdsVmClient: dwdsVmClient, dwdsStats: dwdsStats)
     final appDebugService =
         AppDebugServices(debugService, webdevClient, dwdsStats);
     final encodedUri = await debugService.encodedUri;

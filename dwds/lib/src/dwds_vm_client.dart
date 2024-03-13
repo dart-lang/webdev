@@ -15,6 +15,7 @@ import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 final _logger = Logger('DwdsVmClient');
@@ -48,6 +49,7 @@ class DwdsVmClient {
   static Future<DwdsVmClient> create(
     DebugService debugService,
     DwdsStats dwdsStats,
+    Future<dynamic> readyToRegisterServiceExtensions,
   ) async {
     // Set up hot restart as an extension.
     final requestController = StreamController<Map<String, Object>>();
@@ -58,41 +60,82 @@ class DwdsVmClient {
       debugService.serviceExtensionRegistry,
       debugService.chromeProxyService,
     );
-    final client =
-        VmService(responseController.stream.map(jsonEncode), (request) {
+    final debugUri = debugService.uri;
+    final inStream = responseController.stream.map(jsonEncode);
+    writeMessage(request) {
       if (requestController.isClosed) {
         _logger.warning(
             'Attempted to send a request but the connection is closed:\n\n'
             '$request');
         return;
       }
+      print('[dwds] adding request to sink: $request');
       requestController.sink.add(Map<String, Object>.from(jsonDecode(request)));
-    });
+    }
+
+    print('[dwds] creating vm service with ws uri: $debugUri');
+    final webSocketClient = WebSocketChannel.connect(Uri.parse(debugUri));
+    writeWsMessage(request) {
+      print('writing $request to web socket sink');
+      webSocketClient.sink.add(request);
+    }
+
+    final client = VmService(
+      webSocketClient.stream,
+      writeWsMessage,
+    );
     final chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
 
     final dwdsVmClient =
         DwdsVmClient(client, requestController, responseController);
 
-    chromeProxyService.streamListenEventsStream.listen((streamId) {
-      if (streamId == EventStreams.kService) {
-        safeUnawaited(
-          _registerServiceCallbacks(
+    // chromeProxyService.streamListenEventsStream.listen((streamId) {
+    //   if (streamId == EventStreams.kService) {
+    //     safeUnawaited(
+    //       registerServiceCallbacks(
+    //         client: client,
+    //         chromeProxyService: chromeProxyService,
+    //         dwdsVmClient: dwdsVmClient,
+    //         dwdsStats: dwdsStats,
+    //       ),
+    //     );
+    //   }
+    // });
+
+    // print('[dwds] Calling the register service callbacks...');
+    safeUnawaited(
+      readyToRegisterServiceExtensions.then((_) {
+        return _registerServiceCallbacks(
             client: client,
             chromeProxyService: chromeProxyService,
             dwdsVmClient: dwdsVmClient,
-            dwdsStats: dwdsStats,
-          ),
+          dwdsStats: dwdsStats,
         );
-      }
-    });
-
-    await _registerServiceCallbacks(
-      client: client,
-      chromeProxyService: chromeProxyService,
-      dwdsVmClient: dwdsVmClient,
-      dwdsStats: dwdsStats,
+      }),
     );
+
+    client.registerServiceCallback('_yieldControlToDDS', (request) async {
+      final ddsUri = request['uri'] as String?;
+      if (ddsUri == null) {
+        return RPCError(
+          request['method'] as String,
+          RPCErrorKind.kInvalidParams.code,
+          "'Missing parameter: 'uri'",
+        ).toMap();
+      }
+      return DebugService.yieldControlToDDS(ddsUri)
+          ? {'result': Success().toJson()}
+          : {
+              'error': {
+                'code': kFeatureDisabled,
+                'message': kFeatureDisabledMessage,
+                'data':
+                    'Existing VM service clients prevent DDS from taking control.',
+              },
+            };
+    });
+    await client.registerService('_yieldControlToDDS', 'DWDS');
 
     return dwdsVmClient;
   }
@@ -103,6 +146,7 @@ class DwdsVmClient {
     required DwdsVmClient dwdsVmClient,
     required DwdsStats dwdsStats,
   }) async {
+    print('[dwds] registering service extension callbacks');
     // Register '_flutter.listViews' method on the chrome proxy service vm.
     // In native world, this method is provided by the engine, but the web
     // engine is not aware of the VM uri or the isolates.
@@ -132,6 +176,7 @@ class DwdsVmClient {
         (_) => DwdsEvent.hotRestart(),
       ),
     );
+    print('[dwds] CALLING REGISTER SERVICE FOR HOT RESTART!');
     await client.registerService('hotRestart', 'DWDS');
 
     client.registerServiceCallback(

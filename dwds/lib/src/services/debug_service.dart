@@ -163,6 +163,7 @@ class DebugService {
   Future<void> startDartDevelopmentService() async {
     // Note: DDS can handle both web socket and SSE connections with no
     // additional configuration.
+    print('[dwds] start dds!');
     _dds = await DartDevelopmentService.startDartDevelopmentService(
       Uri(
         scheme: 'http',
@@ -209,9 +210,9 @@ class DebugService {
   }
 
   static bool yieldControlToDDS(String uri) {
-    if (_clientsConnected > 1) {
-      return false;
-    }
+    // if (_clientsConnected > 1) {
+    //   return false;
+    // }
     _ddsUri = uri;
     _acceptNewConnections = false;
     return true;

@@ -73,6 +73,7 @@ class Dwds {
     required ConnectionProvider chromeConnection,
     required ToolConfiguration toolConfiguration,
   }) async {
+    print('[DWDS] start');
     globalToolConfiguration = toolConfiguration;
     final debugSettings = toolConfiguration.debugSettings;
     final appMetadata = toolConfiguration.appMetadata;
