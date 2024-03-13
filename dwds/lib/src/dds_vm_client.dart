@@ -15,13 +15,14 @@ import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 final _logger = Logger('DwdsVmClient');
 
 // A client of the vm service that registers some custom extensions like
 // hotRestart.
-class DwdsVmClient {
+class DwdsDdsClient {
   final VmService client;
   final StreamController<Map<String, Object>> _requestController;
   final StreamController<Map<String, Object?>> _responseController;
@@ -37,7 +38,7 @@ class DwdsVmClient {
   /// Synchronizes hot restarts to avoid races.
   final _hotRestartQueue = AtomicQueue();
 
-  DwdsVmClient(this.client, this._requestController, this._responseController);
+  DwdsDdsClient(this.client, this._requestController, this._responseController);
 
   Future<void> close() => _closed ??= () async {
         await _requestController.close();
@@ -45,7 +46,7 @@ class DwdsVmClient {
         await client.dispose();
       }();
 
-  static Future<DwdsVmClient> create(
+  static Future<DwdsDdsClient> create(
     DebugService debugService,
     DwdsStats dwdsStats,
   ) async {
@@ -58,110 +59,113 @@ class DwdsVmClient {
       debugService.serviceExtensionRegistry,
       debugService.chromeProxyService,
     );
-    final client =
-        VmService(responseController.stream.map(jsonEncode), (request) {
-      if (requestController.isClosed) {
-        _logger.warning(
-            'Attempted to send a request but the connection is closed:\n\n'
-            '$request');
-        return;
-      }
-      requestController.sink.add(Map<String, Object>.from(jsonDecode(request)));
-    });
+    final ddsUri = debugService.ddsUri!;
+    final webSocketClient = WebSocketChannel.connect(Uri.parse(ddsUri));
+    writeWsMessage(request) {
+      print('writing $request to web socket sink');
+      webSocketClient.sink.add(request);
+    }
+
+    final client = VmService(
+      webSocketClient.stream,
+      writeWsMessage,
+    );
+
     final chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
 
-    final dwdsVmClient =
-        DwdsVmClient(client, requestController, responseController);
+    final dwdsDdsClient =
+        DwdsDdsClient(client, requestController, responseController);
 
     // Register '_flutter.listViews' method on the chrome proxy service vm.
     // In native world, this method is provided by the engine, but the web
     // engine is not aware of the VM uri or the isolates.
     //
     // Issue: https://github.com/dart-lang/webdev/issues/1315
-    // client.registerServiceCallback('_flutter.listViews', (request) async {
-    //   final vm = await chromeProxyService.getVM();
-    //   final isolates = vm.isolates;
-    //   return <String, dynamic>{
-    //     'result': <String, Object>{
-    //       'views': <Object>[
-    //         for (var isolate in isolates ?? [])
-    //           <String, Object>{
-    //             'id': isolate.id,
-    //             'isolate': isolate.toJson(),
-    //           },
-    //       ],
-    //     },
-    //   };
-    // });
-    // await client.registerService('_flutter.listViews', 'DWDS');
-
-    // client.registerServiceCallback(
-    //   'hotRestart',
-    //   (request) => captureElapsedTime(
-    //     () => dwdsVmClient.hotRestart(chromeProxyService, client),
-    //     (_) => DwdsEvent.hotRestart(),
-    //   ),
-    // );
-    // await client.registerService('hotRestart', 'DWDS');
-
-    // client.registerServiceCallback(
-    //   'fullReload',
-    //   (request) => captureElapsedTime(
-    //     () => _fullReload(chromeProxyService),
-    //     (_) => DwdsEvent.fullReload(),
-    //   ),
-    // );
-    // await client.registerService('fullReload', 'DWDS');
-
-    // client.registerServiceCallback('ext.dwds.screenshot', (_) async {
-    //   await chromeProxyService.remoteDebugger.enablePage();
-    //   final response = await chromeProxyService.remoteDebugger
-    //       .sendCommand('Page.captureScreenshot');
-    //   return {'result': response.result};
-    // });
-    // await client.registerService('ext.dwds.screenshot', 'DWDS');
-
-    // client.registerServiceCallback('ext.dwds.sendEvent', (event) async {
-    //   _processSendEvent(event, dwdsStats);
-    //   return {'result': Success().toJson()};
-    // });
-    // await client.registerService('ext.dwds.sendEvent', 'DWDS');
-
-    // client.registerServiceCallback('ext.dwds.emitEvent', (event) async {
-    //   emitEvent(
-    //     DwdsEvent(
-    //       event['type'] as String,
-    //       event['payload'] as Map<String, dynamic>,
-    //     ),
-    //   );
-    //   return {'result': Success().toJson()};
-    // });
-    // await client.registerService('ext.dwds.emitEvent', 'DWDS');
-
-    client.registerServiceCallback('_yieldControlToDDS', (request) async {
-      final ddsUri = request['uri'] as String?;
-      if (ddsUri == null) {
-        return RPCError(
-          request['method'] as String,
-          RPCErrorKind.kInvalidParams.code,
-          "'Missing parameter: 'uri'",
-        ).toMap();
-      }
-      return DebugService.yieldControlToDDS(ddsUri)
-          ? {'result': Success().toJson()}
-          : {
-              'error': {
-                'code': kFeatureDisabled,
-                'message': kFeatureDisabledMessage,
-                'data':
-                    'Existing VM service clients prevent DDS from taking control.',
+    client.registerServiceCallback('_flutter.listViews', (request) async {
+      final vm = await chromeProxyService.getVM();
+      final isolates = vm.isolates;
+      return <String, dynamic>{
+        'result': <String, Object>{
+          'views': <Object>[
+            for (var isolate in isolates ?? [])
+              <String, Object>{
+                'id': isolate.id,
+                'isolate': isolate.toJson(),
               },
-            };
+          ],
+        },
+      };
     });
-    await client.registerService('_yieldControlToDDS', 'DWDS');
+    await client.registerService('_flutter.listViews', 'DWDS');
 
-    return dwdsVmClient;
+    client.registerServiceCallback(
+      'hotRestart',
+      (request) => captureElapsedTime(
+        () => dwdsDdsClient.hotRestart(chromeProxyService, client),
+        (_) => DwdsEvent.hotRestart(),
+      ),
+    );
+    print('[dwds] registering hot restart via DDS');
+    await client.registerService('hotRestart', 'DWDS');
+
+    client.registerServiceCallback(
+      'fullReload',
+      (request) => captureElapsedTime(
+        () => _fullReload(chromeProxyService),
+        (_) => DwdsEvent.fullReload(),
+      ),
+    );
+    await client.registerService('fullReload', 'DWDS');
+
+    client.registerServiceCallback('ext.dwds.screenshot', (_) async {
+      await chromeProxyService.remoteDebugger.enablePage();
+      final response = await chromeProxyService.remoteDebugger
+          .sendCommand('Page.captureScreenshot');
+      return {'result': response.result};
+    });
+    await client.registerService('ext.dwds.screenshot', 'DWDS');
+
+    client.registerServiceCallback('ext.dwds.sendEvent', (event) async {
+      _processSendEvent(event, dwdsStats);
+      return {'result': Success().toJson()};
+    });
+    await client.registerService('ext.dwds.sendEvent', 'DWDS');
+
+    client.registerServiceCallback('ext.dwds.emitEvent', (event) async {
+      emitEvent(
+        DwdsEvent(
+          event['type'] as String,
+          event['payload'] as Map<String, dynamic>,
+        ),
+      );
+      return {'result': Success().toJson()};
+    });
+    await client.registerService('ext.dwds.emitEvent', 'DWDS');
+
+    // client.registerServiceCallback('_yieldControlToDDS', (request) async {
+    //   final ddsUri = request['uri'] as String?;
+    //   if (ddsUri == null) {
+    //     return RPCError(
+    //       request['method'] as String,
+    //       RPCErrorKind.kInvalidParams.code,
+    //       "'Missing parameter: 'uri'",
+    //     ).toMap();
+    //   }
+    //   return DebugService.yieldControlToDDS(ddsUri)
+    //       ? {'result': Success().toJson()}
+    //       : {
+    //           'error': {
+    //             'code': kFeatureDisabled,
+    //             'message': kFeatureDisabledMessage,
+    //             'data':
+    //                 'Existing VM service clients prevent DDS from taking control.',
+    //           },
+    //         };
+    // });
+    // await client.registerService('_yieldControlToDDS', 'DWDS');
+
+    return dwdsDdsClient;
   }
 
   Future<Map<String, dynamic>> hotRestart(

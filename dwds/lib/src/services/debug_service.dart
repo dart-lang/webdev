@@ -179,6 +179,8 @@ class DebugService {
     );
   }
 
+  String? get ddsUri => _ddsUri;
+
   String get uri {
     final dds = _dds;
     if (_spawnDds && dds != null) {
