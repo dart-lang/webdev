@@ -160,10 +160,10 @@ class DebugService {
         if (_dds != null) _dds!.shutdown(),
       ]);
 
-  Future<void> startDartDevelopmentService() async {
+  Future<DartDevelopmentService> startDartDevelopmentService() async {
     // Note: DDS can handle both web socket and SSE connections with no
     // additional configuration.
-    _dds = await DartDevelopmentService.startDartDevelopmentService(
+    final dds = await DartDevelopmentService.startDartDevelopmentService(
       Uri(
         scheme: 'http',
         host: hostname,
@@ -177,6 +177,8 @@ class DebugService {
       ),
       ipv6: await useIPv6ForHost(hostname),
     );
+    _dds = dds;
+    return dds;
   }
 
   String? get ddsUri => _ddsUri;

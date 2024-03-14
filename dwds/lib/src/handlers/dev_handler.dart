@@ -17,7 +17,6 @@ import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/dds_vm_client.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
@@ -507,15 +506,15 @@ class DevHandler {
     DebugService debugService,
   ) async {
     final dwdsStats = DwdsStats();
-    final webdevClient = await DwdsVmClient.create(debugService, dwdsStats);
+    // final webdevClient = await DwdsVmClient.create(debugService, dwdsStats);
+    Uri? ddsUri;
     if (_spawnDds) {
-      await debugService.startDartDevelopmentService();
+      final dds = await debugService.startDartDevelopmentService();
+      ddsUri = dds.wsUri;
     }
-    // create a dds vm service client
-    final ddsUri = debugService.ddsUri;
-    if (ddsUri != null) {
-      final ddsClient = await DwdsDdsClient.create(debugService, dwdsStats);
-    }
+    // TODO: rename, webdevClient is unclear.
+    final webdevClient =
+        await DwdsVmClient.create(debugService, dwdsStats, ddsUri!);
 
     final appDebugService =
         AppDebugServices(debugService, webdevClient, dwdsStats);
