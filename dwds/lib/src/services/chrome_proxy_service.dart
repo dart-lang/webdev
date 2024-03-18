@@ -1549,6 +1549,9 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
   }
 
   @override
+  Future<void> yieldControlToDDS(String uri) async {}
+
+  @override
   Future<InboundReferences> getInboundReferences(
     String isolateId,
     String targetId,

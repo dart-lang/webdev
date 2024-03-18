@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:built_value/serializer.dart';
 import 'package:dds/dds.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
@@ -32,21 +33,34 @@ int _clientsConnected = 0;
 
 Logger _logger = Logger('DebugService');
 
+void maybePrint(String preamble, dynamic requestOrResponse) {
+  final str = '[dwds debug_service] $preamble\n  $requestOrResponse\n';
+
+  if (str.contains('views') || str.contains('listViews')) {
+    print(str.toUpperCase());
+  } else {
+    print(str);
+  }
+}
+
 void Function(WebSocketChannel) _createNewConnectionHandler(
   ChromeProxyService chromeProxyService,
   ServiceExtensionRegistry serviceExtensionRegistry, {
   void Function(Map<String, Object>)? onRequest,
   void Function(Map<String, Object?>)? onResponse,
 }) {
-  return (webSocket) {
+  return (WebSocketChannel webSocket) {
     final responseController = StreamController<Map<String, Object?>>();
     webSocket.sink.addStream(
       responseController.stream.map((response) {
+        maybePrint('responseController.stream:', response);
         if (onResponse != null) onResponse(response);
         return jsonEncode(response);
       }),
     );
     final inputStream = webSocket.stream.map((value) {
+      maybePrint('webSocket.stream:', value);
+
       if (value is List<int>) {
         value = utf8.decode(value);
       } else if (value is! String) {
@@ -59,12 +73,16 @@ void Function(WebSocketChannel) _createNewConnectionHandler(
       return request;
     });
     ++_clientsConnected;
-    VmServerConnection(
+
+    final vmServerConnection = VmServerConnection(
       inputStream,
       responseController.sink,
       serviceExtensionRegistry,
       chromeProxyService,
-    ).done.whenComplete(() {
+      'DwdsWsConnection',
+    );
+
+    vmServerConnection.done.whenComplete(() {
       --_clientsConnected;
       if (!_acceptNewConnections && _clientsConnected == 0) {
         // DDS has disconnected so we can allow for clients to connect directly
@@ -106,6 +124,7 @@ Future<void> _handleSseConnections(
       responseController.sink,
       serviceExtensionRegistry,
       chromeProxyService,
+      'DwdsSseConnection',
     );
     safeUnawaited(
       vmServerConnection.done.whenComplete(() {
@@ -119,6 +138,32 @@ Future<void> _handleSseConnections(
       }),
     );
   }
+}
+
+// Register '_flutter.listViews' method on the chrome proxy service vm.
+// In native world, this method is provided by the engine, but the web
+// engine is not aware of the VM uri or the isolates.
+//
+// Issue: https://github.com/dart-lang/webdev/issues/1315
+Future<Map<String, Object>> flutterListViewCallback(
+  ChromeProxyService chromeProxyService,
+  Map<String, Object?> request,
+) async {
+  final requestId = request['id'] as int;
+  final vm = await chromeProxyService.getVM();
+  final isolates = vm.isolates;
+  return <String, Object>{
+    'id': '$requestId',
+    'result': <String, Object>{
+      'views': <Object>[
+        for (var isolate in isolates ?? [])
+          <String, Object>{
+            'id': isolate.id,
+            'isolate': isolate.toJson(),
+          },
+      ],
+    },
+  };
 }
 
 /// A Dart Web Debug Service.
@@ -282,6 +327,11 @@ class DebugService {
         if (request.url.pathSegments.first != authToken) {
           return shelf.Response.forbidden('Incorrect auth token');
         }
+        // safeUnawaited(() async {
+        //   final response = await innerHandler(request);
+        //   print('[dwds] $request -> $response');
+        // }());
+
         return innerHandler(request);
       };
     }

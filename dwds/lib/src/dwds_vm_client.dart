@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
@@ -18,6 +19,16 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 final _logger = Logger('DwdsVmClient');
+
+void maybePrint(String preamble, dynamic requestOrResponse) {
+  final str = '[dwds dwds_vm_client] $preamble\n  $requestOrResponse\n';
+
+  if (str.contains('views') || str.contains('listViews')) {
+    print(str.toUpperCase());
+  } else {
+    print(str);
+  }
+}
 
 // A client of the vm service that registers some custom extensions like
 // hotRestart.
@@ -50,43 +61,30 @@ class DwdsVmClient {
     DwdsStats dwdsStats,
     Uri ddsUri,
   ) async {
-    // Set up hot restart as an extension.
-    final requestController = StreamController<Map<String, Object>>();
-    final responseController = StreamController<Map<String, Object?>>();
-    VmServerConnection(
-      requestController.stream,
-      responseController.sink,
-      debugService.serviceExtensionRegistry,
-      debugService.chromeProxyService,
-    );
-    // final ddsUri = debugService.ddsUri!;
+
     final webSocketClient = WebSocketChannel.connect(ddsUri);
-    writeWsMessage(request) {
-      print('writing $request to web socket sink');
-      webSocketClient.sink.add(request);
-    }
 
     final client = VmService(
       webSocketClient.stream,
-      writeWsMessage,
+      webSocketClient.sink.add,
     );
 
     final chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
-
-    print('starting dds client!');
-    final dwdsDdsClient =
-        DwdsVmClient(client, requestController, responseController);
 
     // Register '_flutter.listViews' method on the chrome proxy service vm.
     // In native world, this method is provided by the engine, but the web
     // engine is not aware of the VM uri or the isolates.
     //
     // Issue: https://github.com/dart-lang/webdev/issues/1315
-    client.registerServiceCallback('_flutter.listViews', (request) async {
+    Future<Map<String, Object>> flutterListViewCallback(
+      Map<String, Object?> request,
+    ) async {
+      final requestId = request['id'] as String;
       final vm = await chromeProxyService.getVM();
       final isolates = vm.isolates;
-      return <String, dynamic>{
+      return <String, Object>{
+        'id': requestId,
         'result': <String, Object>{
           'views': <Object>[
             for (var isolate in isolates ?? [])
@@ -97,8 +95,38 @@ class DwdsVmClient {
           ],
         },
       };
+    }
+
+    // Set up hot restart as an extension.
+    final requestController = StreamController<Map<String, Object>>();
+    final responseController = StreamController<Map<String, Object?>>();
+
+    responseController.stream.listen((request) async {
+      maybePrint('[dwds - dwds_vm_client] responseController.stream:', request);
+      final method = request['method'];
+
+      switch (method) {
+        case '_flutter.listViews':
+          final response = await flutterListViewCallback(request);
+          requestController.sink.add(response);
+        default:
+          return;
+      }
     });
-    await client.registerService('_flutter.listViews', 'DWDS');
+
+    final vmServerConnection = VmServerConnection(
+      /* requestStream */ requestController.stream,
+      /* responseStream */ responseController.sink,
+      debugService.serviceExtensionRegistry,
+      debugService.chromeProxyService,
+      'dwdsVmServerConnection',
+    );
+
+    final dwdsDdsClient =
+        DwdsVmClient(client, requestController, responseController);
+
+    debugService.serviceExtensionRegistry
+        .registerExtension('_flutter.listViews', vmServerConnection);
 
     client.registerServiceCallback(
       'hotRestart',
@@ -107,7 +135,6 @@ class DwdsVmClient {
         (_) => DwdsEvent.hotRestart(),
       ),
     );
-    print('[dwds] registering hot restart via DDS');
     await client.registerService('hotRestart', 'DWDS');
 
     client.registerServiceCallback(
