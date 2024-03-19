@@ -56,8 +56,15 @@ Future<void Function(WebSocketChannel)> _createNewConnectionHandler(
     final responseController = StreamController<Map<String, Object?>>();
     webSocket.sink.addStream(
       responseController.stream.map((response) {
+        print('[dwds] Response: $response');
+        final id = response['id'];
+        final idIsString = id is String;
+        final idIsInt = id is int;
+        print('[dwds] ID IS $id isString $idIsString isInt $idIsInt');
         maybePrint('responseController.stream:', response);
         if (onResponse != null) onResponse(response);
+        final encoded = jsonEncode(response);
+        print('Encoded is $encoded');
         return jsonEncode(response);
       }),
     );
@@ -72,6 +79,7 @@ Future<void Function(WebSocketChannel)> _createNewConnectionHandler(
             'socket, expected a List<int> or String.');
       }
       final request = Map<String, Object>.from(jsonDecode(value));
+      print('[dwds] Request: $request');
       if (onRequest != null) onRequest(request);
       return request;
     });
