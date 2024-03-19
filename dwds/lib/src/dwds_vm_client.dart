@@ -104,7 +104,7 @@ class DwdsVmClient {
     await _registerServiceExtensions(
       client: client,
       chromeProxyService: chromeProxyService,
-      dwdsDdsClient: dwdsDdsClient,
+      dwdsVmClient: dwdsDdsClient,
       dwdsStats: dwdsStats,
     );
 
@@ -138,7 +138,7 @@ class DwdsVmClient {
     await _registerServiceExtensions(
       client: client,
       chromeProxyService: chromeProxyService,
-      dwdsDdsClient: dwdsVmClient,
+      dwdsVmClient: dwdsVmClient,
       dwdsStats: dwdsStats,
     );
 
@@ -210,13 +210,13 @@ class DwdsVmClient {
   static Future<void> _registerServiceExtensions({
     required VmService client,
     required ChromeProxyService chromeProxyService,
-    required DwdsVmClient dwdsDdsClient,
+    required DwdsVmClient dwdsVmClient,
     required DwdsStats dwdsStats,
   }) async {
     client.registerServiceCallback(
       'hotRestart',
       (request) => captureElapsedTime(
-        () => dwdsDdsClient.hotRestart(chromeProxyService, client),
+        () => dwdsVmClient.hotRestart(chromeProxyService, client),
         (_) => DwdsEvent.hotRestart(),
       ),
     );
