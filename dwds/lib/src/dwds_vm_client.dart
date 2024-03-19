@@ -114,19 +114,19 @@ class DwdsVmClient {
       }
     });
 
-    final vmServerConnection = VmServerConnection(
-      /* requestStream */ requestController.stream,
-      /* responseStream */ responseController.sink,
-      debugService.serviceExtensionRegistry,
-      debugService.chromeProxyService,
-      'dwdsVmServerConnection',
-    );
+    // final vmServerConnection = VmServerConnection(
+    //   /* requestStream */ requestController.stream,
+    //   /* responseStream */ responseController.sink,
+    //   debugService.serviceExtensionRegistry,
+    //   debugService.chromeProxyService,
+    //   'dwdsVmServerConnection',
+    // );
 
     final dwdsDdsClient =
         DwdsVmClient(client, requestController, responseController);
 
-    debugService.serviceExtensionRegistry
-        .registerExtension('_flutter.listViews', vmServerConnection);
+    // debugService.serviceExtensionRegistry
+    //     .registerExtension('_flutter.listViews', vmServerConnection);
 
     client.registerServiceCallback(
       'hotRestart',

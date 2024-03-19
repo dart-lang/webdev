@@ -25,6 +25,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart' hide Response;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -43,12 +44,14 @@ void maybePrint(String preamble, dynamic requestOrResponse) {
   }
 }
 
-void Function(WebSocketChannel) _createNewConnectionHandler(
+Future<void Function(WebSocketChannel)> _createNewConnectionHandler(
   ChromeProxyService chromeProxyService,
   ServiceExtensionRegistry serviceExtensionRegistry, {
   void Function(Map<String, Object>)? onRequest,
   void Function(Map<String, Object?>)? onResponse,
-}) {
+}) async {
+  print('========== IN WS CHANNEL ========== ');
+  final vm = await chromeProxyService.getVM();
   return (WebSocketChannel webSocket) {
     final responseController = StreamController<Map<String, Object?>>();
     webSocket.sink.addStream(
@@ -145,12 +148,11 @@ Future<void> _handleSseConnections(
 // engine is not aware of the VM uri or the isolates.
 //
 // Issue: https://github.com/dart-lang/webdev/issues/1315
-Future<Map<String, Object>> flutterListViewCallback(
-  ChromeProxyService chromeProxyService,
+Map<String, Object> flutterListViewCallback(
+  VM vm,
   Map<String, Object?> request,
-) async {
+) {
   final requestId = request['id'] as int;
-  final vm = await chromeProxyService.getVM();
   final isolates = vm.isolates;
   return <String, Object>{
     'id': '$requestId',
@@ -309,7 +311,7 @@ class DebugService {
       );
     } else {
       final innerHandler = webSocketHandler(
-        _createNewConnectionHandler(
+        await _createNewConnectionHandler(
           chromeProxyService,
           serviceExtensionRegistry,
           onRequest: onRequest,
