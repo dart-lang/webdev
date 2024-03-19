@@ -34,15 +34,6 @@ int _clientsConnected = 0;
 
 Logger _logger = Logger('DebugService');
 
-void maybePrint(String preamble, dynamic requestOrResponse) {
-  final str = '[dwds debug_service] $preamble\n  $requestOrResponse\n';
-
-  if (str.contains('views') || str.contains('listViews')) {
-    print(str.toUpperCase());
-  } else {
-    print(str);
-  }
-}
 
 Future<void Function(WebSocketChannel)> _createNewConnectionHandler(
   ChromeProxyService chromeProxyService,
@@ -50,27 +41,15 @@ Future<void Function(WebSocketChannel)> _createNewConnectionHandler(
   void Function(Map<String, Object>)? onRequest,
   void Function(Map<String, Object?>)? onResponse,
 }) async {
-  print('========== IN WS CHANNEL ========== ');
-  final vm = await chromeProxyService.getVM();
   return (WebSocketChannel webSocket) {
     final responseController = StreamController<Map<String, Object?>>();
     webSocket.sink.addStream(
       responseController.stream.map((response) {
-        print('[dwds] Response: $response');
-        final id = response['id'];
-        final idIsString = id is String;
-        final idIsInt = id is int;
-        print('[dwds] ID IS $id isString $idIsString isInt $idIsInt');
-        maybePrint('responseController.stream:', response);
         if (onResponse != null) onResponse(response);
-        final encoded = jsonEncode(response);
-        print('Encoded is $encoded');
         return jsonEncode(response);
       }),
     );
     final inputStream = webSocket.stream.map((value) {
-      maybePrint('webSocket.stream:', value);
-
       if (value is List<int>) {
         value = utf8.decode(value);
       } else if (value is! String) {
@@ -79,7 +58,6 @@ Future<void Function(WebSocketChannel)> _createNewConnectionHandler(
             'socket, expected a List<int> or String.');
       }
       final request = Map<String, Object>.from(jsonDecode(value));
-      print('[dwds] Request: $request');
       if (onRequest != null) onRequest(request);
       return request;
     });

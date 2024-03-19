@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
@@ -19,16 +18,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 final _logger = Logger('DwdsVmClient');
-
-void maybePrint(String preamble, dynamic requestOrResponse) {
-  final str = '[dwds dwds_vm_client] $preamble\n  $requestOrResponse\n';
-
-  if (str.contains('views') || str.contains('listViews')) {
-    print(str.toUpperCase());
-  } else {
-    print(str);
-  }
-}
 
 // A client of the vm service that registers some custom extensions like
 // hotRestart.
@@ -84,7 +73,6 @@ class DwdsVmClient {
       final vm = await chromeProxyService.getVM();
       final isolates = vm.isolates;
       return <String, Object>{
-        'id': requestId,
         'result': <String, Object>{
           'views': <Object>[
             for (var isolate in isolates ?? [])
@@ -94,6 +82,8 @@ class DwdsVmClient {
               },
           ],
         },
+        'id': requestId,
+        'jsonrpc': '2.0',
       };
     }
 
@@ -102,7 +92,6 @@ class DwdsVmClient {
     final responseController = StreamController<Map<String, Object?>>();
 
     responseController.stream.listen((request) async {
-      maybePrint('[dwds - dwds_vm_client] responseController.stream:', request);
       final method = request['method'];
 
       switch (method) {
