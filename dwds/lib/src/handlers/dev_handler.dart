@@ -506,18 +506,13 @@ class DevHandler {
     DebugService debugService,
   ) async {
     final dwdsStats = DwdsStats();
-    // final webdevClient = await DwdsVmClient.create(debugService, dwdsStats);
     Uri? ddsUri;
     if (_spawnDds) {
       final dds = await debugService.startDartDevelopmentService();
       ddsUri = dds.wsUri;
     }
-    // TODO: rename, webdevClient is unclear.
-    final webdevClient =
-        await DwdsVmClient.create(debugService, dwdsStats, ddsUri!);
-
-    final appDebugService =
-        AppDebugServices(debugService, webdevClient, dwdsStats);
+    final vmClient = await DwdsVmClient.create(debugService, dwdsStats, ddsUri);
+    final appDebugService = AppDebugServices(debugService, vmClient, dwdsStats);
     final encodedUri = await debugService.encodedUri;
     _logger.info('Debug service listening on $encodedUri\n');
     await appDebugService.chromeProxyService.remoteDebugger.sendCommand(

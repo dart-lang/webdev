@@ -8,7 +8,6 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:built_value/serializer.dart';
 import 'package:dds/dds.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
@@ -25,7 +24,6 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart' hide Response;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
-import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -34,14 +32,13 @@ int _clientsConnected = 0;
 
 Logger _logger = Logger('DebugService');
 
-
-Future<void Function(WebSocketChannel)> _createNewConnectionHandler(
+void Function(WebSocketChannel) _createNewConnectionHandler(
   ChromeProxyService chromeProxyService,
   ServiceExtensionRegistry serviceExtensionRegistry, {
   void Function(Map<String, Object>)? onRequest,
   void Function(Map<String, Object?>)? onResponse,
-}) async {
-  return (WebSocketChannel webSocket) {
+}) {
+  return (webSocket) {
     final responseController = StreamController<Map<String, Object?>>();
     webSocket.sink.addStream(
       responseController.stream.map((response) {
@@ -62,16 +59,12 @@ Future<void Function(WebSocketChannel)> _createNewConnectionHandler(
       return request;
     });
     ++_clientsConnected;
-
-    final vmServerConnection = VmServerConnection(
+    VmServerConnection(
       inputStream,
       responseController.sink,
       serviceExtensionRegistry,
       chromeProxyService,
-      'DwdsWsConnection',
-    );
-
-    vmServerConnection.done.whenComplete(() {
+    ).done.whenComplete(() {
       --_clientsConnected;
       if (!_acceptNewConnections && _clientsConnected == 0) {
         // DDS has disconnected so we can allow for clients to connect directly
@@ -113,7 +106,6 @@ Future<void> _handleSseConnections(
       responseController.sink,
       serviceExtensionRegistry,
       chromeProxyService,
-      'DwdsSseConnection',
     );
     safeUnawaited(
       vmServerConnection.done.whenComplete(() {
@@ -127,31 +119,6 @@ Future<void> _handleSseConnections(
       }),
     );
   }
-}
-
-// Register '_flutter.listViews' method on the chrome proxy service vm.
-// In native world, this method is provided by the engine, but the web
-// engine is not aware of the VM uri or the isolates.
-//
-// Issue: https://github.com/dart-lang/webdev/issues/1315
-Map<String, Object> flutterListViewCallback(
-  VM vm,
-  Map<String, Object?> request,
-) {
-  final requestId = request['id'] as int;
-  final isolates = vm.isolates;
-  return <String, Object>{
-    'id': '$requestId',
-    'result': <String, Object>{
-      'views': <Object>[
-        for (var isolate in isolates ?? [])
-          <String, Object>{
-            'id': isolate.id,
-            'isolate': isolate.toJson(),
-          },
-      ],
-    },
-  };
 }
 
 /// A Dart Web Debug Service.
@@ -196,7 +163,7 @@ class DebugService {
   Future<DartDevelopmentService> startDartDevelopmentService() async {
     // Note: DDS can handle both web socket and SSE connections with no
     // additional configuration.
-    final dds = await DartDevelopmentService.startDartDevelopmentService(
+    _dds = await DartDevelopmentService.startDartDevelopmentService(
       Uri(
         scheme: 'http',
         host: hostname,
@@ -210,11 +177,8 @@ class DebugService {
       ),
       ipv6: await useIPv6ForHost(hostname),
     );
-    _dds = dds;
-    return dds;
+    return _dds!;
   }
-
-  String? get ddsUri => _ddsUri;
 
   String get uri {
     final dds = _dds;
@@ -297,7 +261,7 @@ class DebugService {
       );
     } else {
       final innerHandler = webSocketHandler(
-        await _createNewConnectionHandler(
+        _createNewConnectionHandler(
           chromeProxyService,
           serviceExtensionRegistry,
           onRequest: onRequest,
@@ -315,11 +279,6 @@ class DebugService {
         if (request.url.pathSegments.first != authToken) {
           return shelf.Response.forbidden('Incorrect auth token');
         }
-        // safeUnawaited(() async {
-        //   final response = await innerHandler(request);
-        //   print('[dwds] $request -> $response');
-        // }());
-
         return innerHandler(request);
       };
     }

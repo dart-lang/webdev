@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
@@ -29,6 +30,8 @@ class DwdsVmClient {
   static const int kFeatureDisabled = 100;
   static const String kFeatureDisabledMessage = 'Feature is disabled.';
 
+  static const String _flutterListViewsMethod = '_flutter.listViews';
+
   /// Null until [close] is called.
   ///
   /// All subsequent calls to [close] will return this future.
@@ -48,75 +51,168 @@ class DwdsVmClient {
   static Future<DwdsVmClient> create(
     DebugService debugService,
     DwdsStats dwdsStats,
-    Uri ddsUri,
-  ) async {
+    Uri? ddsUri,
+  ) {
+    final chromeProxyService =
+        debugService.chromeProxyService as ChromeProxyService;
+    final requestController = StreamController<Map<String, Object>>();
+    final responseController = StreamController<Map<String, Object?>>();
 
+    _setUpVmServerConnection(
+      chromeProxyService: chromeProxyService,
+      debugService: debugService,
+      requestController: requestController,
+      responseController: responseController,
+    );
+
+    if (ddsUri == null) {
+      return _setUpVmClient(
+        requestController: requestController,
+        responseController: responseController,
+        chromeProxyService: chromeProxyService,
+        dwdsStats: dwdsStats,
+      );
+    }
+
+    return _setUpDdsClient(
+      ddsUri: ddsUri,
+      requestController: requestController,
+      responseController: responseController,
+      chromeProxyService: chromeProxyService,
+      dwdsStats: dwdsStats,
+    );
+  }
+
+  /// Establishes a VM service client that is connected via DDS and registers
+  /// the service extensions on that client.
+  static Future<DwdsVmClient> _setUpDdsClient({
+    required Uri ddsUri,
+    required StreamController<Map<String, Object>> requestController,
+    required StreamController<Map<String, Object?>> responseController,
+    required ChromeProxyService chromeProxyService,
+    required DwdsStats dwdsStats,
+  }) async {
     final webSocketClient = WebSocketChannel.connect(ddsUri);
-
     final client = VmService(
       webSocketClient.stream,
       webSocketClient.sink.add,
     );
 
-    final chromeProxyService =
-        debugService.chromeProxyService as ChromeProxyService;
+    final dwdsDdsClient =
+        DwdsVmClient(client, requestController, responseController);
 
-    // Register '_flutter.listViews' method on the chrome proxy service vm.
-    // In native world, this method is provided by the engine, but the web
-    // engine is not aware of the VM uri or the isolates.
-    //
-    // Issue: https://github.com/dart-lang/webdev/issues/1315
-    Future<Map<String, Object>> flutterListViewCallback(
-      Map<String, Object?> request,
-    ) async {
-      final requestId = request['id'] as String;
-      final vm = await chromeProxyService.getVM();
-      final isolates = vm.isolates;
-      return <String, Object>{
-        'result': <String, Object>{
-          'views': <Object>[
-            for (var isolate in isolates ?? [])
-              <String, Object>{
-                'id': isolate.id,
-                'isolate': isolate.toJson(),
-              },
-          ],
-        },
-        'id': requestId,
-        'jsonrpc': '2.0',
-      };
-    }
+    await _registerServiceExtensions(
+      client: client,
+      chromeProxyService: chromeProxyService,
+      dwdsDdsClient: dwdsDdsClient,
+      dwdsStats: dwdsStats,
+    );
 
-    // Set up hot restart as an extension.
-    final requestController = StreamController<Map<String, Object>>();
-    final responseController = StreamController<Map<String, Object?>>();
+    return dwdsDdsClient;
+  }
 
+  /// Establishes a VM service client that bypasses DDS and registers service
+  /// extensions on that client.
+  ///
+  /// Note: This is only used in the rare cases where DDS is disabled.
+  static Future<DwdsVmClient> _setUpVmClient({
+    required StreamController<Map<String, Object>> requestController,
+    required StreamController<Map<String, Object?>> responseController,
+    required ChromeProxyService chromeProxyService,
+    required DwdsStats dwdsStats,
+  }) async {
+    final client =
+        VmService(responseController.stream.map(jsonEncode), (request) {
+      if (requestController.isClosed) {
+        _logger.warning(
+            'Attempted to send a request but the connection is closed:\n\n'
+            '$request');
+        return;
+      }
+      requestController.sink.add(Map<String, Object>.from(jsonDecode(request)));
+    });
+
+    final dwdsVmClient =
+        DwdsVmClient(client, requestController, responseController);
+
+    await _registerServiceExtensions(
+      client: client,
+      chromeProxyService: chromeProxyService,
+      dwdsDdsClient: dwdsVmClient,
+      dwdsStats: dwdsStats,
+    );
+
+    return dwdsVmClient;
+  }
+
+  /// Establishes a direct connection with the VM Server.
+  ///
+  /// This is currently only necessary to register the `_flutter.listViews`
+  /// service extension. Because it is a namespaced service extension that is
+  /// supposed to be registered by the engine, we need to register it on the VM
+  /// server connection instead of via DDS.
+  ///
+  /// TODO(https://github.com/dart-lang/webdev/issues/1315): Ideally the engine
+  /// should register all Flutter service extensions. However, to do so we will
+  /// need to implement the missing isolate-related dart:developer APIs so that
+  /// the engine has access to this information.
+  static void _setUpVmServerConnection({
+    required ChromeProxyService chromeProxyService,
+    required DebugService debugService,
+    required StreamController<Map<String, Object>> requestController,
+    required StreamController<Map<String, Object?>> responseController,
+  }) {
     responseController.stream.listen((request) async {
       final method = request['method'];
-
-      switch (method) {
-        case '_flutter.listViews':
-          final response = await flutterListViewCallback(request);
-          requestController.sink.add(response);
-        default:
-          return;
+      if (method == _flutterListViewsMethod) {
+        final response =
+            await _flutterListViewsHandler(request, chromeProxyService);
+        requestController.sink.add(response);
       }
     });
 
     final vmServerConnection = VmServerConnection(
-      /* requestStream */ requestController.stream,
-      /* responseStream */ responseController.sink,
+      requestController.stream,
+      responseController.sink,
       debugService.serviceExtensionRegistry,
       debugService.chromeProxyService,
-      'dwdsVmServerConnection',
     );
 
-    final dwdsDdsClient =
-        DwdsVmClient(client, requestController, responseController);
-
     debugService.serviceExtensionRegistry
-        .registerExtension('_flutter.listViews', vmServerConnection);
+        .registerExtension(_flutterListViewsMethod, vmServerConnection);
+  }
 
+  static Future<Map<String, Object>> _flutterListViewsHandler(
+    Map<String, Object?> request,
+    ChromeProxyService chromeProxyService,
+  ) async {
+    final requestId = request['id'] as String;
+    final vm = await chromeProxyService.getVM();
+    final isolates = vm.isolates;
+    return <String, Object>{
+      'result': <String, Object>{
+        'views': <Object>[
+          for (var isolate in isolates ?? [])
+            <String, Object>{
+              'id': isolate.id,
+              'isolate': isolate.toJson(),
+            },
+        ],
+      },
+      'id': requestId,
+      // This is necessary even though DWDS doesn't use package:json_rpc_2.
+      // Without it, the response will be treated as invalid:
+      // https://github.com/dart-lang/json_rpc_2/blob/639857be892050159f5164c749d7947694976a4a/lib/src/server.dart#L252
+      'jsonrpc': '2.0',
+    };
+  }
+
+  static Future<void> _registerServiceExtensions({
+    required VmService client,
+    required ChromeProxyService chromeProxyService,
+    required DwdsVmClient dwdsDdsClient,
+    required DwdsStats dwdsStats,
+  }) async {
     client.registerServiceCallback(
       'hotRestart',
       (request) => captureElapsedTime(
@@ -159,31 +255,6 @@ class DwdsVmClient {
       return {'result': Success().toJson()};
     });
     await client.registerService('ext.dwds.emitEvent', 'DWDS');
-
-    client.registerServiceCallback('_yieldControlToDDS', (request) async {
-      final ddsUri = request['uri'] as String?;
-      if (ddsUri == null) {
-        return RPCError(
-          request['method'] as String,
-          RPCErrorKind.kInvalidParams.code,
-          "'Missing parameter: 'uri'",
-        ).toMap();
-      }
-      return DebugService.yieldControlToDDS(ddsUri)
-          ? {'result': Success().toJson()}
-          : {
-              'error': {
-                'code': kFeatureDisabled,
-                'message': kFeatureDisabledMessage,
-                'data':
-                    'Existing VM service clients prevent DDS from taking control.',
-              },
-            };
-    });
-    // No need to register the service:
-    // await client.registerService('_yieldControlToDDS', 'DWDS');
-
-    return dwdsDdsClient;
   }
 
   Future<Map<String, dynamic>> hotRestart(
