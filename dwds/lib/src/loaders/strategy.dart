@@ -120,7 +120,7 @@ abstract class LoadStrategy {
   /// [packageConfigPath], but the loader can read the config from a different
   /// location.
   ///
-  /// If null, the default loader will read from `packageConfigPath`.
+  /// If null, the default loader will read from [packageConfigPath].
   Future<Uint8List?> Function(Uri uri)? get packageConfigLoader => null;
 
   /// The absolute path to the app's package configuration.
