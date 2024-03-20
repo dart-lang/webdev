@@ -14,6 +14,7 @@ import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service_io.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -92,11 +93,7 @@ class DwdsVmClient {
     required ChromeProxyService chromeProxyService,
     required DwdsStats dwdsStats,
   }) async {
-    final webSocketClient = WebSocketChannel.connect(ddsUri);
-    final client = VmService(
-      webSocketClient.stream,
-      webSocketClient.sink.add,
-    );
+    final client = await vmServiceConnectUri(ddsUri.toString());
 
     final dwdsDdsClient =
         DwdsVmClient(client, requestController, responseController);
