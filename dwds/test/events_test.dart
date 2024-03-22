@@ -84,6 +84,7 @@ void main() {
       late VmService vmService;
       late Keyboard keyboard;
       late Stream<DwdsEvent> events;
+      late VmService fakeClient;
 
       /// Runs [action] and waits for an event matching [eventMatcher].
       Future<T> expectEventDuring<T>(
@@ -139,6 +140,7 @@ void main() {
         vmService = context.debugConnection.vmService;
         keyboard = context.webDriver.driver.keyboard;
         events = context.testServer.dwds.events;
+        fakeClient = await context.connectFakeClient();
       });
 
       tearDownAll(() async {
@@ -435,13 +437,14 @@ void main() {
         });
 
         test('emits HOT_RESTART event', () async {
-          final client = context.debugConnection.vmService;
+          final hotRestart =
+              context.getRegisteredServiceExtension('hotRestart');
 
           await expectEventDuring(
             matchesEvent(DwdsEventKind.hotRestart, {
               'elapsedMilliseconds': isNotNull,
             }),
-            () => client.callServiceExtension('hotRestart'),
+            () => fakeClient.callServiceExtension(hotRestart!),
           );
         });
       });
@@ -495,13 +498,14 @@ void main() {
         });
 
         test('emits FULL_RELOAD event', () async {
-          final client = context.debugConnection.vmService;
+          final fullReload =
+              context.getRegisteredServiceExtension('fullReload');
 
           await expectEventDuring(
             matchesEvent(DwdsEventKind.fullReload, {
               'elapsedMilliseconds': isNotNull,
             }),
-            () => client.callServiceExtension('fullReload'),
+            () => fakeClient.callServiceExtension(fullReload!),
           );
         });
       });
