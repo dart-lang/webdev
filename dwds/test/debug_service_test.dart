@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
@@ -117,9 +118,9 @@ void main() {
     expect(response.containsKey('error'), isTrue);
 
     final result = response['error'] as Map<String, dynamic>;
-    expect(result['message'], 'Feature is disabled.');
+    expect(result['code'], RPCErrorKind.kFeatureDisabled.code);
     expect(
-      result['data'],
+      result['message'],
       'Existing VM service clients prevent DDS from taking control.',
     );
 

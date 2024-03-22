@@ -20,15 +20,18 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 final _logger = Logger('DwdsVmClient');
 
+/// Type of requests added to the request controller.
+typedef VmRequest = Map<String, Object>;
+
+/// Type of responses added to the response controller.
+typedef VmResponse = Map<String, Object?>;
+
 // A client of the vm service that registers some custom extensions like
 // hotRestart.
 class DwdsVmClient {
   final VmService client;
   final StreamController<Map<String, Object>> _requestController;
   final StreamController<Map<String, Object?>> _responseController;
-
-  static const int kFeatureDisabled = 100;
-  static const String kFeatureDisabledMessage = 'Feature is disabled.';
 
   static const String _flutterListViewsMethod = '_flutter.listViews';
 
@@ -52,81 +55,36 @@ class DwdsVmClient {
     DebugService debugService,
     DwdsStats dwdsStats,
     Uri? ddsUri,
-  ) {
+  ) async {
     final chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
-    final requestController = StreamController<Map<String, Object>>();
-    final responseController = StreamController<Map<String, Object?>>();
+    final responseController = StreamController<VmResponse>();
+    final responseSink = responseController.sink;
+    // Response stream must be a broadcast stream so that if can have multiple
+    // listeners:
+    final responseStream = responseController.stream.asBroadcastStream();
+    final requestController = StreamController<VmRequest>();
+    final requestSink = requestController.sink;
+    final requestStream = requestController.stream;
 
     _setUpVmServerConnection(
       chromeProxyService: chromeProxyService,
       debugService: debugService,
-      requestController: requestController,
-      responseController: responseController,
+      responseStream: responseStream,
+      responseSink: responseSink,
+      requestStream: requestStream,
+      requestSink: requestSink,
     );
 
-    if (ddsUri == null) {
-      return _setUpVmClient(
-        requestController: requestController,
-        responseController: responseController,
-        chromeProxyService: chromeProxyService,
-        dwdsStats: dwdsStats,
-      );
-    }
-
-    return _setUpDdsClient(
-      ddsUri: ddsUri,
-      requestController: requestController,
-      responseController: responseController,
-      chromeProxyService: chromeProxyService,
-      dwdsStats: dwdsStats,
-    );
-  }
-
-  /// Establishes a VM service client that is connected via DDS and registers
-  /// the service extensions on that client.
-  static Future<DwdsVmClient> _setUpDdsClient({
-    required Uri ddsUri,
-    required StreamController<Map<String, Object>> requestController,
-    required StreamController<Map<String, Object?>> responseController,
-    required ChromeProxyService chromeProxyService,
-    required DwdsStats dwdsStats,
-  }) async {
-    final client = await vmServiceConnectUri(ddsUri.toString());
-
-    final dwdsDdsClient =
-        DwdsVmClient(client, requestController, responseController);
-
-    await _registerServiceExtensions(
-      client: client,
-      chromeProxyService: chromeProxyService,
-      dwdsVmClient: dwdsDdsClient,
-      dwdsStats: dwdsStats,
-    );
-
-    return dwdsDdsClient;
-  }
-
-  /// Establishes a VM service client that bypasses DDS and registers service
-  /// extensions on that client.
-  ///
-  /// Note: This is only used in the rare cases where DDS is disabled.
-  static Future<DwdsVmClient> _setUpVmClient({
-    required StreamController<Map<String, Object>> requestController,
-    required StreamController<Map<String, Object?>> responseController,
-    required ChromeProxyService chromeProxyService,
-    required DwdsStats dwdsStats,
-  }) async {
-    final client =
-        VmService(responseController.stream.map(jsonEncode), (request) {
-      if (requestController.isClosed) {
-        _logger.warning(
-            'Attempted to send a request but the connection is closed:\n\n'
-            '$request');
-        return;
-      }
-      requestController.sink.add(Map<String, Object>.from(jsonDecode(request)));
-    });
+    final client = ddsUri == null
+        ? _setUpVmClient(
+            responseStream: responseStream,
+            requestController: requestController,
+            requestSink: requestSink,
+          )
+        : await _setUpDdsClient(
+            ddsUri: ddsUri,
+          );
 
     final dwdsVmClient =
         DwdsVmClient(client, requestController, responseController);
@@ -139,6 +97,37 @@ class DwdsVmClient {
     );
 
     return dwdsVmClient;
+  }
+
+  /// Establishes a VM service client that is connected via DDS and registers
+  /// the service extensions on that client.
+  static Future<VmService> _setUpDdsClient({
+    required Uri ddsUri,
+  }) async {
+    final client = await vmServiceConnectUri(ddsUri.toString());
+    return client;
+  }
+
+  /// Establishes a VM service client that bypasses DDS and registers service
+  /// extensions on that client.
+  ///
+  /// Note: This is only used in the rare cases where DDS is disabled.
+  static VmService _setUpVmClient({
+    required Stream<VmResponse> responseStream,
+    required StreamSink<VmRequest> requestSink,
+    required StreamController<VmRequest> requestController,
+  }) {
+    final client = VmService(responseStream.map(jsonEncode), (request) {
+      if (requestController.isClosed) {
+        _logger.warning(
+            'Attempted to send a request but the connection is closed:\n\n'
+            '$request');
+        return;
+      }
+      requestSink.add(Map<String, Object>.from(jsonDecode(request)));
+    });
+
+    return client;
   }
 
   /// Establishes a direct connection with the VM Server.
@@ -155,21 +144,23 @@ class DwdsVmClient {
   static void _setUpVmServerConnection({
     required ChromeProxyService chromeProxyService,
     required DebugService debugService,
-    required StreamController<Map<String, Object>> requestController,
-    required StreamController<Map<String, Object?>> responseController,
+    required Stream<VmResponse> responseStream,
+    required StreamSink<VmResponse> responseSink,
+    required Stream<VmRequest> requestStream,
+    required StreamSink<VmRequest> requestSink,
   }) {
-    responseController.stream.listen((request) async {
+    responseStream.listen((request) async {
       final method = request['method'];
       if (method == _flutterListViewsMethod) {
         final response =
             await _flutterListViewsHandler(request, chromeProxyService);
-        requestController.sink.add(response);
+        requestSink.add(response);
       }
     });
 
     final vmServerConnection = VmServerConnection(
-      requestController.stream,
-      responseController.sink,
+      requestStream,
+      responseSink,
       debugService.serviceExtensionRegistry,
       debugService.chromeProxyService,
     );
@@ -179,7 +170,7 @@ class DwdsVmClient {
   }
 
   static Future<Map<String, Object>> _flutterListViewsHandler(
-    Map<String, Object?> request,
+    VmResponse request,
     ChromeProxyService chromeProxyService,
   ) async {
     final requestId = request['id'] as String;
