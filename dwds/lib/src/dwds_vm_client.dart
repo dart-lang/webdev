@@ -26,14 +26,23 @@ typedef VmRequest = Map<String, Object>;
 /// Type of responses added to the response controller.
 typedef VmResponse = Map<String, Object?>;
 
+enum _NamespacedServiceExtension {
+  extDwdsEmitEvent(method: 'ext.dwds.emitEvent'),
+  extDwdsScreenshot(method: 'ext.dwds.screenshot'),
+  extDwdsSendEvent(method: 'ext.dwds.sendEvent'),
+  flutterListViews(method: '_flutter.listViews');
+
+  const _NamespacedServiceExtension({required this.method});
+
+  final String method;
+}
+
 // A client of the vm service that registers some custom extensions like
 // hotRestart.
 class DwdsVmClient {
   final VmService client;
   final StreamController<Map<String, Object>> _requestController;
   final StreamController<Map<String, Object?>> _responseController;
-
-  static const String _flutterListViewsMethod = '_flutter.listViews';
 
   /// Null until [close] is called.
   ///
@@ -74,6 +83,7 @@ class DwdsVmClient {
       responseSink: responseSink,
       requestStream: requestStream,
       requestSink: requestSink,
+      dwdsStats: dwdsStats,
     );
 
     final client = ddsUri == null
@@ -93,7 +103,6 @@ class DwdsVmClient {
       client: client,
       chromeProxyService: chromeProxyService,
       dwdsVmClient: dwdsVmClient,
-      dwdsStats: dwdsStats,
     );
 
     return dwdsVmClient;
@@ -132,10 +141,9 @@ class DwdsVmClient {
 
   /// Establishes a direct connection with the VM Server.
   ///
-  /// This is currently only necessary to register the `_flutter.listViews`
-  /// service extension. Because it is a namespaced service extension that is
-  /// supposed to be registered by the engine, we need to register it on the VM
-  /// server connection instead of via DDS.
+  /// This is used to register the [_NamespacedServiceExtension]s. Because
+  /// namespaced service extensions are supposed to be registered by the engine,
+  /// we need to register them on the VM server connection instead of via DDS.
   ///
   /// TODO(https://github.com/dart-lang/webdev/issues/1315): Ideally the engine
   /// should register all Flutter service extensions. However, to do so we will
@@ -143,6 +151,7 @@ class DwdsVmClient {
   /// the engine has access to this information.
   static void _setUpVmServerConnection({
     required ChromeProxyService chromeProxyService,
+    required DwdsStats dwdsStats,
     required DebugService debugService,
     required Stream<VmResponse> responseStream,
     required StreamSink<VmResponse> responseSink,
@@ -150,10 +159,12 @@ class DwdsVmClient {
     required StreamSink<VmRequest> requestSink,
   }) {
     responseStream.listen((request) async {
-      final method = request['method'];
-      if (method == _flutterListViewsMethod) {
-        final response =
-            await _flutterListViewsHandler(request, chromeProxyService);
+      final response = await _maybeHandleServiceExtensionRequest(
+        request,
+        chromeProxyService: chromeProxyService,
+        dwdsStats: dwdsStats,
+      );
+      if (response != null) {
         requestSink.add(response);
       }
     });
@@ -165,15 +176,43 @@ class DwdsVmClient {
       debugService.chromeProxyService,
     );
 
-    debugService.serviceExtensionRegistry
-        .registerExtension(_flutterListViewsMethod, vmServerConnection);
+    for (final extension in _NamespacedServiceExtension.values) {
+      debugService.serviceExtensionRegistry
+          .registerExtension(extension.method, vmServerConnection);
+    }
+  }
+
+  static Future<VmRequest?> _maybeHandleServiceExtensionRequest(
+    VmResponse request, {
+    required ChromeProxyService chromeProxyService,
+    required DwdsStats dwdsStats,
+  }) async {
+    VmRequest? response;
+    final method = request['method'];
+    if (method == _NamespacedServiceExtension.flutterListViews.method) {
+      response = await _flutterListViewsHandler(chromeProxyService);
+    } else if (method == _NamespacedServiceExtension.extDwdsEmitEvent.method) {
+      response = _extDwdsEmitEventHandler(request);
+    } else if (method == _NamespacedServiceExtension.extDwdsSendEvent.method) {
+      response = await _extDwdsSendEventHandler(request, dwdsStats);
+    } else if (method == _NamespacedServiceExtension.extDwdsScreenshot.method) {
+      response = await _extDwdsScreenshotHandler(chromeProxyService);
+    }
+
+    if (response != null) {
+      response['id'] = request['id'] as String;
+      // This is necessary even though DWDS doesn't use package:json_rpc_2.
+      // Without it, the response will be treated as invalid:
+      // https://github.com/dart-lang/json_rpc_2/blob/639857be892050159f5164c749d7947694976a4a/lib/src/server.dart#L252
+      response['jsonrpc'] = '2.0';
+    }
+
+    return response;
   }
 
   static Future<Map<String, Object>> _flutterListViewsHandler(
-    VmResponse request,
     ChromeProxyService chromeProxyService,
   ) async {
-    final requestId = request['id'] as String;
     final vm = await chromeProxyService.getVM();
     final isolates = vm.isolates;
     return <String, Object>{
@@ -186,19 +225,42 @@ class DwdsVmClient {
             },
         ],
       },
-      'id': requestId,
-      // This is necessary even though DWDS doesn't use package:json_rpc_2.
-      // Without it, the response will be treated as invalid:
-      // https://github.com/dart-lang/json_rpc_2/blob/639857be892050159f5164c749d7947694976a4a/lib/src/server.dart#L252
-      'jsonrpc': '2.0',
     };
+  }
+
+  static Future<Map<String, Object>> _extDwdsScreenshotHandler(
+    ChromeProxyService chromeProxyService,
+  ) async {
+    await chromeProxyService.remoteDebugger.enablePage();
+    final response = await chromeProxyService.remoteDebugger
+        .sendCommand('Page.captureScreenshot');
+    return {'result': response.result as Object};
+  }
+
+  static Future<Map<String, Object>> _extDwdsSendEventHandler(
+    VmResponse request,
+    DwdsStats dwdsStats,
+  ) async {
+    _processSendEvent(request, dwdsStats);
+    return {'result': Success().toJson()};
+  }
+
+  static Map<String, Object> _extDwdsEmitEventHandler(
+    VmResponse request,
+  ) {
+    emitEvent(
+      DwdsEvent(
+        request['type'] as String,
+        request['payload'] as Map<String, dynamic>,
+      ),
+    );
+    return {'result': Success().toJson()};
   }
 
   static Future<void> _registerServiceExtensions({
     required VmService client,
     required ChromeProxyService chromeProxyService,
     required DwdsVmClient dwdsVmClient,
-    required DwdsStats dwdsStats,
   }) async {
     client.registerServiceCallback(
       'hotRestart',
@@ -217,31 +279,6 @@ class DwdsVmClient {
       ),
     );
     await client.registerService('fullReload', 'DWDS');
-
-    client.registerServiceCallback('ext.dwds.screenshot', (_) async {
-      await chromeProxyService.remoteDebugger.enablePage();
-      final response = await chromeProxyService.remoteDebugger
-          .sendCommand('Page.captureScreenshot');
-      return {'result': response.result};
-    });
-    await client.registerService('ext.dwds.screenshot', 'DWDS');
-
-    client.registerServiceCallback('ext.dwds.sendEvent', (event) async {
-      _processSendEvent(event, dwdsStats);
-      return {'result': Success().toJson()};
-    });
-    await client.registerService('ext.dwds.sendEvent', 'DWDS');
-
-    client.registerServiceCallback('ext.dwds.emitEvent', (event) async {
-      emitEvent(
-        DwdsEvent(
-          event['type'] as String,
-          event['payload'] as Map<String, dynamic>,
-        ),
-      );
-      return {'result': Success().toJson()};
-    });
-    await client.registerService('ext.dwds.emitEvent', 'DWDS');
   }
 
   Future<Map<String, dynamic>> hotRestart(
