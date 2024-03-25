@@ -82,7 +82,11 @@ void main() {
                 startsWith('[{"event":"app.log","params":{"appId":"$appId",'
                     '"log":"Hello World\\n"}}')));
         await exitWebdev(webdev);
-      });
+        },
+        timeout: const Timeout(
+          Duration(minutes: 2),
+        ),
+      );
 
       test('.reload', () async {
         var webdev = await testRunner

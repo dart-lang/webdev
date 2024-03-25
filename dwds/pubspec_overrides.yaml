@@ -1,7 +1,9 @@
 dependency_overrides:
-  dds:
-    path: /Users/elliottbrooks/dev/dart-sdk/sdk/pkg/dds
   vm_service:
-    path: /Users/elliottbrooks/dev/dart-sdk/sdk/pkg/vm_service
+    git:
+      url: https://github.com/dart-lang/sdk.git
+      path: pkg/vm_service
   vm_service_interface:
-    path: /Users/elliottbrooks/dev/dart-sdk/sdk/pkg/vm_service_interface
+    git:
+      url: https://github.com/dart-lang/sdk.git
+      path: pkg/vm_service_interface
