@@ -63,25 +63,27 @@ void main() {
     });
 
     group('Methods', () {
-      test('.callServiceExtension', () async {
-        var webdev = await testRunner
-            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
-        var appId = await waitForAppId(webdev);
-        if (Platform.isWindows) {
-          // Windows takes a bit longer to run the application and register
-          // the service extension.
-          await Future.delayed(const Duration(seconds: 5));
-        }
-        var extensionCall = '[{"method":"app.callServiceExtension","id":0,'
-            '"params" : { "appId" : "$appId", "methodName" : "ext.print"}}]';
-        webdev.stdin.add(utf8.encode('$extensionCall\n'));
-        // The example app sets up a service extension for printing.
-        await expectLater(
-            webdev.stdout,
-            emitsThrough(
-                startsWith('[{"event":"app.log","params":{"appId":"$appId",'
-                    '"log":"Hello World\\n"}}')));
-        await exitWebdev(webdev);
+      test(
+        '.callServiceExtension',
+        () async {
+          var webdev = await testRunner
+              .runWebDev(['daemon'], workingDirectory: exampleDirectory);
+          var appId = await waitForAppId(webdev);
+          if (Platform.isWindows) {
+            // Windows takes a bit longer to run the application and register
+            // the service extension.
+            await Future.delayed(const Duration(seconds: 5));
+          }
+          var extensionCall = '[{"method":"app.callServiceExtension","id":0,'
+              '"params" : { "appId" : "$appId", "methodName" : "ext.print"}}]';
+          webdev.stdin.add(utf8.encode('$extensionCall\n'));
+          // The example app sets up a service extension for printing.
+          await expectLater(
+              webdev.stdout,
+              emitsThrough(
+                  startsWith('[{"event":"app.log","params":{"appId":"$appId",'
+                      '"log":"Hello World\\n"}}')));
+          await exitWebdev(webdev);
         },
         timeout: const Timeout(
           Duration(minutes: 2),
