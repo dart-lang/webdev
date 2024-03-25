@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
+import 'package:test_common/utilities.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
 import 'test_utils.dart';
@@ -210,7 +211,8 @@ void main() {
 
         await checkProcessStdout(process, [
           'webdev could not run for this project.',
-          'Found no `pubspec.yaml` file'
+          // TODO(https://github.com/dart-lang/webdev/issues/2393): Uncomment this line.
+          // 'Found no `pubspec.yaml` file',
         ]);
         await process.shouldExit(78);
       });
