@@ -210,7 +210,7 @@ void main() {
 
         await checkProcessStdout(process, [
           'webdev could not run for this project.',
-          'Could not find a file named "pubspec.yaml"'
+          'Found no `pubspec.yaml` file'
         ]);
         await process.shouldExit(78);
       });
