@@ -290,9 +290,11 @@ class DwdsVmClient {
 }
 
 void _processSendEvent(
-  Map<String, dynamic> event,
+  Map<String, dynamic> request,
   DwdsStats dwdsStats,
 ) {
+  final event = request['params'] as Map<String, dynamic>?;
+  if (event == null) return;
   final type = event['type'] as String?;
   final payload = event['payload'] as Map<String, dynamic>?;
   switch (type) {
