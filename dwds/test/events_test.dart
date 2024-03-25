@@ -161,16 +161,7 @@ void main() {
                 'screen': equals('debugger'),
               }),
             ],
-            () => fakeClient.callServiceExtension(
-              'ext.dwds.sendEvent',
-              args: {
-                'type': 'DevtoolsEvent',
-                'payload': {
-                  'screen': 'debugger',
-                  'action': 'pageReady',
-                },
-              },
-            ),
+            () => keyboard.sendChord([Keyboard.alt, 'd']),
           );
         },
       );
