@@ -347,7 +347,9 @@ void main() {
 
         final fullReload = context.getRegisteredServiceExtension('fullReload');
         expect(
-            await fakeClient.callServiceExtension(fullReload!), isA<Success>());
+          await fakeClient.callServiceExtension(fullReload!),
+          isA<Success>(),
+        );
 
         await eventsDone;
 
