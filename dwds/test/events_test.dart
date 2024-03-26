@@ -136,7 +136,6 @@ void main() {
           testSettings: TestSettings(enableExpressionEvaluation: true),
           debugSettings: TestDebugSettings.withDevTools(context),
         );
-        vmService = context.debugConnection.vmService;
         keyboard = context.webDriver.driver.keyboard;
         events = context.testServer.dwds.events;
         fakeClient = await context.connectFakeClient();
