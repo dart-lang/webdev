@@ -69,7 +69,7 @@ class DwdsVmClient {
         debugService.chromeProxyService as ChromeProxyService;
     final responseController = StreamController<VmResponse>();
     final responseSink = responseController.sink;
-    // Response stream must be a broadcast stream so that if can have multiple
+    // Response stream must be a broadcast stream so that it can have multiple
     // listeners:
     final responseStream = responseController.stream.asBroadcastStream();
     final requestController = StreamController<VmRequest>();
