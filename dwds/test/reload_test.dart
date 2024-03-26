@@ -136,6 +136,8 @@ void main() {
   group(
     'Injected client',
     () {
+      late VmService fakeClient;
+
       setUp(() async {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
@@ -143,6 +145,7 @@ void main() {
             enableExpressionEvaluation: true,
           ),
         );
+        fakeClient = await context.connectFakeClient();
       });
 
       tearDown(() async {
@@ -166,8 +169,9 @@ void main() {
           ),
         );
 
+        final hotRestart = context.getRegisteredServiceExtension('hotRestart');
         expect(
-          await client.callServiceExtension('hotRestart'),
+          await fakeClient.callServiceExtension(hotRestart!),
           const TypeMatcher<Success>(),
         );
 
@@ -191,9 +195,10 @@ void main() {
         );
 
         // Execute two hot restart calls in parallel.
+        final hotRestart = context.getRegisteredServiceExtension('hotRestart');
         final done = Future.wait([
-          client.callServiceExtension('hotRestart'),
-          client.callServiceExtension('hotRestart'),
+          fakeClient.callServiceExtension(hotRestart!),
+          fakeClient.callServiceExtension(hotRestart),
         ]);
         expect(
           await done,
@@ -256,9 +261,9 @@ void main() {
             ]),
           ),
         );
-
+        final hotRestart = context.getRegisteredServiceExtension('hotRestart');
         expect(
-          await client.callServiceExtension('hotRestart'),
+          await fakeClient.callServiceExtension(hotRestart!),
           const TypeMatcher<Success>(),
         );
 
@@ -299,8 +304,9 @@ void main() {
           "registerExtension('ext.foo', $callback)",
         );
 
+        final hotRestart = context.getRegisteredServiceExtension('hotRestart');
         expect(
-          await client.callServiceExtension('hotRestart'),
+          await fakeClient.callServiceExtension(hotRestart!),
           const TypeMatcher<Success>(),
         );
 
@@ -339,7 +345,11 @@ void main() {
           ),
         );
 
-        expect(await client.callServiceExtension('fullReload'), isA<Success>());
+        final fullReload = context.getRegisteredServiceExtension('fullReload');
+        expect(
+          await fakeClient.callServiceExtension(fullReload!),
+          isA<Success>(),
+        );
 
         await eventsDone;
 
@@ -365,7 +375,8 @@ void main() {
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
         await makeEditAndWaitForRebuild();
-        await client.callServiceExtension('hotRestart');
+        final hotRestart = context.getRegisteredServiceExtension('hotRestart');
+        await fakeClient.callServiceExtension(hotRestart!);
         final source = await context.webDriver.pageSource;
 
         // Main is re-invoked which shouldn't clear the state.
@@ -383,7 +394,8 @@ void main() {
       test('can evaluate expressions after hot restart', () async {
         final client = context.debugConnection.vmService;
 
-        await client.callServiceExtension('hotRestart');
+        final hotRestart = context.getRegisteredServiceExtension('hotRestart');
+        await fakeClient.callServiceExtension(hotRestart!);
 
         final vm = await client.getVM();
         final isolateId = vm.isolates!.first.id!;
@@ -500,6 +512,7 @@ void main() {
   // the FrontendServer as well.
   group('when isolates_paused_on_start is true', () {
     late VmService client;
+    late VmService fakeClient;
 
     setUp(() async {
       setCurrentLogWriter(debug: debug);
@@ -509,6 +522,7 @@ void main() {
         ),
       );
       client = context.debugConnection.vmService;
+      fakeClient = await context.connectFakeClient();
       await client.setFlag('pause_isolates_on_start', 'true');
       await client.streamListen('Isolate');
     });
@@ -532,8 +546,9 @@ void main() {
         ),
       );
 
+      final hotRestart = context.getRegisteredServiceExtension('hotRestart');
       expect(
-        await client.callServiceExtension('hotRestart'),
+        await fakeClient.callServiceExtension(hotRestart!),
         const TypeMatcher<Success>(),
       );
 

@@ -160,7 +160,7 @@ class DebugService {
         if (_dds != null) _dds!.shutdown(),
       ]);
 
-  Future<void> startDartDevelopmentService() async {
+  Future<DartDevelopmentService> startDartDevelopmentService() async {
     // Note: DDS can handle both web socket and SSE connections with no
     // additional configuration.
     _dds = await DartDevelopmentService.startDartDevelopmentService(
@@ -177,6 +177,7 @@ class DebugService {
       ),
       ipv6: await useIPv6ForHost(hostname),
     );
+    return _dds!;
   }
 
   String get uri {
@@ -208,6 +209,8 @@ class DebugService {
     return _encodedUri = encoded;
   }
 
+  // TODO(https://github.com/dart-lang/webdev/issues/2399): yieldControlToDDS
+  // should disconnect existing non-DDS clients.
   static bool yieldControlToDDS(String uri) {
     if (_clientsConnected > 1) {
       return false;

@@ -52,6 +52,8 @@ void main() {
   group(
     'Injected client',
     () {
+      VmService? fakeClient;
+
       setUp(() async {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
@@ -59,6 +61,8 @@ void main() {
             enableExpressionEvaluation: true,
           ),
         );
+
+        fakeClient = await context.connectFakeClient();
       });
 
       tearDown(() async {
@@ -93,8 +97,9 @@ void main() {
           ),
         );
 
+        final hotRestart = context.getRegisteredServiceExtension('hotRestart');
         expect(
-          await client.callServiceExtension('hotRestart'),
+          await fakeClient!.callServiceExtension(hotRestart!),
           const TypeMatcher<Success>(),
         );
 
