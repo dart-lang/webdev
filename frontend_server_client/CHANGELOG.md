@@ -1,4 +1,4 @@
-## 4.0.0-wip
+## 4.0.0
 
 - Update Dart SDK constraint to `^3.0.0`.
 - Support changes in the SDK layout for Dart 3.0.
