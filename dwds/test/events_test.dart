@@ -81,7 +81,6 @@ void main() {
     'with dwds',
     () {
       Future? initialEvents;
-      late VmService vmService;
       late Keyboard keyboard;
       late Stream<DwdsEvent> events;
       late VmService fakeClient;
