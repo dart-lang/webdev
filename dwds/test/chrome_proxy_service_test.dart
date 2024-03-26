@@ -2064,22 +2064,34 @@ void main() {
     });
 
     group('setFlag', () {
-      test('pause_isolates_on_start set to true', () {
+      test('pause_isolates_on_start set to true', () async {
         final service = context.service;
         expect(
           service.setFlag('pause_isolates_on_start', 'true'),
           completion(_isSuccess),
         );
-        expect(context.dwds!.shouldPauseIsolatesOnStart, equals(true));
+        // Re-try until sucess because the value doesn't get updated
+        // synchronously (it is sent over a stream):
+        final pauseIsolatesOnStart = await retryFn(
+          () => context.dwds!.shouldPauseIsolatesOnStart,
+          expectedResult: true,
+        );
+        expect(pauseIsolatesOnStart, equals(true));
       });
 
-      test('pause_isolates_on_start set to false', () {
+      test('pause_isolates_on_start set to false', () async {
         final service = context.service;
         expect(
           service.setFlag('pause_isolates_on_start', 'false'),
           completion(_isSuccess),
         );
-        expect(context.dwds!.shouldPauseIsolatesOnStart, equals(false));
+        // Re-try until sucess because the value doesn't get updated
+        // synchronously (it is sent over a stream):
+        final pauseIsolatesOnStart = await retryFn(
+          () => context.dwds!.shouldPauseIsolatesOnStart,
+          expectedResult: false,
+        );
+        expect(pauseIsolatesOnStart, equals(false));
       });
 
       test('pause_isolates_on_start set to invalid value', () {
@@ -2444,3 +2456,5 @@ final _isSuccess = isA<Success>();
 
 TypeMatcher _libRef(uriMatcher) =>
     isA<LibraryRef>().having((l) => l.uri, 'uri', uriMatcher);
+
+void expectEventually(Matcher expectation) {}
