@@ -64,8 +64,8 @@ Future<void>? main() {
 
     Completer? readyToRunMainCompleter;
 
-    hotRestartJs = allowInterop((String runId, bool pauseIsolatesOnStart) {
-      if (pauseIsolatesOnStart) {
+    hotRestartJs = allowInterop((String runId, [bool? pauseIsolatesOnStart]) {
+      if (pauseIsolatesOnStart ?? false) {
         readyToRunMainCompleter = Completer();
         return toPromise(
           manager.hotRestart(
@@ -344,7 +344,7 @@ external String get dartModuleStrategy;
 
 @JS(r'$dartHotRestartDwds')
 external set hotRestartJs(
-  Promise<bool> Function(String runId, bool pauseIsolatesOnStart) cb,
+  Promise<bool> Function(String runId, [bool? pauseIsolatesOnStart]) cb,
 );
 
 @JS(r'$dartReadyToRunMain')
