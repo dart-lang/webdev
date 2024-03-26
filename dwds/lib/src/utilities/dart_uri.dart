@@ -211,6 +211,7 @@ class DartUri {
   static Future<void> _loadPackageConfig(Uri uri) async {
     _packageConfig = await loadPackageConfigUri(
       uri,
+      loader: globalToolConfiguration.loadStrategy.packageConfigLoader,
       onError: (e) {
         _logger.warning('Cannot read packages spec: $uri', e);
       },
@@ -237,7 +238,9 @@ class DartUri {
         // Both currentDirectoryUri and the libraryUri path should have '/'
         // separators, so we can join them as url paths to get the absolute file
         // url.
-        libraryPath = p.url.join(currentDirectoryUri, uri.path.substring(1));
+        final libraryRoot = globalToolConfiguration.loadStrategy.libraryRoot;
+        libraryPath = p.url
+            .join(libraryRoot ?? currentDirectoryUri, uri.path.substring(1));
         break;
       case 'package':
         libraryPath = _packageConfig?.resolve(uri)?.toString();
