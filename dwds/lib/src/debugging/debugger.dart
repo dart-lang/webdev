@@ -744,10 +744,8 @@ class _Breakpoints extends Domain {
     int line,
     int column,
   ) async {
-    print('creating breakpoint at $scriptId:$line:$column)');
     final dartScript = inspector.scriptWithId(scriptId);
     final dartScriptUri = dartScript?.uri;
-    print('dart script uri is $dartScriptUri');
     Location? location;
     if (dartScriptUri != null) {
       final dartUri = DartUri(dartScriptUri, root);
