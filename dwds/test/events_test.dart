@@ -164,6 +164,7 @@ void main() {
             () => keyboard.sendChord([Keyboard.alt, 'd']),
           );
         },
+        skip: 'https://github.com/dart-lang/webdev/issues/2394',
       );
 
       test('emits DEVTOOLS_LAUNCH event', () async {
@@ -181,7 +182,7 @@ void main() {
       test('can emit event through service extension', () async {
         final response = await expectEventDuring(
           matchesEvent('foo-event', {'data': 1234}),
-          () => vmService.callServiceExtension(
+          () => fakeClient.callServiceExtension(
             'ext.dwds.emitEvent',
             args: {
               'type': 'foo-event',

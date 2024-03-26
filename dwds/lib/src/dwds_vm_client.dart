@@ -248,12 +248,17 @@ class DwdsVmClient {
   static Map<String, Object> _extDwdsEmitEventHandler(
     VmResponse request,
   ) {
-    emitEvent(
-      DwdsEvent(
-        request['type'] as String,
-        request['payload'] as Map<String, dynamic>,
-      ),
-    );
+    final event = request['params'] as Map<String, dynamic>?;
+    if (event != null) {
+      final type = event['type'] as String?;
+      final payload = event['payload'] as Map<String, dynamic>?;
+      if (type != null && payload != null) {
+        emitEvent(
+          DwdsEvent(type, payload),
+        );
+      }
+    }
+
     return {'result': Success().toJson()};
   }
 
