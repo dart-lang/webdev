@@ -113,7 +113,6 @@ abstract class LoadStrategy {
   /// Returns `null` if not a google3 app.
   String? g3RelativePath(String absolutePath);
 
-
   /// Returns a loader to read the content of the package configuration.
   ///
   /// The package configuration URIs will be resolved relative to
