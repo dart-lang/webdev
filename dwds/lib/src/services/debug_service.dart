@@ -209,6 +209,8 @@ class DebugService {
     return _encodedUri = encoded;
   }
 
+  // TODO(https://github.com/dart-lang/webdev/issues/2399): yieldControlToDDS
+  // should disconnect existing non-DDS clients.
   static bool yieldControlToDDS(String uri) {
     if (_clientsConnected > 1) {
       return false;
