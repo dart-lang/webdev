@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
@@ -40,6 +42,10 @@ abstract class LoadStrategy {
   /// The snippet should be a reference to a function that takes a single
   /// argument which is the module name to load.
   String get loadModuleSnippet;
+
+  /// The relative root path for library paths. The current directory will be
+  /// used if this is not overridden.
+  String? get libraryRoot => null;
 
   /// The reload configuration for this strategy, e.g. liveReload.
   ReloadConfiguration get reloadConfiguration;
@@ -106,6 +112,15 @@ abstract class LoadStrategy {
   ///
   /// Returns `null` if not a google3 app.
   String? g3RelativePath(String absolutePath);
+
+  /// Returns a loader to read the content of the package configuration.
+  ///
+  /// The package configuration URIs will be resolved relative to
+  /// [packageConfigPath], but the loader can read the config from a different
+  /// location.
+  ///
+  /// If null, the default loader will read from [packageConfigPath].
+  Future<Uint8List?> Function(Uri uri)? get packageConfigLoader => null;
 
   /// The absolute path to the app's package configuration.
   String get packageConfigPath {
