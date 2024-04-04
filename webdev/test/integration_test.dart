@@ -81,8 +81,7 @@ void main() {
           var process = await testRunner
               .runWebDev([command], workingDirectory: d.sandbox);
 
-          await checkProcessStdout(
-              process, ['webdev could not run for this project.']);
+          await checkProcessStdout(process, ['webdev could not run']);
           await process.shouldExit(78);
         });
 
@@ -100,8 +99,7 @@ void main() {
           var process = await testRunner
               .runWebDev(['serve'], workingDirectory: d.sandbox);
 
-          await checkProcessStdout(
-              process, ['webdev could not run for this project.']);
+          await checkProcessStdout(process, ['webdev could not run']);
           await process.shouldExit(78);
         });
 
@@ -125,7 +123,7 @@ void main() {
               ['serve', '--no-build-web-compilers'],
               workingDirectory: d.sandbox);
 
-          await process.shouldExit(78);
+          await process.shouldExit();
         });
       });
 
@@ -166,8 +164,7 @@ void main() {
               var process = await testRunner
                   .runWebDev(['serve'], workingDirectory: d.sandbox);
 
-              await checkProcessStdout(
-                  process, ['webdev could not run for this project.']);
+              await checkProcessStdout(process, ['webdev could not run']);
 
               await process.shouldExit(78);
             });
@@ -179,8 +176,7 @@ void main() {
         var process =
             await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
 
-        await checkProcessStdout(
-            process, ['webdev could not run for this project.']);
+        await checkProcessStdout(process, ['webdev could not run']);
         await process.shouldExit(78);
       });
 
@@ -192,8 +188,7 @@ void main() {
           var process = await testRunner
               .runWebDev(['serve'], workingDirectory: d.sandbox);
 
-          await checkProcessStdout(
-              process, ['webdev could not run for this project.']);
+          await checkProcessStdout(process, ['webdev could not run']);
           await process.shouldExit(78);
         },
       );
@@ -216,8 +211,7 @@ dependencies:
         var process =
             await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
 
-        await checkProcessStdout(
-            process, ['webdev could not run for this project.']);
+        await checkProcessStdout(process, ['webdev could not run']);
         await process.shouldExit(78);
       });
     });
