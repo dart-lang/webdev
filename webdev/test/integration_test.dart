@@ -3,21 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
 import 'test_utils.dart';
 
 void main() {
-  var sdkVersion = Version.parse(Platform.version.split(' ')[0]);
-  var firstSdkVersionWithoutPub = Version(2, 15, 0, pre: '0');
-
-  var pubCommand =
-      sdkVersion.compareTo(firstSdkVersionWithoutPub) < 0 ? 'pub' : 'dart pub';
-
   final testRunner = TestRunner();
   setUpAll(testRunner.setUpAll);
   tearDownAll(testRunner.tearDownAll);
@@ -145,19 +137,15 @@ void main() {
               var webCompilersVersion = _supportedWebCompilersVersion;
               var buildDaemonVersion = _supportedBuildDaemonVersion;
 
-              late String supportedRange;
               switch (entry.key) {
                 case 'build_runner':
                   buildRunnerVersion = version;
-                  supportedRange = '^$_supportedBuildRunnerVersion';
                   break;
                 case 'build_web_compilers':
                   webCompilersVersion = version;
-                  supportedRange = '^$_supportedWebCompilersVersion';
                   break;
                 case 'build_daemon':
                   buildDaemonVersion = version;
-                  supportedRange = '^$_supportedBuildDaemonVersion';
               }
 
               await d.file('pubspec.yaml', _pubspecYaml).create();
