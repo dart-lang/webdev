@@ -121,6 +121,9 @@ class DevHandler {
         _servicesByAppId.clear();
       }();
 
+  bool shouldPauseIsolatesOnStart(String appId) =>
+      _servicesByAppId[appId]?.chromeProxyService.pauseIsolatesOnStart ?? false;
+
   void _emitBuildResults(BuildResult result) {
     if (result.status != BuildStatus.succeeded) return;
     for (var injectedConnection in _injectedConnections) {

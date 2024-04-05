@@ -47,9 +47,6 @@ class Dwds {
   StreamController<DebugConnection> get extensionDebugConnections =>
       _devHandler.extensionDebugConnections;
 
-  bool get shouldPauseIsolatesOnStart => _shouldPauseIsolatesOnStart;
-  bool _shouldPauseIsolatesOnStart = false;
-
   Future<void> stop() async {
     await _devTools?.close();
     await _devHandler.close();
@@ -61,9 +58,6 @@ class Dwds {
     final appDebugServices = await _devHandler.loadAppServices(appConnection);
     final chromeProxyService = appDebugServices.chromeProxyService;
     await chromeProxyService.isInitialized;
-    chromeProxyService.pauseIsolatesOnStartStream.listen((value) {
-      _shouldPauseIsolatesOnStart = value;
-    });
     return DebugConnection(appDebugServices);
   }
 
@@ -145,4 +139,7 @@ class Dwds {
       debugSettings.enableDebugging,
     );
   }
+
+  bool shouldPauseIsolatesOnStart(String appId) =>
+      _devHandler.shouldPauseIsolatesOnStart(appId);
 }
