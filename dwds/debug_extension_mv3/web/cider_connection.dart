@@ -205,6 +205,10 @@ Future<void> _sendInspectorUrl({String? appId}) async {
 }
 
 int _tabId(String appId) {
+  // The suffix "-f" is used to tell Cider that this is a Flutter app.
+  if (appId.endsWith('-f')) {
+    appId = appId.substring(0, appId.length - 2);
+  }
   final tabId = appId.split('-').last;
   return int.parse(tabId);
 }
