@@ -515,6 +515,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
       throw RPCError(
         method,
         decodedResponse['code'] as int,
+        // ignore: avoid-unnecessary-type-casts
         decodedResponse['message'] as String,
         decodedResponse['data'] as Map,
       );
