@@ -58,12 +58,15 @@ class FrameComputer {
   Future<void> _collectSyncFrames({int? limit}) async {
     while (_frameIndex < _callFrames.length) {
       if (limit != null && _computedFrames.length == limit) return;
-
-      final callFrame = _callFrames[_frameIndex];
-      final dartFrame =
-          await debugger.calculateDartFrameFor(callFrame, _frameIndex++);
-      if (dartFrame != null) {
-        _computedFrames.add(dartFrame);
+      try {
+        final callFrame = _callFrames[_frameIndex];
+        final dartFrame =
+            await debugger.calculateDartFrameFor(callFrame, _frameIndex++);
+        if (dartFrame != null) {
+          _computedFrames.add(dartFrame);
+        }
+      } catch (_) {
+        // If there is an error calculating the frame, then skip it.
       }
     }
   }
@@ -93,6 +96,7 @@ class FrameComputer {
         final asyncFramesToProcess = _asyncFramesToProcess!;
         // Process a single async frame.
         if (asyncFramesToProcess.isNotEmpty) {
+          try {
           final callFrame = asyncFramesToProcess.removeAt(0);
           final location = WipLocation.fromValues(
             callFrame.scriptId,
@@ -115,6 +119,11 @@ class FrameComputer {
           if (frame != null) {
             frame.kind = FrameKind.kAsyncCausal;
             _computedFrames.add(frame);
+          }
+        
+
+          } catch (_) {
+            // If there is an error calculating the frame, then skip it.
           }
         }
       }
