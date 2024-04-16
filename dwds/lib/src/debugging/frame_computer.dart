@@ -10,7 +10,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 class FrameComputer {
   static final logger = Logger('FrameComputer');
-    
+
   final Debugger debugger;
 
   // To ensure that the frames are computed only once, we use an atomic queue
