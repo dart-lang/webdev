@@ -90,9 +90,11 @@ Future<bool> _insertAppId() async {
   final debugInfo = await _fetchDebugInfo(tabId);
   if (debugInfo == null) return false;
   final isInternalBuild = debugInfo.isInternalBuild ?? false;
+  final isFlutterApp = debugInfo.isFlutterApp ?? false;
   final workspaceName = debugInfo.workspaceName;
   if (isInternalBuild && workspaceName != null) {
-    _appId = '$workspaceName-$tabId';
+    // The suffix "-f" is used to tell Cider that this is a Flutter app.
+    _appId = '$workspaceName-$tabId${isFlutterApp ? '-f' : ''}';
     final appIdSpan = document.getElementById(_appIdSpanId) as SpanElement;
     appIdSpan.setInnerHtml(_appId);
     return true;
