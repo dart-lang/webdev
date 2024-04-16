@@ -97,31 +97,29 @@ class FrameComputer {
         // Process a single async frame.
         if (asyncFramesToProcess.isNotEmpty) {
           try {
-          final callFrame = asyncFramesToProcess.removeAt(0);
-          final location = WipLocation.fromValues(
-            callFrame.scriptId,
-            callFrame.lineNumber,
-            columnNumber: callFrame.columnNumber,
-          );
+            final callFrame = asyncFramesToProcess.removeAt(0);
+            final location = WipLocation.fromValues(
+              callFrame.scriptId,
+              callFrame.lineNumber,
+              columnNumber: callFrame.columnNumber,
+            );
 
-          final tempWipFrame = WipCallFrame({
-            'url': callFrame.url,
-            'functionName': callFrame.functionName,
-            'location': location.json,
-            'scopeChain': [],
-          });
+            final tempWipFrame = WipCallFrame({
+              'url': callFrame.url,
+              'functionName': callFrame.functionName,
+              'location': location.json,
+              'scopeChain': [],
+            });
 
-          final frame = await debugger.calculateDartFrameFor(
-            tempWipFrame,
-            _frameIndex++,
-            populateVariables: false,
-          );
-          if (frame != null) {
-            frame.kind = FrameKind.kAsyncCausal;
-            _computedFrames.add(frame);
-          }
-        
-
+            final frame = await debugger.calculateDartFrameFor(
+              tempWipFrame,
+              _frameIndex++,
+              populateVariables: false,
+            );
+            if (frame != null) {
+              frame.kind = FrameKind.kAsyncCausal;
+              _computedFrames.add(frame);
+            }
           } catch (_) {
             // If there is an error calculating the frame, then skip it.
           }
