@@ -4,10 +4,13 @@
 
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
+import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 class FrameComputer {
+  static final logger = Logger('FrameComputer');
+    
   final Debugger debugger;
 
   // To ensure that the frames are computed only once, we use an atomic queue
@@ -65,8 +68,9 @@ class FrameComputer {
         if (dartFrame != null) {
           _computedFrames.add(dartFrame);
         }
-      } catch (_) {
+      } catch (e) {
         // If there is an error calculating the frame, then skip it.
+        logger.warning('Error calculating sync frame: $e');
       }
     }
   }
@@ -120,8 +124,9 @@ class FrameComputer {
               frame.kind = FrameKind.kAsyncCausal;
               _computedFrames.add(frame);
             }
-          } catch (_) {
+          } catch (e) {
             // If there is an error calculating the frame, then skip it.
+            logger.warning('Error calculating async frame: $e');
           }
         }
       }
