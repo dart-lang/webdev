@@ -29,10 +29,6 @@ void main() {
       runTests(
         provider: provider,
         compilationMode: compilationMode,
-        // Note: not running with weak null safety because it
-        // requires a special branch of build_web_compilers
-        // that does not support --canary flag.
-        nullSafetyMode: NullSafety.sound,
         canaryFeatures: canaryFeatures,
         debug: debug,
       );
