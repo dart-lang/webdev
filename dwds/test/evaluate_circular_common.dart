@@ -19,7 +19,6 @@ void testAll({
   required TestSdkConfigurationProvider provider,
   CompilationMode compilationMode = CompilationMode.buildDaemon,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
-  NullSafety nullSafety = NullSafety.sound,
   bool useDebuggerModuleNames = false,
   bool debug = false,
 }) {
@@ -30,9 +29,8 @@ void testAll({
     );
   }
 
-  final testCircular1 = TestProject.testCircular1(nullSafety: nullSafety);
+  final testCircular1 = TestProject.testCircular1();
   final testCircular2 = TestProject.testCircular2(
-    nullSafety: nullSafety,
     baseMode: indexBaseMode,
   );
 

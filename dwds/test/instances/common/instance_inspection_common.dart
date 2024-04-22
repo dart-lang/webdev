@@ -16,12 +16,9 @@ void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   required bool canaryFeatures,
-  required NullSafety nullSafetyMode,
   required bool debug,
 }) {
-  final project = nullSafetyMode == NullSafety.sound
-      ? TestProject.testPackageWithSoundNullSafety()
-      : TestProject.testPackageWithWeakNullSafety();
+  final project = TestProject.testPackageWithSoundNullSafety();
   final context = TestContext(project, provider);
 
   late VmService service;
@@ -50,295 +47,293 @@ void runTests({
   getFields(instanceRef, {offset, count}) => testInspector
       .getFields(isolateId, instanceRef, offset: offset, count: count);
 
-  group('$nullSafetyMode |', () {
-    group('$compilationMode |', () {
-      setUpAll(() async {
-        setCurrentLogWriter(debug: debug);
-        await context.setUp(
-          testSettings: TestSettings(
-            compilationMode: compilationMode,
-            enableExpressionEvaluation: true,
-            verboseCompiler: debug,
-            canaryFeatures: canaryFeatures,
-            experiments: ['records'],
+  group('$compilationMode |', () {
+    setUpAll(() async {
+      setCurrentLogWriter(debug: debug);
+      await context.setUp(
+        testSettings: TestSettings(
+          compilationMode: compilationMode,
+          enableExpressionEvaluation: true,
+          verboseCompiler: debug,
+          canaryFeatures: canaryFeatures,
+          experiments: ['records'],
+        ),
+      );
+      service = context.debugConnection.vmService;
+
+      final vm = await service.getVM();
+      isolateId = vm.isolates!.first.id!;
+      final scripts = await service.getScripts(isolateId);
+
+      await service.streamListen('Debug');
+      stream = service.onEvent('Debug');
+
+      mainScript = scripts.scripts!
+          .firstWhere((each) => each.uri!.contains('main.dart'));
+    });
+
+    tearDownAll(context.tearDown);
+
+    setUp(() => setCurrentLogWriter(debug: debug));
+    tearDown(() async {
+      try {
+        await service.resume(isolateId);
+      } catch (_) {}
+    });
+
+    group('Library |', () {
+      test('classes', () async {
+        const libraryId = 'org-dartlang-app:///web/main.dart';
+        final library = await getObject(libraryId);
+
+        expect(
+          library,
+          isA<Library>().having(
+            (l) => l.classes,
+            'classes',
+            [
+              matchClassRef(name: 'MainClass', libraryId: libraryId),
+              matchClassRef(name: 'EnclosedClass', libraryId: libraryId),
+              matchClassRef(name: 'ClassWithMethod', libraryId: libraryId),
+              matchClassRef(name: 'EnclosingClass', libraryId: libraryId),
+            ],
           ),
         );
-        service = context.debugConnection.vmService;
-
-        final vm = await service.getVM();
-        isolateId = vm.isolates!.first.id!;
-        final scripts = await service.getScripts(isolateId);
-
-        await service.streamListen('Debug');
-        stream = service.onEvent('Debug');
-
-        mainScript = scripts.scripts!
-            .firstWhere((each) => each.uri!.contains('main.dart'));
       });
+    });
 
-      tearDownAll(context.tearDown);
+    group('Class |', () {
+      test('name and library', () async {
+        const libraryId = 'org-dartlang-app:///web/main.dart';
+        const className = 'MainClass';
+        final cls = await getObject('classes|$libraryId|$className');
 
-      setUp(() => setCurrentLogWriter(debug: debug));
-      tearDown(() async {
-        try {
-          await service.resume(isolateId);
-        } catch (_) {}
+        expect(cls, matchClass(name: className, libraryId: libraryId));
       });
+    });
 
-      group('Library |', () {
-        test('classes', () async {
-          const libraryId = 'org-dartlang-app:///web/main.dart';
-          final library = await getObject(libraryId);
+    group('Object |', () {
+      test('type and fields', () async {
+        await onBreakPoint('printFieldMain', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'instance');
 
+          final instanceId = instanceRef.id!;
           expect(
-            library,
-            isA<Library>().having(
-              (l) => l.classes,
-              'classes',
-              [
-                matchClassRef(name: 'MainClass', libraryId: libraryId),
-                matchClassRef(name: 'EnclosedClass', libraryId: libraryId),
-                matchClassRef(name: 'ClassWithMethod', libraryId: libraryId),
-                matchClassRef(name: 'EnclosingClass', libraryId: libraryId),
-              ],
+            await getObject(instanceId),
+            matchPlainInstance(
+              libraryId: 'org-dartlang-app:///web/main.dart',
+              type: 'MainClass',
             ),
+          );
+
+          expect(await getFields(instanceRef), {'_field': 1, 'field': 2});
+
+          // Offsets and counts are ignored for plain object fields.
+
+          // DevTools calls [VmServiceInterface.getObject] with offset=0
+          // and count=0 and expects all fields to be returned.
+          expect(
+            await getFields(instanceRef, offset: 0, count: 0),
+            {'_field': 1, 'field': 2},
+          );
+          expect(
+            await getFields(instanceRef, offset: 0),
+            {'_field': 1, 'field': 2},
+          );
+          expect(
+            await getFields(instanceRef, offset: 0, count: 1),
+            {'_field': 1, 'field': 2},
+          );
+          expect(
+            await getFields(instanceRef, offset: 1),
+            {'_field': 1, 'field': 2},
+          );
+          expect(
+            await getFields(instanceRef, offset: 1, count: 0),
+            {'_field': 1, 'field': 2},
+          );
+          expect(
+            await getFields(instanceRef, offset: 1, count: 3),
+            {'_field': 1, 'field': 2},
           );
         });
       });
 
-      group('Class |', () {
-        test('name and library', () async {
-          const libraryId = 'org-dartlang-app:///web/main.dart';
-          const className = 'MainClass';
-          final cls = await getObject('classes|$libraryId|$className');
+      test('field access', () async {
+        await onBreakPoint('printFieldMain', (event) async {
+          final frame = event.topFrame!.index!;
+          expect(
+            await getInstance(frame, r'instance.field'),
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 2),
+          );
 
-          expect(cls, matchClass(name: className, libraryId: libraryId));
+          expect(
+            await getInstance(frame, r'instance._field'),
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
+          );
+        });
+      });
+    });
+
+    group('List |', () {
+      test('type and fields', () async {
+        await onBreakPoint('printList', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'list');
+
+          final instanceId = instanceRef.id!;
+          expect(await getObject(instanceId), matchListInstance(type: 'int'));
+
+          expect(
+            await getFields(instanceRef),
+            {0: 0.0, 1: 1.0, 2: 2.0},
+          );
+          expect(await getFields(instanceRef, offset: 1, count: 0), {});
+          expect(
+            await getFields(instanceRef, offset: 0),
+            {0: 0.0, 1: 1.0, 2: 2.0},
+          );
+          expect(
+            await getFields(instanceRef, offset: 0, count: 1),
+            {0: 0.0},
+          );
+          expect(
+            await getFields(instanceRef, offset: 1),
+            {0: 1.0, 1: 2.0},
+          );
+          expect(
+            await getFields(instanceRef, offset: 1, count: 1),
+            {0: 1.0},
+          );
+          expect(
+            await getFields(instanceRef, offset: 1, count: 3),
+            {0: 1.0, 1: 2.0},
+          );
+          expect(await getFields(instanceRef, offset: 3, count: 3), {});
         });
       });
 
-      group('Object |', () {
-        test('type and fields', () async {
-          await onBreakPoint('printFieldMain', (event) async {
-            final frame = event.topFrame!.index!;
-            final instanceRef = await getInstanceRef(frame, 'instance');
+      test('Element access', () async {
+        await onBreakPoint('printList', (event) async {
+          final frame = event.topFrame!.index!;
+          expect(
+            await getInstance(frame, r'list[0]'),
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 0),
+          );
 
-            final instanceId = instanceRef.id!;
-            expect(
-              await getObject(instanceId),
-              matchPlainInstance(
-                libraryId: 'org-dartlang-app:///web/main.dart',
-                type: 'MainClass',
-              ),
-            );
+          expect(
+            await getInstance(frame, r"list[1]"),
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
+          );
 
-            expect(await getFields(instanceRef), {'_field': 1, 'field': 2});
-
-            // Offsets and counts are ignored for plain object fields.
-
-            // DevTools calls [VmServiceInterface.getObject] with offset=0
-            // and count=0 and expects all fields to be returned.
-            expect(
-              await getFields(instanceRef, offset: 0, count: 0),
-              {'_field': 1, 'field': 2},
-            );
-            expect(
-              await getFields(instanceRef, offset: 0),
-              {'_field': 1, 'field': 2},
-            );
-            expect(
-              await getFields(instanceRef, offset: 0, count: 1),
-              {'_field': 1, 'field': 2},
-            );
-            expect(
-              await getFields(instanceRef, offset: 1),
-              {'_field': 1, 'field': 2},
-            );
-            expect(
-              await getFields(instanceRef, offset: 1, count: 0),
-              {'_field': 1, 'field': 2},
-            );
-            expect(
-              await getFields(instanceRef, offset: 1, count: 3),
-              {'_field': 1, 'field': 2},
-            );
-          });
+          expect(
+            await getInstance(frame, r"list[2]"),
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 2),
+          );
         });
+      });
+    });
 
-        test('field access', () async {
-          await onBreakPoint('printFieldMain', (event) async {
-            final frame = event.topFrame!.index!;
-            expect(
-              await getInstance(frame, r'instance.field'),
-              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 2),
-            );
+    group('Map |', () {
+      test('type and fields', () async {
+        await onBreakPoint('printMap', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'map');
 
-            expect(
-              await getInstance(frame, r'instance._field'),
-              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
-            );
-          });
+          final instanceId = instanceRef.id!;
+          expect(
+            await getObject(instanceId),
+            matchMapInstance(type: 'IdentityMap<String, int>'),
+          );
+
+          expect(await getFields(instanceRef), {'a': 1, 'b': 2, 'c': 3});
+
+          expect(await getFields(instanceRef, offset: 1, count: 0), {});
+          expect(
+            await getFields(instanceRef, offset: 0),
+            {'a': 1, 'b': 2, 'c': 3},
+          );
+          expect(await getFields(instanceRef, offset: 0, count: 1), {'a': 1});
+          expect(await getFields(instanceRef, offset: 1), {'b': 2, 'c': 3});
+          expect(await getFields(instanceRef, offset: 1, count: 1), {'b': 2});
+          expect(
+            await getFields(instanceRef, offset: 1, count: 3),
+            {'b': 2, 'c': 3},
+          );
+          expect(await getFields(instanceRef, offset: 3, count: 3), {});
         });
       });
 
-      group('List |', () {
-        test('type and fields', () async {
-          await onBreakPoint('printList', (event) async {
-            final frame = event.topFrame!.index!;
-            final instanceRef = await getInstanceRef(frame, 'list');
+      test('Element access', () async {
+        await onBreakPoint('printMap', (event) async {
+          final frame = event.topFrame!.index!;
+          expect(
+            await getInstance(frame, r"map['a']"),
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
+          );
 
-            final instanceId = instanceRef.id!;
-            expect(await getObject(instanceId), matchListInstance(type: 'int'));
+          expect(
+            await getInstance(frame, r"map['b']"),
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 2),
+          );
 
-            expect(
-              await getFields(instanceRef),
-              {0: 0.0, 1: 1.0, 2: 2.0},
-            );
-            expect(await getFields(instanceRef, offset: 1, count: 0), {});
-            expect(
-              await getFields(instanceRef, offset: 0),
-              {0: 0.0, 1: 1.0, 2: 2.0},
-            );
-            expect(
-              await getFields(instanceRef, offset: 0, count: 1),
-              {0: 0.0},
-            );
-            expect(
-              await getFields(instanceRef, offset: 1),
-              {0: 1.0, 1: 2.0},
-            );
-            expect(
-              await getFields(instanceRef, offset: 1, count: 1),
-              {0: 1.0},
-            );
-            expect(
-              await getFields(instanceRef, offset: 1, count: 3),
-              {0: 1.0, 1: 2.0},
-            );
-            expect(await getFields(instanceRef, offset: 3, count: 3), {});
-          });
+          expect(
+            await getInstance(frame, r"map['c']"),
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3),
+          );
         });
+      });
+    });
 
-        test('Element access', () async {
-          await onBreakPoint('printList', (event) async {
-            final frame = event.topFrame!.index!;
-            expect(
-              await getInstance(frame, r'list[0]'),
-              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 0),
-            );
+    group('Set |', () {
+      test('type and fields', () async {
+        await onBreakPoint('printSet', (event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'mySet');
 
-            expect(
-              await getInstance(frame, r"list[1]"),
-              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
-            );
+          final instanceId = instanceRef.id!;
+          expect(
+            await getObject(instanceId),
+            matchSetInstance(type: '_HashSet<int>'),
+          );
 
-            expect(
-              await getInstance(frame, r"list[2]"),
-              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 2),
-            );
-          });
+          expect(
+            await getFields(instanceRef),
+            {0: 1.0, 1: 4.0, 2: 5.0, 3: 7.0},
+          );
+          expect(
+            await getFields(instanceRef, offset: 0),
+            {0: 1.0, 1: 4.0, 2: 5.0, 3: 7.0},
+          );
+          expect(
+            await getFields(instanceRef, offset: 1, count: 2),
+            {0: 4.0, 1: 5.0},
+          );
+          expect(
+            await getFields(instanceRef, offset: 2),
+            {0: 5.0, 1: 7.0},
+          );
+          expect(
+            await getFields(instanceRef, offset: 2, count: 10),
+            {0: 5.0, 1: 7.0},
+          );
+          expect(await getFields(instanceRef, offset: 1, count: 0), {});
+          expect(await getFields(instanceRef, offset: 10, count: 2), {});
         });
       });
 
-      group('Map |', () {
-        test('type and fields', () async {
-          await onBreakPoint('printMap', (event) async {
-            final frame = event.topFrame!.index!;
-            final instanceRef = await getInstanceRef(frame, 'map');
-
-            final instanceId = instanceRef.id!;
-            expect(
-              await getObject(instanceId),
-              matchMapInstance(type: 'IdentityMap<String, int>'),
-            );
-
-            expect(await getFields(instanceRef), {'a': 1, 'b': 2, 'c': 3});
-
-            expect(await getFields(instanceRef, offset: 1, count: 0), {});
-            expect(
-              await getFields(instanceRef, offset: 0),
-              {'a': 1, 'b': 2, 'c': 3},
-            );
-            expect(await getFields(instanceRef, offset: 0, count: 1), {'a': 1});
-            expect(await getFields(instanceRef, offset: 1), {'b': 2, 'c': 3});
-            expect(await getFields(instanceRef, offset: 1, count: 1), {'b': 2});
-            expect(
-              await getFields(instanceRef, offset: 1, count: 3),
-              {'b': 2, 'c': 3},
-            );
-            expect(await getFields(instanceRef, offset: 3, count: 3), {});
-          });
-        });
-
-        test('Element access', () async {
-          await onBreakPoint('printMap', (event) async {
-            final frame = event.topFrame!.index!;
-            expect(
-              await getInstance(frame, r"map['a']"),
-              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
-            );
-
-            expect(
-              await getInstance(frame, r"map['b']"),
-              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 2),
-            );
-
-            expect(
-              await getInstance(frame, r"map['c']"),
-              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3),
-            );
-          });
-        });
-      });
-
-      group('Set |', () {
-        test('type and fields', () async {
-          await onBreakPoint('printSet', (event) async {
-            final frame = event.topFrame!.index!;
-            final instanceRef = await getInstanceRef(frame, 'mySet');
-
-            final instanceId = instanceRef.id!;
-            expect(
-              await getObject(instanceId),
-              matchSetInstance(type: '_HashSet<int>'),
-            );
-
-            expect(
-              await getFields(instanceRef),
-              {0: 1.0, 1: 4.0, 2: 5.0, 3: 7.0},
-            );
-            expect(
-              await getFields(instanceRef, offset: 0),
-              {0: 1.0, 1: 4.0, 2: 5.0, 3: 7.0},
-            );
-            expect(
-              await getFields(instanceRef, offset: 1, count: 2),
-              {0: 4.0, 1: 5.0},
-            );
-            expect(
-              await getFields(instanceRef, offset: 2),
-              {0: 5.0, 1: 7.0},
-            );
-            expect(
-              await getFields(instanceRef, offset: 2, count: 10),
-              {0: 5.0, 1: 7.0},
-            );
-            expect(await getFields(instanceRef, offset: 1, count: 0), {});
-            expect(await getFields(instanceRef, offset: 10, count: 2), {});
-          });
-        });
-
-        test('Element access', () async {
-          await onBreakPoint('printSet', (event) async {
-            final frame = event.topFrame!.index!;
-            expect(
-              await getInstance(frame, r"mySet.first"),
-              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
-            );
-            expect(
-              await getInstance(frame, r"mySet.last"),
-              matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 7),
-            );
-          });
+      test('Element access', () async {
+        await onBreakPoint('printSet', (event) async {
+          final frame = event.topFrame!.index!;
+          expect(
+            await getInstance(frame, r"mySet.first"),
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
+          );
+          expect(
+            await getInstance(frame, r"mySet.last"),
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 7),
+          );
         });
       });
     });
