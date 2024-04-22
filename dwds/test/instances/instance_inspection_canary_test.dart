@@ -10,7 +10,6 @@ import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
-import '../fixtures/project.dart';
 import 'common/instance_inspection_common.dart';
 
 void main() {
