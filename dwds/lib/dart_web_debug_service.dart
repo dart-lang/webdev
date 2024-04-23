@@ -131,6 +131,8 @@ class Dwds {
       debugSettings.launchDevToolsInNewWindow,
     );
 
+    _maybeEmitDwdsLaunchEvent(appMetadata);
+
     return Dwds._(
       injected.middleware,
       devTools,
@@ -138,6 +140,12 @@ class Dwds {
       assetReader,
       debugSettings.enableDebugging,
     );
+  }
+
+  static void _maybeEmitDwdsLaunchEvent(AppMetadata appMetadata) {
+    if (appMetadata.codeRunner != null) {
+      emitEvent(DwdsEvent.dwdsLaunch(appMetadata.codeRunner!));
+    }
   }
 
   bool shouldPauseIsolatesOnStart(String appId) =>

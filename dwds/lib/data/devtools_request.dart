@@ -46,6 +46,8 @@ abstract class DevToolsRequest
   /// Only available on requests coming from the Dart Debug Extension. Is `null`
   /// for local debug service.
   bool? get uriOnly;
+
+  String? get client;
 }
 
 /// A response to a [DevToolsRequest].

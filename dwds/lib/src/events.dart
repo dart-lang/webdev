@@ -40,6 +40,8 @@ class DwdsEventKind {
   static const String devtoolsLaunch = 'DEVTOOLS_LAUNCH';
   static const String devToolsLoad = 'DEVTOOLS_LOAD';
   static const String debuggerReady = 'DEBUGGER_READY';
+  static const String dwdsAttach = 'DWDS_ATTACH';
+  static const String dwdsLaunch = 'DWDS_LAUNCH';
   static const String evaluate = 'EVALUATE';
   static const String evaluateInFrame = 'EVALUATE_IN_FRAME';
   static const String fullReload = 'FULL_RELOAD';
@@ -59,6 +61,16 @@ class DwdsEvent {
   final Map<String, dynamic> payload;
 
   DwdsEvent(this.type, this.payload);
+
+  DwdsEvent.dwdsLaunch(String source)
+      : this(DwdsEventKind.dwdsLaunch, {
+          'source': source,
+        });
+
+  DwdsEvent.dwdsAttach(String client)
+      : this(DwdsEventKind.dwdsLaunch, {
+          'client': client,
+        });
 
   DwdsEvent.compilerUpdateDependencies(String entrypoint)
       : this(DwdsEventKind.compilerUpdateDependencies, {

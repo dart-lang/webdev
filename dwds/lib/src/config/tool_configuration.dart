@@ -37,11 +37,13 @@ class AppMetadata {
   final String hostname;
   final bool isInternalBuild;
   final String? workspaceName;
+  final String? codeRunner;
 
   const AppMetadata({
     this.hostname = 'localhost',
     this.isInternalBuild = false,
     this.workspaceName,
+    this.codeRunner,
   });
 }
 
