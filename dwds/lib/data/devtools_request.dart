@@ -47,6 +47,10 @@ abstract class DevToolsRequest
   /// for local debug service.
   bool? get uriOnly;
 
+  /// Identifies the client that DWDS is attaching to.
+  ///
+  /// This could be Cider, DevTools (as a standalone app), or DevTools (embedded
+  /// in Chrome DevTools).
   String? get client;
 }
 

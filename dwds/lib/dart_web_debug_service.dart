@@ -131,7 +131,7 @@ class Dwds {
       debugSettings.launchDevToolsInNewWindow,
     );
 
-    _maybeEmitDwdsLaunchEvent(appMetadata);
+    _maybeEmitDwdsLaunchEvent(toolConfiguration);
 
     return Dwds._(
       injected.middleware,
@@ -142,9 +142,15 @@ class Dwds {
     );
   }
 
-  static void _maybeEmitDwdsLaunchEvent(AppMetadata appMetadata) {
-    if (appMetadata.codeRunner != null) {
-      emitEvent(DwdsEvent.dwdsLaunch(appMetadata.codeRunner!));
+  static void _maybeEmitDwdsLaunchEvent(ToolConfiguration toolConfiguration) {
+    if (toolConfiguration.appMetadata.codeRunner != null) {
+      emitEvent(
+        DwdsEvent.dwdsLaunch(
+          runner: toolConfiguration.appMetadata.codeRunner!,
+          isFlutterApp:
+              toolConfiguration.loadStrategy.buildSettings.isFlutterApp,
+        ),
+      );
     }
   }
 

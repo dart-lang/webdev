@@ -686,7 +686,13 @@ class DevHandler {
 
   static void _maybeEmitDwdsAttachEvent(DevToolsRequest request) {
     if (request.client != null) {
-      emitEvent(DwdsEvent.dwdsAttach(request.client!));
+      emitEvent(
+        DwdsEvent.dwdsAttach(
+          client: request.client!,
+          isFlutterApp:
+              globalToolConfiguration.loadStrategy.buildSettings.isFlutterApp,
+        ),
+      );
     }
   }
 }

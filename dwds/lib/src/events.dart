@@ -62,14 +62,16 @@ class DwdsEvent {
 
   DwdsEvent(this.type, this.payload);
 
-  DwdsEvent.dwdsLaunch(String source)
+  DwdsEvent.dwdsLaunch({required String runner, bool? isFlutterApp})
       : this(DwdsEventKind.dwdsLaunch, {
-          'source': source,
+          'runner': runner,
+          'isFlutterApp': isFlutterApp ?? false,
         });
 
-  DwdsEvent.dwdsAttach(String client)
-      : this(DwdsEventKind.dwdsLaunch, {
+  DwdsEvent.dwdsAttach({required String client, bool? isFlutterApp})
+      : this(DwdsEventKind.dwdsAttach, {
           'client': client,
+          'isFlutterApp': isFlutterApp ?? false,
         });
 
   DwdsEvent.compilerUpdateDependencies(String entrypoint)
