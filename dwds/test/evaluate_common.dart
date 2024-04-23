@@ -21,7 +21,6 @@ void testAll({
   required TestSdkConfigurationProvider provider,
   CompilationMode compilationMode = CompilationMode.buildDaemon,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
-  NullSafety nullSafety = NullSafety.sound,
   bool useDebuggerModuleNames = false,
   bool debug = false,
 }) {
@@ -32,9 +31,8 @@ void testAll({
     );
   }
 
-  final testProject = TestProject.test(nullSafety: nullSafety);
-  final testPackageProject =
-      TestProject.testPackage(nullSafety: nullSafety, baseMode: indexBaseMode);
+  final testProject = TestProject.test();
+  final testPackageProject = TestProject.testPackage(baseMode: indexBaseMode);
 
   final context = TestContext(testPackageProject, provider);
 
@@ -301,19 +299,6 @@ void testAll({
           },
           skip: 'https://github.com/dart-lang/webdev/issues/1371',
         );
-
-        test('uses correct null safety mode', () async {
-          await onBreakPoint(mainScript, 'printLocal', (event) async {
-            final isNullSafetyEnabledExpression =
-                '() { const sound = !(<Null>[] is List<int>); return sound; } ()';
-            final result = await getInstanceRef(
-              event.topFrame!.index!,
-              isNullSafetyEnabledExpression,
-            );
-            final expectedResult = '${nullSafety == NullSafety.sound}';
-            expect(result, matchInstanceRef(expectedResult));
-          });
-        });
 
         test('does not crash if class metadata cannot be found', () async {
           await onBreakPoint(mainScript, 'printStream', (event) async {

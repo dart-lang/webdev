@@ -4,10 +4,13 @@
 
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
+import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 class FrameComputer {
+  static final logger = Logger('FrameComputer');
+
   final Debugger debugger;
 
   // To ensure that the frames are computed only once, we use an atomic queue
@@ -58,12 +61,16 @@ class FrameComputer {
   Future<void> _collectSyncFrames({int? limit}) async {
     while (_frameIndex < _callFrames.length) {
       if (limit != null && _computedFrames.length == limit) return;
-
-      final callFrame = _callFrames[_frameIndex];
-      final dartFrame =
-          await debugger.calculateDartFrameFor(callFrame, _frameIndex++);
-      if (dartFrame != null) {
-        _computedFrames.add(dartFrame);
+      try {
+        final callFrame = _callFrames[_frameIndex];
+        final dartFrame =
+            await debugger.calculateDartFrameFor(callFrame, _frameIndex++);
+        if (dartFrame != null) {
+          _computedFrames.add(dartFrame);
+        }
+      } catch (e) {
+        // If there is an error calculating the frame, then skip it.
+        logger.warning('Error calculating sync frame: $e');
       }
     }
   }
@@ -93,28 +100,33 @@ class FrameComputer {
         final asyncFramesToProcess = _asyncFramesToProcess!;
         // Process a single async frame.
         if (asyncFramesToProcess.isNotEmpty) {
-          final callFrame = asyncFramesToProcess.removeAt(0);
-          final location = WipLocation.fromValues(
-            callFrame.scriptId,
-            callFrame.lineNumber,
-            columnNumber: callFrame.columnNumber,
-          );
+          try {
+            final callFrame = asyncFramesToProcess.removeAt(0);
+            final location = WipLocation.fromValues(
+              callFrame.scriptId,
+              callFrame.lineNumber,
+              columnNumber: callFrame.columnNumber,
+            );
 
-          final tempWipFrame = WipCallFrame({
-            'url': callFrame.url,
-            'functionName': callFrame.functionName,
-            'location': location.json,
-            'scopeChain': [],
-          });
+            final tempWipFrame = WipCallFrame({
+              'url': callFrame.url,
+              'functionName': callFrame.functionName,
+              'location': location.json,
+              'scopeChain': [],
+            });
 
-          final frame = await debugger.calculateDartFrameFor(
-            tempWipFrame,
-            _frameIndex++,
-            populateVariables: false,
-          );
-          if (frame != null) {
-            frame.kind = FrameKind.kAsyncCausal;
-            _computedFrames.add(frame);
+            final frame = await debugger.calculateDartFrameFor(
+              tempWipFrame,
+              _frameIndex++,
+              populateVariables: false,
+            );
+            if (frame != null) {
+              frame.kind = FrameKind.kAsyncCausal;
+              _computedFrames.add(frame);
+            }
+          } catch (e) {
+            // If there is an error calculating the frame, then skip it.
+            logger.warning('Error calculating async frame: $e');
           }
         }
       }
