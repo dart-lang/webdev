@@ -146,7 +146,7 @@ class Dwds {
     if (toolConfiguration.appMetadata.codeRunner != null) {
       emitEvent(
         DwdsEvent.dwdsLaunch(
-          runner: toolConfiguration.appMetadata.codeRunner!,
+          codeRunner: toolConfiguration.appMetadata.codeRunner!,
           isFlutterApp:
               toolConfiguration.loadStrategy.buildSettings.isFlutterApp,
         ),

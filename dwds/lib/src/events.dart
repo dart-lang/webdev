@@ -62,9 +62,9 @@ class DwdsEvent {
 
   DwdsEvent(this.type, this.payload);
 
-  DwdsEvent.dwdsLaunch({required String runner, bool? isFlutterApp})
+  DwdsEvent.dwdsLaunch({required String codeRunner, bool? isFlutterApp})
       : this(DwdsEventKind.dwdsLaunch, {
-          'runner': runner,
+          'codeRunner': codeRunner,
           'isFlutterApp': isFlutterApp ?? false,
         });
 
