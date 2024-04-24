@@ -617,6 +617,9 @@ class DevHandler {
       extensionDebugConnections.add(DebugConnection(appServices));
       _servicesByAppId[appId] = appServices;
     }
+
+    _maybeEmitDwdsAttachEvent(devToolsRequest);
+
     // If we don't have a DevTools instance, then are connecting to an IDE.
     // Therefore return early instead of opening DevTools:
     if (_devTools == null) return;
@@ -679,6 +682,18 @@ class DevHandler {
         if (ideQueryParam.isNotEmpty) 'ide': ideQueryParam,
       },
     ).toString();
+  }
+
+  static void _maybeEmitDwdsAttachEvent(DevToolsRequest request) {
+    if (request.client != null) {
+      emitEvent(
+        DwdsEvent.dwdsAttach(
+          client: request.client!,
+          isFlutterApp:
+              globalToolConfiguration.loadStrategy.buildSettings.isFlutterApp,
+        ),
+      );
+    }
   }
 }
 

@@ -77,7 +77,20 @@ enum Trigger {
   angularDartDevTools,
   cider,
   extensionPanel,
-  extensionIcon,
+  extensionIcon;
+
+  String get clientName {
+    switch (this) {
+      case Trigger.angularDartDevTools:
+        return 'acx-devtools';
+      case Trigger.cider:
+        return 'cider';
+      case Trigger.extensionPanel:
+        return 'embedded-devtools';
+      case Trigger.extensionIcon:
+        return 'devtools';
+    }
+  }
 }
 
 enum DebuggerLocation {
@@ -390,7 +403,8 @@ Future<bool> _connectToDwds({
         ..instanceId = debugInfo.appInstanceId
         ..contextId = dartAppContextId
         ..tabUrl = tabUrl
-        ..uriOnly = true,
+        ..uriOnly = true
+        ..client = trigger?.clientName ?? 'unknown',
     ),
   );
   return true;
