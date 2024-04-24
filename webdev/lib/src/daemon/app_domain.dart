@@ -123,26 +123,9 @@ class AppDomain extends Domain {
 
   AppDomain(Daemon daemon, ServerManager serverManager) : super(daemon, 'app') {
     registerHandler('restart', _restart);
-    registerHandler('callServiceExtension', _callServiceExtension);
     registerHandler('stop', _stop);
 
     _initialize(serverManager);
-  }
-
-  Future<Map<String, dynamic>?> _callServiceExtension(
-      Map<String, dynamic> args) async {
-    var appId = getStringArg(args, 'appId', required: true);
-    var appState = _appStates[appId];
-    if (appState == null) {
-      throw ArgumentError.value(appId, 'appId', 'Not found');
-    }
-    var methodName = getStringArg(args, 'methodName', required: true)!;
-    var params = args['params'] != null
-        ? (args['params'] as Map<String, dynamic>)
-        : <String, dynamic>{};
-    var response = await appState.vmService!
-        .callServiceExtension(methodName, args: params);
-    return response.json;
   }
 
   Future<Map<String, dynamic>> _restart(Map<String, dynamic> args) async {
