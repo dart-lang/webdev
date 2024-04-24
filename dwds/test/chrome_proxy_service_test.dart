@@ -2064,34 +2064,30 @@ void main() {
     });
 
     group('setFlag', () {
-      test('pause_isolates_on_start set to true', () async {
+      test('pause_isolates_on_start set to true', () {
         final service = context.service;
         expect(
           service.setFlag('pause_isolates_on_start', 'true'),
           completion(_isSuccess),
         );
-        // Re-try until sucess because the value doesn't get updated
-        // synchronously (it is sent over a stream):
-        final pauseIsolatesOnStart = await retryFn(
-          () => context.dwds!.shouldPauseIsolatesOnStart,
-          expectedResult: true,
+        final appId = context.appConnection.request.appId;
+        expect(
+          context.dwds!.shouldPauseIsolatesOnStart(appId),
+          equals(true),
         );
-        expect(pauseIsolatesOnStart, equals(true));
       });
 
-      test('pause_isolates_on_start set to false', () async {
+      test('pause_isolates_on_start set to false', () {
         final service = context.service;
         expect(
           service.setFlag('pause_isolates_on_start', 'false'),
           completion(_isSuccess),
         );
-        // Re-try until sucess because the value doesn't get updated
-        // synchronously (it is sent over a stream):
-        final pauseIsolatesOnStart = await retryFn(
-          () => context.dwds!.shouldPauseIsolatesOnStart,
-          expectedResult: false,
+        final appId = context.appConnection.request.appId;
+        expect(
+          context.dwds!.shouldPauseIsolatesOnStart(appId),
+          equals(false),
         );
-        expect(pauseIsolatesOnStart, equals(false));
       });
 
       test('pause_isolates_on_start set to invalid value', () {

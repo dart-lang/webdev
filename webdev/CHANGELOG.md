@@ -1,4 +1,8 @@
-## 3.5.0-wip
+## 3.6.0-wip
+
+## 3.5.0
+
+- Update `dwds` constraint to `24.0.0`.
 
 ## 3.4.0
 

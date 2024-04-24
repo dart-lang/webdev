@@ -462,7 +462,13 @@ class Debugger extends Domain {
 
     // Don't populate variables for async frames.
     if (populateVariables) {
-      dartFrame.vars = await variablesFor(frame);
+      try {
+        dartFrame.vars = await variablesFor(frame);
+      } catch (e) {
+        logger.warning(
+          'Error calculating Dart variables for frame $frameIndex: $e',
+        );
+      }
     }
 
     return dartFrame;

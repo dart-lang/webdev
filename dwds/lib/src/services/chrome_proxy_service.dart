@@ -99,14 +99,6 @@ class ChromeProxyService implements VmServiceInterface {
   /// This value can be updated at runtime via [setFlag].
   bool get pauseIsolatesOnStart => _pauseIsolatesOnStart;
 
-  final _pauseIsolatesOnStartController = StreamController<bool>.broadcast();
-
-  /// A global stream of the value of the [_pauseIsolatesOnStartFlag].
-  ///
-  /// The flag's value can be updated during runtime.
-  Stream<bool> get pauseIsolatesOnStartStream =>
-      _pauseIsolatesOnStartController.stream;
-
   final _resumeAfterHotRestartEventsController =
       StreamController<String>.broadcast();
 
@@ -524,6 +516,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
       throw RPCError(
         method,
         decodedResponse['code'] as int,
+        // ignore: avoid-unnecessary-type-casts
         decodedResponse['message'] as String,
         decodedResponse['data'] as Map,
       );
@@ -1228,7 +1221,6 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     if (name == _pauseIsolatesOnStartFlag) {
       assert(value == 'true' || value == 'false');
       _pauseIsolatesOnStart = value == 'true';
-      _pauseIsolatesOnStartController.sink.add(_pauseIsolatesOnStart);
     }
 
     return Success();

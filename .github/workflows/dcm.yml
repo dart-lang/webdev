@@ -19,7 +19,7 @@ jobs:
           wget -qO- https://dcm.dev/pgp-key.public | sudo gpg --dearmor -o /usr/share/keyrings/dcm.gpg
           echo 'deb [signed-by=/usr/share/keyrings/dcm.gpg arch=amd64] https://dcm.dev/debian stable main' | sudo tee /etc/apt/sources.list.d/dart_stable.list
           sudo apt-get update
-          sudo apt-get install dcm
+          sudo apt-get install dcm=1.16.2-1 # To avoid errors add `-1` (build number) to the version
           sudo chmod +x /usr/bin/dcm
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@fedb1266e91cf51be2fdb382869461a434b920a3
@@ -27,7 +27,7 @@ jobs:
           sdk: dev
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
         with:
           ref: "${{ github.event.pull_request.head.sha }}"
       - id: dwds_pub_upgrade

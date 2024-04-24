@@ -204,7 +204,8 @@ void main() async {
         Debugger.logger.onRecord,
         emitsThrough(
           predicate(
-            (LogRecord log) => log.message == 'Error calculating Dart frames',
+            (LogRecord log) =>
+                log.message.contains('Error calculating sync frame'),
           ),
         ),
       );

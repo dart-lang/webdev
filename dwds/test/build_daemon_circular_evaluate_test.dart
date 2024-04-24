@@ -10,7 +10,6 @@ import 'package:test_common/test_sdk_configuration.dart';
 
 import 'evaluate_circular_common.dart';
 import 'fixtures/context.dart';
-import 'fixtures/project.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
@@ -19,14 +18,9 @@ void main() async {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  for (var nullSafety in NullSafety.values) {
-    group('${nullSafety.name} null safety |', () {
-      testAll(
-        provider: provider,
-        compilationMode: CompilationMode.buildDaemon,
-        nullSafety: nullSafety,
-        debug: debug,
-      );
-    });
-  }
+  testAll(
+    provider: provider,
+    compilationMode: CompilationMode.buildDaemon,
+    debug: debug,
+  );
 }

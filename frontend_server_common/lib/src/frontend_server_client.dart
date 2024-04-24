@@ -12,9 +12,9 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:test_common/test_sdk_layout.dart';
-import 'package:usage/uuid/uuid.dart';
 
 import 'utilities.dart';
+import 'uuid.dart';
 
 Logger _logger = Logger('FrontendServerClient');
 Logger _serverLogger = Logger('FrontendServer');
@@ -320,7 +320,7 @@ class ResidentCompiler {
     }
     var server = _server!;
 
-    var inputKey = Uuid().generateV4();
+    var inputKey = generateV4UUID();
     server.stdin.writeln('recompile $mainUri$inputKey');
     _logger.info('<- recompile $mainUri$inputKey');
     for (var fileUri in request.invalidatedFiles) {
@@ -463,7 +463,7 @@ class ResidentCompiler {
     }
     var server = _server!;
 
-    var inputKey = Uuid().generateV4();
+    var inputKey = generateV4UUID();
     server.stdin.writeln('compile-expression $inputKey');
     server.stdin.writeln(request.expression);
     request.definitions.forEach(server.stdin.writeln);
@@ -508,7 +508,7 @@ class ResidentCompiler {
     }
     var server = _server!;
 
-    var inputKey = Uuid().generateV4();
+    var inputKey = generateV4UUID();
     server.stdin.writeln('compile-expression-to-js $inputKey');
     server.stdin.writeln(request.libraryUri);
     server.stdin.writeln(request.line);

@@ -343,28 +343,17 @@ class Locations {
         // Create TokenPos for each entry in the source map.
         for (var lineEntry in mapping.lines) {
           for (var entry in lineEntry.entries) {
-            final index = entry.sourceUrlId;
-            if (index == null) continue;
-            // Source map URLS are relative to the script. They may have platform separators
-            // or they may use URL semantics. To be sure, we split and re-join them.
-            // This works on Windows because path treats both / and \ as separators.
-            // It will fail if the path has both separators in it.
-            final relativeSegments = p.split(mapping.urls[index]);
-            final path = p.url.normalize(
-              p.url.joinAll([scriptLocation, ...relativeSegments]),
+            final location = _locationForSourceMapEntry(
+              lineEntry: lineEntry,
+              entry: entry,
+              modulePath: modulePath,
+              runtimeScriptId: runtimeScriptId,
+              sourceUrls: mapping.urls,
+              scriptLocation: scriptLocation,
             );
-
-            final dartUri = DartUri(path, _root);
-
-            result.add(
-              Location.from(
-                modulePath,
-                lineEntry,
-                entry,
-                dartUri,
-                runtimeScriptId,
-              ),
-            );
+            if (location != null) {
+              result.add(location);
+            }
           }
         }
       }
@@ -378,5 +367,42 @@ class Locations {
       }
       return _moduleToLocations[module] = result;
     });
+  }
+
+  /// Creates a TokenPos [Location] for an entry in the source map.
+  Location? _locationForSourceMapEntry({
+    required TargetLineEntry lineEntry,
+    required TargetEntry entry,
+    required String modulePath,
+    required String? runtimeScriptId,
+    required List<String> sourceUrls,
+    required String scriptLocation,
+  }) {
+    final index = entry.sourceUrlId;
+    if (index == null) return null;
+    // Source map URLS are relative to the script. They may have platform separators
+    // or they may use URL semantics. To be sure, we split and re-join them.
+    // This works on Windows because path treats both / and \ as separators.
+    // It will fail if the path has both separators in it.
+    final relativeSegments = p.split(sourceUrls[index]);
+    final path = p.url.normalize(
+      p.url.joinAll([scriptLocation, ...relativeSegments]),
+    );
+
+    try {
+      final dartUri = DartUri(path, _root);
+      return Location.from(
+        modulePath,
+        lineEntry,
+        entry,
+        dartUri,
+        runtimeScriptId,
+      );
+    } catch (error) {
+      // DartUri throws if the path format is unrecognized. Log any errors and
+      // return null in that case.
+      _logger.warning('Error adding location for $path: $error');
+      return null;
+    }
   }
 }

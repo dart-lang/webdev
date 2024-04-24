@@ -10,7 +10,6 @@ import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
-import '../fixtures/project.dart';
 import 'common/instance_inspection_common.dart';
 
 void main() {
@@ -29,10 +28,6 @@ void main() {
       runTests(
         provider: provider,
         compilationMode: compilationMode,
-        // Note: not running with weak null safety because it
-        // requires a special branch of build_web_compilers
-        // that does not support --canary flag.
-        nullSafetyMode: NullSafety.sound,
         canaryFeatures: canaryFeatures,
         debug: debug,
       );

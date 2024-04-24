@@ -1,9 +1,14 @@
-## 24.0.0-wip
+## 24.1.0-wip
+
+- Fix bug where debugging clients are not aware of service extensions when connecting to a new web app. - [#2388](https://github.com/dart-lang/webdev/pull/2388)
+
+## 24.0.0
 
 - Implement `setFlag` when it is called with `pause_isolates_on_start`. - [#2373](https://github.com/dart-lang/webdev/pull/2373)
 - Do not persist breakpoints across hot restarts or page reloads. - [#2371](https://github.com/dart-lang/webdev/pull/2371)
 - If `pause_isolates_on_start` is `true`, wait for `resume` to run the app's `main` method. - [#2378](https://github.com/dart-lang/webdev/pull/2378)
-- Fix bug where debugging clients are not aware of service extensions when connecting to a new web app. - [#2388](https://github.com/dart-lang/webdev/pull/2388)
+- Fix bug where setting breakpoints in a project using macros would fail. - [#2403](https://github.com/dart-lang/webdev/pull/2403)
+- Make stack trace calculation resilient against one frame throwing an error. - [#2408](https://github.com/dart-lang/webdev/pull/2408)
 
 **Breaking changes**
 
