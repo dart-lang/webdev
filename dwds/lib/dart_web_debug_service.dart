@@ -131,8 +131,6 @@ class Dwds {
       debugSettings.launchDevToolsInNewWindow,
     );
 
-    _maybeEmitDwdsLaunchEvent(toolConfiguration);
-
     return Dwds._(
       injected.middleware,
       devTools,
@@ -140,18 +138,6 @@ class Dwds {
       assetReader,
       debugSettings.enableDebugging,
     );
-  }
-
-  static void _maybeEmitDwdsLaunchEvent(ToolConfiguration toolConfiguration) {
-    if (toolConfiguration.appMetadata.codeRunner != null) {
-      emitEvent(
-        DwdsEvent.dwdsLaunch(
-          codeRunner: toolConfiguration.appMetadata.codeRunner!,
-          isFlutterApp:
-              toolConfiguration.loadStrategy.buildSettings.isFlutterApp,
-        ),
-      );
-    }
   }
 
   bool shouldPauseIsolatesOnStart(String appId) =>
