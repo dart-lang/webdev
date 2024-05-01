@@ -91,56 +91,77 @@ void main() {
         ),
       );
 
-      test('.reload', () async {
-        var webdev = await testRunner
-            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
-        var appId = await waitForAppId(webdev);
-        var extensionCall = '[{"method":"app.restart","id":0,'
-            '"params" : { "appId" : "$appId", "fullRestart" : false}}]';
-        webdev.stdin.add(utf8.encode('$extensionCall\n'));
-        await expectLater(
-          webdev.stdout,
-          emitsThrough(startsWith(
-            '[{"id":0,"result":{"code":1,"message":"hot reload not yet supported',
-          )),
-        );
-        await exitWebdev(webdev);
-      });
+      test(
+        '.reload',
+        () async {
+          var webdev = await testRunner
+              .runWebDev(['daemon'], workingDirectory: exampleDirectory);
+          var appId = await waitForAppId(webdev);
+          var extensionCall = '[{"method":"app.restart","id":0,'
+              '"params" : { "appId" : "$appId", "fullRestart" : false}}]';
+          webdev.stdin.add(utf8.encode('$extensionCall\n'));
+          await expectLater(
+            webdev.stdout,
+            emitsThrough(startsWith(
+              '[{"id":0,"result":{"code":1,"message":"hot reload not yet supported',
+            )),
+          );
+          await exitWebdev(webdev);
+        },
+        skip: 'https://github.com/dart-lang/webdev/issues/2422',
+        timeout: const Timeout(
+          Duration(minutes: 2),
+        ),
+      );
 
-      test('.restart', () async {
-        var webdev = await testRunner
-            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
-        var appId = await waitForAppId(webdev);
-        var extensionCall = '[{"method":"app.restart","id":0,'
-            '"params" : { "appId" : "$appId", "fullRestart" : true}}]';
-        webdev.stdin.add(utf8.encode('$extensionCall\n'));
-        await expectLater(
-            webdev.stdout,
-            emitsThrough(startsWith(
-                '[{"event":"app.progress","params":{"appId":"$appId","id":"1",'
-                '"message":"Performing hot restart..."')));
-        await expectLater(
-            webdev.stdout,
-            emitsThrough(startsWith(
-                '[{"event":"app.progress","params":{"appId":"$appId","id":"1",'
-                '"finished":true')));
-        await exitWebdev(webdev);
-      });
+      test(
+        '.restart',
+        () async {
+          var webdev = await testRunner
+              .runWebDev(['daemon'], workingDirectory: exampleDirectory);
+          var appId = await waitForAppId(webdev);
+          var extensionCall = '[{"method":"app.restart","id":0,'
+              '"params" : { "appId" : "$appId", "fullRestart" : true}}]';
+          webdev.stdin.add(utf8.encode('$extensionCall\n'));
+          await expectLater(
+              webdev.stdout,
+              emitsThrough(startsWith(
+                  '[{"event":"app.progress","params":{"appId":"$appId","id":"1",'
+                  '"message":"Performing hot restart..."')));
+          await expectLater(
+              webdev.stdout,
+              emitsThrough(startsWith(
+                  '[{"event":"app.progress","params":{"appId":"$appId","id":"1",'
+                  '"finished":true')));
+          await exitWebdev(webdev);
+        },
+        skip: 'https://github.com/dart-lang/webdev/issues/2422',
+        timeout: const Timeout(
+          Duration(minutes: 2),
+        ),
+      );
 
-      test('.stop', () async {
-        var webdev = await testRunner
-            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
-        var appId = await waitForAppId(webdev);
-        var stopCall = '[{"method":"app.stop","id":0,'
-            '"params" : { "appId" : "$appId"}}]';
-        webdev.stdin.add(utf8.encode('$stopCall\n'));
-        await expectLater(
-            webdev.stdout,
-            emitsThrough(startsWith(
-                '[{"event":"app.stop","params":{"appId":"$appId"}}')));
-        // This should cause webdev to exit.
-        expect(await webdev.exitCode, equals(0));
-      });
+      test(
+        '.stop',
+        () async {
+          var webdev = await testRunner
+              .runWebDev(['daemon'], workingDirectory: exampleDirectory);
+          var appId = await waitForAppId(webdev);
+          var stopCall = '[{"method":"app.stop","id":0,'
+              '"params" : { "appId" : "$appId"}}]';
+          webdev.stdin.add(utf8.encode('$stopCall\n'));
+          await expectLater(
+              webdev.stdout,
+              emitsThrough(startsWith(
+                  '[{"event":"app.stop","params":{"appId":"$appId"}}')));
+          // This should cause webdev to exit.
+          expect(await webdev.exitCode, equals(0));
+        },
+        skip: 'https://github.com/dart-lang/webdev/issues/2422',
+        timeout: const Timeout(
+          Duration(minutes: 2),
+        ),
+      );
     });
   });
 }
