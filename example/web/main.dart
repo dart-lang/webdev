@@ -8,16 +8,16 @@ import 'dart:developer';
 import 'dart:html';
 
 void main() {
-  print('Initial Print');
+  print('Initial Print :)');
 
   registerExtension('ext.print', (_, __) async {
-    print('Hello World');
+    print('Hello World !! :)');
     return ServiceExtensionResponse.result(json.encode({'success': true}));
   });
   document.body!.append(SpanElement()..text = 'Hello World!!');
 
   var count = 0;
   Timer.periodic(const Duration(seconds: 1), (_) {
-    print('Counter is: ${++count}');
+    print('Counter is now: ${++count}');
   });
 }

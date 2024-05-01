@@ -4,6 +4,7 @@
 
 @Timeout(Duration(minutes: 2))
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:test/test.dart';
 
@@ -62,6 +63,35 @@ void main() {
     });
 
     group('Methods', () {
+
+      test(
+        '.callServiceExtension',
+        () async {
+          var webdev = await testRunner
+              .runWebDev(['daemon'], workingDirectory: exampleDirectory);
+          var appId = await waitForAppId(webdev);
+          if (Platform.isWindows) {
+            // Windows takes a bit longer to run the application and register
+            // the service extension.
+            await Future.delayed(const Duration(seconds: 5));
+          }
+          var extensionCall = '[{"method":"app.callServiceExtension","id":0,'
+              '"params" : { "appId" : "$appId", "methodName" : "ext.print"}}]';
+          webdev.stdin.add(utf8.encode('$extensionCall\n'));
+          // The example app sets up a service extension for printing.
+          await expectLater(
+              webdev.stdout,
+              emitsThrough(
+                  startsWith('[{"event":"app.log","params":{"appId":"$appId",'
+                      '"log":"Hello World\\n"}}')));
+          await exitWebdev(webdev);
+        },
+        skip: 'https://github.com/dart-lang/webdev/issues/2422',
+        timeout: const Timeout(
+          Duration(minutes: 2),
+        ),
+      );
+
       test('.reload', () async {
         var webdev = await testRunner
             .runWebDev(['daemon'], workingDirectory: exampleDirectory);
