@@ -63,7 +63,6 @@ void main() {
     });
 
     group('Methods', () {
-
       test(
         '.callServiceExtension',
         () async {
