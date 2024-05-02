@@ -525,6 +525,10 @@ class DevHandler {
             ');',
       },
     );
+
+    // Notify that DWDS has been launched and a debug connection has been made:
+    _maybeEmitDwdsLaunchEvent();
+
     return appDebugService;
   }
 
@@ -689,6 +693,18 @@ class DevHandler {
       emitEvent(
         DwdsEvent.dwdsAttach(
           client: request.client!,
+          isFlutterApp:
+              globalToolConfiguration.loadStrategy.buildSettings.isFlutterApp,
+        ),
+      );
+    }
+  }
+
+  static void _maybeEmitDwdsLaunchEvent() {
+    if (globalToolConfiguration.appMetadata.codeRunner != null) {
+      emitEvent(
+        DwdsEvent.dwdsLaunch(
+          codeRunner: globalToolConfiguration.appMetadata.codeRunner!,
           isFlutterApp:
               globalToolConfiguration.loadStrategy.buildSettings.isFlutterApp,
         ),
