@@ -168,7 +168,8 @@ class AppDomain extends Domain {
       'message': 'Performing hot restart...',
       'progressId': 'hot.restart',
     });
-    var response = await appState.vmService!.callServiceExtension('hotRestart');
+    var response =
+        await appState.vmService!.callServiceExtension('_webdev.restart');
     sendEvent('app.progress', {
       'appId': appId,
       'id': '$_progressEventId',
