@@ -515,7 +515,8 @@ class DevHandler {
       ddsUri = dds.wsUri;
     }
     final vmClient = await DwdsVmClient.create(debugService, dwdsStats, ddsUri);
-    final appDebugService = AppDebugServices(debugService, vmClient, dwdsStats);
+    final appDebugService =
+        AppDebugServices(debugService, vmClient, dwdsStats, ddsUri);
     final encodedUri = await debugService.encodedUri;
     _logger.info('Debug service listening on $encodedUri\n');
     await appDebugService.chromeProxyService.remoteDebugger.sendCommand(
