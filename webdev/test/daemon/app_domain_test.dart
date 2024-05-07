@@ -85,7 +85,6 @@ void main() {
                       '"log":"Hello World\\n"}}')));
           await exitWebdev(webdev);
         },
-        skip: 'https://github.com/dart-lang/webdev/issues/2422',
         timeout: const Timeout(
           Duration(minutes: 2),
         ),
@@ -108,7 +107,6 @@ void main() {
           );
           await exitWebdev(webdev);
         },
-        skip: 'https://github.com/dart-lang/webdev/issues/2422',
         timeout: const Timeout(
           Duration(minutes: 2),
         ),
@@ -135,7 +133,6 @@ void main() {
                   '"finished":true')));
           await exitWebdev(webdev);
         },
-        skip: 'https://github.com/dart-lang/webdev/issues/2422',
         timeout: const Timeout(
           Duration(minutes: 2),
         ),
@@ -157,7 +154,6 @@ void main() {
           // This should cause webdev to exit.
           expect(await webdev.exitCode, equals(0));
         },
-        skip: 'https://github.com/dart-lang/webdev/issues/2422',
         timeout: const Timeout(
           Duration(minutes: 2),
         ),

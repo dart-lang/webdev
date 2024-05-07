@@ -85,9 +85,6 @@ class AppDomain extends Domain {
         'deviceId': 'chrome',
         'launchMode': 'run'
       });
-      sendEvent('app.started', {
-        'appId': appId,
-      });
       // TODO(grouma) - limit the catch to the appropriate error.
       try {
         await vmService.streamCancel('Stdout');
@@ -117,6 +114,9 @@ class AppDomain extends Domain {
 
       var appState = _AppState(debugConnection, resultSub, stdOutSub);
       _appStates[appId] = appState;
+      sendEvent('app.started', {
+        'appId': appId,
+      });
 
       appConnection.runMain();
 
