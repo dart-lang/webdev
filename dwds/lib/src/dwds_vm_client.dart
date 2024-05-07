@@ -30,8 +30,7 @@ enum _NamespacedServiceExtension {
   extDwdsEmitEvent(method: 'ext.dwds.emitEvent'),
   extDwdsScreenshot(method: 'ext.dwds.screenshot'),
   extDwdsSendEvent(method: 'ext.dwds.sendEvent'),
-  flutterListViews(method: '_flutter.listViews'),
-  webdevHotRestart(method: '_webdev.restart');
+  flutterListViews(method: '_flutter.listViews');
 
   const _NamespacedServiceExtension({required this.method});
 
@@ -198,10 +197,6 @@ class DwdsVmClient {
       response = await _extDwdsSendEventHandler(request, dwdsStats);
     } else if (method == _NamespacedServiceExtension.extDwdsScreenshot.method) {
       response = await _extDwdsScreenshotHandler(chromeProxyService);
-    } else if (method == _NamespacedServiceExtension.webdevHotRestart.method) {
-      await chromeProxyService.remoteDebugger.enablePage();
-      await chromeProxyService.remoteDebugger.pageReload();
-      response = {'result': Success().toJson()};
     }
 
     if (response != null) {
