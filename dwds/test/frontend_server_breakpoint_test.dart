@@ -22,7 +22,7 @@ void main() {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  final context = TestContext(TestProject.test, provider);
+  final context = TestContext(TestProject.testPackage(), provider);
 
   // Change to 'true' to print expression compiler messages to console.
   //

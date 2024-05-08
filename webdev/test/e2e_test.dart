@@ -38,22 +38,14 @@ void main() {
   final debug = false;
 
   final testRunner = TestRunner();
-  late String exampleDirectory;
   late String soundExampleDirectory;
   setUpAll(() async {
     configureLogWriter(debug);
     await testRunner.setUpAll();
-    exampleDirectory =
-        p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSmoke'));
     soundExampleDirectory =
         p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'));
 
     var process = await TestProcess.start(dartPath, ['pub', 'upgrade'],
-        workingDirectory: exampleDirectory, environment: getPubEnvironment());
-
-    await process.shouldExit(0);
-
-    process = await TestProcess.start(dartPath, ['pub', 'upgrade'],
         workingDirectory: soundExampleDirectory,
         environment: getPubEnvironment());
 
@@ -259,7 +251,6 @@ void main() {
     setUp(() async {
       configureLogWriter(debug);
     });
-
     group('and --enable-expression-evaluation:', () {
       setUp(() async {
         configureLogWriter(debug);
@@ -339,10 +330,8 @@ void main() {
           '--enable-expression-evaluation',
           '--verbose',
         ];
-        var process = await testRunner.runWebDev(
-          args,
-          workingDirectory: soundExampleDirectory,
-        );
+        var process = await testRunner.runWebDev(args,
+            workingDirectory: soundExampleDirectory);
 
         process.stdoutStream().listen(Logger.root.fine);
         process.stderrStream().listen(Logger.root.warning);
