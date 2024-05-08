@@ -13,6 +13,7 @@ class AppDebugServices {
   final DebugService debugService;
   final DwdsVmClient dwdsVmClient;
   final DwdsStats dwdsStats;
+  final Uri? ddsUri;
 
   ChromeProxyService get chromeProxyService =>
       debugService.chromeProxyService as ChromeProxyService;
@@ -27,7 +28,12 @@ class AppDebugServices {
   /// We only allow a given app to be debugged in a single tab at a time.
   String? connectedInstanceId;
 
-  AppDebugServices(this.debugService, this.dwdsVmClient, this.dwdsStats);
+  AppDebugServices(
+    this.debugService,
+    this.dwdsVmClient,
+    this.dwdsStats,
+    this.ddsUri,
+  );
 
   Future<void> close() =>
       _closed ??= Future.wait([debugService.close(), dwdsVmClient.close()]);

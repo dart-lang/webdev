@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service_io.dart';
 
 import '../serve/server_manager.dart';
 import '../serve/webdev_server.dart';
@@ -23,6 +24,9 @@ class AppDomain extends Domain {
   var _progressEventId = 0;
 
   final _appStates = <String, _AppState>{};
+
+  // Mapping from service name to service method.
+  final Map<String, String> _registeredMethodsForService = <String, String>{};
 
   void _handleBuildResult(BuildResult result, String appId) {
     switch (result.status) {
@@ -62,7 +66,8 @@ class AppDomain extends Domain {
     // The connection is established right before `main()` is called.
     await for (var appConnection in dwds.connectedApps) {
       var debugConnection = await dwds.debugConnection(appConnection);
-      var vmService = debugConnection.vmService;
+      final debugUri = debugConnection.ddsUri ?? debugConnection.uri;
+      final vmService = await vmServiceConnectUri(debugUri);
       var appId = appConnection.request.appId;
       unawaited(debugConnection.onDone.then((_) {
         sendEvent('app.log', {
@@ -80,15 +85,16 @@ class AppDomain extends Domain {
         'deviceId': 'chrome',
         'launchMode': 'run'
       });
-      sendEvent('app.started', {
-        'appId': appId,
-      });
       // TODO(grouma) - limit the catch to the appropriate error.
       try {
         await vmService.streamCancel('Stdout');
       } catch (_) {}
       try {
         await vmService.streamListen('Stdout');
+      } catch (_) {}
+      try {
+        vmService.onServiceEvent.listen(_onServiceEvent);
+        await vmService.streamListen('Service');
       } catch (_) {}
       // ignore: cancel_subscriptions
       var stdOutSub = vmService.onStdoutEvent.listen((log) {
@@ -108,6 +114,9 @@ class AppDomain extends Domain {
 
       var appState = _AppState(debugConnection, resultSub, stdOutSub);
       _appStates[appId] = appState;
+      sendEvent('app.started', {
+        'appId': appId,
+      });
 
       appConnection.runMain();
 
@@ -119,6 +128,18 @@ class AppDomain extends Domain {
 
     // Shutdown could have been triggered while awaiting above.
     if (_isShutdown) dispose();
+  }
+
+  void _onServiceEvent(Event e) {
+    if (e.kind == EventKind.kServiceRegistered) {
+      final serviceName = e.service!;
+      _registeredMethodsForService[serviceName] = e.method!;
+    }
+
+    if (e.kind == EventKind.kServiceUnregistered) {
+      final serviceName = e.service!;
+      _registeredMethodsForService.remove(serviceName);
+    }
   }
 
   AppDomain(Daemon daemon, ServerManager serverManager) : super(daemon, 'app') {
@@ -168,7 +189,10 @@ class AppDomain extends Domain {
       'message': 'Performing hot restart...',
       'progressId': 'hot.restart',
     });
-    var response = await appState.vmService!.callServiceExtension('hotRestart');
+    var restartMethod =
+        _registeredMethodsForService['hotRestart'] ?? 'hotRestart';
+    var response =
+        await appState.vmService!.callServiceExtension(restartMethod);
     sendEvent('app.progress', {
       'appId': appId,
       'id': '$_progressEventId',

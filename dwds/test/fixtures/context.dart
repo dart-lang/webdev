@@ -37,6 +37,7 @@ import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service_io.dart';
 import 'package:webdriver/async_io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -112,6 +113,8 @@ class TestContext {
   late DebugConnection debugConnection;
 
   final _logger = logging.Logger('Context');
+
+  final _serviceNameToMethod = <String, String?>{};
 
   /// Internal VM service.
   ///
@@ -467,6 +470,39 @@ class TestContext {
       _logger.severe('Failed to setup the service, $e:$s');
       await tearDown();
       rethrow;
+    }
+  }
+
+  /// Creates a VM service connection connected to the debug URI.
+  ///
+  /// This can be used to test behavior that should be available to a client
+  /// connected to DWDS.
+  Future<VmService> connectFakeClient() async {
+    final fakeClient = await vmServiceConnectUri(debugConnection.uri);
+
+    fakeClient.onEvent(EventStreams.kService).listen(_handleServiceEvent);
+    await fakeClient.streamListen(EventStreams.kService);
+
+    return fakeClient;
+  }
+
+  /// Returns the service extension method given the [extensionName].
+  ///
+  /// The extension be called by a client created with [connectFakeClient].
+  String? getRegisteredServiceExtension(String extensionName) {
+    if (_serviceNameToMethod.isEmpty) {
+      throw StateError('''
+        No registered service extensions. Did you call connectFakeClient?
+      ''');
+    }
+
+    return _serviceNameToMethod[extensionName];
+  }
+
+  void _handleServiceEvent(Event e) {
+    if (e.kind == EventKind.kServiceRegistered) {
+      final serviceName = e.service!;
+      _serviceNameToMethod[serviceName] = e.method;
     }
   }
 

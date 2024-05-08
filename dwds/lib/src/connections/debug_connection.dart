@@ -33,6 +33,9 @@ class DebugConnection {
   /// The endpoint of the Dart VM Service.
   String get uri => _appDebugServices.debugService.uri;
 
+  // The endpoint of the Dart Development Service (DDS).
+  String? get ddsUri => _appDebugServices.ddsUri?.toString();
+
   /// A client of the Dart VM Service with DWDS specific extensions.
   VmService get vmService => _appDebugServices.dwdsVmClient.client;
 

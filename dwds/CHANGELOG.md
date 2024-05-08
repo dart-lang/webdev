@@ -1,5 +1,7 @@
 ## 24.1.0-wip
 
+- Fix bug where debugging clients are not aware of service extensions when connecting to a new web app. - [#2388](https://github.com/dart-lang/webdev/pull/2388)
+
 ## 24.0.0
 
 - Implement `setFlag` when it is called with `pause_isolates_on_start`. - [#2373](https://github.com/dart-lang/webdev/pull/2373)

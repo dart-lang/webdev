@@ -21,6 +21,7 @@ import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/batched_expression_evaluator.dart';
+import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -1542,7 +1543,15 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
 
   @override
   Future<void> yieldControlToDDS(String uri) async {
-    // TODO(elliette): implement
+    final canYield = DebugService.yieldControlToDDS(uri);
+
+    if (!canYield) {
+      throw RPCError(
+        'yieldControlToDDS',
+        RPCErrorKind.kFeatureDisabled.code,
+        'Existing VM service clients prevent DDS from taking control.',
+      );
+    }
   }
 
   @override
