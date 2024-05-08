@@ -19,7 +19,7 @@ void runTests({
   required bool canaryFeatures,
   required bool debug,
 }) {
-  final project = TestProject.testExperimentWithSoundNullSafety;
+  final project = TestProject.testExperiment;
   final context = TestContext(project, provider);
   final testInspector = TestInspector(context);
 

@@ -16,7 +16,7 @@ import '../fixtures/utilities.dart';
 void main() {
   group('Asset handler', () {
     final provider = TestSdkConfigurationProvider();
-    final context = TestContext(TestProject.testWithSoundNullSafety, provider);
+    final context = TestContext(TestProject.test, provider);
 
     setUpAll(() async {
       setCurrentLogWriter();

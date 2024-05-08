@@ -167,26 +167,6 @@ void main() {
 
       await d.file('main.ddc.js', isNotEmpty).validate();
     });
-
-    test('and --null-safety=unsound', () async {
-      var args = [
-        'build',
-        '-o',
-        'web:${d.sandbox}',
-        '--no-release',
-        '--null-safety=unsound'
-      ];
-
-      var process =
-          await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
-
-      var expectedItems = <Object>['Succeeded'];
-
-      await checkProcessStdout(process, expectedItems);
-      await process.shouldExit(0);
-
-      await d.file('main.unsound.ddc.js', isNotEmpty).validate();
-    });
   });
 
   group('should build with --output=NONE', () {
@@ -280,315 +260,303 @@ void main() {
       configureLogWriter(debug);
     });
 
-    for (var soundNullSafety in [false, true]) {
-      var nullSafetyOption = soundNullSafety ? 'sound' : 'unsound';
-      group('--null-safety=$nullSafetyOption', () {
-        setUp(() async {
-          configureLogWriter(debug);
-        });
-        group('and --enable-expression-evaluation:', () {
-          setUp(() async {
-            configureLogWriter(debug);
-          });
-          test('evaluateInFrame', () async {
-            var openPort = await findUnusedPort();
-            // running daemon command that starts dwds without keyboard input
-            var args = [
-              'daemon',
-              'web:$openPort',
-              '--enable-expression-evaluation',
-              '--null-safety=$nullSafetyOption',
-              '--verbose',
-            ];
-            var process = await testRunner.runWebDev(args,
-                workingDirectory:
-                    soundNullSafety ? soundExampleDirectory : exampleDirectory);
-            VmService? vmService;
-
-            process.stdoutStream().listen(Logger.root.fine);
-            process.stderrStream().listen(Logger.root.warning);
-
-            try {
-              // Wait for debug service Uri
-              String? wsUri;
-              await expectLater(process.stdout, emitsThrough((message) {
-                wsUri = getDebugServiceUri(message as String);
-                return wsUri != null;
-              }));
-              Logger.root.fine('vm service uri: $wsUri');
-              expect(wsUri, isNotNull);
-
-              vmService = await vmServiceConnectUri(wsUri!);
-              var vm = await vmService.getVM();
-              var isolateId = vm.isolates!.first.id!;
-              var scripts = await vmService.getScripts(isolateId);
-
-              await vmService.streamListen('Debug');
-              var stream = vmService.onEvent('Debug');
-
-              var mainScript = scripts.scripts!
-                  .firstWhere((each) => each.uri!.contains('main.dart'));
-
-              var bpLine = await findBreakpointLine(
-                  vmService, 'printCounter', isolateId, mainScript);
-
-              var bp = await vmService.addBreakpointWithScriptUri(
-                  isolateId, mainScript.uri!, bpLine);
-              expect(bp, isNotNull);
-
-              await stream.firstWhere(
-                  (Event event) => event.kind == EventKind.kPauseBreakpoint);
-
-              final isNullSafetyEnabled =
-                  '() { const sound = !(<Null>[] is List<int>); return sound; } ()';
-              final result = await vmService.evaluateInFrame(
-                  isolateId, 0, isNullSafetyEnabled);
-
-              expect(
-                  result,
-                  const TypeMatcher<InstanceRef>().having(
-                      (instance) => instance.valueAsString,
-                      'valueAsString',
-                      '$soundNullSafety'));
-            } finally {
-              await vmService?.dispose();
-              await exitWebdev(process);
-              await process.shouldExit();
-            }
-          }, timeout: const Timeout.factor(2));
-
-          test('evaluate', () async {
-            var openPort = await findUnusedPort();
-            // running daemon command that starts dwds without keyboard input
-            var args = [
-              'daemon',
-              'web:$openPort',
-              '--enable-expression-evaluation',
-              '--verbose',
-            ];
-            var process = await testRunner.runWebDev(args,
-                workingDirectory:
-                    soundNullSafety ? soundExampleDirectory : exampleDirectory);
-
-            process.stdoutStream().listen(Logger.root.fine);
-            process.stderrStream().listen(Logger.root.warning);
-
-            VmService? vmService;
-
-            try {
-              // Wait for debug service Uri
-              String? wsUri;
-              await expectLater(process.stdout, emitsThrough((message) {
-                wsUri = getDebugServiceUri(message as String);
-                return wsUri != null;
-              }));
-              expect(wsUri, isNotNull);
-
-              vmService = await vmServiceConnectUri(wsUri!);
-              var vm = await vmService.getVM();
-              var isolateId = vm.isolates!.first.id!;
-              var isolate = await vmService.getIsolate(isolateId);
-              var libraryId = isolate.rootLib!.id!;
-
-              await vmService.streamListen('Debug');
-
-              var result = await vmService.evaluate(isolateId, libraryId,
-                  '(document?.body?.children?.first as SpanElement)?.text');
-
-              expect(
-                  result,
-                  const TypeMatcher<InstanceRef>().having(
-                      (instance) => instance.valueAsString,
-                      'valueAsString',
-                      'Hello World!!'));
-
-              result = await vmService.evaluate(
-                  isolateId, libraryId, 'main.toString()');
-
-              expect(
-                  result,
-                  const TypeMatcher<InstanceRef>().having(
-                      (instance) => instance.valueAsString,
-                      'valueAsString',
-                      contains('Hello World!!')));
-            } finally {
-              await vmService?.dispose();
-              await exitWebdev(process);
-              await process.shouldExit();
-            }
-          }, timeout: const Timeout.factor(2));
-
-          test('evaluate and get objects', () async {
-            var openPort = await findUnusedPort();
-            // running daemon command that starts dwds without keyboard input
-            var args = [
-              'daemon',
-              'web:$openPort',
-              '--enable-expression-evaluation',
-              '--verbose',
-            ];
-            var process = await testRunner.runWebDev(args,
-                workingDirectory:
-                    soundNullSafety ? soundExampleDirectory : exampleDirectory);
-
-            process.stdoutStream().listen(Logger.root.fine);
-            process.stderrStream().listen(Logger.root.warning);
-
-            VmService? vmService;
-
-            try {
-              // Wait for debug service Uri
-              String? wsUri;
-              await expectLater(process.stdout, emitsThrough((message) {
-                wsUri = getDebugServiceUri(message as String);
-                return wsUri != null;
-              }));
-              expect(wsUri, isNotNull);
-
-              vmService = await vmServiceConnectUri(wsUri!);
-              var vm = await vmService.getVM();
-              var isolateId = vm.isolates!.first.id!;
-              var isolate = await vmService.getIsolate(isolateId);
-              var libraryId = isolate.rootLib!.id!;
-
-              await vmService.streamListen('Debug');
-
-              final result = await vmService.evaluate(
-                  isolateId, libraryId, '[true, false]');
-              expect(
-                  result,
-                  const TypeMatcher<InstanceRef>().having(
-                      (instance) => instance.classRef?.name,
-                      'class name',
-                      dartSdkIsAtLeast('3.3.0-242.0.dev')
-                          ? 'JSArray<bool>'
-                          : 'List<bool>'));
-
-              final instanceRef = result as InstanceRef;
-              final list =
-                  await vmService.getObject(isolateId, instanceRef.id!);
-              expect(
-                  list,
-                  const TypeMatcher<Instance>().having(
-                      (instance) => instance.classRef?.name,
-                      'class name',
-                      dartSdkIsAtLeast('3.3.0-242.0.dev')
-                          ? 'JSArray<bool>'
-                          : 'List<bool>'));
-
-              final elements = (list as Instance).elements;
-              expect(elements, [
-                const TypeMatcher<InstanceRef>().having(
-                    (instance) => instance.valueAsString, 'value', 'true'),
-                const TypeMatcher<InstanceRef>().having(
-                    (instance) => instance.valueAsString, 'value', 'false'),
-              ]);
-            } finally {
-              await vmService?.dispose();
-              await exitWebdev(process);
-              await process.shouldExit();
-            }
-          }, timeout: const Timeout.factor(2));
-        });
-
-        group('and --no-enable-expression-evaluation:', () {
-          test('evaluateInFrame', () async {
-            var openPort = await findUnusedPort();
-            var args = [
-              'daemon',
-              'web:$openPort',
-              '--no-enable-expression-evaluation',
-              '--verbose',
-            ];
-            var process = await testRunner.runWebDev(args,
-                workingDirectory:
-                    soundNullSafety ? soundExampleDirectory : exampleDirectory);
-            VmService? vmService;
-
-            try {
-              // Wait for debug service Uri
-              String? wsUri;
-              await expectLater(process.stdout, emitsThrough((message) {
-                wsUri = getDebugServiceUri(message as String);
-                return wsUri != null;
-              }));
-              expect(wsUri, isNotNull);
-
-              vmService = await vmServiceConnectUri(wsUri!);
-              var vm = await vmService.getVM();
-              var isolateId = vm.isolates!.first.id!;
-              var scripts = await vmService.getScripts(isolateId);
-
-              await vmService.streamListen('Debug');
-              var stream = vmService.onEvent('Debug');
-
-              var mainScript = scripts.scripts!
-                  .firstWhere((each) => each.uri!.contains('main.dart'));
-
-              var bpLine = await findBreakpointLine(
-                  vmService, 'printCounter', isolateId, mainScript);
-
-              var bp = await vmService.addBreakpointWithScriptUri(
-                  isolateId, mainScript.uri!, bpLine);
-              expect(bp, isNotNull);
-
-              var event = await stream.firstWhere(
-                  (Event event) => event.kind == EventKind.kPauseBreakpoint);
-
-              expect(
-                  () => vmService!.evaluateInFrame(
-                      isolateId, event.topFrame!.index!, 'true'),
-                  throwsRPCError);
-            } finally {
-              await vmService?.dispose();
-              await exitWebdev(process);
-              await process.shouldExit();
-            }
-          });
-
-          test('evaluate', () async {
-            var openPort = await findUnusedPort();
-            // running daemon command that starts dwds without keyboard input
-            var args = [
-              'daemon',
-              'web:$openPort',
-              '--no-enable-expression-evaluation',
-              '--verbose',
-            ];
-            var process = await testRunner.runWebDev(args,
-                workingDirectory:
-                    soundNullSafety ? soundExampleDirectory : exampleDirectory);
-            VmService? vmService;
-
-            try {
-              // Wait for debug service Uri
-              String? wsUri;
-              await expectLater(process.stdout, emitsThrough((message) {
-                wsUri = getDebugServiceUri(message as String);
-                return wsUri != null;
-              }));
-              expect(wsUri, isNotNull);
-
-              vmService = await vmServiceConnectUri(wsUri!);
-              var vm = await vmService.getVM();
-              var isolateId = vm.isolates!.first.id!;
-              var isolate = await vmService.getIsolate(isolateId);
-              var libraryId = isolate.rootLib!.id!;
-
-              await vmService.streamListen('Debug');
-
-              expect(
-                  () => vmService!
-                      .evaluate(isolateId, libraryId, 'main.toString()'),
-                  throwsRPCError);
-            } finally {
-              await vmService?.dispose();
-              await exitWebdev(process);
-              await process.shouldExit();
-            }
-          }, timeout: const Timeout.factor(2));
-        });
+    group('and --enable-expression-evaluation:', () {
+      setUp(() async {
+        configureLogWriter(debug);
       });
-    }
+      test('evaluateInFrame', () async {
+        var openPort = await findUnusedPort();
+        // running daemon command that starts dwds without keyboard input
+        var args = [
+          'daemon',
+          'web:$openPort',
+          '--enable-expression-evaluation',
+          '--null-safety=sound',
+          '--verbose',
+        ];
+        var process = await testRunner.runWebDev(args,
+            workingDirectory: soundExampleDirectory);
+        VmService? vmService;
+
+        process.stdoutStream().listen(Logger.root.fine);
+        process.stderrStream().listen(Logger.root.warning);
+
+        try {
+          // Wait for debug service Uri
+          String? wsUri;
+          await expectLater(process.stdout, emitsThrough((message) {
+            wsUri = getDebugServiceUri(message as String);
+            return wsUri != null;
+          }));
+          Logger.root.fine('vm service uri: $wsUri');
+          expect(wsUri, isNotNull);
+
+          vmService = await vmServiceConnectUri(wsUri!);
+          var vm = await vmService.getVM();
+          var isolateId = vm.isolates!.first.id!;
+          var scripts = await vmService.getScripts(isolateId);
+
+          await vmService.streamListen('Debug');
+          var stream = vmService.onEvent('Debug');
+
+          var mainScript = scripts.scripts!
+              .firstWhere((each) => each.uri!.contains('main.dart'));
+
+          var bpLine = await findBreakpointLine(
+              vmService, 'printCounter', isolateId, mainScript);
+
+          var bp = await vmService.addBreakpointWithScriptUri(
+              isolateId, mainScript.uri!, bpLine);
+          expect(bp, isNotNull);
+
+          await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+          final isNullSafetyEnabled =
+              '() { const sound = !(<Null>[] is List<int>); return sound; } ()';
+          final result = await vmService.evaluateInFrame(
+              isolateId, 0, isNullSafetyEnabled);
+
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString,
+                  'valueAsString',
+                  'true'));
+        } finally {
+          await vmService?.dispose();
+          await exitWebdev(process);
+          await process.shouldExit();
+        }
+      }, timeout: const Timeout.factor(2));
+
+      test('evaluate', () async {
+        var openPort = await findUnusedPort();
+        // running daemon command that starts dwds without keyboard input
+        var args = [
+          'daemon',
+          'web:$openPort',
+          '--enable-expression-evaluation',
+          '--verbose',
+        ];
+        var process = await testRunner.runWebDev(
+          args,
+          workingDirectory: soundExampleDirectory,
+        );
+
+        process.stdoutStream().listen(Logger.root.fine);
+        process.stderrStream().listen(Logger.root.warning);
+
+        VmService? vmService;
+
+        try {
+          // Wait for debug service Uri
+          String? wsUri;
+          await expectLater(process.stdout, emitsThrough((message) {
+            wsUri = getDebugServiceUri(message as String);
+            return wsUri != null;
+          }));
+          expect(wsUri, isNotNull);
+
+          vmService = await vmServiceConnectUri(wsUri!);
+          var vm = await vmService.getVM();
+          var isolateId = vm.isolates!.first.id!;
+          var isolate = await vmService.getIsolate(isolateId);
+          var libraryId = isolate.rootLib!.id!;
+
+          await vmService.streamListen('Debug');
+
+          var result = await vmService.evaluate(isolateId, libraryId,
+              '(document?.body?.children?.first as SpanElement)?.text');
+
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString,
+                  'valueAsString',
+                  'Hello World!!'));
+
+          result =
+              await vmService.evaluate(isolateId, libraryId, 'main.toString()');
+
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString,
+                  'valueAsString',
+                  contains('Hello World!!')));
+        } finally {
+          await vmService?.dispose();
+          await exitWebdev(process);
+          await process.shouldExit();
+        }
+      }, timeout: const Timeout.factor(2));
+
+      test('evaluate and get objects', () async {
+        var openPort = await findUnusedPort();
+        // running daemon command that starts dwds without keyboard input
+        var args = [
+          'daemon',
+          'web:$openPort',
+          '--enable-expression-evaluation',
+          '--verbose',
+        ];
+        var process = await testRunner.runWebDev(args,
+            workingDirectory: soundExampleDirectory);
+
+        process.stdoutStream().listen(Logger.root.fine);
+        process.stderrStream().listen(Logger.root.warning);
+
+        VmService? vmService;
+
+        try {
+          // Wait for debug service Uri
+          String? wsUri;
+          await expectLater(process.stdout, emitsThrough((message) {
+            wsUri = getDebugServiceUri(message as String);
+            return wsUri != null;
+          }));
+          expect(wsUri, isNotNull);
+
+          vmService = await vmServiceConnectUri(wsUri!);
+          var vm = await vmService.getVM();
+          var isolateId = vm.isolates!.first.id!;
+          var isolate = await vmService.getIsolate(isolateId);
+          var libraryId = isolate.rootLib!.id!;
+
+          await vmService.streamListen('Debug');
+
+          final result =
+              await vmService.evaluate(isolateId, libraryId, '[true, false]');
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.classRef?.name,
+                  'class name',
+                  dartSdkIsAtLeast('3.3.0-242.0.dev')
+                      ? 'JSArray<bool>'
+                      : 'List<bool>'));
+
+          final instanceRef = result as InstanceRef;
+          final list = await vmService.getObject(isolateId, instanceRef.id!);
+          expect(
+              list,
+              const TypeMatcher<Instance>().having(
+                  (instance) => instance.classRef?.name,
+                  'class name',
+                  dartSdkIsAtLeast('3.3.0-242.0.dev')
+                      ? 'JSArray<bool>'
+                      : 'List<bool>'));
+
+          final elements = (list as Instance).elements;
+          expect(elements, [
+            const TypeMatcher<InstanceRef>()
+                .having((instance) => instance.valueAsString, 'value', 'true'),
+            const TypeMatcher<InstanceRef>()
+                .having((instance) => instance.valueAsString, 'value', 'false'),
+          ]);
+        } finally {
+          await vmService?.dispose();
+          await exitWebdev(process);
+          await process.shouldExit();
+        }
+      }, timeout: const Timeout.factor(2));
+    });
+
+    group('and --no-enable-expression-evaluation:', () {
+      test('evaluateInFrame', () async {
+        var openPort = await findUnusedPort();
+        var args = [
+          'daemon',
+          'web:$openPort',
+          '--no-enable-expression-evaluation',
+          '--verbose',
+        ];
+        var process = await testRunner.runWebDev(args,
+            workingDirectory: soundExampleDirectory);
+        VmService? vmService;
+
+        try {
+          // Wait for debug service Uri
+          String? wsUri;
+          await expectLater(process.stdout, emitsThrough((message) {
+            wsUri = getDebugServiceUri(message as String);
+            return wsUri != null;
+          }));
+          expect(wsUri, isNotNull);
+
+          vmService = await vmServiceConnectUri(wsUri!);
+          var vm = await vmService.getVM();
+          var isolateId = vm.isolates!.first.id!;
+          var scripts = await vmService.getScripts(isolateId);
+
+          await vmService.streamListen('Debug');
+          var stream = vmService.onEvent('Debug');
+
+          var mainScript = scripts.scripts!
+              .firstWhere((each) => each.uri!.contains('main.dart'));
+
+          var bpLine = await findBreakpointLine(
+              vmService, 'printCounter', isolateId, mainScript);
+
+          var bp = await vmService.addBreakpointWithScriptUri(
+              isolateId, mainScript.uri!, bpLine);
+          expect(bp, isNotNull);
+
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+          expect(
+              () => vmService!
+                  .evaluateInFrame(isolateId, event.topFrame!.index!, 'true'),
+              throwsRPCError);
+        } finally {
+          await vmService?.dispose();
+          await exitWebdev(process);
+          await process.shouldExit();
+        }
+      });
+
+      test('evaluate', () async {
+        var openPort = await findUnusedPort();
+        // running daemon command that starts dwds without keyboard input
+        var args = [
+          'daemon',
+          'web:$openPort',
+          '--no-enable-expression-evaluation',
+          '--verbose',
+        ];
+        var process = await testRunner.runWebDev(args,
+            workingDirectory: soundExampleDirectory);
+        VmService? vmService;
+
+        try {
+          // Wait for debug service Uri
+          String? wsUri;
+          await expectLater(process.stdout, emitsThrough((message) {
+            wsUri = getDebugServiceUri(message as String);
+            return wsUri != null;
+          }));
+          expect(wsUri, isNotNull);
+
+          vmService = await vmServiceConnectUri(wsUri!);
+          var vm = await vmService.getVM();
+          var isolateId = vm.isolates!.first.id!;
+          var isolate = await vmService.getIsolate(isolateId);
+          var libraryId = isolate.rootLib!.id!;
+
+          await vmService.streamListen('Debug');
+
+          expect(
+              () =>
+                  vmService!.evaluate(isolateId, libraryId, 'main.toString()'),
+              throwsRPCError);
+        } finally {
+          await vmService?.dispose();
+          await exitWebdev(process);
+          await process.shouldExit();
+        }
+      }, timeout: const Timeout.factor(2));
+    });
   });
 }

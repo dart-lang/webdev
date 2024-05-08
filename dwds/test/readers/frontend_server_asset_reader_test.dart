@@ -21,7 +21,7 @@ void main() {
   late File jsonOriginal;
   late File mapOriginal;
 
-  final testProject = TestProject.testWithSoundNullSafety;
+  final testProject = TestProject.test;
   final packagesDir = testProject.absolutePackageDirectory;
 
   Future<void> createTempFixtures() async {

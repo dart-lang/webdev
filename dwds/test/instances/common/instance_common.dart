@@ -22,7 +22,7 @@ void runTypeSystemVerificationTests({
   required bool canaryFeatures,
   required bool debug,
 }) {
-  final project = TestProject.testScopesWithSoundNullSafety;
+  final project = TestProject.testScopes;
 
   group('$compilationMode |', () {
     final context = TestContext(project, provider);
@@ -95,7 +95,7 @@ void runTests({
   required bool canaryFeatures,
   required bool debug,
 }) {
-  final project = TestProject.testScopesWithSoundNullSafety;
+  final project = TestProject.testScopes;
   final context = TestContext(project, provider);
 
   late AppInspector inspector;

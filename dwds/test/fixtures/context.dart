@@ -306,7 +306,6 @@ class TestContext {
             );
 
             final compilerOptions = TestCompilerOptions(
-              nullSafety: project.nullSafety,
               experiments: buildSettings.experiments,
               canaryFeatures: buildSettings.canaryFeatures,
               moduleFormat: testSettings.moduleFormat,

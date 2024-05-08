@@ -21,8 +21,7 @@ void main() {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
 
-  final context =
-      TestContext(TestProject.testScopesWithSoundNullSafety, provider);
+  final context = TestContext(TestProject.testScopes, provider);
 
   late AppInspector inspector;
 

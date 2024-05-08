@@ -31,7 +31,7 @@ void testAll({
     );
   }
 
-  final testProject = TestProject.test();
+  final testProject = TestProject.test;
   final testPackageProject = TestProject.testPackage(baseMode: indexBaseMode);
 
   final context = TestContext(testPackageProject, provider);

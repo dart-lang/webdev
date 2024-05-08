@@ -18,8 +18,7 @@ void runTests({
   required bool canaryFeatures,
   required bool debug,
 }) {
-  final context =
-      TestContext(TestProject.testExperimentWithSoundNullSafety, provider);
+  final context = TestContext(TestProject.testExperiment, provider);
   final testInspector = TestInspector(context);
 
   late VmService service;
