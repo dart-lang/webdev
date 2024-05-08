@@ -241,7 +241,6 @@ String get message => p.join('hello', 'world');
     await d.dir('a', [
       d.dir('bin', [
         d.file('nnbd.dart', '''
-// @dart=2.10
 
 // Compile time error if nnbd is enabled
 int x;
