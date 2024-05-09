@@ -8,14 +8,15 @@
 1. Add an alias to your `.bashrc`/`.zshrc` for Flutter Tools:
 
 ```
-alias flutter_tools='/YOUR_PATH/flutter/bin/dart --observe /YOUR_PATH/flutter/packages/flutter_tools/bin/flutter_tools.dart'
+alias flutter_tools_debug='/YOUR_PATH/flutter/bin/dart --observe /YOUR_PATH/flutter/packages/flutter_tools/bin/flutter_tools.dart'
+alias flutter_tools='/YOUR_PATH/flutter/bin/dart /YOUR_PATH/flutter/packages/flutter_tools/bin/flutter_tools.dart'
 ```
 
 > **Explanation:**
 >
 > - `/PATH_TO_YOUR_FLUTTER_REPO/bin/dart`: This is the path to the Dart SDK that
 >   Flutter Tools uses
-> - `--observe`: This flag specifies we want a Dart DevTools URL for debugging
+> - `--observe`: This flag specifies we want a Dart DevTools URL for debugging.
 > - `/PATH_TO_YOUR_FLUTTER_REPO/packages/flutter_tools/bin/flutter_tools.dart`:
 >   This is the path to Flutter Tools itself
 >
@@ -31,17 +32,29 @@ alias flutter_tools='/YOUR_PATH/flutter/bin/dart --observe /YOUR_PATH/flutter/pa
     path: /YOUR_PATH/dwds
 ```
 
+Note: This is even easier if you create a `pubspec_overrides.yaml` file in the `flutter_tools` directory, and then git-ignore it. This way you don't have to worry about committing your DWDS override.
+
 4. Choose a Flutter app to run (eg, the
    [old](https://github.com/flutter/flutter/tree/master/dev/integration_tests/flutter_gallery)
    or [new](https://github.com/flutter/gallery) Flutter Gallery apps).
 1. From the Flutter app repo, run your local Flutter Tools with alias you
    defined in step #2:
 
+If you want a DevTools URL:
+
+```
+flutter_tools_debug run -d chrome
+```
+
+If you don't want a DevTools URL:
+
 ```
 flutter_tools run -d chrome
 ```
 
-6. Open up the **first** Dart DevTools URL you see printed:
+Note: `flutter_tools_debug` can be a bit of a pain, because the app starts paused and you have to first open the DevTools URL and resume before you can do anything. Therefore, when you don't need to set breakpoints you should run `flutter_tools` instead of `flutter_tools_debug`.
+
+6. If running with `flutter_tools_debug`, open up the **first** Dart DevTools URL you see printed:
 
 ```
 ...
