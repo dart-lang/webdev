@@ -19,4 +19,3 @@
 'dart-debug-extension':
   - changed-files:
       - any-glob-to-any-file: 'dwds/debug_extension/**/*'
-      - any-glob-to-any-file: 'dwds/debug_extension_mv3/**/*'
