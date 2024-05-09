@@ -18,7 +18,7 @@ import 'fixtures/utilities.dart';
 
 void main() {
   group('Load Strategy', () {
-    final project = TestProject.testWithSoundNullSafety;
+    final project = TestProject.test;
     final provider = TestSdkConfigurationProvider();
     tearDownAll(provider.dispose);
 
@@ -153,7 +153,7 @@ void main() {
     final isFlutterApp = true;
     final experiments = ['records'];
 
-    final project = TestProject.testWithSoundNullSafety;
+    final project = TestProject.test;
     final provider =
         TestSdkConfigurationProvider(canaryFeatures: canaryFeatures);
     tearDownAll(provider.dispose);

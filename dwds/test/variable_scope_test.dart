@@ -22,8 +22,7 @@ void main() {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  final context =
-      TestContext(TestProject.testScopesWithSoundNullSafety, provider);
+  final context = TestContext(TestProject.testScopes, provider);
 
   setUpAll(() async {
     setCurrentLogWriter(debug: debug);

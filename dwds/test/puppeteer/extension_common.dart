@@ -36,7 +36,7 @@ void testAll({
   screenshotsEnabled = screenshotsEnabled;
 
   final provider = TestSdkConfigurationProvider();
-  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
+  final context = TestContext(TestProject.test, provider);
   tearDownAll(provider.dispose);
 
   group('${isMV3 ? 'MV3' : 'MV2'} Debug Extension', () {

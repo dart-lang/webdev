@@ -15,7 +15,7 @@ import 'package:test/test.dart';
 import 'fixtures/project.dart';
 
 void main() {
-  final project = TestProject.testPackageWithSoundNullSafety();
+  final project = TestProject.testPackage();
 
   for (final useDebuggerModuleNames in [true, false]) {
     group(

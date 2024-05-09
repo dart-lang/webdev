@@ -29,7 +29,7 @@ void testAll({
     );
   }
 
-  final testCircular1 = TestProject.testCircular1();
+  final testCircular1 = TestProject.testCircular1;
   final testCircular2 = TestProject.testCircular2(
     baseMode: indexBaseMode,
   );

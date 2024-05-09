@@ -25,8 +25,7 @@ void main() {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  final context =
-      TestContext(TestProject.testAppendBodyWithSoundNullSafety, provider);
+  final context = TestContext(TestProject.testAppendBody, provider);
 
   Future<void> makeEditAndWaitForRebuild() async {
     context.makeEditToDartEntryFile(

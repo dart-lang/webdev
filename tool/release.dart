@@ -126,7 +126,8 @@ Future<int> runRelease({
     final newVersion = await _updateDwdsPin('webdev');
     _logInfo('Add pinned DWDS info to CHANGELOG.');
     final changelog = File('../webdev/CHANGELOG.md');
-    _addNewLine(changelog,
+    _addNewLine(
+      changelog,
       newLine: '- Update `dwds` constraint to `${newVersion ?? 'TODO'}`.',
       insertAt: 2,
     );

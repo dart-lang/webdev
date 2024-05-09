@@ -17,8 +17,7 @@ void main() {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
 
-  final context =
-      TestContext(TestProject.testPackageWithSoundNullSafety(), provider);
+  final context = TestContext(TestProject.testPackage(), provider);
 
   group('shared context', () {
     setUpAll(() async {

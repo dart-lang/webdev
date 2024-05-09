@@ -22,8 +22,8 @@ void main() {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
 
-  final testProject = TestProject.testWithSoundNullSafety;
-  final testPackageProject = TestProject.testPackageWithSoundNullSafety();
+  final testProject = TestProject.test;
+  final testPackageProject = TestProject.testPackage();
 
   /// The directory for the general _test package.
   final testDir = testProject.absolutePackageDirectory;

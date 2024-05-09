@@ -37,7 +37,7 @@ void main() async {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
 
-  final context = TestContext(TestProject.testWithSoundNullSafety, provider);
+  final context = TestContext(TestProject.test, provider);
 
   Future<void> waitForDartDevToolsWithRetry({
     int retryCount = 6,
