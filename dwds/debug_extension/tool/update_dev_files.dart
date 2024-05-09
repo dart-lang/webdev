@@ -5,13 +5,12 @@
 import 'dart:io';
 
 void main() async {
-  await Future.wait([_updateManifestJson(), _updateDevtoolsJs()]);
+  await _updateManifestJson();
 }
 
-/// Adds the Googler extension key, updates the extension icon, and prefixes the
-/// extension name with "[DEV]".
+/// Adds the Googler extension key, and prefixes the extension name with "DEV".
 Future<void> _updateManifestJson() async {
-  final manifestJson = File('dev_build/web/manifest.json');
+  final manifestJson = File('compiled/manifest.json');
   final extensionKeyTxt = File('extension_key.txt');
   final extensionKey = await extensionKeyTxt.exists()
       ? await extensionKeyTxt.readAsString()
@@ -31,49 +30,17 @@ Future<void> _updateManifestJson() async {
             newValue: extensionKey,
           ),
       ];
-    }
-    if (_matchesKey(line: line, key: 'default_icon')) {
+    } else if (_matchesKey(line: line, key: 'default_icon')) {
       return [
         _newKeyValue(
           oldLine: line,
           newKey: 'default_icon',
-          newValue: 'dart_dev.png',
-        ),
-      ];
-    }
-    if (_matchesValue(line: line, value: 'background.js')) {
-      return [
-        _newKeyValue(
-          oldLine: line,
-          newKey: null,
-          newValue: 'background.dart.js',
+          newValue: 'static_assets/dart_dev.png',
         ),
       ];
     } else {
       return [line];
     }
-  });
-}
-
-/// Prefixes the names of the panels that are added to Chrome DevTools with
-/// "[DEV]".
-Future<void> _updateDevtoolsJs() async {
-  final devtoolsJs = File('dev_build/web/devtools.js');
-  return _transformDevFile(devtoolsJs, (line) {
-    final originalDebuggerLine = "const DEBUGGER_PANEL_NAME = 'Dart Debugger';";
-    final modifiedDebuggerLine =
-        "const DEBUGGER_PANEL_NAME = '[DEV] Dart Debugger';";
-    final originalInspectorLine =
-        "const INSPECTOR_PANEL_NAME = 'Flutter Inspector';";
-    final modifiedInspectorLine =
-        "const INSPECTOR_PANEL_NAME = '[DEV] Flutter Inspector';";
-    if (_matchesLine(line: line, match: originalDebuggerLine)) {
-      return [_newLine(oldLine: line, newLine: modifiedDebuggerLine)];
-    }
-    if (_matchesLine(line: line, match: originalInspectorLine)) {
-      return [_newLine(oldLine: line, newLine: modifiedInspectorLine)];
-    }
-    return [line];
   });
 }
 
@@ -94,15 +61,6 @@ bool _matchesKey({required String line, required String key}) {
   return line.trimLeft().startsWith('"$key":');
 }
 
-bool _matchesValue({required String line, required String value}) {
-  return line.trimRight().endsWith('"$value"') ||
-      line.trimRight().endsWith('"$value",');
-}
-
-bool _matchesLine({required String line, required String match}) {
-  return line.trim() == match;
-}
-
 String _newKeyValue({
   required String oldLine,
   String? newKey,
@@ -113,14 +71,6 @@ String _newKeyValue({
   final value = newValue != null ? '"$newValue"' : '';
   final lineEnd = oldLine.trim().endsWith(',') ? ',' : '';
   return '$lineStart$key$value$lineEnd';
-}
-
-String _newLine({
-  required String oldLine,
-  required String newLine,
-}) {
-  final lineStart = oldLine.leftPadding();
-  return '$lineStart$newLine';
 }
 
 extension LeftPaddingExtension on String {

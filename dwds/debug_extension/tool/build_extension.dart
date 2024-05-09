@@ -10,7 +10,6 @@
 // Run from the extension root directory:
 //    - For dev: dart run tool/build_extension.dart
 //    - For prod: dart run tool/build_extension.dart --prod
-//    - For MV2: dart run tool/build_extension.dart --mv2
 
 import 'dart:convert';
 import 'dart:io';
@@ -23,8 +22,7 @@ const _mv2Flag = 'mv2';
 
 void main(List<String> arguments) async {
   final parser = ArgParser()
-    ..addFlag(_prodFlag, negatable: true, defaultsTo: false)
-    ..addFlag(_mv2Flag, negatable: true, defaultsTo: false);
+    ..addFlag(_prodFlag, negatable: true, defaultsTo: false);
   final argResults = parser.parse(arguments);
 
   exitCode = await run(
@@ -38,7 +36,7 @@ void main(List<String> arguments) async {
 
 Future<int> run({required bool isProd, required bool isMV2}) async {
   _logInfo(
-    'Building ${isMV2 ? 'MV2' : 'MV3'} extension for ${isProd ? 'prod' : 'dev'}',
+    'Building extension for ${isProd ? 'prod' : 'dev'}',
   );
   _logInfo('Compiling extension with dart2js to /compiled directory');
   final compileStep = await Process.start(
@@ -50,10 +48,9 @@ Future<int> run({required bool isProd, required bool isMV2}) async {
   if (compileExitCode != 0) {
     return compileExitCode;
   }
-  final manifestFileName = isMV2 ? 'manifest_mv2' : 'manifest_mv3';
   _logInfo('Copying manifest.json to /compiled directory');
   try {
-    File(p.join('web', '$manifestFileName.json')).copySync(
+    File(p.join('web', 'manifest.json')).copySync(
       p.join('compiled', 'manifest.json'),
     );
   } catch (error) {
