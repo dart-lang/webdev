@@ -8,10 +8,7 @@ analyzer:
     # Ignore generated files
     - "lib/data/*"
     # Ignore debug extension builds
-    - "debug_extension/dev_build/*"
-    - "debug_extension/prod_build/*"
-    - "debug_extension/dev_build/*"
-    - "debug_extension/prod_build/*"
+    - "debug_extension/compiled/*"
 
 linter:
   rules:
@@ -32,7 +29,7 @@ dart_code_metrics:
   metrics-exclude:
     - test/**
   rules:
-    # - arguments-ordering 
+    # - arguments-ordering
     # - avoid-banned-imports
     - avoid-cascade-after-if-null
     - avoid-collection-methods-with-unrelated-types
