@@ -139,7 +139,4 @@ class Dwds {
       debugSettings.enableDebugging,
     );
   }
-
-  bool shouldPauseIsolatesOnStart(String appId) =>
-      _devHandler.shouldPauseIsolatesOnStart(appId);
 }
