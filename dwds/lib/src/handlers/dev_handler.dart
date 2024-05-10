@@ -495,7 +495,7 @@ class DevHandler {
     Stream<String> resumeEventsStream,
     Completer<void> readyToRunMainCompleter,
   ) {
-    final resumeEventsSubscription = resumeEventsStream.listen((_) async {
+    final resumeEventsSubscription = resumeEventsStream.listen((_) {
       readyToRunMainCompleter.complete();
       if (!readyToRunMainCompleter.isCompleted) {
         readyToRunMainCompleter.complete();

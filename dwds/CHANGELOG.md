@@ -1,6 +1,7 @@
 ## 24.1.0-wip
 
 - Fix bug where debugging clients are not aware of service extensions when connecting to a new web app. - [#2388](https://github.com/dart-lang/webdev/pull/2388)
+- Respect the value of `pause_isolates_on_start` during page-refreshes. - [#2431](https://github.com/dart-lang/webdev/pull/2431)
 
 ## 24.0.0
 
