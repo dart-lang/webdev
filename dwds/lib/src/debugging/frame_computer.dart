@@ -73,6 +73,7 @@ class FrameComputer {
         logger.warning('Error calculating sync frame: $e');
       }
     }
+    debugger.logAnyFrameErrors(frameType: 'sync');
   }
 
   Future<void> _collectAsyncFrames({int? limit}) async {
@@ -129,6 +130,7 @@ class FrameComputer {
             logger.warning('Error calculating async frame: $e');
           }
         }
+        debugger.logAnyFrameErrors(frameType: 'async');
       }
 
       // Async frames are no longer on the stack - we don't have local variable

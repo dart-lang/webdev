@@ -54,6 +54,8 @@ class Debugger extends Domain {
   final Locations _locations;
   final SkipLists _skipLists;
 
+  int _frameErrorCount = 0;
+
   Debugger._(
     this._remoteDebugger,
     this._streamNotify,
@@ -465,13 +467,21 @@ class Debugger extends Domain {
       try {
         dartFrame.vars = await variablesFor(frame);
       } catch (e) {
-        logger.warning(
-          'Error calculating Dart variables for frame $frameIndex: $e',
-        );
+        _frameErrorCount++;
       }
     }
 
     return dartFrame;
+  }
+
+  /// Can be called after [calculateDartFrameFor] to log any errors.
+  void logAnyFrameErrors({required String frameType}) {
+    if (_frameErrorCount > 0) {
+      logger.warning(
+        'Error calculating Dart variables for $_frameErrorCount $frameType frames.',
+      );
+    }
+    _frameErrorCount = 0;
   }
 
   void _scriptParsedHandler(ScriptParsedEvent e) {
