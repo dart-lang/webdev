@@ -23,7 +23,7 @@ final _devToolsLogs = [];
 final _workerLogs = [];
 
 Future<String> buildDebugExtension({required bool isMV3}) async {
-  final extensionDir = absolutePath(pathFromDwds: 'debug_extension_mv3');
+  final extensionDir = absolutePath(pathFromDwds: 'debug_extension');
   await Process.run(
     'dart',
     [

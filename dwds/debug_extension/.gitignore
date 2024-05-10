@@ -1,4 +1,3 @@
 build/
-prod_build/
-dev_build/
+compiled/
 extension_key.txt

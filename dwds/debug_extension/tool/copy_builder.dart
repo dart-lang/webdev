@@ -1,4 +1,4 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,14 +10,11 @@ Builder copyBuilder(_) => _CopyBuilder();
 class _CopyBuilder extends Builder {
   @override
   Map<String, List<String>> get buildExtensions => {
-        "web/{{}}.dart.js": ["prod_build/{{}}.js"],
-        "web/{{}}.png": ["prod_build/{{}}.png"],
-        "web/{{}}.html": ["prod_build/{{}}.html"],
-        "web/{{}}.css": ["prod_build/{{}}.css"],
-        "web/manifest.json": ["prod_build/manifest.json"],
-        "web/panel.js": ["prod_build/panel.js"],
-        "web/detector.js": ["prod_build/detector.js"],
-        "web/devtools.js": ["prod_build/devtools.js"],
+        "web/{{}}.dart.js": ["compiled/{{}}.dart.js"],
+        "web/static_assets/{{}}.png": ["compiled/static_assets/{{}}.png"],
+        "web/static_assets/{{}}.html": ["compiled/static_assets/{{}}.html"],
+        "web/static_assets/{{}}.css": ["compiled/static_assets/{{}}.css"],
+        "web/manifest.json": ["compiled/manifest.json"],
       };
 
   @override

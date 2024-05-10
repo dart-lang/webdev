@@ -19,7 +19,7 @@ import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:test_common/utilities.dart';
 
-import '../../debug_extension_mv3/web/data_serializers.dart';
+import '../../debug_extension/web/data_serializers.dart';
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
 import '../fixtures/utilities.dart';
