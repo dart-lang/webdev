@@ -18,8 +18,9 @@ class AppConnection {
   final _startedCompleter = Completer<void>();
   final _doneCompleter = Completer<void>();
   final SocketConnection _connection;
+  final Future<void> _readyToRunMain;
 
-  AppConnection(this.request, this._connection) {
+  AppConnection(this.request, this._connection, this._readyToRunMain) {
     safeUnawaited(_connection.sink.done.then((v) => _doneCompleter.complete()));
   }
 
@@ -34,6 +35,12 @@ class AppConnection {
     if (_startedCompleter.isCompleted) {
       throw StateError('Main has already started.');
     }
+
+    safeUnawaited(_runMain());
+  }
+
+  Future<void> _runMain() async {
+    await _readyToRunMain;
     _connection.sink.add(jsonEncode(serializers.serialize(RunRequest())));
     _startedCompleter.complete();
   }

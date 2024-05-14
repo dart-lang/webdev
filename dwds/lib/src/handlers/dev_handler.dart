@@ -121,9 +121,6 @@ class DevHandler {
         _servicesByAppId.clear();
       }();
 
-  bool shouldPauseIsolatesOnStart(String appId) =>
-      _servicesByAppId[appId]?.chromeProxyService.pauseIsolatesOnStart ?? false;
-
   void _emitBuildResults(BuildResult result) {
     if (result.status != BuildStatus.succeeded) return;
     for (var injectedConnection in _injectedConnections) {
@@ -441,7 +438,12 @@ class DevHandler {
     // were previously launched and create the new isolate.
     final services = _servicesByAppId[message.appId];
     final existingConnection = _appConnectionByAppId[message.appId];
-    final connection = AppConnection(message, sseConnection);
+    // Completer to indicate when the app's main() method is ready to be run.
+    // Its future is passed to the AppConnection so that it can be awaited on
+    // before running the app's main() method:
+    final readyToRunMainCompleter = Completer<void>();
+    final connection =
+        AppConnection(message, sseConnection, readyToRunMainCompleter.future);
 
     // We can take over a connection if there is no connectedInstanceId (this
     // means the client completely disconnected), or if the existing
@@ -460,11 +462,51 @@ class DevHandler {
 
       // Reconnect to existing service.
       services.connectedInstanceId = message.instanceId;
+
+      if (services.chromeProxyService.pauseIsolatesOnStart) {
+        // If the pause-isolates-on-start flag is set, we need to wait for
+        // the resume event to run the app's main() method.
+        _waitForResumeEventToRunMain(
+          services.chromeProxyService.resumeAfterRestartEventsStream,
+          readyToRunMainCompleter,
+        );
+      } else {
+        // Otherwise, we can run the app's main() method immediately.
+        readyToRunMainCompleter.complete();
+      }
+
       await services.chromeProxyService.createIsolate(connection);
+    } else {
+      // If this is the initial app connection, we can run the app's main()
+      // method immediately.
+      readyToRunMainCompleter.complete();
     }
     _appConnectionByAppId[message.appId] = connection;
     _connectedApps.add(connection);
     return connection;
+  }
+
+  /// Waits for a resume event to trigger the app's main() method.
+  ///
+  /// The [readyToRunMainCompleter]'s future will be passed to the
+  /// [AppConnection] so that it can be awaited on before running the app's
+  /// main() method.
+  void _waitForResumeEventToRunMain(
+    Stream<String> resumeEventsStream,
+    Completer<void> readyToRunMainCompleter,
+  ) {
+    final resumeEventsSubscription = resumeEventsStream.listen((_) {
+      readyToRunMainCompleter.complete();
+      if (!readyToRunMainCompleter.isCompleted) {
+        readyToRunMainCompleter.complete();
+      }
+    });
+
+    safeUnawaited(
+      readyToRunMainCompleter.future.then((_) {
+        resumeEventsSubscription.cancel();
+      }),
+    );
   }
 
   void _handleIsolateExit(AppConnection appConnection) {

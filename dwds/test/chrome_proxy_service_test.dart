@@ -2070,9 +2070,8 @@ void main() {
           service.setFlag('pause_isolates_on_start', 'true'),
           completion(_isSuccess),
         );
-        final appId = context.appConnection.request.appId;
         expect(
-          context.dwds!.shouldPauseIsolatesOnStart(appId),
+          context.service.pauseIsolatesOnStart,
           equals(true),
         );
       });
@@ -2083,9 +2082,8 @@ void main() {
           service.setFlag('pause_isolates_on_start', 'false'),
           completion(_isSuccess),
         );
-        final appId = context.appConnection.request.appId;
         expect(
-          context.dwds!.shouldPauseIsolatesOnStart(appId),
+          context.service.pauseIsolatesOnStart,
           equals(false),
         );
       });

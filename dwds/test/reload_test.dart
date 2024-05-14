@@ -531,7 +531,8 @@ void main() {
       undoEdit();
     });
 
-    test('does not run app until there is a resume event', () async {
+    test('after hot-restart, does not run app until there is a resume event',
+        () async {
       await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
@@ -549,6 +550,36 @@ void main() {
       expect(
         await fakeClient.callServiceExtension(hotRestart!),
         const TypeMatcher<Success>(),
+      );
+
+      await eventsDone;
+
+      final sourceBeforeResume = await context.webDriver.pageSource;
+      expect(sourceBeforeResume.contains(newString), isFalse);
+
+      final vm = await client.getVM();
+      final isolateId = vm.isolates!.first.id!;
+      await client.resume(isolateId);
+
+      final sourceAfterResume = await context.webDriver.pageSource;
+      expect(sourceAfterResume.contains(newString), isTrue);
+    });
+
+    test('after page refresh, does not run app until there is a resume event',
+        () async {
+      await makeEditAndWaitForRebuild();
+
+      await context.webDriver.driver.refresh();
+
+      final eventsDone = expectLater(
+        client.onIsolateEvent,
+        emitsThrough(
+          emitsInOrder([
+            _hasKind(EventKind.kIsolateExit),
+            _hasKind(EventKind.kIsolateStart),
+            _hasKind(EventKind.kIsolateRunnable),
+          ]),
+        ),
       );
 
       await eventsDone;
