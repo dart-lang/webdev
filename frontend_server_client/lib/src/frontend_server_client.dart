@@ -68,6 +68,8 @@ class FrontendServerClient {
     bool printIncrementalDependencies = true,
     List<String> additionalSources = const [],
     String? nativeAssets,
+    // -D=key=value arguments for dart environment variables
+    Map<String, String>? dartDefines,
   }) async {
     final commonArguments = <String>[
       '--sdk-root',
@@ -96,6 +98,9 @@ class FrontendServerClient {
       if (nativeAssets != null) ...[
         '--native-assets',
         nativeAssets,
+      ],
+      if (dartDefines != null) ...[
+        for (var entry in dartDefines.entries) '-D=${entry.key}=${entry.value}',
       ],
     ];
     late final Process feServer;
