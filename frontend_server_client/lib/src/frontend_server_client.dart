@@ -100,7 +100,8 @@ class FrontendServerClient {
         nativeAssets,
       ],
       if (dartDefines != null) ...[
-        for (var entry in dartDefines.entries) '-D=${entry.key}=${entry.value}',
+        for (var entry in dartDefines.entries)
+          '-D="${entry.key}=${entry.value}"',
       ],
     ];
     late final Process feServer;
