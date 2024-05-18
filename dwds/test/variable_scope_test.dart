@@ -4,6 +4,8 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
+library;
+
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';

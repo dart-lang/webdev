@@ -4,6 +4,8 @@
 
 // TODO: The examples don't work on windows
 @TestOn('!windows')
+library;
+
 import 'dart:io';
 
 import 'package:test/test.dart';

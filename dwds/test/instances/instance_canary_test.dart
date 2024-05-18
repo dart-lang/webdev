@@ -4,6 +4,7 @@
 
 @Tags(['daily'])
 @Timeout(Duration(minutes: 2))
+library;
 
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';

@@ -6,6 +6,8 @@
 @OnPlatform({
   'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
 })
+library;
+
 import 'package:build_verify/build_verify.dart';
 import 'package:test/test.dart';
 

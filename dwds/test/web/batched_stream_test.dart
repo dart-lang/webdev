@@ -4,6 +4,7 @@
 
 @Retry(0)
 @Timeout(Duration(minutes: 2))
+library;
 
 import 'dart:async';
 import 'dart:io';

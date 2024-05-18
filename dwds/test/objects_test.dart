@@ -5,6 +5,7 @@
 @Tags(['daily'])
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
+library;
 
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:test/test.dart';

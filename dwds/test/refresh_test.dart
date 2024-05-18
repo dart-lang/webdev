@@ -6,7 +6,7 @@
 /// tests.
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
-library refresh_test;
+library;
 
 import 'dart:async';
 

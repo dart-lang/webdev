@@ -5,6 +5,7 @@
 @Tags(['daily'])
 @TestOn('vm')
 @Timeout(Duration(minutes: 5))
+library;
 
 import 'dart:io';
 

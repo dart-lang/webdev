@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A library that we can import.
-library test_deferred_library;
+library;
 
 void deferredPrintLocal() {
   print('hello from deferred library'); // Breakpoint: DeferredPrintLocal

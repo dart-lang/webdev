@@ -104,3 +104,8 @@ linter:
     - use_rethrow_when_possible
     - valid_regexps
     - void_checks
+    - library_annotations
+    - unnecessary_library_name
+    - dangling_library_doc_comments
+    - unnecessary_library_directive
+    - no_leading_underscores_for_library_prefixes

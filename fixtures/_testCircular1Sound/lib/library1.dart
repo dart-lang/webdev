@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A library that we can import.
-library _test_circular1_sound;
+library;
 
 import 'package:_test_circular2_sound/library2.dart';
 

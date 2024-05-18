@@ -7,6 +7,8 @@
   'linux': Skip('https://github.com/dart-lang/webdev/issues/1787'),
 })
 @Timeout(Duration(minutes: 5))
+library;
+
 import 'package:test/test.dart';
 
 import 'extension_common.dart';

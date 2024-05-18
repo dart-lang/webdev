@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @JS()
-library cider_connection;
+library;
 
 import 'dart:convert';
 import 'dart:js_util';
