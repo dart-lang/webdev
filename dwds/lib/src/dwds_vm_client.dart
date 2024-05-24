@@ -28,6 +28,7 @@ typedef VmResponse = Map<String, Object?>;
 
 enum _NamespacedServiceExtension {
   extDwdsEmitEvent(method: 'ext.dwds.emitEvent'),
+  extDwdsRestart(method: 'ext.dwds.restart'),
   extDwdsScreenshot(method: 'ext.dwds.screenshot'),
   extDwdsSendEvent(method: 'ext.dwds.sendEvent'),
   flutterListViews(method: '_flutter.listViews');
@@ -193,6 +194,8 @@ class DwdsVmClient {
       response = await _flutterListViewsHandler(chromeProxyService);
     } else if (method == _NamespacedServiceExtension.extDwdsEmitEvent.method) {
       response = _extDwdsEmitEventHandler(request);
+    } else if (method == _NamespacedServiceExtension.extDwdsRestart.method) {
+      response = await _extDwdsRestartHandler(chromeProxyService);
     } else if (method == _NamespacedServiceExtension.extDwdsSendEvent.method) {
       response = await _extDwdsSendEventHandler(request, dwdsStats);
     } else if (method == _NamespacedServiceExtension.extDwdsScreenshot.method) {
@@ -259,6 +262,13 @@ class DwdsVmClient {
       }
     }
 
+    return {'result': Success().toJson()};
+  }
+
+  static Future<Map<String, Object>> _extDwdsRestartHandler(
+    ChromeProxyService chromeProxyService,
+  ) async {
+    await _fullReload(chromeProxyService);
     return {'result': Success().toJson()};
   }
 
