@@ -2097,6 +2097,38 @@ void main() {
       });
     });
 
+    group('getFlagList', () {
+      List<String> stringifyFlags(FlagList flagList) {
+        return flagList.flags
+                ?.map((flag) => '${flag.name} -> ${flag.valueAsString}')
+                .toList() ??
+            [];
+      }
+
+      test('returns expected default values', () async {
+        final service = context.service;
+        final flagList = await service.getFlagList();
+        expect(
+          stringifyFlags(flagList),
+          containsAll([
+            'pause_isolates_on_start -> false',
+          ]),
+        );
+      });
+
+      test('returns any modified flag values', () async {
+        final service = context.service;
+        await service.setFlag('pause_isolates_on_start', 'true');
+        final flagList = await service.getFlagList();
+        expect(
+          stringifyFlags(flagList),
+          containsAll([
+            'pause_isolates_on_start -> true',
+          ]),
+        );
+      });
+    });
+
     group('streamListen/onEvent', () {
       late ChromeProxyService service;
 

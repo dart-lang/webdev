@@ -92,12 +92,16 @@ class ChromeProxyService implements VmServiceInterface {
 
   StreamSubscription<ConsoleAPIEvent>? _consoleSubscription;
 
-  bool _pauseIsolatesOnStart = false;
+  /// The flags that can be set at runtime via [setFlag].
+  final Map<String, bool> _supportedVmServiceFlags = {
+    _pauseIsolatesOnStartFlag: false,
+  };
 
   /// The value of the [_pauseIsolatesOnStartFlag].
   ///
   /// This value can be updated at runtime via [setFlag].
-  bool get pauseIsolatesOnStart => _pauseIsolatesOnStart;
+  bool get pauseIsolatesOnStart =>
+      _supportedVmServiceFlags[_pauseIsolatesOnStartFlag] ?? false;
 
   final _resumeAfterRestartEventsController =
       StreamController<String>.broadcast();
@@ -759,8 +763,21 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
 
   @override
   Future<FlagList> getFlagList() async {
-    // VM flags do not apply to web apps.
-    return FlagList(flags: []);
+    return wrapInErrorHandlerAsync(
+      'getFlagList',
+      _getFlagList,
+    );
+  }
+
+  Future<FlagList> _getFlagList() async {
+    final flags = _supportedVmServiceFlags.entries.map<Flag>(
+      (entry) => Flag(
+        name: entry.key,
+        valueAsString: '${entry.value}',
+      ),
+    );
+
+    return FlagList(flags: flags.toList());
   }
 
   @override
@@ -1214,14 +1231,12 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
       );
 
   Future<Success> _setFlag(String name, String value) async {
-    if (!_supportedVmServiceFlags.contains(name)) {
+    if (!_supportedVmServiceFlags.containsKey(name)) {
       return _rpcNotSupportedFuture('setFlag');
     }
 
-    if (name == _pauseIsolatesOnStartFlag) {
-      assert(value == 'true' || value == 'false');
-      _pauseIsolatesOnStart = value == 'true';
-    }
+    assert(value == 'true' || value == 'false');
+    _supportedVmServiceFlags[name] = value == 'true';
 
     return Success();
   }
@@ -1699,8 +1714,3 @@ const _stderrTypes = ['error'];
 const _stdoutTypes = ['log', 'info', 'warning'];
 
 const _pauseIsolatesOnStartFlag = 'pause_isolates_on_start';
-
-/// The flags that can be set at runtime via [setFlag].
-const _supportedVmServiceFlags = {
-  _pauseIsolatesOnStartFlag,
-};
