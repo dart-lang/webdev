@@ -762,7 +762,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
   }
 
   @override
-  Future<FlagList> getFlagList() async {
+  Future<FlagList> getFlagList() {
     return wrapInErrorHandlerAsync(
       'getFlagList',
       _getFlagList,
