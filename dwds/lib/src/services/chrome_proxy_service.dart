@@ -769,7 +769,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     );
   }
 
-  Future<FlagList> _getFlagList() async {
+  Future<FlagList> _getFlagList() {
     final flags = _supportedVmServiceFlags.entries.map<Flag>(
       (entry) => Flag(
         name: entry.key,
@@ -777,7 +777,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
       ),
     );
 
-    return FlagList(flags: flags.toList());
+    return Future.value(FlagList(flags: flags.toList()));
   }
 
   @override
