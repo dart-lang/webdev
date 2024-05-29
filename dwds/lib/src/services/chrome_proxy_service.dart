@@ -92,8 +92,9 @@ class ChromeProxyService implements VmServiceInterface {
 
   StreamSubscription<ConsoleAPIEvent>? _consoleSubscription;
 
-  /// The flags that can be set at runtime via [setFlag].
-  final Map<String, bool> _supportedVmServiceFlags = {
+  /// The flags that can be set at runtime via [setFlag] and their respective
+  /// values.
+  final Map<String, bool> _currentVmServiceFlags = {
     _pauseIsolatesOnStartFlag: false,
   };
 
@@ -101,7 +102,7 @@ class ChromeProxyService implements VmServiceInterface {
   ///
   /// This value can be updated at runtime via [setFlag].
   bool get pauseIsolatesOnStart =>
-      _supportedVmServiceFlags[_pauseIsolatesOnStartFlag] ?? false;
+      _currentVmServiceFlags[_pauseIsolatesOnStartFlag] ?? false;
 
   /// Whether or not the connected app has a pending restart.
   bool get hasPendingRestart => _resumeAfterRestartEventsController.hasListener;
@@ -787,7 +788,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
   }
 
   Future<FlagList> _getFlagList() {
-    final flags = _supportedVmServiceFlags.entries.map<Flag>(
+    final flags = _currentVmServiceFlags.entries.map<Flag>(
       (entry) => Flag(
         name: entry.key,
         valueAsString: '${entry.value}',
@@ -1248,12 +1249,12 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
       );
 
   Future<Success> _setFlag(String name, String value) async {
-    if (!_supportedVmServiceFlags.containsKey(name)) {
+    if (!_currentVmServiceFlags.containsKey(name)) {
       return _rpcNotSupportedFuture('setFlag');
     }
 
     assert(value == 'true' || value == 'false');
-    _supportedVmServiceFlags[name] = value == 'true';
+    _currentVmServiceFlags[name] = value == 'true';
 
     return Success();
   }
