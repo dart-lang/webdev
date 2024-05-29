@@ -103,6 +103,9 @@ class ChromeProxyService implements VmServiceInterface {
   bool get pauseIsolatesOnStart =>
       _supportedVmServiceFlags[_pauseIsolatesOnStartFlag] ?? false;
 
+  /// Whether or not the connected app has a pending restart.
+  bool get hasPendingRestart => _resumeAfterRestartEventsController.hasListener;
+
   final _resumeAfterRestartEventsController =
       StreamController<String>.broadcast();
 
@@ -354,6 +357,20 @@ class ChromeProxyService implements VmServiceInterface {
           timestamp: timestamp,
           isolate: isolateRef,
         )..extensionRPC = extensionRpc,
+      );
+    }
+
+    // If the new isolate was created as part of a restart, send a
+    // kPausePostRequest event to notify client that the app is paused so that
+    // it can resume:
+    if (hasPendingRestart) {
+      _streamNotify(
+        'Debug',
+        Event(
+          kind: EventKind.kPausePostRequest,
+          timestamp: timestamp,
+          isolate: isolateRef,
+        ),
       );
     }
 

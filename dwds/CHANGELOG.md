@@ -2,6 +2,7 @@
 
 - Fix bug where debugging clients are not aware of service extensions when connecting to a new web app. - [#2388](https://github.com/dart-lang/webdev/pull/2388)
 - Respect the value of `pause_isolates_on_start` during page-refreshes. - [#2431](https://github.com/dart-lang/webdev/pull/2431)
+- Fix issue where DAP clients wouldn't resume after a restart. - [#2441](https://github.com/dart-lang/webdev/pull/2441)
 - Add implementation for the VM Service's `getFlagList` API. - [#2438](https://github.com/dart-lang/webdev/pull/2438)
 
 ## 24.0.0
