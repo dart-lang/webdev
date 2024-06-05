@@ -12,7 +12,15 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// TODO(annagrin) - use an alternative way to identify
 /// synthetic variables.
 /// Issue: https://github.com/dart-lang/sdk/issues/44262
-final ddcTemporaryVariableRegExp = RegExp(r'^t(\$[0-9]*)+\w*$');
+final ddcTemporaryVariableRegExp = RegExp(
+    // Starts with t$
+    r'^t\$'
+    // followed by anything
+    r'.*'
+    // or,
+    r'|'
+    // anything that contains the sequence '$35'.
+    r'.*\$35.*');
 final ddcTemporaryTypeVariableRegExp = RegExp(r'^__t[\$\w*]+$');
 
 /// Temporary variable regex before SDK changes for patterns.
