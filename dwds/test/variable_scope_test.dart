@@ -71,6 +71,14 @@ void main() {
         ddcTemporaryVariableRegExp.hasMatch(r't$36$350$354$35isSet'),
         isTrue,
       );
+      expect(
+        ddcTemporaryVariableRegExp.hasMatch(r't$36$35variable$35isSet'),
+        isTrue,
+      );
+      expect(
+        ddcTemporaryVariableRegExp.hasMatch(r'synthetic$35variable'),
+        isTrue,
+      );
       expect(ddcTemporaryTypeVariableRegExp.hasMatch(r'__t$TL'), isTrue);
       expect(ddcTemporaryTypeVariableRegExp.hasMatch(r'__t$StringN'), isTrue);
       expect(
@@ -84,6 +92,7 @@ void main() {
       expect(ddcTemporaryVariableRegExp.hasMatch(r't10'), isFalse);
       expect(ddcTemporaryVariableRegExp.hasMatch(r't10foo'), isFalse);
       expect(ddcTemporaryVariableRegExp.hasMatch(r'ten'), isFalse);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r'my$3635variable'), isFalse);
     });
   });
 
