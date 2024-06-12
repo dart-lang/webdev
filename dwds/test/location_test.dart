@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 @Timeout(Duration(minutes: 2))
+library;
 
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';

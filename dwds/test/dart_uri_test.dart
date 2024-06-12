@@ -4,6 +4,7 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
+library;
 
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:path/path.dart' as p;

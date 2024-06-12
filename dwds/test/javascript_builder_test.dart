@@ -4,6 +4,7 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
+library;
 
 import 'package:dwds/src/services/javascript_builder.dart';
 import 'package:test/test.dart';

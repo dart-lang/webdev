@@ -4,6 +4,8 @@
 
 @TestOn('vm')
 @Skip('Intended to run in analyze stage on stable SDK only, see mono_pkg.yaml')
+library;
+
 import 'dart:io';
 
 import 'package:pub_semver/pub_semver.dart';

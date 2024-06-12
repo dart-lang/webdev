@@ -6,6 +6,8 @@
 @OnPlatform({
   'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
 })
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

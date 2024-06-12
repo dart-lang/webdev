@@ -14,5 +14,5 @@ dependencies:
   test: ^1.21.1
 
 dev_dependencies:
-  lints: ^3.0.0
+  lints: ^4.0.0
   pubspec_parse: ^1.2.2

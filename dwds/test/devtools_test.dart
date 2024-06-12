@@ -4,6 +4,8 @@
 
 @Timeout(Duration(minutes: 5))
 @TestOn('vm')
+library;
+
 import 'dart:io';
 
 import 'package:test/test.dart';

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @JS()
-library debug_info;
+library;
 
 import 'dart:convert';
 import 'dart:html';

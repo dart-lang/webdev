@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @JS()
-library require_reloading_manager;
+library;
 
 import 'dart:async';
 import 'dart:collection';

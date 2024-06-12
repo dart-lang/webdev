@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 2))
+library;
 
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:test/test.dart';

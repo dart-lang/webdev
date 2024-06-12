@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @JS()
-library background;
+library;
 
 import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @JS()
-library webdev.web.promise;
+library;
 
 import 'dart:async';
 

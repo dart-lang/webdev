@@ -4,6 +4,7 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 1))
+library;
 
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
