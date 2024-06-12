@@ -28,6 +28,8 @@ typedef VmResponse = Map<String, Object?>;
 
 enum _NamespacedServiceExtension {
   extDwdsEmitEvent(method: 'ext.dwds.emitEvent'),
+  extDwdsReload(method: 'ext.dwds.reload'),
+  extDwdsRestart(method: 'ext.dwds.restart'),
   extDwdsScreenshot(method: 'ext.dwds.screenshot'),
   extDwdsSendEvent(method: 'ext.dwds.sendEvent'),
   flutterListViews(method: '_flutter.listViews');
@@ -76,6 +78,8 @@ class DwdsVmClient {
     final requestSink = requestController.sink;
     final requestStream = requestController.stream;
 
+    final clientCompleter = Completer<VmService>();
+
     _setUpVmServerConnection(
       chromeProxyService: chromeProxyService,
       debugService: debugService,
@@ -84,6 +88,7 @@ class DwdsVmClient {
       requestStream: requestStream,
       requestSink: requestSink,
       dwdsStats: dwdsStats,
+      clientFuture: clientCompleter.future,
     );
 
     final client = ddsUri == null
@@ -95,6 +100,10 @@ class DwdsVmClient {
         : await _setUpDdsClient(
             ddsUri: ddsUri,
           );
+
+    if (!clientCompleter.isCompleted) {
+      clientCompleter.complete(client);
+    }
 
     final dwdsVmClient =
         DwdsVmClient(client, requestController, responseController);
@@ -157,12 +166,14 @@ class DwdsVmClient {
     required StreamSink<VmResponse> responseSink,
     required Stream<VmRequest> requestStream,
     required StreamSink<VmRequest> requestSink,
+    required Future<VmService> clientFuture,
   }) {
     responseStream.listen((request) async {
       final response = await _maybeHandleServiceExtensionRequest(
         request,
         chromeProxyService: chromeProxyService,
         dwdsStats: dwdsStats,
+        clientFuture: clientFuture,
       );
       if (response != null) {
         requestSink.add(response);
@@ -186,6 +197,7 @@ class DwdsVmClient {
     VmResponse request, {
     required ChromeProxyService chromeProxyService,
     required DwdsStats dwdsStats,
+    required Future<VmService> clientFuture,
   }) async {
     VmRequest? response;
     final method = request['method'];
@@ -193,6 +205,11 @@ class DwdsVmClient {
       response = await _flutterListViewsHandler(chromeProxyService);
     } else if (method == _NamespacedServiceExtension.extDwdsEmitEvent.method) {
       response = _extDwdsEmitEventHandler(request);
+    } else if (method == _NamespacedServiceExtension.extDwdsReload.method) {
+      response = await _extDwdsReloadHandler(chromeProxyService);
+    } else if (method == _NamespacedServiceExtension.extDwdsRestart.method) {
+      final client = await clientFuture;
+      response = await _extDwdsRestartHandler(chromeProxyService, client);
     } else if (method == _NamespacedServiceExtension.extDwdsSendEvent.method) {
       response = await _extDwdsSendEventHandler(request, dwdsStats);
     } else if (method == _NamespacedServiceExtension.extDwdsScreenshot.method) {
@@ -259,6 +276,21 @@ class DwdsVmClient {
       }
     }
 
+    return {'result': Success().toJson()};
+  }
+
+  static Future<Map<String, Object>> _extDwdsReloadHandler(
+    ChromeProxyService chromeProxyService,
+  ) async {
+    await _fullReload(chromeProxyService);
+    return {'result': Success().toJson()};
+  }
+
+  static Future<Map<String, Object>> _extDwdsRestartHandler(
+    ChromeProxyService chromeProxyService,
+    VmService client,
+  ) async {
+    await _hotRestart(chromeProxyService, client);
     return {'result': Success().toJson()};
   }
 
