@@ -296,8 +296,7 @@ void main() {
         var isolate = await client.getIsolate(isolateId);
         var library = isolate.rootLib!.uri!;
 
-        final String callback =
-            '(_, __) async => ServiceExtensionResponse.result("")';
+        final callback = '(_, __) async => ServiceExtensionResponse.result("")';
 
         await client.evaluate(
           isolateId,

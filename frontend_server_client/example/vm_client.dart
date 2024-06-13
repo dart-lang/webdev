@@ -18,7 +18,7 @@ void main(List<String> args) async {
       throw ArgumentError('No command line args are supported');
     }
 
-    var client = await FrontendServerClient.start(
+    final client = await FrontendServerClient.start(
         'org-dartlang-root:///$app',
         outputDill,
         p.join(sdkDir, 'lib', '_internal', 'vm_platform_strong.dill'),
@@ -46,7 +46,7 @@ void main(List<String> args) async {
       }
       if (line.startsWith(
           'The Dart DevTools debugger and profiler is available at:')) {
-        var observatoryUri =
+        final observatoryUri =
             '${line.split(' ').last.replaceFirst('http', 'ws')}ws';
         vmServiceCompleter.complete(vmServiceConnectUri(observatoryUri));
       }
@@ -62,9 +62,9 @@ void main(List<String> args) async {
     await sawHelloWorld.future;
 
     _print('editing $app');
-    var appFile = File(app);
-    var originalContent = await appFile.readAsString();
-    var newContent = originalContent.replaceFirst('hello', 'goodbye');
+    final appFile = File(app);
+    final originalContent = await appFile.readAsString();
+    final newContent = originalContent.replaceFirst('hello', 'goodbye');
     await appFile.writeAsString(newContent);
 
     _print('recompiling $app with edits');
@@ -72,7 +72,7 @@ void main(List<String> args) async {
     client.accept();
     _print('done recompiling $app');
     _print('reloading $app');
-    var vm = await vmService.getVM();
+    final vm = await vmService.getVM();
     await vmService.reloadSources(vm.isolates!.first.id!,
         rootLibUri: result.dillOutput!);
 

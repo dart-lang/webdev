@@ -17,3 +17,7 @@ dependencies:
   pub_semver: ^2.1.1
   test_common:
     path: ../test_common
+
+dev_dependencies:
+  analysis_config:
+    path: ../_analysis_config

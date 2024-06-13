@@ -443,7 +443,7 @@ class Debugger extends Domain {
     // TODO(#700): Understand when this can happen and have a better fix.
     if (script == null) return null;
 
-    final functionName = _prettifyMember((frame.functionName).split('.').last);
+    final functionName = _prettifyMember(frame.functionName.split('.').last);
     final codeRefName = functionName.isEmpty ? '<closure>' : functionName;
 
     final dartFrame = Frame(

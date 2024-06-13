@@ -143,7 +143,7 @@ void testAll({
           } catch (_) {}
         });
 
-        onBreakPoint(script, bpId, body) => onBp(
+        Future<void> onBreakPoint(script, bpId, body) => onBp(
               stream,
               isolateId,
               script,
@@ -151,7 +151,7 @@ void testAll({
               body,
             );
 
-        evaluateInFrame(frame, expr, {scope}) async =>
+        Future<Response> evaluateInFrame(frame, expr, {scope}) async =>
             await context.service.evaluateInFrame(
               isolateId,
               frame,
@@ -159,7 +159,7 @@ void testAll({
               scope: scope,
             );
 
-        getInstanceRef(frame, expr, {scope}) async {
+        Future<InstanceRef> getInstanceRef(frame, expr, {scope}) async {
           final result = await evaluateInFrame(
             frame,
             expr,
@@ -169,7 +169,7 @@ void testAll({
           return result as InstanceRef;
         }
 
-        getInstance(InstanceRef ref) async =>
+        Future<Instance> getInstance(InstanceRef ref) async =>
             await context.service.getObject(isolateId, ref.id!) as Instance;
 
         test('with scope', () async {
@@ -583,7 +583,7 @@ void testAll({
                 reason:
                     'Failed to receive and async frame error in $attempt attempts',
               );
-              await (Future.delayed(const Duration(milliseconds: 10)));
+              await Future<void>.delayed(const Duration(milliseconds: 10));
               attempt++;
             } while (error is! ErrorRef);
           } finally {
@@ -654,7 +654,7 @@ void testAll({
 
         tearDown(() async {});
 
-        evaluate(
+        Future<Response> evaluate(
           targetId,
           expr, {
           scope,
@@ -666,7 +666,7 @@ void testAll({
               scope: scope,
             );
 
-        getInstanceRef(
+        Future<InstanceRef> getInstanceRef(
           targetId,
           expr, {
           scope,

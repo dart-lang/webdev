@@ -15,7 +15,7 @@ enum _LogLevel {
   error,
 }
 
-debugLog(
+void debugLog(
   String msg, {
   String? prefix,
   bool verbose = false,
@@ -23,7 +23,7 @@ debugLog(
   _log(msg, prefix: prefix, verbose: verbose);
 }
 
-debugWarn(
+void debugWarn(
   String msg, {
   String? prefix,
   bool verbose = false,
@@ -31,7 +31,7 @@ debugWarn(
   _log(msg, prefix: prefix, level: _LogLevel.warn, verbose: verbose);
 }
 
-debugError(
+void debugError(
   String msg, {
   String? prefix,
   bool verbose = false,

@@ -43,7 +43,7 @@ ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
       ? argResults[autoOption] as String?
       : null;
 
-  void _handleDeprecatedFlag(String flag, String autoFallback) {
+  void handleDeprecatedFlag(String flag, String autoFallback) {
     if (argResults.options.contains(flag) &&
         argResults.wasParsed(flag) &&
         (argResults[flag] as bool? ?? false)) {
@@ -62,9 +62,9 @@ ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
     }
   }
 
-  _handleDeprecatedFlag(hotReloadFlag, 'reload');
-  _handleDeprecatedFlag(hotRestartFlag, 'restart');
-  _handleDeprecatedFlag(liveReloadFlag, 'refresh');
+  handleDeprecatedFlag(hotReloadFlag, 'reload');
+  handleDeprecatedFlag(hotRestartFlag, 'restart');
+  handleDeprecatedFlag(liveReloadFlag, 'refresh');
 
   switch (auto) {
     case 'reload':

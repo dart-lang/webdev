@@ -246,7 +246,7 @@ void _registerDebugEventListeners() {
   );
 }
 
-_enableExecutionContextReporting(int tabId) {
+void _enableExecutionContextReporting(int tabId) {
   // Runtime.enable enables reporting of execution contexts creation by means of
   // executionContextCreated event. When the reporting gets enabled the event
   // will be sent immediately for each existing execution context:
@@ -299,7 +299,7 @@ Future<void> _maybeConnectToDwds(int tabId, Object? params) async {
   final context = json.decode(JSON.stringify(params))['context'];
   final contextOrigin = context['origin'] as String?;
   if (contextOrigin == null) return;
-  if (contextOrigin.contains(('chrome-extension:'))) return;
+  if (contextOrigin.contains('chrome-extension:')) return;
   final debugInfo = await fetchStorageObject<DebugInfo>(
     type: StorageObject.debugInfo,
     tabId: tabId,
