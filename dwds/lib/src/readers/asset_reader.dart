@@ -67,21 +67,20 @@ class PackageUriMapper {
       if (!useDebuggerModuleNames) {
         return defaultServerPath;
       }
-      final Uri? resolvedUri = packageConfig.resolve(packageUri);
+      final resolvedUri = packageConfig.resolve(packageUri);
       if (resolvedUri == null) {
         _logger.severe('Cannot resolve package uri $packageUri');
         return defaultServerPath;
       }
-      final Package? package = packageConfig.packageOf(resolvedUri);
+      final package = packageConfig.packageOf(resolvedUri);
       if (package == null) {
         _logger.severe('Cannot find package for package uri $packageUri');
         return defaultServerPath;
       }
-      final Uri root = package.root;
-      final String relativeUrl =
-          resolvedUri.toString().replaceFirst('$root', '');
-      final String? relativeRoot = _getRelativeRoot(root);
-      final String ret = relativeRoot == null
+      final root = package.root;
+      final relativeUrl = resolvedUri.toString().replaceFirst('$root', '');
+      final relativeRoot = _getRelativeRoot(root);
+      final ret = relativeRoot == null
           ? 'packages/$relativeUrl'
           : 'packages/$relativeRoot/$relativeUrl';
       return ret;
@@ -99,11 +98,11 @@ class PackageUriMapper {
         return packageConfig
             .resolve(Uri(scheme: 'package', pathSegments: segments.skip(1)));
       }
-      final String relativeRoot = segments.skip(1).first;
-      final String relativeUrl = segments.skip(2).join('/');
-      final Package package = packageConfig.packages
+      final relativeRoot = segments.skip(1).first;
+      final relativeUrl = segments.skip(2).join('/');
+      final package = packageConfig.packages
           .firstWhere((Package p) => _getRelativeRoot(p.root) == relativeRoot);
-      final Uri resolvedUri = package.root.resolve(relativeUrl);
+      final resolvedUri = package.root.resolve(relativeUrl);
 
       return resolvedUri;
     }

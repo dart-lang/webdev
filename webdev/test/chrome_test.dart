@@ -93,14 +93,14 @@ void main() {
       logController = StreamController<String>();
       logStream = logController.stream;
 
-      void _logWriter(Level level, String message,
+      void logWriter(Level level, String message,
           {String? error, String? loggerName, String? stackTrace}) {
         if (level >= Level.INFO) {
           logController.add('[$level] $loggerName: $message');
         }
       }
 
-      configureLogWriter(true, customLogWriter: _logWriter);
+      configureLogWriter(true, customLogWriter: logWriter);
       dataDir = Directory.systemTemp.createTempSync(_userDataDirName);
     });
 

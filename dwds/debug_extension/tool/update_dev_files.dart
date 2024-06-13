@@ -75,8 +75,8 @@ String _newKeyValue({
 
 extension LeftPaddingExtension on String {
   String leftPadding() {
-    String padding = '';
-    int idx = 0;
+    var padding = '';
+    var idx = 0;
     while (idx < length && this[idx] == ' ') {
       padding += ' ';
       idx++;
