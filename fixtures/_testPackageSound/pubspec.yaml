@@ -5,7 +5,7 @@ description: >-
 publish_to: none
 
 environment:
-  sdk: ^3.2.0-36.0.dev
+  sdk: ^3.2.0
 
 dependencies:
   _test_sound:

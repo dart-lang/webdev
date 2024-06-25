@@ -5,7 +5,6 @@
 import 'dart:math' as math;
 
 import 'package:async/async.dart';
-import 'package:collection/collection.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/classes.dart';
@@ -113,9 +112,9 @@ class AppInspector implements AppInspectorInterface {
     final scripts = await scriptRefs;
 
     await DartUri.initialize();
-    DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri).whereNotNull());
+    DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri).nonNulls);
     DartUri.recordAbsoluteUris(
-      scripts.map((script) => script.uri).whereNotNull(),
+      scripts.map((script) => script.uri).nonNulls,
     );
 
     isolate.extensionRPCs?.addAll(await _getExtensionRpcs());

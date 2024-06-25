@@ -6,7 +6,7 @@ description: >-
   A Chrome extension for Dart debugging.
 
 environment:
-  sdk: ^3.2.0-36.0.dev
+  sdk: ^3.2.0
 
 dependencies:
   built_value: ^8.3.0
