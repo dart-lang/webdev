@@ -18,7 +18,6 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 
 const _prodFlag = 'prod';
-const _mv2Flag = 'mv2';
 
 void main(List<String> arguments) async {
   final parser = ArgParser()
@@ -27,14 +26,13 @@ void main(List<String> arguments) async {
 
   exitCode = await run(
     isProd: argResults[_prodFlag] as bool,
-    isMV2: argResults[_mv2Flag] as bool,
   );
   if (exitCode != 0) {
     _logWarning('Run terminated unexpectedly with exit code: $exitCode');
   }
 }
 
-Future<int> run({required bool isProd, required bool isMV2}) async {
+Future<int> run({required bool isProd}) async {
   _logInfo(
     'Building extension for ${isProd ? 'prod' : 'dev'}',
   );
