@@ -295,7 +295,7 @@ void runTests({
           final instanceId = instanceRef.id!;
           expect(
             await getObject(instanceId),
-            matchSetInstance(type: '_HashSet<int>'),
+            matchSetInstance(type: 'LinkedSet<int>'),
           );
 
           expect(
