@@ -63,7 +63,7 @@ String get message => p.join('hello', 'world');
   test(
     'can compile, recompile, and hot reload a vm app',
     () async {
-      var entrypoint = p.join(packageRoot, 'bin', 'main.dart');
+      final entrypoint = p.join(packageRoot, 'bin', 'main.dart');
       client = await FrontendServerClient.start(
           entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill);
       var result = await client.compile();
@@ -79,28 +79,28 @@ String get message => p.join('hello', 'world');
       expect(result.removedSources, isEmpty);
       expect(result.dillOutput, isNotNull);
       expect(File(result.dillOutput!).existsSync(), true);
-      var process = await Process.start(Platform.resolvedExecutable, [
+      final process = await Process.start(Platform.resolvedExecutable, [
         '--observe',
         '--no-pause-isolates-on-exit',
         '--pause-isolates-on-start',
         result.dillOutput!
       ]);
       addTearDown(process.kill);
-      var stdoutLines = StreamQueue(process.stdout
+      final stdoutLines = StreamQueue(process.stdout
           .transform(utf8.decoder)
           .transform(const LineSplitter()));
 
-      var observatoryLine = await stdoutLines.next;
-      var observatoryUri =
+      final observatoryLine = await stdoutLines.next;
+      final observatoryUri =
           '${observatoryLine.split(' ').last.replaceFirst('http', 'ws')}ws';
-      var vmService = await vmServiceConnectUri(observatoryUri);
-      var isolate = await waitForIsolatesAndResume(vmService);
+      final vmService = await vmServiceConnectUri(observatoryUri);
+      final isolate = await waitForIsolatesAndResume(vmService);
 
       await expectLater(stdoutLines, emitsThrough(p.join('hello', 'world')));
 
-      var appFile = File(entrypoint);
-      var originalContent = await appFile.readAsString();
-      var newContent = originalContent.replaceFirst('hello', 'goodbye');
+      final appFile = File(entrypoint);
+      final originalContent = await appFile.readAsString();
+      final newContent = originalContent.replaceFirst('hello', 'goodbye');
       await appFile.writeAsString(newContent);
 
       result = await client.compile([File(entrypoint).uri]);
@@ -124,9 +124,9 @@ String get message => p.join('hello', 'world');
   test(
     'can handle compile errors and reload fixes',
     () async {
-      var entrypoint = p.join(packageRoot, 'bin', 'main.dart');
-      var entrypointFile = File(entrypoint);
-      var originalContent = await entrypointFile.readAsString();
+      final entrypoint = p.join(packageRoot, 'bin', 'main.dart');
+      final entrypointFile = File(entrypoint);
+      final originalContent = await entrypointFile.readAsString();
       // append two compile errors to the bottom
       await entrypointFile
           .writeAsString('$originalContent\nint foo = 1.0;\nString bar = 4;');
@@ -149,22 +149,22 @@ String get message => p.join('hello', 'world');
       expect(result.dillOutput, isNotNull);
       expect(File(result.dillOutput!).existsSync(), true);
 
-      var process = await Process.start(Platform.resolvedExecutable, [
+      final process = await Process.start(Platform.resolvedExecutable, [
         '--observe',
         '--no-pause-isolates-on-exit',
         '--pause-isolates-on-start',
         result.dillOutput!
       ]);
       addTearDown(process.kill);
-      var stdoutLines = StreamQueue(process.stdout
+      final stdoutLines = StreamQueue(process.stdout
           .transform(utf8.decoder)
           .transform(const LineSplitter()));
 
-      var observatoryLine = await stdoutLines.next;
-      var observatoryUri =
+      final observatoryLine = await stdoutLines.next;
+      final observatoryUri =
           '${observatoryLine.split(' ').last.replaceFirst('http', 'ws')}ws';
-      var vmService = await vmServiceConnectUri(observatoryUri);
-      var isolate = await waitForIsolatesAndResume(vmService);
+      final vmService = await vmServiceConnectUri(observatoryUri);
+      final isolate = await waitForIsolatesAndResume(vmService);
 
       // The program actually runs regardless of the errors, as they don't affect
       // the runtime behavior.
@@ -191,9 +191,9 @@ String get message => p.join('hello', 'world');
   );
 
   test('can compile and recompile a dartdevc app', () async {
-    var entrypoint =
+    final entrypoint =
         p.toUri(p.join(packageRoot, 'bin', 'main.dart')).toString();
-    var dartDevcClient = client = await DartDevcFrontendServerClient.start(
+    final dartDevcClient = client = await DartDevcFrontendServerClient.start(
         entrypoint, p.join(packageRoot, 'out.dill'),
         platformKernel: p
             .toUri(p.join(sdkDir, 'lib', '_internal', 'ddc_platform.dill'))
@@ -216,14 +216,14 @@ String get message => p.join('hello', 'world');
     expect(File(result.jsSourcesOutput!).existsSync(), true);
     expect(File(result.jsSourceMapsOutput!).existsSync(), true);
 
-    var entrypointUri = Uri.parse(entrypoint);
+    final entrypointUri = Uri.parse(entrypoint);
     expect(
         utf8.decode(dartDevcClient.assetBytes('${entrypointUri.path}.lib.js')!),
         contains('hello'));
 
-    var appFile = File(entrypointUri.toFilePath());
-    var originalContent = await appFile.readAsString();
-    var newContent = originalContent.replaceFirst('hello', 'goodbye');
+    final appFile = File(entrypointUri.toFilePath());
+    final originalContent = await appFile.readAsString();
+    final newContent = originalContent.replaceFirst('hello', 'goodbye');
     await appFile.writeAsString(newContent);
 
     result = await client.compile([entrypointUri]);
@@ -253,11 +253,11 @@ void main() {
 ''')
       ])
     ]).create();
-    var entrypoint = p.join(packageRoot, 'bin', 'nnbd.dart');
+    final entrypoint = p.join(packageRoot, 'bin', 'nnbd.dart');
     client = await FrontendServerClient.start(
         entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill,
         enabledExperiments: ['non-nullable']);
-    var result = await client.compile();
+    final result = await client.compile();
     client.accept();
     expect(result.errorCount, 1);
     expect(result.compilerOutputLines, contains(contains('int x;')));
@@ -274,7 +274,7 @@ void main() {
       ]),
     ]).create();
 
-    var entrypoint = p.join(packageRoot, 'bin', 'main with spaces.dart');
+    final entrypoint = p.join(packageRoot, 'bin', 'main with spaces.dart');
     client = await FrontendServerClient.start(entrypoint,
         p.join(packageRoot, 'out with spaces.dill'), vmPlatformDill);
     var result = await client.compile();
@@ -295,9 +295,9 @@ void main() {
     expect(processResult.stdout, startsWith('hello world'));
     expect(processResult.exitCode, 0);
 
-    var appFile = File(entrypoint);
-    var originalContent = await appFile.readAsString();
-    var newContent = originalContent.replaceFirst('hello', 'goodbye');
+    final appFile = File(entrypoint);
+    final originalContent = await appFile.readAsString();
+    final newContent = originalContent.replaceFirst('hello', 'goodbye');
     await appFile.writeAsString(newContent);
     result = await client.compile([appFile.uri]);
     expect(result.compilerOutputLines, isEmpty);
@@ -320,7 +320,7 @@ Future<Isolate> waitForIsolatesAndResume(VmService vmService) async {
     vm = await vmService.getVM();
     isolates = vm.isolates;
   }
-  var isolateRef = isolates.first;
+  final isolateRef = isolates.first;
   var isolate = await vmService.getIsolate(isolateRef.id!);
   while (isolate.pauseEvent?.kind != EventKind.kPauseStart) {
     await Future.delayed(const Duration(milliseconds: 100));

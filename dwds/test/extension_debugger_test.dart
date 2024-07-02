@@ -169,7 +169,7 @@ void main() async {
       // Wait for it to be closed:
       await extensionDebugger.onClose.first;
       // Try to send an event:
-      callToSendCommand() => extensionDebugger.sendCommand(
+      Future<void> callToSendCommand() => extensionDebugger.sendCommand(
             'Debugger.setBreakpoint',
             params: {
               'location': {'scriptId': '555', 'lineNumber': 28},

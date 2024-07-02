@@ -39,6 +39,8 @@ dependencies:
   webkit_inspection_protocol: ^1.0.1
 
 dev_dependencies:
+  analysis_config:
+    path: ../_analysis_config
   args: ^2.4.2
   build: ^2.3.1
   build_daemon: ^4.0.0

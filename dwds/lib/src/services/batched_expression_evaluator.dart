@@ -74,7 +74,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
     String? libraryUri;
     String? isolateId;
     Map<String, String>? scope;
-    List<EvaluateRequest> currentRequests = [];
+    var currentRequests = <EvaluateRequest>[];
 
     for (var request in requests) {
       libraryUri ??= request.libraryUri;
@@ -127,7 +127,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
 
     _logger.fine('Evaluating batch of expressions $batchedExpression');
 
-    final RemoteObject list = await super.evaluateExpression(
+    final list = await super.evaluateExpression(
       first.isolateId,
       first.libraryUri,
       batchedExpression,

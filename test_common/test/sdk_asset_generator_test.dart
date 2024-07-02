@@ -16,7 +16,7 @@ import 'package:test_common/test_sdk_layout.dart';
 
 void main() {
   group('SDK asset generator', () {
-    final bool debug = false;
+    final debug = false;
 
     late Directory tempDir;
     late String sdkDirectory;

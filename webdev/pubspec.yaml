@@ -40,6 +40,8 @@ dependencies:
   yaml: ^3.1.1
 
 dev_dependencies:
+  analysis_config:
+    path: ../_analysis_config
   build: ^2.3.0
   build_runner: ^2.4.0
   build_verify: ^3.0.0

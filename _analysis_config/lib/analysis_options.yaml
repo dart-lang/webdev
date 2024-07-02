@@ -1,0 +1,105 @@
+# Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+include: package:lints/recommended.yaml
+
+analyzer:
+#  language:
+#    strict-casts: true
+  errors:
+    dead_code: error
+    unused_element: error
+    unused_import: error
+    unused_local_variable: error
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_classes_with_only_static_members
+    - avoid_returning_this
+    - avoid_unused_constructor_parameters
+    - avoid_void_async
+    - cancel_subscriptions
+    - directives_ordering
+    - join_return_with_assignment
+    - library_names
+    - literal_only_boolean_expressions
+    - package_api_docs
+    - package_prefixed_library_names
+    # - prefer_final_locals
+    # - prefer_relative_imports
+    - prefer_single_quotes
+    - prefer_void_to_null
+    - test_types_in_equals
+    - throw_in_finally
+    - omit_local_variable_types
+    - only_throw_errors
+    - unawaited_futures
+    - unnecessary_lambdas
+    - unnecessary_parenthesis
+    - unnecessary_statements
+
+# TODO(https://github.com/dart-lang/webdev/issues/2053): Enable commented-out rules with fixes.
+dart_code_metrics:
+  metrics:
+    # cyclomatic-complexity: 20 # Enable.
+    # number-of-parameters: 5 # Enable.
+    # maximum-nesting-level: 5 # Enable.
+  metrics-exclude:
+    - test/**
+  rules:
+    # - arguments-ordering
+    # - avoid-banned-imports
+    - avoid-cascade-after-if-null
+    - avoid-collection-methods-with-unrelated-types
+    # - avoid-double-slash-imports
+    - avoid-duplicate-exports
+    # - avoid-dynamic
+    # - avoid-global-state # Enable.
+    # - avoid-ignoring-return-values
+    # - avoid-late-keyword
+    - avoid-missing-enum-constant-in-map
+    - avoid-nested-conditional-expressions
+    - avoid-non-ascii-symbols
+    # - avoid-non-null-assertion # Enable.
+    # - avoid-passing-async-when-sync-expected # Enable.
+    - avoid-redundant-async
+    # - avoid-throw-in-catch-block # Enable.
+    # - avoid-top-level-members-in-tests
+    # - avoid-unnecessary-conditionals
+    - avoid-unnecessary-type-assertions
+    - avoid-unnecessary-type-casts
+    - avoid-unrelated-type-assertions
+    - avoid-unused-parameters
+    # - ban-name
+    - binary-expression-operand-order
+    - double-literal-format
+    # - format-comment # Enable.
+    # - list-all-equatable-fields
+    # - member-ordering # Enable.
+    # - missing-test-assertion
+    # - new-line-before-return
+    - no-boolean-literal-compare
+    # - no-empty-block # Enable.
+    # - no-equal-arguments
+    - no-equal-then-else
+    # - no-magic-number
+    # - no-object-declaration
+    # - prefer-async-await # Enable.
+    # - prefer-commenting-analyzer-ignores # Enable.
+    # - prefer-conditional-expressions
+    # - prefer-correct-identifier-length
+    # - prefer-correct-test-file-name # Enable.
+    - prefer-correct-type-name
+    - prefer-enums-by-name
+    # - prefer-first
+    # - prefer-immediate-return # Enable.
+    - prefer-iterable-of
+    - prefer-last
+    # - prefer-match-file-name
+    # - prefer-moving-to-variable: # Enable.
+    #     allow-duplicated-chains: 2
+    # - prefer-static-class
+    # - prefer-trailing-comma
+    # - tag-name

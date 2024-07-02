@@ -20,19 +20,19 @@ final sdkUri = p.toUri(sdkDir).toString();
 String generateUuidV4() {
   final random = Random();
 
-  int _generateBits(int bitCount) => random.nextInt(1 << bitCount);
+  int generateBits(int bitCount) => random.nextInt(1 << bitCount);
 
-  String _printDigits(int value, int count) =>
+  String printDigits(int value, int count) =>
       value.toRadixString(16).padLeft(count, '0');
-  String _bitsDigits(int bitCount, int digitCount) =>
-      _printDigits(_generateBits(bitCount), digitCount);
+  String bitsDigits(int bitCount, int digitCount) =>
+      printDigits(generateBits(bitCount), digitCount);
 
   // Generate xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx / 8-4-4-4-12.
   var special = 8 + random.nextInt(4);
 
-  return '${_bitsDigits(16, 4)}${_bitsDigits(16, 4)}-'
-      '${_bitsDigits(16, 4)}-'
-      '4${_bitsDigits(12, 3)}-'
-      '${_printDigits(special, 1)}${_bitsDigits(12, 3)}-'
-      '${_bitsDigits(16, 4)}${_bitsDigits(16, 4)}${_bitsDigits(16, 4)}';
+  return '${bitsDigits(16, 4)}${bitsDigits(16, 4)}-'
+      '${bitsDigits(16, 4)}-'
+      '4${bitsDigits(12, 3)}-'
+      '${printDigits(special, 1)}${bitsDigits(12, 3)}-'
+      '${bitsDigits(16, 4)}${bitsDigits(16, 4)}${bitsDigits(16, 4)}';
 }
