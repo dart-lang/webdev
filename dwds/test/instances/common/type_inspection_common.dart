@@ -247,11 +247,11 @@ void runTests({
       await onBreakPoint('printSimpleLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, '<int>{}.runtimeType');
-        expect(instanceRef, matchTypeInstanceRef('_IdentityHashSet<int>'));
+        expect(instanceRef, matchTypeInstanceRef('IdentitySet<int>'));
 
         final instanceId = instanceRef.id!;
         final instance = await getObject(instanceId);
-        expect(instance, matchTypeInstance('_IdentityHashSet<int>'));
+        expect(instance, matchTypeInstance('IdentitySet<int>'));
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);

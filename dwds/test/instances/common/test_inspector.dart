@@ -382,7 +382,6 @@ Object? _getValue(InstanceRef instanceRef) {
 final _dartCoreLibrary = 'dart:core';
 final _dartInterceptorsLibrary = 'dart:_interceptors';
 final _dartJsHelperLibrary = 'dart:_js_helper';
-final _dartCollectionLibrary = 'dart:collection';
 final _dartRuntimeLibrary = 'dart:_runtime';
 
 final matchRecordClassName = 'Record';
