@@ -20,7 +20,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'fixtures/fakes.dart';
 
 void main() async {
-  final bool debug = false;
+  final debug = false;
 
   group('ExecutionContext', () {
     setUpAll(() {

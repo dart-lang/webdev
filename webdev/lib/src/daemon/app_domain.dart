@@ -61,7 +61,7 @@ class AppDomain extends Domain {
     serverManager.servers.forEach(_handleAppConnections);
   }
 
-  void _handleAppConnections(WebDevServer server) async {
+  Future<void> _handleAppConnections(WebDevServer server) async {
     var dwds = server.dwds!;
     // The connection is established right before `main()` is called.
     await for (var appConnection in dwds.connectedApps) {

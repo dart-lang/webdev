@@ -586,7 +586,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
           id: createId(),
         );
       }
-      return (await _instanceRef(result));
+      return await _instanceRef(result);
     } on RPCError catch (_) {
       rethrow;
     } catch (e, s) {

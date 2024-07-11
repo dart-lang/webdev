@@ -298,10 +298,7 @@ class TestBuildSettings extends BuildSettings {
 class TestCompilerOptions extends CompilerOptions {
   TestCompilerOptions({
     required super.canaryFeatures,
-    required List<String> experiments,
+    super.experiments = const [],
     super.moduleFormat = ModuleFormat.amd,
-  }) : super(
-          soundNullSafety: true,
-          experiments: const <String>[],
-        );
+  }) : super(soundNullSafety: true);
 }

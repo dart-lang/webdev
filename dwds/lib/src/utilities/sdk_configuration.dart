@@ -157,8 +157,8 @@ class SdkConfiguration {
   void validateSoundSummaries({
     FileSystem fileSystem = const LocalFileSystem(),
   }) {
-    if ((soundSdkSummaryPath == null ||
-        !fileSystem.file(soundSdkSummaryPath).existsSync())) {
+    if (soundSdkSummaryPath == null ||
+        !fileSystem.file(soundSdkSummaryPath).existsSync()) {
       throw InvalidSdkConfigurationException(
         'Sdk summary $soundSdkSummaryPath does not exist',
       );

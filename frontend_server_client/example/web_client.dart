@@ -21,7 +21,7 @@ void main(List<String> args) async {
     }
 
     _print('compiling the dart sdk');
-    var sdkCompileResult = await Process.run(Platform.resolvedExecutable, [
+    final sdkCompileResult = await Process.run(Platform.resolvedExecutable, [
       p.join(sdkDir, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
       '--multi-root-scheme=org-dartlang-sdk',
       '--modules=amd',
@@ -39,7 +39,7 @@ void main(List<String> args) async {
     }
 
     _print('starting frontend server');
-    var client = await DartDevcFrontendServerClient.start(
+    final client = await DartDevcFrontendServerClient.start(
         'org-dartlang-root:///$app', outputDill,
         fileSystemRoots: [p.current],
         fileSystemScheme: 'org-dartlang-root',
@@ -52,7 +52,7 @@ void main(List<String> args) async {
     _print('done compiling $app');
 
     _print('starting shelf server');
-    var cascade = Cascade()
+    final cascade = Cascade()
         .add(_clientHandler(client))
         .add(createStaticHandler(p.current))
         .add(createFileHandler(dartSdkJs, url: 'example/app/dart_sdk.js'))
@@ -68,18 +68,18 @@ void main(List<String> args) async {
     _print('server ready');
 
     // The file we will be editing in the repl
-    var appFile = File(app);
-    var originalContent = await appFile.readAsString();
-    var appLines = const LineSplitter().convert(originalContent);
-    var getterText = 'String get message =>';
-    var messageLine =
+    final appFile = File(app);
+    final originalContent = await appFile.readAsString();
+    final appLines = const LineSplitter().convert(originalContent);
+    final getterText = 'String get message =>';
+    final messageLine =
         appLines.indexWhere((line) => line.startsWith(getterText));
 
-    var stdinQueue = StreamQueue(
+    final stdinQueue = StreamQueue(
         stdin.transform(utf8.decoder).transform(const LineSplitter()));
     _prompt();
     while (await stdinQueue.hasNext) {
-      var newMessage = await stdinQueue.next;
+      final newMessage = await stdinQueue.next;
       if (newMessage == 'quit') {
         await server.close();
         await stdinQueue.cancel();
@@ -92,11 +92,11 @@ void main(List<String> args) async {
       } else {
         _print('editing $app');
         appLines[messageLine] = '$getterText "$newMessage";';
-        var newContent = appLines.join('\n');
+        final newContent = appLines.join('\n');
         await appFile.writeAsString(newContent);
 
         _print('recompiling $app with edits');
-        var result =
+        final result =
             await client.compile([Uri.parse('org-dartlang-root:///$app')]);
         if (result.errorCount > 0) {
           print('Compile errors: \n${result.compilerOutputLines.join('\n')}');
@@ -124,7 +124,7 @@ void main(List<String> args) async {
 Handler _clientHandler(DartDevcFrontendServerClient client) {
   return (Request request) {
     var path = request.url.path;
-    var packagesIndex = path.indexOf('/packages/');
+    final packagesIndex = path.indexOf('/packages/');
     if (packagesIndex > 0) {
       path = request.url.path.substring(packagesIndex);
     } else {
@@ -134,7 +134,7 @@ Handler _clientHandler(DartDevcFrontendServerClient client) {
     if (path.endsWith('.dart.js') && path != '/example/app/main.dart.js') {
       path = path.replaceFirst('.dart.js', '.dart.lib.js', path.length - 8);
     }
-    var assetBytes = client.assetBytes(path);
+    final assetBytes = client.assetBytes(path);
     if (assetBytes == null) return Response.notFound('path not found');
     return Response.ok(assetBytes,
         headers: {HttpHeaders.contentTypeHeader: 'application/javascript'});

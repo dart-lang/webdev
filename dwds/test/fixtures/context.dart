@@ -213,8 +213,8 @@ class TestContext {
       AssetReader assetReader;
       Stream<BuildResults> buildResults;
       LoadStrategy loadStrategy;
-      String basePath = '';
-      String filePathToServe = project.filePathToServe;
+      var basePath = '';
+      var filePathToServe = project.filePathToServe;
 
       _port = await findUnusedPort();
       switch (testSettings.compilationMode) {

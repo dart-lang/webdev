@@ -1,0 +1,10 @@
+name: analysis_config
+description: The shared analysis configuration for the webdev packages.
+
+publish_to: none
+
+environment:
+  sdk: ^3.1.0
+
+dependencies:
+  lints: ^4.0.0

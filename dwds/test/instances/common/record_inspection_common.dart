@@ -26,7 +26,7 @@ void runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
         stream,
         isolateId,
         mainScript,
@@ -34,15 +34,20 @@ void runTests({
         body,
       );
 
-  getInstance(frame, expression) =>
+  Future<Instance> getInstance(frame, expression) =>
       testInspector.getInstance(isolateId, frame, expression);
 
-  getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
 
-  getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(frame, expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  getFields(instanceRef, {offset, count, depth = -1}) =>
+  Future<Map<Object?, Object?>> getFields(
+    instanceRef, {
+    offset,
+    count,
+    depth = -1,
+  }) =>
       testInspector.getFields(
         isolateId,
         instanceRef,

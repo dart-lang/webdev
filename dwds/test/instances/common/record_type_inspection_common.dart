@@ -27,7 +27,7 @@ void runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
         stream,
         isolateId,
         mainScript,
@@ -35,18 +35,18 @@ void runTests({
         body,
       );
 
-  getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
 
-  getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(frame, expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  getDisplayedFields(InstanceRef ref) =>
+  Future<Map<Object?, String?>> getDisplayedFields(InstanceRef ref) =>
       testInspector.getDisplayedFields(isolateId, ref);
 
-  getDisplayedGetters(InstanceRef ref) =>
+  Future<Map<Object?, String?>> getDisplayedGetters(InstanceRef ref) =>
       testInspector.getDisplayedGetters(isolateId, ref);
 
-  getElements(String instanceId) =>
+  Future<List<Instance>> getElements(String instanceId) =>
       testInspector.getElements(isolateId, instanceId);
 
   final matchDisplayedTypeObjectGetters = {

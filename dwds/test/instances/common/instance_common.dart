@@ -48,8 +48,8 @@ void runTypeSystemVerificationTests({
 
     String libraryName(CompilationMode compilationMode) =>
         compilationMode == CompilationMode.frontendServer
-            ? "example/scopes/main.dart"
-            : "example/scopes/main";
+            ? 'example/scopes/main.dart'
+            : 'example/scopes/main';
 
     String libraryVariableTypeExpression(
       String variable,
@@ -121,8 +121,8 @@ void runTests({
 
     String libraryName(CompilationMode compilationMode) =>
         compilationMode == CompilationMode.frontendServer
-            ? "example/scopes/main.dart"
-            : "example/scopes/main";
+            ? 'example/scopes/main.dart'
+            : 'example/scopes/main';
 
     String libraryVariableExpression(
       String variable,
@@ -135,7 +135,7 @@ void runTests({
     String newInterceptorsExpression(String type) =>
         'new (require("dart_sdk")._interceptors.$type).new()';
 
-    final String newDartError = 'new (require("dart_sdk").dart).DartError';
+    final newDartError = 'new (require("dart_sdk").dart).DartError';
 
     /// A reference to the the variable `libraryPublicFinal`, an instance of
     /// `MyTestClass`.

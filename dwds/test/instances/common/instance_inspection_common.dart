@@ -28,7 +28,7 @@ void runTests({
 
   final testInspector = TestInspector(context);
 
-  onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
         stream,
         isolateId,
         mainScript,
@@ -36,16 +36,21 @@ void runTests({
         body,
       );
 
-  getInstance(frame, expression) =>
+  Future<Instance> getInstance(frame, expression) =>
       testInspector.getInstance(isolateId, frame, expression);
 
-  getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
 
-  getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(frame, expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  getFields(instanceRef, {offset, count}) => testInspector
-      .getFields(isolateId, instanceRef, offset: offset, count: count);
+  Future<Map<Object?, Object?>> getFields(instanceRef, {offset, count}) =>
+      testInspector.getFields(
+        isolateId,
+        instanceRef,
+        offset: offset,
+        count: count,
+      );
 
   group('$compilationMode |', () {
     setUpAll(() async {
@@ -223,12 +228,12 @@ void runTests({
           );
 
           expect(
-            await getInstance(frame, r"list[1]"),
+            await getInstance(frame, r'list[1]'),
             matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
           );
 
           expect(
-            await getInstance(frame, r"list[2]"),
+            await getInstance(frame, r'list[2]'),
             matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 2),
           );
         });
@@ -327,11 +332,11 @@ void runTests({
         await onBreakPoint('printSet', (event) async {
           final frame = event.topFrame!.index!;
           expect(
-            await getInstance(frame, r"mySet.first"),
+            await getInstance(frame, r'mySet.first'),
             matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
           );
           expect(
-            await getInstance(frame, r"mySet.last"),
+            await getInstance(frame, r'mySet.last'),
             matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 7),
           );
         });

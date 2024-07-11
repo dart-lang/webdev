@@ -67,7 +67,7 @@ void main() {
 
       try {
         await wrapInErrorHandlerAsync('exceptionCallback', exceptionCallback);
-        fail("RPCError not thrown.");
+        fail('RPCError not thrown.');
       } catch (error) {
         expect(
           error,
