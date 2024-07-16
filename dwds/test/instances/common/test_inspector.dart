@@ -354,7 +354,7 @@ Matcher matchListClassRef(String type) => matchClassRef(
 Matcher matchMapClassRef(String type) =>
     matchClassRef(name: type, libraryId: _dartJsHelperLibrary);
 Matcher matchSetClassRef(String type) =>
-    matchClassRef(name: type, libraryId: _dartCollectionLibrary);
+    matchClassRef(name: type, libraryId: _dartJsHelperLibrary);
 
 Matcher matchClassRef({dynamic name, dynamic libraryId}) => isA<ClassRef>()
     .having((e) => e.name, 'class ref name', name)
@@ -382,7 +382,6 @@ Object? _getValue(InstanceRef instanceRef) {
 final _dartCoreLibrary = 'dart:core';
 final _dartInterceptorsLibrary = 'dart:_interceptors';
 final _dartJsHelperLibrary = 'dart:_js_helper';
-final _dartCollectionLibrary = 'dart:collection';
 final _dartRuntimeLibrary = 'dart:_runtime';
 
 final matchRecordClassName = 'Record';

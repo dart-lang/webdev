@@ -573,7 +573,7 @@ class AppInspector implements AppInspectorInterface {
     int? count,
     int? length,
   }) async {
-    String rangeId = objectId;
+    var rangeId = objectId;
     // Ignore offset/count if there is no length:
     if (length != null) {
       if (_isEmptyRange(offset: offset, count: count, length: length)) {

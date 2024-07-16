@@ -18,8 +18,8 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
       - name: Check changed files
         run: |
-          git fetch origin master
-          PR_DIFF=$(git diff origin/master --name-only)
+          git fetch origin main
+          PR_DIFF=$(git diff origin/main --name-only)
           echo "$PR_DIFF"
           if [[ $PR_DIFF == *"CHANGELOG.md"* ]]; then
             echo "CHANGELOG.md has been updated."

@@ -26,7 +26,7 @@ void runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
         stream,
         isolateId,
         mainScript,
@@ -34,13 +34,18 @@ void runTests({
         body,
       );
 
-  getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(frame, expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  getFields(instanceRef, {offset, count}) => testInspector
-      .getFields(isolateId, instanceRef, offset: offset, count: count);
+  Future<Map<Object?, Object?>> getFields(instanceRef, {offset, count}) =>
+      testInspector.getFields(
+        isolateId,
+        instanceRef,
+        offset: offset,
+        count: count,
+      );
 
-  getFrameVariables(Frame frame) =>
+  Future<Map<String?, Instance?>> getFrameVariables(Frame frame) =>
       testInspector.getFrameVariables(isolateId, frame);
 
   group('$compilationMode |', () {

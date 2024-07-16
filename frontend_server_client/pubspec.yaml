@@ -6,13 +6,15 @@ description: >-
 repository: https://github.com/dart-lang/webdev/tree/master/frontend_server_client
 
 environment:
-  sdk: ^3.0.0
+  sdk: ^3.1.0
 
 dependencies:
   async: ^2.5.0
   path: ^1.8.0
 
 dev_dependencies:
+  analysis_config:
+    path: ../_analysis_config
   package_config: ^2.0.0
   shelf: ^1.0.0
   shelf_packages_handler: ^3.0.0

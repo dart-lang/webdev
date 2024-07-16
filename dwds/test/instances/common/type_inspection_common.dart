@@ -28,7 +28,7 @@ void runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
         stream,
         isolateId,
         mainScript,
@@ -36,18 +36,23 @@ void runTests({
         body,
       );
 
-  getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
 
-  getDisplayedFields(instanceRef) =>
+  Future<Map<Object?, String?>> getDisplayedFields(instanceRef) =>
       testInspector.getDisplayedFields(isolateId, instanceRef);
 
-  getDisplayedGetters(instanceRef) =>
+  Future<Map<Object?, String?>> getDisplayedGetters(instanceRef) =>
       testInspector.getDisplayedGetters(isolateId, instanceRef);
 
-  getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(frame, expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  getFields(instanceRef, {offset, count, depth = -1}) =>
+  Future<Map<Object?, Object?>> getFields(
+    instanceRef, {
+    offset,
+    count,
+    depth = -1,
+  }) =>
       testInspector.getFields(
         isolateId,
         instanceRef,
@@ -56,7 +61,7 @@ void runTests({
         depth: depth,
       );
 
-  getElements(String instanceId) =>
+  Future<List<Instance>> getElements(String instanceId) =>
       testInspector.getElements(isolateId, instanceId);
 
   final matchTypeObjectFields = {};
@@ -247,11 +252,11 @@ void runTests({
       await onBreakPoint('printSimpleLocalRecord', (event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, '<int>{}.runtimeType');
-        expect(instanceRef, matchTypeInstanceRef('_IdentityHashSet<int>'));
+        expect(instanceRef, matchTypeInstanceRef('IdentitySet<int>'));
 
         final instanceId = instanceRef.id!;
         final instance = await getObject(instanceId);
-        expect(instance, matchTypeInstance('_IdentityHashSet<int>'));
+        expect(instance, matchTypeInstance('IdentitySet<int>'));
 
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);

@@ -25,12 +25,12 @@ enum StreamType {
 const processTimeout = Duration(minutes: 1);
 
 void main() {
-  Process? _createProcess;
-  Process? _activateProcess;
-  Process? _serveProcess;
-  Directory? _tempDir;
+  Process? createProcess;
+  Process? activateProcess;
+  Process? serveProcess;
+  Directory? tempDir0;
 
-  Future<void> _expectStdoutAndCleanExit(Process process,
+  Future<void> expectStdoutAndCleanExit(Process process,
       {required String expectedStdout}) async {
     final stdoutCompleter = _captureOutput(
       process,
@@ -62,7 +62,7 @@ void main() {
     );
   }
 
-  Future<void> _expectStdoutThenExit(Process process,
+  Future<void> expectStdoutThenExit(Process process,
       {required String expectedStdout}) async {
     final expectedStdoutCompleter = _waitForStdoutOrTimeout(
       process,
@@ -83,7 +83,7 @@ void main() {
   }
 
   setUp(() async {
-    _tempDir = Directory.systemTemp.createTempSync('installation_test');
+    tempDir0 = Directory.systemTemp.createTempSync('installation_test');
 
     await Process.run(
       'dart',
@@ -93,52 +93,52 @@ void main() {
 
   tearDown(() async {
     // Kill any stale processes:
-    if (_createProcess != null) {
-      Process.killPid(_createProcess!.pid, ProcessSignal.sigint);
-      _createProcess = null;
+    if (createProcess != null) {
+      Process.killPid(createProcess!.pid, ProcessSignal.sigint);
+      createProcess = null;
     }
-    if (_activateProcess != null) {
-      Process.killPid(_activateProcess!.pid, ProcessSignal.sigint);
-      _activateProcess = null;
+    if (activateProcess != null) {
+      Process.killPid(activateProcess!.pid, ProcessSignal.sigint);
+      activateProcess = null;
     }
-    if (_serveProcess != null) {
-      Process.killPid(_serveProcess!.pid, ProcessSignal.sigint);
-      _serveProcess = null;
+    if (serveProcess != null) {
+      Process.killPid(serveProcess!.pid, ProcessSignal.sigint);
+      serveProcess = null;
     }
   });
 
   test('can activate and serve webdev', () async {
-    final tempDir = _tempDir!;
+    final tempDir = tempDir0!;
     final tempPath = tempDir.path;
 
     // Verify that we can create a new Dart app:
-    _createProcess = await Process.start(
+    createProcess = await Process.start(
       'dart',
       ['create', '--template', 'web', 'temp_app'],
       workingDirectory: tempPath,
     );
-    await _expectStdoutAndCleanExit(
-      _createProcess!,
+    await expectStdoutAndCleanExit(
+      createProcess!,
       expectedStdout: 'Created project temp_app in temp_app!',
     );
     final appPath = p.join(tempPath, 'temp_app');
     expect(await Directory(appPath).exists(), isTrue);
 
     // Verify that `dart pub global activate` works:
-    _activateProcess = await Process.start(
+    activateProcess = await Process.start(
       'dart',
       ['pub', 'global', 'activate', 'webdev'],
     );
-    await _expectStdoutAndCleanExit(
-      _activateProcess!,
+    await expectStdoutAndCleanExit(
+      activateProcess!,
       expectedStdout: 'Activated webdev',
     );
 
     // Verify that `webdev serve` works for our new app:
-    _serveProcess = await Process.start(
+    serveProcess = await Process.start(
         'dart', ['pub', 'global', 'run', 'webdev', 'serve'],
         workingDirectory: appPath);
-    await _expectStdoutThenExit(_serveProcess!,
+    await expectStdoutThenExit(serveProcess!,
         expectedStdout: 'Serving `web` on');
   });
 }

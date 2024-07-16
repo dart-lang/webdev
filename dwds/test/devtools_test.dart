@@ -62,47 +62,52 @@ void main() {
         skip: Platform.isWindows,
       );
 
-      test('can not launch devtools for the same app in multiple tabs',
-          () async {
-        final appUrl = await context.webDriver.currentUrl;
-        // Open a new tab, select it, and navigate to the app
-        await context.webDriver.driver
-            .execute("window.open('$appUrl', '_blank');", []);
-        await Future.delayed(const Duration(seconds: 2));
-        final newAppWindow = await context.webDriver.windows.last;
-        await newAppWindow.setAsActive();
+      test(
+        'can not launch devtools for the same app in multiple tabs',
+        () async {
+          final appUrl = await context.webDriver.currentUrl;
+          // Open a new tab, select it, and navigate to the app
+          await context.webDriver.driver
+              .execute("window.open('$appUrl', '_blank');", []);
+          await Future.delayed(const Duration(seconds: 2));
+          final newAppWindow = await context.webDriver.windows.last;
+          await newAppWindow.setAsActive();
 
-        // Wait for the page to be ready before trying to open DevTools again.
-        await _waitForPageReady(context);
+          // Wait for the page to be ready before trying to open DevTools again.
+          await _waitForPageReady(context);
 
-        // Try to open devtools and check for the alert.
-        await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-        await Future.delayed(const Duration(seconds: 2));
-        final alert = context.webDriver.driver.switchTo.alert;
-        expect(alert, isNotNull);
-        expect(
-          await alert.text,
-          contains('This app is already being debugged in a different tab'),
-        );
-        await alert.accept();
+          // Try to open devtools and check for the alert.
+          await context.webDriver.driver.keyboard
+              .sendChord([Keyboard.alt, 'd']);
+          await Future.delayed(const Duration(seconds: 2));
+          final alert = context.webDriver.driver.switchTo.alert;
+          expect(alert, isNotNull);
+          expect(
+            await alert.text,
+            contains('This app is already being debugged in a different tab'),
+          );
+          await alert.accept();
 
-        var windows = await context.webDriver.windows.toList();
-        for (final window in windows) {
-          if (window.id != newAppWindow.id) {
-            await window.setAsActive();
-            await window.close();
+          var windows = await context.webDriver.windows.toList();
+          for (final window in windows) {
+            if (window.id != newAppWindow.id) {
+              await window.setAsActive();
+              await window.close();
+            }
           }
-        }
 
-        await newAppWindow.setAsActive();
-        await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-        await Future.delayed(const Duration(seconds: 2));
-        windows = await context.webDriver.windows.toList();
-        final devToolsWindow =
-            windows.firstWhere((window) => window != newAppWindow);
-        await devToolsWindow.setAsActive();
-        expect(await context.webDriver.pageSource, contains('DevTools'));
-      });
+          await newAppWindow.setAsActive();
+          await context.webDriver.driver.keyboard
+              .sendChord([Keyboard.alt, 'd']);
+          await Future.delayed(const Duration(seconds: 2));
+          windows = await context.webDriver.windows.toList();
+          final devToolsWindow =
+              windows.firstWhere((window) => window != newAppWindow);
+          await devToolsWindow.setAsActive();
+          expect(await context.webDriver.pageSource, contains('DevTools'));
+        },
+        skip: 'See https://github.com/dart-lang/webdev/issues/2462',
+      );
 
       test(
         'destroys and recreates the isolate during a page refresh',

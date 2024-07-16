@@ -14,5 +14,7 @@ dependencies:
   test: ^1.21.1
 
 dev_dependencies:
+  analysis_config:
+    path: ../_analysis_config
   lints: ^4.0.0
   pubspec_parse: ^1.2.2

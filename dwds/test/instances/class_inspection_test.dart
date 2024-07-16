@@ -33,7 +33,7 @@ void main() {
   late String isolateId;
   late ScriptRef mainScript;
 
-  onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
         stream,
         isolateId,
         mainScript,
@@ -41,7 +41,7 @@ void main() {
         body,
       );
 
-  getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
 
   group('Class |', () {
     tearDownAll(provider.dispose);
