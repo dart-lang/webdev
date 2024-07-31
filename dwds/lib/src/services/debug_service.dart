@@ -8,7 +8,6 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dds/dds.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
@@ -26,6 +25,8 @@ import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+
+const _kSseHandlerPath = '\$debugHandler';
 
 bool _acceptNewConnections = true;
 int _clientsConnected = 0;
@@ -121,6 +122,207 @@ Future<void> _handleSseConnections(
   }
 }
 
+/// Wrapper around a `dart development-service` process.
+class DartDevelopmentService {
+  static Future<DartDevelopmentService> start({
+    required Uri remoteVmServiceUri,
+    required Uri serviceUri,
+    // TODO(bkonyi): use this parameter once `dart development-service` allows
+    // for the flag.
+    required bool ipv6,
+  }) async {
+    final process = await Process.start(
+      Platform.executable,
+      <String>[
+        'development-service',
+        '--vm-service-uri=$remoteVmServiceUri',
+        '--bind-address=${serviceUri.host}',
+        '--bind-port=${serviceUri.port}',
+      ],
+    );
+    final completer = Completer<DartDevelopmentService>();
+    late StreamSubscription<Object?> stderrSub;
+    stderrSub = process.stderr
+        .transform(utf8.decoder)
+        .transform(json.decoder)
+        .listen((Object? result) {
+      if (result
+          case {
+            'state': 'started',
+            'ddsUri': final String ddsUriStr,
+          }) {
+        final ddsUri = Uri.parse(ddsUriStr);
+        completer.complete(
+          DartDevelopmentService._(
+            process: process,
+            uri: ddsUri,
+          ),
+        );
+      } else if (result
+          case {
+            'state': 'error',
+            'error': final String error,
+          }) {
+        final exceptionDetails =
+            result['ddsExceptionDetails'] as Map<String, Object?>?;
+        completer.completeError(
+          exceptionDetails != null
+              ? DartDevelopmentServiceException.fromJson(exceptionDetails)
+              : StateError(error),
+        );
+      } else {
+        throw StateError('Unexpected result from DDS: $result');
+      }
+      stderrSub.cancel();
+    });
+    return completer.future;
+  }
+
+  DartDevelopmentService._({
+    required Process process,
+    required this.uri,
+  }) : _ddsInstance = process;
+
+  final Process _ddsInstance;
+
+  final Uri uri;
+
+  Uri get sseUri => _toSse(uri)!;
+  Uri get wsUri => _toWebSocket(uri)!;
+
+  List<String> _cleanupPathSegments(Uri uri) {
+    final pathSegments = <String>[];
+    if (uri.pathSegments.isNotEmpty) {
+      pathSegments.addAll(
+        uri.pathSegments.where(
+          // Strip out the empty string that appears at the end of path segments.
+          // Empty string elements will result in an extra '/' being added to the
+          // URI.
+          (s) => s.isNotEmpty,
+        ),
+      );
+    }
+    return pathSegments;
+  }
+
+  Uri? _toWebSocket(Uri? uri) {
+    if (uri == null) {
+      return null;
+    }
+    final pathSegments = _cleanupPathSegments(uri);
+    pathSegments.add('ws');
+    return uri.replace(scheme: 'ws', pathSegments: pathSegments);
+  }
+
+  Uri? _toSse(Uri? uri) {
+    if (uri == null) {
+      return null;
+    }
+    final pathSegments = _cleanupPathSegments(uri);
+    pathSegments.add(_kSseHandlerPath);
+    return uri.replace(scheme: 'sse', pathSegments: pathSegments);
+  }
+
+  Future<void> shutdown() {
+    _ddsInstance.kill();
+    return _ddsInstance.exitCode;
+  }
+}
+
+/// Thrown by DDS during initialization failures, unexpected connection issues,
+/// and when attempting to spawn DDS when an existing DDS instance exists.
+class DartDevelopmentServiceException implements Exception {
+  factory DartDevelopmentServiceException.fromJson(Map<String, Object?> json) {
+    if (json
+        case {
+          'error_code': final int errorCode,
+          'message': final String message,
+          'uri': final String? uri
+        }) {
+      return switch (errorCode) {
+        existingDdsInstanceError =>
+          DartDevelopmentServiceException.existingDdsInstance(
+            message,
+            ddsUri: Uri.parse(uri!),
+          ),
+        failedToStartError => DartDevelopmentServiceException.failedToStart(),
+        connectionError =>
+          DartDevelopmentServiceException.connectionIssue(message),
+        _ => throw StateError(
+            'Invalid DartDevelopmentServiceException error_code: $errorCode',
+          ),
+      };
+    }
+    throw StateError('Invalid DartDevelopmentServiceException JSON: $json');
+  }
+
+  /// Thrown when `DartDeveloperService.startDartDevelopmentService` is called
+  /// and the target VM service already has a Dart Developer Service instance
+  /// connected.
+  factory DartDevelopmentServiceException.existingDdsInstance(
+    String message, {
+    Uri? ddsUri,
+  }) {
+    return ExistingDartDevelopmentServiceException._(
+      message,
+      ddsUri: ddsUri,
+    );
+  }
+
+  /// Thrown when the connection to the remote VM service terminates unexpectedly
+  /// during Dart Development Service startup.
+  factory DartDevelopmentServiceException.failedToStart() {
+    return DartDevelopmentServiceException._(
+      failedToStartError,
+      'Failed to start Dart Development Service',
+    );
+  }
+
+  /// Thrown when a connection error has occurred after startup.
+  factory DartDevelopmentServiceException.connectionIssue(String message) {
+    return DartDevelopmentServiceException._(connectionError, message);
+  }
+
+  DartDevelopmentServiceException._(this.errorCode, this.message);
+
+  /// Set when `DartDeveloperService.startDartDevelopmentService` is called and
+  /// the target VM service already has a Dart Developer Service instance
+  /// connected.
+  static const int existingDdsInstanceError = 1;
+
+  /// Set when the connection to the remote VM service terminates unexpectedly
+  /// during Dart Development Service startup.
+  static const int failedToStartError = 2;
+
+  /// Set when a connection error has occurred after startup.
+  static const int connectionError = 3;
+
+  @override
+  String toString() => 'DartDevelopmentServiceException: $message';
+
+  final int errorCode;
+  final String message;
+}
+
+/// Thrown when attempting to start a new DDS instance when one already exists.
+class ExistingDartDevelopmentServiceException
+    extends DartDevelopmentServiceException {
+  ExistingDartDevelopmentServiceException._(
+    String message, {
+    this.ddsUri,
+  }) : super._(
+          DartDevelopmentServiceException.existingDdsInstanceError,
+          message,
+        );
+
+  /// The URI of the existing DDS instance, if available.
+  ///
+  /// This URI is the base HTTP URI such as `http://127.0.0.1:1234/AbcDefg=/`,
+  /// not the WebSocket URI (which can be obtained by mapping the scheme to
+  /// `ws` (or `wss`) and appending `ws` to the path segments).
+  final Uri? ddsUri;
+}
+
 /// A Dart Web Debug Service.
 ///
 /// Creates a [ChromeProxyService] from an existing Chrome instance.
@@ -163,8 +365,8 @@ class DebugService {
   Future<DartDevelopmentService> startDartDevelopmentService() async {
     // Note: DDS can handle both web socket and SSE connections with no
     // additional configuration.
-    _dds = await DartDevelopmentService.startDartDevelopmentService(
-      Uri(
+    _dds = await DartDevelopmentService.start(
+      remoteVmServiceUri: Uri(
         scheme: 'http',
         host: hostname,
         port: port,
@@ -248,7 +450,7 @@ class DebugService {
     // DDS will always connect to DWDS via web sockets.
     if (useSse && !spawnDds) {
       final sseHandler = SseHandler(
-        Uri.parse('/$authToken/\$debugHandler'),
+        Uri.parse('/$authToken/$_kSseHandlerPath'),
         keepAlive: const Duration(seconds: 5),
       );
       handler = sseHandler.handler;
