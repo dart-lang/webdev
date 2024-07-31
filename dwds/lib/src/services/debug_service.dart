@@ -127,9 +127,6 @@ class DartDevelopmentService {
   static Future<DartDevelopmentService> start({
     required Uri remoteVmServiceUri,
     required Uri serviceUri,
-    // TODO(bkonyi): use this parameter once `dart development-service` allows
-    // for the flag.
-    required bool ipv6,
   }) async {
     final process = await Process.start(
       Platform.executable,
@@ -377,7 +374,6 @@ class DebugService {
         host: hostname,
         port: 0,
       ),
-      ipv6: await useIPv6ForHost(hostname),
     );
     return _dds!;
   }
