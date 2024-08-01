@@ -206,7 +206,7 @@ void main() {
           'testClass',
         ]),
       );
-    });
+    }, skip: 'See https://github.com/dart-lang/webdev/issues/2469');
 
     test('variables in closure nested in method', () async {
       stack = await breakAt('nestedClosure', mainScript);
