@@ -187,26 +187,30 @@ void main() {
       expect(variableNames, containsAll(['formal']));
     });
 
-    test('variables in function', () async {
-      stack = await breakAt('nestedFunction', mainScript);
-      final variables = getFrameVariables(stack.frames!.first);
-      await expectDartVariables(variables);
+    test(
+      'variables in function',
+      () async {
+        stack = await breakAt('nestedFunction', mainScript);
+        final variables = getFrameVariables(stack.frames!.first);
+        await expectDartVariables(variables);
 
-      final variableNames = variables.keys.toList()..sort();
-      expect(
-        variableNames,
-        containsAll([
-          'aClass',
-          'another',
-          'intLocalInMain',
-          'local',
-          'localThatsNull',
-          'nestedFunction',
-          'parameter',
-          'testClass',
-        ]),
-      );
-    });
+        final variableNames = variables.keys.toList()..sort();
+        expect(
+          variableNames,
+          containsAll([
+            'aClass',
+            'another',
+            'intLocalInMain',
+            'local',
+            'localThatsNull',
+            'nestedFunction',
+            'parameter',
+            'testClass',
+          ]),
+        );
+      },
+      skip: 'See https://github.com/dart-lang/webdev/issues/2469',
+    );
 
     test('variables in closure nested in method', () async {
       stack = await breakAt('nestedClosure', mainScript);
