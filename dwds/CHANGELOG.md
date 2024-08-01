@@ -7,6 +7,7 @@
 - Hide more variables from the local scope when debugging. These variables were synthetically added by the compiler to
   support late local variables and don't appear in the original source code. - [#2445](https://github.com/dart-lang/webdev/pull/2445)
 - Require Dart `^3.4`
+- Spawn DDS in a separate process using `dart development-service` instead of launching from `package:dds`. - [#2466](https://github.com/dart-lang/webdev/pull/2466)
 
 ## 24.0.0
 

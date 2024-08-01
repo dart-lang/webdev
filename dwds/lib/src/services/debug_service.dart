@@ -8,7 +8,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dds/dds.dart';
+import 'package:dds/dds_launcher.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
@@ -26,6 +26,8 @@ import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+
+const _kSseHandlerPath = '\$debugHandler';
 
 bool _acceptNewConnections = true;
 int _clientsConnected = 0;
@@ -136,7 +138,7 @@ class DebugService {
   final bool _useSse;
   final bool _spawnDds;
   final UrlEncoder? _urlEncoder;
-  DartDevelopmentService? _dds;
+  DartDevelopmentServiceLauncher? _dds;
 
   /// Null until [close] is called.
   ///
@@ -160,11 +162,11 @@ class DebugService {
         if (_dds != null) _dds!.shutdown(),
       ]);
 
-  Future<DartDevelopmentService> startDartDevelopmentService() async {
+  Future<DartDevelopmentServiceLauncher> startDartDevelopmentService() async {
     // Note: DDS can handle both web socket and SSE connections with no
     // additional configuration.
-    _dds = await DartDevelopmentService.startDartDevelopmentService(
-      Uri(
+    _dds = await DartDevelopmentServiceLauncher.start(
+      remoteVmServiceUri: Uri(
         scheme: 'http',
         host: hostname,
         port: port,
@@ -175,7 +177,6 @@ class DebugService {
         host: hostname,
         port: 0,
       ),
-      ipv6: await useIPv6ForHost(hostname),
     );
     return _dds!;
   }
@@ -248,7 +249,7 @@ class DebugService {
     // DDS will always connect to DWDS via web sockets.
     if (useSse && !spawnDds) {
       final sseHandler = SseHandler(
-        Uri.parse('/$authToken/\$debugHandler'),
+        Uri.parse('/$authToken/$_kSseHandlerPath'),
         keepAlive: const Duration(seconds: 5),
       );
       handler = sseHandler.handler;

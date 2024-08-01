@@ -14,7 +14,7 @@ dependencies:
   built_value: ^8.3.0
   collection: ^1.15.0
   crypto: ^3.0.2
-  dds: ^4.1.0
+  dds: ^4.2.5
   file: ">=6.1.4 <8.0.0"
   http: ^1.0.0
   http_multi_server: ^3.2.0

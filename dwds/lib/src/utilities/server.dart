@@ -12,17 +12,6 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     as wip;
 
-/// Returns `true` if [hostname] is bound to an IPv6 address.
-Future<bool> useIPv6ForHost(String hostname) async {
-  final addresses = await InternetAddress.lookup(hostname);
-  if (addresses.isEmpty) return false;
-  final address = addresses.firstWhere(
-    (a) => a.type == InternetAddressType.IPv6,
-    orElse: () => addresses.first,
-  );
-  return address.type == InternetAddressType.IPv6;
-}
-
 /// Returns a port that is probably, but not definitely, not in use.
 ///
 /// This has a built-in race condition: another process may bind this port at
