@@ -1,4 +1,4 @@
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15,9 +15,9 @@ import 'expression_compiler_service_common.dart';
 void main() async {
   testAll(
     compilerOptions: CompilerOptions(
-      moduleFormat: ModuleFormat.amd,
+      moduleFormat: ModuleFormat.ddc,
       soundNullSafety: true,
-      canaryFeatures: false,
+      canaryFeatures: true,
       experiments: const <String>[],
     ),
   );
