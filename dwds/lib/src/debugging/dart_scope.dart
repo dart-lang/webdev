@@ -28,6 +28,9 @@ final ddcTemporaryTypeVariableRegExp = RegExp(r'^__t[\$\w*]+$');
 final previousDdcTemporaryVariableRegExp =
     RegExp(r'^(t[0-9]+\$?[0-9]*|__t[\$\w*]+)$');
 
+const ddcAsyncScope = 'asyncScope';
+const ddcCapturedAsyncScope = 'capturedAsyncScope';
+
 /// Find the visible Dart variables from a JS Scope Chain, coming from the
 /// scopeChain attribute of a Chrome CallFrame corresponding to [frame].
 ///
@@ -68,6 +71,46 @@ Future<List<Property>> visibleVariables({
         'value': frame.returnValue,
       }),
     );
+  }
+
+  // DDC's async lowering hoists variable declarations into scope objects. We
+  // create one scope object per Dart scope (skipping scopes containing no
+  // declarations). If a Dart scope is captured by a Dart closure the
+  // JS scope object will also be captured by the compiled JS closure.
+  //
+  // For debugging purposes we unpack these scope objects into the set of
+  // available properties to recreate the Dart context at any given point.
+
+  final capturedAsyncScopes = [
+    ...allProperties
+        .where((p) => p.name?.startsWith(ddcCapturedAsyncScope) ?? false),
+  ];
+
+  if (capturedAsyncScopes.isNotEmpty) {
+    // If we are in a local function within an async function, we should use the
+    // available captured scopes. These will contain all the variables captured
+    // by the closure. We only close over variables used within the closure.
+    for (final scopeObject in capturedAsyncScopes) {
+      final scopeObjectId = scopeObject.value?.objectId;
+      if (scopeObjectId == null) continue;
+      final scopeProperties = await inspector.getProperties(scopeObjectId);
+      allProperties.addAll(scopeProperties);
+      allProperties.remove(scopeObject);
+    }
+  } else {
+    // Otherwise we are in the async function body itself. Unpack the available
+    // async scopes. Scopes we have not entered may already have a scope object
+    // declared but the object will not have any values in it yet.
+    final asyncScopes = [
+      ...allProperties.where((p) => p.name?.startsWith(ddcAsyncScope) ?? false),
+    ];
+    for (final scopeObject in asyncScopes) {
+      final scopeObjectId = scopeObject.value?.objectId;
+      if (scopeObjectId == null) continue;
+      final scopeProperties = await inspector.getProperties(scopeObjectId);
+      allProperties.addAll(scopeProperties);
+      allProperties.remove(scopeObject);
+    }
   }
 
   allProperties.removeWhere((property) {
