@@ -76,7 +76,7 @@ Future<List<Property>> visibleVariables({
   // DDC's async lowering hoists variable declarations into scope objects. We
   // create one scope object per Dart scope (skipping scopes containing no
   // declarations). If a Dart scope is captured by a Dart closure the
-  // JS scope object will also be captued by the compiled JS closure.
+  // JS scope object will also be captured by the compiled JS closure.
   //
   // For debugging purposes we unpack these scope objects into the set of
   // available properties to recreate the Dart context at any given point.
