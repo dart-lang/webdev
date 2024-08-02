@@ -25,6 +25,25 @@ void staticFunction(int formal) {
   print(formal); // Breakpoint: staticFunction
 }
 
+void staticAsyncFunction(String value) async {
+  var myLocal = await 'a local value';
+  print(value); // Breakpoint: staticAsyncFunction
+}
+
+void staticAsyncLoopFunction(String value) async {
+  Function? f;
+  for (var i in [1, 2, 3]) {
+    print(i);
+    var myLocal = await 'my local value';
+    f ??= () {
+      print(value);
+      print(i);
+      return myLocal; // Breakpoint: staticAsyncLoopFunction
+    };
+  }
+  f!();
+}
+
 void main() async {
   print('Initial print from scopes app');
   var local = 'local in main';
@@ -52,6 +71,8 @@ void main() async {
     var closureLocal;
     libraryPublicFinal.printCount();
     staticFunction(1);
+    staticAsyncFunction('arg1');
+    staticAsyncLoopFunction('arg2');
     print('ticking... $ticks (the answer is $intLocalInMain)');
     print(nestedFunction('$ticks ${testClass.message}', Timer));
     print(localThatsNull);

@@ -187,30 +187,64 @@ void main() {
       expect(variableNames, containsAll(['formal']));
     });
 
-    test(
-      'variables in function',
-      () async {
-        stack = await breakAt('nestedFunction', mainScript);
-        final variables = getFrameVariables(stack.frames!.first);
-        await expectDartVariables(variables);
+    test('variables in static async function', () async {
+      stack = await breakAt('staticAsyncFunction', mainScript);
+      final variables = getFrameVariables(stack.frames!.first);
+      await expectDartVariables(variables);
 
-        final variableNames = variables.keys.toList()..sort();
-        expect(
-          variableNames,
-          containsAll([
-            'aClass',
-            'another',
-            'intLocalInMain',
-            'local',
-            'localThatsNull',
-            'nestedFunction',
-            'parameter',
-            'testClass',
-          ]),
-        );
-      },
-      skip: 'See https://github.com/dart-lang/webdev/issues/2469',
-    );
+      final variableNames = variables.keys.toList()..sort();
+      final variableValues =
+          variableNames.map((name) => variables[name]?.valueAsString).toList();
+      expect(
+        variableNames,
+        containsAll(['myLocal', 'value']),
+      );
+      expect(
+        variableValues,
+        containsAll(['a local value', 'arg1']),
+      );
+    });
+
+    test('variables in static async loop function', () async {
+      stack = await breakAt('staticAsyncLoopFunction', mainScript);
+      final variables = getFrameVariables(stack.frames!.first);
+      await expectDartVariables(variables);
+
+      final variableNames = variables.keys.toList()..sort();
+      final variableValues =
+          variableNames.map((name) => variables[name]?.valueAsString).toList();
+      expect(
+        variableNames,
+        containsAll(['i', 'myLocal', 'value']),
+      );
+      // Ensure the loop variable, i, is captued correctly. The value from the
+      // first iteration should be captured by the saved closure.
+      expect(
+        variableValues,
+        containsAll(['1', 'my local value', 'arg2']),
+      );
+    });
+
+    test('variables in function', () async {
+      stack = await breakAt('nestedFunction', mainScript);
+      final variables = getFrameVariables(stack.frames!.first);
+      await expectDartVariables(variables);
+
+      final variableNames = variables.keys.toList()..sort();
+      expect(
+        variableNames,
+        containsAll([
+          'aClass',
+          'another',
+          'intLocalInMain',
+          'local',
+          'localThatsNull',
+          'nestedFunction',
+          'parameter',
+          'testClass',
+        ]),
+      );
+    });
 
     test('variables in closure nested in method', () async {
       stack = await breakAt('nestedClosure', mainScript);
