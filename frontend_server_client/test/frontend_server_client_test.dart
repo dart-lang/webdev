@@ -117,8 +117,6 @@ String get message => p.join('hello', 'world');
       expect(await stdoutLines.next, p.join('goodbye', 'world'));
       expect(await process.exitCode, 0);
     },
-    // Issue: https://github.com/dart-lang/webdev/issues/2377
-    skip: Platform.isWindows,
   );
 
   test(
@@ -186,8 +184,6 @@ String get message => p.join('hello', 'world');
       expect(await stdoutLines.next, p.join('goodbye', 'world'));
       expect(await process.exitCode, 0);
     },
-    // Issue: https://github.com/dart-lang/webdev/issues/2377
-    skip: Platform.isWindows,
   );
 
   test('can compile and recompile a dartdevc app', () async {
