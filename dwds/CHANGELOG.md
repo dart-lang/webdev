@@ -1,4 +1,4 @@
-## 24.1.0-wip
+## 24.1.0
 
 - Fix bug where debugging clients are not aware of service extensions when connecting to a new web app. - [#2388](https://github.com/dart-lang/webdev/pull/2388)
 - Respect the value of `pause_isolates_on_start` during page-refreshes. - [#2431](https://github.com/dart-lang/webdev/pull/2431)
@@ -6,8 +6,9 @@
 - Add implementation for the VM Service's `getFlagList` API. - [#2438](https://github.com/dart-lang/webdev/pull/2438)
 - Hide more variables from the local scope when debugging. These variables were synthetically added by the compiler to
   support late local variables and don't appear in the original source code. - [#2445](https://github.com/dart-lang/webdev/pull/2445)
-- Require Dart `^3.4`
 - Spawn DDS in a separate process using `dart development-service` instead of launching from `package:dds`. - [#2466](https://github.com/dart-lang/webdev/pull/2466)
+- Update package `web_socket_channel: '>=2.2.0 <4.0.0'`.
+- Require Dart `^3.4`
 
 ## 24.0.0
 

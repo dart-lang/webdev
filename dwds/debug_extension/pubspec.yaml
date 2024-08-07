@@ -23,7 +23,7 @@ dev_dependencies:
   dwds: ^16.0.0
   path: ^1.8.1
   sse: ^4.1.2
-  web_socket_channel: ^2.2.0
+  web_socket_channel: '>=2.2.0 <4.0.0'
 
 dependency_overrides:
   dwds:
