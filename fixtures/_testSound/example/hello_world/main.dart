@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:html';
@@ -12,6 +13,18 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
 part 'part.dart';
+
+// Create a series of top level objects for tests in
+// dwds/test/chrome_proxy_service_test.dart
+
+final topLevelList = () {
+  var l = List.filled(1001, 5);
+  l[4] = 100;
+  return l;
+}();
+
+final topLevelMap = LinkedHashMap.from(
+    Iterable.generate(1001).toList().reversed.toList().asMap());
 
 final myInstance = MyTestClass();
 
