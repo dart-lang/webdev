@@ -675,7 +675,7 @@ void main() {
         final expr = '''
           (function () {
             const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk");
-            const list = sdk.dart.dsend(sdk.core.List,"filled", [1001, 5]);
+            const list = sdk.dart.dsend(sdk.core.List,"filled", [sdk.dart_rti.findType("List<@>"), 1001, 5]);
             list[4] = 100;
             return list;
       })()''';
@@ -687,12 +687,12 @@ void main() {
         final expr = '''
           (function () {
             const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk");
-            const iterable = sdk.dart.dsend(sdk.core.Iterable, "generate", [1001]);
+            const iterable = sdk.dart.dsend(sdk.core.Iterable, "generate", [sdk.dart_rti.findType("Iterable<@>"), 1001]);
             const list1 = sdk.dart.dsend(iterable, "toList", []);
             const reversed = sdk.dart.dload(list1, "reversed");
             const list2 = sdk.dart.dsend(reversed, "toList", []);
             const map = sdk.dart.dsend(list2, "asMap", []);
-            const linkedMap = sdk.dart.dsend(sdk.collection.LinkedHashMap, "from", [map]);
+            const linkedMap = sdk.dart.dsend(sdk.collection.LinkedHashMap, "from", [sdk.dart_rti.findType("Map<@,@>"), map]);
             return linkedMap;
       })()''';
         return service.inspector.jsEvaluate(expr);
