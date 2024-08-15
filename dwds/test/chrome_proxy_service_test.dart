@@ -11,7 +11,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
@@ -22,7 +21,6 @@ import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
@@ -670,38 +668,13 @@ void main() {
         expect(largeString.length, 5 * 250);
       });
 
-      /// Helper to create a list of 1001 elements, doing a direct JS eval.
-      Future<RemoteObject> createList() {
-        final expr = '''
-          (function () {
-            const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk");
-            const list = sdk.dart.dsend(sdk.core.List,"filled", [1001, 5]);
-            list[4] = 100;
-            return list;
-      })()''';
-        return service.inspector.jsEvaluate(expr);
-      }
-
-      /// Helper to create a LinkedHashMap with 1001 entries, doing a direct JS eval.
-      Future<RemoteObject> createMap() {
-        final expr = '''
-          (function () {
-            const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk");
-            const iterable = sdk.dart.dsend(sdk.core.Iterable, "generate", [1001]);
-            const list1 = sdk.dart.dsend(iterable, "toList", []);
-            const reversed = sdk.dart.dload(list1, "reversed");
-            const list2 = sdk.dart.dsend(reversed, "toList", []);
-            const map = sdk.dart.dsend(list2, "asMap", []);
-            const linkedMap = sdk.dart.dsend(sdk.collection.LinkedHashMap, "from", [map]);
-            return linkedMap;
-      })()''';
-        return service.inspector.jsEvaluate(expr);
-      }
-
       test('Lists', () async {
-        final list = await createList();
-        final inst =
-            await service.getObject(isolate.id!, list.objectId!) as Instance;
+        final list = await service.evaluate(
+          isolate.id!,
+          bootstrap!.id!,
+          'topLevelList',
+        ) as InstanceRef;
+        final inst = await service.getObject(isolate.id!, list.id!) as Instance;
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);
@@ -713,9 +686,12 @@ void main() {
       });
 
       test('Maps', () async {
-        final map = await createMap();
-        final inst =
-            await service.getObject(isolate.id!, map.objectId!) as Instance;
+        final map = await service.evaluate(
+          isolate.id!,
+          bootstrap!.id!,
+          'topLevelMap',
+        ) as InstanceRef;
+        final inst = await service.getObject(isolate.id!, map.id!) as Instance;
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);
@@ -769,10 +745,14 @@ void main() {
 
       group('getObject called with offset/count parameters', () {
         test('Lists with null offset and count are not truncated', () async {
-          final list = await createList();
+          final list = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelList',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            list.objectId!,
+            list.id!,
             count: null,
             offset: null,
           ) as Instance;
@@ -787,10 +767,14 @@ void main() {
         });
 
         test('Lists with null count are not truncated', () async {
-          final list = await createList();
+          final list = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelList',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            list.objectId!,
+            list.id!,
             count: null,
             offset: 0,
           ) as Instance;
@@ -807,10 +791,14 @@ void main() {
         test(
             'Lists with null count and offset greater than 0 are '
             'truncated from offset to end of list', () async {
-          final list = await createList();
+          final list = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelList',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            list.objectId!,
+            list.id!,
             count: null,
             offset: 1000,
           ) as Instance;
@@ -823,10 +811,14 @@ void main() {
         });
 
         test('Lists with offset/count are truncated', () async {
-          final list = await createList();
+          final list = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelList',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            list.objectId!,
+            list.id!,
             count: 7,
             offset: 4,
           ) as Instance;
@@ -842,10 +834,14 @@ void main() {
 
         test('Lists are truncated to the end if offset/count runs off the end',
             () async {
-          final list = await createList();
+          final list = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelList',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            list.objectId!,
+            list.id!,
             count: 5,
             offset: 1000,
           ) as Instance;
@@ -859,10 +855,14 @@ void main() {
 
         test('Lists are truncated to empty if offset runs off the end',
             () async {
-          final list = await createList();
+          final list = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelList',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            list.objectId!,
+            list.id!,
             count: 5,
             offset: 1002,
           ) as Instance;
@@ -875,10 +875,14 @@ void main() {
 
         test('Lists are truncated to empty with 0 count and null offset',
             () async {
-          final list = await createList();
+          final list = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelList',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            list.objectId!,
+            list.id!,
             count: 0,
             offset: null,
           ) as Instance;
@@ -890,10 +894,14 @@ void main() {
         });
 
         test('Maps with null offset/count are not truncated', () async {
-          final map = await createMap();
+          final map = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelMap',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            map.objectId!,
+            map.id!,
             count: null,
             offset: null,
           ) as Instance;
@@ -912,10 +920,14 @@ void main() {
         test(
             'Maps with null count and offset greater than 0 are '
             'truncated from offset to end of map', () async {
-          final list = await createMap();
+          final map = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelMap',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            list.objectId!,
+            map.id!,
             count: null,
             offset: 1000,
           ) as Instance;
@@ -929,10 +941,14 @@ void main() {
         });
 
         test('Maps with null count are not truncated', () async {
-          final map = await createMap();
+          final map = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelMap',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            map.objectId!,
+            map.id!,
             count: null,
             offset: 0,
           ) as Instance;
@@ -949,10 +965,14 @@ void main() {
         });
 
         test('Maps with offset/count are truncated', () async {
-          final map = await createMap();
+          final map = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelMap',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            map.objectId!,
+            map.id!,
             count: 7,
             offset: 4,
           ) as Instance;
@@ -970,10 +990,14 @@ void main() {
 
         test('Maps are truncated to the end if offset/count runs off the end',
             () async {
-          final map = await createMap();
+          final map = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelMap',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            map.objectId!,
+            map.id!,
             count: 5,
             offset: 1000,
           ) as Instance;
@@ -988,10 +1012,14 @@ void main() {
 
         test('Maps are truncated to empty if offset runs off the end',
             () async {
-          final list = await createMap();
+          final map = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelMap',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            list.objectId!,
+            map.id!,
             count: 5,
             offset: 1002,
           ) as Instance;
@@ -1022,10 +1050,14 @@ void main() {
 
         test('Maps are truncated to empty if offset runs off the end',
             () async {
-          final list = await createMap();
+          final map = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelMap',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            list.objectId!,
+            map.id!,
             count: 5,
             offset: 1002,
           ) as Instance;
@@ -1038,10 +1070,14 @@ void main() {
 
         test('Maps are truncated to empty with 0 count and null offset',
             () async {
-          final list = await createMap();
+          final map = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelMap',
+          ) as InstanceRef;
           final inst = await service.getObject(
             isolate.id!,
-            list.objectId!,
+            map.id!,
             count: 0,
             offset: null,
           ) as Instance;
