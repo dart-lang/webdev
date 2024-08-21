@@ -21,6 +21,8 @@ var identityMap = <String, int>{};
 
 var map = <Object, Object>{};
 
+final stream = Stream.value(1);
+
 void staticFunction(int formal) {
   print(formal); // Breakpoint: staticFunction
 }
