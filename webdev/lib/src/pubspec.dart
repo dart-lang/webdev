@@ -68,8 +68,10 @@ class PubspecLock {
 
   PubspecLock(this._packages);
 
-  static Future<PubspecLock> read() async {
-    await _runPubDeps();
+  static Future<PubspecLock> read({bool offline = false}) async {
+    if (!offline) {
+      await _runPubDeps();
+    }
     var dir = p.absolute(p.current);
     while (true) {
       final candidate = p.join(
