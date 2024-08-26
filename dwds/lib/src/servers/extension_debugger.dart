@@ -364,8 +364,6 @@ class ExtensionDebugger implements RemoteDebugger {
         return 'none';
       case PauseState.uncaught:
         return 'uncaught';
-      default:
-        throw ArgumentError('unknown state: $state');
     }
   }
 
