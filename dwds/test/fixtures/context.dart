@@ -384,6 +384,7 @@ class TestContext {
           ..addAll({
             Capabilities.chromeOptions: {
               'args': [
+                '--disable-gpu',
                 'remote-debugging-port=$debugPort',
                 if (enableDebugExtension)
                   '--load-extension=debug_extension/prod_build',
