@@ -440,7 +440,11 @@ class TestContext {
           : 'http://localhost:$port/$basePath/$filePathToServe';
 
       if (testSettings.launchChrome) {
+        _logger.shout('BRUH1 start');
+        _logger.shout(appUrl);
+        _logger.shout('BRUH1 end');
         await _webDriver?.get(appUrl);
+        _logger.shout('BRUH5');
         final tab = await connection.getTab((t) => t.url == appUrl);
         if (tab != null) {
           _tabConnection = await tab.connect();

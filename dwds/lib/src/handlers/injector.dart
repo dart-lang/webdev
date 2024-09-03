@@ -43,6 +43,9 @@ class DwdsInjector {
 
   Middleware get middleware => (innerHandler) {
         return (Request request) async {
+          _logger.shout('BRUH2 start');
+          _logger.shout(request.requestedUri.path);
+          _logger.shout('BRUH2 end');
           if (request.url.path.endsWith('$_clientScript.js')) {
             final uri = await Isolate.resolvePackageUri(
               Uri.parse('package:$_clientScript.js'),
@@ -50,7 +53,9 @@ class DwdsInjector {
             if (uri == null) {
               throw StateError('Cannot resolve "package:$_clientScript.js"');
             }
+            _logger.shout('BRUH3');
             final result = await File(uri.toFilePath()).readAsString();
+            _logger.shout('BRUH4');
             return Response.ok(
               result,
               headers: {
