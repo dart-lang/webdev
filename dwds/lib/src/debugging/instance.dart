@@ -170,7 +170,6 @@ class InstanceHelper extends Domain {
       case RuntimeObjectKind.object:
       case RuntimeObjectKind.nativeError:
       case RuntimeObjectKind.nativeObject:
-      default:
         return await _plainInstanceFor(
           metaData,
           remoteObject,
