@@ -99,29 +99,69 @@ void main() {
     await process.shouldExit(isNot(0));
   });
 
-  test('build should allow passing extra arguments to build_runner', () async {
-    var args = [
-      'build',
-      '-o',
-      'web:${d.sandbox}',
-      '--',
-      '--delete-conflicting-outputs'
-    ];
+  test(
+    'build should allow passing extra arguments to build_runner',
+    () async {
+      var args = [
+        'build',
+        '-o',
+        'web:${d.sandbox}',
+        '--',
+        '--delete-conflicting-outputs'
+      ];
 
-    var process = await testRunner.runWebDev(args,
-        workingDirectory: soundExampleDirectory);
+      var process = await testRunner.runWebDev(args,
+          workingDirectory: soundExampleDirectory);
 
-    await checkProcessStdout(process, ['Succeeded']);
-    await process.shouldExit(0);
-  });
+      await checkProcessStdout(process, ['Succeeded']);
+      await process.shouldExit(0);
+    },
+    // https://github.com/dart-lang/webdev/issues/2489,
+    skip: Platform.isWindows,
+  );
 
   group('should build with valid configuration', () {
     for (var withDDC in [true, false]) {
-      test(withDDC ? 'DDC' : 'dart2js', () async {
-        var args = ['build', '-o', 'web:${d.sandbox}'];
-        if (withDDC) {
-          args.add('--no-release');
-        }
+      test(
+        withDDC ? 'DDC' : 'dart2js',
+        () async {
+          var args = ['build', '-o', 'web:${d.sandbox}'];
+          if (withDDC) {
+            args.add('--no-release');
+          }
+
+          var process = await testRunner.runWebDev(args,
+              workingDirectory: soundExampleDirectory);
+
+          var expectedItems = <Object>['Succeeded'];
+
+          await checkProcessStdout(process, expectedItems);
+          await process.shouldExit(0);
+
+          for (var entry in _testItems.entries) {
+            var shouldExist = (entry.value ?? withDDC) == withDDC;
+
+            if (shouldExist) {
+              await d.file(entry.key, isNotEmpty).validate();
+            } else {
+              await d.nothing(entry.key).validate();
+            }
+          }
+        },
+        // https://github.com/dart-lang/webdev/issues/2489
+        skip: Platform.isWindows && withDDC,
+      );
+    }
+    test(
+      'and --null-safety=sound',
+      () async {
+        var args = [
+          'build',
+          '-o',
+          'web:${d.sandbox}',
+          '--no-release',
+          '--null-safety=sound'
+        ];
 
         var process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
@@ -131,36 +171,11 @@ void main() {
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
 
-        for (var entry in _testItems.entries) {
-          var shouldExist = (entry.value ?? withDDC) == withDDC;
-
-          if (shouldExist) {
-            await d.file(entry.key, isNotEmpty).validate();
-          } else {
-            await d.nothing(entry.key).validate();
-          }
-        }
-      });
-    }
-    test('and --null-safety=sound', () async {
-      var args = [
-        'build',
-        '-o',
-        'web:${d.sandbox}',
-        '--no-release',
-        '--null-safety=sound'
-      ];
-
-      var process = await testRunner.runWebDev(args,
-          workingDirectory: soundExampleDirectory);
-
-      var expectedItems = <Object>['Succeeded'];
-
-      await checkProcessStdout(process, expectedItems);
-      await process.shouldExit(0);
-
-      await d.file('main.ddc.js', isNotEmpty).validate();
-    });
+        await d.file('main.ddc.js', isNotEmpty).validate();
+      },
+      // https://github.com/dart-lang/webdev/issues/2489
+      skip: Platform.isWindows,
+    );
   });
 
   group('should build with --output=NONE', () {

@@ -268,9 +268,8 @@ class InstanceHelper extends Domain {
       objectId,
       offset: offset,
       count: count,
-      length: metaData.kind != InstanceKind.kPlainInstance
-          ? metaData.length
-          : null,
+      length:
+          metaData.kind != InstanceKind.kPlainInstance ? metaData.length : null,
     );
 
     final dartProperties = await _dartFieldsFor(properties, remoteObject);

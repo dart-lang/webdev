@@ -384,6 +384,9 @@ class TestContext {
           ..addAll({
             Capabilities.chromeOptions: {
               'args': [
+                // --disable-gpu speeds up the tests that use ChromeDriver when
+                // they are run on GitHub Actions.
+                '--disable-gpu',
                 'remote-debugging-port=$debugPort',
                 if (enableDebugExtension)
                   '--load-extension=debug_extension/prod_build',
