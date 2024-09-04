@@ -11,6 +11,7 @@
 - Spawn DDS in a separate process using `dart development-service` instead of launching from `package:dds`. - [#2466](https://github.com/dart-lang/webdev/pull/2466)
 - Update package `web_socket_channel: '>=2.2.0 <4.0.0'`.
 - Require Dart `^3.4`
+- Prepare to update `package:vm_service_interface` constraint to `2.0.0`.
 
 ## 24.0.0
 

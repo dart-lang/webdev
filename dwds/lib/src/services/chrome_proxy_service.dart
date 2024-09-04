@@ -623,6 +623,11 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     Map<String, String>? scope,
     // TODO(798) - respect disableBreakpoints.
     bool? disableBreakpoints,
+
+    /// Note that `idZoneId` arguments will be ignored. This parameter is only
+    /// here to make this method is a valid override of
+    /// [VmServiceInterface.evaluate].
+    String? idZoneId,
   }) =>
       wrapInErrorHandlerAsync(
         'evaluate',
@@ -716,6 +721,11 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     Map<String, String>? scope,
     // TODO(798) - respect disableBreakpoints.
     bool? disableBreakpoints,
+
+    /// Note that `idZoneId` arguments will be ignored. This parameter is only
+    /// here to make this method is a valid override of
+    /// [VmServiceInterface.evaluateInFrame].
+    String? idZoneId,
   }) =>
       wrapInErrorHandlerAsync(
         'evaluateInFrame',
@@ -805,6 +815,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     int limit, {
     bool? includeImplementers,
     bool? includeSubclasses,
+    String? idZoneId,
   }) {
     return _rpcNotSupportedFuture('getInstances');
   }
@@ -845,6 +856,11 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     String objectId, {
     int? offset,
     int? count,
+
+    /// Note that `idZoneId` arguments will be ignored. This parameter is only
+    /// here to make this method is a valid override of
+    /// [VmServiceInterface.getObject].
+    String? idZoneId,
   }) =>
       wrapInErrorHandlerAsync(
         'getObject',
@@ -946,7 +962,15 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
   ///
   /// The returned stack will contain up to [limit] frames if provided.
   @override
-  Future<Stack> getStack(String isolateId, {int? limit}) =>
+  Future<Stack> getStack(
+    String isolateId, {
+    int? limit,
+
+    /// Note that `idZoneId` arguments will be ignored. This parameter is only
+    /// here to make this method is a valid override of
+    /// [VmServiceInterface.getStack].
+    String? idZoneId,
+  }) =>
       wrapInErrorHandlerAsync(
         'getStack',
         () => _getStack(isolateId, limit: limit),
@@ -1002,6 +1026,11 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
     List argumentIds, {
     // TODO(798) - respect disableBreakpoints.
     bool? disableBreakpoints,
+
+    /// Note that `idZoneId` arguments will be ignored. This parameter is only
+    /// here to make this method is a valid override of
+    /// [VmServiceInterface.invoke].
+    String? idZoneId,
   }) =>
       wrapInErrorHandlerAsync(
         'invoke',
@@ -1591,8 +1620,9 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
   Future<InboundReferences> getInboundReferences(
     String isolateId,
     String targetId,
-    int limit,
-  ) {
+    int limit, {
+    String? idZoneId,
+  }) {
     return _rpcNotSupportedFuture('getInboundReferences');
   }
 
@@ -1600,8 +1630,9 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
   Future<RetainingPath> getRetainingPath(
     String isolateId,
     String targetId,
-    int limit,
-  ) {
+    int limit, {
+    String? idZoneId,
+  }) {
     return _rpcNotSupportedFuture('getRetainingPath');
   }
 
