@@ -6,6 +6,7 @@
 - Add implementation for the VM Service's `getFlagList` API. - [#2438](https://github.com/dart-lang/webdev/pull/2438)
 - Hide more variables from the local scope when debugging. These variables were synthetically added by the compiler to
   support late local variables and don't appear in the original source code. - [#2445](https://github.com/dart-lang/webdev/pull/2445)
+- Support running from inside a pub workspace [#2498](https://github.com/dart-lang/webdev/pull/2498).
 
 ## 24.0.0
 
