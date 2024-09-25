@@ -95,16 +95,15 @@ refresh: Performs a full page refresh.
     Configuration configuration;
     configuration = Configuration.fromArgs(argResults);
     configureLogWriter(configuration.verbose);
-    PubspecLock? pubspecLock;
     try {
-      pubspecLock = await readPubspecLock(configuration);
+      await validatePubspecLock(configuration);
     } on PackageException catch (e) {
       logWriter(Level.SEVERE, 'Pubspec errors: ', error: '${e.details}');
       rethrow;
     }
     // Forward remaining arguments as Build Options to the Daemon.
     // This isn't documented. Should it be advertised?
-    var buildOptions = buildRunnerArgs(pubspecLock, configuration)
+    var buildOptions = buildRunnerArgs(configuration)
       ..addAll(argResults!.rest.where((arg) => arg.startsWith('-')).toList());
     var extraArgs = argResults?.rest ?? [];
     var directoryArgs = extraArgs.where((arg) => !arg.startsWith('-')).toList();

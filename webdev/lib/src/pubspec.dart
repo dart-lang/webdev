@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart';
+import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:yaml/yaml.dart';
@@ -30,12 +31,6 @@ class PackageExceptionDetails {
   const PackageExceptionDetails._(this.error,
       {this.description, bool missingDependency = false})
       : _missingDependency = missingDependency;
-
-  static const noPubspecLock =
-      PackageExceptionDetails._('`pubspec.lock` does not exist.',
-          description: 'Run `$appName` in a Dart package directory. '
-              'Run `dart pub get` first.',
-          missingDependency: true);
 
   static PackageExceptionDetails missingDep(
           String pkgName, VersionConstraint constraint) =>
@@ -75,9 +70,26 @@ class PubspecLock {
 
   static Future<PubspecLock> read() async {
     await _runPubDeps();
+    var dir = p.absolute(p.current);
+    while (true) {
+      final candidate = p.join(
+        dir,
+        '.dart_tool',
+        'package_config.json',
+      );
+      if (File(candidate).existsSync()) break;
+      final next = p.dirname(dir);
+      if (next == dir) {
+        // Give up.
+        dir = p.current;
+        break;
+      }
+      dir = next;
+    }
 
-    var pubspecLock =
-        loadYaml(await File('pubspec.lock').readAsString()) as YamlMap;
+    var pubspecLock = loadYaml(
+            await File(p.relative(p.join(dir, 'pubspec.lock'))).readAsString())
+        as YamlMap;
 
     var packages = pubspecLock['packages'] as YamlMap?;
     return PubspecLock(packages);

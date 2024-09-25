@@ -79,8 +79,7 @@ void addSharedArgs(ArgParser argParser,
 
 /// Parses the provided [Configuration] to return a list of
 /// `package:build_runner` appropriate arguments.
-List<String> buildRunnerArgs(
-    PubspecLock pubspecLock, Configuration configuration) {
+List<String> buildRunnerArgs(Configuration configuration) {
   var arguments = <String>[];
   if (configuration.release) {
     arguments.add('--$releaseFlag');
@@ -103,11 +102,10 @@ List<String> buildRunnerArgs(
   return arguments;
 }
 
-Future<PubspecLock> readPubspecLock(Configuration configuration) async {
+Future<void> validatePubspecLock(Configuration configuration) async {
   var pubspecLock = await PubspecLock.read();
   await checkPubspecLock(pubspecLock,
       requireBuildWebCompilers: configuration.requireBuildWebCompilers);
-  return pubspecLock;
 }
 
 /// Checks that the normalized form of [path] is a top level directory under

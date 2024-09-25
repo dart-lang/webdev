@@ -52,9 +52,8 @@ class BuildCommand extends Command<int> {
 
     List<String> arguments;
     try {
-      var pubspecLock = await readPubspecLock(configuration);
-      arguments = buildRunnerArgs(pubspecLock, configuration)
-        ..addAll(validExtraArgs);
+      await validatePubspecLock(configuration);
+      arguments = buildRunnerArgs(configuration)..addAll(validExtraArgs);
     } on PackageException catch (e) {
       logWriter(logging.Level.SEVERE, 'Pubspec errors: ',
           error: '${e.details}');
