@@ -1,5 +1,7 @@
 ## 3.6.0-wip
 
+- Support running from inside a pub workspace [#2498](https://github.com/dart-lang/webdev/pull/2498).
+
 ## 3.5.0
 
 - Update `dwds` constraint to `24.0.0`.
