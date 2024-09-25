@@ -97,7 +97,7 @@ class PubspecLock {
 
   List<PackageExceptionDetails> checkPackage(
       String pkgName, VersionConstraint constraint,
-      {String? forArgument, bool requireDirect = true}) {
+      {String? forArgument}) {
     var issues = <PackageExceptionDetails>[];
     var missingDetails =
         PackageExceptionDetails.missingDep(pkgName, constraint);
@@ -107,13 +107,6 @@ class PubspecLock {
     if (pkgDataMap == null) {
       issues.add(missingDetails);
     } else {
-      var dependency = pkgDataMap['dependency'] as String?;
-      if (requireDirect &&
-          dependency != null &&
-          !dependency.startsWith('direct ')) {
-        issues.add(missingDetails);
-      }
-
       var source = pkgDataMap['source'] as String?;
       if (source == 'hosted') {
         // NOTE: pkgDataMap['description'] should be:
@@ -145,7 +138,6 @@ Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
   var buildDaemonIssues = pubspecLock.checkPackage(
     'build_daemon',
     VersionConstraint.parse(buildDaemonConstraint),
-    requireDirect: false,
   );
 
   // Only warn of build_daemon issues if they have a dependency on the package.
@@ -158,8 +150,7 @@ Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
     // used by their application.
     if (info.isNewer &&
         pubspecLock
-            .checkPackage('build_daemon', info.buildDaemonConstraint,
-                requireDirect: false)
+            .checkPackage('build_daemon', info.buildDaemonConstraint)
             .isEmpty) {
       issues.add(PackageExceptionDetails._('$issuePreamble\n'
           'A newer version of webdev is available which supports '
@@ -181,7 +172,6 @@ final buildWebCompilersConstraint = VersionConstraint.parse('^4.0.4');
 Future<void> checkPubspecLock(PubspecLock pubspecLock,
     {required bool requireBuildWebCompilers}) async {
   var issues = <PackageExceptionDetails>[];
-
   var buildRunnerIssues =
       pubspecLock.checkPackage('build_runner', buildRunnerConstraint);
 
