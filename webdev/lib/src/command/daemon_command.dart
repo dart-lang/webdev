@@ -66,9 +66,8 @@ class DaemonCommand extends Command<int> {
             launchInChrome: true, debug: true, autoRun: false, release: false));
     configureLogWriter(configuration.verbose);
     // Validate the pubspec first to ensure we are in a Dart project.
-    PubspecLock? pubspecLock;
     try {
-      pubspecLock = await readPubspecLock(configuration);
+      await validatePubspecLock(configuration);
     } on PackageException catch (e) {
       logWriter(Level.SEVERE, 'Pubspec errors: ', error: '${e.details}');
       rethrow;
@@ -104,7 +103,7 @@ class DaemonCommand extends Command<int> {
         }
       });
       daemon.registerDomain(daemonDomain);
-      var buildOptions = buildRunnerArgs(pubspecLock, configuration);
+      var buildOptions = buildRunnerArgs(configuration);
       var extraArgs = argResults?.rest ?? [];
       var directoryArgs =
           extraArgs.where((arg) => !arg.startsWith('-')).toList();

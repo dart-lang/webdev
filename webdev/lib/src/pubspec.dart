@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart';
+import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:yaml/yaml.dart';
@@ -30,12 +31,6 @@ class PackageExceptionDetails {
   const PackageExceptionDetails._(this.error,
       {this.description, bool missingDependency = false})
       : _missingDependency = missingDependency;
-
-  static const noPubspecLock =
-      PackageExceptionDetails._('`pubspec.lock` does not exist.',
-          description: 'Run `$appName` in a Dart package directory. '
-              'Run `dart pub get` first.',
-          missingDependency: true);
 
   static PackageExceptionDetails missingDep(
           String pkgName, VersionConstraint constraint) =>
@@ -75,9 +70,26 @@ class PubspecLock {
 
   static Future<PubspecLock> read() async {
     await _runPubDeps();
+    var dir = p.absolute(p.current);
+    while (true) {
+      final candidate = p.join(
+        dir,
+        '.dart_tool',
+        'package_config.json',
+      );
+      if (File(candidate).existsSync()) break;
+      final next = p.dirname(dir);
+      if (next == dir) {
+        // Give up.
+        dir = p.current;
+        break;
+      }
+      dir = next;
+    }
 
-    var pubspecLock =
-        loadYaml(await File('pubspec.lock').readAsString()) as YamlMap;
+    var pubspecLock = loadYaml(
+            await File(p.relative(p.join(dir, 'pubspec.lock'))).readAsString())
+        as YamlMap;
 
     var packages = pubspecLock['packages'] as YamlMap?;
     return PubspecLock(packages);
@@ -85,7 +97,7 @@ class PubspecLock {
 
   List<PackageExceptionDetails> checkPackage(
       String pkgName, VersionConstraint constraint,
-      {String? forArgument, bool requireDirect = true}) {
+      {String? forArgument}) {
     var issues = <PackageExceptionDetails>[];
     var missingDetails =
         PackageExceptionDetails.missingDep(pkgName, constraint);
@@ -95,13 +107,6 @@ class PubspecLock {
     if (pkgDataMap == null) {
       issues.add(missingDetails);
     } else {
-      var dependency = pkgDataMap['dependency'] as String?;
-      if (requireDirect &&
-          dependency != null &&
-          !dependency.startsWith('direct ')) {
-        issues.add(missingDetails);
-      }
-
       var source = pkgDataMap['source'] as String?;
       if (source == 'hosted') {
         // NOTE: pkgDataMap['description'] should be:
@@ -133,7 +138,6 @@ Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
   var buildDaemonIssues = pubspecLock.checkPackage(
     'build_daemon',
     VersionConstraint.parse(buildDaemonConstraint),
-    requireDirect: false,
   );
 
   // Only warn of build_daemon issues if they have a dependency on the package.
@@ -146,8 +150,7 @@ Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
     // used by their application.
     if (info.isNewer &&
         pubspecLock
-            .checkPackage('build_daemon', info.buildDaemonConstraint,
-                requireDirect: false)
+            .checkPackage('build_daemon', info.buildDaemonConstraint)
             .isEmpty) {
       issues.add(PackageExceptionDetails._('$issuePreamble\n'
           'A newer version of webdev is available which supports '
@@ -169,7 +172,6 @@ final buildWebCompilersConstraint = VersionConstraint.parse('^4.0.4');
 Future<void> checkPubspecLock(PubspecLock pubspecLock,
     {required bool requireBuildWebCompilers}) async {
   var issues = <PackageExceptionDetails>[];
-
   var buildRunnerIssues =
       pubspecLock.checkPackage('build_runner', buildRunnerConstraint);
 
