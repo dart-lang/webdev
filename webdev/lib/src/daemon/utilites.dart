@@ -8,7 +8,9 @@ dynamic toJsonable(dynamic obj) {
       obj is bool ||
       obj is Map<dynamic, dynamic> ||
       obj is List<dynamic> ||
-      obj == null) return obj;
+      obj == null) {
+    return obj;
+  }
   return '$obj';
 }
 

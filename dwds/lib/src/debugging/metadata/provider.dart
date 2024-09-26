@@ -192,7 +192,9 @@ class MetadataProvider {
           for (var contents in merged.split('\n')) {
             try {
               if (contents.isEmpty ||
-                  contents.startsWith('// intentionally empty:')) continue;
+                  contents.startsWith('// intentionally empty:')) {
+                continue;
+              }
               final moduleJson = json.decode(contents);
               final metadata =
                   ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);

@@ -362,10 +362,6 @@ class TestContext {
             buildResults = const Stream<BuildResults>.empty();
           }
           break;
-        default:
-          throw Exception(
-            'Unsupported compilation mode: ${testSettings.compilationMode}',
-          );
       }
 
       final debugPort = await findUnusedPort();
