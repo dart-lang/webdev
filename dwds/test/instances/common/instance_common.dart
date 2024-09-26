@@ -238,6 +238,26 @@ void runTests({
         expect(inspector.isDisplayableObject(ref), isTrue);
       });
 
+      // Regression test for https://github.com/dart-lang/webdev/issues/2446.
+      test(
+        'for a stream',
+        () async {
+          final remoteObject = await inspector.jsEvaluate(
+            libraryVariableExpression('stream', compilationMode),
+          );
+          final ref = await inspector.instanceRefFor(remoteObject);
+          expect(ref!.kind, InstanceKind.kPlainInstance);
+          final classRef = ref.classRef!;
+          expect(classRef.name, '_ControllerStream<int>');
+          expect(
+            classRef.id,
+            'classes|dart:async|_ControllerStream<int>',
+          );
+          expect(inspector.isDisplayableObject(ref), isTrue);
+        },
+        skip: !dartSdkIsAtLeast('3.6.0-148.0.dev'),
+      );
+
       test('for a Dart error', () async {
         final remoteObject = await inspector.jsEvaluate(newDartError);
         final ref = await inspector.instanceRefFor(remoteObject);
@@ -378,6 +398,22 @@ void runTests({
         expect(first.valueAsString, '1');
         expect(inspector.isDisplayableObject(instance), isTrue);
       });
+
+      // Regression test for https://github.com/dart-lang/webdev/issues/2446.
+      test(
+        'for a stream',
+        () async {
+          final remote = await inspector.jsEvaluate(
+            libraryVariableExpression('stream', compilationMode),
+          );
+          final instance = await inspector.instanceFor(remote);
+          expect(instance!.kind, InstanceKind.kPlainInstance);
+          final classRef = instance.classRef!;
+          expect(classRef.name, '_ControllerStream<int>');
+          expect(inspector.isDisplayableObject(instance), isTrue);
+        },
+        skip: !dartSdkIsAtLeast('3.6.0-148.0.dev'),
+      );
 
       test('for a Dart error', () async {
         final remoteObject = await inspector.jsEvaluate(newDartError);
