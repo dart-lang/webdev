@@ -215,7 +215,7 @@ class AppInspector implements AppInspectorInterface {
     // We use the JS pseudo-variable 'arguments' to get the list of all arguments.
     final send = '''
         function () {
-          if (!(this.__proto__)) { return 'Instance of PlainJavaScriptObject';}
+          if (!Object.getPrototypeOf(this)) { return 'Instance of PlainJavaScriptObject';}
           return ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").dart.dsendRepl(this, "$methodName", arguments);
         }
         ''';
