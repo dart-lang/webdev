@@ -25,7 +25,7 @@ void main() {
     );
     tearDownAll(provider.dispose);
 
-    for (var compilationMode in CompilationMode.values) {
+    for (final compilationMode in CompilationMode.values) {
       runTests(
         provider: provider,
         compilationMode: compilationMode,

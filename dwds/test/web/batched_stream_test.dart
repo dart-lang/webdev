@@ -67,7 +67,7 @@ void main() {
       final inputAdded = controller.sink.addStream(inputController.stream);
 
       final input = List<int>.generate(size, (index) => index);
-      for (var e in input) {
+      for (final e in input) {
         inputController.sink.add(e);
         await Future.delayed(delay);
       }

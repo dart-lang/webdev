@@ -62,10 +62,10 @@ Future<Chrome?> _startChrome(
 ) async {
   final uris = [
     if (configuration.launchApps.isEmpty)
-      for (var s in serverManager.servers)
+      for (final s in serverManager.servers)
         Uri(scheme: 'http', host: s.host, port: s.port).toString()
     else
-      for (var app in configuration.launchApps)
+      for (final app in configuration.launchApps)
         _uriForLaunchApp(app, serverManager)
   ];
   try {
@@ -94,7 +94,7 @@ Future<ServerManager> _startServerManager(
 ) async {
   final assetPort = daemonPort(workingDirectory);
   final serverOptions = <ServerOptions>{};
-  for (var target in targetPorts.keys) {
+  for (final target in targetPorts.keys) {
     serverOptions.add(ServerOptions(
       configuration,
       targetPorts[target]!,
@@ -106,7 +106,7 @@ Future<ServerManager> _startServerManager(
   final serverManager =
       await ServerManager.start(serverOptions, client.buildResults);
 
-  for (var server in serverManager.servers) {
+  for (final server in serverManager.servers) {
     logWriter(
         logging.Level.INFO,
         'Serving `${server.target}` on '
@@ -122,7 +122,7 @@ void _registerBuildTargets(
   Map<String, int> targetPorts,
 ) {
   // Register a target for each serve target.
-  for (var target in targetPorts.keys) {
+  for (final target in targetPorts.keys) {
     OutputLocation? outputLocation;
     if (configuration.outputPath != null &&
         (configuration.outputInput == null ||

@@ -56,7 +56,7 @@ Future<List<Property>> visibleVariables({
 
   // Iterate to least specific scope last to help preserve order in the local
   // variables view when stepping.
-  for (var scope in filterScopes(frame).reversed) {
+  for (final scope in filterScopes(frame).reversed) {
     final objectId = scope.object.objectId;
     if (objectId != null) {
       final properties = await inspector.getProperties(objectId);

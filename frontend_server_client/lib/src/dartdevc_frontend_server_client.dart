@@ -118,7 +118,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     final sourceBytes = File(result.jsSourcesOutput!).readAsBytesSync();
     final sourceMapBytes = File(result.jsSourceMapsOutput!).readAsBytesSync();
 
-    for (var entry in manifest.entries) {
+    for (final entry in manifest.entries) {
       final metadata = entry.value as Map<String, dynamic>;
       final sourceOffsets = metadata['code'] as List;
       _assets[entry.key] =

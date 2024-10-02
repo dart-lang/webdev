@@ -80,7 +80,7 @@ class Modules {
     final libraryToScripts = await provider.scripts;
     final scriptToModule = await provider.scriptToModule;
 
-    for (var library in libraryToScripts.keys) {
+    for (final library in libraryToScripts.keys) {
       final scripts = libraryToScripts[library]!;
       final libraryServerPath = library.startsWith('dart:')
           ? library
@@ -93,7 +93,7 @@ class Modules {
         _sourceToLibrary[libraryServerPath] = Uri.parse(library);
         _libraryToModule[library] = module;
 
-        for (var script in scripts) {
+        for (final script in scripts) {
           final scriptServerPath = script.startsWith('dart:')
               ? script
               : DartUri(script, _root).serverPath;

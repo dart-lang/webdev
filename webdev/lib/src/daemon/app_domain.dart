@@ -64,7 +64,7 @@ class AppDomain extends Domain {
   Future<void> _handleAppConnections(WebDevServer server) async {
     final dwds = server.dwds!;
     // The connection is established right before `main()` is called.
-    await for (var appConnection in dwds.connectedApps) {
+    await for (final appConnection in dwds.connectedApps) {
       final debugConnection = await dwds.debugConnection(appConnection);
       final debugUri = debugConnection.ddsUri ?? debugConnection.uri;
       final vmService = await vmServiceConnectUri(debugUri);
@@ -226,7 +226,7 @@ class AppDomain extends Domain {
   @override
   void dispose() {
     _isShutdown = true;
-    for (var state in _appStates.values) {
+    for (final state in _appStates.values) {
       state.dispose();
     }
     _appStates.clear();

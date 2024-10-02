@@ -189,7 +189,7 @@ class MetadataProvider {
         final merged = await _assetReader.metadataContents(serverPath);
         if (merged != null) {
           _addSdkMetadata();
-          for (var contents in merged.split('\n')) {
+          for (final contents in merged.split('\n')) {
             try {
               if (contents.isEmpty ||
                   contents.startsWith('// intentionally empty:')) {
@@ -227,7 +227,7 @@ class MetadataProvider {
     _modulePathToModule[modulePath] = metadata.name;
     _moduleToModulePath[metadata.name] = modulePath;
 
-    for (var library in metadata.libraries.values) {
+    for (final library in metadata.libraries.values) {
       if (library.importUri.startsWith('file:/')) {
         throw AbsoluteImportUriException(library.importUri);
       }
@@ -235,7 +235,7 @@ class MetadataProvider {
       _scripts[library.importUri] = [];
 
       _scriptToModule[library.importUri] = metadata.name;
-      for (var path in library.partUris) {
+      for (final path in library.partUris) {
         // Parts in metadata are relative to the library Uri directory.
         final partPath = p.url.join(p.dirname(library.importUri), path);
         _scripts[library.importUri]!.add(partPath);
@@ -247,7 +247,7 @@ class MetadataProvider {
   void _addSdkMetadata() {
     final moduleName = 'dart_sdk';
 
-    for (var lib in sdkLibraries) {
+    for (final lib in sdkLibraries) {
       _libraries.add(lib);
       _scripts[lib] = [];
       _scriptToModule[lib] = moduleName;

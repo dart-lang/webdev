@@ -19,14 +19,14 @@ class ServerManager {
     Stream<BuildResults> buildResults,
   ) async {
     final servers = <WebDevServer>{};
-    for (var options in serverOptions) {
+    for (final options in serverOptions) {
       servers.add(await WebDevServer.start(options, buildResults));
     }
     return ServerManager._(servers);
   }
 
   Future<void> stop() async {
-    for (var server in servers) {
+    for (final server in servers) {
       await server.stop();
     }
   }

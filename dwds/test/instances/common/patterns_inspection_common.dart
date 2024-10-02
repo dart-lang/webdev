@@ -120,7 +120,7 @@ void runTests({
     test('stepping through pattern match', () async {
       await onBreakPoint('callTestPattern1', (Event event) async {
         var previousLocation = event.topFrame!.location;
-        for (var step in [
+        for (final step in [
           // Make sure we step into the callee.
           for (var i = 0; i < 4; i++) 'Into',
           // Make a few steps inside the callee.

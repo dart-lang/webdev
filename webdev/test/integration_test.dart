@@ -64,7 +64,7 @@ void main() {
     'build_daemon': ['0.3.0', '5.0.0'],
   };
 
-  for (var command in ['build', 'serve', 'daemon']) {
+  for (final command in ['build', 'serve', 'daemon']) {
     group('`$command` command', () {
       group('missing dependency on', () {
         test('`build_runner` should fail', () async {
@@ -127,9 +127,9 @@ void main() {
         });
       });
 
-      for (var entry in invalidRanges.entries) {
+      for (final entry in invalidRanges.entries) {
         group('with package `${entry.key}`', () {
-          for (var version in entry.value) {
+          for (final version in entry.value) {
             test('at invalid version `$version` should fail', () async {
               var buildRunnerVersion = _supportedBuildRunnerVersion;
               var webCompilersVersion = _supportedWebCompilersVersion;
@@ -272,7 +272,7 @@ packages:
 ''');
   }
 
-  for (var pkg in extraPkgs) {
+  for (final pkg in extraPkgs) {
     buffer.writeln('''
   $pkg:
     dependency: "direct"

@@ -322,7 +322,7 @@ class ResidentCompiler {
     final inputKey = generateV4UUID();
     server.stdin.writeln('recompile $mainUri$inputKey');
     _logger.info('<- recompile $mainUri$inputKey');
-    for (var fileUri in request.invalidatedFiles) {
+    for (final fileUri in request.invalidatedFiles) {
       String message;
       if (fileUri.scheme == 'package') {
         message = fileUri.toString();

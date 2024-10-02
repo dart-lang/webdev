@@ -109,10 +109,10 @@ class DevHandler {
       };
 
   Future<void> close() => _closed ??= () async {
-        for (var sub in _subs) {
+        for (final sub in _subs) {
           await sub.cancel();
         }
-        for (var handler in _sseHandlers.values) {
+        for (final handler in _sseHandlers.values) {
           handler.shutdown();
         }
         await Future.wait(
@@ -123,7 +123,7 @@ class DevHandler {
 
   void _emitBuildResults(BuildResult result) {
     if (result.status != BuildStatus.succeeded) return;
-    for (var injectedConnection in _injectedConnections) {
+    for (final injectedConnection in _injectedConnections) {
       injectedConnection.sink.add(jsonEncode(serializers.serialize(result)));
     }
   }
@@ -137,7 +137,7 @@ class DevHandler {
     ExecutionContext? executionContext;
     WipConnection? tabConnection;
     final appInstanceId = appConnection.request.instanceId;
-    for (var tab in await chromeConnection.getTabs()) {
+    for (final tab in await chromeConnection.getTabs()) {
       if (tab.isChromeExtension || tab.isBackgroundPage) continue;
 
       final connection = tabConnection = await tab.connect();
@@ -162,7 +162,7 @@ class DevHandler {
       // before events are received.
       safeUnawaited(Future.microtask(connection.runtime.enable));
 
-      await for (var contextId in contextIds) {
+      await for (final contextId in contextIds) {
         final result = await connection.sendCommand('Runtime.evaluate', {
           'expression': r'window["$dartAppInstanceId"];',
           'contextId': contextId,

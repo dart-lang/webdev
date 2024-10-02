@@ -136,13 +136,13 @@ Map<String, int> parseDirectoryArgs(List<String> args, {int? basePort}) {
   final result = <String, int>{};
   var port = basePort ?? 8080;
   if (args.isEmpty) {
-    for (var dir in _defaultWebDirs) {
+    for (final dir in _defaultWebDirs) {
       if (Directory(dir).existsSync()) {
         result[dir] = port++;
       }
     }
   } else {
-    for (var arg in args) {
+    for (final arg in args) {
       final splitOption = arg.split(':');
       ensureIsTopLevelDir(splitOption.first);
       if (splitOption.length == 2) {
@@ -165,7 +165,7 @@ in the `<directory>:<port>` format, such as `webdev serve test:8080`.
 }
 
 void validateLaunchApps(List<String> launchApps, Iterable<String> serveDirs) {
-  for (var app in launchApps) {
+  for (final app in launchApps) {
     final dir = p.url.split(app).first;
     if (!serveDirs.contains(dir)) {
       throw InvalidConfiguration(

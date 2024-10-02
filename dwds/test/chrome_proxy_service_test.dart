@@ -731,7 +731,7 @@ void main() {
       test('Scripts', () async {
         final scripts = await service.getScripts(isolate.id!);
         assert(scripts.scripts!.isNotEmpty);
-        for (var scriptRef in scripts.scripts!) {
+        for (final scriptRef in scripts.scripts!) {
           final script =
               await service.getObject(isolate.id!, scriptRef.id!) as Script;
           final serverPath = DartUri(script.uri!, 'hello_world/').serverPath;
@@ -2295,11 +2295,11 @@ void main() {
             ]),
           );
 
-          for (var data in batch1) {
+          for (final data in batch1) {
             await context.tabConnection.runtime.evaluate(emitDebugEvent(data));
           }
           await Future.delayed(delay);
-          for (var data in batch2) {
+          for (final data in batch2) {
             await context.tabConnection.runtime.evaluate(emitDebugEvent(data));
           }
         });
@@ -2383,7 +2383,7 @@ void main() {
             isolateEventStream,
             emitsInOrder(extensions.map(eventMatcher)),
           );
-          for (var extension in extensions) {
+          for (final extension in extensions) {
             await context.tabConnection.runtime
                 .evaluate(emitRegisterEvent(extension));
           }

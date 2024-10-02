@@ -132,7 +132,7 @@ class _Compiler {
     final response = await _send({
       'command': 'UpdateDeps',
       'inputs': [
-        for (var moduleName in modules.keys)
+        for (final moduleName in modules.keys)
           {
             'path': modules[moduleName]!.fullDillPath,
             'summaryPath': modules[moduleName]!.summaryPath,

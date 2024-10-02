@@ -588,7 +588,7 @@ class TestContext {
     final extensionTabs = (await connection.getTabs()).where((tab) {
       return tab.isChromeExtension;
     });
-    for (var tab in extensionTabs) {
+    for (final tab in extensionTabs) {
       final tabConnection = await tab.connect();
       final response =
           await tabConnection.runtime.evaluate('window.isDartDebugExtension');

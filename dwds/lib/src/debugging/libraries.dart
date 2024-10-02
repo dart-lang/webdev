@@ -56,7 +56,7 @@ class LibraryHelper extends Domain {
     final libraries = await globalToolConfiguration.loadStrategy
         .metadataProviderFor(inspector.appConnection.request.entrypointPath)
         .libraries;
-    for (var library in libraries) {
+    for (final library in libraries) {
       _libraryRefsById[library] =
           LibraryRef(id: library, name: library, uri: library);
     }

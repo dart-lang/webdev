@@ -107,7 +107,7 @@ void main() {
     expect(metadata.moduleUri, 'foo/web/main.ddc.js');
     final libraries = metadata.libraries;
     expect(libraries.length, 1);
-    for (var lib in libraries.values) {
+    for (final lib in libraries.values) {
       expect(lib.name, 'main');
       expect(lib.importUri, 'org-dartlang-app:///web/main.dart');
       final parts = lib.partUris;

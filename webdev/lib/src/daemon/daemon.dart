@@ -80,7 +80,7 @@ class Daemon {
 
   void shutdown({Object? error}) {
     _commandSubscription.cancel();
-    for (var domain in _domainMap.values) {
+    for (final domain in _domainMap.values) {
       domain.dispose();
     }
     if (!_onExitCompleter.isCompleted) {

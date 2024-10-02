@@ -40,7 +40,7 @@ void main() {
     tearDown(() async {
       final tabs = await chrome?.chromeConnection.getTabs();
       if (tabs != null) {
-        for (var tab in tabs) {
+        for (final tab in tabs) {
           await closeTab(tab);
         }
       }
@@ -108,7 +108,7 @@ void main() {
     tearDown(() async {
       final tabs = await chrome?.chromeConnection.getTabs();
       if (tabs != null) {
-        for (var tab in tabs) {
+        for (final tab in tabs) {
           await closeTab(tab);
         }
       }

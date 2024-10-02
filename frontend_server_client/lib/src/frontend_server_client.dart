@@ -76,7 +76,7 @@ class FrontendServerClient {
       '--target=$target',
       if (target == 'dartdevc')
         '--dartdevc-module-format=$dartdevcModuleFormat',
-      for (var root in fileSystemRoots) '--filesystem-root=$root',
+      for (final root in fileSystemRoots) '--filesystem-root=$root',
       '--filesystem-scheme',
       fileSystemScheme,
       '--output-dill',
@@ -87,9 +87,9 @@ class FrontendServerClient {
       if (verbose) '--verbose',
       if (!printIncrementalDependencies) '--no-print-incremental-dependencies',
       if (enabledExperiments != null)
-        for (var experiment in enabledExperiments)
+        for (final experiment in enabledExperiments)
           '--enable-experiment=$experiment',
-      for (var source in additionalSources) ...[
+      for (final source in additionalSources) ...[
         '--source',
         source,
       ],
@@ -185,7 +185,7 @@ class FrontendServerClient {
         }
         final boundaryKey = generateUuidV4();
         command.writeln(' $boundaryKey');
-        for (var uri in invalidatedUris) {
+        for (final uri in invalidatedUris) {
           command.writeln('$uri');
         }
         command.write(boundaryKey);
@@ -359,7 +359,7 @@ class FrontendServerClient {
   void _sendCommand(String command) {
     if (_verbose) {
       final lines = const LineSplitter().convert(command);
-      for (var line in lines) {
+      for (final line in lines) {
         print('>> $line');
       }
     }

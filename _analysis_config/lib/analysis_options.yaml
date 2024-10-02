@@ -29,6 +29,7 @@ linter:
     - only_throw_errors
     - package_api_docs
     - package_prefixed_library_names
+    - prefer_final_in_for_each
     - prefer_final_locals
     - prefer_single_quotes
     # - prefer_relative_imports

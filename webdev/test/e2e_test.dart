@@ -121,7 +121,7 @@ void main() {
   );
 
   group('should build with valid configuration', () {
-    for (var withDDC in [true, false]) {
+    for (final withDDC in [true, false]) {
       test(
         withDDC ? 'DDC' : 'dart2js',
         () async {
@@ -138,7 +138,7 @@ void main() {
           await checkProcessStdout(process, expectedItems);
           await process.shouldExit(0);
 
-          for (var entry in _testItems.entries) {
+          for (final entry in _testItems.entries) {
             final shouldExist = (entry.value ?? withDDC) == withDDC;
 
             if (shouldExist) {
@@ -179,7 +179,7 @@ void main() {
   });
 
   group('should build with --output=NONE', () {
-    for (var withDDC in [true, false]) {
+    for (final withDDC in [true, false]) {
       test(withDDC ? 'DDC' : 'dart2js', () async {
         final args = ['build', '--output=NONE'];
         if (withDDC) {
@@ -200,7 +200,7 @@ void main() {
   });
 
   group('should serve with valid configuration', () {
-    for (var withDDC in [true, false]) {
+    for (final withDDC in [true, false]) {
       final type = withDDC ? 'DDC' : 'dart2js';
       test('using $type', () async {
         final openPort = await findUnusedPort();
@@ -220,7 +220,7 @@ void main() {
         final client = HttpClient();
 
         try {
-          for (var entry in _testItems.entries) {
+          for (final entry in _testItems.entries) {
             final url = Uri.parse('$hostUrl/${entry.key}');
 
             final request = await client.getUrl(url);
@@ -243,8 +243,8 @@ void main() {
 
   group('Should fail with invalid build directories', () {
     final invalidServeDirs = ['.', '../', '../foo', 'foo/bar', 'foo/../'];
-    for (var dir in invalidServeDirs) {
-      for (var command in ['build', 'serve']) {
+    for (final dir in invalidServeDirs) {
+      for (final command in ['build', 'serve']) {
         test('cannot $command directory: `$dir`', () async {
           final args = [
             command,

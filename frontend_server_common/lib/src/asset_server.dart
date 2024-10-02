@@ -173,7 +173,7 @@ class TestAssetServer implements AssetReader {
     final metadataBytes = metadataFile.readAsBytesSync();
     final manifest =
         _castStringKeyedMap(json.decode(manifestFile.readAsStringSync()));
-    for (var filePath in manifest.keys) {
+    for (final filePath in manifest.keys) {
       final offsets = _castStringKeyedMap(manifest[filePath]);
       final codeOffsets = (offsets['code'] as List<dynamic>).cast<int>();
       final sourcemapOffsets =

@@ -111,7 +111,7 @@ class FrontendServerAssetReader implements AssetReader {
     final sourceContents = map.readAsBytesSync();
     final sourceInfo =
         jsonDecode(json.readAsStringSync()) as Map<String, dynamic>;
-    for (var key in sourceInfo.keys) {
+    for (final key in sourceInfo.keys) {
       final info = sourceInfo[key];
       _mapContents[key] = utf8.decode(
         sourceContents
