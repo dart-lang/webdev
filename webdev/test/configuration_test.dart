@@ -17,15 +17,15 @@ void main() {
   });
 
   test('default configuration is correctly applied', () {
-    var configuration = Configuration.fromArgs(null);
+    final configuration = Configuration.fromArgs(null);
     expect(configuration.hostname, equals('localhost'));
   });
 
   test('arg configuration takes precedence to default configuration', () {
-    var defaultConfiguration = Configuration.fromArgs(null);
+    final defaultConfiguration = Configuration.fromArgs(null);
     expect(defaultConfiguration.release, isFalse);
-    var argResults = argParser.parse(['--release']);
-    var argConfiguration = Configuration.fromArgs(argResults);
+    final argResults = argParser.parse(['--release']);
+    final argConfiguration = Configuration.fromArgs(argResults);
     expect(argConfiguration.release, isTrue);
   });
 
@@ -42,26 +42,26 @@ void main() {
   });
 
   test('user data directory defaults to null ', () {
-    var argResults = argParser.parse(['']);
-    var defaultConfiguration = Configuration.fromArgs(argResults);
+    final argResults = argParser.parse(['']);
+    final defaultConfiguration = Configuration.fromArgs(argResults);
     expect(defaultConfiguration.userDataDir, isNull);
   });
 
   test('can read user data dir from args ', () {
-    var argResults =
+    final argResults =
         argParser.parse(['--launch-in-chrome', '--user-data-dir=tempdir']);
-    var configuration = Configuration.fromArgs(argResults);
+    final configuration = Configuration.fromArgs(argResults);
     expect(configuration.userDataDir, equals('tempdir'));
   });
 
   test('can set user data directory with launchInChrome ', () {
-    var configuration =
+    final configuration =
         Configuration(launchInChrome: true, userDataDir: 'temp');
     expect(configuration.userDataDir, equals('temp'));
   });
 
   test('can set user data directory to auto with launchInChrome ', () {
-    var configuration =
+    final configuration =
         Configuration(launchInChrome: true, userDataDir: 'auto');
     expect(configuration.userDataDir, equals('auto'));
   });
@@ -72,8 +72,8 @@ void main() {
   });
 
   test('nullSafety defaults to auto', () {
-    var argResults = argParser.parse(['']);
-    var defaultConfiguration = Configuration.fromArgs(argResults);
+    final argResults = argParser.parse(['']);
+    final defaultConfiguration = Configuration.fromArgs(argResults);
     expect(defaultConfiguration.nullSafety, equals(nullSafetyAuto));
   });
 

@@ -45,7 +45,7 @@ class Daemon {
     // {id, method, params}
 
     // [id] is an opaque type to us.
-    var id = request['id'];
+    final id = request['id'];
 
     if (id == null) {
       stderr.writeln('no id for request: $request');
@@ -53,14 +53,14 @@ class Daemon {
     }
 
     try {
-      var method = request['method'] as String? ?? '';
+      final method = request['method'] as String? ?? '';
       if (!method.contains('.')) {
         throw ArgumentError('method not understood: $method');
       }
 
-      var domain = method.substring(0, method.indexOf('.'));
-      var name = method.substring(method.indexOf('.') + 1);
-      var domainValue = _domainMap[domain];
+      final domain = method.substring(0, method.indexOf('.'));
+      final name = method.substring(method.indexOf('.') + 1);
+      final domainValue = _domainMap[domain];
       if (domainValue == null) {
         throw ArgumentError('no domain for method: $method');
       }

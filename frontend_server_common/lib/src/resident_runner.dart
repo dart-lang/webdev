@@ -85,7 +85,7 @@ class ResidentWebRunner {
     );
     uri = await devFS.create();
 
-    var report = await _updateDevFS();
+    final report = await _updateDevFS();
     if (!report.success) {
       _logger.severe('Failed to compile application.');
       return 1;
@@ -98,7 +98,7 @@ class ResidentWebRunner {
   }
 
   Future<UpdateFSReport> _updateDevFS() async {
-    var report = await devFS.update(
+    final report = await devFS.update(
         mainUri: mainUri,
         dillOutputPath: outputPath,
         generator: generator,

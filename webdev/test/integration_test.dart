@@ -15,7 +15,7 @@ void main() {
   tearDownAll(testRunner.tearDownAll);
 
   test('non-existent commands create errors', () async {
-    var process = await testRunner.runWebDev(['monkey']);
+    final process = await testRunner.runWebDev(['monkey']);
 
     await expectLater(
         process.stdout, emits('Could not find a command named "monkey".'));
@@ -24,7 +24,7 @@ void main() {
   });
 
   test('passing extra args to build fails with bad usage', () async {
-    var process = await testRunner.runWebDev(['build', 'extra', 'args']);
+    final process = await testRunner.runWebDev(['build', 'extra', 'args']);
 
     await expectLater(process.stdout,
         emits('Arguments were provided that are not supported: "extra args".'));
@@ -48,17 +48,17 @@ void main() {
     await d.dir('.dart_tool', [d.file('package_config.json', '')]).create();
     await d.file('.dart_tool/package_config.json', '').create();
 
-    var process =
+    final process =
         await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
 
-    var output = await process.stdout.rest.toList();
+    final output = await process.stdout.rest.toList();
 
     expect(output, isNot(contains(contains('`build_daemon`'))));
 
     await process.shouldExit(78);
   });
 
-  var invalidRanges = <String, List<String>>{
+  final invalidRanges = <String, List<String>>{
     'build_runner': ['0.8.9', '3.0.0'],
     'build_web_compilers': ['0.3.5', '5.0.0'],
     'build_daemon': ['0.3.0', '5.0.0'],
@@ -78,7 +78,7 @@ void main() {
               .dir('.dart_tool', [d.file('package_config.json', '')]).create();
           await d.file('.dart_tool/package_config.json', '').create();
 
-          var process = await testRunner
+          final process = await testRunner
               .runWebDev([command], workingDirectory: d.sandbox);
 
           await checkProcessStdout(process, ['webdev could not run']);
@@ -96,7 +96,7 @@ void main() {
               .dir('.dart_tool', [d.file('package_config.json', '')]).create();
           await d.file('.dart_tool/package_config.json', '').create();
 
-          var process = await testRunner
+          final process = await testRunner
               .runWebDev(['serve'], workingDirectory: d.sandbox);
 
           await checkProcessStdout(process, ['webdev could not run']);
@@ -119,7 +119,7 @@ void main() {
           // Required for webdev to not complain about nothing to serve.
           await d.dir('web').create();
 
-          var process = await testRunner.runWebDev(
+          final process = await testRunner.runWebDev(
               ['serve', '--no-build-web-compilers'],
               workingDirectory: d.sandbox);
 
@@ -161,7 +161,7 @@ void main() {
                   '.dart_tool', [d.file('package_config.json', '')]).create();
               await d.file('.dart_tool/package_config.json', '').create();
 
-              var process = await testRunner
+              final process = await testRunner
                   .runWebDev(['serve'], workingDirectory: d.sandbox);
 
               await checkProcessStdout(process, ['webdev could not run']);
@@ -173,7 +173,7 @@ void main() {
       }
 
       test('no pubspec.yaml', () async {
-        var process =
+        final process =
             await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
 
         await checkProcessStdout(process, ['webdev could not run']);
@@ -185,7 +185,7 @@ void main() {
         () async {
           await d.file('pubspec.yaml', _pubspecYaml).create();
 
-          var process = await testRunner
+          final process = await testRunner
               .runWebDev(['serve'], workingDirectory: d.sandbox);
 
           await checkProcessStdout(process, ['webdev could not run']);
@@ -208,7 +208,7 @@ dependencies:
   args: ^1.0.0
 ''').create();
 
-        var process =
+        final process =
             await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
 
         await checkProcessStdout(process, ['webdev could not run']);
@@ -231,7 +231,7 @@ String _pubspecLock(
     String? webCompilersVersion = _supportedWebCompilersVersion,
     String? daemonVersion = _supportedBuildDaemonVersion,
     List<String> extraPkgs = const []}) {
-  var buffer = StringBuffer('''
+  final buffer = StringBuffer('''
 # Copy-pasted from a valid run
 packages:
 ''');

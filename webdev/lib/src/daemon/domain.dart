@@ -42,7 +42,7 @@ abstract class Domain {
   }
 
   void sendEvent(String name, [dynamic args]) {
-    var map = <String, dynamic>{'event': name};
+    final map = <String, dynamic>{'event': name};
     if (args != null) map['params'] = toJsonable(args);
     _send(map);
   }

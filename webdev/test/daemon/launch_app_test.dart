@@ -22,10 +22,10 @@ void main() {
   tearDownAll(testRunner.tearDownAll);
 
   test('--launch-app launches the specified app', () async {
-    var webdev = await testRunner.runWebDev(
+    final webdev = await testRunner.runWebDev(
         ['daemon', '--launch-app=web/scopes.html'],
         workingDirectory: exampleDirectory);
-    var appId = await waitForAppId(webdev);
+    final appId = await waitForAppId(webdev);
 
     // The example app does an initial print.
     await expectLater(

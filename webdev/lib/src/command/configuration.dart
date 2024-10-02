@@ -290,7 +290,7 @@ class Configuration {
     defaultConfiguration ??= Configuration();
     if (argResults == null) return defaultConfiguration;
 
-    var enableInjectedClient =
+    final enableInjectedClient =
         argResults.options.contains(enableInjectedClientFlag)
             ? (argResults[enableInjectedClientFlag] as bool)
             : defaultConfiguration.enableInjectedClient;
@@ -304,36 +304,36 @@ class Configuration {
           ._override(Configuration.noInjectedClientDefaults());
     }
 
-    var chromeDebugPort = argResults.options.contains(chromeDebugPortFlag)
+    final chromeDebugPort = argResults.options.contains(chromeDebugPortFlag)
         ? int.parse(argResults[chromeDebugPortFlag] as String)
         : defaultConfiguration.chromeDebugPort;
 
-    var debugExtension = argResults.options.contains(debugExtensionFlag)
+    final debugExtension = argResults.options.contains(debugExtensionFlag)
         ? argResults[debugExtensionFlag] as bool?
         : defaultConfiguration.debugExtension;
 
-    var debug = argResults.options.contains(debugFlag)
+    final debug = argResults.options.contains(debugFlag)
         ? argResults[debugFlag] as bool?
         : defaultConfiguration.debug;
 
-    var hostname = argResults.options.contains(hostnameFlag)
+    final hostname = argResults.options.contains(hostnameFlag)
         ? argResults[hostnameFlag] as String?
         : defaultConfiguration.hostname;
 
-    var tlsCertChain = argResults.options.contains(tlsCertChainFlag)
+    final tlsCertChain = argResults.options.contains(tlsCertChainFlag)
         ? argResults[tlsCertChainFlag] as String?
         : defaultConfiguration.tlsCertChain;
 
-    var tlsCertKey = argResults.options.contains(tlsCertKeyFlag)
+    final tlsCertKey = argResults.options.contains(tlsCertKeyFlag)
         ? argResults[tlsCertKeyFlag] as String?
         : defaultConfiguration.tlsCertKey;
 
-    var launchApps = argResults.options.contains(launchAppOption) &&
+    final launchApps = argResults.options.contains(launchAppOption) &&
             argResults.wasParsed(launchAppOption)
         ? argResults[launchAppOption] as List<String>?
         : defaultConfiguration.launchApps;
 
-    var launchInChrome = argResults.options.contains(launchInChromeFlag) &&
+    final launchInChrome = argResults.options.contains(launchInChromeFlag) &&
             argResults.wasParsed(launchInChromeFlag)
         ? argResults[launchInChromeFlag] as bool?
         // We want to default to launch chrome if the user provides just --debug
@@ -344,15 +344,15 @@ class Configuration {
             ? true
             : defaultConfiguration.launchInChrome;
 
-    var userDataDir = argResults.options.contains(userDataDirFlag)
+    final userDataDir = argResults.options.contains(userDataDirFlag)
         ? argResults[userDataDirFlag] as String?
         : defaultConfiguration.userDataDir;
 
-    var logRequests = argResults.options.contains(logRequestsFlag)
+    final logRequests = argResults.options.contains(logRequestsFlag)
         ? argResults[logRequestsFlag] as bool?
         : defaultConfiguration.logRequests;
 
-    var output = argResults.options.contains(outputFlag)
+    final output = argResults.options.contains(outputFlag)
         ? argResults[outputFlag] as String?
         : defaultConfiguration.output;
 
@@ -362,7 +362,7 @@ class Configuration {
       // The empty string means build everything.
       outputInput = '';
     } else {
-      var splitOutput = output.split(':');
+      final splitOutput = output.split(':');
       if (splitOutput.length == 1) {
         // The empty string means build everything.
         outputInput = '';
@@ -373,38 +373,38 @@ class Configuration {
       }
     }
 
-    var release = argResults.options.contains(releaseFlag)
+    final release = argResults.options.contains(releaseFlag)
         ? argResults[releaseFlag] as bool?
         : defaultConfiguration.release;
 
-    var requireBuildWebCompilers =
+    final requireBuildWebCompilers =
         argResults.options.contains(requireBuildWebCompilersFlag)
             ? argResults[requireBuildWebCompilersFlag] as bool?
             : defaultConfiguration.requireBuildWebCompilers;
 
-    var enableExpressionEvaluation =
+    final enableExpressionEvaluation =
         argResults.options.contains(enableExpressionEvaluationFlag)
             ? argResults[enableExpressionEvaluationFlag] as bool?
             : defaultConfiguration.enableExpressionEvaluation;
 
-    var verbose = argResults.options.contains(verboseFlag)
+    final verbose = argResults.options.contains(verboseFlag)
         ? argResults[verboseFlag] as bool?
         : defaultConfiguration.verbose;
 
-    var nullSafety = argResults.options.contains(nullSafetyFlag)
+    final nullSafety = argResults.options.contains(nullSafetyFlag)
         ? argResults[nullSafetyFlag] as String?
         : defaultConfiguration.nullSafety;
 
-    var disableDds = argResults.options.contains(disableDdsFlag)
+    final disableDds = argResults.options.contains(disableDdsFlag)
         ? argResults[disableDdsFlag] as bool?
         : defaultConfiguration.disableDds;
 
-    var experiments = argResults.options.contains(enableExperimentOption) &&
+    final experiments = argResults.options.contains(enableExperimentOption) &&
             argResults.wasParsed(enableExperimentOption)
         ? argResults[enableExperimentOption] as List<String>?
         : defaultConfiguration.experiments;
 
-    var canaryFeatures = argResults.options.contains(canaryFeaturesFlag)
+    final canaryFeatures = argResults.options.contains(canaryFeaturesFlag)
         ? argResults[canaryFeaturesFlag] as bool?
         : defaultConfiguration.canaryFeatures;
 

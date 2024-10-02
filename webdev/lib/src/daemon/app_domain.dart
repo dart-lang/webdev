@@ -62,13 +62,13 @@ class AppDomain extends Domain {
   }
 
   Future<void> _handleAppConnections(WebDevServer server) async {
-    var dwds = server.dwds!;
+    final dwds = server.dwds!;
     // The connection is established right before `main()` is called.
     await for (var appConnection in dwds.connectedApps) {
-      var debugConnection = await dwds.debugConnection(appConnection);
+      final debugConnection = await dwds.debugConnection(appConnection);
       final debugUri = debugConnection.ddsUri ?? debugConnection.uri;
       final vmService = await vmServiceConnectUri(debugUri);
-      var appId = appConnection.request.appId;
+      final appId = appConnection.request.appId;
       unawaited(debugConnection.onDone.then((_) {
         sendEvent('app.log', {
           'appId': appId,
@@ -97,7 +97,7 @@ class AppDomain extends Domain {
         await vmService.streamListen('Service');
       } catch (_) {}
       // ignore: cancel_subscriptions
-      var stdOutSub = vmService.onStdoutEvent.listen((log) {
+      final stdOutSub = vmService.onStdoutEvent.listen((log) {
         sendEvent('app.log', {
           'appId': appId,
           'log': utf8.decode(base64.decode(log.bytes!)),
@@ -109,10 +109,10 @@ class AppDomain extends Domain {
         'wsUri': debugConnection.uri,
       });
       // ignore: cancel_subscriptions
-      var resultSub =
+      final resultSub =
           server.buildResults.listen((r) => _handleBuildResult(r, appId));
 
-      var appState = _AppState(debugConnection, resultSub, stdOutSub);
+      final appState = _AppState(debugConnection, resultSub, stdOutSub);
       _appStates[appId] = appState;
       sendEvent('app.started', {
         'appId': appId,
@@ -152,27 +152,27 @@ class AppDomain extends Domain {
 
   Future<Map<String, dynamic>?> _callServiceExtension(
       Map<String, dynamic> args) async {
-    var appId = getStringArg(args, 'appId', required: true);
-    var appState = _appStates[appId];
+    final appId = getStringArg(args, 'appId', required: true);
+    final appState = _appStates[appId];
     if (appState == null) {
       throw ArgumentError.value(appId, 'appId', 'Not found');
     }
-    var methodName = getStringArg(args, 'methodName', required: true)!;
-    var params = args['params'] != null
+    final methodName = getStringArg(args, 'methodName', required: true)!;
+    final params = args['params'] != null
         ? (args['params'] as Map<String, dynamic>)
         : <String, dynamic>{};
-    var response = await appState.vmService!
+    final response = await appState.vmService!
         .callServiceExtension(methodName, args: params);
     return response.json;
   }
 
   Future<Map<String, dynamic>> _restart(Map<String, dynamic> args) async {
-    var appId = getStringArg(args, 'appId', required: true);
-    var appState = _appStates[appId];
+    final appId = getStringArg(args, 'appId', required: true);
+    final appState = _appStates[appId];
     if (appState == null) {
       throw ArgumentError.value(appId, 'appId', 'Not found');
     }
-    var fullRestart = getBoolArg(args, 'fullRestart') ?? false;
+    final fullRestart = getBoolArg(args, 'fullRestart') ?? false;
     if (!fullRestart) {
       return {
         'code': 1,
@@ -181,7 +181,7 @@ class AppDomain extends Domain {
     }
     // TODO(grouma) - Support pauseAfterRestart.
     // var pauseAfterRestart = getBoolArg(args, 'pause') ?? false;
-    var stopwatch = Stopwatch()..start();
+    final stopwatch = Stopwatch()..start();
     _progressEventId++;
     sendEvent('app.progress', {
       'appId': appId,
@@ -189,9 +189,9 @@ class AppDomain extends Domain {
       'message': 'Performing hot restart...',
       'progressId': 'hot.restart',
     });
-    var restartMethod =
+    final restartMethod =
         _registeredMethodsForService['hotRestart'] ?? 'hotRestart';
-    var response =
+    final response =
         await appState.vmService!.callServiceExtension(restartMethod);
     sendEvent('app.progress', {
       'appId': appId,
@@ -210,8 +210,8 @@ class AppDomain extends Domain {
   }
 
   Future<bool> _stop(Map<String, dynamic> args) async {
-    var appId = getStringArg(args, 'appId', required: true);
-    var appState = _appStates[appId];
+    final appId = getStringArg(args, 'appId', required: true);
+    final appState = _appStates[appId];
     if (appState == null) {
       throw ArgumentError.value(appId, 'appId', 'Not found');
     }

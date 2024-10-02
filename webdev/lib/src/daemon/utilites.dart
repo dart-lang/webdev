@@ -19,7 +19,7 @@ String? getStringArg(Map<String, dynamic> args, String name,
   if (required && !args.containsKey(name)) {
     throw ArgumentError('$name is required');
   }
-  var val = args[name];
+  final val = args[name];
   if (val != null && val is! String) {
     throw ArgumentError('$name is not a String');
   }
@@ -31,7 +31,7 @@ bool? getBoolArg(Map<String, dynamic> args, String name,
   if (required && !args.containsKey(name)) {
     throw ArgumentError('$name is required');
   }
-  var val = args[name];
+  final val = args[name];
   if (val != null && val is! bool) throw ArgumentError('$name is not a bool');
   return val as bool?;
 }
@@ -41,7 +41,7 @@ int? getIntArg(Map<String, dynamic> args, String name,
   if (required && !args.containsKey(name)) {
     throw ArgumentError('$name is required');
   }
-  var val = args[name];
+  final val = args[name];
   if (val != null && val is! int) throw ArgumentError('$name is not an int');
   return val as int?;
 }

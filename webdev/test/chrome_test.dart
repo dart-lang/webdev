@@ -29,7 +29,8 @@ void main() {
       chrome!.chromeConnection.getUrl(_closeTabUrl(tab.id));
 
   Future<WipConnection> connectToTab(String url) async {
-    var tab = await chrome!.chromeConnection.getTab((t) => t.url.contains(url),
+    final tab = await chrome!.chromeConnection.getTab(
+        (t) => t.url.contains(url),
         retryFor: const Duration(milliseconds: 60));
     expect(tab, isNotNull);
     return tab!.connect();
@@ -37,7 +38,7 @@ void main() {
 
   group('chrome with temp data dir', () {
     tearDown(() async {
-      var tabs = await chrome?.chromeConnection.getTabs();
+      final tabs = await chrome?.chromeConnection.getTabs();
       if (tabs != null) {
         for (var tab in tabs) {
           await closeTab(tab);
@@ -54,7 +55,7 @@ void main() {
 
     test('has a working debugger', () async {
       await launchChrome();
-      var tabs = await chrome!.chromeConnection.getTabs();
+      final tabs = await chrome!.chromeConnection.getTabs();
       expect(
           tabs,
           contains(const TypeMatcher<ChromeTab>()
@@ -70,8 +71,8 @@ void main() {
       await launchChrome();
       await openTab(_chromeVersionUrl);
 
-      var wipConnection = await connectToTab(_chromeVersionUrl);
-      var result = await _evaluateExpression(wipConnection.page,
+      final wipConnection = await connectToTab(_chromeVersionUrl);
+      final result = await _evaluateExpression(wipConnection.page,
           "document.getElementById('profile_path').textContent");
 
       if (Platform.isWindows) {
@@ -105,7 +106,7 @@ void main() {
     });
 
     tearDown(() async {
-      var tabs = await chrome?.chromeConnection.getTabs();
+      final tabs = await chrome?.chromeConnection.getTabs();
       if (tabs != null) {
         for (var tab in tabs) {
           await closeTab(tab);
@@ -133,7 +134,7 @@ void main() {
     test('has a working debugger', () async {
       await launchChrome(userDataDir: dataDir.path);
 
-      var tabs = await chrome!.chromeConnection.getTabs();
+      final tabs = await chrome!.chromeConnection.getTabs();
       expect(
           tabs,
           contains(const TypeMatcher<ChromeTab>()
@@ -144,8 +145,8 @@ void main() {
       await launchChrome(userDataDir: dataDir.path);
       await openTab(_chromeVersionUrl);
 
-      var wipConnection = await connectToTab(_chromeVersionUrl);
-      var result = await _evaluateExpression(wipConnection.page,
+      final wipConnection = await connectToTab(_chromeVersionUrl);
+      final result = await _evaluateExpression(wipConnection.page,
           "document.getElementById('profile_path').textContent");
 
       if (Platform.isWindows) {
@@ -158,7 +159,7 @@ void main() {
     }, skip: 'https://github.com/dart-lang/webdev/issues/2030');
 
     test('can auto detect default chrome directory', () async {
-      var userDataDir = autoDetectChromeUserDataDirectory();
+      final userDataDir = autoDetectChromeUserDataDirectory();
       expect(userDataDir, isNotNull);
 
       expect(Directory(userDataDir!).existsSync(), isTrue);
@@ -166,8 +167,8 @@ void main() {
       await launchChrome(userDataDir: userDataDir);
       await openTab(_chromeVersionUrl);
 
-      var wipConnection = await connectToTab(_chromeVersionUrl);
-      var result = await _evaluateExpression(wipConnection.page,
+      final wipConnection = await connectToTab(_chromeVersionUrl);
+      final result = await _evaluateExpression(wipConnection.page,
           "document.getElementById('profile_path').textContent");
 
       expect(result, contains('chrome_user_data_copy'));
@@ -176,7 +177,7 @@ void main() {
     }, skip: 'https://github.com/dart-lang/webdev/issues/2030');
 
     test('cannot auto detect default chrome directory on windows', () async {
-      var userDataDir = autoDetectChromeUserDataDirectory();
+      final userDataDir = autoDetectChromeUserDataDirectory();
       expect(userDataDir, isNull);
     }, onPlatform: {
       'linux': const Skip('https://github.com/dart-lang/webdev/issues/1545'),
@@ -192,7 +193,7 @@ Future<String> _evaluateExpression(WipPage page, String expression) async {
   String? result = '';
   while (result == null || result.isEmpty) {
     await Future.delayed(const Duration(milliseconds: 100));
-    var wipResponse = await page.sendCommand(
+    final wipResponse = await page.sendCommand(
       'Runtime.evaluate',
       params: {'expression': expression},
     );

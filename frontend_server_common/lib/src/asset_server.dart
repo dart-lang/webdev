@@ -91,10 +91,10 @@ class TestAssetServer implements AssetReader {
       return shelf.Response.notFound('');
     }
 
-    var headers = <String, String>{};
+    final headers = <String, String>{};
 
     if (request.url.path.endsWith('.html')) {
-      var indexFile = _fileSystem.file(index);
+      final indexFile = _fileSystem.file(index);
       if (indexFile.existsSync()) {
         headers[HttpHeaders.contentTypeHeader] = 'text/html';
         headers[HttpHeaders.contentLengthHeader] =
@@ -129,12 +129,12 @@ class TestAssetServer implements AssetReader {
       return shelf.Response.ok(bytes, headers: headers);
     }
 
-    var file = _resolveDartFile(requestPath);
+    final file = _resolveDartFile(requestPath);
     if (!file.existsSync()) {
       return shelf.Response.notFound('');
     }
 
-    var length = file.lengthSync();
+    final length = file.lengthSync();
     // Attempt to determine the file's mime type. if this is not provided some
     // browsers will refuse to render images/show video et cetera. If the tool
     // cannot determine a mime type, fall back to application/octet-stream.
@@ -167,18 +167,19 @@ class TestAssetServer implements AssetReader {
   /// Returns a list of updated modules.
   List<String> write(
       File codeFile, File manifestFile, File sourcemapFile, File metadataFile) {
-    var modules = <String>[];
-    var codeBytes = codeFile.readAsBytesSync();
-    var sourcemapBytes = sourcemapFile.readAsBytesSync();
-    var metadataBytes = metadataFile.readAsBytesSync();
-    var manifest =
+    final modules = <String>[];
+    final codeBytes = codeFile.readAsBytesSync();
+    final sourcemapBytes = sourcemapFile.readAsBytesSync();
+    final metadataBytes = metadataFile.readAsBytesSync();
+    final manifest =
         _castStringKeyedMap(json.decode(manifestFile.readAsStringSync()));
     for (var filePath in manifest.keys) {
-      var offsets = _castStringKeyedMap(manifest[filePath]);
-      var codeOffsets = (offsets['code'] as List<dynamic>).cast<int>();
-      var sourcemapOffsets =
+      final offsets = _castStringKeyedMap(manifest[filePath]);
+      final codeOffsets = (offsets['code'] as List<dynamic>).cast<int>();
+      final sourcemapOffsets =
           (offsets['sourcemap'] as List<dynamic>).cast<int>();
-      var metadataOffsets = (offsets['metadata'] as List<dynamic>).cast<int>();
+      final metadataOffsets =
+          (offsets['metadata'] as List<dynamic>).cast<int>();
       if (codeOffsets.length != 2 ||
           sourcemapOffsets.length != 2 ||
           metadataOffsets.length != 2) {
@@ -186,13 +187,13 @@ class TestAssetServer implements AssetReader {
         continue;
       }
 
-      var codeStart = codeOffsets[0];
-      var codeEnd = codeOffsets[1];
+      final codeStart = codeOffsets[0];
+      final codeEnd = codeOffsets[1];
       if (codeStart < 0 || codeEnd > codeBytes.lengthInBytes) {
         _logger.severe('Invalid byte index: [$codeStart, $codeEnd]');
         continue;
       }
-      var byteView = Uint8List.view(
+      final byteView = Uint8List.view(
         codeBytes.buffer,
         codeStart,
         codeEnd - codeStart,
@@ -202,26 +203,26 @@ class TestAssetServer implements AssetReader {
           filePath.startsWith('/') ? filePath.substring(1) : filePath;
       _files[fileName] = byteView;
 
-      var sourcemapStart = sourcemapOffsets[0];
-      var sourcemapEnd = sourcemapOffsets[1];
+      final sourcemapStart = sourcemapOffsets[0];
+      final sourcemapEnd = sourcemapOffsets[1];
       if (sourcemapStart < 0 || sourcemapEnd > sourcemapBytes.lengthInBytes) {
         _logger.severe('Invalid byte index: [$sourcemapStart, $sourcemapEnd]');
         continue;
       }
-      var sourcemapView = Uint8List.view(
+      final sourcemapView = Uint8List.view(
         sourcemapBytes.buffer,
         sourcemapStart,
         sourcemapEnd - sourcemapStart,
       );
       _sourceMaps['$fileName.map'] = sourcemapView;
 
-      var metadataStart = metadataOffsets[0];
-      var metadataEnd = metadataOffsets[1];
+      final metadataStart = metadataOffsets[0];
+      final metadataEnd = metadataOffsets[1];
       if (metadataStart < 0 || metadataEnd > metadataBytes.lengthInBytes) {
         _logger.severe('Invalid byte index: [$metadataStart, $metadataEnd]');
         continue;
       }
-      var metadataView = Uint8List.view(
+      final metadataView = Uint8List.view(
         metadataBytes.buffer,
         metadataStart,
         metadataEnd - metadataStart,
@@ -263,8 +264,8 @@ class TestAssetServer implements AssetReader {
     }
 
     // Otherwise it must be a Dart SDK source.
-    var dartSdkParent = _fileSystem.directory(_sdkLayout.sdkDirectory).parent;
-    var dartSdkFile = _fileSystem.file(
+    final dartSdkParent = _fileSystem.directory(_sdkLayout.sdkDirectory).parent;
+    final dartSdkFile = _fileSystem.file(
         _fileSystem.path.joinAll(<String>[dartSdkParent.path, ...segments]));
     return dartSdkFile;
   }
@@ -273,7 +274,7 @@ class TestAssetServer implements AssetReader {
   Future<String?> dartSourceContents(String serverPath) async {
     final stripped = _stripBasePath(serverPath, basePath);
     if (stripped != null) {
-      var result = _resolveDartFile(stripped);
+      final result = _resolveDartFile(stripped);
       if (result.existsSync()) {
         return result.readAsString();
       }
@@ -336,6 +337,6 @@ class TestAssetServer implements AssetReader {
 /// Given a data structure which is a Map of String to dynamic values, return
 /// the same structure (`Map<String, dynamic>`) with the correct runtime types.
 Map<String, dynamic> _castStringKeyedMap(dynamic untyped) {
-  var map = untyped as Map<dynamic, dynamic>;
+  final map = untyped as Map<dynamic, dynamic>;
   return map.cast<String, dynamic>();
 }
