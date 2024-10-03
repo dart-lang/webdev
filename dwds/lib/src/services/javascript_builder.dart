@@ -42,7 +42,7 @@ class JsBuilder {
 
   void writeMultiLineExpression(Iterable<String> lines) {
     var i = 0;
-    for (var line in lines) {
+    for (final line in lines) {
       if (i == 0) {
         writeLine(line);
       } else if (i < lines.length - 1) {

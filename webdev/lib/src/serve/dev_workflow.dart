@@ -43,9 +43,9 @@ Future<BuildDaemonClient> _startBuildDaemon(
 }
 
 String _uriForLaunchApp(String launchApp, ServerManager serverManager) {
-  var parts = p.url.split(launchApp);
-  var dir = parts.first;
-  var server =
+  final parts = p.url.split(launchApp);
+  final dir = parts.first;
+  final server =
       serverManager.servers.firstWhere((server) => server.target == dir);
   return Uri(
           scheme: 'http',
@@ -60,17 +60,17 @@ Future<Chrome?> _startChrome(
   ServerManager serverManager,
   BuildDaemonClient client,
 ) async {
-  var uris = [
+  final uris = [
     if (configuration.launchApps.isEmpty)
-      for (var s in serverManager.servers)
+      for (final s in serverManager.servers)
         Uri(scheme: 'http', host: s.host, port: s.port).toString()
     else
-      for (var app in configuration.launchApps)
+      for (final app in configuration.launchApps)
         _uriForLaunchApp(app, serverManager)
   ];
   try {
     if (configuration.launchInChrome) {
-      var userDataDir = configuration.userDataDir == autoOption
+      final userDataDir = configuration.userDataDir == autoOption
           ? autoDetectChromeUserDataDirectory()
           : configuration.userDataDir;
       return await Chrome.start(uris,
@@ -92,9 +92,9 @@ Future<ServerManager> _startServerManager(
   String workingDirectory,
   BuildDaemonClient client,
 ) async {
-  var assetPort = daemonPort(workingDirectory);
-  var serverOptions = <ServerOptions>{};
-  for (var target in targetPorts.keys) {
+  final assetPort = daemonPort(workingDirectory);
+  final serverOptions = <ServerOptions>{};
+  for (final target in targetPorts.keys) {
     serverOptions.add(ServerOptions(
       configuration,
       targetPorts[target]!,
@@ -103,10 +103,10 @@ Future<ServerManager> _startServerManager(
     ));
   }
   logWriter(logging.Level.INFO, 'Starting resource servers...');
-  var serverManager =
+  final serverManager =
       await ServerManager.start(serverOptions, client.buildResults);
 
-  for (var server in serverManager.servers) {
+  for (final server in serverManager.servers) {
     logWriter(
         logging.Level.INFO,
         'Serving `${server.target}` on '
@@ -122,7 +122,7 @@ void _registerBuildTargets(
   Map<String, int> targetPorts,
 ) {
   // Register a target for each serve target.
-  for (var target in targetPorts.keys) {
+  for (final target in targetPorts.keys) {
     OutputLocation? outputLocation;
     if (configuration.outputPath != null &&
         (configuration.outputInput == null ||
@@ -139,7 +139,7 @@ void _registerBuildTargets(
   // Empty string indicates we should build everything, register a corresponding
   // target.
   if (configuration.outputInput == '' && configuration.outputPath != null) {
-    var outputLocation = OutputLocation((b) => b
+    final outputLocation = OutputLocation((b) => b
       ..output = configuration.outputPath
       ..useSymlinks = true
       ..hoist = false);
@@ -191,15 +191,15 @@ class DevWorkflow {
     List<String> buildOptions,
     Map<String, int> targetPorts,
   ) async {
-    var workingDirectory = Directory.current.path;
-    var client = await _startBuildDaemon(workingDirectory, buildOptions);
+    final workingDirectory = Directory.current.path;
+    final client = await _startBuildDaemon(workingDirectory, buildOptions);
     logWriter(logging.Level.INFO, 'Registering build targets...');
     _registerBuildTargets(client, configuration, targetPorts);
     logWriter(logging.Level.INFO, 'Starting initial build...');
     client.startBuild();
-    var serverManager = await _startServerManager(
+    final serverManager = await _startServerManager(
         configuration, targetPorts, workingDirectory, client);
-    var chrome = await _startChrome(configuration, serverManager, client);
+    final chrome = await _startChrome(configuration, serverManager, client);
     return DevWorkflow._(client, chrome, serverManager);
   }
 

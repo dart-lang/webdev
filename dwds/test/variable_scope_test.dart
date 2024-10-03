@@ -148,7 +148,7 @@ void main() {
     Future<void> expectDartVariables(
       Map<String?, InstanceRef?> variables,
     ) async {
-      for (var name in variables.keys) {
+      for (final name in variables.keys) {
         final instance = await getInstance(variables[name]!);
         expectDartObject(name!, instance);
       }
@@ -156,7 +156,7 @@ void main() {
 
     Map<String?, InstanceRef?> getFrameVariables(Frame frame) {
       return <String?, InstanceRef?>{
-        for (var variable in frame.vars!)
+        for (final variable in frame.vars!)
           variable.name: variable.value as InstanceRef?,
       };
     }

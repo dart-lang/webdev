@@ -23,7 +23,7 @@ void main() async {
   tearDownAll(provider.dispose);
 
   group('Context with circular dependencies |', () {
-    for (var indexBaseMode in IndexBaseMode.values) {
+    for (final indexBaseMode in IndexBaseMode.values) {
       group(
         'with ${indexBaseMode.name} |',
         () {

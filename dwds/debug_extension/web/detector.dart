@@ -78,7 +78,7 @@ void _detectMultipleDartAppsCallback(
   List<dynamic> mutations,
   MutationObserver observer,
 ) {
-  for (var mutation in mutations) {
+  for (final mutation in mutations) {
     if (_isMultipleAppsMutation(mutation)) {
       _sendMessageToBackgroundScript(
         type: MessageType.multipleAppsDetected,

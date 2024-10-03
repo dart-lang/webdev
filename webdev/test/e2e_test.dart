@@ -47,7 +47,7 @@ void main() {
     soundExampleDirectory =
         p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'));
 
-    var process = await TestProcess.start(dartPath, ['pub', 'upgrade'],
+    final process = await TestProcess.start(dartPath, ['pub', 'upgrade'],
         workingDirectory: soundExampleDirectory,
         environment: getPubEnvironment());
 
@@ -62,10 +62,10 @@ void main() {
   tearDownAll(testRunner.tearDownAll);
 
   test('smoke test is configured properly', () async {
-    var smokeYaml = loadYaml(
+    final smokeYaml = loadYaml(
             await File('$soundExampleDirectory/pubspec.yaml').readAsString())
         as YamlMap;
-    var webdevYaml =
+    final webdevYaml =
         loadYaml(await File('pubspec.yaml').readAsString()) as YamlMap;
     expect(smokeYaml['environment']['sdk'],
         equals(webdevYaml['environment']['sdk']));
@@ -78,9 +78,9 @@ void main() {
   test('build should fail if targeting an existing directory', () async {
     await d.file('simple thing', 'throw-away').create();
 
-    var args = ['build', '-o', 'web:${d.sandbox}'];
+    final args = ['build', '-o', 'web:${d.sandbox}'];
 
-    var process = await testRunner.runWebDev(args,
+    final process = await testRunner.runWebDev(args,
         workingDirectory: soundExampleDirectory);
 
     // NOTE: We'd like this to be more useful
@@ -102,7 +102,7 @@ void main() {
   test(
     'build should allow passing extra arguments to build_runner',
     () async {
-      var args = [
+      final args = [
         'build',
         '-o',
         'web:${d.sandbox}',
@@ -110,7 +110,7 @@ void main() {
         '--delete-conflicting-outputs'
       ];
 
-      var process = await testRunner.runWebDev(args,
+      final process = await testRunner.runWebDev(args,
           workingDirectory: soundExampleDirectory);
 
       await checkProcessStdout(process, ['Succeeded']);
@@ -121,25 +121,25 @@ void main() {
   );
 
   group('should build with valid configuration', () {
-    for (var withDDC in [true, false]) {
+    for (final withDDC in [true, false]) {
       test(
         withDDC ? 'DDC' : 'dart2js',
         () async {
-          var args = ['build', '-o', 'web:${d.sandbox}'];
+          final args = ['build', '-o', 'web:${d.sandbox}'];
           if (withDDC) {
             args.add('--no-release');
           }
 
-          var process = await testRunner.runWebDev(args,
+          final process = await testRunner.runWebDev(args,
               workingDirectory: soundExampleDirectory);
 
-          var expectedItems = <Object>['Succeeded'];
+          final expectedItems = <Object>['Succeeded'];
 
           await checkProcessStdout(process, expectedItems);
           await process.shouldExit(0);
 
-          for (var entry in _testItems.entries) {
-            var shouldExist = (entry.value ?? withDDC) == withDDC;
+          for (final entry in _testItems.entries) {
+            final shouldExist = (entry.value ?? withDDC) == withDDC;
 
             if (shouldExist) {
               await d.file(entry.key, isNotEmpty).validate();
@@ -155,7 +155,7 @@ void main() {
     test(
       'and --null-safety=sound',
       () async {
-        var args = [
+        final args = [
           'build',
           '-o',
           'web:${d.sandbox}',
@@ -163,10 +163,10 @@ void main() {
           '--null-safety=sound'
         ];
 
-        var process = await testRunner.runWebDev(args,
+        final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
 
-        var expectedItems = <Object>['Succeeded'];
+        final expectedItems = <Object>['Succeeded'];
 
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
@@ -179,17 +179,17 @@ void main() {
   });
 
   group('should build with --output=NONE', () {
-    for (var withDDC in [true, false]) {
+    for (final withDDC in [true, false]) {
       test(withDDC ? 'DDC' : 'dart2js', () async {
-        var args = ['build', '--output=NONE'];
+        final args = ['build', '--output=NONE'];
         if (withDDC) {
           args.add('--no-release');
         }
 
-        var process = await testRunner.runWebDev(args,
+        final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
 
-        var expectedItems = <Object>['Succeeded'];
+        final expectedItems = <Object>['Succeeded'];
 
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
@@ -200,33 +200,33 @@ void main() {
   });
 
   group('should serve with valid configuration', () {
-    for (var withDDC in [true, false]) {
-      var type = withDDC ? 'DDC' : 'dart2js';
+    for (final withDDC in [true, false]) {
+      final type = withDDC ? 'DDC' : 'dart2js';
       test('using $type', () async {
-        var openPort = await findUnusedPort();
-        var args = ['serve', 'web:$openPort'];
+        final openPort = await findUnusedPort();
+        final args = ['serve', 'web:$openPort'];
         if (!withDDC) {
           args.add('--release');
         }
 
-        var process = await testRunner.runWebDev(args,
+        final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
 
-        var hostUrl = 'http://localhost:$openPort';
+        final hostUrl = 'http://localhost:$openPort';
 
         // Wait for the initial build to finish.
         await expectLater(process.stdout, emitsThrough(contains('Succeeded')));
 
-        var client = HttpClient();
+        final client = HttpClient();
 
         try {
-          for (var entry in _testItems.entries) {
-            var url = Uri.parse('$hostUrl/${entry.key}');
+          for (final entry in _testItems.entries) {
+            final url = Uri.parse('$hostUrl/${entry.key}');
 
-            var request = await client.getUrl(url);
-            var response = await request.close();
+            final request = await client.getUrl(url);
+            final response = await request.close();
 
-            var shouldExist = (entry.value ?? withDDC) == withDDC;
+            final shouldExist = (entry.value ?? withDDC) == withDDC;
 
             expect(response.statusCode, shouldExist ? 200 : 404,
                 reason: 'Expecting "$url"? $shouldExist');
@@ -242,16 +242,16 @@ void main() {
   });
 
   group('Should fail with invalid build directories', () {
-    var invalidServeDirs = ['.', '../', '../foo', 'foo/bar', 'foo/../'];
-    for (var dir in invalidServeDirs) {
-      for (var command in ['build', 'serve']) {
+    final invalidServeDirs = ['.', '../', '../foo', 'foo/bar', 'foo/../'];
+    for (final dir in invalidServeDirs) {
+      for (final command in ['build', 'serve']) {
         test('cannot $command directory: `$dir`', () async {
-          var args = [
+          final args = [
             command,
             if (command == 'build') '--output=$dir:foo' else dir
           ];
 
-          var process = await testRunner.runWebDev(args,
+          final process = await testRunner.runWebDev(args,
               workingDirectory: soundExampleDirectory);
           await expectLater(
               process.stdout,
@@ -273,16 +273,16 @@ void main() {
         configureLogWriter(debug);
       });
       test('evaluateInFrame', () async {
-        var openPort = await findUnusedPort();
+        final openPort = await findUnusedPort();
         // running daemon command that starts dwds without keyboard input
-        var args = [
+        final args = [
           'daemon',
           'web:$openPort',
           '--enable-expression-evaluation',
           '--null-safety=sound',
           '--verbose',
         ];
-        var process = await testRunner.runWebDev(args,
+        final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
         VmService? vmService;
 
@@ -300,20 +300,20 @@ void main() {
           expect(wsUri, isNotNull);
 
           vmService = await vmServiceConnectUri(wsUri!);
-          var vm = await vmService.getVM();
-          var isolateId = vm.isolates!.first.id!;
-          var scripts = await vmService.getScripts(isolateId);
+          final vm = await vmService.getVM();
+          final isolateId = vm.isolates!.first.id!;
+          final scripts = await vmService.getScripts(isolateId);
 
           await vmService.streamListen('Debug');
-          var stream = vmService.onEvent('Debug');
+          final stream = vmService.onEvent('Debug');
 
-          var mainScript = scripts.scripts!
+          final mainScript = scripts.scripts!
               .firstWhere((each) => each.uri!.contains('main.dart'));
 
-          var bpLine = await findBreakpointLine(
+          final bpLine = await findBreakpointLine(
               vmService, 'printCounter', isolateId, mainScript);
 
-          var bp = await vmService.addBreakpointWithScriptUri(
+          final bp = await vmService.addBreakpointWithScriptUri(
               isolateId, mainScript.uri!, bpLine);
           expect(bp, isNotNull);
 
@@ -339,15 +339,15 @@ void main() {
       }, timeout: const Timeout.factor(2));
 
       test('evaluate', () async {
-        var openPort = await findUnusedPort();
+        final openPort = await findUnusedPort();
         // running daemon command that starts dwds without keyboard input
-        var args = [
+        final args = [
           'daemon',
           'web:$openPort',
           '--enable-expression-evaluation',
           '--verbose',
         ];
-        var process = await testRunner.runWebDev(args,
+        final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
 
         process.stdoutStream().listen(Logger.root.fine);
@@ -365,10 +365,10 @@ void main() {
           expect(wsUri, isNotNull);
 
           vmService = await vmServiceConnectUri(wsUri!);
-          var vm = await vmService.getVM();
-          var isolateId = vm.isolates!.first.id!;
-          var isolate = await vmService.getIsolate(isolateId);
-          var libraryId = isolate.rootLib!.id!;
+          final vm = await vmService.getVM();
+          final isolateId = vm.isolates!.first.id!;
+          final isolate = await vmService.getIsolate(isolateId);
+          final libraryId = isolate.rootLib!.id!;
 
           await vmService.streamListen('Debug');
 
@@ -399,15 +399,15 @@ void main() {
       }, timeout: const Timeout.factor(2));
 
       test('evaluate and get objects', () async {
-        var openPort = await findUnusedPort();
+        final openPort = await findUnusedPort();
         // running daemon command that starts dwds without keyboard input
-        var args = [
+        final args = [
           'daemon',
           'web:$openPort',
           '--enable-expression-evaluation',
           '--verbose',
         ];
-        var process = await testRunner.runWebDev(args,
+        final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
 
         process.stdoutStream().listen(Logger.root.fine);
@@ -425,10 +425,10 @@ void main() {
           expect(wsUri, isNotNull);
 
           vmService = await vmServiceConnectUri(wsUri!);
-          var vm = await vmService.getVM();
-          var isolateId = vm.isolates!.first.id!;
-          var isolate = await vmService.getIsolate(isolateId);
-          var libraryId = isolate.rootLib!.id!;
+          final vm = await vmService.getVM();
+          final isolateId = vm.isolates!.first.id!;
+          final isolate = await vmService.getIsolate(isolateId);
+          final libraryId = isolate.rootLib!.id!;
 
           await vmService.streamListen('Debug');
 
@@ -471,14 +471,14 @@ void main() {
 
     group('and --no-enable-expression-evaluation:', () {
       test('evaluateInFrame', () async {
-        var openPort = await findUnusedPort();
-        var args = [
+        final openPort = await findUnusedPort();
+        final args = [
           'daemon',
           'web:$openPort',
           '--no-enable-expression-evaluation',
           '--verbose',
         ];
-        var process = await testRunner.runWebDev(args,
+        final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
         VmService? vmService;
 
@@ -492,24 +492,24 @@ void main() {
           expect(wsUri, isNotNull);
 
           vmService = await vmServiceConnectUri(wsUri!);
-          var vm = await vmService.getVM();
-          var isolateId = vm.isolates!.first.id!;
-          var scripts = await vmService.getScripts(isolateId);
+          final vm = await vmService.getVM();
+          final isolateId = vm.isolates!.first.id!;
+          final scripts = await vmService.getScripts(isolateId);
 
           await vmService.streamListen('Debug');
-          var stream = vmService.onEvent('Debug');
+          final stream = vmService.onEvent('Debug');
 
-          var mainScript = scripts.scripts!
+          final mainScript = scripts.scripts!
               .firstWhere((each) => each.uri!.contains('main.dart'));
 
-          var bpLine = await findBreakpointLine(
+          final bpLine = await findBreakpointLine(
               vmService, 'printCounter', isolateId, mainScript);
 
-          var bp = await vmService.addBreakpointWithScriptUri(
+          final bp = await vmService.addBreakpointWithScriptUri(
               isolateId, mainScript.uri!, bpLine);
           expect(bp, isNotNull);
 
-          var event = await stream.firstWhere(
+          final event = await stream.firstWhere(
               (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
           expect(
@@ -524,15 +524,15 @@ void main() {
       });
 
       test('evaluate', () async {
-        var openPort = await findUnusedPort();
+        final openPort = await findUnusedPort();
         // running daemon command that starts dwds without keyboard input
-        var args = [
+        final args = [
           'daemon',
           'web:$openPort',
           '--no-enable-expression-evaluation',
           '--verbose',
         ];
-        var process = await testRunner.runWebDev(args,
+        final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
         VmService? vmService;
 
@@ -546,10 +546,10 @@ void main() {
           expect(wsUri, isNotNull);
 
           vmService = await vmServiceConnectUri(wsUri!);
-          var vm = await vmService.getVM();
-          var isolateId = vm.isolates!.first.id!;
-          var isolate = await vmService.getIsolate(isolateId);
-          var libraryId = isolate.rootLib!.id!;
+          final vm = await vmService.getVM();
+          final isolateId = vm.isolates!.first.id!;
+          final isolate = await vmService.getIsolate(isolateId);
+          final libraryId = isolate.rootLib!.id!;
 
           await vmService.streamListen('Debug');
 

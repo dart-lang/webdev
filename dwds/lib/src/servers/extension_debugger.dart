@@ -101,7 +101,7 @@ class ExtensionDebugger implements RemoteDebugger {
             _notificationController.sink.add(WipEvent(map));
           }
         } else if (message is BatchedEvents) {
-          for (var event in message.events) {
+          for (final event in message.events) {
             final map = {
               'method': json.decode(event.method),
               'params': json.decode(event.params),

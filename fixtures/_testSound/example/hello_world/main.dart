@@ -18,7 +18,7 @@ part 'part.dart';
 // dwds/test/chrome_proxy_service_test.dart
 
 final topLevelList = () {
-  var l = List.filled(1001, 5);
+  final l = List.filled(1001, 5);
   l[4] = 100;
   return l;
 }();
@@ -37,7 +37,7 @@ void main() async {
 
   // long running to test evaluateInFrame
   Timer.periodic(const Duration(seconds: 1), (_) {
-    var local = 42;
+    final local = 42;
     print(local); // Breakpoint: printLocal
   });
 
@@ -101,13 +101,13 @@ void printCount() {
 }
 
 void asyncCall() async {
-  var now = DateTime.now();
+  final now = DateTime.now();
 
   await Future.delayed(Duration.zero);
 
-  var then = DateTime.now(); // Breakpoint: asyncCall
+  final then = DateTime.now(); // Breakpoint: asyncCall
   // ignore: unused_local_variable
-  var diff = then.difference(now);
+  final diff = then.difference(now);
 }
 
 void throwsException() {

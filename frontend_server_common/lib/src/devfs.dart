@@ -142,14 +142,14 @@ class WebDevFS {
 
     assetServer.writeFile('main_module.digests', '{}');
 
-    var sdk = soundNullSafety ? dartSdk : dartSdkWeak;
-    var sdkSourceMap =
+    final sdk = soundNullSafety ? dartSdk : dartSdkWeak;
+    final sdkSourceMap =
         soundNullSafety ? dartSdkSourcemap : dartSdkSourcemapWeak;
     assetServer.writeFile('dart_sdk.js', sdk.readAsStringSync());
     assetServer.writeFile('dart_sdk.js.map', sdkSourceMap.readAsStringSync());
 
     generator.reset();
-    var compilerOutput = await generator.recompile(
+    final compilerOutput = await generator.recompile(
       Uri.parse('org-dartlang-app:///$mainUri'),
       invalidatedFiles,
       outputPath: p.join(dillOutputPath, 'app.dill'),
@@ -165,7 +165,7 @@ class WebDevFS {
     File metadataFile;
     List<String> modules;
     try {
-      var parentDirectory = fileSystem.directory(outputDirectoryPath);
+      final parentDirectory = fileSystem.directory(outputDirectoryPath);
       codeFile =
           parentDirectory.childFile('${compilerOutput.outputFilename}.sources');
       manifestFile =

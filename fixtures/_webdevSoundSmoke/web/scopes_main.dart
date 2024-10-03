@@ -27,9 +27,9 @@ void staticFunction(int formal) {
 
 void main() async {
   print('Initial print from scopes app');
-  var local = 'local in main';
-  var intLocalInMain = 42;
-  var testClass = MyTestClass();
+  final local = 'local in main';
+  final intLocalInMain = 42;
+  final testClass = MyTestClass();
   Object? localThatsNull;
   identityMap['a'] = 1;
   identityMap['b'] = 2;
@@ -38,7 +38,7 @@ void main() async {
   notAList.add(7);
 
   String nestedFunction<T>(T parameter, Object aClass) {
-    var another = int.tryParse('$parameter');
+    final another = int.tryParse('$parameter');
     return '$local: parameter, $another'; // Breakpoint: nestedFunction
   }
 
@@ -47,7 +47,7 @@ void main() async {
   }
 
   Timer.periodic(const Duration(seconds: 1), (Timer t) {
-    var ticks = t.tick;
+    final ticks = t.tick;
     // ignore: unused_local_variable, prefer_typing_uninitialized_variables
     var closureLocal;
     libraryPublicFinal.printCount();
@@ -56,10 +56,10 @@ void main() async {
     print(nestedFunction('$ticks ${testClass.message}', Timer));
     print(localThatsNull);
     print(libraryNull);
-    var localList = libraryPublic;
+    final localList = libraryPublic;
     print(localList);
     localList.add('abc');
-    var f = testClass.methodWithVariables();
+    final f = testClass.methodWithVariables();
     print(f('parameter'));
   });
 
@@ -71,7 +71,7 @@ void main() async {
 
 String libraryFunction(String arg) {
   print('calling a library function with $arg');
-  var concat = 'some constant plus $arg plus whatever';
+  final concat = 'some constant plus $arg plus whatever';
   print(concat);
   return concat;
 }
@@ -89,11 +89,11 @@ class MyTestClass<T> {
   String hello() => message;
 
   String Function(String) methodWithVariables() {
-    var local = '$message + something';
+    final local = '$message + something';
     print(local);
     return (String parameter) {
       // Be sure to use a field from this, so it isn't entirely optimized away.
-      var closureLocalInsideMethod = '$message/$local/$parameter';
+      final closureLocalInsideMethod = '$message/$local/$parameter';
       print(closureLocalInsideMethod);
       return closureLocalInsideMethod; // Breakpoint: nestedClosure
     };

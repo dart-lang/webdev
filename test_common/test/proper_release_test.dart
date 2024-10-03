@@ -15,7 +15,7 @@ import 'package:test/test.dart';
 import 'package:test_common/utilities.dart';
 
 void main() {
-  for (var package in ['dwds', 'webdev']) {
+  for (final package in ['dwds', 'webdev']) {
     test('$package is following proper release procedure', () async {
       final pubspecPath =
           absolutePath(pathFromWebdev: p.join(package, 'pubspec.yaml'));

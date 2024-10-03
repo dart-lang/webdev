@@ -103,14 +103,15 @@ refresh: Performs a full page refresh.
     }
     // Forward remaining arguments as Build Options to the Daemon.
     // This isn't documented. Should it be advertised?
-    var buildOptions = buildRunnerArgs(configuration)
+    final buildOptions = buildRunnerArgs(configuration)
       ..addAll(argResults!.rest.where((arg) => arg.startsWith('-')).toList());
-    var extraArgs = argResults?.rest ?? [];
-    var directoryArgs = extraArgs.where((arg) => !arg.startsWith('-')).toList();
-    var targetPorts = parseDirectoryArgs(directoryArgs);
+    final extraArgs = argResults?.rest ?? [];
+    final directoryArgs =
+        extraArgs.where((arg) => !arg.startsWith('-')).toList();
+    final targetPorts = parseDirectoryArgs(directoryArgs);
     validateLaunchApps(configuration.launchApps, targetPorts.keys);
 
-    var workflow =
+    final workflow =
         await DevWorkflow.start(configuration, buildOptions, targetPorts);
     await workflow.done;
     return 0;

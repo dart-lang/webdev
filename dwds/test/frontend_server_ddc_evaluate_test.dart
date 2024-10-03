@@ -27,10 +27,10 @@ void main() async {
   );
   tearDownAll(provider.dispose);
 
-  for (var useDebuggerModuleNames in [false, true]) {
+  for (final useDebuggerModuleNames in [false, true]) {
     group('Debugger module names: $useDebuggerModuleNames |', () {
       group('DDC module system |', () {
-        for (var indexBaseMode in IndexBaseMode.values) {
+        for (final indexBaseMode in IndexBaseMode.values) {
           group(
             'with ${indexBaseMode.name} |',
             () {

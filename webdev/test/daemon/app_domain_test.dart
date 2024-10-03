@@ -27,7 +27,7 @@ void main() {
   group('AppDomain', () {
     group('Events', () {
       test('.start', () async {
-        var webdev = await testRunner
+        final webdev = await testRunner
             .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         await expectLater(
             webdev.stdout, emitsThrough(startsWith('[{"event":"app.start"')));
@@ -35,7 +35,7 @@ void main() {
       });
 
       test('.started', () async {
-        var webdev = await testRunner
+        final webdev = await testRunner
             .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         await expectLater(
             webdev.stdout, emitsThrough(startsWith('[{"event":"app.started"')));
@@ -43,7 +43,7 @@ void main() {
       });
 
       test('.debugPort', () async {
-        var webdev = await testRunner
+        final webdev = await testRunner
             .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         await expectLater(webdev.stdout,
             emitsThrough(startsWith('[{"event":"app.debugPort"')));
@@ -51,9 +51,9 @@ void main() {
       });
 
       test('.log', () async {
-        var webdev = await testRunner
+        final webdev = await testRunner
             .runWebDev(['daemon'], workingDirectory: exampleDirectory);
-        var appId = await waitForAppId(webdev);
+        final appId = await waitForAppId(webdev);
         // The example app does an initial print.
         await expectLater(
             webdev.stdout,
@@ -68,15 +68,15 @@ void main() {
       test(
         '.callServiceExtension',
         () async {
-          var webdev = await testRunner
+          final webdev = await testRunner
               .runWebDev(['daemon'], workingDirectory: exampleDirectory);
-          var appId = await waitForAppId(webdev);
+          final appId = await waitForAppId(webdev);
           if (Platform.isWindows) {
             // Windows takes a bit longer to run the application and register
             // the service extension.
             await Future.delayed(const Duration(seconds: 5));
           }
-          var extensionCall = '[{"method":"app.callServiceExtension","id":0,'
+          final extensionCall = '[{"method":"app.callServiceExtension","id":0,'
               '"params" : { "appId" : "$appId", "methodName" : "ext.print"}}]';
           webdev.stdin.add(utf8.encode('$extensionCall\n'));
           // The example app sets up a service extension for printing.
@@ -95,10 +95,10 @@ void main() {
       test(
         '.reload',
         () async {
-          var webdev = await testRunner
+          final webdev = await testRunner
               .runWebDev(['daemon'], workingDirectory: exampleDirectory);
-          var appId = await waitForAppId(webdev);
-          var extensionCall = '[{"method":"app.restart","id":0,'
+          final appId = await waitForAppId(webdev);
+          final extensionCall = '[{"method":"app.restart","id":0,'
               '"params" : { "appId" : "$appId", "fullRestart" : false}}]';
           webdev.stdin.add(utf8.encode('$extensionCall\n'));
           await expectLater(
@@ -117,10 +117,10 @@ void main() {
       test(
         '.restart',
         () async {
-          var webdev = await testRunner
+          final webdev = await testRunner
               .runWebDev(['daemon'], workingDirectory: exampleDirectory);
-          var appId = await waitForAppId(webdev);
-          var extensionCall = '[{"method":"app.restart","id":0,'
+          final appId = await waitForAppId(webdev);
+          final extensionCall = '[{"method":"app.restart","id":0,'
               '"params" : { "appId" : "$appId", "fullRestart" : true}}]';
           webdev.stdin.add(utf8.encode('$extensionCall\n'));
           await expectLater(
@@ -143,10 +143,10 @@ void main() {
       test(
         '.stop',
         () async {
-          var webdev = await testRunner
+          final webdev = await testRunner
               .runWebDev(['daemon'], workingDirectory: exampleDirectory);
-          var appId = await waitForAppId(webdev);
-          var stopCall = '[{"method":"app.stop","id":0,'
+          final appId = await waitForAppId(webdev);
+          final stopCall = '[{"method":"app.stop","id":0,'
               '"params" : { "appId" : "$appId"}}]';
           webdev.stdin.add(utf8.encode('$stopCall\n'));
           await expectLater(

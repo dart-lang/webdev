@@ -28,7 +28,7 @@ String generateUuidV4() {
       printDigits(generateBits(bitCount), digitCount);
 
   // Generate xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx / 8-4-4-4-12.
-  var special = 8 + random.nextInt(4);
+  final special = 8 + random.nextInt(4);
 
   return '${bitsDigits(16, 4)}${bitsDigits(16, 4)}-'
       '${bitsDigits(16, 4)}-'

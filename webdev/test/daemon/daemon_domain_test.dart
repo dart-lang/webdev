@@ -26,7 +26,7 @@ void main() {
   group('Daemon', () {
     group('Events', () {
       test('.connected', () async {
-        var webdev = await testRunner
+        final webdev = await testRunner
             .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         await expectLater(
             webdev.stdout, emits(startsWith('[{"event":"daemon.connected"')));
@@ -36,7 +36,7 @@ void main() {
 
     group('Methods', () {
       test('.version', () async {
-        var webdev = await testRunner
+        final webdev = await testRunner
             .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         webdev.stdin.add(utf8.encode('[{"method":"daemon.version","id":0}]\n'));
         await expectLater(
@@ -45,7 +45,7 @@ void main() {
       });
 
       test('.shutdown', () async {
-        var webdev = await testRunner
+        final webdev = await testRunner
             .runWebDev(['daemon'], workingDirectory: exampleDirectory);
         webdev.stdin
             .add(utf8.encode('[{"method":"daemon.shutdown","id":0}]\n'));

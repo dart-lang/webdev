@@ -327,7 +327,7 @@ void runTests({
         final fieldNames =
             instance.fields!.map((boundField) => boundField.name).toList();
         expect(boundFieldNames, fieldNames);
-        for (var field in instance.fields!) {
+        for (final field in instance.fields!) {
           expect(field.name, isNotNull);
           expect(field.decl!.declaredType, isNotNull);
         }

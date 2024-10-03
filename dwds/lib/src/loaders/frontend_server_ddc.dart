@@ -102,7 +102,7 @@ class FrontendServerDdcStrategyProvider {
   ) async {
     final modules = await metadataProvider.moduleToModulePath;
     final result = <String, ModuleInfo>{};
-    for (var module in modules.keys) {
+    for (final module in modules.keys) {
       final modulePath = modules[module]!;
       result[module] = ModuleInfo(
         // TODO: Save locations of full kernel files in ddc metadata.

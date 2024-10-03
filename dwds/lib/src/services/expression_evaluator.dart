@@ -471,7 +471,7 @@ class ExpressionEvaluator {
     final scope = <String, String>{};
 
     void collectVariables(Iterable<chrome.Property> variables) {
-      for (var p in variables) {
+      for (final p in variables) {
         final name = p.name;
         final value = p.value;
         // TODO: null values represent variables optimized by v8.
@@ -487,7 +487,7 @@ class ExpressionEvaluator {
 
     // skip library and main scope
     final scopeChain = filterScopes(frame).reversed;
-    for (var scope in scopeChain) {
+    for (final scope in scopeChain) {
       final objectId = scope.object.objectId;
       if (objectId != null) {
         final scopeProperties = await _inspector.getProperties(objectId);

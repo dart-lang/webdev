@@ -91,7 +91,7 @@ class TestInspector {
     }
 
     final fieldValues = <dynamic, Object?>{};
-    for (var p in fieldRefs.entries) {
+    for (final p in fieldRefs.entries) {
       fieldValues[p.key] = _getValue(p.value) ??
           await getFields(
             isolateId,
@@ -112,7 +112,7 @@ class TestInspector {
         cls.functions?.where((f) => f.isGetter ?? false).toList() ?? [];
 
     final results = await Future.wait([
-      for (var getter in getters)
+      for (final getter in getters)
         service.evaluate(isolateId, instanceRef.id!, getter.name!),
     ]);
 
@@ -162,7 +162,7 @@ class TestInspector {
     Frame frame,
   ) async {
     final refs = <String, InstanceRef>{
-      for (var variable in frame.vars!)
+      for (final variable in frame.vars!)
         variable.name!: variable.value as InstanceRef,
     };
     final instances = <String, Instance>{};

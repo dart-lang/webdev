@@ -10,5 +10,4 @@ analyzer:
 linter:
   rules:
     - always_use_package_imports
-    - prefer_final_locals
     - require_trailing_commas

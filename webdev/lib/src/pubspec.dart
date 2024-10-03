@@ -47,7 +47,7 @@ dev_dependencies:
 }
 
 Future _runPubDeps() async {
-  var result = Process.runSync(dartPath, ['pub', 'deps']);
+  final result = Process.runSync(dartPath, ['pub', 'deps']);
 
   if (result.exitCode == 65 || result.exitCode == 66) {
     throw PackageException(
@@ -87,36 +87,36 @@ class PubspecLock {
       dir = next;
     }
 
-    var pubspecLock = loadYaml(
+    final pubspecLock = loadYaml(
             await File(p.relative(p.join(dir, 'pubspec.lock'))).readAsString())
         as YamlMap;
 
-    var packages = pubspecLock['packages'] as YamlMap?;
+    final packages = pubspecLock['packages'] as YamlMap?;
     return PubspecLock(packages);
   }
 
   List<PackageExceptionDetails> checkPackage(
       String pkgName, VersionConstraint constraint,
       {String? forArgument}) {
-    var issues = <PackageExceptionDetails>[];
-    var missingDetails =
+    final issues = <PackageExceptionDetails>[];
+    final missingDetails =
         PackageExceptionDetails.missingDep(pkgName, constraint);
 
-    var pkgDataMap =
+    final pkgDataMap =
         (_packages == null) ? null : _packages[pkgName] as YamlMap?;
     if (pkgDataMap == null) {
       issues.add(missingDetails);
     } else {
-      var source = pkgDataMap['source'] as String?;
+      final source = pkgDataMap['source'] as String?;
       if (source == 'hosted') {
         // NOTE: pkgDataMap['description'] should be:
         //           `{url: https://pub.dev, name: [pkgName]}`
         //       If a user is playing around here, they are on their own.
 
-        var version = pkgDataMap['version'] as String;
-        var pkgVersion = Version.parse(version);
+        final version = pkgDataMap['version'] as String;
+        final pkgVersion = Version.parse(version);
         if (!constraint.allows(pkgVersion)) {
-          var error = 'The `$pkgName` version – $pkgVersion – is not '
+          final error = 'The `$pkgName` version – $pkgVersion – is not '
               'within the allowed constraint – $constraint.';
           issues.add(PackageExceptionDetails._(error));
         }
@@ -131,19 +131,19 @@ class PubspecLock {
 
 Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
     PubspecLock pubspecLock) async {
-  var buildDaemonConstraint = '^4.0.0';
+  final buildDaemonConstraint = '^4.0.0';
 
-  var issues = <PackageExceptionDetails>[];
+  final issues = <PackageExceptionDetails>[];
 
-  var buildDaemonIssues = pubspecLock.checkPackage(
+  final buildDaemonIssues = pubspecLock.checkPackage(
     'build_daemon',
     VersionConstraint.parse(buildDaemonConstraint),
   );
 
   // Only warn of build_daemon issues if they have a dependency on the package.
   if (buildDaemonIssues.any((issue) => !issue._missingDependency)) {
-    var info = await _latestPackageInfo();
-    var issuePreamble =
+    final info = await _latestPackageInfo();
+    final issuePreamble =
         'This version of webdev does not support the `build_daemon` '
         'protocol used by your version of `build_runner`.';
     // Check if the newer version supports the `build_daemon` transitive version
@@ -171,8 +171,8 @@ final buildWebCompilersConstraint = VersionConstraint.parse('^4.0.4');
 // get them by default.
 Future<void> checkPubspecLock(PubspecLock pubspecLock,
     {required bool requireBuildWebCompilers}) async {
-  var issues = <PackageExceptionDetails>[];
-  var buildRunnerIssues =
+  final issues = <PackageExceptionDetails>[];
+  final buildRunnerIssues =
       pubspecLock.checkPackage('build_runner', buildRunnerConstraint);
 
   issues.addAll(buildRunnerIssues);
@@ -200,20 +200,20 @@ class _PackageInfo {
 
 /// Returns the package info for the latest webdev release.
 Future<_PackageInfo> _latestPackageInfo() async {
-  var response = await get(Uri.parse('https://pub.dev/api/packages/webdev'),
+  final response = await get(Uri.parse('https://pub.dev/api/packages/webdev'),
       headers: {HttpHeaders.userAgentHeader: 'webdev $packageVersion'});
-  var responseObj = json.decode(response.body);
-  var pubspec = Pubspec.fromJson(
+  final responseObj = json.decode(response.body);
+  final pubspec = Pubspec.fromJson(
       responseObj['latest']['pubspec'] as Map<String, dynamic>);
-  var buildDaemonDependency = pubspec.dependencies['build_daemon'];
+  final buildDaemonDependency = pubspec.dependencies['build_daemon'];
   // This should never be satisfied.
   var buildDaemonConstraint = VersionConstraint.parse('0.0.0');
   if (buildDaemonDependency is HostedDependency) {
     buildDaemonConstraint = buildDaemonDependency.version;
   }
-  var currentVersion = Version.parse(packageVersion);
-  var pubspecVersion = pubspec.version;
-  var isNewer = (pubspecVersion == null)
+  final currentVersion = Version.parse(packageVersion);
+  final pubspecVersion = pubspec.version;
+  final isNewer = (pubspecVersion == null)
       ? true
       : currentVersion.compareTo(pubspecVersion) < 0;
   return _PackageInfo(pubspec.version, buildDaemonConstraint, isNewer);

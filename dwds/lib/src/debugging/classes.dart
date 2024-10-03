@@ -22,7 +22,7 @@ class ClassHelper extends Domain {
       classRefForString,
       classRefForUnknown,
     ];
-    for (var classRef in staticClasses) {
+    for (final classRef in staticClasses) {
       final classId = classRef.id;
       if (classId != null) {
         _classes[classId] = Class(

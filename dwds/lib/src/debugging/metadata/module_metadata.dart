@@ -161,7 +161,7 @@ class ModuleMetadata {
           '\n    ${ModuleMetadataVersion.previous.version}');
     }
 
-    for (var l in _readRequiredList(json, 'libraries')) {
+    for (final l in _readRequiredList(json, 'libraries')) {
       addLibrary(LibraryMetadata.fromJson(l as Map<String, dynamic>));
     }
   }
@@ -173,7 +173,7 @@ class ModuleMetadata {
       'closureName': closureName,
       'sourceMapUri': sourceMapUri,
       'moduleUri': moduleUri,
-      'libraries': [for (var lib in libraries.values) lib.toJson()],
+      'libraries': [for (final lib in libraries.values) lib.toJson()],
       'soundNullSafety': soundNullSafety,
     };
   }

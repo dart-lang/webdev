@@ -30,7 +30,7 @@ class SkipLists {
     final ranges = <Map<String, dynamic>>[];
     var startLine = 0;
     var startColumn = 0;
-    for (var location in sortedLocations) {
+    for (final location in sortedLocations) {
       var endLine = location.jsLocation.line;
       var endColumn = location.jsLocation.column;
       // Stop before the known location.

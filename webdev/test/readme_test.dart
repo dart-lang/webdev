@@ -28,8 +28,8 @@ void main() {
 final _readmeContents = File('README.md').readAsStringSync();
 
 Future _readmeCheck(TestRunner testRunner, List<String> args) async {
-  var process = await testRunner.runWebDev(args);
-  var output =
+  final process = await testRunner.runWebDev(args);
+  final output =
       (await process.stdoutStream().map((line) => line.trimRight()).join('\n'))
           .trim();
   await process.shouldExit(0);

@@ -57,7 +57,7 @@ void main() async {
     );
   }
 
-  for (var useSse in [true, false]) {
+  for (final useSse in [true, false]) {
     group(useSse ? 'SSE' : 'WebSockets', () {
       group('Without encoding', () {
         setUp(() async {
@@ -89,7 +89,7 @@ void main() async {
         });
 
         test('can close DevTools and relaunch', () async {
-          for (var window in await context.webDriver.windows.toList()) {
+          for (final window in await context.webDriver.windows.toList()) {
             await context.webDriver.driver.switchTo.window(window);
             if (await context.webDriver.title == 'Dart DevTools') {
               await window.close();
@@ -192,7 +192,7 @@ void main() async {
         });
 
         test('can close DevTools and relaunch', () async {
-          for (var window in await context.webDriver.windows.toList()) {
+          for (final window in await context.webDriver.windows.toList()) {
             await context.webDriver.driver.switchTo.window(window);
             if (await context.webDriver.title == 'Dart DevTools') {
               await window.close();

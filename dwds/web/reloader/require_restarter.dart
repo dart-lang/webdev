@@ -121,7 +121,7 @@ class RequireRestarter implements Restarter {
 
     final newDigests = await _getDigests();
     final modulesToLoad = <String>[];
-    for (var moduleId in newDigests.keys) {
+    for (final moduleId in newDigests.keys) {
       if (!_lastKnownDigests.containsKey(moduleId)) {
         print('Error during script reloading, refreshing the page. \n'
             'Unable to find an existing digest for module: $moduleId.');
@@ -267,7 +267,7 @@ class RequireRestarter implements Restarter {
         graphs.stronglyConnectedComponents(allModules, _moduleParents);
     _moduleOrdering.clear();
     for (var i = 0; i < stronglyConnectedComponents.length; i++) {
-      for (var module in stronglyConnectedComponents[i]) {
+      for (final module in stronglyConnectedComponents[i]) {
         _moduleOrdering[module] = i;
       }
     }

@@ -66,7 +66,7 @@ class StdoutHandler {
     if (_badState) {
       return;
     }
-    var kResultPrefix = 'result ';
+    final kResultPrefix = 'result ';
     if (_boundaryKey == null && message.startsWith(kResultPrefix)) {
       _boundaryKey = message.substring(kResultPrefix.length);
       return;
@@ -111,7 +111,7 @@ class StdoutHandler {
         compilerOutput.complete(null);
         return;
       }
-      var spaceDelimiter = message.lastIndexOf(' ');
+      final spaceDelimiter = message.lastIndexOf(' ');
       compilerOutput.complete(CompilerOutput(
           message.substring(boundaryKey.length + 1, spaceDelimiter),
           int.parse(message.substring(spaceDelimiter + 1).trim()),
@@ -298,7 +298,7 @@ class ResidentCompiler {
       _controller.stream.listen(_handleCompilationRequest);
     }
 
-    var completer = Completer<CompilerOutput?>();
+    final completer = Completer<CompilerOutput?>();
     _controller.add(_RecompileRequest(
         completer, mainUri, invalidatedFiles, outputPath, packageConfig));
     return completer.future;
@@ -317,12 +317,12 @@ class ResidentCompiler {
     if (_server == null) {
       return _compile(mainUri, request.outputPath);
     }
-    var server = _server!;
+    final server = _server!;
 
-    var inputKey = generateV4UUID();
+    final inputKey = generateV4UUID();
     server.stdin.writeln('recompile $mainUri$inputKey');
     _logger.info('<- recompile $mainUri$inputKey');
-    for (var fileUri in request.invalidatedFiles) {
+    for (final fileUri in request.invalidatedFiles) {
       String message;
       if (fileUri.scheme == 'package') {
         message = fileUri.toString();
@@ -342,14 +342,14 @@ class ResidentCompiler {
   final List<_CompilationRequest> _compilationQueue = <_CompilationRequest>[];
 
   Future<void> _handleCompilationRequest(_CompilationRequest request) async {
-    var isEmpty = _compilationQueue.isEmpty;
+    final isEmpty = _compilationQueue.isEmpty;
     _compilationQueue.add(request);
     // Only trigger processing if queue was empty - i.e. no other requests
     // are currently being processed. This effectively enforces "one
     // compilation request at a time".
     if (isEmpty) {
       while (_compilationQueue.isNotEmpty) {
-        var request = _compilationQueue.first;
+        final request = _compilationQueue.first;
         await request.run(this);
         _compilationQueue.removeAt(0);
       }
@@ -358,8 +358,8 @@ class ResidentCompiler {
 
   Future<CompilerOutput?> _compile(
       String scriptUri, String outputFilePath) async {
-    var frontendServer = sdkLayout.frontendServerSnapshotPath;
-    var args = <String>[
+    final frontendServer = sdkLayout.frontendServerSnapshotPath;
+    final args = <String>[
       frontendServer,
       '--sdk-root',
       sdkRoot,
@@ -402,7 +402,7 @@ class ResidentCompiler {
     _server = await Process.start(sdkLayout.dartAotRuntimePath, args,
         workingDirectory: workingDirectory);
 
-    var server = _server!;
+    final server = _server!;
     server.stdout
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter())
@@ -445,7 +445,7 @@ class ResidentCompiler {
       _controller.stream.listen(_handleCompilationRequest);
     }
 
-    var completer = Completer<CompilerOutput?>();
+    final completer = Completer<CompilerOutput?>();
     _controller.add(_CompileExpressionRequest(completer, expression,
         definitions, typeDefinitions, libraryUri, klass, isStatic));
     return completer.future;
@@ -460,9 +460,9 @@ class ResidentCompiler {
     if (_server == null) {
       return null;
     }
-    var server = _server!;
+    final server = _server!;
 
-    var inputKey = generateV4UUID();
+    final inputKey = generateV4UUID();
     server.stdin.writeln('compile-expression $inputKey');
     server.stdin.writeln(request.expression);
     request.definitions.forEach(server.stdin.writeln);
@@ -489,7 +489,7 @@ class ResidentCompiler {
       _controller.stream.listen(_handleCompilationRequest);
     }
 
-    var completer = Completer<CompilerOutput?>();
+    final completer = Completer<CompilerOutput?>();
     _controller.add(_CompileExpressionToJsRequest(completer, libraryUri, line,
         column, jsModules, jsFrameValues, moduleName, expression));
     return completer.future;
@@ -505,9 +505,9 @@ class ResidentCompiler {
     if (_server == null) {
       return null;
     }
-    var server = _server!;
+    final server = _server!;
 
-    var inputKey = generateV4UUID();
+    final inputKey = generateV4UUID();
     server.stdin.writeln('compile-expression-to-js $inputKey');
     server.stdin.writeln(request.libraryUri);
     server.stdin.writeln(request.line);
@@ -545,7 +545,7 @@ class ResidentCompiler {
       _controller.stream.listen(_handleCompilationRequest);
     }
 
-    var completer = Completer<CompilerOutput?>();
+    final completer = Completer<CompilerOutput?>();
     _controller.add(_RejectRequest(completer));
     return completer.future;
   }
@@ -597,7 +597,7 @@ class ResidentCompiler {
       return 0;
     }
 
-    var server = _server!;
+    final server = _server!;
     _logger.info('killing pid ${server.pid}');
     server.kill();
     return server.exitCode;
@@ -618,11 +618,11 @@ class TestExpressionCompiler implements ExpressionCompiler {
       Map<String, String> jsFrameValues,
       String moduleName,
       String expression) async {
-    var compilerOutput = await _generator.compileExpressionToJs(libraryUri,
+    final compilerOutput = await _generator.compileExpressionToJs(libraryUri,
         line, column, jsModules, jsFrameValues, moduleName, expression);
 
     if (compilerOutput != null) {
-      var content = utf8.decode(localFileSystem
+      final content = utf8.decode(localFileSystem
           .file(compilerOutput.outputFilename)
           .readAsBytesSync());
       return ExpressionCompilationResult(

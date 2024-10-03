@@ -68,7 +68,7 @@ class BuildRunnerRequireStrategyProvider {
     }
 
     return {
-      for (var entry in digests.entries)
+      for (final entry in digests.entries)
         if (modules.containsKey(entry.key))
           modules[entry.key]!: entry.value as String,
     };
@@ -88,7 +88,7 @@ class BuildRunnerRequireStrategyProvider {
   ) async {
     final modulePathToModule = await metadataProvider.modulePathToModule;
     final relativePath = stripLeadingSlashes(serverPath);
-    for (var e in modulePathToModule.entries) {
+    for (final e in modulePathToModule.entries) {
       if (stripTopLevelDirectory(e.key) == relativePath) {
         return e.value;
       }
@@ -129,7 +129,7 @@ class BuildRunnerRequireStrategyProvider {
   ) async {
     final modules = await metadataProvider.modules;
     final result = <String, ModuleInfo>{};
-    for (var module in modules) {
+    for (final module in modules) {
       final serverPath = await _serverPathForModule(metadataProvider, module);
       if (serverPath == null) {
         _logger.warning('No module info found for module $module');
