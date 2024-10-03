@@ -167,7 +167,7 @@ Future<void>? main() {
           if (!event.success) {
             final alert = 'DevTools failed to open with:\n${event.error}';
             if (event.promptExtension && window.confirm(alert)) {
-              window.open('https://goo.gle/dart-debug-extension', '_blank');
+              window.open('https://dart.dev/to/web-debug-extension', '_blank');
             } else {
               window.alert(alert);
             }
