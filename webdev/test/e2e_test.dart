@@ -149,7 +149,7 @@ void main() {
           }
         },
         // https://github.com/dart-lang/webdev/issues/2489
-        skip: Platform.isWindows && withDDC,
+        skip: Platform.isWindows,
       );
     }
     test(
