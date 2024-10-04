@@ -46,12 +46,8 @@ Future<Tab?> get activeTab {
   final query = QueryInfo(active: true, currentWindow: true);
   chrome.tabs.query(
     query,
-    allowInterop((List tabs) {
-      if (tabs.isNotEmpty) {
-        completer.complete(tabs.first as Tab);
-      } else {
-        completer.complete(null);
-      }
+    allowInterop((List<Tab> tabs) {
+      completer.complete(tabs.firstOrNull);
     }),
   );
   return completer.future;
@@ -126,7 +122,7 @@ bool get isDevMode {
     return _isDevMode!;
   }
   final extensionManifest = chrome.runtime.getManifest();
-  final extensionName = getProperty(extensionManifest, 'name') ?? '';
+  final extensionName = getProperty<String?>(extensionManifest, 'name') ?? '';
   final isDevMode = extensionName.contains('DEV');
   _isDevMode = isDevMode;
   return isDevMode;

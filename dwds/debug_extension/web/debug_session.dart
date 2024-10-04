@@ -79,18 +79,12 @@ enum Trigger {
   extensionPanel,
   extensionIcon;
 
-  String get clientName {
-    switch (this) {
-      case Trigger.angularDartDevTools:
-        return 'acx-devtools';
-      case Trigger.cider:
-        return 'cider';
-      case Trigger.extensionPanel:
-        return 'embedded-devtools';
-      case Trigger.extensionIcon:
-        return 'devtools';
-    }
-  }
+  String get clientName => switch (this) {
+        Trigger.angularDartDevTools => 'acx-devtools',
+        Trigger.cider => 'cider',
+        Trigger.extensionPanel => 'embedded-devtools',
+        Trigger.extensionIcon => 'devtools'
+      };
 }
 
 enum DebuggerLocation {
@@ -99,18 +93,12 @@ enum DebuggerLocation {
   dartDevTools,
   ide;
 
-  String get displayName {
-    switch (this) {
-      case DebuggerLocation.angularDartDevTools:
-        return 'AngularDart DevTools';
-      case DebuggerLocation.chromeDevTools:
-        return 'Chrome DevTools';
-      case DebuggerLocation.dartDevTools:
-        return 'a Dart DevTools tab';
-      case DebuggerLocation.ide:
-        return 'an IDE';
-    }
-  }
+  String get displayName => switch (this) {
+        DebuggerLocation.angularDartDevTools => 'AngularDart DevTools',
+        DebuggerLocation.chromeDevTools => 'Chrome DevTools',
+        DebuggerLocation.dartDevTools => 'a Dart DevTools tab',
+        DebuggerLocation.ide => 'an IDE'
+      };
 }
 
 bool get existsActiveDebugSession => _debugSessions.isNotEmpty;
@@ -331,8 +319,9 @@ Future<bool> _isDartFrame({required int tabId, required int contextId}) {
     Debuggee(tabId: tabId),
     'Runtime.evaluate',
     _InjectedParams(
-      expression:
-          '[window.\$dartAppId, window.\$dartAppInstanceId, window.\$dwdsVersion]',
+      expression: '[window.\$dartAppId, '
+          'window.\$dartAppInstanceId, '
+          'window.\$dwdsVersion]',
       returnByValue: true,
       contextId: contextId,
     ),
@@ -497,7 +486,8 @@ void _forwardDwdsEventToChromeDebugger(
     );
   } catch (error) {
     debugError(
-      'Error forwarding ${message.command} with ${message.commandParams} to chrome.debugger: $error',
+      'Error forwarding ${message.command} with ${message.commandParams} to '
+      'chrome.debugger: $error',
     );
   }
 }
@@ -660,16 +650,13 @@ Future<bool> _sendStopDebuggingMessage(
   );
 }
 
-_DebugSession? _debugSessionForTab(tabId, {required TabType type}) {
-  switch (type) {
-    case TabType.dartApp:
-      return _debugSessions
-          .firstWhereOrNull((session) => session.appTabId == tabId);
-    case TabType.devTools:
-      return _debugSessions
-          .firstWhereOrNull((session) => session.devToolsTabId == tabId);
-  }
-}
+_DebugSession? _debugSessionForTab(int tabId, {required TabType type}) =>
+    switch (type) {
+      TabType.dartApp =>
+        _debugSessions.firstWhereOrNull((session) => session.appTabId == tabId),
+      TabType.devTools => _debugSessions
+          .firstWhereOrNull((session) => session.devToolsTabId == tabId)
+    };
 
 Future<bool> _authenticateUser(int tabId) async {
   final isAlreadyAuthenticated = await _fetchIsAuthenticated(tabId);
@@ -746,20 +733,14 @@ DebuggerLocation? _debuggerLocation(int dartAppTabId) {
   final trigger = _tabIdToTrigger[dartAppTabId];
   if (debugSession == null || trigger == null) return null;
 
-  switch (trigger) {
-    case Trigger.extensionIcon:
-      if (debugSession.devToolsTabId != null) {
-        return DebuggerLocation.dartDevTools;
-      } else {
-        return DebuggerLocation.ide;
-      }
-    case Trigger.angularDartDevTools:
-      return DebuggerLocation.angularDartDevTools;
-    case Trigger.extensionPanel:
-      return DebuggerLocation.chromeDevTools;
-    case Trigger.cider:
-      return DebuggerLocation.ide;
-  }
+  return switch (trigger) {
+    Trigger.angularDartDevTools => DebuggerLocation.angularDartDevTools,
+    Trigger.cider => DebuggerLocation.ide,
+    Trigger.extensionPanel => DebuggerLocation.chromeDevTools,
+    Trigger.extensionIcon => debugSession.devToolsTabId != null
+        ? DebuggerLocation.dartDevTools
+        : DebuggerLocation.ide,
+  };
 }
 
 /// Construct an [ExtensionEvent] from [method] and [params].
@@ -804,7 +785,7 @@ class _DebugSession {
   late final StreamSubscription<List<ExtensionEvent>> _batchSubscription;
 
   _DebugSession({
-    required client,
+    required SocketClient client,
     required this.appTabId,
     required this.trigger,
     required void Function(String data) onIncoming,
@@ -888,14 +869,11 @@ class _DebugSession {
 String? _authUrl(String? extensionUrl) {
   if (extensionUrl == null) return null;
   final authUrl = Uri.parse(extensionUrl).replace(path: authenticationPath);
-  switch (authUrl.scheme) {
-    case 'ws':
-      return authUrl.replace(scheme: 'http').toString();
-    case 'wss':
-      return authUrl.replace(scheme: 'https').toString();
-    default:
-      return authUrl.toString();
-  }
+  return switch (authUrl.scheme) {
+    'ws' => authUrl.replace(scheme: 'http').toString(),
+    'wss' => authUrl.replace(scheme: 'https').toString(),
+    _ => authUrl.toString()
+  };
 }
 
 @JS()

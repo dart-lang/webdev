@@ -12,7 +12,7 @@ abstract class ConnectFailure
   static Serializer<ConnectFailure> get serializer =>
       _$connectFailureSerializer;
 
-  factory ConnectFailure([Function(ConnectFailureBuilder) updates]) =
+  factory ConnectFailure([void Function(ConnectFailureBuilder) updates]) =
       _$ConnectFailure;
 
   ConnectFailure._();
@@ -27,7 +27,7 @@ abstract class DevToolsOpener
   static Serializer<DevToolsOpener> get serializer =>
       _$devToolsOpenerSerializer;
 
-  factory DevToolsOpener([Function(DevToolsOpenerBuilder) updates]) =
+  factory DevToolsOpener([void Function(DevToolsOpenerBuilder) updates]) =
       _$DevToolsOpener;
 
   DevToolsOpener._();
@@ -38,7 +38,8 @@ abstract class DevToolsOpener
 abstract class DevToolsUrl implements Built<DevToolsUrl, DevToolsUrlBuilder> {
   static Serializer<DevToolsUrl> get serializer => _$devToolsUrlSerializer;
 
-  factory DevToolsUrl([Function(DevToolsUrlBuilder) updates]) = _$DevToolsUrl;
+  factory DevToolsUrl([void Function(DevToolsUrlBuilder) updates]) =
+      _$DevToolsUrl;
 
   DevToolsUrl._();
 
@@ -56,7 +57,7 @@ abstract class DebugStateChange
   static Serializer<DebugStateChange> get serializer =>
       _$debugStateChangeSerializer;
 
-  factory DebugStateChange([Function(DebugStateChangeBuilder) updates]) =
+  factory DebugStateChange([void Function(DebugStateChangeBuilder) updates]) =
       _$DebugStateChange;
 
   DebugStateChange._();

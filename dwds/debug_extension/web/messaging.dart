@@ -113,7 +113,8 @@ void interceptMessage<T>({
     }
   } catch (error) {
     debugError(
-      'Error intercepting $expectedType from $expectedSender to $expectedRecipient: $error',
+      'Error intercepting $expectedType from '
+      '$expectedSender to $expectedRecipient: $error',
     );
   }
 }
