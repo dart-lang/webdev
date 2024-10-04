@@ -115,32 +115,18 @@ void setExtensionPopup(PopupDetails details) {
   }
 }
 
-bool? _isDevMode;
-
-bool get isDevMode {
-  if (_isDevMode != null) {
-    return _isDevMode!;
-  }
+final bool isDevMode = () {
   final extensionManifest = chrome.runtime.getManifest();
   final extensionName = getProperty<String?>(extensionManifest, 'name') ?? '';
-  final isDevMode = extensionName.contains('DEV');
-  _isDevMode = isDevMode;
-  return isDevMode;
-}
+  return extensionName.contains('DEV');
+}();
 
-bool? _isMV3;
-
-bool get isMV3 {
-  if (_isMV3 != null) {
-    return _isMV3!;
-  }
+final bool isMV3 = () {
   final extensionManifest = chrome.runtime.getManifest();
   final manifestVersion =
       getProperty(extensionManifest, 'manifest_version') ?? 2;
-  final isMV3 = manifestVersion == 3;
-  _isMV3 = isMV3;
-  return isMV3;
-}
+  return manifestVersion == 3;
+}();
 
 String addQueryParameters(
   String uri, {

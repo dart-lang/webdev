@@ -349,11 +349,12 @@ Future<bool> _connectToDwds({
   required int dartAppTabId,
   required DebugInfo debugInfo,
 }) async {
-  if (debugInfo.extensionUrl == null) {
+  final extensionUrl = debugInfo.extensionUrl;
+  if (extensionUrl == null) {
     debugWarn('Can\'t connect to DWDS without an extension URL.');
     return false;
   }
-  final uri = Uri.parse(debugInfo.extensionUrl!);
+  final uri = Uri.parse(extensionUrl);
   // Start the client connection with DWDS:
   final client = uri.isScheme('ws') || uri.isScheme('wss')
       ? WebSocketClient(WebSocketChannel.connect(uri))
