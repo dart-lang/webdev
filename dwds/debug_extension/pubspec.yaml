@@ -1,7 +1,6 @@
 name: mv3_extension
 publish_to: none
 version: 2.1.5-wip
-homepage: https://github.com/dart-lang/webdev
 description: >-
   A Chrome extension for Dart debugging.
 

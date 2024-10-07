@@ -49,7 +49,8 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
                                            + D / Option + D). This also enables
                                            --launch-in-chrome.
     --[no-]debug-extension                 Enable the backend for the Dart Debug
-                                           Extension.
+                                           Extension. Learn more at
+                                           dart.dev/to/web-debug-extension.
     --[no-]injected-client                 Whether or not to inject the
                                            client.js script in web apps. This is
                                            required for all debugging related
