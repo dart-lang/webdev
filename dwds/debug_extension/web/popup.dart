@@ -131,10 +131,11 @@ Future<void> _launchDevTools(Event _) async {
 }
 
 void _copyAppId(Event _) {
-  if (_appId == null) return;
+  final appId = _appId;
+  if (appId == null) return;
   final clipboard = window.navigator.clipboard;
   if (clipboard == null) return;
-  clipboard.writeText(_appId!);
+  clipboard.writeText(appId);
   _updateElementVisibility(_copiedSuccessId, visible: true);
 }
 

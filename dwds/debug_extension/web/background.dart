@@ -45,8 +45,8 @@ void _registerListeners() {
   chrome.windows.onFocusChanged.addListener(
     allowInterop((_) async {
       final currentTab = await activeTab;
-      if (currentTab?.id != null) {
-        await _updateIcon(currentTab!.id);
+      if (currentTab?.id case final tabId?) {
+        await _updateIcon(tabId);
       }
     }),
   );

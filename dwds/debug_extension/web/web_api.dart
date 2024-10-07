@@ -13,8 +13,8 @@ external Json get JSON;
 @JS()
 @anonymous
 class Json {
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
-  external String stringify(o);
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
+  external String stringify(Object? o);
 }
 
 // Custom implementation of Fetch API until the Dart implementation supports
@@ -30,8 +30,9 @@ Future<FetchResponse> fetchRequest(String resourceUrl) async {
     );
     final response =
         await promiseToFuture(_nativeJsFetch(resourceUrl, options));
-    final body =
-        await promiseToFuture(js_util.callMethod(response, 'text', []));
+    final body = await promiseToFuture<String?>(
+      js_util.callMethod(response, 'text', []),
+    );
     final ok = js_util.getProperty<bool>(response, 'ok');
     final status = js_util.getProperty<int>(response, 'status');
     return FetchResponse(status: status, ok: ok, body: body);
