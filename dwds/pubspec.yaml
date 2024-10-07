@@ -36,6 +36,7 @@ dependencies:
   vm_service: ^14.2.4
   vm_service_interface: 1.1.0
   web_socket_channel: '>=2.2.0 <4.0.0'
+  web: ">=0.3.0 <0.5.0" 
   webkit_inspection_protocol: ^1.0.1
 
 dev_dependencies:

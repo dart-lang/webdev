@@ -2,13 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@JS()
-library;
-
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
-import 'dart:js';
+import 'dart:js_interop';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/build_result.dart';
@@ -23,17 +19,17 @@ import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/shared/batched_stream.dart';
 import 'package:dwds/src/sockets.dart';
-import 'package:js/js.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
+import 'package:web/helpers.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import 'promise.dart';
 import 'reloader/ddc_restarter.dart';
 import 'reloader/manager.dart';
 import 'reloader/require_restarter.dart';
 import 'reloader/restarter.dart';
 import 'run_main.dart';
+import 'web_utils.dart';
 
 const _batchDelayMilliseconds = 1000;
 
@@ -64,26 +60,26 @@ Future<void>? main() {
 
     Completer? readyToRunMainCompleter;
 
-    hotRestartJs = allowInterop((String runId, [bool? pauseIsolatesOnStart]) {
+    hotRestartJs = (String runId, [bool? pauseIsolatesOnStart]) {
       if (pauseIsolatesOnStart ?? false) {
         readyToRunMainCompleter = Completer();
-        return toPromise(
-          manager.hotRestart(
-            runId: runId,
-            readyToRunMain: readyToRunMainCompleter!.future,
-          ),
-        );
+        return manager
+            .hotRestart(
+              runId: runId,
+              readyToRunMain: readyToRunMainCompleter!.future,
+            )
+            .toJS;
       } else {
-        return toPromise(manager.hotRestart(runId: runId));
+        return manager.hotRestart(runId: runId).toJS;
       }
-    });
+    }.toJS;
 
-    readyToRunMainJs = allowInterop(() {
+    readyToRunMainJs = () {
       if (readyToRunMainCompleter == null) return;
       if (readyToRunMainCompleter!.isCompleted) return;
       readyToRunMainCompleter!.complete();
       readyToRunMainCompleter = null;
-    });
+    }.toJS;
 
     final debugEventController =
         BatchedStreamController<DebugEvent>(delay: _batchDelayMilliseconds);
@@ -102,7 +98,7 @@ Future<void>? main() {
       }
     });
 
-    emitDebugEvent = allowInterop((String kind, String eventData) {
+    emitDebugEvent = (String kind, String eventData) {
       if (dartEmitDebugEvents) {
         _trySendEvent(
           debugEventController.sink,
@@ -114,9 +110,9 @@ Future<void>? main() {
           ),
         );
       }
-    });
+    }.toJS;
 
-    emitRegisterEvent = allowInterop((String eventData) {
+    emitRegisterEvent = (String eventData) {
       _trySendEvent(
         client.sink,
         jsonEncode(
@@ -129,9 +125,9 @@ Future<void>? main() {
           ),
         ),
       );
-    });
+    }.toJS;
 
-    launchDevToolsJs = allowInterop(() {
+    launchDevToolsJs = () {
       if (!_isChromium) {
         window.alert(
           'Dart DevTools is only supported on Chromium based browsers.',
@@ -150,7 +146,7 @@ Future<void>? main() {
           ),
         ),
       );
-    });
+    }.toJS;
 
     client.stream.listen(
       (serialized) async {
@@ -175,9 +171,12 @@ Future<void>? main() {
         } else if (event is RunRequest) {
           runMain();
         } else if (event is ErrorResponse) {
-          window.console
-              .error('Error from backend:\n\nError: ${event.error}\n\n'
-                  'Stack Trace:\n${event.stackTrace}');
+          window.reportError(
+            'Error from backend:\n\n'
+                    'Error: ${event.error}\n\n'
+                    'Stack Trace:\n${event.stackTrace}'
+                .toJS,
+          );
         }
       },
       onError: (error) {
@@ -201,7 +200,7 @@ Future<void>? main() {
             !e.ctrlKey &&
             !e.metaKey) {
           e.preventDefault();
-          launchDevToolsJs();
+          launchDevToolsJs.callAsFunction();
         }
       });
     }
@@ -283,38 +282,47 @@ void _launchCommunicationWithDebugExtension() {
       DebugInfo(
         (b) => b
           ..appEntrypointPath = dartEntrypointPath
-          ..appId = _appId
+          ..appId = windowContext.$dartAppId
           ..appInstanceId = dartAppInstanceId
           ..appOrigin = window.location.origin
           ..appUrl = window.location.href
           ..authUrl = _authUrl
-          ..extensionUrl = _extensionUrl
-          ..isInternalBuild = _isInternalBuild
-          ..isFlutterApp = _isFlutterApp
+          ..extensionUrl = windowContext.$dartExtensionUri
+          ..isInternalBuild = windowContext.$isInternalBuild
+          ..isFlutterApp = windowContext.$isFlutterApp
           ..workspaceName = dartWorkspaceName,
       ),
     ),
   );
-  dispatchEvent(CustomEvent('dart-app-ready', detail: debugInfoJson));
+  _dispatchEvent('dart-app-ready', debugInfoJson);
+}
+
+void _dispatchEvent(String message, String detail) {
+  final event = CustomEvent(message, CustomEventInit(detail: detail.toJS));
+  document.dispatchEvent(event);
 }
 
 void _listenForDebugExtensionAuthRequest() {
   window.addEventListener(
     'message',
-    allowInterop((event) async {
-      final messageEvent = event as MessageEvent;
-      if (messageEvent.data is! String) return;
-      if (messageEvent.data as String != 'dart-auth-request') return;
-
-      // Notify the Dart Debug Extension of authentication status:
-      if (_authUrl != null) {
-        final isAuthenticated = await _authenticateUser(_authUrl!);
-        dispatchEvent(
-          CustomEvent('dart-auth-response', detail: '$isAuthenticated'),
-        );
-      }
-    }),
+    _handleAuthRequest.toJS,
   );
+}
+
+void _handleAuthRequest(Event event) {
+  final messageEvent = event as MessageEvent;
+  final data = messageEvent.data;
+
+  if (!data.typeofEquals('string')) return;
+  if ((data as JSString).toDart != 'dart-auth-request') return;
+
+  // Notify the Dart Debug Extension of authentication status:
+  if (_authUrl != null) {
+    _authenticateUser(_authUrl!).then(
+      (isAuthenticated) =>
+          _dispatchEvent('dart-auth-response', '$isAuthenticated'),
+    );
+  }
 }
 
 Future<bool> _authenticateUser(String authUrl) async {
@@ -323,7 +331,7 @@ Future<bool> _authenticateUser(String authUrl) async {
     method: 'GET',
     withCredentials: true,
   );
-  final responseText = response.responseText ?? '';
+  final responseText = response.responseText;
   return responseText.contains('Dart Debug Authentication Success!');
 }
 
@@ -343,18 +351,16 @@ external set dartAppInstanceId(String? id);
 external String get dartModuleStrategy;
 
 @JS(r'$dartHotRestartDwds')
-external set hotRestartJs(
-  Promise<bool> Function(String runId, [bool? pauseIsolatesOnStart]) cb,
-);
+external set hotRestartJs(JSFunction cb);
 
 @JS(r'$dartReadyToRunMain')
-external set readyToRunMainJs(void Function() cb);
+external set readyToRunMainJs(JSFunction cb);
 
 @JS(r'$launchDevTools')
-external void Function() get launchDevToolsJs;
+external JSFunction get launchDevToolsJs;
 
 @JS(r'$launchDevTools')
-external set launchDevToolsJs(void Function() cb);
+external set launchDevToolsJs(JSFunction cb);
 
 @JS(r'$dartReloadConfiguration')
 external String get reloadConfiguration;
@@ -372,10 +378,10 @@ external void dispatchEvent(CustomEvent event);
 external bool get dartEmitDebugEvents;
 
 @JS(r'$emitDebugEvent')
-external set emitDebugEvent(void Function(String, String) func);
+external set emitDebugEvent(JSFunction func);
 
 @JS(r'$emitRegisterEvent')
-external set emitRegisterEvent(void Function(String) func);
+external set emitRegisterEvent(JSFunction func);
 
 @JS(r'$isInternalBuild')
 external bool get isInternalBuild;
@@ -388,18 +394,8 @@ external String? get dartWorkspaceName;
 
 bool get _isChromium => window.navigator.vendor.contains('Google');
 
-JsObject get _windowContext => JsObject.fromBrowserObject(window);
-
-bool? get _isInternalBuild => _windowContext['\$isInternalBuild'];
-
-bool? get _isFlutterApp => _windowContext['\$isFlutterApp'];
-
-String? get _appId => _windowContext['\$dartAppId'];
-
-String? get _extensionUrl => _windowContext['\$dartExtensionUri'];
-
 String? get _authUrl {
-  final extensionUrl = _extensionUrl;
+  final extensionUrl = windowContext.$dartExtensionUri;
   if (extensionUrl == null) return null;
   final authUrl = Uri.parse(extensionUrl).replace(path: authenticationPath);
   switch (authUrl.scheme) {
