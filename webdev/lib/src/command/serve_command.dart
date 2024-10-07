@@ -36,7 +36,7 @@ refresh: Performs a full page refresh.
             'This also enables --$launchInChromeFlag.')
     ..addFlag(debugExtensionFlag,
         help: 'Enable the backend for the Dart Debug Extension. '
-            'Learn more at https://dart.dev/to/web-debug-extension.')
+            'Learn more at dart.dev/to/web-debug-extension.')
     ..addFlag(enableInjectedClientFlag,
         help: 'Whether or not to inject the client.js script in web apps. This '
             'is required for all debugging related features, but may interact '
