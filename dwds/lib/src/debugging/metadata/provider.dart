@@ -15,7 +15,8 @@ class MetadataProvider {
   final AssetReader _assetReader;
   final _logger = Logger('MetadataProvider');
   final String entrypoint;
-  bool _soundNullSafety;
+  @Deprecated('This field is deprecated as sound null safety is enforced.')
+  final bool _soundNullSafety = true;
   final List<String> _libraries = [];
   final Map<String, String> _scriptToModule = {};
   final Map<String, String> _moduleToSourceMap = {};
@@ -65,8 +66,7 @@ class MetadataProvider {
         'dart:ui',
       ];
 
-  MetadataProvider(this.entrypoint, this._assetReader)
-      : _soundNullSafety = false;
+  MetadataProvider(this.entrypoint, this._assetReader);
 
   /// A sound null safety mode for the whole app.
   ///
@@ -178,8 +178,6 @@ class MetadataProvider {
 
   Future<void> _initialize() async {
     await _metadataMemoizer.runOnce(() async {
-      var hasSoundNullSafety = true;
-      var hasUnsoundNullSafety = true;
       // The merged metadata resides next to the entrypoint.
       // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
       if (entrypoint.endsWith('.bootstrap.js')) {
@@ -199,8 +197,6 @@ class MetadataProvider {
               final metadata =
                   ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
               _addMetadata(metadata);
-              hasUnsoundNullSafety &= !metadata.soundNullSafety;
-              hasSoundNullSafety &= metadata.soundNullSafety;
               _logger
                   .fine('Loaded debug metadata for module: ${metadata.name}');
             } catch (e) {
@@ -208,13 +204,7 @@ class MetadataProvider {
               rethrow;
             }
           }
-          if (!hasSoundNullSafety && !hasUnsoundNullSafety) {
-            throw Exception('Metadata contains modules with mixed null safety');
-          }
-          _soundNullSafety = hasSoundNullSafety;
         }
-        _logger.info('Loaded debug metadata '
-            '(${_soundNullSafety ? "sound" : "weak"} null safety)');
       }
     });
   }

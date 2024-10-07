@@ -69,7 +69,7 @@ void main() {
       await provider.libraries,
       contains('org-dartlang-app:///web/main.dart'),
     );
-    expect(await provider.soundNullSafety, false);
+    expect(await provider.soundNullSafety, true);
   });
 
   test('throws on metadata with absolute import uris', () async {
@@ -114,6 +114,6 @@ void main() {
       expect(parts.length, 1);
       expect(parts[0], 'org-dartlang-app:///web/main.dart');
     }
-    expect(metadata.soundNullSafety, false);
+    expect(metadata.soundNullSafety, true);
   });
 }
