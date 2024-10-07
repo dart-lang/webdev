@@ -1,5 +1,6 @@
 ## 24.2.0-wip
 - Replace deprecated JS code `this.__proto__` with `Object.getPrototypeOf(this)` - [#2500](https://github.com/dart-lang/webdev/pull/2500)
+- Removed unsound null safety options from classes ModuleMetadata and MetadataProvider - [#2427](https://github.com/dart-lang/webdev/issues/2427)
 
 ## 24.1.0
 
