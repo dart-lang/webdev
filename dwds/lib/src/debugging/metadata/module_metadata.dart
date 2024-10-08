@@ -114,10 +114,6 @@ class ModuleMetadata {
   /// Module uri
   final String moduleUri;
 
-  // Keep the soundNullSafety flag for backward compatibility
-  @Deprecated('This field is deprecated as sound null safety is enforced.')
-  final bool soundNullSafety;
-
   final Map<String, LibraryMetadata> libraries = {};
 
   ModuleMetadata(
@@ -125,7 +121,6 @@ class ModuleMetadata {
     this.closureName,
     this.sourceMapUri,
     this.moduleUri, {
-    this.soundNullSafety = true, // Default to true
     String? ver,
   }) {
     version = ver ?? ModuleMetadataVersion.current.version;
@@ -151,10 +146,7 @@ class ModuleMetadata {
         name = _readRequiredField(json, 'name'),
         closureName = _readRequiredField(json, 'closureName'),
         sourceMapUri = _readRequiredField(json, 'sourceMapUri'),
-        moduleUri = _readRequiredField(json, 'moduleUri'),
-        // Deprecated field still present for backward compatibility
-        // Defaults to true if missing
-        soundNullSafety = _readOptionalField(json, 'soundNullSafety') ?? true {
+        moduleUri = _readRequiredField(json, 'moduleUri') {
     if (!ModuleMetadataVersion.current.isCompatibleWith(version) &&
         !ModuleMetadataVersion.previous.isCompatibleWith(version)) {
       throw Exception('Unsupported metadata version $version. '

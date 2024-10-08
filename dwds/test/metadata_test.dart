@@ -114,6 +114,5 @@ void main() {
       expect(parts.length, 1);
       expect(parts[0], 'org-dartlang-app:///web/main.dart');
     }
-    expect(metadata.soundNullSafety, true);
   });
 }

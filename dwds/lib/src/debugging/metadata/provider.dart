@@ -15,8 +15,6 @@ class MetadataProvider {
   final AssetReader _assetReader;
   final _logger = Logger('MetadataProvider');
   final String entrypoint;
-  @Deprecated('This field is deprecated as sound null safety is enforced.')
-  final bool _soundNullSafety = true;
   final List<String> _libraries = [];
   final Map<String, String> _scriptToModule = {};
   final Map<String, String> _moduleToSourceMap = {};
@@ -73,7 +71,7 @@ class MetadataProvider {
   /// All libraries have to agree on null safety mode.
   Future<bool> get soundNullSafety async {
     await _initialize();
-    return _soundNullSafety;
+    return true;
   }
 
   /// A list of all libraries in the Dart application.
