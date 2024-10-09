@@ -69,6 +69,9 @@ class MetadataProvider {
   /// A sound null safety mode for the whole app.
   ///
   /// All libraries have to agree on null safety mode.
+  @Deprecated(
+    'This field is deprecated. Use sound null safety enforcement instead.',
+  )
   Future<bool> get soundNullSafety async {
     await _initialize();
     return true;
