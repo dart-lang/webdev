@@ -82,9 +82,17 @@ class SdkConfiguration {
   final String? sdkSummaryPath;
   final String? compilerWorkerPath;
 
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
+  final String? weakSdkSummaryPath;
+
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
+  final String? soundSdkSummaryPath;
+
   const SdkConfiguration({
     this.sdkDirectory,
     this.sdkSummaryPath,
+    this.weakSdkSummaryPath,
+    this.soundSdkSummaryPath,
     this.compilerWorkerPath,
   });
 
