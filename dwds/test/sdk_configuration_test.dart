@@ -139,8 +139,7 @@ class FakeSdkLayout {
 
   FakeSdkLayout(this.sdkDirectory);
 
-  String get summaryPath =>
-      p.join(sdkDirectory, 'summaries', 'sound.dill');
+  String get summaryPath => p.join(sdkDirectory, 'summaries', 'sound.dill');
 
   String get compilerWorkerPath =>
       p.join(sdkDirectory, 'snapshots', 'test.snapshot');
