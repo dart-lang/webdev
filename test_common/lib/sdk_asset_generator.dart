@@ -104,8 +104,7 @@ class SdkAssetGenerator {
 
       // Files to generate
       final jsPath = p.join(
-          outputDir.path,
-          resolveSdkJsFilename(canaryFeatures: canaryFeatures));
+          outputDir.path, resolveSdkJsFilename(canaryFeatures: canaryFeatures));
       final jsMapPath = p.setExtension(jsPath, '.js.map');
       final fullDillPath = p.setExtension(jsPath, '.dill');
 
@@ -188,8 +187,7 @@ class SdkAssetGenerator {
 
       // Generate missing files.
       outputDir = fileSystem.systemTempDirectory.createTempSync();
-      final summaryPath =
-          p.join(outputDir.path, sdkLayout.summaryFileName);
+      final summaryPath = p.join(outputDir.path, sdkLayout.summaryFileName);
 
       _logger.info('Generating SDK summary files...');
 

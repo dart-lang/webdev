@@ -30,7 +30,6 @@ void main() {
     late String ddcSdkJsPath;
     late String ddcSdkJsMapPath;
 
-
     setUp(() async {
       setCurrentLogWriter(debug: debug);
       tempDir = Directory.systemTemp.createTempSync();
