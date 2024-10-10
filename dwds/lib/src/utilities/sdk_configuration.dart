@@ -45,6 +45,12 @@ class SdkLayout {
   final String summaryPath;
   final String dartdevcSnapshotPath;
 
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
+  final String soundSummaryPath;
+
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
+  final String weakSummaryPath;
+
   SdkLayout.createDefault(String sdkDirectory)
       : this(
           sdkDirectory: sdkDirectory,
@@ -65,6 +71,8 @@ class SdkLayout {
   const SdkLayout({
     required this.sdkDirectory,
     required this.summaryPath,
+    this.soundSummaryPath = '',
+    this.weakSummaryPath = '',
     required this.dartdevcSnapshotPath,
   });
 }
