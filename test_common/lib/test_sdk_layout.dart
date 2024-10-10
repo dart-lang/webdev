@@ -27,14 +27,14 @@ class TestSdkLayout {
   factory TestSdkLayout.createDefaultFromSdkLayout(SdkLayout sdkLayout) =>
       TestSdkLayout(
         sdkDirectory: sdkLayout.sdkDirectory,
-        soundSummaryPath: sdkLayout.soundSummaryPath,
-        soundFullDillPath: p.join(
+        summaryPath: sdkLayout.summaryPath,
+        fullDillPath: p.join(
           sdkLayout.sdkDirectory,
           'lib',
           '_internal',
           'ddc_platform.dill',
         ),
-        soundAmdJsPath: p.join(
+        amdJsPath: p.join(
           sdkLayout.sdkDirectory,
           'lib',
           'dev_compiler',
@@ -42,7 +42,7 @@ class TestSdkLayout {
           'amd',
           'dart_sdk.js',
         ),
-        soundAmdJsMapPath: p.join(
+        amdJsMapPath: p.join(
           sdkLayout.sdkDirectory,
           'lib',
           'dev_compiler',
@@ -50,7 +50,7 @@ class TestSdkLayout {
           'amd',
           'dart_sdk.js.map',
         ),
-        soundDdcJsPath: p.join(
+        ddcJsPath: p.join(
           sdkLayout.sdkDirectory,
           'lib',
           'dev_compiler',
@@ -58,52 +58,13 @@ class TestSdkLayout {
           'ddc',
           'dart_sdk.js',
         ),
-        soundDdcJsMapPath: p.join(
+        ddcJsMapPath: p.join(
           sdkLayout.sdkDirectory,
           'lib',
           'dev_compiler',
           'kernel',
           'ddc',
           'dart_sdk.js.map',
-        ),
-        weakSummaryPath: sdkLayout.weakSummaryPath,
-        weakFullDillPath: p.join(
-          sdkLayout.sdkDirectory,
-          'lib',
-          '_internal',
-          'ddc_platform_unsound.dill',
-        ),
-        weakAmdJsPath: p.join(
-          sdkLayout.sdkDirectory,
-          'lib',
-          'dev_compiler',
-          'kernel',
-          'amd',
-          'dart_sdk_unsound.js',
-        ),
-        weakAmdJsMapPath: p.join(
-          sdkLayout.sdkDirectory,
-          'lib',
-          'dev_compiler',
-          'kernel',
-          'amd',
-          'dart_sdk_unsound.js.map',
-        ),
-        weakDdcJsPath: p.join(
-          sdkLayout.sdkDirectory,
-          'lib',
-          'dev_compiler',
-          'kernel',
-          'ddc',
-          'dart_sdk_unsound.js',
-        ),
-        weakDdcJsMapPath: p.join(
-          sdkLayout.sdkDirectory,
-          'lib',
-          'dev_compiler',
-          'kernel',
-          'ddc',
-          'dart_sdk_unsound.js.map',
         ),
         ddcModuleLoaderJsPath: p.join(
           sdkLayout.sdkDirectory,
@@ -159,33 +120,19 @@ class TestSdkLayout {
 
   final String sdkDirectory;
 
-  String get soundAmdJsFileName => p.basename(soundAmdJsPath);
-  String get soundAmdJsMapFileName => p.basename(soundAmdJsMapPath);
-  String get soundDdcJsFileName => p.basename(soundDdcJsPath);
-  String get soundDdcJsMapFileName => p.basename(soundDdcJsMapPath);
-  String get soundSummaryFileName => p.basename(soundSummaryPath);
-  String get soundFullDillFileName => p.basename(soundFullDillPath);
+  String get amdJsFileName => p.basename(amdJsPath);
+  String get amdJsMapFileName => p.basename(amdJsMapPath);
+  String get ddcJsFileName => p.basename(ddcJsPath);
+  String get ddcJsMapFileName => p.basename(ddcJsMapPath);
+  String get summaryFileName => p.basename(summaryPath);
+  String get fullDillFileName => p.basename(fullDillPath);
 
-  final String soundAmdJsPath;
-  final String soundAmdJsMapPath;
-  final String soundDdcJsPath;
-  final String soundDdcJsMapPath;
-  final String soundSummaryPath;
-  final String soundFullDillPath;
-
-  String get weakAmdJsFileName => p.basename(weakAmdJsPath);
-  String get weakAmdJsMapFileName => p.basename(weakAmdJsMapPath);
-  String get weakDdcJsFileName => p.basename(weakDdcJsPath);
-  String get weakDdcJsMapFileName => p.basename(weakDdcJsMapPath);
-  String get weakSummaryFileName => p.basename(weakSummaryPath);
-  String get weakFullDillFileName => p.basename(weakFullDillPath);
-
-  final String weakAmdJsPath;
-  final String weakAmdJsMapPath;
-  final String weakDdcJsPath;
-  final String weakDdcJsMapPath;
-  final String weakSummaryPath;
-  final String weakFullDillPath;
+  final String amdJsPath;
+  final String amdJsMapPath;
+  final String ddcJsPath;
+  final String ddcJsMapPath;
+  final String summaryPath;
+  final String fullDillPath;
 
   final String ddcModuleLoaderJsPath;
   final String requireJsPath;
@@ -200,18 +147,12 @@ class TestSdkLayout {
 
   const TestSdkLayout({
     required this.sdkDirectory,
-    required this.soundAmdJsPath,
-    required this.soundAmdJsMapPath,
-    required this.soundDdcJsPath,
-    required this.soundDdcJsMapPath,
-    required this.soundSummaryPath,
-    required this.soundFullDillPath,
-    required this.weakAmdJsPath,
-    required this.weakAmdJsMapPath,
-    required this.weakDdcJsPath,
-    required this.weakDdcJsMapPath,
-    required this.weakSummaryPath,
-    required this.weakFullDillPath,
+    required this.amdJsPath,
+    required this.amdJsMapPath,
+    required this.ddcJsPath,
+    required this.ddcJsMapPath,
+    required this.summaryPath,
+    required this.fullDillPath,
     required this.ddcModuleLoaderJsPath,
     required this.requireJsPath,
     required this.stackTraceMapperPath,
@@ -227,8 +168,7 @@ class TestSdkLayout {
   static SdkConfiguration createConfiguration(TestSdkLayout sdkLayout) =>
       SdkConfiguration(
         sdkDirectory: sdkLayout.sdkDirectory,
-        weakSdkSummaryPath: sdkLayout.weakSummaryPath,
-        soundSdkSummaryPath: sdkLayout.soundSummaryPath,
+        sdkSummaryPath: sdkLayout.summaryPath,
         compilerWorkerPath: sdkLayout.dartdevcSnapshotPath,
       );
 }

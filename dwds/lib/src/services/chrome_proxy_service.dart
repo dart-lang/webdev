@@ -205,16 +205,10 @@ class ChromeProxyService implements VmServiceInterface {
     final canaryFeatures = loadStrategy.buildSettings.canaryFeatures;
     final experiments = loadStrategy.buildSettings.experiments;
 
-    // TODO(annagrin): Read null safety setting from the build settings.
-    final metadataProvider = loadStrategy.metadataProviderFor(entrypoint);
-    final soundNullSafety = await metadataProvider.soundNullSafety;
-
-    _logger.info('Initializing expression compiler for $entrypoint '
-        'with sound null safety: $soundNullSafety');
+    _logger.info('Initializing expression compiler for $entrypoint');
 
     final compilerOptions = CompilerOptions(
       moduleFormat: ModuleFormat.values.byName(moduleFormat),
-      soundNullSafety: soundNullSafety,
       canaryFeatures: canaryFeatures,
       experiments: experiments,
     );

@@ -386,9 +386,7 @@ class ResidentCompiler {
       ],
       if (useDebuggerModuleNames) '--debugger-module-names',
       '--experimental-emit-debug-metadata',
-      compilerOptions.soundNullSafety
-          ? '--sound-null-safety'
-          : '--no-sound-null-safety',
+      '--sound-null-safety',
       for (final experiment in compilerOptions.experiments)
         '--enable-experiment=$experiment',
       if (compilerOptions.canaryFeatures) '--dartdevc-canary',

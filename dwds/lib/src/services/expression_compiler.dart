@@ -5,13 +5,16 @@
 /// Options passed to DDC and the expression compiler.
 class CompilerOptions {
   final ModuleFormat moduleFormat;
+
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
   final bool soundNullSafety;
+
   final bool canaryFeatures;
   final List<String> experiments;
 
   CompilerOptions({
     required this.moduleFormat,
-    required this.soundNullSafety,
+    this.soundNullSafety = true,
     required this.canaryFeatures,
     required this.experiments,
   });

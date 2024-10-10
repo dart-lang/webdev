@@ -300,5 +300,5 @@ class TestCompilerOptions extends CompilerOptions {
     required super.canaryFeatures,
     super.experiments = const [],
     super.moduleFormat = ModuleFormat.amd,
-  }) : super(soundNullSafety: true);
+  });
 }

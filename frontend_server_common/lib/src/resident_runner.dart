@@ -33,9 +33,7 @@ class ResidentWebRunner {
     required this.sdkLayout,
     bool verbose = false,
   }) {
-    final platformDillUri = Uri.file(compilerOptions.soundNullSafety
-        ? sdkLayout.soundSummaryPath
-        : sdkLayout.weakSummaryPath);
+    final platformDillUri = Uri.file(sdkLayout.summaryPath);
 
     generator = ResidentCompiler(
       sdkLayout.sdkDirectory,
@@ -79,7 +77,6 @@ class ResidentWebRunner {
       packageUriMapper: packageUriMapper,
       index: index,
       urlTunneler: urlTunneler,
-      soundNullSafety: compilerOptions.soundNullSafety,
       sdkLayout: sdkLayout,
       ddcModuleFormat: compilerOptions.moduleFormat,
     );

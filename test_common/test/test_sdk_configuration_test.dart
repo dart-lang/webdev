@@ -24,16 +24,16 @@ void main() {
     test('Creates and deletes SDK directory copy', () async {
       final provider = TestSdkConfigurationProvider(verbose: debug);
       final sdkDirectory = provider.sdkLayout.sdkDirectory;
-      final weakSdkSummary = provider.sdkLayout.weakSummaryPath;
+      final sdkSummary = provider.sdkLayout.summaryPath;
       try {
         expect(sdkDirectory, _directoryExists,
             reason: 'SDK directory should be created');
-        expect(weakSdkSummary, isNot(_fileExists),
-            reason: 'Weak SDK summary should not be generated yet.');
+        expect(sdkSummary, isNot(_fileExists),
+            reason: 'SDK summary should not be generated yet.');
 
         await provider.configuration;
-        expect(weakSdkSummary, _fileExists,
-            reason: 'Weak SDK summary should be generated');
+        expect(sdkSummary, _fileExists,
+            reason: 'SDK summary should be generated');
       } finally {
         provider.dispose();
         expect(sdkDirectory, isNot(_directoryExists),
@@ -59,15 +59,10 @@ void main() {
       final sdkLayout = provider.sdkLayout;
 
       expect(sdkLayout.sdkDirectory, _directoryExists);
-      expect(sdkLayout.soundDdcJsPath, _fileExists);
-      expect(sdkLayout.soundDdcJsMapPath, _fileExists);
-      expect(sdkLayout.soundSummaryPath, _fileExists);
-      expect(sdkLayout.soundFullDillPath, _fileExists);
-
-      expect(sdkLayout.weakDdcJsPath, _fileExists);
-      expect(sdkLayout.weakDdcJsMapPath, _fileExists);
-      expect(sdkLayout.weakSummaryPath, _fileExists);
-      expect(sdkLayout.weakFullDillPath, _fileExists);
+      expect(sdkLayout.ddcJsPath, _fileExists);
+      expect(sdkLayout.ddcJsMapPath, _fileExists);
+      expect(sdkLayout.summaryPath, _fileExists);
+      expect(sdkLayout.fullDillPath, _fileExists);
 
       expect(sdkLayout.ddcModuleLoaderJsPath, _fileExists);
       expect(sdkLayout.stackTraceMapperPath, _fileExists);
@@ -96,15 +91,10 @@ void main() {
       final sdkLayout = provider.sdkLayout;
 
       expect(sdkLayout.sdkDirectory, _directoryExists);
-      expect(sdkLayout.soundAmdJsPath, _fileExists);
-      expect(sdkLayout.soundAmdJsMapPath, _fileExists);
-      expect(sdkLayout.soundSummaryPath, _fileExists);
-      expect(sdkLayout.soundFullDillPath, _fileExists);
-
-      expect(sdkLayout.weakAmdJsPath, _fileExists);
-      expect(sdkLayout.weakAmdJsMapPath, _fileExists);
-      expect(sdkLayout.weakSummaryPath, _fileExists);
-      expect(sdkLayout.weakFullDillPath, _fileExists);
+      expect(sdkLayout.amdJsPath, _fileExists);
+      expect(sdkLayout.amdJsMapPath, _fileExists);
+      expect(sdkLayout.summaryPath, _fileExists);
+      expect(sdkLayout.fullDillPath, _fileExists);
 
       expect(sdkLayout.requireJsPath, _fileExists);
       expect(sdkLayout.stackTraceMapperPath, _fileExists);
