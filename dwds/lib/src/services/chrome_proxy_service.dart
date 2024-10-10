@@ -204,13 +204,11 @@ class ChromeProxyService implements VmServiceInterface {
     final moduleFormat = loadStrategy.moduleFormat;
     final canaryFeatures = loadStrategy.buildSettings.canaryFeatures;
     final experiments = loadStrategy.buildSettings.experiments;
-    final soundNullSafety = true;
 
     _logger.info('Initializing expression compiler for $entrypoint');
 
     final compilerOptions = CompilerOptions(
       moduleFormat: ModuleFormat.values.byName(moduleFormat),
-      soundNullSafety: soundNullSafety,
       canaryFeatures: canaryFeatures,
       experiments: experiments,
     );
