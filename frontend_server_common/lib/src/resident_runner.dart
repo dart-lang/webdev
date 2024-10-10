@@ -33,7 +33,7 @@ class ResidentWebRunner {
     required this.sdkLayout,
     bool verbose = false,
   }) {
-    final platformDillUri = Uri.file(sdkLayout.soundSummaryPath);
+    final platformDillUri = Uri.file(sdkLayout.summaryPath);
 
     generator = ResidentCompiler(
       sdkLayout.sdkDirectory,

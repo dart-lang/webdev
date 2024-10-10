@@ -192,13 +192,13 @@ class WebDevFS {
       fileSystem.file(sdkLayout.ddcModuleLoaderJsPath);
   File get requireJS => fileSystem.file(sdkLayout.requireJsPath);
   File get dartSdk => fileSystem.file(switch (ddcModuleFormat) {
-        ModuleFormat.amd => sdkLayout.soundAmdJsPath,
-        ModuleFormat.ddc => sdkLayout.soundDdcJsPath,
+        ModuleFormat.amd => sdkLayout.amdJsPath,
+        ModuleFormat.ddc => sdkLayout.ddcJsPath,
         _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
       });
   File get dartSdkSourcemap => fileSystem.file(switch (ddcModuleFormat) {
-        ModuleFormat.amd => sdkLayout.soundAmdJsMapPath,
-        ModuleFormat.ddc => sdkLayout.soundDdcJsMapPath,
+        ModuleFormat.amd => sdkLayout.amdJsMapPath,
+        ModuleFormat.ddc => sdkLayout.ddcJsMapPath,
         _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
       });
   File get stackTraceMapper => fileSystem.file(sdkLayout.stackTraceMapperPath);

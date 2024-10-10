@@ -20,23 +20,16 @@ void main() {
 
     late Directory tempDir;
     late String sdkDirectory;
-    late String soundSdkSummaryPath;
+    late String sdkSummaryPath;
     late String compilerWorkerPath;
 
-    // Missing sound assets
-    late String soundSdkFullDillPath;
-    late String soundAmdSdkJsPath;
-    late String soundAmdSdkJsMapPath;
-    late String soundDdcSdkJsPath;
-    late String soundDdcSdkJsMapPath;
+    // Missing assets
+    late String sdkFullDillPath;
+    late String amdSdkJsPath;
+    late String amdSdkJsMapPath;
+    late String ddcSdkJsPath;
+    late String ddcSdkJsMapPath;
 
-    // Missing weak assets
-    late String weakSdkSummaryPath;
-    late String weakSdkFullDillPath;
-    late String weakAmdSdkJsPath;
-    late String weakAmdSdkJsMapPath;
-    late String weakDdcSdkJsPath;
-    late String weakDdcSdkJsMapPath;
 
     setUp(() async {
       setCurrentLogWriter(debug: debug);
@@ -45,39 +38,24 @@ void main() {
       sdkDirectory = tempDir.path;
       final copySdkLayout = TestSdkLayout.createDefault(sdkDirectory);
 
-      soundSdkSummaryPath = copySdkLayout.soundSummaryPath;
+      sdkSummaryPath = copySdkLayout.summaryPath;
       compilerWorkerPath = copySdkLayout.dartdevcSnapshotPath;
 
       // Copy the SDK directory into a temp directory.
       await copyDirectory(TestSdkLayout.defaultSdkDirectory, sdkDirectory);
 
-      // Simulate missing sound assets.
-      soundSdkFullDillPath = copySdkLayout.soundFullDillPath;
-      soundAmdSdkJsPath = copySdkLayout.soundAmdJsPath;
-      soundAmdSdkJsMapPath = copySdkLayout.soundAmdJsMapPath;
-      soundDdcSdkJsPath = copySdkLayout.soundDdcJsPath;
-      soundDdcSdkJsMapPath = copySdkLayout.soundDdcJsMapPath;
+      // Simulate missing assets.
+      sdkFullDillPath = copySdkLayout.fullDillPath;
+      amdSdkJsPath = copySdkLayout.amdJsPath;
+      amdSdkJsMapPath = copySdkLayout.amdJsMapPath;
+      ddcSdkJsPath = copySdkLayout.ddcJsPath;
+      ddcSdkJsMapPath = copySdkLayout.ddcJsMapPath;
 
-      _deleteIfExists(soundSdkFullDillPath);
-      _deleteIfExists(soundAmdSdkJsPath);
-      _deleteIfExists(soundAmdSdkJsMapPath);
-      _deleteIfExists(soundDdcSdkJsPath);
-      _deleteIfExists(soundDdcSdkJsMapPath);
-
-      // Simulate missing weak assets.
-      weakSdkSummaryPath = copySdkLayout.weakSummaryPath;
-      weakSdkFullDillPath = copySdkLayout.weakFullDillPath;
-      weakAmdSdkJsPath = copySdkLayout.weakAmdJsPath;
-      weakAmdSdkJsMapPath = copySdkLayout.weakAmdJsMapPath;
-      weakDdcSdkJsPath = copySdkLayout.weakDdcJsPath;
-      weakDdcSdkJsMapPath = copySdkLayout.weakDdcJsMapPath;
-
-      _deleteIfExists(weakSdkSummaryPath);
-      _deleteIfExists(weakSdkFullDillPath);
-      _deleteIfExists(weakAmdSdkJsPath);
-      _deleteIfExists(weakAmdSdkJsMapPath);
-      _deleteIfExists(weakDdcSdkJsPath);
-      _deleteIfExists(weakDdcSdkJsMapPath);
+      _deleteIfExists(sdkFullDillPath);
+      _deleteIfExists(amdSdkJsPath);
+      _deleteIfExists(amdSdkJsMapPath);
+      _deleteIfExists(ddcSdkJsPath);
+      _deleteIfExists(ddcSdkJsMapPath);
     });
 
     tearDown(() {
@@ -102,30 +80,20 @@ void main() {
       expect(configuration.sdkDirectory, equals(sdkDirectory));
       expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
 
-      expect(sdkLayout.soundSummaryPath, equals(soundSdkSummaryPath));
-      expect(sdkLayout.soundFullDillPath, equals(soundSdkFullDillPath));
-      expect(sdkLayout.soundAmdJsPath, equals(soundAmdSdkJsPath));
-      expect(sdkLayout.soundAmdJsMapPath, equals(soundAmdSdkJsMapPath));
-
-      expect(sdkLayout.weakSummaryPath, equals(weakSdkSummaryPath));
-      expect(sdkLayout.weakFullDillPath, equals(weakSdkFullDillPath));
-      expect(sdkLayout.weakAmdJsPath, equals(weakAmdSdkJsPath));
-      expect(sdkLayout.weakAmdJsMapPath, equals(weakAmdSdkJsMapPath));
+      expect(sdkLayout.summaryPath, equals(sdkSummaryPath));
+      expect(sdkLayout.fullDillPath, equals(sdkFullDillPath));
+      expect(sdkLayout.amdJsPath, equals(amdSdkJsPath));
+      expect(sdkLayout.amdJsMapPath, equals(amdSdkJsMapPath));
 
       // Validate that configuration files exist.
       configuration.validateSdkDir();
       configuration.validate();
 
       // Validate all assets exist.
-      expect(sdkLayout.soundSummaryPath, _exists);
-      expect(sdkLayout.soundFullDillPath, _exists);
-      expect(sdkLayout.soundAmdJsPath, _exists);
-      expect(sdkLayout.soundAmdJsMapPath, _exists);
-
-      expect(sdkLayout.weakSummaryPath, _exists);
-      expect(sdkLayout.weakFullDillPath, _exists);
-      expect(sdkLayout.weakAmdJsPath, _exists);
-      expect(sdkLayout.weakAmdJsMapPath, _exists);
+      expect(sdkLayout.summaryPath, _exists);
+      expect(sdkLayout.fullDillPath, _exists);
+      expect(sdkLayout.amdJsPath, _exists);
+      expect(sdkLayout.amdJsMapPath, _exists);
     });
 
     test(
@@ -146,30 +114,20 @@ void main() {
       expect(configuration.sdkDirectory, equals(sdkDirectory));
       expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
 
-      expect(sdkLayout.soundSummaryPath, equals(soundSdkSummaryPath));
-      expect(sdkLayout.soundFullDillPath, equals(soundSdkFullDillPath));
-      expect(sdkLayout.soundDdcJsPath, equals(soundDdcSdkJsPath));
-      expect(sdkLayout.soundDdcJsMapPath, equals(soundDdcSdkJsMapPath));
-
-      expect(sdkLayout.weakSummaryPath, equals(weakSdkSummaryPath));
-      expect(sdkLayout.weakFullDillPath, equals(weakSdkFullDillPath));
-      expect(sdkLayout.weakDdcJsPath, equals(weakDdcSdkJsPath));
-      expect(sdkLayout.weakDdcJsMapPath, equals(weakDdcSdkJsMapPath));
+      expect(sdkLayout.summaryPath, equals(sdkSummaryPath));
+      expect(sdkLayout.fullDillPath, equals(sdkFullDillPath));
+      expect(sdkLayout.ddcJsPath, equals(ddcSdkJsPath));
+      expect(sdkLayout.ddcJsMapPath, equals(ddcSdkJsMapPath));
 
       // Validate that configuration files exist.
       configuration.validateSdkDir();
       configuration.validate();
 
       // Validate all assets exist.
-      expect(sdkLayout.soundSummaryPath, _exists);
-      expect(sdkLayout.soundFullDillPath, _exists);
-      expect(sdkLayout.soundDdcJsPath, _exists);
-      expect(sdkLayout.soundDdcJsMapPath, _exists);
-
-      expect(sdkLayout.weakSummaryPath, _exists);
-      expect(sdkLayout.weakFullDillPath, _exists);
-      expect(sdkLayout.weakDdcJsPath, _exists);
-      expect(sdkLayout.weakDdcJsMapPath, _exists);
+      expect(sdkLayout.summaryPath, _exists);
+      expect(sdkLayout.fullDillPath, _exists);
+      expect(sdkLayout.ddcJsPath, _exists);
+      expect(sdkLayout.ddcJsMapPath, _exists);
     });
 
     test('Can generate missing SDK assets with canary features enabled',
@@ -184,11 +142,8 @@ void main() {
       );
       await assetGenerator.generateSdkAssets();
 
-      final soundSdk = File(soundAmdSdkJsPath).readAsStringSync();
-      expect(soundSdk, contains('canary'));
-
-      final weakSdk = File(weakAmdSdkJsPath).readAsStringSync();
-      expect(weakSdk, contains('canary'));
+      final sdk = File(amdSdkJsPath).readAsStringSync();
+      expect(sdk, contains('canary'));
     });
 
     test(
@@ -204,11 +159,8 @@ void main() {
       );
       await assetGenerator.generateSdkAssets();
 
-      final soundSdk = File(soundDdcSdkJsPath).readAsStringSync();
-      expect(soundSdk, contains('canary'));
-
-      final weakSdk = File(weakDdcSdkJsPath).readAsStringSync();
-      expect(weakSdk, contains('canary'));
+      final sdk = File(ddcSdkJsPath).readAsStringSync();
+      expect(sdk, contains('canary'));
     });
   });
 }

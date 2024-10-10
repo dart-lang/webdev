@@ -11,8 +11,8 @@ import 'package:test_common/test_sdk_layout.dart';
 /// Generates sdk.js, sdk.map, sdk full dill, and sdk summary files.
 ///
 /// Generates following missing assets if needed:
-/// - sound null safety: js, source map, full dill.
-/// - weak null safety: js, source map, full dill, summary.
+/// - js, source map, full dill.
+
 class SdkAssetGenerator {
   bool _sdkAssetsGenerated = false;
   final _logger = Logger('SdkAssetGenerator');
@@ -57,8 +57,8 @@ class SdkAssetGenerator {
     required bool canaryFeatures,
   }) =>
       switch (ddcModuleFormat) {
-        ModuleFormat.amd => sdkLayout.soundAmdJsPath,
-        ModuleFormat.ddc => sdkLayout.soundDdcJsPath,
+        ModuleFormat.amd => sdkLayout.amdJsPath,
+        ModuleFormat.ddc => sdkLayout.ddcJsPath,
         _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
       };
 
@@ -66,8 +66,8 @@ class SdkAssetGenerator {
     required bool canaryFeatures,
   }) =>
       switch (ddcModuleFormat) {
-        ModuleFormat.amd => sdkLayout.soundAmdJsMapPath,
-        ModuleFormat.ddc => sdkLayout.soundDdcJsMapPath,
+        ModuleFormat.amd => sdkLayout.amdJsMapPath,
+        ModuleFormat.ddc => sdkLayout.ddcJsMapPath,
         _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
       };
 
@@ -75,8 +75,8 @@ class SdkAssetGenerator {
     required bool canaryFeatures,
   }) =>
       switch (ddcModuleFormat) {
-        ModuleFormat.amd => sdkLayout.soundAmdJsFileName,
-        ModuleFormat.ddc => sdkLayout.soundDdcJsFileName,
+        ModuleFormat.amd => sdkLayout.amdJsFileName,
+        ModuleFormat.ddc => sdkLayout.ddcJsFileName,
         _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
       };
 
@@ -89,7 +89,7 @@ class SdkAssetGenerator {
       final outputJsPath = resolveSdkJsPath(canaryFeatures: canaryFeatures);
       final outputJsMapPath =
           resolveSdkSourcemapPath(canaryFeatures: canaryFeatures);
-      final outputFullDillPath = sdkLayout.soundFullDillPath;
+      final outputFullDillPath = sdkLayout.fullDillPath;
 
       final hasJsAsset = _exists(outputJsPath);
       final hasJsMapAsset = _exists(outputJsMapPath);
@@ -180,7 +180,7 @@ class SdkAssetGenerator {
     Directory? outputDir;
     try {
       // Files to copy generated files to.
-      final outputSummaryPath = sdkLayout.soundSummaryPath;
+      final outputSummaryPath = sdkLayout.summaryPath;
       final hasAssets = _exists(outputSummaryPath);
 
       // Files already exist.
@@ -189,7 +189,7 @@ class SdkAssetGenerator {
       // Generate missing files.
       outputDir = fileSystem.systemTempDirectory.createTempSync();
       final summaryPath =
-          p.join(outputDir.path, sdkLayout.soundSummaryFileName);
+          p.join(outputDir.path, sdkLayout.summaryFileName);
 
       _logger.info('Generating SDK summary files...');
 
