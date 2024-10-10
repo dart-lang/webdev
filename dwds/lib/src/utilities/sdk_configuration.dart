@@ -42,24 +42,17 @@ class SdkLayout {
       SdkLayout.createDefault(defaultSdkDirectory);
 
   final String sdkDirectory;
-  final String soundSummaryPath;
-  final String weakSummaryPath;
+  final String summaryPath;
   final String dartdevcSnapshotPath;
 
   SdkLayout.createDefault(String sdkDirectory)
       : this(
           sdkDirectory: sdkDirectory,
-          soundSummaryPath: p.join(
+          summaryPath: p.join(
             sdkDirectory,
             'lib',
             '_internal',
             'ddc_outline.dill',
-          ),
-          weakSummaryPath: p.join(
-            sdkDirectory,
-            'lib',
-            '_internal',
-            'ddc_outline_unsound.dill',
           ),
           dartdevcSnapshotPath: p.join(
             sdkDirectory,
@@ -71,8 +64,7 @@ class SdkLayout {
 
   const SdkLayout({
     required this.sdkDirectory,
-    required this.soundSummaryPath,
-    required this.weakSummaryPath,
+    required this.summaryPath,
     required this.dartdevcSnapshotPath,
   });
 }
@@ -87,14 +79,12 @@ class SdkConfiguration {
       SdkConfiguration.fromSdkLayout(SdkLayout.defaultSdkLayout);
 
   final String? sdkDirectory;
-  final String? weakSdkSummaryPath;
-  final String? soundSdkSummaryPath;
+  final String? sdkSummaryPath;
   final String? compilerWorkerPath;
 
   const SdkConfiguration({
     this.sdkDirectory,
-    this.weakSdkSummaryPath,
-    this.soundSdkSummaryPath,
+    this.sdkSummaryPath,
     this.compilerWorkerPath,
   });
 
@@ -103,8 +93,7 @@ class SdkConfiguration {
   SdkConfiguration.fromSdkLayout(SdkLayout sdkLayout)
       : this(
           sdkDirectory: sdkLayout.sdkDirectory,
-          weakSdkSummaryPath: sdkLayout.weakSummaryPath,
-          soundSdkSummaryPath: sdkLayout.soundSummaryPath,
+          sdkSummaryPath: sdkLayout.summaryPath,
           compilerWorkerPath: sdkLayout.dartdevcSnapshotPath,
         );
 
@@ -113,8 +102,7 @@ class SdkConfiguration {
       path == null ? null : p.toUri(p.absolute(path));
 
   Uri? get sdkDirectoryUri => _toUri(sdkDirectory);
-  Uri? get soundSdkSummaryUri => _toUri(soundSdkSummaryPath);
-  Uri? get weakSdkSummaryUri => _toUri(weakSdkSummaryPath);
+  Uri? get sdkSummaryUri => _toUri(sdkSummaryPath);
 
   /// Note: has to be ///file: Uri to run in an isolate.
   Uri? get compilerWorkerUri => _toAbsoluteUri(compilerWorkerPath);
@@ -139,28 +127,10 @@ class SdkConfiguration {
   }
 
   void validateSummaries({FileSystem fileSystem = const LocalFileSystem()}) {
-    validateSoundSummaries(fileSystem: fileSystem);
-    validateWeakSummaries(fileSystem: fileSystem);
-  }
-
-  void validateWeakSummaries({
-    FileSystem fileSystem = const LocalFileSystem(),
-  }) {
-    if (weakSdkSummaryPath == null ||
-        !fileSystem.file(weakSdkSummaryPath).existsSync()) {
+    if (sdkSummaryPath == null ||
+        !fileSystem.file(sdkSummaryPath).existsSync()) {
       throw InvalidSdkConfigurationException(
-        'Sdk summary $weakSdkSummaryPath does not exist',
-      );
-    }
-  }
-
-  void validateSoundSummaries({
-    FileSystem fileSystem = const LocalFileSystem(),
-  }) {
-    if (soundSdkSummaryPath == null ||
-        !fileSystem.file(soundSdkSummaryPath).existsSync()) {
-      throw InvalidSdkConfigurationException(
-        'Sdk summary $soundSdkSummaryPath does not exist',
+        'Sdk summary $sdkSummaryPath does not exist',
       );
     }
   }

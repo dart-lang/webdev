@@ -66,10 +66,10 @@ class _Compiler {
     bool verbose,
   ) async {
     sdkConfiguration.validateSdkDir();
-    sdkConfiguration.validateSoundSummaries();
+    sdkConfiguration.validateSummaries();
 
     final workerUri = sdkConfiguration.compilerWorkerUri!;
-    final sdkSummaryUri = sdkConfiguration.soundSdkSummaryUri!;
+    final sdkSummaryUri = sdkConfiguration.sdkSummaryUri!;
 
     final args = [
       '--experimental-expression-compiler',
