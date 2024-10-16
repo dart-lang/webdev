@@ -24,7 +24,7 @@ class WebDevFS {
     required this.projectDirectory,
     required this.packageUriMapper,
     required this.index,
-    required this.soundNullSafety,
+    this.soundNullSafety = true,
     this.urlTunneler,
     required this.sdkLayout,
     required this.ddcModuleFormat,
@@ -38,7 +38,10 @@ class WebDevFS {
   final PackageUriMapper packageUriMapper;
   final String index;
   final UrlEncoder? urlTunneler;
+
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
   final bool soundNullSafety;
+
   final TestSdkLayout sdkLayout;
   final ModuleFormat ddcModuleFormat;
   late final Directory _savedCurrentDirectory;
@@ -142,9 +145,8 @@ class WebDevFS {
 
     assetServer.writeFile('main_module.digests', '{}');
 
-    final sdk = soundNullSafety ? dartSdk : dartSdkWeak;
-    final sdkSourceMap =
-        soundNullSafety ? dartSdkSourcemap : dartSdkSourcemapWeak;
+    final sdk = dartSdk;
+    final sdkSourceMap = dartSdkSourcemap;
     assetServer.writeFile('dart_sdk.js', sdk.readAsStringSync());
     assetServer.writeFile('dart_sdk.js.map', sdkSourceMap.readAsStringSync());
 
@@ -189,24 +191,14 @@ class WebDevFS {
   File get ddcModuleLoaderJS =>
       fileSystem.file(sdkLayout.ddcModuleLoaderJsPath);
   File get requireJS => fileSystem.file(sdkLayout.requireJsPath);
-  File get dartSdkWeak => fileSystem.file(switch (ddcModuleFormat) {
-        ModuleFormat.amd => sdkLayout.weakAmdJsPath,
-        ModuleFormat.ddc => sdkLayout.weakDdcJsPath,
-        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
-      });
   File get dartSdk => fileSystem.file(switch (ddcModuleFormat) {
-        ModuleFormat.amd => sdkLayout.soundAmdJsPath,
-        ModuleFormat.ddc => sdkLayout.soundDdcJsPath,
-        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
-      });
-  File get dartSdkSourcemapWeak => fileSystem.file(switch (ddcModuleFormat) {
-        ModuleFormat.amd => sdkLayout.weakAmdJsMapPath,
-        ModuleFormat.ddc => sdkLayout.weakDdcJsMapPath,
+        ModuleFormat.amd => sdkLayout.amdJsPath,
+        ModuleFormat.ddc => sdkLayout.ddcJsPath,
         _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
       });
   File get dartSdkSourcemap => fileSystem.file(switch (ddcModuleFormat) {
-        ModuleFormat.amd => sdkLayout.soundAmdJsMapPath,
-        ModuleFormat.ddc => sdkLayout.soundDdcJsMapPath,
+        ModuleFormat.amd => sdkLayout.amdJsMapPath,
+        ModuleFormat.ddc => sdkLayout.ddcJsMapPath,
         _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
       });
   File get stackTraceMapper => fileSystem.file(sdkLayout.stackTraceMapperPath);

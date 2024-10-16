@@ -25,7 +25,7 @@ void main() {
       final defaultConfiguration =
           await DefaultSdkConfigurationProvider().configuration;
       defaultConfiguration.validateSdkDir();
-      defaultConfiguration.validateSoundSummaries();
+      defaultConfiguration.validateSummaries();
     });
 
     test('Cannot validate an empty configuration layout', () async {
@@ -55,12 +55,11 @@ void main() {
       final sdkLayout = FakeSdkLayout(sdkDirectory);
       final sdkConfiguration = FakeSdkLayout.createConfiguration(sdkLayout);
 
-      final soundSdkSummaryPath = sdkLayout.soundSummaryPath;
-      final summariesDir = p.dirname(soundSdkSummaryPath);
+      final sdkSummaryPath = sdkLayout.summaryPath;
+      final summariesDir = p.dirname(sdkSummaryPath);
 
       Directory(summariesDir).createSync(recursive: true);
-      File(defaultSdkConfiguration.soundSdkSummaryPath!)
-          .copySync(soundSdkSummaryPath);
+      File(defaultSdkConfiguration.sdkSummaryPath!).copySync(sdkSummaryPath);
 
       final compilerWorkerPath = sdkLayout.compilerWorkerPath;
       final workerDir = p.dirname(compilerWorkerPath);
@@ -70,11 +69,11 @@ void main() {
           .copySync(compilerWorkerPath);
 
       expect(sdkConfiguration.sdkDirectory, equals(sdkDirectory));
-      expect(sdkConfiguration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
+      expect(sdkConfiguration.sdkSummaryPath, equals(sdkSummaryPath));
       expect(sdkConfiguration.compilerWorkerPath, equals(compilerWorkerPath));
 
       sdkConfiguration.validateSdkDir();
-      sdkConfiguration.validateSoundSummaries();
+      sdkConfiguration.validateSummaries();
     });
 
     test('Cannot validate non-existing configuration layout', () async {
@@ -96,22 +95,19 @@ void main() {
 
     final sdkLayout = SdkLayout.createDefault(sdkDirectory);
     final sdkConfiguration = SdkConfiguration.fromSdkLayout(sdkLayout);
-    final soundSdkSummaryPath = sdkLayout.soundSummaryPath;
-    final weakSdkSummaryPath = sdkLayout.weakSummaryPath;
+    final sdkSummaryPath = sdkLayout.summaryPath;
     final compilerWorkerPath = sdkLayout.dartdevcSnapshotPath;
 
     setUp(() async {
       fs = MemoryFileSystem();
       await fs.directory(sdkDirectory).create(recursive: true);
-      await fs.file(soundSdkSummaryPath).create(recursive: true);
-      await fs.file(weakSdkSummaryPath).create(recursive: true);
+      await fs.file(sdkSummaryPath).create(recursive: true);
       await fs.file(compilerWorkerPath).create(recursive: true);
     });
 
     test('Can create and validate default SDK configuration', () async {
       expect(sdkConfiguration.sdkDirectory, equals(sdkDirectory));
-      expect(sdkConfiguration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
-      expect(sdkConfiguration.weakSdkSummaryPath, equals(weakSdkSummaryPath));
+      expect(sdkConfiguration.sdkSummaryPath, equals(sdkSummaryPath));
       expect(sdkConfiguration.compilerWorkerPath, equals(compilerWorkerPath));
 
       sdkConfiguration.validateSdkDir(fileSystem: fs);
@@ -137,18 +133,13 @@ class FakeSdkLayout {
   static SdkConfiguration createConfiguration(FakeSdkLayout sdkLayout) =>
       SdkConfiguration(
         sdkDirectory: sdkLayout.sdkDirectory,
-        soundSdkSummaryPath: sdkLayout.soundSummaryPath,
-        weakSdkSummaryPath: sdkLayout.weakSummaryPath,
+        sdkSummaryPath: sdkLayout.summaryPath,
         compilerWorkerPath: sdkLayout.compilerWorkerPath,
       );
 
   FakeSdkLayout(this.sdkDirectory);
 
-  String get weakSummaryPath =>
-      p.join(sdkDirectory, 'summaries', 'unsound.dill');
-
-  String get soundSummaryPath =>
-      p.join(sdkDirectory, 'summaries', 'sound.dill');
+  String get summaryPath => p.join(sdkDirectory, 'summaries', 'sound.dill');
 
   String get compilerWorkerPath =>
       p.join(sdkDirectory, 'snapshots', 'test.snapshot');

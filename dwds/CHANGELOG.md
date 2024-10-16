@@ -2,6 +2,7 @@
 
 - Replace deprecated JS code `this.__proto__` with `Object.getPrototypeOf(this)`. - [#2500](https://github.com/dart-lang/webdev/pull/2500)
 - Migrate injected client code to `package:web`. - [#2491](https://github.com/dart-lang/webdev/pull/2491)
+- Deprecated MetadataProvider's, CompilerOptions', SdkConfiguration's & SdkLayout's soundNullSafety. - [#2427](https://github.com/dart-lang/webdev/issues/2427)
 
 ## 24.1.0
 

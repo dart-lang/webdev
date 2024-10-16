@@ -42,24 +42,23 @@ class SdkLayout {
       SdkLayout.createDefault(defaultSdkDirectory);
 
   final String sdkDirectory;
-  final String soundSummaryPath;
-  final String weakSummaryPath;
+  final String summaryPath;
   final String dartdevcSnapshotPath;
+
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
+  final String soundSummaryPath;
+
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
+  final String weakSummaryPath;
 
   SdkLayout.createDefault(String sdkDirectory)
       : this(
           sdkDirectory: sdkDirectory,
-          soundSummaryPath: p.join(
+          summaryPath: p.join(
             sdkDirectory,
             'lib',
             '_internal',
             'ddc_outline.dill',
-          ),
-          weakSummaryPath: p.join(
-            sdkDirectory,
-            'lib',
-            '_internal',
-            'ddc_outline_unsound.dill',
           ),
           dartdevcSnapshotPath: p.join(
             sdkDirectory,
@@ -71,8 +70,9 @@ class SdkLayout {
 
   const SdkLayout({
     required this.sdkDirectory,
-    required this.soundSummaryPath,
-    required this.weakSummaryPath,
+    required this.summaryPath,
+    this.soundSummaryPath = '',
+    this.weakSummaryPath = '',
     required this.dartdevcSnapshotPath,
   });
 }
@@ -87,12 +87,18 @@ class SdkConfiguration {
       SdkConfiguration.fromSdkLayout(SdkLayout.defaultSdkLayout);
 
   final String? sdkDirectory;
-  final String? weakSdkSummaryPath;
-  final String? soundSdkSummaryPath;
+  final String? sdkSummaryPath;
   final String? compilerWorkerPath;
+
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
+  final String? weakSdkSummaryPath;
+
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
+  final String? soundSdkSummaryPath;
 
   const SdkConfiguration({
     this.sdkDirectory,
+    this.sdkSummaryPath,
     this.weakSdkSummaryPath,
     this.soundSdkSummaryPath,
     this.compilerWorkerPath,
@@ -103,8 +109,7 @@ class SdkConfiguration {
   SdkConfiguration.fromSdkLayout(SdkLayout sdkLayout)
       : this(
           sdkDirectory: sdkLayout.sdkDirectory,
-          weakSdkSummaryPath: sdkLayout.weakSummaryPath,
-          soundSdkSummaryPath: sdkLayout.soundSummaryPath,
+          sdkSummaryPath: sdkLayout.summaryPath,
           compilerWorkerPath: sdkLayout.dartdevcSnapshotPath,
         );
 
@@ -113,7 +118,12 @@ class SdkConfiguration {
       path == null ? null : p.toUri(p.absolute(path));
 
   Uri? get sdkDirectoryUri => _toUri(sdkDirectory);
+  Uri? get sdkSummaryUri => _toUri(sdkSummaryPath);
+
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
   Uri? get soundSdkSummaryUri => _toUri(soundSdkSummaryPath);
+
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
   Uri? get weakSdkSummaryUri => _toUri(weakSdkSummaryPath);
 
   /// Note: has to be ///file: Uri to run in an isolate.
@@ -139,28 +149,10 @@ class SdkConfiguration {
   }
 
   void validateSummaries({FileSystem fileSystem = const LocalFileSystem()}) {
-    validateSoundSummaries(fileSystem: fileSystem);
-    validateWeakSummaries(fileSystem: fileSystem);
-  }
-
-  void validateWeakSummaries({
-    FileSystem fileSystem = const LocalFileSystem(),
-  }) {
-    if (weakSdkSummaryPath == null ||
-        !fileSystem.file(weakSdkSummaryPath).existsSync()) {
+    if (sdkSummaryPath == null ||
+        !fileSystem.file(sdkSummaryPath).existsSync()) {
       throw InvalidSdkConfigurationException(
-        'Sdk summary $weakSdkSummaryPath does not exist',
-      );
-    }
-  }
-
-  void validateSoundSummaries({
-    FileSystem fileSystem = const LocalFileSystem(),
-  }) {
-    if (soundSdkSummaryPath == null ||
-        !fileSystem.file(soundSdkSummaryPath).existsSync()) {
-      throw InvalidSdkConfigurationException(
-        'Sdk summary $soundSdkSummaryPath does not exist',
+        'Sdk summary $sdkSummaryPath does not exist',
       );
     }
   }
