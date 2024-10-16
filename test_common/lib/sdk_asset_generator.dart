@@ -11,8 +11,8 @@ import 'package:test_common/test_sdk_layout.dart';
 /// Generates sdk.js, sdk.map, sdk full dill, and sdk summary files.
 ///
 /// Generates following missing assets if needed:
-/// - sound null safety: js, source map, full dill.
-/// - weak null safety: js, source map, full dill, summary.
+/// - js, source map, full dill.
+
 class SdkAssetGenerator {
   bool _sdkAssetsGenerated = false;
   final _logger = Logger('SdkAssetGenerator');
@@ -42,69 +42,54 @@ class SdkAssetGenerator {
       // i.e. flutter SDK or build_web_compilers.
       // Generate missing files for tests if needed.
       await _generateSdkJavaScript(
-        soundNullSafety: true,
         canaryFeatures: canaryFeatures,
       );
 
       // SDK does not contain any weak assets, generate them.
       await _generateSdkJavaScript(
-        soundNullSafety: false,
         canaryFeatures: canaryFeatures,
       );
-      await _generateSdkSummary(soundNullSafety: false);
+      await _generateSdkSummary();
     }
   }
 
   String resolveSdkJsPath({
-    required bool soundNullSafety,
     required bool canaryFeatures,
   }) =>
-      switch ((soundNullSafety, ddcModuleFormat)) {
-        (true, ModuleFormat.amd) => sdkLayout.soundAmdJsPath,
-        (false, ModuleFormat.amd) => sdkLayout.weakAmdJsPath,
-        (true, ModuleFormat.ddc) => sdkLayout.soundDdcJsPath,
-        (false, ModuleFormat.ddc) => sdkLayout.weakDdcJsPath,
+      switch (ddcModuleFormat) {
+        ModuleFormat.amd => sdkLayout.amdJsPath,
+        ModuleFormat.ddc => sdkLayout.ddcJsPath,
         _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
       };
 
   String resolveSdkSourcemapPath({
-    required bool soundNullSafety,
     required bool canaryFeatures,
   }) =>
-      switch ((soundNullSafety, ddcModuleFormat)) {
-        (true, ModuleFormat.amd) => sdkLayout.soundAmdJsMapPath,
-        (false, ModuleFormat.amd) => sdkLayout.weakAmdJsMapPath,
-        (true, ModuleFormat.ddc) => sdkLayout.soundDdcJsMapPath,
-        (false, ModuleFormat.ddc) => sdkLayout.weakDdcJsMapPath,
+      switch (ddcModuleFormat) {
+        ModuleFormat.amd => sdkLayout.amdJsMapPath,
+        ModuleFormat.ddc => sdkLayout.ddcJsMapPath,
         _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
       };
 
   String resolveSdkJsFilename({
-    required bool soundNullSafety,
     required bool canaryFeatures,
   }) =>
-      switch ((soundNullSafety, ddcModuleFormat)) {
-        (true, ModuleFormat.amd) => sdkLayout.soundAmdJsFileName,
-        (false, ModuleFormat.amd) => sdkLayout.weakAmdJsFileName,
-        (true, ModuleFormat.ddc) => sdkLayout.soundDdcJsFileName,
-        (false, ModuleFormat.ddc) => sdkLayout.weakDdcJsFileName,
+      switch (ddcModuleFormat) {
+        ModuleFormat.amd => sdkLayout.amdJsFileName,
+        ModuleFormat.ddc => sdkLayout.ddcJsFileName,
         _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
       };
 
   Future<void> _generateSdkJavaScript({
-    required bool soundNullSafety,
     required bool canaryFeatures,
   }) async {
     Directory? outputDir;
     try {
       // Files to copy generated files to.
-      final outputJsPath = resolveSdkJsPath(
-          soundNullSafety: soundNullSafety, canaryFeatures: canaryFeatures);
-      final outputJsMapPath = resolveSdkSourcemapPath(
-          soundNullSafety: soundNullSafety, canaryFeatures: canaryFeatures);
-      final outputFullDillPath = soundNullSafety
-          ? sdkLayout.soundFullDillPath
-          : sdkLayout.weakFullDillPath;
+      final outputJsPath = resolveSdkJsPath(canaryFeatures: canaryFeatures);
+      final outputJsMapPath =
+          resolveSdkSourcemapPath(canaryFeatures: canaryFeatures);
+      final outputFullDillPath = sdkLayout.fullDillPath;
 
       final hasJsAsset = _exists(outputJsPath);
       final hasJsMapAsset = _exists(outputJsMapPath);
@@ -119,10 +104,7 @@ class SdkAssetGenerator {
 
       // Files to generate
       final jsPath = p.join(
-          outputDir.path,
-          resolveSdkJsFilename(
-              soundNullSafety: soundNullSafety,
-              canaryFeatures: canaryFeatures));
+          outputDir.path, resolveSdkJsFilename(canaryFeatures: canaryFeatures));
       final jsMapPath = p.setExtension(jsPath, '.js.map');
       final fullDillPath = p.setExtension(jsPath, '.dill');
 
@@ -140,7 +122,7 @@ class SdkAssetGenerator {
         'org-dartlang-sdk:///lib/libraries.json',
         '--modules',
         ddcModuleFormat.name,
-        soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
+        '--sound-null-safety',
         'dart:core',
         '-o',
         jsPath,
@@ -193,13 +175,11 @@ class SdkAssetGenerator {
     }
   }
 
-  Future<void> _generateSdkSummary({required bool soundNullSafety}) async {
+  Future<void> _generateSdkSummary() async {
     Directory? outputDir;
     try {
       // Files to copy generated files to.
-      final outputSummaryPath = soundNullSafety
-          ? sdkLayout.soundSummaryPath
-          : sdkLayout.weakSummaryPath;
+      final outputSummaryPath = sdkLayout.summaryPath;
       final hasAssets = _exists(outputSummaryPath);
 
       // Files already exist.
@@ -207,9 +187,7 @@ class SdkAssetGenerator {
 
       // Generate missing files.
       outputDir = fileSystem.systemTempDirectory.createTempSync();
-      final summaryPath = soundNullSafety
-          ? p.join(outputDir.path, sdkLayout.soundSummaryFileName)
-          : p.join(outputDir.path, sdkLayout.weakSummaryFileName);
+      final summaryPath = p.join(outputDir.path, sdkLayout.summaryFileName);
 
       _logger.info('Generating SDK summary files...');
 
@@ -227,10 +205,7 @@ class SdkAssetGenerator {
         '--source',
         'dart:core',
         '--summary-only',
-        if (soundNullSafety)
-          '--sound-null-safety'
-        else
-          '--no-sound-null-safety',
+        '--sound-null-safety',
         '--output',
         summaryPath,
         if (verbose) '--verbose',
