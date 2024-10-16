@@ -120,6 +120,12 @@ class SdkConfiguration {
   Uri? get sdkDirectoryUri => _toUri(sdkDirectory);
   Uri? get sdkSummaryUri => _toUri(sdkSummaryPath);
 
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
+  Uri? get soundSdkSummaryUri => _toUri(soundSdkSummaryPath);
+
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
+  Uri? get weakSdkSummaryUri => _toUri(weakSdkSummaryPath);
+
   /// Note: has to be ///file: Uri to run in an isolate.
   Uri? get compilerWorkerUri => _toAbsoluteUri(compilerWorkerPath);
 
