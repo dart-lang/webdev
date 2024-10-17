@@ -25,14 +25,14 @@ String _readDartDebugInfo() {
     serializers.serialize(
       DebugInfo(
         (b) => b
-          ..appEntrypointPath = windowContext['\$dartEntrypointPath']
-          ..appId = windowContext['\$dartAppId']
-          ..appInstanceId = windowContext['\$dartAppInstanceId']
+          ..appEntrypointPath = windowContext['\$dartEntrypointPath'] as String?
+          ..appId = windowContext['\$dartAppId'] as String?
+          ..appInstanceId = windowContext['\$dartAppInstanceId'] as String?
           ..appOrigin = window.location.origin
           ..appUrl = window.location.href
-          ..extensionUrl = windowContext['\$dartExtensionUri']
-          ..isInternalBuild = windowContext['\$isInternalBuild']
-          ..isFlutterApp = windowContext['\$isFlutterApp'],
+          ..extensionUrl = windowContext['\$dartExtensionUri'] as String?
+          ..isInternalBuild = windowContext['\$isInternalBuild'] as bool?
+          ..isFlutterApp = windowContext['\$isFlutterApp'] as bool?,
       ),
     ),
   );

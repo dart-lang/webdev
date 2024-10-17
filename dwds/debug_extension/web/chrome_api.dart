@@ -193,7 +193,8 @@ class Runtime {
 
   external String get id;
 
-  // Note: Not checking the lastError when one occurs throws a runtime exception.
+  // Note: Not checking the lastError when one occurs
+  // throws a runtime exception.
   external ChromeError? get lastError;
 
   external ConnectionHandler get onConnect;

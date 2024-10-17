@@ -51,10 +51,8 @@ void _log(
   switch (logLevel) {
     case _LogLevel.error:
       _console.error(logMsg);
-      break;
     case _LogLevel.warn:
       _console.warn(logMsg);
-      break;
     case _LogLevel.info:
       _console.log(logMsg);
   }

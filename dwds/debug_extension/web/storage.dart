@@ -24,22 +24,14 @@ enum StorageObject {
   isAuthenticated,
   multipleAppsDetected;
 
-  Persistence get persistence {
-    switch (this) {
-      case StorageObject.debugInfo:
-        return Persistence.sessionOnly;
-      case StorageObject.devToolsOpener:
-        return Persistence.acrossSessions;
-      case StorageObject.devToolsUri:
-        return Persistence.sessionOnly;
-      case StorageObject.encodedUri:
-        return Persistence.sessionOnly;
-      case StorageObject.isAuthenticated:
-        return Persistence.sessionOnly;
-      case StorageObject.multipleAppsDetected:
-        return Persistence.sessionOnly;
-    }
-  }
+  Persistence get persistence => switch (this) {
+        StorageObject.debugInfo => Persistence.sessionOnly,
+        StorageObject.devToolsOpener => Persistence.acrossSessions,
+        StorageObject.devToolsUri => Persistence.sessionOnly,
+        StorageObject.encodedUri => Persistence.sessionOnly,
+        StorageObject.isAuthenticated => Persistence.sessionOnly,
+        StorageObject.multipleAppsDetected => Persistence.sessionOnly
+      };
 }
 
 enum Persistence {
@@ -132,7 +124,7 @@ Future<List<T>> fetchAllStorageObjectsOfType<T>({required StorageObject type}) {
   return completer.future;
 }
 
-Future<bool> removeStorageObject<T>({required StorageObject type, int? tabId}) {
+Future<bool> removeStorageObject({required StorageObject type, int? tabId}) {
   final storageKey = _createStorageKey(type, tabId);
   final completer = Completer<bool>();
   final storageArea = _getStorageArea(type.persistence);
@@ -178,12 +170,10 @@ StorageArea _getStorageArea(Persistence persistence) {
   // MV2 extensions don't have access to session storage:
   if (!isMV3) return chrome.storage.local;
 
-  switch (persistence) {
-    case Persistence.acrossSessions:
-      return chrome.storage.local;
-    case Persistence.sessionOnly:
-      return chrome.storage.session;
-  }
+  return switch (persistence) {
+    Persistence.acrossSessions => chrome.storage.local,
+    Persistence.sessionOnly => chrome.storage.session
+  };
 }
 
 String _createStorageKey(StorageObject type, int? tabId) {
