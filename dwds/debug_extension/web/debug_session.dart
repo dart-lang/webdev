@@ -651,13 +651,14 @@ Future<bool> _sendStopDebuggingMessage(
   );
 }
 
-_DebugSession? _debugSessionForTab(int tabId, {required TabType type}) =>
-    switch (type) {
-      TabType.dartApp =>
-        _debugSessions.firstWhereOrNull((session) => session.appTabId == tabId),
-      TabType.devTools => _debugSessions
-          .firstWhereOrNull((session) => session.devToolsTabId == tabId)
-    };
+_DebugSession? _debugSessionForTab(int tabId, {required TabType type}) {
+  return switch (type) {
+    TabType.dartApp =>
+      _debugSessions.firstWhereOrNull((session) => session.appTabId == tabId),
+    TabType.devTools => _debugSessions
+        .firstWhereOrNull((session) => session.devToolsTabId == tabId)
+  };
+}
 
 Future<bool> _authenticateUser(int tabId) async {
   final isAlreadyAuthenticated = await _fetchIsAuthenticated(tabId);
