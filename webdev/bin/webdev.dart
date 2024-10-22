@@ -27,19 +27,6 @@ Future main(List<String> args) async {
       print('  ${e.path}');
     }
     exitCode = ExitCode.config.code;
-  } on PackageException catch (e) {
-    var withUnsupportedArg =
-        e.unsupportedArgument != null ? ' with --${e.unsupportedArgument}' : '';
-    print(red
-        .wrap('$_boldApp could not run$withUnsupportedArg for this project.'));
-    for (var detail in e.details) {
-      print(yellow.wrap(detail.error));
-      if (detail.description != null) {
-        print(detail.description);
-      }
-    }
-
-    exitCode = ExitCode.config.code;
   } on IsolateSpawnException catch (e) {
     print(red.wrap('$_boldApp failed with an unexpected exception.'));
     print(e.message);

@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 
-import '../pubspec.dart';
 import 'configuration.dart';
 
 final lineLength = stdout.hasTerminal ? stdout.terminalColumns : 80;
@@ -100,12 +98,6 @@ List<String> buildRunnerArgs(Configuration configuration) {
   }
 
   return arguments;
-}
-
-Future<void> validatePubspecLock(Configuration configuration) async {
-  var pubspecLock = await PubspecLock.read();
-  await checkPubspecLock(pubspecLock,
-      requireBuildWebCompilers: configuration.requireBuildWebCompilers);
 }
 
 /// Checks that the normalized form of [path] is a top level directory under

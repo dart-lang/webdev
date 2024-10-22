@@ -16,7 +16,6 @@ import 'package:logging/logging.dart' as logging;
 
 import '../daemon_client.dart';
 import '../logging.dart';
-import '../pubspec.dart';
 import 'configuration.dart';
 import 'shared.dart';
 
@@ -50,15 +49,7 @@ class BuildCommand extends Command<int> {
     var configuration = Configuration.fromArgs(argResults);
     configureLogWriter(configuration.verbose);
 
-    List<String> arguments;
-    try {
-      await validatePubspecLock(configuration);
-      arguments = buildRunnerArgs(configuration)..addAll(validExtraArgs);
-    } on PackageException catch (e) {
-      logWriter(logging.Level.SEVERE, 'Pubspec errors: ',
-          error: '${e.details}');
-      rethrow;
-    }
+    final arguments = buildRunnerArgs(configuration)..addAll(validExtraArgs);
 
     try {
       logWriter(logging.Level.INFO, 'Connecting to the build daemon...');

@@ -1,5 +1,9 @@
 ## 3.7.0-wip
 
+- Suggest using as a dev-dependency instead of as a globally activated package.
+  The global flow will still work - but there will be no compatibility
+  checking of dependencies.
+
 ## 3.6.0
 
 - Update `dwds` constraint to `24.1.0`.

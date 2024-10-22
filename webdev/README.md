@@ -4,31 +4,17 @@ A command-line tool for developing and deploying web applications with Dart.
 
 The latest release of `webdev` requires Dart SDK `2.18.0` or later.
 
-To use `webdev` with a package, make sure you have entries in `pubspec.yaml`
-similar to:
-
-```yaml
-...
-dev_dependencies:
-  build_runner: ^2.4.0
-  build_web_compilers: ^4.0.4
-...
-```
-
-## Installation
-
-`webdev` is not meant to be used as a dependency. Instead, it should be
-["activated"][activating].
+To use `webdev` with a package, add it to the `dev_dependencies` in `pubspec.yaml`:
 
 ```console
-$ dart pub global activate webdev
+$ dart pub add dev:webdev
 ```
-
-Learn more about activating and using packages [here][pub global].
 
 ## Usage
 
 `webdev` provides two commands: `serve` and `build`.
+
+Run them with `dart run webdev serve` and `dart run webdev build`.
 
 ### `webdev serve`
 
@@ -148,8 +134,4 @@ Usage: webdev build [arguments]
 -v, --verbose                              Enables verbose logging.
 
 Run "webdev help" to see global options.
-
 ```
-
-[activating]: https://dart.dev/tools/pub/cmd/pub-global#activating-a-package
-[pub global]: https://dart.dev/tools/pub/cmd/pub-global
