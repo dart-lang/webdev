@@ -2,10 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// frontend_server_strategy_provider.dart
-
-// ignore_for_file: unused_element
-
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
