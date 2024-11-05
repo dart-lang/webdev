@@ -8,7 +8,6 @@ import 'package:dwds/src/loaders/frontend_server_strategy_provider.dart';
 /// Provides a [DdcStrategy] suitable for use with Frontend Server.
 class FrontendServerDdcStrategyProvider
     extends FrontendServerStrategyProvider<DdcStrategy> {
-
   late final DdcStrategy _ddcStrategy = DdcStrategy(
     configuration,
     moduleProvider,
