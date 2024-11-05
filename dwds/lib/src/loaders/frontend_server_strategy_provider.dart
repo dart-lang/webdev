@@ -3,78 +3,80 @@
 // found in the LICENSE file.
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/ddc.dart';
+import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:path/path.dart' as p;
 
 abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
-  final ReloadConfiguration configuration;
-  final AssetReader assetReader;
-  final PackageUriMapper packageUriMapper;
-  final Future<Map<String, String>> Function() digestsProvider;
-  final String basePath;
-  final BuildSettings buildSettings;
+  final ReloadConfiguration _configuration;
+  final AssetReader _assetReader;
+  final PackageUriMapper _packageUriMapper;
+  final Future<Map<String, String>> Function() _digestsProvider;
+  final String _basePath;
+  final BuildSettings _buildSettings;
 
   FrontendServerStrategyProvider(
-    this.configuration,
-    this.assetReader,
-    this.packageUriMapper,
-    this.digestsProvider,
-    this.buildSettings,
-  ) : basePath = assetReader.basePath;
+    this._configuration,
+    this._assetReader,
+    this._packageUriMapper,
+    this._digestsProvider,
+    this._buildSettings,
+  ) : _basePath = _assetReader.basePath;
 
   T get strategy;
 
-  String removeBasePath(String path) {
-    if (basePath.isEmpty) return path;
+  String _removeBasePath(String path) {
+    if (_basePath.isEmpty) return path;
     final stripped = stripLeadingSlashes(path);
-    return stripLeadingSlashes(stripped.substring(basePath.length));
+    return stripLeadingSlashes(stripped.substring(_basePath.length));
   }
 
-  String addBasePath(String serverPath) => basePath.isEmpty
+  String _addBasePath(String serverPath) => _basePath.isEmpty
       ? stripLeadingSlashes(serverPath)
-      : '$basePath/${stripLeadingSlashes(serverPath)}';
+      : '$_basePath/${stripLeadingSlashes(serverPath)}';
 
-  String removeJsExtension(String path) =>
+  String _removeJsExtension(String path) =>
       path.endsWith('.js') ? p.withoutExtension(path) : path;
 
-  Future<Map<String, String>> moduleProvider(
+  Future<Map<String, String>> _moduleProvider(
     MetadataProvider metadataProvider,
   ) async =>
       (await metadataProvider.moduleToModulePath).map(
         (key, value) =>
-            MapEntry(key, stripLeadingSlashes(removeJsExtension(value))),
+            MapEntry(key, stripLeadingSlashes(_removeJsExtension(value))),
       );
 
-  Future<String?> moduleForServerPath(
+  Future<String?> _moduleForServerPath(
     MetadataProvider metadataProvider,
     String serverPath,
   ) async {
     final modulePathToModule = await metadataProvider.modulePathToModule;
-    final relativeServerPath = removeBasePath(serverPath);
+    final relativeServerPath = _removeBasePath(serverPath);
     return modulePathToModule[relativeServerPath];
   }
 
-  Future<String> serverPathForModule(
+  Future<String> _serverPathForModule(
     MetadataProvider metadataProvider,
     String module,
   ) async =>
-      addBasePath((await metadataProvider.moduleToModulePath)[module] ?? '');
+      _addBasePath((await metadataProvider.moduleToModulePath)[module] ?? '');
 
-  Future<String> sourceMapPathForModule(
+  Future<String> _sourceMapPathForModule(
     MetadataProvider metadataProvider,
     String module,
   ) async =>
-      addBasePath((await metadataProvider.moduleToSourceMap)[module] ?? '');
+      _addBasePath((await metadataProvider.moduleToSourceMap)[module] ?? '');
 
-  String? serverPathForAppUri(String appUrl) {
+  String? _serverPathForAppUri(String appUrl) {
     final appUri = Uri.parse(appUrl);
     if (appUri.isScheme('org-dartlang-app')) {
-      return addBasePath(appUri.path);
+      return _addBasePath(appUri.path);
     }
     if (appUri.isScheme('package')) {
-      final resolved = packageUriMapper.packageUriToServerPath(appUri);
+      final resolved = _packageUriMapper.packageUriToServerPath(appUri);
       if (resolved != null) {
         return resolved;
       }
@@ -82,7 +84,7 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
     return null;
   }
 
-  Future<Map<String, ModuleInfo>> moduleInfoForProvider(
+  Future<Map<String, ModuleInfo>> _moduleInfoForProvider(
     MetadataProvider metadataProvider,
   ) async {
     final modules = await metadataProvider.moduleToModulePath;
@@ -98,4 +100,62 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
     }
     return result;
   }
+}
+
+/// Provides a [DdcStrategy] suitable for use with Frontend Server.
+class FrontendServerDdcStrategyProvider
+    extends FrontendServerStrategyProvider<DdcStrategy> {
+  late final DdcStrategy _ddcStrategy = DdcStrategy(
+    _configuration,
+    _moduleProvider,
+    (_) => _digestsProvider(),
+    _moduleForServerPath,
+    _serverPathForModule,
+    _sourceMapPathForModule,
+    _serverPathForAppUri,
+    _moduleInfoForProvider,
+    _assetReader,
+    _buildSettings,
+    (String _) => null,
+    null,
+  );
+
+  FrontendServerDdcStrategyProvider(
+    super._configuration,
+    super._assetReader,
+    super._packageUriMapper,
+    super._digestsProvider,
+    super._buildSettings,
+  );
+
+  @override
+  DdcStrategy get strategy => _ddcStrategy;
+}
+
+/// Provides a [RequireStrategy] suitable for use with Frontend Server.
+class FrontendServerRequireStrategyProvider
+    extends FrontendServerStrategyProvider<RequireStrategy> {
+  late final RequireStrategy _requireStrategy = RequireStrategy(
+    _configuration,
+    _moduleProvider,
+    (_) => _digestsProvider(),
+    _moduleForServerPath,
+    _serverPathForModule,
+    _sourceMapPathForModule,
+    _serverPathForAppUri,
+    _moduleInfoForProvider,
+    _assetReader,
+    _buildSettings,
+  );
+
+  FrontendServerRequireStrategyProvider(
+    super._configuration,
+    super._assetReader,
+    super._packageUriMapper,
+    super._digestsProvider,
+    super._buildSettings,
+  );
+
+  @override
+  RequireStrategy get strategy => _requireStrategy;
 }
