@@ -8,6 +8,20 @@ import 'package:dwds/src/loaders/require.dart';
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.
 class FrontendServerRequireStrategyProvider
     extends FrontendServerStrategyProvider<RequireStrategy> {
+
+  late final RequireStrategy _requireStrategy = RequireStrategy(
+    configuration,
+    moduleProvider,
+    (_) => digestsProvider(),
+    moduleForServerPath,
+    serverPathForModule,
+    sourceMapPathForModule,
+    serverPathForAppUri,
+    moduleInfoForProvider,
+    assetReader,
+    buildSettings,
+  );
+
   FrontendServerRequireStrategyProvider(
     super.configuration,
     super.assetReader,
@@ -17,16 +31,5 @@ class FrontendServerRequireStrategyProvider
   );
 
   @override
-  RequireStrategy get strategy => RequireStrategy(
-        configuration,
-        moduleProvider,
-        (_) => digestsProvider(),
-        moduleForServerPath,
-        serverPathForModule,
-        sourceMapPathForModule,
-        serverPathForAppUri,
-        moduleInfoForProvider,
-        assetReader,
-        buildSettings,
-      );
+  RequireStrategy get strategy => _requireStrategy;
 }

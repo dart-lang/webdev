@@ -1,4 +1,4 @@
-// Copyright 2023 The Dart Authors. All rights reserved.
+// Copyright 2024 The Dart Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -8,7 +8,7 @@ import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:path/path.dart' as p;
 
-abstract class FrontendServerStrategyProvider<T> {
+abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
   final ReloadConfiguration configuration;
   final AssetReader assetReader;
   final PackageUriMapper packageUriMapper;

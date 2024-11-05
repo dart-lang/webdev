@@ -8,6 +8,22 @@ import 'package:dwds/src/loaders/frontend_server_strategy_provider.dart';
 /// Provides a [DdcStrategy] suitable for use with Frontend Server.
 class FrontendServerDdcStrategyProvider
     extends FrontendServerStrategyProvider<DdcStrategy> {
+
+  late final DdcStrategy _ddcStrategy = DdcStrategy(
+    configuration,
+    moduleProvider,
+    (_) => digestsProvider(),
+    moduleForServerPath,
+    serverPathForModule,
+    sourceMapPathForModule,
+    serverPathForAppUri,
+    moduleInfoForProvider,
+    assetReader,
+    buildSettings,
+    (String _) => null,
+    null,
+  );
+
   FrontendServerDdcStrategyProvider(
     super.configuration,
     super.assetReader,
@@ -17,18 +33,5 @@ class FrontendServerDdcStrategyProvider
   );
 
   @override
-  DdcStrategy get strategy => DdcStrategy(
-        configuration,
-        moduleProvider,
-        (_) => digestsProvider(),
-        moduleForServerPath,
-        serverPathForModule,
-        sourceMapPathForModule,
-        serverPathForAppUri,
-        moduleInfoForProvider,
-        assetReader,
-        buildSettings,
-        (String _) => null,
-        null,
-      );
+  DdcStrategy get strategy => _ddcStrategy;
 }
