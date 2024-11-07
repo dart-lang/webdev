@@ -76,7 +76,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
     Map<String, String>? scope;
     var currentRequests = <EvaluateRequest>[];
 
-    for (var request in requests) {
+    for (final request in requests) {
       libraryUri ??= request.libraryUri;
       isolateId ??= request.isolateId;
       scope ??= request.scope;

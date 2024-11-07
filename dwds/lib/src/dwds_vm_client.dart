@@ -235,7 +235,7 @@ class DwdsVmClient {
     return <String, Object>{
       'result': <String, Object>{
         'views': <Object>[
-          for (var isolate in isolates ?? [])
+          for (final isolate in isolates ?? [])
             <String, Object>{
               'id': isolate.id,
               'isolate': isolate.toJson(),

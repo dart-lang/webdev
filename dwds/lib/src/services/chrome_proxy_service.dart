@@ -205,16 +205,10 @@ class ChromeProxyService implements VmServiceInterface {
     final canaryFeatures = loadStrategy.buildSettings.canaryFeatures;
     final experiments = loadStrategy.buildSettings.experiments;
 
-    // TODO(annagrin): Read null safety setting from the build settings.
-    final metadataProvider = loadStrategy.metadataProviderFor(entrypoint);
-    final soundNullSafety = await metadataProvider.soundNullSafety;
-
-    _logger.info('Initializing expression compiler for $entrypoint '
-        'with sound null safety: $soundNullSafety');
+    _logger.info('Initializing expression compiler for $entrypoint');
 
     final compilerOptions = CompilerOptions(
       moduleFormat: ModuleFormat.values.byName(moduleFormat),
-      soundNullSafety: soundNullSafety,
       canaryFeatures: canaryFeatures,
       experiments: experiments,
     );
@@ -350,7 +344,7 @@ class ChromeProxyService implements VmServiceInterface {
     // TODO: We shouldn't need to fire these events since they exist on the
     // isolate, but devtools doesn't recognize extensions after a page refresh
     // otherwise.
-    for (var extensionRpc in inspector.isolate.extensionRPCs ?? []) {
+    for (final extensionRpc in inspector.isolate.extensionRPCs ?? []) {
       _streamNotify(
         'Isolate',
         Event(
@@ -411,7 +405,7 @@ class ChromeProxyService implements VmServiceInterface {
     if (!_isIsolateRunning) return;
     final isolate = inspector.isolate;
 
-    for (var breakpoint in isolate.breakpoints?.toList() ?? []) {
+    for (final breakpoint in isolate.breakpoints?.toList() ?? []) {
       await (await debuggerFuture).removeBreakpoint(breakpoint.id);
     }
   }
@@ -1429,7 +1423,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
   /// Parses the [BatchedDebugEvents] and emits corresponding Dart VM Service
   /// protocol [Event]s.
   void parseBatchedDebugEvents(BatchedDebugEvents debugEvents) {
-    for (var debugEvent in debugEvents.events) {
+    for (final debugEvent in debugEvents.events) {
       parseDebugEvent(debugEvent);
     }
   }
@@ -1590,7 +1584,7 @@ ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.
 
   Map<String, RemoteObject> _fetchAbbreviatedLogParams(Map? logObject) {
     final logParams = <String, RemoteObject>{};
-    for (dynamic property in logObject?['preview']?['properties'] ?? []) {
+    for (final dynamic property in logObject?['preview']?['properties'] ?? []) {
       if (property is Map<String, dynamic> && property['name'] != null) {
         logParams[property['name'] as String] = RemoteObject(property);
       }

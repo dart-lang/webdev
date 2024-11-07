@@ -227,7 +227,7 @@ class Locations {
     int column,
   ) {
     Location? bestLocation;
-    for (var location in locations) {
+    for (final location in locations) {
       if (location.dartLocation.line == line &&
           location.dartLocation.column >= column) {
         bestLocation ??= location;
@@ -255,7 +255,7 @@ class Locations {
   ) {
     column ??= 0;
     Location? bestLocation;
-    for (var location in locations) {
+    for (final location in locations) {
       if (location.jsLocation.compareToLine(line, column) <= 0) {
         bestLocation ??= location;
         if (location.jsLocation.compareTo(bestLocation.jsLocation) > 0) {
@@ -277,16 +277,16 @@ class Locations {
     tokenPosTable = <List<int>>[];
     final locations = await locationsForDart(serverPath);
     final lineNumberToLocation = <int, Set<Location>>{};
-    for (var location in locations) {
+    for (final location in locations) {
       lineNumberToLocation
           .putIfAbsent(location.dartLocation.line, () => <Location>{})
           .add(location);
     }
-    for (var lineNumber in lineNumberToLocation.keys) {
+    for (final lineNumber in lineNumberToLocation.keys) {
       final locations = lineNumberToLocation[lineNumber]!;
       tokenPosTable.add([
         lineNumber,
-        for (var location in locations) ...[
+        for (final location in locations) ...[
           location.tokenPos,
           location.dartLocation.column,
         ],
@@ -341,8 +341,8 @@ class Locations {
       final mapping = parse(sourceMapContents);
       if (mapping is SingleMapping) {
         // Create TokenPos for each entry in the source map.
-        for (var lineEntry in mapping.lines) {
-          for (var entry in lineEntry.entries) {
+        for (final lineEntry in mapping.lines) {
+          for (final entry in lineEntry.entries) {
             final location = _locationForSourceMapEntry(
               lineEntry: lineEntry,
               entry: entry,
@@ -357,7 +357,7 @@ class Locations {
           }
         }
       }
-      for (var location in result) {
+      for (final location in result) {
         _sourceToLocation
             .putIfAbsent(
               location.dartLocation.uri.serverPath,

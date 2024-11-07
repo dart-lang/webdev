@@ -25,16 +25,16 @@ linter:
     - join_return_with_assignment
     - library_names
     - literal_only_boolean_expressions
-    - package_api_docs
+    - omit_local_variable_types
+    - only_throw_errors
     - package_prefixed_library_names
-    # - prefer_final_locals
-    # - prefer_relative_imports
+    - prefer_final_in_for_each
+    - prefer_final_locals
     - prefer_single_quotes
+    # - prefer_relative_imports
     - prefer_void_to_null
     - test_types_in_equals
     - throw_in_finally
-    - omit_local_variable_types
-    - only_throw_errors
     - unawaited_futures
     - unnecessary_lambdas
     - unnecessary_parenthesis

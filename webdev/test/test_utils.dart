@@ -38,17 +38,17 @@ class TestRunner {
 
   Future<TestProcess> runWebDev(List<String> args,
       {String? workingDirectory}) async {
-    var fullArgs = [_webdevBin, ...args];
+    final fullArgs = [_webdevBin, ...args];
 
     return TestProcess.start(sdkLayout.dartPath, fullArgs,
         workingDirectory: workingDirectory);
   }
 
   Future<String> prepareWorkspace() async {
-    var exampleDirectory =
+    final exampleDirectory =
         p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'));
 
-    var process = await TestProcess.start(
+    final process = await TestProcess.start(
         sdkLayout.dartPath, ['pub', 'upgrade'],
         workingDirectory: exampleDirectory, environment: getPubEnvironment());
 
@@ -72,14 +72,14 @@ Future checkProcessStdout(TestProcess process, List items) async {
 /// Maintains any existing values for this environment var.
 /// Adds a new value that flags this is a bot/test and not human usage.
 Map<String, String> getPubEnvironment() {
-  var pubEnvironmentKey = 'PUB_ENVIRONMENT';
+  final pubEnvironmentKey = 'PUB_ENVIRONMENT';
   var pubEnvironment = Platform.environment[pubEnvironmentKey] ?? '';
   if (pubEnvironment.isNotEmpty) {
     pubEnvironment = '$pubEnvironment;';
   }
   pubEnvironment = '${pubEnvironment}bot.pkg.webdev.test';
 
-  var environment = {'PUB_ENVIRONMENT': pubEnvironment};
+  final environment = {'PUB_ENVIRONMENT': pubEnvironment};
 
   return environment;
 }

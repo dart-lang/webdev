@@ -187,7 +187,7 @@ class DartUri {
 
   /// Record all of the libraries, indexed by their absolute file: URI.
   static void recordAbsoluteUris(Iterable<String> libraryUris) {
-    for (var uri in libraryUris) {
+    for (final uri in libraryUris) {
       _recordAbsoluteUri(uri);
       if (globalToolConfiguration.appMetadata.isInternalBuild) {
         _recordG3RelativeUri(uri);

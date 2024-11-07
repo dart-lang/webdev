@@ -93,7 +93,7 @@ void main() {
     test('contains the provided id', () {
       final id = '123';
       final skipList = skipLists.compute(id, {});
-      for (var range in skipList) {
+      for (final range in skipList) {
         expect(range['scriptId'], id);
       }
     });

@@ -16,16 +16,6 @@ const _emptySourceMetadata =
     '{"version":"1.0.0","name":"web/main","closureName":"load__web__main",'
     '"sourceMapUri":"foo/web/main.ddc.js.map",'
     '"moduleUri":"foo/web/main.ddc.js",'
-    '"soundNullSafety":true,'
-    '"libraries":[{"name":"main",'
-    '"importUri":"org-dartlang-app:///web/main.dart",'
-    '"fileUri":"org-dartlang-app:///web/main.dart","partUris":[]}]}\n'
-    '// intentionally empty: package blah has no dart sources';
-
-const _noNullSafetyMetadata =
-    '{"version":"1.0.0","name":"web/main","closureName":"load__web__main",'
-    '"sourceMapUri":"foo/web/main.ddc.js.map",'
-    '"moduleUri":"foo/web/main.ddc.js",'
     '"libraries":[{"name":"main",'
     '"importUri":"org-dartlang-app:///web/main.dart",'
     '"fileUri":"org-dartlang-app:///web/main.dart","partUris":[]}]}\n'
@@ -35,7 +25,6 @@ const _fileUriMetadata =
     '{"version":"1.0.0","name":"web/main","closureName":"load__web__main",'
     '"sourceMapUri":"foo/web/main.ddc.js.map",'
     '"moduleUri":"foo/web/main.ddc.js",'
-    '"soundNullSafety":true,'
     '"libraries":[{"name":"main",'
     '"importUri":"file:/Users/foo/blah/sample/lib/bar.dart",'
     '"fileUri":"org-dartlang-app:///web/main.dart","partUris":[]}]}\n'
@@ -57,19 +46,6 @@ void main() {
       await provider.libraries,
       contains('org-dartlang-app:///web/main.dart'),
     );
-    expect(await provider.soundNullSafety, isNotNull);
-  });
-
-  test('can parse metadata with no null safety information', () async {
-    final provider = MetadataProvider(
-      'foo.bootstrap.js',
-      FakeAssetReader(metadata: _noNullSafetyMetadata),
-    );
-    expect(
-      await provider.libraries,
-      contains('org-dartlang-app:///web/main.dart'),
-    );
-    expect(await provider.soundNullSafety, false);
   });
 
   test('throws on metadata with absolute import uris', () async {
@@ -107,13 +83,12 @@ void main() {
     expect(metadata.moduleUri, 'foo/web/main.ddc.js');
     final libraries = metadata.libraries;
     expect(libraries.length, 1);
-    for (var lib in libraries.values) {
+    for (final lib in libraries.values) {
       expect(lib.name, 'main');
       expect(lib.importUri, 'org-dartlang-app:///web/main.dart');
       final parts = lib.partUris;
       expect(parts.length, 1);
       expect(parts[0], 'org-dartlang-app:///web/main.dart');
     }
-    expect(metadata.soundNullSafety, false);
   });
 }

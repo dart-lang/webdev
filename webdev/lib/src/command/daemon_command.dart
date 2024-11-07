@@ -60,7 +60,7 @@ class DaemonCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    var configuration = Configuration.fromArgs(argResults,
+    final configuration = Configuration.fromArgs(argResults,
         defaultConfiguration: Configuration(
             launchInChrome: true, debug: true, autoRun: false, release: false));
     configureLogWriter(configuration.verbose);
@@ -68,7 +68,7 @@ class DaemonCommand extends Command<int> {
     Daemon? daemon;
     DevWorkflow? workflow;
     var cancelCount = 0;
-    var cancelSub = StreamGroup.merge([
+    final cancelSub = StreamGroup.merge([
       ProcessSignal.sigint.watch(),
       // SIGTERM is not supported on Windows.
       Platform.isWindows ? const Stream.empty() : ProcessSignal.sigterm.watch()
@@ -79,7 +79,7 @@ class DaemonCommand extends Command<int> {
     });
     try {
       daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
-      var daemonDomain = DaemonDomain(daemon);
+      final daemonDomain = DaemonDomain(daemon);
       configureLogWriter(configuration.verbose, customLogWriter:
           (level, message, {loggerName, error, stackTrace, verbose}) {
         if (configuration.verbose || level >= Level.INFO) {
@@ -95,11 +95,11 @@ class DaemonCommand extends Command<int> {
         }
       });
       daemon.registerDomain(daemonDomain);
-      var buildOptions = buildRunnerArgs(configuration);
-      var extraArgs = argResults?.rest ?? [];
-      var directoryArgs =
+      final buildOptions = buildRunnerArgs(configuration);
+      final extraArgs = argResults?.rest ?? [];
+      final directoryArgs =
           extraArgs.where((arg) => !arg.startsWith('-')).toList();
-      var targetPorts =
+      final targetPorts =
           parseDirectoryArgs(directoryArgs, basePort: await findUnusedPort());
       validateLaunchApps(configuration.launchApps, targetPorts.keys);
 

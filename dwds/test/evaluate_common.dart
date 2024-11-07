@@ -289,7 +289,7 @@ void testAll({
             await onBreakPoint(mainScript, 'extension', (event) async {
               final stack = await context.service.getStack(isolateId);
               final scope = _getFrameVariables(stack.frames!.first);
-              for (var p in scope.entries) {
+              for (final p in scope.entries) {
                 final name = p.key;
                 final value = p.value as InstanceRef;
                 final result =
@@ -330,7 +330,7 @@ void testAll({
 
             // Type
             final instance = await getInstance(instanceRef);
-            for (var field in instance.fields!) {
+            for (final field in instance.fields!) {
               final name = field.decl!.name;
               final fieldInstance =
                   await getInstance(field.value as InstanceRef);
@@ -883,7 +883,7 @@ void testAll({
 
 Map<String?, InstanceRef?> _getFrameVariables(Frame frame) {
   return <String?, InstanceRef?>{
-    for (var variable in frame.vars!)
+    for (final variable in frame.vars!)
       variable.name: variable.value as InstanceRef?,
   };
 }

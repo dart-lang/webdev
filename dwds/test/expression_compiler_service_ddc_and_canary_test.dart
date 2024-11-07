@@ -16,7 +16,6 @@ void main() async {
   testAll(
     compilerOptions: CompilerOptions(
       moduleFormat: ModuleFormat.ddc,
-      soundNullSafety: true,
       canaryFeatures: true,
       experiments: const <String>[],
     ),

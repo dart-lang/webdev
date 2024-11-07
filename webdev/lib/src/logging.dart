@@ -31,7 +31,7 @@ LogWriter _logWriter =
     (level, message, {String? error, String? loggerName, String? stackTrace}) {
   // Erases the previous line
   if (!_verbose) stdout.write('\x1b[2K\r');
-  var log = formatLog(level, message,
+  final log = formatLog(level, message,
       error: error,
       loggerName: loggerName,
       stackTrace: stackTrace,
@@ -54,7 +54,7 @@ LogWriter get logWriter => _logWriter;
 String formatLog(Level level, String message,
     {bool? withColors, String? error, String? loggerName, String? stackTrace}) {
   withColors ??= false;
-  var buffer = StringBuffer(message);
+  final buffer = StringBuffer(message);
   if (error != null) {
     buffer.writeln(error);
   }
@@ -76,7 +76,7 @@ String formatLog(Level level, String message,
     formattedLevel = color.wrap(formattedLevel) ?? formattedLevel;
   }
 
-  var loggerNameOutput =
+  final loggerNameOutput =
       (loggerName != null && (_verbose || loggerName.contains(' ')))
           ? ' $loggerName:'
           : '';

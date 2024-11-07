@@ -33,9 +33,7 @@ class ResidentWebRunner {
     required this.sdkLayout,
     bool verbose = false,
   }) {
-    final platformDillUri = Uri.file(compilerOptions.soundNullSafety
-        ? sdkLayout.soundSummaryPath
-        : sdkLayout.weakSummaryPath);
+    final platformDillUri = Uri.file(sdkLayout.summaryPath);
 
     generator = ResidentCompiler(
       sdkLayout.sdkDirectory,
@@ -79,13 +77,12 @@ class ResidentWebRunner {
       packageUriMapper: packageUriMapper,
       index: index,
       urlTunneler: urlTunneler,
-      soundNullSafety: compilerOptions.soundNullSafety,
       sdkLayout: sdkLayout,
       ddcModuleFormat: compilerOptions.moduleFormat,
     );
     uri = await devFS.create();
 
-    var report = await _updateDevFS();
+    final report = await _updateDevFS();
     if (!report.success) {
       _logger.severe('Failed to compile application.');
       return 1;
@@ -98,7 +95,7 @@ class ResidentWebRunner {
   }
 
   Future<UpdateFSReport> _updateDevFS() async {
-    var report = await devFS.update(
+    final report = await devFS.update(
         mainUri: mainUri,
         dillOutputPath: outputPath,
         generator: generator,

@@ -24,7 +24,7 @@ Future<String> waitForAppId(TestProcess webdev) async {
     var line = await webdev.stdout.next;
     if (line.startsWith('[{"event":"app.started"')) {
       line = line.substring(1, line.length - 1);
-      var message = json.decode(line) as Map<String, dynamic>;
+      final message = json.decode(line) as Map<String, dynamic>;
       appId = message['params']['appId'] as String;
       break;
     }
@@ -34,10 +34,10 @@ Future<String> waitForAppId(TestProcess webdev) async {
 }
 
 String? getDebugServiceUri(String line) {
-  var regex = RegExp(r'Debug service listening on (?<wsUri>[^\s^\\]*)');
-  var match = regex.firstMatch(line);
+  final regex = RegExp(r'Debug service listening on (?<wsUri>[^\s^\\]*)');
+  final match = regex.firstMatch(line);
   if (match != null) {
-    var wsUri = match.namedGroup('wsUri');
+    final wsUri = match.namedGroup('wsUri');
     return wsUri;
   }
   return null;
@@ -45,9 +45,9 @@ String? getDebugServiceUri(String line) {
 
 Future<int> findBreakpointLine(VmService vmService, String breakpointId,
     String isolateId, ScriptRef scriptRef) async {
-  var script = await vmService.getObject(isolateId, scriptRef.id!) as Script;
-  var lines = LineSplitter.split(script.source!).toList();
-  var lineNumber =
+  final script = await vmService.getObject(isolateId, scriptRef.id!) as Script;
+  final lines = LineSplitter.split(script.source!).toList();
+  final lineNumber =
       lines.indexWhere((l) => l.endsWith('// Breakpoint: $breakpointId'));
   if (lineNumber == -1) {
     throw StateError('Unable to find breakpoint in ${scriptRef.uri} with id '

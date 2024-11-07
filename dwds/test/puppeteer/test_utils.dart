@@ -100,7 +100,7 @@ Future<Worker> getServiceWorker(Browser browser) async {
     worker.client,
     worker.url,
     onConsoleApiCalled: (type, jsHandles, _) {
-      for (var handle in jsHandles) {
+      for (final handle in jsHandles) {
         _saveConsoleMsg(
           source: ConsoleSource.worker,
           type: '$type',

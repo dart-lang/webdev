@@ -14,7 +14,7 @@ import 'package:_test_sound/library.dart';
 
 extension NumberParsing on String {
   int parseInt() {
-    var ret = int.parse(this);
+    final ret = int.parse(this);
     return ret; // Breakpoint: extension
   }
 }
@@ -75,22 +75,22 @@ void printGeneric<T>(T formal) {
 }
 
 void printLocal() {
-  var local = 42;
+  final local = 42;
   print('Local is: $local'); // Breakpoint: printLocal
 }
 
 void printFieldFromLibraryClass() {
-  var instance = TestLibraryClass(1, 2); // Breakpoint: createLibraryObject
+  final instance = TestLibraryClass(1, 2); // Breakpoint: createLibraryObject
   print('$instance'); // Breakpoint: printFieldFromLibraryClass
 }
 
 void printFieldFromLibraryPartClass() {
-  var instance = TestLibraryPartClass(1, 2);
+  final instance = TestLibraryPartClass(1, 2);
   print('$instance'); // Breakpoint: printFieldFromLibraryPartClass
 }
 
 void printFieldMain() {
-  var instance = MainClass(2, 1);
+  final instance = MainClass(2, 1);
   print('$instance'); // Breakpoint: printFieldMain
 }
 
@@ -103,22 +103,22 @@ void printFromTestPackage() {
 }
 
 void printFromTestLibrary() {
-  var local = 23;
+  final local = 23;
   print(testLibraryFunction(local));
 }
 
 void printFromTestLibraryPart() {
-  var local = 23;
+  final local = 23;
   print(testLibraryPartFunction(local));
 }
 
 void printCallExtension() {
-  var local = '23';
+  final local = '23';
   print(local.parseInt());
 }
 
 void printLoopVariable() {
-  var list = <String>['1'];
+  final list = <String>['1'];
   for (var item in list) {
     print(item); // Breakpoint: printLoopVariable
   }
@@ -147,9 +147,9 @@ void printEnclosingObject(EnclosingClass o) {
 }
 
 void printStream() {
-  var controller = StreamController<int>();
-  var stream = controller.stream.asBroadcastStream();
-  var subscription = stream.listen(print);
+  final controller = StreamController<int>();
+  final stream = controller.stream.asBroadcastStream();
+  final subscription = stream.listen(print);
   controller.sink.add(0);
   subscription.cancel(); // Breakpoint: printStream
 }
@@ -185,26 +185,26 @@ void printFrame1() {
 }
 
 void printLargeScope() {
-  var t0 = 0;
-  var t1 = 1;
-  var t2 = 2;
-  var t3 = 3;
-  var t4 = 4;
-  var t5 = 5;
-  var t6 = 6;
-  var t7 = 7;
-  var t8 = 8;
-  var t9 = 9;
-  var t10 = 10;
-  var t11 = 11;
-  var t12 = 12;
-  var t13 = 13;
-  var t14 = 14;
-  var t15 = 15;
-  var t16 = 16;
-  var t17 = 17;
-  var t18 = 18;
-  var t19 = 19;
+  final t0 = 0;
+  final t1 = 1;
+  final t2 = 2;
+  final t3 = 3;
+  final t4 = 4;
+  final t5 = 5;
+  final t6 = 6;
+  final t7 = 7;
+  final t8 = 8;
+  final t9 = 9;
+  final t10 = 10;
+  final t11 = 11;
+  final t12 = 12;
+  final t13 = 13;
+  final t14 = 14;
+  final t15 = 15;
+  final t16 = 16;
+  final t17 = 17;
+  final t18 = 18;
+  final t19 = 19;
 
   print('$t0 $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, '
       '$t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19'); // Breakpoint: printLargeScope

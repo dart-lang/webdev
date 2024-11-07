@@ -76,7 +76,7 @@ class FrontendServerClient {
       '--target=$target',
       if (target == 'dartdevc')
         '--dartdevc-module-format=$dartdevcModuleFormat',
-      for (var root in fileSystemRoots) '--filesystem-root=$root',
+      for (final root in fileSystemRoots) '--filesystem-root=$root',
       '--filesystem-scheme',
       fileSystemScheme,
       '--output-dill',
@@ -87,9 +87,9 @@ class FrontendServerClient {
       if (verbose) '--verbose',
       if (!printIncrementalDependencies) '--no-print-incremental-dependencies',
       if (enabledExperiments != null)
-        for (var experiment in enabledExperiments)
+        for (final experiment in enabledExperiments)
           '--enable-experiment=$experiment',
-      for (var source in additionalSources) ...[
+      for (final source in additionalSources) ...[
         '--source',
         source,
       ],
@@ -129,13 +129,13 @@ class FrontendServerClient {
         ],
       );
     }
-    var feServerStdoutLines = StreamQueue(feServer.stdout
+    final feServerStdoutLines = StreamQueue(feServer.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter()));
 
     // The frontend_server doesn't appear to recursively create files, so we
     //  need to make sure the output dir already exists.
-    var outputDir = Directory(p.dirname(outputDillPath));
+    final outputDir = Directory(p.dirname(outputDillPath));
     if (!await outputDir.exists()) await outputDir.create();
 
     return FrontendServerClient._(
@@ -176,16 +176,16 @@ class FrontendServerClient {
     _state = _ClientState.compiling;
 
     try {
-      var command = StringBuffer('$action $_entrypoint');
+      final command = StringBuffer('$action $_entrypoint');
       if (action == 'recompile') {
         if (invalidatedUris == null || invalidatedUris.isEmpty) {
           throw StateError(
               'Subsequent compile invocations must provide a non-empty list '
               'of invalidated uris.');
         }
-        var boundaryKey = generateUuidV4();
+        final boundaryKey = generateUuidV4();
         command.writeln(' $boundaryKey');
-        for (var uri in invalidatedUris) {
+        for (final uri in invalidatedUris) {
           command.writeln('$uri');
         }
         command.write(boundaryKey);
@@ -194,14 +194,14 @@ class FrontendServerClient {
       _sendCommand(command.toString());
       var state = _CompileState.started;
       late String feBoundaryKey;
-      var newSources = <Uri>{};
-      var removedSources = <Uri>{};
-      var compilerOutputLines = <String>[];
+      final newSources = <Uri>{};
+      final removedSources = <Uri>{};
+      final compilerOutputLines = <String>[];
       var errorCount = 0;
       String? outputDillPath;
       while (
           state != _CompileState.done && await _feServerStdoutLines.hasNext) {
-        var line = await _nextInputLine();
+        final line = await _nextInputLine();
         switch (state) {
           case _CompileState.started:
             assert(line.startsWith('result'));
@@ -218,12 +218,12 @@ class FrontendServerClient {
           case _CompileState.gettingSourceDiffs:
             if (line.startsWith(feBoundaryKey)) {
               state = _CompileState.done;
-              var parts = line.split(' ');
+              final parts = line.split(' ');
               outputDillPath = parts.getRange(1, parts.length - 1).join(' ');
               errorCount = int.parse(parts.last);
               continue;
             }
-            var diffUri = Uri.parse(line.substring(1));
+            final diffUri = Uri.parse(line.substring(1));
             if (line.startsWith('+')) {
               newSources.add(diffUri);
             } else if (line.startsWith('-')) {
@@ -301,7 +301,7 @@ class FrontendServerClient {
     var rejectState = _RejectState.started;
     while (rejectState != _RejectState.done &&
         await _feServerStdoutLines.hasNext) {
-      var line = await _nextInputLine();
+      final line = await _nextInputLine();
       switch (rejectState) {
         case _RejectState.started:
           if (!line.startsWith('result')) {
@@ -341,8 +341,8 @@ class FrontendServerClient {
   /// Stop the service gracefully (using the shutdown command)
   Future<int> shutdown() async {
     _sendCommand('quit');
-    var timer = Timer(const Duration(seconds: 1), _feServer.kill);
-    var exitCode = await _feServer.exitCode;
+    final timer = Timer(const Duration(seconds: 1), _feServer.kill);
+    final exitCode = await _feServer.exitCode;
     timer.cancel();
     await _feServerStdoutLines.cancel();
     return exitCode;
@@ -358,8 +358,8 @@ class FrontendServerClient {
   /// Sends [command] to the [_feServer] via stdin, and logs it if [_verbose].
   void _sendCommand(String command) {
     if (_verbose) {
-      var lines = const LineSplitter().convert(command);
-      for (var line in lines) {
+      final lines = const LineSplitter().convert(command);
+      for (final line in lines) {
         print('>> $line');
       }
     }
@@ -368,7 +368,7 @@ class FrontendServerClient {
 
   /// Reads a line from [_feServerStdoutLines] and logs it if [_verbose].
   Future<String> _nextInputLine() async {
-    var line = await _feServerStdoutLines.next;
+    final line = await _feServerStdoutLines.next;
     if (_verbose) print('<< $line');
     return line;
   }

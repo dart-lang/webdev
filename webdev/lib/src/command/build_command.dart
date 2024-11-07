@@ -36,24 +36,25 @@ class BuildCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    var extraArgs = argResults?.rest ?? [];
-    var unsupported = extraArgs.where((arg) => !arg.startsWith('-')).toList();
+    final extraArgs = argResults?.rest ?? [];
+    final unsupported = extraArgs.where((arg) => !arg.startsWith('-')).toList();
     if (unsupported.isNotEmpty) {
       throw UsageException(
           'Arguments were provided that are not supported: '
           '"${unsupported.join(' ')}".',
           argParser.usage);
     }
-    var validExtraArgs = extraArgs.where((arg) => arg.startsWith('-')).toList();
+    final validExtraArgs =
+        extraArgs.where((arg) => arg.startsWith('-')).toList();
 
-    var configuration = Configuration.fromArgs(argResults);
+    final configuration = Configuration.fromArgs(argResults);
     configureLogWriter(configuration.verbose);
 
     final arguments = buildRunnerArgs(configuration)..addAll(validExtraArgs);
 
     try {
       logWriter(logging.Level.INFO, 'Connecting to the build daemon...');
-      var client = await connectClient(
+      final client = await connectClient(
         Directory.current.path,
         arguments,
         (serverLog) {
@@ -64,7 +65,7 @@ class BuildCommand extends Command<int> {
         },
       );
       OutputLocation? outputLocation;
-      var outputInput = configuration.outputInput;
+      final outputInput = configuration.outputInput;
       if (configuration.outputPath != null) {
         outputLocation = OutputLocation((b) => b
           ..output = configuration.outputPath
@@ -78,7 +79,7 @@ class BuildCommand extends Command<int> {
       var exitCode = 0;
       var gotBuildStart = false;
       await for (final result in client.buildResults) {
-        var targetResult = result.results.firstWhereOrNull(
+        final targetResult = result.results.firstWhereOrNull(
             (buildResult) => buildResult.target == configuration.outputInput);
         if (targetResult == null) continue;
         // We ignore any builds that happen before we get a `started` event,
@@ -94,7 +95,7 @@ class BuildCommand extends Command<int> {
           exitCode = 1;
         }
 
-        var error = targetResult.error ?? '';
+        final error = targetResult.error ?? '';
         if (error.isNotEmpty) {
           logWriter(logging.Level.SEVERE, error);
         }

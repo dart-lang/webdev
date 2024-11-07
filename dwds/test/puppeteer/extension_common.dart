@@ -46,7 +46,7 @@ void testAll({
       extensionPath = await buildDebugExtension(isMV3: isMV3);
     });
 
-    for (var useSse in [true, false]) {
+    for (final useSse in [true, false]) {
       group(useSse ? 'connected with SSE:' : 'connected with WebSockets:', () {
         late Browser browser;
         Worker? worker;
@@ -334,7 +334,7 @@ void testAll({
     }
 
     group('connected to an externally-built', () {
-      for (var isFlutterApp in [true, false]) {
+      for (final isFlutterApp in [true, false]) {
         group(isFlutterApp ? 'Flutter app:' : 'Dart app:', () {
           late Browser browser;
           Worker? worker;
@@ -425,7 +425,7 @@ void testAll({
     group('connected to an internally-built', () {
       late Page appTab;
 
-      for (var isFlutterApp in [true, false]) {
+      for (final isFlutterApp in [true, false]) {
         group(isFlutterApp ? 'Flutter app:' : 'Dart app:', () {
           late Browser browser;
           Worker? worker;

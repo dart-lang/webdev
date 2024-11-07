@@ -64,9 +64,11 @@ void testClass() {
 
 String testPattern(Object obj) {
   switch (obj) {
-    case [var a, int n] || [int n, var a] when n == 1 && a is String:
+    case [final a, final int n] || [final int n, final a]
+        when n == 1 && a is String:
       return a.toString(); // Breakpoint: testPatternCase1
-    case [double n, var a] || [var a, double n] when (n - 3.14).abs() < 0.001:
+    case [final double n, final a] || [final a, final double n]
+        when (n - 3.14).abs() < 0.001:
       return a.toString(); // Breakpoint: testPatternCase2
     default:
       return 'default'; // Breakpoint: testPatternDefault

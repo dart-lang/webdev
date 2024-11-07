@@ -175,8 +175,8 @@ Future<void> _sendInspectorUrl({String? appId}) async {
   if (!alreadyDebugging) {
     sendErrorMessageToCider(
       errorType: CiderErrorType.invalidRequest,
-      errorDetails:
-          'Cannot send the inspector URL before the debugger has been attached.',
+      errorDetails: 'Cannot send the inspector URL before '
+          'the debugger has been attached.',
     );
     return;
   }

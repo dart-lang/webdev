@@ -52,7 +52,7 @@ int get _tabId => chrome.devtools.inspectedWindow.tabId;
 
 Future<void> main() async {
   unawaited(
-    _registerListeners().catchError((error) {
+    _registerListeners().catchError((Object? error) {
       debugWarn('Error registering listeners in panel: $error');
     }),
   );
@@ -93,7 +93,8 @@ void _handleRuntimeMessages(
     messageHandler: (DebugStateChange debugStateChange) async {
       if (debugStateChange.tabId != _tabId) {
         debugWarn(
-          'Received debug state change request, but Dart app tab does not match current tab.',
+          'Received debug state change request, but '
+          'Dart app tab does not match current tab.',
         );
         return;
       }
@@ -227,10 +228,8 @@ void _handleDebugConnectionLost(String? reason) {
     case DetachReason.staleDebugSession:
     case DetachReason.navigatedAwayFromApp:
       _showWarningBanner(_noAppDetectedMsg);
-      break;
     default:
       _showWarningBanner(_lostConnectionMsg);
-      break;
   }
 }
 
@@ -238,13 +237,10 @@ void _handleConnectFailure(ConnectFailureReason reason) {
   switch (reason) {
     case ConnectFailureReason.authentication:
       _showWarningBanner(_pleaseAuthenticateMsg);
-      break;
     case ConnectFailureReason.noDartApp:
       _showWarningBanner(_noAppDetectedMsg);
-      break;
     case ConnectFailureReason.timeout:
       _showWarningBanner(_connectionTimeoutMsg);
-      break;
     default:
       _showWarningBanner(_failedToConnectMsg);
   }
@@ -296,7 +292,7 @@ Future<void> _launchDebugConnection(Event _) async {
 
 Future<void> _maybeHandleConnectionTimeout() async {
   _connecting = true;
-  await Future.delayed(Duration(seconds: 10));
+  await Future<void>.delayed(const Duration(seconds: 10));
   if (_connecting) {
     _handleConnectFailure(ConnectFailureReason.timeout);
   }

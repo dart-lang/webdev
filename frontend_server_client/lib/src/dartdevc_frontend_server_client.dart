@@ -70,7 +70,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     bool verbose = false,
     bool printIncrementalDependencies = true,
   }) async {
-    var feServer = await FrontendServerClient.start(
+    final feServer = await FrontendServerClient.start(
       entrypoint,
       outputDillPath,
       platformKernel ?? _dartdevcPlatformKernel,
@@ -118,12 +118,12 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     final sourceBytes = File(result.jsSourcesOutput!).readAsBytesSync();
     final sourceMapBytes = File(result.jsSourceMapsOutput!).readAsBytesSync();
 
-    for (var entry in manifest.entries) {
-      var metadata = entry.value as Map<String, dynamic>;
-      var sourceOffsets = metadata['code'] as List;
+    for (final entry in manifest.entries) {
+      final metadata = entry.value as Map<String, dynamic>;
+      final sourceOffsets = metadata['code'] as List;
       _assets[entry.key] =
           sourceBytes.sublist(sourceOffsets[0] as int, sourceOffsets[1] as int);
-      var sourceMapOffsets = metadata['sourcemap'] as List;
+      final sourceMapOffsets = metadata['sourcemap'] as List;
       _assets['${entry.key}.map'] = sourceMapBytes.sublist(
           sourceMapOffsets[0] as int, sourceMapOffsets[1] as int);
     }
@@ -195,11 +195,11 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   /// assets if available.
   void _resetAssets() {
     _assets.clear();
-    var bootstrapJs = _bootstrapJs;
+    final bootstrapJs = _bootstrapJs;
     if (bootstrapJs != null) {
       _assets['$_entrypoint.js'] = Uint8List.fromList(utf8.encode(bootstrapJs));
     }
-    var mainModuleJs = _mainModuleJs;
+    final mainModuleJs = _mainModuleJs;
     if (mainModuleJs != null) {
       _assets['$_entrypoint.bootstrap.js'] =
           Uint8List.fromList(utf8.encode(mainModuleJs));

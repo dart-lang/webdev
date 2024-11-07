@@ -15,7 +15,6 @@ class MetadataProvider {
   final AssetReader _assetReader;
   final _logger = Logger('MetadataProvider');
   final String entrypoint;
-  bool _soundNullSafety;
   final List<String> _libraries = [];
   final Map<String, String> _scriptToModule = {};
   final Map<String, String> _moduleToSourceMap = {};
@@ -65,15 +64,15 @@ class MetadataProvider {
         'dart:ui',
       ];
 
-  MetadataProvider(this.entrypoint, this._assetReader)
-      : _soundNullSafety = false;
+  MetadataProvider(this.entrypoint, this._assetReader);
 
   /// A sound null safety mode for the whole app.
   ///
   /// All libraries have to agree on null safety mode.
+  @Deprecated('Only sound null safety is supported as of Dart 3.0')
   Future<bool> get soundNullSafety async {
     await _initialize();
-    return _soundNullSafety;
+    return true;
   }
 
   /// A list of all libraries in the Dart application.
@@ -178,8 +177,6 @@ class MetadataProvider {
 
   Future<void> _initialize() async {
     await _metadataMemoizer.runOnce(() async {
-      var hasSoundNullSafety = true;
-      var hasUnsoundNullSafety = true;
       // The merged metadata resides next to the entrypoint.
       // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
       if (entrypoint.endsWith('.bootstrap.js')) {
@@ -189,7 +186,7 @@ class MetadataProvider {
         final merged = await _assetReader.metadataContents(serverPath);
         if (merged != null) {
           _addSdkMetadata();
-          for (var contents in merged.split('\n')) {
+          for (final contents in merged.split('\n')) {
             try {
               if (contents.isEmpty ||
                   contents.startsWith('// intentionally empty:')) {
@@ -199,8 +196,6 @@ class MetadataProvider {
               final metadata =
                   ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
               _addMetadata(metadata);
-              hasUnsoundNullSafety &= !metadata.soundNullSafety;
-              hasSoundNullSafety &= metadata.soundNullSafety;
               _logger
                   .fine('Loaded debug metadata for module: ${metadata.name}');
             } catch (e) {
@@ -208,13 +203,7 @@ class MetadataProvider {
               rethrow;
             }
           }
-          if (!hasSoundNullSafety && !hasUnsoundNullSafety) {
-            throw Exception('Metadata contains modules with mixed null safety');
-          }
-          _soundNullSafety = hasSoundNullSafety;
         }
-        _logger.info('Loaded debug metadata '
-            '(${_soundNullSafety ? "sound" : "weak"} null safety)');
       }
     });
   }
@@ -227,7 +216,7 @@ class MetadataProvider {
     _modulePathToModule[modulePath] = metadata.name;
     _moduleToModulePath[metadata.name] = modulePath;
 
-    for (var library in metadata.libraries.values) {
+    for (final library in metadata.libraries.values) {
       if (library.importUri.startsWith('file:/')) {
         throw AbsoluteImportUriException(library.importUri);
       }
@@ -235,7 +224,7 @@ class MetadataProvider {
       _scripts[library.importUri] = [];
 
       _scriptToModule[library.importUri] = metadata.name;
-      for (var path in library.partUris) {
+      for (final path in library.partUris) {
         // Parts in metadata are relative to the library Uri directory.
         final partPath = p.url.join(p.dirname(library.importUri), path);
         _scripts[library.importUri]!.add(partPath);
@@ -247,7 +236,7 @@ class MetadataProvider {
   void _addSdkMetadata() {
     final moduleName = 'dart_sdk';
 
-    for (var lib in sdkLibraries) {
+    for (final lib in sdkLibraries) {
       _libraries.add(lib);
       _scripts[lib] = [];
       _scriptToModule[lib] = moduleName;

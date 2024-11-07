@@ -78,7 +78,7 @@ void addSharedArgs(ArgParser argParser,
 /// Parses the provided [Configuration] to return a list of
 /// `package:build_runner` appropriate arguments.
 List<String> buildRunnerArgs(Configuration configuration) {
-  var arguments = <String>[];
+  final arguments = <String>[];
   if (configuration.release) {
     arguments.add('--$releaseFlag');
   }
@@ -125,17 +125,17 @@ final _defaultWebDirs = const ['web'];
 /// Throws an [InvalidConfiguration] exception if it can't find at
 /// least one directory.
 Map<String, int> parseDirectoryArgs(List<String> args, {int? basePort}) {
-  var result = <String, int>{};
+  final result = <String, int>{};
   var port = basePort ?? 8080;
   if (args.isEmpty) {
-    for (var dir in _defaultWebDirs) {
+    for (final dir in _defaultWebDirs) {
       if (Directory(dir).existsSync()) {
         result[dir] = port++;
       }
     }
   } else {
-    for (var arg in args) {
-      var splitOption = arg.split(':');
+    for (final arg in args) {
+      final splitOption = arg.split(':');
       ensureIsTopLevelDir(splitOption.first);
       if (splitOption.length == 2) {
         result[splitOption.first] = int.parse(splitOption.last);
@@ -157,8 +157,8 @@ in the `<directory>:<port>` format, such as `webdev serve test:8080`.
 }
 
 void validateLaunchApps(List<String> launchApps, Iterable<String> serveDirs) {
-  for (var app in launchApps) {
-    var dir = p.url.split(app).first;
+  for (final app in launchApps) {
+    final dir = p.url.split(app).first;
     if (!serveDirs.contains(dir)) {
       throw InvalidConfiguration(
           'Unable to launch app `$app` since its top level dir (`$dir`) '

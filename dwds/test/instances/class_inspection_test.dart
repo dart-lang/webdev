@@ -46,7 +46,7 @@ void main() {
   group('Class |', () {
     tearDownAll(provider.dispose);
 
-    for (var compilationMode in CompilationMode.values) {
+    for (final compilationMode in CompilationMode.values) {
       group('$compilationMode |', () {
         setUpAll(() async {
           setCurrentLogWriter(debug: debug);

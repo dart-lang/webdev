@@ -53,9 +53,6 @@ class _Compiler {
   /// expression compilation (summaries, libraries spec, compiler worker
   /// snapshot).
   ///
-  /// [soundNullSafety] indicates if the compiler should support sound
-  /// null safety.
-  ///
   /// Performs handshake with the isolate running expression compiler
   /// worker to establish communication via send/receive ports, returns
   /// the service after the communication is established.
@@ -69,16 +66,10 @@ class _Compiler {
     bool verbose,
   ) async {
     sdkConfiguration.validateSdkDir();
-    if (compilerOptions.soundNullSafety) {
-      sdkConfiguration.validateSoundSummaries();
-    } else {
-      sdkConfiguration.validateWeakSummaries();
-    }
+    sdkConfiguration.validateSummaries();
 
     final workerUri = sdkConfiguration.compilerWorkerUri!;
-    final sdkSummaryUri = compilerOptions.soundNullSafety
-        ? sdkConfiguration.soundSdkSummaryUri!
-        : sdkConfiguration.weakSdkSummaryUri!;
+    final sdkSummaryUri = sdkConfiguration.sdkSummaryUri!;
 
     final args = [
       '--experimental-expression-compiler',
@@ -91,9 +82,7 @@ class _Compiler {
       '--module-format',
       compilerOptions.moduleFormat.name,
       if (verbose) '--verbose',
-      compilerOptions.soundNullSafety
-          ? '--sound-null-safety'
-          : '--no-sound-null-safety',
+      '--sound-null-safety',
       for (final experiment in compilerOptions.experiments)
         '--enable-experiment=$experiment',
       if (compilerOptions.canaryFeatures) '--canary',
@@ -132,7 +121,7 @@ class _Compiler {
     final response = await _send({
       'command': 'UpdateDeps',
       'inputs': [
-        for (var moduleName in modules.keys)
+        for (final moduleName in modules.keys)
           {
             'path': modules[moduleName]!.fullDillPath,
             'summaryPath': modules[moduleName]!.summaryPath,

@@ -53,15 +53,15 @@ class Chrome {
     // pass null to have it create a directory.
     // Issue: https://github.com/dart-lang/webdev/issues/1545
     if (!Platform.isWindows) {
-      var userDataTemp = path.join(Directory.current.absolute.path,
+      final userDataTemp = path.join(Directory.current.absolute.path,
           '.dart_tool', 'webdev', 'chrome_user_data');
-      var userDataCopy = path.join(Directory.current.absolute.path,
+      final userDataCopy = path.join(Directory.current.absolute.path,
           '.dart_tool', 'webdev', 'chrome_user_data_copy');
 
       if (userDataDir != null) {
         signIn = true;
         dir = userDataCopy;
-        var stopwatch = Stopwatch()..start();
+        final stopwatch = Stopwatch()..start();
         try {
           _logger.info('Copying user data directory...');
           _logger.warning(
@@ -94,7 +94,7 @@ class Chrome {
     }
 
     _logger.info('Starting chrome with user data directory: $dir');
-    var chrome = await browser_launcher.Chrome.startWithDebugPort(urls,
+    final chrome = await browser_launcher.Chrome.startWithDebugPort(urls,
         debugPort: port, userDataDir: dir, signIn: signIn);
     return _connect(Chrome._(chrome.debugPort, chrome));
   }
@@ -129,7 +129,7 @@ class ChromeError extends Error {
 
 String? autoDetectChromeUserDataDirectory() {
   Directory directory;
-  var home = Platform.environment['HOME'] ?? '';
+  final home = Platform.environment['HOME'] ?? '';
   if (Platform.isMacOS) {
     directory = Directory(
         path.join(home, 'Library', 'Application Support', 'Google', 'Chrome'));

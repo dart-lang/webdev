@@ -1,5 +1,10 @@
 ## 24.2.0-wip
 
+- Remove `build_daemon_ddc_and_canary_evaluate_test`. - [2512](https://github.com/dart-lang/webdev/issues/2512)
+- Replace deprecated JS code `this.__proto__` with `Object.getPrototypeOf(this)`. - [#2500](https://github.com/dart-lang/webdev/pull/2500)
+- Migrate injected client code to `package:web`. - [#2491](https://github.com/dart-lang/webdev/pull/2491)
+- Deprecated MetadataProvider's, CompilerOptions', SdkConfiguration's & SdkLayout's soundNullSafety. - [#2427](https://github.com/dart-lang/webdev/issues/2427)
+
 ## 24.1.0
 
 - Fix bug where debugging clients are not aware of service extensions when connecting to a new web app. - [#2388](https://github.com/dart-lang/webdev/pull/2388)
