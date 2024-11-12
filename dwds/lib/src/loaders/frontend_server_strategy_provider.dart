@@ -1,16 +1,16 @@
-// Copyright 2020 The Dart Authors. All rights reserved.
+// Copyright 2024 The Dart Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/ddc.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:path/path.dart' as p;
 
-/// Provides a [RequireStrategy] suitable for use with Frontend Server.
-class FrontendServerRequireStrategyProvider {
+abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
   final PackageUriMapper _packageUriMapper;
@@ -18,20 +18,7 @@ class FrontendServerRequireStrategyProvider {
   final String _basePath;
   final BuildSettings _buildSettings;
 
-  late final RequireStrategy _requireStrategy = RequireStrategy(
-    _configuration,
-    _moduleProvider,
-    (_) => _digestsProvider(),
-    _moduleForServerPath,
-    _serverPathForModule,
-    _sourceMapPathForModule,
-    _serverPathForAppUri,
-    _moduleInfoForProvider,
-    _assetReader,
-    _buildSettings,
-  );
-
-  FrontendServerRequireStrategyProvider(
+  FrontendServerStrategyProvider(
     this._configuration,
     this._assetReader,
     this._packageUriMapper,
@@ -39,11 +26,10 @@ class FrontendServerRequireStrategyProvider {
     this._buildSettings,
   ) : _basePath = _assetReader.basePath;
 
-  RequireStrategy get strategy => _requireStrategy;
+  T get strategy;
 
   String _removeBasePath(String path) {
     if (_basePath.isEmpty) return path;
-
     final stripped = stripLeadingSlashes(path);
     return stripLeadingSlashes(stripped.substring(_basePath.length));
   }
@@ -52,12 +38,15 @@ class FrontendServerRequireStrategyProvider {
       ? stripLeadingSlashes(serverPath)
       : '$_basePath/${stripLeadingSlashes(serverPath)}';
 
+  String _removeJsExtension(String path) =>
+      path.endsWith('.js') ? p.withoutExtension(path) : path;
+
   Future<Map<String, String>> _moduleProvider(
     MetadataProvider metadataProvider,
   ) async =>
       (await metadataProvider.moduleToModulePath).map(
         (key, value) =>
-            MapEntry(key, stripLeadingSlashes(removeJsExtension(value))),
+            MapEntry(key, stripLeadingSlashes(_removeJsExtension(value))),
       );
 
   Future<String?> _moduleForServerPath(
@@ -111,4 +100,62 @@ class FrontendServerRequireStrategyProvider {
     }
     return result;
   }
+}
+
+/// Provides a [DdcStrategy] suitable for use with Frontend Server.
+class FrontendServerDdcStrategyProvider
+    extends FrontendServerStrategyProvider<DdcStrategy> {
+  late final DdcStrategy _ddcStrategy = DdcStrategy(
+    _configuration,
+    _moduleProvider,
+    (_) => _digestsProvider(),
+    _moduleForServerPath,
+    _serverPathForModule,
+    _sourceMapPathForModule,
+    _serverPathForAppUri,
+    _moduleInfoForProvider,
+    _assetReader,
+    _buildSettings,
+    (String _) => null,
+    null,
+  );
+
+  FrontendServerDdcStrategyProvider(
+    super._configuration,
+    super._assetReader,
+    super._packageUriMapper,
+    super._digestsProvider,
+    super._buildSettings,
+  );
+
+  @override
+  DdcStrategy get strategy => _ddcStrategy;
+}
+
+/// Provides a [RequireStrategy] suitable for use with Frontend Server.
+class FrontendServerRequireStrategyProvider
+    extends FrontendServerStrategyProvider<RequireStrategy> {
+  late final RequireStrategy _requireStrategy = RequireStrategy(
+    _configuration,
+    _moduleProvider,
+    (_) => _digestsProvider(),
+    _moduleForServerPath,
+    _serverPathForModule,
+    _sourceMapPathForModule,
+    _serverPathForAppUri,
+    _moduleInfoForProvider,
+    _assetReader,
+    _buildSettings,
+  );
+
+  FrontendServerRequireStrategyProvider(
+    super._configuration,
+    super._assetReader,
+    super._packageUriMapper,
+    super._digestsProvider,
+    super._buildSettings,
+  );
+
+  @override
+  RequireStrategy get strategy => _requireStrategy;
 }

@@ -15,8 +15,7 @@ import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/build_runner_require.dart';
-import 'package:dwds/src/loaders/frontend_server_ddc.dart';
-import 'package:dwds/src/loaders/frontend_server_require.dart';
+import 'package:dwds/src/loaders/frontend_server_strategy_provider.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
@@ -348,13 +347,18 @@ class TestContext {
                   () async => {},
                   buildSettings,
                 ).strategy,
-              ModuleFormat.ddc => FrontendServerDdcStrategyProvider(
-                  testSettings.reloadConfiguration,
-                  assetReader,
-                  packageUriMapper,
-                  () async => {},
-                  buildSettings,
-                ).strategy,
+              ModuleFormat.ddc => buildSettings.canaryFeatures
+                  ? throw Exception(
+                      '''Unsupported DDC module format ${testSettings.moduleFormat.name}
+                      with canaryFeatures set to ${buildSettings.canaryFeatures}.''',
+                    )
+                  : FrontendServerDdcStrategyProvider(
+                      testSettings.reloadConfiguration,
+                      assetReader,
+                      packageUriMapper,
+                      () async => {},
+                      buildSettings,
+                    ).strategy,
               _ => throw Exception(
                   'Unsupported DDC module format ${testSettings.moduleFormat.name}.',
                 )
