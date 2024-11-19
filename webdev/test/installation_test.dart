@@ -60,6 +60,7 @@ void main() {
       } finally {
         serveProcess.kill();
       }
+      await serveProcess.exitCode;
     });
   });
 }
