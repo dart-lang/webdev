@@ -1,49 +1,19 @@
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/ddc.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
-String removeJsExtension(String path) =>
-    path.endsWith('.js') ? p.withoutExtension(path) : path;
-
-String addJsExtension(String path) => '$path.js';
-
-/// JavaScript snippet to determine the base URL of the current path.
-const baseUrlScript = '''
-var baseUrl = (function () {
-  // Attempt to detect --precompiled mode for tests, and set the base url
-  // appropriately, otherwise set it to '/'.
-  var pathParts = location.pathname.split("/");
-  if (pathParts[0] == "") {
-    pathParts.shift();
-  }
-  if (pathParts.length > 1 && pathParts[1] == "test") {
-    return "/" + pathParts.slice(0, 2).join("/") + "/";
-  }
-  // Attempt to detect base url using <base href> html tag
-  // base href should start and end with "/"
-  if (typeof document !== 'undefined') {
-    var el = document.getElementsByTagName('base');
-    if (el && el[0] && el[0].getAttribute("href") && el[0].getAttribute
-    ("href").startsWith("/") && el[0].getAttribute("href").endsWith("/")){
-      return el[0].getAttribute("href");
-    }
-  }
-  // return default value
-  return "/";
-}());
-''';
-
-/// A load strategy for the DDC module system.
-class DdcStrategy extends LoadStrategy {
+// TODO(srujzs): This is mostly a copy of `DdcStrategy`. Some of the
+// functionality in here may not make sense with the library bundle format yet.
+class DdcLibraryBundleStrategy extends LoadStrategy {
   @override
   final ReloadConfiguration reloadConfiguration;
 
@@ -129,7 +99,7 @@ class DdcStrategy extends LoadStrategy {
 
   final BuildSettings _buildSettings;
 
-  DdcStrategy(
+  DdcLibraryBundleStrategy(
     this.reloadConfiguration,
     this._moduleProvider,
     this._digestsProvider,
@@ -152,16 +122,23 @@ class DdcStrategy extends LoadStrategy {
       };
 
   @override
-  String get id => 'ddc';
+  String get id => 'ddc-library-bundle';
 
+  // DDC doesn't have a 'ddc-library-bundle' format flag. Instead, it treats the
+  // combination of the DDC module format and canary mode as the DDC library
+  // bundle format, so we just pass 'ddc' here.
   @override
   String get moduleFormat => 'ddc';
 
   @override
   String get loadLibrariesModule => 'ddc_module_loader.ddk.js';
 
+  // TODO(srujzs): Refactor code that uses this to avoid loading individual
+  // libraries, as that's no longer supported in the new module format.
   @override
-  String get loadModuleSnippet => 'dart_library.import';
+  String get loadModuleSnippet =>
+      "function() { throw new Error('LoadStrategy.loadModuleSnippet is used. "
+      "This is currently unsupported in the DDC library bundle format.'); }";
 
   @override
   Future<String> bootstrapFor(String entrypoint) async =>

@@ -348,10 +348,13 @@ class TestContext {
                   buildSettings,
                 ).strategy,
               ModuleFormat.ddc => buildSettings.canaryFeatures
-                  ? throw Exception(
-                      '''Unsupported DDC module format ${testSettings.moduleFormat.name}
-                      with canaryFeatures set to ${buildSettings.canaryFeatures}.''',
-                    )
+                  ? FrontendServerDdcLibraryBundleStrategyProvider(
+                      testSettings.reloadConfiguration,
+                      assetReader,
+                      packageUriMapper,
+                      () async => {},
+                      buildSettings,
+                    ).strategy
                   : FrontendServerDdcStrategyProvider(
                       testSettings.reloadConfiguration,
                       assetReader,
@@ -370,8 +373,8 @@ class TestContext {
 
       final debugPort = await findUnusedPort();
       if (testSettings.launchChrome) {
-        // If the environment variable DWDS_DEBUG_CHROME is set to the string true
-        // then Chrome will be launched with a UI rather than headless.
+        // If the environment variable DWDS_DEBUG_CHROME is set to the string
+        // true then Chrome will be launched with a UI rather than headless.
         // If the extension is enabled, then Chrome will be launched with a UI
         // since headless Chrome does not support extensions.
         final enableDebugExtension = debugSettings.enableDebugExtension;
