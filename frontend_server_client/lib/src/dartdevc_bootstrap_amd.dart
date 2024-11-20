@@ -48,7 +48,7 @@ document.head.appendChild(requireEl);
 /// `foo__bar__baz`. Rather than attempt to guess, we assume the first property of
 /// this object is the module.
 String generateAmdMainModule({required String entrypoint}) {
-  return '''/* ENTRYPOINT_EXTENSION_MARKER */
+  return '''/* ENTRYPOINT_EXTENTION_MARKER */
 // Create the main module loaded below.
 require(["$entrypoint.lib.js", "dart_sdk"], function(app, dart_sdk) {
   dart_sdk.dart.setStartAsyncSynchronously(true);

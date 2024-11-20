@@ -18,7 +18,7 @@ import 'package:shelf/shelf.dart';
 const bootstrapJsExtension = '.bootstrap.js';
 
 /// Marker placed by build_web_compilers for where to put injected JS code.
-const entrypointExtensionMarker = '/* ENTRYPOINT_EXTENSION_MARKER */';
+const entrypointExtensionMarker = '/* ENTRYPOINT_EXTENTION_MARKER */';
 
 /// Marker placed by build_web_compilers for where to put injected JS code.
 const mainExtensionMarker = '/* MAIN_EXTENSION_MARKER */';

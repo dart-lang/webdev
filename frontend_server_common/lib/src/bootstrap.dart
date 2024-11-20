@@ -122,7 +122,7 @@ document.head.appendChild(requireEl);
 /// `foo__bar__baz`. Rather than attempt to guess, we assume the first property of
 /// this object is the module.
 String generateMainModule({required String entrypoint}) {
-  return '''/* ENTRYPOINT_EXTENSION_MARKER */
+  return '''/* ENTRYPOINT_EXTENTION_MARKER */
 
 // Create the main module loaded below.
 define("main_module.bootstrap", ["$entrypoint", "dart_sdk"], function(app, dart_sdk) {
@@ -357,7 +357,7 @@ $_simpleLoaderScript
 String generateDDCMainModule(
     {required String entrypoint, String? exportedMain}) {
   final exportedMainName = exportedMain ?? entrypoint.split('.')[0];
-  return '''/* ENTRYPOINT_EXTENSION_MARKER */
+  return '''/* ENTRYPOINT_EXTENTION_MARKER */
 
 (function() {
   let appName = "$entrypoint";
@@ -453,7 +453,7 @@ $_simpleLoaderScript
 }
 
 String generateDDCLibraryBundleMainModule({required String entrypoint}) {
-  return '''/* ENTRYPOINT_EXTENSION_MARKER */
+  return '''/* ENTRYPOINT_EXTENTION_MARKER */
 
 (function() {
   let appName = "org-dartlang-app:///$entrypoint";
