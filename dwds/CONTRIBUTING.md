@@ -34,9 +34,8 @@ alias flutter_tools='/YOUR_PATH/flutter/bin/dart /YOUR_PATH/flutter/packages/flu
 
 Note: This is even easier if you create a `pubspec_overrides.yaml` file in the `flutter_tools` directory, and then git-ignore it. This way you don't have to worry about committing your DWDS override.
 
-4. Choose a Flutter app to run (eg, the
-   [old](https://github.com/flutter/flutter/tree/master/dev/integration_tests/flutter_gallery)
-   or [new](https://github.com/flutter/gallery) Flutter Gallery apps).
+4. Choose a Flutter app to run (such as the
+   [Flutter Gallery app](https://github.com/flutter/flutter/tree/master/dev/integration_tests/flutter_gallery).
 1. From the Flutter app repo, run your local Flutter Tools with alias you
    defined in step #2:
 
@@ -146,7 +145,7 @@ you need to:
 Sometimes you might need to do a hotfix release of DWDS. An example of why this
 might be necessary is if you need to do a hotfix of DWDS into Flutter, but don't
 want to release a new version of DWDS with the current untested changes on the
-master branch. Instead you only want to apply a fix to the current version of
+`main` branch. Instead you only want to apply a fix to the current version of
 DWDS in Flutter.
 
 ### Instructions:
@@ -154,7 +153,7 @@ DWDS in Flutter.
 1. Create a branch off the release that needs a hotfix:
 
    a. In the GitHub UI's
-   [commit history view](https://github.com/dart-lang/webdev/commits/master),
+   [commit history view](https://github.com/dart-lang/webdev/commits/main),
    find the commit that prepared the release of DWDS that you would like to
    hotfix.
 
@@ -180,18 +179,18 @@ DWDS in Flutter.
 
    a. Make the appropriate changes to DWDS' `mono_pkg.yaml` then run
    `mono_repo generate`. Submit this change to the branch you created in step
-   #3, **not** `master`.
+   #3, **not** `main`.
 
 1. Make the fix:
 
    a. You can now make the change you would like to hotfix. From the GitHub UI,
    open a PR to merge your change into the branch you created in step #3,
-   **not** `master`. See https://github.com/dart-lang/webdev/pull/1867 as an
+   **not** `main`. See https://github.com/dart-lang/webdev/pull/1867 as an
    example.
 
 1. Once it's merged, you can follow the instructions to
    [publish DWDS to pub](#step-2-publish-dwds-to-pub), except instead of pulling
-   from `master`, pull from the branch your created in step #3.
+   from `main`, pull from the branch your created in step #3.
 
 1. If necessary, open a cherry-pick request in Flutter to update the version.
    See https://github.com/flutter/flutter/issues/118122 for an example.

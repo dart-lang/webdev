@@ -6,7 +6,7 @@ version: 3.7.0-wip
 description: >-
   A CLI for Dart web development. Provides an easy and consistent set of
   features for users and tools to build and deploy web applications with Dart.
-repository: https://github.com/dart-lang/webdev/tree/master/webdev
+repository: https://github.com/dart-lang/webdev/tree/main/webdev
 environment:
   sdk: ^3.2.0
 

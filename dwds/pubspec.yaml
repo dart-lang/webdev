@@ -4,7 +4,7 @@ version: 24.2.0-wip
 description: >-
   A service that proxies between the Chrome debug protocol and the Dart VM
   service protocol.
-repository: https://github.com/dart-lang/webdev/tree/master/dwds
+repository: https://github.com/dart-lang/webdev/tree/main/dwds
 environment:
   sdk: ^3.4.0
 
