@@ -21913,7 +21913,7 @@
           switch ($async$goto) {
             case 0:
               // Function start
-              throw A.wrapException(A.Exception_Exception("Hot reload isn't supported for the DDC library bundle format yet."));
+              throw A.wrapException(A.UnimplementedError$("Hot restart isn't supported for the DDC library bundle format yet."));
               // implicit return
               return A._asyncReturn(null, $async$completer);
           }

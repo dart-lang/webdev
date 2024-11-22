@@ -10,7 +10,7 @@ class DdcLibraryBundleRestarter implements Restarter {
   @override
   Future<bool> restart({String? runId, Future? readyToRunMain}) async {
     throw UnimplementedError(
-      "Hot reload isn't supported for the DDC library bundle format yet.",
+      "Hot restart isn't supported for the DDC library bundle format yet.",
     );
   }
 }
