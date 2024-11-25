@@ -75,6 +75,7 @@ void testAll({
             enableExpressionEvaluation: true,
             useDebuggerModuleNames: useDebuggerModuleNames,
             verboseCompiler: debug,
+            canaryFeatures: provider.canaryFeatures,
           ),
         );
       });
@@ -832,6 +833,7 @@ void testAll({
           moduleFormat: provider.ddcModuleFormat,
           enableExpressionEvaluation: false,
           verboseCompiler: debug,
+          canaryFeatures: provider.canaryFeatures,
         ),
       );
     });
