@@ -363,10 +363,10 @@ class FakeStrategy extends LoadStrategy {
   String get loadModuleSnippet => '';
 
   @override
-  String? g3RelativePath(String absolutePath) => null;
+  ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
 
   @override
-  ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
+  String? g3RelativePath(String absolutePath) => null;
 
   @override
   String loadClientSnippet(String clientScript) => 'dummy-load-client-snippet';
@@ -394,7 +394,7 @@ class FakeStrategy extends LoadStrategy {
 
   @override
   MetadataProvider metadataProviderFor(String entrypoint) =>
-      MetadataProvider(entrypoint, FakeAssetReader());
+      createProvider(entrypoint, FakeAssetReader());
 
   @override
   Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>

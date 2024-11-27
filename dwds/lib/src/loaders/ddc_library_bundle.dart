@@ -141,6 +141,9 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
       "This is currently unsupported in the DDC library bundle format.'); }";
 
   @override
+  BuildSettings get buildSettings => _buildSettings;
+
+  @override
   Future<String> bootstrapFor(String entrypoint) async =>
       await _ddcLoaderSetup(entrypoint);
 
@@ -186,8 +189,11 @@ window.\$dartLoader.loader.nextAttempt();
   String? serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);
 
   @override
-  BuildSettings get buildSettings => _buildSettings;
+  String? g3RelativePath(String absolutePath) => _g3RelativePath(absolutePath);
 
   @override
-  String? g3RelativePath(String absolutePath) => _g3RelativePath(absolutePath);
+  MetadataProvider createProvider(String entrypoint, AssetReader reader) =>
+      // DDC library bundle format does not provide module names in the module
+      // metadata.
+      MetadataProvider(entrypoint, reader, useModuleName: false);
 }

@@ -164,6 +164,9 @@ class DdcStrategy extends LoadStrategy {
   String get loadModuleSnippet => 'dart_library.import';
 
   @override
+  BuildSettings get buildSettings => _buildSettings;
+
+  @override
   Future<String> bootstrapFor(String entrypoint) async =>
       await _ddcLoaderSetup(entrypoint);
 
@@ -207,9 +210,6 @@ window.\$dartLoader.loader.nextAttempt();
 
   @override
   String? serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);
-
-  @override
-  BuildSettings get buildSettings => _buildSettings;
 
   @override
   String? g3RelativePath(String absolutePath) => _g3RelativePath(absolutePath);

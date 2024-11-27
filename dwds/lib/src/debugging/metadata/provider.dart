@@ -22,6 +22,8 @@ class MetadataProvider {
   final Map<String, String> _moduleToModulePath = {};
   final Map<String, List<String>> _scripts = {};
   final _metadataMemoizer = AsyncMemoizer();
+  // Whether to use the `name` provided in the module metadata.
+  final bool _useModuleName;
 
   /// Implicitly imported libraries in any DDC component.
   ///
@@ -64,7 +66,11 @@ class MetadataProvider {
         'dart:ui',
       ];
 
-  MetadataProvider(this.entrypoint, this._assetReader);
+  MetadataProvider(
+    this.entrypoint,
+    this._assetReader, {
+    required bool useModuleName,
+  }) : _useModuleName = useModuleName;
 
   /// A sound null safety mode for the whole app.
   ///
@@ -113,6 +119,8 @@ class MetadataProvider {
   ///   web/main
   /// }
   ///
+  /// If [_useModuleName] is false, the values will be the module paths instead
+  /// of the name except for 'dart_sdk'.
   Future<Map<String, String>> get scriptToModule async {
     await _initialize();
     return _scriptToModule;
@@ -127,13 +135,14 @@ class MetadataProvider {
   ///   web/main.ddc.js.map
   /// }
   ///
-  ///
+  /// If [_useModuleName] is false, the keys will be the module paths instead of
+  /// the name.
   Future<Map<String, String>> get moduleToSourceMap async {
     await _initialize();
     return _moduleToSourceMap;
   }
 
-  /// A map of module path to module name
+  /// A map of module path to module name.
   ///
   /// Example:
   ///
@@ -142,12 +151,14 @@ class MetadataProvider {
   ///   web/main
   /// }
   ///
+  /// If [_useModuleName] is false, the values will be the module paths instead
+  /// of the name, making this an identity map.
   Future<Map<String, String>> get modulePathToModule async {
     await _initialize();
     return _modulePathToModule;
   }
 
-  /// A map of module to module path
+  /// A map of module to module path.
   ///
   /// Example:
   ///
@@ -156,12 +167,14 @@ class MetadataProvider {
   ///   web/main.ddc.js :
   /// }
   ///
+  /// If [_useModuleName] is false, the keys will be the module paths instead of
+  /// the name, making this an identity map.
   Future<Map<String, String>> get moduleToModulePath async {
     await _initialize();
     return _moduleToModulePath;
   }
 
-  /// A list of module ids
+  /// A list of module ids.
   ///
   /// Example:
   ///
@@ -170,6 +183,8 @@ class MetadataProvider {
   ///   web/foo/bar
   /// ]
   ///
+  /// If [_useModuleName] is false, this will be the set of module paths
+  /// instead.
   Future<List<String>> get modules async {
     await _initialize();
     return _moduleToModulePath.keys.toList();
@@ -196,8 +211,9 @@ class MetadataProvider {
               final metadata =
                   ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
               _addMetadata(metadata);
-              _logger
-                  .fine('Loaded debug metadata for module: ${metadata.name}');
+              final moduleName =
+                  _useModuleName ? metadata.name : metadata.moduleUri;
+              _logger.fine('Loaded debug metadata for module: $moduleName');
             } catch (e) {
               _logger.warning('Failed to read metadata: $e');
               rethrow;
@@ -211,10 +227,14 @@ class MetadataProvider {
   void _addMetadata(ModuleMetadata metadata) {
     final modulePath = stripLeadingSlashes(metadata.moduleUri);
     final sourceMapPath = stripLeadingSlashes(metadata.sourceMapUri);
+    // DDC library bundle module format does not provide names for library
+    // bundles, and therefore we use the URI instead to represent a library
+    // bundle.
+    final moduleName = _useModuleName ? metadata.name : modulePath;
 
-    _moduleToSourceMap[metadata.name] = sourceMapPath;
-    _modulePathToModule[modulePath] = metadata.name;
-    _moduleToModulePath[metadata.name] = modulePath;
+    _moduleToSourceMap[moduleName] = sourceMapPath;
+    _modulePathToModule[modulePath] = moduleName;
+    _moduleToModulePath[moduleName] = modulePath;
 
     for (final library in metadata.libraries.values) {
       if (library.importUri.startsWith('file:/')) {
@@ -223,12 +243,12 @@ class MetadataProvider {
       _libraries.add(library.importUri);
       _scripts[library.importUri] = [];
 
-      _scriptToModule[library.importUri] = metadata.name;
+      _scriptToModule[library.importUri] = moduleName;
       for (final path in library.partUris) {
         // Parts in metadata are relative to the library Uri directory.
         final partPath = p.url.join(p.dirname(library.importUri), path);
         _scripts[library.importUri]!.add(partPath);
-        _scriptToModule[partPath] = metadata.name;
+        _scriptToModule[partPath] = moduleName;
       }
     }
   }
@@ -239,6 +259,9 @@ class MetadataProvider {
     for (final lib in sdkLibraries) {
       _libraries.add(lib);
       _scripts[lib] = [];
+      // TODO(srujzs): It feels weird that we add this mapping to only this map
+      // and not any of the other module maps. We should maybe handle this
+      // differently.
       _scriptToModule[lib] = moduleName;
     }
   }
