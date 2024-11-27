@@ -53,15 +53,36 @@ abstract class LoadStrategy {
   /// App build settings, such as entry point, build flags, app kind etc.
   BuildSettings get buildSettings;
 
-  /// Returns the bootstrap required for this [LoadStrategy].
-  ///
-  /// The bootstrap is appended to the end of the entry point module.
-  Future<String> bootstrapFor(String entrypoint);
-
   /// A handler for strategy specific requests.
   ///
   /// Used as a part of the injected_handler middleware.
   Handler get handler;
+
+  /// Returns a loader to read the content of the package configuration.
+  ///
+  /// The package configuration URIs will be resolved relative to
+  /// [packageConfigPath], but the loader can read the config from a different
+  /// location.
+  ///
+  /// If null, the default loader will read from [packageConfigPath].
+  Future<Uint8List?> Function(Uri uri)? get packageConfigLoader => null;
+
+  /// The absolute path to the app's package configuration.
+  String get packageConfigPath {
+    return _packageConfigPath ?? _defaultPackageConfigPath;
+  }
+
+  /// The default package config path if none is provided.
+  String get _defaultPackageConfigPath => p.join(
+        DartUri.currentDirectory,
+        '.dart_tool',
+        'package_config.json',
+      );
+
+  /// Returns the bootstrap required for this [LoadStrategy].
+  ///
+  /// The bootstrap is appended to the end of the entry point module.
+  Future<String> bootstrapFor(String entrypoint);
 
   /// JS code snippet for loading the injected client script.
   String loadClientSnippet(String clientScript);
@@ -113,27 +134,6 @@ abstract class LoadStrategy {
   /// Returns `null` if not a google3 app.
   String? g3RelativePath(String absolutePath);
 
-  /// Returns a loader to read the content of the package configuration.
-  ///
-  /// The package configuration URIs will be resolved relative to
-  /// [packageConfigPath], but the loader can read the config from a different
-  /// location.
-  ///
-  /// If null, the default loader will read from [packageConfigPath].
-  Future<Uint8List?> Function(Uri uri)? get packageConfigLoader => null;
-
-  /// The absolute path to the app's package configuration.
-  String get packageConfigPath {
-    return _packageConfigPath ?? _defaultPackageConfigPath;
-  }
-
-  /// The default package config path if none is provided.
-  String get _defaultPackageConfigPath => p.join(
-        DartUri.currentDirectory,
-        '.dart_tool',
-        'package_config.json',
-      );
-
   /// Returns the [MetadataProvider] for the application located at the provided
   /// [entrypoint].
   MetadataProvider metadataProviderFor(String entrypoint) {
@@ -144,10 +144,15 @@ abstract class LoadStrategy {
     }
   }
 
+  /// Creates and returns a [MetadataProvider] with the given [entrypoint] and
+  /// [reader].
+  MetadataProvider createProvider(String entrypoint, AssetReader reader) =>
+      MetadataProvider(entrypoint, reader, useModuleName: true);
+
   /// Initializes a [MetadataProvider] for the application located at the
   /// provided [entrypoint].
   Future<void> trackEntrypoint(String entrypoint) {
-    final metadataProvider = MetadataProvider(entrypoint, _assetReader);
+    final metadataProvider = createProvider(entrypoint, _assetReader);
     _providers[metadataProvider.entrypoint] = metadataProvider;
     // Returns a Future so that the asynchronous g3-implementation can override
     // this method:

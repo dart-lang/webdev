@@ -5,7 +5,11 @@
 - Replace deprecated JS code `this.__proto__` with `Object.getPrototypeOf(this)`. - [#2500](https://github.com/dart-lang/webdev/pull/2500)
 - Migrate injected client code to `package:web`. - [#2491](https://github.com/dart-lang/webdev/pull/2491)
 - Deprecated MetadataProvider's, CompilerOptions', SdkConfiguration's & SdkLayout's soundNullSafety. - [#2427](https://github.com/dart-lang/webdev/issues/2427)
-- Add load strategy and an unimplemented hot restart strategy for DDC library bundle format.
+- Add load strategy and an unimplemented hot restart strategy for DDC library
+  bundle format.
+- Added `useModuleName` option to `MetadataProvider` to determine whether or not
+  to use the provided `name` in a `ModuleMetadata`. Metadata provided by DDC
+  when using the library bundle format does not provide a useful bundle name.
 
 ## 24.1.0
 
