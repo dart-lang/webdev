@@ -4,11 +4,13 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:js_interop';
 
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:graphs/graphs.dart' as graphs;
-import 'package:web/helpers.dart';
+import 'package:http/browser_client.dart';
+import 'package:web/web.dart';
 
 import '../run_main.dart';
 import '../web_utils.dart';
@@ -167,14 +169,9 @@ class RequireRestarter implements Restarter {
   Iterable<String> _allModules() => requireLoader.moduleParentsGraph.modules;
 
   Future<Map<String, String>> _getDigests() async {
-    final request = await HttpRequest.request(
-      requireLoader.digestsPath,
-      responseType: 'json',
-      method: 'GET',
-    );
-
-    final response = request.response.dartify();
-    return (response as Map).cast<String, String>();
+    final client = BrowserClient();
+    final response = await client.get(Uri.parse(requireLoader.digestsPath));
+    return (jsonDecode(response.body) as Map).cast<String, String>();
   }
 
   Future<void> _initialize() async {

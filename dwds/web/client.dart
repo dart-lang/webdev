@@ -19,9 +19,10 @@ import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/shared/batched_stream.dart';
 import 'package:dwds/src/sockets.dart';
+import 'package:http/browser_client.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
-import 'package:web/helpers.dart';
+import 'package:web/web.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'reloader/ddc_library_bundle_restarter.dart';
@@ -324,12 +325,9 @@ void _handleAuthRequest(Event event) {
 }
 
 Future<bool> _authenticateUser(String authUrl) async {
-  final response = await HttpRequest.request(
-    authUrl,
-    method: 'GET',
-    withCredentials: true,
-  );
-  final responseText = response.responseText;
+  final client = BrowserClient()..withCredentials = true;
+  final response = await client.get(Uri.parse(authUrl));
+  final responseText = response.body;
   return responseText.contains('Dart Debug Authentication Success!');
 }
 
