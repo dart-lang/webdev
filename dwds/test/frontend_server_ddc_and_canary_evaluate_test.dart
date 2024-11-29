@@ -45,7 +45,6 @@ void main() async {
             // https://github.com/dart-lang/sdk/issues/49277, once
             // https://github.com/dart-lang/webdev/issues/2488 is resolved.
             // skip: indexBaseMode == IndexBaseMode.base && Platform.isWindows,
-            skip: 'https://github.com/dart-lang/webdev/issues/2488',
           );
         }
       });

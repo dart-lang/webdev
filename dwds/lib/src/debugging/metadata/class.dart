@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds/src/loaders/load_strategy_handler.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:logging/logging.dart';
@@ -152,13 +153,9 @@ class ClassMetaDataHelper {
   /// Returns null if the [remoteObject] is not a Dart class.
   Future<ClassMetaData?> metaDataFor(RemoteObject remoteObject) async {
     try {
-      final evalExpression = '''
-        function(arg) {
-          const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk');
-          const dart  = sdk.dart;
-          return dart.getObjectMetadata(arg);
-        }
-      ''';
+      final evalExpression =
+          LoadStrategyHandler(globalToolConfiguration.loadStrategy)
+              .getObjectMetadataJsExpression();
 
       final result = await _inspector.jsCallFunctionOn(
         remoteObject,

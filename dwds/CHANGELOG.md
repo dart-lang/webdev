@@ -10,7 +10,9 @@
 - Added `useModuleName` option to `MetadataProvider` to determine whether or not
   to use the provided `name` in a `ModuleMetadata`. Metadata provided by DDC
   when using the library bundle format does not provide a useful bundle name.
-
+- Refactored LoadStrategyHandler to streamline JS generation and added support for
+the dartDevEmbedder API for methods: getObjectMetadata, getObjectFieldNames, getSubRange, and getFunctionMetadata - [#2488](https://github.com/dart-lang/webdev/issues/2488)
+- Reenabled tests in frontend_server_ddc_and_canary_evaluate_test.dart. - [#2488](https://github.com/dart-lang/webdev/issues/2488)
 ## 24.1.0
 
 - Fix bug where debugging clients are not aware of service extensions when connecting to a new web app. - [#2388](https://github.com/dart-lang/webdev/pull/2388)
