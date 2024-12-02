@@ -4,7 +4,6 @@
 
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/loaders/load_strategy_handler.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -19,7 +18,8 @@ class FunctionMetaData {
     RemoteObject remoteObject,
   ) async {
     final evalExpression =
-        LoadStrategyHandler(globalToolConfiguration.loadStrategy)
+        globalToolConfiguration
+        .loadStrategy.dartRuntimeDebugger
             .getFunctionMetadataJsExpression();
 
     final response = await remoteDebugger.sendCommand(

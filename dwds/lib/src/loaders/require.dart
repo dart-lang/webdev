@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/dart_runtime_debugger.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
@@ -51,6 +52,8 @@ var baseUrl = (function () {
 class RequireStrategy extends LoadStrategy {
   @override
   final ReloadConfiguration reloadConfiguration;
+
+  late final DartRuntimeDebugger _dartRuntimeDebugger;
 
   final String _requireDigestsPath = r'$requireDigestsPath';
 
@@ -137,7 +140,9 @@ class RequireStrategy extends LoadStrategy {
     this._moduleInfoForProvider,
     AssetReader assetReader,
     this._buildSettings,
-  ) : super(assetReader);
+  ) : super(assetReader) {
+    _dartRuntimeDebugger = DartRuntimeDebugger(this);
+  }
 
   @override
   Handler get handler => (request) async {
@@ -164,6 +169,9 @@ class RequireStrategy extends LoadStrategy {
   @override
   String get loadModuleSnippet => 'require';
 
+  @override
+  DartRuntimeDebugger get dartRuntimeDebugger => _dartRuntimeDebugger;
+
   /// Require JS config for ddc.
   ///
   /// Sets the base url to `/` so that all modules can be loaded using absolute
@@ -180,7 +188,7 @@ $_baseUrlScript;
 require.config({
     baseUrl: baseUrl,
     waitSeconds: 0,
-    paths: modulePaths 
+    paths: modulePaths
 });
 const modulesGraph = new Map();
 requirejs.onResourceLoad = function (context, map, depArray) {

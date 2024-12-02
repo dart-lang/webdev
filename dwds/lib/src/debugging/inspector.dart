@@ -14,7 +14,6 @@ import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/libraries.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/loaders/load_strategy_handler.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -644,7 +643,7 @@ class AppInspector implements AppInspectorInterface {
     // If this is a List, just call sublist. If it's a Map, get the entries, but
     // avoid doing a toList on a large map using skip/take to get the section we
     // want. To make those alternatives easier in JS, pass both count and end.
-    final expression = LoadStrategyHandler(globalToolConfiguration.loadStrategy)
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
         .getSubRangeJsExpression();
 
     return await jsCallFunctionOn(receiver, expression, args);

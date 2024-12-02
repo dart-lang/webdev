@@ -13,6 +13,7 @@ import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
+import 'package:dwds/src/loaders/dart_runtime_debugger.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
@@ -328,6 +329,7 @@ class FakeExecutionContext extends ExecutionContext {
 
 class FakeStrategy extends LoadStrategy {
   final BuildSettings _buildSettings;
+  late final DartRuntimeDebugger _dartRuntimeDebugger;
 
   FakeStrategy(
     super.assetReader, {
@@ -336,7 +338,9 @@ class FakeStrategy extends LoadStrategy {
   }) : _buildSettings = buildSettings ??
             TestBuildSettings.dart(
               appEntrypoint: Uri.parse('package:myapp/main.dart'),
-            );
+            ) {
+    _dartRuntimeDebugger = DartRuntimeDebugger(this);
+  }
 
   @override
   Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
@@ -361,6 +365,9 @@ class FakeStrategy extends LoadStrategy {
 
   @override
   String get loadModuleSnippet => '';
+
+  @override
+  DartRuntimeDebugger get dartRuntimeDebugger => _dartRuntimeDebugger;
 
   @override
   ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;

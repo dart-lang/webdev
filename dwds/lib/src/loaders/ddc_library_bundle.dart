@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/dart_runtime_debugger.dart';
 import 'package:dwds/src/loaders/ddc.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
@@ -16,6 +17,8 @@ import 'package:shelf/shelf.dart';
 class DdcLibraryBundleStrategy extends LoadStrategy {
   @override
   final ReloadConfiguration reloadConfiguration;
+
+  late final DartRuntimeDebugger _dartRuntimeDebugger;
 
   /// Returns a map of module name to corresponding server path (excluding .js)
   /// for the provided Dart application entrypoint.
@@ -112,7 +115,9 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
     this._buildSettings,
     this._g3RelativePath,
     String? packageConfigPath,
-  ) : super(assetReader, packageConfigPath: packageConfigPath);
+  ) : super(assetReader, packageConfigPath: packageConfigPath) {
+    _dartRuntimeDebugger = DartRuntimeDebugger(this);
+  }
 
   @override
   Handler get handler => (request) async {
@@ -139,6 +144,9 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   String get loadModuleSnippet =>
       "function() { throw new Error('LoadStrategy.loadModuleSnippet is used. "
       "This is currently unsupported in the DDC library bundle format.'); }";
+
+  @override
+  DartRuntimeDebugger get dartRuntimeDebugger => _dartRuntimeDebugger;
 
   @override
   BuildSettings get buildSettings => _buildSettings;

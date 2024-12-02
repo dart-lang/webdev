@@ -1,28 +1,25 @@
-// Copyright (c) 2024, the Dart project authors.
-// Please see the AUTHORS file for details.
-// All rights reserved. Use of this source code is governed by a
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 
-class LoadStrategyHandler {
+class DartRuntimeDebugger {
   final LoadStrategy _loadStrategy;
+  final bool _useLibraryBundleExpression;
 
-  LoadStrategyHandler(this._loadStrategy);
+  DartRuntimeDebugger(this._loadStrategy)
+      : _useLibraryBundleExpression =
+            _loadStrategy.runtimeType == DdcLibraryBundleStrategy;
 
   String _generateJsExpression(
     String ddcExpression,
     String libraryBundleExpression,
   ) {
-    switch (_loadStrategy.id) {
-      case 'ddc':
-      case 'require-js':
-        return ddcExpression;
-      case 'ddc-library-bundle':
-        return libraryBundleExpression;
-      default:
-        throw UnsupportedError('Unsupported load strategy: $_loadStrategy');
-    }
+    return _useLibraryBundleExpression
+        ? libraryBundleExpression
+        : ddcExpression;
   }
 
   String _wrapWithSdkLoader(String args, String functionCall) {

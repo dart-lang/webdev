@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/dart_runtime_debugger.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -42,6 +43,9 @@ abstract class LoadStrategy {
   /// The snippet should be a reference to a function that takes a single
   /// argument which is the module name to load.
   String get loadModuleSnippet;
+
+  /// Provides a runtime debugger for the Dart runtime.
+  DartRuntimeDebugger get dartRuntimeDebugger;
 
   /// The relative root path for library paths. The current directory will be
   /// used if this is not overridden.

@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/dart_runtime_debugger.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
@@ -46,6 +47,8 @@ var baseUrl = (function () {
 class DdcStrategy extends LoadStrategy {
   @override
   final ReloadConfiguration reloadConfiguration;
+
+  late final DartRuntimeDebugger _dartRuntimeDebugger;
 
   /// Returns a map of module name to corresponding server path (excluding .js)
   /// for the provided Dart application entrypoint.
@@ -142,7 +145,9 @@ class DdcStrategy extends LoadStrategy {
     this._buildSettings,
     this._g3RelativePath,
     String? packageConfigPath,
-  ) : super(assetReader, packageConfigPath: packageConfigPath);
+  ) : super(assetReader, packageConfigPath: packageConfigPath) {
+    _dartRuntimeDebugger = DartRuntimeDebugger(this);
+  }
 
   @override
   Handler get handler => (request) async {
@@ -162,6 +167,9 @@ class DdcStrategy extends LoadStrategy {
 
   @override
   String get loadModuleSnippet => 'dart_library.import';
+
+  @override
+  DartRuntimeDebugger get dartRuntimeDebugger => _dartRuntimeDebugger;
 
   @override
   BuildSettings get buildSettings => _buildSettings;

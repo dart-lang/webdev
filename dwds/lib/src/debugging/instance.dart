@@ -8,7 +8,6 @@ import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:dwds/src/debugging/metadata/function.dart';
-import 'package:dwds/src/loaders/load_strategy_handler.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/objects.dart';
@@ -774,7 +773,8 @@ class InstanceHelper extends Domain {
     // For maps and lists it's more complicated. Treat the actual SDK versions
     // of these as special.
     final fieldNameExpression =
-        LoadStrategyHandler(globalToolConfiguration.loadStrategy)
+        globalToolConfiguration
+        .loadStrategy.dartRuntimeDebugger
             .getObjectFieldNamesJsExpression();
     final result = await inspector.jsCallFunctionOn(
       remoteObject,
