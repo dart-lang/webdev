@@ -10,6 +10,7 @@
 - Added `useModuleName` option to `MetadataProvider` to determine whether or not
   to use the provided `name` in a `ModuleMetadata`. Metadata provided by DDC
   when using the library bundle format does not provide a useful bundle name.
+- Migrate to `package:web` v1.1.0.
 
 ## 24.1.0
 

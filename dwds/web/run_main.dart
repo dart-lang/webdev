@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:js_interop';
-import 'package:web/helpers.dart';
+import 'package:web/web.dart';
 
 // According to the CSP3 spec a nonce must be a valid base64 string.
 final _noncePattern = RegExp('^[\\w+/_-]+[=]{0,2}\$');
@@ -14,7 +14,7 @@ String? _findNonce() {
 
   for (var i = 0; i < elements.length; i++) {
     final element = elements.item(i);
-    final nonceValue = (element as HtmlElement).nonce;
+    final nonceValue = (element as HTMLElement).nonce;
     if (_noncePattern.hasMatch(nonceValue)) {
       return nonceValue;
     }
@@ -42,7 +42,8 @@ final HTMLElement Function() _createScript = (() {
 /// We do this so that we don't see user exceptions bubble up in our own error
 /// handling zone.
 void runMain() {
-  final scriptElement = _createScript()..innerHTML = r'window.$dartRunMain();';
+  final scriptElement = _createScript()
+    ..innerHTML = r'window.$dartRunMain();'.toJS;
   document.body!.append(scriptElement.jsify()!);
   // External tear-offs are not allowed.
   // ignore: unnecessary_lambdas
