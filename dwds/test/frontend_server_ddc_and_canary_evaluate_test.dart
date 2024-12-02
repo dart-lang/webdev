@@ -7,6 +7,8 @@
 @Timeout(Duration(minutes: 5))
 library;
 
+import 'dart:io';
+
 import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -41,10 +43,9 @@ void main() async {
                 debug: debug,
               );
             },
-            // TODO(#2488): Restore the skip argument below, related to
-            // https://github.com/dart-lang/sdk/issues/49277, once
-            // https://github.com/dart-lang/webdev/issues/2488 is resolved.
-            // skip: indexBaseMode == IndexBaseMode.base && Platform.isWindows,
+            skip: indexBaseMode == IndexBaseMode.base && Platform.isWindows
+                ? 'Skipped on Windows when indexBaseMode is base. See issue: https://github.com/dart-lang/sdk/issues/49277'
+                : null,
           );
         }
       });
