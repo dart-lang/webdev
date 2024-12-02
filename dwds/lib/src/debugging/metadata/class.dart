@@ -152,10 +152,9 @@ class ClassMetaDataHelper {
   /// Returns null if the [remoteObject] is not a Dart class.
   Future<ClassMetaData?> metaDataFor(RemoteObject remoteObject) async {
     try {
-      final evalExpression =
-          globalToolConfiguration
+      final evalExpression = globalToolConfiguration
           .loadStrategy.dartRuntimeDebugger
-              .getObjectMetadataJsExpression();
+          .getObjectMetadataJsExpression();
 
       final result = await _inspector.jsCallFunctionOn(
         remoteObject,
