@@ -1,3 +1,7 @@
+## 0.2.3-wip
+
+- Add bootstrapping code for DDC library bundle format.
+
 ## 0.2.2
 
 - Start the frontend server from the AOT snapshot shipped in the Dart SDK.

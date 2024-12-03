@@ -381,3 +381,92 @@ String generateDDCMainModule(
 })();
 ''';
 }
+
+String generateDDCLibraryBundleBootstrapScript({
+  required String ddcModuleLoaderUrl,
+  required String mapperUrl,
+  required String entrypoint,
+  required String bootstrapUrl,
+}) {
+  return '''
+$_baseUrlScript
+$_simpleLoaderScript
+
+(function() {
+  // Load pre-requisite DDC scripts. We intentionally use invalid names to avoid
+  // namespace clashes.
+  let prerequisiteScripts = [
+    {
+      "src": "$ddcModuleLoaderUrl",
+      "id": "ddc_module_loader \x00"
+    },
+    {
+      "src": "$mapperUrl",
+      "id": "dart_stack_trace_mapper \x00"
+    }
+  ];
+
+  // Load ddc_module_loader.js to access DDC's module loader API.
+  let prerequisiteLoads = [];
+  for (let i = 0; i < prerequisiteScripts.length; i++) {
+    prerequisiteLoads.push(forceLoadModule(prerequisiteScripts[i].src));
+  }
+  Promise.all(prerequisiteLoads).then((_) => afterPrerequisiteLogic());
+
+  var afterPrerequisiteLogic = function() {
+    window.\$dartLoader.rootDirectories.push(_currentDirectory);
+    let scripts = [
+      {
+        "src": "dart_sdk.js",
+        "id": "dart_sdk \\0"
+      },
+    ];
+
+    let loadConfig = new window.\$dartLoader.LoadConfiguration();
+    loadConfig.root = _currentDirectory;
+    loadConfig.bootstrapScript = {
+      "src": "$bootstrapUrl",
+      "id": "data-main"
+    };
+    scripts.push(loadConfig.bootstrapScript);
+    loadConfig.loadScriptFn = function(loader) {
+      loader.addScriptsToQueue(scripts, null);
+      loader.loadEnqueuedModules();
+    }
+    let loader = new window.\$dartLoader.DDCLoader(loadConfig);
+
+    // Record prerequisite scripts' fully resolved URLs.
+    prerequisiteScripts.forEach(script => loader.registerScript(script));
+
+    // Note: these variables should only be used in non-multi-app scenarios
+    // since they can be arbitrarily overridden based on multi-app load order.
+    window.\$dartLoader.loadConfig = loadConfig;
+    window.\$dartLoader.loader = loader;
+
+    // TODO(srujzs): Support hot restart.
+
+    // Begin loading libraries
+    loader.nextAttempt();
+  }
+})();
+''';
+}
+
+String generateDDCLibraryBundleMainModule({required String entrypoint}) {
+  return '''/* ENTRYPOINT_EXTENTION_MARKER */
+
+(function() {
+  let appName = "org-dartlang-app:///$entrypoint";
+
+  dartDevEmbedder.debugger.registerDevtoolsFormatter();
+
+  let child = {};
+  child.main = function() {
+    dartDevEmbedder.runMain(appName, {});
+  }
+
+  /* MAIN_EXTENSION_MARKER */
+  child.main();
+})();
+''';
+}
