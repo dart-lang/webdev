@@ -772,9 +772,9 @@ class InstanceHelper extends Domain {
     //
     // For maps and lists it's more complicated. Treat the actual SDK versions
     // of these as special.
-    final fieldNameExpression =
-        _jsRuntimeFunctionCall('getObjectFieldNames(this)');
-
+    final fieldNameExpression = globalToolConfiguration
+        .loadStrategy.dartRuntimeDebugger
+        .getObjectFieldNamesJsExpression();
     final result = await inspector.jsCallFunctionOn(
       remoteObject,
       fieldNameExpression,

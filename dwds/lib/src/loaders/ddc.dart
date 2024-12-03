@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
@@ -162,6 +163,12 @@ class DdcStrategy extends LoadStrategy {
 
   @override
   String get loadModuleSnippet => 'dart_library.import';
+
+  @override
+  late final DartRuntimeDebugger dartRuntimeDebugger = DartRuntimeDebugger(
+    loadStrategy: this,
+    useLibraryBundleExpression: false,
+  );
 
   @override
   BuildSettings get buildSettings => _buildSettings;

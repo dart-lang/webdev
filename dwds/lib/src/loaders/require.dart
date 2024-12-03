@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
@@ -164,6 +165,12 @@ class RequireStrategy extends LoadStrategy {
   @override
   String get loadModuleSnippet => 'require';
 
+  @override
+  late final DartRuntimeDebugger dartRuntimeDebugger = DartRuntimeDebugger(
+    loadStrategy: this,
+    useLibraryBundleExpression: false,
+  );
+
   /// Require JS config for ddc.
   ///
   /// Sets the base url to `/` so that all modules can be loaded using absolute
@@ -180,7 +187,7 @@ $_baseUrlScript;
 require.config({
     baseUrl: baseUrl,
     waitSeconds: 0,
-    paths: modulePaths 
+    paths: modulePaths
 });
 const modulesGraph = new Map();
 requirejs.onResourceLoad = function (context, map, depArray) {

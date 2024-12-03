@@ -11,6 +11,7 @@
   to use the provided `name` in a `ModuleMetadata`. Metadata provided by DDC
   when using the library bundle format does not provide a useful bundle name.
 - Migrate to `package:web` v1.1.0.
+- Added support for some debugging APIs with the DDC library bundle format. - [#2488](https://github.com/dart-lang/webdev/issues/2488)
 
 ## 24.1.0
 
