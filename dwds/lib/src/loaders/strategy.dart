@@ -4,8 +4,8 @@
 
 import 'dart:typed_data';
 
+import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/loaders/dart_runtime_debugger.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';

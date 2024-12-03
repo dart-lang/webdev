@@ -2,16 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 
 class DartRuntimeDebugger {
   final LoadStrategy _loadStrategy;
   final bool _useLibraryBundleExpression;
 
-  DartRuntimeDebugger(this._loadStrategy)
-      : _useLibraryBundleExpression =
-            _loadStrategy.runtimeType == DdcLibraryBundleStrategy;
+  DartRuntimeDebugger({
+    required LoadStrategy loadStrategy,
+    required bool useLibraryBundleExpression,
+  })  : _loadStrategy = loadStrategy,
+        _useLibraryBundleExpression = useLibraryBundleExpression;
 
   String _generateJsExpression(
     String ddcExpression,
