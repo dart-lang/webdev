@@ -27,7 +27,7 @@ class WebDevFS {
     this.soundNullSafety = true,
     this.urlTunneler,
     required this.sdkLayout,
-    required this.ddcModuleFormat,
+    required this.compilerOptions,
   });
 
   final FileSystem fileSystem;
@@ -43,7 +43,7 @@ class WebDevFS {
   final bool soundNullSafety;
 
   final TestSdkLayout sdkLayout;
-  final ModuleFormat ddcModuleFormat;
+  final CompilerOptions compilerOptions;
   late final Directory _savedCurrentDirectory;
 
   Future<Uri> create() async {
@@ -120,23 +120,39 @@ class WebDevFS {
       case ModuleFormat.ddc:
         assetServer.writeFile(
             ddcModuleLoader, ddcModuleLoaderJS.readAsStringSync());
-        assetServer.writeFile(
-          main,
-          generateDDCBootstrapScript(
+        String bootstrapper;
+        String mainModule;
+        if (compilerOptions.canaryFeatures) {
+          bootstrapper = generateDDCLibraryBundleBootstrapScript(
+              ddcModuleLoaderUrl: ddcModuleLoader,
+              mapperUrl: stackMapper,
+              entrypoint: entryPoint,
+              bootstrapUrl: bootstrap);
+          mainModule =
+              generateDDCLibraryBundleMainModule(entrypoint: entryPoint);
+        } else {
+          bootstrapper = generateDDCBootstrapScript(
             ddcModuleLoaderUrl: ddcModuleLoader,
             mapperUrl: stackMapper,
             entrypoint: entryPoint,
             bootstrapUrl: bootstrap,
-          ),
+          );
+
+          // DDC uses a simple heuristic to determine exported identifier names.
+          // The module name (entrypoint name here) has its extension removed,
+          // and special path elements like '/', '\', and '..' are replaced with
+          // '__'.
+          final exportedMainName = pathToJSIdentifier(entryPoint.split('.')[0]);
+          mainModule = generateDDCMainModule(
+              entrypoint: entryPoint, exportedMain: exportedMainName);
+        }
+        assetServer.writeFile(
+          main,
+          bootstrapper,
         );
-        // DDC uses a simple heuristic to determine exported identifier names.
-        // The module name (entrypoint name here) has its extension removed, and
-        // special path elements like '/', '\', and '..' are replaced with '__'.
-        final exportedMainName = pathToJSIdentifier(entryPoint.split('.')[0]);
         assetServer.writeFile(
           bootstrap,
-          generateDDCMainModule(
-              entrypoint: entryPoint, exportedMain: exportedMainName),
+          mainModule,
         );
         break;
       default:
@@ -202,6 +218,7 @@ class WebDevFS {
         _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
       });
   File get stackTraceMapper => fileSystem.file(sdkLayout.stackTraceMapperPath);
+  ModuleFormat get ddcModuleFormat => compilerOptions.moduleFormat;
 }
 
 class UpdateFSReport {

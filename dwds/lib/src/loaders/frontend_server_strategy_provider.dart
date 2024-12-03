@@ -4,6 +4,7 @@
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/loaders/ddc.dart';
+import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
@@ -130,6 +131,38 @@ class FrontendServerDdcStrategyProvider
 
   @override
   DdcStrategy get strategy => _ddcStrategy;
+}
+
+/// Provides a [DdcLibraryBundleStrategy] suitable for use with the Frontend
+/// Server.
+class FrontendServerDdcLibraryBundleStrategyProvider
+    extends FrontendServerStrategyProvider<DdcLibraryBundleStrategy> {
+  late final DdcLibraryBundleStrategy _libraryBundleStrategy =
+      DdcLibraryBundleStrategy(
+    _configuration,
+    _moduleProvider,
+    (_) => _digestsProvider(),
+    _moduleForServerPath,
+    _serverPathForModule,
+    _sourceMapPathForModule,
+    _serverPathForAppUri,
+    _moduleInfoForProvider,
+    _assetReader,
+    _buildSettings,
+    (String _) => null,
+    null,
+  );
+
+  FrontendServerDdcLibraryBundleStrategyProvider(
+    super._configuration,
+    super._assetReader,
+    super._packageUriMapper,
+    super._digestsProvider,
+    super._buildSettings,
+  );
+
+  @override
+  DdcLibraryBundleStrategy get strategy => _libraryBundleStrategy;
 }
 
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.
