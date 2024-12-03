@@ -18,11 +18,6 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   @override
   final ReloadConfiguration reloadConfiguration;
 
-  late final DartRuntimeDebugger _dartRuntimeDebugger = DartRuntimeDebugger(
-    loadStrategy: this,
-    useLibraryBundleExpression: true,
-  );
-
   /// Returns a map of module name to corresponding server path (excluding .js)
   /// for the provided Dart application entrypoint.
   ///
@@ -147,7 +142,10 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
       "This is currently unsupported in the DDC library bundle format.'); }";
 
   @override
-  DartRuntimeDebugger get dartRuntimeDebugger => _dartRuntimeDebugger;
+  late final DartRuntimeDebugger dartRuntimeDebugger = DartRuntimeDebugger(
+    loadStrategy: this,
+    useLibraryBundleExpression: true,
+  );
 
   @override
   BuildSettings get buildSettings => _buildSettings;

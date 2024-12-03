@@ -53,11 +53,6 @@ class RequireStrategy extends LoadStrategy {
   @override
   final ReloadConfiguration reloadConfiguration;
 
-  late final DartRuntimeDebugger _dartRuntimeDebugger = DartRuntimeDebugger(
-    loadStrategy: this,
-    useLibraryBundleExpression: false,
-  );
-
   final String _requireDigestsPath = r'$requireDigestsPath';
 
   /// Returns a map of module name to corresponding server path (excluding .js)
@@ -171,7 +166,10 @@ class RequireStrategy extends LoadStrategy {
   String get loadModuleSnippet => 'require';
 
   @override
-  DartRuntimeDebugger get dartRuntimeDebugger => _dartRuntimeDebugger;
+  late final DartRuntimeDebugger dartRuntimeDebugger = DartRuntimeDebugger(
+    loadStrategy: this,
+    useLibraryBundleExpression: false,
+  );
 
   /// Require JS config for ddc.
   ///

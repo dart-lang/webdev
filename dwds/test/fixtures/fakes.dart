@@ -329,10 +329,6 @@ class FakeExecutionContext extends ExecutionContext {
 
 class FakeStrategy extends LoadStrategy {
   final BuildSettings _buildSettings;
-  late final DartRuntimeDebugger _dartRuntimeDebugger = DartRuntimeDebugger(
-    loadStrategy: this,
-    useLibraryBundleExpression: true,
-  );
 
   FakeStrategy(
     super.assetReader, {
@@ -368,7 +364,10 @@ class FakeStrategy extends LoadStrategy {
   String get loadModuleSnippet => '';
 
   @override
-  DartRuntimeDebugger get dartRuntimeDebugger => _dartRuntimeDebugger;
+  late final DartRuntimeDebugger dartRuntimeDebugger = DartRuntimeDebugger(
+    loadStrategy: this,
+    useLibraryBundleExpression: false,
+  );
 
   @override
   ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
