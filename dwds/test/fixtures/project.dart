@@ -47,8 +47,8 @@ class TestProject {
         ),
       );
 
-  /// The URI for the package_config.json is located in:
-  /// <project directory>/.dart_tool/package_config
+  /// The URI for the `package_config.json` is located in:
+  /// `<project directory>/.dart_tool/package_config`.
   Uri get packageConfigFile => p.toUri(
         p.join(
           absolutePackageDirectory,
