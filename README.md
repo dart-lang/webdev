@@ -1,4 +1,4 @@
-[![Dart](https://github.com/dart-lang/webdev/workflows/Dart%20CI/badge.svg)](https://github.com/dart-lang/webdev/actions?query=workflow%3A%22Dart+CI%22+branch%3Amaster)
+[![Dart](https://github.com/dart-lang/webdev/workflows/Dart%20CI/badge.svg)](https://github.com/dart-lang/webdev/actions?query=workflow%3A%22Dart+CI%22+branch%3Amain)
 
 ## Packages
 

@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/loaders/ddc.dart';
 import 'package:dwds/src/loaders/strategy.dart';
@@ -139,6 +140,12 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   String get loadModuleSnippet =>
       "function() { throw new Error('LoadStrategy.loadModuleSnippet is used. "
       "This is currently unsupported in the DDC library bundle format.'); }";
+
+  @override
+  late final DartRuntimeDebugger dartRuntimeDebugger = DartRuntimeDebugger(
+    loadStrategy: this,
+    useLibraryBundleExpression: true,
+  );
 
   @override
   BuildSettings get buildSettings => _buildSettings;

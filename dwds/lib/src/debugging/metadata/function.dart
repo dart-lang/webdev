@@ -17,13 +17,9 @@ class FunctionMetaData {
     RemoteDebugger remoteDebugger,
     RemoteObject remoteObject,
   ) async {
-    final evalExpression = '''
-      function() {
-        const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk');
-        const dart = sdk.dart;
-        return dart.getFunctionMetadata(this);
-      }
-    ''';
+    final evalExpression = globalToolConfiguration
+        .loadStrategy.dartRuntimeDebugger
+        .getFunctionMetadataJsExpression();
 
     final response = await remoteDebugger.sendCommand(
       'Runtime.callFunctionOn',

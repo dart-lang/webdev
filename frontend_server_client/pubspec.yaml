@@ -3,7 +3,7 @@ version: 4.0.0
 description: >-
   Client code to start and interact with the frontend_server compiler from the
   Dart SDK.
-repository: https://github.com/dart-lang/webdev/tree/master/frontend_server_client
+repository: https://github.com/dart-lang/webdev/tree/main/frontend_server_client
 
 environment:
   sdk: ^3.1.0

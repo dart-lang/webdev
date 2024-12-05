@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:dwds/asset_reader.dart';
+import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
@@ -361,6 +362,12 @@ class FakeStrategy extends LoadStrategy {
 
   @override
   String get loadModuleSnippet => '';
+
+  @override
+  late final DartRuntimeDebugger dartRuntimeDebugger = DartRuntimeDebugger(
+    loadStrategy: this,
+    useLibraryBundleExpression: false,
+  );
 
   @override
   ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
