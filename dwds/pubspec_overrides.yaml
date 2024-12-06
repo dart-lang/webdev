@@ -1,9 +1,0 @@
-dependency_overrides:
-  vm_service:
-    git:
-      url: https://github.com/dart-lang/sdk.git
-      path: pkg/vm_service
-  vm_service_interface:
-    git:
-      url: https://github.com/dart-lang/sdk.git
-      path: pkg/vm_service_interface
