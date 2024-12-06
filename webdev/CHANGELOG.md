@@ -1,4 +1,8 @@
-## 3.7.0-wip
+## 3.7.0
+
+- Update `dwds` constraint to `24.2.0`.
+- Update `package:vm_service` to `>=14.0.0 <16.0.0`.
+- Update `package:vm_service_interface` to `2.0.1`.
 
 ## 3.6.0
 
