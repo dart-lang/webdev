@@ -34,13 +34,13 @@ int _clientsConnected = 0;
 
 Logger _logger = Logger('DebugService');
 
-void Function(WebSocketChannel) _createNewConnectionHandler(
+void Function(WebSocketChannel, String?) _createNewConnectionHandler(
   ChromeProxyService chromeProxyService,
   ServiceExtensionRegistry serviceExtensionRegistry, {
   void Function(Map<String, Object>)? onRequest,
   void Function(Map<String, Object?>)? onResponse,
 }) {
-  return (webSocket) {
+  return (webSocket, subprotocol) {
     final responseController = StreamController<Map<String, Object?>>();
     webSocket.sink.addStream(
       responseController.stream.map((response) {
