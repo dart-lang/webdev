@@ -7,6 +7,7 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
@@ -21,6 +22,7 @@ void main() {
   group('Class |', () {
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
+      ddcModuleFormat: ModuleFormat.amd,
     );
     tearDownAll(provider.dispose);
     for (final compilationMode in CompilationMode.values) {

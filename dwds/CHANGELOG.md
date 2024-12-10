@@ -1,4 +1,4 @@
-## 24.2.0-wip
+## 24.2.0
 
 - Consolidate `FrontendServerDdcStrategyProvider` and `FrontendServerRequireStrategyProvider` under a shared parent class. - [#2517](https://github.com/dart-lang/webdev/issues/2517)
 - Remove `build_daemon_ddc_and_canary_evaluate_test`. - [2512](https://github.com/dart-lang/webdev/issues/2512)
@@ -12,6 +12,8 @@
   when using the library bundle format does not provide a useful bundle name.
 - Migrate to `package:web` v1.1.0.
 - Added support for some debugging APIs with the DDC library bundle format. - [#2488](https://github.com/dart-lang/webdev/issues/2488), [#2534](https://github.com/dart-lang/webdev/issues/2534)
+- Update `package:vm_service` to '>=14.2.4 <16.0.0'.
+- Update `package:vm_service_interface` to '2.0.1'.
 
 ## 24.1.0
 
