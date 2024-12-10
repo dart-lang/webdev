@@ -1,3 +1,7 @@
+## 24.2.1-wip
+
+- Update to be forward compatible with changes to `package:shelf_web_socket`.
+
 ## 24.2.0
 
 - Consolidate `FrontendServerDdcStrategyProvider` and `FrontendServerRequireStrategyProvider` under a shared parent class. - [#2517](https://github.com/dart-lang/webdev/issues/2517)
