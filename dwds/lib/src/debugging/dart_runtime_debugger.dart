@@ -14,6 +14,7 @@ class DartRuntimeDebugger {
   })  : _loadStrategy = loadStrategy,
         _useLibraryBundleExpression = useLibraryBundleExpression;
 
+  /// Generates a JS expression based on DDC module format.
   String _generateJsExpression(
     String ddcExpression,
     String libraryBundleExpression,
@@ -23,16 +24,18 @@ class DartRuntimeDebugger {
         : ddcExpression;
   }
 
+  /// Wraps a JS function call with SDK loader logic.
   String _wrapWithSdkLoader(String args, String functionCall) {
     return '''
       function($args) {
-        const sdk = ${_loadStrategy.loadModuleSnippet}("dart_sdk");
+        const sdk = ${_loadStrategy.loadModuleSnippet}('dart_sdk');
         const dart = sdk.dart;
         return dart.$functionCall;
       }
     ''';
   }
 
+  /// Wraps a JS function call with DDC library bundle loader logic.
   String _wrapWithBundleLoader(String args, String functionCall) {
     return '''
       function($args) {
@@ -41,6 +44,12 @@ class DartRuntimeDebugger {
     ''';
   }
 
+  /// Wraps an expression in an Immediately Invoked Function Expression (IIFE).
+  String _wrapInIIFE(String expression) {
+    return '($expression)()';
+  }
+
+  /// Builds a JS expression based on the loading strategy.
   String _buildExpression(
     String args,
     String ddcFunction,
@@ -52,6 +61,7 @@ class DartRuntimeDebugger {
     );
   }
 
+  /// Generates a JS expression for retrieving object metadata.
   String getObjectMetadataJsExpression() {
     return _buildExpression(
       'arg',
@@ -60,6 +70,7 @@ class DartRuntimeDebugger {
     );
   }
 
+  /// Generates a JS expression for retrieving object field names.
   String getObjectFieldNamesJsExpression() {
     return _buildExpression(
       '',
@@ -68,6 +79,7 @@ class DartRuntimeDebugger {
     );
   }
 
+  /// Generates a JS expression for retrieving function metadata.
   String getFunctionMetadataJsExpression() {
     return _buildExpression(
       '',
@@ -76,11 +88,23 @@ class DartRuntimeDebugger {
     );
   }
 
+  /// Generates a JS expression for retrieving a subrange of elements.
   String getSubRangeJsExpression() {
     return _buildExpression(
       'offset, count',
       'getSubRange(this, offset, count)',
       'getSubRange(this, offset, count)',
     );
+  }
+
+  /// Generates a JS expression for retrieving class metadata.
+  String getClassMetadataJsExpression(String libraryUri, String className) {
+    final expression = _buildExpression(
+      '',
+      "getClassMetadata('$libraryUri', '$className')",
+      "getClassMetadata('$libraryUri', '$className')",
+    );
+    // Use the helper method to wrap this in an IIFE
+    return _wrapInIIFE(expression);
   }
 }

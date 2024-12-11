@@ -104,7 +104,7 @@ class WebSocketSocketHandler extends SocketHandler {
 
   WebSocketSocketHandler() {
     _handler = webSocketHandler(
-      (WebSocketChannel channel) =>
+      (WebSocketChannel channel, _) =>
           _connectionsStream.add(WebSocketConnection(channel)),
     );
   }

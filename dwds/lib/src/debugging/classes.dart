@@ -77,14 +77,8 @@ class ClassHelper extends Domain {
 
     if (libraryUri == null || classId == null || className == null) return null;
 
-    final expression = '''
-      (function() {
-        const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk');
-        const dart = sdk.dart;
-        return dart.getClassMetadata('$libraryUri', '$className');
-      })()
-    ''';
-
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .getClassMetadataJsExpression(libraryUri, className);
     RemoteObject result;
     try {
       result = await inspector.remoteDebugger.evaluate(
