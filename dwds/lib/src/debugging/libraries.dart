@@ -82,13 +82,8 @@ class LibraryHelper extends Domain {
     final libraryUri = libraryRef.uri;
     if (libraryId == null || libraryUri == null) return null;
     // Fetch information about all the classes in this library.
-    final expression = '''
-      (function() {
-        const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk');
-        const dart = sdk.dart;
-        return dart.getLibraryMetadata('$libraryUri');
-      })()
-    ''';
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .getLibraryMetadataJsExpression(libraryUri);
 
     RemoteObject? result;
     try {
