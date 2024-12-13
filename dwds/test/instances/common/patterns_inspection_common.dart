@@ -100,7 +100,7 @@ void runTests({
           'obj': matchListInstance(type: 'Object'),
           // Renamed to avoid shadowing variables from previous case.
           'a\$': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'b'),
-          'n\$': 
+          'n\$':
               matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3.14),
         });
       });
