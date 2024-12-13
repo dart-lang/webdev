@@ -98,8 +98,9 @@ void runTests({
 
         expect(await getFrameVariables(frame), {
           'obj': matchListInstance(type: 'Object'),
-          'a': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'b'),
-          'n': matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3.14),
+          // Renamed to avoid shadowing variables from previous case.
+          'a\$': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'b'),
+          'n\$': matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3.14),
         });
       });
     });
