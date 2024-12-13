@@ -156,4 +156,12 @@ class DartRuntimeDebugger {
       'getSetElements(this)',
     );
   }
+
+  String getRecordFieldsJsExpression() {
+    return _buildExpression(
+      '',
+      'getRecordFields(this)',
+      'getRecordFields(this)',
+    );
+  }
 }

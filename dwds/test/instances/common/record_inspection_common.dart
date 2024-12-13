@@ -66,6 +66,7 @@ void runTests({
           verboseCompiler: debug,
           experiments: ['records', 'patterns'],
           canaryFeatures: canaryFeatures,
+          moduleFormat: provider.ddcModuleFormat,
         ),
       );
       service = context.debugConnection.vmService;

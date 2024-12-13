@@ -524,7 +524,8 @@ class InstanceHelper extends Domain {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression = _jsRuntimeFunctionCall('getRecordFields(this)');
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .getRecordFieldsJsExpression();
 
     final result = await inspector.jsCallFunctionOn(record, expression, []);
     final fieldNameElements =
