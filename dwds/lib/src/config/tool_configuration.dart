@@ -61,6 +61,7 @@ class DebugSettings {
   final bool useSseForDebugBackend;
   final bool useSseForInjectedClient;
   final bool spawnDds;
+  final int? ddsPort;
   final bool enableDevToolsLaunch;
   final bool launchDevToolsInNewWindow;
   final bool emitDebugEvents;
@@ -75,6 +76,7 @@ class DebugSettings {
     this.useSseForDebugBackend = true,
     this.useSseForInjectedClient = true,
     this.spawnDds = true,
+    this.ddsPort,
     this.enableDevToolsLaunch = true,
     this.launchDevToolsInNewWindow = true,
     this.emitDebugEvents = true,
