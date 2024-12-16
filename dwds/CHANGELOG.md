@@ -1,6 +1,7 @@
-## 24.2.1-wip
+## 24.2.1
 
 - Update to be forward compatible with changes to `package:shelf_web_socket`.
+- Add support for binding DDS to a custom port.
 
 ## 24.2.0
 

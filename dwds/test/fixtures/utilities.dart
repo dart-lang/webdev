@@ -125,6 +125,7 @@ class TestDebugSettings extends DebugSettings {
     required super.useSseForDebugProxy,
     required super.useSseForInjectedClient,
     required super.spawnDds,
+    required super.ddsPort,
     required super.enableDevToolsLaunch,
     required super.launchDevToolsInNewWindow,
     required super.emitDebugEvents,
@@ -138,6 +139,7 @@ class TestDebugSettings extends DebugSettings {
     bool? enableDebugExtension,
     bool? useSse,
     bool? spawnDds,
+    int? ddsPort,
     bool? enableDevToolsLaunch,
     bool? launchDevToolsInNewWindow,
     bool? emitDebugEvents,
@@ -152,6 +154,7 @@ class TestDebugSettings extends DebugSettings {
       useSseForDebugBackend: useSse ?? useSseForDebugBackend,
       useSseForInjectedClient: useSse ?? useSseForInjectedClient,
       spawnDds: spawnDds ?? this.spawnDds,
+      ddsPort: ddsPort ?? this.ddsPort,
       enableDevToolsLaunch: enableDevToolsLaunch ?? this.enableDevToolsLaunch,
       launchDevToolsInNewWindow:
           launchDevToolsInNewWindow ?? this.launchDevToolsInNewWindow,
