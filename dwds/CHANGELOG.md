@@ -1,6 +1,8 @@
-## 24.2.1-wip
+## 24.2.1
 
 - Update to be forward compatible with changes to `package:shelf_web_socket`.
+- Expose a partial implementation of
+  `FrontendServerDdcLibraryBundleStrategyProvider`.
 
 ## 24.2.0
 
