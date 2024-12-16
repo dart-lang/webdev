@@ -29,6 +29,7 @@ void main() {
   test('DWDS starts DDS with a specified port', () async {
     final context = TestContext(TestProject.test, provider);
 
+    // Find a unused port for the test.
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     final expectedPort = server.port;
     await server.close();
