@@ -161,6 +161,7 @@ class DartRuntimeDebugger {
     );
   }
 
+  /// Generates a JS expression for retrieving the fields of a record.
   String getRecordFieldsJsExpression() {
     return _buildExpression(
       '',
