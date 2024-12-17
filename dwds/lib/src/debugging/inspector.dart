@@ -193,7 +193,7 @@ class AppInspector implements AppInspectorInterface {
   @override
   Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {
     final load = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-        .dloadReplJsExpression(fieldName);
+        .getPropertyJsExpression(fieldName);
     return jsCallFunctionOn(receiver, load, []);
   }
 
@@ -746,7 +746,7 @@ class AppInspector implements AppInspectorInterface {
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
     final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-        .getExtensionNamesJsExpression();
+        .getDartDeveloperExtensionNamesJsExpression();
     final extensionRpcs = <String>[];
     final params = {
       'expression': expression,
