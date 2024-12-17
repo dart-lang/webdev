@@ -107,4 +107,57 @@ class DartRuntimeDebugger {
     // Use the helper method to wrap this in an IIFE
     return _wrapInIIFE(expression);
   }
+
+  /// Generates a JS expression for retrieving Dart Developer Extension Names.
+  String getDartDeveloperExtensionNamesJsExpression() {
+    return _generateJsExpression(
+      "${_loadStrategy.loadModuleSnippet}('dart_sdk').developer._extensions.keys.toList();",
+      'dartDevEmbedder.debugger.extensionNames',
+    );
+  }
+
+  /// Generates a JS expression for retrieving metadata of classes in a library.
+  String getClassesInLibraryJsExpression(String libraryUri) {
+    final expression = _buildExpression(
+      '',
+      "getLibraryMetadata('$libraryUri')",
+      "getClassesInLibrary('$libraryUri')",
+    );
+    // Use the helper method to wrap this in an IIFE
+    return _wrapInIIFE(expression);
+  }
+
+  /// Generates a JS expression for retrieving map elements.
+  String getMapElementsJsExpression() {
+    return _buildExpression(
+      '',
+      'getMapElements(this)',
+      'getMapElements(this)',
+    );
+  }
+
+  /// Generates a JS expression for getting a property from a JS object.
+  String getPropertyJsExpression(String fieldName) {
+    return _generateJsExpression(
+      '''
+      function() {
+        return this["$fieldName"];
+      }
+      ''',
+      '''
+      function() {
+        return this["$fieldName"];
+      }
+      ''',
+    );
+  }
+
+  /// Generates a JS expression for retrieving set elements.
+  String getSetElementsJsExpression() {
+    return _buildExpression(
+      '',
+      'getSetElements(this)',
+      'getSetElements(this)',
+    );
+  }
 }
