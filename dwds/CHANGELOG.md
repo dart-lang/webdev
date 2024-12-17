@@ -4,6 +4,7 @@
 - Added support for some debugging APIs with the DDC library bundle format. - [#2537](https://github.com/dart-lang/webdev/issues/2537)
 - Expose a partial implementation of
   `FrontendServerDdcLibraryBundleStrategyProvider`.
+- Update `package:vm_service_interface` to '^2.0.1'.
 
 ## 24.2.0
 
