@@ -306,7 +306,8 @@ class InstanceHelper extends Domain {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression = _jsRuntimeFunctionCall('getMapElements(this)');
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .getMapElementsJsExpression();
 
     final keysAndValues = await inspector.jsCallFunctionOn(map, expression, []);
     final keys = await inspector.loadField(keysAndValues, 'keys');
@@ -674,8 +675,8 @@ class InstanceHelper extends Domain {
     final length = metaData.length;
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
-
-    final expression = _jsRuntimeFunctionCall('getSetElements(this)');
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .getSetElementsJsExpression();
 
     final result =
         await inspector.jsCallFunctionOn(remoteObject, expression, []);
