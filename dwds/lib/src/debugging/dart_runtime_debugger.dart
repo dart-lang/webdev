@@ -108,16 +108,16 @@ class DartRuntimeDebugger {
     return _wrapInIIFE(expression);
   }
 
-  /// Generates a JS expression for retrieving extension names.
-  String getExtensionNamesJsExpression() {
+  /// Generates a JS expression for retrieving Dart Developer Extension Names.
+  String getDartDeveloperExtensionNamesJsExpression() {
     return _generateJsExpression(
       "${_loadStrategy.loadModuleSnippet}('dart_sdk').developer._extensions.keys.toList();",
       'dartDevEmbedder.debugger.extensionNames',
     );
   }
 
-  /// Generates a JS expression for retrieving library metadata.
-  String getLibraryMetadataJsExpression(String libraryUri) {
+  /// Generates a JS expression for retrieving metadata of classes in a library.
+  String getClassesInLibraryJsExpression(String libraryUri) {
     final expression = _buildExpression(
       '',
       "getLibraryMetadata('$libraryUri')",
@@ -136,10 +136,14 @@ class DartRuntimeDebugger {
     );
   }
 
-  /// Generates a JS expression for dynamically loading an object's field.
-  String dloadReplJsExpression(String fieldName) {
+  /// Generates a JS expression for getting a property from a JS object.
+  String getPropertyJsExpression(String fieldName) {
     return _generateJsExpression(
-      _wrapWithSdkLoader('', 'dloadRepl(this, "$fieldName")'),
+      '''
+      function() {
+        return this["$fieldName"];
+      }
+      ''',
       '''
       function() {
         return this["$fieldName"];

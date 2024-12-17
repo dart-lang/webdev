@@ -83,7 +83,7 @@ class LibraryHelper extends Domain {
     if (libraryId == null || libraryUri == null) return null;
     // Fetch information about all the classes in this library.
     final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-        .getLibraryMetadataJsExpression(libraryUri);
+        .getClassesInLibraryJsExpression(libraryUri);
 
     RemoteObject? result;
     try {
