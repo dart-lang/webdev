@@ -160,4 +160,13 @@ class DartRuntimeDebugger {
       'getSetElements(this)',
     );
   }
+
+  /// Generates a JS expression for retrieving the fields of a record.
+  String getRecordFieldsJsExpression() {
+    return _buildExpression(
+      '',
+      'getRecordFields(this)',
+      'getRecordFields(this)',
+    );
+  }
 }
