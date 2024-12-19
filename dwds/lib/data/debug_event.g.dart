@@ -211,12 +211,13 @@ class DebugEventBuilder implements Builder<DebugEvent, DebugEventBuilder> {
   _$DebugEvent _build() {
     final _$result = _$v ??
         new _$DebugEvent._(
-            kind: BuiltValueNullFieldError.checkNotNull(
-                kind, r'DebugEvent', 'kind'),
-            eventData: BuiltValueNullFieldError.checkNotNull(
-                eventData, r'DebugEvent', 'eventData'),
-            timestamp: BuiltValueNullFieldError.checkNotNull(
-                timestamp, r'DebugEvent', 'timestamp'));
+          kind: BuiltValueNullFieldError.checkNotNull(
+              kind, r'DebugEvent', 'kind'),
+          eventData: BuiltValueNullFieldError.checkNotNull(
+              eventData, r'DebugEvent', 'eventData'),
+          timestamp: BuiltValueNullFieldError.checkNotNull(
+              timestamp, r'DebugEvent', 'timestamp'),
+        );
     replace(_$result);
     return _$result;
   }
@@ -303,7 +304,10 @@ class BatchedDebugEventsBuilder
   _$BatchedDebugEvents _build() {
     _$BatchedDebugEvents _$result;
     try {
-      _$result = _$v ?? new _$BatchedDebugEvents._(events: events.build());
+      _$result = _$v ??
+          new _$BatchedDebugEvents._(
+            events: events.build(),
+          );
     } catch (_) {
       late String _$failedField;
       try {

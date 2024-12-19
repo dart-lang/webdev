@@ -66,6 +66,7 @@ class DevHandler {
   final bool _useSseForDebugProxy;
   final bool _useSseForInjectedClient;
   final bool _spawnDds;
+  final int? _ddsPort;
   final bool _launchDevToolsInNewWindow;
   final ExpressionCompiler? _expressionCompiler;
   final DwdsInjector _injected;
@@ -90,6 +91,7 @@ class DevHandler {
     this._expressionCompiler,
     this._injected,
     this._spawnDds,
+    this._ddsPort,
     this._launchDevToolsInNewWindow,
   ) {
     _subs.add(buildResults.listen(_emitBuildResults));
@@ -215,6 +217,7 @@ class DevHandler {
       useSse: false,
       expressionCompiler: _expressionCompiler,
       spawnDds: _spawnDds,
+      ddsPort: _ddsPort,
     );
   }
 
@@ -645,6 +648,7 @@ class DevHandler {
         useSse: _useSseForDebugProxy,
         expressionCompiler: _expressionCompiler,
         spawnDds: _spawnDds,
+        ddsPort: _ddsPort,
       );
       appServices = await _createAppDebugServices(
         debugService,

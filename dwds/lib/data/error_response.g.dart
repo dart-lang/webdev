@@ -147,10 +147,11 @@ class ErrorResponseBuilder
   _$ErrorResponse _build() {
     final _$result = _$v ??
         new _$ErrorResponse._(
-            error: BuiltValueNullFieldError.checkNotNull(
-                error, r'ErrorResponse', 'error'),
-            stackTrace: BuiltValueNullFieldError.checkNotNull(
-                stackTrace, r'ErrorResponse', 'stackTrace'));
+          error: BuiltValueNullFieldError.checkNotNull(
+              error, r'ErrorResponse', 'error'),
+          stackTrace: BuiltValueNullFieldError.checkNotNull(
+              stackTrace, r'ErrorResponse', 'stackTrace'),
+        );
     replace(_$result);
     return _$result;
   }

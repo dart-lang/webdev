@@ -300,14 +300,15 @@ class DevToolsRequestBuilder
   _$DevToolsRequest _build() {
     final _$result = _$v ??
         new _$DevToolsRequest._(
-            appId: BuiltValueNullFieldError.checkNotNull(
-                appId, r'DevToolsRequest', 'appId'),
-            instanceId: BuiltValueNullFieldError.checkNotNull(
-                instanceId, r'DevToolsRequest', 'instanceId'),
-            contextId: contextId,
-            tabUrl: tabUrl,
-            uriOnly: uriOnly,
-            client: client);
+          appId: BuiltValueNullFieldError.checkNotNull(
+              appId, r'DevToolsRequest', 'appId'),
+          instanceId: BuiltValueNullFieldError.checkNotNull(
+              instanceId, r'DevToolsRequest', 'instanceId'),
+          contextId: contextId,
+          tabUrl: tabUrl,
+          uriOnly: uriOnly,
+          client: client,
+        );
     replace(_$result);
     return _$result;
   }
@@ -418,11 +419,12 @@ class DevToolsResponseBuilder
   _$DevToolsResponse _build() {
     final _$result = _$v ??
         new _$DevToolsResponse._(
-            success: BuiltValueNullFieldError.checkNotNull(
-                success, r'DevToolsResponse', 'success'),
-            promptExtension: BuiltValueNullFieldError.checkNotNull(
-                promptExtension, r'DevToolsResponse', 'promptExtension'),
-            error: error);
+          success: BuiltValueNullFieldError.checkNotNull(
+              success, r'DevToolsResponse', 'success'),
+          promptExtension: BuiltValueNullFieldError.checkNotNull(
+              promptExtension, r'DevToolsResponse', 'promptExtension'),
+          error: error,
+        );
     replace(_$result);
     return _$result;
   }
