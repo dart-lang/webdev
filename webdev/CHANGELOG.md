@@ -1,7 +1,5 @@
 ## 3.7.1-wip
 
-- Update `dwds` constraint to `24.3.0`.
-
 ## 3.7.0
 
 - Update `dwds` constraint to `24.2.0`.
