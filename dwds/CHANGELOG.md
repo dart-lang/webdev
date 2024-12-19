@@ -1,4 +1,4 @@
-## 24.2.1
+## 24.3.0
 
 - Update to be forward compatible with changes to `package:shelf_web_socket`.
 - Added support for some debugging APIs with the DDC library bundle format. - [#2537](https://github.com/dart-lang/webdev/issues/2537)
