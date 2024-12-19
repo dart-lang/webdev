@@ -22,6 +22,7 @@ export 'src/loaders/build_runner_require.dart'
 export 'src/loaders/ddc.dart' show DdcStrategy;
 export 'src/loaders/frontend_server_strategy_provider.dart'
     show
+        FrontendServerDdcLibraryBundleStrategyProvider,
         FrontendServerDdcStrategyProvider,
         FrontendServerRequireStrategyProvider;
 export 'src/loaders/require.dart' show RequireStrategy;
