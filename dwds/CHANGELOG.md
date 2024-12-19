@@ -2,6 +2,7 @@
 
 - Update to be forward compatible with changes to `package:shelf_web_socket`.
 - Add support for binding DDS to a custom port.
+- Added support for some debugging APIs with the DDC library bundle format. - [#2537](https://github.com/dart-lang/webdev/issues/2537),[#2544](https://github.com/dart-lang/webdev/issues/2544)
 
 ## 24.2.0
 
