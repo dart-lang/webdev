@@ -13,6 +13,7 @@ import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/services/batched_expression_evaluator.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
+import 'package:dwds/src/utilities/shared.dart';
 
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' hide LogRecord;
@@ -36,6 +37,7 @@ void main() async {
 
     late StreamController<DebuggerPausedEvent> pausedController;
     late StreamController<Event> debugEventController;
+    late FakeInspector inspector;
     setUp(() async {
       final assetReader = FakeAssetReader(sourceMap: '');
       final toolConfiguration = TestToolConfiguration.withLoadStrategy(
@@ -64,8 +66,7 @@ void main() async {
         skipLists,
         root,
       );
-      final inspector =
-          FakeInspector(webkitDebugger, fakeIsolate: simpleIsolate);
+      inspector = FakeInspector(webkitDebugger, fakeIsolate: simpleIsolate);
       debugger.updateInspector(inspector);
 
       _evaluator = ExpressionEvaluator(
@@ -190,6 +191,21 @@ void main() async {
           const TypeMatcher<RemoteObject>()
               .having((o) => o.value, 'value', 'true'),
         );
+      });
+
+      test('retries failed batched expression', () async {
+        safeUnawaited(
+          evaluator.evaluateExpression('2', 'main.dart', 'true', {}),
+        );
+
+        await evaluator.evaluateExpression('2', 'main.dart', 'false', {});
+        expect(inspector.functionsCalled.length, 3);
+        expect(
+          inspector.functionsCalled[0].contains('return [ true, false ];'),
+          true,
+        );
+        expect(inspector.functionsCalled[1].contains('return true;'), true);
+        expect(inspector.functionsCalled[2].contains('return false;'), true);
       });
 
       test('returns error if closed', () async {
