@@ -19,7 +19,7 @@ void main() {
     sdkVersion = Version(sdkVersion.major, sdkVersion.minor, 0);
 
     final sdkConstraint = VersionConstraint.compatibleWith(sdkVersion);
-    final pubspecSdkConstraint = pubspec.environment!['sdk']!;
+    final pubspecSdkConstraint = pubspec.environment['sdk']!;
     expect(sdkConstraint.allowsAll(pubspecSdkConstraint), true,
         reason:
             'Min sdk constraint is outdated. Please update SDK constraint in '
