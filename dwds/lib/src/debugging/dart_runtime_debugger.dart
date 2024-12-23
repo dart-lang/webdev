@@ -169,4 +169,34 @@ class DartRuntimeDebugger {
       'getRecordFields(this)',
     );
   }
+
+  /// Generates a JS expression for retrieving the fields of a record type.
+  String getRecordTypeFieldsJsExpression() {
+    return _buildExpression(
+      '',
+      'getRecordTypeFields(this)',
+      'getRecordTypeFields(this)',
+    );
+  }
+
+  /// Generates a JS expression for calling an instance method on an object.
+  String callInstanceMethodJsExpression(String methodName) {
+    String generateInstanceMethodJsExpression(String functionCall) {
+      return '''
+        function () {
+          if (!Object.getPrototypeOf(this)) { return 'Instance of PlainJavaScriptObject'; }
+          return $functionCall;
+        }
+      ''';
+    }
+
+    return _generateJsExpression(
+      generateInstanceMethodJsExpression(
+        '${_loadStrategy.loadModuleSnippet}("dart_sdk").dart.dsendRepl(this, "$methodName", arguments)',
+      ),
+      generateInstanceMethodJsExpression(
+        'dartDevEmbedder.debugger.callInstanceMethod(this, "$methodName", arguments)',
+      ),
+    );
+  }
 }
