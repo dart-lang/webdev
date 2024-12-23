@@ -134,38 +134,37 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
       first.scope,
     );
 
+    final listId = list.objectId;
+    if (listId == null) {
+      for (final request in requests) {
+        safeUnawaited(_evaluateBatch([request]));
+      }
+      return;
+    }
+
     for (var i = 0; i < requests.length; i++) {
       final request = requests[i];
       if (request.completer.isCompleted) continue;
       _logger.fine('Getting result out of a batch for ${request.expression}');
 
-      final listId = list.objectId;
-      if (listId == null) {
-        final error = createError(
-          EvaluationErrorKind.internal,
-          'No batch result object ID.',
-        );
-        request.completer.complete(error);
-      } else {
-        safeUnawaited(
-          _inspector
-              .getProperties(
-            listId,
-            offset: i,
-            count: 1,
-            length: requests.length,
-          )
-              .then((v) {
-            final result = v.first.value!;
-            _logger.fine(
-              'Got result out of a batch for ${request.expression}: $result',
-            );
-            request.completer.complete(result);
-          }),
-          onError: (error, stackTrace) =>
-              request.completer.completeError(error, stackTrace),
-        );
-      }
+      safeUnawaited(
+        _inspector
+            .getProperties(
+          listId,
+          offset: i,
+          count: 1,
+          length: requests.length,
+        )
+            .then((v) {
+          final result = v.first.value!;
+          _logger.fine(
+            'Got result out of a batch for ${request.expression}: $result',
+          );
+          request.completer.complete(result);
+        }),
+        onError: (error, stackTrace) =>
+            request.completer.completeError(error, stackTrace),
+      );
     }
   }
 }

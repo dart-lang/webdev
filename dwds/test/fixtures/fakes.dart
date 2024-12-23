@@ -48,6 +48,7 @@ Isolate get simpleIsolate => Isolate(
 
 class FakeInspector implements AppInspector {
   final WebkitDebugger _remoteDebugger;
+  final List<String> functionsCalled = [];
   FakeInspector(this._remoteDebugger, {required this.fakeIsolate});
 
   Isolate fakeIsolate;
@@ -61,8 +62,10 @@ class FakeInspector implements AppInspector {
   Future<RemoteObject> callFunction(
     String function,
     Iterable<String> argumentIds,
-  ) async =>
-      RemoteObject({'type': 'string', 'value': 'true'});
+  ) async {
+    functionsCalled.add(function);
+    return RemoteObject({'type': 'string', 'value': 'true'});
+  }
 
   @override
   Future<void> initialize() async => {};
@@ -472,4 +475,8 @@ class FakeExpressionCompiler implements ExpressionCompiler {
 final fakeWipResponse = WipResponse({
   'id': 1,
   'result': {'fake': ''},
+});
+
+final fakeFailingWipResponse = WipResponse({
+  'result': 'Error: Bad request',
 });
