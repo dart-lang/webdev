@@ -1,8 +1,11 @@
-## 24.2.1-wip
+## 24.3.0
 
 - Update to be forward compatible with changes to `package:shelf_web_socket`.
 - Added support for some debugging APIs with the DDC library bundle format. - [#2537](https://github.com/dart-lang/webdev/issues/2537),[#2544](https://github.com/dart-lang/webdev/issues/2544),[#2548](https://github.com/dart-lang/webdev/issues/2548)
 - Fix issue where batched expression evals were failing if any subexpression failed. - [#2551](https://github.com/dart-lang/webdev/issues/2551)
+- Expose a partial implementation of
+  `FrontendServerDdcLibraryBundleStrategyProvider`.
+- Update `package:vm_service_interface` to '^2.0.1'.
 
 ## 24.2.0
 
