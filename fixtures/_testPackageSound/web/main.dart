@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
 import 'dart:developer';
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'dart:html';
 
 import 'package:_test_package_sound/test_library.dart';
