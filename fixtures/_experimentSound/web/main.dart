@@ -4,6 +4,8 @@
 
 import 'dart:async';
 import 'dart:core';
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'dart:html';
 
 void main() {
