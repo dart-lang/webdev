@@ -653,7 +653,8 @@ class InstanceHelper extends Domain {
     // We do this in in awkward way because we want the names and types, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression = _jsRuntimeFunctionCall('getRecordTypeFields(this)');
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .getRecordTypeFieldsJsExpression();
 
     final result = await inspector.jsCallFunctionOn(record, expression, []);
     final fieldNameElements =
@@ -887,11 +888,3 @@ class InstanceHelper extends Domain {
     }
   }
 }
-
-String _jsRuntimeFunctionCall(String expression) => '''
-  function() {
-    const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk');
-    const dart = sdk.dart;
-    return dart.$expression;
-  }
-''';
