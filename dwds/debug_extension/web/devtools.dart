@@ -5,6 +5,8 @@
 @JS()
 library;
 
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'dart:html';
 
 import 'package:dwds/data/debug_info.dart';
