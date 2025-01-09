@@ -518,10 +518,8 @@ class ChromeProxyService implements VmServiceInterface {
         v is String ? v : jsonEncode(v),
       ),
     );
-    final expression = '''
-${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
-    "$method", JSON.stringify(${jsonEncode(stringArgs)}));
-''';
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .invokeExtensionJsExpression(method, jsonEncode(stringArgs));
     final result = await inspector.jsEvaluate(expression, awaitPromise: true);
     final decodedResponse =
         jsonDecode(result.value as String) as Map<String, dynamic>;

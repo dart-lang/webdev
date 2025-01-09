@@ -11,6 +11,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
@@ -29,8 +30,14 @@ import 'fixtures/utilities.dart';
 void main() {
   // Change to true to see verbose output from the tests.
   final debug = false;
+  final moduleFormat = ModuleFormat.amd;
+  final canaryFeatures = false;
 
-  final provider = TestSdkConfigurationProvider(verbose: debug);
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    ddcModuleFormat: moduleFormat,
+    canaryFeatures: canaryFeatures,
+  );
   tearDownAll(provider.dispose);
 
   final context = TestContext(TestProject.test, provider);
@@ -42,6 +49,8 @@ void main() {
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
           verboseCompiler: false,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
         ),
       );
     });
