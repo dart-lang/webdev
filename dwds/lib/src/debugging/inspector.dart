@@ -210,12 +210,8 @@ class AppInspector implements AppInspectorInterface {
       throw UnsupportedError('Named arguments are not yet supported');
     }
     // We use the JS pseudo-variable 'arguments' to get the list of all arguments.
-    final send = '''
-        function () {
-          if (!Object.getPrototypeOf(this)) { return 'Instance of PlainJavaScriptObject';}
-          return ${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").dart.dsendRepl(this, "$methodName", arguments);
-        }
-        ''';
+    final send = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .callInstanceMethodJsExpression(methodName);
     final remote = await jsCallFunctionOn(receiver, send, positionalArgs);
     return remote;
   }
