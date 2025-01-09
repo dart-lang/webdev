@@ -1,4 +1,4 @@
-## 24.3.1-wip
+## 24.3.1
 
 - Add support for binding DDS to a custom port.
 
