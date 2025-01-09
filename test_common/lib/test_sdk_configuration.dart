@@ -35,7 +35,7 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
     bool verbose = false,
     this.ddcModuleFormat = ModuleFormat.amd,
   }) : _verbose = verbose {
-    _sdkDirectory = Directory.systemTemp.createTempSync('sdk copy');
+    _sdkDirectory = Directory.systemTemp.createTempSync('sdk_copy');
     sdkLayout = TestSdkLayout.createDefault(_sdkDirectory.path);
   }
 
