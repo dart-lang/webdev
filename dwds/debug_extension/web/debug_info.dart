@@ -6,7 +6,11 @@
 library;
 
 import 'dart:convert';
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'dart:html';
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'dart:js';
 
 import 'package:dwds/data/debug_info.dart';
