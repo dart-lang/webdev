@@ -172,12 +172,13 @@ class ConnectRequestBuilder
   _$ConnectRequest _build() {
     final _$result = _$v ??
         new _$ConnectRequest._(
-            appId: BuiltValueNullFieldError.checkNotNull(
-                appId, r'ConnectRequest', 'appId'),
-            instanceId: BuiltValueNullFieldError.checkNotNull(
-                instanceId, r'ConnectRequest', 'instanceId'),
-            entrypointPath: BuiltValueNullFieldError.checkNotNull(
-                entrypointPath, r'ConnectRequest', 'entrypointPath'));
+          appId: BuiltValueNullFieldError.checkNotNull(
+              appId, r'ConnectRequest', 'appId'),
+          instanceId: BuiltValueNullFieldError.checkNotNull(
+              instanceId, r'ConnectRequest', 'instanceId'),
+          entrypointPath: BuiltValueNullFieldError.checkNotNull(
+              entrypointPath, r'ConnectRequest', 'entrypointPath'),
+        );
     replace(_$result);
     return _$result;
   }

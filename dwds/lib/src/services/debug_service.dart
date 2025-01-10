@@ -137,6 +137,7 @@ class DebugService {
   final HttpServer _server;
   final bool _useSse;
   final bool _spawnDds;
+  final int? _ddsPort;
   final UrlEncoder? _urlEncoder;
   DartDevelopmentServiceLauncher? _dds;
 
@@ -154,6 +155,7 @@ class DebugService {
     this._server,
     this._useSse,
     this._spawnDds,
+    this._ddsPort,
     this._urlEncoder,
   );
 
@@ -175,7 +177,7 @@ class DebugService {
       serviceUri: Uri(
         scheme: 'http',
         host: hostname,
-        port: 0,
+        port: _ddsPort ?? 0,
       ),
     );
     return _dds!;
@@ -231,6 +233,7 @@ class DebugService {
     void Function(Map<String, Object>)? onRequest,
     void Function(Map<String, Object?>)? onResponse,
     bool spawnDds = true,
+    int? ddsPort,
     bool useSse = false,
     ExpressionCompiler? expressionCompiler,
   }) async {
@@ -299,6 +302,7 @@ class DebugService {
       server,
       useSse,
       spawnDds,
+      ddsPort,
       urlEncoder,
     );
   }

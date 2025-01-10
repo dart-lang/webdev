@@ -128,6 +128,7 @@ class Dwds {
       debugSettings.expressionCompiler,
       injected,
       debugSettings.spawnDds,
+      debugSettings.ddsPort,
       debugSettings.launchDevToolsInNewWindow,
     );
 
