@@ -102,14 +102,6 @@ class TestProject {
     htmlEntryFileName: 'index.html',
   );
 
-  static const testDdcLibraryBundle = TestProject._(
-    packageName: '_test_sound',
-    packageDirectory: '_testSound',
-    webAssetsPath: 'example/hello_world',
-    dartEntryFileName: 'main_ddc_library_bundle.dart',
-    htmlEntryFileName: 'index.html',
-  );
-
   static final testScopes = TestProject._(
     packageName: '_test_sound',
     packageDirectory: '_testSound',
