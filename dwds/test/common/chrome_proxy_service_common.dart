@@ -739,10 +739,18 @@ void runTests({
         for (final scriptRef in scripts.scripts!) {
           final script =
               await service.getObject(isolate.id!, scriptRef.id!) as Script;
-          final serverPath = DartUri(script.uri!, 'hello_world/').serverPath;
+          var serverPath = DartUri(script.uri!, 'hello_world/').serverPath;
+          if (serverPath.startsWith('hello_world/packages/')) {
+            serverPath = serverPath.replaceFirst('hello_world/', '');
+          }
           final result = await http
               .get(Uri.parse('http://localhost:${context.port}/$serverPath'));
-          expect(script.source, result.body);
+          // TODO: Figure out if we can encode the sript as utf8 and avoid this
+          final body =
+              (moduleFormat == ModuleFormat.ddc && canaryFeatures == true)
+                  ? utf8.decode(result.body.codeUnits)
+                  : result.body;
+          expect(script.source, body);
           expect(scriptRef.uri, endsWith('.dart'));
           expect(script.tokenPosTable, isNotEmpty);
         }
