@@ -1,3 +1,9 @@
+## 24.3.3-wip
+
+## 24.3.2
+
+- Bump `package:dds` to `>=4.2.5 <6.0.0`.
+
 ## 24.3.1
 
 - Add support for binding DDS to a custom port.
