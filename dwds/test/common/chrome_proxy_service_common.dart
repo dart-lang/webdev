@@ -1542,24 +1542,20 @@ void runTests({
         expect(first.code!.name, 'printCount');
       });
 
-      test(
-        'stack has a variable',
-        () async {
-          final stack = await breakAt('callPrintCount');
-          expect(stack, isNotNull);
-          expect(stack.frames, hasLength(1));
-          final first = stack.frames!.first;
-          expect(first.kind, 'Regular');
-          expect(first.code!.kind, 'Dart');
-          expect(first.code!.name, '<closure>');
-          // TODO: Make this more precise once this case doesn't
-          // also include all the libraries.
-          expect(first.vars, hasLength(greaterThanOrEqualTo(1)));
-          final underscore = first.vars!.firstWhere((v) => v.name == '_');
-          expect(underscore, isNotNull);
-        },
-        skip: 'https://github.com/dart-lang/webdev/issues/2570',
-      );
+      test('stack has a variable', () async {
+        final stack = await breakAt('callPrintCount');
+        expect(stack, isNotNull);
+        expect(stack.frames, hasLength(1));
+        final first = stack.frames!.first;
+        expect(first.kind, 'Regular');
+        expect(first.code!.kind, 'Dart');
+        expect(first.code!.name, '<closure>');
+        // TODO: Make this more precise once this case doesn't
+        // also include all the libraries.
+        expect(first.vars, hasLength(greaterThanOrEqualTo(1)));
+        final underscore = first.vars!.firstWhere((v) => v.name == 'timer');
+        expect(underscore, isNotNull);
+      });
 
       test('collects async frames', () async {
         final stack = await breakAt('asyncCall');
