@@ -60,16 +60,6 @@ Future<List<Property>> visibleVariables({
     final objectId = scope.object.objectId;
     if (objectId != null) {
       final properties = await inspector.getProperties(objectId);
-      for (final property in properties) {
-        if (property.name == '_\$35wc2\$35formal') {
-          final newProperty = Property({
-            'name': '_',
-            'value': property.value,
-          });
-          properties.remove(property);
-          properties.add(newProperty);
-        }
-      }
       allProperties.addAll(properties);
     }
   }

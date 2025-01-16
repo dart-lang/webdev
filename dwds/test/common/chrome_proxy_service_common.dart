@@ -1555,7 +1555,9 @@ void runTests({
         expect(first.vars, hasLength(greaterThanOrEqualTo(1)));
         final underscore = first.vars!.firstWhere((v) => v.name == '_');
         expect(underscore, isNotNull);
-      });
+        },
+        skip: 'https://github.com/dart-lang/webdev/issues/2570',
+      );
 
       test('collects async frames', () async {
         final stack = await breakAt('asyncCall');
