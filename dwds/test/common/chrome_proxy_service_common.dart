@@ -739,10 +739,7 @@ void runTests({
         for (final scriptRef in scripts.scripts!) {
           final script =
               await service.getObject(isolate.id!, scriptRef.id!) as Script;
-          var serverPath = DartUri(script.uri!, 'hello_world/').serverPath;
-          if (serverPath.startsWith('hello_world/packages/')) {
-            serverPath = serverPath.replaceFirst('hello_world/', '');
-          }
+          final serverPath = DartUri(script.uri!, '').serverPath;
           final result = await http
               .get(Uri.parse('http://localhost:${context.port}/$serverPath'));
           // TODO: Figure out if we can encode the sript as utf8 and avoid this
