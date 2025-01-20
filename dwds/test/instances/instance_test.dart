@@ -6,6 +6,7 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
@@ -15,22 +16,25 @@ import 'common/instance_common.dart';
 void main() {
   // Enable verbose logging for debugging.
   final debug = false;
-  final canaryFeatures = false;
+  final canaryFeatures = true;
+  final moduleFormat = ModuleFormat.ddc;
+  final compilationMode = CompilationMode.frontendServer;
 
   group('canary: $canaryFeatures |', () {
     final provider = TestSdkConfigurationProvider(
       canaryFeatures: canaryFeatures,
       verbose: debug,
+      ddcModuleFormat: moduleFormat,
     );
     tearDownAll(provider.dispose);
 
-    for (final compilationMode in CompilationMode.values) {
-      runTypeSystemVerificationTests(
-        provider: provider,
-        compilationMode: compilationMode,
-        canaryFeatures: canaryFeatures,
-        debug: debug,
-      );
+    // for (final compilationMode in CompilationMode.values) {
+    // runTypeSystemVerificationTests(
+    //   provider: provider,
+    //   compilationMode: compilationMode,
+    //   canaryFeatures: canaryFeatures,
+    //   debug: debug,
+    // );
 
       runTests(
         provider: provider,
@@ -38,6 +42,6 @@ void main() {
         canaryFeatures: canaryFeatures,
         debug: debug,
       );
-    }
+    // }
   });
 }

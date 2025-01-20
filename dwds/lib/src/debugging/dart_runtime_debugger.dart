@@ -199,4 +199,15 @@ class DartRuntimeDebugger {
       ),
     );
   }
+
+  String getVariableJsExpression(
+    String libraryName,
+    String url,
+    String variable,
+  ) {
+    return _generateJsExpression(
+      "${_loadStrategy.loadModuleSnippet}('dart_sdk').dart.getModuleLibraries('$libraryName')['$url']['$variable'];",
+      'dartDevEmbedder.dart.getModuleLibraries("$libraryName")["$url"]["$variable"]',
+    );
+  }
 }

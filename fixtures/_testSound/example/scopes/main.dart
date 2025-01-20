@@ -13,6 +13,7 @@ final libraryPublicFinal = MyTestClass();
 final _libraryPrivateFinal = 1;
 Object? libraryNull;
 var libraryPublic = <String>['library', 'public', 'variable'];
+getLibraryPublic() => libraryPublic;
 var notAList = NotReallyAList();
 
 var _libraryPrivate = ['library', 'private', 'variable'];
