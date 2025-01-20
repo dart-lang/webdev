@@ -203,4 +203,24 @@ class DartRuntimeDebugger {
       "dartDevEmbedder.debugger.invokeExtension('$methodName', JSON.stringify($encodedJson));",
     );
   }
+
+  String callLibraryMethodJsExpression(
+    String libraryUri,
+    String methodName,
+  ) {
+    String findLibraryExpression() => '''
+     (function() {
+       const sdk = ${_loadStrategy.loadModuleSnippet}('dart_sdk');
+       const dart = sdk.dart;
+       const library = dart.getLibrary('$libraryUri');
+       if (!library) throw 'cannot find library for $libraryUri';
+       return library;
+     })();
+     ''';
+
+    return _generateJsExpression(
+      findLibraryExpression(),
+      'dartDevEmbedder.debugger.callLibraryMethod("$libraryUri", "$methodName", argumentz)',
+    );
+  }
 }

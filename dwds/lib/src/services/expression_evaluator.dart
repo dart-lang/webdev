@@ -91,6 +91,9 @@ class ExpressionEvaluator {
     String expression,
     Map<String, String>? scope,
   ) async {
+    print(
+      'YJ-TEST-A: evaluateExpression - isolateId: $isolateId, libraryUri: $libraryUri, expression: $expression, scope: $scope',
+    );
     if (_closed) {
       return createError(
         EvaluationErrorKind.internal,
@@ -113,8 +116,11 @@ class ExpressionEvaluator {
         'no library uri',
       );
     }
-
+    print(
+      'YJ-TEST-B: evaluateExpression - retieving module for libraryUri: $libraryUri',
+    );
     final module = await _modules.moduleForLibrary(libraryUri);
+    print('YJ-TEST-C: evaluateExpression - module: $module');
     if (module == null) {
       return createError(
         EvaluationErrorKind.internal,
@@ -124,6 +130,7 @@ class ExpressionEvaluator {
 
     // Wrap the expression in a lambda so we can call it as a function.
     expression = _createDartLambda(expression, scope.keys);
+    print('YJ-TEST-D: evaluateExpression - NEW expression: $expression');
     _logger.finest('Evaluating "$expression" at $module');
 
     // Compile expression using an expression compiler, such as
@@ -138,20 +145,27 @@ class ExpressionEvaluator {
       module,
       expression,
     );
+    print(
+        'YJ-TEST-E: evaluateExpression - compilationResult: $compilationResult');
 
     final isError = compilationResult.isError;
     final jsResult = compilationResult.result;
     if (isError) {
       return _formatCompilationError(jsResult);
     }
+    print('YJ-TEST-F: evaluateExpression - jsResult: $jsResult');
 
     // Strip try/catch incorrectly added by the expression compiler.
     final jsCode = _maybeStripTryCatch(jsResult);
 
     // Send JS expression to chrome to evaluate.
+    print('**YJ-TEST-G: evaluateExpression - calling _callJsFunction');
     var result = await _callJsFunction(jsCode, scope);
+    print(
+        '**YJ-TEST-H: evaluateExpression - result of _callJsFunction: $result');
     result = await _formatEvaluationError(result);
-
+    print(
+        '**YJ-TEST-I: evaluateExpression - result of _formatEvaluationError: $result');
     _logger.finest('Evaluated "$expression" to "${result.json}"');
     return result;
   }
@@ -386,11 +400,17 @@ class ExpressionEvaluator {
   Future<RemoteObject> _callJsFunction(
     String function,
     Map<String, String> scope,
-  ) {
+  ) async {
+    print(
+      'YJ-TEST-1: _callJsFunction - function: $function, scope: $scope, scope.keys: ${scope.keys}, scope.values: ${scope.values}',
+    );
     final jsCode = _createEvalFunction(function, scope.keys);
+    print('YJ-TEST-2: _callJsFunction - jsCode: $jsCode');
 
     _logger.finest('Evaluating JS: "$jsCode" with scope: $scope');
-    return _inspector.callFunction(jsCode, scope.values);
+    final result = await _inspector.callFunction(jsCode, scope.values);
+    print('YJ-TEST-3: _callJsFunction - result: $result');
+    return result;
   }
 
   /// Evaluate JavaScript [expression] on frame [frameIndex].
