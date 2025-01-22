@@ -90,7 +90,7 @@ class ClassMetaData {
 
   /// Type name for Type instances.
   ///
-  /// For example, 'int', 'String', 'MyClass', 'List<int>'.
+  /// For example, `int`, `String`, `MyClass`, `List<int>`.
   final String? typeName;
 
   /// The length of the object, if applicable.
@@ -98,7 +98,7 @@ class ClassMetaData {
 
   /// The dart type name for the object.
   ///
-  /// For example, 'int', 'List<String>', 'Null'
+  /// For example, `int`, `List<String>`, `Null`
   String? get dartName => classRef.name;
 
   /// Class ref for the class metadata.
