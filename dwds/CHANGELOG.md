@@ -1,4 +1,6 @@
-## 24.3.3-wip
+## 24.3.3
+
+- Add support for hot restart using the DDC library bundle format.
 
 ## 24.3.2
 
