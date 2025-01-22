@@ -1,5 +1,7 @@
 ## 24.3.3
 
+- Added support for some debugging APIs with the DDC library bundle format. - [#2563](https://github.com/dart-lang/webdev/issues/2563)
+- Update `DCM` version to `1.26.0-1`
 - Add support for hot restart using the DDC library bundle format.
 
 ## 24.3.2

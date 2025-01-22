@@ -76,7 +76,7 @@ void main() async {
     scheduleMicrotask(() => throw Exception('UncaughtException'));
   };
 
-  Timer.periodic(const Duration(seconds: 1), (_) {
+  Timer.periodic(const Duration(seconds: 1), (timer) {
     printCount(); // Breakpoint: callPrintCount
   });
 
