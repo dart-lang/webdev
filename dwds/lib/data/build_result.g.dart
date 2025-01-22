@@ -164,9 +164,8 @@ class BuildResultBuilder implements Builder<BuildResult, BuildResultBuilder> {
   _$BuildResult _build() {
     final _$result = _$v ??
         new _$BuildResult._(
-          status: BuiltValueNullFieldError.checkNotNull(
-              status, r'BuildResult', 'status'),
-        );
+            status: BuiltValueNullFieldError.checkNotNull(
+                status, r'BuildResult', 'status'));
     replace(_$result);
     return _$result;
   }
