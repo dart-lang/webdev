@@ -11,6 +11,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
@@ -22,18 +23,19 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
-import 'fixtures/context.dart';
-import 'fixtures/project.dart';
-import 'fixtures/utilities.dart';
+import '../fixtures/context.dart';
+import '../fixtures/project.dart';
+import '../fixtures/utilities.dart';
 
-void main() {
-  // Change to true to see verbose output from the tests.
-  final debug = false;
-
-  final provider = TestSdkConfigurationProvider(verbose: debug);
-  tearDownAll(provider.dispose);
-
-  final context = TestContext(TestProject.test, provider);
+void runTests({
+  required TestSdkConfigurationProvider provider,
+  required ModuleFormat moduleFormat,
+  required CompilationMode compilationMode,
+  required bool canaryFeatures,
+  required bool debug,
+}) {
+  final project = TestProject.test;
+  final context = TestContext(project, provider);
 
   group('shared context', () {
     setUpAll(() async {
@@ -42,6 +44,9 @@ void main() {
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
           verboseCompiler: false,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: canaryFeatures,
+          compilationMode: compilationMode,
         ),
       );
     });
@@ -734,10 +739,15 @@ void main() {
         for (final scriptRef in scripts.scripts!) {
           final script =
               await service.getObject(isolate.id!, scriptRef.id!) as Script;
-          final serverPath = DartUri(script.uri!, 'hello_world/').serverPath;
+          final serverPath = DartUri(script.uri!, '').serverPath;
           final result = await http
               .get(Uri.parse('http://localhost:${context.port}/$serverPath'));
-          expect(script.source, result.body);
+          // TODO: Figure out if we can encode the sript as utf8 and avoid this
+          final body =
+              (moduleFormat == ModuleFormat.ddc && canaryFeatures == true)
+                  ? utf8.decode(result.body.codeUnits)
+                  : result.body;
+          expect(script.source, body);
           expect(scriptRef.uri, endsWith('.dart'));
           expect(script.tokenPosTable, isNotEmpty);
         }
@@ -1540,7 +1550,7 @@ void main() {
         // TODO: Make this more precise once this case doesn't
         // also include all the libraries.
         expect(first.vars, hasLength(greaterThanOrEqualTo(1)));
-        final underscore = first.vars!.firstWhere((v) => v.name == '_');
+        final underscore = first.vars!.firstWhere((v) => v.name == 'timer');
         expect(underscore, isNotNull);
       });
 
@@ -1700,115 +1710,145 @@ void main() {
         );
       });
 
-      test('helloString', () async {
-        final remote = await service.invoke(
-          isolate.id!,
-          bootstrap!.id!,
-          'helloString',
-          ['#StringInstanceRef#abc'],
-        );
-        expect(
-          remote,
-          const TypeMatcher<InstanceRef>().having(
-            (instance) => instance.valueAsString,
+      test(
+        'helloString',
+        () async {
+          final remote = await service.invoke(
+            isolate.id!,
+            bootstrap!.id!,
             'helloString',
-            'abc',
-          ),
-        );
-        expect(
-          remote,
-          const TypeMatcher<InstanceRef>()
-              .having((instance) => instance.kind, 'kind', 'String'),
-        );
-      });
+            ['#StringInstanceRef#abc'],
+          );
+          expect(
+            remote,
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'helloString',
+              'abc',
+            ),
+          );
+          expect(
+            remote,
+            const TypeMatcher<InstanceRef>()
+                .having((instance) => instance.kind, 'kind', 'String'),
+          );
+        },
+        skip: moduleFormat == ModuleFormat.ddc && canaryFeatures == true
+            ? 'https://github.com/dart-lang/webdev/issues/2566'
+            : null,
+      );
 
-      test('null argument', () async {
-        final remote = await service.invoke(
-          isolate.id!,
-          bootstrap!.id!,
-          'helloString',
-          ['objects/null'],
-        );
-        expect(
-          remote,
-          const TypeMatcher<InstanceRef>().having(
-            (instance) => instance.valueAsString,
+      test(
+        'null argument',
+        () async {
+          final remote = await service.invoke(
+            isolate.id!,
+            bootstrap!.id!,
             'helloString',
-            'null',
-          ),
-        );
-        expect(
-          remote,
-          const TypeMatcher<InstanceRef>()
-              .having((instance) => instance.kind, 'kind', 'Null'),
-        );
-      });
+            ['objects/null'],
+          );
+          expect(
+            remote,
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'helloString',
+              'null',
+            ),
+          );
+          expect(
+            remote,
+            const TypeMatcher<InstanceRef>()
+                .having((instance) => instance.kind, 'kind', 'Null'),
+          );
+        },
+        skip: moduleFormat == ModuleFormat.ddc && canaryFeatures == true
+            ? 'https://github.com/dart-lang/webdev/issues/2566'
+            : null,
+      );
 
-      test('helloBool', () async {
-        final remote = await service.invoke(
-          isolate.id!,
-          bootstrap!.id!,
-          'helloBool',
-          ['objects/bool-true'],
-        );
-        expect(
-          remote,
-          const TypeMatcher<InstanceRef>().having(
-            (instance) => instance.valueAsString,
+      test(
+        'helloBool',
+        () async {
+          final remote = await service.invoke(
+            isolate.id!,
+            bootstrap!.id!,
             'helloBool',
-            'true',
-          ),
-        );
-        expect(
-          remote,
-          const TypeMatcher<InstanceRef>()
-              .having((instance) => instance.kind, 'kind', 'Bool'),
-        );
-      });
+            ['objects/bool-true'],
+          );
+          expect(
+            remote,
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'helloBool',
+              'true',
+            ),
+          );
+          expect(
+            remote,
+            const TypeMatcher<InstanceRef>()
+                .having((instance) => instance.kind, 'kind', 'Bool'),
+          );
+        },
+        skip: moduleFormat == ModuleFormat.ddc && canaryFeatures == true
+            ? 'https://github.com/dart-lang/webdev/issues/2566'
+            : null,
+      );
 
-      test('helloNum', () async {
-        final remote = await service.invoke(
-          isolate.id!,
-          bootstrap!.id!,
-          'helloNum',
-          ['objects/int-123'],
-        );
-        expect(
-          remote,
-          const TypeMatcher<InstanceRef>().having(
-            (instance) => instance.valueAsString,
+      test(
+        'helloNum',
+        () async {
+          final remote = await service.invoke(
+            isolate.id!,
+            bootstrap!.id!,
             'helloNum',
-            '123',
-          ),
-        );
-        expect(
-          remote,
-          const TypeMatcher<InstanceRef>()
-              .having((instance) => instance.kind, 'kind', 'Double'),
-        );
-      });
+            ['objects/int-123'],
+          );
+          expect(
+            remote,
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'helloNum',
+              '123',
+            ),
+          );
+          expect(
+            remote,
+            const TypeMatcher<InstanceRef>()
+                .having((instance) => instance.kind, 'kind', 'Double'),
+          );
+        },
+        skip: moduleFormat == ModuleFormat.ddc && canaryFeatures == true
+            ? 'https://github.com/dart-lang/webdev/issues/2566'
+            : null,
+      );
 
-      test('two object arguments', () async {
-        final remote = await service.invoke(
-          isolate.id!,
-          bootstrap!.id!,
-          'messagesCombined',
-          [testInstance.id, testInstance.id],
-        );
-        expect(
-          remote,
-          const TypeMatcher<InstanceRef>().having(
-            (instance) => instance.valueAsString,
+      test(
+        'two object arguments',
+        () async {
+          final remote = await service.invoke(
+            isolate.id!,
+            bootstrap!.id!,
             'messagesCombined',
-            'worldworld',
-          ),
-        );
-        expect(
-          remote,
-          const TypeMatcher<InstanceRef>()
-              .having((instance) => instance.kind, 'kind', 'String'),
-        );
-      });
+            [testInstance.id, testInstance.id],
+          );
+          expect(
+            remote,
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'messagesCombined',
+              'worldworld',
+            ),
+          );
+          expect(
+            remote,
+            const TypeMatcher<InstanceRef>()
+                .having((instance) => instance.kind, 'kind', 'String'),
+          );
+        },
+        skip: moduleFormat == ModuleFormat.ddc && canaryFeatures == true
+            ? 'https://github.com/dart-lang/webdev/issues/2566'
+            : null,
+      );
     });
 
     test('kill', () async {

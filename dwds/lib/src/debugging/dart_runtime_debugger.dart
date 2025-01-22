@@ -18,11 +18,8 @@ class DartRuntimeDebugger {
   String _generateJsExpression(
     String ddcExpression,
     String libraryBundleExpression,
-  ) {
-    return _useLibraryBundleExpression
-        ? libraryBundleExpression
-        : ddcExpression;
-  }
+  ) =>
+      _useLibraryBundleExpression ? libraryBundleExpression : ddcExpression;
 
   /// Wraps a JS function call with SDK loader logic.
   String _wrapWithSdkLoader(String args, String functionCall) {
@@ -197,6 +194,13 @@ class DartRuntimeDebugger {
       generateInstanceMethodJsExpression(
         'dartDevEmbedder.debugger.callInstanceMethod(this, "$methodName", arguments)',
       ),
+    );
+  }
+
+  String invokeExtensionJsExpression(String methodName, String encodedJson) {
+    return _generateJsExpression(
+      "${_loadStrategy.loadModuleSnippet}('dart_sdk').developer.invokeExtension('$methodName', JSON.stringify($encodedJson));",
+      "dartDevEmbedder.debugger.invokeExtension('$methodName', JSON.stringify($encodedJson));",
     );
   }
 }
