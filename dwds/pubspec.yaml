@@ -53,7 +53,6 @@ dev_dependencies:
   frontend_server_common:
     path: ../frontend_server_common
   js: '>=0.6.4 <0.8.0'
-  lints: ^5.0.0
   pubspec_parse: ^1.2.0
   puppeteer: ^3.1.1
   stream_channel: ^2.1.2
