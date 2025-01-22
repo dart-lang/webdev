@@ -636,10 +636,9 @@ class ChromeProxyService implements VmServiceInterface {
     String targetId,
     String expression, {
     Map<String, String>? scope,
-  }) async {
+  }) {
     // TODO(798) - respect disableBreakpoints.
-    print('YJ-TEST _evaluate - 1: calling _evaluate');
-    final result = await captureElapsedTime(
+    return captureElapsedTime(
       () async {
         await isInitialized;
         final evaluator = _expressionEvaluator;
@@ -675,7 +674,7 @@ class ChromeProxyService implements VmServiceInterface {
             expression = '$target.$expression';
             scope = (scope ?? {})..addAll({target: targetId});
           }
-          print('YJ-TEST _evaluate - 2: calling _getEvaluationResult');
+
           return await _getEvaluationResult(
             isolateId,
             () => evaluator.evaluateExpression(
@@ -695,8 +694,6 @@ class ChromeProxyService implements VmServiceInterface {
       },
       (result) => DwdsEvent.evaluate(expression, result),
     );
-    print('YJ-TEST _evaluate - 3: result: $result');
-    return result;
   }
 
   String _newVariableForScope(Map<String, String>? scope) {

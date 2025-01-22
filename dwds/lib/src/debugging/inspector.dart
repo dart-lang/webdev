@@ -213,10 +213,7 @@ class AppInspector implements AppInspectorInterface {
     // We use the JS pseudo-variable 'arguments' to get the list of all arguments.
     final send = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
         .callInstanceMethodJsExpression(methodName);
-    print(
-        '***YJ_TEST: _invokeMethod: receiver: $receiver, methodName: $methodName, positionalArgs: $positionalArgs, send: $send');
     final remote = await jsCallFunctionOn(receiver, send, positionalArgs);
-    print('***YJ_TEST: _invokeMethod: remote: $remote');
     return remote;
   }
 
@@ -255,8 +252,6 @@ class AppInspector implements AppInspectorInterface {
     List<Object> arguments, {
     bool returnByValue = false,
   }) async {
-    print(
-        '**YJ_TEST: _jsCallFunction: evalExpression: $evalExpression, arguments: $arguments');
     final jsArguments = arguments.map(callArgumentFor).toList();
     final response = await remoteDebugger.sendCommand(
       'Runtime.callFunctionOn',
@@ -285,8 +280,6 @@ class AppInspector implements AppInspectorInterface {
     String selector,
     List<dynamic> arguments,
   ) async {
-    print(
-        'YJ_TEST: invoke: targetId: $targetId, selector: $selector, arguments: $arguments');
     final remoteArguments =
         arguments.cast<String>().map(remoteObjectFor).toList();
     // We special case the Dart library, where invokeMethod won't work because
@@ -308,16 +301,14 @@ class AppInspector implements AppInspectorInterface {
     Library library,
     String selector,
     List<RemoteObject> arguments,
-  ) async {
-    print(
-      'YJ_TEST: _invokeLibraryFunction: library: ${library.uri}, selector: $selector, arguments: $arguments',
-    );
-    final result = await _evaluateInLibrary(
-      library,
-      'function () { return this.$selector.apply(this, arguments);}',
-      arguments,
-    );
-    return result;
+  ) {
+    return globalToolConfiguration.loadStrategy is DdcLibraryBundleStrategy
+        ? _evaluateWithDdcLibraryBundle(library, selector, arguments)
+        : _evaluateInLibrary(
+            library,
+            'function () { return this.$selector.apply(this, arguments); }',
+            arguments,
+          );
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
@@ -352,28 +343,29 @@ class AppInspector implements AppInspectorInterface {
     if (libraryUri == null) {
       throwInvalidParam('invoke', 'library uri is null');
     }
-    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+    final findLibraryJsExpression = globalToolConfiguration
+        .loadStrategy.dartRuntimeDebugger
         .callLibraryMethodJsExpression(libraryUri, jsFunction);
 
-    print('YJ_TEST: Evaluating in library: $expression');
-    if (globalToolConfiguration.loadStrategy is DdcLibraryBundleStrategy) {
-      print('YJ_TEST-A-1: DdcLibraryBundleStrategy');
-      final result = await _jsCallFunction(jsFunction, arguments);
-      print(
-        'YJ_TEST-A-2: result: $result',
-      );
-      return result;
-    } else {
-      print('YJ_TEST-B-1: ${globalToolConfiguration.loadStrategy}');
-      final remoteLibrary = await jsEvaluate(expression);
-      print(
-        'YJ_TEST-B-2: remoteLibrary: ${remoteLibrary.objectId}, jsFunction: $jsFunction, arguments: $arguments',
-      );
-      final result =
-          await jsCallFunctionOn(remoteLibrary, jsFunction, arguments);
-      print('YJ_TEST-B-3: result: ${result.objectId}');
-      return result;
+    final remoteLibrary = await jsEvaluate(findLibraryJsExpression);
+    return jsCallFunctionOn(remoteLibrary, jsFunction, arguments);
+  }
+
+  /// Evaluates the specified method [methodName] in the context of [library]
+  /// using the Dart Development Compiler (DDC) library bundle strategy with
+  /// the given [arguments].
+  Future<RemoteObject> _evaluateWithDdcLibraryBundle(
+    Library library,
+    String methodName,
+    List<RemoteObject> arguments,
+  ) {
+    final libraryUri = library.uri;
+    if (libraryUri == null) {
+      throwInvalidParam('invoke', 'library uri is null');
     }
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .callLibraryMethodJsExpression(libraryUri, methodName);
+    return _jsCallFunction(expression, arguments);
   }
 
   /// Call [function] with objects referred by [argumentIds] as arguments.
@@ -382,11 +374,7 @@ class AppInspector implements AppInspectorInterface {
     String function,
     Iterable<String> argumentIds,
   ) async {
-    print(
-      'YJ_TEST-1: callFunction - function: $function, argumentIDs: $argumentIds',
-    );
     final arguments = argumentIds.map(remoteObjectFor).toList();
-    print('YJ_TEST-2: callFunction - arguments: $arguments');
     final result = await _jsCallFunction(function, arguments);
     return result;
   }

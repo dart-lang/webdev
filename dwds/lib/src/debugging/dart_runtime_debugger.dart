@@ -197,6 +197,7 @@ class DartRuntimeDebugger {
     );
   }
 
+  /// Generates a JS expression to invoke a Dart extension method.
   String invokeExtensionJsExpression(String methodName, String encodedJson) {
     return _generateJsExpression(
       "${_loadStrategy.loadModuleSnippet}('dart_sdk').developer.invokeExtension('$methodName', JSON.stringify($encodedJson));",
@@ -204,6 +205,7 @@ class DartRuntimeDebugger {
     );
   }
 
+  /// Generates a JS expression for calling a library method.
   String callLibraryMethodJsExpression(
     String libraryUri,
     String methodName,
@@ -220,7 +222,10 @@ class DartRuntimeDebugger {
 
     return _generateJsExpression(
       findLibraryExpression(),
-      'dartDevEmbedder.debugger.callLibraryMethod("$libraryUri", "$methodName", argumentz)',
+      _wrapWithBundleLoader(
+        '',
+        'callLibraryMethod("$libraryUri", "$methodName", Array.from(arguments))',
+      ),
     );
   }
 }
