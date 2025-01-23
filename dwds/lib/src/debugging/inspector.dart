@@ -680,7 +680,7 @@ class AppInspector implements AppInspectorInterface {
     return _instanceHelper.metadataHelper.isNativeJsError(instanceRef.classRef);
   }
 
-  /// Request and cache <ScriptRef>s for all the scripts in the application.
+  /// Request and cache `<ScriptRef>`s for all the scripts in the application.
   ///
   /// This populates [_scriptRefsById], [_scriptIdToLibraryId],
   /// [_libraryIdToScriptRefs] and [_serverPathToScriptRef].

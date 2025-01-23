@@ -188,18 +188,20 @@ Future<void>? main() {
 
     if (dwdsEnableDevToolsLaunch) {
       window.onKeyDown.listen((Event e) {
-        if (e is KeyboardEvent &&
-            const [
-              'd',
-              'D',
-              '∂', // alt-d output on Mac
-              'Î', // shift-alt-D output on Mac
-            ].contains(e.key) &&
-            e.altKey &&
-            !e.ctrlKey &&
-            !e.metaKey) {
-          e.preventDefault();
-          launchDevToolsJs.callAsFunction();
+        if (e.isA<KeyboardEvent>()) {
+          final event = e as KeyboardEvent;
+          if (const [
+                'd',
+                'D',
+                '∂', // alt-d output on Mac
+                'Î', // shift-alt-D output on Mac
+              ].contains(event.key) &&
+              event.altKey &&
+              !event.ctrlKey &&
+              !event.metaKey) {
+            event.preventDefault();
+            launchDevToolsJs.callAsFunction();
+          }
         }
       });
     }

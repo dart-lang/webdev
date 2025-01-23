@@ -48,7 +48,7 @@ class ExpressionEvaluator {
   /// Find module path from the XHR call network error message received from chrome.
   ///
   /// Example:
-  /// NetworkError: Failed to load 'http://<hostname>.com/path/to/module.js?<cache_busting_token>'
+  /// NetworkError: Failed to load `http://<hostname>.com/path/to/module.js?<cache_busting_token>`
   static final _loadModuleErrorRegex =
       RegExp(r".*Failed to load '.*\.com/(.*\.js).*");
 
