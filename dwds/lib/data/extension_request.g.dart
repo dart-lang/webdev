@@ -337,12 +337,11 @@ class ExtensionRequestBuilder
   _$ExtensionRequest _build() {
     final _$result = _$v ??
         new _$ExtensionRequest._(
-          id: BuiltValueNullFieldError.checkNotNull(
-              id, r'ExtensionRequest', 'id'),
-          command: BuiltValueNullFieldError.checkNotNull(
-              command, r'ExtensionRequest', 'command'),
-          commandParams: commandParams,
-        );
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, r'ExtensionRequest', 'id'),
+            command: BuiltValueNullFieldError.checkNotNull(
+                command, r'ExtensionRequest', 'command'),
+            commandParams: commandParams);
     replace(_$result);
     return _$result;
   }
@@ -466,14 +465,13 @@ class ExtensionResponseBuilder
   _$ExtensionResponse _build() {
     final _$result = _$v ??
         new _$ExtensionResponse._(
-          id: BuiltValueNullFieldError.checkNotNull(
-              id, r'ExtensionResponse', 'id'),
-          success: BuiltValueNullFieldError.checkNotNull(
-              success, r'ExtensionResponse', 'success'),
-          result: BuiltValueNullFieldError.checkNotNull(
-              result, r'ExtensionResponse', 'result'),
-          error: error,
-        );
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, r'ExtensionResponse', 'id'),
+            success: BuiltValueNullFieldError.checkNotNull(
+                success, r'ExtensionResponse', 'success'),
+            result: BuiltValueNullFieldError.checkNotNull(
+                result, r'ExtensionResponse', 'result'),
+            error: error);
     replace(_$result);
     return _$result;
   }
@@ -568,11 +566,10 @@ class ExtensionEventBuilder
   _$ExtensionEvent _build() {
     final _$result = _$v ??
         new _$ExtensionEvent._(
-          params: BuiltValueNullFieldError.checkNotNull(
-              params, r'ExtensionEvent', 'params'),
-          method: BuiltValueNullFieldError.checkNotNull(
-              method, r'ExtensionEvent', 'method'),
-        );
+            params: BuiltValueNullFieldError.checkNotNull(
+                params, r'ExtensionEvent', 'params'),
+            method: BuiltValueNullFieldError.checkNotNull(
+                method, r'ExtensionEvent', 'method'));
     replace(_$result);
     return _$result;
   }
@@ -655,10 +652,7 @@ class BatchedEventsBuilder
   _$BatchedEvents _build() {
     _$BatchedEvents _$result;
     try {
-      _$result = _$v ??
-          new _$BatchedEvents._(
-            events: events.build(),
-          );
+      _$result = _$v ?? new _$BatchedEvents._(events: events.build());
     } catch (_) {
       late String _$failedField;
       try {
