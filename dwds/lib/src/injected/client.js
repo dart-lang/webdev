@@ -26695,10 +26695,12 @@
   };
   A.main__closure7.prototype = {
     call$1(e) {
-      if (B.JSArray_methods.contains$1(B.List_fAJ, A._asString(e.key)) && A._asBool(e.altKey) && !A._asBool(e.ctrlKey) && !A._asBool(e.metaKey)) {
-        e.preventDefault();
-        type$.JavaScriptFunction._as(self.$launchDevTools).call();
-      }
+      var t1 = A.JSAnyUtilityExtension_instanceOfString(e, "KeyboardEvent");
+      if (t1)
+        if (B.JSArray_methods.contains$1(B.List_fAJ, A._asString(e.key)) && A._asBool(e.altKey) && !A._asBool(e.ctrlKey) && !A._asBool(e.metaKey)) {
+          e.preventDefault();
+          type$.JavaScriptFunction._as(self.$launchDevTools).call();
+        }
     },
     $signature: 2
   };
