@@ -1,5 +1,8 @@
 ## 24.3.3-wip
 
+- Added support for some debugging APIs with the DDC library bundle format. - [#2563](https://github.com/dart-lang/webdev/issues/2563),[#2566](https://github.com/dart-lang/webdev/issues/2566)
+- Update `DCM` version to `1.26.0-1`
+
 ## 24.3.2
 
 - Bump `package:dds` to `>=4.2.5 <6.0.0`.
