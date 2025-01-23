@@ -210,7 +210,7 @@ class DartRuntimeDebugger {
     String libraryUri,
     String methodName,
   ) {
-    String findLibraryExpression() => '''
+    final findLibraryExpression = '''
      (function() {
        const sdk = ${_loadStrategy.loadModuleSnippet}('dart_sdk');
        const dart = sdk.dart;
@@ -220,8 +220,11 @@ class DartRuntimeDebugger {
      })();
      ''';
 
+    // `callLibraryMethod` expects an array of arguments. Chrome DevTools spreads
+    // arguments individually when calling functions. This code reconstructs the
+    // expected argument array.
     return _generateJsExpression(
-      findLibraryExpression(),
+      findLibraryExpression,
       _wrapWithBundleLoader(
         '',
         'callLibraryMethod("$libraryUri", "$methodName", Array.from(arguments))',

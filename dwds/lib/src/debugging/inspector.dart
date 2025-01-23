@@ -303,7 +303,11 @@ class AppInspector implements AppInspectorInterface {
     List<RemoteObject> arguments,
   ) {
     return globalToolConfiguration.loadStrategy is DdcLibraryBundleStrategy
-        ? _evaluateWithDdcLibraryBundle(library, selector, arguments)
+        ? _evaluateLibraryMethodWithDdcLibraryBundle(
+            library,
+            selector,
+            arguments,
+          )
         : _evaluateInLibrary(
             library,
             'function () { return this.$selector.apply(this, arguments); }',
@@ -351,10 +355,10 @@ class AppInspector implements AppInspectorInterface {
     return jsCallFunctionOn(remoteLibrary, jsFunction, arguments);
   }
 
-  /// Evaluates the specified method [methodName] in the context of [library]
+  /// Evaluates the specified top-level method [methodName] within [library]
   /// using the Dart Development Compiler (DDC) library bundle strategy with
   /// the given [arguments].
-  Future<RemoteObject> _evaluateWithDdcLibraryBundle(
+  Future<RemoteObject> _evaluateLibraryMethodWithDdcLibraryBundle(
     Library library,
     String methodName,
     List<RemoteObject> arguments,
