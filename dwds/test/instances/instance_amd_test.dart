@@ -35,12 +35,12 @@ void main() {
         debug: debug,
       );
 
-      // runTests(
-      //   provider: provider,
-      //   compilationMode: compilationMode,
-      //   canaryFeatures: canaryFeatures,
-      //   debug: debug,
-      // );
+      runTests(
+        provider: provider,
+        compilationMode: compilationMode,
+        canaryFeatures: canaryFeatures,
+        debug: debug,
+      );
     }
   });
 }
