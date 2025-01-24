@@ -14,6 +14,7 @@ import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/libraries.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -301,11 +302,17 @@ class AppInspector implements AppInspectorInterface {
     String selector,
     List<RemoteObject> arguments,
   ) {
-    return _evaluateInLibrary(
-      library,
-      'function () { return this.$selector.apply(this, arguments);}',
-      arguments,
-    );
+    return globalToolConfiguration.loadStrategy is DdcLibraryBundleStrategy
+        ? _evaluateLibraryMethodWithDdcLibraryBundle(
+            library,
+            selector,
+            arguments,
+          )
+        : _evaluateInLibrary(
+            library,
+            'function () { return this.$selector.apply(this, arguments); }',
+            arguments,
+          );
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
@@ -340,17 +347,29 @@ class AppInspector implements AppInspectorInterface {
     if (libraryUri == null) {
       throwInvalidParam('invoke', 'library uri is null');
     }
-    final findLibrary = '''
-      (function() {
-        const sdk = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk');
-        const dart = sdk.dart;
-        const library = dart.getLibrary('$libraryUri');
-        if (!library) throw 'cannot find library for $libraryUri';
-        return library;
-      })();
-      ''';
-    final remoteLibrary = await jsEvaluate(findLibrary);
+    final findLibraryJsExpression = globalToolConfiguration
+        .loadStrategy.dartRuntimeDebugger
+        .callLibraryMethodJsExpression(libraryUri, jsFunction);
+
+    final remoteLibrary = await jsEvaluate(findLibraryJsExpression);
     return jsCallFunctionOn(remoteLibrary, jsFunction, arguments);
+  }
+
+  /// Evaluates the specified top-level method [methodName] within [library]
+  /// using the Dart Development Compiler (DDC) library bundle strategy with
+  /// the given [arguments].
+  Future<RemoteObject> _evaluateLibraryMethodWithDdcLibraryBundle(
+    Library library,
+    String methodName,
+    List<RemoteObject> arguments,
+  ) {
+    final libraryUri = library.uri;
+    if (libraryUri == null) {
+      throwInvalidParam('invoke', 'library uri is null');
+    }
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .callLibraryMethodJsExpression(libraryUri, methodName);
+    return _jsCallFunction(expression, arguments);
   }
 
   /// Call [function] with objects referred by [argumentIds] as arguments.

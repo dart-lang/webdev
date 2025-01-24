@@ -1733,9 +1733,6 @@ void runTests({
                 .having((instance) => instance.kind, 'kind', 'String'),
           );
         },
-        skip: moduleFormat == ModuleFormat.ddc && canaryFeatures == true
-            ? 'https://github.com/dart-lang/webdev/issues/2566'
-            : null,
       );
 
       test(
@@ -1761,9 +1758,6 @@ void runTests({
                 .having((instance) => instance.kind, 'kind', 'Null'),
           );
         },
-        skip: moduleFormat == ModuleFormat.ddc && canaryFeatures == true
-            ? 'https://github.com/dart-lang/webdev/issues/2566'
-            : null,
       );
 
       test(
@@ -1789,9 +1783,6 @@ void runTests({
                 .having((instance) => instance.kind, 'kind', 'Bool'),
           );
         },
-        skip: moduleFormat == ModuleFormat.ddc && canaryFeatures == true
-            ? 'https://github.com/dart-lang/webdev/issues/2566'
-            : null,
       );
 
       test(
@@ -1817,9 +1808,6 @@ void runTests({
                 .having((instance) => instance.kind, 'kind', 'Double'),
           );
         },
-        skip: moduleFormat == ModuleFormat.ddc && canaryFeatures == true
-            ? 'https://github.com/dart-lang/webdev/issues/2566'
-            : null,
       );
 
       test(
@@ -1845,9 +1833,6 @@ void runTests({
                 .having((instance) => instance.kind, 'kind', 'String'),
           );
         },
-        skip: moduleFormat == ModuleFormat.ddc && canaryFeatures == true
-            ? 'https://github.com/dart-lang/webdev/issues/2566'
-            : null,
       );
     });
 

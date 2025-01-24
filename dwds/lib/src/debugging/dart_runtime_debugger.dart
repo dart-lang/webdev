@@ -197,10 +197,38 @@ class DartRuntimeDebugger {
     );
   }
 
+  /// Generates a JS expression to invoke a Dart extension method.
   String invokeExtensionJsExpression(String methodName, String encodedJson) {
     return _generateJsExpression(
       "${_loadStrategy.loadModuleSnippet}('dart_sdk').developer.invokeExtension('$methodName', JSON.stringify($encodedJson));",
       "dartDevEmbedder.debugger.invokeExtension('$methodName', JSON.stringify($encodedJson));",
+    );
+  }
+
+  /// Generates a JS expression for calling a library method.
+  String callLibraryMethodJsExpression(
+    String libraryUri,
+    String methodName,
+  ) {
+    final findLibraryExpression = '''
+     (function() {
+       const sdk = ${_loadStrategy.loadModuleSnippet}('dart_sdk');
+       const dart = sdk.dart;
+       const library = dart.getLibrary('$libraryUri');
+       if (!library) throw 'cannot find library for $libraryUri';
+       return library;
+     })();
+     ''';
+
+    // `callLibraryMethod` expects an array of arguments. Chrome DevTools spreads
+    // arguments individually when calling functions. This code reconstructs the
+    // expected argument array.
+    return _generateJsExpression(
+      findLibraryExpression,
+      _wrapWithBundleLoader(
+        '',
+        'callLibraryMethod("$libraryUri", "$methodName", Array.from(arguments))',
+      ),
     );
   }
 }

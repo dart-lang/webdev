@@ -1,4 +1,5 @@
 ## 24.3.4-wip
+- Added support for some debugging APIs with the DDC library bundle format. - [#2566](https://github.com/dart-lang/webdev/issues/2566)
 
 ## 24.3.3
 
