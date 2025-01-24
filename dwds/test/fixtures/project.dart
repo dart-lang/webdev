@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-
 import 'package:test_common/utilities.dart';
 
 enum IndexBaseMode { noBase, base }
@@ -48,7 +47,7 @@ class TestProject {
       );
 
   /// The URI for the package_config.json is located in:
-  /// <project directory>/.dart_tool/package_config
+  /// `<project directory>/.dart_tool/package_config`
   Uri get packageConfigFile => p.toUri(
         p.join(
           absolutePackageDirectory,

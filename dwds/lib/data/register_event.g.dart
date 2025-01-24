@@ -148,11 +148,10 @@ class RegisterEventBuilder
   _$RegisterEvent _build() {
     final _$result = _$v ??
         new _$RegisterEvent._(
-          eventData: BuiltValueNullFieldError.checkNotNull(
-              eventData, r'RegisterEvent', 'eventData'),
-          timestamp: BuiltValueNullFieldError.checkNotNull(
-              timestamp, r'RegisterEvent', 'timestamp'),
-        );
+            eventData: BuiltValueNullFieldError.checkNotNull(
+                eventData, r'RegisterEvent', 'eventData'),
+            timestamp: BuiltValueNullFieldError.checkNotNull(
+                timestamp, r'RegisterEvent', 'timestamp'));
     replace(_$result);
     return _$result;
   }
