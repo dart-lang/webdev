@@ -261,7 +261,7 @@ void runTests({
         expect(inspector.isDisplayableObject(ref), isTrue);
       });
 
-      // // Regression test for https://github.com/dart-lang/webdev/issues/2446.
+      // Regression test for https://github.com/dart-lang/webdev/issues/2446.
       test(
         'for a stream',
         () async {
