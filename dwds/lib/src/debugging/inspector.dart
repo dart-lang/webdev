@@ -358,11 +358,13 @@ class AppInspector implements AppInspectorInterface {
 
   /// Evaluates the specified top-level method [methodName] within the library
   /// identified by [libraryUri] using the Dart Development Compiler (DDC)
-  /// library bundle strategy with the given [arguments].
+  /// library bundle strategy with the given optional [arguments].
   Future<RemoteObject> _evaluateLibraryMethodWithDdcLibraryBundle(
     String libraryUri,
     String methodName,
-    List<RemoteObject> arguments,
+    [
+    List<RemoteObject> arguments = const [],
+  ]
   ) {
     final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
         .callLibraryMethodJsExpression(libraryUri, methodName);
@@ -404,7 +406,6 @@ class AppInspector implements AppInspectorInterface {
         ? _evaluateLibraryMethodWithDdcLibraryBundle(
             libraryUri,
             methodName,
-            [],
           )
         : _evaluateLibraryVariable(
             libraryUri,
