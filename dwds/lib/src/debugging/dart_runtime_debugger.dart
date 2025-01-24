@@ -235,8 +235,8 @@ class DartRuntimeDebugger {
   /// Generates a JS expression to retrieve a library variable.
   /// This method is only available for the `RequireStrategy`.
   String getLibraryVariableJsExpression(
-    String libraryName,
     String libraryUri,
+    String libraryName,
     String variable,
   ) {
     return '${_loadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("$libraryName")["$libraryUri"]["$variable"]';

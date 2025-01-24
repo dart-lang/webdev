@@ -380,8 +380,8 @@ class AppInspector implements AppInspectorInterface {
     return jsEvaluate(
       globalToolConfiguration.loadStrategy.dartRuntimeDebugger
           .getLibraryVariableJsExpression(
-        libraryName,
         libraryUri,
+        libraryName,
         variableName,
       ),
     );
