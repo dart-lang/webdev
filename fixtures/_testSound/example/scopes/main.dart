@@ -13,7 +13,6 @@ final libraryPublicFinal = MyTestClass();
 final _libraryPrivateFinal = 1;
 Object? libraryNull;
 var libraryPublic = <String>['library', 'public', 'variable'];
-getLibraryPublic() => libraryPublic;
 var notAList = NotReallyAList();
 
 var _libraryPrivate = ['library', 'private', 'variable'];
@@ -23,6 +22,16 @@ var identityMap = <String, int>{};
 var map = <Object, Object>{};
 
 final stream = Stream.value(1);
+
+MyTestClass getLibraryPublicFinal() => libraryPublicFinal;
+
+List<String> getLibraryPublic() => libraryPublic;
+
+Map<Object, Object> getMap() => map;
+
+Map<String, int> getIdentityMap() => identityMap;
+
+Stream<int> getStream() => stream;
 
 void staticFunction(int formal) {
   print(formal); // Breakpoint: staticFunction

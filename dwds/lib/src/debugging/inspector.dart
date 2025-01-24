@@ -302,14 +302,18 @@ class AppInspector implements AppInspectorInterface {
     String selector,
     List<RemoteObject> arguments,
   ) {
+    final libraryUri = library.uri;
+    if (libraryUri == null) {
+      throwInvalidParam('invoke', 'library uri is null');
+    }
     return globalToolConfiguration.loadStrategy is DdcLibraryBundleStrategy
         ? _evaluateLibraryMethodWithDdcLibraryBundle(
-            library,
+            libraryUri,
             selector,
             arguments,
           )
         : _evaluateInLibrary(
-            library,
+            libraryUri,
             'function () { return this.$selector.apply(this, arguments); }',
             arguments,
           );
@@ -337,16 +341,12 @@ class AppInspector implements AppInspectorInterface {
   }
 
   /// Evaluate the JS function with source [jsFunction] in the context of
-  /// [library] with [arguments].
+  /// the library identified by [libraryUri] with [arguments].
   Future<RemoteObject> _evaluateInLibrary(
-    Library library,
+    String libraryUri,
     String jsFunction,
     List<RemoteObject> arguments,
   ) async {
-    final libraryUri = library.uri;
-    if (libraryUri == null) {
-      throwInvalidParam('invoke', 'library uri is null');
-    }
     final findLibraryJsExpression = globalToolConfiguration
         .loadStrategy.dartRuntimeDebugger
         .callLibraryMethodJsExpression(libraryUri, jsFunction);
@@ -355,21 +355,61 @@ class AppInspector implements AppInspectorInterface {
     return jsCallFunctionOn(remoteLibrary, jsFunction, arguments);
   }
 
-  /// Evaluates the specified top-level method [methodName] within [library]
-  /// using the Dart Development Compiler (DDC) library bundle strategy with
-  /// the given [arguments].
+  /// Evaluates the specified top-level method [methodName] within the library
+  /// identified by [libraryUri] using the Dart Development Compiler (DDC)
+  /// library bundle strategy with the given [arguments].
   Future<RemoteObject> _evaluateLibraryMethodWithDdcLibraryBundle(
-    Library library,
+    String libraryUri,
     String methodName,
     List<RemoteObject> arguments,
   ) {
-    final libraryUri = library.uri;
-    if (libraryUri == null) {
-      throwInvalidParam('invoke', 'library uri is null');
-    }
     final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
         .callLibraryMethodJsExpression(libraryUri, methodName);
     return _jsCallFunction(expression, arguments);
+  }
+
+  /// Evaluates the specified top-level variable [variableName] within the
+  /// library identified by [libraryName] and [libraryUri] using the
+  /// RequireStrategy.
+  Future<RemoteObject> _evaluateLibraryVariable(
+    String libraryUri,
+    String libraryName,
+    String variableName,
+  ) {
+    return jsEvaluate(
+      globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+          .getLibraryVariableJsExpression(
+        libraryName,
+        libraryUri,
+        variableName,
+      ),
+    );
+  }
+
+  /// Retrieves a reference to a library variable or method by evaluating
+  /// the specified [variableName] or invoking the provided [methodName].
+  /// The evaluation method is determined based on the current load strategy.
+  ///
+  /// If the load strategy uses `DdcLibraryBundleStrategy`, it evaluates the
+  /// method with the given [libraryUri] and [methodName]. Otherwise, it
+  /// evaluates the variable using [libraryUri], [libraryName], and [variableName].
+  Future<RemoteObject> getLibraryReference(
+    String libraryUri,
+    String libraryName,
+    String variableName,
+    String methodName,
+  ) {
+    return globalToolConfiguration.loadStrategy is DdcLibraryBundleStrategy
+        ? _evaluateLibraryMethodWithDdcLibraryBundle(
+            libraryUri,
+            methodName,
+            [],
+          )
+        : _evaluateLibraryVariable(
+            libraryUri,
+            libraryName,
+            variableName,
+          );
   }
 
   /// Call [function] with objects referred by [argumentIds] as arguments.
