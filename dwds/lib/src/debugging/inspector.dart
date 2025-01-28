@@ -277,11 +277,9 @@ class AppInspector implements AppInspectorInterface {
   @override
   Future<RemoteObject> invoke(
     String targetId,
-    String selector,
-    [
+    String selector, [
     List<dynamic> arguments = const [],
-  ]
-  ) async {
+  ]) async {
     final remoteArguments =
         arguments.cast<String>().map(remoteObjectFor).toList();
     // We special case the Dart library, where invokeMethod won't work because
