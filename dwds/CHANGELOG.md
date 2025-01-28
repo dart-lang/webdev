@@ -1,5 +1,7 @@
-## 24.3.4-wip
+## 24.3.4
+
 - Added support for some debugging APIs with the DDC library bundle format. - [#2566](https://github.com/dart-lang/webdev/issues/2566)
+- Added support for hot reload using the DDC library bundle format.
 
 ## 24.3.3
 

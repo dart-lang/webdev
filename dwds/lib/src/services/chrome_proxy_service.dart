@@ -1152,14 +1152,23 @@ class ChromeProxyService implements VmServiceInterface {
     bool? pause,
     String? rootLibUri,
     String? packagesUri,
-  }) {
-    return Future.error(
-      RPCError(
-        'reloadSources',
-        RPCErrorKind.kMethodNotFound.code,
-        'Hot reload not supported on web devices',
-      ),
-    );
+  }) async {
+    _logger.info('Attempting a hot reload');
+    try {
+      _logger.info('Issuing \$dartHotReloadDwds request');
+      await inspector.jsEvaluate(
+        '\$dartHotReloadDwds();',
+        awaitPromise: true,
+      );
+      _logger.info('\$dartHotReloadDwds request complete.');
+    } catch (e) {
+      // TODO(srujzs): We should bubble up the error, but `ReloadReport` needs
+      // more fields to capture that info.
+      _logger.info('Hot reload failed: $e');
+      return ReloadReport(success: false);
+    }
+    _logger.info('Successful hot reload');
+    return ReloadReport(success: true);
   }
 
   @override

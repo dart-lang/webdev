@@ -159,6 +159,11 @@ class RequireRestarter implements Restarter {
     return result;
   }
 
+  @override
+  Future<void> reload() => throw UnimplementedError(
+        'Hot reload is not supported for the AMD module format.',
+      );
+
   Future<void> _runMainWhenReady(Future? readyToRunMain) async {
     if (readyToRunMain != null) {
       await readyToRunMain;

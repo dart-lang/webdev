@@ -57,6 +57,10 @@ Future<void>? main() {
 
     final manager = ReloadingManager(client, restarter);
 
+    hotReloadJs = () {
+      return manager.hotReload().toJS;
+    }.toJS;
+
     Completer? readyToRunMainCompleter;
 
     hotRestartJs = (String runId, [bool? pauseIsolatesOnStart]) {
@@ -156,7 +160,7 @@ Future<void>? main() {
           } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
             await manager.hotRestart();
           } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
-            print('Hot reload is currently unsupported. Ignoring change.');
+            await manager.hotReload();
           }
         } else if (event is DevToolsResponse) {
           if (!event.success) {
@@ -347,6 +351,9 @@ external set dartAppInstanceId(String? id);
 
 @JS(r'$dartModuleStrategy')
 external String get dartModuleStrategy;
+
+@JS(r'$dartHotReloadDwds')
+external set hotReloadJs(JSFunction cb);
 
 @JS(r'$dartHotRestartDwds')
 external set hotRestartJs(JSFunction cb);

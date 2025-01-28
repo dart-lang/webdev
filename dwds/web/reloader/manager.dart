@@ -33,6 +33,11 @@ class ReloadingManager {
     return result;
   }
 
+  /// Performs a hot reload.
+  Future<void> hotReload() async {
+    await _restarter.reload();
+  }
+
   /// Does a hard reload of the application.
   void reloadPage() {
     window.location.reload();
