@@ -23,6 +23,16 @@ var map = <Object, Object>{};
 
 final stream = Stream.value(1);
 
+MyTestClass getLibraryPublicFinal() => libraryPublicFinal;
+
+List<String> getLibraryPublic() => libraryPublic;
+
+Map<Object, Object> getMap() => map;
+
+Map<String, int> getIdentityMap() => identityMap;
+
+Stream<int> getStream() => stream;
+
 void staticFunction(int formal) {
   print(formal); // Breakpoint: staticFunction
 }
