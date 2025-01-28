@@ -278,7 +278,9 @@ class AppInspector implements AppInspectorInterface {
   Future<RemoteObject> invoke(
     String targetId,
     String selector,
-    List<dynamic> arguments,
+    [
+    List<dynamic> arguments = const [],
+  ]
   ) async {
     final remoteArguments =
         arguments.cast<String>().map(remoteObjectFor).toList();
@@ -366,49 +368,6 @@ class AppInspector implements AppInspectorInterface {
     final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
         .callLibraryMethodJsExpression(libraryUri, methodName);
     return _jsCallFunction(expression, arguments);
-  }
-
-  /// Evaluates the specified top-level variable [variableName] within the
-  /// library identified by [libraryName] and [libraryUri] using the
-  /// RequireStrategy.
-  Future<RemoteObject> _evaluateLibraryVariable(
-    String libraryUri,
-    String libraryName,
-    String variableName,
-  ) {
-    return jsEvaluate(
-      globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-          .getLibraryVariableJsExpression(
-        libraryUri,
-        libraryName,
-        variableName,
-      ),
-    );
-  }
-
-  /// Retrieves a reference to a library variable or method by evaluating
-  /// the specified [variableName] or invoking the provided [methodName].
-  /// The evaluation method is determined based on the current load strategy.
-  ///
-  /// If the load strategy uses `DdcLibraryBundleStrategy`, it evaluates the
-  /// method with the given [libraryUri] and [methodName]. Otherwise, it
-  /// evaluates the variable using [libraryUri], [libraryName], and [variableName].
-  Future<RemoteObject> getLibraryReference(
-    String libraryUri,
-    String libraryName,
-    String variableName,
-    String methodName,
-  ) {
-    return globalToolConfiguration.loadStrategy is DdcLibraryBundleStrategy
-        ? _evaluateLibraryMethodWithDdcLibraryBundle(
-            libraryUri,
-            methodName,
-          )
-        : _evaluateLibraryVariable(
-            libraryUri,
-            libraryName,
-            variableName,
-          );
   }
 
   /// Call [function] with objects referred by [argumentIds] as arguments.

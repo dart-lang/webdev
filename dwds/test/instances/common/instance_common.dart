@@ -121,25 +121,6 @@ void runTests({
 
     final libraryUri = 'org-dartlang-app:///example/scopes/main.dart';
 
-    String libraryName(CompilationMode compilationMode) =>
-        compilationMode == CompilationMode.frontendServer
-            ? 'example/scopes/main.dart'
-            : 'example/scopes/main';
-
-    /// Retrieves a reference to a library variable or method by evaluating
-    /// the specified [variableName] and invoking the provided [methodName].
-    /// The target library must define both [variableName] and [methodName].
-    Future<RemoteObject> fetchLibraryReference(
-      String variableName,
-      String methodName,
-    ) =>
-        inspector.getLibraryReference(
-          libraryUri,
-          libraryName(compilationMode),
-          variableName,
-          methodName,
-        );
-
     String newInterceptorsExpression(String type) =>
         'new (require("dart_sdk")._interceptors.$type).new()';
 
@@ -147,34 +128,39 @@ void runTests({
 
     /// A reference to the the variable `libraryPublicFinal`, an instance of
     /// `MyTestClass`.
-    Future<RemoteObject> getLibraryPublicFinalRef() => fetchLibraryReference(
-          'libraryPublicFinal',
+    Future<RemoteObject> getLibraryPublicFinalRef() => inspector.invoke(
+          libraryUri,
           'getLibraryPublicFinal',
         );
 
     /// A reference to the the variable `libraryPublic`, a List of Strings.
-    Future<RemoteObject> getLibraryPublicRef() => fetchLibraryReference(
-          'libraryPublic',
+    Future<RemoteObject> getLibraryPublicRef() => inspector.invoke(
+          libraryUri,
           'getLibraryPublic',
         );
 
     /// A reference to the variable `map`.
-    Future<RemoteObject> getMapRef() => fetchLibraryReference(
-          'map',
+    Future<RemoteObject> getMapRef() => inspector.invoke(
+          libraryUri,
           'getMap',
         );
 
     /// A reference to the variable `identityMap`.
-    Future<RemoteObject> getIdentityMapRef() => fetchLibraryReference(
-          'identityMap',
+    Future<RemoteObject> getIdentityMapRef() => inspector.invoke(
+          libraryUri,
           'getIdentityMap',
         );
 
     /// A reference to the variable `stream`.
-    Future<RemoteObject> getStreamRef() => fetchLibraryReference(
-          'stream',
+    Future<RemoteObject> getStreamRef() => inspector.invoke(
+          libraryUri,
           'getStream',
         );
+
+    final unsupportedTestMsg =
+        'This test is not supported with the DDC Library '
+        "Bundle Format because the dartDevEmbedder doesn't let you access compiled "
+        'constructors at runtime.';
 
     group('instanceRef', () {
       setUp(() => setCurrentLogWriter(debug: debug));
@@ -292,7 +278,7 @@ void runTests({
         },
         skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
                 canaryFeatures == true
-            ? 'This test is not supported with the DDC Library Bundle Format.'
+            ? unsupportedTestMsg
             : null,
       );
 
@@ -310,7 +296,7 @@ void runTests({
         },
         skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
                 canaryFeatures == true
-            ? 'This test is not supported with the DDC Library Bundle Format.'
+            ? unsupportedTestMsg
             : null,
       );
 
@@ -328,7 +314,7 @@ void runTests({
         },
         skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
                 canaryFeatures == true
-            ? 'This test is not supported with the DDC Library Bundle Format.'
+            ? unsupportedTestMsg
             : null,
       );
 
@@ -346,7 +332,7 @@ void runTests({
         },
         skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
                 canaryFeatures == true
-            ? 'This test is not supported with the DDC Library Bundle Format.'
+            ? unsupportedTestMsg
             : null,
       );
     });
@@ -472,7 +458,7 @@ void runTests({
         },
         skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
                 canaryFeatures == true
-            ? 'This test is not supported with the DDC Library Bundle Format.'
+            ? unsupportedTestMsg
             : null,
       );
 
@@ -490,7 +476,7 @@ void runTests({
         },
         skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
                 canaryFeatures == true
-            ? 'This test is not supported with the DDC Library Bundle Format.'
+            ? unsupportedTestMsg
             : null,
       );
 
@@ -508,7 +494,7 @@ void runTests({
         },
         skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
                 canaryFeatures == true
-            ? 'This test is not supported with the DDC Library Bundle Format.'
+            ? unsupportedTestMsg
             : null,
       );
 
@@ -526,7 +512,7 @@ void runTests({
         },
         skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
                 canaryFeatures == true
-            ? 'This test is not supported with the DDC Library Bundle Format.'
+            ? unsupportedTestMsg
             : null,
       );
     });
