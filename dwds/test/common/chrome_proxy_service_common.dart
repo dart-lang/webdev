@@ -2062,6 +2062,14 @@ void runTests({
       // should create new tests for hot reload within DWDS and remove this
       // test.
       expect(report.success, false);
+      // Make sure that a notice was provided in the expected format.
+      final notices = report.json?['notices'];
+      expect(notices, isNotNull);
+      final noticeList = (notices as List).cast<Map>();
+      expect(noticeList, isNotEmpty);
+      final message = noticeList[0]['message'];
+      expect(message, isNotNull);
+      expect(message is String && message.isNotEmpty, isTrue);
     });
 
     test('setIsolatePauseMode', () async {
