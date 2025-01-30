@@ -1162,13 +1162,17 @@ class ChromeProxyService implements VmServiceInterface {
       );
       _logger.info('\$dartHotReloadDwds request complete.');
     } catch (e) {
-      // TODO(srujzs): We should bubble up the error, but `ReloadReport` needs
-      // more fields to capture that info.
       _logger.info('Hot reload failed: $e');
-      return ReloadReport(success: false);
+      final report = _ReloadReportWithMetadata(success: false);
+      report.json = {
+        'notices': [
+          {'message': e.toString()},
+        ],
+      };
+      return report;
     }
     _logger.info('Successful hot reload');
-    return ReloadReport(success: true);
+    return _ReloadReportWithMetadata(success: true);
   }
 
   @override
@@ -1754,6 +1758,28 @@ class ChromeProxyService implements VmServiceInterface {
   static Never _throwSentinel(String method, String kind, String message) {
     final data = <String, String>{'kind': kind, 'valueAsString': message};
     throw SentinelException.parse(method, data);
+  }
+}
+
+// The default `ReloadReport`'s `toJson` only emits the type and success of the
+// operation. Override it to expose additional possible metadata in the `json`.
+// This then gets called in the VM service code that handles request and
+// responses.
+class _ReloadReportWithMetadata extends ReloadReport {
+  _ReloadReportWithMetadata({super.success});
+
+  @override
+  Map<String, dynamic> toJson() {
+    final jsonified = <String, Object?>{
+      'type': type,
+      'success': success ?? false,
+    };
+    // Include any other metadata we may have included in `json`, potentially
+    // even overriding the above defaults.
+    for (final jsonKey in super.json?.keys ?? <String>[]) {
+      jsonified[jsonKey] = super.json![jsonKey];
+    }
+    return jsonified;
   }
 }
 
