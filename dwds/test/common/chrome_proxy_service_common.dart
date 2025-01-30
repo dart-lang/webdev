@@ -2065,6 +2065,7 @@ void runTests({
       // Make sure that a notice was provided in the expected format.
       final notices = report.json?['notices'];
       expect(notices, isNotNull);
+      expect(notices is List, isTrue);
       final noticeList = (notices as List).cast<Map>();
       expect(noticeList, isNotEmpty);
       final message = noticeList[0]['message'];
