@@ -2056,7 +2056,21 @@ void runTests({
 
     test('reloadSources', () async {
       final service = context.service;
-      await expectLater(service.reloadSources(''), throwsRPCError);
+      final report = await service.reloadSources('');
+      // TODO(srujzs): This naturally fails regardless of the module format
+      // because we didn't set up prerequisite state (the reload scripts). We
+      // should create new tests for hot reload within DWDS and remove this
+      // test.
+      expect(report.success, false);
+      // Make sure that a notice was provided in the expected format.
+      final notices = report.json?['notices'];
+      expect(notices, isNotNull);
+      expect(notices is List, isTrue);
+      final noticeList = (notices as List).cast<Map>();
+      expect(noticeList, isNotEmpty);
+      final message = noticeList[0]['message'];
+      expect(message, isNotNull);
+      expect(message is String && message.isNotEmpty, isTrue);
     });
 
     test('setIsolatePauseMode', () async {

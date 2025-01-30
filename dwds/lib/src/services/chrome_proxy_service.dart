@@ -1152,14 +1152,27 @@ class ChromeProxyService implements VmServiceInterface {
     bool? pause,
     String? rootLibUri,
     String? packagesUri,
-  }) {
-    return Future.error(
-      RPCError(
-        'reloadSources',
-        RPCErrorKind.kMethodNotFound.code,
-        'Hot reload not supported on web devices',
-      ),
-    );
+  }) async {
+    _logger.info('Attempting a hot reload');
+    try {
+      _logger.info('Issuing \$dartHotReloadDwds request');
+      await inspector.jsEvaluate(
+        '\$dartHotReloadDwds();',
+        awaitPromise: true,
+      );
+      _logger.info('\$dartHotReloadDwds request complete.');
+    } catch (e) {
+      _logger.info('Hot reload failed: $e');
+      final report = _ReloadReportWithMetadata(success: false);
+      report.json = {
+        'notices': [
+          {'message': e.toString()},
+        ],
+      };
+      return report;
+    }
+    _logger.info('Successful hot reload');
+    return _ReloadReportWithMetadata(success: true);
   }
 
   @override
@@ -1745,6 +1758,28 @@ class ChromeProxyService implements VmServiceInterface {
   static Never _throwSentinel(String method, String kind, String message) {
     final data = <String, String>{'kind': kind, 'valueAsString': message};
     throw SentinelException.parse(method, data);
+  }
+}
+
+// The default `ReloadReport`'s `toJson` only emits the type and success of the
+// operation. Override it to expose additional possible metadata in the `json`.
+// This then gets called in the VM service code that handles request and
+// responses.
+class _ReloadReportWithMetadata extends ReloadReport {
+  _ReloadReportWithMetadata({super.success});
+
+  @override
+  Map<String, dynamic> toJson() {
+    final jsonified = <String, Object?>{
+      'type': type,
+      'success': success ?? false,
+    };
+    // Include any other metadata we may have included in `json`, potentially
+    // even overriding the above defaults.
+    for (final jsonKey in super.json?.keys ?? <String>[]) {
+      jsonified[jsonKey] = super.json![jsonKey];
+    }
+    return jsonified;
   }
 }
 
