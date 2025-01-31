@@ -9802,34 +9802,6 @@
       });
       return A._asyncStartSync($async$_Debugger_maybeInvokeFlutterDisassemble, $async$completer);
     },
-    _Debugger_maybeInvokeFlutterReassemble(_this) {
-      var $async$goto = 0,
-        $async$completer = A._makeAsyncAwaitCompleter(type$.void),
-        t1;
-      var $async$_Debugger_maybeInvokeFlutterReassemble = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
-        if ($async$errorCode === 1)
-          return A._asyncRethrow($async$result, $async$completer);
-        while (true)
-          switch ($async$goto) {
-            case 0:
-              // Function start
-              t1 = type$.JSArray_nullable_Object._as(_this.extensionNames);
-              $async$goto = J.contains$1$asx(type$.List_String._is(t1) ? t1 : new A.CastList(t1, A._arrayInstanceType(t1)._eval$1("CastList<1,String>")), "ext.flutter.reassemble") ? 2 : 3;
-              break;
-            case 2:
-              // then
-              $async$goto = 4;
-              return A._asyncAwait(A.promiseToFuture(type$.JSObject._as(_this.invokeExtension("ext.flutter.reassemble", "{}")), type$.String), $async$_Debugger_maybeInvokeFlutterReassemble);
-            case 4:
-              // returning from await.
-            case 3:
-              // join
-              // implicit return
-              return A._asyncReturn(null, $async$completer);
-          }
-      });
-      return A._asyncStartSync($async$_Debugger_maybeInvokeFlutterReassemble, $async$completer);
-    },
     DdcLibraryBundleRestarter: function DdcLibraryBundleRestarter() {
     },
     DdcLibraryBundleRestarter_reload_closure: function DdcLibraryBundleRestarter_reload_closure(t0, t1) {
@@ -26930,10 +26902,6 @@
               $async$goto = 3;
               return A._asyncAwait(A.promiseToFuture(t3._as(t3._as(t2.dartDevEmbedder).hotReload(filesToLoad, librariesToReload)), type$.nullable_Object), $async$reload$0);
             case 3:
-              // returning from await.
-              $async$goto = 4;
-              return A._asyncAwait(A._Debugger_maybeInvokeFlutterReassemble(t3._as(t3._as(t2.dartDevEmbedder).debugger)), $async$reload$0);
-            case 4:
               // returning from await.
               // implicit return
               return A._asyncReturn(null, $async$completer);

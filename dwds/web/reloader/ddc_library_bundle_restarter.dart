@@ -34,13 +34,6 @@ extension type _Debugger._(JSObject _) implements JSObject {
       await invokeExtension(method, '{}').toDart;
     }
   }
-
-  Future<void> maybeInvokeFlutterReassemble() async {
-    final method = 'ext.flutter.reassemble';
-    if (extensionNames.toDart.contains(method.toJS)) {
-      await invokeExtension(method, '{}').toDart;
-    }
-  }
 }
 
 @JS('XMLHttpRequest')
@@ -105,9 +98,5 @@ class DdcLibraryBundleRestarter implements Restarter {
       }
     }
     await _dartDevEmbedder.hotReload(filesToLoad, librariesToReload).toDart;
-    // TODO(srujzs): Reassembling is slow. It's roughly almost the time it takes
-    // to recompile and do a hot reload. We should do some better profiling and
-    // see if we can improve this.
-    await _dartDevEmbedder.debugger.maybeInvokeFlutterReassemble();
   }
 }
