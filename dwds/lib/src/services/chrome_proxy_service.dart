@@ -343,7 +343,7 @@ class ChromeProxyService implements VmServiceInterface {
     // TODO: We shouldn't need to fire these events since they exist on the
     // isolate, but devtools doesn't recognize extensions after a page refresh
     // otherwise.
-    for (final extensionRpc in inspector.isolate.extensionRPCs ?? []) {
+    for (final extensionRpc in await inspector.getExtensionRpcs()) {
       _streamNotify(
         'Isolate',
         Event(
@@ -509,6 +509,13 @@ class ChromeProxyService implements VmServiceInterface {
         v is String ? v : jsonEncode(v),
       ),
     );
+    if ((await inspector.getExtensionRpcs()).contains(method) != true) {
+      throw RPCError(
+        method,
+        RPCErrorKind.kMethodNotFound.code,
+        'Unknown service method: $method',
+      );
+    }
     final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
         .invokeExtensionJsExpression(method, jsonEncode(stringArgs));
     final result = await inspector.jsEvaluate(expression, awaitPromise: true);
