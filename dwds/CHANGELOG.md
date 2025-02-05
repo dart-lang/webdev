@@ -1,6 +1,6 @@
 ## 24.3.4
 
-- Ensure `packageConfigPath` is initialized in `LoadStrategy` at construction.
+- Allow clients to specify the `packageConfigPath` in `LoadStrategy` class and associated providers.
 - Added support for some debugging APIs with the DDC library bundle format. - [#2566](https://github.com/dart-lang/webdev/issues/2566), [#2573](https://github.com/dart-lang/webdev/issues/2573)
 - Added support for hot reload using the DDC library bundle format.
 
