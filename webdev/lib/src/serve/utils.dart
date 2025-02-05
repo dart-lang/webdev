@@ -85,7 +85,6 @@ Future<void> _removeDeleted(String from, String to) async {
 
 /// Returns the absolute file path of the `package_config.json` file in the `.dart_tool`
 /// directory, searching recursively from the current directory hierarchy.
-/// If `_packageConfigPath` is already set, it returns the cached value immediately.
 String? findPackageConfigFilePath() {
   var candidateDir = Directory(p.current).absolute;
   while (true) {
