@@ -1,6 +1,8 @@
+## 24.3.5-wip
+- Allow clients to specify the `packageConfigPath` in `LoadStrategy` class and associated providers.
+
 ## 24.3.4
 
-- Allow clients to specify the `packageConfigPath` in `LoadStrategy` class and associated providers.
 - Added support for some debugging APIs with the DDC library bundle format. - [#2566](https://github.com/dart-lang/webdev/issues/2566), [#2573](https://github.com/dart-lang/webdev/issues/2573)
 - Added support for hot reload using the DDC library bundle format.
 
