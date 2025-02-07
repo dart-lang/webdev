@@ -1,4 +1,4 @@
-## 24.3.5-wip
+## 24.3.5
 - Allow clients to specify the `packageConfigPath` in `LoadStrategy` class and associated providers.
 
 ## 24.3.4
