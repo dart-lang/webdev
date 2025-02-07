@@ -21,7 +21,6 @@ import '../command/configuration.dart';
 import '../util.dart';
 import 'chrome.dart';
 import 'handlers/favicon_handler.dart';
-import 'utils.dart' show findPackageConfigFilePath;
 
 Logger _logger = Logger('WebDevServer');
 
@@ -142,7 +141,6 @@ class WebDevServer {
         options.configuration.reload,
         assetReader,
         buildSettings,
-        packageConfigPath: findPackageConfigFilePath(),
       ).strategy;
 
       if (options.configuration.enableExpressionEvaluation) {
