@@ -1,4 +1,5 @@
 ## 3.7.1-wip
+- Support the `--hostname` flag when the `--tls-cert-key` and `--tls-cert-chain` flags are present.
 
 ## 3.7.0
 

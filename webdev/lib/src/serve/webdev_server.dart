@@ -205,7 +205,7 @@ class WebDevServer {
         ..useCertificateChain(tlsCertChain)
         ..usePrivateKey(tlsCertKey);
       server =
-          await HttpMultiServer.loopbackSecure(options.port, serverContext);
+          await HttpMultiServer.bindSecure(hostname, options.port, serverContext);
     } else {
       server = await HttpMultiServer.bind(hostname, options.port);
     }
