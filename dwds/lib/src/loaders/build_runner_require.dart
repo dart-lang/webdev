@@ -22,6 +22,7 @@ class BuildRunnerRequireStrategyProvider {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
   final BuildSettings _buildSettings;
+  final String? _packageConfigPath;
 
   late final RequireStrategy _requireStrategy = RequireStrategy(
     _configuration,
@@ -34,14 +35,16 @@ class BuildRunnerRequireStrategyProvider {
     _moduleInfoForProvider,
     _assetReader,
     _buildSettings,
+    packageConfigPath: _packageConfigPath,
   );
 
   BuildRunnerRequireStrategyProvider(
     this._assetHandler,
     this._configuration,
     this._assetReader,
-    this._buildSettings,
-  );
+    this._buildSettings, {
+    String? packageConfigPath,
+  }) : _packageConfigPath = packageConfigPath;
 
   RequireStrategy get strategy => _requireStrategy;
 
