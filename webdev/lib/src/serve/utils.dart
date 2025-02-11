@@ -82,3 +82,26 @@ Future<void> _removeDeleted(String from, String to) async {
     }
   }
 }
+
+/// Returns the absolute file path of the `package_config.json` file in the `.dart_tool`
+/// directory, searching recursively from the current directory hierarchy.
+String? findPackageConfigFilePath() {
+  var candidateDir = Directory(p.current).absolute;
+
+  while (true) {
+    final candidatePackageConfigFile =
+        File(p.join(candidateDir.path, '.dart_tool', 'package_config.json'));
+
+    if (candidatePackageConfigFile.existsSync()) {
+      return candidatePackageConfigFile.path;
+    }
+
+    final parentDir = candidateDir.parent;
+    if (parentDir.path == candidateDir.path) {
+      // We've reached the root directory
+      return null;
+    }
+
+    candidateDir = parentDir;
+  }
+}
