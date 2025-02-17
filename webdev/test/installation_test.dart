@@ -25,180 +25,71 @@ enum StreamType {
 const processTimeout = Duration(minutes: 1);
 
 void main() {
-  Process? createProcess;
-  Process? activateProcess;
-  Process? serveProcess;
-  Directory? tempDir0;
-
-  Future<void> expectStdoutAndCleanExit(Process process,
-      {required String expectedStdout}) async {
-    final stdoutCompleter = _captureOutput(
-      process,
-      streamType: StreamType.stdout,
-      stopCaptureFuture: process.exitCode,
-    );
-    final stderrCompleter = _captureOutput(
-      process,
-      streamType: StreamType.stderr,
-      stopCaptureFuture: process.exitCode,
-    );
-    final exitCode = await _waitForExitOrTimeout(process);
-    final stderrLogs = await stderrCompleter.future;
-    final stdoutLogs = await stdoutCompleter.future;
-    expect(
-      exitCode,
-      equals(0),
-      // Include the stderr and stdout logs if the process does not terminate
-      // cleanly:
-      reason: 'stderr: $stderrLogs, stdout: $stdoutLogs',
-    );
-    expect(
-      stderrLogs,
-      isEmpty,
-    );
-    expect(
-      stdoutLogs,
-      contains(expectedStdout),
-    );
-  }
-
-  Future<void> expectStdoutThenExit(Process process,
-      {required String expectedStdout}) async {
-    final expectedStdoutCompleter = _waitForStdoutOrTimeout(
-      process,
-      expectedStdout: expectedStdout,
-    );
-    final stderrCompleter = _captureOutput(
-      process,
-      streamType: StreamType.stderr,
-      stopCaptureFuture: expectedStdoutCompleter.future,
-    );
-    final stdoutLogs = await expectedStdoutCompleter.future;
-    final stderrLogs = await stderrCompleter.future;
-    expect(
-      stdoutLogs, contains(expectedStdout),
-      // Also include the stderr if the stdout is not expected.
-      reason: 'stderr: $stderrLogs',
-    );
-  }
-
-  setUp(() async {
-    tempDir0 = Directory.systemTemp.createTempSync('installation_test');
-
-    await Process.run(
-      'dart',
-      ['pub', 'global', 'deactivate', 'webdev'],
-    );
-  });
-
-  tearDown(() async {
-    // Kill any stale processes:
-    if (createProcess != null) {
-      Process.killPid(createProcess!.pid, ProcessSignal.sigint);
-      createProcess = null;
-    }
-    if (activateProcess != null) {
-      Process.killPid(activateProcess!.pid, ProcessSignal.sigint);
-      activateProcess = null;
-    }
-    if (serveProcess != null) {
-      Process.killPid(serveProcess!.pid, ProcessSignal.sigint);
-      serveProcess = null;
-    }
-  });
-
   test('can activate and serve webdev', () async {
-    final tempDir = tempDir0!;
-    final tempPath = tempDir.path;
+    await withTempDir((tempDir) async {
+      final tempPath = tempDir.path;
 
-    // Verify that we can create a new Dart app:
-    createProcess = await Process.start(
-      'dart',
-      ['create', '--template', 'web', 'temp_app'],
-      workingDirectory: tempPath,
-    );
-    await expectStdoutAndCleanExit(
-      createProcess!,
-      expectedStdout: 'Created project temp_app in temp_app!',
-    );
-    final appPath = p.join(tempPath, 'temp_app');
-    expect(await Directory(appPath).exists(), isTrue);
+      await runCommand(
+        Platform.resolvedExecutable,
+        ['create', '--template', 'web', 'temp_app'],
+        workingDirectory: tempPath,
+        expectedStdout: 'Created project temp_app in temp_app!',
+      );
 
-    // Verify that `dart pub global activate` works:
-    activateProcess = await Process.start(
-      'dart',
-      ['pub', 'global', 'activate', 'webdev'],
-    );
-    await expectStdoutAndCleanExit(
-      activateProcess!,
-      expectedStdout: 'Activated webdev',
-    );
+      final appPath = p.join(tempPath, 'temp_app');
+      expect(await Directory(appPath).exists(), isTrue);
 
-    // Verify that `webdev serve` works for our new app:
-    serveProcess = await Process.start(
-        'dart', ['pub', 'global', 'run', 'webdev', 'serve'],
-        workingDirectory: appPath);
-    await expectStdoutThenExit(serveProcess!,
-        expectedStdout: 'Serving `web` on');
-  });
-}
+      // Verify that `dart pub add dev:webdev` works:
+      await runCommand(
+        Platform.resolvedExecutable,
+        ['pub', 'add', 'dev:webdev'],
+        expectedStdout: '+ webdev',
+        workingDirectory: appPath,
+      );
 
-Future<int> _waitForExitOrTimeout(Process process) {
-  Timer(processTimeout, () {
-    process.kill(ProcessSignal.sigint);
-  });
-  return process.exitCode;
-}
-
-/// Returns the stdout for the [process] once the [expectedStdout] is found.
-///
-/// Otherwise returns all the stdout up to the [processTimeout].
-Completer<String> _waitForStdoutOrTimeout(Process process,
-    {required String expectedStdout}) {
-  var output = '';
-  final completer = Completer<String>();
-
-  Timer(processTimeout, () {
-    process.kill(ProcessSignal.sigint);
-    if (!completer.isCompleted) {
-      completer.complete(output);
-    }
-  });
-  process.stdout.transform(utf8.decoder).listen((line) {
-    output += line;
-    if (line.contains(expectedStdout)) {
-      process.kill(ProcessSignal.sigint);
-      if (!completer.isCompleted) {
-        completer.complete(output);
+      // Verify that `webdev serve` works for our new app:
+      final serveProcess = await Process.start(
+        Platform.resolvedExecutable,
+        ['run', 'webdev', 'serve'],
+        workingDirectory: appPath,
+      );
+      try {
+        serveProcess.stderr.listen((x) => print(utf8.decode(x)));
+        await expectLater(serveProcess.stdout.transform(utf8.decoder),
+            emitsThrough(contains('Serving `web` on')));
+      } finally {
+        serveProcess.kill();
       }
-    }
+      await serveProcess.exitCode;
+    });
   });
-
-  return completer;
 }
 
-Completer<String> _captureOutput(
-  Process process, {
-  required StreamType streamType,
-  required Future stopCaptureFuture,
-}) {
-  final stream =
-      streamType == StreamType.stdout ? process.stdout : process.stderr;
-  final completer = Completer<String>();
-  var output = '';
-  stream.transform(utf8.decoder).listen((line) {
-    output += line;
-    if (line.contains('[SEVERE]')) {
-      process.kill(ProcessSignal.sigint);
-      if (!completer.isCompleted) {
-        completer.complete(output);
-      }
-    }
-  });
-  unawaited(stopCaptureFuture.then((_) {
-    if (!completer.isCompleted) {
-      completer.complete(output);
-    }
-  }));
-  return completer;
+Future<void> runCommand(
+  String executable,
+  List<String> arguments, {
+  required String expectedStdout,
+  int expectedExit = 0,
+  String? workingDirectory,
+}) async {
+  final result = Process.runSync(
+    executable,
+    arguments,
+    workingDirectory: workingDirectory,
+  );
+  printOnFailure('Running `$executable ${arguments.join(' ')}`');
+  printOnFailure(result.stderr);
+  printOnFailure(result.stdout);
+  expect(result.stdout, contains(expectedStdout));
+  expect(result.stderr, isEmpty);
+  expect(result.exitCode, expectedExit);
+}
+
+Future<T> withTempDir<T>(Future<T> Function(Directory tempDir) callback) async {
+  final tempDir = Directory.systemTemp.createTempSync('installation_test');
+  try {
+    return await callback(tempDir);
+  } finally {
+    tempDir.deleteSync(recursive: true);
+  }
 }
