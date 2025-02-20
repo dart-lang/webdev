@@ -15,6 +15,8 @@ import 'dart:js';
 
 import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/serializers.dart';
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'package:js/js.dart';
 
 void main() {

@@ -243,7 +243,7 @@ void runTests({
         expect(classRef.name, '_ControllerStream<int>');
         expect(classRef.id, 'classes|dart:async|_ControllerStream<int>');
         expect(inspector.isDisplayableObject(ref), isTrue);
-      }, skip: !dartSdkIsAtLeast('3.6.0-148.0.dev'));
+      }, skip: !dartSdkIsAtLeast('3.6.0-148.0.dev'),);
 
       test(
         'for a Dart error',
@@ -431,7 +431,7 @@ void runTests({
         final classRef = instance.classRef!;
         expect(classRef.name, '_ControllerStream<int>');
         expect(inspector.isDisplayableObject(instance), isTrue);
-      }, skip: !dartSdkIsAtLeast('3.6.0-148.0.dev'));
+      }, skip: !dartSdkIsAtLeast('3.6.0-148.0.dev'),);
 
       test(
         'for a Dart error',

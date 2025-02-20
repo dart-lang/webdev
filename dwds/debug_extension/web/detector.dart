@@ -14,6 +14,8 @@ import 'dart:html';
 import 'dart:js_util';
 
 import 'package:dwds/data/debug_info.dart';
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';

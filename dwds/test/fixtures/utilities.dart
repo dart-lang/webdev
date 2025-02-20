@@ -28,7 +28,7 @@ Future<BuildDaemonClient> connectClient(
   'build_runner',
   'daemon',
   ...options,
-], logHandler: logHandler);
+], logHandler: logHandler,);
 
 /// Returns the port of the daemon asset server.
 int daemonPort(String workingDirectory) {

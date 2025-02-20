@@ -54,7 +54,7 @@ void main() {
       expect(await context.webDriver.pageSource, contains('DevTools'));
       expect(await context.webDriver.currentUrl, contains('ide=Dwds'));
       // TODO(https://github.com/dart-lang/webdev/issues/1888): Re-enable.
-    }, skip: Platform.isWindows);
+    }, skip: Platform.isWindows,);
 
     test(
       'can not launch devtools for the same app in multiple tabs',
@@ -140,7 +140,7 @@ void main() {
       },
       skip: 'https://github.com/dart-lang/webdev/issues/1888',
     );
-  }, timeout: Timeout.factor(2));
+  }, timeout: Timeout.factor(2),);
 
   group('Injected client without a DevTools server', () {
     setUp(() async {

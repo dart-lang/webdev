@@ -128,7 +128,7 @@ void main() {
         expect(source.contains(newString), isTrue);
       });
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: Timeout.factor(2),);
 
   group('Injected client', () {
     late VmService fakeClient;
@@ -409,7 +409,7 @@ void main() {
         ),
       );
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: Timeout.factor(2),);
 
   group('Injected client with hot restart', () {
     group('and with debugging', () {
@@ -496,7 +496,7 @@ void main() {
         );
       });
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: Timeout.factor(2),);
 
   // TODO(https://github.com/dart-lang/webdev/issues/2380): Run these tests with
   // the FrontendServer as well.

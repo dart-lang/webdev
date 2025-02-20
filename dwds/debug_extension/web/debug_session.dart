@@ -15,7 +15,11 @@ import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/shared/batched_stream.dart';
 import 'package:dwds/src/sockets.dart';
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'package:js/js.dart';
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'package:js/js_util.dart' as js_util;
 import 'package:sse/client/sse_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';

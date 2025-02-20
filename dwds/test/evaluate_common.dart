@@ -612,7 +612,7 @@ void testAll({
             matchErrorRef(contains(EvaluationErrorKind.loadModule)),
           );
         });
-      }, skip: 'https://github.com/dart-lang/sdk/issues/48587');
+      }, skip: 'https://github.com/dart-lang/sdk/issues/48587',);
 
       test('cannot evaluate in unsupported isolate', () async {
         await onBreakPoint(mainScript, 'printLocal', (event) async {
@@ -795,7 +795,7 @@ void testAll({
         expect(result, matchInstanceRef('42'));
       });
     });
-  }, timeout: const Timeout.factor(2));
+  }, timeout: const Timeout.factor(2),);
 
   group('shared context with no evaluation |', () {
     setUpAll(() async {

@@ -164,7 +164,7 @@ void main() {
               'elapsedMilliseconds': isNotNull,
               'screen': equals('debugger'),
             }),
-          ], () => keyboard.sendChord([Keyboard.alt, 'd']));
+          ], () => keyboard.sendChord([Keyboard.alt, 'd']),);
         },
         skip: 'https://github.com/dart-lang/webdev/issues/2394',
       );
@@ -380,7 +380,7 @@ void main() {
             }),
             () => service.getSourceReport(isolateId, [
               SourceReportKind.kPossibleBreakpoints,
-            ], scriptId: mainScript.id),
+            ], scriptId: mainScript.id,),
           );
         });
       });
