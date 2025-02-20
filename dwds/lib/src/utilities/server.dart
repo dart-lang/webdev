@@ -20,8 +20,11 @@ Future<int> findUnusedPort() async {
   int port;
   ServerSocket socket;
   try {
-    socket =
-        await ServerSocket.bind(InternetAddress.loopbackIPv6, 0, v6Only: true);
+    socket = await ServerSocket.bind(
+      InternetAddress.loopbackIPv6,
+      0,
+      v6Only: true,
+    );
   } on SocketException {
     socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   }
@@ -63,12 +66,9 @@ void serveHttpRequests(
   Handler handler,
   void Function(Object, StackTrace) onError,
 ) {
-  return Chain.capture(
-    () {
-      serveRequests(requests, handler);
-    },
-    onError: onError,
-  );
+  return Chain.capture(() {
+    serveRequests(requests, handler);
+  }, onError: onError);
 }
 
 /// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
@@ -94,10 +94,9 @@ Map<String, dynamic> getResultOrHandleError(
   handleErrorIfPresent(response, evalContents: evalContents);
   final result = response?.result?['result'];
   if (result == null) {
-    throw ChromeDebugException(
-      {'text': 'null result from Chrome Devtools'},
-      evalContents: evalContents,
-    );
+    throw ChromeDebugException({
+      'text': 'null result from Chrome Devtools',
+    }, evalContents: evalContents);
   }
   return result;
 }

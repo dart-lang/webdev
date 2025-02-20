@@ -67,8 +67,9 @@ void main() {
         await service.streamListen('Debug');
         stream = service.onEvent('Debug');
 
-        mainScript = scripts.scripts!
-            .firstWhere((each) => each.uri!.contains('main.dart'));
+        mainScript = scripts.scripts!.firstWhere(
+          (each) => each.uri!.contains('main.dart'),
+        );
         mainScriptUri = mainScript.uri!;
       });
 

@@ -51,39 +51,33 @@ void main() {
     );
   }
 
-  group(
-    'Injected client',
-    () {
-      VmService? fakeClient;
+  group('Injected client', () {
+    VmService? fakeClient;
 
-      setUp(() async {
-        setCurrentLogWriter(debug: debug);
-        await context.setUp(
-          testSettings: TestSettings(
-            enableExpressionEvaluation: true,
-          ),
-        );
+    setUp(() async {
+      setCurrentLogWriter(debug: debug);
+      await context.setUp(
+        testSettings: TestSettings(enableExpressionEvaluation: true),
+      );
 
-        fakeClient = await context.connectFakeClient();
-      });
+      fakeClient = await context.connectFakeClient();
+    });
 
-      tearDown(() async {
-        await context.tearDown();
-        undoEdit();
-      });
+    tearDown(() async {
+      await context.tearDown();
+      undoEdit();
+    });
 
-      test(
-          'properly compares constants after hot restart via the service extension',
-          () async {
+    test(
+      'properly compares constants after hot restart via the service extension',
+      () async {
         final client = context.debugConnection.vmService;
         await client.streamListen('Isolate');
 
         var source = await context.webDriver.pageSource;
         expect(
           source,
-          contains(
-            'ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
-          ),
+          contains('ConstObject(reloadVariable: 23, ConstantEqualitySuccess)'),
         );
 
         await makeEditAndWaitForRebuild();
@@ -116,94 +110,86 @@ void main() {
             ),
           );
         }
+      },
+    );
+  }, timeout: Timeout.factor(2));
+
+  group('Injected client with hot restart', () {
+    group('and with debugging', () {
+      setUp(() async {
+        setCurrentLogWriter(debug: debug);
+        await context.setUp(
+          testSettings: TestSettings(
+            reloadConfiguration: ReloadConfiguration.hotRestart,
+          ),
+        );
       });
-    },
-    timeout: Timeout.factor(2),
-  );
 
-  group(
-    'Injected client with hot restart',
-    () {
-      group('and with debugging', () {
-        setUp(() async {
-          setCurrentLogWriter(debug: debug);
-          await context.setUp(
-            testSettings: TestSettings(
-              reloadConfiguration: ReloadConfiguration.hotRestart,
-            ),
-          );
-        });
+      tearDown(() async {
+        await context.tearDown();
+        undoEdit();
+      });
 
-        tearDown(() async {
-          await context.tearDown();
-          undoEdit();
-        });
+      test('properly compares constants after hot restart', () async {
+        var source = await context.webDriver.pageSource;
+        expect(
+          source,
+          contains('ConstObject(reloadVariable: 23, ConstantEqualitySuccess)'),
+        );
 
-        test('properly compares constants after hot restart', () async {
-          var source = await context.webDriver.pageSource;
+        await makeEditAndWaitForRebuild();
+
+        source = await context.webDriver.pageSource;
+        if (dartSdkIsAtLeast('3.4.0-61.0.dev')) {
           expect(
             source,
             contains(
-              'ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
+              'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
             ),
           );
+        }
+      });
+    });
 
-          await makeEditAndWaitForRebuild();
-
-          source = await context.webDriver.pageSource;
-          if (dartSdkIsAtLeast('3.4.0-61.0.dev')) {
-            expect(
-              source,
-              contains(
-                'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
-              ),
-            );
-          }
-        });
+    group('and without debugging', () {
+      setUp(() async {
+        setCurrentLogWriter(debug: debug);
+        await context.setUp(
+          testSettings: TestSettings(
+            reloadConfiguration: ReloadConfiguration.hotRestart,
+          ),
+          debugSettings: TestDebugSettings.noDevTools().copyWith(
+            enableDebugging: false,
+          ),
+        );
       });
 
-      group('and without debugging', () {
-        setUp(() async {
-          setCurrentLogWriter(debug: debug);
-          await context.setUp(
-            testSettings: TestSettings(
-              reloadConfiguration: ReloadConfiguration.hotRestart,
-            ),
-            debugSettings:
-                TestDebugSettings.noDevTools().copyWith(enableDebugging: false),
-          );
-        });
+      tearDown(() async {
+        await context.tearDown();
+        undoEdit();
+      });
 
-        tearDown(() async {
-          await context.tearDown();
-          undoEdit();
-        });
+      test('properly compares constants after hot restart', () async {
+        var source = await context.webDriver.pageSource;
+        expect(
+          source,
+          contains('ConstObject(reloadVariable: 23, ConstantEqualitySuccess)'),
+        );
 
-        test('properly compares constants after hot restart', () async {
-          var source = await context.webDriver.pageSource;
+        await makeEditAndWaitForRebuild();
+
+        source = await context.webDriver.pageSource;
+        if (dartSdkIsAtLeast('3.4.0-61.0.dev')) {
           expect(
             source,
             contains(
-              'ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
+              'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
             ),
           );
-
-          await makeEditAndWaitForRebuild();
-
-          source = await context.webDriver.pageSource;
-          if (dartSdkIsAtLeast('3.4.0-61.0.dev')) {
-            expect(
-              source,
-              contains(
-                'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
-              ),
-            );
-          }
-        });
+        }
       });
-    },
-    timeout: Timeout.factor(2),
-  );
+    });
+  }, timeout: Timeout.factor(2));
 }
 
 TypeMatcher<Event> _hasKind(String kind) =>

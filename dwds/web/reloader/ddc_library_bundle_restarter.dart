@@ -73,12 +73,13 @@ class DdcLibraryBundleRestarter implements Restarter {
     final completer = Completer<String>();
     final xhr = _XMLHttpRequest();
     xhr.withCredentials = true;
-    xhr.onreadystatechange = () {
-      // If the request has completed and OK, or the response has not changed.
-      if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
-        completer.complete(xhr.responseText);
-      }
-    }.toJS;
+    xhr.onreadystatechange =
+        () {
+          // If the request has completed and OK, or the response has not changed.
+          if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
+            completer.complete(xhr.responseText);
+          }
+        }.toJS;
     xhr.get(_reloadScriptsPath, true);
     xhr.send();
     final responseText = await completer.future;

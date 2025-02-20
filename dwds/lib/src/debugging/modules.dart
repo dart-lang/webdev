@@ -74,17 +74,19 @@ class Modules {
 
   /// Initializes [_sourceToModule] and [_sourceToLibrary].
   Future<void> _initializeMapping() async {
-    final provider =
-        globalToolConfiguration.loadStrategy.metadataProviderFor(_entrypoint);
+    final provider = globalToolConfiguration.loadStrategy.metadataProviderFor(
+      _entrypoint,
+    );
 
     final libraryToScripts = await provider.scripts;
     final scriptToModule = await provider.scriptToModule;
 
     for (final library in libraryToScripts.keys) {
       final scripts = libraryToScripts[library]!;
-      final libraryServerPath = library.startsWith('dart:')
-          ? library
-          : DartUri(library, _root).serverPath;
+      final libraryServerPath =
+          library.startsWith('dart:')
+              ? library
+              : DartUri(library, _root).serverPath;
 
       if (scriptToModule.containsKey(library)) {
         final module = scriptToModule[library]!;
@@ -94,9 +96,10 @@ class Modules {
         _libraryToModule[library] = module;
 
         for (final script in scripts) {
-          final scriptServerPath = script.startsWith('dart:')
-              ? script
-              : DartUri(script, _root).serverPath;
+          final scriptServerPath =
+              script.startsWith('dart:')
+                  ? script
+                  : DartUri(script, _root).serverPath;
 
           _sourceToModule[scriptServerPath] = module;
           _sourceToLibrary[scriptServerPath] = Uri.parse(library);

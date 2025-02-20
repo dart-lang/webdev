@@ -36,8 +36,10 @@ void main() {
     });
 
     test('stripping the "Symbol(" from a private field', () {
-      final property =
-          Property({'name': 'Symbol(_privateThing)', 'value': exampleMap});
+      final property = Property({
+        'name': 'Symbol(_privateThing)',
+        'value': exampleMap,
+      });
       expect(property.name, '_privateThing');
     });
   });

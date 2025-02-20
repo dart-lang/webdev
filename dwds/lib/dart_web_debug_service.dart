@@ -74,21 +74,24 @@ class Dwds {
     Future<String>? extensionUri;
     ExtensionBackend? extensionBackend;
     if (debugSettings.enableDebugExtension) {
-      final handler = debugSettings.useSseForDebugBackend
-          ? SseSocketHandler(
-              SseHandler(
-                Uri.parse('/\$debug'),
-                // Proxy servers may actively kill long standing connections.
-                // Allow for clients to reconnect in a short window. Making the
-                // window too long may cause issues if the user closes a debug
-                // session and initiates a new one during the keepAlive window.
-                keepAlive: const Duration(seconds: 5),
-              ),
-            )
-          : WebSocketSocketHandler();
+      final handler =
+          debugSettings.useSseForDebugBackend
+              ? SseSocketHandler(
+                SseHandler(
+                  Uri.parse('/\$debug'),
+                  // Proxy servers may actively kill long standing connections.
+                  // Allow for clients to reconnect in a short window. Making the
+                  // window too long may cause issues if the user closes a debug
+                  // session and initiates a new one during the keepAlive window.
+                  keepAlive: const Duration(seconds: 5),
+                ),
+              )
+              : WebSocketSocketHandler();
 
-      extensionBackend =
-          await ExtensionBackend.start(handler, appMetadata.hostname);
+      extensionBackend = await ExtensionBackend.start(
+        handler,
+        appMetadata.hostname,
+      );
       extensionUri = Future.value(
         Uri(
           scheme: debugSettings.useSseForDebugBackend ? 'http' : 'ws',
@@ -106,14 +109,15 @@ class Dwds {
     final devToolsLauncher = debugSettings.devToolsLauncher;
     if (devToolsLauncher != null) {
       devTools = await devToolsLauncher(appMetadata.hostname);
-      final uri =
-          Uri(scheme: 'http', host: devTools.hostname, port: devTools.port);
+      final uri = Uri(
+        scheme: 'http',
+        host: devTools.hostname,
+        port: devTools.port,
+      );
       _logger.info('Serving DevTools at $uri\n');
     }
 
-    final injected = DwdsInjector(
-      extensionUri: extensionUri,
-    );
+    final injected = DwdsInjector(extensionUri: extensionUri);
 
     final devHandler = DevHandler(
       chromeConnection,

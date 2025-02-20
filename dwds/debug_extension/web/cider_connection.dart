@@ -44,11 +44,7 @@ enum CiderMessageType {
 ///
 /// The types must match those defined by ChromeExtensionErrorType in the
 /// Cider extension.
-enum CiderErrorType {
-  internalError,
-  invalidRequest,
-  noAppId,
-}
+enum CiderErrorType { internalError, invalidRequest, noAppId }
 
 const _ciderPortName = 'cider';
 Port? _ciderPort;
@@ -62,9 +58,7 @@ void handleCiderConnectRequest(Port port) {
     debugLog('Received connect request from Cider', verbose: true);
     _ciderPort = port;
 
-    port.onMessage.addListener(
-      allowInterop(_handleMessageFromCider),
-    );
+    port.onMessage.addListener(allowInterop(_handleMessageFromCider));
 
     sendMessageToCider(messageType: CiderMessageType.connected);
   }
@@ -99,10 +93,7 @@ void sendErrorMessageToCider({
 }
 
 void _sendMessageToCider(String json) {
-  final message = {
-    'key': _ciderDartMessageKey,
-    'json': json,
-  };
+  final message = {'key': _ciderDartMessageKey, 'json': json};
   _ciderPort!.postMessage(jsify(message));
 }
 
@@ -177,7 +168,8 @@ Future<void> _sendInspectorUrl({String? appId}) async {
   if (!alreadyDebugging) {
     sendErrorMessageToCider(
       errorType: CiderErrorType.invalidRequest,
-      errorDetails: 'Cannot send the inspector URL before '
+      errorDetails:
+          'Cannot send the inspector URL before '
           'the debugger has been attached.',
     );
     return;
@@ -195,10 +187,7 @@ Future<void> _sendInspectorUrl({String? appId}) async {
   }
   final inspectorUrl = addQueryParameters(
     devToolsUri,
-    queryParameters: {
-      'embed': 'true',
-      'page': 'inspector',
-    },
+    queryParameters: {'embed': 'true', 'page': 'inspector'},
   );
   sendMessageToCider(
     messageType: CiderMessageType.inspectorUrlResponse,

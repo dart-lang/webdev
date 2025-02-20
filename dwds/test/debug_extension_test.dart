@@ -62,10 +62,9 @@ void main() async {
       group('Without encoding', () {
         setUp(() async {
           await context.setUp(
-            debugSettings: TestDebugSettings.withDevTools(context).copyWith(
-              enableDebugExtension: true,
-              useSse: useSse,
-            ),
+            debugSettings: TestDebugSettings.withDevTools(
+              context,
+            ).copyWith(enableDebugExtension: true, useSse: useSse),
           );
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
             'expression': 'fakeClick()',
@@ -126,13 +125,13 @@ void main() async {
       group('With a sharded Dart app', () {
         setUp(() async {
           await context.setUp(
-            debugSettings: TestDebugSettings.withDevTools(context).copyWith(
-              enableDebugExtension: true,
-              useSse: useSse,
-            ),
+            debugSettings: TestDebugSettings.withDevTools(
+              context,
+            ).copyWith(enableDebugExtension: true, useSse: useSse),
           );
-          final htmlTag =
-              await context.webDriver.findElement(const By.tagName('html'));
+          final htmlTag = await context.webDriver.findElement(
+            const By.tagName('html'),
+          );
 
           await context.webDriver.execute(
             "arguments[0].setAttribute('data-multiple-dart-apps', 'true');",
@@ -149,8 +148,9 @@ void main() async {
             'expression': 'fakeClick()',
           });
           // Wait for the alert to open.
-          final alert =
-              await retryFn<Alert>(() => context.webDriver.switchTo.alert);
+          final alert = await retryFn<Alert>(
+            () => context.webDriver.switchTo.alert,
+          );
           expect(alert, isNotNull);
         });
       });
@@ -161,13 +161,13 @@ void main() async {
       group('With an internal Dart app', () {
         setUp(() async {
           await context.setUp(
-            debugSettings: TestDebugSettings.withDevTools(context).copyWith(
-              enableDebugExtension: true,
-              useSse: false,
-            ),
+            debugSettings: TestDebugSettings.withDevTools(
+              context,
+            ).copyWith(enableDebugExtension: true, useSse: false),
           );
-          final htmlTag =
-              await context.webDriver.findElement(const By.tagName('html'));
+          final htmlTag = await context.webDriver.findElement(
+            const By.tagName('html'),
+          );
 
           await context.webDriver.execute(
             "arguments[0].setAttribute('data-ddr-dart-app', 'true');",
@@ -233,8 +233,11 @@ void main() async {
       await context.setUp(
         debugSettings: TestDebugSettings.noDevTools().copyWith(
           enableDebugExtension: true,
-          urlEncoder: (url) async =>
-              url.endsWith(r'/$debug') ? 'http://some-encoded-url:8081/' : url,
+          urlEncoder:
+              (url) async =>
+                  url.endsWith(r'/$debug')
+                      ? 'http://some-encoded-url:8081/'
+                      : url,
         ),
       );
     });
@@ -260,8 +263,9 @@ void main() async {
     setUp(() async {
       await context.setUp(
         appMetadata: TestAppMetadata.externalApp().copyWith(hostname: 'any'),
-        debugSettings:
-            TestDebugSettings.noDevTools().copyWith(enableDebugExtension: true),
+        debugSettings: TestDebugSettings.noDevTools().copyWith(
+          enableDebugExtension: true,
+        ),
       );
     });
 
@@ -276,8 +280,9 @@ void main() async {
         ),
       );
       expect(result.body.contains('dartExtensionUri'), isTrue);
-      final extensionUri =
-          Uri.parse(uriPattern.firstMatch(result.body)!.group(1)!);
+      final extensionUri = Uri.parse(
+        uriPattern.firstMatch(result.body)!.group(1)!,
+      );
       expect(
         extensionUri.host,
         anyOf(

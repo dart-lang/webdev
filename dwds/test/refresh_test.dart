@@ -42,24 +42,30 @@ void main() {
       // Wait for the page to be fully loaded before refreshing.
       await Future.delayed(const Duration(seconds: 1));
       // Now wait for the shutdown event.
-      final exitEvent =
-          stream.firstWhere((e) => e.kind != EventKind.kIsolateExit);
+      final exitEvent = stream.firstWhere(
+        (e) => e.kind != EventKind.kIsolateExit,
+      );
       await context.webDriver.refresh();
       await exitEvent;
       // Wait for the refresh to propagate through.
-      final isolateStart =
-          await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart);
+      final isolateStart = await stream.firstWhere(
+        (e) => e.kind != EventKind.kIsolateStart,
+      );
       final isolateId = isolateStart.isolate!.id!;
       final refreshedScriptList = await service.getScripts(isolateId);
-      final refreshedMain = refreshedScriptList.scripts!
-          .lastWhere((each) => each.uri!.contains('main.dart'));
+      final refreshedMain = refreshedScriptList.scripts!.lastWhere(
+        (each) => each.uri!.contains('main.dart'),
+      );
       final bpLine = await context.findBreakpointLine(
         'printHelloWorld',
         isolateId,
         refreshedMain,
       );
-      final bp =
-          await service.addBreakpoint(isolateId, refreshedMain.id!, bpLine);
+      final bp = await service.addBreakpoint(
+        isolateId,
+        refreshedMain.id!,
+        bpLine,
+      );
       final isolate = await service.getIsolate(vm.isolates!.first.id!);
       expect(isolate.breakpoints, [bp]);
       expect(bp.id, isNotNull);

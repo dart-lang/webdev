@@ -28,15 +28,17 @@ String _readDartDebugInfo() {
   return jsonEncode(
     serializers.serialize(
       DebugInfo(
-        (b) => b
-          ..appEntrypointPath = windowContext['\$dartEntrypointPath'] as String?
-          ..appId = windowContext['\$dartAppId'] as String?
-          ..appInstanceId = windowContext['\$dartAppInstanceId'] as String?
-          ..appOrigin = window.location.origin
-          ..appUrl = window.location.href
-          ..extensionUrl = windowContext['\$dartExtensionUri'] as String?
-          ..isInternalBuild = windowContext['\$isInternalBuild'] as bool?
-          ..isFlutterApp = windowContext['\$isFlutterApp'] as bool?,
+        (b) =>
+            b
+              ..appEntrypointPath =
+                  windowContext['\$dartEntrypointPath'] as String?
+              ..appId = windowContext['\$dartAppId'] as String?
+              ..appInstanceId = windowContext['\$dartAppInstanceId'] as String?
+              ..appOrigin = window.location.origin
+              ..appUrl = window.location.href
+              ..extensionUrl = windowContext['\$dartExtensionUri'] as String?
+              ..isInternalBuild = windowContext['\$isInternalBuild'] as bool?
+              ..isFlutterApp = windowContext['\$isFlutterApp'] as bool?,
       ),
     ),
   );

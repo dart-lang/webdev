@@ -29,12 +29,10 @@ external Object _nativeJsFetch(String resourceUrl, FetchOptions options);
 
 Future<FetchResponse> fetchRequest(String resourceUrl) async {
   try {
-    final options = FetchOptions(
-      method: 'GET',
-      credentials: 'include',
+    final options = FetchOptions(method: 'GET', credentials: 'include');
+    final response = await promiseToFuture(
+      _nativeJsFetch(resourceUrl, options),
     );
-    final response =
-        await promiseToFuture(_nativeJsFetch(resourceUrl, options));
     final body = await promiseToFuture<String?>(
       js_util.callMethod(response, 'text', []),
     );
@@ -64,9 +62,5 @@ class FetchResponse {
   final bool ok;
   final String? body;
 
-  FetchResponse({
-    required this.status,
-    required this.ok,
-    required this.body,
-  });
+  FetchResponse({required this.status, required this.ok, required this.body});
 }

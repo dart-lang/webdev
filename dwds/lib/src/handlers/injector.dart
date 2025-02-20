@@ -32,9 +32,7 @@ class DwdsInjector {
   final _devHandlerPaths = StreamController<String>();
   final _logger = Logger('DwdsInjector');
 
-  DwdsInjector({
-    Future<String>? extensionUri,
-  }) : _extensionUri = extensionUri;
+  DwdsInjector({Future<String>? extensionUri}) : _extensionUri = extensionUri;
 
   /// Returns the embedded dev handler paths.
   ///
@@ -42,90 +40,92 @@ class DwdsInjector {
   Stream<String> get devHandlerPaths => _devHandlerPaths.stream;
 
   Middleware get middleware => (innerHandler) {
-        return (Request request) async {
-          if (request.url.path.endsWith('$_clientScript.js')) {
-            final uri = await Isolate.resolvePackageUri(
-              Uri.parse('package:$_clientScript.js'),
-            );
-            if (uri == null) {
-              throw StateError('Cannot resolve "package:$_clientScript.js"');
-            }
-            final result = await File(uri.toFilePath()).readAsString();
-            return Response.ok(
-              result,
-              headers: {
-                HttpHeaders.contentTypeHeader: 'application/javascript',
-              },
-            );
-          } else if (request.url.path.endsWith(bootstrapJsExtension)) {
-            final ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
-            if (ifNoneMatch != null) {
-              // Disable caching of the inner handler by manually modifying the
-              // if-none-match header before forwarding the request.
-              request = request.change(
-                headers: {
-                  HttpHeaders.ifNoneMatchHeader: '$ifNoneMatch\$injected',
-                },
-              );
-            }
-            final response = await innerHandler(request);
-            if (response.statusCode == HttpStatus.notFound) return response;
-            var body = await response.readAsString();
-            var etag = response.headers[HttpHeaders.etagHeader];
-            final newHeaders = Map.of(response.headers);
-            if (body.startsWith(entrypointExtensionMarker)) {
-              // The requestedUri contains the hostname and port which guarantees
-              // uniqueness.
-              final requestedUri = request.requestedUri;
-              final appId = base64
-                  .encode(md5.convert(utf8.encode('$requestedUri')).bytes);
-              var scheme = request.requestedUri.scheme;
-              if (!globalToolConfiguration
-                  .debugSettings.useSseForInjectedClient) {
-                // Switch http->ws and https->wss.
-                scheme = scheme.replaceFirst('http', 'ws');
-              }
-              final requestedUriBase = '$scheme'
-                  '://${request.requestedUri.authority}';
-              var devHandlerPath = '\$dwdsSseHandler';
-              final subPath = request.url.pathSegments.toList()..removeLast();
-              if (subPath.isNotEmpty) {
-                devHandlerPath = '${subPath.join('/')}/$devHandlerPath';
-              }
-              _logger.info('Received request for entrypoint at $requestedUri');
-              devHandlerPath = '$requestedUriBase/$devHandlerPath';
-              _devHandlerPaths.add(devHandlerPath);
-              final entrypoint = request.url.path;
-              await globalToolConfiguration.loadStrategy
-                  .trackEntrypoint(entrypoint);
-              body = await _injectClientAndHoistMain(
-                body,
-                appId,
-                devHandlerPath,
-                entrypoint,
-                await _extensionUri,
-              );
-              body += await globalToolConfiguration.loadStrategy
-                  .bootstrapFor(entrypoint);
-              _logger.info('Injected debugging metadata for '
-                  'entrypoint at $requestedUri');
-              etag = base64.encode(md5.convert(body.codeUnits).bytes);
-              newHeaders[HttpHeaders.etagHeader] = etag;
-            }
-            if (ifNoneMatch == etag) {
-              return Response.notModified(headers: newHeaders);
-            }
-            return response.change(body: body, headers: newHeaders);
-          } else {
-            final loadResponse =
-                await globalToolConfiguration.loadStrategy.handler(request);
-            if (loadResponse.statusCode != HttpStatus.notFound) {
-              return loadResponse;
-            }
-            return innerHandler(request);
+    return (Request request) async {
+      if (request.url.path.endsWith('$_clientScript.js')) {
+        final uri = await Isolate.resolvePackageUri(
+          Uri.parse('package:$_clientScript.js'),
+        );
+        if (uri == null) {
+          throw StateError('Cannot resolve "package:$_clientScript.js"');
+        }
+        final result = await File(uri.toFilePath()).readAsString();
+        return Response.ok(
+          result,
+          headers: {HttpHeaders.contentTypeHeader: 'application/javascript'},
+        );
+      } else if (request.url.path.endsWith(bootstrapJsExtension)) {
+        final ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
+        if (ifNoneMatch != null) {
+          // Disable caching of the inner handler by manually modifying the
+          // if-none-match header before forwarding the request.
+          request = request.change(
+            headers: {HttpHeaders.ifNoneMatchHeader: '$ifNoneMatch\$injected'},
+          );
+        }
+        final response = await innerHandler(request);
+        if (response.statusCode == HttpStatus.notFound) return response;
+        var body = await response.readAsString();
+        var etag = response.headers[HttpHeaders.etagHeader];
+        final newHeaders = Map.of(response.headers);
+        if (body.startsWith(entrypointExtensionMarker)) {
+          // The requestedUri contains the hostname and port which guarantees
+          // uniqueness.
+          final requestedUri = request.requestedUri;
+          final appId = base64.encode(
+            md5.convert(utf8.encode('$requestedUri')).bytes,
+          );
+          var scheme = request.requestedUri.scheme;
+          if (!globalToolConfiguration.debugSettings.useSseForInjectedClient) {
+            // Switch http->ws and https->wss.
+            scheme = scheme.replaceFirst('http', 'ws');
           }
-        };
-      };
+          final requestedUriBase =
+              '$scheme'
+              '://${request.requestedUri.authority}';
+          var devHandlerPath = '\$dwdsSseHandler';
+          final subPath = request.url.pathSegments.toList()..removeLast();
+          if (subPath.isNotEmpty) {
+            devHandlerPath = '${subPath.join('/')}/$devHandlerPath';
+          }
+          _logger.info('Received request for entrypoint at $requestedUri');
+          devHandlerPath = '$requestedUriBase/$devHandlerPath';
+          _devHandlerPaths.add(devHandlerPath);
+          final entrypoint = request.url.path;
+          await globalToolConfiguration.loadStrategy.trackEntrypoint(
+            entrypoint,
+          );
+          body = await _injectClientAndHoistMain(
+            body,
+            appId,
+            devHandlerPath,
+            entrypoint,
+            await _extensionUri,
+          );
+          body += await globalToolConfiguration.loadStrategy.bootstrapFor(
+            entrypoint,
+          );
+          _logger.info(
+            'Injected debugging metadata for '
+            'entrypoint at $requestedUri',
+          );
+          etag = base64.encode(md5.convert(body.codeUnits).bytes);
+          newHeaders[HttpHeaders.etagHeader] = etag;
+        }
+        if (ifNoneMatch == etag) {
+          return Response.notModified(headers: newHeaders);
+        }
+        return response.change(body: body, headers: newHeaders);
+      } else {
+        final loadResponse = await globalToolConfiguration.loadStrategy.handler(
+          request,
+        );
+        if (loadResponse.statusCode != HttpStatus.notFound) {
+          return loadResponse;
+        }
+        return innerHandler(request);
+      }
+    };
+  };
 }
 
 /// Returns the provided body with the main function hoisted into a global
@@ -138,8 +138,9 @@ Future<String> _injectClientAndHoistMain(
   String? extensionUri,
 ) async {
   final bodyLines = body.split('\n');
-  final extensionIndex =
-      bodyLines.indexWhere((line) => line.contains(mainExtensionMarker));
+  final extensionIndex = bodyLines.indexWhere(
+    (line) => line.contains(mainExtensionMarker),
+  );
   var result = bodyLines.sublist(0, extensionIndex).join('\n');
   // The line after the marker calls `main`. We prevent `main` from
   // being called and make it runnable through a global variable.
@@ -190,7 +191,8 @@ Future<String> _injectedClientSnippet(
   final appMetadata = globalToolConfiguration.appMetadata;
   final debugSettings = globalToolConfiguration.debugSettings;
 
-  var injectedBody = 'window.\$dartAppId = "$appId";\n'
+  var injectedBody =
+      'window.\$dartAppId = "$appId";\n'
       'window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
       'window.\$dartModuleStrategy = "${loadStrategy.id}";\n'
       'window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'

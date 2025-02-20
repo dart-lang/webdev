@@ -158,9 +158,7 @@ class Notifications {
 @JS()
 @anonymous
 class OnClickedHandler {
-  external void addListener(
-    void Function(String) callback,
-  );
+  external void addListener(void Function(String) callback);
 }
 
 @JS()
@@ -233,9 +231,7 @@ class Port {
 @JS()
 @anonymous
 class OnPortMessageHandler {
-  external void addListener(
-    void Function(dynamic, Port) callback,
-  );
+  external void addListener(void Function(dynamic, Port) callback);
 }
 
 @JS()

@@ -12,11 +12,7 @@ import 'package:test_common/utilities.dart';
 import '../fixtures/context.dart';
 import '../fixtures/utilities.dart';
 
-enum ConsoleSource {
-  background,
-  devTools,
-  worker,
-}
+enum ConsoleSource { background, devTools, worker }
 
 final _backgroundLogs = [];
 final _devToolsLogs = [];
@@ -24,14 +20,10 @@ final _workerLogs = [];
 
 Future<String> buildDebugExtension({required bool isMV3}) async {
   final extensionDir = absolutePath(pathFromDwds: 'debug_extension');
-  await Process.run(
-    'dart',
-    [
-      p.join('tool', 'build_extension.dart'),
-      if (isMV3) '--mv3',
-    ],
-    workingDirectory: extensionDir,
-  );
+  await Process.run('dart', [
+    p.join('tool', 'build_extension.dart'),
+    if (isMV3) '--mv3',
+  ], workingDirectory: extensionDir);
   return p.join(extensionDir, 'compiled');
 }
 
@@ -48,23 +40,20 @@ Future<Browser> setUpExtensionTest(
   // TODO(elliette): Only start a TestServer, that way we can get rid of the
   // launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
   await context.setUp(
-    testSettings: TestSettings(
-      launchChrome: false,
-      isFlutterApp: isFlutterApp,
-    ),
+    testSettings: TestSettings(launchChrome: false, isFlutterApp: isFlutterApp),
     appMetadata: TestAppMetadata(
       isInternalBuild: isInternalBuild,
       workspaceName: workspaceName,
     ),
-    debugSettings: serveDevTools
-        ? TestDebugSettings.withDevTools(context).copyWith(
-            enableDebugExtension: true,
-            useSse: useSse,
-          )
-        : TestDebugSettings.noDevTools().copyWith(
-            enableDebugExtension: true,
-            useSse: useSse,
-          ),
+    debugSettings:
+        serveDevTools
+            ? TestDebugSettings.withDevTools(
+              context,
+            ).copyWith(enableDebugExtension: true, useSse: useSse)
+            : TestDebugSettings.noDevTools().copyWith(
+              enableDebugExtension: true,
+              useSse: useSse,
+            ),
   );
   return await puppeteer.launch(
     devTools: openChromeDevTools,
@@ -78,23 +67,18 @@ Future<Browser> setUpExtensionTest(
   );
 }
 
-Future<void> tearDownHelper({
-  Worker? worker,
-  Page? backgroundPage,
-}) async {
+Future<void> tearDownHelper({Worker? worker, Page? backgroundPage}) async {
   _logConsoleMsgsOnFailure();
   _backgroundLogs.clear();
   _workerLogs.clear();
   _devToolsLogs.clear();
-  await _clearStorage(
-    worker: worker,
-    backgroundPage: backgroundPage,
-  );
+  await _clearStorage(worker: worker, backgroundPage: backgroundPage);
 }
 
 Future<Worker> getServiceWorker(Browser browser) async {
-  final serviceWorkerTarget =
-      await browser.waitForTarget((target) => target.type == 'service_worker');
+  final serviceWorkerTarget = await browser.waitForTarget(
+    (target) => target.type == 'service_worker',
+  );
   final worker = (await serviceWorkerTarget.worker)!;
   return Worker(
     worker.client,
@@ -113,8 +97,9 @@ Future<Worker> getServiceWorker(Browser browser) async {
 }
 
 Future<Page> getBackgroundPage(Browser browser) async {
-  final backgroundPageTarget =
-      await browser.waitForTarget((target) => target.type == 'background_page');
+  final backgroundPageTarget = await browser.waitForTarget(
+    (target) => target.type == 'background_page',
+  );
   final backgroundPage = await backgroundPageTarget.page;
   backgroundPage.onConsole.listen((msg) {
     _saveConsoleMsg(
@@ -127,8 +112,9 @@ Future<Page> getBackgroundPage(Browser browser) async {
 }
 
 Future<Page> getChromeDevToolsPage(Browser browser) async {
-  final chromeDevToolsTarget = browser.targets
-      .firstWhere((target) => target.url.startsWith('devtools://devtools'));
+  final chromeDevToolsTarget = browser.targets.firstWhere(
+    (target) => target.url.startsWith('devtools://devtools'),
+  );
   chromeDevToolsTarget.type = 'page';
   final chromeDevToolsPage = await chromeDevToolsTarget.page;
   chromeDevToolsPage.onConsole.listen((msg) {
@@ -184,12 +170,8 @@ Future<Page> navigateToPage(
   required String url,
   bool isNew = false,
 }) async {
-  final page = isNew
-      ? await browser.newPage()
-      : await _getPageForUrl(
-          browser,
-          url: url,
-        );
+  final page =
+      isNew ? await browser.newPage() : await _getPageForUrl(browser, url: url);
   if (isNew) {
     await page.goto(url, wait: Until.domContentLoaded);
   }
@@ -199,8 +181,9 @@ Future<Page> navigateToPage(
 
 String getExtensionOrigin(Browser browser) {
   final chromeExtension = 'chrome-extension:';
-  final extensionUrl = _getUrlsInBrowser(browser)
-      .firstWhere((url) => url.contains(chromeExtension));
+  final extensionUrl = _getUrlsInBrowser(
+    browser,
+  ).firstWhere((url) => url.contains(chromeExtension));
   final urlSegments = p.split(extensionUrl);
   final extensionId = urlSegments[urlSegments.indexOf(chromeExtension) + 1];
   return '$chromeExtension//$extensionId';
@@ -248,10 +231,7 @@ Future<Page> _getPageForUrl(Browser browser, {required String url}) {
   return pageTarget.page;
 }
 
-Future<void> _clearStorage({
-  Worker? worker,
-  Page? backgroundPage,
-}) async {
+Future<void> _clearStorage({Worker? worker, Page? backgroundPage}) async {
   return evaluate(
     _clearStorageJs(isMV3: worker != null),
     worker: worker,

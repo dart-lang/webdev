@@ -18,7 +18,8 @@ void main() {
     expect(
       Version.parse(packageVersion),
       pubspec.version,
-      reason: 'Please run `dart run build_runner build '
+      reason:
+          'Please run `dart run build_runner build '
           '--build-filter=lib/src/version.dart` to update the version.',
     );
   });

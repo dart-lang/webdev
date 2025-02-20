@@ -20,27 +20,28 @@ import 'package:path/path.dart' as p;
 const _prodFlag = 'prod';
 
 void main(List<String> arguments) async {
-  final parser = ArgParser()
-    ..addFlag(_prodFlag, negatable: true, defaultsTo: false);
+  final parser =
+      ArgParser()..addFlag(_prodFlag, negatable: true, defaultsTo: false);
   final argResults = parser.parse(arguments);
 
-  exitCode = await run(
-    isProd: argResults[_prodFlag] as bool,
-  );
+  exitCode = await run(isProd: argResults[_prodFlag] as bool);
   if (exitCode != 0) {
     _logWarning('Run terminated unexpectedly with exit code: $exitCode');
   }
 }
 
 Future<int> run({required bool isProd}) async {
-  _logInfo(
-    'Building extension for ${isProd ? 'prod' : 'dev'}',
-  );
+  _logInfo('Building extension for ${isProd ? 'prod' : 'dev'}');
   _logInfo('Compiling extension with dart2js to /compiled directory');
-  final compileStep = await Process.start(
-    'dart',
-    ['run', 'build_runner', 'build', 'web', '--output', 'build', '--release'],
-  );
+  final compileStep = await Process.start('dart', [
+    'run',
+    'build_runner',
+    'build',
+    'web',
+    '--output',
+    'build',
+    '--release',
+  ]);
   final compileExitCode = await _handleProcess(compileStep);
   // Terminate early if compilation failed:
   if (compileExitCode != 0) {
@@ -48,9 +49,9 @@ Future<int> run({required bool isProd}) async {
   }
   _logInfo('Copying manifest.json to /compiled directory');
   try {
-    File(p.join('web', 'manifest.json')).copySync(
-      p.join('compiled', 'manifest.json'),
-    );
+    File(
+      p.join('web', 'manifest.json'),
+    ).copySync(p.join('compiled', 'manifest.json'));
   } catch (error) {
     _logWarning('Copying manifest file failed: $error');
     // Return non-zero exit code to indicate failure:
@@ -60,10 +61,9 @@ Future<int> run({required bool isProd}) async {
   if (isProd) return 0;
   // Update manifest.json for dev:
   _logInfo('Updating manifest.json in /compiled directory.');
-  final updateStep = await Process.start(
-    'dart',
-    [p.join('tool', 'update_dev_files.dart')],
-  );
+  final updateStep = await Process.start('dart', [
+    p.join('tool', 'update_dev_files.dart'),
+  ]);
   final updateExitCode = await _handleProcess(updateStep);
   // Return exit code (0 indicates success):
   return updateExitCode;

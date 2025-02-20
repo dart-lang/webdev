@@ -23,10 +23,7 @@ class Location {
   /// An arbitrary integer value used to represent this location.
   final int tokenPos;
 
-  Location._(
-    this.jsLocation,
-    this.dartLocation,
-  ) : tokenPos = _startTokenId++;
+  Location._(this.jsLocation, this.dartLocation) : tokenPos = _startTokenId++;
 
   static Location from(
     String module,
@@ -62,11 +59,7 @@ class DartLocation {
   /// 1 based column offset within the Dart source code.
   final int column;
 
-  DartLocation._(
-    this.uri,
-    this.line,
-    this.column,
-  );
+  DartLocation._(this.uri, this.line, this.column);
 
   int compareTo(DartLocation other) => compareToLine(other.line, other.column);
 
@@ -110,12 +103,7 @@ class JsLocation {
   /// See https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-ScriptId
   String? runtimeScriptId;
 
-  JsLocation._(
-    this.module,
-    this.line,
-    this.column,
-    this.runtimeScriptId,
-  );
+  JsLocation._(this.module, this.line, this.column, this.runtimeScriptId);
 
   int compareTo(JsLocation other) => compareToLine(other.line, other.column);
 
@@ -134,8 +122,7 @@ class JsLocation {
     int line,
     int column,
     String? runtimeScriptId,
-  ) =>
-      JsLocation._(module, line, column, runtimeScriptId);
+  ) => JsLocation._(module, line, column, runtimeScriptId);
 }
 
 /// Contains meta data for known [Location]s.
@@ -327,15 +314,19 @@ class Locations {
         _logger.warning('No sourceMap path for module: $module');
         return result;
       }
-      final sourceMapContents =
-          await _assetReader.sourceMapContents(sourceMapPath);
-      final scriptLocation =
-          p.url.dirname('/${stripLeadingSlashes(modulePath)}');
+      final sourceMapContents = await _assetReader.sourceMapContents(
+        sourceMapPath,
+      );
+      final scriptLocation = p.url.dirname(
+        '/${stripLeadingSlashes(modulePath)}',
+      );
 
       if (sourceMapContents == null) return result;
 
-      final runtimeScriptId =
-          await _modules.getRuntimeScriptIdForModule(_entrypoint, module);
+      final runtimeScriptId = await _modules.getRuntimeScriptIdForModule(
+        _entrypoint,
+        module,
+      );
 
       // This happens to be a [SingleMapping] today in DDC.
       final mapping = parse(sourceMapContents);

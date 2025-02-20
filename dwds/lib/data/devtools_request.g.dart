@@ -19,15 +19,22 @@ class _$DevToolsRequestSerializer
   final String wireName = 'DevToolsRequest';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, DevToolsRequest object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    DevToolsRequest object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'appId',
-      serializers.serialize(object.appId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.appId,
+        specifiedType: const FullType(String),
+      ),
       'instanceId',
-      serializers.serialize(object.instanceId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.instanceId,
+        specifiedType: const FullType(String),
+      ),
     ];
     Object? value;
     value = object.contextId;
@@ -40,30 +47,35 @@ class _$DevToolsRequestSerializer
     if (value != null) {
       result
         ..add('tabUrl')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.uriOnly;
     if (value != null) {
       result
         ..add('uriOnly')
         ..add(
-            serializers.serialize(value, specifiedType: const FullType(bool)));
+          serializers.serialize(value, specifiedType: const FullType(bool)),
+        );
     }
     value = object.client;
     if (value != null) {
       result
         ..add('client')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     return result;
   }
 
   @override
   DevToolsRequest deserialize(
-      Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = new DevToolsRequestBuilder();
 
     final iterator = serialized.iterator;
@@ -73,28 +85,49 @@ class _$DevToolsRequestSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'appId':
-          result.appId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.appId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'instanceId':
-          result.instanceId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.instanceId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'contextId':
-          result.contextId = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
+          result.contextId =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int?;
           break;
         case 'tabUrl':
-          result.tabUrl = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.tabUrl =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'uriOnly':
-          result.uriOnly = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool?;
+          result.uriOnly =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )
+                  as bool?;
           break;
         case 'client':
-          result.client = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.client =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
       }
     }
@@ -111,31 +144,41 @@ class _$DevToolsResponseSerializer
   final String wireName = 'DevToolsResponse';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, DevToolsResponse object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    DevToolsResponse object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'success',
-      serializers.serialize(object.success,
-          specifiedType: const FullType(bool)),
+      serializers.serialize(
+        object.success,
+        specifiedType: const FullType(bool),
+      ),
       'promptExtension',
-      serializers.serialize(object.promptExtension,
-          specifiedType: const FullType(bool)),
+      serializers.serialize(
+        object.promptExtension,
+        specifiedType: const FullType(bool),
+      ),
     ];
     Object? value;
     value = object.error;
     if (value != null) {
       result
         ..add('error')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     return result;
   }
 
   @override
   DevToolsResponse deserialize(
-      Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = new DevToolsResponseBuilder();
 
     final iterator = serialized.iterator;
@@ -145,16 +188,28 @@ class _$DevToolsResponseSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'success':
-          result.success = serializers.deserialize(value,
-              specifiedType: const FullType(bool))! as bool;
+          result.success =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )!
+                  as bool;
           break;
         case 'promptExtension':
-          result.promptExtension = serializers.deserialize(value,
-              specifiedType: const FullType(bool))! as bool;
+          result.promptExtension =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )!
+                  as bool;
           break;
         case 'error':
-          result.error = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.error =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
       }
     }
@@ -180,17 +235,20 @@ class _$DevToolsRequest extends DevToolsRequest {
   factory _$DevToolsRequest([void Function(DevToolsRequestBuilder)? updates]) =>
       (new DevToolsRequestBuilder()..update(updates))._build();
 
-  _$DevToolsRequest._(
-      {required this.appId,
-      required this.instanceId,
-      this.contextId,
-      this.tabUrl,
-      this.uriOnly,
-      this.client})
-      : super._() {
+  _$DevToolsRequest._({
+    required this.appId,
+    required this.instanceId,
+    this.contextId,
+    this.tabUrl,
+    this.uriOnly,
+    this.client,
+  }) : super._() {
     BuiltValueNullFieldError.checkNotNull(appId, r'DevToolsRequest', 'appId');
     BuiltValueNullFieldError.checkNotNull(
-        instanceId, r'DevToolsRequest', 'instanceId');
+      instanceId,
+      r'DevToolsRequest',
+      'instanceId',
+    );
   }
 
   @override
@@ -298,12 +356,19 @@ class DevToolsRequestBuilder
   DevToolsRequest build() => _build();
 
   _$DevToolsRequest _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$DevToolsRequest._(
           appId: BuiltValueNullFieldError.checkNotNull(
-              appId, r'DevToolsRequest', 'appId'),
+            appId,
+            r'DevToolsRequest',
+            'appId',
+          ),
           instanceId: BuiltValueNullFieldError.checkNotNull(
-              instanceId, r'DevToolsRequest', 'instanceId'),
+            instanceId,
+            r'DevToolsRequest',
+            'instanceId',
+          ),
           contextId: contextId,
           tabUrl: tabUrl,
           uriOnly: uriOnly,
@@ -322,17 +387,25 @@ class _$DevToolsResponse extends DevToolsResponse {
   @override
   final String? error;
 
-  factory _$DevToolsResponse(
-          [void Function(DevToolsResponseBuilder)? updates]) =>
-      (new DevToolsResponseBuilder()..update(updates))._build();
+  factory _$DevToolsResponse([
+    void Function(DevToolsResponseBuilder)? updates,
+  ]) => (new DevToolsResponseBuilder()..update(updates))._build();
 
-  _$DevToolsResponse._(
-      {required this.success, required this.promptExtension, this.error})
-      : super._() {
+  _$DevToolsResponse._({
+    required this.success,
+    required this.promptExtension,
+    this.error,
+  }) : super._() {
     BuiltValueNullFieldError.checkNotNull(
-        success, r'DevToolsResponse', 'success');
+      success,
+      r'DevToolsResponse',
+      'success',
+    );
     BuiltValueNullFieldError.checkNotNull(
-        promptExtension, r'DevToolsResponse', 'promptExtension');
+      promptExtension,
+      r'DevToolsResponse',
+      'promptExtension',
+    );
   }
 
   @override
@@ -417,12 +490,19 @@ class DevToolsResponseBuilder
   DevToolsResponse build() => _build();
 
   _$DevToolsResponse _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$DevToolsResponse._(
           success: BuiltValueNullFieldError.checkNotNull(
-              success, r'DevToolsResponse', 'success'),
+            success,
+            r'DevToolsResponse',
+            'success',
+          ),
           promptExtension: BuiltValueNullFieldError.checkNotNull(
-              promptExtension, r'DevToolsResponse', 'promptExtension'),
+            promptExtension,
+            r'DevToolsResponse',
+            'promptExtension',
+          ),
           error: error,
         );
     replace(_$result);

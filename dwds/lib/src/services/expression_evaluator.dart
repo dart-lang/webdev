@@ -42,15 +42,17 @@ class ExpressionEvaluator {
   bool _closed = false;
 
   /// Strip synthetic library name from compiler error messages.
-  static final _syntheticNameFilterRegex =
-      RegExp('org-dartlang-debug:synthetic_debug_expression:.*:.*Error: ');
+  static final _syntheticNameFilterRegex = RegExp(
+    'org-dartlang-debug:synthetic_debug_expression:.*:.*Error: ',
+  );
 
   /// Find module path from the XHR call network error message received from chrome.
   ///
   /// Example:
   /// NetworkError: Failed to load `http://<hostname>.com/path/to/module.js?<cache_busting_token>`
-  static final _loadModuleErrorRegex =
-      RegExp(r".*Failed to load '.*\.com/(.*\.js).*");
+  static final _loadModuleErrorRegex = RegExp(
+    r".*Failed to load '.*\.com/(.*\.js).*",
+  );
 
   ExpressionEvaluator(
     this._entrypoint,
@@ -65,9 +67,7 @@ class ExpressionEvaluator {
   ///
   /// [severity] is one of kinds in [EvaluationErrorKind]
   RemoteObject createError(String severity, String message) {
-    return RemoteObject(
-      <String, String>{'type': severity, 'value': message},
-    );
+    return RemoteObject(<String, String>{'type': severity, 'value': message});
   }
 
   void close() {
@@ -101,17 +101,11 @@ class ExpressionEvaluator {
     scope ??= {};
 
     if (expression.isEmpty) {
-      return createError(
-        EvaluationErrorKind.invalidInput,
-        expression,
-      );
+      return createError(EvaluationErrorKind.invalidInput, expression);
     }
 
     if (libraryUri == null) {
-      return createError(
-        EvaluationErrorKind.invalidInput,
-        'no library uri',
-      );
+      return createError(EvaluationErrorKind.invalidInput, 'no library uri');
     }
 
     final module = await _modules.moduleForLibrary(libraryUri);
@@ -251,9 +245,10 @@ class ExpressionEvaluator {
     final jsFrame = _debugger.jsFrameForIndex(frameIndex);
     if (jsFrame == null) {
       return createError(
-          EvaluationErrorKind.asyncFrame,
-          'Expression evaluation in async frames '
-          'is not supported. No frame with index $frameIndex.');
+        EvaluationErrorKind.asyncFrame,
+        'Expression evaluation in async frames '
+        'is not supported. No frame with index $frameIndex.',
+      );
     }
 
     final functionName = jsFrame.functionName;
@@ -273,12 +268,13 @@ class ExpressionEvaluator {
     final locationMap = await _locations.locationForJs(url, jsLine, jsColumn);
     if (locationMap == null) {
       return createError(
-          EvaluationErrorKind.internal,
-          'Cannot find Dart location for JS location: '
-          'url: $url, '
-          'function: $functionName, '
-          'line: $jsLine, '
-          'column: $jsColumn');
+        EvaluationErrorKind.internal,
+        'Cannot find Dart location for JS location: '
+        'url: $url, '
+        'function: $functionName, '
+        'line: $jsLine, '
+        'column: $jsColumn',
+      );
     }
 
     final dartLocation = locationMap.dartLocation;
@@ -299,9 +295,11 @@ class ExpressionEvaluator {
       );
     }
 
-    _logger.finest('Evaluating "$expression" at $module, '
-        '$libraryUri:${dartLocation.line}:${dartLocation.column} '
-        'with scope: $scope');
+    _logger.finest(
+      'Evaluating "$expression" at $module, '
+      '$libraryUri:${dartLocation.line}:${dartLocation.column} '
+      'with scope: $scope',
+    );
 
     if (scope.isNotEmpty) {
       final totalScope = Map<String, String>.from(scope)..addAll(frameScope);
@@ -337,9 +335,15 @@ class ExpressionEvaluator {
     final jsCode = _maybeStripTryCatch(jsResult);
 
     // Send JS expression to chrome to evaluate.
-    var result = scope.isEmpty
-        ? await _evaluateJsExpressionInFrame(frameIndex, jsCode)
-        : await _callJsFunctionInFrame(frameIndex, jsCode, scope, frameScope);
+    var result =
+        scope.isEmpty
+            ? await _evaluateJsExpressionInFrame(frameIndex, jsCode)
+            : await _callJsFunctionInFrame(
+              frameIndex,
+              jsCode,
+              scope,
+              frameScope,
+            );
 
     result = await _formatEvaluationError(result);
     _logger.finest('Evaluated "$expression" to "${result.json}"');
@@ -365,8 +369,10 @@ class ExpressionEvaluator {
     Map<String, String> frameScope,
   ) async {
     final totalScope = Map<String, String>.from(scope)..addAll(frameScope);
-    final thisObject =
-        await _debugger.evaluateJsOnCallFrameIndex(frameIndex, 'this');
+    final thisObject = await _debugger.evaluateJsOnCallFrameIndex(
+      frameIndex,
+      'this',
+    );
 
     final thisObjectId = thisObject.objectId;
     if (thisObjectId != null) {
@@ -446,14 +452,14 @@ class ExpressionEvaluator {
         return createError(EvaluationErrorKind.type, error);
       } else if (error.startsWith('NetworkError: ')) {
         var modulePath = _loadModuleErrorRegex.firstMatch(error)?.group(1);
-        final module = modulePath != null
-            ? await globalToolConfiguration.loadStrategy.moduleForServerPath(
-                _entrypoint,
-                modulePath,
-              )
-            : 'unknown';
+        final module =
+            modulePath != null
+                ? await globalToolConfiguration.loadStrategy
+                    .moduleForServerPath(_entrypoint, modulePath)
+                : 'unknown';
         modulePath ??= 'unknown';
-        error = 'Module is not loaded : $module (path: $modulePath). '
+        error =
+            'Module is not loaded : $module (path: $modulePath). '
             'Accessing libraries that have not yet been used in the '
             'application is not supported during expression evaluation.';
         return createError(EvaluationErrorKind.loadModule, error);
@@ -500,10 +506,7 @@ class ExpressionEvaluator {
 
   bool _isUndefined(RemoteObject value) => value.type == 'undefined';
 
-  static String _createDartLambda(
-    String expression,
-    Iterable<String> params,
-  ) =>
+  static String _createDartLambda(String expression, Iterable<String> params) =>
       '(${params.join(', ')}) { return $expression; }';
 
   /// Strip try/catch incorrectly added by the expression compiler.
@@ -550,10 +553,7 @@ class ExpressionEvaluator {
   }
 
   /// Create JS function  to invoke in `Runtime.callFunctionOn`.
-  static String _createEvalFunction(
-    String function,
-    Iterable<String> params,
-  ) {
+  static String _createEvalFunction(String function, Iterable<String> params) {
     final body = function.split('\n').where((e) => e.isNotEmpty);
 
     return params.contains('this')

@@ -26,13 +26,17 @@ class ProxyServerAssetReader implements AssetReader {
     bool isHttps = false,
   }) {
     final scheme = isHttps ? 'https://' : 'http://';
-    final inner = HttpClient()
-      ..maxConnectionsPerHost = 200
-      ..idleTimeout = const Duration(seconds: 30)
-      ..connectionTimeout = const Duration(seconds: 30);
-    _client = isHttps
-        ? IOClient(inner..badCertificateCallback = (cert, host, port) => true)
-        : IOClient(inner);
+    final inner =
+        HttpClient()
+          ..maxConnectionsPerHost = 200
+          ..idleTimeout = const Duration(seconds: 30)
+          ..connectionTimeout = const Duration(seconds: 30);
+    _client =
+        isHttps
+            ? IOClient(
+              inner..badCertificateCallback = (cert, host, port) => true,
+            )
+            : IOClient(inner);
     var url = '$scheme$host:$assetServerPort/';
     if (root.isNotEmpty) url += '$root/';
     _handler = proxyHandler(url, client: _client);
@@ -52,8 +56,10 @@ class ProxyServerAssetReader implements AssetReader {
   Future<String?> _readResource(String path) async {
     // Handlers expect a fully formed HTML URI. The actual hostname and port
     // does not matter.
-    final request = Request('GET', Uri.parse('http://foo:0000/$path'))
-        .change(headers: {'requested-by': 'DWDS'});
+    final request = Request(
+      'GET',
+      Uri.parse('http://foo:0000/$path'),
+    ).change(headers: {'requested-by': 'DWDS'});
     final response = await _handler(request);
 
     if (response.statusCode != HttpStatus.ok) {

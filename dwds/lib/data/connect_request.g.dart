@@ -17,18 +17,27 @@ class _$ConnectRequestSerializer
   final String wireName = 'ConnectRequest';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, ConnectRequest object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ConnectRequest object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'appId',
-      serializers.serialize(object.appId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.appId,
+        specifiedType: const FullType(String),
+      ),
       'instanceId',
-      serializers.serialize(object.instanceId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.instanceId,
+        specifiedType: const FullType(String),
+      ),
       'entrypointPath',
-      serializers.serialize(object.entrypointPath,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.entrypointPath,
+        specifiedType: const FullType(String),
+      ),
     ];
 
     return result;
@@ -36,8 +45,10 @@ class _$ConnectRequestSerializer
 
   @override
   ConnectRequest deserialize(
-      Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = new ConnectRequestBuilder();
 
     final iterator = serialized.iterator;
@@ -47,16 +58,28 @@ class _$ConnectRequestSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'appId':
-          result.appId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.appId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'instanceId':
-          result.instanceId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.instanceId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'entrypointPath':
-          result.entrypointPath = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.entrypointPath =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
       }
     }
@@ -76,16 +99,22 @@ class _$ConnectRequest extends ConnectRequest {
   factory _$ConnectRequest([void Function(ConnectRequestBuilder)? updates]) =>
       (new ConnectRequestBuilder()..update(updates))._build();
 
-  _$ConnectRequest._(
-      {required this.appId,
-      required this.instanceId,
-      required this.entrypointPath})
-      : super._() {
+  _$ConnectRequest._({
+    required this.appId,
+    required this.instanceId,
+    required this.entrypointPath,
+  }) : super._() {
     BuiltValueNullFieldError.checkNotNull(appId, r'ConnectRequest', 'appId');
     BuiltValueNullFieldError.checkNotNull(
-        instanceId, r'ConnectRequest', 'instanceId');
+      instanceId,
+      r'ConnectRequest',
+      'instanceId',
+    );
     BuiltValueNullFieldError.checkNotNull(
-        entrypointPath, r'ConnectRequest', 'entrypointPath');
+      entrypointPath,
+      r'ConnectRequest',
+      'entrypointPath',
+    );
   }
 
   @override
@@ -170,14 +199,24 @@ class ConnectRequestBuilder
   ConnectRequest build() => _build();
 
   _$ConnectRequest _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$ConnectRequest._(
           appId: BuiltValueNullFieldError.checkNotNull(
-              appId, r'ConnectRequest', 'appId'),
+            appId,
+            r'ConnectRequest',
+            'appId',
+          ),
           instanceId: BuiltValueNullFieldError.checkNotNull(
-              instanceId, r'ConnectRequest', 'instanceId'),
+            instanceId,
+            r'ConnectRequest',
+            'instanceId',
+          ),
           entrypointPath: BuiltValueNullFieldError.checkNotNull(
-              entrypointPath, r'ConnectRequest', 'entrypointPath'),
+            entrypointPath,
+            r'ConnectRequest',
+            'entrypointPath',
+          ),
         );
     replace(_$result);
     return _$result;

@@ -28,51 +28,43 @@ class TestProject {
   /// The path to the HTML file to serve, relative to the [directoryToServe],
   /// e.g. "hello_world/index.html".
   String get filePathToServe {
-    final pathParts = p.split(webAssetsPath).where(
-          (pathPart) => pathPart != directoryToServe,
-        );
+    final pathParts = p
+        .split(webAssetsPath)
+        .where((pathPart) => pathPart != directoryToServe);
     return webCompatiblePath([...pathParts, htmlEntryFileName]);
   }
 
   /// The path to the Dart entry file, e.g,
   /// "/workstation/webdev/fixtures/_testSound/example/hello_world/main.dart":
   String get dartEntryFilePath => absolutePath(
-        pathFromFixtures: p.joinAll(
-          [
-            packageDirectory,
-            webAssetsPath,
-            dartEntryFileName,
-          ],
-        ),
-      );
+    pathFromFixtures: p.joinAll([
+      packageDirectory,
+      webAssetsPath,
+      dartEntryFileName,
+    ]),
+  );
 
   /// The URI for the package_config.json is located in:
   /// `<project directory>/.dart_tool/package_config`
   Uri get packageConfigFile => p.toUri(
-        p.join(
-          absolutePackageDirectory,
-          '.dart_tool',
-          'package_config.json',
-        ),
-      );
+    p.join(absolutePackageDirectory, '.dart_tool', 'package_config.json'),
+  );
 
   /// The package URI of the Dart entry file, e.g,
   /// "org-dartlang-app:example/hello_world/main.dart":
-  Uri get dartEntryFilePackageUri => Uri.parse('org-dartlang-app:///${p.join(
-        webAssetsPath,
-        dartEntryFileName,
-      )}');
+  Uri get dartEntryFilePackageUri => Uri.parse(
+    'org-dartlang-app:///${p.join(webAssetsPath, dartEntryFileName)}',
+  );
 
-  const TestProject.testPackage({
-    IndexBaseMode baseMode = IndexBaseMode.noBase,
-  }) : this._(
-          packageName: '_test_package_sound',
-          packageDirectory: '_testPackageSound',
-          webAssetsPath: 'web',
-          dartEntryFileName: 'main.dart',
-          htmlEntryFileName:
-              baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html',
-        );
+  const TestProject.testPackage({IndexBaseMode baseMode = IndexBaseMode.noBase})
+    : this._(
+        packageName: '_test_package_sound',
+        packageDirectory: '_testPackageSound',
+        webAssetsPath: 'web',
+        dartEntryFileName: 'main.dart',
+        htmlEntryFileName:
+            baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html',
+      );
 
   static const testCircular1 = TestProject._(
     packageName: '_test_circular1_sound',
@@ -85,13 +77,13 @@ class TestProject {
   const TestProject.testCircular2({
     IndexBaseMode baseMode = IndexBaseMode.noBase,
   }) : this._(
-          packageName: '_test_circular2_sound',
-          packageDirectory: '_testCircular2Sound',
-          webAssetsPath: 'web',
-          dartEntryFileName: 'main.dart',
-          htmlEntryFileName:
-              baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html',
-        );
+         packageName: '_test_circular2_sound',
+         packageDirectory: '_testCircular2Sound',
+         webAssetsPath: 'web',
+         dartEntryFileName: 'main.dart',
+         htmlEntryFileName:
+             baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html',
+       );
 
   static const test = TestProject._(
     packageName: '_test_sound',
@@ -160,22 +152,16 @@ class TestProject {
   /// Called when we need to rebuild sdk and the app from
   /// previous test configurations.
   Future<void> cleanUp() async {
-    await Process.run(
-      'dart',
-      ['run', 'build_runner', 'clean'],
-      workingDirectory: absolutePackageDirectory,
-    );
+    await Process.run('dart', [
+      'run',
+      'build_runner',
+      'clean',
+    ], workingDirectory: absolutePackageDirectory);
   }
 
   /// The path to the Dart specified file in the 'lib' directory, e.g,
   /// "/workstation/webdev/fixtures/_testSound/lib/library.dart":
   String dartLibFilePath(String dartLibFileName) => absolutePath(
-        pathFromFixtures: p.joinAll(
-          [
-            packageDirectory,
-            'lib',
-            dartLibFileName,
-          ],
-        ),
-      );
+    pathFromFixtures: p.joinAll([packageDirectory, 'lib', dartLibFileName]),
+  );
 }

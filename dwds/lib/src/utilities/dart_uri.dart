@@ -56,8 +56,9 @@ class DartUri {
 
   /// Construct from a package: URI
   factory DartUri._fromDartLangUri(String uri) {
-    var serverPath =
-        globalToolConfiguration.loadStrategy.serverPathForAppUri(uri);
+    var serverPath = globalToolConfiguration.loadStrategy.serverPathForAppUri(
+      uri,
+    );
     if (serverPath == null) {
       _logger.severe('Cannot find server path for $uri');
       serverPath = uri;
@@ -67,8 +68,9 @@ class DartUri {
 
   /// Construct from a package: URI
   factory DartUri._fromPackageUri(String uri, {String? root}) {
-    var serverPath =
-        globalToolConfiguration.loadStrategy.serverPathForAppUri(uri);
+    var serverPath = globalToolConfiguration.loadStrategy.serverPathForAppUri(
+      uri,
+    );
     if (serverPath == null) {
       _logger.severe('Cannot find server path for $uri');
       serverPath = uri;
@@ -199,8 +201,9 @@ class DartUri {
     final absoluteUri = _uriToResolvedUri[libraryUri];
     if (absoluteUri == null) return;
 
-    final g3RelativeUri =
-        globalToolConfiguration.loadStrategy.g3RelativePath(absoluteUri);
+    final g3RelativeUri = globalToolConfiguration.loadStrategy.g3RelativePath(
+      absoluteUri,
+    );
     if (g3RelativeUri != null) {
       _g3RelativeUriToResolvedUri[g3RelativeUri] = absoluteUri;
     }
@@ -239,8 +242,10 @@ class DartUri {
         // separators, so we can join them as url paths to get the absolute file
         // url.
         final libraryRoot = globalToolConfiguration.loadStrategy.libraryRoot;
-        libraryPath = p.url
-            .join(libraryRoot ?? currentDirectoryUri, uri.path.substring(1));
+        libraryPath = p.url.join(
+          libraryRoot ?? currentDirectoryUri,
+          uri.path.substring(1),
+        );
         break;
       case 'package':
         libraryPath = _packageConfig?.resolve(uri)?.toString();

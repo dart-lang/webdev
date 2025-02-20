@@ -35,20 +35,23 @@ void main() {
     });
 
     test('can read dart sources', () async {
-      final result =
-          await assetReader.dartSourceContents('hello_world/main.dart');
+      final result = await assetReader.dartSourceContents(
+        'hello_world/main.dart',
+      );
       expect(result, isNotNull);
     });
 
     test('can read source maps', () async {
-      final result =
-          await assetReader.dartSourceContents('hello_world/main.ddc.js.map');
+      final result = await assetReader.dartSourceContents(
+        'hello_world/main.ddc.js.map',
+      );
       expect(result, isNotNull);
     });
 
     test('returns null if the source map path does not exist', () async {
-      final result =
-          await assetReader.dartSourceContents('hello_world/foo.ddc.js.map');
+      final result = await assetReader.dartSourceContents(
+        'hello_world/foo.ddc.js.map',
+      );
       expect(result, isNull);
     });
   });

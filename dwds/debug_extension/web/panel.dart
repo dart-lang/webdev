@@ -188,10 +188,7 @@ Future<void> _maybeUpdateFileABugLink() async {
   if (isInternal) {
     final bugLink = document.getElementById(_bugLinkId);
     if (bugLink == null) return;
-    bugLink.setAttribute(
-      'href',
-      'http://go/dde-bug',
-    );
+    bugLink.setAttribute('href', 'http://go/dde-bug');
   }
 }
 
@@ -277,9 +274,10 @@ Future<void> _launchDebugConnection(Event _) async {
   final json = jsonEncode(
     serializers.serialize(
       DebugStateChange(
-        (b) => b
-          ..tabId = _tabId
-          ..newState = DebugStateChange.startDebugging,
+        (b) =>
+            b
+              ..tabId = _tabId
+              ..newState = DebugStateChange.startDebugging,
       ),
     ),
   );

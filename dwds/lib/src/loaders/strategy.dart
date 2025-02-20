@@ -18,10 +18,8 @@ abstract class LoadStrategy {
   final String? _packageConfigPath;
   final _providers = <String, MetadataProvider>{};
 
-  LoadStrategy(
-    this._assetReader, {
-    String? packageConfigPath,
-  }) : _packageConfigPath = packageConfigPath ?? _findPackageConfigFilePath();
+  LoadStrategy(this._assetReader, {String? packageConfigPath})
+    : _packageConfigPath = packageConfigPath ?? _findPackageConfigFilePath();
 
   /// The ID for this strategy.
   ///
@@ -78,11 +76,8 @@ abstract class LoadStrategy {
   }
 
   /// The default package config path if none is provided.
-  String get _defaultPackageConfigPath => p.join(
-        DartUri.currentDirectory,
-        '.dart_tool',
-        'package_config.json',
-      );
+  String get _defaultPackageConfigPath =>
+      p.join(DartUri.currentDirectory, '.dart_tool', 'package_config.json');
 
   /// Returns the absolute file path of the `package_config.json` file in the `.dart_tool`
   /// directory, searching recursively from the current directory hierarchy.
@@ -90,8 +85,9 @@ abstract class LoadStrategy {
     var candidateDir = Directory(DartUri.currentDirectory).absolute;
 
     while (true) {
-      final candidatePackageConfigFile =
-          File(p.join(candidateDir.path, '.dart_tool', 'package_config.json'));
+      final candidatePackageConfigFile = File(
+        p.join(candidateDir.path, '.dart_tool', 'package_config.json'),
+      );
 
       if (candidatePackageConfigFile.existsSync()) {
         return candidatePackageConfigFile.path;

@@ -53,8 +53,10 @@ class BuildRunnerRequireStrategyProvider {
   ) async {
     final modules = await metadataProvider.modulePathToModule;
 
-    final digestsPath = metadataProvider.entrypoint
-        .replaceAll('.dart.bootstrap.js', '.digests');
+    final digestsPath = metadataProvider.entrypoint.replaceAll(
+      '.dart.bootstrap.js',
+      '.digests',
+    );
     final response = await _assetHandler(
       Request('GET', Uri.parse('http://foo:0000/$digestsPath')),
     );
@@ -79,11 +81,10 @@ class BuildRunnerRequireStrategyProvider {
 
   Future<Map<String, String>> _moduleProvider(
     MetadataProvider metadataProvider,
-  ) async =>
-      (await metadataProvider.moduleToModulePath).map(
-        (key, value) =>
-            MapEntry(key, stripTopLevelDirectory(removeJsExtension(value))),
-      );
+  ) async => (await metadataProvider.moduleToModulePath).map(
+    (key, value) =>
+        MapEntry(key, stripTopLevelDirectory(removeJsExtension(value))),
+  );
 
   Future<String?> _moduleForServerPath(
     MetadataProvider metadataProvider,

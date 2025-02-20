@@ -17,25 +17,35 @@ class _$DebugEventSerializer implements StructuredSerializer<DebugEvent> {
   final String wireName = 'DebugEvent';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, DebugEvent object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    DebugEvent object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'kind',
       serializers.serialize(object.kind, specifiedType: const FullType(String)),
       'eventData',
-      serializers.serialize(object.eventData,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.eventData,
+        specifiedType: const FullType(String),
+      ),
       'timestamp',
-      serializers.serialize(object.timestamp,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.timestamp,
+        specifiedType: const FullType(int),
+      ),
     ];
 
     return result;
   }
 
   @override
-  DebugEvent deserialize(Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
+  DebugEvent deserialize(
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = new DebugEventBuilder();
 
     final iterator = serialized.iterator;
@@ -45,16 +55,28 @@ class _$DebugEventSerializer implements StructuredSerializer<DebugEvent> {
       final Object? value = iterator.current;
       switch (key) {
         case 'kind':
-          result.kind = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.kind =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'eventData':
-          result.eventData = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.eventData =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'timestamp':
-          result.timestamp = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+          result.timestamp =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
       }
     }
@@ -72,13 +94,18 @@ class _$BatchedDebugEventsSerializer
 
   @override
   Iterable<Object?> serialize(
-      Serializers serializers, BatchedDebugEvents object,
-      {FullType specifiedType = FullType.unspecified}) {
+    Serializers serializers,
+    BatchedDebugEvents object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'events',
-      serializers.serialize(object.events,
-          specifiedType:
-              const FullType(BuiltList, const [const FullType(DebugEvent)])),
+      serializers.serialize(
+        object.events,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(DebugEvent),
+        ]),
+      ),
     ];
 
     return result;
@@ -86,8 +113,10 @@ class _$BatchedDebugEventsSerializer
 
   @override
   BatchedDebugEvents deserialize(
-      Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = new BatchedDebugEventsBuilder();
 
     final iterator = serialized.iterator;
@@ -97,10 +126,15 @@ class _$BatchedDebugEventsSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'events':
-          result.events.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(DebugEvent)]))!
-              as BuiltList<Object?>);
+          result.events.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(DebugEvent),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
       }
     }
@@ -120,14 +154,22 @@ class _$DebugEvent extends DebugEvent {
   factory _$DebugEvent([void Function(DebugEventBuilder)? updates]) =>
       (new DebugEventBuilder()..update(updates))._build();
 
-  _$DebugEvent._(
-      {required this.kind, required this.eventData, required this.timestamp})
-      : super._() {
+  _$DebugEvent._({
+    required this.kind,
+    required this.eventData,
+    required this.timestamp,
+  }) : super._() {
     BuiltValueNullFieldError.checkNotNull(kind, r'DebugEvent', 'kind');
     BuiltValueNullFieldError.checkNotNull(
-        eventData, r'DebugEvent', 'eventData');
+      eventData,
+      r'DebugEvent',
+      'eventData',
+    );
     BuiltValueNullFieldError.checkNotNull(
-        timestamp, r'DebugEvent', 'timestamp');
+      timestamp,
+      r'DebugEvent',
+      'timestamp',
+    );
   }
 
   @override
@@ -209,14 +251,24 @@ class DebugEventBuilder implements Builder<DebugEvent, DebugEventBuilder> {
   DebugEvent build() => _build();
 
   _$DebugEvent _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$DebugEvent._(
           kind: BuiltValueNullFieldError.checkNotNull(
-              kind, r'DebugEvent', 'kind'),
+            kind,
+            r'DebugEvent',
+            'kind',
+          ),
           eventData: BuiltValueNullFieldError.checkNotNull(
-              eventData, r'DebugEvent', 'eventData'),
+            eventData,
+            r'DebugEvent',
+            'eventData',
+          ),
           timestamp: BuiltValueNullFieldError.checkNotNull(
-              timestamp, r'DebugEvent', 'timestamp'),
+            timestamp,
+            r'DebugEvent',
+            'timestamp',
+          ),
         );
     replace(_$result);
     return _$result;
@@ -227,19 +279,22 @@ class _$BatchedDebugEvents extends BatchedDebugEvents {
   @override
   final BuiltList<DebugEvent> events;
 
-  factory _$BatchedDebugEvents(
-          [void Function(BatchedDebugEventsBuilder)? updates]) =>
-      (new BatchedDebugEventsBuilder()..update(updates))._build();
+  factory _$BatchedDebugEvents([
+    void Function(BatchedDebugEventsBuilder)? updates,
+  ]) => (new BatchedDebugEventsBuilder()..update(updates))._build();
 
   _$BatchedDebugEvents._({required this.events}) : super._() {
     BuiltValueNullFieldError.checkNotNull(
-        events, r'BatchedDebugEvents', 'events');
+      events,
+      r'BatchedDebugEvents',
+      'events',
+    );
   }
 
   @override
   BatchedDebugEvents rebuild(
-          void Function(BatchedDebugEventsBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(BatchedDebugEventsBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   BatchedDebugEventsBuilder toBuilder() =>
@@ -262,8 +317,7 @@ class _$BatchedDebugEvents extends BatchedDebugEvents {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'BatchedDebugEvents')
-          ..add('events', events))
-        .toString();
+      ..add('events', events)).toString();
   }
 }
 
@@ -304,10 +358,7 @@ class BatchedDebugEventsBuilder
   _$BatchedDebugEvents _build() {
     _$BatchedDebugEvents _$result;
     try {
-      _$result = _$v ??
-          new _$BatchedDebugEvents._(
-            events: events.build(),
-          );
+      _$result = _$v ?? new _$BatchedDebugEvents._(events: events.build());
     } catch (_) {
       late String _$failedField;
       try {
@@ -315,7 +366,10 @@ class BatchedDebugEventsBuilder
         events.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
-            r'BatchedDebugEvents', _$failedField, e.toString());
+          r'BatchedDebugEvents',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

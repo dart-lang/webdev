@@ -27,8 +27,8 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
     this._digestsProvider,
     this._buildSettings, {
     String? packageConfigPath,
-  })  : _basePath = _assetReader.basePath,
-        _packageConfigPath = packageConfigPath;
+  }) : _basePath = _assetReader.basePath,
+       _packageConfigPath = packageConfigPath;
 
   T get strategy;
 
@@ -38,20 +38,20 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
     return stripLeadingSlashes(stripped.substring(_basePath.length));
   }
 
-  String _addBasePath(String serverPath) => _basePath.isEmpty
-      ? stripLeadingSlashes(serverPath)
-      : '$_basePath/${stripLeadingSlashes(serverPath)}';
+  String _addBasePath(String serverPath) =>
+      _basePath.isEmpty
+          ? stripLeadingSlashes(serverPath)
+          : '$_basePath/${stripLeadingSlashes(serverPath)}';
 
   String _removeJsExtension(String path) =>
       path.endsWith('.js') ? p.withoutExtension(path) : path;
 
   Future<Map<String, String>> _moduleProvider(
     MetadataProvider metadataProvider,
-  ) async =>
-      (await metadataProvider.moduleToModulePath).map(
-        (key, value) =>
-            MapEntry(key, stripLeadingSlashes(_removeJsExtension(value))),
-      );
+  ) async => (await metadataProvider.moduleToModulePath).map(
+    (key, value) =>
+        MapEntry(key, stripLeadingSlashes(_removeJsExtension(value))),
+  );
 
   Future<String?> _moduleForServerPath(
     MetadataProvider metadataProvider,
@@ -143,19 +143,19 @@ class FrontendServerDdcLibraryBundleStrategyProvider
     extends FrontendServerStrategyProvider<DdcLibraryBundleStrategy> {
   late final DdcLibraryBundleStrategy _libraryBundleStrategy =
       DdcLibraryBundleStrategy(
-    _configuration,
-    _moduleProvider,
-    (_) => _digestsProvider(),
-    _moduleForServerPath,
-    _serverPathForModule,
-    _sourceMapPathForModule,
-    _serverPathForAppUri,
-    _moduleInfoForProvider,
-    _assetReader,
-    _buildSettings,
-    (String _) => null,
-    packageConfigPath: _packageConfigPath,
-  );
+        _configuration,
+        _moduleProvider,
+        (_) => _digestsProvider(),
+        _moduleForServerPath,
+        _serverPathForModule,
+        _sourceMapPathForModule,
+        _serverPathForAppUri,
+        _moduleInfoForProvider,
+        _assetReader,
+        _buildSettings,
+        (String _) => null,
+        packageConfigPath: _packageConfigPath,
+      );
 
   FrontendServerDdcLibraryBundleStrategyProvider(
     super._configuration,

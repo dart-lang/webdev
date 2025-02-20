@@ -26,10 +26,7 @@ void main() async {
 
 void _registerListeners() {
   chrome.storage.onChanged.addListener(
-    allowInterop((
-      Object _,
-      String storageArea,
-    ) {
+    allowInterop((Object _, String storageArea) {
       _maybeCreatePanels();
     }),
   );

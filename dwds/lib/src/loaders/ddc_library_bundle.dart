@@ -27,7 +27,7 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   ///   packages/path/path -> packages/path/path.ddc
   ///
   final Future<Map<String, String>> Function(MetadataProvider metadataProvider)
-      _moduleProvider;
+  _moduleProvider;
 
   /// Returns a map of module name to corresponding digest value.
   ///
@@ -37,8 +37,8 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   ///   packages/path/path -> d348c2a4647e998011fe305f74f22961
   ///
   final Future<Map<String, String>> Function(MetadataProvider metadataProvider)
-      // ignore: unused_field
-      _digestsProvider;
+  // ignore: unused_field
+  _digestsProvider;
 
   /// Returns the module for the corresponding server path.
   ///
@@ -49,7 +49,8 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   final Future<String?> Function(
     MetadataProvider metadataProvider,
     String sourcePath,
-  ) _moduleForServerPath;
+  )
+  _moduleForServerPath;
 
   /// Returns a map from module id to module info.
   ///
@@ -59,7 +60,8 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   ///
   final Future<Map<String, ModuleInfo>> Function(
     MetadataProvider metadataProvider,
-  ) _moduleInfoForProvider;
+  )
+  _moduleInfoForProvider;
 
   /// Returns the server path for the provided module.
   ///
@@ -70,7 +72,8 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   final Future<String?> Function(
     MetadataProvider metadataProvider,
     String module,
-  ) _serverPathForModule;
+  )
+  _serverPathForModule;
 
   /// Returns the source map path for the provided module.
   ///
@@ -81,7 +84,8 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   final Future<String?> Function(
     MetadataProvider metadataProvider,
     String module,
-  ) _sourceMapPathForModule;
+  )
+  _sourceMapPathForModule;
 
   /// Returns the server path for the app uri.
   ///
@@ -117,10 +121,10 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
 
   @override
   Handler get handler => (request) async {
-        // TODO(markzipan): Implement a hot restarter that uses digests for
-        // the DDC module system.
-        return Response.notFound(request.url.toString());
-      };
+    // TODO(markzipan): Implement a hot restarter that uses digests for
+    // the DDC module system.
+    return Response.notFound(request.url.toString());
+  };
 
   @override
   String get id => 'ddc-library-bundle';
@@ -200,7 +204,7 @@ window.\$dartLoader.loader.nextAttempt();
 
   @override
   MetadataProvider createProvider(String entrypoint, AssetReader reader) =>
-      // DDC library bundle format does not provide module names in the module
-      // metadata.
-      MetadataProvider(entrypoint, reader, useModuleName: false);
+  // DDC library bundle format does not provide module names in the module
+  // metadata.
+  MetadataProvider(entrypoint, reader, useModuleName: false);
 }

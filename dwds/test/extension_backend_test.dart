@@ -35,8 +35,10 @@ void main() {
   late ExtensionBackend extensionBackend;
 
   setUpAll(() async {
-    extensionBackend =
-        await ExtensionBackend.start(MockSocketHandler(), 'localhost');
+    extensionBackend = await ExtensionBackend.start(
+      MockSocketHandler(),
+      'localhost',
+    );
   });
   test('returns success statusCode', () async {
     final result = await http.get(
