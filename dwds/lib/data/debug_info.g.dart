@@ -394,19 +394,20 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
   _$DebugInfo _build() {
     final _$result = _$v ??
         new _$DebugInfo._(
-            appEntrypointPath: appEntrypointPath,
-            appId: appId,
-            appInstanceId: appInstanceId,
-            appOrigin: appOrigin,
-            appUrl: appUrl,
-            authUrl: authUrl,
-            dwdsVersion: dwdsVersion,
-            extensionUrl: extensionUrl,
-            isInternalBuild: isInternalBuild,
-            isFlutterApp: isFlutterApp,
-            workspaceName: workspaceName,
-            tabUrl: tabUrl,
-            tabId: tabId);
+          appEntrypointPath: appEntrypointPath,
+          appId: appId,
+          appInstanceId: appInstanceId,
+          appOrigin: appOrigin,
+          appUrl: appUrl,
+          authUrl: authUrl,
+          dwdsVersion: dwdsVersion,
+          extensionUrl: extensionUrl,
+          isInternalBuild: isInternalBuild,
+          isFlutterApp: isFlutterApp,
+          workspaceName: workspaceName,
+          tabUrl: tabUrl,
+          tabId: tabId,
+        );
     replace(_$result);
     return _$result;
   }

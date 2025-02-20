@@ -1,3 +1,7 @@
+## 24.3.6-wip
+
+- Bump minimum sdk version to 3.7.0
+
 ## 24.3.5
 - Allow clients to specify the `packageConfigPath` in `LoadStrategy` class and associated providers.
 
