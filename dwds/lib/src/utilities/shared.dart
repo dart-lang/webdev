@@ -44,5 +44,5 @@ Future<T> wrapInErrorHandlerAsync<T>(
         'Unexpected DWDS error for $command: $error',
       ),
     );
-  }, test: (e) => e is! RPCError && e is! SentinelException,);
+  }, test: (e) => e is! RPCError && e is! SentinelException);
 }

@@ -1462,7 +1462,7 @@ void runTests({
 
         final sourceReport = await service.getSourceReport(isolateId, [
           'PossibleBreakpoints',
-        ], scriptId: mainScript.id,);
+        ], scriptId: mainScript.id);
 
         expect(sourceReport.scripts, isNotEmpty);
         expect(sourceReport.ranges, isNotEmpty);

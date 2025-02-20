@@ -48,7 +48,7 @@ void main() {
         await Process.run('dart', [
           'pub',
           'upgrade',
-        ], workingDirectory: testPackageSoundPath,);
+        ], workingDirectory: testPackageSoundPath);
 
         packageUriMapper = await PackageUriMapper.create(
           fileSystem,

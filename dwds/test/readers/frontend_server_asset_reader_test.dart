@@ -42,7 +42,7 @@ void main() {
     await Process.run(sdkLayout.dartPath, [
       'pub',
       'upgrade',
-    ], workingDirectory: packagesDir,);
+    ], workingDirectory: packagesDir);
   });
 
   setUp(() async {

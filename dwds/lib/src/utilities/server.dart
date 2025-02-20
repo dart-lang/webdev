@@ -68,7 +68,7 @@ void serveHttpRequests(
 ) {
   return Chain.capture(() {
     serveRequests(requests, handler);
-  }, onError: onError,);
+  }, onError: onError);
 }
 
 /// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
@@ -96,7 +96,7 @@ Map<String, dynamic> getResultOrHandleError(
   if (result == null) {
     throw ChromeDebugException({
       'text': 'null result from Chrome Devtools',
-    }, evalContents: evalContents,);
+    }, evalContents: evalContents);
   }
   return result;
 }

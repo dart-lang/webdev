@@ -126,7 +126,7 @@ void runTests({
           matchDisplayedTypeObjectGetters,
         );
       });
-    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),);
+    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'));
 
     test('simple record type display', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -190,7 +190,7 @@ void runTests({
           matchDisplayedTypeObjectGetters,
         );
       });
-    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),);
+    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'));
 
     test('complex record type display', () async {
       await onBreakPoint('printComplexLocalRecord', (event) async {
@@ -332,7 +332,7 @@ void runTests({
           matchDisplayedTypeObjectGetters,
         );
       });
-    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),);
+    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'));
 
     test('nested record type display', () async {
       await onBreakPoint('printNestedLocalRecord', (event) async {

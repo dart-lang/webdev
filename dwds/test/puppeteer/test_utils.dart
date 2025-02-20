@@ -23,7 +23,7 @@ Future<String> buildDebugExtension({required bool isMV3}) async {
   await Process.run('dart', [
     p.join('tool', 'build_extension.dart'),
     if (isMV3) '--mv3',
-  ], workingDirectory: extensionDir,);
+  ], workingDirectory: extensionDir);
   return p.join(extensionDir, 'compiled');
 }
 

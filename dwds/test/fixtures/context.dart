@@ -209,7 +209,7 @@ class TestContext {
       await Process.run(sdkLayout.dartPath, [
         'pub',
         'upgrade',
-      ], workingDirectory: project.absolutePackageDirectory,);
+      ], workingDirectory: project.absolutePackageDirectory);
 
       ExpressionCompiler? expressionCompiler;
       AssetReader assetReader;

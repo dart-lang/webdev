@@ -224,7 +224,7 @@ class ChromeProxyService implements VmServiceInterface {
         // Expression evaluation is ready after dependencies are updated.
         if (!_compilerCompleter.isCompleted) _compilerCompleter.complete();
         return result;
-      }, (result) => DwdsEvent.compilerUpdateDependencies(entrypoint),);
+      }, (result) => DwdsEvent.compilerUpdateDependencies(entrypoint));
     }
   }
 
@@ -683,7 +683,7 @@ class ChromeProxyService implements VmServiceInterface {
         RPCErrorKind.kInvalidRequest.code,
         'Expression evaluation is not supported for this configuration.',
       );
-    }, (result) => DwdsEvent.evaluate(expression, result),);
+    }, (result) => DwdsEvent.evaluate(expression, result));
   }
 
   String _newVariableForScope(Map<String, String>? scope) {
@@ -744,7 +744,7 @@ class ChromeProxyService implements VmServiceInterface {
         RPCErrorKind.kInvalidRequest.code,
         'Expression evaluation is not supported for this configuration.',
       );
-    }, (result) => DwdsEvent.evaluateInFrame(expression, result),);
+    }, (result) => DwdsEvent.evaluateInFrame(expression, result));
   }
 
   @override
@@ -796,7 +796,7 @@ class ChromeProxyService implements VmServiceInterface {
       await isInitialized;
       _checkIsolate('getIsolate', isolateId);
       return inspector.isolate;
-    }, (result) => DwdsEvent.getIsolate(),);
+    }, (result) => DwdsEvent.getIsolate());
   }
 
   @override
@@ -848,7 +848,7 @@ class ChromeProxyService implements VmServiceInterface {
       await isInitialized;
       _checkIsolate('getScripts', isolateId);
       return inspector.getScripts();
-    }, (result) => DwdsEvent.getScripts(),);
+    }, (result) => DwdsEvent.getScripts());
   }
 
   @override
@@ -900,7 +900,7 @@ class ChromeProxyService implements VmServiceInterface {
         reportLines: reportLines,
         libraryFilters: libraryFilters,
       );
-    }, (result) => DwdsEvent.getSourceReport(),);
+    }, (result) => DwdsEvent.getSourceReport());
   }
 
   /// Returns the current stack.
@@ -936,7 +936,7 @@ class ChromeProxyService implements VmServiceInterface {
     return captureElapsedTime(() async {
       await isInitialized;
       return _vm;
-    }, (result) => DwdsEvent.getVM(),);
+    }, (result) => DwdsEvent.getVM());
   }
 
   @override
@@ -1159,7 +1159,7 @@ class ChromeProxyService implements VmServiceInterface {
           step: step,
           frameIndex: frameIndex,
         );
-      }, (result) => DwdsEvent.resume(step),);
+      }, (result) => DwdsEvent.resume(step));
     } else {
       inspector.appConnection.runMain();
       return Success();

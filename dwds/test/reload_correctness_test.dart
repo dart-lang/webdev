@@ -112,7 +112,7 @@ void main() {
         }
       },
     );
-  }, timeout: Timeout.factor(2),);
+  }, timeout: Timeout.factor(2));
 
   group('Injected client with hot restart', () {
     group('and with debugging', () {
@@ -189,7 +189,7 @@ void main() {
         }
       });
     });
-  }, timeout: Timeout.factor(2),);
+  }, timeout: Timeout.factor(2));
 }
 
 TypeMatcher<Event> _hasKind(String kind) =>

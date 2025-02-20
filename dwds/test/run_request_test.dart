@@ -67,7 +67,7 @@ void main() {
       await stream.firstWhere((event) => event.kind == EventKind.kResume);
       expect(isolate.pauseEvent!.kind, EventKind.kResume);
     });
-  }, timeout: Timeout.factor(2),);
+  }, timeout: Timeout.factor(2));
 
   group('while debugger is not attached', () {
     setUp(() async {

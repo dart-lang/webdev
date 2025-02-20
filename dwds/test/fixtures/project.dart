@@ -156,7 +156,7 @@ class TestProject {
       'run',
       'build_runner',
       'clean',
-    ], workingDirectory: absolutePackageDirectory,);
+    ], workingDirectory: absolutePackageDirectory);
   }
 
   /// The path to the Dart specified file in the 'lib' directory, e.g,
