@@ -45,6 +45,7 @@ class SdkLayout {
 
   final String sdkDirectory;
   final String summaryPath;
+  final String dartdevcJitSnapshotPath;
   final String dartdevcSnapshotPath;
 
   @Deprecated('Only sound null safety is supported as of Dart 3.0')
@@ -62,11 +63,17 @@ class SdkLayout {
           '_internal',
           'ddc_outline.dill',
         ),
-        dartdevcSnapshotPath: p.join(
+        dartdevcJitSnapshotPath: p.join(
           sdkDirectory,
           'bin',
           'snapshots',
           'dartdevc.dart.snapshot',
+        ),
+        dartdevcSnapshotPath: p.join(
+          sdkDirectory,
+          'bin',
+          'snapshots',
+          'dartdevc.aot.dart.snapshot',
         ),
       );
 
@@ -75,6 +82,7 @@ class SdkLayout {
     required this.summaryPath,
     this.soundSummaryPath = '',
     this.weakSummaryPath = '',
+    required this.dartdevcJitSnapshotPath,
     required this.dartdevcSnapshotPath,
   });
 }
@@ -113,7 +121,10 @@ class SdkConfiguration {
     : this(
         sdkDirectory: sdkLayout.sdkDirectory,
         sdkSummaryPath: sdkLayout.summaryPath,
-        compilerWorkerPath: sdkLayout.dartdevcSnapshotPath,
+        // This compiler path is used to spawn the expression compiler
+        // in a new isolate and hence it needs to be a JIT snapshot
+        // until dwds itself can run in AOT mode.
+        compilerWorkerPath: sdkLayout.dartdevcJitSnapshotPath,
       );
 
   static Uri? _toUri(String? path) => path == null ? null : p.toUri(path);

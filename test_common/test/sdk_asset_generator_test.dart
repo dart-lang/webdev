@@ -38,7 +38,7 @@ void main() {
       final copySdkLayout = TestSdkLayout.createDefault(sdkDirectory);
 
       sdkSummaryPath = copySdkLayout.summaryPath;
-      compilerWorkerPath = copySdkLayout.dartdevcSnapshotPath;
+      compilerWorkerPath = copySdkLayout.dartdevcJitSnapshotPath;
 
       // Copy the SDK directory into a temp directory.
       await copyDirectory(TestSdkLayout.defaultSdkDirectory, sdkDirectory);
