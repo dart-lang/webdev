@@ -131,7 +131,7 @@ class SdkAssetGenerator {
 
       final output = <String>[];
       _logger.fine('Executing dart ${args.join(' ')}');
-      final process = await Process.start(sdkLayout.dartPath, args,
+      final process = await Process.start(sdkLayout.dartAotRuntimePath, args,
           workingDirectory: sdkLayout.sdkDirectory);
 
       process.stdout

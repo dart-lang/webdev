@@ -1,6 +1,7 @@
 ## 24.3.6-dev
 
 - Bump minimum sdk version to 3.7.0
+- use 'compile js-dev' instead of directly invoking the ddc snapshot.
 
 ## 24.3.5
 - Allow clients to specify the `packageConfigPath` in `LoadStrategy` class and associated providers.
