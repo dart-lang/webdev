@@ -1,3 +1,7 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -18,18 +22,18 @@ void main() {
     final debug = false;
 
     final testRunner = TestRunner();
-    late String soundExampleDirectory;
+    late String exampleDirectory;
 
     setUpAll(() async {
       configureLogWriter(debug);
       await testRunner.setUpAll();
-      soundExampleDirectory = p.absolute(
-          p.join(p.current, '..', 'fixtures', '_testTlsHostnameSound'));
+      exampleDirectory = p.absolute(
+          p.join(p.current, '..', 'fixtures', '_experimentSound'));
 
       final process = await TestProcess.start(
         'dart',
         ['pub', 'upgrade'],
-        workingDirectory: soundExampleDirectory,
+        workingDirectory: exampleDirectory,
         environment: getPubEnvironment(),
       );
 
@@ -37,8 +41,8 @@ void main() {
 
       await d
           .file('.dart_tool/package_config.json', isNotEmpty)
-          .validate(soundExampleDirectory);
-      await d.file('pubspec.lock', isNotEmpty).validate(soundExampleDirectory);
+          .validate(exampleDirectory);
+      await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
     });
 
     test('listens on a loopback interface', () async {
@@ -52,7 +56,7 @@ void main() {
       ];
 
       final process = await testRunner.runWebDev(args,
-          workingDirectory: soundExampleDirectory);
+          workingDirectory: exampleDirectory);
       await expectLater(process.stdout, emitsThrough(contains('Succeeded')));
 
       final client = HttpClient()
@@ -81,7 +85,7 @@ void main() {
       ];
 
       final process = await testRunner.runWebDev(args,
-          workingDirectory: soundExampleDirectory);
+          workingDirectory: exampleDirectory);
       await expectLater(process.stdout, emitsThrough(contains('Succeeded')));
 
       final interfaces = await NetworkInterface.list(
