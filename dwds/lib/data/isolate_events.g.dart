@@ -17,20 +17,14 @@ class _$IsolateExitSerializer implements StructuredSerializer<IsolateExit> {
   final String wireName = 'IsolateExit';
 
   @override
-  Iterable<Object?> serialize(
-    Serializers serializers,
-    IsolateExit object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+  Iterable<Object?> serialize(Serializers serializers, IsolateExit object,
+      {FullType specifiedType = FullType.unspecified}) {
     return <Object?>[];
   }
 
   @override
-  IsolateExit deserialize(
-    Serializers serializers,
-    Iterable<Object?> serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+  IsolateExit deserialize(Serializers serializers, Iterable<Object?> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
     return new IsolateExitBuilder().build();
   }
 }
@@ -42,20 +36,15 @@ class _$IsolateStartSerializer implements StructuredSerializer<IsolateStart> {
   final String wireName = 'IsolateStart';
 
   @override
-  Iterable<Object?> serialize(
-    Serializers serializers,
-    IsolateStart object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+  Iterable<Object?> serialize(Serializers serializers, IsolateStart object,
+      {FullType specifiedType = FullType.unspecified}) {
     return <Object?>[];
   }
 
   @override
   IsolateStart deserialize(
-    Serializers serializers,
-    Iterable<Object?> serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+      Serializers serializers, Iterable<Object?> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
     return new IsolateStartBuilder().build();
   }
 }

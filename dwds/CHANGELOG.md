@@ -1,4 +1,4 @@
-## 24.3.6-wip
+## 24.3.6-dev
 
 - Bump minimum sdk version to 3.7.0
 

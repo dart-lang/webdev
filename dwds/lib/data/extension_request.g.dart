@@ -23,38 +23,30 @@ class _$ExtensionRequestSerializer
   final String wireName = 'ExtensionRequest';
 
   @override
-  Iterable<Object?> serialize(
-    Serializers serializers,
-    ExtensionRequest object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+  Iterable<Object?> serialize(Serializers serializers, ExtensionRequest object,
+      {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(int)),
       'command',
-      serializers.serialize(
-        object.command,
-        specifiedType: const FullType(String),
-      ),
+      serializers.serialize(object.command,
+          specifiedType: const FullType(String)),
     ];
     Object? value;
     value = object.commandParams;
     if (value != null) {
       result
         ..add('commandParams')
-        ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)),
-        );
+        ..add(serializers.serialize(value,
+            specifiedType: const FullType(String)));
     }
     return result;
   }
 
   @override
   ExtensionRequest deserialize(
-    Serializers serializers,
-    Iterable<Object?> serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+      Serializers serializers, Iterable<Object?> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
     final result = new ExtensionRequestBuilder();
 
     final iterator = serialized.iterator;
@@ -64,28 +56,16 @@ class _$ExtensionRequestSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'id':
-          result.id =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(int),
-                  )!
-                  as int;
+          result.id = serializers.deserialize(value,
+              specifiedType: const FullType(int))! as int;
           break;
         case 'command':
-          result.command =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )!
-                  as String;
+          result.command = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
           break;
         case 'commandParams':
-          result.commandParams =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )
-                  as String?;
+          result.commandParams = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
           break;
       }
     }
@@ -102,43 +82,33 @@ class _$ExtensionResponseSerializer
   final String wireName = 'ExtensionResponse';
 
   @override
-  Iterable<Object?> serialize(
-    Serializers serializers,
-    ExtensionResponse object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+  Iterable<Object?> serialize(Serializers serializers, ExtensionResponse object,
+      {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(int)),
       'success',
-      serializers.serialize(
-        object.success,
-        specifiedType: const FullType(bool),
-      ),
+      serializers.serialize(object.success,
+          specifiedType: const FullType(bool)),
       'result',
-      serializers.serialize(
-        object.result,
-        specifiedType: const FullType(String),
-      ),
+      serializers.serialize(object.result,
+          specifiedType: const FullType(String)),
     ];
     Object? value;
     value = object.error;
     if (value != null) {
       result
         ..add('error')
-        ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)),
-        );
+        ..add(serializers.serialize(value,
+            specifiedType: const FullType(String)));
     }
     return result;
   }
 
   @override
   ExtensionResponse deserialize(
-    Serializers serializers,
-    Iterable<Object?> serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+      Serializers serializers, Iterable<Object?> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
     final result = new ExtensionResponseBuilder();
 
     final iterator = serialized.iterator;
@@ -148,36 +118,20 @@ class _$ExtensionResponseSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'id':
-          result.id =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(int),
-                  )!
-                  as int;
+          result.id = serializers.deserialize(value,
+              specifiedType: const FullType(int))! as int;
           break;
         case 'success':
-          result.success =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(bool),
-                  )!
-                  as bool;
+          result.success = serializers.deserialize(value,
+              specifiedType: const FullType(bool))! as bool;
           break;
         case 'result':
-          result.result =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )!
-                  as String;
+          result.result = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
           break;
         case 'error':
-          result.error =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )
-                  as String?;
+          result.error = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
           break;
       }
     }
@@ -194,22 +148,15 @@ class _$ExtensionEventSerializer
   final String wireName = 'ExtensionEvent';
 
   @override
-  Iterable<Object?> serialize(
-    Serializers serializers,
-    ExtensionEvent object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+  Iterable<Object?> serialize(Serializers serializers, ExtensionEvent object,
+      {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
       'params',
-      serializers.serialize(
-        object.params,
-        specifiedType: const FullType(String),
-      ),
+      serializers.serialize(object.params,
+          specifiedType: const FullType(String)),
       'method',
-      serializers.serialize(
-        object.method,
-        specifiedType: const FullType(String),
-      ),
+      serializers.serialize(object.method,
+          specifiedType: const FullType(String)),
     ];
 
     return result;
@@ -217,10 +164,8 @@ class _$ExtensionEventSerializer
 
   @override
   ExtensionEvent deserialize(
-    Serializers serializers,
-    Iterable<Object?> serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+      Serializers serializers, Iterable<Object?> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
     final result = new ExtensionEventBuilder();
 
     final iterator = serialized.iterator;
@@ -230,20 +175,12 @@ class _$ExtensionEventSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'params':
-          result.params =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )!
-                  as String;
+          result.params = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
           break;
         case 'method':
-          result.method =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )!
-                  as String;
+          result.method = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
           break;
       }
     }
@@ -259,19 +196,13 @@ class _$BatchedEventsSerializer implements StructuredSerializer<BatchedEvents> {
   final String wireName = 'BatchedEvents';
 
   @override
-  Iterable<Object?> serialize(
-    Serializers serializers,
-    BatchedEvents object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+  Iterable<Object?> serialize(Serializers serializers, BatchedEvents object,
+      {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
       'events',
-      serializers.serialize(
-        object.events,
-        specifiedType: const FullType(BuiltList, const [
-          const FullType(ExtensionEvent),
-        ]),
-      ),
+      serializers.serialize(object.events,
+          specifiedType: const FullType(
+              BuiltList, const [const FullType(ExtensionEvent)])),
     ];
 
     return result;
@@ -279,10 +210,8 @@ class _$BatchedEventsSerializer implements StructuredSerializer<BatchedEvents> {
 
   @override
   BatchedEvents deserialize(
-    Serializers serializers,
-    Iterable<Object?> serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+      Serializers serializers, Iterable<Object?> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
     final result = new BatchedEventsBuilder();
 
     final iterator = serialized.iterator;
@@ -292,15 +221,10 @@ class _$BatchedEventsSerializer implements StructuredSerializer<BatchedEvents> {
       final Object? value = iterator.current;
       switch (key) {
         case 'events':
-          result.events.replace(
-            serializers.deserialize(
-                  value,
-                  specifiedType: const FullType(BuiltList, const [
-                    const FullType(ExtensionEvent),
-                  ]),
-                )!
-                as BuiltList<Object?>,
-          );
+          result.events.replace(serializers.deserialize(value,
+                  specifiedType: const FullType(
+                      BuiltList, const [const FullType(ExtensionEvent)]))!
+              as BuiltList<Object?>);
           break;
       }
     }
@@ -317,21 +241,16 @@ class _$ExtensionRequest extends ExtensionRequest {
   @override
   final String? commandParams;
 
-  factory _$ExtensionRequest([
-    void Function(ExtensionRequestBuilder)? updates,
-  ]) => (new ExtensionRequestBuilder()..update(updates))._build();
+  factory _$ExtensionRequest(
+          [void Function(ExtensionRequestBuilder)? updates]) =>
+      (new ExtensionRequestBuilder()..update(updates))._build();
 
-  _$ExtensionRequest._({
-    required this.id,
-    required this.command,
-    this.commandParams,
-  }) : super._() {
+  _$ExtensionRequest._(
+      {required this.id, required this.command, this.commandParams})
+      : super._() {
     BuiltValueNullFieldError.checkNotNull(id, r'ExtensionRequest', 'id');
     BuiltValueNullFieldError.checkNotNull(
-      command,
-      r'ExtensionRequest',
-      'command',
-    );
+        command, r'ExtensionRequest', 'command');
   }
 
   @override
@@ -416,19 +335,12 @@ class ExtensionRequestBuilder
   ExtensionRequest build() => _build();
 
   _$ExtensionRequest _build() {
-    final _$result =
-        _$v ??
+    final _$result = _$v ??
         new _$ExtensionRequest._(
           id: BuiltValueNullFieldError.checkNotNull(
-            id,
-            r'ExtensionRequest',
-            'id',
-          ),
+              id, r'ExtensionRequest', 'id'),
           command: BuiltValueNullFieldError.checkNotNull(
-            command,
-            r'ExtensionRequest',
-            'command',
-          ),
+              command, r'ExtensionRequest', 'command'),
           commandParams: commandParams,
         );
     replace(_$result);
@@ -446,27 +358,21 @@ class _$ExtensionResponse extends ExtensionResponse {
   @override
   final String? error;
 
-  factory _$ExtensionResponse([
-    void Function(ExtensionResponseBuilder)? updates,
-  ]) => (new ExtensionResponseBuilder()..update(updates))._build();
+  factory _$ExtensionResponse(
+          [void Function(ExtensionResponseBuilder)? updates]) =>
+      (new ExtensionResponseBuilder()..update(updates))._build();
 
-  _$ExtensionResponse._({
-    required this.id,
-    required this.success,
-    required this.result,
-    this.error,
-  }) : super._() {
+  _$ExtensionResponse._(
+      {required this.id,
+      required this.success,
+      required this.result,
+      this.error})
+      : super._() {
     BuiltValueNullFieldError.checkNotNull(id, r'ExtensionResponse', 'id');
     BuiltValueNullFieldError.checkNotNull(
-      success,
-      r'ExtensionResponse',
-      'success',
-    );
+        success, r'ExtensionResponse', 'success');
     BuiltValueNullFieldError.checkNotNull(
-      result,
-      r'ExtensionResponse',
-      'result',
-    );
+        result, r'ExtensionResponse', 'result');
   }
 
   @override
@@ -558,24 +464,14 @@ class ExtensionResponseBuilder
   ExtensionResponse build() => _build();
 
   _$ExtensionResponse _build() {
-    final _$result =
-        _$v ??
+    final _$result = _$v ??
         new _$ExtensionResponse._(
           id: BuiltValueNullFieldError.checkNotNull(
-            id,
-            r'ExtensionResponse',
-            'id',
-          ),
+              id, r'ExtensionResponse', 'id'),
           success: BuiltValueNullFieldError.checkNotNull(
-            success,
-            r'ExtensionResponse',
-            'success',
-          ),
+              success, r'ExtensionResponse', 'success'),
           result: BuiltValueNullFieldError.checkNotNull(
-            result,
-            r'ExtensionResponse',
-            'result',
-          ),
+              result, r'ExtensionResponse', 'result'),
           error: error,
         );
     replace(_$result);
@@ -670,19 +566,12 @@ class ExtensionEventBuilder
   ExtensionEvent build() => _build();
 
   _$ExtensionEvent _build() {
-    final _$result =
-        _$v ??
+    final _$result = _$v ??
         new _$ExtensionEvent._(
           params: BuiltValueNullFieldError.checkNotNull(
-            params,
-            r'ExtensionEvent',
-            'params',
-          ),
+              params, r'ExtensionEvent', 'params'),
           method: BuiltValueNullFieldError.checkNotNull(
-            method,
-            r'ExtensionEvent',
-            'method',
-          ),
+              method, r'ExtensionEvent', 'method'),
         );
     replace(_$result);
     return _$result;
@@ -724,7 +613,8 @@ class _$BatchedEvents extends BatchedEvents {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'BatchedEvents')
-      ..add('events', events)).toString();
+          ..add('events', events))
+        .toString();
   }
 }
 
@@ -765,7 +655,10 @@ class BatchedEventsBuilder
   _$BatchedEvents _build() {
     _$BatchedEvents _$result;
     try {
-      _$result = _$v ?? new _$BatchedEvents._(events: events.build());
+      _$result = _$v ??
+          new _$BatchedEvents._(
+            events: events.build(),
+          );
     } catch (_) {
       late String _$failedField;
       try {
@@ -773,10 +666,7 @@ class BatchedEventsBuilder
         events.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
-          r'BatchedEvents',
-          _$failedField,
-          e.toString(),
-        );
+            r'BatchedEvents', _$failedField, e.toString());
       }
       rethrow;
     }

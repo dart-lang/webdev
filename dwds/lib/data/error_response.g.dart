@@ -16,22 +16,15 @@ class _$ErrorResponseSerializer implements StructuredSerializer<ErrorResponse> {
   final String wireName = 'ErrorResponse';
 
   @override
-  Iterable<Object?> serialize(
-    Serializers serializers,
-    ErrorResponse object, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+  Iterable<Object?> serialize(Serializers serializers, ErrorResponse object,
+      {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
       'error',
-      serializers.serialize(
-        object.error,
-        specifiedType: const FullType(String),
-      ),
+      serializers.serialize(object.error,
+          specifiedType: const FullType(String)),
       'stackTrace',
-      serializers.serialize(
-        object.stackTrace,
-        specifiedType: const FullType(String),
-      ),
+      serializers.serialize(object.stackTrace,
+          specifiedType: const FullType(String)),
     ];
 
     return result;
@@ -39,10 +32,8 @@ class _$ErrorResponseSerializer implements StructuredSerializer<ErrorResponse> {
 
   @override
   ErrorResponse deserialize(
-    Serializers serializers,
-    Iterable<Object?> serialized, {
-    FullType specifiedType = FullType.unspecified,
-  }) {
+      Serializers serializers, Iterable<Object?> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
     final result = new ErrorResponseBuilder();
 
     final iterator = serialized.iterator;
@@ -52,20 +43,12 @@ class _$ErrorResponseSerializer implements StructuredSerializer<ErrorResponse> {
       final Object? value = iterator.current;
       switch (key) {
         case 'error':
-          result.error =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )!
-                  as String;
+          result.error = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
           break;
         case 'stackTrace':
-          result.stackTrace =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )!
-                  as String;
+          result.stackTrace = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
           break;
       }
     }
@@ -84,13 +67,10 @@ class _$ErrorResponse extends ErrorResponse {
       (new ErrorResponseBuilder()..update(updates))._build();
 
   _$ErrorResponse._({required this.error, required this.stackTrace})
-    : super._() {
+      : super._() {
     BuiltValueNullFieldError.checkNotNull(error, r'ErrorResponse', 'error');
     BuiltValueNullFieldError.checkNotNull(
-      stackTrace,
-      r'ErrorResponse',
-      'stackTrace',
-    );
+        stackTrace, r'ErrorResponse', 'stackTrace');
   }
 
   @override
@@ -165,19 +145,12 @@ class ErrorResponseBuilder
   ErrorResponse build() => _build();
 
   _$ErrorResponse _build() {
-    final _$result =
-        _$v ??
+    final _$result = _$v ??
         new _$ErrorResponse._(
           error: BuiltValueNullFieldError.checkNotNull(
-            error,
-            r'ErrorResponse',
-            'error',
-          ),
+              error, r'ErrorResponse', 'error'),
           stackTrace: BuiltValueNullFieldError.checkNotNull(
-            stackTrace,
-            r'ErrorResponse',
-            'stackTrace',
-          ),
+              stackTrace, r'ErrorResponse', 'stackTrace'),
         );
     replace(_$result);
     return _$result;
