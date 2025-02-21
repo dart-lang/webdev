@@ -112,7 +112,8 @@ class SdkAssetGenerator {
 
       final sdkDirectoryUri = fileSystem.directory(sdkLayout.sdkDirectory).uri;
       final args = <String>[
-        sdkLayout.dartdevcSnapshotPath,
+        'compile',
+        'js-dev',
         '--compile-sdk',
         '--multi-root',
         '$sdkDirectoryUri',
@@ -131,7 +132,7 @@ class SdkAssetGenerator {
 
       final output = <String>[];
       _logger.fine('Executing dart ${args.join(' ')}');
-      final process = await Process.start(sdkLayout.dartAotRuntimePath, args,
+      final process = await Process.start(sdkLayout.dartPath, args,
           workingDirectory: sdkLayout.sdkDirectory);
 
       process.stdout
