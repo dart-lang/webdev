@@ -18,14 +18,17 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
   final Future<Map<String, String>> Function() _digestsProvider;
   final String _basePath;
   final BuildSettings _buildSettings;
+  final String? _packageConfigPath;
 
   FrontendServerStrategyProvider(
     this._configuration,
     this._assetReader,
     this._packageUriMapper,
     this._digestsProvider,
-    this._buildSettings,
-  ) : _basePath = _assetReader.basePath;
+    this._buildSettings, {
+    String? packageConfigPath,
+  })  : _basePath = _assetReader.basePath,
+        _packageConfigPath = packageConfigPath;
 
   T get strategy;
 
@@ -118,7 +121,7 @@ class FrontendServerDdcStrategyProvider
     _assetReader,
     _buildSettings,
     (String _) => null,
-    null,
+    packageConfigPath: _packageConfigPath,
   );
 
   FrontendServerDdcStrategyProvider(
@@ -126,8 +129,9 @@ class FrontendServerDdcStrategyProvider
     super._assetReader,
     super._packageUriMapper,
     super._digestsProvider,
-    super._buildSettings,
-  );
+    super._buildSettings, {
+    super.packageConfigPath,
+  });
 
   @override
   DdcStrategy get strategy => _ddcStrategy;
@@ -150,7 +154,7 @@ class FrontendServerDdcLibraryBundleStrategyProvider
     _assetReader,
     _buildSettings,
     (String _) => null,
-    null,
+    packageConfigPath: _packageConfigPath,
   );
 
   FrontendServerDdcLibraryBundleStrategyProvider(
@@ -158,8 +162,9 @@ class FrontendServerDdcLibraryBundleStrategyProvider
     super._assetReader,
     super._packageUriMapper,
     super._digestsProvider,
-    super._buildSettings,
-  );
+    super._buildSettings, {
+    super.packageConfigPath,
+  });
 
   @override
   DdcLibraryBundleStrategy get strategy => _libraryBundleStrategy;
@@ -179,6 +184,7 @@ class FrontendServerRequireStrategyProvider
     _moduleInfoForProvider,
     _assetReader,
     _buildSettings,
+    packageConfigPath: _packageConfigPath,
   );
 
   FrontendServerRequireStrategyProvider(
@@ -186,8 +192,9 @@ class FrontendServerRequireStrategyProvider
     super._assetReader,
     super._packageUriMapper,
     super._digestsProvider,
-    super._buildSettings,
-  );
+    super._buildSettings, {
+    super.packageConfigPath,
+  });
 
   @override
   RequireStrategy get strategy => _requireStrategy;
