@@ -28,13 +28,7 @@ void main() {
         final controller = BatchedStreamController<int>(delay: 500);
 
         // Verify the output.
-        expect(
-          controller.stream,
-          emitsInOrder([
-            batchOne,
-            batchTwo,
-          ]),
-        );
+        expect(controller.stream, emitsInOrder([batchOne, batchTwo]));
 
         // Add input.
         final inputController = StreamController<int>();

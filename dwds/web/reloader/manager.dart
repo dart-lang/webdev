@@ -27,8 +27,10 @@ class ReloadingManager {
   /// The apps are restarted at the same time on the first call.
   Future<bool> hotRestart({String? runId, Future? readyToRunMain}) async {
     _beforeRestart();
-    final result =
-        await _restarter.restart(runId: runId, readyToRunMain: readyToRunMain);
+    final result = await _restarter.restart(
+      runId: runId,
+      readyToRunMain: readyToRunMain,
+    );
     _afterRestart(result);
     return result;
   }

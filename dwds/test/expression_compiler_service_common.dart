@@ -161,33 +161,28 @@ void testAll({required CompilerOptions compilerOptions}) {
       expect(
         output.stream,
         emitsThrough(
-          contains(
-            '[INFO] ExpressionCompilerService: Updated dependencies.',
-          ),
+          contains('[INFO] ExpressionCompilerService: Updated dependencies.'),
         ),
       );
       expect(
         output.stream,
         emitsThrough(
-          contains(
-            '[FINEST] ExpressionCompilerService: Compiling "true" at',
-          ),
+          contains('[FINEST] ExpressionCompilerService: Compiling "true" at'),
         ),
       );
       expect(
         output.stream,
         emitsThrough(
-          contains(
-            '[FINEST] ExpressionCompilerService: Compiled "true" to:',
-          ),
+          contains('[FINEST] ExpressionCompilerService: Compiled "true" to:'),
         ),
       );
       expect(
         output.stream,
         emitsThrough(contains('[INFO] ExpressionCompilerService: Stopped.')),
       );
-      final result = await service
-          .updateDependencies({'try': ModuleInfo('try.full.dill', 'try.dill')});
+      final result = await service.updateDependencies({
+        'try': ModuleInfo('try.full.dill', 'try.dill'),
+      });
       expect(result, true, reason: 'failed to update dependencies');
 
       final compilationResult = await service.compileExpressionToJs(
@@ -224,9 +219,7 @@ void testAll({required CompilerOptions compilerOptions}) {
       expect(
         output.stream,
         emitsThrough(
-          contains(
-            '[INFO] ExpressionCompilerService: Updated dependencies.',
-          ),
+          contains('[INFO] ExpressionCompilerService: Updated dependencies.'),
         ),
       );
 
@@ -234,8 +227,9 @@ void testAll({required CompilerOptions compilerOptions}) {
         output.stream,
         emitsThrough(contains('[INFO] ExpressionCompilerService: Stopped.')),
       );
-      final result = await service
-          .updateDependencies({'try': ModuleInfo('try.full.dill', 'try.dill')});
+      final result = await service.updateDependencies({
+        'try': ModuleInfo('try.full.dill', 'try.dill'),
+      });
       expect(result, true, reason: 'failed to update dependencies');
 
       final compilationResult1 = await service.compileExpressionToJs(
@@ -289,9 +283,7 @@ void testAll({required CompilerOptions compilerOptions}) {
       expect(
         output.stream,
         emitsThrough(
-          contains(
-            '[INFO] ExpressionCompilerService: Updated dependencies.',
-          ),
+          contains('[INFO] ExpressionCompilerService: Updated dependencies.'),
         ),
       );
 
@@ -299,8 +291,9 @@ void testAll({required CompilerOptions compilerOptions}) {
         output.stream,
         emitsThrough(contains('[INFO] ExpressionCompilerService: Stopped.')),
       );
-      final result = await service
-          .updateDependencies({'try': ModuleInfo('try.full.dill', 'try.dill')});
+      final result = await service.updateDependencies({
+        'try': ModuleInfo('try.full.dill', 'try.dill'),
+      });
       expect(result, true, reason: 'failed to update dependencies');
 
       final compilationResult1 = service.compileExpressionToJs(
@@ -324,8 +317,10 @@ void testAll({required CompilerOptions compilerOptions}) {
         'false',
       );
 
-      final results =
-          await Future.wait([compilationResult1, compilationResult2]);
+      final results = await Future.wait([
+        compilationResult1,
+        compilationResult2,
+      ]);
 
       expect(
         results[0],

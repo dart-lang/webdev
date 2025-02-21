@@ -32,12 +32,12 @@ void runTests({
   late ScriptRef mainScript;
 
   Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
-        stream,
-        isolateId,
-        mainScript,
-        breakPointId,
-        body,
-      );
+    stream,
+    isolateId,
+    mainScript,
+    breakPointId,
+    body,
+  );
 
   Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
 
@@ -62,8 +62,9 @@ void runTests({
       await service.streamListen('Debug');
       stream = service.onEvent('Debug');
 
-      mainScript = scripts.scripts!
-          .firstWhere((each) => each.uri!.contains('main.dart'));
+      mainScript = scripts.scripts!.firstWhere(
+        (each) => each.uri!.contains('main.dart'),
+      );
     });
 
     tearDownAll(() async {
@@ -84,18 +85,11 @@ void runTests({
           expect(clazz!.name, equals('GreeterClass'));
           expect(
             clazz.fields!.map((field) => field.name),
-            unorderedEquals([
-              'greeteeName',
-              'useFrench',
-            ]),
+            unorderedEquals(['greeteeName', 'useFrench']),
           );
           expect(
             clazz.functions!.map((fn) => fn.name),
-            containsAll([
-              'sayHello',
-              'greetInEnglish',
-              'greetInFrench',
-            ]),
+            containsAll(['sayHello', 'greetInEnglish', 'greetInFrench']),
           );
         });
       });

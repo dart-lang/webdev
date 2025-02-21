@@ -22,12 +22,13 @@ Future<BuildDaemonClient> connectClient(
   String workingDirectory,
   List<String> options,
   Function(ServerLog) logHandler,
-) =>
-    BuildDaemonClient.connect(
-      workingDirectory,
-      [dartPath, 'run', 'build_runner', 'daemon', ...options],
-      logHandler: logHandler,
-    );
+) => BuildDaemonClient.connect(workingDirectory, [
+  dartPath,
+  'run',
+  'build_runner',
+  'daemon',
+  ...options,
+], logHandler: logHandler);
 
 /// Returns the port of the daemon asset server.
 int daemonPort(String workingDirectory) {
@@ -101,20 +102,20 @@ Future<T> retryFnAsync<T>(
 
 class TestDebugSettings extends DebugSettings {
   TestDebugSettings.withDevTools(TestContext context)
-      : super(
-          devToolsLauncher: (hostname) async {
-            final server = await DevToolsServer().serveDevTools(
-              hostname: hostname,
-              enableStdinCommands: false,
-              customDevToolsPath:
-                  context.sdkConfigurationProvider.sdkLayout.devToolsDirectory,
-            );
-            if (server == null) {
-              throw StateError('DevTools server could not be started.');
-            }
-            return DevTools(server.address.host, server.port, server);
-          },
-        );
+    : super(
+        devToolsLauncher: (hostname) async {
+          final server = await DevToolsServer().serveDevTools(
+            hostname: hostname,
+            enableStdinCommands: false,
+            customDevToolsPath:
+                context.sdkConfigurationProvider.sdkLayout.devToolsDirectory,
+          );
+          if (server == null) {
+            throw StateError('DevTools server could not be started.');
+          }
+          return DevTools(server.address.host, server.port, server);
+        },
+      );
 
   const TestDebugSettings.noDevTools() : super(enableDevToolsLaunch: false);
 
@@ -178,12 +179,11 @@ class TestAppMetadata extends AppMetadata {
     bool? isInternalBuild,
     String? workspaceName,
     String? hostname,
-  }) =>
-      TestAppMetadata(
-        isInternalBuild: isInternalBuild ?? this.isInternalBuild,
-        workspaceName: workspaceName ?? this.workspaceName,
-        hostname: hostname ?? this.hostname,
-      );
+  }) => TestAppMetadata(
+    isInternalBuild: isInternalBuild ?? this.isInternalBuild,
+    workspaceName: workspaceName ?? this.workspaceName,
+    hostname: hostname ?? this.hostname,
+  );
 
   const TestAppMetadata.externalApp() : super(isInternalBuild: false);
 
@@ -197,8 +197,8 @@ class TestToolConfiguration extends ToolConfiguration {
         const TestDebugSettings.noDevTools(),
     TestBuildSettings buildSettings = const TestBuildSettings.dart(),
   }) : super(
-          loadStrategy: TestStrategy(const FakeAssetReader(), buildSettings),
-        );
+         loadStrategy: TestStrategy(const FakeAssetReader(), buildSettings),
+       );
 
   TestToolConfiguration.withLoadStrategy({
     TestAppMetadata super.appMetadata = const TestAppMetadata.externalApp(),
@@ -208,9 +208,7 @@ class TestToolConfiguration extends ToolConfiguration {
   });
 }
 
-void setGlobalsForTesting({
-  ToolConfiguration? toolConfiguration,
-}) {
+void setGlobalsForTesting({ToolConfiguration? toolConfiguration}) {
   globalToolConfiguration =
       toolConfiguration ?? TestToolConfiguration.withDefaultLoadStrategy();
 }
@@ -224,10 +222,8 @@ void setGlobalsForTestingFromBuild({
 }
 
 class TestStrategy extends FakeStrategy {
-  TestStrategy(
-    super.assetReader,
-    BuildSettings buildSettings,
-  ) : super(buildSettings: buildSettings);
+  TestStrategy(super.assetReader, BuildSettings buildSettings)
+    : super(buildSettings: buildSettings);
 
   @override
   String serverPathForAppUri(String appUri) {
@@ -279,23 +275,22 @@ class TestBuildSettings extends BuildSettings {
   });
 
   const TestBuildSettings.dart({Uri? appEntrypoint})
-      : this(appEntrypoint: appEntrypoint, isFlutterApp: false);
+    : this(appEntrypoint: appEntrypoint, isFlutterApp: false);
 
   const TestBuildSettings.flutter({Uri? appEntrypoint})
-      : this(appEntrypoint: appEntrypoint, isFlutterApp: true);
+    : this(appEntrypoint: appEntrypoint, isFlutterApp: true);
 
   TestBuildSettings copyWith({
     Uri? appEntrypoint,
     bool? canaryFeatures,
     bool? isFlutterApp,
     List<String>? experiments,
-  }) =>
-      TestBuildSettings(
-        appEntrypoint: appEntrypoint ?? this.appEntrypoint,
-        canaryFeatures: canaryFeatures ?? this.canaryFeatures,
-        isFlutterApp: isFlutterApp ?? this.isFlutterApp,
-        experiments: experiments ?? this.experiments,
-      );
+  }) => TestBuildSettings(
+    appEntrypoint: appEntrypoint ?? this.appEntrypoint,
+    canaryFeatures: canaryFeatures ?? this.canaryFeatures,
+    isFlutterApp: isFlutterApp ?? this.isFlutterApp,
+    experiments: experiments ?? this.experiments,
+  );
 }
 
 class TestCompilerOptions extends CompilerOptions {

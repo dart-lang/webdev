@@ -13,20 +13,22 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// synthetic variables.
 /// Issue: https://github.com/dart-lang/sdk/issues/44262
 final ddcTemporaryVariableRegExp = RegExp(
-    // Starts with t$
-    r'^t\$'
-    // followed by anything
-    r'.*'
-    // or,
-    r'|'
-    // anything that contains the sequence '$35'.
-    r'.*\$35.*');
+  // Starts with t$
+  r'^t\$'
+  // followed by anything
+  r'.*'
+  // or,
+  r'|'
+  // anything that contains the sequence '$35'.
+  r'.*\$35.*',
+);
 final ddcTemporaryTypeVariableRegExp = RegExp(r'^__t[\$\w*]+$');
 
 /// Temporary variable regex before SDK changes for patterns.
 /// TODO(annagrin): remove after dart 3.0 is stable.
-final previousDdcTemporaryVariableRegExp =
-    RegExp(r'^(t[0-9]+\$?[0-9]*|__t[\$\w*]+)$');
+final previousDdcTemporaryVariableRegExp = RegExp(
+  r'^(t[0-9]+\$?[0-9]*|__t[\$\w*]+)$',
+);
 
 const ddcAsyncScope = 'asyncScope';
 const ddcCapturedAsyncScope = 'capturedAsyncScope';
@@ -42,12 +44,7 @@ Future<List<Property>> visibleVariables({
   final allProperties = <Property>[];
 
   if (frame.thisObject.type != 'undefined') {
-    allProperties.add(
-      Property({
-        'name': 'this',
-        'value': frame.thisObject,
-      }),
-    );
+    allProperties.add(Property({'name': 'this', 'value': frame.thisObject}));
   }
 
   // TODO: Try and populate all the property info for the scopes in one backend
@@ -65,12 +62,7 @@ Future<List<Property>> visibleVariables({
   }
 
   if (frame.returnValue != null && frame.returnValue!.type != 'undefined') {
-    allProperties.add(
-      Property({
-        'name': 'return',
-        'value': frame.returnValue,
-      }),
-    );
+    allProperties.add(Property({'name': 'return', 'value': frame.returnValue}));
   }
 
   // DDC's async lowering hoists variable declarations into scope objects. We
@@ -82,8 +74,9 @@ Future<List<Property>> visibleVariables({
   // available properties to recreate the Dart context at any given point.
 
   final capturedAsyncScopes = [
-    ...allProperties
-        .where((p) => p.name?.startsWith(ddcCapturedAsyncScope) ?? false),
+    ...allProperties.where(
+      (p) => p.name?.startsWith(ddcCapturedAsyncScope) ?? false,
+    ),
   ];
 
   if (capturedAsyncScopes.isNotEmpty) {
@@ -142,8 +135,8 @@ Future<List<Property>> visibleVariables({
 List<WipScope> filterScopes(WipCallFrame frame) {
   final scopes = frame.getScopeChain().toList();
   // Remove outer scopes up to and including the Dart SDK.
-  while (
-      scopes.isNotEmpty && !(scopes.last.name?.startsWith('load__') ?? false)) {
+  while (scopes.isNotEmpty &&
+      !(scopes.last.name?.startsWith('load__') ?? false)) {
     scopes.removeLast();
   }
   if (scopes.isNotEmpty) scopes.removeLast();

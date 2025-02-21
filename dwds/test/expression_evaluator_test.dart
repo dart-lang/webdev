@@ -43,9 +43,7 @@ void main() async {
       final toolConfiguration = TestToolConfiguration.withLoadStrategy(
         loadStrategy: FakeStrategy(assetReader),
       );
-      setGlobalsForTesting(
-        toolConfiguration: toolConfiguration,
-      );
+      setGlobalsForTesting(toolConfiguration: toolConfiguration);
       final modules = FakeModules();
 
       final webkitDebugger = FakeWebkitDebugger();
@@ -99,12 +97,19 @@ void main() async {
       });
 
       test('can evaluate expression', () async {
-        final result =
-            await evaluator.evaluateExpression('1', 'main.dart', 'true', {});
+        final result = await evaluator.evaluateExpression(
+          '1',
+          'main.dart',
+          'true',
+          {},
+        );
         expect(
           result,
-          const TypeMatcher<RemoteObject>()
-              .having((o) => o.value, 'value', 'true'),
+          const TypeMatcher<RemoteObject>().having(
+            (o) => o.value,
+            'value',
+            'true',
+          ),
         );
       });
 
@@ -125,19 +130,21 @@ void main() async {
         pausedController.sink.add(
           DebuggerPausedEvent({
             'method': '',
-            'params': {
-              'reason': 'other',
-              'callFrames': [],
-            },
+            'params': {'reason': 'other', 'callFrames': []},
           }),
         );
 
-        await debugEventController.stream
-            .firstWhere((e) => e.kind == EventKind.kPauseInterrupted);
+        await debugEventController.stream.firstWhere(
+          (e) => e.kind == EventKind.kPauseInterrupted,
+        );
 
         // Verify that we get the internal error.
-        final result =
-            await evaluator.evaluateExpressionInFrame('20', 0, 'true', null);
+        final result = await evaluator.evaluateExpressionInFrame(
+          '20',
+          0,
+          'true',
+          null,
+        );
         expect(
           result,
           isA<RemoteObject>()
@@ -165,8 +172,12 @@ void main() async {
 
       test('returns error if closed', () async {
         evaluator.close();
-        final result =
-            await evaluator.evaluateExpression('1', 'main.dart', 'true', {});
+        final result = await evaluator.evaluateExpression(
+          '1',
+          'main.dart',
+          'true',
+          {},
+        );
         expect(
           result,
           const TypeMatcher<RemoteObject>()
@@ -184,12 +195,19 @@ void main() async {
       });
 
       test('can evaluate expression', () async {
-        final result =
-            await evaluator.evaluateExpression('1', 'main.dart', 'true', {});
+        final result = await evaluator.evaluateExpression(
+          '1',
+          'main.dart',
+          'true',
+          {},
+        );
         expect(
           result,
-          const TypeMatcher<RemoteObject>()
-              .having((o) => o.value, 'value', 'true'),
+          const TypeMatcher<RemoteObject>().having(
+            (o) => o.value,
+            'value',
+            'true',
+          ),
         );
       });
 
@@ -210,8 +228,12 @@ void main() async {
 
       test('returns error if closed', () async {
         evaluator.close();
-        final result =
-            await evaluator.evaluateExpression('1', 'main.dart', 'true', {});
+        final result = await evaluator.evaluateExpression(
+          '1',
+          'main.dart',
+          'true',
+          {},
+        );
         expect(
           result,
           const TypeMatcher<RemoteObject>()

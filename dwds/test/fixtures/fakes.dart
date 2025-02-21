@@ -31,20 +31,20 @@ import 'utilities.dart';
 /// Constructs a trivial Isolate we can use when we need to provide one but
 /// don't want go through initialization.
 Isolate get simpleIsolate => Isolate(
-      id: '1',
-      number: '1',
-      name: 'fake',
-      libraries: [],
-      exceptionPauseMode: 'abc',
-      breakpoints: [],
-      pauseOnExit: false,
-      pauseEvent: null,
-      startTime: 0,
-      livePorts: 0,
-      runnable: false,
-      isSystemIsolate: false,
-      isolateFlags: [],
-    );
+  id: '1',
+  number: '1',
+  name: 'fake',
+  libraries: [],
+  exceptionPauseMode: 'abc',
+  breakpoints: [],
+  pauseOnExit: false,
+  pauseEvent: null,
+  startTime: 0,
+  livePorts: 0,
+  runnable: false,
+  isSystemIsolate: false,
+  isolateFlags: [],
+);
 
 class FakeInspector implements AppInspector {
   final WebkitDebugger _remoteDebugger;
@@ -93,11 +93,11 @@ class FakeInspector implements AppInspector {
 
   @override
   IsolateRef get isolateRef => IsolateRef(
-        id: fakeIsolate.id,
-        number: fakeIsolate.number,
-        name: fakeIsolate.name,
-        isSystemIsolate: fakeIsolate.isSystemIsolate,
-      );
+    id: fakeIsolate.id,
+    number: fakeIsolate.number,
+    name: fakeIsolate.name,
+    isSystemIsolate: fakeIsolate.isSystemIsolate,
+  );
 
   @override
   Future<List<Property>> getProperties(
@@ -108,10 +108,7 @@ class FakeInspector implements AppInspector {
   }) async {
     final response = await _remoteDebugger.sendCommand(
       'Runtime.getProperties',
-      params: {
-        'objectId': objectId,
-        'ownProperties': true,
-      },
+      params: {'objectId': objectId, 'ownProperties': true},
     );
     final result = response.result?['result'];
     return result
@@ -155,9 +152,9 @@ class FakeModules implements Modules {
     String library = 'main.dart',
     String module = 'main',
     String path = 'web/main.dart',
-  })  : _library = library,
-        _module = module,
-        _path = path;
+  }) : _library = library,
+       _module = module,
+       _path = path;
 
   @override
   void initialize(String entrypoint) {}
@@ -178,8 +175,7 @@ class FakeModules implements Modules {
   Future<String?> getRuntimeScriptIdForModule(
     String entrypoint,
     String module,
-  ) async =>
-      null;
+  ) async => null;
 }
 
 class FakeWebkitDebugger implements WebkitDebugger {
@@ -296,8 +292,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
     String expression, {
     bool? returnByValue,
     int? contextId,
-  }) async =>
-      RemoteObject({});
+  }) async => RemoteObject({});
 
   @override
   Future<RemoteObject> evaluateOnCallFrame(
@@ -310,8 +305,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
   @override
   Future<List<WipBreakLocation>> getPossibleBreakpoints(
     WipLocation start,
-  ) async =>
-      [];
+  ) async => [];
 
   @override
   Future<WipResponse> enablePage() async => fakeWipResponse;
@@ -337,19 +331,21 @@ class FakeStrategy extends LoadStrategy {
     super.assetReader, {
     super.packageConfigPath,
     BuildSettings? buildSettings,
-  }) : _buildSettings = buildSettings ??
-            TestBuildSettings.dart(
-              appEntrypoint: Uri.parse('package:myapp/main.dart'),
-            );
+  }) : _buildSettings =
+           buildSettings ??
+           TestBuildSettings.dart(
+             appEntrypoint: Uri.parse('package:myapp/main.dart'),
+           );
 
   @override
   Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
 
   @override
   shelf.Handler get handler =>
-      (request) => (request.url.path == 'someDummyPath')
-          ? shelf.Response.ok('some dummy response')
-          : shelf.Response.notFound('someDummyPath');
+      (request) =>
+          (request.url.path == 'someDummyPath')
+              ? shelf.Response.ok('some dummy response')
+              : shelf.Response.notFound('someDummyPath');
 
   @override
   BuildSettings get buildSettings => _buildSettings;
@@ -385,8 +381,7 @@ class FakeStrategy extends LoadStrategy {
   Future<String?> moduleForServerPath(
     String entrypoint,
     String serverPath,
-  ) async =>
-      '';
+  ) async => '';
 
   @override
   Future<String> serverPathForModule(String entrypoint, String module) async =>
@@ -396,8 +391,7 @@ class FakeStrategy extends LoadStrategy {
   Future<String> sourceMapPathForModule(
     String entrypoint,
     String module,
-  ) async =>
-      '';
+  ) async => '';
 
   @override
   String? serverPathForAppUri(String appUri) => '';
@@ -415,13 +409,10 @@ class FakeAssetReader implements AssetReader {
   final String? _metadata;
   final String? _dartSource;
   final String? _sourceMap;
-  const FakeAssetReader({
-    metadata,
-    dartSource,
-    sourceMap,
-  })  : _metadata = metadata,
-        _dartSource = dartSource,
-        _sourceMap = sourceMap;
+  const FakeAssetReader({metadata, dartSource, sourceMap})
+    : _metadata = metadata,
+      _dartSource = dartSource,
+      _sourceMap = sourceMap;
 
   @override
   String get basePath => '';
@@ -461,8 +452,7 @@ class FakeExpressionCompiler implements ExpressionCompiler {
     Map<String, String> jsFrameValues,
     String moduleName,
     String expression,
-  ) async =>
-      ExpressionCompilationResult(expression, false);
+  ) async => ExpressionCompilationResult(expression, false);
 
   @override
   Future<bool> updateDependencies(Map<String, ModuleInfo> modules) async =>
@@ -477,6 +467,4 @@ final fakeWipResponse = WipResponse({
   'result': {'fake': ''},
 });
 
-final fakeFailingWipResponse = WipResponse({
-  'result': 'Error: Bad request',
-});
+final fakeFailingWipResponse = WipResponse({'result': 'Error: Bad request'});

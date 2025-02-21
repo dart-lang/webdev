@@ -27,17 +27,11 @@ void main() async {
     });
 
     test('writeAll with default separator', () async {
-      expect(
-        (JsBuilder()..writeAll(['Hello', 'World'])).build(),
-        'HelloWorld',
-      );
+      expect((JsBuilder()..writeAll(['Hello', 'World'])).build(), 'HelloWorld');
     });
 
     test('writeWithIndent', () async {
-      expect(
-        (JsBuilder()..writeWithIndent('Hello')).build(),
-        'Hello',
-      );
+      expect((JsBuilder()..writeWithIndent('Hello')).build(), 'Hello');
     });
 
     test('writeWithIndent', () async {
@@ -77,28 +71,28 @@ void main() async {
       final jsBuilder = JsBuilder();
       jsBuilder.writeTryCatchExpression(() => jsBuilder.write('x'));
       expect(
-          jsBuilder.build(),
-          'try {\n'
-          '  x\n'
-          '} catch (error) {\n'
-          '  error.name + ": " + error.message;\n'
-          '}');
+        jsBuilder.build(),
+        'try {\n'
+        '  x\n'
+        '} catch (error) {\n'
+        '  error.name + ": " + error.message;\n'
+        '}',
+      );
     });
 
     test('writeTryCatchStatement', () async {
       final jsBuilder = JsBuilder();
       jsBuilder.writeTryCatchStatement(
-        () => jsBuilder.writeReturnStatement(
-          () => jsBuilder.write('x'),
-        ),
+        () => jsBuilder.writeReturnStatement(() => jsBuilder.write('x')),
       );
       expect(
-          jsBuilder.build(),
-          'try {\n'
-          '  return x;\n'
-          '} catch (error) {\n'
-          '  return error.name + ": " + error.message;\n'
-          '}');
+        jsBuilder.build(),
+        'try {\n'
+        '  return x;\n'
+        '} catch (error) {\n'
+        '  return error.name + ": " + error.message;\n'
+        '}',
+      );
     });
 
     test('writeReturnStatement', () async {
@@ -111,15 +105,14 @@ void main() async {
       final jsBuilder = JsBuilder();
       jsBuilder.writeFunctionDefinition(
         ['a1', 'a2'],
-        () => jsBuilder.writeReturnStatement(
-          () => jsBuilder.write('a1 + a2'),
-        ),
+        () => jsBuilder.writeReturnStatement(() => jsBuilder.write('a1 + a2')),
       );
       expect(
-          jsBuilder.build(),
-          'function (a1, a2) {\n'
-          '  return a1 + a2;\n'
-          '}');
+        jsBuilder.build(),
+        'function (a1, a2) {\n'
+        '  return a1 + a2;\n'
+        '}',
+      );
     });
 
     test('writeBindExpression', () async {
@@ -128,29 +121,31 @@ void main() async {
         'x',
         () => jsBuilder.writeFunctionDefinition(
           [],
-          () => jsBuilder.writeReturnStatement(
-            () => jsBuilder.write('this.a'),
-          ),
+          () => jsBuilder.writeReturnStatement(() => jsBuilder.write('this.a')),
         ),
       );
       expect(
-          jsBuilder.build(),
-          'function () {\n'
-          '  return this.a;\n'
-          '}.bind(x)');
+        jsBuilder.build(),
+        'function () {\n'
+        '  return this.a;\n'
+        '}.bind(x)',
+      );
     });
 
     test('createEvalExpression', () async {
-      final expression =
-          JsBuilder.createEvalExpression(['var e = 1;', 'return e']);
+      final expression = JsBuilder.createEvalExpression([
+        'var e = 1;',
+        'return e',
+      ]);
       expect(
-          expression,
-          'try {\n'
-          '  var e = 1;\n'
-          '  return e;\n'
-          '} catch (error) {\n'
-          '  error.name + ": " + error.message;\n'
-          '}');
+        expression,
+        'try {\n'
+        '  var e = 1;\n'
+        '  return e;\n'
+        '} catch (error) {\n'
+        '  error.name + ": " + error.message;\n'
+        '}',
+      );
     });
 
     test('createEvalStaticFunction', () async {
@@ -159,16 +154,17 @@ void main() async {
         ['e', 'e2'],
       );
       expect(
-          function,
-          'function (e, e2) {\n'
-          '  try {\n'
-          '    return function(e, e2) {\n'
-          '      return e;\n'
-          '    }(e, e2);\n'
-          '  } catch (error) {\n'
-          '    return error.name + ": " + error.message;\n'
-          '  }\n'
-          '}');
+        function,
+        'function (e, e2) {\n'
+        '  try {\n'
+        '    return function(e, e2) {\n'
+        '      return e;\n'
+        '    }(e, e2);\n'
+        '  } catch (error) {\n'
+        '    return error.name + ": " + error.message;\n'
+        '  }\n'
+        '}',
+      );
     });
 
     test('createEvalBoundFunction', () async {
@@ -177,18 +173,19 @@ void main() async {
         ['e', 'e2'],
       );
       expect(
-          function,
-          'function (e, e2, __t\$this) {\n'
-          '  try {\n'
-          '    return function (e, e2) {\n'
-          '      return function(e, e2) {\n'
-          '        return e;\n'
-          '      }(e, e2);\n'
-          '    }.bind(__t\$this)(e, e2);\n'
-          '  } catch (error) {\n'
-          '    return error.name + ": " + error.message;\n'
-          '  }\n'
-          '}');
+        function,
+        'function (e, e2, __t\$this) {\n'
+        '  try {\n'
+        '    return function (e, e2) {\n'
+        '      return function(e, e2) {\n'
+        '        return e;\n'
+        '      }(e, e2);\n'
+        '    }.bind(__t\$this)(e, e2);\n'
+        '  } catch (error) {\n'
+        '    return error.name + ": " + error.message;\n'
+        '  }\n'
+        '}',
+      );
     });
   });
 }

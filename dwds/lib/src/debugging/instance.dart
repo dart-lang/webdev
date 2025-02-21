@@ -22,12 +22,14 @@ class InstanceHelper extends Domain {
   final ClassMetaDataHelper metadataHelper;
 
   InstanceHelper(AppInspector appInspector)
-      : metadataHelper = ClassMetaDataHelper(appInspector) {
+    : metadataHelper = ClassMetaDataHelper(appInspector) {
     inspector = appInspector;
   }
 
-  static final InstanceRef kNullInstanceRef =
-      _primitiveInstanceRef(InstanceKind.kNull, null);
+  static final InstanceRef kNullInstanceRef = _primitiveInstanceRef(
+    InstanceKind.kNull,
+    null,
+  );
 
   /// Creates an [InstanceRef] for a primitive [RemoteObject].
   static InstanceRef _primitiveInstanceRef(
@@ -273,8 +275,9 @@ class InstanceHelper extends Domain {
 
     final dartProperties = await _dartFieldsFor(properties, remoteObject);
     final boundFields = await Future.wait(
-      dartProperties
-          .map<Future<BoundField>>((p) => _fieldFor(p, metaData.classRef)),
+      dartProperties.map<Future<BoundField>>(
+        (p) => _fieldFor(p, metaData.classRef),
+      ),
     );
 
     return boundFields
@@ -306,15 +309,19 @@ class InstanceHelper extends Domain {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-        .getMapElementsJsExpression();
+    final expression =
+        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+            .getMapElementsJsExpression();
 
     final keysAndValues = await inspector.jsCallFunctionOn(map, expression, []);
     final keys = await inspector.loadField(keysAndValues, 'keys');
     final values = await inspector.loadField(keysAndValues, 'values');
     final keysInstance = await instanceFor(keys, offset: offset, count: count);
-    final valuesInstance =
-        await instanceFor(values, offset: offset, count: count);
+    final valuesInstance = await instanceFor(
+      values,
+      offset: offset,
+      count: count,
+    );
     final associations = <MapAssociation>[];
     final keyElements = keysInstance?.elements;
     final valueElements = valuesInstance?.elements;
@@ -345,8 +352,11 @@ class InstanceHelper extends Domain {
     if (objectId == null) return null;
 
     // Maps are complicated, do an eval to get keys and values.
-    final associations =
-        await _mapAssociations(remoteObject, offset: offset, count: count);
+    final associations = await _mapAssociations(
+      remoteObject,
+      offset: offset,
+      count: count,
+    );
     final rangeCount = _calculateRangeCount(
       count: count,
       elementCount: associations.length,
@@ -466,8 +476,10 @@ class InstanceHelper extends Domain {
     int? offset,
     int? count,
   }) async {
-    final positionalCountObject =
-        await inspector.loadField(shape, 'positionalCount');
+    final positionalCountObject = await inspector.loadField(
+      shape,
+      'positionalCount',
+    );
     if (positionalCountObject == null || positionalCountObject.value is! int) {
       _logger.warning(
         'Unexpected positional count from record: $positionalCountObject',
@@ -478,14 +490,20 @@ class InstanceHelper extends Domain {
     final namedObject = await inspector.loadField(shape, 'named');
     final positionalCount = positionalCountObject.value as int;
     final positionalOffset = offset ?? 0;
-    final positionalAvailable =
-        _remainingCount(positionalOffset, positionalCount);
-    final positionalRangeCount =
-        min(positionalAvailable, count ?? positionalAvailable);
+    final positionalAvailable = _remainingCount(
+      positionalOffset,
+      positionalCount,
+    );
+    final positionalRangeCount = min(
+      positionalAvailable,
+      count ?? positionalAvailable,
+    );
     final positionalElements = [
-      for (var i = positionalOffset + 1;
-          i <= positionalOffset + positionalRangeCount;
-          i++)
+      for (
+        var i = positionalOffset + 1;
+        i <= positionalOffset + positionalRangeCount;
+        i++
+      )
         i,
     ];
 
@@ -503,10 +521,7 @@ class InstanceHelper extends Domain {
     final namedElements =
         namedInstance?.elements?.map((e) => e.valueAsString) ?? [];
 
-    return [
-      ...positionalElements,
-      ...namedElements,
-    ];
+    return [...positionalElements, ...namedElements];
   }
 
   /// The fields for a Dart Record.
@@ -524,16 +539,23 @@ class InstanceHelper extends Domain {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-        .getRecordFieldsJsExpression();
+    final expression =
+        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+            .getRecordFieldsJsExpression();
 
     final result = await inspector.jsCallFunctionOn(record, expression, []);
-    final fieldNameElements =
-        await _recordShapeFields(result, offset: offset, count: count);
+    final fieldNameElements = await _recordShapeFields(
+      result,
+      offset: offset,
+      count: count,
+    );
 
     final valuesObject = await inspector.loadField(result, 'values');
-    final valuesInstance =
-        await instanceFor(valuesObject, offset: offset, count: count);
+    final valuesInstance = await instanceFor(
+      valuesObject,
+      offset: offset,
+      count: count,
+    );
     final valueElements = valuesInstance?.elements ?? [];
 
     return _elementsToBoundFields(fieldNameElements, valueElements);
@@ -578,8 +600,11 @@ class InstanceHelper extends Domain {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
     // Records are complicated, do an eval to get names and values.
-    final fields =
-        await _recordFields(remoteObject, offset: offset, count: count);
+    final fields = await _recordFields(
+      remoteObject,
+      offset: offset,
+      count: count,
+    );
     final rangeCount = _calculateRangeCount(
       count: count,
       elementCount: fields.length,
@@ -653,16 +678,23 @@ class InstanceHelper extends Domain {
     // We do this in in awkward way because we want the names and types, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-        .getRecordTypeFieldsJsExpression();
+    final expression =
+        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+            .getRecordTypeFieldsJsExpression();
 
     final result = await inspector.jsCallFunctionOn(record, expression, []);
-    final fieldNameElements =
-        await _recordShapeFields(result, offset: offset, count: count);
+    final fieldNameElements = await _recordShapeFields(
+      result,
+      offset: offset,
+      count: count,
+    );
 
     final typesObject = await inspector.loadField(result, 'types');
-    final typesInstance =
-        await instanceFor(typesObject, offset: offset, count: count);
+    final typesInstance = await instanceFor(
+      typesObject,
+      offset: offset,
+      count: count,
+    );
     final typeElements = typesInstance?.elements ?? [];
 
     return _elementsToBoundFields(fieldNameElements, typeElements);
@@ -677,14 +709,21 @@ class InstanceHelper extends Domain {
     final length = metaData.length;
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
-    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-        .getSetElementsJsExpression();
+    final expression =
+        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+            .getSetElementsJsExpression();
 
-    final result =
-        await inspector.jsCallFunctionOn(remoteObject, expression, []);
+    final result = await inspector.jsCallFunctionOn(
+      remoteObject,
+      expression,
+      [],
+    );
     final entriesObject = await inspector.loadField(result, 'entries');
-    final entriesInstance =
-        await instanceFor(entriesObject, offset: offset, count: count);
+    final entriesInstance = await instanceFor(
+      entriesObject,
+      offset: offset,
+      count: count,
+    );
     final elements = entriesInstance?.elements ?? [];
 
     final setInstance = Instance(
@@ -775,9 +814,9 @@ class InstanceHelper extends Domain {
     //
     // For maps and lists it's more complicated. Treat the actual SDK versions
     // of these as special.
-    final fieldNameExpression = globalToolConfiguration
-        .loadStrategy.dartRuntimeDebugger
-        .getObjectFieldNamesJsExpression();
+    final fieldNameExpression =
+        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+            .getObjectFieldNamesJsExpression();
     final result = await inspector.jsCallFunctionOn(
       remoteObject,
       fieldNameExpression,
@@ -795,9 +834,10 @@ class InstanceHelper extends Domain {
   /// be something returned by value from Chrome, e.g. number, boolean, or
   /// String.
   Future<InstanceRef?> instanceRefFor(Object value) {
-    final remote = value is RemoteObject
-        ? value
-        : RemoteObject({'value': value, 'type': _chromeType(value)});
+    final remote =
+        value is RemoteObject
+            ? value
+            : RemoteObject({'value': value, 'type': _chromeType(value)});
     return _instanceRefForRemote(remote);
   }
 

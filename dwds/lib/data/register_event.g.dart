@@ -16,15 +16,22 @@ class _$RegisterEventSerializer implements StructuredSerializer<RegisterEvent> {
   final String wireName = 'RegisterEvent';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, RegisterEvent object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    RegisterEvent object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'eventData',
-      serializers.serialize(object.eventData,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.eventData,
+        specifiedType: const FullType(String),
+      ),
       'timestamp',
-      serializers.serialize(object.timestamp,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.timestamp,
+        specifiedType: const FullType(int),
+      ),
     ];
 
     return result;
@@ -32,8 +39,10 @@ class _$RegisterEventSerializer implements StructuredSerializer<RegisterEvent> {
 
   @override
   RegisterEvent deserialize(
-      Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = new RegisterEventBuilder();
 
     final iterator = serialized.iterator;
@@ -43,12 +52,20 @@ class _$RegisterEventSerializer implements StructuredSerializer<RegisterEvent> {
       final Object? value = iterator.current;
       switch (key) {
         case 'eventData':
-          result.eventData = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.eventData =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'timestamp':
-          result.timestamp = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+          result.timestamp =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
       }
     }
@@ -67,11 +84,17 @@ class _$RegisterEvent extends RegisterEvent {
       (new RegisterEventBuilder()..update(updates))._build();
 
   _$RegisterEvent._({required this.eventData, required this.timestamp})
-      : super._() {
+    : super._() {
     BuiltValueNullFieldError.checkNotNull(
-        eventData, r'RegisterEvent', 'eventData');
+      eventData,
+      r'RegisterEvent',
+      'eventData',
+    );
     BuiltValueNullFieldError.checkNotNull(
-        timestamp, r'RegisterEvent', 'timestamp');
+      timestamp,
+      r'RegisterEvent',
+      'timestamp',
+    );
   }
 
   @override
@@ -146,12 +169,20 @@ class RegisterEventBuilder
   RegisterEvent build() => _build();
 
   _$RegisterEvent _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$RegisterEvent._(
-            eventData: BuiltValueNullFieldError.checkNotNull(
-                eventData, r'RegisterEvent', 'eventData'),
-            timestamp: BuiltValueNullFieldError.checkNotNull(
-                timestamp, r'RegisterEvent', 'timestamp'));
+          eventData: BuiltValueNullFieldError.checkNotNull(
+            eventData,
+            r'RegisterEvent',
+            'eventData',
+          ),
+          timestamp: BuiltValueNullFieldError.checkNotNull(
+            timestamp,
+            r'RegisterEvent',
+            'timestamp',
+          ),
+        );
     replace(_$result);
     return _$result;
   }

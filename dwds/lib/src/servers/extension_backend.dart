@@ -13,7 +13,8 @@ import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 
-const authenticationResponse = 'Dart Debug Authentication Success!\n\n'
+const authenticationResponse =
+    'Dart Debug Authentication Success!\n\n'
     'You can close this tab and launch the Dart Debug Extension again.';
 
 /// A backend for the Dart Debug Extension.
@@ -44,19 +45,21 @@ class ExtensionBackend {
     String hostname,
   ) async {
     var cascade = Cascade();
-    cascade = cascade.add((request) {
-      if (request.url.path == authenticationPath) {
-        return Response.ok(
-          authenticationResponse,
-          headers: {
-            if (request.headers.containsKey('origin'))
-              'Access-Control-Allow-Origin': request.headers['origin']!,
-            'Access-Control-Allow-Credentials': 'true',
-          },
-        );
-      }
-      return Response.notFound('');
-    }).add(socketHandler.handler);
+    cascade = cascade
+        .add((request) {
+          if (request.url.path == authenticationPath) {
+            return Response.ok(
+              authenticationResponse,
+              headers: {
+                if (request.headers.containsKey('origin'))
+                  'Access-Control-Allow-Origin': request.headers['origin']!,
+                'Access-Control-Allow-Credentials': 'true',
+              },
+            );
+          }
+          return Response.notFound('');
+        })
+        .add(socketHandler.handler);
     final server = await startHttpServer(hostname);
     serveHttpRequests(server, cascade.handler, (e, s) {
       _logger.warning('Error serving requests', e);

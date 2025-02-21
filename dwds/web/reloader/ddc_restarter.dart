@@ -41,7 +41,8 @@ class DdcRestarter implements Restarter {
   }
 
   @override
-  Future<void> reload() => throw UnimplementedError(
+  Future<void> reload() =>
+      throw UnimplementedError(
         'Hot reload is not supported for the DDC module format.',
       );
 }
