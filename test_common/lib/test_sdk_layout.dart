@@ -103,7 +103,6 @@ class TestSdkLayout {
           'snapshots',
           'frontend_server_aot.dart.snapshot',
         ),
-        dartdevcJitSnapshotPath: sdkLayout.dartdevcJitSnapshotPath,
         dartdevcSnapshotPath: sdkLayout.dartdevcSnapshotPath,
         kernelWorkerSnapshotPath: p.join(
           sdkLayout.sdkDirectory,
@@ -142,7 +141,6 @@ class TestSdkLayout {
   final String dartPath;
   final String dartAotRuntimePath;
   final String frontendServerSnapshotPath;
-  final String dartdevcJitSnapshotPath;
   final String dartdevcSnapshotPath;
   final String kernelWorkerSnapshotPath;
   final String devToolsDirectory;
@@ -161,7 +159,6 @@ class TestSdkLayout {
     required this.dartPath,
     required this.dartAotRuntimePath,
     required this.frontendServerSnapshotPath,
-    required this.dartdevcJitSnapshotPath,
     required this.dartdevcSnapshotPath,
     required this.kernelWorkerSnapshotPath,
     required this.devToolsDirectory,
@@ -172,7 +169,7 @@ class TestSdkLayout {
       SdkConfiguration(
         sdkDirectory: sdkLayout.sdkDirectory,
         sdkSummaryPath: sdkLayout.summaryPath,
-        compilerWorkerPath: sdkLayout.dartdevcJitSnapshotPath,
+        compilerWorkerPath: sdkLayout.dartdevcSnapshotPath,
       );
 }
 

@@ -100,7 +100,7 @@ void main() {
     final sdkLayout = SdkLayout.createDefault(sdkDirectory);
     final sdkConfiguration = SdkConfiguration.fromSdkLayout(sdkLayout);
     final sdkSummaryPath = sdkLayout.summaryPath;
-    final compilerWorkerPath = sdkLayout.dartdevcJitSnapshotPath;
+    final compilerWorkerPath = sdkLayout.dartdevcSnapshotPath;
 
     setUp(() async {
       fs = MemoryFileSystem();
