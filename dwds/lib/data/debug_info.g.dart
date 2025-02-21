@@ -15,93 +15,108 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
   final String wireName = 'DebugInfo';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, DebugInfo object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    DebugInfo object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[];
     Object? value;
     value = object.appEntrypointPath;
     if (value != null) {
       result
         ..add('appEntrypointPath')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.appId;
     if (value != null) {
       result
         ..add('appId')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.appInstanceId;
     if (value != null) {
       result
         ..add('appInstanceId')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.appOrigin;
     if (value != null) {
       result
         ..add('appOrigin')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.appUrl;
     if (value != null) {
       result
         ..add('appUrl')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.authUrl;
     if (value != null) {
       result
         ..add('authUrl')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.dwdsVersion;
     if (value != null) {
       result
         ..add('dwdsVersion')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.extensionUrl;
     if (value != null) {
       result
         ..add('extensionUrl')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.isInternalBuild;
     if (value != null) {
       result
         ..add('isInternalBuild')
         ..add(
-            serializers.serialize(value, specifiedType: const FullType(bool)));
+          serializers.serialize(value, specifiedType: const FullType(bool)),
+        );
     }
     value = object.isFlutterApp;
     if (value != null) {
       result
         ..add('isFlutterApp')
         ..add(
-            serializers.serialize(value, specifiedType: const FullType(bool)));
+          serializers.serialize(value, specifiedType: const FullType(bool)),
+        );
     }
     value = object.workspaceName;
     if (value != null) {
       result
         ..add('workspaceName')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.tabUrl;
     if (value != null) {
       result
         ..add('tabUrl')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.tabId;
     if (value != null) {
@@ -113,8 +128,11 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
   }
 
   @override
-  DebugInfo deserialize(Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
+  DebugInfo deserialize(
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = new DebugInfoBuilder();
 
     final iterator = serialized.iterator;
@@ -124,56 +142,105 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
       final Object? value = iterator.current;
       switch (key) {
         case 'appEntrypointPath':
-          result.appEntrypointPath = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.appEntrypointPath =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'appId':
-          result.appId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.appId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'appInstanceId':
-          result.appInstanceId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.appInstanceId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'appOrigin':
-          result.appOrigin = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.appOrigin =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'appUrl':
-          result.appUrl = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.appUrl =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'authUrl':
-          result.authUrl = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.authUrl =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'dwdsVersion':
-          result.dwdsVersion = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.dwdsVersion =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'extensionUrl':
-          result.extensionUrl = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.extensionUrl =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'isInternalBuild':
-          result.isInternalBuild = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool?;
+          result.isInternalBuild =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )
+                  as bool?;
           break;
         case 'isFlutterApp':
-          result.isFlutterApp = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool?;
+          result.isFlutterApp =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )
+                  as bool?;
           break;
         case 'workspaceName':
-          result.workspaceName = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.workspaceName =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'tabUrl':
-          result.tabUrl = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.tabUrl =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'tabId':
-          result.tabId = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
+          result.tabId =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int?;
           break;
       }
     }
@@ -213,21 +280,21 @@ class _$DebugInfo extends DebugInfo {
   factory _$DebugInfo([void Function(DebugInfoBuilder)? updates]) =>
       (new DebugInfoBuilder()..update(updates))._build();
 
-  _$DebugInfo._(
-      {this.appEntrypointPath,
-      this.appId,
-      this.appInstanceId,
-      this.appOrigin,
-      this.appUrl,
-      this.authUrl,
-      this.dwdsVersion,
-      this.extensionUrl,
-      this.isInternalBuild,
-      this.isFlutterApp,
-      this.workspaceName,
-      this.tabUrl,
-      this.tabId})
-      : super._();
+  _$DebugInfo._({
+    this.appEntrypointPath,
+    this.appId,
+    this.appInstanceId,
+    this.appOrigin,
+    this.appUrl,
+    this.authUrl,
+    this.dwdsVersion,
+    this.extensionUrl,
+    this.isInternalBuild,
+    this.isFlutterApp,
+    this.workspaceName,
+    this.tabUrl,
+    this.tabId,
+  }) : super._();
 
   @override
   DebugInfo rebuild(void Function(DebugInfoBuilder) updates) =>
@@ -392,7 +459,8 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
   DebugInfo build() => _build();
 
   _$DebugInfo _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$DebugInfo._(
           appEntrypointPath: appEntrypointPath,
           appId: appId,
