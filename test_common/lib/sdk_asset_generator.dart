@@ -112,7 +112,8 @@ class SdkAssetGenerator {
 
       final sdkDirectoryUri = fileSystem.directory(sdkLayout.sdkDirectory).uri;
       final args = <String>[
-        sdkLayout.dartdevcSnapshotPath,
+        'compile',
+        'js-dev',
         '--compile-sdk',
         '--multi-root',
         '$sdkDirectoryUri',
