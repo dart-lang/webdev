@@ -1,13 +1,9 @@
 # Running the example app
 
-1. In the root directory of `webdev`, run
-   `pub global activate --source path webdev`
-1. Uncomment the dwds dependency override in `/webdev/webdev/pubspec.yaml`, then
-   run `dart run build_runner build` from `/webdev/webdev` directory
-   - *Note: You will have to comment and build, and then uncomment and build,
-     each time you need to pick up new changes*
-1. From `/webdev/example`, run `webdev serve --debug --verbose` (Note: all
-   options can be found by running `webdev help serve`)
+1. Run `dart run build_runner build` from `webdev/` directory to update build
+   artifacts.
+1. From `example/`, run `dart run webdev serve --debug --verbose` (Note: all
+   options can be found by running `dart run webdev help serve`)
 1. Type opt/alt-d in the browser. This is required to start the VM.
 1. \[OPTIONAL\] If you need to connect a locally running DevTools (instructions
    for running

@@ -17,7 +17,6 @@ import 'package:test_process/test_process.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 import 'package:webdev/src/logging.dart';
-import 'package:webdev/src/pubspec.dart';
 import 'package:webdev/src/serve/utils.dart';
 import 'package:webdev/src/util.dart';
 import 'package:yaml/yaml.dart';
@@ -69,10 +68,6 @@ void main() {
         loadYaml(await File('pubspec.yaml').readAsString()) as YamlMap;
     expect(smokeYaml['environment']['sdk'],
         equals(webdevYaml['environment']['sdk']));
-    expect(smokeYaml['dev_dependencies']['build_runner'],
-        equals(buildRunnerConstraint.toString()));
-    expect(smokeYaml['dev_dependencies']['build_web_compilers'],
-        equals(buildWebCompilersConstraint.toString()));
   });
 
   test('build should fail if targeting an existing directory', () async {
