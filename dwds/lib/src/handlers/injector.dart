@@ -9,6 +9,7 @@ import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/version.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
@@ -203,6 +204,7 @@ Future<String> _injectedClientSnippet(
       'window.\$dartEmitDebugEvents = ${debugSettings.emitDebugEvents};\n'
       'window.\$isInternalBuild = ${appMetadata.isInternalBuild};\n'
       'window.\$isFlutterApp = ${buildSettings.isFlutterApp};\n'
+      '${loadStrategy is DdcLibraryBundleStrategy ? 'window.\$hotReloadSourcesPath = "${loadStrategy.hotReloadSourcesUri.toString()}";\n' : ''}'
       '${loadStrategy.loadClientSnippet(_clientScript)}';
 
   if (extensionUri != null) {

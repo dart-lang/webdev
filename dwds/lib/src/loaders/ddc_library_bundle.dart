@@ -104,6 +104,27 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
 
   final BuildSettings _buildSettings;
 
+  /// The [Uri] of the file that contains a JSONified list of maps which follows
+  /// the following format:
+  ///
+  /// ```json
+  /// [
+  ///   {
+  ///     "src": "<file_name>",
+  ///     "libraries": ["<lib1>", "<lib2>"],
+  ///   },
+  /// ]
+  /// ```
+  ///
+  /// `src`: A string that corresponds to the file path containing a DDC library
+  /// bundle.
+  /// `libraries`: An array of strings containing the libraries that were
+  /// compiled in `src`.
+  ///
+  /// This is needed for hot reloads in order to tell the compiler what files
+  /// need to be loaded and what libraries need to be reloaded.
+  final Uri? hotReloadSourcesUri;
+
   DdcLibraryBundleStrategy(
     this.reloadConfiguration,
     this._moduleProvider,
@@ -117,6 +138,7 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
     this._buildSettings,
     this._g3RelativePath, {
     String? packageConfigPath,
+    this.hotReloadSourcesUri,
   }) : super(assetReader, packageConfigPath: packageConfigPath);
 
   @override
