@@ -19,7 +19,6 @@ import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/events.dart';
-import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/batched_expression_evaluator.dart';
 import 'package:dwds/src/services/debug_service.dart';
