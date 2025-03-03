@@ -52,8 +52,6 @@ void testAll({required CompilerOptions compilerOptions}) {
       // generated in the SDK, so we use the current SDK layout and
       // configuration.
       final executable = Platform.resolvedExecutable;
-      final dartdevc =
-          SdkConfiguration.defaultConfiguration.compilerWorkerPath!;
       // redirect logs for testing
       _output = StreamController<String>.broadcast();
       output.stream.listen(printOnFailure);
@@ -110,7 +108,8 @@ void testAll({required CompilerOptions compilerOptions}) {
       ''');
 
       final args = [
-        dartdevc,
+        'compile',
+        'js-dev',
         'try.dart',
         '-o',
         'try.js',
