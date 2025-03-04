@@ -63,7 +63,7 @@ Future<void>? main() {
 
       hotReloadJs =
           () {
-            return manager.hotReload().toJS;
+            return manager.hotReload(hotReloadSourcesPath).toJS;
           }.toJS;
 
       Completer? readyToRunMainCompleter;
@@ -175,7 +175,7 @@ Future<void>? main() {
                 'ReloadConfiguration.hotRestart') {
               await manager.hotRestart();
             } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
-              await manager.hotReload();
+              await manager.hotReload(hotReloadSourcesPath);
             }
           } else if (event is DevToolsResponse) {
             if (!event.success) {
@@ -375,6 +375,19 @@ external String get dartModuleStrategy;
 
 @JS(r'$dartHotReloadDwds')
 external set hotReloadJs(JSFunction cb);
+
+@JS(r'$hotReloadSourcesPath')
+external String? get _hotReloadSourcesPath;
+
+String get hotReloadSourcesPath {
+  final path = _hotReloadSourcesPath;
+  if (path == null) {
+    throw StateError(
+      "Expected 'hotReloadSourcePath' to not be null in a hot reload.",
+    );
+  }
+  return path;
+}
 
 @JS(r'$dartHotRestartDwds')
 external set hotRestartJs(JSFunction cb);

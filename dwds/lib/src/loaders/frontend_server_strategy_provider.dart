@@ -141,21 +141,7 @@ class FrontendServerDdcStrategyProvider
 /// Server.
 class FrontendServerDdcLibraryBundleStrategyProvider
     extends FrontendServerStrategyProvider<DdcLibraryBundleStrategy> {
-  late final DdcLibraryBundleStrategy _libraryBundleStrategy =
-      DdcLibraryBundleStrategy(
-        _configuration,
-        _moduleProvider,
-        (_) => _digestsProvider(),
-        _moduleForServerPath,
-        _serverPathForModule,
-        _sourceMapPathForModule,
-        _serverPathForAppUri,
-        _moduleInfoForProvider,
-        _assetReader,
-        _buildSettings,
-        (String _) => null,
-        packageConfigPath: _packageConfigPath,
-      );
+  late final DdcLibraryBundleStrategy _libraryBundleStrategy;
 
   FrontendServerDdcLibraryBundleStrategyProvider(
     super._configuration,
@@ -164,7 +150,24 @@ class FrontendServerDdcLibraryBundleStrategyProvider
     super._digestsProvider,
     super._buildSettings, {
     super.packageConfigPath,
-  });
+    Uri? hotReloadSourcesUri,
+  }) {
+    _libraryBundleStrategy = DdcLibraryBundleStrategy(
+      _configuration,
+      _moduleProvider,
+      (_) => _digestsProvider(),
+      _moduleForServerPath,
+      _serverPathForModule,
+      _sourceMapPathForModule,
+      _serverPathForAppUri,
+      _moduleInfoForProvider,
+      _assetReader,
+      _buildSettings,
+      (String _) => null,
+      packageConfigPath: _packageConfigPath,
+      hotReloadSourcesUri: hotReloadSourcesUri,
+    );
+  }
 
   @override
   DdcLibraryBundleStrategy get strategy => _libraryBundleStrategy;

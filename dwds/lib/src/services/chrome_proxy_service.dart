@@ -1098,19 +1098,21 @@ class ChromeProxyService implements VmServiceInterface {
     String? packagesUri,
   }) async {
     _logger.info('Attempting a hot reload');
+    ReloadReport getFailedReloadReport(String error) =>
+        _ReloadReportWithMetadata(success: false)
+          ..json = {
+            'notices': [
+              {'message': error},
+            ],
+          };
+
     try {
       _logger.info('Issuing \$dartHotReloadDwds request');
       await inspector.jsEvaluate('\$dartHotReloadDwds();', awaitPromise: true);
       _logger.info('\$dartHotReloadDwds request complete.');
     } catch (e) {
       _logger.info('Hot reload failed: $e');
-      final report = _ReloadReportWithMetadata(success: false);
-      report.json = {
-        'notices': [
-          {'message': e.toString()},
-        ],
-      };
-      return report;
+      return getFailedReloadReport(e.toString());
     }
     _logger.info('Successful hot reload');
     return _ReloadReportWithMetadata(success: true);

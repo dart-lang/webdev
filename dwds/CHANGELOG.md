@@ -1,7 +1,10 @@
-## 24.3.6-dev
+## 24.3.6
 
 - Bump minimum sdk version to 3.7.0
 - use 'compile js-dev' instead of directly invoking the ddc snapshot.
+- `FrontendServerDdcLibraryBundleStrategy` now takes a `hotReloadSourcesUri`
+  parameter in order to fetch the file that contains the changed sources and
+  libraries instead of assuming it exists in the global `window`.
 
 ## 24.3.5
 - Allow clients to specify the `packageConfigPath` in `LoadStrategy` class and associated providers.
