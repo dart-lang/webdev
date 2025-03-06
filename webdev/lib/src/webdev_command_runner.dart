@@ -13,7 +13,6 @@ import 'command/serve_command.dart';
 import 'util.dart';
 import 'version.dart';
 
-export 'pubspec.dart' show PackageException;
 export 'util.dart' show appName;
 
 Future<int> run(List<String> args) async => (await _CommandRunner().run(args))!;
