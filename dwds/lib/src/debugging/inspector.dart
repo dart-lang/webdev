@@ -115,6 +115,7 @@ class AppInspector implements AppInspectorInterface {
     await DartUri.initialize();
     DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri).nonNulls);
     DartUri.recordAbsoluteUris(scripts.map((script) => script.uri).nonNulls);
+    await getExtensionRpcs();
   }
 
   static IsolateRef _toIsolateRef(Isolate isolate) => IsolateRef(
@@ -787,7 +788,7 @@ class AppInspector implements AppInspectorInterface {
         s,
       );
     }
-    isolate.extensionRPCs = List<String>.from(extensionRpcs);
+    isolate.extensionRPCs = List<String>.of(extensionRpcs);
     return extensionRpcs;
   }
 

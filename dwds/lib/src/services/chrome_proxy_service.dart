@@ -509,7 +509,7 @@ class ChromeProxyService implements VmServiceInterface {
         v is String ? v : jsonEncode(v),
       ),
     );
-    if ((await inspector.getExtensionRpcs()).contains(method) != true) {
+    if (!(await inspector.getExtensionRpcs()).contains(method)) {
       throw RPCError(
         method,
         RPCErrorKind.kMethodNotFound.code,
