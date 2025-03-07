@@ -4,8 +4,6 @@
   service extensions. It also now throws a `RPCError` with
   `RPCErrorKind.kMethodNotFound` when a service extension is not found instead
   of throwing a JS evaluation error.
-- The registered extension `reassemble` is now no longer called when calling
-  `reloadSources`. Users should call `reassemble` using `callServiceExtension`.
 
 ## 24.3.6
 
