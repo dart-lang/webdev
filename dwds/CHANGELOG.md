@@ -1,4 +1,7 @@
-## 24.3.7-wip
+## 24.3.7
+
+- The registered extension `reassemble` is now no longer called when calling
+  `reloadSources`. Users should call `reassemble` using `callServiceExtension`.
 
 ## 24.3.6
 
