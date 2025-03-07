@@ -298,6 +298,20 @@ void runTests({
           ),
         },
       );
+
+      test('not found', () async {
+        final serviceMethod = 'ext.test.missingServiceExtension';
+        expect(
+          service.callServiceExtension(serviceMethod),
+          throwsA(
+            predicate(
+              (dynamic error) =>
+                  error is RPCError &&
+                  error.code == RPCErrorKind.kMethodNotFound.code,
+            ),
+          ),
+        );
+      });
     });
 
     group('VMTimeline', () {
