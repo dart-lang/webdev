@@ -115,8 +115,7 @@ class AppInspector implements AppInspectorInterface {
     await DartUri.initialize();
     DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri).nonNulls);
     DartUri.recordAbsoluteUris(scripts.map((script) => script.uri).nonNulls);
-
-    isolate.extensionRPCs?.addAll(await _getExtensionRpcs());
+    await getExtensionRpcs();
   }
 
   static IsolateRef _toIsolateRef(Isolate isolate) => IsolateRef(
@@ -760,11 +759,16 @@ class AppInspector implements AppInspectorInterface {
       scriptId == null ? null : _scriptRefsById[scriptId];
 
   /// Runs an eval on the page to compute all existing registered extensions.
-  Future<List<String>> _getExtensionRpcs() async {
+  ///
+  /// Combines this with the RPCs registered in the [isolate]. Use this over
+  /// [Isolate.extensionRPCs] as this computes a live set.
+  ///
+  /// Updates [Isolate.extensionRPCs] to this set.
+  Future<Set<String>> getExtensionRpcs() async {
     final expression =
         globalToolConfiguration.loadStrategy.dartRuntimeDebugger
             .getDartDeveloperExtensionNamesJsExpression();
-    final extensionRpcs = <String>[];
+    final extensionRpcs = <String>{};
     final params = {
       'expression': expression,
       'returnByValue': true,
@@ -784,6 +788,7 @@ class AppInspector implements AppInspectorInterface {
         s,
       );
     }
+    isolate.extensionRPCs = List<String>.of(extensionRpcs);
     return extensionRpcs;
   }
 

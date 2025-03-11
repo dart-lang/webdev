@@ -1,5 +1,10 @@
 ## 24.3.7-wip
 
+- `callServiceExtension` now checks the runtime for the list of registered
+  service extensions. It also now throws a `RPCError` with
+  `RPCErrorKind.kMethodNotFound` when a service extension is not found instead
+  of throwing a JS evaluation error.
+
 ## 24.3.6
 
 - Bump minimum sdk version to 3.7.0
