@@ -30,6 +30,14 @@ void main() {
   Process? serveProcess;
   Directory? tempDir0;
 
+  final testScript =
+      File(p.join(p.dirname(Platform.script.toFilePath()), 'test.dart'))
+          .readAsStringSync();
+  final thisScript = File.fromUri(Uri.parse(testScript.substring(
+      testScript.lastIndexOf('import', testScript.indexOf('as test;')) + 8,
+      testScript.indexOf('as test;') - 2)));
+  final packageDir = p.dirname(p.dirname(thisScript.path));
+
   Future<void> expectStdoutAndCleanExit(Process process,
       {required String expectedStdout}) async {
     final stdoutCompleter = _captureOutput(
@@ -140,6 +148,41 @@ void main() {
         workingDirectory: appPath);
     await expectStdoutThenExit(serveProcess!,
         expectedStdout: 'Serving `web` on');
+  });
+
+  test('activate and serve webdev fails with offline', () async {
+    final tempDir = tempDir0!;
+    final tempPath = tempDir.path;
+
+    // Verify that we can create a new Dart app:
+    createProcess = await Process.start(
+      'dart',
+      ['create', '--no-pub', '--template', 'web', 'temp_app'],
+      workingDirectory: tempPath,
+    );
+    await expectStdoutAndCleanExit(
+      createProcess!,
+      expectedStdout: 'Created project temp_app in temp_app!',
+    );
+    final appPath = p.join(tempPath, 'temp_app');
+    expect(await Directory(appPath).exists(), isTrue);
+
+    // Verify that `dart pub global activate` works:
+    activateProcess = await Process.start(
+      'dart',
+      ['pub', 'global', 'activate', '--source', 'path', packageDir],
+    );
+    await expectStdoutAndCleanExit(
+      activateProcess!,
+      expectedStdout: 'Activated webdev',
+    );
+
+    // Verify that `webdev serve` works for our new app:
+    serveProcess = await Process.start('dart',
+        ['pub', 'global', 'run', 'webdev', 'serve', '--offline', 'web:8081'],
+        workingDirectory: appPath);
+    await expectStdoutThenExit(serveProcess!,
+        expectedStdout: 'Cannot open file\n  pubspec.lock\n');
   });
 }
 
