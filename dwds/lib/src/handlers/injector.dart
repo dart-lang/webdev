@@ -32,8 +32,14 @@ class DwdsInjector {
   final Future<String>? _extensionUri;
   final _devHandlerPaths = StreamController<String>();
   final _logger = Logger('DwdsInjector');
+  final bool _enableDebuggingSupport;
 
-  DwdsInjector({Future<String>? extensionUri}) : _extensionUri = extensionUri;
+  DwdsInjector({
+    Future<String>? extensionUri,
+    bool enableDebuggingSupport = true,
+  })
+    : _extensionUri = extensionUri,
+       _enableDebuggingSupport = enableDebuggingSupport;
 
   /// Returns the embedded dev handler paths.
   ///
@@ -95,13 +101,17 @@ class DwdsInjector {
           await globalToolConfiguration.loadStrategy.trackEntrypoint(
             entrypoint,
           );
-          body = await _injectClientAndHoistMain(
-            body,
-            appId,
-            devHandlerPath,
-            entrypoint,
-            await _extensionUri,
-          );
+          // If true, inject the debugging client and hoist the main function
+          // to enable debugging support.
+          if (_enableDebuggingSupport) {
+            body = await _injectClientAndHoistMain(
+              body,
+              appId,
+              devHandlerPath,
+              entrypoint,
+              await _extensionUri,
+            );
+          }
           body += await globalToolConfiguration.loadStrategy.bootstrapFor(
             entrypoint,
           );

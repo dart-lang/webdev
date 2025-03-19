@@ -66,6 +66,7 @@ class Dwds {
     required Stream<BuildResult> buildResults,
     required ConnectionProvider chromeConnection,
     required ToolConfiguration toolConfiguration,
+    bool enableDebuggingSupport = true,
   }) async {
     globalToolConfiguration = toolConfiguration;
     final debugSettings = toolConfiguration.debugSettings;
@@ -117,7 +118,10 @@ class Dwds {
       _logger.info('Serving DevTools at $uri\n');
     }
 
-    final injected = DwdsInjector(extensionUri: extensionUri);
+    final injected = DwdsInjector(
+      extensionUri: extensionUri,
+      enableDebuggingSupport: enableDebuggingSupport,
+    );
 
     final devHandler = DevHandler(
       chromeConnection,
