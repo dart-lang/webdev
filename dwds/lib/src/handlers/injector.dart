@@ -37,8 +37,7 @@ class DwdsInjector {
   DwdsInjector({
     Future<String>? extensionUri,
     bool enableDebuggingSupport = true,
-  })
-    : _extensionUri = extensionUri,
+  }) : _extensionUri = extensionUri,
        _enableDebuggingSupport = enableDebuggingSupport;
 
   /// Returns the embedded dev handler paths.
