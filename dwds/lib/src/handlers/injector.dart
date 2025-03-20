@@ -26,8 +26,6 @@ const mainExtensionMarker = '/* MAIN_EXTENSION_MARKER */';
 
 const _clientScript = 'dwds/src/injected/client';
 
-/// Handles injecting the DWDS client and embedding debugging-related information.
-///
 /// This class is responsible for modifying the served JavaScript files
 /// to include the injected DWDS client, enabling debugging capabilities
 /// and source mapping when running in a browser environment.
