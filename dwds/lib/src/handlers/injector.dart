@@ -26,8 +26,17 @@ const mainExtensionMarker = '/* MAIN_EXTENSION_MARKER */';
 
 const _clientScript = 'dwds/src/injected/client';
 
-/// Handles injecting the DWDS client and embedding debugging related
-/// information.
+/// Handles injecting the DWDS client and embedding debugging-related information.
+///
+/// This class is responsible for modifying the served JavaScript files
+/// to include the injected DWDS client, enabling debugging capabilities
+/// and source mapping when running in a browser environment.
+///
+/// The `_enableDebuggingSupport` flag determines whether debugging-related
+/// functionality should be included:
+/// - When `true`, the DWDS client is injected, enabling debugging features.
+/// - When `false`, debugging support is disabled, meaning the application will
+///   run without debugging.
 class DwdsInjector {
   final Future<String>? _extensionUri;
   final _devHandlerPaths = StreamController<String>();
