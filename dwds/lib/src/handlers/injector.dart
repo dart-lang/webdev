@@ -37,6 +37,9 @@ const _clientScript = 'dwds/src/injected/client';
 /// - When `true`, the DWDS client is injected, enabling debugging features.
 /// - When `false`, debugging support is disabled, meaning the application will
 ///   run without debugging.
+///
+/// This separation allows for scenarios where debugging is not needed or
+/// should be explicitly avoided.
 class DwdsInjector {
   final Future<String>? _extensionUri;
   final _devHandlerPaths = StreamController<String>();
