@@ -1,5 +1,7 @@
 ## 3.7.2-wip
 
+- Adds `--offline` flag [#2483](https://github.com/dart-lang/webdev/pull/2483)
+
 ## 3.7.1
 
 - Update `dwds` constraint to `24.3.5`.
