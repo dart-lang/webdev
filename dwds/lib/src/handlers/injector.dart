@@ -26,14 +26,29 @@ const mainExtensionMarker = '/* MAIN_EXTENSION_MARKER */';
 
 const _clientScript = 'dwds/src/injected/client';
 
-/// Handles injecting the DWDS client and embedding debugging related
-/// information.
+/// This class is responsible for modifying the served JavaScript files
+/// to include the injected DWDS client, enabling debugging capabilities
+/// and source mapping when running in a browser environment.
+///
+/// The `_enableDebuggingSupport` flag determines whether debugging-related
+/// functionality should be included:
+/// - When `true`, the DWDS client is injected, enabling debugging features.
+/// - When `false`, debugging support is disabled, meaning the application will
+///   run without debugging.
+///
+/// This separation allows for scenarios where debugging is not needed or
+/// should be explicitly avoided.
 class DwdsInjector {
   final Future<String>? _extensionUri;
   final _devHandlerPaths = StreamController<String>();
   final _logger = Logger('DwdsInjector');
+  final bool _enableDebuggingSupport;
 
-  DwdsInjector({Future<String>? extensionUri}) : _extensionUri = extensionUri;
+  DwdsInjector({
+    Future<String>? extensionUri,
+    bool enableDebuggingSupport = true,
+  }) : _extensionUri = extensionUri,
+       _enableDebuggingSupport = enableDebuggingSupport;
 
   /// Returns the embedded dev handler paths.
   ///
@@ -95,13 +110,17 @@ class DwdsInjector {
           await globalToolConfiguration.loadStrategy.trackEntrypoint(
             entrypoint,
           );
-          body = await _injectClientAndHoistMain(
-            body,
-            appId,
-            devHandlerPath,
-            entrypoint,
-            await _extensionUri,
-          );
+          // If true, inject the debugging client and hoist the main function
+          // to enable debugging support.
+          if (_enableDebuggingSupport) {
+            body = await _injectClientAndHoistMain(
+              body,
+              appId,
+              devHandlerPath,
+              entrypoint,
+              await _extensionUri,
+            );
+          }
           body += await globalToolConfiguration.loadStrategy.bootstrapFor(
             entrypoint,
           );
