@@ -30,7 +30,7 @@ const _clientScript = 'dwds/src/injected/client';
 /// to include the injected DWDS client, enabling debugging capabilities
 /// and source mapping when running in a browser environment.
 ///
-/// The `_enableDebuggingSupport` flag determines whether debugging-related
+/// The `_injectDebuggingSupportCode` flag determines whether debugging-related
 /// functionality should be included:
 /// - When `true`, the DWDS client is injected, enabling debugging features.
 /// - When `false`, debugging support is disabled, meaning the application will
@@ -42,13 +42,13 @@ class DwdsInjector {
   final Future<String>? _extensionUri;
   final _devHandlerPaths = StreamController<String>();
   final _logger = Logger('DwdsInjector');
-  final bool _enableDebuggingSupport;
+  final bool _injectDebuggingSupportCode;
 
   DwdsInjector({
     Future<String>? extensionUri,
-    bool enableDebuggingSupport = true,
+    bool injectDebuggingSupportCode = true,
   }) : _extensionUri = extensionUri,
-       _enableDebuggingSupport = enableDebuggingSupport;
+       _injectDebuggingSupportCode = injectDebuggingSupportCode;
 
   /// Returns the embedded dev handler paths.
   ///
@@ -112,7 +112,7 @@ class DwdsInjector {
           );
           // If true, inject the debugging client and hoist the main function
           // to enable debugging support.
-          if (_enableDebuggingSupport) {
+          if (_injectDebuggingSupportCode) {
             body = await _injectClientAndHoistMain(
               body,
               appId,

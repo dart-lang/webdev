@@ -1,4 +1,6 @@
-## 24.3.9-wip
+## 24.3.9
+
+- Renamed DWDS Injector parameter `enableDebuggingSupport` to `injectDebuggingSupportCode` for clearer intent.
 
 ## 24.3.8
 
