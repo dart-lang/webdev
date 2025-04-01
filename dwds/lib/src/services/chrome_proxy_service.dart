@@ -400,12 +400,20 @@ class ChromeProxyService implements VmServiceInterface {
     _consoleSubscription = null;
   }
 
-  Future<void> disableBreakpoints() async {
+  /// Removes the breakpoints in the running isolate.
+  ///
+  /// [libraries] is a set of Dart libraries, where if non-null, only
+  /// breakpoints within those libraries are removed.
+  Future<void> disableBreakpoints({Set<String>? libraries}) async {
     if (!_isIsolateRunning) return;
     final isolate = inspector.isolate;
 
-    for (final breakpoint in isolate.breakpoints?.toList() ?? []) {
-      await (await debuggerFuture).removeBreakpoint(breakpoint.id);
+    for (final breakpoint in isolate.breakpoints?.toList() ?? <Breakpoint>[]) {
+      if (libraries == null ||
+          (breakpoint.location.script != null &&
+              libraries.contains(breakpoint.location.script.uri))) {
+        await (await debuggerFuture).removeBreakpoint(breakpoint.id!);
+      }
     }
   }
 
@@ -1114,6 +1122,21 @@ class ChromeProxyService implements VmServiceInterface {
           };
 
     try {
+      // Fetch the needed sources and libraries, disable breakpoints on the
+      // changed libraries, and then reload.
+      // TODO(srujzs): Re-map the breakpoints appropriately using events to
+      // trigger the client to re-register the breakpoints on the new sources.
+      // https://github.com/dart-lang/sdk/issues/60186
+      _logger.info('Issuing \$fetchLibrariesForHotReload request');
+      final librariesRemoteObject = await inspector.jsEvaluate(
+        '\$fetchLibrariesForHotReload();',
+        awaitPromise: true,
+        returnByValue: true,
+      );
+      _logger.info('\$fetchLibrariesForHotReload request complete.');
+      final libraries =
+          (librariesRemoteObject.value as List<dynamic>).toSet().cast<String>();
+      await disableBreakpoints(libraries: libraries);
       _logger.info('Issuing \$dartHotReloadDwds request');
       await inspector.jsEvaluate('\$dartHotReloadDwds();', awaitPromise: true);
       _logger.info('\$dartHotReloadDwds request complete.');

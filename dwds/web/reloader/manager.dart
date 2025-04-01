@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:js_interop';
 
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/serializers.dart';
@@ -35,8 +36,15 @@ class ReloadingManager {
     return result;
   }
 
-  /// Performs a hot reload using [hotReloadSourcesPath] as the path to a
-  /// JSONified list of maps which follows the following format:
+  /// Performs a hot reload using the sources and libraries computes in the
+  /// previous call to [fetchLibrariesForHotReload].
+  Future<void> hotReload() async {
+    await _restarter.reload();
+  }
+
+  /// Computes the sources and libraries to reload and returns the list of
+  /// libraries using [hotReloadSourcesPath] as the path to a JSONified list of
+  /// maps which follows the following format:
   ///
   /// ```json
   /// [
@@ -51,9 +59,9 @@ class ReloadingManager {
   /// bundle.
   /// `libraries`: An array of strings containing the libraries that were
   /// compiled in `src`.
-  Future<void> hotReload(String hotReloadSourcesPath) async {
-    await _restarter.reload(hotReloadSourcesPath);
-  }
+  Future<JSArray<JSString>> fetchLibrariesForHotReload(
+    String hotReloadSourcesPath,
+  ) => _restarter.fetchLibrariesForHotReload(hotReloadSourcesPath);
 
   /// Does a hard reload of the application.
   void reloadPage() {
