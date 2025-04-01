@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io' show Platform;
+
 // Note: this is a copy from flutter tools, updated to work with dwds tests
 
 /// JavaScript snippet to determine the base URL of the current path.
@@ -393,6 +395,8 @@ $_baseUrlScript
 $_simpleLoaderScript
 
 (function() {
+  let appName = "org-dartlang-app:/$entrypoint";
+
   // Load pre-requisite DDC scripts. We intentionally use invalid names to avoid
   // namespace clashes.
   let prerequisiteScripts = [
@@ -413,26 +417,45 @@ $_simpleLoaderScript
   }
   Promise.all(prerequisiteLoads).then((_) => afterPrerequisiteLogic());
 
+  // Save the current script so we can access it in a closure.
+  var _currentScript = document.currentScript;
+
+  // Create a policy if needed to load the files during a hot restart.
+  let policy = {
+    createScriptURL: function(src) {return src;}
+  };
+  if (self.trustedTypes && self.trustedTypes.createPolicy) {
+    policy = self.trustedTypes.createPolicy('dartDdcModuleUrl', policy);
+  }
+
   var afterPrerequisiteLogic = function() {
     window.\$dartLoader.rootDirectories.push(_currentDirectory);
     let scripts = [
       {
         "src": "dart_sdk.js",
-        "id": "dart_sdk \\0"
+        "id": "dart_sdk"
       },
+      {
+        "src": "$bootstrapUrl",
+        "id": "data-main"
+      }
     ];
 
     let loadConfig = new window.\$dartLoader.LoadConfiguration();
     loadConfig.root = _currentDirectory;
-    loadConfig.bootstrapScript = {
-      "src": "$bootstrapUrl",
-      "id": "data-main"
-    };
-    scripts.push(loadConfig.bootstrapScript);
+
+    // TODO(srujzs): Verify this is sufficient for Windows.
+    loadConfig.isWindows = ${Platform.isWindows};
+    loadConfig.bootstrapScript = scripts[scripts.length - 1];
+
     loadConfig.loadScriptFn = function(loader) {
       loader.addScriptsToQueue(scripts, null);
       loader.loadEnqueuedModules();
     }
+    loadConfig.ddcEventForLoadStart = /* LOAD_ALL_MODULES_START */ 1;
+    loadConfig.ddcEventForLoadedOk = /* LOAD_ALL_MODULES_END_OK */ 2;
+    loadConfig.ddcEventForLoadedError = /* LOAD_ALL_MODULES_END_ERROR */ 3;
+
     let loader = new window.\$dartLoader.DDCLoader(loadConfig);
 
     // Record prerequisite scripts' fully resolved URLs.
@@ -443,30 +466,118 @@ $_simpleLoaderScript
     window.\$dartLoader.loadConfig = loadConfig;
     window.\$dartLoader.loader = loader;
 
-    // TODO(srujzs): Support hot restart.
-
     // Begin loading libraries
     loader.nextAttempt();
-  }
+
+    // Set up stack trace mapper.
+    if (window.\$dartStackTraceUtility &&
+        !window.\$dartStackTraceUtility.ready) {
+      window.\$dartStackTraceUtility.ready = true;
+      window.\$dartStackTraceUtility.setSourceMapProvider(function(url) {
+        var baseUrl = window.location.protocol + '//' + window.location.host;
+        url = url.replace(baseUrl + '/', '');
+        if (url == 'dart_sdk.js') {
+          return dartDevEmbedder.debugger.getSourceMap('dart_sdk');
+        }
+        url = url.replace(".lib.js", "");
+        return dartDevEmbedder.debugger.getSourceMap(url);
+      });
+    }
+
+    let currentUri = _currentScript.src;
+    // We should have written a file containing all the scripts that need to be
+    // reloaded into the page. This is then read when a hot restart is triggered
+    // in DDC via the `\$dartReloadModifiedModules` callback.
+    let restartScripts = _currentDirectory + '/restart_scripts.json';
+
+    if (!window.\$dartReloadModifiedModules) {
+      window.\$dartReloadModifiedModules = (function(appName, callback) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.withCredentials = true;
+        xhttp.onreadystatechange = function() {
+          // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/readyState
+          if (this.readyState == 4 && this.status == 200 || this.status == 304) {
+            var scripts = JSON.parse(this.responseText);
+            var numToLoad = 0;
+            var numLoaded = 0;
+            for (var i = 0; i < scripts.length; i++) {
+              var script = scripts[i];
+              if (script.id == null) continue;
+              var src = _currentDirectory + '/' + script.src.toString();
+              var oldSrc = window.\$dartLoader.moduleIdToUrl.get(script.id);
+
+              // We might actually load from a different uri, delete the old one
+              // just to be sure.
+              window.\$dartLoader.urlToModuleId.delete(oldSrc);
+
+              window.\$dartLoader.moduleIdToUrl.set(script.id, src);
+              window.\$dartLoader.urlToModuleId.set(src, script.id);
+
+              numToLoad++;
+
+              var el = document.getElementById(script.id);
+              if (el) el.remove();
+              el = window.\$dartCreateScript();
+              el.src = policy.createScriptURL(src);
+              el.async = false;
+              el.defer = true;
+              el.id = script.id;
+              el.onload = function() {
+                numLoaded++;
+                if (numToLoad == numLoaded) callback();
+              };
+              document.head.appendChild(el);
+            }
+            // Call `callback` right away if we found no updated scripts.
+            if (numToLoad == 0) callback();
+          }
+        };
+        xhttp.open("GET", restartScripts, true);
+        xhttp.send();
+      });
+    }
+  };
 })();
 ''';
 }
 
-String generateDDCLibraryBundleMainModule({required String entrypoint}) {
-  return '''/* ENTRYPOINT_EXTENTION_MARKER */
+const String _onLoadEndCallback = r'$onLoadEndCallback';
+
+String generateDDCLibraryBundleMainModule({
+  required String entrypoint,
+  required String onLoadEndBootstrap,
+}) {
+  // The typo below in "EXTENTION" is load-bearing, package:build depends on it.
+  return '''
+/* ENTRYPOINT_EXTENTION_MARKER */
 
 (function() {
   let appName = "org-dartlang-app:///$entrypoint";
 
   dartDevEmbedder.debugger.registerDevtoolsFormatter();
 
-  let child = {};
-  child.main = function() {
-    dartDevEmbedder.runMain(appName, {});
+  // Set up a final script that lets us know when all scripts have been loaded.
+  // Only then can we call the main method.
+  let onLoadEndSrc = '$onLoadEndBootstrap';
+  window.\$dartLoader.loadConfig.bootstrapScript = {
+    src: onLoadEndSrc,
+    id: onLoadEndSrc,
+  };
+  window.\$dartLoader.loadConfig.tryLoadBootstrapScript = true;
+  // Should be called by $onLoadEndBootstrap once all the scripts have been
+  // loaded.
+  window.$_onLoadEndCallback = function() {
+    let child = {};
+    child.main = function() {
+      dartDevEmbedder.runMain(appName, {});
+    }
+    /* MAIN_EXTENSION_MARKER */
+    child.main();
   }
-
-  /* MAIN_EXTENSION_MARKER */
-  child.main();
 })();
 ''';
+}
+
+String generateDDCLibraryBundleOnLoadEndBootstrap() {
+  return '''window.$_onLoadEndCallback();''';
 }
