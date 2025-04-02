@@ -140,8 +140,10 @@ class RequireRestarter implements Restarter {
     final modulesToLoad = <String>[];
     for (final moduleId in newDigests.keys) {
       if (!_lastKnownDigests.containsKey(moduleId)) {
-        print('Error during script reloading, refreshing the page. \n'
-            'Unable to find an existing digest for module: $moduleId.');
+        print(
+          'Error during script reloading, refreshing the page. \n'
+          'Unable to find an existing digest for module: $moduleId.',
+        );
         _reloadPage();
       } else if (_lastKnownDigests[moduleId] != newDigests[moduleId]) {
         _lastKnownDigests[moduleId] = newDigests[moduleId]!;
@@ -160,7 +162,8 @@ class RequireRestarter implements Restarter {
   }
 
   @override
-  Future<void> reload() => throw UnimplementedError(
+  Future<void> reload(String hotReloadSourcesPath) =>
+      throw UnimplementedError(
         'Hot reload is not supported for the AMD module format.',
       );
 
@@ -237,9 +240,10 @@ class RequireRestarter implements Restarter {
           // The bootstrap module is not reloaded but we need to update the
           // $dartRunMain reference to the newly loaded child module.
           // ignore: unnecessary_lambdas
-          dartRunMain = () {
-            dart.getMainLibrary(previousModuleId).main();
-          }.toJS;
+          dartRunMain =
+              () {
+                dart.getMainLibrary(previousModuleId).main();
+              }.toJS;
         } else {
           ++reloadedModules;
           await _reloadModule(moduleId);
@@ -285,8 +289,10 @@ class RequireRestarter implements Restarter {
   void _updateGraph() {
     final allModules = _allModules();
 
-    final stronglyConnectedComponents =
-        graphs.stronglyConnectedComponents(allModules, _moduleParents);
+    final stronglyConnectedComponents = graphs.stronglyConnectedComponents(
+      allModules,
+      _moduleParents,
+    );
     _moduleOrdering.clear();
     for (var i = 0; i < stronglyConnectedComponents.length; i++) {
       for (final module in stronglyConnectedComponents[i]) {

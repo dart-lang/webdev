@@ -6,6 +6,8 @@
 // ignore: deprecated_member_use
 import 'dart:html';
 
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'package:js/js.dart';
 
 @JS()
@@ -158,9 +160,7 @@ class Notifications {
 @JS()
 @anonymous
 class OnClickedHandler {
-  external void addListener(
-    void Function(String) callback,
-  );
+  external void addListener(void Function(String) callback);
 }
 
 @JS()
@@ -233,9 +233,7 @@ class Port {
 @JS()
 @anonymous
 class OnPortMessageHandler {
-  external void addListener(
-    void Function(dynamic, Port) callback,
-  );
+  external void addListener(void Function(dynamic, Port) callback);
 }
 
 @JS()

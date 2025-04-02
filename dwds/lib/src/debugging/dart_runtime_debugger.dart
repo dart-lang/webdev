@@ -11,15 +11,14 @@ class DartRuntimeDebugger {
   DartRuntimeDebugger({
     required LoadStrategy loadStrategy,
     required bool useLibraryBundleExpression,
-  })  : _loadStrategy = loadStrategy,
-        _useLibraryBundleExpression = useLibraryBundleExpression;
+  }) : _loadStrategy = loadStrategy,
+       _useLibraryBundleExpression = useLibraryBundleExpression;
 
   /// Generates a JS expression based on DDC module format.
   String _generateJsExpression(
     String ddcExpression,
     String libraryBundleExpression,
-  ) =>
-      _useLibraryBundleExpression ? libraryBundleExpression : ddcExpression;
+  ) => _useLibraryBundleExpression ? libraryBundleExpression : ddcExpression;
 
   /// Wraps a JS function call with SDK loader logic.
   String _wrapWithSdkLoader(String args, String functionCall) {
@@ -126,11 +125,7 @@ class DartRuntimeDebugger {
 
   /// Generates a JS expression for retrieving map elements.
   String getMapElementsJsExpression() {
-    return _buildExpression(
-      '',
-      'getMapElements(this)',
-      'getMapElements(this)',
-    );
+    return _buildExpression('', 'getMapElements(this)', 'getMapElements(this)');
   }
 
   /// Generates a JS expression for getting a property from a JS object.
@@ -151,11 +146,7 @@ class DartRuntimeDebugger {
 
   /// Generates a JS expression for retrieving set elements.
   String getSetElementsJsExpression() {
-    return _buildExpression(
-      '',
-      'getSetElements(this)',
-      'getSetElements(this)',
-    );
+    return _buildExpression('', 'getSetElements(this)', 'getSetElements(this)');
   }
 
   /// Generates a JS expression for retrieving the fields of a record.
@@ -206,10 +197,7 @@ class DartRuntimeDebugger {
   }
 
   /// Generates a JS expression for calling a library method.
-  String callLibraryMethodJsExpression(
-    String libraryUri,
-    String methodName,
-  ) {
+  String callLibraryMethodJsExpression(String libraryUri, String methodName) {
     final findLibraryExpression = '''
      (function() {
        const sdk = ${_loadStrategy.loadModuleSnippet}('dart_sdk');

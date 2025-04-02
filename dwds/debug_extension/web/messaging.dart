@@ -11,6 +11,8 @@ import 'dart:convert';
 // ignore: deprecated_member_use
 import 'dart:js_util';
 
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
@@ -128,12 +130,7 @@ Future<bool> sendRuntimeMessage({
   required Script sender,
   required Script recipient,
 }) =>
-    _sendMessage(
-      type: type,
-      body: body,
-      sender: sender,
-      recipient: recipient,
-    );
+    _sendMessage(type: type, body: body, sender: sender, recipient: recipient);
 
 /// Send a message using the chrome.tabs.sendMessage API.
 Future<bool> sendTabsMessage({
@@ -142,14 +139,13 @@ Future<bool> sendTabsMessage({
   required String body,
   required Script sender,
   required Script recipient,
-}) =>
-    _sendMessage(
-      tabId: tabId,
-      type: type,
-      body: body,
-      sender: sender,
-      recipient: recipient,
-    );
+}) => _sendMessage(
+  tabId: tabId,
+  type: type,
+  body: body,
+  sender: sender,
+  recipient: recipient,
+);
 
 Future<bool> _sendMessage({
   required MessageType type,
@@ -158,12 +154,8 @@ Future<bool> _sendMessage({
   required Script recipient,
   int? tabId,
 }) {
-  final message = Message(
-    to: recipient,
-    from: sender,
-    type: type,
-    body: body,
-  ).toJSON();
+  final message =
+      Message(to: recipient, from: sender, type: type, body: body).toJSON();
   final completer = Completer<bool>();
   void responseHandler([dynamic _]) {
     final error = chrome.runtime.lastError;
@@ -203,7 +195,8 @@ bool _isLegitimateSender(MessageSender sender) {
 
   final senderUri = Uri.parse(sender.origin ?? '');
   final senderHost = senderUri.host;
-  final isDartAppHost = senderHost == 'localhost' ||
+  final isDartAppHost =
+      senderHost == 'localhost' ||
       senderHost == '127.0.0.1' ||
       _isGoogleHost(senderHost);
   final isExtensionOrigin =

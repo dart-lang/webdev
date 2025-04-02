@@ -9,6 +9,8 @@ library;
 // ignore: deprecated_member_use
 import 'dart:html';
 
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
@@ -19,9 +21,7 @@ void main() {
 }
 
 void _registerListeners() {
-  chrome.runtime.onMessage.addListener(
-    allowInterop(_handleRuntimeMessages),
-  );
+  chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
 }
 
 void _handleRuntimeMessages(
@@ -49,8 +49,8 @@ void _copyAppId(String appId) {
 }
 
 Future<bool> _notifyCopiedSuccess(String appId) => sendRuntimeMessage(
-      type: MessageType.appId,
-      body: appId,
-      sender: Script.copier,
-      recipient: Script.background,
-    );
+  type: MessageType.appId,
+  body: appId,
+  sender: Script.copier,
+  recipient: Script.background,
+);

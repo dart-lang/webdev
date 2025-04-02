@@ -42,17 +42,17 @@ class FrontendServerAssetReader implements AssetReader {
     required String outputPath,
     required String packageRoot,
     String? basePath,
-  })  : _packageRoot = packageRoot,
-        _basePath = basePath ?? '',
-        _mapOriginal = File('$outputPath.map'),
-        _mapIncremental = File('$outputPath.incremental.map'),
-        _jsonOriginal = File('$outputPath.json'),
-        _jsonIncremental = File('$outputPath.incremental.json'),
-        _packageConfig = loadPackageConfig(
-          File(
-            p.absolute(p.join(packageRoot, '.dart_tool/package_config.json')),
-          ),
-        );
+  }) : _packageRoot = packageRoot,
+       _basePath = basePath ?? '',
+       _mapOriginal = File('$outputPath.map'),
+       _mapIncremental = File('$outputPath.incremental.map'),
+       _jsonOriginal = File('$outputPath.json'),
+       _jsonIncremental = File('$outputPath.incremental.json'),
+       _packageConfig = loadPackageConfig(
+         File(
+           p.absolute(p.join(packageRoot, '.dart_tool/package_config.json')),
+         ),
+       );
 
   @override
   String get basePath => _basePath;
@@ -115,10 +115,7 @@ class FrontendServerAssetReader implements AssetReader {
       final info = sourceInfo[key];
       _mapContents[key] = utf8.decode(
         sourceContents
-            .getRange(
-              info['sourcemap'][0] as int,
-              info['sourcemap'][1] as int,
-            )
+            .getRange(info['sourcemap'][0] as int, info['sourcemap'][1] as int)
             .toList(),
       );
     }

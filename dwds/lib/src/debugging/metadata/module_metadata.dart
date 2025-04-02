@@ -41,8 +41,10 @@ class ModuleMetadataVersion {
   bool isCompatibleWith(String version) {
     final parts = version.split('.');
     if (parts.length != 3) {
-      throw FormatException('Version: $version'
-          'does not follow simple semantic versioning format');
+      throw FormatException(
+        'Version: $version'
+        'does not follow simple semantic versioning format',
+      );
     }
     final major = int.parse(parts[0]);
     final minor = int.parse(parts[1]);
@@ -75,9 +77,9 @@ class LibraryMetadata {
   LibraryMetadata(this.name, this.importUri, this.partUris);
 
   LibraryMetadata.fromJson(Map<String, dynamic> json)
-      : name = _readRequiredField(json, 'name'),
-        importUri = _readRequiredField(json, 'importUri'),
-        partUris = _readOptionalList(json, 'partUris') ?? [];
+    : name = _readRequiredField(json, 'name'),
+      importUri = _readRequiredField(json, 'importUri'),
+      partUris = _readOptionalList(json, 'partUris') ?? [];
 
   Map<String, dynamic> toJson() {
     return {
@@ -136,25 +138,29 @@ class ModuleMetadata {
     if (!libraries.containsKey(library.importUri)) {
       libraries[library.importUri] = library;
     } else {
-      throw Exception('Metadata creation error: '
-          'Cannot add library $library with uri ${library.importUri}: '
-          'another library "${libraries[library.importUri]}" is found '
-          'with the same uri');
+      throw Exception(
+        'Metadata creation error: '
+        'Cannot add library $library with uri ${library.importUri}: '
+        'another library "${libraries[library.importUri]}" is found '
+        'with the same uri',
+      );
     }
   }
 
   ModuleMetadata.fromJson(Map<String, dynamic> json)
-      : version = _readRequiredField(json, 'version'),
-        name = _readRequiredField(json, 'name'),
-        closureName = _readRequiredField(json, 'closureName'),
-        sourceMapUri = _readRequiredField(json, 'sourceMapUri'),
-        moduleUri = _readRequiredField(json, 'moduleUri') {
+    : version = _readRequiredField(json, 'version'),
+      name = _readRequiredField(json, 'name'),
+      closureName = _readRequiredField(json, 'closureName'),
+      sourceMapUri = _readRequiredField(json, 'sourceMapUri'),
+      moduleUri = _readRequiredField(json, 'moduleUri') {
     if (!ModuleMetadataVersion.current.isCompatibleWith(version) &&
         !ModuleMetadataVersion.previous.isCompatibleWith(version)) {
-      throw Exception('Unsupported metadata version $version. '
-          '\n  Supported versions: '
-          '\n    ${ModuleMetadataVersion.current.version} '
-          '\n    ${ModuleMetadataVersion.previous.version}');
+      throw Exception(
+        'Unsupported metadata version $version. '
+        '\n  Supported versions: '
+        '\n    ${ModuleMetadataVersion.current.version} '
+        '\n    ${ModuleMetadataVersion.previous.version}',
+      );
     }
 
     for (final l in _readRequiredList(json, 'libraries')) {

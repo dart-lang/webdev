@@ -29,10 +29,7 @@ enum Panel { debugger, inspector }
 
 late bool screenshotsEnabled;
 
-void testAll({
-  required bool isMV3,
-  required bool screenshotsEnabled,
-}) {
+void testAll({required bool isMV3, required bool screenshotsEnabled}) {
   screenshotsEnabled = screenshotsEnabled;
 
   final provider = TestSdkConfigurationProvider();
@@ -74,10 +71,7 @@ void testAll({
         });
 
         tearDown(() async {
-          await tearDownHelper(
-            worker: worker,
-            backgroundPage: backgroundPage,
-          );
+          await tearDownHelper(worker: worker, backgroundPage: backgroundPage);
         });
 
         tearDownAll(() async {
@@ -85,41 +79,49 @@ void testAll({
           await context.tearDown();
         });
 
-        test('the debug info for a Dart app is saved in session storage',
-            () async {
-          final appUrl = context.appUrl;
-          // Navigate to the Dart app:
-          final appTab =
-              await navigateToPage(browser, url: appUrl, isNew: true);
-          // Verify that we have debug info for the Dart app:
-          await workerEvalDelay();
-          final appTabId = await _getCurrentTabId(
-            worker: worker,
-            backgroundPage: backgroundPage,
-          );
-          final debugInfoKey = '$appTabId-debugInfo';
-          final debugInfo = await _fetchStorageObj<DebugInfo>(
-            debugInfoKey,
-            storageArea: 'session',
-            worker: worker,
-            backgroundPage: backgroundPage,
-          );
-          expect(debugInfo.appId, isNotNull);
-          expect(debugInfo.appEntrypointPath, isNotNull);
-          expect(debugInfo.appInstanceId, isNotNull);
-          expect(debugInfo.appOrigin, isNotNull);
-          expect(debugInfo.appUrl, isNotNull);
-          expect(debugInfo.isInternalBuild, isNotNull);
-          expect(debugInfo.isFlutterApp, isNotNull);
-          expect(debugInfo.workspaceName, isNotNull);
-          await appTab.close();
-        });
+        test(
+          'the debug info for a Dart app is saved in session storage',
+          () async {
+            final appUrl = context.appUrl;
+            // Navigate to the Dart app:
+            final appTab = await navigateToPage(
+              browser,
+              url: appUrl,
+              isNew: true,
+            );
+            // Verify that we have debug info for the Dart app:
+            await workerEvalDelay();
+            final appTabId = await _getCurrentTabId(
+              worker: worker,
+              backgroundPage: backgroundPage,
+            );
+            final debugInfoKey = '$appTabId-debugInfo';
+            final debugInfo = await _fetchStorageObj<DebugInfo>(
+              debugInfoKey,
+              storageArea: 'session',
+              worker: worker,
+              backgroundPage: backgroundPage,
+            );
+            expect(debugInfo.appId, isNotNull);
+            expect(debugInfo.appEntrypointPath, isNotNull);
+            expect(debugInfo.appInstanceId, isNotNull);
+            expect(debugInfo.appOrigin, isNotNull);
+            expect(debugInfo.appUrl, isNotNull);
+            expect(debugInfo.isInternalBuild, isNotNull);
+            expect(debugInfo.isFlutterApp, isNotNull);
+            expect(debugInfo.workspaceName, isNotNull);
+            await appTab.close();
+          },
+        );
 
         test('the auth status is saved in session storage', () async {
           final appUrl = context.appUrl;
           // Navigate to the Dart app:
-          final appTab =
-              await navigateToPage(browser, url: appUrl, isNew: true);
+          final appTab = await navigateToPage(
+            browser,
+            url: appUrl,
+            isNew: true,
+          );
           // Verify that we have debug info for the Dart app:
           await workerEvalDelay();
           final appTabId = await _getCurrentTabId(
@@ -143,8 +145,11 @@ void testAll({
           final devToolsUrlFragment =
               useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
           // Navigate to the Dart app:
-          final appTab =
-              await navigateToPage(browser, url: appUrl, isNew: true);
+          final appTab = await navigateToPage(
+            browser,
+            url: appUrl,
+            isNew: true,
+          );
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
@@ -170,44 +175,51 @@ void testAll({
         });
 
         test(
-            'navigating away from the Dart app while debugging closes DevTools',
-            () async {
-          final appUrl = context.appUrl;
-          final devToolsUrlFragment =
-              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
-          // Navigate to the Dart app:
-          final appTab =
-              await navigateToPage(browser, url: appUrl, isNew: true);
-          // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
-          await clickOnExtensionIcon(
-            browser: browser,
-            worker: worker,
-            backgroundPage: backgroundPage,
-          );
-          // Verify that the Dart DevTools tab is open:
-          final devToolsTabTarget = await browser.waitForTarget(
-            (target) => target.url.contains(devToolsUrlFragment),
-          );
-          expect(devToolsTabTarget.type, equals('page'));
-          // Navigate away from the Dart app:
-          await appTab.goto(
-            'https://dart.dev/',
-            wait: Until.domContentLoaded,
-          );
-          await appTab.bringToFront();
-          // Verify that the Dart DevTools tab closes:
-          await devToolsTabTarget.onClose;
-          await appTab.close();
-        });
+          'navigating away from the Dart app while debugging closes DevTools',
+          () async {
+            final appUrl = context.appUrl;
+            final devToolsUrlFragment =
+                useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+            // Navigate to the Dart app:
+            final appTab = await navigateToPage(
+              browser,
+              url: appUrl,
+              isNew: true,
+            );
+            // Click on the Dart Debug Extension icon:
+            await workerEvalDelay();
+            await clickOnExtensionIcon(
+              browser: browser,
+              worker: worker,
+              backgroundPage: backgroundPage,
+            );
+            // Verify that the Dart DevTools tab is open:
+            final devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment),
+            );
+            expect(devToolsTabTarget.type, equals('page'));
+            // Navigate away from the Dart app:
+            await appTab.goto(
+              'https://dart.dev/',
+              wait: Until.domContentLoaded,
+            );
+            await appTab.bringToFront();
+            // Verify that the Dart DevTools tab closes:
+            await devToolsTabTarget.onClose;
+            await appTab.close();
+          },
+        );
 
         test('closing the Dart app while debugging closes DevTools', () async {
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
               useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
           // Navigate to the Dart app:
-          final appTab =
-              await navigateToPage(browser, url: appUrl, isNew: true);
+          final appTab = await navigateToPage(
+            browser,
+            url: appUrl,
+            isNew: true,
+          );
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
@@ -231,8 +243,11 @@ void testAll({
           final devToolsUrlFragment =
               useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
           // Navigate to the Dart app:
-          final appTab =
-              await navigateToPage(browser, url: appUrl, isNew: true);
+          final appTab = await navigateToPage(
+            browser,
+            url: appUrl,
+            isNew: true,
+          );
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(
@@ -273,63 +288,71 @@ void testAll({
           await devToolsTabTarget.onClose;
         });
 
-        test('Clicking extension icon for a non Dart app shows warning',
-            () async {
-          // Navigate to a page that doesn't contain a Dart app:
-          final tab = await navigateToPage(
-            browser,
-            url: 'https://dart.dev',
-            isNew: true,
-          );
-          // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
-          await clickOnExtensionIcon(
-            browser: browser,
-            worker: worker,
-            backgroundPage: backgroundPage,
-          );
-          // There should now be a warning notification:
-          final chromeNotifications = await evaluate(
-            _getNotifications(),
-            worker: worker,
-            backgroundPage: backgroundPage,
-          );
-          await workerEvalDelay();
-          expect(chromeNotifications, isNotEmpty);
-          // Close the tab:
-          await tab.close();
-        });
+        test(
+          'Clicking extension icon for a non Dart app shows warning',
+          () async {
+            // Navigate to a page that doesn't contain a Dart app:
+            final tab = await navigateToPage(
+              browser,
+              url: 'https://dart.dev',
+              isNew: true,
+            );
+            // Click on the Dart Debug Extension icon:
+            await workerEvalDelay();
+            await clickOnExtensionIcon(
+              browser: browser,
+              worker: worker,
+              backgroundPage: backgroundPage,
+            );
+            // There should now be a warning notification:
+            final chromeNotifications = await evaluate(
+              _getNotifications(),
+              worker: worker,
+              backgroundPage: backgroundPage,
+            );
+            await workerEvalDelay();
+            expect(chromeNotifications, isNotEmpty);
+            // Close the tab:
+            await tab.close();
+          },
+        );
 
-        test('Refreshing the Dart app does not open a new Dart DevTools',
-            () async {
-          final appUrl = context.appUrl;
-          final devToolsUrlFragment =
-              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
-          // Navigate to the Dart app:
-          final appTab =
-              await navigateToPage(browser, url: appUrl, isNew: true);
-          // Click on the Dart Debug Extension icon:
-          await workerEvalDelay();
-          await clickOnExtensionIcon(
-            browser: browser,
-            worker: worker,
-            backgroundPage: backgroundPage,
-          );
-          // Verify that the Dart DevTools tab is open:
-          final devToolsTabTarget = await browser.waitForTarget(
-            (target) => target.url.contains(devToolsUrlFragment),
-          );
-          expect(devToolsTabTarget.type, equals('page'));
-          // Refresh the app tab:
-          await appTab.reload();
-          // Verify that we don't open a new Dart DevTools on page refresh:
-          final devToolsTargets = browser.targets
-              .where((target) => target.url.contains(devToolsUrlFragment));
-          expect(devToolsTargets.length, equals(1));
-          // Close the Dart app and the associated Dart DevTools:
-          await appTab.close();
-          await devToolsTabTarget.onClose;
-        });
+        test(
+          'Refreshing the Dart app does not open a new Dart DevTools',
+          () async {
+            final appUrl = context.appUrl;
+            final devToolsUrlFragment =
+                useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+            // Navigate to the Dart app:
+            final appTab = await navigateToPage(
+              browser,
+              url: appUrl,
+              isNew: true,
+            );
+            // Click on the Dart Debug Extension icon:
+            await workerEvalDelay();
+            await clickOnExtensionIcon(
+              browser: browser,
+              worker: worker,
+              backgroundPage: backgroundPage,
+            );
+            // Verify that the Dart DevTools tab is open:
+            final devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment),
+            );
+            expect(devToolsTabTarget.type, equals('page'));
+            // Refresh the app tab:
+            await appTab.reload();
+            // Verify that we don't open a new Dart DevTools on page refresh:
+            final devToolsTargets = browser.targets.where(
+              (target) => target.url.contains(devToolsUrlFragment),
+            );
+            expect(devToolsTargets.length, equals(1));
+            // Close the Dart app and the associated Dart DevTools:
+            await appTab.close();
+            await devToolsTabTarget.onClose;
+          },
+        );
       });
     }
 
@@ -368,29 +391,33 @@ void testAll({
             await browser.close();
           });
           test(
-              'isFlutterApp=$isFlutterApp and isInternalBuild=false are saved in storage',
-              () async {
-            final appUrl = context.appUrl;
-            // Navigate to the Dart app:
-            final appTab =
-                await navigateToPage(browser, url: appUrl, isNew: true);
-            // Verify that we have debug info for the Dart app:
-            await workerEvalDelay();
-            final appTabId = await _getCurrentTabId(
-              worker: worker,
-              backgroundPage: backgroundPage,
-            );
-            final debugInfoKey = '$appTabId-debugInfo';
-            final debugInfo = await _fetchStorageObj<DebugInfo>(
-              debugInfoKey,
-              storageArea: 'session',
-              worker: worker,
-              backgroundPage: backgroundPage,
-            );
-            expect(debugInfo.isInternalBuild, equals(false));
-            expect(debugInfo.isFlutterApp, equals(isFlutterApp));
-            await appTab.close();
-          });
+            'isFlutterApp=$isFlutterApp and isInternalBuild=false are saved in storage',
+            () async {
+              final appUrl = context.appUrl;
+              // Navigate to the Dart app:
+              final appTab = await navigateToPage(
+                browser,
+                url: appUrl,
+                isNew: true,
+              );
+              // Verify that we have debug info for the Dart app:
+              await workerEvalDelay();
+              final appTabId = await _getCurrentTabId(
+                worker: worker,
+                backgroundPage: backgroundPage,
+              );
+              final debugInfoKey = '$appTabId-debugInfo';
+              final debugInfo = await _fetchStorageObj<DebugInfo>(
+                debugInfoKey,
+                storageArea: 'session',
+                worker: worker,
+                backgroundPage: backgroundPage,
+              );
+              expect(debugInfo.isInternalBuild, equals(false));
+              expect(debugInfo.isFlutterApp, equals(isFlutterApp));
+              await appTab.close();
+            },
+          );
 
           test('no additional panels are added in Chrome DevTools', () async {
             final appUrl = context.appUrl;
@@ -414,8 +441,9 @@ void testAll({
               (target) => target.url == 'inspector_panel',
             );
             expect(inspectorPanelTarget, isNull);
-            final debuggerPanelTarget = browser.targets
-                .firstWhereOrNull((target) => target.url == 'debugger_panel');
+            final debuggerPanelTarget = browser.targets.firstWhereOrNull(
+              (target) => target.url == 'debugger_panel',
+            );
             expect(debuggerPanelTarget, isNull);
           });
         });
@@ -472,60 +500,62 @@ void testAll({
             await browser.close();
           });
           test(
-              'isFlutterApp=$isFlutterApp and isInternalBuild=true are saved in storage',
-              () async {
-            // Verify that we have debug info for the Dart app:
-            await workerEvalDelay();
-            final appTabId = await _getCurrentTabId(
-              worker: worker,
-              backgroundPage: backgroundPage,
-            );
-            final debugInfoKey = '$appTabId-debugInfo';
-            final debugInfo = await _fetchStorageObj<DebugInfo>(
-              debugInfoKey,
-              storageArea: 'session',
-              worker: worker,
-              backgroundPage: backgroundPage,
-            );
-            expect(debugInfo.isInternalBuild, equals(true));
-            expect(debugInfo.isFlutterApp, equals(isFlutterApp));
-          });
+            'isFlutterApp=$isFlutterApp and isInternalBuild=true are saved in storage',
+            () async {
+              // Verify that we have debug info for the Dart app:
+              await workerEvalDelay();
+              final appTabId = await _getCurrentTabId(
+                worker: worker,
+                backgroundPage: backgroundPage,
+              );
+              final debugInfoKey = '$appTabId-debugInfo';
+              final debugInfo = await _fetchStorageObj<DebugInfo>(
+                debugInfoKey,
+                storageArea: 'session',
+                worker: worker,
+                backgroundPage: backgroundPage,
+              );
+              expect(debugInfo.isInternalBuild, equals(true));
+              expect(debugInfo.isFlutterApp, equals(isFlutterApp));
+            },
+          );
 
-          test('the correct extension panels are added to Chrome DevTools',
-              () async {
-            final chromeDevToolsPage = await getChromeDevToolsPage(browser);
-            // There are no hooks for when a panel is added to Chrome DevTools,
-            // therefore we rely on a slight delay:
-            await Future.delayed(Duration(seconds: 1));
-            if (isFlutterApp) {
+          test(
+            'the correct extension panels are added to Chrome DevTools',
+            () async {
+              final chromeDevToolsPage = await getChromeDevToolsPage(browser);
+              // There are no hooks for when a panel is added to Chrome DevTools,
+              // therefore we rely on a slight delay:
+              await Future.delayed(Duration(seconds: 1));
+              if (isFlutterApp) {
+                await _tabLeft(chromeDevToolsPage);
+                final inspectorPanelElement = await _getPanelElement(
+                  browser,
+                  panel: Panel.inspector,
+                  elementSelector: '#panelBody',
+                );
+                expect(inspectorPanelElement, isNotNull);
+                await _takeScreenshot(
+                  chromeDevToolsPage,
+                  screenshotName: 'inspectorPanelLandingPage_flutterApp',
+                );
+              }
               await _tabLeft(chromeDevToolsPage);
-              final inspectorPanelElement = await _getPanelElement(
+              final debuggerPanelElement = await _getPanelElement(
                 browser,
-                panel: Panel.inspector,
+                panel: Panel.debugger,
                 elementSelector: '#panelBody',
               );
-              expect(inspectorPanelElement, isNotNull);
+              expect(debuggerPanelElement, isNotNull);
               await _takeScreenshot(
                 chromeDevToolsPage,
-                screenshotName: 'inspectorPanelLandingPage_flutterApp',
+                screenshotName:
+                    'debuggerPanelLandingPage_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
               );
-            }
-            await _tabLeft(chromeDevToolsPage);
-            final debuggerPanelElement = await _getPanelElement(
-              browser,
-              panel: Panel.debugger,
-              elementSelector: '#panelBody',
-            );
-            expect(debuggerPanelElement, isNotNull);
-            await _takeScreenshot(
-              chromeDevToolsPage,
-              screenshotName:
-                  'debuggerPanelLandingPage_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
-            );
-          });
+            },
+          );
 
-          test('Dart DevTools is embedded for debug session lifetime',
-              () async {
+          test('Dart DevTools is embedded for debug session lifetime', () async {
             final chromeDevToolsPage = await getChromeDevToolsPage(browser);
             // There are no hooks for when a panel is added to Chrome DevTools,
             // therefore we rely on a slight delay:
@@ -535,10 +565,7 @@ void testAll({
             if (isFlutterApp) {
               await _tabLeft(chromeDevToolsPage);
             }
-            await _clickLaunchButton(
-              browser,
-              panel: Panel.debugger,
-            );
+            await _clickLaunchButton(browser, panel: Panel.debugger);
             // Expect the Dart DevTools IFRAME to be added:
             final devToolsUrlFragment =
                 'ide=ChromeDevTools&embed=true&page=debugger';
@@ -576,10 +603,7 @@ void testAll({
             // Navigate back to the Dart app:
             await appTab.goto(context.appUrl, wait: Until.domContentLoaded);
             // Click the launch button again
-            await _clickLaunchButton(
-              browser,
-              panel: Panel.debugger,
-            );
+            await _clickLaunchButton(browser, panel: Panel.debugger);
             // Expect the Dart DevTools IFRAME to be added again:
             iframeTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment),
@@ -596,103 +620,103 @@ void testAll({
           // See https://github.com/dart-lang/webdev/issues/1779
 
           test(
-              'The Dart DevTools IFRAME has the correct query parameters and path',
-              () async {
-            final chromeDevToolsPage = await getChromeDevToolsPage(browser);
-            // There are no hooks for when a panel is added to Chrome DevTools,
-            // therefore we rely on a slight delay:
-            await Future.delayed(Duration(seconds: 1));
-            // Navigate to the Dart Debugger panel:
-            await _tabLeft(chromeDevToolsPage);
-            if (isFlutterApp) {
+            'The Dart DevTools IFRAME has the correct query parameters and path',
+            () async {
+              final chromeDevToolsPage = await getChromeDevToolsPage(browser);
+              // There are no hooks for when a panel is added to Chrome DevTools,
+              // therefore we rely on a slight delay:
+              await Future.delayed(Duration(seconds: 1));
+              // Navigate to the Dart Debugger panel:
               await _tabLeft(chromeDevToolsPage);
-            }
-            await _clickLaunchButton(
-              browser,
-              panel: Panel.debugger,
-            );
-            // Expect the Dart DevTools IFRAME to be added:
-            final devToolsUrlFragment =
-                'ide=ChromeDevTools&embed=true&page=debugger';
-            final iframeTarget = await browser.waitForTarget(
-              (target) => target.url.contains(devToolsUrlFragment),
-            );
-            final iframeUrl = iframeTarget.url;
-            // Expect the correct query parameters to be on the IFRAME url:
-            final uri = Uri.parse(iframeUrl);
-            final queryParameters = uri.queryParameters;
-            expect(
-              queryParameters.keys,
-              unorderedMatches([
-                'uri',
-                'ide',
-                'embed',
-                'page',
-                'backgroundColor',
-              ]),
-            );
-            expect(queryParameters, containsPair('ide', 'ChromeDevTools'));
-            expect(queryParameters, containsPair('uri', isNotEmpty));
-            expect(queryParameters, containsPair('page', isNotEmpty));
-            expect(
-              queryParameters,
-              containsPair('backgroundColor', isNotEmpty),
-            );
-            expect(uri.path, equals('/'));
-          });
+              if (isFlutterApp) {
+                await _tabLeft(chromeDevToolsPage);
+              }
+              await _clickLaunchButton(browser, panel: Panel.debugger);
+              // Expect the Dart DevTools IFRAME to be added:
+              final devToolsUrlFragment =
+                  'ide=ChromeDevTools&embed=true&page=debugger';
+              final iframeTarget = await browser.waitForTarget(
+                (target) => target.url.contains(devToolsUrlFragment),
+              );
+              final iframeUrl = iframeTarget.url;
+              // Expect the correct query parameters to be on the IFRAME url:
+              final uri = Uri.parse(iframeUrl);
+              final queryParameters = uri.queryParameters;
+              expect(
+                queryParameters.keys,
+                unorderedMatches([
+                  'uri',
+                  'ide',
+                  'embed',
+                  'page',
+                  'backgroundColor',
+                ]),
+              );
+              expect(queryParameters, containsPair('ide', 'ChromeDevTools'));
+              expect(queryParameters, containsPair('uri', isNotEmpty));
+              expect(queryParameters, containsPair('page', isNotEmpty));
+              expect(
+                queryParameters,
+                containsPair('backgroundColor', isNotEmpty),
+              );
+              expect(uri.path, equals('/'));
+            },
+          );
 
-          test('Trying to debug a page with multiple Dart apps shows warning',
-              () async {
-            final chromeDevToolsPage = await getChromeDevToolsPage(browser);
-            // There are no hooks for when a panel is added to Chrome DevTools,
-            // therefore we rely on a slight delay:
-            await Future.delayed(Duration(seconds: 1));
-            // Navigate to the Dart Debugger panel:
-            await _tabLeft(chromeDevToolsPage);
-            if (isFlutterApp) {
+          test(
+            'Trying to debug a page with multiple Dart apps shows warning',
+            () async {
+              final chromeDevToolsPage = await getChromeDevToolsPage(browser);
+              // There are no hooks for when a panel is added to Chrome DevTools,
+              // therefore we rely on a slight delay:
+              await Future.delayed(Duration(seconds: 1));
+              // Navigate to the Dart Debugger panel:
               await _tabLeft(chromeDevToolsPage);
-            }
-            // Expect there to be no warning banner:
-            var warningMsg = await _evaluateInPanel<String>(
-              browser,
-              panel: Panel.debugger,
-              jsExpression: 'document.querySelector("#warningMsg").innerHTML',
-            );
-            expect(
-              warningMsg == 'Cannot debug multiple apps in a page.',
-              isFalse,
-            );
-            // Set the 'data-multiple-dart-apps' attribute on the DOM.
-            await appTab.evaluate(_setMultipleAppsAttributeJs);
-            final appTabId = await _getCurrentTabId(
-              worker: worker,
-              backgroundPage: backgroundPage,
-            );
-            // Expect multiple apps info to be saved in storage:
-            final storageKey = '$appTabId-multipleAppsDetected';
-            final multipleAppsDetected = await _fetchStorageObj<String>(
-              storageKey,
-              storageArea: 'session',
-              worker: worker,
-              backgroundPage: backgroundPage,
-            );
-            expect(multipleAppsDetected, equals('true'));
-            // Expect there to be a warning banner:
-            warningMsg = await _evaluateInPanel<String>(
-              browser,
-              panel: Panel.debugger,
-              jsExpression: 'document.querySelector("#warningMsg").innerHTML',
-            );
-            await _takeScreenshot(
-              chromeDevToolsPage,
-              screenshotName:
-                  'debuggerMultipleAppsDetected_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
-            );
-            expect(
-              warningMsg,
-              equals('Cannot debug multiple apps in a page.'),
-            );
-          });
+              if (isFlutterApp) {
+                await _tabLeft(chromeDevToolsPage);
+              }
+              // Expect there to be no warning banner:
+              var warningMsg = await _evaluateInPanel<String>(
+                browser,
+                panel: Panel.debugger,
+                jsExpression: 'document.querySelector("#warningMsg").innerHTML',
+              );
+              expect(
+                warningMsg == 'Cannot debug multiple apps in a page.',
+                isFalse,
+              );
+              // Set the 'data-multiple-dart-apps' attribute on the DOM.
+              await appTab.evaluate(_setMultipleAppsAttributeJs);
+              final appTabId = await _getCurrentTabId(
+                worker: worker,
+                backgroundPage: backgroundPage,
+              );
+              // Expect multiple apps info to be saved in storage:
+              final storageKey = '$appTabId-multipleAppsDetected';
+              final multipleAppsDetected = await _fetchStorageObj<String>(
+                storageKey,
+                storageArea: 'session',
+                worker: worker,
+                backgroundPage: backgroundPage,
+              );
+              expect(multipleAppsDetected, equals('true'));
+              // Expect there to be a warning banner:
+              warningMsg = await _evaluateInPanel<String>(
+                browser,
+                panel: Panel.debugger,
+                jsExpression: 'document.querySelector("#warningMsg").innerHTML',
+              );
+              await _takeScreenshot(
+                chromeDevToolsPage,
+                screenshotName:
+                    'debuggerMultipleAppsDetected_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
+              );
+              expect(
+                warningMsg,
+                equals('Cannot debug multiple apps in a page.'),
+              );
+            },
+          );
         });
       }
     });
@@ -703,13 +727,7 @@ void testAll({
       final fakeAppUrl = 'http://$hostname:$port/index.html';
       final fakeAppDir = webCompatiblePath(
         p.split(
-          absolutePath(
-            pathFromDwds: p.join(
-              'test',
-              'puppeteer',
-              'fake_app',
-            ),
-          ),
+          absolutePath(pathFromDwds: p.join('test', 'puppeteer', 'fake_app')),
         ),
       );
       late Browser browser;
@@ -744,10 +762,7 @@ void testAll({
       });
 
       tearDown(() async {
-        await tearDownHelper(
-          worker: worker,
-          backgroundPage: backgroundPage,
-        );
+        await tearDownHelper(worker: worker, backgroundPage: backgroundPage);
       });
 
       tearDownAll(() async {
@@ -761,8 +776,11 @@ void testAll({
       // are read from the Window object.
       test('reads debug info from Window and saves to storage', () async {
         // Navigate to the "Dart" app:
-        final appTab =
-            await navigateToPage(browser, url: fakeAppUrl, isNew: true);
+        final appTab = await navigateToPage(
+          browser,
+          url: fakeAppUrl,
+          isNew: true,
+        );
 
         // Verify that we have debug info for the fake "Dart" app:
         final appTabId = await _getCurrentTabId(
@@ -794,8 +812,11 @@ void testAll({
       // request is sent from the extension itself.
       test('clicking on extension icon authenticates the user', () async {
         // Navigate to the "Dart" app:
-        final appTab =
-            await navigateToPage(browser, url: fakeAppUrl, isNew: true);
+        final appTab = await navigateToPage(
+          browser,
+          url: fakeAppUrl,
+          isNew: true,
+        );
 
         // Wait for debug info to be saved:
         final appTabId = await _getCurrentTabId(
@@ -838,10 +859,7 @@ void testAll({
   });
 }
 
-Future<bool> _clickLaunchButton(
-  Browser browser, {
-  required Panel panel,
-}) async {
+Future<bool> _clickLaunchButton(Browser browser, {required Panel panel}) async {
   try {
     final launchButton = await _getPanelElement(
       browser,
@@ -857,16 +875,15 @@ Future<bool> _clickLaunchButton(
   }
 }
 
-Future<Page> _getPanelPage(
-  Browser browser, {
-  required Panel panel,
-}) async {
+Future<Page> _getPanelPage(Browser browser, {required Panel panel}) async {
   final panelName =
       panel == Panel.inspector ? 'inspector_panel' : 'debugger_panel';
-  var panelTarget = browser.targets
-      .firstWhereOrNull((target) => target.url.contains(panelName));
-  panelTarget ??=
-      await browser.waitForTarget((target) => target.url.contains(panelName));
+  var panelTarget = browser.targets.firstWhereOrNull(
+    (target) => target.url.contains(panelName),
+  );
+  panelTarget ??= await browser.waitForTarget(
+    (target) => target.url.contains(panelName),
+  );
   panelTarget.type = 'page';
   return await panelTarget.page;
 }
@@ -904,15 +921,13 @@ Future<void> _tabLeft(Page chromeDevToolsPage) async {
   await chromeDevToolsPage.keyboard.up(modifierKey);
 }
 
-Future<int> _getCurrentTabId({
-  Worker? worker,
-  Page? backgroundPage,
-}) async {
+Future<int> _getCurrentTabId({Worker? worker, Page? backgroundPage}) async {
   return (await evaluate(
-    _currentTabIdJs,
-    worker: worker,
-    backgroundPage: backgroundPage,
-  )) as int;
+        _currentTabIdJs,
+        worker: worker,
+        backgroundPage: backgroundPage,
+      ))
+      as int;
 }
 
 Future<T> _fetchStorageObj<T>(
@@ -948,10 +963,7 @@ String _currentTabIdJs = '''
     }
 ''';
 
-String _fetchStorageObjJs(
-  String storageKey, {
-  required String storageArea,
-}) {
+String _fetchStorageObjJs(String storageKey, {required String storageArea}) {
   return '''
     async () => {
       const storageKey = "$storageKey";
@@ -998,8 +1010,12 @@ Future<void> _takeScreenshot(
   // a screenshot. See https://github.com/puppeteer/puppeteer/issues/9371.
   await Future.delayed(Duration(seconds: 1));
   final screenshot = await page.screenshot();
-  final screenshotPath =
-      p.join('test', 'puppeteer', 'test_images', '$screenshotName.png');
+  final screenshotPath = p.join(
+    'test',
+    'puppeteer',
+    'test_images',
+    '$screenshotName.png',
+  );
   await File(screenshotPath).writeAsBytes(screenshot);
 }
 

@@ -43,9 +43,10 @@ void main() async {
                 debug: debug,
               );
             },
-            skip: indexBaseMode == IndexBaseMode.base && Platform.isWindows
-                ? 'Skipped on Windows when indexBaseMode is base. See issue: https://github.com/dart-lang/sdk/issues/49277'
-                : null,
+            skip:
+                indexBaseMode == IndexBaseMode.base && Platform.isWindows
+                    ? 'Skipped on Windows when indexBaseMode is base. See issue: https://github.com/dart-lang/sdk/issues/49277'
+                    : null,
           );
         }
       });

@@ -74,7 +74,11 @@ void addSharedArgs(ArgParser argParser,
         abbr: 'v',
         defaultsTo: false,
         negatable: false,
-        help: 'Enables verbose logging.');
+        help: 'Enables verbose logging.')
+    ..addFlag(offlineFlag,
+        defaultsTo: false,
+        negatable: false,
+        help: 'Disable fetching from pub.dev.');
 }
 
 /// Parses the provided [Configuration] to return a list of
@@ -103,7 +107,7 @@ List<String> buildRunnerArgs(Configuration configuration) {
 }
 
 Future<void> validatePubspecLock(Configuration configuration) async {
-  final pubspecLock = await PubspecLock.read();
+  final pubspecLock = await PubspecLock.read(offline: configuration.offline);
   await checkPubspecLock(pubspecLock,
       requireBuildWebCompilers: configuration.requireBuildWebCompilers);
 }

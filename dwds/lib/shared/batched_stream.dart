@@ -24,12 +24,11 @@ class BatchedStreamController<T> {
   ///
   /// Collects events from input [sink] and emits them in batches to the
   /// output [stream] every [delay] milliseconds. Keeps the original order.
-  BatchedStreamController({
-    int delay = _defaultBatchDelayMilliseconds,
-  })  : _batchDelayMilliseconds = delay,
-        _checkDelayMilliseconds = max(delay ~/ 10, 1),
-        _inputController = StreamController<T>(),
-        _outputController = StreamController<List<T>>() {
+  BatchedStreamController({int delay = _defaultBatchDelayMilliseconds})
+    : _batchDelayMilliseconds = delay,
+      _checkDelayMilliseconds = max(delay ~/ 10, 1),
+      _inputController = StreamController<T>(),
+      _outputController = StreamController<List<T>>() {
     _inputQueue = StreamQueue<T>(_inputController.stream);
     safeUnawaited(_batchAndSendEvents());
   }

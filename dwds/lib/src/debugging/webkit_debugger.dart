@@ -28,8 +28,7 @@ class WebkitDebugger implements RemoteDebugger {
   Future<WipResponse> sendCommand(
     String command, {
     Map<String, dynamic>? params,
-  }) =>
-      _wipDebugger.sendCommand(command, params: params);
+  }) => _wipDebugger.sendCommand(command, params: params);
 
   @override
   Future<void> close() => _closed ??= _wipDebugger.connection.close();
@@ -81,8 +80,10 @@ class WebkitDebugger implements RemoteDebugger {
     bool? returnByValue,
     int? contextId,
   }) {
-    return _wipDebugger.connection.runtime
-        .evaluate(expression, returnByValue: returnByValue);
+    return _wipDebugger.connection.runtime.evaluate(
+      expression,
+      returnByValue: returnByValue,
+    );
   }
 
   @override
@@ -90,8 +91,10 @@ class WebkitDebugger implements RemoteDebugger {
     String callFrameId,
     String expression,
   ) {
-    return _wipDebugger.connection.debugger
-        .evaluateOnCallFrame(callFrameId, expression);
+    return _wipDebugger.connection.debugger.evaluateOnCallFrame(
+      callFrameId,
+      expression,
+    );
   }
 
   @override
@@ -118,9 +121,9 @@ class WebkitDebugger implements RemoteDebugger {
 
   @override
   Stream<TargetCrashedEvent> get onTargetCrashed => _wipDebugger.eventStream(
-        'Inspector.targetCrashed',
-        (WipEvent event) => TargetCrashedEvent(event.json),
-      );
+    'Inspector.targetCrashed',
+    (WipEvent event) => TargetCrashedEvent(event.json),
+  );
 
   @override
   Map<String, WipScript> get scripts => _wipDebugger.scripts;

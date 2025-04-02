@@ -56,15 +56,15 @@ class ExtensionDebugger implements RemoteDebugger {
 
   @override
   Stream<ConsoleAPIEvent> get onConsoleAPICalled => eventStream(
-        'Runtime.consoleAPICalled',
-        (WipEvent event) => ConsoleAPIEvent(event.json),
-      );
+    'Runtime.consoleAPICalled',
+    (WipEvent event) => ConsoleAPIEvent(event.json),
+  );
 
   @override
   Stream<ExceptionThrownEvent> get onExceptionThrown => eventStream(
-        'Runtime.exceptionThrown',
-        (WipEvent event) => ExceptionThrownEvent(event.json),
-      );
+    'Runtime.exceptionThrown',
+    (WipEvent event) => ExceptionThrownEvent(event.json),
+  );
 
   final _scripts = <String, WipScript>{};
   final _scriptIds = <String, String>{};
@@ -110,8 +110,10 @@ class ExtensionDebugger implements RemoteDebugger {
           }
         } else if (message is DevToolsRequest) {
           instanceId = message.instanceId;
-          _executionContext =
-              RemoteDebuggerExecutionContext(message.contextId, this);
+          _executionContext = RemoteDebuggerExecutionContext(
+            message.contextId,
+            this,
+          );
           _devToolsRequestController.sink.add(message);
         }
       },
@@ -140,9 +142,10 @@ class ExtensionDebugger implements RemoteDebugger {
       jsonEncode(
         serializers.serialize(
           ExtensionEvent(
-            (b) => b
-              ..method = method
-              ..params = params,
+            (b) =>
+                b
+                  ..method = method
+                  ..params = params,
           ),
         ),
       ),
@@ -164,10 +167,11 @@ class ExtensionDebugger implements RemoteDebugger {
         jsonEncode(
           serializers.serialize(
             ExtensionRequest(
-              (b) => b
-                ..id = id
-                ..command = command
-                ..commandParams = jsonEncode(params ?? {}),
+              (b) =>
+                  b
+                    ..id = id
+                    ..command = command
+                    ..commandParams = jsonEncode(params ?? {}),
             ),
           ),
         ),
@@ -192,7 +196,8 @@ class ExtensionDebugger implements RemoteDebugger {
   int newId() => _completerId++;
 
   @override
-  Future<void> close() => _closed ??= () {
+  Future<void> close() =>
+      _closed ??= () {
         _closeController.add({});
         return Future.wait([
           sseConnection.sink.close(),
@@ -217,11 +222,12 @@ class ExtensionDebugger implements RemoteDebugger {
   Future enable() => sendCommand('Debugger.enable');
 
   @override
-  Future<String> getScriptSource(String scriptId) async => (await sendCommand(
-        'Debugger.getScriptSource',
-        params: {'scriptId': scriptId},
-      ))
-          .result!['scriptSource'] as String;
+  Future<String> getScriptSource(String scriptId) async =>
+      (await sendCommand(
+            'Debugger.getScriptSource',
+            params: {'scriptId': scriptId},
+          )).result!['scriptSource']
+          as String;
 
   @override
   Future<WipResponse> pause() => sendCommand('Debugger.pause');
@@ -231,9 +237,9 @@ class ExtensionDebugger implements RemoteDebugger {
 
   @override
   Future<WipResponse> setPauseOnExceptions(PauseState state) => sendCommand(
-        'Debugger.setPauseOnExceptions',
-        params: {'state': _pauseStateToString(state)},
-      );
+    'Debugger.setPauseOnExceptions',
+    params: {'state': _pauseStateToString(state)},
+  );
 
   @override
   Future<WipResponse> removeBreakpoint(String breakpointId) {
@@ -266,9 +272,7 @@ class ExtensionDebugger implements RemoteDebugger {
     bool? returnByValue,
     int? contextId,
   }) async {
-    final params = <String, dynamic>{
-      'expression': expression,
-    };
+    final params = <String, dynamic>{'expression': expression};
     if (returnByValue != null) {
       params['returnByValue'] = returnByValue;
     }
@@ -289,8 +293,10 @@ class ExtensionDebugger implements RemoteDebugger {
       'callFrameId': callFrameId,
       'expression': expression,
     };
-    final response =
-        await sendCommand('Debugger.evaluateOnCallFrame', params: params);
+    final response = await sendCommand(
+      'Debugger.evaluateOnCallFrame',
+      params: params,
+    );
     final result = _validateResult(response.result);
     return RemoteObject(result['result'] as Map<String, dynamic>);
   }
@@ -299,11 +305,11 @@ class ExtensionDebugger implements RemoteDebugger {
   Future<List<WipBreakLocation>> getPossibleBreakpoints(
     WipLocation start,
   ) async {
-    final params = <String, dynamic>{
-      'start': start.toJsonMap(),
-    };
-    final response =
-        await sendCommand('Debugger.getPossibleBreakpoints', params: params);
+    final params = <String, dynamic>{'start': start.toJsonMap()};
+    final response = await sendCommand(
+      'Debugger.getPossibleBreakpoints',
+      params: params,
+    );
     final result = _validateResult(response.result);
     final locations = result['locations'] as List;
     return List.from(
@@ -325,33 +331,33 @@ class ExtensionDebugger implements RemoteDebugger {
 
   @override
   Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => eventStream(
-        'Debugger.globalObjectCleared',
-        (WipEvent event) => GlobalObjectClearedEvent(event.json),
-      );
+    'Debugger.globalObjectCleared',
+    (WipEvent event) => GlobalObjectClearedEvent(event.json),
+  );
 
   @override
   Stream<DebuggerPausedEvent> get onPaused => eventStream(
-        'Debugger.paused',
-        (WipEvent event) => DebuggerPausedEvent(event.json),
-      );
+    'Debugger.paused',
+    (WipEvent event) => DebuggerPausedEvent(event.json),
+  );
 
   @override
   Stream<DebuggerResumedEvent> get onResumed => eventStream(
-        'Debugger.resumed',
-        (WipEvent event) => DebuggerResumedEvent(event.json),
-      );
+    'Debugger.resumed',
+    (WipEvent event) => DebuggerResumedEvent(event.json),
+  );
 
   @override
   Stream<ScriptParsedEvent> get onScriptParsed => eventStream(
-        'Debugger.scriptParsed',
-        (WipEvent event) => ScriptParsedEvent(event.json),
-      );
+    'Debugger.scriptParsed',
+    (WipEvent event) => ScriptParsedEvent(event.json),
+  );
 
   @override
   Stream<TargetCrashedEvent> get onTargetCrashed => eventStream(
-        'Inspector.targetCrashed',
-        (WipEvent event) => TargetCrashedEvent(event.json),
-      );
+    'Inspector.targetCrashed',
+    (WipEvent event) => TargetCrashedEvent(event.json),
+  );
 
   @override
   Map<String, WipScript> get scripts => UnmodifiableMapView(_scripts);

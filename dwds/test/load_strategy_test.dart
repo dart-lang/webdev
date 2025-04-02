@@ -29,17 +29,18 @@ void main() {
     tearDownAll(context.tearDown);
 
     group(
-        'When the packageConfigLocator does not specify a package config path',
-        () {
-      final strategy = FakeStrategy(FakeAssetReader());
+      'When the packageConfigLocator does not specify a package config path',
+      () {
+        final strategy = FakeStrategy(FakeAssetReader());
 
-      test('defaults to "./dart_tool/package_config.json"', () {
-        expect(
-          p.split(strategy.packageConfigPath).join('/'),
-          endsWith('_testSound/.dart_tool/package_config.json'),
-        );
-      });
-    });
+        test('defaults to "./dart_tool/package_config.json"', () {
+          expect(
+            p.split(strategy.packageConfigPath).join('/'),
+            endsWith('_testSound/.dart_tool/package_config.json'),
+          );
+        });
+      },
+    );
 
     group('When a custom package config path is specified', () {
       final strategy = FakeStrategy(
@@ -62,31 +63,19 @@ void main() {
       );
 
       test('uses the default app entrypoint', () {
-        expect(
-          strategy.buildSettings.appEntrypoint,
-          isNull,
-        );
+        expect(strategy.buildSettings.appEntrypoint, isNull);
       });
 
       test('uses the default canary features setting', () {
-        expect(
-          strategy.buildSettings.canaryFeatures,
-          isFalse,
-        );
+        expect(strategy.buildSettings.canaryFeatures, isFalse);
       });
 
       test('uses the default flutter app setting', () {
-        expect(
-          strategy.buildSettings.isFlutterApp,
-          isFalse,
-        );
+        expect(strategy.buildSettings.isFlutterApp, isFalse);
       });
 
       test('uses the default experiments', () {
-        expect(
-          strategy.buildSettings.experiments,
-          isEmpty,
-        );
+        expect(strategy.buildSettings.experiments, isEmpty);
       });
     });
 
@@ -107,31 +96,19 @@ void main() {
       );
 
       test('uses the specified app entrypoint', () {
-        expect(
-          strategy.buildSettings.appEntrypoint,
-          appEntrypoint,
-        );
+        expect(strategy.buildSettings.appEntrypoint, appEntrypoint);
       });
 
       test('uses the specified canary features setting', () {
-        expect(
-          strategy.buildSettings.canaryFeatures,
-          canaryFeatures,
-        );
+        expect(strategy.buildSettings.canaryFeatures, canaryFeatures);
       });
 
       test('uses the specified flutter app setting', () {
-        expect(
-          strategy.buildSettings.isFlutterApp,
-          isFlutterApp,
-        );
+        expect(strategy.buildSettings.isFlutterApp, isFlutterApp);
       });
 
       test('uses the specified experiments', () {
-        expect(
-          strategy.buildSettings.experiments,
-          experiments,
-        );
+        expect(strategy.buildSettings.experiments, experiments);
       });
     });
 
@@ -155,8 +132,9 @@ void main() {
     final experiments = ['records'];
 
     final project = TestProject.test;
-    final provider =
-        TestSdkConfigurationProvider(canaryFeatures: canaryFeatures);
+    final provider = TestSdkConfigurationProvider(
+      canaryFeatures: canaryFeatures,
+    );
     tearDownAll(provider.dispose);
 
     final context = TestContext(project, provider);

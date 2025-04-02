@@ -18,11 +18,7 @@ class _Compiler {
 
   Future<void>? _dependencyUpdate;
 
-  _Compiler._(
-    this._responseQueue,
-    this._receivePort,
-    this._sendPort,
-  );
+  _Compiler._(this._responseQueue, this._receivePort, this._sendPort);
 
   /// Sends [request] on [_sendPort] and returns the next event from the
   /// response stream.
@@ -158,8 +154,9 @@ class _Compiler {
   ) async {
     _logger.finest('Waiting for dependencies to update');
     if (_dependencyUpdate == null) {
-      _logger
-          .warning('Dependencies are not updated before compiling expressions');
+      _logger.warning(
+        'Dependencies are not updated before compiling expressions',
+      );
       return ExpressionCompilationResult('<compiler is not ready>', true);
     }
 
@@ -251,16 +248,15 @@ class ExpressionCompilerService implements ExpressionCompiler {
     Map<String, String> jsFrameValues,
     String moduleName,
     String expression,
-  ) async =>
-      (await _compiler.future).compileExpressionToJs(
-        libraryUri,
-        line,
-        column,
-        jsModules,
-        jsFrameValues,
-        moduleName,
-        expression,
-      );
+  ) async => (await _compiler.future).compileExpressionToJs(
+    libraryUri,
+    line,
+    column,
+    jsModules,
+    jsFrameValues,
+    moduleName,
+    expression,
+  );
 
   @override
   Future<void> initialize(CompilerOptions options) async {

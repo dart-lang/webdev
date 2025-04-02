@@ -108,7 +108,7 @@ class TestSdkLayout {
           sdkLayout.sdkDirectory,
           'bin',
           'snapshots',
-          'kernel_worker.dart.snapshot',
+          'kernel_worker_aot.dart.snapshot',
         ),
         devToolsDirectory: p.join(
           sdkLayout.sdkDirectory,

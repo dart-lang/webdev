@@ -21,8 +21,9 @@ void safeUnawaited(
   Future<void> future, {
   void Function(dynamic, StackTrace)? onError,
 }) {
-  onError ??= (error, stackTrace) =>
-      _logger.warning('Error in unawaited Future:', error, stackTrace);
+  onError ??=
+      (error, stackTrace) =>
+          _logger.warning('Error in unawaited Future:', error, stackTrace);
   unawaited(future.catchError(onError));
 }
 
@@ -35,16 +36,13 @@ Future<T> wrapInErrorHandlerAsync<T>(
   String command,
   Future<T> Function() asyncCallback,
 ) {
-  return asyncCallback().catchError(
-    (error) {
-      return Future<T>.error(
-        RPCError(
-          command,
-          RPCErrorKind.kInternalError.code,
-          'Unexpected DWDS error for $command: $error',
-        ),
-      );
-    },
-    test: (e) => e is! RPCError && e is! SentinelException,
-  );
+  return asyncCallback().catchError((error) {
+    return Future<T>.error(
+      RPCError(
+        command,
+        RPCErrorKind.kInternalError.code,
+        'Unexpected DWDS error for $command: $error',
+      ),
+    );
+  }, test: (e) => e is! RPCError && e is! SentinelException);
 }

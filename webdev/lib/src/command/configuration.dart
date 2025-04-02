@@ -37,6 +37,7 @@ const nullSafetyAuto = 'auto';
 const disableDdsFlag = 'disable-dds';
 const enableExperimentOption = 'enable-experiment';
 const canaryFeaturesFlag = 'canary';
+const offlineFlag = 'offline';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
   var auto = argResults.options.contains(autoOption)
@@ -107,6 +108,7 @@ class Configuration {
   final String? _nullSafety;
   final List<String>? _experiments;
   final bool? _canaryFeatures;
+  final bool? _offline;
 
   Configuration({
     bool? autoRun,
@@ -133,6 +135,7 @@ class Configuration {
     String? nullSafety,
     List<String>? experiments,
     bool? canaryFeatures,
+    bool? offline,
   })  : _autoRun = autoRun,
         _chromeDebugPort = chromeDebugPort,
         _debugExtension = debugExtension,
@@ -154,7 +157,8 @@ class Configuration {
         _verbose = verbose,
         _nullSafety = nullSafety,
         _experiments = experiments,
-        _canaryFeatures = canaryFeatures {
+        _canaryFeatures = canaryFeatures,
+        _offline = offline {
     _validateConfiguration();
   }
 
@@ -229,7 +233,8 @@ class Configuration {
       verbose: other._verbose ?? _verbose,
       nullSafety: other._nullSafety ?? _nullSafety,
       experiments: other._experiments ?? _experiments,
-      canaryFeatures: other._canaryFeatures ?? _canaryFeatures);
+      canaryFeatures: other._canaryFeatures ?? _canaryFeatures,
+      offline: other._offline ?? _offline);
 
   factory Configuration.noInjectedClientDefaults() =>
       Configuration(autoRun: false, debug: false, debugExtension: false);
@@ -283,6 +288,8 @@ class Configuration {
   List<String> get experiments => _experiments ?? [];
 
   bool get canaryFeatures => _canaryFeatures ?? false;
+
+  bool get offline => _offline ?? false;
 
   /// Returns a new configuration with values updated from the parsed args.
   static Configuration fromArgs(ArgResults? argResults,
@@ -408,6 +415,10 @@ class Configuration {
         ? argResults[canaryFeaturesFlag] as bool?
         : defaultConfiguration.canaryFeatures;
 
+    final offline = argResults.options.contains(offlineFlag)
+        ? argResults[offlineFlag] as bool?
+        : defaultConfiguration.verbose;
+
     return Configuration(
       autoRun: defaultConfiguration.autoRun,
       chromeDebugPort: chromeDebugPort,
@@ -433,6 +444,7 @@ class Configuration {
       nullSafety: nullSafety,
       experiments: experiments,
       canaryFeatures: canaryFeatures,
+      offline: offline,
     );
   }
 }

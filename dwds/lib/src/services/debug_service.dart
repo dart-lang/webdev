@@ -53,8 +53,9 @@ void Function(WebSocketChannel, String?) _createNewConnectionHandler(
         value = utf8.decode(value);
       } else if (value is! String) {
         throw StateError(
-            'Got value with unexpected type ${value.runtimeType} from web '
-            'socket, expected a List<int> or String.');
+          'Got value with unexpected type ${value.runtimeType} from web '
+          'socket, expected a List<int> or String.',
+        );
       }
       final request = Map<String, Object>.from(jsonDecode(value));
       if (onRequest != null) onRequest(request);
@@ -87,10 +88,12 @@ Future<void> _handleSseConnections(
   while (await handler.connections.hasNext) {
     final connection = await handler.connections.next;
     final responseController = StreamController<Map<String, Object?>>();
-    final sub = responseController.stream.map((response) {
-      if (onResponse != null) onResponse(response);
-      return jsonEncode(response);
-    }).listen(connection.sink.add);
+    final sub = responseController.stream
+        .map((response) {
+          if (onResponse != null) onResponse(response);
+          return jsonEncode(response);
+        })
+        .listen(connection.sink.add);
     safeUnawaited(
       chromeProxyService.remoteDebugger.onClose.first.whenComplete(() {
         connection.sink.close();
@@ -159,7 +162,8 @@ class DebugService {
     this._urlEncoder,
   );
 
-  Future<void> close() => _closed ??= Future.wait([
+  Future<void> close() =>
+      _closed ??= Future.wait([
         _server.close(),
         if (_dds != null) _dds!.shutdown(),
       ]);
@@ -174,11 +178,7 @@ class DebugService {
         port: port,
         path: authToken,
       ),
-      serviceUri: Uri(
-        scheme: 'http',
-        host: hostname,
-        port: _ddsPort ?? 0,
-      ),
+      serviceUri: Uri(scheme: 'http', host: hostname, port: _ddsPort ?? 0),
     );
     return _dds!;
   }
@@ -190,17 +190,12 @@ class DebugService {
     }
     return (_useSse
             ? Uri(
-                scheme: 'sse',
-                host: hostname,
-                port: port,
-                path: '$authToken/\$debugHandler',
-              )
-            : Uri(
-                scheme: 'ws',
-                host: hostname,
-                port: port,
-                path: authToken,
-              ))
+              scheme: 'sse',
+              host: hostname,
+              port: port,
+              path: '$authToken/\$debugHandler',
+            )
+            : Uri(scheme: 'ws', host: hostname, port: port, path: authToken))
         .toString();
   }
 

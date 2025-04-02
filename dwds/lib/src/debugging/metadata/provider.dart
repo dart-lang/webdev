@@ -35,36 +35,36 @@ class MetadataProvider {
   /// TODO: Generate sdk module metadata to be consumed by debugger.
   /// Issue: https://github.com/dart-lang/sdk/issues/45477
   List<String> get sdkLibraries => const [
-        'dart:_runtime',
-        'dart:_debugger',
-        'dart:_foreign_helper',
-        'dart:_interceptors',
-        'dart:_internal',
-        'dart:_isolate_helper',
-        'dart:_js_helper',
-        'dart:_js_primitives',
-        'dart:_metadata',
-        'dart:_native_typed_data',
-        'dart:_rti',
-        'dart:async',
-        'dart:collection',
-        'dart:convert',
-        'dart:core',
-        'dart:developer',
-        'dart:io',
-        'dart:isolate',
-        'dart:js',
-        'dart:js_util',
-        'dart:math',
-        'dart:typed_data',
-        'dart:indexed_db',
-        'dart:html',
-        'dart:html_common',
-        'dart:svg',
-        'dart:web_audio',
-        'dart:web_gl',
-        'dart:ui',
-      ];
+    'dart:_runtime',
+    'dart:_debugger',
+    'dart:_foreign_helper',
+    'dart:_interceptors',
+    'dart:_internal',
+    'dart:_isolate_helper',
+    'dart:_js_helper',
+    'dart:_js_primitives',
+    'dart:_metadata',
+    'dart:_native_typed_data',
+    'dart:_rti',
+    'dart:async',
+    'dart:collection',
+    'dart:convert',
+    'dart:core',
+    'dart:developer',
+    'dart:io',
+    'dart:isolate',
+    'dart:js',
+    'dart:js_util',
+    'dart:math',
+    'dart:typed_data',
+    'dart:indexed_db',
+    'dart:html',
+    'dart:html_common',
+    'dart:svg',
+    'dart:web_audio',
+    'dart:web_gl',
+    'dart:ui',
+  ];
 
   MetadataProvider(
     this.entrypoint,
@@ -196,8 +196,10 @@ class MetadataProvider {
       // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
       if (entrypoint.endsWith('.bootstrap.js')) {
         _logger.info('Loading debug metadata...');
-        final serverPath =
-            entrypoint.replaceAll('.bootstrap.js', '.ddc_merged_metadata');
+        final serverPath = entrypoint.replaceAll(
+          '.bootstrap.js',
+          '.ddc_merged_metadata',
+        );
         final merged = await _assetReader.metadataContents(serverPath);
         if (merged != null) {
           _addSdkMetadata();
@@ -208,8 +210,9 @@ class MetadataProvider {
                 continue;
               }
               final moduleJson = json.decode(contents);
-              final metadata =
-                  ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
+              final metadata = ModuleMetadata.fromJson(
+                moduleJson as Map<String, dynamic>,
+              );
               _addMetadata(metadata);
               final moduleName =
                   _useModuleName ? metadata.name : metadata.moduleUri;

@@ -64,7 +64,7 @@ class RequireStrategy extends LoadStrategy {
   ///   packages/path/path -> packages/path/path.ddc
   ///
   final Future<Map<String, String>> Function(MetadataProvider metadataProvider)
-      _moduleProvider;
+  _moduleProvider;
 
   /// Returns a map of module name to corresponding digest value.
   ///
@@ -74,7 +74,7 @@ class RequireStrategy extends LoadStrategy {
   ///   packages/path/path -> d348c2a4647e998011fe305f74f22961
   ///
   final Future<Map<String, String>> Function(MetadataProvider metadataProvider)
-      _digestsProvider;
+  _digestsProvider;
 
   /// Returns the module for the corresponding server path.
   ///
@@ -83,7 +83,7 @@ class RequireStrategy extends LoadStrategy {
   /// /packages/path/path.ddc.js -> packages/path/path
   ///
   final Future<String?> Function(MetadataProvider provider, String sourcePath)
-      _moduleForServerPath;
+  _moduleForServerPath;
 
   /// Returns the server path for the provided module.
   ///
@@ -92,7 +92,7 @@ class RequireStrategy extends LoadStrategy {
   ///   web/main -> main.ddc.js
   ///
   final Future<String?> Function(MetadataProvider provider, String module)
-      _serverPathForModule;
+  _serverPathForModule;
 
   /// Returns the source map path for the provided module.
   ///
@@ -101,7 +101,7 @@ class RequireStrategy extends LoadStrategy {
   ///   web/main -> main.ddc.js.map
   ///
   final Future<String?> Function(MetadataProvider provider, String module)
-      _sourceMapPathForModule;
+  _sourceMapPathForModule;
 
   /// Returns the server path for the app uri.
   ///
@@ -121,7 +121,8 @@ class RequireStrategy extends LoadStrategy {
   ///
   final Future<Map<String, ModuleInfo>> Function(
     MetadataProvider metadataProvider,
-  ) _moduleInfoForProvider;
+  )
+  _moduleInfoForProvider;
 
   @override
   BuildSettings get buildSettings => _buildSettings;
@@ -143,16 +144,17 @@ class RequireStrategy extends LoadStrategy {
 
   @override
   Handler get handler => (request) async {
-        if (request.url.path.endsWith(_requireDigestsPath)) {
-          final entrypoint = request.url.queryParameters['entrypoint'];
-          if (entrypoint == null) return Response.notFound('${request.url}');
-          final metadataProvider =
-              metadataProviderFor(request.url.queryParameters['entrypoint']!);
-          final digests = await _digestsProvider(metadataProvider);
-          return Response.ok(json.encode(digests));
-        }
-        return Response.notFound('${request.url}');
-      };
+    if (request.url.path.endsWith(_requireDigestsPath)) {
+      final entrypoint = request.url.queryParameters['entrypoint'];
+      if (entrypoint == null) return Response.notFound('${request.url}');
+      final metadataProvider = metadataProviderFor(
+        request.url.queryParameters['entrypoint']!,
+      );
+      final digests = await _digestsProvider(metadataProvider);
+      return Response.ok(json.encode(digests));
+    }
+    return Response.notFound('${request.url}');
+  };
 
   @override
   String get id => 'require-js';
@@ -230,8 +232,9 @@ requirejs.onResourceLoad = function (context, map, depArray) {
   Future<String> _requireLoaderSetup(String entrypoint) async {
     final metadataProvider = metadataProviderFor(entrypoint);
     final modulePaths = await _moduleProvider(metadataProvider);
-    final moduleNames =
-        modulePaths.map((key, value) => MapEntry<String, String>(value, key));
+    final moduleNames = modulePaths.map(
+      (key, value) => MapEntry<String, String>(value, key),
+    );
     return '''
 $_baseUrlScript
 let modulePaths = ${const JsonEncoder.withIndent(" ").convert(modulePaths)};

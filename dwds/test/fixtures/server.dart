@@ -66,8 +66,9 @@ class TestServer {
     pipeline = pipeline.addMiddleware(_interceptFavicon);
 
     final filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
-      final result =
-          results.results.firstWhere((result) => result.target == target);
+      final result = results.results.firstWhere(
+        (result) => result.target == target,
+      );
       switch (result.status) {
         case daemon.BuildStatus.started:
           return BuildResult((b) => b.status = BuildStatus.started);
@@ -100,13 +101,15 @@ class TestServer {
     cascade = cascade.add(dwds.handler).add(assetHandler);
 
     serveHttpRequests(
-        server,
-        pipeline
-            .addMiddleware(_logRequests)
-            .addMiddleware(dwds.middleware)
-            .addHandler(cascade.handler), (e, s) {
-      _logger.warning('Error handling requests', e, s);
-    });
+      server,
+      pipeline
+          .addMiddleware(_logRequests)
+          .addMiddleware(dwds.middleware)
+          .addHandler(cascade.handler),
+      (e, s) {
+        _logger.warning('Error handling requests', e, s);
+      },
+    );
 
     return TestServer._(
       target,

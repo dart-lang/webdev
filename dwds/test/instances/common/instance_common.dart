@@ -55,8 +55,7 @@ void runTypeSystemVerificationTests({
     String libraryVariableTypeExpression(
       String variable,
       CompilationMode compilationMode,
-    ) =>
-        '''
+    ) => '''
             (function() {
               var dart = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk').dart;
               var libraryName = '${libraryName(compilationMode)}';
@@ -71,17 +70,11 @@ void runTypeSystemVerificationTests({
 
       test('uses correct type system', () async {
         final remoteObject = await inspector.jsEvaluate(
-          libraryVariableTypeExpression(
-            'libraryPublicFinal',
-            compilationMode,
-          ),
+          libraryVariableTypeExpression('libraryPublicFinal', compilationMode),
         );
         expect(
           remoteObject.json['className'],
-          canaryFeatures ||
-                  dartSdkIsAtLeast(
-                    newDdcTypeSystemVersion,
-                  )
+          canaryFeatures || dartSdkIsAtLeast(newDdcTypeSystemVersion)
               ? 'dart_rti.Rti.new'
               : 'Function',
         );
@@ -128,34 +121,23 @@ void runTests({
 
     /// A reference to the the variable `libraryPublicFinal`, an instance of
     /// `MyTestClass`.
-    Future<RemoteObject> getLibraryPublicFinalRef() => inspector.invoke(
-          libraryUri,
-          'getLibraryPublicFinal',
-        );
+    Future<RemoteObject> getLibraryPublicFinalRef() =>
+        inspector.invoke(libraryUri, 'getLibraryPublicFinal');
 
     /// A reference to the the variable `libraryPublic`, a List of Strings.
-    Future<RemoteObject> getLibraryPublicRef() => inspector.invoke(
-          libraryUri,
-          'getLibraryPublic',
-        );
+    Future<RemoteObject> getLibraryPublicRef() =>
+        inspector.invoke(libraryUri, 'getLibraryPublic');
 
     /// A reference to the variable `map`.
-    Future<RemoteObject> getMapRef() => inspector.invoke(
-          libraryUri,
-          'getMap',
-        );
+    Future<RemoteObject> getMapRef() => inspector.invoke(libraryUri, 'getMap');
 
     /// A reference to the variable `identityMap`.
-    Future<RemoteObject> getIdentityMapRef() => inspector.invoke(
-          libraryUri,
-          'getIdentityMap',
-        );
+    Future<RemoteObject> getIdentityMapRef() =>
+        inspector.invoke(libraryUri, 'getIdentityMap');
 
     /// A reference to the variable `stream`.
-    Future<RemoteObject> getStreamRef() => inspector.invoke(
-          libraryUri,
-          'getStream',
-        );
+    Future<RemoteObject> getStreamRef() =>
+        inspector.invoke(libraryUri, 'getStream');
 
     final unsupportedTestMsg =
         'This test is not supported with the DDC Library '
@@ -167,8 +149,10 @@ void runTests({
 
       test('for a null', () async {
         final remoteObject = await getLibraryPublicFinalRef();
-        final nullVariable =
-            await inspector.loadField(remoteObject, 'notFinal');
+        final nullVariable = await inspector.loadField(
+          remoteObject,
+          'notFinal',
+        );
         final ref = await inspector.instanceRefFor(nullVariable);
         expect(ref!.valueAsString, 'null');
         expect(ref.kind, InstanceKind.kNull);
@@ -198,18 +182,21 @@ void runTests({
         final classRef = ref.classRef!;
         expect(classRef.name, 'MyTestClass<dynamic>');
         expect(
-            classRef.id,
-            'classes|org-dartlang-app:///example/scopes/main.dart'
-            '|MyTestClass<dynamic>');
+          classRef.id,
+          'classes|org-dartlang-app:///example/scopes/main.dart'
+          '|MyTestClass<dynamic>',
+        );
         expect(inspector.isDisplayableObject(ref), isTrue);
       });
 
       test('for a closure', () async {
         final remoteObject = await getLibraryPublicFinalRef();
-        final properties =
-            await inspector.getProperties(remoteObject.objectId!);
-        final closure =
-            properties.firstWhere((property) => property.name == 'closure');
+        final properties = await inspector.getProperties(
+          remoteObject.objectId!,
+        );
+        final closure = properties.firstWhere(
+          (property) => property.name == 'closure',
+        );
         final ref = await inspector.instanceRefFor(closure.value!);
         final functionName = ref!.closureFunction!.name;
         // Older SDKs do not contain function names
@@ -248,22 +235,15 @@ void runTests({
       });
 
       // Regression test for https://github.com/dart-lang/webdev/issues/2446.
-      test(
-        'for a stream',
-        () async {
-          final remoteObject = await getStreamRef();
-          final ref = await inspector.instanceRefFor(remoteObject);
-          expect(ref!.kind, InstanceKind.kPlainInstance);
-          final classRef = ref.classRef!;
-          expect(classRef.name, '_ControllerStream<int>');
-          expect(
-            classRef.id,
-            'classes|dart:async|_ControllerStream<int>',
-          );
-          expect(inspector.isDisplayableObject(ref), isTrue);
-        },
-        skip: !dartSdkIsAtLeast('3.6.0-148.0.dev'),
-      );
+      test('for a stream', () async {
+        final remoteObject = await getStreamRef();
+        final ref = await inspector.instanceRefFor(remoteObject);
+        expect(ref!.kind, InstanceKind.kPlainInstance);
+        final classRef = ref.classRef!;
+        expect(classRef.name, '_ControllerStream<int>');
+        expect(classRef.id, 'classes|dart:async|_ControllerStream<int>');
+        expect(inspector.isDisplayableObject(ref), isTrue);
+      }, skip: !dartSdkIsAtLeast('3.6.0-148.0.dev'));
 
       test(
         'for a Dart error',
@@ -276,17 +256,19 @@ void runTests({
           expect(inspector.isNativeJsError(ref), isTrue);
           expect(inspector.isNativeJsObject(ref), isFalse);
         },
-        skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+        skip:
+            provider.ddcModuleFormat == ModuleFormat.ddc &&
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
 
       test(
         'for a native JavaScript error',
         () async {
-          final remoteObject = await inspector
-              .jsEvaluate(newInterceptorsExpression('NativeError'));
+          final remoteObject = await inspector.jsEvaluate(
+            newInterceptorsExpression('NativeError'),
+          );
           final ref = await inspector.instanceRefFor(remoteObject);
           expect(ref!.kind, InstanceKind.kPlainInstance);
           expect(ref.classRef!.name, 'NativeError');
@@ -294,17 +276,19 @@ void runTests({
           expect(inspector.isNativeJsError(ref), isTrue);
           expect(inspector.isNativeJsObject(ref), isFalse);
         },
-        skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+        skip:
+            provider.ddcModuleFormat == ModuleFormat.ddc &&
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
 
       test(
         'for a native JavaScript type error',
         () async {
-          final remoteObject = await inspector
-              .jsEvaluate(newInterceptorsExpression('JSNoSuchMethodError'));
+          final remoteObject = await inspector.jsEvaluate(
+            newInterceptorsExpression('JSNoSuchMethodError'),
+          );
           final ref = await inspector.instanceRefFor(remoteObject);
           expect(ref!.kind, InstanceKind.kPlainInstance);
           expect(ref.classRef!.name, 'JSNoSuchMethodError');
@@ -312,17 +296,19 @@ void runTests({
           expect(inspector.isNativeJsError(ref), isTrue);
           expect(inspector.isNativeJsObject(ref), isFalse);
         },
-        skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+        skip:
+            provider.ddcModuleFormat == ModuleFormat.ddc &&
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
 
       test(
         'for a native JavaScript object',
         () async {
-          final remoteObject = await inspector
-              .jsEvaluate(newInterceptorsExpression('LegacyJavaScriptObject'));
+          final remoteObject = await inspector.jsEvaluate(
+            newInterceptorsExpression('LegacyJavaScriptObject'),
+          );
           final ref = await inspector.instanceRefFor(remoteObject);
           expect(ref!.kind, InstanceKind.kPlainInstance);
           expect(ref.classRef!.name, 'LegacyJavaScriptObject');
@@ -330,10 +316,11 @@ void runTests({
           expect(inspector.isNativeJsError(ref), isFalse);
           expect(inspector.isNativeJsObject(ref), isTrue);
         },
-        skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+        skip:
+            provider.ddcModuleFormat == ModuleFormat.ddc &&
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
     });
 
@@ -346,9 +333,10 @@ void runTests({
         final classRef = instance.classRef!;
         expect(classRef, isNotNull);
         expect(classRef.name, 'MyTestClass<dynamic>');
-        final boundFieldNames = instance.fields!
-            .map((boundField) => boundField.decl!.name)
-            .toList();
+        final boundFieldNames =
+            instance.fields!
+                .map((boundField) => boundField.decl!.name)
+                .toList();
         expect(boundFieldNames, [
           '_privateField',
           'abstractField',
@@ -371,10 +359,12 @@ void runTests({
 
       test('for closure', () async {
         final remoteObject = await getLibraryPublicFinalRef();
-        final properties =
-            await inspector.getProperties(remoteObject.objectId!);
-        final closure =
-            properties.firstWhere((property) => property.name == 'closure');
+        final properties = await inspector.getProperties(
+          remoteObject.objectId!,
+        );
+        final closure = properties.firstWhere(
+          (property) => property.name == 'closure',
+        );
         final instance = await inspector.instanceFor(closure.value!);
         expect(instance!.kind, InstanceKind.kClosure);
         expect(instance.classRef!.name, 'Closure');
@@ -383,8 +373,10 @@ void runTests({
 
       test('for a nested object', () async {
         final libraryRemoteObject = await getLibraryPublicFinalRef();
-        final fieldRemoteObject =
-            await inspector.loadField(libraryRemoteObject, 'myselfField');
+        final fieldRemoteObject = await inspector.loadField(
+          libraryRemoteObject,
+          'myselfField',
+        );
         final instance = await inspector.instanceFor(fieldRemoteObject);
         expect(instance!.kind, InstanceKind.kPlainInstance);
         final classRef = instance.classRef!;
@@ -432,18 +424,14 @@ void runTests({
       });
 
       // Regression test for https://github.com/dart-lang/webdev/issues/2446.
-      test(
-        'for a stream',
-        () async {
-          final remote = await getStreamRef();
-          final instance = await inspector.instanceFor(remote);
-          expect(instance!.kind, InstanceKind.kPlainInstance);
-          final classRef = instance.classRef!;
-          expect(classRef.name, '_ControllerStream<int>');
-          expect(inspector.isDisplayableObject(instance), isTrue);
-        },
-        skip: !dartSdkIsAtLeast('3.6.0-148.0.dev'),
-      );
+      test('for a stream', () async {
+        final remote = await getStreamRef();
+        final instance = await inspector.instanceFor(remote);
+        expect(instance!.kind, InstanceKind.kPlainInstance);
+        final classRef = instance.classRef!;
+        expect(classRef.name, '_ControllerStream<int>');
+        expect(inspector.isDisplayableObject(instance), isTrue);
+      }, skip: !dartSdkIsAtLeast('3.6.0-148.0.dev'));
 
       test(
         'for a Dart error',
@@ -456,17 +444,19 @@ void runTests({
           expect(inspector.isNativeJsError(instance), isTrue);
           expect(inspector.isNativeJsObject(instance), isFalse);
         },
-        skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+        skip:
+            provider.ddcModuleFormat == ModuleFormat.ddc &&
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
 
       test(
         'for a native JavaScript error',
         () async {
-          final remoteObject = await inspector
-              .jsEvaluate(newInterceptorsExpression('NativeError'));
+          final remoteObject = await inspector.jsEvaluate(
+            newInterceptorsExpression('NativeError'),
+          );
           final instance = await inspector.instanceFor(remoteObject);
           expect(instance!.kind, InstanceKind.kPlainInstance);
           expect(instance.classRef!.name, 'NativeError');
@@ -474,17 +464,19 @@ void runTests({
           expect(inspector.isNativeJsError(instance), isTrue);
           expect(inspector.isNativeJsObject(instance), isFalse);
         },
-        skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+        skip:
+            provider.ddcModuleFormat == ModuleFormat.ddc &&
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
 
       test(
         'for a native JavaScript type error',
         () async {
-          final remoteObject = await inspector
-              .jsEvaluate(newInterceptorsExpression('JSNoSuchMethodError'));
+          final remoteObject = await inspector.jsEvaluate(
+            newInterceptorsExpression('JSNoSuchMethodError'),
+          );
           final instance = await inspector.instanceFor(remoteObject);
           expect(instance!.kind, InstanceKind.kPlainInstance);
           expect(instance.classRef!.name, 'JSNoSuchMethodError');
@@ -492,17 +484,19 @@ void runTests({
           expect(inspector.isNativeJsError(instance), isTrue);
           expect(inspector.isNativeJsObject(instance), isFalse);
         },
-        skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+        skip:
+            provider.ddcModuleFormat == ModuleFormat.ddc &&
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
 
       test(
         'for a native JavaScript object',
         () async {
-          final remoteObject = await inspector
-              .jsEvaluate(newInterceptorsExpression('LegacyJavaScriptObject'));
+          final remoteObject = await inspector.jsEvaluate(
+            newInterceptorsExpression('LegacyJavaScriptObject'),
+          );
           final instance = await inspector.instanceFor(remoteObject);
           expect(instance!.kind, InstanceKind.kPlainInstance);
           expect(instance.classRef!.name, 'LegacyJavaScriptObject');
@@ -510,10 +504,11 @@ void runTests({
           expect(inspector.isNativeJsError(instance), isFalse);
           expect(inspector.isNativeJsObject(instance), isTrue);
         },
-        skip: provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+        skip:
+            provider.ddcModuleFormat == ModuleFormat.ddc &&
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
     });
   });

@@ -82,10 +82,10 @@ List<Map<String, dynamic>> frames1Json = [
           "description": "Window",
           "objectId": "{\"injectedScriptId\":2,\"id\":6}",
         },
-      }
+      },
     ],
     "this": {"type": "undefined"},
-  }
+  },
 ];
 
 /// Data in the form returned from getProperties called twice on successive
@@ -108,7 +108,7 @@ var variables1 = [
         {
           'name': 'b',
           'value': {'type': 'string', 'value': 'bar'},
-        }
+        },
       ],
     },
   }),

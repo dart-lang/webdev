@@ -53,11 +53,7 @@ final sourceMapContents =
 final sampleSyncFrame = WipCallFrame({
   'callFrameId': '{"ordinal":0,"injectedScriptId":2}',
   'functionName': '',
-  'functionLocation': {
-    'scriptId': '69',
-    'lineNumber': 88,
-    'columnNumber': 72,
-  },
+  'functionLocation': {'scriptId': '69', 'lineNumber': 88, 'columnNumber': 72},
   'location': {'scriptId': '69', 'lineNumber': 37, 'columnNumber': 0},
   'url': '',
   'scopeChain': [],
@@ -73,12 +69,8 @@ final sampleAsyncFrame = CallFrame({
 });
 
 final Map<String, WipScript> scripts = {
-  '69': WipScript(<String, dynamic>{
-    'url': 'http://127.0.0.1:8081/foo.ddc.js',
-  }),
-  '71': WipScript(<String, dynamic>{
-    'url': 'http://127.0.0.1:8081/bar.ddc.js',
-  }),
+  '69': WipScript(<String, dynamic>{'url': 'http://127.0.0.1:8081/foo.ddc.js'}),
+  '71': WipScript(<String, dynamic>{'url': 'http://127.0.0.1:8081/bar.ddc.js'}),
 };
 
 void main() async {
@@ -89,9 +81,7 @@ void main() async {
     final toolConfiguration = TestToolConfiguration.withLoadStrategy(
       loadStrategy: TestStrategy(FakeAssetReader()),
     );
-    setGlobalsForTesting(
-      toolConfiguration: toolConfiguration,
-    );
+    setGlobalsForTesting(toolConfiguration: toolConfiguration);
     final root = 'fakeRoot';
     locations = Locations(
       FakeAssetReader(sourceMap: sourceMapContents),
@@ -130,9 +120,10 @@ void main() async {
       [sampleSyncFrame],
       asyncStackTrace: StackTrace({
         'callFrames': [sampleAsyncFrame.json],
-        'parent': StackTrace({
-          'callFrames': [sampleAsyncFrame.json],
-        }).json,
+        'parent':
+            StackTrace({
+              'callFrames': [sampleAsyncFrame.json],
+            }).json,
       }),
     );
 
@@ -152,15 +143,15 @@ void main() async {
       [sampleSyncFrame],
       asyncStackTrace: StackTrace({
         'callFrames': [sampleAsyncFrame.json],
-        'parent': StackTrace({
-          'callFrames': [],
-          'parent': StackTrace({
-            'callFrames': [sampleAsyncFrame.json],
-            'parent': StackTrace({
+        'parent':
+            StackTrace({
               'callFrames': [],
+              'parent':
+                  StackTrace({
+                    'callFrames': [sampleAsyncFrame.json],
+                    'parent': StackTrace({'callFrames': []}).json,
+                  }).json,
             }).json,
-          }).json,
-        }).json,
       }),
     );
 

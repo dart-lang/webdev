@@ -216,17 +216,15 @@ class ChromeProxyService implements VmServiceInterface {
     final compiler = _compiler;
     if (compiler != null) {
       await compiler.initialize(compilerOptions);
-      final dependencies =
-          await loadStrategy.moduleInfoForEntrypoint(entrypoint);
-      await captureElapsedTime(
-        () async {
-          final result = await compiler.updateDependencies(dependencies);
-          // Expression evaluation is ready after dependencies are updated.
-          if (!_compilerCompleter.isCompleted) _compilerCompleter.complete();
-          return result;
-        },
-        (result) => DwdsEvent.compilerUpdateDependencies(entrypoint),
+      final dependencies = await loadStrategy.moduleInfoForEntrypoint(
+        entrypoint,
       );
+      await captureElapsedTime(() async {
+        final result = await compiler.updateDependencies(dependencies);
+        // Expression evaluation is ready after dependencies are updated.
+        if (!_compilerCompleter.isCompleted) _compilerCompleter.complete();
+        return result;
+      }, (result) => DwdsEvent.compilerUpdateDependencies(entrypoint));
     }
   }
 
@@ -294,16 +292,17 @@ class ChromeProxyService implements VmServiceInterface {
     );
 
     final compiler = _compiler;
-    _expressionEvaluator = compiler == null
-        ? null
-        : BatchedExpressionEvaluator(
-            entrypoint,
-            inspector,
-            debugger,
-            _locations,
-            _modules,
-            compiler,
-          );
+    _expressionEvaluator =
+        compiler == null
+            ? null
+            : BatchedExpressionEvaluator(
+              entrypoint,
+              inspector,
+              debugger,
+              _locations,
+              _modules,
+              compiler,
+            );
 
     safeUnawaited(_prewarmExpressionCompilerCache());
 
@@ -344,7 +343,7 @@ class ChromeProxyService implements VmServiceInterface {
     // TODO: We shouldn't need to fire these events since they exist on the
     // isolate, but devtools doesn't recognize extensions after a page refresh
     // otherwise.
-    for (final extensionRpc in inspector.isolate.extensionRPCs ?? []) {
+    for (final extensionRpc in await inspector.getExtensionRpcs()) {
       _streamNotify(
         'Isolate',
         Event(
@@ -445,16 +444,11 @@ class ChromeProxyService implements VmServiceInterface {
     String scriptUri,
     int line, {
     int? column,
-  }) =>
-      wrapInErrorHandlerAsync(
-        'addBreakpointWithScriptUri',
-        () => _addBreakpointWithScriptUri(
-          isolateId,
-          scriptUri,
-          line,
-          column: column,
-        ),
-      );
+  }) => wrapInErrorHandlerAsync(
+    'addBreakpointWithScriptUri',
+    () =>
+        _addBreakpointWithScriptUri(isolateId, scriptUri, line, column: column),
+  );
 
   Future<Breakpoint> _addBreakpointWithScriptUri(
     String isolateId,
@@ -468,22 +462,24 @@ class ChromeProxyService implements VmServiceInterface {
       // TODO(annagrin): Support setting breakpoints in dart SDK locations.
       // Issue: https://github.com/dart-lang/webdev/issues/1584
       throw RPCError(
-          'addBreakpoint',
-          102,
-          'The VM is unable to add a breakpoint '
-              'at the specified line or function: $scriptUri:$line:$column: '
-              'breakpoints in dart SDK locations are not supported yet.');
+        'addBreakpoint',
+        102,
+        'The VM is unable to add a breakpoint '
+            'at the specified line or function: $scriptUri:$line:$column: '
+            'breakpoints in dart SDK locations are not supported yet.',
+      );
     }
     final dartUri = DartUri(scriptUri, root);
     final scriptRef = await inspector.scriptRefFor(dartUri.serverPath);
     final scriptId = scriptRef?.id;
     if (scriptId == null) {
       throw RPCError(
-          'addBreakpoint',
-          102,
-          'The VM is unable to add a breakpoint '
-              'at the specified line or function: $scriptUri:$line:$column: '
-              'cannot find script ID for ${dartUri.serverPath}');
+        'addBreakpoint',
+        102,
+        'The VM is unable to add a breakpoint '
+            'at the specified line or function: $scriptUri:$line:$column: '
+            'cannot find script ID for ${dartUri.serverPath}',
+      );
     }
     return (await debuggerFuture).addBreakpoint(scriptId, line, column: column);
   }
@@ -493,15 +489,10 @@ class ChromeProxyService implements VmServiceInterface {
     String method, {
     String? isolateId,
     Map? args,
-  }) =>
-      wrapInErrorHandlerAsync(
-        'callServiceExtension',
-        () => _callServiceExtension(
-          method,
-          isolateId: isolateId,
-          args: args,
-        ),
-      );
+  }) => wrapInErrorHandlerAsync(
+    'callServiceExtension',
+    () => _callServiceExtension(method, isolateId: isolateId, args: args),
+  );
 
   Future<Response> _callServiceExtension(
     String method, {
@@ -518,6 +509,13 @@ class ChromeProxyService implements VmServiceInterface {
         v is String ? v : jsonEncode(v),
       ),
     );
+    if (!(await inspector.getExtensionRpcs()).contains(method)) {
+      throw RPCError(
+        method,
+        RPCErrorKind.kMethodNotFound.code,
+        'Unknown service method: $method',
+      );
+    }
     final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
         .invokeExtensionJsExpression(method, jsonEncode(stringArgs));
     final result = await inspector.jsEvaluate(expression, awaitPromise: true);
@@ -552,8 +550,10 @@ class ChromeProxyService implements VmServiceInterface {
     try {
       final result = await evaluation();
       if (!_isIsolateRunning || isolateId != inspector.isolate.id) {
-        _logger.fine('Cannot get evaluation result for isolate $isolateId: '
-            ' isolate exited.');
+        _logger.fine(
+          'Cannot get evaluation result for isolate $isolateId: '
+          ' isolate exited.',
+        );
         return ErrorRef(
           kind: 'error',
           message: 'Isolate exited',
@@ -565,12 +565,16 @@ class ChromeProxyService implements VmServiceInterface {
       // and reference errors from JavaScript evaluation in chrome.
       if (_hasEvaluationError(result.type)) {
         if (_hasReportableEvaluationError(result.type)) {
-          _logger.warning('Failed to evaluate expression \'$expression\': '
-              '${result.type}: ${result.value}.');
+          _logger.warning(
+            'Failed to evaluate expression \'$expression\': '
+            '${result.type}: ${result.value}.',
+          );
 
-          _logger.info('Please follow instructions at '
-              'https://github.com/dart-lang/webdev/issues/956 '
-              'to file a bug.');
+          _logger.info(
+            'Please follow instructions at '
+            'https://github.com/dart-lang/webdev/issues/956 '
+            'to file a bug.',
+          );
         }
         return ErrorRef(
           kind: 'error',
@@ -585,9 +589,11 @@ class ChromeProxyService implements VmServiceInterface {
       // Handle errors that throw exceptions, such as invalid JavaScript
       // generated by the expression evaluator.
       _logger.warning('Failed to evaluate expression \'$expression\'. ');
-      _logger.info('Please follow instructions at '
-          'https://github.com/dart-lang/webdev/issues/956 '
-          'to file a bug.');
+      _logger.info(
+        'Please follow instructions at '
+        'https://github.com/dart-lang/webdev/issues/956 '
+        'to file a bug.',
+      );
       _logger.info('$e:$s');
       return ErrorRef(kind: 'error', message: '<unknown>', id: createId());
     }
@@ -620,16 +626,10 @@ class ChromeProxyService implements VmServiceInterface {
     /// here to make this method is a valid override of
     /// [VmServiceInterface.evaluate].
     String? idZoneId,
-  }) =>
-      wrapInErrorHandlerAsync(
-        'evaluate',
-        () => _evaluate(
-          isolateId,
-          targetId,
-          expression,
-          scope: scope,
-        ),
-      );
+  }) => wrapInErrorHandlerAsync(
+    'evaluate',
+    () => _evaluate(isolateId, targetId, expression, scope: scope),
+  );
 
   Future<Response> _evaluate(
     String isolateId,
@@ -638,62 +638,59 @@ class ChromeProxyService implements VmServiceInterface {
     Map<String, String>? scope,
   }) {
     // TODO(798) - respect disableBreakpoints.
-    return captureElapsedTime(
-      () async {
-        await isInitialized;
-        final evaluator = _expressionEvaluator;
-        if (evaluator != null) {
-          await isCompilerInitialized;
-          _checkIsolate('evaluate', isolateId);
+    return captureElapsedTime(() async {
+      await isInitialized;
+      final evaluator = _expressionEvaluator;
+      if (evaluator != null) {
+        await isCompilerInitialized;
+        _checkIsolate('evaluate', isolateId);
 
-          late Obj object;
-          try {
-            object = await inspector.getObject(targetId);
-          } catch (_) {
-            return ErrorRef(
-              kind: 'error',
-              message: 'Evaluate is called on an unsupported target:'
-                  '$targetId',
-              id: createId(),
-            );
-          }
-
-          final library =
-              object is Library ? object : inspector.isolate.rootLib;
-
-          if (object is Instance) {
-            // Evaluate is called on a target - convert this to a dart
-            // expression and scope by adding a target variable to the
-            // expression and the scope, for example:
-            //
-            // Library: 'package:hello_world/main.dart'
-            // Expression: 'hashCode' => 'x.hashCode'
-            // Scope: {} => { 'x' : targetId }
-
-            final target = _newVariableForScope(scope);
-            expression = '$target.$expression';
-            scope = (scope ?? {})..addAll({target: targetId});
-          }
-
-          return await _getEvaluationResult(
-            isolateId,
-            () => evaluator.evaluateExpression(
-              isolateId,
-              library?.uri,
-              expression,
-              scope,
-            ),
-            expression,
+        late Obj object;
+        try {
+          object = await inspector.getObject(targetId);
+        } catch (_) {
+          return ErrorRef(
+            kind: 'error',
+            message:
+                'Evaluate is called on an unsupported target:'
+                '$targetId',
+            id: createId(),
           );
         }
-        throw RPCError(
-          'evaluate',
-          RPCErrorKind.kInvalidRequest.code,
-          'Expression evaluation is not supported for this configuration.',
+
+        final library = object is Library ? object : inspector.isolate.rootLib;
+
+        if (object is Instance) {
+          // Evaluate is called on a target - convert this to a dart
+          // expression and scope by adding a target variable to the
+          // expression and the scope, for example:
+          //
+          // Library: 'package:hello_world/main.dart'
+          // Expression: 'hashCode' => 'x.hashCode'
+          // Scope: {} => { 'x' : targetId }
+
+          final target = _newVariableForScope(scope);
+          expression = '$target.$expression';
+          scope = (scope ?? {})..addAll({target: targetId});
+        }
+
+        return await _getEvaluationResult(
+          isolateId,
+          () => evaluator.evaluateExpression(
+            isolateId,
+            library?.uri,
+            expression,
+            scope,
+          ),
+          expression,
         );
-      },
-      (result) => DwdsEvent.evaluate(expression, result),
-    );
+      }
+      throw RPCError(
+        'evaluate',
+        RPCErrorKind.kInvalidRequest.code,
+        'Expression evaluation is not supported for this configuration.',
+      );
+    }, (result) => DwdsEvent.evaluate(expression, result));
   }
 
   String _newVariableForScope(Map<String, String>? scope) {
@@ -718,16 +715,10 @@ class ChromeProxyService implements VmServiceInterface {
     /// here to make this method is a valid override of
     /// [VmServiceInterface.evaluateInFrame].
     String? idZoneId,
-  }) =>
-      wrapInErrorHandlerAsync(
-        'evaluateInFrame',
-        () => _evaluateInFrame(
-          isolateId,
-          frameIndex,
-          expression,
-          scope: scope,
-        ),
-      );
+  }) => wrapInErrorHandlerAsync(
+    'evaluateInFrame',
+    () => _evaluateInFrame(isolateId, frameIndex, expression, scope: scope),
+  );
 
   Future<Response> _evaluateInFrame(
     String isolateId,
@@ -737,33 +728,30 @@ class ChromeProxyService implements VmServiceInterface {
   }) {
     // TODO(798) - respect disableBreakpoints.
 
-    return captureElapsedTime(
-      () async {
-        await isInitialized;
-        final evaluator = _expressionEvaluator;
-        if (evaluator != null) {
-          await isCompilerInitialized;
-          _checkIsolate('evaluateInFrame', isolateId);
+    return captureElapsedTime(() async {
+      await isInitialized;
+      final evaluator = _expressionEvaluator;
+      if (evaluator != null) {
+        await isCompilerInitialized;
+        _checkIsolate('evaluateInFrame', isolateId);
 
-          return await _getEvaluationResult(
+        return await _getEvaluationResult(
+          isolateId,
+          () => evaluator.evaluateExpressionInFrame(
             isolateId,
-            () => evaluator.evaluateExpressionInFrame(
-              isolateId,
-              frameIndex,
-              expression,
-              scope,
-            ),
+            frameIndex,
             expression,
-          );
-        }
-        throw RPCError(
-          'evaluateInFrame',
-          RPCErrorKind.kInvalidRequest.code,
-          'Expression evaluation is not supported for this configuration.',
+            scope,
+          ),
+          expression,
         );
-      },
-      (result) => DwdsEvent.evaluateInFrame(expression, result),
-    );
+      }
+      throw RPCError(
+        'evaluateInFrame',
+        RPCErrorKind.kInvalidRequest.code,
+        'Expression evaluation is not supported for this configuration.',
+      );
+    }, (result) => DwdsEvent.evaluateInFrame(expression, result));
   }
 
   @override
@@ -783,18 +771,12 @@ class ChromeProxyService implements VmServiceInterface {
 
   @override
   Future<FlagList> getFlagList() {
-    return wrapInErrorHandlerAsync(
-      'getFlagList',
-      _getFlagList,
-    );
+    return wrapInErrorHandlerAsync('getFlagList', _getFlagList);
   }
 
   Future<FlagList> _getFlagList() {
     final flags = _currentVmServiceFlags.entries.map<Flag>(
-      (entry) => Flag(
-        name: entry.key,
-        valueAsString: '${entry.value}',
-      ),
+      (entry) => Flag(name: entry.key, valueAsString: '${entry.value}'),
     );
 
     return Future.value(FlagList(flags: flags.toList()));
@@ -813,20 +795,15 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   @override
-  Future<Isolate> getIsolate(String isolateId) => wrapInErrorHandlerAsync(
-        'getIsolate',
-        () => _getIsolate(isolateId),
-      );
+  Future<Isolate> getIsolate(String isolateId) =>
+      wrapInErrorHandlerAsync('getIsolate', () => _getIsolate(isolateId));
 
   Future<Isolate> _getIsolate(String isolateId) {
-    return captureElapsedTime(
-      () async {
-        await isInitialized;
-        _checkIsolate('getIsolate', isolateId);
-        return inspector.isolate;
-      },
-      (result) => DwdsEvent.getIsolate(),
-    );
+    return captureElapsedTime(() async {
+      await isInitialized;
+      _checkIsolate('getIsolate', isolateId);
+      return inspector.isolate;
+    }, (result) => DwdsEvent.getIsolate());
   }
 
   @override
@@ -853,16 +830,10 @@ class ChromeProxyService implements VmServiceInterface {
     /// here to make this method is a valid override of
     /// [VmServiceInterface.getObject].
     String? idZoneId,
-  }) =>
-      wrapInErrorHandlerAsync(
-        'getObject',
-        () => _getObject(
-          isolateId,
-          objectId,
-          offset: offset,
-          count: count,
-        ),
-      );
+  }) => wrapInErrorHandlerAsync(
+    'getObject',
+    () => _getObject(isolateId, objectId, offset: offset, count: count),
+  );
 
   Future<Obj> _getObject(
     String isolateId,
@@ -876,20 +847,15 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   @override
-  Future<ScriptList> getScripts(String isolateId) => wrapInErrorHandlerAsync(
-        'getScripts',
-        () => _getScripts(isolateId),
-      );
+  Future<ScriptList> getScripts(String isolateId) =>
+      wrapInErrorHandlerAsync('getScripts', () => _getScripts(isolateId));
 
   Future<ScriptList> _getScripts(String isolateId) {
-    return captureElapsedTime(
-      () async {
-        await isInitialized;
-        _checkIsolate('getScripts', isolateId);
-        return inspector.getScripts();
-      },
-      (result) => DwdsEvent.getScripts(),
-    );
+    return captureElapsedTime(() async {
+      await isInitialized;
+      _checkIsolate('getScripts', isolateId);
+      return inspector.getScripts();
+    }, (result) => DwdsEvent.getScripts());
   }
 
   @override
@@ -905,20 +871,19 @@ class ChromeProxyService implements VmServiceInterface {
     // Note: Ignore the optional librariesAlreadyCompiled parameter. It is here
     // to match the VM service interface.
     List<String>? librariesAlreadyCompiled,
-  }) =>
-      wrapInErrorHandlerAsync(
-        'getSourceReport',
-        () => _getSourceReport(
-          isolateId,
-          reports,
-          scriptId: scriptId,
-          tokenPos: tokenPos,
-          endTokenPos: endTokenPos,
-          forceCompile: forceCompile,
-          reportLines: reportLines,
-          libraryFilters: libraryFilters,
-        ),
-      );
+  }) => wrapInErrorHandlerAsync(
+    'getSourceReport',
+    () => _getSourceReport(
+      isolateId,
+      reports,
+      scriptId: scriptId,
+      tokenPos: tokenPos,
+      endTokenPos: endTokenPos,
+      forceCompile: forceCompile,
+      reportLines: reportLines,
+      libraryFilters: libraryFilters,
+    ),
+  );
 
   Future<SourceReport> _getSourceReport(
     String isolateId,
@@ -930,22 +895,19 @@ class ChromeProxyService implements VmServiceInterface {
     bool? reportLines,
     List<String>? libraryFilters,
   }) {
-    return captureElapsedTime(
-      () async {
-        await isInitialized;
-        _checkIsolate('getSourceReport', isolateId);
-        return await inspector.getSourceReport(
-          reports,
-          scriptId: scriptId,
-          tokenPos: tokenPos,
-          endTokenPos: endTokenPos,
-          forceCompile: forceCompile,
-          reportLines: reportLines,
-          libraryFilters: libraryFilters,
-        );
-      },
-      (result) => DwdsEvent.getSourceReport(),
-    );
+    return captureElapsedTime(() async {
+      await isInitialized;
+      _checkIsolate('getSourceReport', isolateId);
+      return await inspector.getSourceReport(
+        reports,
+        scriptId: scriptId,
+        tokenPos: tokenPos,
+        endTokenPos: endTokenPos,
+        forceCompile: forceCompile,
+        reportLines: reportLines,
+        libraryFilters: libraryFilters,
+      );
+    }, (result) => DwdsEvent.getSourceReport());
   }
 
   /// Returns the current stack.
@@ -962,11 +924,10 @@ class ChromeProxyService implements VmServiceInterface {
     /// here to make this method is a valid override of
     /// [VmServiceInterface.getStack].
     String? idZoneId,
-  }) =>
-      wrapInErrorHandlerAsync(
-        'getStack',
-        () => _getStack(isolateId, limit: limit),
-      );
+  }) => wrapInErrorHandlerAsync(
+    'getStack',
+    () => _getStack(isolateId, limit: limit),
+  );
 
   Future<Stack> _getStack(String isolateId, {int? limit}) async {
     await isInitialized;
@@ -979,13 +940,10 @@ class ChromeProxyService implements VmServiceInterface {
   Future<VM> getVM() => wrapInErrorHandlerAsync('getVM', _getVM);
 
   Future<VM> _getVM() {
-    return captureElapsedTime(
-      () async {
-        await isInitialized;
-        return _vm;
-      },
-      (result) => DwdsEvent.getVM(),
-    );
+    return captureElapsedTime(() async {
+      await isInitialized;
+      return _vm;
+    }, (result) => DwdsEvent.getVM());
   }
 
   @override
@@ -1023,16 +981,10 @@ class ChromeProxyService implements VmServiceInterface {
     /// here to make this method is a valid override of
     /// [VmServiceInterface.invoke].
     String? idZoneId,
-  }) =>
-      wrapInErrorHandlerAsync(
-        'invoke',
-        () => _invoke(
-          isolateId,
-          targetId,
-          selector,
-          argumentIds,
-        ),
-      );
+  }) => wrapInErrorHandlerAsync(
+    'invoke',
+    () => _invoke(isolateId, targetId, selector, argumentIds),
+  );
 
   Future<Response> _invoke(
     String isolateId,
@@ -1109,11 +1061,10 @@ class ChromeProxyService implements VmServiceInterface {
     String isolateId,
     List<String> uris, {
     bool? local,
-  }) =>
-      wrapInErrorHandlerAsync(
-        'lookupResolvedPackageUris',
-        () => _lookupResolvedPackageUris(isolateId, uris),
-      );
+  }) => wrapInErrorHandlerAsync(
+    'lookupResolvedPackageUris',
+    () => _lookupResolvedPackageUris(isolateId, uris),
+  );
 
   Future<UriList> _lookupResolvedPackageUris(
     String isolateId,
@@ -1154,32 +1105,28 @@ class ChromeProxyService implements VmServiceInterface {
     String? packagesUri,
   }) async {
     _logger.info('Attempting a hot reload');
+    ReloadReport getFailedReloadReport(String error) =>
+        _ReloadReportWithMetadata(success: false)
+          ..json = {
+            'notices': [
+              {'message': error},
+            ],
+          };
+
     try {
       _logger.info('Issuing \$dartHotReloadDwds request');
-      await inspector.jsEvaluate(
-        '\$dartHotReloadDwds();',
-        awaitPromise: true,
-      );
+      await inspector.jsEvaluate('\$dartHotReloadDwds();', awaitPromise: true);
       _logger.info('\$dartHotReloadDwds request complete.');
     } catch (e) {
       _logger.info('Hot reload failed: $e');
-      final report = _ReloadReportWithMetadata(success: false);
-      report.json = {
-        'notices': [
-          {'message': e.toString()},
-        ],
-      };
-      return report;
+      return getFailedReloadReport(e.toString());
     }
     _logger.info('Successful hot reload');
     return _ReloadReportWithMetadata(success: true);
   }
 
   @override
-  Future<Success> removeBreakpoint(
-    String isolateId,
-    String breakpointId,
-  ) =>
+  Future<Success> removeBreakpoint(String isolateId, String breakpointId) =>
       wrapInErrorHandlerAsync(
         'removeBreakpoint',
         () => _removeBreakpoint(isolateId, breakpointId),
@@ -1195,18 +1142,10 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   @override
-  Future<Success> resume(
-    String isolateId, {
-    String? step,
-    int? frameIndex,
-  }) =>
+  Future<Success> resume(String isolateId, {String? step, int? frameIndex}) =>
       wrapInErrorHandlerAsync(
         'resume',
-        () => _resume(
-          isolateId,
-          step: step,
-          frameIndex: frameIndex,
-        ),
+        () => _resume(isolateId, step: step, frameIndex: frameIndex),
       );
 
   Future<Success> _resume(
@@ -1221,16 +1160,15 @@ class ChromeProxyService implements VmServiceInterface {
       return Success();
     }
     if (inspector.appConnection.isStarted) {
-      return captureElapsedTime(
-        () async {
-          await isInitialized;
-          await isStarted;
-          _checkIsolate('resume', isolateId);
-          return await (await debuggerFuture)
-              .resume(step: step, frameIndex: frameIndex);
-        },
-        (result) => DwdsEvent.resume(step),
-      );
+      return captureElapsedTime(() async {
+        await isInitialized;
+        await isStarted;
+        _checkIsolate('resume', isolateId);
+        return await (await debuggerFuture).resume(
+          step: step,
+          frameIndex: frameIndex,
+        );
+      }, (result) => DwdsEvent.resume(step));
     } else {
       inspector.appConnection.runMain();
       return Success();
@@ -1247,8 +1185,7 @@ class ChromeProxyService implements VmServiceInterface {
     String isolateId,
     /*ExceptionPauseMode*/
     String mode,
-  ) =>
-      setIsolatePauseMode(isolateId, exceptionPauseMode: mode);
+  ) => setIsolatePauseMode(isolateId, exceptionPauseMode: mode);
 
   @override
   Future<Success> setIsolatePauseMode(
@@ -1257,14 +1194,11 @@ class ChromeProxyService implements VmServiceInterface {
     // TODO(elliette): Is there a way to respect the shouldPauseOnExit parameter
     // in Chrome?
     bool? shouldPauseOnExit,
-  }) =>
-      wrapInErrorHandlerAsync(
-        'setIsolatePauseMode',
-        () => _setIsolatePauseMode(
-          isolateId,
-          exceptionPauseMode: exceptionPauseMode,
-        ),
-      );
+  }) => wrapInErrorHandlerAsync(
+    'setIsolatePauseMode',
+    () =>
+        _setIsolatePauseMode(isolateId, exceptionPauseMode: exceptionPauseMode),
+  );
 
   Future<Success> _setIsolatePauseMode(
     String isolateId, {
@@ -1272,15 +1206,14 @@ class ChromeProxyService implements VmServiceInterface {
   }) async {
     await isInitialized;
     _checkIsolate('setIsolatePauseMode', isolateId);
-    return (await debuggerFuture)
-        .setExceptionPauseMode(exceptionPauseMode ?? ExceptionPauseMode.kNone);
+    return (await debuggerFuture).setExceptionPauseMode(
+      exceptionPauseMode ?? ExceptionPauseMode.kNone,
+    );
   }
 
   @override
-  Future<Success> setFlag(String name, String value) => wrapInErrorHandlerAsync(
-        'setFlag',
-        () => _setFlag(name, value),
-      );
+  Future<Success> setFlag(String name, String value) =>
+      wrapInErrorHandlerAsync('setFlag', () => _setFlag(name, value));
 
   Future<Success> _setFlag(String name, String value) async {
     if (!_currentVmServiceFlags.containsKey(name)) {
@@ -1304,10 +1237,7 @@ class ChromeProxyService implements VmServiceInterface {
 
   @override
   Future<Success> setName(String isolateId, String name) =>
-      wrapInErrorHandlerAsync(
-        'setName',
-        () => _setName(isolateId, name),
-      );
+      wrapInErrorHandlerAsync('setName', () => _setName(isolateId, name));
 
   Future<Success> _setName(String isolateId, String name) async {
     await isInitialized;
@@ -1390,8 +1320,9 @@ class ChromeProxyService implements VmServiceInterface {
         exceptionsSubscription?.cancel();
       },
       onListen: () {
-        chromeConsoleSubscription =
-            remoteDebugger.onConsoleAPICalled.listen((e) {
+        chromeConsoleSubscription = remoteDebugger.onConsoleAPICalled.listen((
+          e,
+        ) {
           if (!_isIsolateRunning) return;
           final isolateRef = inspector.isolateRef;
           if (!filter(e)) return;
@@ -1400,17 +1331,18 @@ class ChromeProxyService implements VmServiceInterface {
           final value = '${item?["value"]}\n';
           controller.add(
             Event(
-              kind: EventKind.kWriteEvent,
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              isolate: isolateRef,
-            )
+                kind: EventKind.kWriteEvent,
+                timestamp: DateTime.now().millisecondsSinceEpoch,
+                isolate: isolateRef,
+              )
               ..bytes = base64.encode(utf8.encode(value))
               ..timestamp = e.timestamp.toInt(),
           );
         });
         if (includeExceptions) {
-          exceptionsSubscription =
-              remoteDebugger.onExceptionThrown.listen((e) async {
+          exceptionsSubscription = remoteDebugger.onExceptionThrown.listen((
+            e,
+          ) async {
             if (!_isIsolateRunning) return;
             final isolateRef = inspector.isolateRef;
             var description = e.exceptionDetails.exception?.description;
@@ -1449,10 +1381,10 @@ class ChromeProxyService implements VmServiceInterface {
     _streamNotify(
       EventStreams.kExtension,
       Event(
-        kind: EventKind.kExtension,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isolate: isolateRef,
-      )
+          kind: EventKind.kExtension,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          isolate: isolateRef,
+        )
         ..extensionKind = debugEvent.kind
         ..extensionData = ExtensionData.parse(
           jsonDecode(debugEvent.eventData) as Map<String, dynamic>,
@@ -1483,8 +1415,9 @@ class ChromeProxyService implements VmServiceInterface {
 
   /// Listens for chrome console events and handles the ones we care about.
   void _setUpChromeConsoleListeners(IsolateRef isolateRef) {
-    _consoleSubscription =
-        remoteDebugger.onConsoleAPICalled.listen((event) async {
+    _consoleSubscription = remoteDebugger.onConsoleAPICalled.listen((
+      event,
+    ) async {
       if (terminatingIsolates) return;
       if (event.type != 'debug') return;
       if (!_isIsolateRunning) return;
@@ -1503,10 +1436,10 @@ class ChromeProxyService implements VmServiceInterface {
           _streamNotify(
             EventStreams.kDebug,
             Event(
-              kind: EventKind.kInspect,
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              isolate: isolateRef,
-            )
+                kind: EventKind.kInspect,
+                timestamp: DateTime.now().millisecondsSinceEpoch,
+                isolate: isolateRef,
+              )
               ..inspectee = inspectee
               ..timestamp = event.timestamp.toInt(),
           );
@@ -1541,21 +1474,24 @@ class ChromeProxyService implements VmServiceInterface {
     // Always attempt to fetch the full properties instead of relying on
     // `RemoteObject.preview` which only has truncated log messages:
     // https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-RemoteObject
-    final logParams = objectId != null
-        ? await _fetchFullLogParams(objectId, logObject: logObject)
-        : _fetchAbbreviatedLogParams(logObject);
+    final logParams =
+        objectId != null
+            ? await _fetchFullLogParams(objectId, logObject: logObject)
+            : _fetchAbbreviatedLogParams(logObject);
 
     final logRecord = LogRecord(
       message: await _instanceRef(logParams['message']),
       loggerName: await _instanceRef(logParams['name']),
-      level: logParams['level'] != null
-          ? int.tryParse(logParams['level']!.value.toString())
-          : 0,
+      level:
+          logParams['level'] != null
+              ? int.tryParse(logParams['level']!.value.toString())
+              : 0,
       error: await _instanceRef(logParams['error']),
       time: event.timestamp.toInt(),
-      sequenceNumber: logParams['sequenceNumber'] != null
-          ? int.tryParse(logParams['sequenceNumber']!.value.toString())
-          : 0,
+      sequenceNumber:
+          logParams['sequenceNumber'] != null
+              ? int.tryParse(logParams['sequenceNumber']!.value.toString())
+              : 0,
       stackTrace: await _instanceRef(logParams['stackTrace']),
       zone: await _instanceRef(logParams['zone']),
     );
@@ -1563,10 +1499,10 @@ class ChromeProxyService implements VmServiceInterface {
     _streamNotify(
       EventStreams.kLogging,
       Event(
-        kind: EventKind.kLogging,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isolate: isolateRef,
-      )
+          kind: EventKind.kLogging,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          isolate: isolateRef,
+        )
         ..logRecord = logRecord
         ..timestamp = event.timestamp.toInt(),
     );
@@ -1657,10 +1593,8 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   @override
-  Future<ProtocolList> getSupportedProtocols() => wrapInErrorHandlerAsync(
-        'getSupportedProtocols',
-        _getSupportedProtocols,
-      );
+  Future<ProtocolList> getSupportedProtocols() =>
+      wrapInErrorHandlerAsync('getSupportedProtocols', _getSupportedProtocols);
 
   Future<ProtocolList> _getSupportedProtocols() async {
     final version = semver.Version.parse(vmServiceVersion);
@@ -1705,24 +1639,21 @@ class ChromeProxyService implements VmServiceInterface {
     int? timeOriginMicros,
     int? timeExtentMicros,
     String? classId,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
   Future<Success> setTraceClassAllocation(
     String isolateId,
     String classId,
     bool enable,
-  ) =>
-      throw UnimplementedError();
+  ) => throw UnimplementedError();
 
   @override
   Future<Breakpoint> setBreakpointState(
     String isolateId,
     String breakpointId,
     bool enable,
-  ) =>
-      throw UnimplementedError();
+  ) => throw UnimplementedError();
 
   @override
   Future<Success> streamCpuSamplesWithUserTag(List<String> userTags) =>

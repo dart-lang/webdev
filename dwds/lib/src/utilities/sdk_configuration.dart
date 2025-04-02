@@ -36,10 +36,12 @@ abstract class SdkConfigurationProvider {
 /// Contains definition of the default SDK layout.
 /// We keep all the path constants in one place for ease of update.
 class SdkLayout {
-  static final defaultSdkDirectory =
-      p.dirname(p.dirname(Platform.resolvedExecutable));
-  static final SdkLayout defaultSdkLayout =
-      SdkLayout.createDefault(defaultSdkDirectory);
+  static final defaultSdkDirectory = p.dirname(
+    p.dirname(Platform.resolvedExecutable),
+  );
+  static final SdkLayout defaultSdkLayout = SdkLayout.createDefault(
+    defaultSdkDirectory,
+  );
 
   final String sdkDirectory;
   final String summaryPath;
@@ -52,21 +54,21 @@ class SdkLayout {
   final String weakSummaryPath;
 
   SdkLayout.createDefault(String sdkDirectory)
-      : this(
-          sdkDirectory: sdkDirectory,
-          summaryPath: p.join(
-            sdkDirectory,
-            'lib',
-            '_internal',
-            'ddc_outline.dill',
-          ),
-          dartdevcSnapshotPath: p.join(
-            sdkDirectory,
-            'bin',
-            'snapshots',
-            'dartdevc.dart.snapshot',
-          ),
-        );
+    : this(
+        sdkDirectory: sdkDirectory,
+        summaryPath: p.join(
+          sdkDirectory,
+          'lib',
+          '_internal',
+          'ddc_outline.dill',
+        ),
+        dartdevcSnapshotPath: p.join(
+          sdkDirectory,
+          'bin',
+          'snapshots',
+          'dartdevc.dart.snapshot',
+        ),
+      );
 
   const SdkLayout({
     required this.sdkDirectory,
@@ -83,8 +85,9 @@ class SdkLayout {
 ///
 class SdkConfiguration {
   static final defaultSdkLayout = SdkLayout.defaultSdkLayout;
-  static final defaultConfiguration =
-      SdkConfiguration.fromSdkLayout(SdkLayout.defaultSdkLayout);
+  static final defaultConfiguration = SdkConfiguration.fromSdkLayout(
+    SdkLayout.defaultSdkLayout,
+  );
 
   final String? sdkDirectory;
   final String? sdkSummaryPath;
@@ -107,11 +110,11 @@ class SdkConfiguration {
   const SdkConfiguration.empty() : this();
 
   SdkConfiguration.fromSdkLayout(SdkLayout sdkLayout)
-      : this(
-          sdkDirectory: sdkLayout.sdkDirectory,
-          sdkSummaryPath: sdkLayout.summaryPath,
-          compilerWorkerPath: sdkLayout.dartdevcSnapshotPath,
-        );
+    : this(
+        sdkDirectory: sdkLayout.sdkDirectory,
+        sdkSummaryPath: sdkLayout.summaryPath,
+        compilerWorkerPath: sdkLayout.dartdevcSnapshotPath,
+      );
 
   static Uri? _toUri(String? path) => path == null ? null : p.toUri(path);
   static Uri? _toAbsoluteUri(String? path) =>

@@ -104,28 +104,34 @@ void main() {
 
   group('mapExceptionStackTrace', () {
     test('multi-line exception with a stack trace', () async {
-      final result = await inspector
-          .mapExceptionStackTrace(jsMultiLineExceptionWithStackTrace);
+      final result = await inspector.mapExceptionStackTrace(
+        jsMultiLineExceptionWithStackTrace,
+      );
       expect(result, equals(formattedMultiLineExceptionWithStackTrace));
     });
 
     test('multi-line exception without a stack trace', () async {
-      final result = await inspector
-          .mapExceptionStackTrace(jsMultiLineExceptionNoStackTrace);
+      final result = await inspector.mapExceptionStackTrace(
+        jsMultiLineExceptionNoStackTrace,
+      );
       expect(result, equals(formattedMultiLineExceptionNoStackTrace));
     });
 
     test('single-line exception with a stack trace', () async {
-      final result = await inspector
-          .mapExceptionStackTrace(jsSingleLineExceptionWithStackTrace);
+      final result = await inspector.mapExceptionStackTrace(
+        jsSingleLineExceptionWithStackTrace,
+      );
       expect(result, equals(formattedSingleLineExceptionWithStackTrace));
     });
   });
 
   test('send toString', () async {
     final remoteObject = await libraryPublicFinal();
-    final toString =
-        await inspector.invoke(remoteObject.objectId!, 'toString', []);
+    final toString = await inspector.invoke(
+      remoteObject.objectId!,
+      'toString',
+      [],
+    );
     expect(toString.value, 'A test class with message world');
   });
 
@@ -199,14 +205,18 @@ void main() {
       );
       expect(
         remote,
-        const TypeMatcher<RemoteObject>()
-            .having((instance) => instance.value, 'result', 5),
+        const TypeMatcher<RemoteObject>().having(
+          (instance) => instance.value,
+          'result',
+          5,
+        ),
       );
     });
 
     test('invoke instance private', () async {
-      final remote = await inspector
-          .invoke(objectId, 'privateMethod', [dartIdFor('some string')]);
+      final remote = await inspector.invoke(objectId, 'privateMethod', [
+        dartIdFor('some string'),
+      ]);
       expect(
         remote,
         const TypeMatcher<RemoteObject>().having(
@@ -221,19 +231,26 @@ void main() {
       final remote = await inspector.invoke(objectId, 'equals', [objectId]);
       expect(
         remote,
-        const TypeMatcher<RemoteObject>()
-            .having((instance) => instance.value, 'result', true),
+        const TypeMatcher<RemoteObject>().having(
+          (instance) => instance.value,
+          'result',
+          true,
+        ),
       );
     });
 
     test('invoke instance method with object parameter 2', () async {
       final libraryPrivateList = await libraryPrivate();
-      final remote = await inspector
-          .invoke(objectId, 'equals', [libraryPrivateList.objectId]);
+      final remote = await inspector.invoke(objectId, 'equals', [
+        libraryPrivateList.objectId,
+      ]);
       expect(
         remote,
-        const TypeMatcher<RemoteObject>()
-            .having((instance) => instance.value, 'result', false),
+        const TypeMatcher<RemoteObject>().having(
+          (instance) => instance.value,
+          'result',
+          false,
+        ),
       );
     });
 
@@ -241,8 +258,11 @@ void main() {
       final remote = await inspector.invoke(objectId, 'closure', []);
       expect(
         remote,
-        const TypeMatcher<RemoteObject>()
-            .having((instance) => instance.value, 'result', null),
+        const TypeMatcher<RemoteObject>().having(
+          (instance) => instance.value,
+          'result',
+          null,
+        ),
       );
     });
 

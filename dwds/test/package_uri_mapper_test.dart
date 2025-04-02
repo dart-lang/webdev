@@ -19,8 +19,7 @@ void main() {
   final project = TestProject.testPackage();
 
   for (final useDebuggerModuleNames in [true, false]) {
-    group(
-        'Package uri mapper with debugger module names: '
+    group('Package uri mapper with debugger module names: '
         ' $useDebuggerModuleNames |', () {
       final fileSystem = LocalFileSystem();
 
@@ -29,31 +28,27 @@ void main() {
         path: '${project.packageName}/test_library.dart',
       );
 
-      final serverPath = useDebuggerModuleNames
-          ? 'packages/${project.packageDirectory}/lib/test_library.dart'
-          : '/packages/${project.packageName}/test_library.dart';
+      final serverPath =
+          useDebuggerModuleNames
+              ? 'packages/${project.packageDirectory}/lib/test_library.dart'
+              : '/packages/${project.packageName}/test_library.dart';
 
       final resolvedPath =
           '/webdev/fixtures/${project.packageDirectory}/lib/test_library.dart';
 
       final testPackageSoundPath = project.absolutePackageDirectory;
       final packageConfigFile = Uri.file(
-        p.join(
-          testPackageSoundPath,
-          '.dart_tool',
-          'package_config.json',
-        ),
+        p.join(testPackageSoundPath, '.dart_tool', 'package_config.json'),
       );
 
       late final PackageUriMapper packageUriMapper;
       setUpAll(() async {
         // Note: Run `dart pub upgrade` before the test cases to fix
         // https://github.com/dart-lang/webdev/issues/1834:
-        await Process.run(
-          'dart',
-          ['pub', 'upgrade'],
-          workingDirectory: testPackageSoundPath,
-        );
+        await Process.run('dart', [
+          'pub',
+          'upgrade',
+        ], workingDirectory: testPackageSoundPath);
 
         packageUriMapper = await PackageUriMapper.create(
           fileSystem,

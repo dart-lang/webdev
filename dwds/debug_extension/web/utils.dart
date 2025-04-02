@@ -10,6 +10,8 @@ import 'dart:async';
 // ignore: deprecated_member_use
 import 'dart:js_util';
 
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
@@ -19,18 +21,13 @@ Future<Tab> createTab(String url, {bool inNewWindow = false}) {
   if (inNewWindow) {
     chrome.windows.create(
       WindowInfo(focused: true, url: url),
-      allowInterop(
-        (WindowObj windowObj) {
-          completer.complete(windowObj.tabs.first);
-        },
-      ),
+      allowInterop((WindowObj windowObj) {
+        completer.complete(windowObj.tabs.first);
+      }),
     );
   } else {
     chrome.tabs.create(
-      TabInfo(
-        active: true,
-        url: url,
-      ),
+      TabInfo(active: true, url: url),
       allowInterop(completer.complete),
     );
   }
@@ -137,10 +134,7 @@ String addQueryParameters(
   final originalUri = Uri.parse(uri);
   final newUri = originalUri.replace(
     path: '', // Replace the /debugger path so that the inspector url works.
-    queryParameters: {
-      ...originalUri.queryParameters,
-      ...queryParameters,
-    },
+    queryParameters: {...originalUri.queryParameters, ...queryParameters},
   );
   return newUri.toString();
 }

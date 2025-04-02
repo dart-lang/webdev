@@ -22,8 +22,11 @@ class _$ConnectFailureSerializer
   final String wireName = 'ConnectFailure';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, ConnectFailure object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ConnectFailure object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'tabId',
       serializers.serialize(object.tabId, specifiedType: const FullType(int)),
@@ -33,16 +36,19 @@ class _$ConnectFailureSerializer
     if (value != null) {
       result
         ..add('reason')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     return result;
   }
 
   @override
   ConnectFailure deserialize(
-      Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = new ConnectFailureBuilder();
 
     final iterator = serialized.iterator;
@@ -52,12 +58,20 @@ class _$ConnectFailureSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'tabId':
-          result.tabId = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+          result.tabId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'reason':
-          result.reason = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.reason =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
       }
     }
@@ -74,12 +88,17 @@ class _$DevToolsOpenerSerializer
   final String wireName = 'DevToolsOpener';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, DevToolsOpener object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    DevToolsOpener object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'newWindow',
-      serializers.serialize(object.newWindow,
-          specifiedType: const FullType(bool)),
+      serializers.serialize(
+        object.newWindow,
+        specifiedType: const FullType(bool),
+      ),
     ];
 
     return result;
@@ -87,8 +106,10 @@ class _$DevToolsOpenerSerializer
 
   @override
   DevToolsOpener deserialize(
-      Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = new DevToolsOpenerBuilder();
 
     final iterator = serialized.iterator;
@@ -98,8 +119,12 @@ class _$DevToolsOpenerSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'newWindow':
-          result.newWindow = serializers.deserialize(value,
-              specifiedType: const FullType(bool))! as bool;
+          result.newWindow =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )!
+                  as bool;
           break;
       }
     }
@@ -115,8 +140,11 @@ class _$DevToolsUrlSerializer implements StructuredSerializer<DevToolsUrl> {
   final String wireName = 'DevToolsUrl';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, DevToolsUrl object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    DevToolsUrl object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'tabId',
       serializers.serialize(object.tabId, specifiedType: const FullType(int)),
@@ -128,8 +156,11 @@ class _$DevToolsUrlSerializer implements StructuredSerializer<DevToolsUrl> {
   }
 
   @override
-  DevToolsUrl deserialize(Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
+  DevToolsUrl deserialize(
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = new DevToolsUrlBuilder();
 
     final iterator = serialized.iterator;
@@ -139,12 +170,20 @@ class _$DevToolsUrlSerializer implements StructuredSerializer<DevToolsUrl> {
       final Object? value = iterator.current;
       switch (key) {
         case 'tabId':
-          result.tabId = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+          result.tabId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'url':
-          result.url = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.url =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
       }
     }
@@ -161,30 +200,38 @@ class _$DebugStateChangeSerializer
   final String wireName = 'DebugStateChange';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, DebugStateChange object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    DebugStateChange object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'tabId',
       serializers.serialize(object.tabId, specifiedType: const FullType(int)),
       'newState',
-      serializers.serialize(object.newState,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.newState,
+        specifiedType: const FullType(String),
+      ),
     ];
     Object? value;
     value = object.reason;
     if (value != null) {
       result
         ..add('reason')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     return result;
   }
 
   @override
   DebugStateChange deserialize(
-      Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = new DebugStateChangeBuilder();
 
     final iterator = serialized.iterator;
@@ -194,16 +241,28 @@ class _$DebugStateChangeSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'tabId':
-          result.tabId = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+          result.tabId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'newState':
-          result.newState = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.newState =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'reason':
-          result.reason = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.reason =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
       }
     }
@@ -298,11 +357,16 @@ class ConnectFailureBuilder
   ConnectFailure build() => _build();
 
   _$ConnectFailure _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$ConnectFailure._(
-            tabId: BuiltValueNullFieldError.checkNotNull(
-                tabId, r'ConnectFailure', 'tabId'),
-            reason: reason);
+          tabId: BuiltValueNullFieldError.checkNotNull(
+            tabId,
+            r'ConnectFailure',
+            'tabId',
+          ),
+          reason: reason,
+        );
     replace(_$result);
     return _$result;
   }
@@ -317,7 +381,10 @@ class _$DevToolsOpener extends DevToolsOpener {
 
   _$DevToolsOpener._({required this.newWindow}) : super._() {
     BuiltValueNullFieldError.checkNotNull(
-        newWindow, r'DevToolsOpener', 'newWindow');
+      newWindow,
+      r'DevToolsOpener',
+      'newWindow',
+    );
   }
 
   @override
@@ -345,8 +412,7 @@ class _$DevToolsOpener extends DevToolsOpener {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'DevToolsOpener')
-          ..add('newWindow', newWindow))
-        .toString();
+      ..add('newWindow', newWindow)).toString();
   }
 }
 
@@ -384,10 +450,15 @@ class DevToolsOpenerBuilder
   DevToolsOpener build() => _build();
 
   _$DevToolsOpener _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$DevToolsOpener._(
-            newWindow: BuiltValueNullFieldError.checkNotNull(
-                newWindow, r'DevToolsOpener', 'newWindow'));
+          newWindow: BuiltValueNullFieldError.checkNotNull(
+            newWindow,
+            r'DevToolsOpener',
+            'newWindow',
+          ),
+        );
     replace(_$result);
     return _$result;
   }
@@ -476,12 +547,20 @@ class DevToolsUrlBuilder implements Builder<DevToolsUrl, DevToolsUrlBuilder> {
   DevToolsUrl build() => _build();
 
   _$DevToolsUrl _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$DevToolsUrl._(
-            tabId: BuiltValueNullFieldError.checkNotNull(
-                tabId, r'DevToolsUrl', 'tabId'),
-            url: BuiltValueNullFieldError.checkNotNull(
-                url, r'DevToolsUrl', 'url'));
+          tabId: BuiltValueNullFieldError.checkNotNull(
+            tabId,
+            r'DevToolsUrl',
+            'tabId',
+          ),
+          url: BuiltValueNullFieldError.checkNotNull(
+            url,
+            r'DevToolsUrl',
+            'url',
+          ),
+        );
     replace(_$result);
     return _$result;
   }
@@ -495,16 +574,21 @@ class _$DebugStateChange extends DebugStateChange {
   @override
   final String? reason;
 
-  factory _$DebugStateChange(
-          [void Function(DebugStateChangeBuilder)? updates]) =>
-      (new DebugStateChangeBuilder()..update(updates))._build();
+  factory _$DebugStateChange([
+    void Function(DebugStateChangeBuilder)? updates,
+  ]) => (new DebugStateChangeBuilder()..update(updates))._build();
 
-  _$DebugStateChange._(
-      {required this.tabId, required this.newState, this.reason})
-      : super._() {
+  _$DebugStateChange._({
+    required this.tabId,
+    required this.newState,
+    this.reason,
+  }) : super._() {
     BuiltValueNullFieldError.checkNotNull(tabId, r'DebugStateChange', 'tabId');
     BuiltValueNullFieldError.checkNotNull(
-        newState, r'DebugStateChange', 'newState');
+      newState,
+      r'DebugStateChange',
+      'newState',
+    );
   }
 
   @override
@@ -588,13 +672,21 @@ class DebugStateChangeBuilder
   DebugStateChange build() => _build();
 
   _$DebugStateChange _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$DebugStateChange._(
-            tabId: BuiltValueNullFieldError.checkNotNull(
-                tabId, r'DebugStateChange', 'tabId'),
-            newState: BuiltValueNullFieldError.checkNotNull(
-                newState, r'DebugStateChange', 'newState'),
-            reason: reason);
+          tabId: BuiltValueNullFieldError.checkNotNull(
+            tabId,
+            r'DebugStateChange',
+            'tabId',
+          ),
+          newState: BuiltValueNullFieldError.checkNotNull(
+            newState,
+            r'DebugStateChange',
+            'newState',
+          ),
+          reason: reason,
+        );
     replace(_$result);
     return _$result;
   }

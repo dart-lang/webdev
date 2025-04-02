@@ -141,9 +141,10 @@ class ClassHelper extends Domain {
 
     final superClassLibraryId = classDescriptor['superClassLibraryId'];
     final superClassName = classDescriptor['superClassName'];
-    final superClassRef = superClassName == null
-        ? null
-        : classRefFor(superClassLibraryId, superClassName);
+    final superClassRef =
+        superClassName == null
+            ? null
+            : classRefFor(superClassLibraryId, superClassName);
 
     // TODO: Implement the rest of these
     // https://github.com/dart-lang/webdev/issues/176.

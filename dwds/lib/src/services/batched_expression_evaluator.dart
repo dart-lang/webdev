@@ -29,8 +29,9 @@ class EvaluateRequest {
 class BatchedExpressionEvaluator extends ExpressionEvaluator {
   final _logger = Logger('BatchedExpressionEvaluator');
   final AppInspectorInterface _inspector;
-  final _requestController =
-      BatchedStreamController<EvaluateRequest>(delay: 200);
+  final _requestController = BatchedStreamController<EvaluateRequest>(
+    delay: 200,
+  );
   bool _closed = false;
 
   BatchedExpressionEvaluator(
@@ -149,21 +150,17 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
 
       safeUnawaited(
         _inspector
-            .getProperties(
-          listId,
-          offset: i,
-          count: 1,
-          length: requests.length,
-        )
+            .getProperties(listId, offset: i, count: 1, length: requests.length)
             .then((v) {
-          final result = v.first.value!;
-          _logger.fine(
-            'Got result out of a batch for ${request.expression}: $result',
-          );
-          request.completer.complete(result);
-        }),
-        onError: (error, stackTrace) =>
-            request.completer.completeError(error, stackTrace),
+              final result = v.first.value!;
+              _logger.fine(
+                'Got result out of a batch for ${request.expression}: $result',
+              );
+              request.completer.complete(result);
+            }),
+        onError:
+            (error, stackTrace) =>
+                request.completer.completeError(error, stackTrace),
       );
     }
   }

@@ -11,6 +11,8 @@ import 'dart:convert';
 // ignore: deprecated_member_use
 import 'dart:js_util';
 
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
@@ -27,19 +29,16 @@ enum StorageObject {
   multipleAppsDetected;
 
   Persistence get persistence => switch (this) {
-        StorageObject.debugInfo => Persistence.sessionOnly,
-        StorageObject.devToolsOpener => Persistence.acrossSessions,
-        StorageObject.devToolsUri => Persistence.sessionOnly,
-        StorageObject.encodedUri => Persistence.sessionOnly,
-        StorageObject.isAuthenticated => Persistence.sessionOnly,
-        StorageObject.multipleAppsDetected => Persistence.sessionOnly
-      };
+    StorageObject.debugInfo => Persistence.sessionOnly,
+    StorageObject.devToolsOpener => Persistence.acrossSessions,
+    StorageObject.devToolsUri => Persistence.sessionOnly,
+    StorageObject.encodedUri => Persistence.sessionOnly,
+    StorageObject.isAuthenticated => Persistence.sessionOnly,
+    StorageObject.multipleAppsDetected => Persistence.sessionOnly,
+  };
 }
 
-enum Persistence {
-  sessionOnly,
-  acrossSessions;
-}
+enum Persistence { sessionOnly, acrossSessions }
 
 Future<bool> setStorageObject<T>({
   required StorageObject type,
@@ -174,7 +173,7 @@ StorageArea _getStorageArea(Persistence persistence) {
 
   return switch (persistence) {
     Persistence.acrossSessions => chrome.storage.local,
-    Persistence.sessionOnly => chrome.storage.session
+    Persistence.sessionOnly => chrome.storage.session,
   };
 }
 

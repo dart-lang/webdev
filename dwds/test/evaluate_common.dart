@@ -47,10 +47,16 @@ void testAll({
   ) async {
     Breakpoint? bp;
     try {
-      final line =
-          await context.findBreakpointLine(breakPointId, isolate, script);
-      bp = await context.service
-          .addBreakpointWithScriptUri(isolate, script.uri!, line);
+      final line = await context.findBreakpointLine(
+        breakPointId,
+        isolate,
+        script,
+      );
+      bp = await context.service.addBreakpointWithScriptUri(
+        isolate,
+        script.uri!,
+        line,
+      );
       final event = await stream.firstWhere(
         (event) => event.kind == EventKind.kPauseBreakpoint,
       );
@@ -63,766 +69,733 @@ void testAll({
     }
   }
 
-  group(
-    'Shared context with evaluation |',
-    () {
-      setUpAll(() async {
-        setCurrentLogWriter(debug: debug);
-        await context.setUp(
-          testSettings: TestSettings(
-            compilationMode: compilationMode,
-            moduleFormat: provider.ddcModuleFormat,
-            enableExpressionEvaluation: true,
-            useDebuggerModuleNames: useDebuggerModuleNames,
-            verboseCompiler: debug,
-            canaryFeatures: provider.canaryFeatures,
-          ),
+  group('Shared context with evaluation |', () {
+    setUpAll(() async {
+      setCurrentLogWriter(debug: debug);
+      await context.setUp(
+        testSettings: TestSettings(
+          compilationMode: compilationMode,
+          moduleFormat: provider.ddcModuleFormat,
+          enableExpressionEvaluation: true,
+          useDebuggerModuleNames: useDebuggerModuleNames,
+          verboseCompiler: debug,
+          canaryFeatures: provider.canaryFeatures,
+        ),
+      );
+    });
+
+    tearDownAll(() async {
+      await context.tearDown();
+    });
+
+    setUp(() => setCurrentLogWriter(debug: debug));
+
+    group('evaluateInFrame |', () {
+      VM vm;
+      late Isolate isolate;
+      late String isolateId;
+      ScriptList scripts;
+      late ScriptRef mainScript;
+      late ScriptRef libraryScript;
+      late ScriptRef testLibraryScript;
+      late ScriptRef testLibraryPartScript;
+      late Stream<Event> stream;
+      late StreamController<String> output;
+
+      setUp(() async {
+        output = StreamController<String>.broadcast();
+        output.stream.listen(debug ? print : printOnFailure);
+
+        configureLogWriter(
+          customLogWriter: (level, message, {error, loggerName, stackTrace}) {
+            final e = error == null ? '' : ': $error';
+            final s = stackTrace == null ? '' : ':\n$stackTrace';
+            if (!output.isClosed) {
+              output.add('[$level] $loggerName: $message$e$s');
+            }
+          },
+        );
+
+        vm = await context.service.getVM();
+        isolate = await context.service.getIsolate(vm.isolates!.first.id!);
+        isolateId = isolate.id!;
+        scripts = await context.service.getScripts(isolateId);
+
+        await context.service.streamListen('Debug');
+        stream = context.service.onEvent('Debug');
+
+        final testPackage = testPackageProject.packageName;
+        final test = testProject.packageName;
+        mainScript = scripts.scripts!.firstWhere(
+          (each) => each.uri!.contains('main.dart'),
+        );
+        testLibraryScript = scripts.scripts!.firstWhere(
+          (each) =>
+              each.uri!.contains('package:$testPackage/test_library.dart'),
+        );
+        testLibraryPartScript = scripts.scripts!.firstWhere(
+          (each) =>
+              each.uri!.contains('package:$testPackage/src/test_part.dart'),
+        );
+        libraryScript = scripts.scripts!.firstWhere(
+          (each) => each.uri!.contains('package:$test/library.dart'),
         );
       });
 
-      tearDownAll(() async {
-        await context.tearDown();
+      tearDown(() async {
+        await output.close();
+        try {
+          await context.service.resume(isolateId);
+        } catch (_) {}
       });
 
-      setUp(() => setCurrentLogWriter(debug: debug));
+      Future<void> onBreakPoint(script, bpId, body) =>
+          onBp(stream, isolateId, script, bpId, body);
 
-      group('evaluateInFrame |', () {
-        VM vm;
-        late Isolate isolate;
-        late String isolateId;
-        ScriptList scripts;
-        late ScriptRef mainScript;
-        late ScriptRef libraryScript;
-        late ScriptRef testLibraryScript;
-        late ScriptRef testLibraryPartScript;
-        late Stream<Event> stream;
-        late StreamController<String> output;
-
-        setUp(() async {
-          output = StreamController<String>.broadcast();
-          output.stream.listen(debug ? print : printOnFailure);
-
-          configureLogWriter(
-            customLogWriter: (level, message, {error, loggerName, stackTrace}) {
-              final e = error == null ? '' : ': $error';
-              final s = stackTrace == null ? '' : ':\n$stackTrace';
-              if (!output.isClosed) {
-                output.add('[$level] $loggerName: $message$e$s');
-              }
-            },
-          );
-
-          vm = await context.service.getVM();
-          isolate = await context.service.getIsolate(vm.isolates!.first.id!);
-          isolateId = isolate.id!;
-          scripts = await context.service.getScripts(isolateId);
-
-          await context.service.streamListen('Debug');
-          stream = context.service.onEvent('Debug');
-
-          final testPackage = testPackageProject.packageName;
-          final test = testProject.packageName;
-          mainScript = scripts.scripts!
-              .firstWhere((each) => each.uri!.contains('main.dart'));
-          testLibraryScript = scripts.scripts!.firstWhere(
-            (each) =>
-                each.uri!.contains('package:$testPackage/test_library.dart'),
-          );
-          testLibraryPartScript = scripts.scripts!.firstWhere(
-            (each) =>
-                each.uri!.contains('package:$testPackage/src/test_part.dart'),
-          );
-          libraryScript = scripts.scripts!.firstWhere(
-            (each) => each.uri!.contains('package:$test/library.dart'),
-          );
-        });
-
-        tearDown(() async {
-          await output.close();
-          try {
-            await context.service.resume(isolateId);
-          } catch (_) {}
-        });
-
-        Future<void> onBreakPoint(script, bpId, body) => onBp(
-              stream,
-              isolateId,
-              script,
-              bpId,
-              body,
-            );
-
-        Future<Response> evaluateInFrame(frame, expr, {scope}) async =>
-            await context.service.evaluateInFrame(
-              isolateId,
-              frame,
-              expr,
-              scope: scope,
-            );
-
-        Future<InstanceRef> getInstanceRef(frame, expr, {scope}) async {
-          final result = await evaluateInFrame(
+      Future<Response> evaluateInFrame(frame, expr, {scope}) async =>
+          await context.service.evaluateInFrame(
+            isolateId,
             frame,
             expr,
             scope: scope,
           );
-          expect(result, isA<InstanceRef>());
-          return result as InstanceRef;
-        }
 
-        Future<Instance> getInstance(InstanceRef ref) async =>
-            await context.service.getObject(isolateId, ref.id!) as Instance;
-
-        test('with scope', () async {
-          await onBreakPoint(mainScript, 'printFrame1', (event) async {
-            final frame = event.topFrame!.index!;
-
-            final scope = {
-              'x1': (await getInstanceRef(frame, '"cat"')).id!,
-              'x2': (await getInstanceRef(frame, '2')).id!,
-              'x3': (await getInstanceRef(frame, 'MainClass(1,0)')).id!,
-            };
-
-            final result = await getInstanceRef(
-              frame,
-              '"\$x1\$x2 (\$x3) \$testLibraryValue (\$local1)"',
-              scope: scope,
-            );
-
-            expect(result, matchInstanceRef('cat2 (1, 0) 3 (1)'));
-          });
-        });
-
-        test('with large scope', () async {
-          await onBreakPoint(mainScript, 'printLocal', (event) async {
-            const N = 20;
-            final frame = event.topFrame!.index!;
-
-            final scope = {
-              for (var i = 0; i < N; i++)
-                'x$i': (await getInstanceRef(frame, '$i')).id!,
-            };
-            final expression = [
-              for (var i = 0; i < N; i++) '\$x$i',
-            ].join(' ');
-            final expected = [
-              for (var i = 0; i < N; i++) '$i',
-            ].join(' ');
-
-            final result = await evaluateInFrame(
-              frame,
-              '"$expression"',
-              scope: scope,
-            );
-            expect(result, matchInstanceRef(expected));
-          });
-        });
-
-        test('with large code scope', () async {
-          await onBreakPoint(mainScript, 'printLargeScope', (event) async {
-            const xN = 2;
-            const tN = 20;
-            final frame = event.topFrame!.index!;
-
-            final scope = {
-              for (var i = 0; i < xN; i++)
-                'x$i': (await getInstanceRef(frame, '$i')).id!,
-            };
-            final expression = [
-              for (var i = 0; i < xN; i++) '\$x$i',
-              for (var i = 0; i < tN; i++) '\$t$i',
-            ].join(' ');
-            final expected = [
-              for (var i = 0; i < xN; i++) '$i',
-              for (var i = 0; i < tN; i++) '$i',
-            ].join(' ');
-
-            final result = await evaluateInFrame(
-              frame,
-              '"$expression"',
-              scope: scope,
-            );
-            expect(result, matchInstanceRef(expected));
-          });
-        });
-
-        test('with scope in caller frame', () async {
-          await onBreakPoint(mainScript, 'printFrame1', (event) async {
-            final frame = event.topFrame!.index! + 1;
-
-            final scope = {
-              'x1': (await getInstanceRef(frame, '"cat"')).id!,
-              'x2': (await getInstanceRef(frame, '2')).id!,
-              'x3': (await getInstanceRef(frame, 'MainClass(1,0)')).id!,
-            };
-
-            final result = await getInstanceRef(
-              frame,
-              '"\$x1\$x2 (\$x3) \$testLibraryValue (\$local2)"',
-              scope: scope,
-            );
-
-            expect(result, matchInstanceRef('cat2 (1, 0) 3 (2)'));
-          });
-        });
-
-        test('with scope and this', () async {
-          await onBreakPoint(mainScript, 'toStringMainClass', (event) async {
-            final frame = event.topFrame!.index!;
-
-            final scope = {
-              'x1': (await getInstanceRef(frame, '"cat"')).id!,
-            };
-
-            final result = await getInstanceRef(
-              frame,
-              '"\$x1 \${this._field} \${this.field}"',
-              scope: scope,
-            );
-
-            expect(result, matchInstanceRef('cat 1 2'));
-          });
-        });
-
-        test(
-          'extension method scope variables can be evaluated',
-          () async {
-            await onBreakPoint(mainScript, 'extension', (event) async {
-              final stack = await context.service.getStack(isolateId);
-              final scope = _getFrameVariables(stack.frames!.first);
-              for (final p in scope.entries) {
-                final name = p.key;
-                final value = p.value as InstanceRef;
-                final result =
-                    await getInstanceRef(event.topFrame!.index!, name!);
-
-                expect(result, matchInstanceRef(value.valueAsString));
-              }
-            });
-          },
-          skip: 'https://github.com/dart-lang/webdev/issues/1371',
-        );
-
-        test('does not crash if class metadata cannot be found', () async {
-          await onBreakPoint(mainScript, 'printStream', (event) async {
-            final instanceRef =
-                await getInstanceRef(event.topFrame!.index!, 'stream');
-            final instance = await getInstance(instanceRef);
-
-            expect(instance, matchInstanceClassName('_AsBroadcastStream<int>'));
-          });
-        });
-
-        test('local', () async {
-          await onBreakPoint(mainScript, 'printLocal', (event) async {
-            final result = await getInstanceRef(
-              event.topFrame!.index!,
-              'local',
-            );
-
-            expect(result, matchInstanceRef('42'));
-          });
-        });
-
-        test('Type does not show native JavaScript object fields', () async {
-          await onBreakPoint(mainScript, 'printLocal', (event) async {
-            final instanceRef =
-                await getInstanceRef(event.topFrame!.index!, 'Type');
-
-            // Type
-            final instance = await getInstance(instanceRef);
-            for (final field in instance.fields!) {
-              final name = field.decl!.name;
-              final fieldInstance =
-                  await getInstance(field.value as InstanceRef);
-
-              expect(
-                fieldInstance,
-                isA<Instance>().having(
-                  (i) => i.classRef!.name,
-                  'Type.$name: classRef.name',
-                  isNot(
-                    isIn([
-                      'NativeJavaScriptObject',
-                      'JavaScriptObject',
-                    ]),
-                  ),
-                ),
-              );
-            }
-          });
-        });
-
-        test('field', () async {
-          await onBreakPoint(mainScript, 'printFieldFromLibraryClass',
-              (event) async {
-            final result = await getInstanceRef(
-              event.topFrame!.index!,
-              'instance.field',
-            );
-
-            expect(result, matchInstanceRef('1'));
-          });
-        });
-
-        test('private field from another library', () async {
-          await onBreakPoint(mainScript, 'printFieldFromLibraryClass',
-              (event) async {
-            final result = await evaluateInFrame(
-              event.topFrame!.index!,
-              'instance._field',
-            );
-
-            expect(
-              result,
-              matchErrorRef(contains("The getter '_field' isn't defined")),
-            );
-          });
-        });
-
-        test('private field from current library', () async {
-          await onBreakPoint(mainScript, 'printFieldMain', (event) async {
-            final result = await getInstanceRef(
-              event.topFrame!.index!,
-              'instance._field',
-            );
-
-            expect(result, matchInstanceRef('1'));
-          });
-        });
-
-        test('access instance fields after evaluation', () async {
-          await onBreakPoint(mainScript, 'printFieldFromLibraryClass',
-              (event) async {
-            final instanceRef = await getInstanceRef(
-              event.topFrame!.index!,
-              'instance',
-            );
-
-            final instance = await getInstance(instanceRef);
-            final field = instance.fields!.firstWhere(
-              (BoundField element) => element.decl!.name == 'field',
-            );
-
-            expect(field.value, matchInstanceRef('1'));
-          });
-        });
-
-        test('global', () async {
-          await onBreakPoint(mainScript, 'printGlobal', (event) async {
-            final result = await getInstanceRef(
-              event.topFrame!.index!,
-              'testLibraryValue',
-            );
-
-            expect(result, matchInstanceRef('3'));
-          });
-        });
-
-        test('call core function', () async {
-          await onBreakPoint(mainScript, 'printLocal', (event) async {
-            final result = await getInstanceRef(
-              event.topFrame!.index!,
-              'print(local)',
-            );
-
-            expect(result, matchInstanceRef('null'));
-          });
-        });
-
-        test('call library function with const param', () async {
-          await onBreakPoint(mainScript, 'printLocal', (event) async {
-            final result = await getInstanceRef(
-              event.topFrame!.index!,
-              'testLibraryFunction(42)',
-            );
-
-            expect(result, matchInstanceRef('42'));
-          });
-        });
-
-        test('call library function with local param', () async {
-          await onBreakPoint(mainScript, 'printLocal', (event) async {
-            final result = await getInstanceRef(
-              event.topFrame!.index!,
-              'testLibraryFunction(local)',
-            );
-
-            expect(result, matchInstanceRef('42'));
-          });
-        });
-
-        test('call library part function with const param', () async {
-          await onBreakPoint(mainScript, 'printLocal', (event) async {
-            final result = await getInstanceRef(
-              event.topFrame!.index!,
-              'testLibraryPartFunction(42)',
-            );
-
-            expect(result, matchInstanceRef('42'));
-          });
-        });
-
-        test('call library part function with local param', () async {
-          await onBreakPoint(mainScript, 'printLocal', (event) async {
-            final result = await getInstanceRef(
-              event.topFrame!.index!,
-              'testLibraryPartFunction(local)',
-            );
-
-            expect(result, matchInstanceRef('42'));
-          });
-        });
-
-        test('loop variable', () async {
-          await onBreakPoint(mainScript, 'printLoopVariable', (event) async {
-            final result = await getInstanceRef(event.topFrame!.index!, 'item');
-
-            expect(result, matchInstanceRef('1'));
-          });
-        });
-
-        test('evaluate expression in _test_package/test_library', () async {
-          await onBreakPoint(testLibraryScript, 'testLibraryFunction',
-              (event) async {
-            final result =
-                await getInstanceRef(event.topFrame!.index!, 'formal');
-
-            expect(result, matchInstanceRef('23'));
-          });
-        });
-
-        test('evaluate expression in a class constructor in a library',
-            () async {
-          await onBreakPoint(testLibraryScript, 'testLibraryClassConstructor',
-              (event) async {
-            final result = await getInstanceRef(
-              event.topFrame!.index!,
-              'this.field',
-            );
-
-            expect(result, matchInstanceRef('1'));
-          });
-        });
-
-        test('evaluate expression in a class constructor in a library part',
-            () async {
-          await onBreakPoint(
-              testLibraryPartScript, 'testLibraryPartClassConstructor',
-              (event) async {
-            final result = await getInstanceRef(
-              event.topFrame!.index!,
-              'this.field',
-            );
-
-            expect(result, matchInstanceRef('1'));
-          });
-        });
-
-        test('evaluate expression in caller frame', () async {
-          await onBreakPoint(testLibraryScript, 'testLibraryFunction',
-              (event) async {
-            final result = await getInstanceRef(
-              event.topFrame!.index! + 1,
-              'local',
-            );
-
-            expect(result, matchInstanceRef('23'));
-          });
-        });
-
-        test('evaluate expression in a library', () async {
-          await onBreakPoint(libraryScript, 'Concatenate', (event) async {
-            final result = await getInstanceRef(event.topFrame!.index!, 'a');
-
-            expect(result, matchInstanceRef('Hello'));
-          });
-        });
-
-        test('compilation error', () async {
-          await onBreakPoint(mainScript, 'printLocal', (event) async {
-            final error = await evaluateInFrame(event.topFrame!.index!, 'typo');
-
-            expect(
-              error,
-              matchErrorRef(contains(EvaluationErrorKind.compilation)),
-            );
-          });
-        });
-
-        test('async frame error', () async {
-          final maxAttempts = 100;
-
-          Response? error;
-          String? breakpointId;
-          try {
-            // Pause in client.js directly to force pausing in async code.
-            breakpointId = await _setBreakpointInInjectedClient(
-              context.tabConnection.debugger,
-            );
-
-            var attempt = 0;
-            do {
-              try {
-                await context.service.resume(isolateId);
-              } catch (_) {}
-
-              final event = stream.firstWhere(
-                (event) => event.kind == EventKind.kPauseInterrupted,
-              );
-              final frame = (await event).topFrame;
-              if (frame != null) {
-                error = await context.service.evaluateInFrame(
-                  isolateId,
-                  frame.index!,
-                  'true',
-                );
-              }
-              expect(
-                attempt,
-                lessThan(maxAttempts),
-                reason:
-                    'Failed to receive and async frame error in $attempt attempts',
-              );
-              await Future<void>.delayed(const Duration(milliseconds: 10));
-              attempt++;
-            } while (error is! ErrorRef);
-          } finally {
-            if (breakpointId != null) {
-              await context.tabConnection.debugger
-                  .removeBreakpoint(breakpointId);
-            }
-          }
-
-          // Verify we receive an error when evaluating
-          // on async frame.
-          expect(
-            error,
-            matchErrorRef(contains(EvaluationErrorKind.asyncFrame)),
+      Future<InstanceRef> getInstanceRef(frame, expr, {scope}) async {
+        final result = await evaluateInFrame(frame, expr, scope: scope);
+        expect(result, isA<InstanceRef>());
+        return result as InstanceRef;
+      }
+
+      Future<Instance> getInstance(InstanceRef ref) async =>
+          await context.service.getObject(isolateId, ref.id!) as Instance;
+
+      test('with scope', () async {
+        await onBreakPoint(mainScript, 'printFrame1', (event) async {
+          final frame = event.topFrame!.index!;
+
+          final scope = {
+            'x1': (await getInstanceRef(frame, '"cat"')).id!,
+            'x2': (await getInstanceRef(frame, '2')).id!,
+            'x3': (await getInstanceRef(frame, 'MainClass(1,0)')).id!,
+          };
+
+          final result = await getInstanceRef(
+            frame,
+            '"\$x1\$x2 (\$x3) \$testLibraryValue (\$local1)"',
+            scope: scope,
           );
 
-          // Verify we don't emit errors or warnings
-          // on async frame evaluations.
-          output.stream.listen((event) {
-            expect(event, isNot(contains('[WARNING]')));
-            expect(event, isNot(contains('[SEVERE]')));
-          });
-        });
-
-        test(
-          'module load error',
-          () async {
-            await onBreakPoint(mainScript, 'printLocal', (event) async {
-              final error = await evaluateInFrame(
-                event.topFrame!.index!,
-                'd.deferredPrintLocal()',
-              );
-
-              expect(
-                error,
-                matchErrorRef(contains(EvaluationErrorKind.loadModule)),
-              );
-            });
-          },
-          skip: 'https://github.com/dart-lang/sdk/issues/48587',
-        );
-
-        test('cannot evaluate in unsupported isolate', () async {
-          await onBreakPoint(mainScript, 'printLocal', (event) async {
-            await expectLater(
-              context.service
-                  .evaluateInFrame('bad', event.topFrame!.index!, 'local'),
-              throwsSentinelException,
-            );
-          });
+          expect(result, matchInstanceRef('cat2 (1, 0) 3 (1)'));
         });
       });
 
-      group('evaluate |', () {
-        VM vm;
-        late Isolate isolate;
-        late String isolateId;
-
-        setUp(() async {
-          setCurrentLogWriter(debug: debug);
-          final service = context.service;
-          vm = await service.getVM();
-          isolate = await service.getIsolate(vm.isolates!.first.id!);
-          isolateId = isolate.id!;
-
-          await service.streamListen('Debug');
-        });
-
-        tearDown(() async {});
-
-        Future<Response> evaluate(
-          targetId,
-          expr, {
-          scope,
-        }) async =>
-            await context.service.evaluate(
-              isolateId,
-              targetId,
-              expr,
-              scope: scope,
-            );
-
-        Future<InstanceRef> getInstanceRef(
-          targetId,
-          expr, {
-          scope,
-        }) async {
-          final result = await evaluate(
-            targetId,
-            expr,
-            scope: scope,
-          );
-          expect(result, isA<InstanceRef>());
-          return result as InstanceRef;
-        }
-
-        String getRootLibraryId() {
-          expect(isolate.rootLib, isNotNull);
-          expect(isolate.rootLib!.id, isNotNull);
-          return isolate.rootLib!.id!;
-        }
-
-        test(
-          'RecordType getters',
-          () async {
-            final libraryId = getRootLibraryId();
-
-            final type = await getInstanceRef(libraryId, '(0,1).runtimeType');
-            final result = await getInstanceRef(type.id, 'hashCode');
-
-            expect(result, matchInstanceRefKind('Double'));
-          },
-          skip: 'https://github.com/dart-lang/sdk/issues/54609',
-        );
-
-        test('Object getters', () async {
-          final libraryId = getRootLibraryId();
-
-          final type = await getInstanceRef(libraryId, 'Object()');
-          final result = await getInstanceRef(type.id, 'hashCode');
-
-          expect(result, matchInstanceRefKind('Double'));
-        });
-
-        test('with scope', () async {
-          final libraryId = getRootLibraryId();
-
-          final scope = {
-            'x1': (await getInstanceRef(libraryId, '"cat"')).id!,
-            'x2': (await getInstanceRef(libraryId, '2')).id!,
-            'x3': (await getInstanceRef(libraryId, 'MainClass(1,0)')).id!,
-          };
-
-          final result = await getInstanceRef(
-            libraryId,
-            '"\$x1\$x2 (\$x3) \$testLibraryValue"',
-            scope: scope,
-          );
-
-          expect(result, matchInstanceRef('cat2 (1, 0) 3'));
-        });
-
-        test('with large scope', () async {
-          final libraryId = getRootLibraryId();
-          const N = 2;
+      test('with large scope', () async {
+        await onBreakPoint(mainScript, 'printLocal', (event) async {
+          const N = 20;
+          final frame = event.topFrame!.index!;
 
           final scope = {
             for (var i = 0; i < N; i++)
-              'x$i': (await getInstanceRef(libraryId, '$i')).id!,
+              'x$i': (await getInstanceRef(frame, '$i')).id!,
           };
-          final expression = [
-            for (var i = 0; i < N; i++) '\$x$i',
-          ].join(' ');
-          final expected = [
-            for (var i = 0; i < N; i++) '$i',
-          ].join(' ');
+          final expression = [for (var i = 0; i < N; i++) '\$x$i'].join(' ');
+          final expected = [for (var i = 0; i < N; i++) '$i'].join(' ');
 
-          final result = await getInstanceRef(
-            libraryId,
+          final result = await evaluateInFrame(
+            frame,
             '"$expression"',
             scope: scope,
           );
           expect(result, matchInstanceRef(expected));
         });
+      });
 
-        test('in parallel (in a batch)', () async {
-          final libraryId = getRootLibraryId();
+      test('with large code scope', () async {
+        await onBreakPoint(mainScript, 'printLargeScope', (event) async {
+          const xN = 2;
+          const tN = 20;
+          final frame = event.topFrame!.index!;
 
-          final evaluation1 =
-              getInstanceRef(libraryId, 'MainClass(1,0).toString()');
-          final evaluation2 =
-              getInstanceRef(libraryId, 'MainClass(1,1).toString()');
+          final scope = {
+            for (var i = 0; i < xN; i++)
+              'x$i': (await getInstanceRef(frame, '$i')).id!,
+          };
+          final expression = [
+            for (var i = 0; i < xN; i++) '\$x$i',
+            for (var i = 0; i < tN; i++) '\$t$i',
+          ].join(' ');
+          final expected = [
+            for (var i = 0; i < xN; i++) '$i',
+            for (var i = 0; i < tN; i++) '$i',
+          ].join(' ');
 
-          final results = await Future.wait([evaluation1, evaluation2]);
-          expect(results[0], matchInstanceRef('1, 0'));
-          expect(results[1], matchInstanceRef('1, 1'));
-        });
-
-        test('in parallel (in a batch) handles errors', () async {
-          final libraryId = getRootLibraryId();
-          final missingLibId = '';
-
-          final evaluation1 =
-              evaluate(missingLibId, 'MainClass(1,0).toString()');
-          final evaluation2 = evaluate(libraryId, 'MainClass(1,1).toString()');
-
-          final results = await Future.wait([evaluation1, evaluation2]);
-          expect(
-            results[0],
-            matchErrorRef(
-              contains('Evaluate is called on an unsupported target'),
-            ),
+          final result = await evaluateInFrame(
+            frame,
+            '"$expression"',
+            scope: scope,
           );
-          expect(results[1], matchInstanceRef('1, 1'));
+          expect(result, matchInstanceRef(expected));
         });
+      });
 
-        test('with scope override', () async {
-          final libraryId = getRootLibraryId();
+      test('with scope in caller frame', () async {
+        await onBreakPoint(mainScript, 'printFrame1', (event) async {
+          final frame = event.topFrame!.index! + 1;
 
-          final param = await getInstanceRef(libraryId, 'MainClass(1,0)');
+          final scope = {
+            'x1': (await getInstanceRef(frame, '"cat"')).id!,
+            'x2': (await getInstanceRef(frame, '2')).id!,
+            'x3': (await getInstanceRef(frame, 'MainClass(1,0)')).id!,
+          };
+
           final result = await getInstanceRef(
-            libraryId,
-            't.toString()',
-            scope: {'t': param.id!},
+            frame,
+            '"\$x1\$x2 (\$x3) \$testLibraryValue (\$local2)"',
+            scope: scope,
           );
 
-          expect(result, matchInstanceRef('1, 0'));
+          expect(result, matchInstanceRef('cat2 (1, 0) 3 (2)'));
         });
+      });
 
-        test('uses symbol from the same library', () async {
-          final libraryId = getRootLibraryId();
+      test('with scope and this', () async {
+        await onBreakPoint(mainScript, 'toStringMainClass', (event) async {
+          final frame = event.topFrame!.index!;
 
-          final result =
-              await getInstanceRef(libraryId, 'MainClass(1,0).toString()');
+          final scope = {'x1': (await getInstanceRef(frame, '"cat"')).id!};
 
-          expect(result, matchInstanceRef('1, 0'));
-        });
-
-        test('uses symbol from another library', () async {
-          final libraryId = getRootLibraryId();
           final result = await getInstanceRef(
-            libraryId,
-            'TestLibraryClass(0,1).toString()',
+            frame,
+            '"\$x1 \${this._field} \${this.field}"',
+            scope: scope,
           );
 
-          expect(result, matchInstanceRef('field: 0, _field: 1'));
+          expect(result, matchInstanceRef('cat 1 2'));
         });
+      });
 
-        test('closure call', () async {
-          final libraryId = getRootLibraryId();
-          final result = await getInstanceRef(libraryId, '(() => 42)()');
+      test(
+        'extension method scope variables can be evaluated',
+        () async {
+          await onBreakPoint(mainScript, 'extension', (event) async {
+            final stack = await context.service.getStack(isolateId);
+            final scope = _getFrameVariables(stack.frames!.first);
+            for (final p in scope.entries) {
+              final name = p.key;
+              final value = p.value as InstanceRef;
+              final result = await getInstanceRef(
+                event.topFrame!.index!,
+                name!,
+              );
+
+              expect(result, matchInstanceRef(value.valueAsString));
+            }
+          });
+        },
+        skip: 'https://github.com/dart-lang/webdev/issues/1371',
+      );
+
+      test('does not crash if class metadata cannot be found', () async {
+        await onBreakPoint(mainScript, 'printStream', (event) async {
+          final instanceRef = await getInstanceRef(
+            event.topFrame!.index!,
+            'stream',
+          );
+          final instance = await getInstance(instanceRef);
+
+          expect(instance, matchInstanceClassName('_AsBroadcastStream<int>'));
+        });
+      });
+
+      test('local', () async {
+        await onBreakPoint(mainScript, 'printLocal', (event) async {
+          final result = await getInstanceRef(event.topFrame!.index!, 'local');
 
           expect(result, matchInstanceRef('42'));
         });
       });
-    },
-    timeout: const Timeout.factor(2),
-  );
+
+      test('Type does not show native JavaScript object fields', () async {
+        await onBreakPoint(mainScript, 'printLocal', (event) async {
+          final instanceRef = await getInstanceRef(
+            event.topFrame!.index!,
+            'Type',
+          );
+
+          // Type
+          final instance = await getInstance(instanceRef);
+          for (final field in instance.fields!) {
+            final name = field.decl!.name;
+            final fieldInstance = await getInstance(field.value as InstanceRef);
+
+            expect(
+              fieldInstance,
+              isA<Instance>().having(
+                (i) => i.classRef!.name,
+                'Type.$name: classRef.name',
+                isNot(isIn(['NativeJavaScriptObject', 'JavaScriptObject'])),
+              ),
+            );
+          }
+        });
+      });
+
+      test('field', () async {
+        await onBreakPoint(mainScript, 'printFieldFromLibraryClass', (
+          event,
+        ) async {
+          final result = await getInstanceRef(
+            event.topFrame!.index!,
+            'instance.field',
+          );
+
+          expect(result, matchInstanceRef('1'));
+        });
+      });
+
+      test('private field from another library', () async {
+        await onBreakPoint(mainScript, 'printFieldFromLibraryClass', (
+          event,
+        ) async {
+          final result = await evaluateInFrame(
+            event.topFrame!.index!,
+            'instance._field',
+          );
+
+          expect(
+            result,
+            matchErrorRef(contains("The getter '_field' isn't defined")),
+          );
+        });
+      });
+
+      test('private field from current library', () async {
+        await onBreakPoint(mainScript, 'printFieldMain', (event) async {
+          final result = await getInstanceRef(
+            event.topFrame!.index!,
+            'instance._field',
+          );
+
+          expect(result, matchInstanceRef('1'));
+        });
+      });
+
+      test('access instance fields after evaluation', () async {
+        await onBreakPoint(mainScript, 'printFieldFromLibraryClass', (
+          event,
+        ) async {
+          final instanceRef = await getInstanceRef(
+            event.topFrame!.index!,
+            'instance',
+          );
+
+          final instance = await getInstance(instanceRef);
+          final field = instance.fields!.firstWhere(
+            (BoundField element) => element.decl!.name == 'field',
+          );
+
+          expect(field.value, matchInstanceRef('1'));
+        });
+      });
+
+      test('global', () async {
+        await onBreakPoint(mainScript, 'printGlobal', (event) async {
+          final result = await getInstanceRef(
+            event.topFrame!.index!,
+            'testLibraryValue',
+          );
+
+          expect(result, matchInstanceRef('3'));
+        });
+      });
+
+      test('call core function', () async {
+        await onBreakPoint(mainScript, 'printLocal', (event) async {
+          final result = await getInstanceRef(
+            event.topFrame!.index!,
+            'print(local)',
+          );
+
+          expect(result, matchInstanceRef('null'));
+        });
+      });
+
+      test('call library function with const param', () async {
+        await onBreakPoint(mainScript, 'printLocal', (event) async {
+          final result = await getInstanceRef(
+            event.topFrame!.index!,
+            'testLibraryFunction(42)',
+          );
+
+          expect(result, matchInstanceRef('42'));
+        });
+      });
+
+      test('call library function with local param', () async {
+        await onBreakPoint(mainScript, 'printLocal', (event) async {
+          final result = await getInstanceRef(
+            event.topFrame!.index!,
+            'testLibraryFunction(local)',
+          );
+
+          expect(result, matchInstanceRef('42'));
+        });
+      });
+
+      test('call library part function with const param', () async {
+        await onBreakPoint(mainScript, 'printLocal', (event) async {
+          final result = await getInstanceRef(
+            event.topFrame!.index!,
+            'testLibraryPartFunction(42)',
+          );
+
+          expect(result, matchInstanceRef('42'));
+        });
+      });
+
+      test('call library part function with local param', () async {
+        await onBreakPoint(mainScript, 'printLocal', (event) async {
+          final result = await getInstanceRef(
+            event.topFrame!.index!,
+            'testLibraryPartFunction(local)',
+          );
+
+          expect(result, matchInstanceRef('42'));
+        });
+      });
+
+      test('loop variable', () async {
+        await onBreakPoint(mainScript, 'printLoopVariable', (event) async {
+          final result = await getInstanceRef(event.topFrame!.index!, 'item');
+
+          expect(result, matchInstanceRef('1'));
+        });
+      });
+
+      test('evaluate expression in _test_package/test_library', () async {
+        await onBreakPoint(testLibraryScript, 'testLibraryFunction', (
+          event,
+        ) async {
+          final result = await getInstanceRef(event.topFrame!.index!, 'formal');
+
+          expect(result, matchInstanceRef('23'));
+        });
+      });
+
+      test('evaluate expression in a class constructor in a library', () async {
+        await onBreakPoint(testLibraryScript, 'testLibraryClassConstructor', (
+          event,
+        ) async {
+          final result = await getInstanceRef(
+            event.topFrame!.index!,
+            'this.field',
+          );
+
+          expect(result, matchInstanceRef('1'));
+        });
+      });
+
+      test(
+        'evaluate expression in a class constructor in a library part',
+        () async {
+          await onBreakPoint(
+            testLibraryPartScript,
+            'testLibraryPartClassConstructor',
+            (event) async {
+              final result = await getInstanceRef(
+                event.topFrame!.index!,
+                'this.field',
+              );
+
+              expect(result, matchInstanceRef('1'));
+            },
+          );
+        },
+      );
+
+      test('evaluate expression in caller frame', () async {
+        await onBreakPoint(testLibraryScript, 'testLibraryFunction', (
+          event,
+        ) async {
+          final result = await getInstanceRef(
+            event.topFrame!.index! + 1,
+            'local',
+          );
+
+          expect(result, matchInstanceRef('23'));
+        });
+      });
+
+      test('evaluate expression in a library', () async {
+        await onBreakPoint(libraryScript, 'Concatenate', (event) async {
+          final result = await getInstanceRef(event.topFrame!.index!, 'a');
+
+          expect(result, matchInstanceRef('Hello'));
+        });
+      });
+
+      test('compilation error', () async {
+        await onBreakPoint(mainScript, 'printLocal', (event) async {
+          final error = await evaluateInFrame(event.topFrame!.index!, 'typo');
+
+          expect(
+            error,
+            matchErrorRef(contains(EvaluationErrorKind.compilation)),
+          );
+        });
+      });
+
+      test('async frame error', () async {
+        final maxAttempts = 100;
+
+        Response? error;
+        String? breakpointId;
+        try {
+          // Pause in client.js directly to force pausing in async code.
+          breakpointId = await _setBreakpointInInjectedClient(
+            context.tabConnection.debugger,
+          );
+
+          var attempt = 0;
+          do {
+            try {
+              await context.service.resume(isolateId);
+            } catch (_) {}
+
+            final event = stream.firstWhere(
+              (event) => event.kind == EventKind.kPauseInterrupted,
+            );
+            final frame = (await event).topFrame;
+            if (frame != null) {
+              error = await context.service.evaluateInFrame(
+                isolateId,
+                frame.index!,
+                'true',
+              );
+            }
+            expect(
+              attempt,
+              lessThan(maxAttempts),
+              reason:
+                  'Failed to receive and async frame error in $attempt attempts',
+            );
+            await Future<void>.delayed(const Duration(milliseconds: 10));
+            attempt++;
+          } while (error is! ErrorRef);
+        } finally {
+          if (breakpointId != null) {
+            await context.tabConnection.debugger.removeBreakpoint(breakpointId);
+          }
+        }
+
+        // Verify we receive an error when evaluating
+        // on async frame.
+        expect(error, matchErrorRef(contains(EvaluationErrorKind.asyncFrame)));
+
+        // Verify we don't emit errors or warnings
+        // on async frame evaluations.
+        output.stream.listen((event) {
+          expect(event, isNot(contains('[WARNING]')));
+          expect(event, isNot(contains('[SEVERE]')));
+        });
+      });
+
+      test('module load error', () async {
+        await onBreakPoint(mainScript, 'printLocal', (event) async {
+          final error = await evaluateInFrame(
+            event.topFrame!.index!,
+            'd.deferredPrintLocal()',
+          );
+
+          expect(
+            error,
+            matchErrorRef(contains(EvaluationErrorKind.loadModule)),
+          );
+        });
+      }, skip: 'https://github.com/dart-lang/sdk/issues/48587');
+
+      test('cannot evaluate in unsupported isolate', () async {
+        await onBreakPoint(mainScript, 'printLocal', (event) async {
+          await expectLater(
+            context.service.evaluateInFrame(
+              'bad',
+              event.topFrame!.index!,
+              'local',
+            ),
+            throwsSentinelException,
+          );
+        });
+      });
+    });
+
+    group('evaluate |', () {
+      VM vm;
+      late Isolate isolate;
+      late String isolateId;
+
+      setUp(() async {
+        setCurrentLogWriter(debug: debug);
+        final service = context.service;
+        vm = await service.getVM();
+        isolate = await service.getIsolate(vm.isolates!.first.id!);
+        isolateId = isolate.id!;
+
+        await service.streamListen('Debug');
+      });
+
+      tearDown(() async {});
+
+      Future<Response> evaluate(targetId, expr, {scope}) async => await context
+          .service
+          .evaluate(isolateId, targetId, expr, scope: scope);
+
+      Future<InstanceRef> getInstanceRef(targetId, expr, {scope}) async {
+        final result = await evaluate(targetId, expr, scope: scope);
+        expect(result, isA<InstanceRef>());
+        return result as InstanceRef;
+      }
+
+      String getRootLibraryId() {
+        expect(isolate.rootLib, isNotNull);
+        expect(isolate.rootLib!.id, isNotNull);
+        return isolate.rootLib!.id!;
+      }
+
+      test(
+        'RecordType getters',
+        () async {
+          final libraryId = getRootLibraryId();
+
+          final type = await getInstanceRef(libraryId, '(0,1).runtimeType');
+          final result = await getInstanceRef(type.id, 'hashCode');
+
+          expect(result, matchInstanceRefKind('Double'));
+        },
+        skip: 'https://github.com/dart-lang/sdk/issues/54609',
+      );
+
+      test('Object getters', () async {
+        final libraryId = getRootLibraryId();
+
+        final type = await getInstanceRef(libraryId, 'Object()');
+        final result = await getInstanceRef(type.id, 'hashCode');
+
+        expect(result, matchInstanceRefKind('Double'));
+      });
+
+      test('with scope', () async {
+        final libraryId = getRootLibraryId();
+
+        final scope = {
+          'x1': (await getInstanceRef(libraryId, '"cat"')).id!,
+          'x2': (await getInstanceRef(libraryId, '2')).id!,
+          'x3': (await getInstanceRef(libraryId, 'MainClass(1,0)')).id!,
+        };
+
+        final result = await getInstanceRef(
+          libraryId,
+          '"\$x1\$x2 (\$x3) \$testLibraryValue"',
+          scope: scope,
+        );
+
+        expect(result, matchInstanceRef('cat2 (1, 0) 3'));
+      });
+
+      test('with large scope', () async {
+        final libraryId = getRootLibraryId();
+        const N = 2;
+
+        final scope = {
+          for (var i = 0; i < N; i++)
+            'x$i': (await getInstanceRef(libraryId, '$i')).id!,
+        };
+        final expression = [for (var i = 0; i < N; i++) '\$x$i'].join(' ');
+        final expected = [for (var i = 0; i < N; i++) '$i'].join(' ');
+
+        final result = await getInstanceRef(
+          libraryId,
+          '"$expression"',
+          scope: scope,
+        );
+        expect(result, matchInstanceRef(expected));
+      });
+
+      test('in parallel (in a batch)', () async {
+        final libraryId = getRootLibraryId();
+
+        final evaluation1 = getInstanceRef(
+          libraryId,
+          'MainClass(1,0).toString()',
+        );
+        final evaluation2 = getInstanceRef(
+          libraryId,
+          'MainClass(1,1).toString()',
+        );
+
+        final results = await Future.wait([evaluation1, evaluation2]);
+        expect(results[0], matchInstanceRef('1, 0'));
+        expect(results[1], matchInstanceRef('1, 1'));
+      });
+
+      test('in parallel (in a batch) handles errors', () async {
+        final libraryId = getRootLibraryId();
+        final missingLibId = '';
+
+        final evaluation1 = evaluate(missingLibId, 'MainClass(1,0).toString()');
+        final evaluation2 = evaluate(libraryId, 'MainClass(1,1).toString()');
+
+        final results = await Future.wait([evaluation1, evaluation2]);
+        expect(
+          results[0],
+          matchErrorRef(
+            contains('Evaluate is called on an unsupported target'),
+          ),
+        );
+        expect(results[1], matchInstanceRef('1, 1'));
+      });
+
+      test('with scope override', () async {
+        final libraryId = getRootLibraryId();
+
+        final param = await getInstanceRef(libraryId, 'MainClass(1,0)');
+        final result = await getInstanceRef(
+          libraryId,
+          't.toString()',
+          scope: {'t': param.id!},
+        );
+
+        expect(result, matchInstanceRef('1, 0'));
+      });
+
+      test('uses symbol from the same library', () async {
+        final libraryId = getRootLibraryId();
+
+        final result = await getInstanceRef(
+          libraryId,
+          'MainClass(1,0).toString()',
+        );
+
+        expect(result, matchInstanceRef('1, 0'));
+      });
+
+      test('uses symbol from another library', () async {
+        final libraryId = getRootLibraryId();
+        final result = await getInstanceRef(
+          libraryId,
+          'TestLibraryClass(0,1).toString()',
+        );
+
+        expect(result, matchInstanceRef('field: 0, _field: 1'));
+      });
+
+      test('closure call', () async {
+        final libraryId = getRootLibraryId();
+        final result = await getInstanceRef(libraryId, '(() => 42)()');
+
+        expect(result, matchInstanceRef('42'));
+      });
+    });
+  }, timeout: const Timeout.factor(2));
 
   group('shared context with no evaluation |', () {
     setUpAll(() async {
@@ -862,8 +835,9 @@ void testAll({
         await service.streamListen('Debug');
         stream = service.onEvent('Debug');
 
-        mainScript = scripts.scripts!
-            .firstWhere((each) => each.uri!.contains('main.dart'));
+        mainScript = scripts.scripts!.firstWhere(
+          (each) => each.uri!.contains('main.dart'),
+        );
       });
 
       tearDown(() async {
@@ -873,8 +847,11 @@ void testAll({
       test('cannot evaluate expression', () async {
         await onBp(stream, isolateId, mainScript, 'printLocal', (event) async {
           await expectLater(
-            context.service
-                .evaluateInFrame(isolateId, event.topFrame!.index!, 'local'),
+            context.service.evaluateInFrame(
+              isolateId,
+              event.topFrame!.index!,
+              'local',
+            ),
             throwsRPCError,
           );
         });
@@ -892,13 +869,14 @@ Map<String?, InstanceRef?> _getFrameVariables(Frame frame) {
 
 Future<String> _setBreakpointInInjectedClient(WipDebugger debugger) async {
   final client = 'dwds/src/injected/client.js';
-  final clientScript =
-      debugger.scripts.values.firstWhere((e) => e.url.contains(client));
+  final clientScript = debugger.scripts.values.firstWhere(
+    (e) => e.url.contains(client),
+  );
   final clientSource = await debugger.getScriptSource(clientScript.scriptId);
 
-  final line = clientSource.split('\n').indexWhere(
-        (element) => element.contains('convertDartClosureToJS'),
-      );
+  final line = clientSource
+      .split('\n')
+      .indexWhere((element) => element.contains('convertDartClosureToJS'));
 
   final result = await debugger.sendCommand(
     'Debugger.setBreakpointByUrl',
@@ -914,24 +892,20 @@ Future<String> _setBreakpointInInjectedClient(WipDebugger debugger) async {
 Matcher matchInstanceRefKind(String kind) =>
     isA<InstanceRef>().having((instance) => instance.kind, 'kind', kind);
 
-Matcher matchInstanceRef(dynamic value) => isA<InstanceRef>()
-    .having((instance) => instance.valueAsString, 'valueAsString', value);
+Matcher matchInstanceRef(dynamic value) => isA<InstanceRef>().having(
+  (instance) => instance.valueAsString,
+  'valueAsString',
+  value,
+);
 
 Matcher matchInstanceClassName(dynamic className) => isA<Instance>().having(
-      (instance) => instance.classRef!.name,
-      'class name',
-      className,
-    );
+  (instance) => instance.classRef!.name,
+  'class name',
+  className,
+);
 
-Matcher matchInstanceRefClassName(dynamic className) =>
-    isA<InstanceRef>().having(
-      (instance) => instance.classRef!.name,
-      'class name',
-      className,
-    );
+Matcher matchInstanceRefClassName(dynamic className) => isA<InstanceRef>()
+    .having((instance) => instance.classRef!.name, 'class name', className);
 
-Matcher matchErrorRef(dynamic message) => isA<ErrorRef>().having(
-      (instance) => instance.message,
-      'message',
-      message,
-    );
+Matcher matchErrorRef(dynamic message) =>
+    isA<ErrorRef>().having((instance) => instance.message, 'message', message);

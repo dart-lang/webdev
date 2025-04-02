@@ -1,3 +1,29 @@
+## 24.3.9
+
+- Renamed DWDS Injector parameter `enableDebuggingSupport` to `injectDebuggingSupportCode` for clearer intent.
+
+## 24.3.8
+
+- Updated DWDS to include a boolean flag that enables debugging support only when set to true. [#60289](https://github.com/dart-lang/sdk/issues/60289)
+
+## 24.3.7
+
+- The registered extension `reassemble` is now no longer called when calling
+  `reloadSources`. Users should call `reassemble` using `callServiceExtension`.
+
+- `callServiceExtension` now checks the runtime for the list of registered
+  service extensions. It also now throws a `RPCError` with
+  `RPCErrorKind.kMethodNotFound` when a service extension is not found instead
+  of throwing a JS evaluation error.
+
+## 24.3.6
+
+- Bump minimum sdk version to 3.7.0
+- use 'compile js-dev' instead of directly invoking the ddc snapshot.
+- `FrontendServerDdcLibraryBundleStrategy` now takes a `hotReloadSourcesUri`
+  parameter in order to fetch the file that contains the changed sources and
+  libraries instead of assuming it exists in the global `window`.
+
 ## 24.3.5
 - Allow clients to specify the `packageConfigPath` in `LoadStrategy` class and associated providers.
 

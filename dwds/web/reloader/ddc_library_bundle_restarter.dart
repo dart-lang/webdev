@@ -11,10 +11,6 @@ import 'restarter.dart';
 @JS('dartDevEmbedder')
 external _DartDevEmbedder get _dartDevEmbedder;
 
-// Flutter tools should set this path up before a hot reload.
-@JS('\$reloadScriptsPath')
-external String get _reloadScriptsPath;
-
 extension type _DartDevEmbedder._(JSObject _) implements JSObject {
   external _Debugger get debugger;
   external JSPromise<JSAny?> hotRestart();
@@ -30,13 +26,6 @@ extension type _Debugger._(JSObject _) implements JSObject {
 
   Future<void> maybeInvokeFlutterDisassemble() async {
     final method = 'ext.flutter.disassemble';
-    if (extensionNames.toDart.contains(method.toJS)) {
-      await invokeExtension(method, '{}').toDart;
-    }
-  }
-
-  Future<void> maybeInvokeFlutterReassemble() async {
-    final method = 'ext.flutter.reassemble';
     if (extensionNames.toDart.contains(method.toJS)) {
       await invokeExtension(method, '{}').toDart;
     }
@@ -69,30 +58,21 @@ class DdcLibraryBundleRestarter implements Restarter {
   }
 
   @override
-  Future<void> reload() async {
+  Future<void> reload(String hotReloadSourcesPath) async {
     final completer = Completer<String>();
     final xhr = _XMLHttpRequest();
     xhr.withCredentials = true;
-    xhr.onreadystatechange = () {
-      // If the request has completed and OK, or the response has not changed.
-      if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
-        completer.complete(xhr.responseText);
-      }
-    }.toJS;
-    xhr.get(_reloadScriptsPath, true);
+    xhr.onreadystatechange =
+        () {
+          // If the request has completed and OK, or the response has not changed.
+          if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
+            completer.complete(xhr.responseText);
+          }
+        }.toJS;
+    xhr.get(hotReloadSourcesPath, true);
     xhr.send();
     final responseText = await completer.future;
 
-    // Expect the response to be in the format:
-    // ```
-    // [
-    //   {
-    //     'src': '<file_name>',
-    //     'libraries': ['<lib1>', ...],
-    //   },
-    //   ...
-    // ]
-    // ```
     final srcLibraries = (json.decode(responseText) as List).cast<Map>();
     final filesToLoad = JSArray<JSString>();
     final librariesToReload = JSArray<JSString>();
@@ -105,9 +85,5 @@ class DdcLibraryBundleRestarter implements Restarter {
       }
     }
     await _dartDevEmbedder.hotReload(filesToLoad, librariesToReload).toDart;
-    // TODO(srujzs): Reassembling is slow. It's roughly almost the time it takes
-    // to recompile and do a hot reload. We should do some better profiling and
-    // see if we can improve this.
-    await _dartDevEmbedder.debugger.maybeInvokeFlutterReassemble();
   }
 }
