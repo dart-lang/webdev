@@ -27,8 +27,8 @@ void main() {
     setUpAll(() async {
       configureLogWriter(debug);
       await testRunner.setUpAll();
-      exampleDirectory = p.absolute(
-          p.join(p.current, '..', 'fixtures', '_experimentSound'));
+      exampleDirectory =
+          p.absolute(p.join(p.current, '..', 'fixtures', '_experimentSound'));
 
       final process = await TestProcess.start(
         'dart',
@@ -55,8 +55,8 @@ void main() {
         '--tls-cert-key=localhost+2-key.pem',
       ];
 
-      final process = await testRunner.runWebDev(args,
-          workingDirectory: exampleDirectory);
+      final process =
+          await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
       await expectLater(process.stdout, emitsThrough(contains('Succeeded')));
 
       final client = HttpClient()
@@ -84,8 +84,8 @@ void main() {
         '--tls-cert-key=localhost+2-key.pem',
       ];
 
-      final process = await testRunner.runWebDev(args,
-          workingDirectory: exampleDirectory);
+      final process =
+          await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
       await expectLater(process.stdout, emitsThrough(contains('Succeeded')));
 
       final interfaces = await NetworkInterface.list(
