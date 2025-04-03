@@ -65,10 +65,7 @@ class JsBuilder {
   /// Call the expression built by [build] with [args].
   ///
   /// $function($args);
-  void writeCallExpression(
-    Iterable<String> args,
-    void Function() build,
-  ) {
+  void writeCallExpression(Iterable<String> args, void Function() build) {
     build();
     write('(');
     writeAll(args, ', ');
@@ -130,10 +127,7 @@ class JsBuilder {
   /// function($args) {
   ///   $body
   /// };
-  void writeFunctionDefinition(
-    Iterable<String> params,
-    void Function() build,
-  ) {
+  void writeFunctionDefinition(Iterable<String> params, void Function() build) {
     write('function (');
     writeAll(params, ', ');
     writeLine(') {');
@@ -149,10 +143,7 @@ class JsBuilder {
   /// Bind the function built by [build] to [to].
   ///
   /// $function.bind($to)
-  void writeBindExpression(
-    String to,
-    void Function() build,
-  ) {
+  void writeBindExpression(String to, void Function() build) {
     build();
     write('.bind(');
     write(to);
@@ -192,8 +183,7 @@ class JsBuilder {
   static String createEvalStaticFunction(
     Iterable<String> function,
     Iterable<String> params,
-  ) =>
-      (JsBuilder().._writeEvalStaticFunction(function, params)).build();
+  ) => (JsBuilder().._writeEvalStaticFunction(function, params)).build();
 
   void _writeEvalStaticFunction(
     Iterable<String> function,
@@ -203,12 +193,9 @@ class JsBuilder {
       params,
       () => writeTryCatchStatement(
         () => writeReturnStatement(
-          () => writeCallExpression(
-            params,
-            () {
-              writeMultiLineExpression(function);
-            },
-          ),
+          () => writeCallExpression(params, () {
+            writeMultiLineExpression(function);
+          }),
         ),
       ),
     );
@@ -229,8 +216,7 @@ class JsBuilder {
   static String createEvalBoundFunction(
     Iterable<String> function,
     Iterable<String> params,
-  ) =>
-      (JsBuilder().._writeEvalBoundFunction(function, params)).build();
+  ) => (JsBuilder().._writeEvalBoundFunction(function, params)).build();
 
   void _writeEvalBoundFunction(
     Iterable<String> function,
@@ -256,12 +242,9 @@ class JsBuilder {
               () => writeFunctionDefinition(
                 args,
                 () => writeReturnStatement(
-                  () => writeCallExpression(
-                    args,
-                    () {
-                      writeMultiLineExpression(function);
-                    },
-                  ),
+                  () => writeCallExpression(args, () {
+                    writeMultiLineExpression(function);
+                  }),
                 ),
               ),
             ),

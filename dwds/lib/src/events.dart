@@ -63,37 +63,37 @@ class DwdsEvent {
   DwdsEvent(this.type, this.payload);
 
   DwdsEvent.dwdsLaunch({required String codeRunner, bool? isFlutterApp})
-      : this(DwdsEventKind.dwdsLaunch, {
-          'codeRunner': codeRunner,
-          'isFlutterApp': isFlutterApp ?? false,
-        });
+    : this(DwdsEventKind.dwdsLaunch, {
+        'codeRunner': codeRunner,
+        'isFlutterApp': isFlutterApp ?? false,
+      });
 
   DwdsEvent.dwdsAttach({required String client, bool? isFlutterApp})
-      : this(DwdsEventKind.dwdsAttach, {
-          'client': client,
-          'isFlutterApp': isFlutterApp ?? false,
-        });
+    : this(DwdsEventKind.dwdsAttach, {
+        'client': client,
+        'isFlutterApp': isFlutterApp ?? false,
+      });
 
   DwdsEvent.compilerUpdateDependencies(String entrypoint)
-      : this(DwdsEventKind.compilerUpdateDependencies, {
-          'entrypoint': entrypoint,
-        });
+    : this(DwdsEventKind.compilerUpdateDependencies, {
+        'entrypoint': entrypoint,
+      });
 
   DwdsEvent.devtoolsLaunch() : this(DwdsEventKind.devtoolsLaunch, {});
 
   DwdsEvent.evaluate(String expression, Response? result)
-      : this(DwdsEventKind.evaluate, {
-          'expression': expression,
-          'success': result != null && result is InstanceRef,
-          if (result != null && result is ErrorRef) 'error': result,
-        });
+    : this(DwdsEventKind.evaluate, {
+        'expression': expression,
+        'success': result != null && result is InstanceRef,
+        if (result != null && result is ErrorRef) 'error': result,
+      });
 
   DwdsEvent.evaluateInFrame(String expression, Response? result)
-      : this(DwdsEventKind.evaluateInFrame, {
-          'expression': expression,
-          'success': result != null && result is InstanceRef,
-          if (result != null && result is ErrorRef) 'error': result,
-        });
+    : this(DwdsEventKind.evaluateInFrame, {
+        'expression': expression,
+        'success': result != null && result is InstanceRef,
+        if (result != null && result is ErrorRef) 'error': result,
+      });
 
   DwdsEvent.getIsolate() : this(DwdsEventKind.getIsolate, {});
 
@@ -102,7 +102,7 @@ class DwdsEvent {
   DwdsEvent.getVM() : this(DwdsEventKind.getVM, {});
 
   DwdsEvent.resume(String? step)
-      : this(DwdsEventKind.resume, {if (step != null) 'step': step});
+    : this(DwdsEventKind.resume, {if (step != null) 'step': step});
 
   DwdsEvent.getSourceReport() : this(DwdsEventKind.getSourceReport, {});
 
@@ -111,22 +111,22 @@ class DwdsEvent {
   DwdsEvent.fullReload() : this(DwdsEventKind.fullReload, {});
 
   DwdsEvent.debuggerReady(int elapsedMilliseconds, String screen)
-      : this(DwdsEventKind.debuggerReady, {
-          'elapsedMilliseconds': elapsedMilliseconds,
-          'screen': screen,
-        });
+    : this(DwdsEventKind.debuggerReady, {
+        'elapsedMilliseconds': elapsedMilliseconds,
+        'screen': screen,
+      });
 
   DwdsEvent.devToolsLoad(int elapsedMilliseconds, String screen)
-      : this(DwdsEventKind.devToolsLoad, {
-          'elapsedMilliseconds': elapsedMilliseconds,
-          'screen': screen,
-        });
+    : this(DwdsEventKind.devToolsLoad, {
+        'elapsedMilliseconds': elapsedMilliseconds,
+        'screen': screen,
+      });
 
   DwdsEvent.httpRequestException(String server, String exception)
-      : this(DwdsEventKind.httpRequestException, {
-          'server': server,
-          'exception': exception,
-        });
+    : this(DwdsEventKind.httpRequestException, {
+        'server': server,
+        'exception': exception,
+      });
 
   void addException(dynamic exception) {
     payload['exception'] = exception;

@@ -6,6 +6,8 @@
 library;
 
 import 'package:dwds/data/debug_info.dart';
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
@@ -23,9 +25,7 @@ void main() {
 }
 
 void _registerListeners() {
-  chrome.runtime.onMessage.addListener(
-    allowInterop(_handleRuntimeMessages),
-  );
+  chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
   // The only extension allowed to send messages to this extension is the
   // AngularDart DevTools extension. Its permission is set in the manifest.json
   // externally_connectable field.
@@ -34,8 +34,9 @@ void _registerListeners() {
   );
   // The only external service that sends messages to the Dart Debug Extension
   // is Cider.
-  chrome.runtime.onConnectExternal
-      .addListener(allowInterop(handleCiderConnectRequest));
+  chrome.runtime.onConnectExternal.addListener(
+    allowInterop(handleCiderConnectRequest),
+  );
   // Update the extension icon on tab navigation:
   chrome.tabs.onActivated.addListener(
     allowInterop((ActiveInfo info) async {
@@ -50,11 +51,13 @@ void _registerListeners() {
       }
     }),
   );
-  chrome.webNavigation.onCommitted
-      .addListener(allowInterop(_detectNavigationAwayFromDartApp));
+  chrome.webNavigation.onCommitted.addListener(
+    allowInterop(_detectNavigationAwayFromDartApp),
+  );
 
-  chrome.commands.onCommand
-      .addListener(allowInterop(_maybeSendCopyAppIdRequest));
+  chrome.commands.onCommand.addListener(
+    allowInterop(_maybeSendCopyAppIdRequest),
+  );
 }
 
 Future<void> _handleRuntimeMessages(
@@ -214,19 +217,20 @@ bool _isInternalNavigation(NavigationInfo navigationInfo) {
 
 DebugInfo _addTabInfo(DebugInfo debugInfo, {required Tab tab}) {
   return DebugInfo(
-    (b) => b
-      ..appEntrypointPath = debugInfo.appEntrypointPath
-      ..appId = debugInfo.appId
-      ..appInstanceId = debugInfo.appInstanceId
-      ..appOrigin = debugInfo.appOrigin
-      ..appUrl = debugInfo.appUrl
-      ..authUrl = debugInfo.authUrl
-      ..extensionUrl = debugInfo.extensionUrl
-      ..isInternalBuild = debugInfo.isInternalBuild
-      ..isFlutterApp = debugInfo.isFlutterApp
-      ..workspaceName = debugInfo.workspaceName
-      ..tabUrl = tab.url
-      ..tabId = tab.id,
+    (b) =>
+        b
+          ..appEntrypointPath = debugInfo.appEntrypointPath
+          ..appId = debugInfo.appId
+          ..appInstanceId = debugInfo.appInstanceId
+          ..appOrigin = debugInfo.appOrigin
+          ..appUrl = debugInfo.appUrl
+          ..authUrl = debugInfo.authUrl
+          ..extensionUrl = debugInfo.extensionUrl
+          ..isInternalBuild = debugInfo.isInternalBuild
+          ..isFlutterApp = debugInfo.isFlutterApp
+          ..workspaceName = debugInfo.workspaceName
+          ..tabUrl = tab.url
+          ..tabId = tab.id,
   );
 }
 
@@ -279,9 +283,7 @@ void _setDefaultIcon(int tabId) {
   final iconPath =
       isDevMode ? 'static_assets/dart_dev.png' : 'static_assets/dart_grey.png';
   setExtensionIcon(IconInfo(path: iconPath));
-  setExtensionPopup(
-    PopupDetails(popup: '', tabId: tabId),
-  );
+  setExtensionPopup(PopupDetails(popup: '', tabId: tabId));
 }
 
 Future<DebugInfo?> _fetchDebugInfo(int tabId) {

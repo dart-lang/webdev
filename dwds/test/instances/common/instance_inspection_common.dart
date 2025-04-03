@@ -29,12 +29,12 @@ void runTests({
   final testInspector = TestInspector(context);
 
   Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
-        stream,
-        isolateId,
-        mainScript,
-        breakPointId,
-        body,
-      );
+    stream,
+    isolateId,
+    mainScript,
+    breakPointId,
+    body,
+  );
 
   Future<Instance> getInstance(frame, expression) =>
       testInspector.getInstance(isolateId, frame, expression);
@@ -74,8 +74,9 @@ void runTests({
       await service.streamListen('Debug');
       stream = service.onEvent('Debug');
 
-      mainScript = scripts.scripts!
-          .firstWhere((each) => each.uri!.contains('main.dart'));
+      mainScript = scripts.scripts!.firstWhere(
+        (each) => each.uri!.contains('main.dart'),
+      );
     });
 
     tearDownAll(context.tearDown);
@@ -94,16 +95,12 @@ void runTests({
 
         expect(
           library,
-          isA<Library>().having(
-            (l) => l.classes,
-            'classes',
-            [
-              matchClassRef(name: 'MainClass', libraryId: libraryId),
-              matchClassRef(name: 'EnclosedClass', libraryId: libraryId),
-              matchClassRef(name: 'ClassWithMethod', libraryId: libraryId),
-              matchClassRef(name: 'EnclosingClass', libraryId: libraryId),
-            ],
-          ),
+          isA<Library>().having((l) => l.classes, 'classes', [
+            matchClassRef(name: 'MainClass', libraryId: libraryId),
+            matchClassRef(name: 'EnclosedClass', libraryId: libraryId),
+            matchClassRef(name: 'ClassWithMethod', libraryId: libraryId),
+            matchClassRef(name: 'EnclosingClass', libraryId: libraryId),
+          ]),
         );
       });
     });
@@ -139,30 +136,30 @@ void runTests({
 
           // DevTools calls [VmServiceInterface.getObject] with offset=0
           // and count=0 and expects all fields to be returned.
-          expect(
-            await getFields(instanceRef, offset: 0, count: 0),
-            {'_field': 1, 'field': 2},
-          );
-          expect(
-            await getFields(instanceRef, offset: 0),
-            {'_field': 1, 'field': 2},
-          );
-          expect(
-            await getFields(instanceRef, offset: 0, count: 1),
-            {'_field': 1, 'field': 2},
-          );
-          expect(
-            await getFields(instanceRef, offset: 1),
-            {'_field': 1, 'field': 2},
-          );
-          expect(
-            await getFields(instanceRef, offset: 1, count: 0),
-            {'_field': 1, 'field': 2},
-          );
-          expect(
-            await getFields(instanceRef, offset: 1, count: 3),
-            {'_field': 1, 'field': 2},
-          );
+          expect(await getFields(instanceRef, offset: 0, count: 0), {
+            '_field': 1,
+            'field': 2,
+          });
+          expect(await getFields(instanceRef, offset: 0), {
+            '_field': 1,
+            'field': 2,
+          });
+          expect(await getFields(instanceRef, offset: 0, count: 1), {
+            '_field': 1,
+            'field': 2,
+          });
+          expect(await getFields(instanceRef, offset: 1), {
+            '_field': 1,
+            'field': 2,
+          });
+          expect(await getFields(instanceRef, offset: 1, count: 0), {
+            '_field': 1,
+            'field': 2,
+          });
+          expect(await getFields(instanceRef, offset: 1, count: 3), {
+            '_field': 1,
+            'field': 2,
+          });
         });
       });
 
@@ -191,31 +188,20 @@ void runTests({
           final instanceId = instanceRef.id!;
           expect(await getObject(instanceId), matchListInstance(type: 'int'));
 
-          expect(
-            await getFields(instanceRef),
-            {0: 0.0, 1: 1.0, 2: 2.0},
-          );
+          expect(await getFields(instanceRef), {0: 0.0, 1: 1.0, 2: 2.0});
           expect(await getFields(instanceRef, offset: 1, count: 0), {});
-          expect(
-            await getFields(instanceRef, offset: 0),
-            {0: 0.0, 1: 1.0, 2: 2.0},
-          );
-          expect(
-            await getFields(instanceRef, offset: 0, count: 1),
-            {0: 0.0},
-          );
-          expect(
-            await getFields(instanceRef, offset: 1),
-            {0: 1.0, 1: 2.0},
-          );
-          expect(
-            await getFields(instanceRef, offset: 1, count: 1),
-            {0: 1.0},
-          );
-          expect(
-            await getFields(instanceRef, offset: 1, count: 3),
-            {0: 1.0, 1: 2.0},
-          );
+          expect(await getFields(instanceRef, offset: 0), {
+            0: 0.0,
+            1: 1.0,
+            2: 2.0,
+          });
+          expect(await getFields(instanceRef, offset: 0, count: 1), {0: 0.0});
+          expect(await getFields(instanceRef, offset: 1), {0: 1.0, 1: 2.0});
+          expect(await getFields(instanceRef, offset: 1, count: 1), {0: 1.0});
+          expect(await getFields(instanceRef, offset: 1, count: 3), {
+            0: 1.0,
+            1: 2.0,
+          });
           expect(await getFields(instanceRef, offset: 3, count: 3), {});
         });
       });
@@ -256,17 +242,18 @@ void runTests({
           expect(await getFields(instanceRef), {'a': 1, 'b': 2, 'c': 3});
 
           expect(await getFields(instanceRef, offset: 1, count: 0), {});
-          expect(
-            await getFields(instanceRef, offset: 0),
-            {'a': 1, 'b': 2, 'c': 3},
-          );
+          expect(await getFields(instanceRef, offset: 0), {
+            'a': 1,
+            'b': 2,
+            'c': 3,
+          });
           expect(await getFields(instanceRef, offset: 0, count: 1), {'a': 1});
           expect(await getFields(instanceRef, offset: 1), {'b': 2, 'c': 3});
           expect(await getFields(instanceRef, offset: 1, count: 1), {'b': 2});
-          expect(
-            await getFields(instanceRef, offset: 1, count: 3),
-            {'b': 2, 'c': 3},
-          );
+          expect(await getFields(instanceRef, offset: 1, count: 3), {
+            'b': 2,
+            'c': 3,
+          });
           expect(await getFields(instanceRef, offset: 3, count: 3), {});
         });
       });
@@ -304,26 +291,27 @@ void runTests({
             matchSetInstance(type: 'LinkedSet<int>'),
           );
 
-          expect(
-            await getFields(instanceRef),
-            {0: 1.0, 1: 4.0, 2: 5.0, 3: 7.0},
-          );
-          expect(
-            await getFields(instanceRef, offset: 0),
-            {0: 1.0, 1: 4.0, 2: 5.0, 3: 7.0},
-          );
-          expect(
-            await getFields(instanceRef, offset: 1, count: 2),
-            {0: 4.0, 1: 5.0},
-          );
-          expect(
-            await getFields(instanceRef, offset: 2),
-            {0: 5.0, 1: 7.0},
-          );
-          expect(
-            await getFields(instanceRef, offset: 2, count: 10),
-            {0: 5.0, 1: 7.0},
-          );
+          expect(await getFields(instanceRef), {
+            0: 1.0,
+            1: 4.0,
+            2: 5.0,
+            3: 7.0,
+          });
+          expect(await getFields(instanceRef, offset: 0), {
+            0: 1.0,
+            1: 4.0,
+            2: 5.0,
+            3: 7.0,
+          });
+          expect(await getFields(instanceRef, offset: 1, count: 2), {
+            0: 4.0,
+            1: 5.0,
+          });
+          expect(await getFields(instanceRef, offset: 2), {0: 5.0, 1: 7.0});
+          expect(await getFields(instanceRef, offset: 2, count: 10), {
+            0: 5.0,
+            1: 7.0,
+          });
           expect(await getFields(instanceRef, offset: 1, count: 0), {});
           expect(await getFields(instanceRef, offset: 10, count: 2), {});
         });

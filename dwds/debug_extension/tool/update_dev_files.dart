@@ -12,9 +12,10 @@ void main() async {
 Future<void> _updateManifestJson() async {
   final manifestJson = File('compiled/manifest.json');
   final extensionKeyTxt = File('extension_key.txt');
-  final extensionKey = await extensionKeyTxt.exists()
-      ? await extensionKeyTxt.readAsString()
-      : null;
+  final extensionKey =
+      await extensionKeyTxt.exists()
+          ? await extensionKeyTxt.readAsString()
+          : null;
   return _transformDevFile(manifestJson, (line) {
     if (_matchesKey(line: line, key: 'name')) {
       return [
@@ -24,11 +25,7 @@ Future<void> _updateManifestJson() async {
           newValue: '[DEV] Dart Debug Extension',
         ),
         if (extensionKey != null)
-          _newKeyValue(
-            oldLine: line,
-            newKey: 'key',
-            newValue: extensionKey,
-          ),
+          _newKeyValue(oldLine: line, newKey: 'key', newValue: extensionKey),
       ];
     } else if (_matchesKey(line: line, key: 'default_icon')) {
       return [

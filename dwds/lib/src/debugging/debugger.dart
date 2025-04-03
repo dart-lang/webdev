@@ -63,10 +63,10 @@ class Debugger extends Domain {
     this._skipLists,
     root,
   ) : _breakpoints = _Breakpoints(
-          locations: _locations,
-          remoteDebugger: _remoteDebugger,
-          root: root,
-        );
+        locations: _locations,
+        remoteDebugger: _remoteDebugger,
+        root: root,
+      );
 
   /// The breakpoints we have set so far, indexable by either
   /// Dart or JS ID.
@@ -79,9 +79,10 @@ class Debugger extends Domain {
   // DevTools is showing an overlay. Both cannot be shown at the same time:
   // bool _pausedOverlayVisible = false;
 
-  String get pauseState => _pauseModePauseStates.entries
-      .firstWhere((entry) => entry.value == _pauseState)
-      .key;
+  String get pauseState =>
+      _pauseModePauseStates.entries
+          .firstWhere((entry) => entry.value == _pauseState)
+          .key;
 
   /// The JS frames at the current paused location.
   ///
@@ -216,14 +217,17 @@ class Debugger extends Domain {
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     // Allow a null debugger/connection for unit tests.
-    runZonedGuarded(() {
-      _remoteDebugger.onScriptParsed.listen(_scriptParsedHandler);
-      _remoteDebugger.onPaused.listen(_pauseHandler);
-      _remoteDebugger.onResumed.listen(_resumeHandler);
-      _remoteDebugger.onTargetCrashed.listen(_crashHandler);
-    }, (e, StackTrace s) {
-      logger.warning('Error handling Chrome event', e, s);
-    });
+    runZonedGuarded(
+      () {
+        _remoteDebugger.onScriptParsed.listen(_scriptParsedHandler);
+        _remoteDebugger.onPaused.listen(_pauseHandler);
+        _remoteDebugger.onResumed.listen(_resumeHandler);
+        _remoteDebugger.onTargetCrashed.listen(_crashHandler);
+      },
+      (e, StackTrace s) {
+        logger.warning('Error handling Chrome event', e, s);
+      },
+    );
 
     handleErrorIfPresent(await _remoteDebugger.enablePage());
     await _remoteDebugger.enable();
@@ -232,9 +236,7 @@ class Debugger extends Domain {
     handleErrorIfPresent(
       await _remoteDebugger.sendCommand(
         'Debugger.setAsyncCallStackDepth',
-        params: {
-          'maxDepth': 128,
-        },
+        params: {'maxDepth': 128},
       ),
     );
   }
@@ -354,11 +356,11 @@ class Debugger extends Domain {
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
   Future<List<BoundVariable>> variablesFor(WipCallFrame frame) async {
     // TODO(alanknight): Can these be moved to dart_scope.dart?
-    final properties =
-        await visibleVariables(inspector: inspector, frame: frame);
-    final boundVariables = await Future.wait(
-      properties.map(_boundVariable),
+    final properties = await visibleVariables(
+      inspector: inspector,
+      frame: frame,
     );
+    final boundVariables = await Future.wait(properties.map(_boundVariable));
 
     // Filter out variables that do not come from dart code, such as native
     // JavaScript objects
@@ -428,16 +430,19 @@ class Debugger extends Domain {
 
     final url = urlForScriptId(location.scriptId);
     if (url == null) {
-      logger.fine('Failed to create dart frame for ${frame.functionName}: '
-          'cannot find url for script ${location.scriptId}');
+      logger.fine(
+        'Failed to create dart frame for ${frame.functionName}: '
+        'cannot find url for script ${location.scriptId}',
+      );
       return null;
     }
 
     final bestLocation = await _locations.locationForJs(url, line, column ?? 0);
     if (bestLocation == null) return null;
 
-    final script =
-        await inspector.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
+    final script = await inspector.scriptRefFor(
+      bestLocation.dartLocation.uri.serverPath,
+    );
     // We think we found a location, but for some reason we can't find the
     // script. Just drop the frame.
     // TODO(#700): Understand when this can happen and have a better fix.
@@ -448,11 +453,7 @@ class Debugger extends Domain {
 
     final dartFrame = Frame(
       index: frameIndex,
-      code: CodeRef(
-        name: codeRefName,
-        kind: CodeKind.kDart,
-        id: createId(),
-      ),
+      code: CodeRef(name: codeRefName, kind: CodeKind.kDart, id: createId()),
       location: SourceLocation(
         line: bestLocation.dartLocation.line,
         column: bestLocation.dartLocation.column,
@@ -516,15 +517,17 @@ class Debugger extends Domain {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final jsBreakpointIds = e.hitBreakpoints ?? [];
     if (jsBreakpointIds.isNotEmpty) {
-      final breakpointIds = jsBreakpointIds
-          .map((id) => _breakpoints._dartIdByJsId[id])
-          // In case the breakpoint was set in Chrome DevTools outside of
-          // package:dwds.
-          .where((entry) => entry != null)
-          .toSet();
-      final pauseBreakpoints = isolate.breakpoints
-          ?.where((bp) => breakpointIds.contains(bp.id))
-          .toList();
+      final breakpointIds =
+          jsBreakpointIds
+              .map((id) => _breakpoints._dartIdByJsId[id])
+              // In case the breakpoint was set in Chrome DevTools outside of
+              // package:dwds.
+              .where((entry) => entry != null)
+              .toSet();
+      final pauseBreakpoints =
+          isolate.breakpoints
+              ?.where((bp) => breakpointIds.contains(bp.id))
+              .toList();
       event = Event(
         kind: EventKind.kPauseBreakpoint,
         timestamp: timestamp,
@@ -541,8 +544,9 @@ class Debugger extends Domain {
           if (exception != null && inspector.isNativeJsError(exception)) {
             if (obj.description != null) {
               // Create a string exception object.
-              final description =
-                  await inspector.mapExceptionStackTrace(obj.description!);
+              final description = await inspector.mapExceptionStackTrace(
+                obj.description!,
+              );
               exception = await inspector.instanceRefFor(description);
             } else {
               exception = null;
@@ -563,14 +567,18 @@ class Debugger extends Domain {
       if (_isStepping) {
         final scriptId = _frameScriptId(e);
         if (scriptId == null) {
-          logger.severe('Stepping failed: '
-              'cannot find script id for event $e');
+          logger.severe(
+            'Stepping failed: '
+            'cannot find script id for event $e',
+          );
           throw StateError('Stepping failed on event $e');
         }
         final url = urlForScriptId(scriptId);
         if (url == null) {
-          logger.severe('Stepping failed: '
-              'cannot find url for script $scriptId');
+          logger.severe(
+            'Stepping failed: '
+            'cannot find url for script $scriptId',
+          );
           throw StateError('Stepping failed in script $scriptId');
         }
 
@@ -700,10 +708,7 @@ class Debugger extends Domain {
     try {
       return await _remoteDebugger.evaluateOnCallFrame(callFrameId, expression);
     } on ExceptionDetails catch (e) {
-      throw ChromeDebugException(
-        e.json,
-        evalContents: expression,
-      );
+      throw ChromeDebugException(e.json, evalContents: expression);
     }
   }
 }
@@ -769,30 +774,36 @@ class _Breakpoints extends Domain {
     }
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
     if (location == null) {
-      _logger.fine('Failed to set breakpoint $id '
-          '($scriptId:$line:$column): '
-          'cannot find Dart location.');
+      _logger.fine(
+        'Failed to set breakpoint $id '
+        '($scriptId:$line:$column): '
+        'cannot find Dart location.',
+      );
       throw RPCError(
-          'addBreakpoint',
-          102,
-          'The VM is unable to add a breakpoint $id '
-              'at the specified line or function: ($scriptId:$line:$column): '
-              ' cannot find Dart location.');
+        'addBreakpoint',
+        102,
+        'The VM is unable to add a breakpoint $id '
+            'at the specified line or function: ($scriptId:$line:$column): '
+            ' cannot find Dart location.',
+      );
     }
 
     try {
       final dartBreakpoint = _dartBreakpoint(dartScript!, location, id);
       final jsBreakpointId = await _setJsBreakpoint(location);
       if (jsBreakpointId == null) {
-        _logger.fine('Failed to set breakpoint $id '
-            '($scriptId:$line:$column): '
-            'cannot set JS breakpoint.');
+        _logger.fine(
+          'Failed to set breakpoint $id '
+          '($scriptId:$line:$column): '
+          'cannot set JS breakpoint.',
+        );
         throw RPCError(
-            'addBreakpoint',
-            102,
-            'The VM is unable to add a breakpoint $id '
-                'at the specified line or function: ($scriptId:$line:$column): '
-                'cannot set JS breakpoint at $location');
+          'addBreakpoint',
+          102,
+          'The VM is unable to add a breakpoint $id '
+              'at the specified line or function: ($scriptId:$line:$column): '
+              'cannot set JS breakpoint at $location',
+        );
       }
       _note(jsId: jsBreakpointId, bp: dartBreakpoint);
       return dartBreakpoint;

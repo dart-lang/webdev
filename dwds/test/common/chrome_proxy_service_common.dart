@@ -69,8 +69,9 @@ void runTests({
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
         scripts = await service.getScripts(isolate.id!);
-        mainScript = scripts.scripts!
-            .firstWhere((each) => each.uri!.contains('main.dart'));
+        mainScript = scripts.scripts!.firstWhere(
+          (each) => each.uri!.contains('main.dart'),
+        );
       });
 
       test('addBreakpoint', () async {
@@ -79,13 +80,19 @@ void runTests({
           isolate.id!,
           mainScript,
         );
-        final firstBp =
-            await service.addBreakpoint(isolate.id!, mainScript.id!, line);
+        final firstBp = await service.addBreakpoint(
+          isolate.id!,
+          mainScript.id!,
+          line,
+        );
         expect(firstBp, isNotNull);
         expect(firstBp.id, isNotNull);
 
-        final secondBp =
-            await service.addBreakpoint(isolate.id!, mainScript.id!, line);
+        final secondBp = await service.addBreakpoint(
+          isolate.id!,
+          mainScript.id!,
+          line,
+        );
         expect(secondBp, isNotNull);
         expect(secondBp.id, isNotNull);
 
@@ -95,22 +102,30 @@ void runTests({
         await service.removeBreakpoint(isolate.id!, firstBp.id!);
       });
 
-      test('addBreakpoint succeeds when sending the same breakpoint twice',
-          () async {
-        final line = await context.findBreakpointLine(
-          'printHelloWorld',
-          isolate.id!,
-          mainScript,
-        );
-        final firstBp =
-            service.addBreakpoint(isolate.id!, mainScript.id!, line);
-        final secondBp =
-            service.addBreakpoint(isolate.id!, mainScript.id!, line);
+      test(
+        'addBreakpoint succeeds when sending the same breakpoint twice',
+        () async {
+          final line = await context.findBreakpointLine(
+            'printHelloWorld',
+            isolate.id!,
+            mainScript,
+          );
+          final firstBp = service.addBreakpoint(
+            isolate.id!,
+            mainScript.id!,
+            line,
+          );
+          final secondBp = service.addBreakpoint(
+            isolate.id!,
+            mainScript.id!,
+            line,
+          );
 
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id!, (await firstBp).id!);
-        expect((await firstBp).id, equals((await secondBp).id));
-      });
+          // Remove breakpoint so it doesn't impact other tests.
+          await service.removeBreakpoint(isolate.id!, (await firstBp).id!);
+          expect((await firstBp).id, equals((await secondBp).id));
+        },
+      );
 
       test('addBreakpoint in nonsense location throws', () async {
         expect(
@@ -120,8 +135,9 @@ void runTests({
       });
 
       test('addBreakpoint on a part file', () async {
-        final partScript = scripts.scripts!
-            .firstWhere((script) => script.uri!.contains('part.dart'));
+        final partScript = scripts.scripts!.firstWhere(
+          (script) => script.uri!.contains('part.dart'),
+        );
         final bp = await service.addBreakpoint(isolate.id!, partScript.id!, 10);
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id!, bp.id!);
@@ -192,8 +208,11 @@ void runTests({
           isolate.id!,
           mainScript,
         );
-        final bp =
-            await service.addBreakpoint(isolate.id!, mainScript.id!, line);
+        final bp = await service.addBreakpoint(
+          isolate.id!,
+          mainScript.id!,
+          line,
+        );
         expect(isolate.breakpoints, [bp]);
         await service.removeBreakpoint(isolate.id!, bp.id!);
         expect(isolate.breakpoints, isEmpty);
@@ -212,8 +231,9 @@ void runTests({
         'success',
         () async {
           final serviceMethod = 'ext.test.callServiceExtension';
-          await context.tabConnection.runtime
-              .evaluate('registerExtension("$serviceMethod");');
+          await context.tabConnection.runtime.evaluate(
+            'registerExtension("$serviceMethod");',
+          );
 
           // The non-string keys/values get auto json-encoded to match the vm
           // behavior.
@@ -227,8 +247,10 @@ void runTests({
             false: true,
           };
 
-          final result =
-              await service.callServiceExtension(serviceMethod, args: args);
+          final result = await service.callServiceExtension(
+            serviceMethod,
+            args: args,
+          );
           expect(
             result.json,
             args.map(
@@ -240,8 +262,9 @@ void runTests({
           );
         },
         onPlatform: {
-          'windows':
-              const Skip('https://github.com/dart-lang/webdev/issues/711'),
+          'windows': const Skip(
+            'https://github.com/dart-lang/webdev/issues/711',
+          ),
         },
       );
 
@@ -249,17 +272,15 @@ void runTests({
         'failure',
         () async {
           final serviceMethod = 'ext.test.callServiceExtensionWithError';
-          await context.tabConnection.runtime
-              .evaluate('registerExtensionWithError("$serviceMethod");');
+          await context.tabConnection.runtime.evaluate(
+            'registerExtensionWithError("$serviceMethod");',
+          );
 
           final errorDetails = {'intentional': 'error'};
           expect(
             service.callServiceExtension(
               serviceMethod,
-              args: {
-                'code': '-32001',
-                'details': jsonEncode(errorDetails),
-              },
+              args: {'code': '-32001', 'details': jsonEncode(errorDetails)},
             ),
             throwsA(
               predicate(
@@ -272,10 +293,25 @@ void runTests({
           );
         },
         onPlatform: {
-          'windows':
-              const Skip('https://github.com/dart-lang/webdev/issues/711'),
+          'windows': const Skip(
+            'https://github.com/dart-lang/webdev/issues/711',
+          ),
         },
       );
+
+      test('not found', () async {
+        final serviceMethod = 'ext.test.missingServiceExtension';
+        expect(
+          service.callServiceExtension(serviceMethod),
+          throwsA(
+            predicate(
+              (dynamic error) =>
+                  error is RPCError &&
+                  error.code == RPCErrorKind.kMethodNotFound.code,
+            ),
+          ),
+        );
+      });
     });
 
     group('VMTimeline', () {
@@ -418,8 +454,11 @@ void runTests({
           );
           expect(
             object,
-            const TypeMatcher<InstanceRef>()
-                .having((instance) => instance.id, 'id', isNotNull),
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.id,
+              'id',
+              isNotNull,
+            ),
           );
           // TODO(jakemac): Add tests for the ClassRef once we create one,
           // https://github.com/dart-lang/sdk/issues/36771.
@@ -432,10 +471,11 @@ void runTests({
 
           Future<InstanceRef> createRemoteObject(String message) async {
             return await service.evaluate(
-              isolate.id!,
-              bootstrap!.id!,
-              'createObject("$message")',
-            ) as InstanceRef;
+                  isolate.id!,
+                  bootstrap!.id!,
+                  'createObject("$message")',
+                )
+                as InstanceRef;
           }
 
           test('single scope object', () async {
@@ -599,10 +639,12 @@ void runTests({
       });
 
       test('Classes', () async {
-        final testClass = await service.getObject(
-          isolate.id!,
-          rootLibrary!.classes!.first.id!,
-        ) as Class;
+        final testClass =
+            await service.getObject(
+                  isolate.id!,
+                  rootLibrary!.classes!.first.id!,
+                )
+                as Class;
         expect(
           testClass.functions,
           unorderedEquals([
@@ -644,41 +686,42 @@ void runTests({
       });
 
       test('Runtime classes', () async {
-        final testClass = await service.getObject(
-          isolate.id!,
-          'classes|dart:_runtime|_Type',
-        ) as Class;
+        final testClass =
+            await service.getObject(isolate.id!, 'classes|dart:_runtime|_Type')
+                as Class;
         expect(testClass.name, '_Type');
       });
 
       test('String', () async {
-        final worldRef = await service.evaluate(
-          isolate.id!,
-          bootstrap!.id!,
-          "helloString('world')",
-        ) as InstanceRef;
+        final worldRef =
+            await service.evaluate(
+                  isolate.id!,
+                  bootstrap!.id!,
+                  "helloString('world')",
+                )
+                as InstanceRef;
         final world =
             await service.getObject(isolate.id!, worldRef.id!) as Instance;
         expect(world.valueAsString, 'world');
       });
 
       test('Large strings not truncated', () async {
-        final largeString = await service.evaluate(
-          isolate.id!,
-          bootstrap!.id!,
-          "helloString('${'abcde' * 250}')",
-        ) as InstanceRef;
+        final largeString =
+            await service.evaluate(
+                  isolate.id!,
+                  bootstrap!.id!,
+                  "helloString('${'abcde' * 250}')",
+                )
+                as InstanceRef;
         expect(largeString.valueAsStringIsTruncated, isNot(isTrue));
         expect(largeString.valueAsString!.length, largeString.length);
         expect(largeString.length, 5 * 250);
       });
 
       test('Lists', () async {
-        final list = await service.evaluate(
-          isolate.id!,
-          bootstrap!.id!,
-          'topLevelList',
-        ) as InstanceRef;
+        final list =
+            await service.evaluate(isolate.id!, bootstrap!.id!, 'topLevelList')
+                as InstanceRef;
         final inst = await service.getObject(isolate.id!, list.id!) as Instance;
         expect(inst.length, 1001);
         expect(inst.offset, null);
@@ -691,11 +734,9 @@ void runTests({
       });
 
       test('Maps', () async {
-        final map = await service.evaluate(
-          isolate.id!,
-          bootstrap!.id!,
-          'topLevelMap',
-        ) as InstanceRef;
+        final map =
+            await service.evaluate(isolate.id!, bootstrap!.id!, 'topLevelMap')
+                as InstanceRef;
         final inst = await service.getObject(isolate.id!, map.id!) as Instance;
         expect(inst.length, 1001);
         expect(inst.offset, null);
@@ -710,11 +751,13 @@ void runTests({
       });
 
       test('bool', () async {
-        final ref = await service.evaluate(
-          isolate.id!,
-          bootstrap!.id!,
-          'helloBool(true)',
-        ) as InstanceRef;
+        final ref =
+            await service.evaluate(
+                  isolate.id!,
+                  bootstrap!.id!,
+                  'helloBool(true)',
+                )
+                as InstanceRef;
         final obj = await service.getObject(isolate.id!, ref.id!) as Instance;
         expect(obj.kind, InstanceKind.kBool);
         expect(obj.classRef!.name, 'Bool');
@@ -722,11 +765,9 @@ void runTests({
       });
 
       test('num', () async {
-        final ref = await service.evaluate(
-          isolate.id!,
-          bootstrap!.id!,
-          'helloNum(42)',
-        ) as InstanceRef;
+        final ref =
+            await service.evaluate(isolate.id!, bootstrap!.id!, 'helloNum(42)')
+                as InstanceRef;
         final obj = await service.getObject(isolate.id!, ref.id!) as Instance;
         expect(obj.kind, InstanceKind.kDouble);
         expect(obj.classRef!.name, 'Double');
@@ -740,8 +781,9 @@ void runTests({
           final script =
               await service.getObject(isolate.id!, scriptRef.id!) as Script;
           final serverPath = DartUri(script.uri!, '').serverPath;
-          final result = await http
-              .get(Uri.parse('http://localhost:${context.port}/$serverPath'));
+          final result = await http.get(
+            Uri.parse('http://localhost:${context.port}/$serverPath'),
+          );
           // TODO: Figure out if we can encode the sript as utf8 and avoid this
           final body =
               (moduleFormat == ModuleFormat.ddc && canaryFeatures == true)
@@ -755,17 +797,21 @@ void runTests({
 
       group('getObject called with offset/count parameters', () {
         test('Lists with null offset and count are not truncated', () async {
-          final list = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelList',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            list.id!,
-            count: null,
-            offset: null,
-          ) as Instance;
+          final list =
+              await service.evaluate(
+                    isolate.id!,
+                    bootstrap!.id!,
+                    'topLevelList',
+                  )
+                  as InstanceRef;
+          final inst =
+              await service.getObject(
+                    isolate.id!,
+                    list.id!,
+                    count: null,
+                    offset: null,
+                  )
+                  as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, null);
           expect(inst.count, null);
@@ -777,17 +823,21 @@ void runTests({
         });
 
         test('Lists with null count are not truncated', () async {
-          final list = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelList',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            list.id!,
-            count: null,
-            offset: 0,
-          ) as Instance;
+          final list =
+              await service.evaluate(
+                    isolate.id!,
+                    bootstrap!.id!,
+                    'topLevelList',
+                  )
+                  as InstanceRef;
+          final inst =
+              await service.getObject(
+                    isolate.id!,
+                    list.id!,
+                    count: null,
+                    offset: 0,
+                  )
+                  as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, 0);
           expect(inst.count, null);
@@ -798,20 +848,23 @@ void runTests({
           expect(sixth.valueAsString, '5');
         });
 
-        test(
-            'Lists with null count and offset greater than 0 are '
+        test('Lists with null count and offset greater than 0 are '
             'truncated from offset to end of list', () async {
-          final list = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelList',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            list.id!,
-            count: null,
-            offset: 1000,
-          ) as Instance;
+          final list =
+              await service.evaluate(
+                    isolate.id!,
+                    bootstrap!.id!,
+                    'topLevelList',
+                  )
+                  as InstanceRef;
+          final inst =
+              await service.getObject(
+                    isolate.id!,
+                    list.id!,
+                    count: null,
+                    offset: 1000,
+                  )
+                  as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, 1000);
           expect(inst.count, null);
@@ -821,17 +874,21 @@ void runTests({
         });
 
         test('Lists with offset/count are truncated', () async {
-          final list = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelList',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            list.id!,
-            count: 7,
-            offset: 4,
-          ) as Instance;
+          final list =
+              await service.evaluate(
+                    isolate.id!,
+                    bootstrap!.id!,
+                    'topLevelList',
+                  )
+                  as InstanceRef;
+          final inst =
+              await service.getObject(
+                    isolate.id!,
+                    list.id!,
+                    count: 7,
+                    offset: 4,
+                  )
+                  as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, 4);
           expect(inst.count, 7);
@@ -842,79 +899,97 @@ void runTests({
           expect(sixth.valueAsString, '5');
         });
 
-        test('Lists are truncated to the end if offset/count runs off the end',
-            () async {
-          final list = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelList',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            list.id!,
-            count: 5,
-            offset: 1000,
-          ) as Instance;
-          expect(inst.length, 1001);
-          expect(inst.offset, 1000);
-          expect(inst.count, 1);
-          expect(inst.elements!.length, 1);
-          final only = inst.elements![0] as InstanceRef;
-          expect(only.valueAsString, '5');
-        });
+        test(
+          'Lists are truncated to the end if offset/count runs off the end',
+          () async {
+            final list =
+                await service.evaluate(
+                      isolate.id!,
+                      bootstrap!.id!,
+                      'topLevelList',
+                    )
+                    as InstanceRef;
+            final inst =
+                await service.getObject(
+                      isolate.id!,
+                      list.id!,
+                      count: 5,
+                      offset: 1000,
+                    )
+                    as Instance;
+            expect(inst.length, 1001);
+            expect(inst.offset, 1000);
+            expect(inst.count, 1);
+            expect(inst.elements!.length, 1);
+            final only = inst.elements![0] as InstanceRef;
+            expect(only.valueAsString, '5');
+          },
+        );
 
-        test('Lists are truncated to empty if offset runs off the end',
-            () async {
-          final list = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelList',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            list.id!,
-            count: 5,
-            offset: 1002,
-          ) as Instance;
-          expect(inst.elements!.length, 0);
-          expect(inst.length, 1001);
-          expect(inst.offset, 1002);
-          expect(inst.count, 0);
-          expect(inst.elements!.length, 0);
-        });
+        test(
+          'Lists are truncated to empty if offset runs off the end',
+          () async {
+            final list =
+                await service.evaluate(
+                      isolate.id!,
+                      bootstrap!.id!,
+                      'topLevelList',
+                    )
+                    as InstanceRef;
+            final inst =
+                await service.getObject(
+                      isolate.id!,
+                      list.id!,
+                      count: 5,
+                      offset: 1002,
+                    )
+                    as Instance;
+            expect(inst.elements!.length, 0);
+            expect(inst.length, 1001);
+            expect(inst.offset, 1002);
+            expect(inst.count, 0);
+            expect(inst.elements!.length, 0);
+          },
+        );
 
-        test('Lists are truncated to empty with 0 count and null offset',
-            () async {
-          final list = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelList',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            list.id!,
-            count: 0,
-            offset: null,
-          ) as Instance;
-          expect(inst.elements!.length, 0);
-          expect(inst.length, 1001);
-          expect(inst.offset, null);
-          expect(inst.count, 0);
-          expect(inst.elements!.length, 0);
-        });
+        test(
+          'Lists are truncated to empty with 0 count and null offset',
+          () async {
+            final list =
+                await service.evaluate(
+                      isolate.id!,
+                      bootstrap!.id!,
+                      'topLevelList',
+                    )
+                    as InstanceRef;
+            final inst =
+                await service.getObject(
+                      isolate.id!,
+                      list.id!,
+                      count: 0,
+                      offset: null,
+                    )
+                    as Instance;
+            expect(inst.elements!.length, 0);
+            expect(inst.length, 1001);
+            expect(inst.offset, null);
+            expect(inst.count, 0);
+            expect(inst.elements!.length, 0);
+          },
+        );
 
         test('Maps with null offset/count are not truncated', () async {
-          final map = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelMap',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            map.id!,
-            count: null,
-            offset: null,
-          ) as Instance;
+          final map =
+              await service.evaluate(isolate.id!, bootstrap!.id!, 'topLevelMap')
+                  as InstanceRef;
+          final inst =
+              await service.getObject(
+                    isolate.id!,
+                    map.id!,
+                    count: null,
+                    offset: null,
+                  )
+                  as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, null);
           expect(inst.count, null);
@@ -927,20 +1002,19 @@ void runTests({
           expect(sixth.value.valueAsString, '995');
         });
 
-        test(
-            'Maps with null count and offset greater than 0 are '
+        test('Maps with null count and offset greater than 0 are '
             'truncated from offset to end of map', () async {
-          final map = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelMap',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            map.id!,
-            count: null,
-            offset: 1000,
-          ) as Instance;
+          final map =
+              await service.evaluate(isolate.id!, bootstrap!.id!, 'topLevelMap')
+                  as InstanceRef;
+          final inst =
+              await service.getObject(
+                    isolate.id!,
+                    map.id!,
+                    count: null,
+                    offset: 1000,
+                  )
+                  as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, 1000);
           expect(inst.count, null);
@@ -951,17 +1025,17 @@ void runTests({
         });
 
         test('Maps with null count are not truncated', () async {
-          final map = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelMap',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            map.id!,
-            count: null,
-            offset: 0,
-          ) as Instance;
+          final map =
+              await service.evaluate(isolate.id!, bootstrap!.id!, 'topLevelMap')
+                  as InstanceRef;
+          final inst =
+              await service.getObject(
+                    isolate.id!,
+                    map.id!,
+                    count: null,
+                    offset: 0,
+                  )
+                  as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, 0);
           expect(inst.count, null);
@@ -975,17 +1049,12 @@ void runTests({
         });
 
         test('Maps with offset/count are truncated', () async {
-          final map = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelMap',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            map.id!,
-            count: 7,
-            offset: 4,
-          ) as Instance;
+          final map =
+              await service.evaluate(isolate.id!, bootstrap!.id!, 'topLevelMap')
+                  as InstanceRef;
+          final inst =
+              await service.getObject(isolate.id!, map.id!, count: 7, offset: 4)
+                  as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, 4);
           expect(inst.count, 7);
@@ -998,269 +1067,329 @@ void runTests({
           expect(sixth.value.valueAsString, '995');
         });
 
-        test('Maps are truncated to the end if offset/count runs off the end',
-            () async {
-          final map = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelMap',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            map.id!,
-            count: 5,
-            offset: 1000,
-          ) as Instance;
-          expect(inst.length, 1001);
-          expect(inst.offset, 1000);
-          expect(inst.count, 1);
-          expect(inst.associations!.length, 1);
-          final only = inst.associations![0];
-          expect(only.key.valueAsString, '1000');
-          expect(only.value.valueAsString, '0');
-        });
+        test(
+          'Maps are truncated to the end if offset/count runs off the end',
+          () async {
+            final map =
+                await service.evaluate(
+                      isolate.id!,
+                      bootstrap!.id!,
+                      'topLevelMap',
+                    )
+                    as InstanceRef;
+            final inst =
+                await service.getObject(
+                      isolate.id!,
+                      map.id!,
+                      count: 5,
+                      offset: 1000,
+                    )
+                    as Instance;
+            expect(inst.length, 1001);
+            expect(inst.offset, 1000);
+            expect(inst.count, 1);
+            expect(inst.associations!.length, 1);
+            final only = inst.associations![0];
+            expect(only.key.valueAsString, '1000');
+            expect(only.value.valueAsString, '0');
+          },
+        );
 
-        test('Maps are truncated to empty if offset runs off the end',
-            () async {
-          final map = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelMap',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            map.id!,
-            count: 5,
-            offset: 1002,
-          ) as Instance;
-          expect(inst.associations!.length, 0);
-          expect(inst.length, 1001);
-          expect(inst.offset, 1002);
-          expect(inst.count, 0);
-          expect(inst.associations!.length, 0);
-        });
+        test(
+          'Maps are truncated to empty if offset runs off the end',
+          () async {
+            final map =
+                await service.evaluate(
+                      isolate.id!,
+                      bootstrap!.id!,
+                      'topLevelMap',
+                    )
+                    as InstanceRef;
+            final inst =
+                await service.getObject(
+                      isolate.id!,
+                      map.id!,
+                      count: 5,
+                      offset: 1002,
+                    )
+                    as Instance;
+            expect(inst.associations!.length, 0);
+            expect(inst.length, 1001);
+            expect(inst.offset, 1002);
+            expect(inst.count, 0);
+            expect(inst.associations!.length, 0);
+          },
+        );
 
         test('Strings with offset/count are truncated', () async {
-          final worldRef = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            "helloString('world')",
-          ) as InstanceRef;
-          final world = await service.getObject(
-            isolate.id!,
-            worldRef.id!,
-            count: 2,
-            offset: 1,
-          ) as Instance;
+          final worldRef =
+              await service.evaluate(
+                    isolate.id!,
+                    bootstrap!.id!,
+                    "helloString('world')",
+                  )
+                  as InstanceRef;
+          final world =
+              await service.getObject(
+                    isolate.id!,
+                    worldRef.id!,
+                    count: 2,
+                    offset: 1,
+                  )
+                  as Instance;
           expect(world.valueAsString, 'or');
           expect(world.count, 2);
           expect(world.length, 5);
           expect(world.offset, 1);
         });
 
-        test('Maps are truncated to empty if offset runs off the end',
-            () async {
-          final map = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelMap',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            map.id!,
-            count: 5,
-            offset: 1002,
-          ) as Instance;
-          expect(inst.associations!.length, 0);
-          expect(inst.length, 1001);
-          expect(inst.offset, 1002);
-          expect(inst.count, 0);
-          expect(inst.associations!.length, 0);
-        });
-
-        test('Maps are truncated to empty with 0 count and null offset',
-            () async {
-          final map = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'topLevelMap',
-          ) as InstanceRef;
-          final inst = await service.getObject(
-            isolate.id!,
-            map.id!,
-            count: 0,
-            offset: null,
-          ) as Instance;
-          expect(inst.associations!.length, 0);
-          expect(inst.length, 1001);
-          expect(inst.offset, null);
-          expect(inst.count, 0);
-          expect(inst.associations!.length, 0);
-        });
+        test(
+          'Maps are truncated to empty if offset runs off the end',
+          () async {
+            final map =
+                await service.evaluate(
+                      isolate.id!,
+                      bootstrap!.id!,
+                      'topLevelMap',
+                    )
+                    as InstanceRef;
+            final inst =
+                await service.getObject(
+                      isolate.id!,
+                      map.id!,
+                      count: 5,
+                      offset: 1002,
+                    )
+                    as Instance;
+            expect(inst.associations!.length, 0);
+            expect(inst.length, 1001);
+            expect(inst.offset, 1002);
+            expect(inst.count, 0);
+            expect(inst.associations!.length, 0);
+          },
+        );
 
         test(
-            'Strings are truncated to the end if offset/count runs off the end',
-            () async {
-          final worldRef = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            "helloString('world')",
-          ) as InstanceRef;
-          final world = await service.getObject(
-            isolate.id!,
-            worldRef.id!,
-            count: 5,
-            offset: 3,
-          ) as Instance;
-          expect(world.valueAsString, 'ld');
-          expect(world.count, 2);
-          expect(world.length, 5);
-          expect(world.offset, 3);
-        });
+          'Maps are truncated to empty with 0 count and null offset',
+          () async {
+            final map =
+                await service.evaluate(
+                      isolate.id!,
+                      bootstrap!.id!,
+                      'topLevelMap',
+                    )
+                    as InstanceRef;
+            final inst =
+                await service.getObject(
+                      isolate.id!,
+                      map.id!,
+                      count: 0,
+                      offset: null,
+                    )
+                    as Instance;
+            expect(inst.associations!.length, 0);
+            expect(inst.length, 1001);
+            expect(inst.offset, null);
+            expect(inst.count, 0);
+            expect(inst.associations!.length, 0);
+          },
+        );
 
         test(
-            'offset/count parameters greater than zero are ignored for Classes',
-            () async {
-          final testClass = await service.getObject(
-            isolate.id!,
-            rootLibrary!.classes!.first.id!,
-            offset: 100,
-            count: 100,
-          ) as Class;
-          expect(
-            testClass.functions,
-            unorderedEquals([
-              predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic!),
-              predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
-            ]),
-          );
-          expect(
-            testClass.fields,
-            unorderedEquals([
-              predicate(
-                (FieldRef f) =>
-                    f.name == 'message' &&
-                    f.declaredType != null &&
-                    !f.isStatic! &&
-                    !f.isConst! &&
-                    f.isFinal!,
-              ),
-              predicate(
-                (FieldRef f) =>
-                    f.name == 'notFinal' &&
-                    f.declaredType != null &&
-                    !f.isStatic! &&
-                    !f.isConst! &&
-                    !f.isFinal!,
-              ),
-              predicate(
-                (FieldRef f) =>
-                    f.name == 'staticMessage' &&
-                    f.declaredType != null &&
-                    f.isStatic! &&
-                    !f.isConst! &&
-                    !f.isFinal!,
-              ),
-            ]),
-          );
-        });
+          'Strings are truncated to the end if offset/count runs off the end',
+          () async {
+            final worldRef =
+                await service.evaluate(
+                      isolate.id!,
+                      bootstrap!.id!,
+                      "helloString('world')",
+                    )
+                    as InstanceRef;
+            final world =
+                await service.getObject(
+                      isolate.id!,
+                      worldRef.id!,
+                      count: 5,
+                      offset: 3,
+                    )
+                    as Instance;
+            expect(world.valueAsString, 'ld');
+            expect(world.count, 2);
+            expect(world.length, 5);
+            expect(world.offset, 3);
+          },
+        );
 
-        test('offset/count parameters equal to zero are ignored for Classes',
-            () async {
-          final testClass = await service.getObject(
-            isolate.id!,
-            rootLibrary!.classes!.first.id!,
-            offset: 0,
-            count: 0,
-          ) as Class;
-          expect(
-            testClass.functions,
-            unorderedEquals([
-              predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic!),
-              predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
-              predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
-            ]),
-          );
-          expect(
-            testClass.fields,
-            unorderedEquals([
-              predicate(
-                (FieldRef f) =>
-                    f.name == 'message' &&
-                    f.declaredType != null &&
-                    !f.isStatic! &&
-                    !f.isConst! &&
-                    f.isFinal!,
-              ),
-              predicate(
-                (FieldRef f) =>
-                    f.name == 'notFinal' &&
-                    f.declaredType != null &&
-                    !f.isStatic! &&
-                    !f.isConst! &&
-                    !f.isFinal!,
-              ),
-              predicate(
-                (FieldRef f) =>
-                    f.name == 'staticMessage' &&
-                    f.declaredType != null &&
-                    f.isStatic! &&
-                    !f.isConst! &&
-                    !f.isFinal!,
-              ),
-            ]),
-          );
-        });
+        test(
+          'offset/count parameters greater than zero are ignored for Classes',
+          () async {
+            final testClass =
+                await service.getObject(
+                      isolate.id!,
+                      rootLibrary!.classes!.first.id!,
+                      offset: 100,
+                      count: 100,
+                    )
+                    as Class;
+            expect(
+              testClass.functions,
+              unorderedEquals([
+                predicate(
+                  (FuncRef f) => f.name == 'staticHello' && f.isStatic!,
+                ),
+                predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
+                predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
+                predicate(
+                  (FuncRef f) => f.name == 'runtimeType' && !f.isStatic!,
+                ),
+              ]),
+            );
+            expect(
+              testClass.fields,
+              unorderedEquals([
+                predicate(
+                  (FieldRef f) =>
+                      f.name == 'message' &&
+                      f.declaredType != null &&
+                      !f.isStatic! &&
+                      !f.isConst! &&
+                      f.isFinal!,
+                ),
+                predicate(
+                  (FieldRef f) =>
+                      f.name == 'notFinal' &&
+                      f.declaredType != null &&
+                      !f.isStatic! &&
+                      !f.isConst! &&
+                      !f.isFinal!,
+                ),
+                predicate(
+                  (FieldRef f) =>
+                      f.name == 'staticMessage' &&
+                      f.declaredType != null &&
+                      f.isStatic! &&
+                      !f.isConst! &&
+                      !f.isFinal!,
+                ),
+              ]),
+            );
+          },
+        );
+
+        test(
+          'offset/count parameters equal to zero are ignored for Classes',
+          () async {
+            final testClass =
+                await service.getObject(
+                      isolate.id!,
+                      rootLibrary!.classes!.first.id!,
+                      offset: 0,
+                      count: 0,
+                    )
+                    as Class;
+            expect(
+              testClass.functions,
+              unorderedEquals([
+                predicate(
+                  (FuncRef f) => f.name == 'staticHello' && f.isStatic!,
+                ),
+                predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
+                predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
+                predicate(
+                  (FuncRef f) => f.name == 'runtimeType' && !f.isStatic!,
+                ),
+              ]),
+            );
+            expect(
+              testClass.fields,
+              unorderedEquals([
+                predicate(
+                  (FieldRef f) =>
+                      f.name == 'message' &&
+                      f.declaredType != null &&
+                      !f.isStatic! &&
+                      !f.isConst! &&
+                      f.isFinal!,
+                ),
+                predicate(
+                  (FieldRef f) =>
+                      f.name == 'notFinal' &&
+                      f.declaredType != null &&
+                      !f.isStatic! &&
+                      !f.isConst! &&
+                      !f.isFinal!,
+                ),
+                predicate(
+                  (FieldRef f) =>
+                      f.name == 'staticMessage' &&
+                      f.declaredType != null &&
+                      f.isStatic! &&
+                      !f.isConst! &&
+                      !f.isFinal!,
+                ),
+              ]),
+            );
+          },
+        );
 
         test('offset/count parameters are ignored for bools', () async {
-          final ref = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'helloBool(true)',
-          ) as InstanceRef;
-          final obj = await service.getObject(
-            isolate.id!,
-            ref.id!,
-            offset: 100,
-            count: 100,
-          ) as Instance;
+          final ref =
+              await service.evaluate(
+                    isolate.id!,
+                    bootstrap!.id!,
+                    'helloBool(true)',
+                  )
+                  as InstanceRef;
+          final obj =
+              await service.getObject(
+                    isolate.id!,
+                    ref.id!,
+                    offset: 100,
+                    count: 100,
+                  )
+                  as Instance;
           expect(obj.kind, InstanceKind.kBool);
           expect(obj.classRef!.name, 'Bool');
           expect(obj.valueAsString, 'true');
         });
 
         test('offset/count parameters are ignored for nums', () async {
-          final ref = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'helloNum(42)',
-          ) as InstanceRef;
-          final obj = await service.getObject(
-            isolate.id!,
-            ref.id!,
-            offset: 100,
-            count: 100,
-          ) as Instance;
+          final ref =
+              await service.evaluate(
+                    isolate.id!,
+                    bootstrap!.id!,
+                    'helloNum(42)',
+                  )
+                  as InstanceRef;
+          final obj =
+              await service.getObject(
+                    isolate.id!,
+                    ref.id!,
+                    offset: 100,
+                    count: 100,
+                  )
+                  as Instance;
           expect(obj.kind, InstanceKind.kDouble);
           expect(obj.classRef!.name, 'Double');
           expect(obj.valueAsString, '42');
         });
 
         test('offset/count parameters are ignored for null', () async {
-          final ref = await service.evaluate(
-            isolate.id!,
-            bootstrap!.id!,
-            'helloNum(null)',
-          ) as InstanceRef;
-          final obj = await service.getObject(
-            isolate.id!,
-            ref.id!,
-            offset: 100,
-            count: 100,
-          ) as Instance;
+          final ref =
+              await service.evaluate(
+                    isolate.id!,
+                    bootstrap!.id!,
+                    'helloNum(null)',
+                  )
+                  as InstanceRef;
+          final obj =
+              await service.getObject(
+                    isolate.id!,
+                    ref.id!,
+                    offset: 100,
+                    count: 100,
+                  )
+                  as Instance;
           expect(obj.kind, InstanceKind.kNull);
           expect(obj.classRef!.name, 'Null');
           expect(obj.valueAsString, 'null');
@@ -1341,14 +1470,13 @@ void runTests({
         final vm = await service.getVM();
         final isolateId = vm.isolates!.first.id!;
         final scripts = await service.getScripts(isolateId);
-        final mainScript = scripts.scripts!
-            .firstWhere((script) => script.uri!.contains('main.dart'));
-
-        final sourceReport = await service.getSourceReport(
-          isolateId,
-          ['PossibleBreakpoints'],
-          scriptId: mainScript.id,
+        final mainScript = scripts.scripts!.firstWhere(
+          (script) => script.uri!.contains('main.dart'),
         );
+
+        final sourceReport = await service.getSourceReport(isolateId, [
+          'PossibleBreakpoints',
+        ], scriptId: mainScript.id);
 
         expect(sourceReport.scripts, isNotEmpty);
         expect(sourceReport.ranges, isNotEmpty);
@@ -1373,8 +1501,9 @@ void runTests({
         scripts = await service.getScripts(isolateId!);
         await service.streamListen('Debug');
         stream = service.onEvent('Debug');
-        mainScript = scripts.scripts!
-            .firstWhere((script) => script.uri!.contains('main.dart'));
+        mainScript = scripts.scripts!.firstWhere(
+          (script) => script.uri!.contains('main.dart'),
+        );
       });
 
       test('at breakpoints sets pauseBreakPoints', () async {
@@ -1383,10 +1512,14 @@ void runTests({
           isolateId!,
           mainScript,
         );
-        final bp =
-            await service.addBreakpoint(isolateId!, mainScript.id!, line);
-        final event = await stream
-            .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+        final bp = await service.addBreakpoint(
+          isolateId!,
+          mainScript.id!,
+          line,
+        );
+        final event = await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseBreakpoint,
+        );
         final pauseBreakpoints = event.pauseBreakpoints!;
         expect(pauseBreakpoints, hasLength(1));
         expect(pauseBreakpoints.first.id, bp.id);
@@ -1395,13 +1528,15 @@ void runTests({
         await service.resume(isolateId!);
       });
 
-      test('resuming throws kIsolateMustBePaused error if not paused',
-          () async {
-        await expectLater(
-          service.resume(isolateId!),
-          throwsRPCErrorWithCode(RPCErrorKind.kIsolateMustBePaused.code),
-        );
-      });
+      test(
+        'resuming throws kIsolateMustBePaused error if not paused',
+        () async {
+          await expectLater(
+            service.resume(isolateId!),
+            throwsRPCErrorWithCode(RPCErrorKind.kIsolateMustBePaused.code),
+          );
+        },
+      );
     });
 
     group('Step', () {
@@ -1419,18 +1554,23 @@ void runTests({
         scripts = await service.getScripts(isolateId!);
         await service.streamListen('Debug');
         stream = service.onEvent('Debug');
-        mainScript = scripts.scripts!
-            .firstWhere((script) => script.uri!.contains('main.dart'));
+        mainScript = scripts.scripts!.firstWhere(
+          (script) => script.uri!.contains('main.dart'),
+        );
         final line = await context.findBreakpointLine(
           'callPrintCount',
           isolateId!,
           mainScript,
         );
-        final bp =
-            await service.addBreakpoint(isolateId!, mainScript.id!, line);
+        final bp = await service.addBreakpoint(
+          isolateId!,
+          mainScript.id!,
+          line,
+        );
         // Wait for breakpoint to trigger.
-        await stream
-            .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+        await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseBreakpoint,
+        );
         await service.removeBreakpoint(isolateId!, bp.id!);
       });
 
@@ -1442,8 +1582,9 @@ void runTests({
       test('Into goes to the next Dart location', () async {
         await service.resume(isolateId!, step: 'Into');
         // Wait for the step to actually occur.
-        await stream
-            .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
+        await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseInterrupted,
+        );
         final stack = await service.getStack(isolateId!);
         expect(stack, isNotNull);
         final first = stack.frames!.first;
@@ -1455,8 +1596,9 @@ void runTests({
       test('Over goes to the next Dart location', () async {
         await service.resume(isolateId!, step: 'Over');
         // Wait for the step to actually occur.
-        await stream
-            .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
+        await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseInterrupted,
+        );
         final stack = await service.getStack(isolateId!);
         expect(stack, isNotNull);
         final first = stack.frames!.first;
@@ -1468,8 +1610,9 @@ void runTests({
       test('Out goes to the next Dart location', () async {
         await service.resume(isolateId!, step: 'Out');
         // Wait for the step to actually occur.
-        await stream
-            .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
+        await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseInterrupted,
+        );
         final stack = await service.getStack(isolateId!);
         expect(stack, isNotNull);
         final first = stack.frames!.first;
@@ -1494,8 +1637,9 @@ void runTests({
         scripts = await service.getScripts(isolateId!);
         await service.streamListen('Debug');
         stream = service.onEvent('Debug');
-        mainScript = scripts.scripts!
-            .firstWhere((each) => each.uri!.contains('main.dart'));
+        mainScript = scripts.scripts!.firstWhere(
+          (each) => each.uri!.contains('main.dart'),
+        );
       });
 
       test(
@@ -1517,8 +1661,9 @@ void runTests({
         try {
           bp = await service.addBreakpoint(isolateId!, mainScript.id!, line);
           // Wait for breakpoint to trigger.
-          await stream
-              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+          await stream.firstWhere(
+            (event) => event.kind == EventKind.kPauseBreakpoint,
+          );
           return await service.getStack(isolateId!, limit: limit);
         } finally {
           // Remove breakpoint and resume so it doesn't impact other tests.
@@ -1564,28 +1709,32 @@ void runTests({
         expect(first.code!.kind, 'Dart');
 
         // We should have an async marker.
-        final suspensionFrames = stack.frames!
-            .where((frame) => frame.kind == FrameKind.kAsyncSuspensionMarker);
+        final suspensionFrames = stack.frames!.where(
+          (frame) => frame.kind == FrameKind.kAsyncSuspensionMarker,
+        );
         expect(suspensionFrames, isNotEmpty);
 
         // We should have async frames.
-        final asyncFrames = stack.frames!
-            .where((frame) => frame.kind == FrameKind.kAsyncCausal);
+        final asyncFrames = stack.frames!.where(
+          (frame) => frame.kind == FrameKind.kAsyncCausal,
+        );
         expect(asyncFrames, isNotEmpty);
       });
 
-      test('returns the correct number of frames when a limit is provided',
-          () async {
-        var stack = await breakAt('asyncCall', limit: 4);
-        expect(stack, isNotNull);
-        expect(stack.frames, hasLength(equals(4)));
-        stack = await breakAt('asyncCall', limit: 2);
-        expect(stack, isNotNull);
-        expect(stack.frames, hasLength(equals(2)));
-        stack = await breakAt('asyncCall');
-        expect(stack, isNotNull);
-        expect(stack.frames, hasLength(equals(5)));
-      });
+      test(
+        'returns the correct number of frames when a limit is provided',
+        () async {
+          var stack = await breakAt('asyncCall', limit: 4);
+          expect(stack, isNotNull);
+          expect(stack.frames, hasLength(equals(4)));
+          stack = await breakAt('asyncCall', limit: 2);
+          expect(stack, isNotNull);
+          expect(stack.frames, hasLength(equals(2)));
+          stack = await breakAt('asyncCall');
+          expect(stack, isNotNull);
+          expect(stack.frames, hasLength(equals(5)));
+        },
+      );
 
       test('truncated stacks are properly indicated', () async {
         var stack = await breakAt('asyncCall', limit: 3);
@@ -1607,8 +1756,9 @@ void runTests({
           exceptionPauseMode: ExceptionPauseMode.kAll,
         );
         // Wait for pausing to actually propagate.
-        final event = await stream
-            .firstWhere((event) => event.kind == EventKind.kPauseException);
+        final event = await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseException,
+        );
         expect(event.exception, isNotNull);
         // Check that the exception stack trace has been mapped to Dart source files.
         expect(event.exception!.valueAsString, contains('main.dart'));
@@ -1626,8 +1776,9 @@ void runTests({
       test('returns non-null stack when paused', () async {
         await service.pause(isolateId!);
         // Wait for pausing to actually propagate.
-        await stream
-            .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
+        await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseInterrupted,
+        );
         expect(await service.getStack(isolateId!), isNotNull);
         // Resume the isolate to not impact other tests.
         await service.resume(isolateId!);
@@ -1666,11 +1817,9 @@ void runTests({
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
         bootstrap = isolate.rootLib;
-        testInstance = await service.evaluate(
-          isolate.id!,
-          bootstrap!.id!,
-          'myInstance',
-        ) as InstanceRef;
+        testInstance =
+            await service.evaluate(isolate.id!, bootstrap!.id!, 'myInstance')
+                as InstanceRef;
       });
 
       test('rootLib', () async {
@@ -1685,8 +1834,12 @@ void runTests({
       });
 
       test('toString()', () async {
-        final remote =
-            await service.invoke(isolate.id!, testInstance.id!, 'toString', []);
+        final remote = await service.invoke(
+          isolate.id!,
+          testInstance.id!,
+          'toString',
+          [],
+        );
         expect(
           remote,
           const TypeMatcher<InstanceRef>().having(
@@ -1698,8 +1851,12 @@ void runTests({
       });
 
       test('hello()', () async {
-        final remote =
-            await service.invoke(isolate.id!, testInstance.id!, 'hello', []);
+        final remote = await service.invoke(
+          isolate.id!,
+          testInstance.id!,
+          'hello',
+          [],
+        );
         expect(
           remote,
           const TypeMatcher<InstanceRef>().having(
@@ -1710,130 +1867,130 @@ void runTests({
         );
       });
 
-      test(
-        'helloString',
-        () async {
-          final remote = await service.invoke(
-            isolate.id!,
-            bootstrap!.id!,
+      test('helloString', () async {
+        final remote = await service.invoke(
+          isolate.id!,
+          bootstrap!.id!,
+          'helloString',
+          ['#StringInstanceRef#abc'],
+        );
+        expect(
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.valueAsString,
             'helloString',
-            ['#StringInstanceRef#abc'],
-          );
-          expect(
-            remote,
-            const TypeMatcher<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'helloString',
-              'abc',
-            ),
-          );
-          expect(
-            remote,
-            const TypeMatcher<InstanceRef>()
-                .having((instance) => instance.kind, 'kind', 'String'),
-          );
-        },
-      );
+            'abc',
+          ),
+        );
+        expect(
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.kind,
+            'kind',
+            'String',
+          ),
+        );
+      });
 
-      test(
-        'null argument',
-        () async {
-          final remote = await service.invoke(
-            isolate.id!,
-            bootstrap!.id!,
+      test('null argument', () async {
+        final remote = await service.invoke(
+          isolate.id!,
+          bootstrap!.id!,
+          'helloString',
+          ['objects/null'],
+        );
+        expect(
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.valueAsString,
             'helloString',
-            ['objects/null'],
-          );
-          expect(
-            remote,
-            const TypeMatcher<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'helloString',
-              'null',
-            ),
-          );
-          expect(
-            remote,
-            const TypeMatcher<InstanceRef>()
-                .having((instance) => instance.kind, 'kind', 'Null'),
-          );
-        },
-      );
+            'null',
+          ),
+        );
+        expect(
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.kind,
+            'kind',
+            'Null',
+          ),
+        );
+      });
 
-      test(
-        'helloBool',
-        () async {
-          final remote = await service.invoke(
-            isolate.id!,
-            bootstrap!.id!,
+      test('helloBool', () async {
+        final remote = await service.invoke(
+          isolate.id!,
+          bootstrap!.id!,
+          'helloBool',
+          ['objects/bool-true'],
+        );
+        expect(
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.valueAsString,
             'helloBool',
-            ['objects/bool-true'],
-          );
-          expect(
-            remote,
-            const TypeMatcher<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'helloBool',
-              'true',
-            ),
-          );
-          expect(
-            remote,
-            const TypeMatcher<InstanceRef>()
-                .having((instance) => instance.kind, 'kind', 'Bool'),
-          );
-        },
-      );
+            'true',
+          ),
+        );
+        expect(
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.kind,
+            'kind',
+            'Bool',
+          ),
+        );
+      });
 
-      test(
-        'helloNum',
-        () async {
-          final remote = await service.invoke(
-            isolate.id!,
-            bootstrap!.id!,
+      test('helloNum', () async {
+        final remote = await service.invoke(
+          isolate.id!,
+          bootstrap!.id!,
+          'helloNum',
+          ['objects/int-123'],
+        );
+        expect(
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.valueAsString,
             'helloNum',
-            ['objects/int-123'],
-          );
-          expect(
-            remote,
-            const TypeMatcher<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'helloNum',
-              '123',
-            ),
-          );
-          expect(
-            remote,
-            const TypeMatcher<InstanceRef>()
-                .having((instance) => instance.kind, 'kind', 'Double'),
-          );
-        },
-      );
+            '123',
+          ),
+        );
+        expect(
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.kind,
+            'kind',
+            'Double',
+          ),
+        );
+      });
 
-      test(
-        'two object arguments',
-        () async {
-          final remote = await service.invoke(
-            isolate.id!,
-            bootstrap!.id!,
+      test('two object arguments', () async {
+        final remote = await service.invoke(
+          isolate.id!,
+          bootstrap!.id!,
+          'messagesCombined',
+          [testInstance.id, testInstance.id],
+        );
+        expect(
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.valueAsString,
             'messagesCombined',
-            [testInstance.id, testInstance.id],
-          );
-          expect(
-            remote,
-            const TypeMatcher<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'messagesCombined',
-              'worldworld',
-            ),
-          );
-          expect(
-            remote,
-            const TypeMatcher<InstanceRef>()
-                .having((instance) => instance.kind, 'kind', 'String'),
-          );
-        },
-      );
+            'worldworld',
+          ),
+        );
+        expect(
+          remote,
+          const TypeMatcher<InstanceRef>().having(
+            (instance) => instance.kind,
+            'kind',
+            'String',
+          ),
+        );
+      });
     });
 
     test('kill', () async {
@@ -1861,8 +2018,9 @@ void runTests({
         resumeCompleter.complete();
       });
       expect(await service.pause(isolateId), const TypeMatcher<Success>());
-      await stream
-          .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
+      await stream.firstWhere(
+        (event) => event.kind == EventKind.kPauseInterrupted,
+      );
       expect(
         (await service.getIsolate(isolateId)).pauseEvent!.kind,
         EventKind.kPauseInterrupted,
@@ -1892,40 +2050,47 @@ void runTests({
       await expectLater(service.getRetainingPath('', '', 0), throwsRPCError);
     });
 
-    test('lookupResolvedPackageUris converts package and org-dartlang-app uris',
-        () async {
-      final service = context.service;
-      final vm = await service.getVM();
-      final isolateId = vm.isolates!.first.id!;
-      final scriptList = await service.getScripts(isolateId);
+    test(
+      'lookupResolvedPackageUris converts package and org-dartlang-app uris',
+      () async {
+        final service = context.service;
+        final vm = await service.getVM();
+        final isolateId = vm.isolates!.first.id!;
+        final scriptList = await service.getScripts(isolateId);
 
-      final uris = scriptList.scripts!.map((e) => e.uri!).toList();
-      final resolvedUris =
-          await service.lookupResolvedPackageUris(isolateId, uris);
+        final uris = scriptList.scripts!.map((e) => e.uri!).toList();
+        final resolvedUris = await service.lookupResolvedPackageUris(
+          isolateId,
+          uris,
+        );
 
-      expect(
-        resolvedUris.uris,
-        containsAll([
-          contains('/_testSound/example/hello_world/main.dart'),
-          contains('/lib/path.dart'),
-          contains('/lib/src/path_set.dart'),
-        ]),
-      );
-    });
+        expect(
+          resolvedUris.uris,
+          containsAll([
+            contains('/_testSound/example/hello_world/main.dart'),
+            contains('/lib/path.dart'),
+            contains('/lib/src/path_set.dart'),
+          ]),
+        );
+      },
+    );
 
-    test('lookupResolvedPackageUris does not translate non-existent paths',
-        () async {
-      final service = context.service;
-      final vm = await service.getVM();
-      final isolateId = vm.isolates!.first.id!;
+    test(
+      'lookupResolvedPackageUris does not translate non-existent paths',
+      () async {
+        final service = context.service;
+        final vm = await service.getVM();
+        final isolateId = vm.isolates!.first.id!;
 
-      final resolvedUris = await service.lookupResolvedPackageUris(isolateId, [
-        'package:does/not/exist.dart',
-        'dart:does_not_exist',
-        'file:///does_not_exist.dart',
-      ]);
-      expect(resolvedUris.uris, [null, null, null]);
-    });
+        final resolvedUris = await service
+            .lookupResolvedPackageUris(isolateId, [
+              'package:does/not/exist.dart',
+              'dart:does_not_exist',
+              'file:///does_not_exist.dart',
+            ]);
+        expect(resolvedUris.uris, [null, null, null]);
+      },
+    );
 
     test(
       'lookupResolvedPackageUris translates dart uris',
@@ -1934,11 +2099,10 @@ void runTests({
         final vm = await service.getVM();
         final isolateId = vm.isolates!.first.id!;
 
-        final resolvedUris =
-            await service.lookupResolvedPackageUris(isolateId, [
-          'dart:html',
-          'dart:async',
-        ]);
+        final resolvedUris = await service.lookupResolvedPackageUris(
+          isolateId,
+          ['dart:html', 'dart:async'],
+        );
 
         expect(resolvedUris.uris, [
           'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
@@ -1948,30 +2112,34 @@ void runTests({
       skip: 'https://github.com/dart-lang/webdev/issues/1584',
     );
 
-    test('lookupPackageUris finds package and org-dartlang-app paths',
-        () async {
-      final service = context.service;
-      final vm = await service.getVM();
-      final isolateId = vm.isolates!.first.id!;
-      final scriptList = await service.getScripts(isolateId);
+    test(
+      'lookupPackageUris finds package and org-dartlang-app paths',
+      () async {
+        final service = context.service;
+        final vm = await service.getVM();
+        final isolateId = vm.isolates!.first.id!;
+        final scriptList = await service.getScripts(isolateId);
 
-      final uris = scriptList.scripts!.map((e) => e.uri!).toList();
-      final resolvedUris =
-          await service.lookupResolvedPackageUris(isolateId, uris);
+        final uris = scriptList.scripts!.map((e) => e.uri!).toList();
+        final resolvedUris = await service.lookupResolvedPackageUris(
+          isolateId,
+          uris,
+        );
 
-      final packageUris = await service.lookupPackageUris(
-        isolateId,
-        List<String>.from(resolvedUris.uris!),
-      );
-      expect(
-        packageUris.uris,
-        containsAll([
-          'org-dartlang-app:///example/hello_world/main.dart',
-          'package:path/path.dart',
-          'package:path/src/path_set.dart',
-        ]),
-      );
-    });
+        final packageUris = await service.lookupPackageUris(
+          isolateId,
+          List<String>.from(resolvedUris.uris!),
+        );
+        expect(
+          packageUris.uris,
+          containsAll([
+            'org-dartlang-app:///example/hello_world/main.dart',
+            'package:path/path.dart',
+            'package:path/src/path_set.dart',
+          ]),
+        );
+      },
+    );
 
     test('lookupPackageUris ignores local parameter', () async {
       final service = context.service;
@@ -1980,8 +2148,11 @@ void runTests({
       final scriptList = await service.getScripts(isolateId);
 
       final uris = scriptList.scripts!.map((e) => e.uri!).toList();
-      final resolvedUrisWithLocal =
-          await service.lookupResolvedPackageUris(isolateId, uris, local: true);
+      final resolvedUrisWithLocal = await service.lookupResolvedPackageUris(
+        isolateId,
+        uris,
+        local: true,
+      );
 
       final packageUrisWithLocal = await service.lookupPackageUris(
         isolateId,
@@ -1996,8 +2167,11 @@ void runTests({
         ]),
       );
 
-      final resolvedUrisWithoutLocal =
-          await service.lookupResolvedPackageUris(isolateId, uris, local: true);
+      final resolvedUrisWithoutLocal = await service.lookupResolvedPackageUris(
+        isolateId,
+        uris,
+        local: true,
+      );
 
       final packageUrisWithoutLocal = await service.lookupPackageUris(
         isolateId,
@@ -2038,10 +2212,7 @@ void runTests({
           'org-dartlang-sdk:///sdk/lib/async/async.dart',
         ]);
 
-        expect(resolvedUris.uris, [
-          'dart:html',
-          'dart:async',
-        ]);
+        expect(resolvedUris.uris, ['dart:html', 'dart:async']);
       },
       skip: 'https://github.com/dart-lang/webdev/issues/1584',
     );
@@ -2147,10 +2318,7 @@ void runTests({
           service.setFlag('pause_isolates_on_start', 'true'),
           completion(_isSuccess),
         );
-        expect(
-          context.service.pauseIsolatesOnStart,
-          equals(true),
-        );
+        expect(context.service.pauseIsolatesOnStart, equals(true));
       });
 
       test('pause_isolates_on_start set to false', () {
@@ -2159,10 +2327,7 @@ void runTests({
           service.setFlag('pause_isolates_on_start', 'false'),
           completion(_isSuccess),
         );
-        expect(
-          context.service.pauseIsolatesOnStart,
-          equals(false),
-        );
+        expect(context.service.pauseIsolatesOnStart, equals(false));
       });
 
       test('pause_isolates_on_start set to invalid value', () {
@@ -2187,9 +2352,7 @@ void runTests({
         final flagList = await service.getFlagList();
         expect(
           stringifyFlags(flagList),
-          containsAll([
-            'pause_isolates_on_start -> false',
-          ]),
+          containsAll(['pause_isolates_on_start -> false']),
         );
       });
 
@@ -2199,9 +2362,7 @@ void runTests({
         final flagList = await service.getFlagList();
         expect(
           stringifyFlags(flagList),
-          containsAll([
-            'pause_isolates_on_start -> true',
-          ]),
+          containsAll(['pause_isolates_on_start -> true']),
         );
       });
     });
@@ -2229,16 +2390,22 @@ void runTests({
           await expectLater(
             stream,
             emitsThrough(
-              const TypeMatcher<Event>()
-                  .having((e) => e.kind, 'kind', EventKind.kPauseInterrupted),
+              const TypeMatcher<Event>().having(
+                (e) => e.kind,
+                'kind',
+                EventKind.kPauseInterrupted,
+              ),
             ),
           );
           safeUnawaited(context.tabConnection.debugger.resume());
           expect(
             eventStream,
             emitsThrough(
-              const TypeMatcher<Event>()
-                  .having((e) => e.kind, 'kind', EventKind.kResume),
+              const TypeMatcher<Event>().having(
+                (e) => e.kind,
+                'kind',
+                EventKind.kResume,
+              ),
             ),
           );
         });
@@ -2293,8 +2460,9 @@ void runTests({
               ),
             ),
           );
-          await context.tabConnection.runtime
-              .evaluate("postEvent('$eventKind');");
+          await context.tabConnection.runtime.evaluate(
+            "postEvent('$eventKind');",
+          );
         });
 
         test('Batched debug events from injected client', () async {
@@ -2303,9 +2471,7 @@ void runTests({
           final eventData = 'eventData';
           final delay = const Duration(milliseconds: 2000);
 
-          TypeMatcher<Event> eventMatcher(
-            String data,
-          ) =>
+          TypeMatcher<Event> eventMatcher(String data) =>
               const TypeMatcher<Event>()
                   .having((event) => event.kind, 'kind', eventKind)
                   .having(
@@ -2368,8 +2534,9 @@ void runTests({
               ),
             ),
           );
-          await context.tabConnection.runtime
-              .evaluate("registerExtension('$extensionMethod');");
+          await context.tabConnection.runtime.evaluate(
+            "registerExtension('$extensionMethod');",
+          );
         });
 
         test('lifecycle events', () async {
@@ -2423,8 +2590,9 @@ void runTests({
             emitsInOrder(extensions.map(eventMatcher)),
           );
           for (final extension in extensions) {
-            await context.tabConnection.runtime
-                .evaluate(emitRegisterEvent(extension));
+            await context.tabConnection.runtime.evaluate(
+              emitRegisterEvent(extension),
+            );
           }
         });
       });
@@ -2441,8 +2609,9 @@ void runTests({
             predicate(
               (Event event) =>
                   event.kind == EventKind.kWriteEvent &&
-                  String.fromCharCodes(base64.decode(event.bytes!))
-                      .contains('hello'),
+                  String.fromCharCodes(
+                    base64.decode(event.bytes!),
+                  ).contains('hello'),
             ),
           ),
         );
@@ -2458,8 +2627,9 @@ void runTests({
             predicate(
               (Event event) =>
                   event.kind == EventKind.kWriteEvent &&
-                  String.fromCharCodes(base64.decode(event.bytes!))
-                      .contains('Error'),
+                  String.fromCharCodes(
+                    base64.decode(event.bytes!),
+                  ).contains('Error'),
             ),
           ),
         );
@@ -2475,13 +2645,15 @@ void runTests({
             predicate(
               (Event event) =>
                   event.kind == EventKind.kWriteEvent &&
-                  String.fromCharCodes(base64.decode(event.bytes!))
-                      .contains('main.dart'),
+                  String.fromCharCodes(
+                    base64.decode(event.bytes!),
+                  ).contains('main.dart'),
             ),
           ),
         );
-        await context.tabConnection.runtime
-            .evaluate('throwUncaughtException();');
+        await context.tabConnection.runtime.evaluate(
+          'throwUncaughtException();',
+        );
       });
 
       test('VM', () async {
@@ -2522,22 +2694,24 @@ void runTests({
         );
       });
 
-      test('dart:developer logs are correctly converted to log records',
-          () async {
-        final logStream = context.service.onEvent(EventStreams.kLogging);
-        final message = 'myMessage';
+      test(
+        'dart:developer logs are correctly converted to log records',
+        () async {
+          final logStream = context.service.onEvent(EventStreams.kLogging);
+          final message = 'myMessage';
 
-        safeUnawaited(
-          context.tabConnection.runtime.evaluate("sendLog('$message');"),
-        );
+          safeUnawaited(
+            context.tabConnection.runtime.evaluate("sendLog('$message');"),
+          );
 
-        final event = await logStream.first;
-        expect(event.kind, EventKind.kLogging);
+          final event = await logStream.first;
+          expect(event.kind, EventKind.kLogging);
 
-        final logRecord = event.logRecord!;
-        expect(logRecord.message!.valueAsString, message);
-        expect(logRecord.loggerName!.valueAsString, 'testLogCategory');
-      });
+          final logRecord = event.logRecord!;
+          expect(logRecord.message!.valueAsString, message);
+          expect(logRecord.loggerName!.valueAsString, 'testLogCategory');
+        },
+      );
 
       test('long dart:developer log messages are not truncated', () async {
         final logStream = context.service.onEvent(EventStreams.kLogging);

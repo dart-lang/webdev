@@ -18,14 +18,12 @@ class SkipLists {
   /// https://chromedevtools.github.io/devtools-protocol/tot/Debugger/#method-stepInto
   ///
   /// Can return a cached value.
-  List<Map<String, dynamic>> compute(
-    String scriptId,
-    Set<Location> locations,
-  ) {
+  List<Map<String, dynamic>> compute(String scriptId, Set<Location> locations) {
     if (_idToList.containsKey(scriptId)) return _idToList[scriptId]!;
 
-    final sortedLocations = locations.toList()
-      ..sort((a, b) => a.jsLocation.compareTo(b.jsLocation));
+    final sortedLocations =
+        locations.toList()
+          ..sort((a, b) => a.jsLocation.compareTo(b.jsLocation));
 
     final ranges = <Map<String, dynamic>>[];
     var startLine = 0;
@@ -61,10 +59,9 @@ class SkipLists {
     int startColumn,
     int endLine,
     int endColumn,
-  ) =>
-      {
-        'scriptId': scriptId,
-        'start': {'lineNumber': startLine, 'columnNumber': startColumn},
-        'end': {'lineNumber': endLine, 'columnNumber': endColumn},
-      };
+  ) => {
+    'scriptId': scriptId,
+    'start': {'lineNumber': startLine, 'columnNumber': startColumn},
+    'end': {'lineNumber': endLine, 'columnNumber': endColumn},
+  };
 }

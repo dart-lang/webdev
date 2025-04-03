@@ -12,6 +12,8 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:dwds/data/debug_info.dart';
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
@@ -188,10 +190,7 @@ Future<void> _maybeUpdateFileABugLink() async {
   if (isInternal) {
     final bugLink = document.getElementById(_bugLinkId);
     if (bugLink == null) return;
-    bugLink.setAttribute(
-      'href',
-      'http://go/dde-bug',
-    );
+    bugLink.setAttribute('href', 'http://go/dde-bug');
   }
 }
 
@@ -277,9 +276,10 @@ Future<void> _launchDebugConnection(Event _) async {
   final json = jsonEncode(
     serializers.serialize(
       DebugStateChange(
-        (b) => b
-          ..tabId = _tabId
-          ..newState = DebugStateChange.startDebugging,
+        (b) =>
+            b
+              ..tabId = _tabId
+              ..newState = DebugStateChange.startDebugging,
       ),
     ),
   );

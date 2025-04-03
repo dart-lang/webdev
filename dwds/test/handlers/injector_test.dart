@@ -57,14 +57,16 @@ void main() {
       });
 
       test('leaves non-entrypoints untouched', () async {
-        final result =
-            await http.get(Uri.parse('http://localhost:${server.port}/foo.js'));
+        final result = await http.get(
+          Uri.parse('http://localhost:${server.port}/foo.js'),
+        );
         expect(result.body, 'some js');
       });
 
       test('does not update etags for non-entrypoints', () async {
-        final result =
-            await http.get(Uri.parse('http://localhost:${server.port}/foo.js'));
+        final result = await http.get(
+          Uri.parse('http://localhost:${server.port}/foo.js'),
+        );
         expect(result.headers[HttpHeaders.etagHeader], nonEntryEtag);
       });
 
@@ -97,8 +99,9 @@ void main() {
       });
 
       test('ignores non-js requests', () async {
-        final result = await http
-            .get(Uri.parse('http://localhost:${server.port}/main.dart'));
+        final result = await http.get(
+          Uri.parse('http://localhost:${server.port}/main.dart'),
+        );
         expect(result.body, 'Not found');
       });
 
@@ -134,8 +137,7 @@ void main() {
         );
       });
 
-      test(
-          'Does not return 304 when if-none-match etag matches the original '
+      test('Does not return 304 when if-none-match etag matches the original '
           'content etag', () async {
         final result = await http.get(
           Uri.parse(
@@ -146,24 +148,26 @@ void main() {
         expect(result.statusCode, HttpStatus.ok);
       });
 
-      test('Does return 304 when if-none-match etag matches the modified etag',
-          () async {
-        final originalResponse = await http.get(
-          Uri.parse(
-            'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
-          ),
-        );
+      test(
+        'Does return 304 when if-none-match etag matches the modified etag',
+        () async {
+          final originalResponse = await http.get(
+            Uri.parse(
+              'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+            ),
+          );
 
-        final etagHeader = originalResponse.headers[HttpHeaders.etagHeader];
-        expect(etagHeader, isNotNull);
-        final cachedResponse = await http.get(
-          Uri.parse(
-            'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
-          ),
-          headers: {HttpHeaders.ifNoneMatchHeader: etagHeader!},
-        );
-        expect(cachedResponse.statusCode, HttpStatus.notModified);
-      });
+          final etagHeader = originalResponse.headers[HttpHeaders.etagHeader];
+          expect(etagHeader, isNotNull);
+          final cachedResponse = await http.get(
+            Uri.parse(
+              'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+            ),
+            headers: {HttpHeaders.ifNoneMatchHeader: etagHeader!},
+          );
+          expect(cachedResponse.statusCode, HttpStatus.notModified);
+        },
+      );
 
       test('Does not inject the extension backend port', () async {
         final result = await http.get(
@@ -213,8 +217,9 @@ void main() {
           ),
         );
         expect(
-          result.body
-              .contains('dartEntrypointPath = "entrypoint.bootstrap.js"'),
+          result.body.contains(
+            'dartEntrypointPath = "entrypoint.bootstrap.js"',
+          ),
           isTrue,
         );
       });
@@ -238,8 +243,9 @@ void main() {
       });
 
       test('Delegates to strategy handler', () async {
-        final result = await http
-            .get(Uri.parse('http://localhost:${server.port}/someDummyPath'));
+        final result = await http.get(
+          Uri.parse('http://localhost:${server.port}/someDummyPath'),
+        );
         expect(result.body, equals('some dummy response'));
       });
 
@@ -261,15 +267,17 @@ void main() {
         expect(result.body, contains('\$emitDebugEvent'));
       });
 
-      test('the injected client contains a global \$emitRegisterEvent',
-          () async {
-        final result = await http.get(
-          Uri.parse(
-            'http://localhost:${server.port}/dwds/src/injected/client.js',
-          ),
-        );
-        expect(result.body, contains('\$emitRegisterEvent'));
-      });
+      test(
+        'the injected client contains a global \$emitRegisterEvent',
+        () async {
+          final result = await http.get(
+            Uri.parse(
+              'http://localhost:${server.port}/dwds/src/injected/client.js',
+            ),
+          );
+          expect(result.body, contains('\$emitRegisterEvent'));
+        },
+      );
 
       test('the injected client contains a global \$isInternalBuild', () async {
         final result = await http.get(
@@ -305,9 +313,7 @@ void main() {
         final toolConfiguration = TestToolConfiguration.withDefaultLoadStrategy(
           debugSettings: TestDebugSettings.noDevTools().copyWith(useSse: false),
         );
-        setGlobalsForTesting(
-          toolConfiguration: toolConfiguration,
-        );
+        setGlobalsForTesting(toolConfiguration: toolConfiguration);
         injector = DwdsInjector();
         final pipeline = const Pipeline().addMiddleware(injector.middleware);
         server = await shelf_io.serve(
@@ -374,9 +380,7 @@ void main() {
       setUp(() async {
         final extensionUri = 'http://localhost:4000';
         final pipeline = const Pipeline().addMiddleware(
-          DwdsInjector(
-            extensionUri: Future.value(extensionUri),
-          ).middleware,
+          DwdsInjector(extensionUri: Future.value(extensionUri)).middleware,
         );
         server = await shelf_io.serve(
           pipeline.addHandler((request) {

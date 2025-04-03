@@ -22,16 +22,20 @@ class TestInspector {
   ) async {
     Breakpoint? bp;
     try {
-      final line =
-          await context.findBreakpointLine(breakPointId, isolateId, script);
+      final line = await context.findBreakpointLine(
+        breakPointId,
+        isolateId,
+        script,
+      );
       bp = await service.addBreakpointWithScriptUri(
         isolateId,
         script.uri!,
         line,
       );
 
-      final event =
-          await stream.firstWhere((e) => e.kind == EventKind.kPauseBreakpoint);
+      final event = await stream.firstWhere(
+        (e) => e.kind == EventKind.kPauseBreakpoint,
+      );
 
       await body(event);
     } finally {
@@ -64,7 +68,8 @@ class TestInspector {
     expect(
       instance.kind,
       instanceRef.kind,
-      reason: 'object $instanceId with ref kind ${instanceRef.kind} '
+      reason:
+          'object $instanceId with ref kind ${instanceRef.kind} '
           'has an instance kind ${instance.kind}',
     );
 
@@ -92,12 +97,9 @@ class TestInspector {
 
     final fieldValues = <dynamic, Object?>{};
     for (final p in fieldRefs.entries) {
-      fieldValues[p.key] = _getValue(p.value) ??
-          await getFields(
-            isolateId,
-            p.value,
-            depth: depth,
-          );
+      fieldValues[p.key] =
+          _getValue(p.value) ??
+          await getFields(isolateId, p.value, depth: depth);
     }
     return fieldValues;
   }
@@ -127,11 +129,7 @@ class TestInspector {
     int frame,
     String expression,
   ) async {
-    final result = await service.evaluateInFrame(
-      isolateId,
-      frame,
-      expression,
-    );
+    final result = await service.evaluateInFrame(isolateId, frame, expression);
     expect(result, isA<InstanceRef>());
     return result as InstanceRef;
   }
@@ -141,17 +139,10 @@ class TestInspector {
     int frame,
     String expression,
   ) async {
-    final instanceRef = await getInstanceRef(
-      isolateId,
-      frame,
-      expression,
-    );
+    final instanceRef = await getInstanceRef(isolateId, frame, expression);
 
     expect(instanceRef.id, isNotNull);
-    final result = await service.getObject(
-      isolateId,
-      instanceRef.id!,
-    );
+    final result = await service.getObject(isolateId, instanceRef.id!);
 
     expect(result, isA<Instance>());
     return result as Instance;
@@ -217,10 +208,9 @@ class TestInspector {
     final instance = await service.getObject(isolateId, instanceId) as Instance;
     return Future.wait(
       instance.fields!.map(
-        (e) async => await service.getObject(
-          isolateId,
-          (e.value as InstanceRef).id!,
-        ) as Instance,
+        (e) async =>
+            await service.getObject(isolateId, (e.value as InstanceRef).id!)
+                as Instance,
       ),
     );
   }
@@ -228,10 +218,9 @@ class TestInspector {
 
 Map<String, InstanceRef> _associationsToMap(
   Iterable<MapAssociation> associations,
-) =>
-    Map.fromEntries(
-      associations.map((e) => MapEntry(e.key.valueAsString, e.value)),
-    );
+) => Map.fromEntries(
+  associations.map((e) => MapEntry(e.key.valueAsString, e.value)),
+);
 
 Map<dynamic, InstanceRef> _boundFieldsToMap(Iterable<BoundField> fields) =>
     Map.fromEntries(
@@ -251,11 +240,7 @@ Matcher matchRecordInstanceRef({required int length}) => isA<InstanceRef>()
     .having((e) => e.classRef!, 'classRef', matchRecordClassRef);
 
 Matcher matchRecordTypeInstanceRef({required int length}) => isA<InstanceRef>()
-    .having(
-      (e) => e.kind,
-      'kind',
-      InstanceKind.kRecordType,
-    )
+    .having((e) => e.kind, 'kind', InstanceKind.kRecordType)
     .having((e) => e.length, 'length', length)
     .having((e) => e.classRef!, 'classRef', matchRecordTypeClassRef);
 
@@ -264,18 +249,15 @@ Matcher matchTypeInstanceRef(dynamic name) => isA<InstanceRef>()
     .having((e) => e.name, 'type ref name', name)
     .having((e) => e.classRef, 'classRef', matchTypeClassRef);
 
-Matcher matchPrimitiveInstanceRef({
-  required String kind,
-}) =>
+Matcher matchPrimitiveInstanceRef({required String kind}) =>
     isA<InstanceRef>().having((e) => e.kind, 'kind', kind);
 
 Matcher matchPrimitiveInstance({
   required String kind,
   required dynamic value,
-}) =>
-    isA<Instance>()
-        .having((e) => e.kind, 'kind', kind)
-        .having(_getValue, 'value', value);
+}) => isA<Instance>()
+    .having((e) => e.kind, 'kind', kind)
+    .having(_getValue, 'value', value);
 
 Matcher matchPlainInstance({required libraryId, required String type}) =>
     isA<Instance>()
@@ -316,10 +298,14 @@ Matcher matchTypeInstance(dynamic name) => isA<Instance>()
     .having((e) => e.name, 'type name', name)
     .having((e) => e.classRef, 'classRef', matchTypeClassRef);
 
-Matcher matchRecordClass =
-    matchClass(name: matchRecordClassName, libraryId: _dartCoreLibrary);
-Matcher matchTypeClass =
-    matchClass(name: matchTypeClassName, libraryId: _dartCoreLibrary);
+Matcher matchRecordClass = matchClass(
+  name: matchRecordClassName,
+  libraryId: _dartCoreLibrary,
+);
+Matcher matchTypeClass = matchClass(
+  name: matchTypeClassName,
+  libraryId: _dartCoreLibrary,
+);
 
 /// TODO(annagrin): record type class is reported incorrectly
 /// in ddc https://github.com/dart-lang/sdk/issues/54609,
@@ -333,8 +319,10 @@ Matcher matchClass({dynamic name, String? libraryId}) => isA<Class>()
     .having((e) => e.name, 'class name', name)
     .having((e) => e.library, 'library', matchLibraryRef(libraryId));
 
-Matcher matchRecordClassRef =
-    matchClassRef(name: matchRecordClassName, libraryId: _dartCoreLibrary);
+Matcher matchRecordClassRef = matchClassRef(
+  name: matchRecordClassName,
+  libraryId: _dartCoreLibrary,
+);
 
 /// TODO(annagrin): record type class is reported incorrectly
 /// in ddc https://github.com/dart-lang/sdk/issues/54609,
@@ -348,9 +336,9 @@ Matcher matchTypeClassRef = matchClassRef(
   libraryId: _dartCoreLibrary,
 );
 Matcher matchListClassRef(String type) => matchClassRef(
-      name: matchListClassName(type),
-      libraryId: _matchListLibraryName,
-    );
+  name: matchListClassName(type),
+  libraryId: _matchListLibraryName,
+);
 Matcher matchMapClassRef(String type) =>
     matchClassRef(name: type, libraryId: _dartJsHelperLibrary);
 Matcher matchSetClassRef(String type) =>
@@ -402,5 +390,7 @@ final matchRecordTypeClassName = 'RecordType';
 Matcher matchListClassName(String elementType) =>
     anyOf(['JSArray<$elementType>', 'List<$elementType>']);
 
-final _matchListLibraryName =
-    anyOf([_dartInterceptorsLibrary, _dartCoreLibrary]);
+final _matchListLibraryName = anyOf([
+  _dartInterceptorsLibrary,
+  _dartCoreLibrary,
+]);

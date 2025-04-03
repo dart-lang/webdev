@@ -46,9 +46,10 @@ class Property {
     if (_map == null) return null;
     if (rawName == null) return null;
     const prefix = 'Symbol(';
-    var nonSymbol = (rawName!.startsWith(prefix))
-        ? rawName!.substring(prefix.length, rawName!.length - 1)
-        : rawName!;
+    var nonSymbol =
+        (rawName!.startsWith(prefix))
+            ? rawName!.substring(prefix.length, rawName!.length - 1)
+            : rawName!;
     // Adjust names for late fields:
     // '_#MyTestClass#myselfField' -> 'myselfField'
     // TODO(annagrin): Use debug symbols to map from dart to JS symbols.

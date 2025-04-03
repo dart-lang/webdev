@@ -37,13 +37,16 @@ class LibraryHelper extends Domain {
         (lib) => Uri.parse(lib.uri ?? '') == mainLibrary,
       );
     }
-    _rootLib = _rootLib ??
+    _rootLib =
+        _rootLib ??
         libraries.firstWhereOrNull(
           (lib) => lib.name?.contains('org-dartlang') ?? false,
         );
-    _rootLib = _rootLib ??
-        libraries
-            .firstWhereOrNull((lib) => lib.name?.contains('main') ?? false);
+    _rootLib =
+        _rootLib ??
+        libraries.firstWhereOrNull(
+          (lib) => lib.name?.contains('main') ?? false,
+        );
     _rootLib = _rootLib ?? (libraries.isNotEmpty ? libraries.last : null);
     return _rootLib!;
   }
@@ -53,12 +56,16 @@ class LibraryHelper extends Domain {
   /// Note this can return a cached result.
   Future<List<LibraryRef>> get libraryRefs async {
     if (_libraryRefsById.isNotEmpty) return _libraryRefsById.values.toList();
-    final libraries = await globalToolConfiguration.loadStrategy
-        .metadataProviderFor(inspector.appConnection.request.entrypointPath)
-        .libraries;
+    final libraries =
+        await globalToolConfiguration.loadStrategy
+            .metadataProviderFor(inspector.appConnection.request.entrypointPath)
+            .libraries;
     for (final library in libraries) {
-      _libraryRefsById[library] =
-          LibraryRef(id: library, name: library, uri: library);
+      _libraryRefsById[library] = LibraryRef(
+        id: library,
+        name: library,
+        uri: library,
+      );
     }
     return _libraryRefsById.values.toList();
   }
@@ -93,8 +100,10 @@ class LibraryHelper extends Domain {
       // return empty library object for consistency among
       // VM Service implementations.
       // TODO: Collect library and class information from debug symbols.
-      _logger.warning('Library ${libraryRef.uri} is not loaded. '
-          'This can happen for unreferenced libraries.');
+      _logger.warning(
+        'Library ${libraryRef.uri} is not loaded. '
+        'This can happen for unreferenced libraries.',
+      );
     }
     final classRefs = <ClassRef>[];
     if (result != null) {
@@ -103,10 +112,7 @@ class LibraryHelper extends Domain {
       for (final className in classNames) {
         final classMetaData = ClassMetaData(
           runtimeKind: RuntimeObjectKind.type,
-          classRef: classRefFor(
-            libraryRef.id,
-            className,
-          ),
+          classRef: classRefFor(libraryRef.id, className),
         );
         classRefs.add(classMetaData.classRef);
       }

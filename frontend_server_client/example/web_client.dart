@@ -22,7 +22,8 @@ void main(List<String> args) async {
 
     _print('compiling the dart sdk');
     final sdkCompileResult = await Process.run(Platform.resolvedExecutable, [
-      p.join(sdkDir, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
+      'compile',
+      'js-dev',
       '--multi-root-scheme=org-dartlang-sdk',
       '--modules=amd',
       '--module-name=dart_sdk',

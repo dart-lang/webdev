@@ -44,11 +44,11 @@ void main() {
                   ? 'web/main.dart'
                   : 'main.dart';
 
-          final serverPath = compilationMode ==
-                      CompilationMode.frontendServer &&
-                  useDebuggerModuleNames
-              ? 'packages/${testPackageProject.packageDirectory}/lib/test_library.dart'
-              : 'packages/${testPackageProject.packageName}/test_library.dart';
+          final serverPath =
+              compilationMode == CompilationMode.frontendServer &&
+                      useDebuggerModuleNames
+                  ? 'packages/${testPackageProject.packageDirectory}/lib/test_library.dart'
+                  : 'packages/${testPackageProject.packageName}/test_library.dart';
 
           final anotherServerPath =
               compilationMode == CompilationMode.frontendServer &&
@@ -70,15 +70,17 @@ void main() {
           });
 
           test('file path to org-dartlang-app', () {
-            final webMain =
-                Uri.file(p.join(testPackageDir, 'web', 'main.dart'));
+            final webMain = Uri.file(
+              p.join(testPackageDir, 'web', 'main.dart'),
+            );
             final uri = DartUri('$webMain');
             expect(uri.serverPath, appServerPath);
           });
 
           test('file path to this package', () {
-            final testPackageLib =
-                Uri.file(p.join(testPackageDir, 'lib', 'test_library.dart'));
+            final testPackageLib = Uri.file(
+              p.join(testPackageDir, 'lib', 'test_library.dart'),
+            );
             final uri = DartUri('$testPackageLib');
             expect(uri.serverPath, serverPath);
           });

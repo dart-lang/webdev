@@ -47,9 +47,7 @@ void main() {
       final toolConfiguration = TestToolConfiguration.withLoadStrategy(
         loadStrategy: TestStrategy(FakeAssetReader()),
       );
-      setGlobalsForTesting(
-        toolConfiguration: toolConfiguration,
-      );
+      setGlobalsForTesting(toolConfiguration: toolConfiguration);
     });
     test('parses package : paths', () {
       final uri = DartUri('package:path/path.dart');
@@ -114,8 +112,9 @@ void main() {
       test(
         'can un-resolve uris',
         () {
-          final unresolved =
-              DartUri.toPackageUri('org-dartlang-sdk:///sdk/lib/io/io.dart');
+          final unresolved = DartUri.toPackageUri(
+            'org-dartlang-sdk:///sdk/lib/io/io.dart',
+          );
           expect(unresolved, 'dart:io');
         },
         skip: 'https://github.com/dart-lang/webdev/issues/1584',
@@ -144,8 +143,9 @@ void main() {
       test(
         'can unresolve uris',
         () {
-          final unresolved =
-              DartUri.toPackageUri('org-dartlang-sdk:///sdk/lib/io/io.dart');
+          final unresolved = DartUri.toPackageUri(
+            'org-dartlang-sdk:///sdk/lib/io/io.dart',
+          );
           expect(unresolved, 'dart:io');
         },
         skip: 'https://github.com/dart-lang/webdev/issues/1584',
@@ -164,9 +164,11 @@ void main() {
       }) {
         final errorMessage = error == null ? '' : ':\n$error';
         final stackMessage = stackTrace == null ? '' : ':\n$stackTrace';
-        logs.add('[$level] $loggerName: $message'
-            '$errorMessage'
-            '$stackMessage');
+        logs.add(
+          '[$level] $loggerName: $message'
+          '$errorMessage'
+          '$stackMessage',
+        );
       }
 
       setUpAll(() async {
@@ -191,8 +193,9 @@ void main() {
       test(
         'cannot unresolve uris',
         () {
-          final unresolved =
-              DartUri.toPackageUri('org-dartlang-sdk:///sdk/lib/io/io.dart');
+          final unresolved = DartUri.toPackageUri(
+            'org-dartlang-sdk:///sdk/lib/io/io.dart',
+          );
           expect(unresolved, null);
         },
         skip: 'https://github.com/dart-lang/webdev/issues/1584',
@@ -206,21 +209,16 @@ void main() {
         loadStrategy: G3TestStrategy(FakeAssetReader()),
         appMetadata: TestAppMetadata.internalApp(),
       );
-      setGlobalsForTesting(
-        toolConfiguration: toolConfiguration,
-      );
+      setGlobalsForTesting(toolConfiguration: toolConfiguration);
       await DartUri.initialize();
       DartUri.recordAbsoluteUris(['package:path/path.dart']);
     });
 
     tearDownAll(DartUri.clear);
 
-    test(
-      'can resolve g3-relative paths',
-      () {
-        final resolved = DartUri.toPackageUri('g3:///path.dart');
-        expect(resolved, 'package:path/path.dart');
-      },
-    );
+    test('can resolve g3-relative paths', () {
+      final resolved = DartUri.toPackageUri('g3:///path.dart');
+      expect(resolved, 'package:path/path.dart');
+    });
   });
 }

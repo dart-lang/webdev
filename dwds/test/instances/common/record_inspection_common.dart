@@ -27,12 +27,12 @@ void runTests({
   late ScriptRef mainScript;
 
   Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
-        stream,
-        isolateId,
-        mainScript,
-        breakPointId,
-        body,
-      );
+    stream,
+    isolateId,
+    mainScript,
+    breakPointId,
+    body,
+  );
 
   Future<Instance> getInstance(frame, expression) =>
       testInspector.getInstance(isolateId, frame, expression);
@@ -47,14 +47,13 @@ void runTests({
     offset,
     count,
     depth = -1,
-  }) =>
-      testInspector.getFields(
-        isolateId,
-        instanceRef,
-        offset: offset,
-        count: count,
-        depth: depth,
-      );
+  }) => testInspector.getFields(
+    isolateId,
+    instanceRef,
+    offset: offset,
+    count: count,
+    depth: depth,
+  );
 
   group('$compilationMode |', () {
     setUpAll(() async {
@@ -78,8 +77,9 @@ void runTests({
       await service.streamListen('Debug');
       stream = service.onEvent('Debug');
 
-      mainScript = scripts.scripts!
-          .firstWhere((each) => each.uri!.contains('main.dart'));
+      mainScript = scripts.scripts!.firstWhere(
+        (each) => each.uri!.contains('main.dart'),
+      );
     });
 
     tearDownAll(() async {
@@ -126,14 +126,14 @@ void runTests({
         expect(await getFields(instanceRef, offset: 2), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
-        expect(
-          await getFields(instanceRef, offset: 0, count: 2),
-          {1: true, 2: 3},
-        );
-        expect(
-          await getFields(instanceRef, offset: 0, count: 5),
-          {1: true, 2: 3},
-        );
+        expect(await getFields(instanceRef, offset: 0, count: 2), {
+          1: true,
+          2: 3,
+        });
+        expect(await getFields(instanceRef, offset: 0, count: 5), {
+          1: true,
+          2: 3,
+        });
         expect(await getFields(instanceRef, offset: 2, count: 5), {});
       });
     });
@@ -185,22 +185,22 @@ void runTests({
         expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
         expect(await getFields(instanceRef), {1: true, 'cat': 'Vasya'});
-        expect(
-          await getFields(instanceRef, offset: 0),
-          {1: true, 'cat': 'Vasya'},
-        );
+        expect(await getFields(instanceRef, offset: 0), {
+          1: true,
+          'cat': 'Vasya',
+        });
         expect(await getFields(instanceRef, offset: 1), {'cat': 'Vasya'});
         expect(await getFields(instanceRef, offset: 2), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
-        expect(
-          await getFields(instanceRef, offset: 0, count: 2),
-          {1: true, 'cat': 'Vasya'},
-        );
-        expect(
-          await getFields(instanceRef, offset: 0, count: 5),
-          {1: true, 'cat': 'Vasya'},
-        );
+        expect(await getFields(instanceRef, offset: 0, count: 2), {
+          1: true,
+          'cat': 'Vasya',
+        });
+        expect(await getFields(instanceRef, offset: 0, count: 5), {
+          1: true,
+          'cat': 'Vasya',
+        });
         expect(await getFields(instanceRef, offset: 2, count: 5), {});
       });
     });
@@ -276,10 +276,10 @@ void runTests({
         expect(await getFields(instanceRef, offset: 3), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
-        expect(
-          await getFields(instanceRef, offset: 0, count: 2),
-          {1: true, 2: 3},
-        );
+        expect(await getFields(instanceRef, offset: 0, count: 2), {
+          1: true,
+          2: 3,
+        });
         expect(await getFields(instanceRef, offset: 0, count: 5), {
           1: true,
           2: 3,
@@ -364,10 +364,10 @@ void runTests({
         expect(await getFields(instanceRef, offset: 3), {});
         expect(await getFields(instanceRef, offset: 0, count: 0), {});
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
-        expect(
-          await getFields(instanceRef, offset: 0, count: 2),
-          {1: true, 2: 3},
-        );
+        expect(await getFields(instanceRef, offset: 0, count: 2), {
+          1: true,
+          2: 3,
+        });
         expect(await getFields(instanceRef, offset: 0, count: 5), {
           1: true,
           2: 3,

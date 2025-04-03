@@ -28,12 +28,12 @@ void runTests({
   late ScriptRef mainScript;
 
   Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
-        stream,
-        isolateId,
-        mainScript,
-        breakPointId,
-        body,
-      );
+    stream,
+    isolateId,
+    mainScript,
+    breakPointId,
+    body,
+  );
 
   Future<InstanceRef> getInstanceRef(frame, expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
@@ -70,8 +70,9 @@ void runTests({
       await service.streamListen('Debug');
       stream = service.onEvent('Debug');
 
-      mainScript = scripts.scripts!
-          .firstWhere((each) => each.uri!.contains('main.dart'));
+      mainScript = scripts.scripts!.firstWhere(
+        (each) => each.uri!.contains('main.dart'),
+      );
     });
 
     tearDownAll(() async {
@@ -101,18 +102,24 @@ void runTests({
           expect(await getFrameVariables(frame), {
             'obj': matchListInstance(type: 'Object'),
             // Renamed to avoid shadowing variables from previous case.
-            'a\$':
-                matchPrimitiveInstance(kind: InstanceKind.kString, value: 'b'),
-            'n\$':
-                matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3.14),
+            'a\$': matchPrimitiveInstance(
+              kind: InstanceKind.kString,
+              value: 'b',
+            ),
+            'n\$': matchPrimitiveInstance(
+              kind: InstanceKind.kDouble,
+              value: 3.14,
+            ),
           });
         } else {
           expect(await getFrameVariables(frame), {
             'obj': matchListInstance(type: 'Object'),
             // Renamed to avoid shadowing variables from previous case.
             'a': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'b'),
-            'n':
-                matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3.14),
+            'n': matchPrimitiveInstance(
+              kind: InstanceKind.kDouble,
+              value: 3.14,
+            ),
           });
         }
       });
@@ -142,8 +149,9 @@ void runTests({
         ]) {
           await service.resume(isolateId, step: step);
 
-          event = await stream
-              .firstWhere((e) => e.kind == EventKind.kPauseInterrupted);
+          event = await stream.firstWhere(
+            (e) => e.kind == EventKind.kPauseInterrupted,
+          );
 
           if (step == 'Over') {
             expect(event.topFrame!.code!.name, 'testPattern');
@@ -160,10 +168,9 @@ void runTests({
       await onBreakPoint('testPattern2Case1', (event) async {
         final frame = event.topFrame!;
 
-        expect(
-          await getFrameVariables(frame),
-          {'dog': matchPrimitiveInstance(kind: 'String', value: 'Prismo')},
-        );
+        expect(await getFrameVariables(frame), {
+          'dog': matchPrimitiveInstance(kind: 'String', value: 'Prismo'),
+        });
       });
     });
 

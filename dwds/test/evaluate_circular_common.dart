@@ -31,9 +31,7 @@ void testAll({
   }
 
   final testCircular1 = TestProject.testCircular1;
-  final testCircular2 = TestProject.testCircular2(
-    baseMode: indexBaseMode,
-  );
+  final testCircular2 = TestProject.testCircular2(baseMode: indexBaseMode);
 
   final context = TestContext(testCircular2, provider);
 
@@ -45,10 +43,16 @@ void testAll({
   ) async {
     Breakpoint? bp;
     try {
-      final line =
-          await context.findBreakpointLine(breakPointId, isolate, script);
-      bp = await context.service
-          .addBreakpointWithScriptUri(isolate, script.uri!, line);
+      final line = await context.findBreakpointLine(
+        breakPointId,
+        isolate,
+        script,
+      );
+      bp = await context.service.addBreakpointWithScriptUri(
+        isolate,
+        script.uri!,
+        line,
+      );
       await body();
     } finally {
       // Remove breakpoint so it doesn't impact other tests or retries.
@@ -114,44 +118,59 @@ void testAll({
       });
 
       test('evaluate expression in _test_circular1/library', () async {
-        await onBreakPoint(isolateId, test1LibraryScript, 'Concatenate',
-            () async {
-          final event = await stream
-              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+        await onBreakPoint(
+          isolateId,
+          test1LibraryScript,
+          'Concatenate',
+          () async {
+            final event = await stream.firstWhere(
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
-          final result = await context.service
-              .evaluateInFrame(isolateId, event.topFrame!.index!, 'a');
-
-          expect(
-            result,
-            isA<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'valueAsString',
+            final result = await context.service.evaluateInFrame(
+              isolateId,
+              event.topFrame!.index!,
               'a',
-            ),
-          );
-        });
+            );
+
+            expect(
+              result,
+              isA<InstanceRef>().having(
+                (instance) => instance.valueAsString,
+                'valueAsString',
+                'a',
+              ),
+            );
+          },
+        );
       });
 
       test('evaluate expression in _test_circular2/library', () async {
         await onBreakPoint(
-            isolateId, test2LibraryScript, 'testCircularDependencies',
-            () async {
-          final event = await stream
-              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+          isolateId,
+          test2LibraryScript,
+          'testCircularDependencies',
+          () async {
+            final event = await stream.firstWhere(
+              (event) => event.kind == EventKind.kPauseBreakpoint,
+            );
 
-          final result = await context.service
-              .evaluateInFrame(isolateId, event.topFrame!.index!, 'true');
-
-          expect(
-            result,
-            isA<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'valueAsString',
+            final result = await context.service.evaluateInFrame(
+              isolateId,
+              event.topFrame!.index!,
               'true',
-            ),
-          );
-        });
+            );
+
+            expect(
+              result,
+              isA<InstanceRef>().having(
+                (instance) => instance.valueAsString,
+                'valueAsString',
+                'true',
+              ),
+            );
+          },
+        );
       });
     });
   });

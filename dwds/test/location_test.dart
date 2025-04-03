@@ -27,9 +27,7 @@ void main() {
   final toolConfiguration = TestToolConfiguration.withLoadStrategy(
     loadStrategy: MockLoadStrategy(assetReader),
   );
-  setGlobalsForTesting(
-    toolConfiguration: toolConfiguration,
-  );
+  setGlobalsForTesting(toolConfiguration: toolConfiguration);
   final dartUri = DartUri('org-dartlang-app://web/main.dart');
 
   final modules = FakeModules(module: _module);
@@ -41,20 +39,40 @@ void main() {
 
     group('location |', () {
       test('is zero based', () {
-        final loc =
-            JsLocation.fromZeroBased(_module, 0, 0, fakeRuntimeScriptId);
+        final loc = JsLocation.fromZeroBased(
+          _module,
+          0,
+          0,
+          fakeRuntimeScriptId,
+        );
         expect(loc, _matchJsLocation(0, 0));
       });
 
       test('can compare to other location', () {
-        final loc00 =
-            JsLocation.fromZeroBased(_module, 0, 0, fakeRuntimeScriptId);
-        final loc01 =
-            JsLocation.fromZeroBased(_module, 0, 1, fakeRuntimeScriptId);
-        final loc10 =
-            JsLocation.fromZeroBased(_module, 1, 0, fakeRuntimeScriptId);
-        final loc11 =
-            JsLocation.fromZeroBased(_module, 1, 1, fakeRuntimeScriptId);
+        final loc00 = JsLocation.fromZeroBased(
+          _module,
+          0,
+          0,
+          fakeRuntimeScriptId,
+        );
+        final loc01 = JsLocation.fromZeroBased(
+          _module,
+          0,
+          1,
+          fakeRuntimeScriptId,
+        );
+        final loc10 = JsLocation.fromZeroBased(
+          _module,
+          1,
+          0,
+          fakeRuntimeScriptId,
+        );
+        final loc11 = JsLocation.fromZeroBased(
+          _module,
+          1,
+          1,
+          fakeRuntimeScriptId,
+        );
 
         expect(loc00.compareTo(loc01), isNegative);
         expect(loc00.compareTo(loc10), isNegative);
@@ -92,22 +110,33 @@ void main() {
         expect(location, _matchLocationForJs(43, 18));
       });
 
-      test('finds a match on a previous line with a closer match after',
-          () async {
-        final location =
-            await locations.locationForJs(_module, 44, lineLength - 1);
-        expect(location, _matchLocationForJs(43, 18));
-      });
+      test(
+        'finds a match on a previous line with a closer match after',
+        () async {
+          final location = await locations.locationForJs(
+            _module,
+            44,
+            lineLength - 1,
+          );
+          expect(location, _matchLocationForJs(43, 18));
+        },
+      );
 
       test('finds a match on the last line', () async {
-        final location =
-            await locations.locationForJs(_module, lines - 1, lineLength - 1);
+        final location = await locations.locationForJs(
+          _module,
+          lines - 1,
+          lineLength - 1,
+        );
         expect(location, _matchLocationForJs(50, 2));
       });
 
       test('finds a match on invalid line', () async {
-        final location =
-            await locations.locationForJs(_module, lines, lineLength - 1);
+        final location = await locations.locationForJs(
+          _module,
+          lines,
+          lineLength - 1,
+        );
         expect(location, _matchLocationForJs(50, 2));
       });
 
@@ -117,8 +146,11 @@ void main() {
       });
 
       test('finds a match on invalid column on a previous line', () async {
-        final location =
-            await locations.locationForJs(_module, lines - 1, lineLength);
+        final location = await locations.locationForJs(
+          _module,
+          lines - 1,
+          lineLength,
+        );
         expect(location, _matchLocationForJs(50, 2));
       });
     });
@@ -148,11 +180,13 @@ void main() {
     });
 
     group('best location |', () {
-      test('does not return location for dart lines not mapped to JS',
-          () async {
-        final location = await locations.locationForDart(dartUri, 0, 0);
-        expect(location, isNull);
-      });
+      test(
+        'does not return location for dart lines not mapped to JS',
+        () async {
+          final location = await locations.locationForDart(dartUri, 0, 0);
+          expect(location, isNull);
+        },
+      );
 
       test('returns location after on the same line', () async {
         final location = await locations.locationForDart(dartUri, 11, 0);
@@ -165,8 +199,11 @@ void main() {
       });
 
       test('return null on invalid column', () async {
-        final location =
-            await locations.locationForDart(dartUri, lines - 1, lineLength);
+        final location = await locations.locationForDart(
+          dartUri,
+          lines - 1,
+          lineLength,
+        );
         expect(location, isNull);
       });
     });
@@ -174,13 +211,16 @@ void main() {
 }
 
 Matcher _matchLocationForDart(int line, int column) => isA<Location>().having(
-      (l) => l.dartLocation,
-      'dartLocation',
-      _matchDartLocation(line, column),
-    );
+  (l) => l.dartLocation,
+  'dartLocation',
+  _matchDartLocation(line, column),
+);
 
-Matcher _matchLocationForJs(int line, int column) => isA<Location>()
-    .having((l) => l.jsLocation, 'jsLocation', _matchJsLocation(line, column));
+Matcher _matchLocationForJs(int line, int column) => isA<Location>().having(
+  (l) => l.jsLocation,
+  'jsLocation',
+  _matchJsLocation(line, column),
+);
 
 Matcher _matchDartLocation(int line, int column) => isA<DartLocation>()
     .having((l) => l.line, 'line', line)
@@ -201,8 +241,7 @@ class MockLoadStrategy extends FakeStrategy {
   Future<String?> moduleForServerPath(
     String entrypoint,
     String serverPath,
-  ) async =>
-      _module;
+  ) async => _module;
 
   @override
   Future<String> serverPathForModule(String entrypoint, String module) async =>
@@ -212,8 +251,7 @@ class MockLoadStrategy extends FakeStrategy {
   Future<String> sourceMapPathForModule(
     String entrypoint,
     String module,
-  ) async =>
-      _sourceMapPath;
+  ) async => _sourceMapPath;
 
   @override
   String serverPathForAppUri(String appUri) => _serverPath;

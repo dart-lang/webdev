@@ -5,37 +5,23 @@
 @JS()
 library;
 
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'package:js/js.dart';
 
 import 'utils.dart';
 
-enum _LogLevel {
-  info,
-  warn,
-  error,
-}
+enum _LogLevel { info, warn, error }
 
-void debugLog(
-  String msg, {
-  String? prefix,
-  bool verbose = false,
-}) {
+void debugLog(String msg, {String? prefix, bool verbose = false}) {
   _log(msg, prefix: prefix, verbose: verbose);
 }
 
-void debugWarn(
-  String msg, {
-  String? prefix,
-  bool verbose = false,
-}) {
+void debugWarn(String msg, {String? prefix, bool verbose = false}) {
   _log(msg, prefix: prefix, level: _LogLevel.warn, verbose: verbose);
 }
 
-void debugError(
-  String msg, {
-  String? prefix,
-  bool verbose = false,
-}) {
+void debugError(String msg, {String? prefix, bool verbose = false}) {
   _log(msg, prefix: prefix, level: _LogLevel.error, verbose: verbose);
 }
 

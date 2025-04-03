@@ -27,15 +27,32 @@ class ReloadingManager {
   /// The apps are restarted at the same time on the first call.
   Future<bool> hotRestart({String? runId, Future? readyToRunMain}) async {
     _beforeRestart();
-    final result =
-        await _restarter.restart(runId: runId, readyToRunMain: readyToRunMain);
+    final result = await _restarter.restart(
+      runId: runId,
+      readyToRunMain: readyToRunMain,
+    );
     _afterRestart(result);
     return result;
   }
 
-  /// Performs a hot reload.
-  Future<void> hotReload() async {
-    await _restarter.reload();
+  /// Performs a hot reload using [hotReloadSourcesPath] as the path to a
+  /// JSONified list of maps which follows the following format:
+  ///
+  /// ```json
+  /// [
+  ///   {
+  ///     "src": "<file_name>",
+  ///     "libraries": ["<lib1>", "<lib2>"],
+  ///   },
+  /// ]
+  /// ```
+  ///
+  /// `src`: A string that corresponds to the file path containing a DDC library
+  /// bundle.
+  /// `libraries`: An array of strings containing the libraries that were
+  /// compiled in `src`.
+  Future<void> hotReload(String hotReloadSourcesPath) async {
+    await _restarter.reload(hotReloadSourcesPath);
   }
 
   /// Does a hard reload of the application.

@@ -21,11 +21,8 @@ final classRefForString = classRefFor(_dartCoreLibrary, InstanceKind.kString);
 final classRefForUnknown = classRefFor(_dartCoreLibrary, 'Unknown');
 
 /// Returns a [LibraryRef] for the provided library ID and class name.
-LibraryRef libraryRefFor(String libraryId) => LibraryRef(
-      id: libraryId,
-      name: libraryId,
-      uri: libraryId,
-    );
+LibraryRef libraryRefFor(String libraryId) =>
+    LibraryRef(id: libraryId, name: libraryId, uri: libraryId);
 
 /// Returns a [ClassRef] for the provided library ID and class name.
 ClassRef classRefFor(Object? libraryId, Object? dartName) {
@@ -152,9 +149,9 @@ class ClassMetaDataHelper {
   /// Returns null if the [remoteObject] is not a Dart class.
   Future<ClassMetaData?> metaDataFor(RemoteObject remoteObject) async {
     try {
-      final evalExpression = globalToolConfiguration
-          .loadStrategy.dartRuntimeDebugger
-          .getObjectMetadataJsExpression();
+      final evalExpression =
+          globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+              .getObjectMetadataJsExpression();
 
       final result = await _inspector.jsCallFunctionOn(
         remoteObject,
@@ -194,10 +191,7 @@ class ClassMetaDataHelper {
   }
 
   // Stores runtime object kind for class refs.
-  void _addRuntimeObjectKind(
-    ClassRef classRef,
-    RuntimeObjectKind runtimeKind,
-  ) {
+  void _addRuntimeObjectKind(ClassRef classRef, RuntimeObjectKind runtimeKind) {
     final id = classRef.id;
     if (id == null) {
       throw StateError('No classRef id for $classRef');

@@ -114,19 +114,16 @@ class AppInspector implements AppInspectorInterface {
 
     await DartUri.initialize();
     DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri).nonNulls);
-    DartUri.recordAbsoluteUris(
-      scripts.map((script) => script.uri).nonNulls,
-    );
-
-    isolate.extensionRPCs?.addAll(await _getExtensionRpcs());
+    DartUri.recordAbsoluteUris(scripts.map((script) => script.uri).nonNulls);
+    await getExtensionRpcs();
   }
 
   static IsolateRef _toIsolateRef(Isolate isolate) => IsolateRef(
-        id: isolate.id,
-        name: isolate.name,
-        number: isolate.number,
-        isSystemIsolate: isolate.isSystemIsolate,
-      );
+    id: isolate.id,
+    name: isolate.name,
+    number: isolate.number,
+    isSystemIsolate: isolate.isSystemIsolate,
+  );
 
   static Future<AppInspector> create(
     AppConnection appConnection,
@@ -238,8 +235,10 @@ class AppInspector implements AppInspectorInterface {
         'returnByValue': returnByValue,
       },
     );
-    final result =
-        getResultOrHandleError(response, evalContents: evalExpression);
+    final result = getResultOrHandleError(
+      response,
+      evalContents: evalExpression,
+    );
     return RemoteObject(result);
   }
 
@@ -262,8 +261,10 @@ class AppInspector implements AppInspectorInterface {
         'returnByValue': returnByValue,
       },
     );
-    final result =
-        getResultOrHandleError(response, evalContents: evalExpression);
+    final result = getResultOrHandleError(
+      response,
+      evalContents: evalExpression,
+    );
     return RemoteObject(result);
   }
 
@@ -308,15 +309,15 @@ class AppInspector implements AppInspectorInterface {
     }
     return globalToolConfiguration.loadStrategy is DdcLibraryBundleStrategy
         ? _evaluateLibraryMethodWithDdcLibraryBundle(
-            libraryUri,
-            selector,
-            arguments,
-          )
+          libraryUri,
+          selector,
+          arguments,
+        )
         : _evaluateInLibrary(
-            libraryUri,
-            'function () { return this.$selector.apply(this, arguments); }',
-            arguments,
-          );
+          libraryUri,
+          'function () { return this.$selector.apply(this, arguments); }',
+          arguments,
+        );
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
@@ -348,7 +349,8 @@ class AppInspector implements AppInspectorInterface {
     List<RemoteObject> arguments,
   ) async {
     final findLibraryJsExpression = globalToolConfiguration
-        .loadStrategy.dartRuntimeDebugger
+        .loadStrategy
+        .dartRuntimeDebugger
         .callLibraryMethodJsExpression(libraryUri, jsFunction);
 
     final remoteLibrary = await jsEvaluate(findLibraryJsExpression);
@@ -411,8 +413,11 @@ class AppInspector implements AppInspectorInterface {
       if (scriptRef != null) {
         return _getScript(scriptRef);
       }
-      final instance = await _instanceHelper
-          .instanceFor(remoteObjectFor(objectId), offset: offset, count: count);
+      final instance = await _instanceHelper.instanceFor(
+        remoteObjectFor(objectId),
+        offset: offset,
+        count: count,
+      );
       if (instance != null) {
         return instance;
       }
@@ -420,8 +425,10 @@ class AppInspector implements AppInspectorInterface {
       _logger.fine('getObject $objectId failed', e, s);
       rethrow;
     }
-    throw UnsupportedError('Only libraries, instances, classes, and scripts '
-        'are supported for getObject');
+    throw UnsupportedError(
+      'Only libraries, instances, classes, and scripts '
+      'are supported for getObject',
+    );
   }
 
   Future<Script> _getScript(ScriptRef scriptRef) async {
@@ -443,10 +450,10 @@ class AppInspector implements AppInspectorInterface {
       throwInvalidParam('getObject', 'No library for script $scriptRef');
     }
     return Script(
-      uri: scriptRef.uri,
-      library: await libraryRefFor(libraryId),
-      id: scriptId,
-    )
+        uri: scriptRef.uri,
+        library: await libraryRefFor(libraryId),
+        id: scriptId,
+      )
       ..tokenPosTable = await _locations.tokenPosTableFor(serverPath)
       ..source = source;
   }
@@ -540,8 +547,9 @@ class AppInspector implements AppInspectorInterface {
     }
 
     final dartUri = DartUri(scriptUri, _root);
-    final mappedLocations =
-        await _locations.locationsForDart(dartUri.serverPath);
+    final mappedLocations = await _locations.locationsForDart(
+      dartUri.serverPath,
+    );
     // Unlike the Dart VM, the token positions match exactly to the possible
     // breakpoints. This is because the token positions are derived from the
     // DDC source maps which Chrome also uses.
@@ -601,10 +609,7 @@ class AppInspector implements AppInspectorInterface {
       _remoteDebugger,
       method: 'Runtime.getProperties',
       resultField: 'result',
-      params: {
-        'objectId': rangeId,
-        'ownProperties': true,
-      },
+      params: {'objectId': rangeId, 'ownProperties': true},
     );
     return jsProperties
         .map<Property>((each) => Property(each as Map<String, dynamic>))
@@ -625,8 +630,7 @@ class AppInspector implements AppInspectorInterface {
     int? count,
     required int offset,
     required int length,
-  }) =>
-      count == null ? length - offset : math.min(count, length - offset);
+  }) => count == null ? length - offset : math.min(count, length - offset);
 
   /// Find a sub-range of the entries for a Map/List when offset and/or count
   /// have been specified on a getObject request.
@@ -644,33 +648,30 @@ class AppInspector implements AppInspectorInterface {
     // TODO(#809): Sometimes we already know the type of the object, and
     // we could take advantage of that to short-circuit.
     final receiver = remoteObjectFor(id);
-    final rangeCount =
-        _calculateRangeCount(count: count, offset: offset, length: length);
+    final rangeCount = _calculateRangeCount(
+      count: count,
+      offset: offset,
+      length: length,
+    );
     final args =
         [offset, rangeCount].map(dartIdFor).map(remoteObjectFor).toList();
     // If this is a List, just call sublist. If it's a Map, get the entries, but
     // avoid doing a toList on a large map using skip/take to get the section we
     // want. To make those alternatives easier in JS, pass both count and end.
-    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-        .getSubRangeJsExpression();
+    final expression =
+        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+            .getSubRangeJsExpression();
 
     return await jsCallFunctionOn(receiver, expression, args);
   }
 
-  static bool _isEmptyRange({
-    required int length,
-    int? offset,
-    int? count,
-  }) {
+  static bool _isEmptyRange({required int length, int? offset, int? count}) {
     if (count == 0) return true;
     if (offset == null) return false;
     return offset >= length;
   }
 
-  static bool _isSubRange({
-    int? offset,
-    int? count,
-  }) {
+  static bool _isSubRange({int? offset, int? count}) {
     if (offset == 0 && count == null) return false;
     return offset != null || count != null;
   }
@@ -685,8 +686,9 @@ class AppInspector implements AppInspectorInterface {
 
   /// Returns true for non-dart JavaScript objects.
   bool isNativeJsObject(InstanceRef instanceRef) {
-    return _instanceHelper.metadataHelper
-        .isNativeJsObject(instanceRef.classRef);
+    return _instanceHelper.metadataHelper.isNativeJsObject(
+      instanceRef.classRef,
+    );
   }
 
   /// Returns true for JavaScript exceptions.
@@ -706,13 +708,15 @@ class AppInspector implements AppInspectorInterface {
   /// Returns the list of scripts refs cached.
   Future<List<ScriptRef>> _populateScriptCaches() {
     return _scriptCacheMemoizer.runOnce(() async {
-      final scripts = await globalToolConfiguration.loadStrategy
-          .metadataProviderFor(appConnection.request.entrypointPath)
-          .scripts;
+      final scripts =
+          await globalToolConfiguration.loadStrategy
+              .metadataProviderFor(appConnection.request.entrypointPath)
+              .scripts;
       // For all the non-dart: libraries, find their parts and create scriptRefs
       // for them.
-      final userLibraries =
-          _userLibraryUris(isolate.libraries ?? <LibraryRef>[]);
+      final userLibraries = _userLibraryUris(
+        isolate.libraries ?? <LibraryRef>[],
+      );
       for (final uri in userLibraries) {
         final parts = scripts[uri];
         final scriptRefs = [
@@ -755,18 +759,26 @@ class AppInspector implements AppInspectorInterface {
       scriptId == null ? null : _scriptRefsById[scriptId];
 
   /// Runs an eval on the page to compute all existing registered extensions.
-  Future<List<String>> _getExtensionRpcs() async {
-    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-        .getDartDeveloperExtensionNamesJsExpression();
-    final extensionRpcs = <String>[];
+  ///
+  /// Combines this with the RPCs registered in the [isolate]. Use this over
+  /// [Isolate.extensionRPCs] as this computes a live set.
+  ///
+  /// Updates [Isolate.extensionRPCs] to this set.
+  Future<Set<String>> getExtensionRpcs() async {
+    final expression =
+        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+            .getDartDeveloperExtensionNamesJsExpression();
+    final extensionRpcs = <String>{};
     final params = {
       'expression': expression,
       'returnByValue': true,
       'contextId': await contextId,
     };
     try {
-      final response =
-          await remoteDebugger.sendCommand('Runtime.evaluate', params: params);
+      final response = await remoteDebugger.sendCommand(
+        'Runtime.evaluate',
+        params: params,
+      );
       final result = getResultOrHandleError(response, evalContents: expression);
       extensionRpcs.addAll(List.from(result['value'] as List? ?? []));
     } catch (e, s) {
@@ -776,6 +788,7 @@ class AppInspector implements AppInspectorInterface {
         s,
       );
     }
+    isolate.extensionRPCs = List<String>.of(extensionRpcs);
     return extensionRpcs;
   }
 
@@ -785,10 +798,9 @@ class AppInspector implements AppInspectorInterface {
   Future<String> mapExceptionStackTrace(String description) async {
     RemoteObject mapperResult;
     try {
-      mapperResult = await _jsCallFunction(
-        stackTraceMapperExpression,
-        <Object>[description],
-      );
+      mapperResult = await _jsCallFunction(stackTraceMapperExpression, <Object>[
+        description,
+      ]);
     } catch (_) {
       return description;
     }

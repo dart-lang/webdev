@@ -114,6 +114,7 @@ Common:
                                            in the debugger.
                                            (defaults to on)
 -v, --verbose                              Enables verbose logging.
+    --offline                              Disable fetching from pub.dev.
 
 Run "webdev help" to see global options.
 
@@ -147,6 +148,7 @@ Usage: webdev build [arguments]
                                            in the debugger.
                                            (defaults to on)
 -v, --verbose                              Enables verbose logging.
+    --offline                              Disable fetching from pub.dev.
 
 Run "webdev help" to see global options.
 

@@ -34,9 +34,7 @@ void main() {
   final toolConfiguration = TestToolConfiguration.withLoadStrategy(
     loadStrategy: FakeStrategy(FakeAssetReader()),
   );
-  setGlobalsForTesting(
-    toolConfiguration: toolConfiguration,
-  );
+  setGlobalsForTesting(toolConfiguration: toolConfiguration);
   test('can parse metadata with empty sources', () async {
     for (final useModuleName in [true, false]) {
       final provider = MetadataProvider(
@@ -65,43 +63,36 @@ void main() {
     }
   });
 
-  test('module name exists if useModuleName and otherwise use module uri',
-      () async {
-    for (final useModuleName in [true, false]) {
-      final provider = MetadataProvider(
-        'foo.bootstrap.js',
-        FakeAssetReader(metadata: _emptySourceMetadata),
-        useModuleName: useModuleName,
-      );
-      final modulePath = 'foo/web/main.ddc.js';
-      final moduleName = 'web/main';
-      final module = useModuleName ? moduleName : modulePath;
-      expect(
-        await provider.scriptToModule,
-        predicate<Map<String, String>>(
-          (scriptToModule) => !scriptToModule.values.any(
-            (value) => value == (useModuleName ? modulePath : moduleName),
+  test(
+    'module name exists if useModuleName and otherwise use module uri',
+    () async {
+      for (final useModuleName in [true, false]) {
+        final provider = MetadataProvider(
+          'foo.bootstrap.js',
+          FakeAssetReader(metadata: _emptySourceMetadata),
+          useModuleName: useModuleName,
+        );
+        final modulePath = 'foo/web/main.ddc.js';
+        final moduleName = 'web/main';
+        final module = useModuleName ? moduleName : modulePath;
+        expect(
+          await provider.scriptToModule,
+          predicate<Map<String, String>>(
+            (scriptToModule) =>
+                !scriptToModule.values.any(
+                  (value) => value == (useModuleName ? modulePath : moduleName),
+                ),
           ),
-        ),
-      );
-      expect(
-        await provider.moduleToSourceMap,
-        {module: 'foo/web/main.ddc.js.map'},
-      );
-      expect(
-        await provider.modulePathToModule,
-        {modulePath: module},
-      );
-      expect(
-        await provider.moduleToModulePath,
-        {module: modulePath},
-      );
-      expect(
-        await provider.modules,
-        {module},
-      );
-    }
-  });
+        );
+        expect(await provider.moduleToSourceMap, {
+          module: 'foo/web/main.ddc.js.map',
+        });
+        expect(await provider.modulePathToModule, {modulePath: module});
+        expect(await provider.moduleToModulePath, {module: modulePath});
+        expect(await provider.modules, {module});
+      }
+    },
+  );
 
   test('creates metadata from json', () async {
     const json = {
@@ -115,7 +106,7 @@ void main() {
           'name': 'main',
           'importUri': 'org-dartlang-app:///web/main.dart',
           'partUris': ['org-dartlang-app:///web/main.dart'],
-        }
+        },
       ],
     };
 

@@ -174,26 +174,30 @@ class TestContext {
       final chromeDriverPort = await findUnusedPort();
       final chromeDriverUrlBase = 'wd/hub';
       try {
-        _chromeDriver = await Process.start(
-          'chromedriver$_exeExt',
-          ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase'],
-        );
+        _chromeDriver = await Process.start('chromedriver$_exeExt', [
+          '--port=$chromeDriverPort',
+          '--url-base=$chromeDriverUrlBase',
+        ]);
         // On windows this takes a while to boot up, wait for the first line
         // of stdout as a signal that it is ready.
-        final stdOutLines = chromeDriver.stdout
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .asBroadcastStream();
+        final stdOutLines =
+            chromeDriver.stdout
+                .transform(utf8.decoder)
+                .transform(const LineSplitter())
+                .asBroadcastStream();
 
-        final stdErrLines = chromeDriver.stderr
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .asBroadcastStream();
+        final stdErrLines =
+            chromeDriver.stderr
+                .transform(utf8.decoder)
+                .transform(const LineSplitter())
+                .asBroadcastStream();
 
-        stdOutLines
-            .listen((line) => _logger.finest('ChromeDriver stdout: $line'));
-        stdErrLines
-            .listen((line) => _logger.warning('ChromeDriver stderr: $line'));
+        stdOutLines.listen(
+          (line) => _logger.finest('ChromeDriver stdout: $line'),
+        );
+        stdErrLines.listen(
+          (line) => _logger.warning('ChromeDriver stderr: $line'),
+        );
 
         await stdOutLines.first;
       } catch (e) {
@@ -202,11 +206,10 @@ class TestContext {
         );
       }
 
-      await Process.run(
-        sdkLayout.dartPath,
-        ['pub', 'upgrade'],
-        workingDirectory: project.absolutePackageDirectory,
-      );
+      await Process.run(sdkLayout.dartPath, [
+        'pub',
+        'upgrade',
+      ], workingDirectory: project.absolutePackageDirectory);
 
       ExpressionCompiler? expressionCompiler;
       AssetReader assetReader;
@@ -235,18 +238,21 @@ class TestContext {
               '--verbose',
             ];
             _daemonClient = await connectClient(
-                sdkLayout.dartPath, project.absolutePackageDirectory, options,
-                (log) {
-              final record = log.toLogRecord();
-              final name =
-                  record.loggerName == '' ? '' : '${record.loggerName}: ';
-              _logger.log(
-                record.level,
-                '$name${record.message}',
-                record.error,
-                record.stackTrace,
-              );
-            });
+              sdkLayout.dartPath,
+              project.absolutePackageDirectory,
+              options,
+              (log) {
+                final record = log.toLogRecord();
+                final name =
+                    record.loggerName == '' ? '' : '${record.loggerName}: ';
+                _logger.log(
+                  record.level,
+                  '$name${record.message}',
+                  record.error,
+                  record.stackTrace,
+                );
+              },
+            );
             daemonClient.registerBuildTarget(
               DefaultBuildTarget((b) => b..target = project.directoryToServe),
             );
@@ -254,8 +260,9 @@ class TestContext {
 
             await waitForSuccessfulBuild();
 
-            final assetServerPort =
-                daemonPort(project.absolutePackageDirectory);
+            final assetServerPort = daemonPort(
+              project.absolutePackageDirectory,
+            );
             _assetHandler = proxyHandler(
               'http://localhost:$assetServerPort/${project.directoryToServe}/',
               client: client,
@@ -275,12 +282,13 @@ class TestContext {
               expressionCompiler = ddcService;
             }
 
-            loadStrategy = BuildRunnerRequireStrategyProvider(
-              assetHandler,
-              testSettings.reloadConfiguration,
-              assetReader,
-              buildSettings,
-            ).strategy;
+            loadStrategy =
+                BuildRunnerRequireStrategyProvider(
+                  assetHandler,
+                  testSettings.reloadConfiguration,
+                  assetReader,
+                  buildSettings,
+                ).strategy;
 
             buildResults = daemonClient.buildResults;
           }
@@ -340,31 +348,34 @@ class TestContext {
             assetReader = webRunner.devFS.assetServer;
             _assetHandler = webRunner.devFS.assetServer.handleRequest;
             loadStrategy = switch (testSettings.moduleFormat) {
-              ModuleFormat.amd => FrontendServerRequireStrategyProvider(
+              ModuleFormat.amd =>
+                FrontendServerRequireStrategyProvider(
                   testSettings.reloadConfiguration,
                   assetReader,
                   packageUriMapper,
                   () async => {},
                   buildSettings,
                 ).strategy,
-              ModuleFormat.ddc => buildSettings.canaryFeatures
-                  ? FrontendServerDdcLibraryBundleStrategyProvider(
+              ModuleFormat.ddc =>
+                buildSettings.canaryFeatures
+                    ? FrontendServerDdcLibraryBundleStrategyProvider(
                       testSettings.reloadConfiguration,
                       assetReader,
                       packageUriMapper,
                       () async => {},
                       buildSettings,
                     ).strategy
-                  : FrontendServerDdcStrategyProvider(
+                    : FrontendServerDdcStrategyProvider(
                       testSettings.reloadConfiguration,
                       assetReader,
                       packageUriMapper,
                       () async => {},
                       buildSettings,
                     ).strategy,
-              _ => throw Exception(
+              _ =>
+                throw Exception(
                   'Unsupported DDC module format ${testSettings.moduleFormat.name}.',
-                )
+                ),
             };
             buildResults = const Stream<BuildResults>.empty();
           }
@@ -378,25 +389,26 @@ class TestContext {
         // If the extension is enabled, then Chrome will be launched with a UI
         // since headless Chrome does not support extensions.
         final enableDebugExtension = debugSettings.enableDebugExtension;
-        final headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
+        final headless =
+            Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
             !enableDebugExtension;
         if (enableDebugExtension) {
           await _buildDebugExtension();
         }
-        final capabilities = Capabilities.chrome
-          ..addAll({
-            Capabilities.chromeOptions: {
-              'args': [
-                // --disable-gpu speeds up the tests that use ChromeDriver when
-                // they are run on GitHub Actions.
-                '--disable-gpu',
-                'remote-debugging-port=$debugPort',
-                if (enableDebugExtension)
-                  '--load-extension=debug_extension/prod_build',
-                if (headless) '--headless',
-              ],
-            },
-          });
+        final capabilities =
+            Capabilities.chrome..addAll({
+              Capabilities.chromeOptions: {
+                'args': [
+                  // --disable-gpu speeds up the tests that use ChromeDriver when
+                  // they are run on GitHub Actions.
+                  '--disable-gpu',
+                  'remote-debugging-port=$debugPort',
+                  if (enableDebugExtension)
+                    '--load-extension=debug_extension/prod_build',
+                  if (headless) '--headless',
+                ],
+              },
+            });
         _webDriver = await createDriver(
           spec: WebDriverSpec.JsonWire,
           desired: capabilities,
@@ -413,8 +425,9 @@ class TestContext {
       final connection = ChromeConnection('localhost', debugPort);
 
       _testServer = await TestServer.start(
-        debugSettings:
-            debugSettings.copyWith(expressionCompiler: expressionCompiler),
+        debugSettings: debugSettings.copyWith(
+          expressionCompiler: expressionCompiler,
+        ),
         appMetadata: appMetadata,
         port: port,
         assetHandler: assetHandler,
@@ -440,9 +453,10 @@ class TestContext {
         }
       });
 
-      _appUrl = basePath.isEmpty
-          ? 'http://localhost:$port/$filePathToServe'
-          : 'http://localhost:$port/$basePath/$filePathToServe';
+      _appUrl =
+          basePath.isEmpty
+              ? 'http://localhost:$port/$filePathToServe'
+              : 'http://localhost:$port/$basePath/$filePathToServe';
 
       if (testSettings.launchChrome) {
         await _webDriver?.get(appUrl);
@@ -450,9 +464,9 @@ class TestContext {
         if (tab != null) {
           _tabConnection = await tab.connect();
           await tabConnection.runtime.enable();
-          await tabConnection.debugger
-              .enable()
-              .then((_) => tabConnectionCompleter.complete());
+          await tabConnection.debugger.enable().then(
+            (_) => tabConnectionCompleter.complete(),
+          );
         } else {
           throw StateError('Unable to connect to tab.');
         }
@@ -565,17 +579,19 @@ class TestContext {
     // Wait for the build until the timeout is reached:
     await daemonClient.buildResults
         .firstWhere(
-          (results) => results.results
-              .any((result) => result.status == BuildStatus.succeeded),
+          (results) => results.results.any(
+            (result) => result.status == BuildStatus.succeeded,
+          ),
         )
         .timeout(timeout ?? const Duration(seconds: 60));
 
     if (propagateToBrowser) {
       // Allow change to propagate to the browser.
       // Windows, or at least Travis on Windows, seems to need more time.
-      final delay = Platform.isWindows
-          ? const Duration(seconds: 5)
-          : const Duration(seconds: 2);
+      final delay =
+          Platform.isWindows
+              ? const Duration(seconds: 5)
+              : const Duration(seconds: 2);
       await Future.delayed(delay);
     }
   }
@@ -597,8 +613,9 @@ class TestContext {
     });
     for (final tab in extensionTabs) {
       final tabConnection = await tab.connect();
-      final response =
-          await tabConnection.runtime.evaluate('window.isDartDebugExtension');
+      final response = await tabConnection.runtime.evaluate(
+        'window.isDartDebugExtension',
+      );
       if (response.value == true) {
         return tab;
       }
@@ -617,14 +634,18 @@ class TestContext {
     String isolateId,
     ScriptRef scriptRef,
   ) async {
-    final script = await debugConnection.vmService
-        .getObject(isolateId, scriptRef.id!) as Script;
+    final script =
+        await debugConnection.vmService.getObject(isolateId, scriptRef.id!)
+            as Script;
     final lines = LineSplitter.split(script.source!).toList();
-    final lineNumber =
-        lines.indexWhere((l) => l.endsWith('// Breakpoint: $breakpointId'));
+    final lineNumber = lines.indexWhere(
+      (l) => l.endsWith('// Breakpoint: $breakpointId'),
+    );
     if (lineNumber == -1) {
-      throw StateError('Unable to find breakpoint in ${scriptRef.uri} with id '
-          '$breakpointId');
+      throw StateError(
+        'Unable to find breakpoint in ${scriptRef.uri} with id '
+        '$breakpointId',
+      );
     }
     return lineNumber + 1;
   }

@@ -47,8 +47,9 @@ class PackageUriMapper {
     Uri packageConfigFile, {
     bool useDebuggerModuleNames = false,
   }) async {
-    final packageConfig =
-        await loadPackageConfig(fileSystem.file(packageConfigFile));
+    final packageConfig = await loadPackageConfig(
+      fileSystem.file(packageConfigFile),
+    );
     return PackageUriMapper(
       packageConfig,
       useDebuggerModuleNames: useDebuggerModuleNames,
@@ -80,9 +81,10 @@ class PackageUriMapper {
       final root = package.root;
       final relativeUrl = resolvedUri.toString().replaceFirst('$root', '');
       final relativeRoot = _getRelativeRoot(root);
-      final ret = relativeRoot == null
-          ? 'packages/$relativeUrl'
-          : 'packages/$relativeRoot/$relativeUrl';
+      final ret =
+          relativeRoot == null
+              ? 'packages/$relativeUrl'
+              : 'packages/$relativeRoot/$relativeUrl';
       return ret;
     }
     _logger.severe('Expected package uri, but found $packageUri');
@@ -95,13 +97,15 @@ class PackageUriMapper {
     final segments = serverPath.split('/');
     if (segments.first == 'packages') {
       if (!useDebuggerModuleNames) {
-        return packageConfig
-            .resolve(Uri(scheme: 'package', pathSegments: segments.skip(1)));
+        return packageConfig.resolve(
+          Uri(scheme: 'package', pathSegments: segments.skip(1)),
+        );
       }
       final relativeRoot = segments.skip(1).first;
       final relativeUrl = segments.skip(2).join('/');
-      final package = packageConfig.packages
-          .firstWhere((Package p) => _getRelativeRoot(p.root) == relativeRoot);
+      final package = packageConfig.packages.firstWhere(
+        (Package p) => _getRelativeRoot(p.root) == relativeRoot,
+      );
       final resolvedUri = package.root.resolve(relativeUrl);
 
       return resolvedUri;

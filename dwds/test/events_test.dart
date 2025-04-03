@@ -58,17 +58,22 @@ void main() {
       );
 
       // Start serving requests with a failing handler in an error zone.
-      serveHttpRequests(server, (request) async {
-        unawaited(throwAsyncException());
-        return Future.error('error');
-      }, (e, s) {
-        emitEvent(DwdsEvent.httpRequestException('FakeServer', '$e:$s'));
-      });
+      serveHttpRequests(
+        server,
+        (request) async {
+          unawaited(throwAsyncException());
+          return Future.error('error');
+        },
+        (e, s) {
+          emitEvent(DwdsEvent.httpRequestException('FakeServer', '$e:$s'));
+        },
+      );
 
       // Send a request.
       final client = HttpClient();
-      final request =
-          await client.getUrl(Uri.parse('http://localhost:${server.port}/foo'));
+      final request = await client.getUrl(
+        Uri.parse('http://localhost:${server.port}/foo'),
+      );
 
       // Ignore the response.
       final response = await request.close();
@@ -150,19 +155,16 @@ void main() {
       test(
         'emits DEBUGGER_READY and DEVTOOLS_LOAD events',
         () async {
-          await expectEventsDuring(
-            [
-              matchesEvent(DwdsEventKind.debuggerReady, {
-                'elapsedMilliseconds': isNotNull,
-                'screen': equals('debugger'),
-              }),
-              matchesEvent(DwdsEventKind.devToolsLoad, {
-                'elapsedMilliseconds': isNotNull,
-                'screen': equals('debugger'),
-              }),
-            ],
-            () => keyboard.sendChord([Keyboard.alt, 'd']),
-          );
+          await expectEventsDuring([
+            matchesEvent(DwdsEventKind.debuggerReady, {
+              'elapsedMilliseconds': isNotNull,
+              'screen': equals('debugger'),
+            }),
+            matchesEvent(DwdsEventKind.devToolsLoad, {
+              'elapsedMilliseconds': isNotNull,
+              'screen': equals('debugger'),
+            }),
+          ], () => keyboard.sendChord([Keyboard.alt, 'd']));
         },
         skip: 'https://github.com/dart-lang/webdev/issues/2394',
       );
@@ -256,8 +258,9 @@ void main() {
           await service.streamListen('Debug');
           stream = service.onEvent('Debug');
           final scriptList = await service.getScripts(isolateId);
-          mainScript = scriptList.scripts!
-              .firstWhere((script) => script.uri!.contains('main.dart'));
+          mainScript = scriptList.scripts!.firstWhere(
+            (script) => script.uri!.contains('main.dart'),
+          );
         });
 
         setUp(() async {
@@ -289,11 +292,15 @@ void main() {
             isolateId,
             mainScript,
           );
-          final bp =
-              await service.addBreakpoint(isolateId, mainScript.id!, line);
+          final bp = await service.addBreakpoint(
+            isolateId,
+            mainScript.id!,
+            line,
+          );
           // Wait for breakpoint to trigger.
-          await stream
-              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+          await stream.firstWhere(
+            (event) => event.kind == EventKind.kPauseBreakpoint,
+          );
 
           // Evaluation succeeds and return ErrorRef containing compilation error,
           // so event is marked as success.
@@ -320,11 +327,15 @@ void main() {
             isolateId,
             mainScript,
           );
-          final bp =
-              await service.addBreakpoint(isolateId, mainScript.id!, line);
+          final bp = await service.addBreakpoint(
+            isolateId,
+            mainScript.id!,
+            line,
+          );
           // Wait for breakpoint to trigger.
-          await stream
-              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+          await stream.firstWhere(
+            (event) => event.kind == EventKind.kPauseBreakpoint,
+          );
 
           // Evaluation succeeds and return InstanceRef,
           // so event is marked as success.
@@ -357,8 +368,9 @@ void main() {
           isolateId = vm.isolates!.first.id!;
           final scriptList = await service.getScripts(isolateId);
 
-          mainScript = scriptList.scripts!
-              .firstWhere((script) => script.uri!.contains('main.dart'));
+          mainScript = scriptList.scripts!.firstWhere(
+            (script) => script.uri!.contains('main.dart'),
+          );
         });
 
         test('emits GET_SOURCE_REPORT events', () async {
@@ -366,11 +378,9 @@ void main() {
             matchesEvent(DwdsEventKind.getSourceReport, {
               'elapsedMilliseconds': isNotNull,
             }),
-            () => service.getSourceReport(
-              isolateId,
-              [SourceReportKind.kPossibleBreakpoints],
-              scriptId: mainScript.id,
-            ),
+            () => service.getSourceReport(isolateId, [
+              SourceReportKind.kPossibleBreakpoints,
+            ], scriptId: mainScript.id),
           );
         });
       });
@@ -438,8 +448,9 @@ void main() {
         });
 
         test('emits HOT_RESTART event', () async {
-          final hotRestart =
-              context.getRegisteredServiceExtension('hotRestart');
+          final hotRestart = context.getRegisteredServiceExtension(
+            'hotRestart',
+          );
 
           await expectEventDuring(
             matchesEvent(DwdsEventKind.hotRestart, {
@@ -462,18 +473,23 @@ void main() {
           await service.streamListen('Debug');
           final stream = service.onEvent('Debug');
           final scriptList = await service.getScripts(isolateId);
-          final mainScript = scriptList.scripts!
-              .firstWhere((script) => script.uri!.contains('main.dart'));
+          final mainScript = scriptList.scripts!.firstWhere(
+            (script) => script.uri!.contains('main.dart'),
+          );
           final line = await context.findBreakpointLine(
             'callPrintCount',
             isolateId,
             mainScript,
           );
-          final bp =
-              await service.addBreakpoint(isolateId, mainScript.id!, line);
+          final bp = await service.addBreakpoint(
+            isolateId,
+            mainScript.id!,
+            line,
+          );
           // Wait for breakpoint to trigger.
-          await stream
-              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+          await stream.firstWhere(
+            (event) => event.kind == EventKind.kPauseBreakpoint,
+          );
           await service.removeBreakpoint(isolateId, bp.id!);
         });
 
@@ -499,8 +515,9 @@ void main() {
         });
 
         test('emits FULL_RELOAD event', () async {
-          final fullReload =
-              context.getRegisteredServiceExtension('fullReload');
+          final fullReload = context.getRegisteredServiceExtension(
+            'fullReload',
+          );
 
           await expectEventDuring(
             matchesEvent(DwdsEventKind.fullReload, {

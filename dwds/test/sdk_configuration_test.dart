@@ -15,8 +15,11 @@ import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 var _throwsDoesNotExistException = throwsA(
-  isA<InvalidSdkConfigurationException>()
-      .having((e) => '$e', 'message', contains('does not exist')),
+  isA<InvalidSdkConfigurationException>().having(
+    (e) => '$e',
+    'message',
+    contains('does not exist'),
+  ),
 );
 
 void main() {
@@ -65,8 +68,9 @@ void main() {
       final workerDir = p.dirname(compilerWorkerPath);
 
       Directory(workerDir).createSync(recursive: true);
-      File(defaultSdkConfiguration.compilerWorkerPath!)
-          .copySync(compilerWorkerPath);
+      File(
+        defaultSdkConfiguration.compilerWorkerPath!,
+      ).copySync(compilerWorkerPath);
 
       expect(sdkConfiguration.sdkDirectory, equals(sdkDirectory));
       expect(sdkConfiguration.sdkSummaryPath, equals(sdkSummaryPath));

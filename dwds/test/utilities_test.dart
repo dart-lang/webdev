@@ -19,8 +19,10 @@ void main() {
         return true;
       }
 
-      final result =
-          await wrapInErrorHandlerAsync('successCallback', successCallback);
+      final result = await wrapInErrorHandlerAsync(
+        'successCallback',
+        successCallback,
+      );
       expect(result, equals(true));
     });
 
@@ -40,24 +42,25 @@ void main() {
       );
     });
 
-    test('throws SentinelException if callback throws SentinelException',
-        () async {
-      Future<bool> sentinelExceptionCallback() async {
-        await Future.delayed(Duration(milliseconds: 500));
-        throw SentinelException.parse(
-          'sentinelExceptionCallback',
-          {'message': 'a sentinel exception'},
-        );
-      }
+    test(
+      'throws SentinelException if callback throws SentinelException',
+      () async {
+        Future<bool> sentinelExceptionCallback() async {
+          await Future.delayed(Duration(milliseconds: 500));
+          throw SentinelException.parse('sentinelExceptionCallback', {
+            'message': 'a sentinel exception',
+          });
+        }
 
-      await expectLater(
-        wrapInErrorHandlerAsync(
-          'sentinelExceptionCallback',
-          sentinelExceptionCallback,
-        ),
-        throwsSentinelException,
-      );
-    });
+        await expectLater(
+          wrapInErrorHandlerAsync(
+            'sentinelExceptionCallback',
+            sentinelExceptionCallback,
+          ),
+          throwsSentinelException,
+        );
+      },
+    );
 
     test('throws RPCError if callback throws other error type', () async {
       Future<bool> exceptionCallback() async {

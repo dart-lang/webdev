@@ -26,7 +26,7 @@ class FrameComputer {
   List<CallFrame>? _asyncFramesToProcess;
 
   FrameComputer(this.debugger, this._callFrames, {StackTrace? asyncStackTrace})
-      : _asyncStackTrace = asyncStackTrace;
+    : _asyncStackTrace = asyncStackTrace;
 
   /// Given a frame index, return the corresponding JS frame.
   WipCallFrame? jsFrameForIndex(int frameIndex) {
@@ -63,8 +63,10 @@ class FrameComputer {
       if (limit != null && _computedFrames.length == limit) return;
       try {
         final callFrame = _callFrames[_frameIndex];
-        final dartFrame =
-            await debugger.calculateDartFrameFor(callFrame, _frameIndex++);
+        final dartFrame = await debugger.calculateDartFrameFor(
+          callFrame,
+          _frameIndex++,
+        );
         if (dartFrame != null) {
           _computedFrames.add(dartFrame);
         }
@@ -90,10 +92,7 @@ class FrameComputer {
         if (_computedFrames.isNotEmpty &&
             _computedFrames.last.kind != FrameKind.kAsyncSuspensionMarker) {
           _computedFrames.add(
-            Frame(
-              index: _frameIndex++,
-              kind: FrameKind.kAsyncSuspensionMarker,
-            ),
+            Frame(index: _frameIndex++, kind: FrameKind.kAsyncSuspensionMarker),
           );
         }
         _asyncFramesToProcess = asyncStackTrace.callFrames;

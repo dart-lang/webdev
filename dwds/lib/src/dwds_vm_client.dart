@@ -56,7 +56,8 @@ class DwdsVmClient {
 
   DwdsVmClient(this.client, this._requestController, this._responseController);
 
-  Future<void> close() => _closed ??= () async {
+  Future<void> close() =>
+      _closed ??= () async {
         await _requestController.close();
         await _responseController.close();
         await client.dispose();
@@ -91,22 +92,24 @@ class DwdsVmClient {
       clientFuture: clientCompleter.future,
     );
 
-    final client = ddsUri == null
-        ? _setUpVmClient(
-            responseStream: responseStream,
-            requestController: requestController,
-            requestSink: requestSink,
-          )
-        : await _setUpDdsClient(
-            ddsUri: ddsUri,
-          );
+    final client =
+        ddsUri == null
+            ? _setUpVmClient(
+              responseStream: responseStream,
+              requestController: requestController,
+              requestSink: requestSink,
+            )
+            : await _setUpDdsClient(ddsUri: ddsUri);
 
     if (!clientCompleter.isCompleted) {
       clientCompleter.complete(client);
     }
 
-    final dwdsVmClient =
-        DwdsVmClient(client, requestController, responseController);
+    final dwdsVmClient = DwdsVmClient(
+      client,
+      requestController,
+      responseController,
+    );
 
     await _registerServiceExtensions(
       client: client,
@@ -119,9 +122,7 @@ class DwdsVmClient {
 
   /// Establishes a VM service client that is connected via DDS and registers
   /// the service extensions on that client.
-  static Future<VmService> _setUpDdsClient({
-    required Uri ddsUri,
-  }) async {
+  static Future<VmService> _setUpDdsClient({required Uri ddsUri}) async {
     final client = await vmServiceConnectUri(ddsUri.toString());
     return client;
   }
@@ -138,8 +139,9 @@ class DwdsVmClient {
     final client = VmService(responseStream.map(jsonEncode), (request) {
       if (requestController.isClosed) {
         _logger.warning(
-            'Attempted to send a request but the connection is closed:\n\n'
-            '$request');
+          'Attempted to send a request but the connection is closed:\n\n'
+          '$request',
+        );
         return;
       }
       requestSink.add(Map<String, Object>.from(jsonDecode(request)));
@@ -188,8 +190,10 @@ class DwdsVmClient {
     );
 
     for (final extension in _NamespacedServiceExtension.values) {
-      debugService.serviceExtensionRegistry
-          .registerExtension(extension.method, vmServerConnection);
+      debugService.serviceExtensionRegistry.registerExtension(
+        extension.method,
+        vmServerConnection,
+      );
     }
   }
 
@@ -236,10 +240,7 @@ class DwdsVmClient {
       'result': <String, Object>{
         'views': <Object>[
           for (final isolate in isolates ?? [])
-            <String, Object>{
-              'id': isolate.id,
-              'isolate': isolate.toJson(),
-            },
+            <String, Object>{'id': isolate.id, 'isolate': isolate.toJson()},
         ],
       },
     };
@@ -249,8 +250,9 @@ class DwdsVmClient {
     ChromeProxyService chromeProxyService,
   ) async {
     await chromeProxyService.remoteDebugger.enablePage();
-    final response = await chromeProxyService.remoteDebugger
-        .sendCommand('Page.captureScreenshot');
+    final response = await chromeProxyService.remoteDebugger.sendCommand(
+      'Page.captureScreenshot',
+    );
     return {'result': response.result as Object};
   }
 
@@ -262,17 +264,13 @@ class DwdsVmClient {
     return {'result': Success().toJson()};
   }
 
-  static Map<String, Object> _extDwdsEmitEventHandler(
-    VmResponse request,
-  ) {
+  static Map<String, Object> _extDwdsEmitEventHandler(VmResponse request) {
     final event = request['params'] as Map<String, dynamic>?;
     if (event != null) {
       final type = event['type'] as String?;
       final payload = event['payload'] as Map<String, dynamic>?;
       if (type != null && payload != null) {
-        emitEvent(
-          DwdsEvent(type, payload),
-        );
+        emitEvent(DwdsEvent(type, payload));
       }
     }
 
@@ -326,10 +324,7 @@ class DwdsVmClient {
   }
 }
 
-void _processSendEvent(
-  Map<String, dynamic> request,
-  DwdsStats dwdsStats,
-) {
+void _processSendEvent(Map<String, dynamic> request, DwdsStats dwdsStats) {
   final event = request['params'] as Map<String, dynamic>?;
   if (event == null) return;
   final type = event['type'] as String?;
@@ -399,10 +394,7 @@ Future<Map<String, dynamic>> _hotRestart(
     // We couldn't find the execution context. `hotRestart` may have been
     // triggered in the middle of a full reload.
     return {
-      'error': {
-        'code': RPCErrorKind.kInternalError.code,
-        'message': e.message,
-      },
+      'error': {'code': RPCErrorKind.kInternalError.code, 'message': e.message},
     };
   }
   // Start listening for isolate create events before issuing a hot
@@ -430,11 +422,7 @@ Future<Map<String, dynamic>> _hotRestart(
     // occur during a hot restart that must fall back to a full reload.
     if (code != RPCErrorKind.kServerError.code) {
       return {
-        'error': {
-          'code': code,
-          'message': message,
-          'data': exception,
-        },
+        'error': {'code': code, 'message': message, 'data': exception},
       };
     }
   } on ChromeDebugException catch (exception) {
@@ -454,18 +442,19 @@ Future<Map<String, dynamic>> _hotRestart(
   return {'result': Success().toJson()};
 }
 
-void _waitForResumeEventToRunMain(
-  ChromeProxyService chromeProxyService,
-) {
+void _waitForResumeEventToRunMain(ChromeProxyService chromeProxyService) {
   final issuedReadyToRunMainCompleter = Completer<void>();
 
-  final resumeEventsSubscription =
-      chromeProxyService.resumeAfterRestartEventsStream.listen((_) async {
-    await chromeProxyService.inspector.jsEvaluate('\$dartReadyToRunMain();');
-    if (!issuedReadyToRunMainCompleter.isCompleted) {
-      issuedReadyToRunMainCompleter.complete();
-    }
-  });
+  final resumeEventsSubscription = chromeProxyService
+      .resumeAfterRestartEventsStream
+      .listen((_) async {
+        await chromeProxyService.inspector.jsEvaluate(
+          '\$dartReadyToRunMain();',
+        );
+        if (!issuedReadyToRunMainCompleter.isCompleted) {
+          issuedReadyToRunMainCompleter.complete();
+        }
+      });
 
   safeUnawaited(
     issuedReadyToRunMainCompleter.future.then((_) {
