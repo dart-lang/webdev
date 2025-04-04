@@ -1,7 +1,8 @@
-## 3.7.2-wip
+## 3.7.2
 
 - Adds `--offline` flag [#2483](https://github.com/dart-lang/webdev/pull/2483).
 - Support the `--hostname` flag when the `--tls-cert-key` and `--tls-cert-chain` flags are present [#2588](https://github.com/dart-lang/webdev/pull/2588).
+- Update `dwds` constraint to `24.3.9`.
 
 ## 3.7.1
 
