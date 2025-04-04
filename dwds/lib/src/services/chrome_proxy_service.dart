@@ -411,7 +411,7 @@ class ChromeProxyService implements VmServiceInterface {
     for (final breakpoint in isolate.breakpoints?.toList() ?? <Breakpoint>[]) {
       if (libraries == null ||
           (breakpoint.location.script != null &&
-              // ignore: avoid-unrelated-type-casts
+              // ignore: avoid-collection-methods-with-unrelated-types
               libraries.contains(breakpoint.location.script.uri))) {
         await (await debuggerFuture).removeBreakpoint(breakpoint.id!);
       }
