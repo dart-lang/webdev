@@ -139,6 +139,7 @@ class FrontendServerDdcStrategyProvider
 
 /// Provides a [DdcLibraryBundleStrategy] suitable for use with the Frontend
 /// Server.
+// ignore: prefer-correct-type-name
 class FrontendServerDdcLibraryBundleStrategyProvider
     extends FrontendServerStrategyProvider<DdcLibraryBundleStrategy> {
   late final DdcLibraryBundleStrategy _libraryBundleStrategy;
