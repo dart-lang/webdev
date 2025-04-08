@@ -57,14 +57,32 @@ class DdcLibraryBundleRestarter implements Restarter {
     return true;
   }
 
+  late ({JSArray<JSString> sources, JSArray<JSString> libraries})?
+  _sourcesAndLibrariesToReload;
+
   @override
-  Future<void> reload(String hotReloadSourcesPath) async {
+  Future<void> reload() async {
+    // Requires a previous call to `fetchLibrariesForHotReload`.
+    await _dartDevEmbedder
+        .hotReload(
+          _sourcesAndLibrariesToReload!.sources,
+          _sourcesAndLibrariesToReload!.libraries,
+        )
+        .toDart;
+    _sourcesAndLibrariesToReload = null;
+  }
+
+  @override
+  Future<JSArray<JSString>> fetchLibrariesForHotReload(
+    String hotReloadSourcesPath,
+  ) async {
     final completer = Completer<String>();
     final xhr = _XMLHttpRequest();
     xhr.withCredentials = true;
     xhr.onreadystatechange =
         () {
-          // If the request has completed and OK, or the response has not changed.
+          // If the request has completed and OK, or the response has not
+          // changed.
           if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
             completer.complete(xhr.responseText);
           }
@@ -84,6 +102,10 @@ class DdcLibraryBundleRestarter implements Restarter {
         librariesToReload.push(library.toJS);
       }
     }
-    await _dartDevEmbedder.hotReload(filesToLoad, librariesToReload).toDart;
+    _sourcesAndLibrariesToReload = (
+      sources: filesToLoad,
+      libraries: librariesToReload,
+    );
+    return librariesToReload;
   }
 }
