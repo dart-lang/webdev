@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/config.dart';
 import 'package:dwds/expression_compiler.dart';
+// ignore: implementation_imports
+import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/utilities.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
@@ -217,8 +219,7 @@ class WebDevFS {
       if (fullRestart) {
         performRestart(modules);
       } else {
-        // TODO(srujzs): Support hot reload testing.
-        throw Exception('Hot reload is not supported yet.');
+        performReload(modules, prefix);
       }
     }
     return UpdateFSReport(
@@ -247,6 +248,66 @@ class WebDevFS {
       srcIdsList.add(<String, String>{'src': src, 'id': src});
     }
     assetServer.writeFile('restart_scripts.json', json.encode(srcIdsList));
+  }
+
+  static const String reloadScriptsFileName = 'reload_scripts.json';
+
+  /// Given a list of [modules] that need to be reloaded, writes a file that
+  /// contains a list of objects each with two fields:
+  ///
+  /// `src`: A string that corresponds to the file path containing a DDC library
+  /// bundle.
+  /// `libraries`: An array of strings containing the libraries that were
+  /// compiled in `src`.
+  ///
+  /// For example:
+  /// ```json
+  /// [
+  ///   {
+  ///     "src": "<file_name>",
+  ///     "libraries": ["<lib1>", "<lib2>"],
+  ///   },
+  /// ]
+  /// ```
+  ///
+  /// The path of the output file should stay consistent across the lifetime of
+  /// the app.
+  ///
+  /// [entrypointDirectory] is used to make the module paths relative to the
+  /// entrypoint, which is needed in order to load `src`s correctly.
+  void performReload(List<String> modules, String entrypointDirectory) {
+    final moduleToLibrary = <Map<String, Object>>[];
+    for (final module in modules) {
+      final metadata = ModuleMetadata.fromJson(
+        json.decode(utf8
+                .decode(assetServer.getMetadata('$module.metadata').toList()))
+            as Map<String, dynamic>,
+      );
+      final libraries = metadata.libraries.keys.toList();
+      moduleToLibrary.add(<String, Object>{
+        'src': _findModuleToLoad(module, entrypointDirectory),
+        'libraries': libraries
+      });
+    }
+    assetServer.writeFile(reloadScriptsFileName, json.encode(moduleToLibrary));
+  }
+
+  /// Given a [module] location from the [ModuleMetadata], return its path in
+  /// the server relative to the entrypoint in [entrypointDirectory].
+  ///
+  /// This is needed in cases where the entrypoint is in a subdirectory in the
+  /// package.
+  String _findModuleToLoad(String module, String entrypointDirectory) {
+    if (entrypointDirectory.isEmpty) return module;
+    assert(entrypointDirectory.endsWith('/'));
+    if (module.startsWith(entrypointDirectory)) {
+      return module.substring(entrypointDirectory.length);
+    }
+    var numDirs = entrypointDirectory.split('/').length - 1;
+    while (numDirs-- > 0) {
+      module = '../$module';
+    }
+    return module;
   }
 
   File get ddcModuleLoaderJS =>

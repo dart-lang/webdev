@@ -24,6 +24,7 @@ import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:file/local.dart';
+import 'package:frontend_server_common/src/devfs.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
 import 'package:http/io_client.dart';
@@ -371,6 +372,9 @@ class TestContext {
                       packageUriMapper,
                       () async => {},
                       buildSettings,
+                      hotReloadSourcesUri: Uri.parse(
+                        'http://localhost:$port/${WebDevFS.reloadScriptsFileName}',
+                      ),
                     ).strategy
                     : FrontendServerDdcStrategyProvider(
                       testSettings.reloadConfiguration,
