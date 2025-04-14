@@ -115,6 +115,10 @@ class TestContext {
 
   final _serviceNameToMethod = <String, String?>{};
 
+  late LocalFileSystem frontendServerFileSystem;
+
+  late String _hostname;
+
   /// Internal VM service.
   ///
   /// Prefer using [vmService] instead in tests when possible, to include testing
@@ -305,9 +309,9 @@ class TestContext {
             final entry = p.toUri(
               p.join(project.webAssetsPath, project.dartEntryFileName),
             );
-            final fileSystem = LocalFileSystem();
+            frontendServerFileSystem = LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
-              fileSystem,
+              frontendServerFileSystem,
               project.packageConfigFile,
               useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
             );
@@ -333,20 +337,23 @@ class TestContext {
             );
 
             final assetServerPort = await findUnusedPort();
+            _hostname = appMetadata.hostname;
             await webRunner.run(
-              fileSystem,
-              appMetadata.hostname,
+              frontendServerFileSystem,
+              _hostname,
               assetServerPort,
               filePathToServe,
+              initialCompile: true,
+              fullRestart: false,
             );
 
             if (testSettings.enableExpressionEvaluation) {
               expressionCompiler = webRunner.expressionCompiler;
             }
 
-            basePath = webRunner.devFS.assetServer.basePath;
-            assetReader = webRunner.devFS.assetServer;
-            _assetHandler = webRunner.devFS.assetServer.handleRequest;
+            basePath = webRunner.devFS!.assetServer.basePath;
+            assetReader = webRunner.devFS!.assetServer;
+            _assetHandler = webRunner.devFS!.assetServer.handleRequest;
             loadStrategy = switch (testSettings.moduleFormat) {
               ModuleFormat.amd =>
                 FrontendServerRequireStrategyProvider(
@@ -570,6 +577,18 @@ class TestContext {
     final file = File(project.dartLibFilePath(libFileName));
     final fileContents = file.readAsStringSync();
     file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
+  }
+
+  Future<void> recompile({required bool fullRestart}) async {
+    await webRunner.run(
+      frontendServerFileSystem,
+      _hostname,
+      await findUnusedPort(),
+      webCompatiblePath([project.directoryToServe, project.filePathToServe]),
+      initialCompile: false,
+      fullRestart: fullRestart,
+    );
+    return;
   }
 
   Future<void> waitForSuccessfulBuild({
