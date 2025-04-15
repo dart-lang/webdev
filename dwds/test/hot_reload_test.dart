@@ -43,7 +43,8 @@ void main() {
   }
 
   void undoEdit() {
-    context.makeEditToDartEntryFile(
+    context.makeEditToDartLibFile(
+      libFileName: 'library1.dart',
       toReplace: newString,
       replaceWith: originalString,
     );
@@ -66,8 +67,8 @@ void main() {
     });
 
     tearDown(() async {
-      await context.tearDown();
       undoEdit();
+      await context.tearDown();
     });
 
     test('can hot reload', () async {
