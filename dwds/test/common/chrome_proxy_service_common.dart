@@ -20,6 +20,7 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
+import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
@@ -1580,6 +1581,20 @@ void runTests({
       });
 
       test('Into goes to the next Dart location', () async {
+        if (dartSdkIsAtLeast('3.9.0-88.0.dev') &&
+            moduleFormat == ModuleFormat.ddc &&
+            canaryFeatures) {
+          // With the DDC library bundle format, there's a comparison against
+          // the hot reload generation to avoid emitting extra checks before
+          // `printCount` is called. We need to step past that code before we
+          // get to `printCount`. See
+          // https://github.com/dart-lang/sdk/commit/6127d6cb8f3de7451f78b21ec9a7cb7350e77252
+          // for more details.
+          await service.resume(isolateId!, step: 'Into');
+          await stream.firstWhere(
+            (event) => event.kind == EventKind.kPauseInterrupted,
+          );
+        }
         await service.resume(isolateId!, step: 'Into');
         // Wait for the step to actually occur.
         await stream.firstWhere(
