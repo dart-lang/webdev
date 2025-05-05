@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/data/debug_event.dart';
+import 'package:dwds/data/hot_reload_request.dart';
+import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
@@ -31,6 +33,9 @@ import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart' hide vmServiceVersion;
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+/// Defines callbacks for sending messages to the connected client application.
+typedef SendClientRequest = void Function(Object request);
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
@@ -127,6 +132,13 @@ class ChromeProxyService implements VmServiceInterface {
 
   bool terminatingIsolates = false;
 
+  /// Callback function to send messages to the connected client application.
+  final SendClientRequest sendClientRequest;
+
+  /// Pending hot reload requests waiting for a response from the client.
+  /// Keyed by the request ID.
+  final _pendingHotReloads = <String, Completer<HotReloadResponse>>{};
+
   ChromeProxyService._(
     this._vm,
     this.root,
@@ -137,6 +149,7 @@ class ChromeProxyService implements VmServiceInterface {
     this._skipLists,
     this.executionContext,
     this._compiler,
+    this.sendClientRequest,
   ) {
     final debugger = Debugger.create(
       remoteDebugger,
@@ -155,6 +168,7 @@ class ChromeProxyService implements VmServiceInterface {
     AppConnection appConnection,
     ExecutionContext executionContext,
     ExpressionCompiler? expressionCompiler,
+    SendClientRequest sendClientRequest,
   ) async {
     final vm = VM(
       name: 'ChromeDebugProxy',
@@ -184,9 +198,28 @@ class ChromeProxyService implements VmServiceInterface {
       skipLists,
       executionContext,
       expressionCompiler,
+      sendClientRequest,
     );
     safeUnawaited(service.createIsolate(appConnection));
     return service;
+  }
+
+  /// Completes the hot reload completer associated with the response ID.
+  void completeHotReload(HotReloadResponse response) {
+    final completer = _pendingHotReloads.remove(response.id);
+    if (completer != null) {
+      if (response.success) {
+        completer.complete(response);
+      } else {
+        completer.completeError(
+          response.errorMessage ?? 'Unknown client error during hot reload',
+        );
+      }
+    } else {
+      _logger.warning(
+        'Received hot reload response for unknown request: ${response.id}',
+      );
+    }
   }
 
   /// Initializes metadata in [Locations], [Modules], and [ExpressionCompiler].
@@ -1113,10 +1146,27 @@ class ChromeProxyService implements VmServiceInterface {
             ],
           };
 
+    final requestId = createId();
+    final completer = Completer<HotReloadResponse>();
+    _pendingHotReloads[requestId] = completer;
+    const timeout = Duration(seconds: 10);
     try {
-      _logger.info('Issuing \$dartHotReloadDwds request');
-      await inspector.jsEvaluate('\$dartHotReloadDwds();', awaitPromise: true);
-      _logger.info('\$dartHotReloadDwds request complete.');
+      _logger.info('Issuing HotReloadRequest with ID ($requestId) to client.');
+      sendClientRequest(HotReloadRequest((b) => b.id = requestId));
+
+      final response = await completer.future.timeout(
+        timeout,
+        onTimeout:
+            () =>
+                throw TimeoutException(
+                  'Client did not respond to hot reload request',
+                  timeout,
+                ),
+      );
+
+      if (!response.success) {
+        throw Exception(response.errorMessage ?? 'Client reported hot reload failure.');
+      }
     } catch (e) {
       _logger.info('Hot reload failed: $e');
       return getFailedReloadReport(e.toString());

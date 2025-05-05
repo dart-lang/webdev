@@ -14,6 +14,8 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/extension_request.dart';
+import 'package:dwds/data/hot_reload_request.dart';
+import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
@@ -198,6 +200,8 @@ Future<void>? main() {
                       'Stack Trace:\n${event.stackTrace}'
                   .toJS,
             );
+          } else if (event is HotReloadRequest) {
+            await handleHotReloadRequest(event, manager, client.sink);
           }
         },
         onError: (error) {
@@ -356,6 +360,46 @@ Future<bool> _authenticateUser(String authUrl) async {
   final response = await client.get(Uri.parse(authUrl));
   final responseText = response.body;
   return responseText.contains('Dart Debug Authentication Success!');
+}
+
+// handle hot reload request/response logic.
+Future<void> handleHotReloadRequest(
+  HotReloadRequest event,
+  ReloadingManager manager,
+  StreamSink clientSink,
+) async {
+  final requestId = event.id;
+  try {
+    // Execute the hot reload.
+    await manager.hotReload(hotReloadSourcesPath);
+    // Send the response back to the server.
+    _trySendEvent(
+      clientSink,
+      jsonEncode(
+        serializers.serialize(
+          HotReloadResponse(
+            (b) => b
+              ..id = requestId
+              ..success = true,
+          ),
+        ),
+      ),
+    );
+  } catch (e) {
+    _trySendEvent(
+      clientSink,
+      jsonEncode(
+        serializers.serialize(
+          HotReloadResponse(
+            (b) => b
+              ..id = requestId
+              ..success = false
+              ..errorMessage = e.toString(),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 @JS(r'$dartAppId')
