@@ -387,9 +387,10 @@ Future<void> handleWebSocketHotReloadRequest(
       jsonEncode(
         serializers.serialize(
           HotReloadResponse(
-            (b) => b
-              ..id = requestId
-              ..success = true,
+            (b) =>
+                b
+                  ..id = requestId
+                  ..success = true,
           ),
         ),
       ),
@@ -400,10 +401,11 @@ Future<void> handleWebSocketHotReloadRequest(
       jsonEncode(
         serializers.serialize(
           HotReloadResponse(
-            (b) => b
-              ..id = requestId
-              ..success = false
-              ..errorMessage = e.toString(),
+            (b) =>
+                b
+                  ..id = requestId
+                  ..success = false
+                  ..errorMessage = e.toString(),
           ),
         ),
       ),

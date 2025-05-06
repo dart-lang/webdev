@@ -154,7 +154,7 @@ class DevHandler {
     ChromeConnection chromeConnection,
     AppConnection appConnection,
   ) async {
-        ChromeTab? appTab;
+    ChromeTab? appTab;
     ExecutionContext? executionContext;
     WipConnection? tabConnection;
     final appInstanceId = appConnection.request.instanceId;
@@ -252,7 +252,7 @@ class DevHandler {
   }
 
   Future<AppDebugServices> loadAppServices(AppConnection appConnection) async {
-        final appId = appConnection.request.appId;
+    final appId = appConnection.request.appId;
     var appServices = _servicesByAppId[appId];
     if (appServices == null) {
       final debugService = await _startLocalDebugService(
@@ -297,7 +297,7 @@ class DevHandler {
         } else {
           final connection = appConnection;
           if (connection == null) {
-                        throw StateError('Not connected to an application.');
+            throw StateError('Not connected to an application.');
           }
           if (message is DevToolsRequest) {
             await _handleDebugRequest(connection, injectedConnection);

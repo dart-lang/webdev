@@ -40,6 +40,7 @@ typedef SendClientRequest = void Function(Object request);
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
   final bool useWebSocket;
+
   /// Cache of all existing StreamControllers.
   ///
   /// These are all created through [onEvent].
@@ -150,9 +151,9 @@ class ChromeProxyService implements VmServiceInterface {
     this._skipLists,
     this.executionContext,
     this._compiler,
-    this.sendClientRequest,
-    {this.useWebSocket = false}
-  ) {
+    this.sendClientRequest, {
+    this.useWebSocket = false,
+  }) {
     final debugger = Debugger.create(
       remoteDebugger,
       _streamNotify,
@@ -1206,15 +1207,18 @@ class ChromeProxyService implements VmServiceInterface {
 
     final response = await completer.future.timeout(
       timeout,
-      onTimeout: () =>
-          throw TimeoutException(
-            'Client did not respond to hot reload request',
-            timeout,
-          ),
+      onTimeout:
+          () =>
+              throw TimeoutException(
+                'Client did not respond to hot reload request',
+                timeout,
+              ),
     );
 
     if (!response.success) {
-      throw Exception(response.errorMessage ?? 'Client reported hot reload failure.');
+      throw Exception(
+        response.errorMessage ?? 'Client reported hot reload failure.',
+      );
     }
   }
 
