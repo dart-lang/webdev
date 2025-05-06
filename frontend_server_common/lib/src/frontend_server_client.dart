@@ -173,13 +173,15 @@ class _RecompileRequest extends _CompilationRequest {
     this.mainUri,
     this.invalidatedFiles,
     this.outputPath,
-    this.packageConfig,
-  );
+    this.packageConfig, {
+    required this.recompileRestart,
+  });
 
   Uri mainUri;
   List<Uri> invalidatedFiles;
   String outputPath;
   PackageConfig packageConfig;
+  bool recompileRestart;
 
   @override
   Future<CompilerOutput?> _run(ResidentCompiler compiler) async =>
@@ -288,11 +290,14 @@ class ResidentCompiler {
   /// point that is used for recompilation.
   /// Binary file name is returned if compilation was successful, otherwise
   /// null is returned.
+  /// If [recompileRestart] is true, uses the `recompile-restart` instruction
+  /// instead of `recompile`.
   Future<CompilerOutput?> recompile(
     Uri mainUri,
     List<Uri> invalidatedFiles, {
     required String outputPath,
     required PackageConfig packageConfig,
+    required bool recompileRestart,
   }) async {
     if (!_controller.hasListener) {
       _controller.stream.listen(_handleCompilationRequest);
@@ -300,7 +305,8 @@ class ResidentCompiler {
 
     final completer = Completer<CompilerOutput?>();
     _controller.add(_RecompileRequest(
-        completer, mainUri, invalidatedFiles, outputPath, packageConfig));
+        completer, mainUri, invalidatedFiles, outputPath, packageConfig,
+        recompileRestart: recompileRestart));
     return completer.future;
   }
 
@@ -320,8 +326,10 @@ class ResidentCompiler {
     final server = _server!;
 
     final inputKey = generateV4UUID();
-    server.stdin.writeln('recompile $mainUri$inputKey');
-    _logger.info('<- recompile $mainUri$inputKey');
+    final instruction =
+        request.recompileRestart ? 'recompile-restart' : 'recompile';
+    server.stdin.writeln('$instruction $mainUri $inputKey');
+    _logger.info('<- $instruction $mainUri $inputKey');
     for (final fileUri in request.invalidatedFiles) {
       String message;
       if (fileUri.scheme == 'package') {

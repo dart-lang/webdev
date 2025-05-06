@@ -65,7 +65,14 @@ Future<void>? main() {
 
       hotReloadJs =
           () {
-            return manager.hotReload(hotReloadSourcesPath).toJS;
+            return manager.hotReload().toJS;
+          }.toJS;
+
+      fetchLibrariesForHotReloadJs =
+          () {
+            return manager
+                .fetchLibrariesForHotReload(hotReloadSourcesPath)
+                .toJS;
           }.toJS;
 
       Completer? readyToRunMainCompleter;
@@ -177,7 +184,8 @@ Future<void>? main() {
                 'ReloadConfiguration.hotRestart') {
               await manager.hotRestart();
             } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
-              await manager.hotReload(hotReloadSourcesPath);
+              await manager.fetchLibrariesForHotReload(hotReloadSourcesPath);
+              await manager.hotReload();
             }
           } else if (event is DevToolsResponse) {
             if (!event.success) {
@@ -201,7 +209,7 @@ Future<void>? main() {
                   .toJS,
             );
           } else if (event is HotReloadRequest) {
-            await handleHotReloadRequest(event, manager, client.sink);
+            await handleWebSocketHotReloadRequest(event, manager, client.sink);
           }
         },
         onError: (error) {
@@ -363,7 +371,7 @@ Future<bool> _authenticateUser(String authUrl) async {
 }
 
 // handle hot reload request/response logic.
-Future<void> handleHotReloadRequest(
+Future<void> handleWebSocketHotReloadRequest(
   HotReloadRequest event,
   ReloadingManager manager,
   StreamSink clientSink,
@@ -371,7 +379,8 @@ Future<void> handleHotReloadRequest(
   final requestId = event.id;
   try {
     // Execute the hot reload.
-    await manager.hotReload(hotReloadSourcesPath);
+    await manager.fetchLibrariesForHotReload(hotReloadSourcesPath);
+    await manager.hotReload();
     // Send the response back to the server.
     _trySendEvent(
       clientSink,
@@ -419,6 +428,9 @@ external String get dartModuleStrategy;
 
 @JS(r'$dartHotReloadDwds')
 external set hotReloadJs(JSFunction cb);
+
+@JS(r'$fetchLibrariesForHotReload')
+external set fetchLibrariesForHotReloadJs(JSFunction cb);
 
 @JS(r'$hotReloadSourcesPath')
 external String? get _hotReloadSourcesPath;

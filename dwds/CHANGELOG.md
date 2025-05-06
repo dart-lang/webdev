@@ -1,7 +1,13 @@
-## 24.4.0-wip
+## 24.3.11-wip
 
 - Added WebSocket-based hot reload support: `reloadSources` in `ChromeProxyService` and `DevHandler` now handle hot reload requests and responses over WebSockets.
 - Refactored the injected client to use a reusable function for handling hot reload requests and responses over WebSockets.
+
+## 24.3.10
+
+- Disabled breakpoints on changed files in a hot reload. They currently do not
+  map to the correct locations or are broken, so disable them for now. - [#60186](https://github.com/dart-lang/sdk/issues/60186)
+
 
 ## 24.3.9
 

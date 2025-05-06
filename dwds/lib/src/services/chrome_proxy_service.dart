@@ -39,6 +39,7 @@ typedef SendClientRequest = void Function(Object request);
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
+  final bool useWebSocket;
   /// Cache of all existing StreamControllers.
   ///
   /// These are all created through [onEvent].
@@ -150,6 +151,7 @@ class ChromeProxyService implements VmServiceInterface {
     this.executionContext,
     this._compiler,
     this.sendClientRequest,
+    {this.useWebSocket = false}
   ) {
     final debugger = Debugger.create(
       remoteDebugger,
@@ -168,8 +170,9 @@ class ChromeProxyService implements VmServiceInterface {
     AppConnection appConnection,
     ExecutionContext executionContext,
     ExpressionCompiler? expressionCompiler,
-    SendClientRequest sendClientRequest,
-  ) async {
+    SendClientRequest sendClientRequest, {
+    bool useWebSocket = false,
+  }) async {
     final vm = VM(
       name: 'ChromeDebugProxy',
       operatingSystem: Platform.operatingSystem,
@@ -199,6 +202,7 @@ class ChromeProxyService implements VmServiceInterface {
       executionContext,
       expressionCompiler,
       sendClientRequest,
+      useWebSocket: useWebSocket,
     );
     safeUnawaited(service.createIsolate(appConnection));
     return service;
@@ -433,12 +437,21 @@ class ChromeProxyService implements VmServiceInterface {
     _consoleSubscription = null;
   }
 
-  Future<void> disableBreakpoints() async {
+  /// Removes the breakpoints in the running isolate.
+  ///
+  /// [libraries] is a set of Dart libraries, where if non-null, only
+  /// breakpoints within those libraries are removed.
+  Future<void> disableBreakpoints({Set<String>? libraries}) async {
     if (!_isIsolateRunning) return;
     final isolate = inspector.isolate;
 
-    for (final breakpoint in isolate.breakpoints?.toList() ?? []) {
-      await (await debuggerFuture).removeBreakpoint(breakpoint.id);
+    for (final breakpoint in isolate.breakpoints?.toList() ?? <Breakpoint>[]) {
+      if (libraries == null ||
+          (breakpoint.location.script != null &&
+              // ignore: avoid-collection-methods-with-unrelated-types
+              libraries.contains(breakpoint.location.script.uri))) {
+        await (await debuggerFuture).removeBreakpoint(breakpoint.id!);
+      }
     }
   }
 
@@ -1145,27 +1158,11 @@ class ChromeProxyService implements VmServiceInterface {
               {'message': error},
             ],
           };
-
-    final requestId = createId();
-    final completer = Completer<HotReloadResponse>();
-    _pendingHotReloads[requestId] = completer;
-    const timeout = Duration(seconds: 10);
     try {
-      _logger.info('Issuing HotReloadRequest with ID ($requestId) to client.');
-      sendClientRequest(HotReloadRequest((b) => b.id = requestId));
-
-      final response = await completer.future.timeout(
-        timeout,
-        onTimeout:
-            () =>
-                throw TimeoutException(
-                  'Client did not respond to hot reload request',
-                  timeout,
-                ),
-      );
-
-      if (!response.success) {
-        throw Exception(response.errorMessage ?? 'Client reported hot reload failure.');
+      if (useWebSocket) {
+        await _performWebSocketHotReload();
+      } else {
+        await _performClientSideHotReload();
       }
     } catch (e) {
       _logger.info('Hot reload failed: $e');
@@ -1173,6 +1170,52 @@ class ChromeProxyService implements VmServiceInterface {
     }
     _logger.info('Successful hot reload');
     return _ReloadReportWithMetadata(success: true);
+  }
+
+  /// Performs a client-side hot reload by fetching libraries, disabling breakpoints, and invoking the reload.
+  Future<void> _performClientSideHotReload() async {
+    // Fetch the needed sources and libraries, disable breakpoints on the
+    // changed libraries, and then reload.
+    // TODO(srujzs): Re-map the breakpoints appropriately using events to
+    // trigger the client to re-register the breakpoints on the new sources.
+    // https://github.com/dart-lang/sdk/issues/60186
+    _logger.info('Issuing \$fetchLibrariesForHotReload request');
+    final librariesRemoteObject = await inspector.jsEvaluate(
+      '\$fetchLibrariesForHotReload();',
+      awaitPromise: true,
+      returnByValue: true,
+    );
+    _logger.info('\$fetchLibrariesForHotReload request complete.');
+    final libraries =
+        (librariesRemoteObject.value as List<dynamic>).toSet().cast<String>();
+    await disableBreakpoints(libraries: libraries);
+    _logger.info('Issuing \$dartHotReloadDwds request');
+    await inspector.jsEvaluate('\$dartHotReloadDwds();', awaitPromise: true);
+    _logger.info('\$dartHotReloadDwds request complete.');
+  }
+
+  /// Performs a WebSocket-based hot reload by sending a request and waiting for a response.
+  Future<void> _performWebSocketHotReload() async {
+    final requestId = createId();
+    final completer = Completer<HotReloadResponse>();
+    _pendingHotReloads[requestId] = completer;
+    const timeout = Duration(seconds: 10);
+
+    _logger.info('Issuing HotReloadRequest with ID ($requestId) to client.');
+    sendClientRequest(HotReloadRequest((b) => b.id = requestId));
+
+    final response = await completer.future.timeout(
+      timeout,
+      onTimeout: () =>
+          throw TimeoutException(
+            'Client did not respond to hot reload request',
+            timeout,
+          ),
+    );
+
+    if (!response.success) {
+      throw Exception(response.errorMessage ?? 'Client reported hot reload failure.');
+    }
   }
 
   @override
