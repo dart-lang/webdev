@@ -138,10 +138,11 @@ class DevHandler {
     for (final injectedConnection in _injectedConnections) {
       try {
         injectedConnection.sink.add(jsonEncode(serializers.serialize(request)));
-      } on StateError catch (_) {
-        // The sink has already closed (app is disconnected), swallow the
-        // error.
-        _logger.warning('Failed to send request to client, connection closed.');
+      } on StateError catch (e) {
+        // The sink has already closed (app is disconnected), or another StateError occurred.
+        _logger.warning(
+          'Failed to send request to client, connection likely closed. Error: $e',
+        );
       } catch (e, s) {
         // Catch any other potential errors during sending.
         _logger.severe('Error sending request to client: $e', e, s);
