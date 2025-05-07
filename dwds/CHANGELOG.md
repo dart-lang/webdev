@@ -8,7 +8,6 @@
 - Disabled breakpoints on changed files in a hot reload. They currently do not
   map to the correct locations or are broken, so disable them for now. - [#60186](https://github.com/dart-lang/sdk/issues/60186)
 
-
 ## 24.3.9
 
 - Renamed DWDS Injector parameter `enableDebuggingSupport` to `injectDebuggingSupportCode` for clearer intent.
