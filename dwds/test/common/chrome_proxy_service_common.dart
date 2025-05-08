@@ -1579,19 +1579,26 @@ void runTests({
         await service.resume(isolateId!);
       });
 
-      test('Into goes to the next Dart location', () async {
-        await service.resume(isolateId!, step: 'Into');
-        // Wait for the step to actually occur.
-        await stream.firstWhere(
-          (event) => event.kind == EventKind.kPauseInterrupted,
-        );
-        final stack = await service.getStack(isolateId!);
-        expect(stack, isNotNull);
-        final first = stack.frames!.first;
-        expect(first.kind, 'Regular');
-        expect(first.code!.kind, 'Dart');
-        expect(first.code!.name, 'printCount');
-      });
+      test(
+        'Into goes to the next Dart location',
+        () async {
+          await service.resume(isolateId!, step: 'Into');
+          // Wait for the step to actually occur.
+          await stream.firstWhere(
+            (event) => event.kind == EventKind.kPauseInterrupted,
+          );
+          final stack = await service.getStack(isolateId!);
+          expect(stack, isNotNull);
+          final first = stack.frames!.first;
+          expect(first.kind, 'Regular');
+          expect(first.code!.kind, 'Dart');
+          expect(first.code!.name, 'printCount');
+        },
+        skip:
+            moduleFormat == ModuleFormat.ddc && canaryFeatures
+                ? 'https://github.com/dart-lang/webdev/issues/2617'
+                : null,
+      );
 
       test('Over goes to the next Dart location', () async {
         await service.resume(isolateId!, step: 'Over');
