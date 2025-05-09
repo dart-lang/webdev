@@ -14,6 +14,8 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/extension_request.dart';
+import 'package:dwds/data/fetch_libraries_for_hot_reload_request.dart';
+import 'package:dwds/data/fetch_libraries_for_hot_reload_response.dart';
 import 'package:dwds/data/hot_reload_request.dart';
 import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/register_event.dart';
@@ -208,6 +210,8 @@ Future<void>? main() {
                       'Stack Trace:\n${event.stackTrace}'
                   .toJS,
             );
+          } else if (event is FetchLibrariesForHotReloadRequest) {
+            await handleWebSocketFetchLibrariesForHotReload(event, manager, client.sink);
           } else if (event is HotReloadRequest) {
             await handleWebSocketHotReloadRequest(event, manager, client.sink);
           }
@@ -370,7 +374,60 @@ Future<bool> _authenticateUser(String authUrl) async {
   return responseText.contains('Dart Debug Authentication Success!');
 }
 
-// handle hot reload request/response logic.
+
+// Generic function to send a built_value response back to the server.
+void _sendResponse<T>(
+  StreamSink clientSink,
+  T Function(void Function(dynamic)) builder,
+  String requestId, {
+  bool success = true,
+  String? errorMessage,
+}) {
+  _trySendEvent(
+    clientSink,
+    jsonEncode(
+      serializers.serialize(
+        builder((b) {
+          b.id = requestId;
+          b.success = success;
+          if (errorMessage != null) b.errorMessage = errorMessage;
+        }),
+      ),
+    ),
+  );
+}
+
+void _sendHotReloadResponse(
+  StreamSink clientSink,
+  String requestId, {
+  bool success = true,
+  String? errorMessage,
+}) {
+  _sendResponse<HotReloadResponse>(
+    clientSink,
+    HotReloadResponse.new,
+    requestId,
+    success: success,
+    errorMessage: errorMessage,
+  );
+}
+
+void _sendFetchLibrariesForHotReloadResponse(
+  StreamSink clientSink,
+  String requestId, {
+  bool success = true,
+  String? errorMessage,
+}) {
+  _sendResponse<FetchLibrariesForHotReloadResponse>(
+    clientSink,
+    FetchLibrariesForHotReloadResponse.new,
+    requestId,
+    success: success,
+    errorMessage: errorMessage,
+  );
+}
+
+// Handles a WebSocket hot reload request/reload logic.
 Future<void> handleWebSocketHotReloadRequest(
   HotReloadRequest event,
   ReloadingManager manager,
@@ -378,38 +435,27 @@ Future<void> handleWebSocketHotReloadRequest(
 ) async {
   final requestId = event.id;
   try {
-    // Execute the hot reload.
-    await manager.fetchLibrariesForHotReload(hotReloadSourcesPath);
     await manager.hotReload();
-    // Send the response back to the server.
-    _trySendEvent(
-      clientSink,
-      jsonEncode(
-        serializers.serialize(
-          HotReloadResponse(
-            (b) =>
-                b
-                  ..id = requestId
-                  ..success = true,
-          ),
-        ),
-      ),
-    );
+    _sendHotReloadResponse(clientSink, requestId, success: true);
   } catch (e) {
-    _trySendEvent(
-      clientSink,
-      jsonEncode(
-        serializers.serialize(
-          HotReloadResponse(
-            (b) =>
-                b
-                  ..id = requestId
-                  ..success = false
-                  ..errorMessage = e.toString(),
-          ),
-        ),
-      ),
-    );
+    _sendHotReloadResponse(clientSink, requestId, success: false, errorMessage: e.toString());
+  }
+}
+
+
+
+// Handles a WebSocket fetch libraries for hot reload request/response logic.
+Future<void> handleWebSocketFetchLibrariesForHotReload(
+  FetchLibrariesForHotReloadRequest event,
+  ReloadingManager manager,
+  StreamSink clientSink,
+) async {
+  final requestId = event.id;
+  try {
+    await manager.fetchLibrariesForHotReload(hotReloadSourcesPath);
+    _sendFetchLibrariesForHotReloadResponse(clientSink, requestId, success: true);
+  } catch (e) {
+    _sendFetchLibrariesForHotReloadResponse(clientSink, requestId, success: false, errorMessage: e.toString());
   }
 }
 

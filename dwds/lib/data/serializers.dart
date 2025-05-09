@@ -14,6 +14,8 @@ import 'error_response.dart';
 import 'extension_request.dart';
 import 'hot_reload_request.dart';
 import 'hot_reload_response.dart';
+import 'fetch_libraries_for_hot_reload_request.dart';
+import 'fetch_libraries_for_hot_reload_response.dart';
 import 'isolate_events.dart';
 import 'register_event.dart';
 import 'run_request.dart';
@@ -30,6 +32,8 @@ part 'serializers.g.dart';
   DebugInfo,
   DevToolsRequest,
   DevToolsResponse,
+  FetchLibrariesForHotReloadRequest,
+  FetchLibrariesForHotReloadResponse,
   HotReloadRequest,
   HotReloadResponse,
   IsolateExit,

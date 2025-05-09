@@ -21,6 +21,8 @@ Serializers _$serializers =
           ..add(ExtensionEvent.serializer)
           ..add(ExtensionRequest.serializer)
           ..add(ExtensionResponse.serializer)
+          ..add(FetchLibrariesForHotReloadRequest.serializer)
+          ..add(FetchLibrariesForHotReloadResponse.serializer)
           ..add(HotReloadRequest.serializer)
           ..add(HotReloadResponse.serializer)
           ..add(IsolateExit.serializer)
