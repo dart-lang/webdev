@@ -7,6 +7,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/data/debug_event.dart';
+import 'package:dwds/data/fetch_libraries_for_hot_reload_request.dart';
+import 'package:dwds/data/fetch_libraries_for_hot_reload_response.dart';
+import 'package:dwds/data/hot_reload_request.dart';
+import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
@@ -32,8 +36,13 @@ import 'package:vm_service/vm_service.dart' hide vmServiceVersion;
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+/// Defines callbacks for sending messages to the connected client application.
+typedef SendClientRequest = void Function(Object request);
+
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
+  final bool useWebSocket;
+
   /// Cache of all existing StreamControllers.
   ///
   /// These are all created through [onEvent].
@@ -127,6 +136,18 @@ class ChromeProxyService implements VmServiceInterface {
 
   bool terminatingIsolates = false;
 
+  /// Callback function to send messages to the connected client application.
+  final SendClientRequest sendClientRequest;
+
+  /// Pending hot reload requests waiting for a response from the client.
+  /// Keyed by the request ID.
+  final _pendingHotReloads = <String, Completer<HotReloadResponse>>{};
+
+  /// Pending fetch libraries for hot reload requests waiting for a response from the client.
+  /// Keyed by the request ID.
+  final Map<String, Completer<FetchLibrariesForHotReloadResponse>>
+  _pendingFetchLibrariesForHotReloads = {};
+
   ChromeProxyService._(
     this._vm,
     this.root,
@@ -137,7 +158,9 @@ class ChromeProxyService implements VmServiceInterface {
     this._skipLists,
     this.executionContext,
     this._compiler,
-  ) {
+    this.sendClientRequest, {
+    this.useWebSocket = false,
+  }) {
     final debugger = Debugger.create(
       remoteDebugger,
       _streamNotify,
@@ -155,7 +178,9 @@ class ChromeProxyService implements VmServiceInterface {
     AppConnection appConnection,
     ExecutionContext executionContext,
     ExpressionCompiler? expressionCompiler,
-  ) async {
+    SendClientRequest sendClientRequest, {
+    bool useWebSocket = false,
+  }) async {
     final vm = VM(
       name: 'ChromeDebugProxy',
       operatingSystem: Platform.operatingSystem,
@@ -184,9 +209,50 @@ class ChromeProxyService implements VmServiceInterface {
       skipLists,
       executionContext,
       expressionCompiler,
+      sendClientRequest,
+      useWebSocket: useWebSocket,
     );
     safeUnawaited(service.createIsolate(appConnection));
     return service;
+  }
+
+  /// Completes the hot reload completer associated with the response ID.
+  void completeHotReload(HotReloadResponse response) {
+    final completer = _pendingHotReloads.remove(response.id);
+    if (completer != null) {
+      if (response.success) {
+        completer.complete(response);
+      } else {
+        completer.completeError(
+          response.errorMessage ?? 'Unknown client error during hot reload',
+        );
+      }
+    } else {
+      _logger.warning(
+        'Received hot reload response for unknown request: ${response.id}',
+      );
+    }
+  }
+
+  /// Completes the fetch libraries for hot reload completer associated with the response ID.
+  void completeFetchLibrariesForHotReload(
+    FetchLibrariesForHotReloadResponse response,
+  ) {
+    final completer = _pendingFetchLibrariesForHotReloads.remove(response.id);
+    if (completer != null) {
+      if (response.success) {
+        completer.complete(response);
+      } else {
+        completer.completeError(
+          response.errorMessage ??
+              'Unknown client error during fetch libraries for hot reload',
+        );
+      }
+    } else {
+      _logger.warning(
+        'Received fetch libraries for hot reload response for unknown request: ${response.id}',
+      );
+    }
   }
 
   /// Initializes metadata in [Locations], [Modules], and [ExpressionCompiler].
@@ -1121,32 +1187,102 @@ class ChromeProxyService implements VmServiceInterface {
               {'message': error},
             ],
           };
-
     try {
-      // Fetch the needed sources and libraries, disable breakpoints on the
-      // changed libraries, and then reload.
-      // TODO(srujzs): Re-map the breakpoints appropriately using events to
-      // trigger the client to re-register the breakpoints on the new sources.
-      // https://github.com/dart-lang/sdk/issues/60186
-      _logger.info('Issuing \$fetchLibrariesForHotReload request');
-      final librariesRemoteObject = await inspector.jsEvaluate(
-        '\$fetchLibrariesForHotReload();',
-        awaitPromise: true,
-        returnByValue: true,
-      );
-      _logger.info('\$fetchLibrariesForHotReload request complete.');
-      final libraries =
-          (librariesRemoteObject.value as List<dynamic>).toSet().cast<String>();
-      await disableBreakpoints(libraries: libraries);
-      _logger.info('Issuing \$dartHotReloadDwds request');
-      await inspector.jsEvaluate('\$dartHotReloadDwds();', awaitPromise: true);
-      _logger.info('\$dartHotReloadDwds request complete.');
+      if (useWebSocket) {
+        final requestId = await _performWebSocketFetchLibrariesForHotReload();
+        await _performWebSocketHotReload(requestId: requestId);
+      } else {
+        await _performClientSideHotReload();
+      }
     } catch (e) {
       _logger.info('Hot reload failed: $e');
       return getFailedReloadReport(e.toString());
     }
     _logger.info('Successful hot reload');
     return _ReloadReportWithMetadata(success: true);
+  }
+
+  /// Performs a client-side hot reload by fetching libraries, disabling breakpoints, and invoking the reload.
+  Future<void> _performClientSideHotReload() async {
+    // Fetch the needed sources and libraries, disable breakpoints on the
+    // changed libraries, and then reload.
+    // TODO(srujzs): Re-map the breakpoints appropriately using events to
+    // trigger the client to re-register the breakpoints on the new sources.
+    // https://github.com/dart-lang/sdk/issues/60186
+    _logger.info('Issuing \$fetchLibrariesForHotReload request');
+    final librariesRemoteObject = await inspector.jsEvaluate(
+      '\$fetchLibrariesForHotReload();',
+      awaitPromise: true,
+      returnByValue: true,
+    );
+    _logger.info('\$fetchLibrariesForHotReload request complete.');
+    final libraries =
+        (librariesRemoteObject.value as List<dynamic>).toSet().cast<String>();
+    await disableBreakpoints(libraries: libraries);
+    _logger.info('Issuing \$dartHotReloadDwds request');
+    await inspector.jsEvaluate('\$dartHotReloadDwds();', awaitPromise: true);
+    _logger.info('\$dartHotReloadDwds request complete.');
+  }
+
+  /// Performs a WebSocket-based hot reload by sending a request and waiting for a response.
+  /// If [requestId] is provided, it will be used for the request; otherwise, a new one is generated.
+  Future<void> _performWebSocketHotReload({String? requestId}) async {
+    final id = requestId ?? createId();
+    final completer = Completer<HotReloadResponse>();
+    _pendingHotReloads[id] = completer;
+    const timeout = Duration(seconds: 10);
+
+    _logger.info('Issuing HotReloadRequest with ID ($id) to client.');
+    sendClientRequest(HotReloadRequest((b) => b.id = id));
+
+    final response = await completer.future.timeout(
+      timeout,
+      onTimeout:
+          () =>
+              throw TimeoutException(
+                'Client did not respond to hot reload request',
+                timeout,
+              ),
+    );
+
+    if (!response.success) {
+      throw Exception(
+        response.errorMessage ?? 'Client reported hot reload failure.',
+      );
+    }
+  }
+
+  /// Performs a WebSocket-based fetch libraries for hot reload by sending a request and waiting for a response.
+  Future<String> _performWebSocketFetchLibrariesForHotReload() async {
+    final requestId = createId();
+    final completer = Completer<FetchLibrariesForHotReloadResponse>();
+    _pendingFetchLibrariesForHotReloads[requestId] = completer;
+    const timeout = Duration(seconds: 10);
+
+    _logger.info(
+      'Issuing FetchLibrariesForHotReloadRequest with ID ($requestId) to client.',
+    );
+    sendClientRequest(
+      FetchLibrariesForHotReloadRequest((b) => b.id = requestId),
+    );
+
+    final response = await completer.future.timeout(
+      timeout,
+      onTimeout:
+          () =>
+              throw TimeoutException(
+                'Client did not respond to fetch libraries for hot reload request',
+                timeout,
+              ),
+    );
+
+    if (!response.success) {
+      throw Exception(
+        response.errorMessage ??
+            'Client reported fetch libraries for hot reload failure.',
+      );
+    }
+    return response.id;
   }
 
   @override

@@ -231,6 +231,7 @@ class DebugService {
     int? ddsPort,
     bool useSse = false,
     ExpressionCompiler? expressionCompiler,
+    required SendClientRequest sendClientRequest,
   }) async {
     final root = assetReader.basePath;
     final chromeProxyService = await ChromeProxyService.create(
@@ -240,6 +241,7 @@ class DebugService {
       appConnection,
       executionContext,
       expressionCompiler,
+      sendClientRequest,
     );
     final authToken = _makeAuthToken();
     final serviceExtensionRegistry = ServiceExtensionRegistry();
