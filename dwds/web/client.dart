@@ -211,7 +211,11 @@ Future<void>? main() {
                   .toJS,
             );
           } else if (event is FetchLibrariesForHotReloadRequest) {
-            await handleWebSocketFetchLibrariesForHotReload(event, manager, client.sink);
+            await handleWebSocketFetchLibrariesForHotReload(
+              event,
+              manager,
+              client.sink,
+            );
           } else if (event is HotReloadRequest) {
             await handleWebSocketHotReloadRequest(event, manager, client.sink);
           }
@@ -374,8 +378,6 @@ Future<bool> _authenticateUser(String authUrl) async {
   return responseText.contains('Dart Debug Authentication Success!');
 }
 
-
-// Generic function to send a built_value response back to the server.
 void _sendResponse<T>(
   StreamSink clientSink,
   T Function(void Function(dynamic)) builder,
@@ -427,7 +429,6 @@ void _sendFetchLibrariesForHotReloadResponse(
   );
 }
 
-// Handles a WebSocket hot reload request/reload logic.
 Future<void> handleWebSocketHotReloadRequest(
   HotReloadRequest event,
   ReloadingManager manager,
@@ -438,13 +439,15 @@ Future<void> handleWebSocketHotReloadRequest(
     await manager.hotReload();
     _sendHotReloadResponse(clientSink, requestId, success: true);
   } catch (e) {
-    _sendHotReloadResponse(clientSink, requestId, success: false, errorMessage: e.toString());
+    _sendHotReloadResponse(
+      clientSink,
+      requestId,
+      success: false,
+      errorMessage: e.toString(),
+    );
   }
 }
 
-
-
-// Handles a WebSocket fetch libraries for hot reload request/response logic.
 Future<void> handleWebSocketFetchLibrariesForHotReload(
   FetchLibrariesForHotReloadRequest event,
   ReloadingManager manager,
@@ -453,9 +456,18 @@ Future<void> handleWebSocketFetchLibrariesForHotReload(
   final requestId = event.id;
   try {
     await manager.fetchLibrariesForHotReload(hotReloadSourcesPath);
-    _sendFetchLibrariesForHotReloadResponse(clientSink, requestId, success: true);
+    _sendFetchLibrariesForHotReloadResponse(
+      clientSink,
+      requestId,
+      success: true,
+    );
   } catch (e) {
-    _sendFetchLibrariesForHotReloadResponse(clientSink, requestId, success: false, errorMessage: e.toString());
+    _sendFetchLibrariesForHotReloadResponse(
+      clientSink,
+      requestId,
+      success: false,
+      errorMessage: e.toString(),
+    );
   }
 }
 

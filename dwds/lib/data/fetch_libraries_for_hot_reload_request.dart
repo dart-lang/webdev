@@ -11,7 +11,11 @@ part 'fetch_libraries_for_hot_reload_request.g.dart';
 
 /// A request to fetch libraries for hot reload.
 abstract class FetchLibrariesForHotReloadRequest
-    implements Built<FetchLibrariesForHotReloadRequest, FetchLibrariesForHotReloadRequestBuilder> {
+    implements
+        Built<
+          FetchLibrariesForHotReloadRequest,
+          FetchLibrariesForHotReloadRequestBuilder
+        > {
   static Serializer<FetchLibrariesForHotReloadRequest> get serializer =>
       _$fetchLibrariesForHotReloadRequestSerializer;
 

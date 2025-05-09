@@ -145,7 +145,8 @@ class ChromeProxyService implements VmServiceInterface {
 
   /// Pending fetch libraries for hot reload requests waiting for a response from the client.
   /// Keyed by the request ID.
-  final Map<String, Completer<FetchLibrariesForHotReloadResponse>> _pendingFetchLibrariesForHotReloads = {};
+  final Map<String, Completer<FetchLibrariesForHotReloadResponse>>
+  _pendingFetchLibrariesForHotReloads = {};
 
   ChromeProxyService._(
     this._vm,
@@ -234,14 +235,17 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   /// Completes the fetch libraries for hot reload completer associated with the response ID.
-  void completeFetchLibrariesForHotReload(FetchLibrariesForHotReloadResponse response) {
+  void completeFetchLibrariesForHotReload(
+    FetchLibrariesForHotReloadResponse response,
+  ) {
     final completer = _pendingFetchLibrariesForHotReloads.remove(response.id);
     if (completer != null) {
       if (response.success) {
         completer.complete(response);
       } else {
         completer.completeError(
-          response.errorMessage ?? 'Unknown client error during fetch libraries for hot reload',
+          response.errorMessage ??
+              'Unknown client error during fetch libraries for hot reload',
         );
       }
     } else {
@@ -1233,10 +1237,12 @@ class ChromeProxyService implements VmServiceInterface {
 
     final response = await completer.future.timeout(
       timeout,
-      onTimeout: () => throw TimeoutException(
-        'Client did not respond to hot reload request',
-        timeout,
-      ),
+      onTimeout:
+          () =>
+              throw TimeoutException(
+                'Client did not respond to hot reload request',
+                timeout,
+              ),
     );
 
     if (!response.success) {
@@ -1253,20 +1259,27 @@ class ChromeProxyService implements VmServiceInterface {
     _pendingFetchLibrariesForHotReloads[requestId] = completer;
     const timeout = Duration(seconds: 10);
 
-    _logger.info('Issuing FetchLibrariesForHotReloadRequest with ID ($requestId) to client.');
-    sendClientRequest(FetchLibrariesForHotReloadRequest((b) => b.id = requestId));
+    _logger.info(
+      'Issuing FetchLibrariesForHotReloadRequest with ID ($requestId) to client.',
+    );
+    sendClientRequest(
+      FetchLibrariesForHotReloadRequest((b) => b.id = requestId),
+    );
 
     final response = await completer.future.timeout(
       timeout,
-      onTimeout: () => throw TimeoutException(
-        'Client did not respond to fetch libraries for hot reload request',
-        timeout,
-      ),
+      onTimeout:
+          () =>
+              throw TimeoutException(
+                'Client did not respond to fetch libraries for hot reload request',
+                timeout,
+              ),
     );
 
     if (!response.success) {
       throw Exception(
-        response.errorMessage ?? 'Client reported fetch libraries for hot reload failure.',
+        response.errorMessage ??
+            'Client reported fetch libraries for hot reload failure.',
       );
     }
     return response.id;
