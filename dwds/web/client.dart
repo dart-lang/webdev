@@ -406,7 +406,6 @@ void _sendHotReloadResponse(
   );
 }
 
-
 Future<void> handleWebSocketHotReloadRequest(
   HotReloadRequest event,
   ReloadingManager manager,

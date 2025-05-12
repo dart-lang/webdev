@@ -1211,10 +1211,12 @@ class ChromeProxyService implements VmServiceInterface {
 
     final response = await completer.future.timeout(
       timeout,
-      onTimeout: () => throw TimeoutException(
-        'Client did not respond to hot reload request',
-        timeout,
-      ),
+      onTimeout:
+          () =>
+              throw TimeoutException(
+                'Client did not respond to hot reload request',
+                timeout,
+              ),
     );
 
     if (!response.success) {
