@@ -7,8 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/data/debug_event.dart';
-import 'package:dwds/data/fetch_libraries_for_hot_reload_request.dart';
-import 'package:dwds/data/fetch_libraries_for_hot_reload_response.dart';
 import 'package:dwds/data/hot_reload_request.dart';
 import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/register_event.dart';
@@ -139,14 +137,8 @@ class ChromeProxyService implements VmServiceInterface {
   /// Callback function to send messages to the connected client application.
   final SendClientRequest sendClientRequest;
 
-  /// Pending hot reload requests waiting for a response from the client.
-  /// Keyed by the request ID.
-  final _pendingHotReloads = <String, Completer<HotReloadResponse>>{};
-
-  /// Pending fetch libraries for hot reload requests waiting for a response from the client.
-  /// Keyed by the request ID.
-  final Map<String, Completer<FetchLibrariesForHotReloadResponse>>
-  _pendingFetchLibrariesForHotReloads = {};
+  /// Pending hot reload request waiting for a response from the client.
+  Completer<HotReloadResponse>? _pendingHotReload;
 
   ChromeProxyService._(
     this._vm,
@@ -218,7 +210,8 @@ class ChromeProxyService implements VmServiceInterface {
 
   /// Completes the hot reload completer associated with the response ID.
   void completeHotReload(HotReloadResponse response) {
-    final completer = _pendingHotReloads.remove(response.id);
+    final completer = _pendingHotReload;
+    _pendingHotReload = null;
     if (completer != null) {
       if (response.success) {
         completer.complete(response);
@@ -229,28 +222,7 @@ class ChromeProxyService implements VmServiceInterface {
       }
     } else {
       _logger.warning(
-        'Received hot reload response for unknown request: ${response.id}',
-      );
-    }
-  }
-
-  /// Completes the fetch libraries for hot reload completer associated with the response ID.
-  void completeFetchLibrariesForHotReload(
-    FetchLibrariesForHotReloadResponse response,
-  ) {
-    final completer = _pendingFetchLibrariesForHotReloads.remove(response.id);
-    if (completer != null) {
-      if (response.success) {
-        completer.complete(response);
-      } else {
-        completer.completeError(
-          response.errorMessage ??
-              'Unknown client error during fetch libraries for hot reload',
-        );
-      }
-    } else {
-      _logger.warning(
-        'Received fetch libraries for hot reload response for unknown request: ${response.id}',
+        'Received hot reload response but no pending completer was found (id: ${response.id})',
       );
     }
   }
@@ -1189,8 +1161,7 @@ class ChromeProxyService implements VmServiceInterface {
           };
     try {
       if (useWebSocket) {
-        final requestId = await _performWebSocketFetchLibrariesForHotReload();
-        await _performWebSocketHotReload(requestId: requestId);
+        await _performWebSocketHotReload();
       } else {
         await _performClientSideHotReload();
       }
@@ -1228,8 +1199,11 @@ class ChromeProxyService implements VmServiceInterface {
   /// If [requestId] is provided, it will be used for the request; otherwise, a new one is generated.
   Future<void> _performWebSocketHotReload({String? requestId}) async {
     final id = requestId ?? createId();
+    if (_pendingHotReload != null) {
+      throw StateError('A hot reload is already pending.');
+    }
     final completer = Completer<HotReloadResponse>();
-    _pendingHotReloads[id] = completer;
+    _pendingHotReload = completer;
     const timeout = Duration(seconds: 10);
 
     _logger.info('Issuing HotReloadRequest with ID ($id) to client.');
@@ -1237,12 +1211,10 @@ class ChromeProxyService implements VmServiceInterface {
 
     final response = await completer.future.timeout(
       timeout,
-      onTimeout:
-          () =>
-              throw TimeoutException(
-                'Client did not respond to hot reload request',
-                timeout,
-              ),
+      onTimeout: () => throw TimeoutException(
+        'Client did not respond to hot reload request',
+        timeout,
+      ),
     );
 
     if (!response.success) {
@@ -1250,39 +1222,6 @@ class ChromeProxyService implements VmServiceInterface {
         response.errorMessage ?? 'Client reported hot reload failure.',
       );
     }
-  }
-
-  /// Performs a WebSocket-based fetch libraries for hot reload by sending a request and waiting for a response.
-  Future<String> _performWebSocketFetchLibrariesForHotReload() async {
-    final requestId = createId();
-    final completer = Completer<FetchLibrariesForHotReloadResponse>();
-    _pendingFetchLibrariesForHotReloads[requestId] = completer;
-    const timeout = Duration(seconds: 10);
-
-    _logger.info(
-      'Issuing FetchLibrariesForHotReloadRequest with ID ($requestId) to client.',
-    );
-    sendClientRequest(
-      FetchLibrariesForHotReloadRequest((b) => b.id = requestId),
-    );
-
-    final response = await completer.future.timeout(
-      timeout,
-      onTimeout:
-          () =>
-              throw TimeoutException(
-                'Client did not respond to fetch libraries for hot reload request',
-                timeout,
-              ),
-    );
-
-    if (!response.success) {
-      throw Exception(
-        response.errorMessage ??
-            'Client reported fetch libraries for hot reload failure.',
-      );
-    }
-    return response.id;
   }
 
   @override

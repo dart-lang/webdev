@@ -14,8 +14,6 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/extension_request.dart';
-import 'package:dwds/data/fetch_libraries_for_hot_reload_request.dart';
-import 'package:dwds/data/fetch_libraries_for_hot_reload_response.dart';
 import 'package:dwds/data/hot_reload_request.dart';
 import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/register_event.dart';
@@ -209,12 +207,6 @@ Future<void>? main() {
                       'Error: ${event.error}\n\n'
                       'Stack Trace:\n${event.stackTrace}'
                   .toJS,
-            );
-          } else if (event is FetchLibrariesForHotReloadRequest) {
-            await handleWebSocketFetchLibrariesForHotReload(
-              event,
-              manager,
-              client.sink,
             );
           } else if (event is HotReloadRequest) {
             await handleWebSocketHotReloadRequest(event, manager, client.sink);
@@ -414,20 +406,6 @@ void _sendHotReloadResponse(
   );
 }
 
-void _sendFetchLibrariesForHotReloadResponse(
-  StreamSink clientSink,
-  String requestId, {
-  bool success = true,
-  String? errorMessage,
-}) {
-  _sendResponse<FetchLibrariesForHotReloadResponse>(
-    clientSink,
-    FetchLibrariesForHotReloadResponse.new,
-    requestId,
-    success: success,
-    errorMessage: errorMessage,
-  );
-}
 
 Future<void> handleWebSocketHotReloadRequest(
   HotReloadRequest event,
@@ -436,33 +414,11 @@ Future<void> handleWebSocketHotReloadRequest(
 ) async {
   final requestId = event.id;
   try {
+    await manager.fetchLibrariesForHotReload(hotReloadSourcesPath);
     await manager.hotReload();
     _sendHotReloadResponse(clientSink, requestId, success: true);
   } catch (e) {
     _sendHotReloadResponse(
-      clientSink,
-      requestId,
-      success: false,
-      errorMessage: e.toString(),
-    );
-  }
-}
-
-Future<void> handleWebSocketFetchLibrariesForHotReload(
-  FetchLibrariesForHotReloadRequest event,
-  ReloadingManager manager,
-  StreamSink clientSink,
-) async {
-  final requestId = event.id;
-  try {
-    await manager.fetchLibrariesForHotReload(hotReloadSourcesPath);
-    _sendFetchLibrariesForHotReloadResponse(
-      clientSink,
-      requestId,
-      success: true,
-    );
-  } catch (e) {
-    _sendFetchLibrariesForHotReloadResponse(
       clientSink,
       requestId,
       success: false,

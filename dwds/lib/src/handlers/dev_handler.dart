@@ -11,7 +11,6 @@ import 'package:dwds/data/connect_request.dart';
 import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
-import 'package:dwds/data/fetch_libraries_for_hot_reload_response.dart';
 import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/register_event.dart';
@@ -303,9 +302,6 @@ class DevHandler {
           }
           if (message is DevToolsRequest) {
             await _handleDebugRequest(connection, injectedConnection);
-          } else if (message is FetchLibrariesForHotReloadResponse) {
-            _servicesByAppId[connection.request.appId]?.chromeProxyService
-                .completeFetchLibrariesForHotReload(message);
           } else if (message is HotReloadResponse) {
             // The app reload operation has completed. Mark the completer as done.
             _servicesByAppId[connection.request.appId]?.chromeProxyService
