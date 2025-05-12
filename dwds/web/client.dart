@@ -14,6 +14,8 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/extension_request.dart';
+import 'package:dwds/data/hot_reload_request.dart';
+import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
@@ -206,6 +208,8 @@ Future<void>? main() {
                       'Stack Trace:\n${event.stackTrace}'
                   .toJS,
             );
+          } else if (event is HotReloadRequest) {
+            await handleWebSocketHotReloadRequest(event, manager, client.sink);
           }
         },
         onError: (error) {
@@ -364,6 +368,62 @@ Future<bool> _authenticateUser(String authUrl) async {
   final response = await client.get(Uri.parse(authUrl));
   final responseText = response.body;
   return responseText.contains('Dart Debug Authentication Success!');
+}
+
+void _sendResponse<T>(
+  StreamSink clientSink,
+  T Function(void Function(dynamic)) builder,
+  String requestId, {
+  bool success = true,
+  String? errorMessage,
+}) {
+  _trySendEvent(
+    clientSink,
+    jsonEncode(
+      serializers.serialize(
+        builder((b) {
+          b.id = requestId;
+          b.success = success;
+          if (errorMessage != null) b.errorMessage = errorMessage;
+        }),
+      ),
+    ),
+  );
+}
+
+void _sendHotReloadResponse(
+  StreamSink clientSink,
+  String requestId, {
+  bool success = true,
+  String? errorMessage,
+}) {
+  _sendResponse<HotReloadResponse>(
+    clientSink,
+    HotReloadResponse.new,
+    requestId,
+    success: success,
+    errorMessage: errorMessage,
+  );
+}
+
+Future<void> handleWebSocketHotReloadRequest(
+  HotReloadRequest event,
+  ReloadingManager manager,
+  StreamSink clientSink,
+) async {
+  final requestId = event.id;
+  try {
+    await manager.fetchLibrariesForHotReload(hotReloadSourcesPath);
+    await manager.hotReload();
+    _sendHotReloadResponse(clientSink, requestId, success: true);
+  } catch (e) {
+    _sendHotReloadResponse(
+      clientSink,
+      requestId,
+      success: false,
+      errorMessage: e.toString(),
+    );
+  }
 }
 
 @JS(r'$dartAppId')

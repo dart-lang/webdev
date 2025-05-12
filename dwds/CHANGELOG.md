@@ -1,5 +1,8 @@
 ## 24.3.11-wip
 
+- Added WebSocket-based hot reload support: `reloadSources` in `ChromeProxyService` and `DevHandler` now handle hot reload requests and responses over WebSockets.
+- Refactored the injected client to use a reusable function for handling hot reload requests and responses over WebSockets.
+
 ## 24.3.10
 
 - Disabled breakpoints on changed files in a hot reload. They currently do not

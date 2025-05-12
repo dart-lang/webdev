@@ -11,6 +11,7 @@ import 'package:dwds/data/connect_request.dart';
 import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
+import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/serializers.dart';
@@ -131,6 +132,24 @@ class DevHandler {
     }
   }
 
+  /// Sends the provided [request] to all connected injected clients.
+  void _sendRequestToClients(Object request) {
+    _logger.finest('Sending request to injected clients: $request');
+    for (final injectedConnection in _injectedConnections) {
+      try {
+        injectedConnection.sink.add(jsonEncode(serializers.serialize(request)));
+      } on StateError catch (e) {
+        // The sink has already closed (app is disconnected), or another StateError occurred.
+        _logger.warning(
+          'Failed to send request to client, connection likely closed. Error: $e',
+        );
+      } catch (e, s) {
+        // Catch any other potential errors during sending.
+        _logger.severe('Error sending request to client: $e', e, s);
+      }
+    }
+  }
+
   /// Starts a [DebugService] for local debugging.
   Future<DebugService> _startLocalDebugService(
     ChromeConnection chromeConnection,
@@ -220,6 +239,7 @@ class DevHandler {
       expressionCompiler: _expressionCompiler,
       spawnDds: _spawnDds,
       ddsPort: _ddsPort,
+      sendClientRequest: _sendRequestToClients,
     );
   }
 
@@ -282,6 +302,10 @@ class DevHandler {
           }
           if (message is DevToolsRequest) {
             await _handleDebugRequest(connection, injectedConnection);
+          } else if (message is HotReloadResponse) {
+            // The app reload operation has completed. Mark the completer as done.
+            _servicesByAppId[connection.request.appId]?.chromeProxyService
+                .completeHotReload(message);
           } else if (message is IsolateExit) {
             _handleIsolateExit(connection);
           } else if (message is IsolateStart) {
@@ -671,6 +695,7 @@ class DevHandler {
         expressionCompiler: _expressionCompiler,
         spawnDds: _spawnDds,
         ddsPort: _ddsPort,
+        sendClientRequest: _sendRequestToClients,
       );
       appServices = await _createAppDebugServices(debugService);
       extensionDebugger.sendEvent('dwds.debugUri', debugService.uri);
