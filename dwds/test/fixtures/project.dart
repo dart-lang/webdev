@@ -151,6 +151,14 @@ class TestProject {
     htmlEntryFileName: 'index.html',
   );
 
+  static const testHotReloadBreakpoints = TestProject._(
+    packageName: '_test_hot_reload_breakpoints',
+    packageDirectory: '_testHotReloadBreakpoints',
+    webAssetsPath: 'web',
+    dartEntryFileName: 'main.dart',
+    htmlEntryFileName: 'index.html',
+  );
+
   const TestProject._({
     required this.packageName,
     required this.packageDirectory,

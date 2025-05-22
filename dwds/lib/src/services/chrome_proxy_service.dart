@@ -117,7 +117,10 @@ class ChromeProxyService implements VmServiceInterface {
   final _resumeAfterRestartEventsController =
       StreamController<String>.broadcast();
 
-  /// A global stream of resume events.
+  final _resumeAfterHotReloadEventsController =
+      StreamController<Completer<void>>.broadcast();
+
+  /// A global stream of resume events for hot restart.
   ///
   /// The values in the stream are the isolates IDs for the resume event.
   ///
@@ -126,6 +129,17 @@ class ChromeProxyService implements VmServiceInterface {
   /// subscriber to this stream.
   Stream<String> get resumeAfterRestartEventsStream =>
       _resumeAfterRestartEventsController.stream;
+
+  /// A global stream of resume events for hot reload.
+  ///
+  /// The values in the stream are [Completer]s that should be completed after
+  /// finishing the hot reload.
+  ///
+  /// IMPORTANT: This should only be listened to during a hot reload. The
+  /// debugger ignores any resume events as long as there is a subscriber to
+  /// this stream.
+  Stream<Completer<void>> get resumeAfterHotReloadEventsStream =>
+      _resumeAfterHotReloadEventsController.stream;
 
   final _logger = Logger('ChromeProxyService');
 
@@ -225,6 +239,20 @@ class ChromeProxyService implements VmServiceInterface {
         'Received hot reload response but no pending completer was found (id: ${response.id})',
       );
     }
+  }
+
+  /// Reinitializes any caches so that they can be recomputed across hot reload.
+  // TODO(srujzs): We can maybe do better here than reinitializing all the data.
+  // Specifically, we can invalidate certain parts as we know what libraries
+  // will be stale, and therefore recompute information only for those libraries
+  // and possibly libraries that depend on them. Currently, there's no good
+  // separation between "existing" information and "new" information, making
+  // this difficult.
+  Future<void> _reinitializeForHotReload() async {
+    final entrypoint = inspector.appConnection.request.entrypointPath;
+    await globalToolConfiguration.loadStrategy.trackEntrypoint(entrypoint);
+    _initializeEntrypoint(entrypoint);
+    await inspector.initialize();
   }
 
   /// Initializes metadata in [Locations], [Modules], and [ExpressionCompiler].
@@ -1160,7 +1188,9 @@ class ChromeProxyService implements VmServiceInterface {
     String? rootLibUri,
     String? packagesUri,
   }) async {
-    _logger.info('Attempting a hot reload');
+    await isInitialized;
+    _checkIsolate('reloadSources', isolateId);
+
     ReloadReport getFailedReloadReport(String error) =>
         _ReloadReportWithMetadata(success: false)
           ..json = {
@@ -1172,7 +1202,7 @@ class ChromeProxyService implements VmServiceInterface {
       if (useWebSocket) {
         await _performWebSocketHotReload();
       } else {
-        await _performClientSideHotReload();
+        await _performClientSideHotReload(isolateId);
       }
     } catch (e) {
       _logger.info('Hot reload failed: $e');
@@ -1182,26 +1212,71 @@ class ChromeProxyService implements VmServiceInterface {
     return _ReloadReportWithMetadata(success: true);
   }
 
-  /// Performs a client-side hot reload by fetching libraries, disabling breakpoints, and invoking the reload.
-  Future<void> _performClientSideHotReload() async {
-    // Fetch the needed sources and libraries, disable breakpoints on the
-    // changed libraries, and then reload.
-    // TODO(srujzs): Re-map the breakpoints appropriately using events to
-    // trigger the client to re-register the breakpoints on the new sources.
-    // https://github.com/dart-lang/sdk/issues/60186
-    _logger.info('Issuing \$fetchLibrariesForHotReload request');
-    final librariesRemoteObject = await inspector.jsEvaluate(
-      '\$fetchLibrariesForHotReload();',
+  /// Performs a client-side hot reload by fetching libraries, handling
+  /// PausePostRequests, and invoking the reload.
+  Future<void> _performClientSideHotReload(String isolateId) async {
+    _logger.info('Attempting a hot reload');
+
+    // Initiate a hot reload.
+    _logger.info('Issuing \$dartHotReloadStartDwds request');
+    await inspector.jsEvaluate(
+      '\$dartHotReloadStartDwds();',
       awaitPromise: true,
       returnByValue: true,
     );
-    _logger.info('\$fetchLibrariesForHotReload request complete.');
-    final libraries =
-        (librariesRemoteObject.value as List<dynamic>).toSet().cast<String>();
-    await disableBreakpoints(libraries: libraries);
-    _logger.info('Issuing \$dartHotReloadDwds request');
-    await inspector.jsEvaluate('\$dartHotReloadDwds();', awaitPromise: true);
-    _logger.info('\$dartHotReloadDwds request complete.');
+
+    if (pauseIsolatesOnStart) {
+      await _reinitializeForHotReload();
+      // If `pause_isolates_on_start` is enabled, pause and then the reload
+      // should finish later after the client removes breakpoints, reregisters
+      // breakpoints, and resumes.
+      StreamSubscription<Completer<void>>? resumeEventsSubscription;
+      resumeEventsSubscription = resumeAfterHotReloadEventsStream.listen((
+        Completer<void> completer,
+      ) async {
+        // Client finished setting breakpoints, called resume, and now the
+        // execution has resumed. Finish the hot reload so we start executing
+        // the new code instead.
+        await resumeEventsSubscription!.cancel();
+        _logger.info('Issuing \$dartHotReloadEndDwds request');
+        await inspector.jsEvaluate(
+          '\$dartHotReloadEndDwds();',
+          awaitPromise: true,
+        );
+        _logger.info('\$dartHotReloadEndDwds request complete.');
+        completer.complete();
+      });
+
+      // Pause and wait for the pause to occur before managing breakpoints.
+      final pausedEvent = _firstStreamEvent(
+        'Debug',
+        EventKind.kPauseInterrupted,
+      );
+      await pause(isolateId);
+      await pausedEvent;
+
+      // This lets the client know that we're ready for breakpoint management
+      // and a resume.
+      _streamNotify(
+        'Debug',
+        Event(
+          kind: EventKind.kPausePostRequest,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          isolate: inspector.isolateRef,
+        ),
+      );
+    } else {
+      // Finish hot reload immediately.
+      _logger.info('Issuing \$dartHotReloadEndDwds request');
+      await inspector.jsEvaluate(
+        '\$dartHotReloadEndDwds();',
+        awaitPromise: true,
+      );
+      _logger.info('\$dartHotReloadEndDwds request complete.');
+      // TODO(srujzs): Supposedly Dart DevTools uses a kIsolateReload event
+      // for breakpoints? We should confirm and add tests before sending the
+      // event.
+    }
   }
 
   /// Performs a WebSocket-based hot reload by sending a request and waiting for a response.
@@ -1263,13 +1338,14 @@ class ChromeProxyService implements VmServiceInterface {
     String? step,
     int? frameIndex,
   }) async {
-    // If there is a subscriber listening for a resume event after hot-restart,
-    // then add the event to the stream and skip processing it.
+    // If there is a hot restart or hot reload subscriber listening for a resume
+    // event after a hot restart or a hot reload, then add the event to the
+    // stream and skip processing it.
     if (_resumeAfterRestartEventsController.hasListener) {
       _resumeAfterRestartEventsController.add(isolateId);
       return Success();
     }
-    if (inspector.appConnection.isStarted) {
+    Future<Success> resumeWhenAppHasStarted() {
       return captureElapsedTime(() async {
         await isInitialized;
         await isStarted;
@@ -1279,6 +1355,17 @@ class ChromeProxyService implements VmServiceInterface {
           frameIndex: frameIndex,
         );
       }, (result) => DwdsEvent.resume(step));
+    }
+
+    if (_resumeAfterHotReloadEventsController.hasListener) {
+      await resumeWhenAppHasStarted();
+      final completer = Completer<void>();
+      _resumeAfterHotReloadEventsController.add(completer);
+      await completer.future;
+      return Success();
+    }
+    if (inspector.appConnection.isStarted) {
+      return resumeWhenAppHasStarted();
     } else {
       inspector.appConnection.runMain();
       return Success();
@@ -1573,6 +1660,11 @@ class ChromeProxyService implements VmServiceInterface {
     final controller = _streamControllers[streamId];
     if (controller == null) return;
     controller.add(event);
+  }
+
+  Future<void> _firstStreamEvent(String streamId, String eventKind) {
+    final controller = _streamControllers[streamId]!;
+    return controller.stream.firstWhere((event) => event.kind == eventKind);
   }
 
   Future<void> _handleDeveloperLog(

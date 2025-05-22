@@ -1,0 +1,496 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@Tags(['daily'])
+@TestOn('vm')
+@Timeout(Duration(minutes: 5))
+library;
+
+import 'dart:async';
+
+import 'package:dwds/expression_compiler.dart';
+import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
+import 'package:test_common/test_sdk_configuration.dart';
+import 'package:vm_service/vm_service.dart';
+import 'package:vm_service_interface/vm_service_interface.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import 'fixtures/context.dart';
+import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
+
+void main() {
+  // Enable verbose logging for debugging.
+  final debug = false;
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    canaryFeatures: true,
+    ddcModuleFormat: ModuleFormat.ddc,
+  );
+  final project = TestProject.testHotReloadBreakpoints;
+  final context = TestContext(project, provider);
+  final mainFile = project.dartEntryFileName;
+  final callLogMarker = 'callLog';
+  final capturedStringMarker = 'capturedString';
+
+  tearDownAll(provider.dispose);
+
+  final edits = <({String file, String originalString, String newString})>[];
+
+  void makeEdit(String file, String originalString, String newString) {
+    if (file == project.dartEntryFileName) {
+      context.makeEditToDartEntryFile(
+        toReplace: originalString,
+        replaceWith: newString,
+      );
+    } else {
+      context.makeEditToDartLibFile(
+        libFileName: file,
+        toReplace: originalString,
+        replaceWith: newString,
+      );
+    }
+    edits.add((
+      file: file,
+      originalString: originalString,
+      newString: newString,
+    ));
+  }
+
+  Future<void> makeEditAndRecompile(
+    String file,
+    String originalString,
+    String newString,
+  ) async {
+    makeEdit(file, originalString, newString);
+    await context.recompile(fullRestart: false);
+  }
+
+  void undoEdits() {
+    for (var i = edits.length - 1; i >= 0; i--) {
+      final edit = edits[i];
+      if (edit.file == project.dartEntryFileName) {
+        context.makeEditToDartEntryFile(
+          toReplace: edit.newString,
+          replaceWith: edit.originalString,
+        );
+      } else {
+        context.makeEditToDartLibFile(
+          libFileName: edit.file,
+          toReplace: edit.newString,
+          replaceWith: edit.originalString,
+        );
+      }
+    }
+    edits.clear();
+  }
+
+  group('when pause_isolates_on_start is true', () {
+    late VmService client;
+    late VmServiceInterface service;
+    late Stream<Event> stream;
+    // Fetch the log statements that are sent to console.
+    final consoleLogs = <String>[];
+    late StreamSubscription<ConsoleAPIEvent> consoleSubscription;
+
+    setUp(() async {
+      setCurrentLogWriter(debug: debug);
+      await context.setUp(
+        testSettings: TestSettings(
+          enableExpressionEvaluation: true,
+          compilationMode: CompilationMode.frontendServer,
+          moduleFormat: ModuleFormat.ddc,
+          canaryFeatures: true,
+        ),
+      );
+      client = await context.connectFakeClient();
+      await client.setFlag('pause_isolates_on_start', 'true');
+      service = context.service;
+      await service.streamListen('Debug');
+      stream = service.onEvent('Debug');
+      consoleSubscription = context.webkitDebugger.onConsoleAPICalled.listen(
+        (e) => consoleLogs.add(e.args.first.value as String),
+      );
+    });
+
+    tearDown(() async {
+      await consoleSubscription.cancel();
+      consoleLogs.clear();
+      undoEdits();
+      await context.tearDown();
+    });
+
+    Future<Breakpoint> addBreakpoint({
+      required String file,
+      required String breakpointMarker,
+    }) async {
+      final vm = await client.getVM();
+      final isolateId = vm.isolates!.first.id!;
+      final scriptList = await client.getScripts(isolateId);
+      final scriptRef = scriptList.scripts!.firstWhere(
+        (script) => script.uri!.contains(file),
+      );
+      final bpLine = await context.findBreakpointLine(
+        breakpointMarker,
+        isolateId,
+        scriptRef,
+      );
+      return await client.addBreakpointWithScriptUri(
+        isolateId,
+        scriptRef.uri!,
+        bpLine,
+      );
+    }
+
+    Future<void> removeBreakpoint(Breakpoint bp) async {
+      final vm = await client.getVM();
+      final isolateId = vm.isolates!.first.id!;
+      await client.removeBreakpoint(isolateId, bp.id!);
+    }
+
+    Future<void> resume() async {
+      final vm = await client.getVM();
+      final isolate = await client.getIsolate(vm.isolates!.first.id!);
+      await client.resume(isolate.id!);
+    }
+
+    Future<List<Breakpoint>> hotReloadAndHandlePausePost(
+      List<({String file, String breakpointMarker, Breakpoint? bp})>
+      breakpoints,
+    ) async {
+      final waitForPausePost = stream.firstWhere(
+        (event) => event.kind == EventKind.kPausePostRequest,
+      );
+
+      // Initiate the hot reload by loading the sources into the page.
+      final vm = await client.getVM();
+      final isolate = await client.getIsolate(vm.isolates!.first.id!);
+      final report = await client.reloadSources(isolate.id!);
+      expect(report.success, true);
+
+      // Client (e.g. DAP) should listen for this event, remove old breakpoints,
+      // reregister breakpoints, and then resume. The following lines imitate
+      // what the client should do.
+      await waitForPausePost;
+      final newBreakpoints = <Breakpoint>[];
+      for (final breakpoint in breakpoints) {
+        // This could be a new file, so there's no existing breakpoint to
+        // remove.
+        if (breakpoint.bp != null) await removeBreakpoint(breakpoint.bp!);
+        newBreakpoints.add(
+          await addBreakpoint(
+            file: breakpoint.file,
+            breakpointMarker: breakpoint.breakpointMarker,
+          ),
+        );
+      }
+      // The resume should complete hot reload and resume the program.
+      await resume();
+      return newBreakpoints;
+    }
+
+    Future<void> callEvaluate() async {
+      final vm = await client.getVM();
+      final isolate = await client.getIsolate(vm.isolates!.first.id!);
+      final rootLib = isolate.rootLib;
+      await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
+    }
+
+    test('after edit and hot reload, breakpoint is in new file', () async {
+      final oldString = 'main gen0';
+      final newString = 'main gen1';
+
+      final bp = await addBreakpoint(
+        file: mainFile,
+        breakpointMarker: callLogMarker,
+      );
+
+      await callEvaluate();
+
+      // Should break at `callLog`.
+      await stream.firstWhere(
+        (event) => event.kind == EventKind.kPauseBreakpoint,
+      );
+      expect(consoleLogs.contains(oldString), false);
+      await resume();
+      expect(consoleLogs.contains(oldString), true);
+
+      consoleLogs.clear();
+
+      // Modify the string that gets printed.
+      await makeEditAndRecompile(mainFile, oldString, newString);
+
+      await hotReloadAndHandlePausePost([
+        (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
+      ]);
+
+      await callEvaluate();
+
+      // Should break at `callLog`.
+      await stream.firstWhere(
+        (event) => event.kind == EventKind.kPauseBreakpoint,
+      );
+      expect(consoleLogs.contains(newString), false);
+      await resume();
+      expect(consoleLogs.contains(newString), true);
+    });
+
+    test('after adding line, hot reload, removing line, and hot reload, '
+        'breakpoint is correct across both hot reloads', () async {
+      final genLog = 'main gen0';
+
+      var bp = await addBreakpoint(
+        file: mainFile,
+        breakpointMarker: callLogMarker,
+      );
+
+      await callEvaluate();
+
+      // Should break at `callLog`.
+      await stream.firstWhere(
+        (event) => event.kind == EventKind.kPauseBreakpoint,
+      );
+      expect(consoleLogs.contains(genLog), false);
+      await resume();
+      expect(consoleLogs.contains(genLog), true);
+
+      consoleLogs.clear();
+
+      // Add an extra log before the existing log.
+      final extraLog = 'hot reload';
+      final oldString = "log('";
+      final newString = "log('$extraLog');\n$oldString";
+      await makeEditAndRecompile(mainFile, oldString, newString);
+
+      bp =
+          (await hotReloadAndHandlePausePost([
+            (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
+          ])).first;
+
+      await callEvaluate();
+
+      // Should break at `callLog`.
+      await stream.firstWhere(
+        (event) => event.kind == EventKind.kPauseBreakpoint,
+      );
+      expect(consoleLogs.contains(extraLog), true);
+      await resume();
+      expect(consoleLogs.contains(genLog), true);
+
+      consoleLogs.clear();
+
+      // Remove the line we just added.
+      await makeEditAndRecompile(mainFile, newString, oldString);
+
+      await hotReloadAndHandlePausePost([
+        (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
+      ]);
+
+      await callEvaluate();
+
+      // Should break at `callLog`.
+      await stream.firstWhere(
+        (event) => event.kind == EventKind.kPauseBreakpoint,
+      );
+      expect(consoleLogs.contains(extraLog), false);
+      await resume();
+      expect(consoleLogs.contains(genLog), true);
+    });
+
+    test(
+      'after adding file and putting breakpoint in it, breakpoint is correctly '
+      'registered',
+      () async {
+        final genLog = 'main gen0';
+
+        final bp = await addBreakpoint(
+          file: mainFile,
+          breakpointMarker: callLogMarker,
+        );
+
+        await callEvaluate();
+
+        // Should break at `callLog`.
+        await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseBreakpoint,
+        );
+        expect(consoleLogs.contains(genLog), false);
+        await resume();
+        expect(consoleLogs.contains(genLog), true);
+
+        consoleLogs.clear();
+
+        // Add a library file, import it, and then refer to it in the log.
+        final libFile = 'library.dart';
+        final libGenLog = 'lib gen0';
+        final libValueMarker = 'libValue';
+        context.addLibraryFile(
+          libFileName: libFile,
+          contents: '''String get libraryValue {
+            return '$libGenLog'; // Breakpoint: $libValueMarker
+          }''',
+        );
+        final oldImports = "import 'dart:js_interop';";
+        final newImports =
+            '$oldImports\n'
+            "import 'package:_test_hot_reload_breakpoints/library.dart';";
+        makeEdit(mainFile, oldImports, newImports);
+        final oldLog = "log('\$mainValue');";
+        final newLog = "log('\$libraryValue');";
+        await makeEditAndRecompile(mainFile, oldLog, newLog);
+
+        await hotReloadAndHandlePausePost([
+          (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
+          (file: libFile, breakpointMarker: libValueMarker, bp: null),
+        ]);
+
+        await callEvaluate();
+
+        // Should break at `callLog`.
+        await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseBreakpoint,
+        );
+        expect(consoleLogs.contains(libGenLog), false);
+        await resume();
+        // Should break at `libValue`.
+        await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseBreakpoint,
+        );
+        expect(consoleLogs.contains(libGenLog), false);
+        await resume();
+        expect(consoleLogs.contains(libGenLog), true);
+
+        context.removeLibraryFile(libFileName: libFile);
+      },
+    );
+
+    test('breakpoint in captured code is deleted', () async {
+      var bp = await addBreakpoint(
+        file: mainFile,
+        breakpointMarker: capturedStringMarker,
+      );
+
+      final oldLog = "log('\$mainValue');";
+      final newLog = "log('\${closure()}');";
+      await makeEditAndRecompile(mainFile, oldLog, newLog);
+
+      bp =
+          (await hotReloadAndHandlePausePost([
+            (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
+          ])).first;
+
+      await callEvaluate();
+
+      // Should break at `capturedString`.
+      await stream.firstWhere(
+        (event) => event.kind == EventKind.kPauseBreakpoint,
+      );
+      final oldCapturedString = 'captured closure gen0';
+      expect(consoleLogs.contains(oldCapturedString), false);
+      // Closure gets evaluated for the first time.
+      await resume();
+      expect(consoleLogs.contains(oldCapturedString), true);
+
+      final newCapturedString = 'captured closure gen1';
+      await makeEditAndRecompile(
+        mainFile,
+        oldCapturedString,
+        newCapturedString,
+      );
+
+      await hotReloadAndHandlePausePost([
+        (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
+      ]);
+
+      // Use a completer as we won't hit a pause.
+      final completer = Completer<void>();
+      final consoleSubscription = context.webkitDebugger.onConsoleAPICalled
+          .listen((e) {
+            if (e.args.first.value == oldCapturedString) {
+              completer.complete();
+            }
+          });
+
+      await callEvaluate();
+
+      // Breakpoint should not have been hit as it's now deleted. We should also
+      // see the old string still as the closure has not been reevaluated.
+      await completer.future;
+
+      await consoleSubscription.cancel();
+    });
+  }, timeout: Timeout.factor(2));
+
+  group('when pause_isolates_on_start is false', () {
+    late VmService client;
+
+    setUp(() async {
+      setCurrentLogWriter(debug: debug);
+      await context.setUp(
+        testSettings: TestSettings(
+          enableExpressionEvaluation: true,
+          compilationMode: CompilationMode.frontendServer,
+          moduleFormat: ModuleFormat.ddc,
+          canaryFeatures: true,
+        ),
+      );
+      client = await context.connectFakeClient();
+      await client.setFlag('pause_isolates_on_start', 'false');
+    });
+
+    tearDown(() async {
+      undoEdits();
+      await context.tearDown();
+    });
+
+    Future<void> callEvaluate() async {
+      final vm = await client.getVM();
+      final isolate = await client.getIsolate(vm.isolates!.first.id!);
+      final rootLib = isolate.rootLib;
+      await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
+    }
+
+    test('no pause when calling reloadSources', () async {
+      final oldString = 'main gen0';
+      final newString = 'main gen1';
+
+      // Use a completer as we won't hit a pause.
+      var completer = Completer<void>();
+      var consoleSubscription = context.webkitDebugger.onConsoleAPICalled
+          .listen((e) {
+            if (e.args.first.value == oldString) {
+              completer.complete();
+            }
+          });
+
+      await callEvaluate();
+      await completer.future;
+
+      await consoleSubscription.cancel();
+
+      // Modify the string that gets printed and hot reload.
+      await makeEditAndRecompile(mainFile, oldString, newString);
+      final vm = await client.getVM();
+      final isolate = await client.getIsolate(vm.isolates!.first.id!);
+      final report = await client.reloadSources(isolate.id!);
+      expect(report.success, true);
+
+      completer = Completer<void>();
+      consoleSubscription = context.webkitDebugger.onConsoleAPICalled.listen((
+        e,
+      ) {
+        if (e.args.first.value == newString) {
+          completer.complete();
+        }
+      });
+
+      // Program should not be paused, so this should execute.
+      await callEvaluate();
+      await completer.future;
+
+      await consoleSubscription.cancel();
+    });
+  }, timeout: Timeout.factor(2));
+}
