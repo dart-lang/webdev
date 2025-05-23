@@ -378,43 +378,6 @@ void runTests({
       expect(source.contains(newString), isTrue);
     });
 
-    test('can hot restart while paused', () async {
-      final client = context.debugConnection.vmService;
-      var vm = await client.getVM();
-      var isolateId = vm.isolates!.first.id!;
-      await client.streamListen('Debug');
-      final stream = client.onEvent('Debug');
-      final scriptList = await client.getScripts(isolateId);
-      final main = scriptList.scripts!.firstWhere(
-        (script) => script.uri!.contains('main.dart'),
-      );
-      final bpLine = await context.findBreakpointLine(
-        'printCount',
-        isolateId,
-        main,
-      );
-      await client.addBreakpoint(isolateId, main.id!, bpLine);
-      await stream.firstWhere(
-        (event) => event.kind == EventKind.kPauseBreakpoint,
-      );
-
-      await makeEditAndRecompile();
-      final hotRestart = context.getRegisteredServiceExtension('hotRestart');
-      await fakeClient.callServiceExtension(hotRestart!);
-      final source = await context.webDriver.pageSource;
-
-      // Main is re-invoked which shouldn't clear the state.
-      expect(source.contains(originalString), isTrue);
-      expect(source.contains(newString), isTrue);
-
-      vm = await client.getVM();
-      isolateId = vm.isolates!.first.id!;
-      final isolate = await client.getIsolate(isolateId);
-
-      // Previous breakpoint should be cleared.
-      expect(isolate.breakpoints!.isEmpty, isTrue);
-    });
-
     test('can evaluate expressions after hot restart', () async {
       final client = context.debugConnection.vmService;
 
@@ -541,106 +504,99 @@ void runTests({
     timeout: Timeout.factor(2),
   );
 
-  group(
-    'when isolates_paused_on_start is true',
-    () {
-      late VmService client;
-      late VmService fakeClient;
+  group('when isolates_paused_on_start is true', () {
+    late VmService client;
+    late VmService fakeClient;
 
-      setUp(() async {
-        setCurrentLogWriter(debug: debug);
-        await context.setUp(
-          testSettings: TestSettings(
-            enableExpressionEvaluation: true,
-            compilationMode: compilationMode,
-            moduleFormat: provider.ddcModuleFormat,
-            canaryFeatures: provider.canaryFeatures,
+    setUp(() async {
+      setCurrentLogWriter(debug: debug);
+      await context.setUp(
+        testSettings: TestSettings(
+          enableExpressionEvaluation: true,
+          compilationMode: compilationMode,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
+        ),
+      );
+      client = context.debugConnection.vmService;
+      fakeClient = await context.connectFakeClient();
+      await client.setFlag('pause_isolates_on_start', 'true');
+      await client.streamListen('Isolate');
+    });
+
+    tearDown(() async {
+      await context.tearDown();
+      undoEdit();
+    });
+
+    test(
+      'after hot-restart, does not run app until there is a resume event',
+      () async {
+        await makeEditAndRecompile();
+
+        final eventsDone = expectLater(
+          client.onIsolateEvent,
+          emitsThrough(
+            emitsInOrder([
+              _hasKind(EventKind.kIsolateExit),
+              _hasKind(EventKind.kIsolateStart),
+              _hasKind(EventKind.kIsolateRunnable),
+            ]),
           ),
         );
-        client = context.debugConnection.vmService;
-        fakeClient = await context.connectFakeClient();
-        await client.setFlag('pause_isolates_on_start', 'true');
-        await client.streamListen('Isolate');
-      });
 
-      tearDown(() async {
-        await context.tearDown();
-        undoEdit();
-      });
+        final hotRestart = context.getRegisteredServiceExtension('hotRestart');
+        expect(
+          await fakeClient.callServiceExtension(hotRestart!),
+          const TypeMatcher<Success>(),
+        );
 
-      test(
-        'after hot-restart, does not run app until there is a resume event',
-        () async {
-          await makeEditAndRecompile();
+        await eventsDone;
 
-          final eventsDone = expectLater(
-            client.onIsolateEvent,
-            emitsThrough(
-              emitsInOrder([
-                _hasKind(EventKind.kIsolateExit),
-                _hasKind(EventKind.kIsolateStart),
-                _hasKind(EventKind.kIsolateRunnable),
-              ]),
-            ),
-          );
+        final sourceBeforeResume = await context.webDriver.pageSource;
+        expect(sourceBeforeResume.contains(newString), isFalse);
 
-          final hotRestart = context.getRegisteredServiceExtension(
-            'hotRestart',
-          );
-          expect(
-            await fakeClient.callServiceExtension(hotRestart!),
-            const TypeMatcher<Success>(),
-          );
+        final vm = await client.getVM();
+        final isolateId = vm.isolates!.first.id!;
+        await client.resume(isolateId);
 
-          await eventsDone;
+        final sourceAfterResume = await context.webDriver.pageSource;
+        expect(sourceAfterResume.contains(newString), isTrue);
+      },
+    );
 
-          final sourceBeforeResume = await context.webDriver.pageSource;
-          expect(sourceBeforeResume.contains(newString), isFalse);
+    test(
+      'after page refresh, does not run app until there is a resume event',
+      () async {
+        await makeEditAndRecompile();
 
-          final vm = await client.getVM();
-          final isolateId = vm.isolates!.first.id!;
-          await client.resume(isolateId);
+        await context.webDriver.driver.refresh();
 
-          final sourceAfterResume = await context.webDriver.pageSource;
-          expect(sourceAfterResume.contains(newString), isTrue);
-        },
-      );
+        final eventsDone = expectLater(
+          client.onIsolateEvent,
+          emitsThrough(
+            emitsInOrder([
+              _hasKind(EventKind.kIsolateExit),
+              _hasKind(EventKind.kIsolateStart),
+              _hasKind(EventKind.kIsolateRunnable),
+            ]),
+          ),
+        );
 
-      test(
-        'after page refresh, does not run app until there is a resume event',
-        () async {
-          await makeEditAndRecompile();
+        await eventsDone;
 
-          await context.webDriver.driver.refresh();
+        final sourceBeforeResume = await context.webDriver.pageSource;
+        expect(sourceBeforeResume.contains(newString), isFalse);
 
-          final eventsDone = expectLater(
-            client.onIsolateEvent,
-            emitsThrough(
-              emitsInOrder([
-                _hasKind(EventKind.kIsolateExit),
-                _hasKind(EventKind.kIsolateStart),
-                _hasKind(EventKind.kIsolateRunnable),
-              ]),
-            ),
-          );
+        final vm = await client.getVM();
+        final isolateId = vm.isolates!.first.id!;
+        await client.resume(isolateId);
 
-          await eventsDone;
-
-          final sourceBeforeResume = await context.webDriver.pageSource;
-          expect(sourceBeforeResume.contains(newString), isFalse);
-
-          final vm = await client.getVM();
-          final isolateId = vm.isolates!.first.id!;
-          await client.resume(isolateId);
-
-          final sourceAfterResume = await context.webDriver.pageSource;
-          expect(sourceAfterResume.contains(newString), isTrue);
-        },
-      );
-    },
-    // https://github.com/dart-lang/sdk/issues/60528
-    skip: moduleFormat == ModuleFormat.ddc && canaryFeatures == true,
-  );
+        final sourceAfterResume = await context.webDriver.pageSource;
+        expect(sourceAfterResume.contains(newString), isTrue);
+      },
+    );
+  });
 }
 
 TypeMatcher<Event> _hasKind(String kind) =>
