@@ -585,6 +585,7 @@ class TestContext {
 
   void addLibraryFile({required String libFileName, required String contents}) {
     final file = File(project.dartLibFilePath(libFileName));
+    file.createSync();
     file.writeAsStringSync(contents);
   }
 
