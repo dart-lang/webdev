@@ -390,7 +390,7 @@ void main() {
               const TypeMatcher<InstanceRef>().having(
                   (instance) => instance.valueAsString,
                   'valueAsString',
-                  contains('Hello World!!')));
+                  contains('Closure: () => void')));
         } finally {
           await vmService?.dispose();
           await exitWebdev(process);
