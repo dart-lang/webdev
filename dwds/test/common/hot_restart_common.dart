@@ -378,6 +378,43 @@ void runTests({
       expect(source.contains(newString), isTrue);
     });
 
+    test('can hot restart while paused', () async {
+      final client = context.debugConnection.vmService;
+      var vm = await client.getVM();
+      var isolateId = vm.isolates!.first.id!;
+      await client.streamListen('Debug');
+      final stream = client.onEvent('Debug');
+      final scriptList = await client.getScripts(isolateId);
+      final main = scriptList.scripts!.firstWhere(
+        (script) => script.uri!.contains('main.dart'),
+      );
+      final bpLine = await context.findBreakpointLine(
+        'printCount',
+        isolateId,
+        main,
+      );
+      await client.addBreakpoint(isolateId, main.id!, bpLine);
+      await stream.firstWhere(
+        (event) => event.kind == EventKind.kPauseBreakpoint,
+      );
+
+      await makeEditAndRecompile();
+      final hotRestart = context.getRegisteredServiceExtension('hotRestart');
+      await fakeClient.callServiceExtension(hotRestart!);
+      final source = await context.webDriver.pageSource;
+
+      // Main is re-invoked which shouldn't clear the state.
+      expect(source.contains(originalString), isTrue);
+      expect(source.contains(newString), isTrue);
+
+      vm = await client.getVM();
+      isolateId = vm.isolates!.first.id!;
+      final isolate = await client.getIsolate(isolateId);
+
+      // Previous breakpoint should be cleared.
+      expect(isolate.breakpoints!.isEmpty, isTrue);
+    });
+
     test('can evaluate expressions after hot restart', () async {
       final client = context.debugConnection.vmService;
 

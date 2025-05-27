@@ -212,7 +212,7 @@ void main() {
       expect(consoleLogs.contains(newLog), true);
     });
 
-    test('add adding line, hot restart, removing line, and hot restart, '
+    test('after adding line, hot restart, removing line, and hot restart, '
         'breakpoint is correct across both hot restarts', () async {
       final genLog = 'main gen0';
 

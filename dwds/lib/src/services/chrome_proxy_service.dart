@@ -301,9 +301,8 @@ class ChromeProxyService implements VmServiceInterface {
   /// with [destroyIsolate] and recreated with this method there is a hot
   /// restart or full page refresh.
   ///
-  /// If [newConnection] is true, does not recompute metadata information as
-  /// that is done only when we recreate the isolate the connection as source
-  /// data may have changed.
+  /// If [newConnection] is true, this method does not recompute metadata
+  /// information as the metadata couldn't have changed.
   Future<void> createIsolate(
     AppConnection appConnection, {
     bool newConnection = false,
