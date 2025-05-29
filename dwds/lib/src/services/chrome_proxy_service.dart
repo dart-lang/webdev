@@ -248,6 +248,7 @@ class ChromeProxyService implements VmServiceInterface {
   // and possibly libraries that depend on them. Currently, there's no good
   // separation between "existing" information and "new" information, making
   // this difficult.
+  // https://github.com/dart-lang/webdev/issues/2628
   Future<void> _reinitializeForHotReload() async {
     final entrypoint = inspector.appConnection.request.entrypointPath;
     await globalToolConfiguration.loadStrategy.trackEntrypoint(entrypoint);
