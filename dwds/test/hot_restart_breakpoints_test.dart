@@ -150,6 +150,23 @@ void main() {
       await client.resume(isolate.id!);
     }
 
+    // When the program is executing, we want to check that at some point it
+    // will execute code that will emit [expectedString].
+    Future<void> resumeAndExpectLog(String expectedString) async {
+      final completer = Completer<void>();
+      final newSubscription = context.webkitDebugger.onConsoleAPICalled.listen((
+        e,
+      ) {
+        if (e.args.first.value == expectedString) {
+          completer.complete();
+        }
+      });
+      await resume();
+      await completer.future.then((_) {
+        newSubscription.cancel();
+      });
+    }
+
     Future<void> hotRestartAndHandlePausePost(
       List<({String file, String breakpointMarker})> breakpoints,
     ) async {
@@ -182,6 +199,10 @@ void main() {
       // reregister breakpoints (which will be registered in the new files), and
       // resume.
       await waitForPausePost;
+      // Verify DWDS has already removed the breakpoints at this point.
+      final vm = await client.getVM();
+      final isolate = await service.getIsolate(vm.isolates!.first.id!);
+      expect(isolate.breakpoints, isEmpty);
       for (final breakpoint in breakpoints) {
         await addBreakpoint(
           file: breakpoint.file,
@@ -208,8 +229,7 @@ void main() {
         (event) => event.kind == EventKind.kPauseBreakpoint,
       );
       expect(consoleLogs.contains(newLog), false);
-      await resume();
-      expect(consoleLogs.contains(newLog), true);
+      await resumeAndExpectLog(newLog);
     });
 
     test('after adding line, hot restart, removing line, and hot restart, '
@@ -234,8 +254,7 @@ void main() {
       );
       expect(consoleLogs.contains(extraLog), true);
       expect(consoleLogs.contains(genLog), false);
-      await resume();
-      expect(consoleLogs.contains(genLog), true);
+      await resumeAndExpectLog(genLog);
 
       consoleLogs.clear();
 
@@ -252,8 +271,7 @@ void main() {
       );
       expect(consoleLogs.contains(extraLog), false);
       expect(consoleLogs.contains(genLog), false);
-      await resume();
-      expect(consoleLogs.contains(genLog), true);
+      await resumeAndExpectLog(genLog);
     });
 
     test(
@@ -299,8 +317,7 @@ void main() {
           (event) => event.kind == EventKind.kPauseBreakpoint,
         );
         expect(consoleLogs.contains(libGenLog), false);
-        await resume();
-        expect(consoleLogs.contains(libGenLog), true);
+        await resumeAndExpectLog(libGenLog);
 
         context.removeLibraryFile(libFileName: libFile);
       },
