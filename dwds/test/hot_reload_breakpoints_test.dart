@@ -156,6 +156,23 @@ void main() {
       await client.resume(isolate.id!);
     }
 
+    // When the program is executing, we want to check that at some point it
+    // will execute code that will emit [expectedString].
+    Future<void> resumeAndExpectLog(String expectedString) async {
+      final completer = Completer<void>();
+      final newSubscription = context.webkitDebugger.onConsoleAPICalled.listen((
+        e,
+      ) {
+        if (e.args.first.value == expectedString) {
+          completer.complete();
+        }
+      });
+      await resume();
+      await completer.future.then((_) {
+        newSubscription.cancel();
+      });
+    }
+
     Future<List<Breakpoint>> hotReloadAndHandlePausePost(
       List<({String file, String breakpointMarker, Breakpoint? bp})>
       breakpoints,
@@ -198,6 +215,26 @@ void main() {
       await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
     }
 
+    // Much like `resumeAndExpectLog`, we need a completer to ensure the log
+    // will eventually occur when code is executing.
+    Future<void> callEvaluateAndExpectLog(String expectedString) async {
+      final completer = Completer<void>();
+      final newSubscription = context.webkitDebugger.onConsoleAPICalled.listen((
+        e,
+      ) {
+        if (e.args.first.value == expectedString) {
+          completer.complete();
+        }
+      });
+      final vm = await client.getVM();
+      final isolate = await client.getIsolate(vm.isolates!.first.id!);
+      final rootLib = isolate.rootLib;
+      await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
+      await completer.future.then((_) {
+        newSubscription.cancel();
+      });
+    }
+
     test('after edit and hot reload, breakpoint is in new file', () async {
       final oldString = 'main gen0';
       final newString = 'main gen1';
@@ -214,8 +251,7 @@ void main() {
         (event) => event.kind == EventKind.kPauseBreakpoint,
       );
       expect(consoleLogs.contains(oldString), false);
-      await resume();
-      expect(consoleLogs.contains(oldString), true);
+      await resumeAndExpectLog(oldString);
 
       consoleLogs.clear();
 
@@ -233,8 +269,7 @@ void main() {
         (event) => event.kind == EventKind.kPauseBreakpoint,
       );
       expect(consoleLogs.contains(newString), false);
-      await resume();
-      expect(consoleLogs.contains(newString), true);
+      await resumeAndExpectLog(newString);
     });
 
     test('after adding line, hot reload, removing line, and hot reload, '
@@ -253,8 +288,7 @@ void main() {
         (event) => event.kind == EventKind.kPauseBreakpoint,
       );
       expect(consoleLogs.contains(genLog), false);
-      await resume();
-      expect(consoleLogs.contains(genLog), true);
+      await resumeAndExpectLog(genLog);
 
       consoleLogs.clear();
 
@@ -276,8 +310,7 @@ void main() {
         (event) => event.kind == EventKind.kPauseBreakpoint,
       );
       expect(consoleLogs.contains(extraLog), true);
-      await resume();
-      expect(consoleLogs.contains(genLog), true);
+      await resumeAndExpectLog(genLog);
 
       consoleLogs.clear();
 
@@ -295,8 +328,7 @@ void main() {
         (event) => event.kind == EventKind.kPauseBreakpoint,
       );
       expect(consoleLogs.contains(extraLog), false);
-      await resume();
-      expect(consoleLogs.contains(genLog), true);
+      await resumeAndExpectLog(genLog);
     });
 
     test(
@@ -317,8 +349,7 @@ void main() {
           (event) => event.kind == EventKind.kPauseBreakpoint,
         );
         expect(consoleLogs.contains(genLog), false);
-        await resume();
-        expect(consoleLogs.contains(genLog), true);
+        await resumeAndExpectLog(genLog);
 
         consoleLogs.clear();
 
@@ -359,8 +390,7 @@ void main() {
           (event) => event.kind == EventKind.kPauseBreakpoint,
         );
         expect(consoleLogs.contains(libGenLog), false);
-        await resume();
-        expect(consoleLogs.contains(libGenLog), true);
+        await resumeAndExpectLog(libGenLog);
 
         context.removeLibraryFile(libFileName: libFile);
       },
@@ -390,8 +420,7 @@ void main() {
       final oldCapturedString = 'captured closure gen0';
       expect(consoleLogs.contains(oldCapturedString), false);
       // Closure gets evaluated for the first time.
-      await resume();
-      expect(consoleLogs.contains(oldCapturedString), true);
+      await resumeAndExpectLog(oldCapturedString);
 
       final newCapturedString = 'captured closure gen1';
       await makeEditAndRecompile(
@@ -404,20 +433,9 @@ void main() {
         (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
       ]);
 
-      // Use a completer as we won't hit a pause.
-      final completer = Completer<void>();
-      final consoleSubscription = context.webkitDebugger.onConsoleAPICalled
-          .listen((e) {
-            if (e.args.first.value == oldCapturedString) {
-              completer.complete();
-            }
-          });
-
-      await callEvaluate();
-
-      // Breakpoint should not have been hit as it's now deleted. We should also
-      // see the old string still as the closure has not been reevaluated.
-      await completer.future;
+      // Breakpoint should not be hit as it's now deleted. We should also see
+      // the old string still as the closure has not been reevaluated.
+      await callEvaluateAndExpectLog(oldCapturedString);
 
       await consoleSubscription.cancel();
     });
@@ -445,30 +463,29 @@ void main() {
       await context.tearDown();
     });
 
-    Future<void> callEvaluate() async {
+    Future<void> callEvaluateAndExpectLog(String expectedString) async {
+      final completer = Completer<void>();
+      final newSubscription = context.webkitDebugger.onConsoleAPICalled.listen((
+        e,
+      ) {
+        if (e.args.first.value == expectedString) {
+          completer.complete();
+        }
+      });
       final vm = await client.getVM();
       final isolate = await client.getIsolate(vm.isolates!.first.id!);
       final rootLib = isolate.rootLib;
       await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
+      await completer.future.then((_) {
+        newSubscription.cancel();
+      });
     }
 
     test('no pause when calling reloadSources', () async {
       final oldString = 'main gen0';
       final newString = 'main gen1';
 
-      // Use a completer as we won't hit a pause.
-      var completer = Completer<void>();
-      var consoleSubscription = context.webkitDebugger.onConsoleAPICalled
-          .listen((e) {
-            if (e.args.first.value == oldString) {
-              completer.complete();
-            }
-          });
-
-      await callEvaluate();
-      await completer.future;
-
-      await consoleSubscription.cancel();
+      await callEvaluateAndExpectLog(oldString);
 
       // Modify the string that gets printed and hot reload.
       await makeEditAndRecompile(mainFile, oldString, newString);
@@ -477,20 +494,8 @@ void main() {
       final report = await client.reloadSources(isolate.id!);
       expect(report.success, true);
 
-      completer = Completer<void>();
-      consoleSubscription = context.webkitDebugger.onConsoleAPICalled.listen((
-        e,
-      ) {
-        if (e.args.first.value == newString) {
-          completer.complete();
-        }
-      });
-
       // Program should not be paused, so this should execute.
-      await callEvaluate();
-      await completer.future;
-
-      await consoleSubscription.cancel();
+      await callEvaluateAndExpectLog(newString);
     });
   }, timeout: Timeout.factor(2));
 }

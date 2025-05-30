@@ -477,20 +477,12 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   /// Removes the breakpoints in the running isolate.
-  ///
-  /// [libraries] is a set of Dart libraries, where if non-null, only
-  /// breakpoints within those libraries are removed.
-  Future<void> disableBreakpoints({Set<String>? libraries}) async {
+  Future<void> disableBreakpoints() async {
     if (!_isIsolateRunning) return;
     final isolate = inspector.isolate;
 
     for (final breakpoint in isolate.breakpoints?.toList() ?? <Breakpoint>[]) {
-      if (libraries == null ||
-          (breakpoint.location.script != null &&
-              // ignore: avoid-collection-methods-with-unrelated-types
-              libraries.contains(breakpoint.location.script.uri))) {
-        await (await debuggerFuture).removeBreakpoint(breakpoint.id!);
-      }
+      await (await debuggerFuture).removeBreakpoint(breakpoint.id!);
     }
   }
 
