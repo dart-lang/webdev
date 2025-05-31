@@ -436,8 +436,6 @@ void main() {
       // Breakpoint should not be hit as it's now deleted. We should also see
       // the old string still as the closure has not been reevaluated.
       await callEvaluateAndExpectLog(oldCapturedString);
-
-      await consoleSubscription.cancel();
     });
   }, timeout: Timeout.factor(2));
 
