@@ -235,6 +235,9 @@ void main() {
       });
     }
 
+    Future<Event> waitForBreakpoint() =>
+        stream.firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
     test('after edit and hot reload, breakpoint is in new file', () async {
       final oldString = 'main gen0';
       final newString = 'main gen1';
@@ -244,12 +247,12 @@ void main() {
         breakpointMarker: callLogMarker,
       );
 
+      var breakpointFuture = waitForBreakpoint();
+
       await callEvaluate();
 
       // Should break at `callLog`.
-      await stream.firstWhere(
-        (event) => event.kind == EventKind.kPauseBreakpoint,
-      );
+      await breakpointFuture;
       expect(consoleLogs.contains(oldString), false);
       await resumeAndExpectLog(oldString);
 
@@ -262,12 +265,12 @@ void main() {
         (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
       ]);
 
+      breakpointFuture = waitForBreakpoint();
+
       await callEvaluate();
 
       // Should break at `callLog`.
-      await stream.firstWhere(
-        (event) => event.kind == EventKind.kPauseBreakpoint,
-      );
+      await breakpointFuture;
       expect(consoleLogs.contains(newString), false);
       await resumeAndExpectLog(newString);
     });
@@ -281,12 +284,12 @@ void main() {
         breakpointMarker: callLogMarker,
       );
 
+      var breakpointFuture = waitForBreakpoint();
+
       await callEvaluate();
 
       // Should break at `callLog`.
-      await stream.firstWhere(
-        (event) => event.kind == EventKind.kPauseBreakpoint,
-      );
+      await breakpointFuture;
       expect(consoleLogs.contains(genLog), false);
       await resumeAndExpectLog(genLog);
 
@@ -303,12 +306,12 @@ void main() {
             (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
           ])).first;
 
+      breakpointFuture = waitForBreakpoint();
+
       await callEvaluate();
 
       // Should break at `callLog`.
-      await stream.firstWhere(
-        (event) => event.kind == EventKind.kPauseBreakpoint,
-      );
+      await breakpointFuture;
       expect(consoleLogs.contains(extraLog), true);
       await resumeAndExpectLog(genLog);
 
@@ -321,12 +324,12 @@ void main() {
         (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
       ]);
 
+      breakpointFuture = waitForBreakpoint();
+
       await callEvaluate();
 
       // Should break at `callLog`.
-      await stream.firstWhere(
-        (event) => event.kind == EventKind.kPauseBreakpoint,
-      );
+      await breakpointFuture;
       expect(consoleLogs.contains(extraLog), false);
       await resumeAndExpectLog(genLog);
     });
@@ -342,12 +345,12 @@ void main() {
           breakpointMarker: callLogMarker,
         );
 
+        var breakpointFuture = waitForBreakpoint();
+
         await callEvaluate();
 
         // Should break at `callLog`.
-        await stream.firstWhere(
-          (event) => event.kind == EventKind.kPauseBreakpoint,
-        );
+        await breakpointFuture;
         expect(consoleLogs.contains(genLog), false);
         await resumeAndExpectLog(genLog);
 
@@ -377,18 +380,19 @@ void main() {
           (file: libFile, breakpointMarker: libValueMarker, bp: null),
         ]);
 
+        breakpointFuture = waitForBreakpoint();
+
         await callEvaluate();
 
         // Should break at `callLog`.
-        await stream.firstWhere(
-          (event) => event.kind == EventKind.kPauseBreakpoint,
-        );
+        await breakpointFuture;
         expect(consoleLogs.contains(libGenLog), false);
+
+        breakpointFuture = waitForBreakpoint();
+
         await resume();
         // Should break at `libValue`.
-        await stream.firstWhere(
-          (event) => event.kind == EventKind.kPauseBreakpoint,
-        );
+        await breakpointFuture;
         expect(consoleLogs.contains(libGenLog), false);
         await resumeAndExpectLog(libGenLog);
 
@@ -411,12 +415,12 @@ void main() {
             (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
           ])).first;
 
+      final breakpointFuture = waitForBreakpoint();
+
       await callEvaluate();
 
       // Should break at `capturedString`.
-      await stream.firstWhere(
-        (event) => event.kind == EventKind.kPauseBreakpoint,
-      );
+      await breakpointFuture;
       final oldCapturedString = 'captured closure gen0';
       expect(consoleLogs.contains(oldCapturedString), false);
       // Closure gets evaluated for the first time.
