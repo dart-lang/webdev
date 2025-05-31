@@ -212,6 +212,9 @@ void main() {
       await resume();
     }
 
+    Future<Event> waitForBreakpoint() =>
+        stream.firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
     test('after edit and hot restart, breakpoint is in new file', () async {
       final oldLog = 'main gen0';
       final newLog = 'main gen1';
@@ -220,14 +223,14 @@ void main() {
 
       await makeEditAndRecompile(mainFile, oldLog, newLog);
 
+      final breakpointFuture = waitForBreakpoint();
+
       await hotRestartAndHandlePausePost([
         (file: mainFile, breakpointMarker: callLogMarker),
       ]);
 
       // Should break at `callLog`.
-      await stream.firstWhere(
-        (event) => event.kind == EventKind.kPauseBreakpoint,
-      );
+      await breakpointFuture;
       expect(consoleLogs.contains(newLog), false);
       await resumeAndExpectLog(newLog);
     });
@@ -244,14 +247,14 @@ void main() {
       final newString = "log('$extraLog');\n$oldString";
       await makeEditAndRecompile(mainFile, oldString, newString);
 
+      var breakpointFuture = waitForBreakpoint();
+
       await hotRestartAndHandlePausePost([
         (file: mainFile, breakpointMarker: callLogMarker),
       ]);
 
       // Should break at `callLog`.
-      await stream.firstWhere(
-        (event) => event.kind == EventKind.kPauseBreakpoint,
-      );
+      await breakpointFuture;
       expect(consoleLogs.contains(extraLog), true);
       expect(consoleLogs.contains(genLog), false);
       await resumeAndExpectLog(genLog);
@@ -261,14 +264,14 @@ void main() {
       // Remove the line we just added.
       await makeEditAndRecompile(mainFile, newString, oldString);
 
+      breakpointFuture = waitForBreakpoint();
+
       await hotRestartAndHandlePausePost([
         (file: mainFile, breakpointMarker: callLogMarker),
       ]);
 
       // Should break at `callLog`.
-      await stream.firstWhere(
-        (event) => event.kind == EventKind.kPauseBreakpoint,
-      );
+      await breakpointFuture;
       expect(consoleLogs.contains(extraLog), false);
       expect(consoleLogs.contains(genLog), false);
       await resumeAndExpectLog(genLog);
@@ -301,21 +304,22 @@ void main() {
         final newLog = "log('\$libraryValue');";
         await makeEditAndRecompile(mainFile, oldLog, newLog);
 
+        var breakpointFuture = waitForBreakpoint();
+
         await hotRestartAndHandlePausePost([
           (file: mainFile, breakpointMarker: callLogMarker),
           (file: libFile, breakpointMarker: libValueMarker),
         ]);
 
         // Should break at `callLog`.
-        await stream.firstWhere(
-          (event) => event.kind == EventKind.kPauseBreakpoint,
-        );
+        await breakpointFuture;
         expect(consoleLogs.contains(libGenLog), false);
+
+        breakpointFuture = waitForBreakpoint();
+
         await resume();
         // Should break at `libValue`.
-        await stream.firstWhere(
-          (event) => event.kind == EventKind.kPauseBreakpoint,
-        );
+        await breakpointFuture;
         expect(consoleLogs.contains(libGenLog), false);
         await resumeAndExpectLog(libGenLog);
 
