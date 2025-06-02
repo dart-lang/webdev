@@ -66,7 +66,7 @@ class Dwds {
     required Stream<BuildResult> buildResults,
     required ConnectionProvider chromeConnection,
     required ToolConfiguration toolConfiguration,
-    bool injectDebuggingSupportCode = true,
+    bool runMainAtStart = false,
   }) async {
     globalToolConfiguration = toolConfiguration;
     final debugSettings = toolConfiguration.debugSettings;
@@ -120,7 +120,7 @@ class Dwds {
 
     final injected = DwdsInjector(
       extensionUri: extensionUri,
-      injectDebuggingSupportCode: injectDebuggingSupportCode,
+      runMainAtStart: runMainAtStart,
     );
 
     final devHandler = DevHandler(

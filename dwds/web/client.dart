@@ -255,8 +255,9 @@ Future<void>? main() {
             ),
           ),
         );
-      } else {
-        // If not Chromium we just invoke main, devtools aren't supported.
+      }
+
+      if (runMainAtStart) {
         runMain();
       }
       _launchCommunicationWithDebugExtension();
@@ -477,6 +478,9 @@ external String get reloadConfiguration;
 
 @JS(r'$dartEntrypointPath')
 external String get dartEntrypointPath;
+
+@JS(r'$runMainAtStart')
+external bool get runMainAtStart;
 
 @JS(r'$dwdsEnableDevToolsLaunch')
 external bool get dwdsEnableDevToolsLaunch;

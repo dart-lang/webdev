@@ -297,6 +297,15 @@ void main() {
         expect(result.body, contains('\$isFlutterApp'));
       });
 
+      test('the injected client contains a global \$runMainAtStart', () async {
+        final result = await http.get(
+          Uri.parse(
+            'http://localhost:${server.port}/dwds/src/injected/client.js',
+          ),
+        );
+        expect(result.body, contains('\$runMainAtStart'));
+      });
+
       test('serves the injected client', () async {
         final result = await http.get(
           Uri.parse(
