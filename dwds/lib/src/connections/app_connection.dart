@@ -44,4 +44,14 @@ class AppConnection {
     _connection.sink.add(jsonEncode(serializers.serialize(RunRequest())));
     _startedCompleter.complete();
   }
+
+  /// Marks the application as started by completing the _startedCompleter.
+  /// This can be used when the application starts through alternative means
+  /// (e.g., immediate execution) rather than through the runMain() flow.
+  void markAsStarted() {
+    if (_startedCompleter.isCompleted) {
+      throw StateError('Application has already been marked as started.');
+    }
+    _startedCompleter.complete();
+  }
 }

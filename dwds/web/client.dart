@@ -240,23 +240,18 @@ Future<void>? main() {
         });
       }
 
-      if (_isChromium) {
-        _trySendEvent(
-          client.sink,
-          jsonEncode(
-            serializers.serialize(
-              ConnectRequest(
-                (b) =>
-                    b
-                      ..appId = dartAppId
-                      ..instanceId = dartAppInstanceId
-                      ..entrypointPath = dartEntrypointPath,
-              ),
-            ),
-          ),
-        );
-      } else {
-        // If not Chromium we just invoke main, devtools aren't supported.
+      _sendConnectRequest(
+        client.sink,
+        ConnectRequest(
+          (b) =>
+              b
+                ..appId = dartAppId
+                ..instanceId = dartAppInstanceId
+                ..entrypointPath = dartEntrypointPath,
+        ),
+      );
+
+      if (runMainAtStart) {
         runMain();
       }
       _launchCommunicationWithDebugExtension();
@@ -290,6 +285,10 @@ void _trySendEvent<T>(StreamSink<T> sink, T serialized) {
       'Injected client connection is closed.',
     );
   }
+}
+
+void _sendConnectRequest(StreamSink clientSink, ConnectRequest request) {
+  _trySendEvent(clientSink, jsonEncode(serializers.serialize(request)));
 }
 
 /// Returns [url] modified if necessary so that, if the current page is served
@@ -477,6 +476,9 @@ external String get reloadConfiguration;
 
 @JS(r'$dartEntrypointPath')
 external String get dartEntrypointPath;
+
+@JS(r'$runMainAtStart')
+external bool get runMainAtStart;
 
 @JS(r'$dwdsEnableDevToolsLaunch')
 external bool get dwdsEnableDevToolsLaunch;
