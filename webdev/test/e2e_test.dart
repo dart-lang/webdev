@@ -382,15 +382,15 @@ void main() {
                   'valueAsString',
                   'Hello World!!'));
 
-          result =
-              await vmService.evaluate(isolateId, libraryId, 'main.toString()');
+          result = await vmService.evaluate(
+              isolateId, libraryId, 'topLevelMethod()');
 
           expect(
               result,
               const TypeMatcher<InstanceRef>().having(
                   (instance) => instance.valueAsString,
                   'valueAsString',
-                  contains('Closure: () => void')));
+                  equals('verify this!')));
         } finally {
           await vmService?.dispose();
           await exitWebdev(process);
@@ -555,7 +555,7 @@ void main() {
 
           expect(
               () =>
-                  vmService!.evaluate(isolateId, libraryId, 'main.toString()'),
+                  vmService!.evaluate(isolateId, libraryId, 'topLevelMethod()'),
               throwsRPCError);
         } finally {
           await vmService?.dispose();

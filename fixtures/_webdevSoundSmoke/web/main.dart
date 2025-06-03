@@ -23,3 +23,5 @@ void main() {
     print('Counter is: ${++count}'); // Breakpoint: printCounter
   });
 }
+
+String topLevelMethod() => 'verify this!';
