@@ -66,6 +66,7 @@ class Dwds {
     required Stream<BuildResult> buildResults,
     required ConnectionProvider chromeConnection,
     required ToolConfiguration toolConfiguration,
+    // ignore: avoid-unused-parameters
     @Deprecated(
       'Use runMainAtStart instead. This parameter is ignored and will be removed in a future version.',
     )

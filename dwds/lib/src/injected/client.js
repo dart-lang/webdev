@@ -9731,10 +9731,6 @@
         throw A.wrapException(A.StateError$("Expected 'hotReloadSourcePath' to not be null in a hot reload."));
       return path;
     },
-    _isChromium() {
-      var t1 = type$.JSObject;
-      return B.JSString_methods.contains$1(A._asString(t1._as(t1._as(init.G.window).navigator).vendor), "Google");
-    },
     _authUrl() {
       var authUrl,
         extensionUrl = A._asStringQ(type$.JavaScriptObject._as(init.G.window).$dartExtensionUri);
@@ -26769,13 +26765,11 @@
               client.get$stream().listen$2$onError(new A.main__closure7(manager, client), new A.main__closure8());
               if (A._asBool(t1.$dwdsEnableDevToolsLaunch))
                 A._EventStreamSubscription$(t2._as(t1.window), "keydown", type$.nullable_void_Function_JSObject._as(new A.main__closure9()), false, t2);
-              if (A._isChromium()) {
-                t2 = client.get$sink();
-                t3 = $.$get$serializers();
-                t4 = new A.ConnectRequestBuilder();
-                type$.nullable_void_Function_ConnectRequestBuilder._as(new A.main__closure10()).call$1(t4);
-                A._trySendEvent(t2, B.C_JsonCodec.encode$2$toEncodable(t3.serialize$1(t4._build$0()), null), type$.dynamic);
-              }
+              t2 = client.get$sink();
+              t3 = new A.ConnectRequestBuilder();
+              type$.nullable_void_Function_ConnectRequestBuilder._as(new A.main__closure10()).call$1(t3);
+              t3 = t3._build$0();
+              A._trySendEvent(t2, B.C_JsonCodec.encode$2$toEncodable($.$get$serializers().serialize$1(t3), null), type$.dynamic);
               if (A._asBool(t1.$runMainAtStart))
                 A.runMain();
               A._launchCommunicationWithDebugExtension();
@@ -26900,9 +26894,11 @@
   };
   A.main__closure6.prototype = {
     call$0() {
-      var t1, t2, t3;
-      if (!A._isChromium()) {
-        type$.JSObject._as(init.G.window).alert("Dart DevTools is only supported on Chromium based browsers.");
+      var t3,
+        t1 = init.G,
+        t2 = type$.JSObject;
+      if (!B.JSString_methods.contains$1(A._asString(t2._as(t2._as(t1.window).navigator).vendor), "Google")) {
+        t2._as(t1.window).alert("Dart DevTools is only supported on Chromium based browsers.");
         return;
       }
       t1 = this.client.get$sink();

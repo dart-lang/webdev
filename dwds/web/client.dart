@@ -240,22 +240,16 @@ Future<void>? main() {
         });
       }
 
-      if (_isChromium) {
-        _trySendEvent(
-          client.sink,
-          jsonEncode(
-            serializers.serialize(
-              ConnectRequest(
-                (b) =>
-                    b
-                      ..appId = dartAppId
-                      ..instanceId = dartAppInstanceId
-                      ..entrypointPath = dartEntrypointPath,
-              ),
-            ),
-          ),
-        );
-      }
+      _sendConnectRequest(
+        client.sink,
+        ConnectRequest(
+          (b) =>
+              b
+                ..appId = dartAppId
+                ..instanceId = dartAppInstanceId
+                ..entrypointPath = dartEntrypointPath,
+        ),
+      );
 
       if (runMainAtStart) {
         runMain();
@@ -291,6 +285,10 @@ void _trySendEvent<T>(StreamSink<T> sink, T serialized) {
       'Injected client connection is closed.',
     );
   }
+}
+
+void _sendConnectRequest(StreamSink clientSink, ConnectRequest request) {
+  _trySendEvent(clientSink, jsonEncode(serializers.serialize(request)));
 }
 
 /// Returns [url] modified if necessary so that, if the current page is served
