@@ -113,7 +113,7 @@ void main() {
       final process = await testRunner.runWebDev(args,
           workingDirectory: soundExampleDirectory);
 
-      await checkProcessStdout(process, ['Succeeded']);
+      await checkProcessStdout(process, ['Writing asset manifest completed']);
       await process.shouldExit(0);
     },
     // https://github.com/dart-lang/webdev/issues/2489,
@@ -133,7 +133,7 @@ void main() {
           final process = await testRunner.runWebDev(args,
               workingDirectory: soundExampleDirectory);
 
-          final expectedItems = <Object>['Succeeded'];
+          final expectedItems = <Object>['Writing asset manifest completed'];
 
           await checkProcessStdout(process, expectedItems);
           await process.shouldExit(0);
@@ -166,7 +166,7 @@ void main() {
         final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
 
-        final expectedItems = <Object>['Succeeded'];
+        final expectedItems = <Object>['Writing asset manifest completed'];
 
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
@@ -189,7 +189,9 @@ void main() {
         final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
 
-        final expectedItems = <Object>['Succeeded'];
+        final expectedItems = <Object>[
+          'Caching finalized dependency graph completed'
+        ];
 
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
@@ -215,7 +217,10 @@ void main() {
         final hostUrl = 'http://localhost:$openPort';
 
         // Wait for the initial build to finish.
-        await expectLater(process.stdout, emitsThrough(contains('Succeeded')));
+        await expectLater(
+            process.stdout,
+            emitsThrough(
+                contains('Caching finalized dependency graph completed')));
 
         final client = HttpClient();
 
