@@ -2,18 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core';
 import 'dart:js_interop';
 
-import 'package:_test_hot_reload/library1.dart';
-
-@JS('document.body.innerHTML')
-external set innerHtml(String html);
-
-void evaluate() {
-  innerHtml = 'Program is running!\n $reloadValue}\n';
-}
+@JS('console.log')
+external void log(String _);
 
 void main() {
-  evaluate();
+  log('main gen0'); // Breakpoint: callLog
 }

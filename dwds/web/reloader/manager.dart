@@ -36,15 +36,15 @@ class ReloadingManager {
     return result;
   }
 
-  /// Performs a hot reload using the sources and libraries computes in the
-  /// previous call to [fetchLibrariesForHotReload].
-  Future<void> hotReload() async {
-    await _restarter.reload();
+  /// After a previous call to [hotReloadStart], completes the hot
+  /// reload by pushing the libraries into the Dart runtime.
+  Future<void> hotReloadEnd() async {
+    await _restarter.hotReloadEnd();
   }
 
-  /// Computes the sources and libraries to reload and returns the list of
-  /// libraries using [hotReloadSourcesPath] as the path to a JSONified list of
-  /// maps which follows the following format:
+  /// Computes the sources and libraries to reload, loads them into the page,
+  /// and returns the list of libraries using [hotReloadSourcesPath] as the path
+  /// to a JSONified list of maps which follows the following format:
   ///
   /// ```json
   /// [
@@ -59,9 +59,8 @@ class ReloadingManager {
   /// bundle.
   /// `libraries`: An array of strings containing the libraries that were
   /// compiled in `src`.
-  Future<JSArray<JSString>> fetchLibrariesForHotReload(
-    String hotReloadSourcesPath,
-  ) => _restarter.fetchLibrariesForHotReload(hotReloadSourcesPath);
+  Future<JSArray<JSString>> hotReloadStart(String hotReloadSourcesPath) =>
+      _restarter.hotReloadStart(hotReloadSourcesPath);
 
   /// Does a hard reload of the application.
   void reloadPage() {

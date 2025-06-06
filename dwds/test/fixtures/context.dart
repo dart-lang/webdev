@@ -583,6 +583,18 @@ class TestContext {
     file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
   }
 
+  void addLibraryFile({required String libFileName, required String contents}) {
+    final file = File(project.dartLibFilePath(libFileName));
+    // Library folder may not exist yet, so create it.
+    file.createSync(recursive: true);
+    file.writeAsStringSync(contents);
+  }
+
+  void removeLibraryFile({required String libFileName}) {
+    final file = File(project.dartLibFilePath(libFileName));
+    file.deleteSync();
+  }
+
   Future<void> recompile({required bool fullRestart}) async {
     await webRunner.run(
       frontendServerFileSystem,
