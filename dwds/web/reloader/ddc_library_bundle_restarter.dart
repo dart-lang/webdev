@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
 
+import 'package:dwds/src/utilities/shared.dart';
+
 import 'restarter.dart';
 
 @JS('dartDevEmbedder')
@@ -18,6 +20,11 @@ extension type _DartDevEmbedder._(JSObject _) implements JSObject {
     JSArray<JSString> filesToLoad,
     JSArray<JSString> librariesToReload,
   );
+  external _DartDevEmbedderConfig get config;
+}
+
+extension type _DartDevEmbedderConfig._(JSObject _) implements JSObject {
+  external JSFunction? capturedMainHandler;
 }
 
 extension type _Debugger._(JSObject _) implements JSObject {
@@ -50,9 +57,26 @@ extension on JSArray<JSString> {
 }
 
 class DdcLibraryBundleRestarter implements Restarter {
+  Future<void> _runMainWhenReady(
+    Future? readyToRunMain,
+    JSFunction runMain,
+  ) async {
+    if (readyToRunMain != null) {
+      await readyToRunMain;
+    }
+
+    runMain.callAsFunction();
+  }
+
   @override
   Future<bool> restart({String? runId, Future? readyToRunMain}) async {
     await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
+    final mainHandler =
+        (JSFunction runMain) {
+          _dartDevEmbedder.config.capturedMainHandler = null;
+          safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
+        }.toJS;
+    _dartDevEmbedder.config.capturedMainHandler = mainHandler;
     await _dartDevEmbedder.hotRestart().toDart;
     return true;
   }
