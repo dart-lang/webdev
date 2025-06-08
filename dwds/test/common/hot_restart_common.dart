@@ -7,6 +7,8 @@
 @Timeout(Duration(minutes: 5))
 library;
 
+import 'dart:async';
+
 import 'package:dwds/dwds.dart';
 import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
@@ -32,17 +34,24 @@ void runTests({
 
   tearDownAll(provider.dispose);
 
+  Future<void> recompile({bool hasEdits = false}) async {
+    if (compilationMode == CompilationMode.frontendServer) {
+      await context.recompile(fullRestart: true);
+    } else {
+      assert(compilationMode == CompilationMode.buildDaemon);
+      if (hasEdits) {
+        // Only gets a new build if there were edits.
+        await context.waitForSuccessfulBuild(propagateToBrowser: true);
+      }
+    }
+  }
+
   Future<void> makeEditAndRecompile() async {
     context.makeEditToDartEntryFile(
       toReplace: originalString,
       replaceWith: newString,
     );
-    if (compilationMode == CompilationMode.frontendServer) {
-      await context.recompile(fullRestart: true);
-    } else {
-      assert(compilationMode == CompilationMode.buildDaemon);
-      await context.waitForSuccessfulBuild(propagateToBrowser: true);
-    }
+    await recompile(hasEdits: true);
   }
 
   void undoEdit() {
@@ -50,6 +59,27 @@ void runTests({
       toReplace: newString,
       replaceWith: originalString,
     );
+  }
+
+  /// Wait for main to finish executing before checking expectations by checking
+  /// for a log output.
+  ///
+  /// If [debuggingEnabled] is false, we can't check for Chrome logs and instead
+  /// wait 1 second.
+  // TODO(srujzs): We should do something less prone to race conditions when
+  // debugging is disabled.
+  Future<void> waitForMainToExecute({bool debuggingEnabled = true}) async {
+    if (!debuggingEnabled) return Future.delayed(const Duration(seconds: 1));
+    final completer = Completer<void>();
+    final expectedString = 'main executed';
+    final subscription = context.webkitDebugger.onConsoleAPICalled.listen((e) {
+      if (e.args.first.value == expectedString) {
+        completer.complete();
+      }
+    });
+    await completer.future.then((_) {
+      subscription.cancel();
+    });
   }
 
   group(
@@ -74,7 +104,9 @@ void runTests({
         });
 
         test('can live reload changes ', () async {
+          final mainDone = waitForMainToExecute();
           await makeEditAndRecompile();
+          await mainDone;
           final source = await context.webDriver.pageSource;
 
           // A full reload should clear the state.
@@ -105,8 +137,9 @@ void runTests({
         });
 
         test('can live reload changes ', () async {
+          final mainDone = waitForMainToExecute(debuggingEnabled: false);
           await makeEditAndRecompile();
-
+          await mainDone;
           final source = await context.webDriver.pageSource;
 
           // A full reload should clear the state.
@@ -138,8 +171,9 @@ void runTests({
         });
 
         test('can live reload changes ', () async {
+          final mainDone = waitForMainToExecute(debuggingEnabled: false);
           await makeEditAndRecompile();
-
+          await mainDone;
           final source = await context.webDriver.pageSource;
 
           // A full reload should clear the state.
@@ -281,6 +315,7 @@ void runTests({
           ]),
         ),
       );
+      final mainDone = waitForMainToExecute();
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
       expect(
         await fakeClient.callServiceExtension(hotRestart!),
@@ -288,6 +323,7 @@ void runTests({
       );
 
       await eventsDone;
+      await mainDone;
 
       final source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
@@ -324,6 +360,8 @@ void runTests({
         "registerExtension('ext.foo', $callback)",
       );
 
+      await recompile();
+      final mainDone = waitForMainToExecute();
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
       expect(
         await fakeClient.callServiceExtension(hotRestart!),
@@ -342,6 +380,7 @@ void runTests({
       );
 
       await eventsDone;
+      await mainDone;
 
       final source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
@@ -363,7 +402,7 @@ void runTests({
           ]),
         ),
       );
-
+      final mainDone = waitForMainToExecute();
       final fullReload = context.getRegisteredServiceExtension('fullReload');
       expect(
         await fakeClient.callServiceExtension(fullReload!),
@@ -371,6 +410,7 @@ void runTests({
       );
 
       await eventsDone;
+      await mainDone;
 
       final source = await context.webDriver.pageSource;
       // Should see only the new text
@@ -399,8 +439,12 @@ void runTests({
       );
 
       await makeEditAndRecompile();
+      final mainDone = waitForMainToExecute();
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
       await fakeClient.callServiceExtension(hotRestart!);
+
+      await mainDone;
+
       final source = await context.webDriver.pageSource;
 
       // Main is re-invoked which shouldn't clear the state.
@@ -418,6 +462,7 @@ void runTests({
     test('can evaluate expressions after hot restart', () async {
       final client = context.debugConnection.vmService;
 
+      await recompile();
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
       await fakeClient.callServiceExtension(hotRestart!);
 
@@ -461,8 +506,9 @@ void runTests({
         });
 
         test('can hot restart changes ', () async {
+          final mainDone = waitForMainToExecute();
           await makeEditAndRecompile();
-
+          await mainDone;
           final source = await context.webDriver.pageSource;
 
           // Main is re-invoked which shouldn't clear the state.
@@ -521,8 +567,9 @@ void runTests({
         });
 
         test('can hot restart changes ', () async {
+          final mainDone = waitForMainToExecute(debuggingEnabled: false);
           await makeEditAndRecompile();
-
+          await mainDone;
           final source = await context.webDriver.pageSource;
 
           // Main is re-invoked which shouldn't clear the state.
@@ -582,6 +629,7 @@ void runTests({
           ),
         );
 
+        final mainDone = waitForMainToExecute();
         final hotRestart = context.getRegisteredServiceExtension('hotRestart');
         expect(
           await fakeClient.callServiceExtension(hotRestart!),
@@ -597,6 +645,8 @@ void runTests({
         final isolateId = vm.isolates!.first.id!;
         await client.resume(isolateId);
 
+        await mainDone;
+
         final sourceAfterResume = await context.webDriver.pageSource;
         expect(sourceAfterResume.contains(newString), isTrue);
       },
@@ -605,8 +655,8 @@ void runTests({
     test(
       'after page refresh, does not run app until there is a resume event',
       () async {
+        final mainDone = waitForMainToExecute();
         await makeEditAndRecompile();
-
         await context.webDriver.driver.refresh();
 
         final eventsDone = expectLater(
@@ -628,6 +678,8 @@ void runTests({
         final vm = await client.getVM();
         final isolateId = vm.isolates!.first.id!;
         await client.resume(isolateId);
+
+        await mainDone;
 
         final sourceAfterResume = await context.webDriver.pageSource;
         expect(sourceAfterResume.contains(newString), isTrue);
