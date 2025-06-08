@@ -181,8 +181,9 @@ void main() {
         ),
       );
 
-      final waitForPausePost = stream.firstWhere(
-        (event) => event.kind == EventKind.kPausePostRequest,
+      final waitForPausePost = expectLater(
+        stream,
+        emitsThrough(_hasKind(EventKind.kPausePostRequest)),
       );
 
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
