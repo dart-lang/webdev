@@ -177,8 +177,9 @@ void main() {
       List<({String file, String breakpointMarker, Breakpoint? bp})>
       breakpoints,
     ) async {
-      final waitForPausePost = stream.firstWhere(
-        (event) => event.kind == EventKind.kPausePostRequest,
+      final waitForPausePost = expectLater(
+        stream,
+        emitsThrough(_hasKind(EventKind.kPausePostRequest)),
       );
 
       // Initiate the hot reload by loading the sources into the page.
@@ -235,8 +236,8 @@ void main() {
       });
     }
 
-    Future<Event> waitForBreakpoint() =>
-        stream.firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+    Future<dynamic> waitForBreakpoint() =>
+        expectLater(stream, emitsThrough(_hasKind(EventKind.kPauseBreakpoint)));
 
     test('after edit and hot reload, breakpoint is in new file', () async {
       final oldString = 'main gen0';
@@ -501,3 +502,6 @@ void main() {
     });
   }, timeout: Timeout.factor(2));
 }
+
+TypeMatcher<Event> _hasKind(String kind) =>
+    isA<Event>().having((e) => e.kind, 'kind', kind);
