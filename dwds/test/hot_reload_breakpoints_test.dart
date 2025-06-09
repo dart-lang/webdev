@@ -406,26 +406,36 @@ void main() {
         file: mainFile,
         breakpointMarker: capturedStringMarker,
       );
+      print('added breakpoint');
 
       final oldLog = "log('\$mainValue');";
       final newLog = "log('\${closure()}');";
       await makeEditAndRecompile(mainFile, oldLog, newLog);
+      print('recompiled');
 
       bp =
           (await hotReloadAndHandlePausePost([
             (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
           ])).first;
 
+      print('hot reload and handled pausepost');
+
       final breakpointFuture = waitForBreakpoint();
 
       await callEvaluate();
 
+      print('called evaluate');
+
       // Should break at `capturedString`.
       await breakpointFuture;
+
+      print('waited for breakpoint');
       final oldCapturedString = 'captured closure gen0';
       expect(consoleLogs.contains(oldCapturedString), false);
       // Closure gets evaluated for the first time.
       await resumeAndExpectLog(oldCapturedString);
+
+      print('resumed and got log');
 
       final newCapturedString = 'captured closure gen1';
       await makeEditAndRecompile(
@@ -434,13 +444,19 @@ void main() {
         newCapturedString,
       );
 
+      print('made edit again and recompiled');
+
       await hotReloadAndHandlePausePost([
         (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
       ]);
 
+      print('hot reloaded again and handled pause post');
+
       // Breakpoint should not be hit as it's now deleted. We should also see
       // the old string still as the closure has not been reevaluated.
       await callEvaluateAndExpectLog(oldCapturedString);
+
+      print('handled evaluate again and got log');
     });
   }, timeout: Timeout.factor(2));
 
