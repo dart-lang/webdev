@@ -117,9 +117,6 @@ class ChromeProxyService implements VmServiceInterface {
   final _resumeAfterRestartEventsController =
       StreamController<String>.broadcast();
 
-  final _resumeAfterHotReloadEventsController =
-      StreamController<Completer<void>>.broadcast();
-
   /// A global stream of resume events for hot restart.
   ///
   /// The values in the stream are the isolates IDs for the resume event.
@@ -130,16 +127,11 @@ class ChromeProxyService implements VmServiceInterface {
   Stream<String> get resumeAfterRestartEventsStream =>
       _resumeAfterRestartEventsController.stream;
 
-  /// A global stream of resume events for hot reload.
+  /// If non-null, a resume event should await the result of this after resuming
+  /// execution.
   ///
-  /// The values in the stream are [Completer]s that should be completed after
-  /// finishing the hot reload.
-  ///
-  /// IMPORTANT: This should only be listened to during a hot reload. The
-  /// debugger ignores any resume events as long as there is a subscriber to
-  /// this stream.
-  Stream<Completer<void>> get resumeAfterHotReloadEventsStream =>
-      _resumeAfterHotReloadEventsController.stream;
+  /// This is used to complete a hot reload.
+  Future<void> Function()? _finishHotReloadOnResume;
 
   final _logger = Logger('ChromeProxyService');
 
@@ -1223,22 +1215,17 @@ class ChromeProxyService implements VmServiceInterface {
       // If `pause_isolates_on_start` is enabled, pause and then the reload
       // should finish later after the client removes breakpoints, reregisters
       // breakpoints, and resumes.
-      StreamSubscription<Completer<void>>? resumeEventsSubscription;
-      resumeEventsSubscription = resumeAfterHotReloadEventsStream.listen((
-        Completer<void> completer,
-      ) async {
+      _finishHotReloadOnResume = () async {
         // Client finished setting breakpoints, called resume, and now the
         // execution has resumed. Finish the hot reload so we start executing
         // the new code instead.
-        await resumeEventsSubscription!.cancel();
         _logger.info('Issuing \$dartHotReloadEndDwds request');
         await inspector.jsEvaluate(
           '\$dartHotReloadEndDwds();',
           awaitPromise: true,
         );
         _logger.info('\$dartHotReloadEndDwds request complete.');
-        completer.complete();
-      });
+      };
 
       // Pause and wait for the pause to occur before managing breakpoints.
       final pausedEvent = _firstStreamEvent(
@@ -1350,11 +1337,10 @@ class ChromeProxyService implements VmServiceInterface {
       }, (result) => DwdsEvent.resume(step));
     }
 
-    if (_resumeAfterHotReloadEventsController.hasListener) {
+    if (_finishHotReloadOnResume != null) {
       await resumeWhenAppHasStarted();
-      final completer = Completer<void>();
-      _resumeAfterHotReloadEventsController.add(completer);
-      await completer.future;
+      await _finishHotReloadOnResume!();
+      _finishHotReloadOnResume = null;
       return Success();
     }
     if (inspector.appConnection.isStarted) {
