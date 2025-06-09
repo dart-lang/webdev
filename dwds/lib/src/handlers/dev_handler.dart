@@ -538,18 +538,11 @@ class DevHandler {
     Stream<String> resumeEventsStream,
     Completer<void> readyToRunMainCompleter,
   ) {
-    final resumeEventsSubscription = resumeEventsStream.listen((_) {
+    StreamSubscription<String>? resumeEventsSubscription;
+    resumeEventsSubscription = resumeEventsStream.listen((_) async {
+      await resumeEventsSubscription!.cancel();
       readyToRunMainCompleter.complete();
-      if (!readyToRunMainCompleter.isCompleted) {
-        readyToRunMainCompleter.complete();
-      }
     });
-
-    safeUnawaited(
-      readyToRunMainCompleter.future.then((_) {
-        resumeEventsSubscription.cancel();
-      }),
-    );
   }
 
   void _handleIsolateExit(AppConnection appConnection) {
