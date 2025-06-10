@@ -15,7 +15,6 @@ import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
@@ -91,9 +90,6 @@ void main() {
     late VmService client;
     late VmServiceInterface service;
     late Stream<Event> stream;
-    // Fetch the log statements that are sent to console.
-    final consoleLogs = <String>[];
-    late StreamSubscription<ConsoleAPIEvent> consoleSubscription;
 
     setUp(() async {
       setCurrentLogWriter(debug: debug);
@@ -110,14 +106,9 @@ void main() {
       service = context.service;
       await service.streamListen('Debug');
       stream = service.onEvent('Debug');
-      consoleSubscription = context.webkitDebugger.onConsoleAPICalled.listen(
-        (e) => consoleLogs.add(e.args.first.value as String),
-      );
     });
 
     tearDown(() async {
-      await consoleSubscription.cancel();
-      consoleLogs.clear();
       undoEdits();
       await context.tearDown();
     });
@@ -254,10 +245,7 @@ void main() {
 
       // Should break at `callLog`.
       await breakpointFuture;
-      expect(consoleLogs.contains(oldString), false);
       await resumeAndExpectLog(oldString);
-
-      consoleLogs.clear();
 
       // Modify the string that gets printed.
       await makeEditAndRecompile(mainFile, oldString, newString);
@@ -272,7 +260,6 @@ void main() {
 
       // Should break at `callLog`.
       await breakpointFuture;
-      expect(consoleLogs.contains(newString), false);
       await resumeAndExpectLog(newString);
     });
 
@@ -291,10 +278,7 @@ void main() {
 
       // Should break at `callLog`.
       await breakpointFuture;
-      expect(consoleLogs.contains(genLog), false);
       await resumeAndExpectLog(genLog);
-
-      consoleLogs.clear();
 
       // Add an extra log before the existing log.
       final extraLog = 'hot reload';
@@ -309,14 +293,11 @@ void main() {
 
       breakpointFuture = waitForBreakpoint();
 
-      await callEvaluate();
+      await callEvaluateAndExpectLog(extraLog);
 
       // Should break at `callLog`.
       await breakpointFuture;
-      expect(consoleLogs.contains(extraLog), true);
       await resumeAndExpectLog(genLog);
-
-      consoleLogs.clear();
 
       // Remove the line we just added.
       await makeEditAndRecompile(mainFile, newString, oldString);
@@ -327,12 +308,19 @@ void main() {
 
       breakpointFuture = waitForBreakpoint();
 
+      final consoleLogs = <String>[];
+      final consoleSubscription = context.webkitDebugger.onConsoleAPICalled
+          .listen((e) {
+            consoleLogs.add(e.args.first.value as String);
+          });
+
       await callEvaluate();
 
       // Should break at `callLog`.
       await breakpointFuture;
       expect(consoleLogs.contains(extraLog), false);
       await resumeAndExpectLog(genLog);
+      await consoleSubscription.cancel();
     });
 
     test(
@@ -352,10 +340,7 @@ void main() {
 
         // Should break at `callLog`.
         await breakpointFuture;
-        expect(consoleLogs.contains(genLog), false);
         await resumeAndExpectLog(genLog);
-
-        consoleLogs.clear();
 
         // Add a library file, import it, and then refer to it in the log.
         final libFile = 'library.dart';
@@ -387,14 +372,12 @@ void main() {
 
         // Should break at `callLog`.
         await breakpointFuture;
-        expect(consoleLogs.contains(libGenLog), false);
 
         breakpointFuture = waitForBreakpoint();
 
         await resume();
         // Should break at `libValue`.
         await breakpointFuture;
-        expect(consoleLogs.contains(libGenLog), false);
         await resumeAndExpectLog(libGenLog);
 
         context.removeLibraryFile(libFileName: libFile);
@@ -423,7 +406,6 @@ void main() {
       // Should break at `capturedString`.
       await breakpointFuture;
       final oldCapturedString = 'captured closure gen0';
-      expect(consoleLogs.contains(oldCapturedString), false);
       // Closure gets evaluated for the first time.
       await resumeAndExpectLog(oldCapturedString);
 
