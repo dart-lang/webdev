@@ -10,8 +10,8 @@ external void log(String _);
 String get mainValue => 'main gen0';
 
 void evaluate() {
-  // Use a future as if we come across a breakpoint, evaluating this method
-  // would never finish.
+  // Use a future instead of directly calling because evaluating this method
+  // with a breakpoint would never complete otherwise.
   Future.delayed(Duration(milliseconds: 10), printToConsole);
 }
 

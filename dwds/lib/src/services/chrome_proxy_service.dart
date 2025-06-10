@@ -1211,7 +1211,6 @@ class ChromeProxyService implements VmServiceInterface {
     );
 
     if (pauseIsolatesOnStart) {
-      await _reinitializeForHotReload();
       // If `pause_isolates_on_start` is enabled, pause and then the reload
       // should finish later after the client removes breakpoints, reregisters
       // breakpoints, and resumes.
@@ -1234,6 +1233,8 @@ class ChromeProxyService implements VmServiceInterface {
       );
       await pause(isolateId);
       await pausedEvent;
+
+      await _reinitializeForHotReload();
 
       // This lets the client know that we're ready for breakpoint management
       // and a resume.
