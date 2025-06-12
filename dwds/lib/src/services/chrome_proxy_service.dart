@@ -474,9 +474,10 @@ class ChromeProxyService implements VmServiceInterface {
     final isolate = inspector.isolate;
 
     final debugger = await debuggerFuture;
-    for (final breakpoint in isolate.breakpoints?.toList() ?? <Breakpoint>[]) {
-      await debugger.removeBreakpoint(breakpoint.id!);
-    }
+    await Future.wait([
+      for (final breakpoint in isolate.breakpoints ?? <Breakpoint>[])
+        debugger.removeBreakpoint(breakpoint.id!),
+    ]);
   }
 
   @override

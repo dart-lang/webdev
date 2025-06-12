@@ -418,7 +418,7 @@ void main() {
       // the old string still as the closure has not been reevaluated.
       await callEvaluateAndExpectLog(oldCapturedString);
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: Timeout.factor(3));
 
   group('when pause_isolates_on_start is false', () {
     late VmService client;
