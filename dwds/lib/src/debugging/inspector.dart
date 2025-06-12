@@ -32,7 +32,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// Provides information about currently loaded scripts and objects and support
 /// for eval.
 class AppInspector implements AppInspectorInterface {
-  final _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
+  var _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
 
   Future<List<ScriptRef>> get scriptRefs => _populateScriptCaches();
 
@@ -68,9 +68,9 @@ class AppInspector implements AppInspectorInterface {
 
   final ExecutionContext _executionContext;
 
-  late final LibraryHelper _libraryHelper;
-  late final ClassHelper _classHelper;
-  late final InstanceHelper _instanceHelper;
+  late LibraryHelper _libraryHelper;
+  late ClassHelper _classHelper;
+  late InstanceHelper _instanceHelper;
 
   final AssetReader _assetReader;
   final Locations _locations;
@@ -99,15 +99,25 @@ class AppInspector implements AppInspectorInterface {
     this._locations,
     this._root,
     this._executionContext,
-  ) : _isolateRef = _toIsolateRef(_isolate) {
+  ) : _isolateRef = _toIsolateRef(_isolate);
+
+  /// Reset all caches and recompute any mappings.
+  ///
+  /// Should be called across hot reloads.
+  Future<void> initialize() async {
+    _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
+    _scriptRefsById.clear();
+    _serverPathToScriptRef.clear();
+    _scriptIdToLibraryId.clear();
+    _libraryIdToScriptRefs.clear();
+
     _libraryHelper = LibraryHelper(this);
     _classHelper = ClassHelper(this);
     _instanceHelper = InstanceHelper(this);
-  }
 
-  Future<void> initialize() async {
     final libraries = await _libraryHelper.libraryRefs;
     isolate.rootLib = await _libraryHelper.rootLib;
+    isolate.libraries?.clear();
     isolate.libraries?.addAll(libraries);
 
     final scripts = await scriptRefs;
@@ -702,8 +712,7 @@ class AppInspector implements AppInspectorInterface {
   /// This populates [_scriptRefsById], [_scriptIdToLibraryId],
   /// [_libraryIdToScriptRefs] and [_serverPathToScriptRef].
   ///
-  /// It is a one-time operation, because if we do a
-  /// reload the inspector will get re-created.
+  /// This will get repopulated on restarts and reloads.
   ///
   /// Returns the list of scripts refs cached.
   Future<List<ScriptRef>> _populateScriptCaches() {

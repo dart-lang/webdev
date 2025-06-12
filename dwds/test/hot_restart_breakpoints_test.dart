@@ -23,7 +23,7 @@ import 'fixtures/utilities.dart';
 
 void main() {
   // Enable verbose logging for debugging.
-  final debug = false;
+  const debug = false;
   final provider = TestSdkConfigurationProvider(
     verbose: debug,
     canaryFeatures: true,
@@ -68,18 +68,17 @@ void main() {
   }
 
   void undoEdits() {
-    for (var i = edits.length - 1; i >= 0; i--) {
-      final edit = edits[i];
-      if (edit.file == project.dartEntryFileName) {
+    for (final (:file, :originalString, :newString) in edits.reversed) {
+      if (file == project.dartEntryFileName) {
         context.makeEditToDartEntryFile(
-          toReplace: edit.newString,
-          replaceWith: edit.originalString,
+          toReplace: newString,
+          replaceWith: originalString,
         );
       } else {
         context.makeEditToDartLibFile(
-          libFileName: edit.file,
-          toReplace: edit.newString,
-          replaceWith: edit.originalString,
+          libFileName: file,
+          toReplace: newString,
+          replaceWith: originalString,
         );
       }
     }
@@ -106,10 +105,10 @@ void main() {
       );
       client = await context.connectFakeClient();
       await client.setFlag('pause_isolates_on_start', 'true');
-      await client.streamListen('Isolate');
+      await client.streamListen(EventStreams.kIsolate);
       service = context.service;
-      await service.streamListen('Debug');
-      stream = service.onEvent('Debug');
+      stream = service.onEvent(EventStreams.kDebug);
+      await service.streamListen(EventStreams.kDebug);
       consoleSubscription = context.webkitDebugger.onConsoleAPICalled.listen(
         (e) => consoleLogs.add(e.args.first.value as String),
       );
@@ -154,7 +153,7 @@ void main() {
     // will execute code that will emit [expectedString].
     Future<void> resumeAndExpectLog(String expectedString) async {
       final completer = Completer<void>();
-      final newSubscription = context.webkitDebugger.onConsoleAPICalled.listen((
+      final subscription = context.webkitDebugger.onConsoleAPICalled.listen((
         e,
       ) {
         if (e.args.first.value == expectedString) {
@@ -162,9 +161,8 @@ void main() {
         }
       });
       await resume();
-      await completer.future.then((_) {
-        newSubscription.cancel();
-      });
+      await completer.future;
+      await subscription.cancel();
     }
 
     Future<void> hotRestartAndHandlePausePost(
@@ -204,11 +202,8 @@ void main() {
       final vm = await client.getVM();
       final isolate = await service.getIsolate(vm.isolates!.first.id!);
       expect(isolate.breakpoints, isEmpty);
-      for (final breakpoint in breakpoints) {
-        await addBreakpoint(
-          file: breakpoint.file,
-          breakpointMarker: breakpoint.breakpointMarker,
-        );
+      for (final (:breakpointMarker, :file) in breakpoints) {
+        await addBreakpoint(file: file, breakpointMarker: breakpointMarker);
       }
       await resume();
     }

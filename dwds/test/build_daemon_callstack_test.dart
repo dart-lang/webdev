@@ -22,7 +22,7 @@ void main() {
 
   group('shared context |', () {
     // Enable verbose logging for debugging.
-    final debug = false;
+    const debug = false;
 
     final project = TestProject.testPackage();
     final context = TestContext(project, provider);

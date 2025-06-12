@@ -77,9 +77,8 @@ void runTests({
         completer.complete();
       }
     });
-    await completer.future.then((_) {
-      subscription.cancel();
-    });
+    await completer.future;
+    await subscription.cancel();
   }
 
   group(
