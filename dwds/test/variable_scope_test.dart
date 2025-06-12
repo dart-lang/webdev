@@ -19,7 +19,7 @@ import 'fixtures/utilities.dart';
 
 void main() {
   // set to true for debug logging.
-  final debug = false;
+  const debug = false;
 
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);

@@ -473,8 +473,9 @@ class ChromeProxyService implements VmServiceInterface {
     if (!_isIsolateRunning) return;
     final isolate = inspector.isolate;
 
+    final debugger = await debuggerFuture;
     for (final breakpoint in isolate.breakpoints?.toList() ?? <Breakpoint>[]) {
-      await (await debuggerFuture).removeBreakpoint(breakpoint.id!);
+      await debugger.removeBreakpoint(breakpoint.id!);
     }
   }
 
@@ -1210,43 +1211,7 @@ class ChromeProxyService implements VmServiceInterface {
       returnByValue: true,
     );
 
-    if (pauseIsolatesOnStart) {
-      // If `pause_isolates_on_start` is enabled, pause and then the reload
-      // should finish later after the client removes breakpoints, reregisters
-      // breakpoints, and resumes.
-      _finishHotReloadOnResume = () async {
-        // Client finished setting breakpoints, called resume, and now the
-        // execution has resumed. Finish the hot reload so we start executing
-        // the new code instead.
-        _logger.info('Issuing \$dartHotReloadEndDwds request');
-        await inspector.jsEvaluate(
-          '\$dartHotReloadEndDwds();',
-          awaitPromise: true,
-        );
-        _logger.info('\$dartHotReloadEndDwds request complete.');
-      };
-
-      // Pause and wait for the pause to occur before managing breakpoints.
-      final pausedEvent = _firstStreamEvent(
-        'Debug',
-        EventKind.kPauseInterrupted,
-      );
-      await pause(isolateId);
-      await pausedEvent;
-
-      await _reinitializeForHotReload();
-
-      // This lets the client know that we're ready for breakpoint management
-      // and a resume.
-      _streamNotify(
-        'Debug',
-        Event(
-          kind: EventKind.kPausePostRequest,
-          timestamp: DateTime.now().millisecondsSinceEpoch,
-          isolate: inspector.isolateRef,
-        ),
-      );
-    } else {
+    if (!pauseIsolatesOnStart) {
       // Finish hot reload immediately.
       _logger.info('Issuing \$dartHotReloadEndDwds request');
       await inspector.jsEvaluate(
@@ -1257,7 +1222,40 @@ class ChromeProxyService implements VmServiceInterface {
       // TODO(srujzs): Supposedly Dart DevTools uses a kIsolateReload event
       // for breakpoints? We should confirm and add tests before sending the
       // event.
+      return;
     }
+    // If `pause_isolates_on_start` is enabled, pause and then the reload
+    // should finish later after the client removes breakpoints, reregisters
+    // breakpoints, and resumes.
+    _finishHotReloadOnResume = () async {
+      // Client finished setting breakpoints, called resume, and now the
+      // execution has resumed. Finish the hot reload so we start executing
+      // the new code instead.
+      _logger.info('Issuing \$dartHotReloadEndDwds request');
+      await inspector.jsEvaluate(
+        '\$dartHotReloadEndDwds();',
+        awaitPromise: true,
+      );
+      _logger.info('\$dartHotReloadEndDwds request complete.');
+    };
+
+    // Pause and wait for the pause to occur before managing breakpoints.
+    final pausedEvent = _firstStreamEvent('Debug', EventKind.kPauseInterrupted);
+    await pause(isolateId);
+    await pausedEvent;
+
+    await _reinitializeForHotReload();
+
+    // This lets the client know that we're ready for breakpoint management
+    // and a resume.
+    _streamNotify(
+      'Debug',
+      Event(
+        kind: EventKind.kPausePostRequest,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isolate: inspector.isolateRef,
+      ),
+    );
   }
 
   /// Performs a WebSocket-based hot reload by sending a request and waiting for a response.
@@ -1319,37 +1317,30 @@ class ChromeProxyService implements VmServiceInterface {
     String? step,
     int? frameIndex,
   }) async {
-    // If there is a hot restart or hot reload subscriber listening for a resume
-    // event after a hot restart or a hot reload, then add the event to the
-    // stream and skip processing it.
+    // If there is a subscriber listening for a resume event after hot-restart,
+    // then add the event to the stream and skip processing it.
     if (_resumeAfterRestartEventsController.hasListener) {
       _resumeAfterRestartEventsController.add(isolateId);
       return Success();
     }
-    Future<Success> resumeWhenAppHasStarted() {
-      return captureElapsedTime(() async {
+
+    if (inspector.appConnection.isStarted) {
+      await captureElapsedTime(() async {
         await isInitialized;
         await isStarted;
         _checkIsolate('resume', isolateId);
-        return await (await debuggerFuture).resume(
-          step: step,
-          frameIndex: frameIndex,
-        );
+        final debugger = await debuggerFuture;
+        return await debugger.resume(step: step, frameIndex: frameIndex);
       }, (result) => DwdsEvent.resume(step));
-    }
-
-    if (_finishHotReloadOnResume != null) {
-      await resumeWhenAppHasStarted();
-      await _finishHotReloadOnResume!();
-      _finishHotReloadOnResume = null;
-      return Success();
-    }
-    if (inspector.appConnection.isStarted) {
-      return resumeWhenAppHasStarted();
     } else {
       inspector.appConnection.runMain();
-      return Success();
     }
+    // Finish the hot reload if needed.
+    if (_finishHotReloadOnResume != null) {
+      await _finishHotReloadOnResume!();
+      _finishHotReloadOnResume = null;
+    }
+    return Success();
   }
 
   /// This method is deprecated in vm_service package.

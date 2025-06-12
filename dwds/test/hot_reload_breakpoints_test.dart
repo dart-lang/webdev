@@ -22,7 +22,7 @@ import 'fixtures/utilities.dart';
 
 void main() {
   // Enable verbose logging for debugging.
-  final debug = false;
+  const debug = false;
   final provider = TestSdkConfigurationProvider(
     verbose: debug,
     canaryFeatures: true,
@@ -68,18 +68,17 @@ void main() {
   }
 
   void undoEdits() {
-    for (var i = edits.length - 1; i >= 0; i--) {
-      final edit = edits[i];
-      if (edit.file == project.dartEntryFileName) {
+    for (final (:file, :originalString, :newString) in edits.reversed) {
+      if (file == project.dartEntryFileName) {
         context.makeEditToDartEntryFile(
-          toReplace: edit.newString,
-          replaceWith: edit.originalString,
+          toReplace: newString,
+          replaceWith: originalString,
         );
       } else {
         context.makeEditToDartLibFile(
-          libFileName: edit.file,
-          toReplace: edit.newString,
-          replaceWith: edit.originalString,
+          libFileName: file,
+          toReplace: newString,
+          replaceWith: originalString,
         );
       }
     }
@@ -104,8 +103,8 @@ void main() {
       client = await context.connectFakeClient();
       await client.setFlag('pause_isolates_on_start', 'true');
       service = context.service;
-      await service.streamListen('Debug');
-      stream = service.onEvent('Debug');
+      stream = service.onEvent(EventStreams.kDebug);
+      await service.streamListen(EventStreams.kDebug);
     });
 
     tearDown(() async {
@@ -151,7 +150,7 @@ void main() {
     // will execute code that will emit [expectedString].
     Future<void> resumeAndExpectLog(String expectedString) async {
       final completer = Completer<void>();
-      final newSubscription = context.webkitDebugger.onConsoleAPICalled.listen((
+      final subscription = context.webkitDebugger.onConsoleAPICalled.listen((
         e,
       ) {
         if (e.args.first.value == expectedString) {
@@ -159,9 +158,8 @@ void main() {
         }
       });
       await resume();
-      await completer.future.then((_) {
-        newSubscription.cancel();
-      });
+      await completer.future;
+      await subscription.cancel();
     }
 
     Future<List<Breakpoint>> hotReloadAndHandlePausePost(
@@ -184,15 +182,12 @@ void main() {
       // what the client should do.
       await waitForPausePost;
       final newBreakpoints = <Breakpoint>[];
-      for (final breakpoint in breakpoints) {
+      for (final (:bp, :breakpointMarker, :file) in breakpoints) {
         // This could be a new file, so there's no existing breakpoint to
         // remove.
-        if (breakpoint.bp != null) await removeBreakpoint(breakpoint.bp!);
+        if (bp != null) await removeBreakpoint(bp);
         newBreakpoints.add(
-          await addBreakpoint(
-            file: breakpoint.file,
-            breakpointMarker: breakpoint.breakpointMarker,
-          ),
+          await addBreakpoint(file: file, breakpointMarker: breakpointMarker),
         );
       }
       // The resume should complete hot reload and resume the program.
@@ -211,7 +206,7 @@ void main() {
     // will eventually occur when code is executing.
     Future<void> callEvaluateAndExpectLog(String expectedString) async {
       final completer = Completer<void>();
-      final newSubscription = context.webkitDebugger.onConsoleAPICalled.listen((
+      final subscription = context.webkitDebugger.onConsoleAPICalled.listen((
         e,
       ) {
         if (e.args.first.value == expectedString) {
@@ -222,12 +217,11 @@ void main() {
       final isolate = await client.getIsolate(vm.isolates!.first.id!);
       final rootLib = isolate.rootLib;
       await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
-      await completer.future.then((_) {
-        newSubscription.cancel();
-      });
+      await completer.future;
+      await subscription.cancel();
     }
 
-    Future<dynamic> waitForBreakpoint() =>
+    Future<void> waitForBreakpoint() =>
         expectLater(stream, emitsThrough(_hasKind(EventKind.kPauseBreakpoint)));
 
     test('after edit and hot reload, breakpoint is in new file', () async {
@@ -450,7 +444,7 @@ void main() {
 
     Future<void> callEvaluateAndExpectLog(String expectedString) async {
       final completer = Completer<void>();
-      final newSubscription = context.webkitDebugger.onConsoleAPICalled.listen((
+      final subscription = context.webkitDebugger.onConsoleAPICalled.listen((
         e,
       ) {
         if (e.args.first.value == expectedString) {
@@ -461,9 +455,8 @@ void main() {
       final isolate = await client.getIsolate(vm.isolates!.first.id!);
       final rootLib = isolate.rootLib;
       await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
-      await completer.future.then((_) {
-        newSubscription.cancel();
-      });
+      await completer.future;
+      await subscription.cancel();
     }
 
     test('no pause when calling reloadSources', () async {

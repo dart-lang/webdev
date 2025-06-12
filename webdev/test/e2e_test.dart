@@ -37,7 +37,7 @@ final _testItems = <String, bool?>{
 
 void main() {
   // Change to true for debugging.
-  final debug = false;
+  const debug = false;
 
   final testRunner = TestRunner();
   late String soundExampleDirectory;
