@@ -83,9 +83,7 @@ class DwdsInjector {
           // The requestedUri contains the hostname and port which guarantees
           // uniqueness.
           final requestedUri = request.requestedUri;
-          final appId = base64.encode(
-            md5.convert(utf8.encode('$requestedUri')).bytes,
-          );
+          final appId = _base64Md5('$requestedUri');
           var scheme = request.requestedUri.scheme;
           if (!globalToolConfiguration.debugSettings.useSseForInjectedClient) {
             // Switch http->ws and https->wss.
@@ -122,7 +120,7 @@ class DwdsInjector {
             'Injected debugging metadata for '
             'entrypoint at $requestedUri',
           );
-          etag = base64.encode(md5.convert(body.codeUnits).bytes);
+          etag = _base64Md5(body);
           newHeaders[HttpHeaders.etagHeader] = etag;
         }
         if (ifNoneMatch == etag) {
@@ -234,4 +232,11 @@ Future<String> _injectedClientSnippet(
   }
 
   return injectedBody;
+}
+
+final _utf8FusedConverter = utf8.encoder.fuse(md5);
+
+String _base64Md5(String input) {
+  final bytes = _utf8FusedConverter.convert(input).bytes;
+  return base64.encode(bytes);
 }

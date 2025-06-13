@@ -204,7 +204,7 @@ class ChromeProxyService implements VmServiceInterface {
       sendClientRequest,
       useWebSocket: useWebSocket,
     );
-    safeUnawaited(service.createIsolate(appConnection));
+    safeUnawaited(service.createIsolate(appConnection, newConnection: true));
     return service;
   }
 
@@ -300,7 +300,13 @@ class ChromeProxyService implements VmServiceInterface {
   /// Only one isolate at a time is supported, but they should be cleaned up
   /// with [destroyIsolate] and recreated with this method there is a hot
   /// restart or full page refresh.
-  Future<void> createIsolate(AppConnection appConnection) async {
+  ///
+  /// If [newConnection] is true, this method does not recompute metadata
+  /// information as the metadata couldn't have changed.
+  Future<void> createIsolate(
+    AppConnection appConnection, {
+    bool newConnection = false,
+  }) async {
     // Inspector is null if the previous isolate is destroyed.
     if (_isIsolateRunning) {
       throw UnsupportedError(
@@ -316,6 +322,9 @@ class ChromeProxyService implements VmServiceInterface {
     // Issue: https://github.com/dart-lang/webdev/issues/1282
     final debugger = await debuggerFuture;
     final entrypoint = appConnection.request.entrypointPath;
+    if (!newConnection) {
+      await globalToolConfiguration.loadStrategy.trackEntrypoint(entrypoint);
+    }
     _initializeEntrypoint(entrypoint);
 
     debugger.notifyPausedAtStart();
