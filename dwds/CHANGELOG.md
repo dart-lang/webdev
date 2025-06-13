@@ -1,6 +1,6 @@
 ## 24.3.11
 
-- Changed DWDS to always inject the client and use `runMainAtStart` flag to control whether main() execution is deferred or runs immediately.
+- Changed DWDS to always inject the client and added `useDwdsWebSocketConnection` flag to control communication protocol: when true uses socket-based implementation, when false uses Chrome-based communication protocol.
 - Added WebSocket-based hot reload support: `reloadSources` in `ChromeProxyService` and `DevHandler` now handle hot reload requests and responses over WebSockets.
 - Refactored the injected client to use a reusable function for handling hot reload requests and responses over WebSockets.
 

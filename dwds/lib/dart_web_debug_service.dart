@@ -68,10 +68,10 @@ class Dwds {
     required ToolConfiguration toolConfiguration,
     // ignore: avoid-unused-parameters
     @Deprecated(
-      'Use runMainAtStart instead. This parameter is ignored and will be removed in a future version.',
+      'This parameter is ignored and will be removed in a future version.',
     )
     bool injectDebuggingSupportCode = true,
-    bool runMainAtStart = false,
+    bool useDwdsWebSocketConnection = false,
   }) async {
     globalToolConfiguration = toolConfiguration;
     final debugSettings = toolConfiguration.debugSettings;
@@ -125,7 +125,7 @@ class Dwds {
 
     final injected = DwdsInjector(
       extensionUri: extensionUri,
-      runMainAtStart: runMainAtStart,
+      useDwdsWebSocketConnection: useDwdsWebSocketConnection,
     );
 
     final devHandler = DevHandler(

@@ -8254,6 +8254,11 @@
     BuildResultBuilder: function BuildResultBuilder() {
       this._status = this._build_result$_$v = null;
     },
+    _$ConnectRequest__$ConnectRequest(updates) {
+      var t1 = new A.ConnectRequestBuilder();
+      type$.nullable_void_Function_ConnectRequestBuilder._as(updates).call$1(t1);
+      return t1._connect_request$_build$0();
+    },
     ConnectRequest: function ConnectRequest() {
     },
     _$ConnectRequestSerializer: function _$ConnectRequestSerializer() {
@@ -8265,7 +8270,7 @@
     },
     ConnectRequestBuilder: function ConnectRequestBuilder() {
       var _ = this;
-      _._entrypointPath = _._instanceId = _._appId = _._$v = null;
+      _._entrypointPath = _._instanceId = _._connect_request$_appId = _._connect_request$_$v = null;
     },
     DebugEvent: function DebugEvent() {
     },
@@ -8312,7 +8317,7 @@
     },
     DebugInfoBuilder: function DebugInfoBuilder() {
       var _ = this;
-      _._tabId = _._tabUrl = _._workspaceName = _._isFlutterApp = _._isInternalBuild = _._extensionUrl = _._dwdsVersion = _._authUrl = _._appUrl = _._appOrigin = _._appInstanceId = _._debug_info$_appId = _._appEntrypointPath = _._debug_info$_$v = null;
+      _._tabId = _._tabUrl = _._workspaceName = _._isFlutterApp = _._isInternalBuild = _._extensionUrl = _._dwdsVersion = _._authUrl = _._appUrl = _._appOrigin = _._appInstanceId = _._appId = _._appEntrypointPath = _._$v = null;
     },
     DevToolsRequest: function DevToolsRequest() {
     },
@@ -9612,7 +9617,7 @@
       t1 = $.$get$serializers();
       t2 = new A.DebugInfoBuilder();
       type$.nullable_void_Function_DebugInfoBuilder._as(new A._launchCommunicationWithDebugExtension_closure()).call$1(t2);
-      A._dispatchEvent("dart-app-ready", B.C_JsonCodec.encode$2$toEncodable(t1.serialize$1(t2._debug_info$_build$0()), null));
+      A._dispatchEvent("dart-app-ready", B.C_JsonCodec.encode$2$toEncodable(t1.serialize$1(t2._build$0()), null));
     },
     _dispatchEvent(message, detail) {
       var t1 = init.G,
@@ -9731,6 +9736,10 @@
         throw A.wrapException(A.StateError$("Expected 'hotReloadSourcePath' to not be null in a hot reload."));
       return path;
     },
+    _isChromium() {
+      var t1 = type$.JSObject;
+      return B.JSString_methods.contains$1(A._asString(t1._as(t1._as(init.G.window).navigator).vendor), "Google");
+    },
     _authUrl() {
       var authUrl,
         extensionUrl = A._asStringQ(type$.JavaScriptObject._as(init.G.window).$dartExtensionUri);
@@ -9794,6 +9803,8 @@
     main__closure9: function main__closure9() {
     },
     main__closure10: function main__closure10() {
+    },
+    main__closure11: function main__closure11() {
     },
     main_closure0: function main_closure0() {
     },
@@ -12253,7 +12264,7 @@
     call$1(tag) {
       return this.prototypeForTag(A._asString(tag));
     },
-    $signature: 35
+    $signature: 89
   };
   A._Record.prototype = {
     get$runtimeType(_) {
@@ -19992,7 +20003,7 @@
       var t1 = type$.Object;
       return A.MapBuilder_MapBuilder(t1, t1);
     },
-    $signature: 89
+    $signature: 80
   };
   A.Serializers_Serializers_closure2.prototype = {
     call$0() {
@@ -21649,7 +21660,7 @@
             t1 = serializers.deserialize$2$specifiedType(value, B.FullType_PT1);
             t1.toString;
             A._asString(t1);
-            result.get$_connect_request$_$this()._appId = t1;
+            result.get$_connect_request$_$this()._connect_request$_appId = t1;
             break;
           case "instanceId":
             t1 = serializers.deserialize$2$specifiedType(value, B.FullType_PT1);
@@ -21665,7 +21676,7 @@
             break;
         }
       }
-      return result._build$0();
+      return result._connect_request$_build$0();
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -21703,24 +21714,24 @@
   A.ConnectRequestBuilder.prototype = {
     get$_connect_request$_$this() {
       var _this = this,
-        $$v = _this._$v;
+        $$v = _this._connect_request$_$v;
       if ($$v != null) {
-        _this._appId = $$v.appId;
+        _this._connect_request$_appId = $$v.appId;
         _this._instanceId = $$v.instanceId;
         _this._entrypointPath = $$v.entrypointPath;
-        _this._$v = null;
+        _this._connect_request$_$v = null;
       }
       return _this;
     },
-    _build$0() {
+    _connect_request$_build$0() {
       var t1, t2, t3, t4, _this = this,
         _s14_ = "ConnectRequest",
         _s10_ = "instanceId",
         _s14_0 = "entrypointPath",
-        _$result = _this._$v;
+        _$result = _this._connect_request$_$v;
       if (_$result == null) {
         t1 = type$.String;
-        t2 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._appId, _s14_, "appId", t1);
+        t2 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._connect_request$_appId, _s14_, "appId", t1);
         t3 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._instanceId, _s14_, _s10_, t1);
         t4 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._entrypointPath, _s14_, _s14_0, t1);
         _$result = new A._$ConnectRequest(t2, t3, t4);
@@ -21729,7 +21740,7 @@
         A.BuiltValueNullFieldError_checkNotNull(t4, _s14_, _s14_0, t1);
       }
       A.ArgumentError_checkNotNull(_$result, "other", type$.ConnectRequest);
-      return _this._$v = _$result;
+      return _this._connect_request$_$v = _$result;
     }
   };
   A.DebugEvent.prototype = {};
@@ -22080,7 +22091,7 @@
             break;
           case "appId":
             t1 = A._asStringQ(serializers.deserialize$2$specifiedType(value, B.FullType_PT1));
-            result.get$_$this()._debug_info$_appId = t1;
+            result.get$_$this()._appId = t1;
             break;
           case "appInstanceId":
             t1 = A._asStringQ(serializers.deserialize$2$specifiedType(value, B.FullType_PT1));
@@ -22128,7 +22139,7 @@
             break;
         }
       }
-      return result._debug_info$_build$0();
+      return result._build$0();
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -22178,10 +22189,10 @@
   A.DebugInfoBuilder.prototype = {
     get$_$this() {
       var _this = this,
-        $$v = _this._debug_info$_$v;
+        $$v = _this._$v;
       if ($$v != null) {
         _this._appEntrypointPath = $$v.appEntrypointPath;
-        _this._debug_info$_appId = $$v.appId;
+        _this._appId = $$v.appId;
         _this._appInstanceId = $$v.appInstanceId;
         _this._appOrigin = $$v.appOrigin;
         _this._appUrl = $$v.appUrl;
@@ -22193,17 +22204,17 @@
         _this._workspaceName = $$v.workspaceName;
         _this._tabUrl = $$v.tabUrl;
         _this._tabId = $$v.tabId;
-        _this._debug_info$_$v = null;
+        _this._$v = null;
       }
       return _this;
     },
-    _debug_info$_build$0() {
+    _build$0() {
       var _this = this,
-        _$result = _this._debug_info$_$v;
+        _$result = _this._$v;
       if (_$result == null)
-        _$result = new A._$DebugInfo(_this.get$_$this()._appEntrypointPath, _this.get$_$this()._debug_info$_appId, _this.get$_$this()._appInstanceId, _this.get$_$this()._appOrigin, _this.get$_$this()._appUrl, _this.get$_$this()._authUrl, _this.get$_$this()._dwdsVersion, _this.get$_$this()._extensionUrl, _this.get$_$this()._isInternalBuild, _this.get$_$this()._isFlutterApp, _this.get$_$this()._workspaceName, _this.get$_$this()._tabUrl, _this.get$_$this()._tabId);
+        _$result = new A._$DebugInfo(_this.get$_$this()._appEntrypointPath, _this.get$_$this()._appId, _this.get$_$this()._appInstanceId, _this.get$_$this()._appOrigin, _this.get$_$this()._appUrl, _this.get$_$this()._authUrl, _this.get$_$this()._dwdsVersion, _this.get$_$this()._extensionUrl, _this.get$_$this()._isInternalBuild, _this.get$_$this()._isFlutterApp, _this.get$_$this()._workspaceName, _this.get$_$this()._tabUrl, _this.get$_$this()._tabId);
       A.ArgumentError_checkNotNull(_$result, "other", type$.DebugInfo);
-      return _this._debug_info$_$v = _$result;
+      return _this._$v = _$result;
     }
   };
   A.DevToolsRequest.prototype = {};
@@ -24070,7 +24081,7 @@
       scanner.expectDone$0();
       return A.MediaType$(t4, t5, parameters);
     },
-    $signature: 34
+    $signature: 35
   };
   A.MediaType_toString_closure.prototype = {
     call$2(attribute, value) {
@@ -26765,13 +26776,20 @@
               client.get$stream().listen$2$onError(new A.main__closure7(manager, client), new A.main__closure8());
               if (A._asBool(t1.$dwdsEnableDevToolsLaunch))
                 A._EventStreamSubscription$(t2._as(t1.window), "keydown", type$.nullable_void_Function_JSObject._as(new A.main__closure9()), false, t2);
-              t2 = client.get$sink();
-              t3 = new A.ConnectRequestBuilder();
-              type$.nullable_void_Function_ConnectRequestBuilder._as(new A.main__closure10()).call$1(t3);
-              t3 = t3._build$0();
-              A._trySendEvent(t2, B.C_JsonCodec.encode$2$toEncodable($.$get$serializers().serialize$1(t3), null), type$.dynamic);
-              if (A._asBool(t1.$runMainAtStart))
-                A.runMain();
+              if (A._asString(t1.$dartModuleStrategy) !== "ddc-library-bundle")
+                if (A._isChromium()) {
+                  t1 = client.get$sink();
+                  t2 = A._$ConnectRequest__$ConnectRequest(new A.main__closure10());
+                  A._trySendEvent(t1, B.C_JsonCodec.encode$2$toEncodable($.$get$serializers().serialize$1(t2), null), type$.dynamic);
+                } else
+                  A.runMain();
+              else {
+                t2 = client.get$sink();
+                t3 = A._$ConnectRequest__$ConnectRequest(new A.main__closure11());
+                A._trySendEvent(t2, B.C_JsonCodec.encode$2$toEncodable($.$get$serializers().serialize$1(t3), null), type$.dynamic);
+                if (A._asBool(t1.$useDwdsWebSocketConnection))
+                  A.runMain();
+              }
               A._launchCommunicationWithDebugExtension();
               // implicit return
               return A._asyncReturn(null, $async$completer);
@@ -26894,11 +26912,9 @@
   };
   A.main__closure6.prototype = {
     call$0() {
-      var t3,
-        t1 = init.G,
-        t2 = type$.JSObject;
-      if (!B.JSString_methods.contains$1(A._asString(t2._as(t2._as(t1.window).navigator).vendor), "Google")) {
-        t2._as(t1.window).alert("Dart DevTools is only supported on Chromium based browsers.");
+      var t1, t2, t3;
+      if (!A._isChromium()) {
+        type$.JSObject._as(init.G.window).alert("Dart DevTools is only supported on Chromium based browsers.");
         return;
       }
       t1 = this.client.get$sink();
@@ -27074,14 +27090,27 @@
     call$1(b) {
       var t1 = init.G,
         t2 = A._asString(t1.$dartAppId);
-      b.get$_connect_request$_$this()._appId = t2;
+      b.get$_connect_request$_$this()._connect_request$_appId = t2;
       t2 = A._asStringQ(t1.$dartAppInstanceId);
       b.get$_connect_request$_$this()._instanceId = t2;
       t1 = A._asString(t1.$dartEntrypointPath);
       b.get$_connect_request$_$this()._entrypointPath = t1;
       return b;
     },
-    $signature: 80
+    $signature: 34
+  };
+  A.main__closure11.prototype = {
+    call$1(b) {
+      var t1 = init.G,
+        t2 = A._asString(t1.$dartAppId);
+      b.get$_connect_request$_$this()._connect_request$_appId = t2;
+      t2 = A._asStringQ(t1.$dartAppInstanceId);
+      b.get$_connect_request$_$this()._instanceId = t2;
+      t1 = A._asString(t1.$dartEntrypointPath);
+      b.get$_connect_request$_$this()._entrypointPath = t1;
+      return b;
+    },
+    $signature: 34
   };
   A.main_closure0.prototype = {
     call$2(error, stackTrace) {
@@ -27099,7 +27128,7 @@
       b.get$_$this()._appEntrypointPath = t2;
       t2 = type$.JavaScriptObject;
       t3 = A._asStringQ(t2._as(t1.window).$dartAppId);
-      b.get$_$this()._debug_info$_appId = t3;
+      b.get$_$this()._appId = t3;
       t3 = A._asStringQ(t1.$dartAppInstanceId);
       b.get$_$this()._appInstanceId = t3;
       t3 = type$.JSObject;
@@ -27952,7 +27981,7 @@
     _inheritMany(A._CastIterableBase, [A.CastIterable, A.__CastListBase__CastIterableBase_ListMixin]);
     _inherit(A._EfficientLengthCastIterable, A.CastIterable);
     _inherit(A._CastListBase, A.__CastListBase__CastIterableBase_ListMixin);
-    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.Instantiation, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._CustomHashMap_closure, A._LinkedCustomHashMap_closure, A._BigIntImpl_hashCode_finish, A._Uri__makePath_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure, A.FutureOfVoidToJSPromise_get_toJS__closure, A.jsify__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.BuiltListMultimap_BuiltListMultimap_closure, A.BuiltListMultimap_hashCode_closure, A.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.BuiltSet_hashCode_closure, A.BuiltSetMultimap_hashCode_closure, A.SetMultimapBuilder_replace_closure, A.newBuiltValueToStringHelper_closure, A.BuiltListMultimapSerializer_serialize_closure, A.BuiltListMultimapSerializer_deserialize_closure, A.BuiltListSerializer_serialize_closure, A.BuiltListSerializer_deserialize_closure, A.BuiltSetMultimapSerializer_serialize_closure, A.BuiltSetMultimapSerializer_deserialize_closure, A.BuiltSetSerializer_serialize_closure, A.BuiltSetSerializer_deserialize_closure, A.CanonicalizedMap_keys_closure, A.WebSocketClient_stream_closure, A.BaseRequest_closure0, A.BrowserClient_send_closure, A.BrowserClient_send_closure0, A.ByteStream_toBytes_closure, A.MediaType_toString__closure, A.expectQuotedString_closure, A.Context_joinAll_closure, A.Context_split_closure, A._validateArgList_closure, A.Pool__runOnRelease_closure, A.Highlighter$__closure, A.Highlighter$___closure, A.Highlighter$__closure0, A.Highlighter__collateLines_closure, A.Highlighter__collateLines_closure1, A.Highlighter__collateLines__closure, A.Highlighter_highlight_closure, A.SseClient_closure0, A.SseClient_closure1, A.generateUuidV4_generateBits, A._GuaranteeSink__addError_closure, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.BrowserWebSocket_connect_closure, A.BrowserWebSocket_connect_closure0, A.BrowserWebSocket_connect_closure1, A.BrowserWebSocket_connect_closure2, A.AdapterWebSocketChannel_closure, A.AdapterWebSocketChannel__closure, A.AdapterWebSocketChannel__closure0, A.AdapterWebSocketChannel_closure0, A.main__closure1, A.main__closure3, A.main___closure2, A.main___closure1, A.main__closure5, A.main___closure0, A.main___closure, A.main__closure7, A.main__closure8, A.main__closure9, A.main__closure10, A._launchCommunicationWithDebugExtension_closure, A._handleAuthRequest_closure, A._sendResponse_closure, A.DdcRestarter_restart_closure0, A.DdcRestarter_restart_closure, A.RequireRestarter__reloadModule_closure0, A.JSArrayExtension_toDartIterable_closure]);
+    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.Instantiation, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._CustomHashMap_closure, A._LinkedCustomHashMap_closure, A._BigIntImpl_hashCode_finish, A._Uri__makePath_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure, A.FutureOfVoidToJSPromise_get_toJS__closure, A.jsify__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.BuiltListMultimap_BuiltListMultimap_closure, A.BuiltListMultimap_hashCode_closure, A.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.BuiltSet_hashCode_closure, A.BuiltSetMultimap_hashCode_closure, A.SetMultimapBuilder_replace_closure, A.newBuiltValueToStringHelper_closure, A.BuiltListMultimapSerializer_serialize_closure, A.BuiltListMultimapSerializer_deserialize_closure, A.BuiltListSerializer_serialize_closure, A.BuiltListSerializer_deserialize_closure, A.BuiltSetMultimapSerializer_serialize_closure, A.BuiltSetMultimapSerializer_deserialize_closure, A.BuiltSetSerializer_serialize_closure, A.BuiltSetSerializer_deserialize_closure, A.CanonicalizedMap_keys_closure, A.WebSocketClient_stream_closure, A.BaseRequest_closure0, A.BrowserClient_send_closure, A.BrowserClient_send_closure0, A.ByteStream_toBytes_closure, A.MediaType_toString__closure, A.expectQuotedString_closure, A.Context_joinAll_closure, A.Context_split_closure, A._validateArgList_closure, A.Pool__runOnRelease_closure, A.Highlighter$__closure, A.Highlighter$___closure, A.Highlighter$__closure0, A.Highlighter__collateLines_closure, A.Highlighter__collateLines_closure1, A.Highlighter__collateLines__closure, A.Highlighter_highlight_closure, A.SseClient_closure0, A.SseClient_closure1, A.generateUuidV4_generateBits, A._GuaranteeSink__addError_closure, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.BrowserWebSocket_connect_closure, A.BrowserWebSocket_connect_closure0, A.BrowserWebSocket_connect_closure1, A.BrowserWebSocket_connect_closure2, A.AdapterWebSocketChannel_closure, A.AdapterWebSocketChannel__closure, A.AdapterWebSocketChannel__closure0, A.AdapterWebSocketChannel_closure0, A.main__closure1, A.main__closure3, A.main___closure2, A.main___closure1, A.main__closure5, A.main___closure0, A.main___closure, A.main__closure7, A.main__closure8, A.main__closure9, A.main__closure10, A.main__closure11, A._launchCommunicationWithDebugExtension_closure, A._handleAuthRequest_closure, A._sendResponse_closure, A.DdcRestarter_restart_closure0, A.DdcRestarter_restart_closure, A.RequireRestarter__reloadModule_closure0, A.JSArrayExtension_toDartIterable_closure]);
     _inheritMany(A.Closure2Args, [A._CastListBase_sort_closure, A.CastMap_forEach_closure, A.ConstantMap_map_closure, A.JsLinkedHashMap_addAll_closure, A.initHooks_closure0, A._awaitOnObject_closure0, A._wrapJsFunctionForAsync_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure0, A._Future_timeout_closure1, A._BufferingStreamSubscription_asFuture_closure0, A.LinkedHashMap_LinkedHashMap$from_closure, A.MapBase_mapToString_closure, A._JsonStringifier_writeMap_closure, A._BigIntImpl_hashCode_combine, A.Uri__parseIPv4Address_error, A.Uri_parseIPv6Address_error, A.Uri_parseIPv6Address_parseHex, A.FutureOfJSAnyToJSPromise_get_toJS_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure0, A.FutureOfVoidToJSPromise_get_toJS_closure, A.FutureOfVoidToJSPromise_get_toJS__closure0, A.StreamQueue__ensureListening_closure1, A.hashObjects_closure, A.MapBuilder_replace_closure, A.CanonicalizedMap_addAll_closure, A.CanonicalizedMap_forEach_closure, A.CanonicalizedMap_map_closure, A.safeUnawaited_closure, A.BaseRequest_closure, A.MediaType_toString_closure, A.Pool__runOnRelease_closure0, A.Highlighter__collateLines_closure0, A.generateUuidV4_printDigits, A.generateUuidV4_bitsDigits, A.main__closure4, A.main_closure0]);
     _inherit(A.CastList, A._CastListBase);
     _inheritMany(A.MapBase, [A.CastMap, A.JsLinkedHashMap, A._HashMap, A._JsonMap]);
@@ -28074,7 +28103,7 @@
     typeUniverse: {eC: new Map(), tR: {}, eT: {}, tPV: {}, sEA: []},
     mangledGlobalNames: {int: "int", double: "double", num: "num", String: "String", bool: "bool", Null: "Null", List: "List", Object: "Object", Map: "Map"},
     mangledNames: {},
-    types: ["~()", "Null()", "~(JSObject)", "Object?(@)", "@(@)", "Null(Object,StackTrace)", "Null(@)", "~(@)", "Null(JSObject)", "~(Object?)", "Object?(Object?)", "JSObject()", "~(~())", "~(Object,StackTrace)", "bool(Object?)", "String(String)", "Future<~>()", "bool(Object?,Object?)", "int(Object?)", "bool(_Highlight)", "bool(String)", "@()", "int(int)", "Null(JavaScriptFunction,JavaScriptFunction)", "~(Object[StackTrace?])", "~(@,StackTrace)", "bool()", "int(int,int)", "String(Match)", "int(@,@)", "int()", "~(@,@)", "String(int,int)", "~(Object?,Object?)", "MediaType()", "@(String)", "SetMultimapBuilder<Object,Object>()", "@(@,String)", "Null(~())", "~(int,@)", "ListBuilder<DebugEvent>()", "ListBuilder<ExtensionEvent>()", "~(String,int)", "String(@)", "bool(String,String)", "int(String)", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)", "~(List<int>)", "~(String,int?)", "~(String,String)", "JSObject(Object,StackTrace)", "Logger()", "Object?(~)", "String(String?)", "String?()", "int(_Line)", "Null(@,StackTrace)", "Object(_Line)", "Object(_Highlight)", "int(_Highlight,_Highlight)", "List<_Line>(MapEntry<Object,List<_Highlight>>)", "int(int,@)", "SourceSpanWithContext()", "IndentingBuiltValueToStringHelper(String)", "~(String?)", "Future<Null>()", "ListBuilder<Object>()", "Null(WebSocket)", "~(WebSocketEvent)", "HotReloadResponse([~(HotReloadResponseBuilder)])", "ListMultimapBuilder<Object,Object>()", "JSObject(String[bool?])", "~(List<DebugEvent>)", "ListBuilder<DebugEvent>(BatchedDebugEventsBuilder)", "Null(String,String)", "DebugEventBuilder(DebugEventBuilder)", "0^(0^,0^)<num>", "RegisterEventBuilder(RegisterEventBuilder)", "DevToolsRequestBuilder(DevToolsRequestBuilder)", "Future<~>(String)", "ConnectRequestBuilder(ConnectRequestBuilder)", "DebugInfoBuilder(DebugInfoBuilder)", "~(bool)", "bool(bool)", "List<String>(String)", "int(String,String)", "Null(JavaScriptObject)", "JSObject()()", "Null(Object)", "MapBuilder<Object,Object>()", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "~(String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "Null(String)", "SetBuilder<Object>()"],
+    types: ["~()", "Null()", "~(JSObject)", "Object?(@)", "@(@)", "Null(Object,StackTrace)", "Null(@)", "~(@)", "Null(JSObject)", "~(Object?)", "Object?(Object?)", "JSObject()", "~(~())", "~(Object,StackTrace)", "bool(Object?)", "String(String)", "Future<~>()", "bool(Object?,Object?)", "int(Object?)", "bool(_Highlight)", "bool(String)", "@()", "int(int)", "Null(JavaScriptFunction,JavaScriptFunction)", "~(Object[StackTrace?])", "~(@,StackTrace)", "bool()", "int(int,int)", "String(Match)", "int(@,@)", "int()", "~(@,@)", "String(int,int)", "~(Object?,Object?)", "ConnectRequestBuilder(ConnectRequestBuilder)", "MediaType()", "SetMultimapBuilder<Object,Object>()", "@(@,String)", "Null(~())", "~(int,@)", "ListBuilder<DebugEvent>()", "ListBuilder<ExtensionEvent>()", "~(String,int)", "String(@)", "bool(String,String)", "int(String)", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)", "~(List<int>)", "~(String,int?)", "~(String,String)", "JSObject(Object,StackTrace)", "Logger()", "Object?(~)", "String(String?)", "String?()", "int(_Line)", "Null(@,StackTrace)", "Object(_Line)", "Object(_Highlight)", "int(_Highlight,_Highlight)", "List<_Line>(MapEntry<Object,List<_Highlight>>)", "int(int,@)", "SourceSpanWithContext()", "IndentingBuiltValueToStringHelper(String)", "~(String?)", "Future<Null>()", "ListBuilder<Object>()", "Null(WebSocket)", "~(WebSocketEvent)", "HotReloadResponse([~(HotReloadResponseBuilder)])", "ListMultimapBuilder<Object,Object>()", "JSObject(String[bool?])", "~(List<DebugEvent>)", "ListBuilder<DebugEvent>(BatchedDebugEventsBuilder)", "Null(String,String)", "DebugEventBuilder(DebugEventBuilder)", "0^(0^,0^)<num>", "RegisterEventBuilder(RegisterEventBuilder)", "DevToolsRequestBuilder(DevToolsRequestBuilder)", "Future<~>(String)", "MapBuilder<Object,Object>()", "DebugInfoBuilder(DebugInfoBuilder)", "~(bool)", "bool(bool)", "List<String>(String)", "int(String,String)", "Null(JavaScriptObject)", "JSObject()()", "Null(Object)", "@(String)", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "~(String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "Null(String)", "SetBuilder<Object>()"],
     interceptorsByTag: null,
     leafTags: null,
     arrayRti: Symbol("$ti"),

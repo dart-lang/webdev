@@ -240,19 +240,38 @@ Future<void>? main() {
         });
       }
 
-      _sendConnectRequest(
-        client.sink,
-        ConnectRequest(
-          (b) =>
-              b
-                ..appId = dartAppId
-                ..instanceId = dartAppInstanceId
-                ..entrypointPath = dartEntrypointPath,
-        ),
-      );
+      if (!(dartModuleStrategy == 'ddc-library-bundle')) {
+        if (_isChromium) {
+          _sendConnectRequest(
+            client.sink,
+            ConnectRequest(
+              (b) =>
+                  b
+                    ..appId = dartAppId
+                    ..instanceId = dartAppInstanceId
+                    ..entrypointPath = dartEntrypointPath,
+            ),
+          );
+        } else {
+          // If not Chromium we just invoke main, devtools aren't supported.
+          runMain();
+        }
+      } else {
+        _sendConnectRequest(
+          client.sink,
+          ConnectRequest(
+            (b) =>
+                b
+                  ..appId = dartAppId
+                  ..instanceId = dartAppInstanceId
+                  ..entrypointPath = dartEntrypointPath,
+          ),
+        );
 
-      if (runMainAtStart) {
-        runMain();
+        // TODO(yjessy): Remove this when the DWDS WebSocket connection is implemented.
+        if (useDwdsWebSocketConnection) {
+          runMain();
+        }
       }
       _launchCommunicationWithDebugExtension();
     },
@@ -477,8 +496,9 @@ external String get reloadConfiguration;
 @JS(r'$dartEntrypointPath')
 external String get dartEntrypointPath;
 
-@JS(r'$runMainAtStart')
-external bool get runMainAtStart;
+// TODO(yjessy): Remove this when the DWDS WebSocket connection is implemented.
+@JS(r'$useDwdsWebSocketConnection')
+external bool get useDwdsWebSocketConnection;
 
 @JS(r'$dwdsEnableDevToolsLaunch')
 external bool get dwdsEnableDevToolsLaunch;
