@@ -57,7 +57,8 @@ void main() {
 
       final process =
           await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
-      await expectLater(process.stdout, emitsThrough(contains('Succeeded')));
+      await expectLater(
+          process.stdout, emitsThrough(contains('Built with build_runner')));
 
       final client = HttpClient()
         ..badCertificateCallback = (_, __, ___) => true;
@@ -86,7 +87,8 @@ void main() {
 
       final process =
           await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
-      await expectLater(process.stdout, emitsThrough(contains('Succeeded')));
+      await expectLater(
+          process.stdout, emitsThrough(contains('Built with build_runner')));
 
       final interfaces = await NetworkInterface.list(
         type: InternetAddressType.IPv4,
