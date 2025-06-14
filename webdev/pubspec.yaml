@@ -44,10 +44,7 @@ dev_dependencies:
     path: ../_analysis_config
   build: ^2.3.0
   build_runner: ^2.4.0
-  build_verify:
-    git:
-      url: https://github.com/kevmoo/build_verify
-      ref: 5b80a28bac1aae2c25d89476e33f62d5c1cb6cdf
+  build_verify: ^3.0.0
   build_version: ^2.1.1
   test: ^1.21.1
   test_common:
