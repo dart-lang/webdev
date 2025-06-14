@@ -89,7 +89,7 @@ void main() {
     await expectLater(
         process.stdout,
         emitsThrough(contains(
-          'Unable to create merged directory at ${d.sandbox}. '
+          'Unable to create merged directory ${d.sandbox}. '
           'Choose a different directory or delete the contents of that '
           'directory.',
         )));
