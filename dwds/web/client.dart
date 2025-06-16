@@ -240,24 +240,19 @@ Future<void>? main() {
         });
       }
 
-      if (_isChromium) {
-        _trySendEvent(
-          client.sink,
-          jsonEncode(
-            serializers.serialize(
-              ConnectRequest(
-                (b) =>
-                    b
-                      ..appId = dartAppId
-                      ..instanceId = dartAppInstanceId
-                      ..entrypointPath = dartEntrypointPath,
-              ),
-            ),
-          ),
-        );
+      if (dartModuleStrategy != 'ddc-library-bundle') {
+        if (_isChromium) {
+          _sendConnectRequest(client.sink);
+        } else {
+          // If not Chromium we just invoke main, devtools aren't supported.
+          runMain();
+        }
       } else {
-        // If not Chromium we just invoke main, devtools aren't supported.
-        runMain();
+        _sendConnectRequest(client.sink);
+        // TODO(yjessy): Remove this when the DWDS WebSocket connection is implemented.
+        if (useDwdsWebSocketConnection) {
+          runMain();
+        }
       }
       _launchCommunicationWithDebugExtension();
     },
@@ -290,6 +285,23 @@ void _trySendEvent<T>(StreamSink<T> sink, T serialized) {
       'Injected client connection is closed.',
     );
   }
+}
+
+void _sendConnectRequest(StreamSink clientSink) {
+  _trySendEvent(
+    clientSink,
+    jsonEncode(
+      serializers.serialize(
+        ConnectRequest(
+          (b) =>
+              b
+                ..appId = dartAppId
+                ..instanceId = dartAppInstanceId
+                ..entrypointPath = dartEntrypointPath,
+        ),
+      ),
+    ),
+  );
 }
 
 /// Returns [url] modified if necessary so that, if the current page is served
@@ -477,6 +489,10 @@ external String get reloadConfiguration;
 
 @JS(r'$dartEntrypointPath')
 external String get dartEntrypointPath;
+
+// TODO(yjessy): Remove this when the DWDS WebSocket connection is implemented.
+@JS(r'$useDwdsWebSocketConnection')
+external bool get useDwdsWebSocketConnection;
 
 @JS(r'$dwdsEnableDevToolsLaunch')
 external bool get dwdsEnableDevToolsLaunch;
