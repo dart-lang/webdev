@@ -36,8 +36,6 @@ void main() {
 
   tearDownAll(provider.dispose);
 
-  final edits = <({String file, String originalString, String newString})>[];
-
   void makeEdit(String file, String originalString, String newString) {
     if (file == project.dartEntryFileName) {
       context.makeEditToDartEntryFile(
@@ -51,11 +49,6 @@ void main() {
         replaceWith: newString,
       );
     }
-    edits.add((
-      file: file,
-      originalString: originalString,
-      newString: newString,
-    ));
   }
 
   Future<void> makeEditAndRecompile(
@@ -65,24 +58,6 @@ void main() {
   ) async {
     makeEdit(file, originalString, newString);
     await context.recompile(fullRestart: true);
-  }
-
-  void undoEdits() {
-    for (final (:file, :originalString, :newString) in edits.reversed) {
-      if (file == project.dartEntryFileName) {
-        context.makeEditToDartEntryFile(
-          toReplace: newString,
-          replaceWith: originalString,
-        );
-      } else {
-        context.makeEditToDartLibFile(
-          libFileName: file,
-          toReplace: newString,
-          replaceWith: originalString,
-        );
-      }
-    }
-    edits.clear();
   }
 
   group('when pause_isolates_on_start is true', () {
@@ -104,11 +79,11 @@ void main() {
         ),
       );
       client = await context.connectFakeClient();
+      service = context.service;
       await client.setFlag('pause_isolates_on_start', 'true');
       await client.streamListen(EventStreams.kIsolate);
-      service = context.service;
-      stream = service.onEvent(EventStreams.kDebug);
-      await service.streamListen(EventStreams.kDebug);
+      await client.streamListen(EventStreams.kDebug);
+      stream = client.onEvent(EventStreams.kDebug);
       consoleSubscription = context.webkitDebugger.onConsoleAPICalled.listen(
         (e) => consoleLogs.add(e.args.first.value as String),
       );
@@ -117,7 +92,6 @@ void main() {
     tearDown(() async {
       await consoleSubscription.cancel();
       consoleLogs.clear();
-      undoEdits();
       await context.tearDown();
     });
 
@@ -318,8 +292,6 @@ void main() {
         await breakpointFuture;
         expect(consoleLogs.contains(libGenLog), false);
         await resumeAndExpectLog(libGenLog);
-
-        context.removeLibraryFile(libFileName: libFile);
       },
     );
   });

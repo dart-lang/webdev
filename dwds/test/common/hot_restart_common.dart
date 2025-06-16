@@ -54,13 +54,6 @@ void runTests({
     await recompile(hasEdits: true);
   }
 
-  void undoEdit() {
-    context.makeEditToDartEntryFile(
-      toReplace: newString,
-      replaceWith: originalString,
-    );
-  }
-
   /// Wait for main to finish executing before checking expectations by checking
   /// for a log output.
   ///
@@ -98,7 +91,6 @@ void runTests({
         });
 
         tearDown(() async {
-          undoEdit();
           await context.tearDown();
         });
 
@@ -131,7 +123,6 @@ void runTests({
         });
 
         tearDown(() async {
-          undoEdit();
           await context.tearDown();
         });
 
@@ -166,7 +157,6 @@ void runTests({
 
         tearDown(() async {
           await context.tearDown();
-          undoEdit();
         });
 
         test('can live reload changes ', () async {
@@ -204,7 +194,6 @@ void runTests({
 
     tearDown(() async {
       await context.tearDown();
-      undoEdit();
     });
 
     test('destroys and recreates the isolate during a hot restart', () async {
@@ -501,7 +490,6 @@ void runTests({
 
         tearDown(() async {
           await context.tearDown();
-          undoEdit();
         });
 
         test('can hot restart changes ', () async {
@@ -562,7 +550,6 @@ void runTests({
 
         tearDown(() async {
           await context.tearDown();
-          undoEdit();
         });
 
         test('can hot restart changes ', () async {
@@ -609,7 +596,6 @@ void runTests({
 
     tearDown(() async {
       await context.tearDown();
-      undoEdit();
     });
 
     test(

@@ -33,8 +33,7 @@ void main() {
               ? 'packages/${project.packageDirectory}/lib/test_library.dart'
               : '/packages/${project.packageName}/test_library.dart';
 
-      final resolvedPath =
-          '/webdev/fixtures/${project.packageDirectory}/lib/test_library.dart';
+      final resolvedPath = '${project.packageDirectory}/lib/test_library.dart';
 
       final testPackageSoundPath = project.absolutePackageDirectory;
       final packageConfigFile = Uri.file(

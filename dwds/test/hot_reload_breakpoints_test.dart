@@ -14,7 +14,6 @@ import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:vm_service_interface/vm_service_interface.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
@@ -36,8 +35,6 @@ void main() {
 
   tearDownAll(provider.dispose);
 
-  final edits = <({String file, String originalString, String newString})>[];
-
   void makeEdit(String file, String originalString, String newString) {
     if (file == project.dartEntryFileName) {
       context.makeEditToDartEntryFile(
@@ -51,11 +48,6 @@ void main() {
         replaceWith: newString,
       );
     }
-    edits.add((
-      file: file,
-      originalString: originalString,
-      newString: newString,
-    ));
   }
 
   Future<void> makeEditAndRecompile(
@@ -67,27 +59,8 @@ void main() {
     await context.recompile(fullRestart: false);
   }
 
-  void undoEdits() {
-    for (final (:file, :originalString, :newString) in edits.reversed) {
-      if (file == project.dartEntryFileName) {
-        context.makeEditToDartEntryFile(
-          toReplace: newString,
-          replaceWith: originalString,
-        );
-      } else {
-        context.makeEditToDartLibFile(
-          libFileName: file,
-          toReplace: newString,
-          replaceWith: originalString,
-        );
-      }
-    }
-    edits.clear();
-  }
-
   group('when pause_isolates_on_start is true', () {
     late VmService client;
-    late VmServiceInterface service;
     late Stream<Event> stream;
 
     setUp(() async {
@@ -102,13 +75,11 @@ void main() {
       );
       client = await context.connectFakeClient();
       await client.setFlag('pause_isolates_on_start', 'true');
-      service = context.service;
-      stream = service.onEvent(EventStreams.kDebug);
-      await service.streamListen(EventStreams.kDebug);
+      await client.streamListen(EventStreams.kDebug);
+      stream = client.onDebugEvent;
     });
 
     tearDown(() async {
-      undoEdits();
       await context.tearDown();
     });
 
@@ -373,8 +344,6 @@ void main() {
         // Should break at `libValue`.
         await breakpointFuture;
         await resumeAndExpectLog(libGenLog);
-
-        context.removeLibraryFile(libFileName: libFile);
       },
     );
 
@@ -438,7 +407,6 @@ void main() {
     });
 
     tearDown(() async {
-      undoEdits();
       await context.tearDown();
     });
 

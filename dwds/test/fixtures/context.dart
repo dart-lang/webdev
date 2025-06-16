@@ -129,18 +129,7 @@ class TestContext {
   /// External VM service.
   VmService get vmService => debugConnection.vmService;
 
-  TestContext(this.project, this.sdkConfigurationProvider) {
-    DartUri.currentDirectory = project.absolutePackageDirectory;
-
-    project.validate();
-
-    _logger.info(
-      'Serving: ${project.directoryToServe}/${project.filePathToServe}',
-    );
-    _logger.info('Project: ${project.absolutePackageDirectory}');
-    _logger.info('Packages: ${project.packageConfigFile}');
-    _logger.info('Entry: ${project.dartEntryFilePath}');
-  }
+  TestContext(this.project, this.sdkConfigurationProvider);
 
   Future<void> setUp({
     TestSettings testSettings = const TestSettings(),
@@ -160,9 +149,16 @@ class TestContext {
       final sdkLayout = sdkConfigurationProvider.sdkLayout;
       final configuration = await sdkConfigurationProvider.configuration;
       configuration.validate();
-      await project.cleanUp();
+      await project.setUp();
 
       DartUri.currentDirectory = project.absolutePackageDirectory;
+
+      _logger.info(
+        'Serving: ${project.directoryToServe}/${project.filePathToServe}',
+      );
+      _logger.info('Project: ${project.absolutePackageDirectory}');
+      _logger.info('Packages: ${project.packageConfigFile}');
+      _logger.info('Entry: ${project.dartEntryFilePath}');
 
       configureLogWriter();
 
@@ -552,6 +548,7 @@ class TestContext {
     _client?.close();
     await _outputDir?.delete(recursive: true);
     stopLogWriter();
+    project.tearDown();
 
     // clear the state for next setup
     _webDriver = null;
@@ -568,6 +565,10 @@ class TestContext {
     required String toReplace,
     required String replaceWith,
   }) {
+    assert(
+      project.editable,
+      'Project ${project.packageName} is not marked as editable',
+    );
     final file = File(project.dartEntryFilePath);
     final fileContents = file.readAsStringSync();
     file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
@@ -578,21 +579,24 @@ class TestContext {
     required String toReplace,
     required String replaceWith,
   }) {
+    assert(
+      project.editable,
+      'Project ${project.packageName} is not marked as editable',
+    );
     final file = File(project.dartLibFilePath(libFileName));
     final fileContents = file.readAsStringSync();
     file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
   }
 
   void addLibraryFile({required String libFileName, required String contents}) {
+    assert(
+      project.editable,
+      'Project ${project.packageName} is not marked as editable',
+    );
     final file = File(project.dartLibFilePath(libFileName));
     // Library folder may not exist yet, so create it.
     file.createSync(recursive: true);
     file.writeAsStringSync(contents);
-  }
-
-  void removeLibraryFile({required String libFileName}) {
-    final file = File(project.dartLibFilePath(libFileName));
-    file.deleteSync();
   }
 
   Future<void> recompile({required bool fullRestart}) async {
