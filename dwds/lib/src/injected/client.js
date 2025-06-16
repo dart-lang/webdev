@@ -8254,11 +8254,6 @@
     BuildResultBuilder: function BuildResultBuilder() {
       this._status = this._build_result$_$v = null;
     },
-    _$ConnectRequest__$ConnectRequest(updates) {
-      var t1 = new A.ConnectRequestBuilder();
-      type$.nullable_void_Function_ConnectRequestBuilder._as(updates).call$1(t1);
-      return t1._connect_request$_build$0();
-    },
     ConnectRequest: function ConnectRequest() {
     },
     _$ConnectRequestSerializer: function _$ConnectRequestSerializer() {
@@ -9611,6 +9606,12 @@
           throw exception;
       }
     },
+    _sendConnectRequest(clientSink) {
+      var t1 = $.$get$serializers(),
+        t2 = new A.ConnectRequestBuilder();
+      type$.nullable_void_Function_ConnectRequestBuilder._as(new A._sendConnectRequest_closure()).call$1(t2);
+      A._trySendEvent(clientSink, B.C_JsonCodec.encode$2$toEncodable(t1.serialize$1(t2._connect_request$_build$0()), null), type$.dynamic);
+    },
     _launchCommunicationWithDebugExtension() {
       var t1, t2;
       type$.JSObject._as(init.G.window).addEventListener("message", A._functionToJS1(A.client___handleAuthRequest$closure()));
@@ -9802,11 +9803,9 @@
     },
     main__closure9: function main__closure9() {
     },
-    main__closure10: function main__closure10() {
-    },
-    main__closure11: function main__closure11() {
-    },
     main_closure0: function main_closure0() {
+    },
+    _sendConnectRequest_closure: function _sendConnectRequest_closure() {
     },
     _launchCommunicationWithDebugExtension_closure: function _launchCommunicationWithDebugExtension_closure() {
     },
@@ -12262,7 +12261,7 @@
     call$2(o, tag) {
       return this.getUnknownTag(o, tag);
     },
-    $signature: 80
+    $signature: 66
   };
   A.initHooks_closure1.prototype = {
     call$1(tag) {
@@ -12856,7 +12855,7 @@
       t2 = this.span;
       t1.firstChild ? t1.removeChild(t2) : t1.appendChild(t2);
     },
-    $signature: 63
+    $signature: 61
   };
   A._AsyncRun__scheduleImmediateJsOverride_internalCallback.prototype = {
     call$0() {
@@ -12962,7 +12961,7 @@
     call$2(error, stackTrace) {
       this.bodyFunction.call$2(1, new A.ExceptionAndStackTrace(error, type$.StackTrace._as(stackTrace)));
     },
-    $signature: 53
+    $signature: 52
   };
   A._wrapJsFunctionForAsync_closure.prototype = {
     call$2(errorCode, result) {
@@ -14779,7 +14778,7 @@
           t2._processUncaughtError$3(zone, type$.Object._as(e), t1._as(s));
       }
     },
-    $signature: 66
+    $signature: 63
   };
   A._HashMap.prototype = {
     get$length(_) {
@@ -17921,13 +17920,13 @@
     call$2(msg, position) {
       throw A.wrapException(A.FormatException$("Illegal IPv4 address, " + msg, this.host, position));
     },
-    $signature: 61
+    $signature: 56
   };
   A.Uri_parseIPv6Address_error.prototype = {
     call$2(msg, position) {
       throw A.wrapException(A.FormatException$("Illegal IPv6 address, " + msg, this.host, position));
     },
-    $signature: 56
+    $signature: 53
   };
   A.Uri_parseIPv6Address_parseHex.prototype = {
     call$2(start, end) {
@@ -18592,7 +18591,7 @@
       t1.call(t1, wrapper);
       return wrapper;
     },
-    $signature: 52
+    $signature: 50
   };
   A.FutureOfVoidToJSPromise_get_toJS_closure.prototype = {
     call$2(resolve, reject) {
@@ -18606,7 +18605,7 @@
       var t1 = this.resolve;
       return t1.call(t1);
     },
-    $signature: 50
+    $signature: 46
   };
   A.FutureOfVoidToJSPromise_get_toJS__closure0.prototype = {
     call$2(error, stackTrace) {
@@ -18926,7 +18925,7 @@
     call$2(h, i) {
       return A._combine(A._asInt(h), J.get$hashCode$(i));
     },
-    $signature: 46
+    $signature: 42
   };
   A.BuiltList.prototype = {
     toBuilder$0() {
@@ -19860,7 +19859,7 @@
       $._indentingBuiltValueToStringHelperIndent = $._indentingBuiltValueToStringHelperIndent + 2;
       return new A.IndentingBuiltValueToStringHelper(t1);
     },
-    $signature: 42
+    $signature: 39
   };
   A.IndentingBuiltValueToStringHelper.prototype = {
     add$2(_, field, value) {
@@ -19993,21 +19992,21 @@
     call$0() {
       return A.ListBuilder_ListBuilder(B.List_empty0, type$.Object);
     },
-    $signature: 39
+    $signature: 38
   };
   A.Serializers_Serializers_closure0.prototype = {
     call$0() {
       var t1 = type$.Object;
       return A.ListMultimapBuilder_ListMultimapBuilder(t1, t1);
     },
-    $signature: 38
+    $signature: 36
   };
   A.Serializers_Serializers_closure1.prototype = {
     call$0() {
       var t1 = type$.Object;
       return A.MapBuilder_MapBuilder(t1, t1);
     },
-    $signature: 36
+    $signature: 34
   };
   A.Serializers_Serializers_closure2.prototype = {
     call$0() {
@@ -23626,13 +23625,13 @@
     call$0() {
       return true;
     },
-    $signature: 34
+    $signature: 33
   };
   A.BatchedStreamController__hasEventDuring_closure.prototype = {
     call$0() {
       return false;
     },
-    $signature: 34
+    $signature: 33
   };
   A.SocketClient.prototype = {};
   A.SseSocketClient.prototype = {
@@ -24110,7 +24109,7 @@
     call$1(match) {
       return "\\" + A.S(match.$index(0, 0));
     },
-    $signature: 32
+    $signature: 31
   };
   A.expectQuotedString_closure.prototype = {
     call$1(match) {
@@ -24118,7 +24117,7 @@
       t1.toString;
       return t1;
     },
-    $signature: 32
+    $signature: 31
   };
   A.Level.prototype = {
     $eq(_, other) {
@@ -24441,13 +24440,13 @@
     call$1(part) {
       return A._asString(part) !== "";
     },
-    $signature: 31
+    $signature: 30
   };
   A.Context_split_closure.prototype = {
     call$1(part) {
       return A._asString(part).length !== 0;
     },
-    $signature: 31
+    $signature: 30
   };
   A._validateArgList_closure.prototype = {
     call$1(arg) {
@@ -25541,7 +25540,7 @@
       t4 = B.JSString_methods.$mul("^", Math.max(endColumn + (tabsBefore + tabsInside) * 3 - startColumn, 1));
       return (t2._contents += t4).length - t3.length;
     },
-    $signature: 28
+    $signature: 22
   };
   A.Highlighter__writeIndicator_closure0.prototype = {
     call$0() {
@@ -25562,7 +25561,7 @@
         t1._writeArrow$3$beginning(_this.line, Math.max(_this.highlight.span.get$end().get$column() - 1, 0), false);
       return t2._contents.length - t3.length;
     },
-    $signature: 28
+    $signature: 22
   };
   A.Highlighter__writeSidebar_closure.prototype = {
     call$0() {
@@ -25979,13 +25978,13 @@
     call$2(value, count) {
       return B.JSString_methods.padLeft$2(B.JSInt_methods.toRadixString$1(value, 16), count, "0");
     },
-    $signature: 22
+    $signature: 20
   };
   A.generateUuidV4_bitsDigits.prototype = {
     call$2(bitCount, digitCount) {
       return this.printDigits.call$2(this.generateBits.call$1(bitCount), digitCount);
     },
-    $signature: 22
+    $signature: 20
   };
   A.GuaranteeChannel.prototype = {
     GuaranteeChannel$3$allowSinkErrors(innerSink, allowSinkErrors, _box_0, $T) {
@@ -26781,16 +26780,12 @@
               if (A._asBool(t1.$dwdsEnableDevToolsLaunch))
                 A._EventStreamSubscription$(t2._as(t1.window), "keydown", type$.nullable_void_Function_JSObject._as(new A.main__closure9()), false, t2);
               if (A._asString(t1.$dartModuleStrategy) !== "ddc-library-bundle")
-                if (A._isChromium()) {
-                  t1 = client.get$sink();
-                  t2 = A._$ConnectRequest__$ConnectRequest(new A.main__closure10());
-                  A._trySendEvent(t1, B.C_JsonCodec.encode$2$toEncodable($.$get$serializers().serialize$1(t2), null), type$.dynamic);
-                } else
+                if (A._isChromium())
+                  A._sendConnectRequest(client.get$sink());
+                else
                   A.runMain();
               else {
-                t2 = client.get$sink();
-                t3 = A._$ConnectRequest__$ConnectRequest(new A.main__closure11());
-                A._trySendEvent(t2, B.C_JsonCodec.encode$2$toEncodable($.$get$serializers().serialize$1(t3), null), type$.dynamic);
+                A._sendConnectRequest(client.get$sink());
                 if (A._asBool(t1.$useDwdsWebSocketConnection))
                   A.runMain();
               }
@@ -27090,32 +27085,6 @@
     },
     $signature: 2
   };
-  A.main__closure10.prototype = {
-    call$1(b) {
-      var t1 = init.G,
-        t2 = A._asString(t1.$dartAppId);
-      b.get$_connect_request$_$this()._connect_request$_appId = t2;
-      t2 = A._asStringQ(t1.$dartAppInstanceId);
-      b.get$_connect_request$_$this()._instanceId = t2;
-      t1 = A._asString(t1.$dartEntrypointPath);
-      b.get$_connect_request$_$this()._entrypointPath = t1;
-      return b;
-    },
-    $signature: 20
-  };
-  A.main__closure11.prototype = {
-    call$1(b) {
-      var t1 = init.G,
-        t2 = A._asString(t1.$dartAppId);
-      b.get$_connect_request$_$this()._connect_request$_appId = t2;
-      t2 = A._asStringQ(t1.$dartAppInstanceId);
-      b.get$_connect_request$_$this()._instanceId = t2;
-      t1 = A._asString(t1.$dartEntrypointPath);
-      b.get$_connect_request$_$this()._entrypointPath = t1;
-      return b;
-    },
-    $signature: 20
-  };
   A.main_closure0.prototype = {
     call$2(error, stackTrace) {
       type$.Object._as(error);
@@ -27123,6 +27092,19 @@
       A.print("Unhandled error detected in the injected client.js script.\n\nYou can disable this script in webdev by passing --no-injected-client if it\nis preventing your app from loading, but note that this will also prevent\nall debugging and hot reload/restart functionality from working.\n\nThe original error is below, please file an issue at\nhttps://github.com/dart-lang/webdev/issues/new and attach this output:\n\n" + A.S(error) + "\n" + stackTrace.toString$0(0) + "\n");
     },
     $signature: 14
+  };
+  A._sendConnectRequest_closure.prototype = {
+    call$1(b) {
+      var t1 = init.G,
+        t2 = A._asString(t1.$dartAppId);
+      b.get$_connect_request$_$this()._connect_request$_appId = t2;
+      t2 = A._asStringQ(t1.$dartAppInstanceId);
+      b.get$_connect_request$_$this()._instanceId = t2;
+      t1 = A._asString(t1.$dartEntrypointPath);
+      b.get$_connect_request$_$this()._entrypointPath = t1;
+      return b;
+    },
+    $signature: 80
   };
   A._launchCommunicationWithDebugExtension_closure.prototype = {
     call$1(b) {
@@ -27928,7 +27910,7 @@
       _instance_1_i = hunkHelpers._instance_1i,
       _instance_0_u = hunkHelpers._instance_0u,
       _instance_1_u = hunkHelpers._instance_1u;
-    _static_2(J, "_interceptors_JSArray__compareAny$closure", "JSArray__compareAny", 30);
+    _static_2(J, "_interceptors_JSArray__compareAny$closure", "JSArray__compareAny", 28);
     _static_1(A, "async__AsyncRun__scheduleImmediateJsOverride$closure", "_AsyncRun__scheduleImmediateJsOverride", 16);
     _static_1(A, "async__AsyncRun__scheduleImmediateWithSetImmediate$closure", "_AsyncRun__scheduleImmediateWithSetImmediate", 16);
     _static_1(A, "async__AsyncRun__scheduleImmediateWithTimer$closure", "_AsyncRun__scheduleImmediateWithTimer", 16);
@@ -27968,11 +27950,11 @@
     _static(A, "async___rootPrint$closure", 4, null, ["call$4"], ["_rootPrint"], 102, 0);
     _static_1(A, "async___printToZone$closure", "_printToZone", 103);
     _static(A, "async___rootFork$closure", 5, null, ["call$5"], ["_rootFork"], 104, 0);
-    _instance(A._Completer.prototype, "get$completeError", 0, 1, null, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 33, 0, 0);
+    _instance(A._Completer.prototype, "get$completeError", 0, 1, null, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 32, 0, 0);
     _instance_2_u(A._Future.prototype, "get$_completeError", "_completeError$2", 14);
     var _;
     _instance_1_i(_ = A._StreamController.prototype, "get$add", "add$1", 9);
-    _instance(_, "get$addError", 0, 1, null, ["call$2", "call$1"], ["addError$2", "addError$1"], 33, 0, 0);
+    _instance(_, "get$addError", 0, 1, null, ["call$2", "call$1"], ["addError$2", "addError$1"], 32, 0, 0);
     _instance_0_u(_ = A._ControllerSubscription.prototype, "get$_onPause", "_onPause$0", 0);
     _instance_0_u(_, "get$_onResume", "_onResume$0", 0);
     _instance_0_u(_ = A._BufferingStreamSubscription.prototype, "get$_onPause", "_onPause$0", 0);
@@ -27985,7 +27967,7 @@
     _instance_0_u(_, "get$_handleDone", "_handleDone$0", 0);
     _static_2(A, "collection___defaultEquals$closure", "_defaultEquals0", 18);
     _static_1(A, "collection___defaultHashCode$closure", "_defaultHashCode", 17);
-    _static_2(A, "collection_ListBase__compareAny$closure", "ListBase__compareAny", 30);
+    _static_2(A, "collection_ListBase__compareAny$closure", "ListBase__compareAny", 28);
     _static_1(A, "convert___defaultToEncodable$closure", "_defaultToEncodable", 4);
     _instance_1_i(_ = A._ByteCallbackSink.prototype, "get$add", "add$1", 9);
     _instance_0_u(_, "get$close", "close$0", 0);
@@ -28027,7 +28009,7 @@
     _inheritMany(A._CastIterableBase, [A.CastIterable, A.__CastListBase__CastIterableBase_ListMixin]);
     _inherit(A._EfficientLengthCastIterable, A.CastIterable);
     _inherit(A._CastListBase, A.__CastListBase__CastIterableBase_ListMixin);
-    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.Instantiation, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._CustomHashMap_closure, A._LinkedCustomHashMap_closure, A._BigIntImpl_hashCode_finish, A._Uri__makePath_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure, A.FutureOfVoidToJSPromise_get_toJS__closure, A.jsify__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.BuiltListMultimap_BuiltListMultimap_closure, A.BuiltListMultimap_hashCode_closure, A.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.BuiltSet_hashCode_closure, A.BuiltSetMultimap_hashCode_closure, A.SetMultimapBuilder_replace_closure, A.newBuiltValueToStringHelper_closure, A.BuiltListMultimapSerializer_serialize_closure, A.BuiltListMultimapSerializer_deserialize_closure, A.BuiltListSerializer_serialize_closure, A.BuiltListSerializer_deserialize_closure, A.BuiltSetMultimapSerializer_serialize_closure, A.BuiltSetMultimapSerializer_deserialize_closure, A.BuiltSetSerializer_serialize_closure, A.BuiltSetSerializer_deserialize_closure, A.CanonicalizedMap_keys_closure, A.WebSocketClient_stream_closure, A.BaseRequest_closure0, A.BrowserClient_send_closure, A.BrowserClient_send_closure0, A.ByteStream_toBytes_closure, A.MediaType_toString__closure, A.expectQuotedString_closure, A.Context_joinAll_closure, A.Context_split_closure, A._validateArgList_closure, A.Pool__runOnRelease_closure, A.Highlighter$__closure, A.Highlighter$___closure, A.Highlighter$__closure0, A.Highlighter__collateLines_closure, A.Highlighter__collateLines_closure1, A.Highlighter__collateLines__closure, A.Highlighter_highlight_closure, A.SseClient_closure0, A.SseClient_closure1, A.generateUuidV4_generateBits, A._GuaranteeSink__addError_closure, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.BrowserWebSocket_connect_closure, A.BrowserWebSocket_connect_closure0, A.BrowserWebSocket_connect_closure1, A.BrowserWebSocket_connect_closure2, A.AdapterWebSocketChannel_closure, A.AdapterWebSocketChannel__closure, A.AdapterWebSocketChannel__closure0, A.AdapterWebSocketChannel_closure0, A.main__closure1, A.main__closure3, A.main___closure2, A.main___closure1, A.main__closure5, A.main___closure0, A.main___closure, A.main__closure7, A.main__closure8, A.main__closure9, A.main__closure10, A.main__closure11, A._launchCommunicationWithDebugExtension_closure, A._handleAuthRequest_closure, A._sendResponse_closure, A.DdcLibraryBundleRestarter_restart_closure, A.DdcRestarter_restart_closure0, A.DdcRestarter_restart_closure, A.RequireRestarter__reloadModule_closure0, A.JSArrayExtension_toDartIterable_closure]);
+    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.Instantiation, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._CustomHashMap_closure, A._LinkedCustomHashMap_closure, A._BigIntImpl_hashCode_finish, A._Uri__makePath_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure, A.FutureOfVoidToJSPromise_get_toJS__closure, A.jsify__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.BuiltListMultimap_BuiltListMultimap_closure, A.BuiltListMultimap_hashCode_closure, A.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.BuiltSet_hashCode_closure, A.BuiltSetMultimap_hashCode_closure, A.SetMultimapBuilder_replace_closure, A.newBuiltValueToStringHelper_closure, A.BuiltListMultimapSerializer_serialize_closure, A.BuiltListMultimapSerializer_deserialize_closure, A.BuiltListSerializer_serialize_closure, A.BuiltListSerializer_deserialize_closure, A.BuiltSetMultimapSerializer_serialize_closure, A.BuiltSetMultimapSerializer_deserialize_closure, A.BuiltSetSerializer_serialize_closure, A.BuiltSetSerializer_deserialize_closure, A.CanonicalizedMap_keys_closure, A.WebSocketClient_stream_closure, A.BaseRequest_closure0, A.BrowserClient_send_closure, A.BrowserClient_send_closure0, A.ByteStream_toBytes_closure, A.MediaType_toString__closure, A.expectQuotedString_closure, A.Context_joinAll_closure, A.Context_split_closure, A._validateArgList_closure, A.Pool__runOnRelease_closure, A.Highlighter$__closure, A.Highlighter$___closure, A.Highlighter$__closure0, A.Highlighter__collateLines_closure, A.Highlighter__collateLines_closure1, A.Highlighter__collateLines__closure, A.Highlighter_highlight_closure, A.SseClient_closure0, A.SseClient_closure1, A.generateUuidV4_generateBits, A._GuaranteeSink__addError_closure, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.BrowserWebSocket_connect_closure, A.BrowserWebSocket_connect_closure0, A.BrowserWebSocket_connect_closure1, A.BrowserWebSocket_connect_closure2, A.AdapterWebSocketChannel_closure, A.AdapterWebSocketChannel__closure, A.AdapterWebSocketChannel__closure0, A.AdapterWebSocketChannel_closure0, A.main__closure1, A.main__closure3, A.main___closure2, A.main___closure1, A.main__closure5, A.main___closure0, A.main___closure, A.main__closure7, A.main__closure8, A.main__closure9, A._sendConnectRequest_closure, A._launchCommunicationWithDebugExtension_closure, A._handleAuthRequest_closure, A._sendResponse_closure, A.DdcLibraryBundleRestarter_restart_closure, A.DdcRestarter_restart_closure0, A.DdcRestarter_restart_closure, A.RequireRestarter__reloadModule_closure0, A.JSArrayExtension_toDartIterable_closure]);
     _inheritMany(A.Closure2Args, [A._CastListBase_sort_closure, A.CastMap_forEach_closure, A.ConstantMap_map_closure, A.JsLinkedHashMap_addAll_closure, A.initHooks_closure0, A._awaitOnObject_closure0, A._wrapJsFunctionForAsync_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure0, A._Future_timeout_closure1, A._BufferingStreamSubscription_asFuture_closure0, A.LinkedHashMap_LinkedHashMap$from_closure, A.MapBase_mapToString_closure, A._JsonStringifier_writeMap_closure, A._BigIntImpl_hashCode_combine, A.Uri__parseIPv4Address_error, A.Uri_parseIPv6Address_error, A.Uri_parseIPv6Address_parseHex, A.FutureOfJSAnyToJSPromise_get_toJS_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure0, A.FutureOfVoidToJSPromise_get_toJS_closure, A.FutureOfVoidToJSPromise_get_toJS__closure0, A.StreamQueue__ensureListening_closure1, A.hashObjects_closure, A.MapBuilder_replace_closure, A.CanonicalizedMap_addAll_closure, A.CanonicalizedMap_forEach_closure, A.CanonicalizedMap_map_closure, A.safeUnawaited_closure, A.BaseRequest_closure, A.MediaType_toString_closure, A.Pool__runOnRelease_closure0, A.Highlighter__collateLines_closure0, A.generateUuidV4_printDigits, A.generateUuidV4_bitsDigits, A.main__closure4, A.main_closure0]);
     _inherit(A.CastList, A._CastListBase);
     _inheritMany(A.MapBase, [A.CastMap, A.JsLinkedHashMap, A._HashMap, A._JsonMap]);
@@ -28149,7 +28131,7 @@
     typeUniverse: {eC: new Map(), tR: {}, eT: {}, tPV: {}, sEA: []},
     mangledGlobalNames: {int: "int", double: "double", num: "num", String: "String", bool: "bool", Null: "Null", List: "List", Object: "Object", Map: "Map"},
     mangledNames: {},
-    types: ["~()", "Null()", "~(JSObject)", "Object?(@)", "@(@)", "Null(Object,StackTrace)", "Null(@)", "~(@)", "Null(JSObject)", "~(Object?)", "JSObject()", "Object?(Object?)", "bool(Object?)", "String(String)", "~(Object,StackTrace)", "bool(_Highlight)", "~(~())", "int(Object?)", "bool(Object?,Object?)", "Future<~>()", "ConnectRequestBuilder(ConnectRequestBuilder)", "~(@,StackTrace)", "String(int,int)", "~(@,@)", "~(Object?,Object?)", "@()", "int(int,int)", "int(int)", "int()", "Null(JavaScriptFunction,JavaScriptFunction)", "int(@,@)", "bool(String)", "String(Match)", "~(Object[StackTrace?])", "bool()", "SetBuilder<Object>()", "MapBuilder<Object,Object>()", "~(int,@)", "ListMultimapBuilder<Object,Object>()", "ListBuilder<Object>()", "ListBuilder<DebugEvent>()", "ListBuilder<ExtensionEvent>()", "IndentingBuiltValueToStringHelper(String)", "String(@)", "bool(String,String)", "int(String)", "int(int,@)", "~(List<int>)", "MediaType()", "~(String,String)", "Object?(~)", "Logger()", "JSObject(Object,StackTrace)", "Null(@,StackTrace)", "String?()", "int(_Line)", "~(String,int?)", "Object(_Line)", "Object(_Highlight)", "int(_Highlight,_Highlight)", "List<_Line>(MapEntry<Object,List<_Highlight>>)", "~(String,int)", "SourceSpanWithContext()", "Null(~())", "~(String?)", "Future<Null>()", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)", "Null(WebSocket)", "~(WebSocketEvent)", "Null(Object)", "HotReloadResponse([~(HotReloadResponseBuilder)])", "JSObject(String[bool?])", "~(List<DebugEvent>)", "ListBuilder<DebugEvent>(BatchedDebugEventsBuilder)", "Null(String,String)", "DebugEventBuilder(DebugEventBuilder)", "Null(String)", "RegisterEventBuilder(RegisterEventBuilder)", "DevToolsRequestBuilder(DevToolsRequestBuilder)", "Future<~>(String)", "@(@,String)", "DebugInfoBuilder(DebugInfoBuilder)", "~(bool)", "Null(JavaScriptFunction)", "bool(bool)", "List<String>(String)", "int(String,String)", "Null(JavaScriptObject)", "JSObject()()", "SetMultimapBuilder<Object,Object>()", "@(String)", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "~(String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "0^(0^,0^)<num>", "String(String?)"],
+    types: ["~()", "Null()", "~(JSObject)", "Object?(@)", "@(@)", "Null(Object,StackTrace)", "Null(@)", "~(@)", "Null(JSObject)", "~(Object?)", "JSObject()", "Object?(Object?)", "bool(Object?)", "String(String)", "~(Object,StackTrace)", "bool(_Highlight)", "~(~())", "int(Object?)", "bool(Object?,Object?)", "Future<~>()", "String(int,int)", "~(@,StackTrace)", "int()", "~(@,@)", "~(Object?,Object?)", "@()", "int(int,int)", "int(int)", "int(@,@)", "Null(JavaScriptFunction,JavaScriptFunction)", "bool(String)", "String(Match)", "~(Object[StackTrace?])", "bool()", "MapBuilder<Object,Object>()", "SetBuilder<Object>()", "ListMultimapBuilder<Object,Object>()", "~(int,@)", "ListBuilder<Object>()", "IndentingBuiltValueToStringHelper(String)", "ListBuilder<DebugEvent>()", "ListBuilder<ExtensionEvent>()", "int(int,@)", "String(@)", "bool(String,String)", "int(String)", "Object?(~)", "~(List<int>)", "MediaType()", "~(String,String)", "JSObject(Object,StackTrace)", "Logger()", "Null(@,StackTrace)", "~(String,int?)", "String?()", "int(_Line)", "~(String,int)", "Object(_Line)", "Object(_Highlight)", "int(_Highlight,_Highlight)", "List<_Line>(MapEntry<Object,List<_Highlight>>)", "Null(~())", "SourceSpanWithContext()", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)", "~(String?)", "Future<Null>()", "@(@,String)", "Null(WebSocket)", "~(WebSocketEvent)", "Null(Object)", "HotReloadResponse([~(HotReloadResponseBuilder)])", "JSObject(String[bool?])", "~(List<DebugEvent>)", "ListBuilder<DebugEvent>(BatchedDebugEventsBuilder)", "Null(String,String)", "DebugEventBuilder(DebugEventBuilder)", "Null(String)", "RegisterEventBuilder(RegisterEventBuilder)", "DevToolsRequestBuilder(DevToolsRequestBuilder)", "Future<~>(String)", "ConnectRequestBuilder(ConnectRequestBuilder)", "DebugInfoBuilder(DebugInfoBuilder)", "~(bool)", "Null(JavaScriptFunction)", "bool(bool)", "List<String>(String)", "int(String,String)", "Null(JavaScriptObject)", "JSObject()()", "SetMultimapBuilder<Object,Object>()", "@(String)", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "~(String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "0^(0^,0^)<num>", "String(String?)"],
     interceptorsByTag: null,
     leafTags: null,
     arrayRti: Symbol("$ti"),

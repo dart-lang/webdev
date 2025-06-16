@@ -240,34 +240,15 @@ Future<void>? main() {
         });
       }
 
-      if (!(dartModuleStrategy == 'ddc-library-bundle')) {
+      if (dartModuleStrategy != 'ddc-library-bundle') {
         if (_isChromium) {
-          _sendConnectRequest(
-            client.sink,
-            ConnectRequest(
-              (b) =>
-                  b
-                    ..appId = dartAppId
-                    ..instanceId = dartAppInstanceId
-                    ..entrypointPath = dartEntrypointPath,
-            ),
-          );
+          _sendConnectRequest(client.sink);
         } else {
           // If not Chromium we just invoke main, devtools aren't supported.
           runMain();
         }
       } else {
-        _sendConnectRequest(
-          client.sink,
-          ConnectRequest(
-            (b) =>
-                b
-                  ..appId = dartAppId
-                  ..instanceId = dartAppInstanceId
-                  ..entrypointPath = dartEntrypointPath,
-          ),
-        );
-
+        _sendConnectRequest(client.sink);
         // TODO(yjessy): Remove this when the DWDS WebSocket connection is implemented.
         if (useDwdsWebSocketConnection) {
           runMain();
@@ -306,8 +287,21 @@ void _trySendEvent<T>(StreamSink<T> sink, T serialized) {
   }
 }
 
-void _sendConnectRequest(StreamSink clientSink, ConnectRequest request) {
-  _trySendEvent(clientSink, jsonEncode(serializers.serialize(request)));
+void _sendConnectRequest(StreamSink clientSink) {
+  _trySendEvent(
+    clientSink,
+    jsonEncode(
+      serializers.serialize(
+        ConnectRequest(
+          (b) =>
+              b
+                ..appId = dartAppId
+                ..instanceId = dartAppInstanceId
+                ..entrypointPath = dartEntrypointPath,
+        ),
+      ),
+    ),
+  );
 }
 
 /// Returns [url] modified if necessary so that, if the current page is served
