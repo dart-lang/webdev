@@ -1,3 +1,6 @@
+## 24.3.12
+- Fixed duplicate app logs on page refresh by preventing multiple stdout listeners for the same appId.
+
 ## 24.3.11
 
 - Changed DWDS to always inject the client and added `useDwdsWebSocketConnection` flag to control communication protocol: when true uses socket-based implementation, when false uses Chrome-based communication protocol.
