@@ -14,6 +14,8 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/extension_request.dart';
+import 'package:dwds/data/hot_reload_request.dart';
+import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
@@ -63,7 +65,14 @@ Future<void>? main() {
 
       hotReloadJs =
           () {
-            return manager.hotReload(hotReloadSourcesPath).toJS;
+            return manager.hotReload().toJS;
+          }.toJS;
+
+      fetchLibrariesForHotReloadJs =
+          () {
+            return manager
+                .fetchLibrariesForHotReload(hotReloadSourcesPath)
+                .toJS;
           }.toJS;
 
       Completer? readyToRunMainCompleter;
@@ -175,7 +184,8 @@ Future<void>? main() {
                 'ReloadConfiguration.hotRestart') {
               await manager.hotRestart();
             } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
-              await manager.hotReload(hotReloadSourcesPath);
+              await manager.fetchLibrariesForHotReload(hotReloadSourcesPath);
+              await manager.hotReload();
             }
           } else if (event is DevToolsResponse) {
             if (!event.success) {
@@ -198,6 +208,8 @@ Future<void>? main() {
                       'Stack Trace:\n${event.stackTrace}'
                   .toJS,
             );
+          } else if (event is HotReloadRequest) {
+            await handleWebSocketHotReloadRequest(event, manager, client.sink);
           }
         },
         onError: (error) {
@@ -228,24 +240,19 @@ Future<void>? main() {
         });
       }
 
-      if (_isChromium) {
-        _trySendEvent(
-          client.sink,
-          jsonEncode(
-            serializers.serialize(
-              ConnectRequest(
-                (b) =>
-                    b
-                      ..appId = dartAppId
-                      ..instanceId = dartAppInstanceId
-                      ..entrypointPath = dartEntrypointPath,
-              ),
-            ),
-          ),
-        );
+      if (dartModuleStrategy != 'ddc-library-bundle') {
+        if (_isChromium) {
+          _sendConnectRequest(client.sink);
+        } else {
+          // If not Chromium we just invoke main, devtools aren't supported.
+          runMain();
+        }
       } else {
-        // If not Chromium we just invoke main, devtools aren't supported.
-        runMain();
+        _sendConnectRequest(client.sink);
+        // TODO(yjessy): Remove this when the DWDS WebSocket connection is implemented.
+        if (useDwdsWebSocketConnection) {
+          runMain();
+        }
       }
       _launchCommunicationWithDebugExtension();
     },
@@ -278,6 +285,23 @@ void _trySendEvent<T>(StreamSink<T> sink, T serialized) {
       'Injected client connection is closed.',
     );
   }
+}
+
+void _sendConnectRequest(StreamSink clientSink) {
+  _trySendEvent(
+    clientSink,
+    jsonEncode(
+      serializers.serialize(
+        ConnectRequest(
+          (b) =>
+              b
+                ..appId = dartAppId
+                ..instanceId = dartAppInstanceId
+                ..entrypointPath = dartEntrypointPath,
+        ),
+      ),
+    ),
+  );
 }
 
 /// Returns [url] modified if necessary so that, if the current page is served
@@ -358,6 +382,62 @@ Future<bool> _authenticateUser(String authUrl) async {
   return responseText.contains('Dart Debug Authentication Success!');
 }
 
+void _sendResponse<T>(
+  StreamSink clientSink,
+  T Function(void Function(dynamic)) builder,
+  String requestId, {
+  bool success = true,
+  String? errorMessage,
+}) {
+  _trySendEvent(
+    clientSink,
+    jsonEncode(
+      serializers.serialize(
+        builder((b) {
+          b.id = requestId;
+          b.success = success;
+          if (errorMessage != null) b.errorMessage = errorMessage;
+        }),
+      ),
+    ),
+  );
+}
+
+void _sendHotReloadResponse(
+  StreamSink clientSink,
+  String requestId, {
+  bool success = true,
+  String? errorMessage,
+}) {
+  _sendResponse<HotReloadResponse>(
+    clientSink,
+    HotReloadResponse.new,
+    requestId,
+    success: success,
+    errorMessage: errorMessage,
+  );
+}
+
+Future<void> handleWebSocketHotReloadRequest(
+  HotReloadRequest event,
+  ReloadingManager manager,
+  StreamSink clientSink,
+) async {
+  final requestId = event.id;
+  try {
+    await manager.fetchLibrariesForHotReload(hotReloadSourcesPath);
+    await manager.hotReload();
+    _sendHotReloadResponse(clientSink, requestId, success: true);
+  } catch (e) {
+    _sendHotReloadResponse(
+      clientSink,
+      requestId,
+      success: false,
+      errorMessage: e.toString(),
+    );
+  }
+}
+
 @JS(r'$dartAppId')
 external String get dartAppId;
 
@@ -375,6 +455,9 @@ external String get dartModuleStrategy;
 
 @JS(r'$dartHotReloadDwds')
 external set hotReloadJs(JSFunction cb);
+
+@JS(r'$fetchLibrariesForHotReload')
+external set fetchLibrariesForHotReloadJs(JSFunction cb);
 
 @JS(r'$hotReloadSourcesPath')
 external String? get _hotReloadSourcesPath;
@@ -406,6 +489,10 @@ external String get reloadConfiguration;
 
 @JS(r'$dartEntrypointPath')
 external String get dartEntrypointPath;
+
+// TODO(yjessy): Remove this when the DWDS WebSocket connection is implemented.
+@JS(r'$useDwdsWebSocketConnection')
+external bool get useDwdsWebSocketConnection;
 
 @JS(r'$dwdsEnableDevToolsLaunch')
 external bool get dwdsEnableDevToolsLaunch;

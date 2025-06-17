@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
 
+import 'package:dwds/src/utilities/shared.dart';
+
 import 'restarter.dart';
 
 @JS('dartDevEmbedder')
@@ -18,6 +20,11 @@ extension type _DartDevEmbedder._(JSObject _) implements JSObject {
     JSArray<JSString> filesToLoad,
     JSArray<JSString> librariesToReload,
   );
+  external _DartDevEmbedderConfig get config;
+}
+
+extension type _DartDevEmbedderConfig._(JSObject _) implements JSObject {
+  external JSFunction? capturedMainHandler;
 }
 
 extension type _Debugger._(JSObject _) implements JSObject {
@@ -50,21 +57,56 @@ extension on JSArray<JSString> {
 }
 
 class DdcLibraryBundleRestarter implements Restarter {
+  Future<void> _runMainWhenReady(
+    Future? readyToRunMain,
+    JSFunction runMain,
+  ) async {
+    if (readyToRunMain != null) {
+      await readyToRunMain;
+    }
+
+    runMain.callAsFunction();
+  }
+
   @override
   Future<bool> restart({String? runId, Future? readyToRunMain}) async {
     await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
+    final mainHandler =
+        (JSFunction runMain) {
+          _dartDevEmbedder.config.capturedMainHandler = null;
+          safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
+        }.toJS;
+    _dartDevEmbedder.config.capturedMainHandler = mainHandler;
     await _dartDevEmbedder.hotRestart().toDart;
     return true;
   }
 
+  late ({JSArray<JSString> sources, JSArray<JSString> libraries})?
+  _sourcesAndLibrariesToReload;
+
   @override
-  Future<void> reload(String hotReloadSourcesPath) async {
+  Future<void> reload() async {
+    // Requires a previous call to `fetchLibrariesForHotReload`.
+    await _dartDevEmbedder
+        .hotReload(
+          _sourcesAndLibrariesToReload!.sources,
+          _sourcesAndLibrariesToReload!.libraries,
+        )
+        .toDart;
+    _sourcesAndLibrariesToReload = null;
+  }
+
+  @override
+  Future<JSArray<JSString>> fetchLibrariesForHotReload(
+    String hotReloadSourcesPath,
+  ) async {
     final completer = Completer<String>();
     final xhr = _XMLHttpRequest();
     xhr.withCredentials = true;
     xhr.onreadystatechange =
         () {
-          // If the request has completed and OK, or the response has not changed.
+          // If the request has completed and OK, or the response has not
+          // changed.
           if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
             completer.complete(xhr.responseText);
           }
@@ -84,6 +126,10 @@ class DdcLibraryBundleRestarter implements Restarter {
         librariesToReload.push(library.toJS);
       }
     }
-    await _dartDevEmbedder.hotReload(filesToLoad, librariesToReload).toDart;
+    _sourcesAndLibrariesToReload = (
+      sources: filesToLoad,
+      libraries: librariesToReload,
+    );
+    return librariesToReload;
   }
 }

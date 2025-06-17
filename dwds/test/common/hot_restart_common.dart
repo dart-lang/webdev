@@ -1,4 +1,4 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,34 +7,51 @@
 @Timeout(Duration(minutes: 5))
 library;
 
+import 'dart:async';
+
 import 'package:dwds/dwds.dart';
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'fixtures/context.dart';
-import 'fixtures/project.dart';
-import 'fixtures/utilities.dart';
+import '../fixtures/context.dart';
+import '../fixtures/project.dart';
+import '../fixtures/utilities.dart';
 
 const originalString = 'Hello World!';
 const newString = 'Bonjour le monde!';
 
-void main() {
-  // set to true for debug logging.
-  final debug = false;
-
-  final provider = TestSdkConfigurationProvider(verbose: debug);
-  tearDownAll(provider.dispose);
-
+void runTests({
+  required TestSdkConfigurationProvider provider,
+  required ModuleFormat moduleFormat,
+  required CompilationMode compilationMode,
+  required bool canaryFeatures,
+  required bool debug,
+}) {
   final context = TestContext(TestProject.testAppendBody, provider);
 
-  Future<void> makeEditAndWaitForRebuild() async {
+  tearDownAll(provider.dispose);
+
+  Future<void> recompile({bool hasEdits = false}) async {
+    if (compilationMode == CompilationMode.frontendServer) {
+      await context.recompile(fullRestart: true);
+    } else {
+      assert(compilationMode == CompilationMode.buildDaemon);
+      if (hasEdits) {
+        // Only gets a new build if there were edits.
+        await context.waitForSuccessfulBuild(propagateToBrowser: true);
+      }
+    }
+  }
+
+  Future<void> makeEditAndRecompile() async {
     context.makeEditToDartEntryFile(
       toReplace: originalString,
       replaceWith: newString,
     );
-    await context.waitForSuccessfulBuild(propagateToBrowser: true);
+    await recompile(hasEdits: true);
   }
 
   void undoEdit() {
@@ -44,91 +61,131 @@ void main() {
     );
   }
 
-  group('Injected client with live reload', () {
-    group('and with debugging', () {
-      setUp(() async {
-        setCurrentLogWriter(debug: debug);
-        await context.setUp(
-          testSettings: TestSettings(
-            reloadConfiguration: ReloadConfiguration.liveReload,
-          ),
-        );
-      });
-
-      tearDown(() async {
-        undoEdit();
-        await context.tearDown();
-      });
-
-      test('can live reload changes ', () async {
-        await makeEditAndWaitForRebuild();
-        final source = await context.webDriver.pageSource;
-
-        // A full reload should clear the state.
-        expect(source.contains(originalString), isFalse);
-        expect(source.contains(newString), isTrue);
-      });
+  /// Wait for main to finish executing before checking expectations by checking
+  /// for a log output.
+  ///
+  /// If [debuggingEnabled] is false, we can't check for Chrome logs and instead
+  /// wait 1 second.
+  // TODO(srujzs): We should do something less prone to race conditions when
+  // debugging is disabled.
+  Future<void> waitForMainToExecute({bool debuggingEnabled = true}) async {
+    if (!debuggingEnabled) return Future.delayed(const Duration(seconds: 1));
+    final completer = Completer<void>();
+    final expectedString = 'main executed';
+    final subscription = context.webkitDebugger.onConsoleAPICalled.listen((e) {
+      if (e.args.first.value == expectedString) {
+        completer.complete();
+      }
     });
-
-    group('and without debugging', () {
-      setUp(() async {
-        setCurrentLogWriter(debug: debug);
-        await context.setUp(
-          testSettings: TestSettings(
-            reloadConfiguration: ReloadConfiguration.liveReload,
-          ),
-          debugSettings: TestDebugSettings.noDevTools().copyWith(
-            enableDebugging: false,
-          ),
-        );
-      });
-
-      tearDown(() async {
-        undoEdit();
-        await context.tearDown();
-      });
-
-      test('can live reload changes ', () async {
-        await makeEditAndWaitForRebuild();
-
-        final source = await context.webDriver.pageSource;
-
-        // A full reload should clear the state.
-        expect(source.contains(originalString), isFalse);
-        expect(source.contains(newString), isTrue);
-      });
+    await completer.future.then((_) {
+      subscription.cancel();
     });
+  }
 
-    group('and without debugging using WebSockets', () {
-      setUp(() async {
-        setCurrentLogWriter(debug: debug);
-        await context.setUp(
-          testSettings: TestSettings(
-            reloadConfiguration: ReloadConfiguration.liveReload,
-          ),
-          debugSettings: TestDebugSettings.noDevTools().copyWith(
-            enableDebugging: false,
-            useSse: false,
-          ),
-        );
+  group(
+    'Injected client with live reload',
+    () {
+      group('and with debugging', () {
+        setUp(() async {
+          setCurrentLogWriter(debug: debug);
+          await context.setUp(
+            testSettings: TestSettings(
+              reloadConfiguration: ReloadConfiguration.liveReload,
+              compilationMode: compilationMode,
+              moduleFormat: provider.ddcModuleFormat,
+              canaryFeatures: provider.canaryFeatures,
+            ),
+          );
+        });
+
+        tearDown(() async {
+          undoEdit();
+          await context.tearDown();
+        });
+
+        test('can live reload changes ', () async {
+          final mainDone = waitForMainToExecute();
+          await makeEditAndRecompile();
+          await mainDone;
+          final source = await context.webDriver.pageSource;
+
+          // A full reload should clear the state.
+          expect(source.contains(originalString), isFalse);
+          expect(source.contains(newString), isTrue);
+        });
       });
 
-      tearDown(() async {
-        await context.tearDown();
-        undoEdit();
+      group('and without debugging', () {
+        setUp(() async {
+          setCurrentLogWriter(debug: debug);
+          await context.setUp(
+            testSettings: TestSettings(
+              reloadConfiguration: ReloadConfiguration.liveReload,
+              compilationMode: compilationMode,
+              moduleFormat: provider.ddcModuleFormat,
+              canaryFeatures: provider.canaryFeatures,
+            ),
+            debugSettings: TestDebugSettings.noDevTools().copyWith(
+              enableDebugging: false,
+            ),
+          );
+        });
+
+        tearDown(() async {
+          undoEdit();
+          await context.tearDown();
+        });
+
+        test('can live reload changes ', () async {
+          final mainDone = waitForMainToExecute(debuggingEnabled: false);
+          await makeEditAndRecompile();
+          await mainDone;
+          final source = await context.webDriver.pageSource;
+
+          // A full reload should clear the state.
+          expect(source.contains(originalString), isFalse);
+          expect(source.contains(newString), isTrue);
+        });
       });
 
-      test('can live reload changes ', () async {
-        await makeEditAndWaitForRebuild();
+      group('and without debugging using WebSockets', () {
+        setUp(() async {
+          setCurrentLogWriter(debug: debug);
+          await context.setUp(
+            testSettings: TestSettings(
+              reloadConfiguration: ReloadConfiguration.liveReload,
+              compilationMode: compilationMode,
+              moduleFormat: provider.ddcModuleFormat,
+              canaryFeatures: provider.canaryFeatures,
+            ),
+            debugSettings: TestDebugSettings.noDevTools().copyWith(
+              enableDebugging: false,
+              useSse: false,
+            ),
+          );
+        });
 
-        final source = await context.webDriver.pageSource;
+        tearDown(() async {
+          await context.tearDown();
+          undoEdit();
+        });
 
-        // A full reload should clear the state.
-        expect(source.contains(originalString), isFalse);
-        expect(source.contains(newString), isTrue);
+        test('can live reload changes ', () async {
+          final mainDone = waitForMainToExecute(debuggingEnabled: false);
+          await makeEditAndRecompile();
+          await mainDone;
+          final source = await context.webDriver.pageSource;
+
+          // A full reload should clear the state.
+          expect(source.contains(originalString), isFalse);
+          expect(source.contains(newString), isTrue);
+        });
       });
-    });
-  }, timeout: Timeout.factor(2));
+    },
+    // `BuildResult`s are only ever emitted when using the build daemon.
+    skip: compilationMode != CompilationMode.buildDaemon,
+    timeout: Timeout.factor(2),
+  );
 
   group('Injected client', () {
     late VmService fakeClient;
@@ -136,7 +193,12 @@ void main() {
     setUp(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        testSettings: TestSettings(enableExpressionEvaluation: true),
+        testSettings: TestSettings(
+          enableExpressionEvaluation: true,
+          compilationMode: compilationMode,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
+        ),
       );
       fakeClient = await context.connectFakeClient();
     });
@@ -149,7 +211,7 @@ void main() {
     test('destroys and recreates the isolate during a hot restart', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
-      await makeEditAndWaitForRebuild();
+      await makeEditAndRecompile();
 
       final eventsDone = expectLater(
         client.onIsolateEvent,
@@ -174,7 +236,7 @@ void main() {
     test('can execute simultaneous hot restarts', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
-      await makeEditAndWaitForRebuild();
+      await makeEditAndRecompile();
 
       final eventsDone = expectLater(
         client.onIsolateEvent,
@@ -220,7 +282,7 @@ void main() {
     test('destroys and recreates the isolate during a page refresh', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
-      await makeEditAndWaitForRebuild();
+      await makeEditAndRecompile();
 
       final eventsDone = expectLater(
         client.onIsolateEvent,
@@ -241,7 +303,7 @@ void main() {
     test('can hot restart via the service extension', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
-      await makeEditAndWaitForRebuild();
+      await makeEditAndRecompile();
 
       final eventsDone = expectLater(
         client.onIsolateEvent,
@@ -253,6 +315,7 @@ void main() {
           ]),
         ),
       );
+      final mainDone = waitForMainToExecute();
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
       expect(
         await fakeClient.callServiceExtension(hotRestart!),
@@ -260,6 +323,7 @@ void main() {
       );
 
       await eventsDone;
+      await mainDone;
 
       final source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
@@ -296,6 +360,8 @@ void main() {
         "registerExtension('ext.foo', $callback)",
       );
 
+      await recompile();
+      final mainDone = waitForMainToExecute();
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
       expect(
         await fakeClient.callServiceExtension(hotRestart!),
@@ -314,6 +380,7 @@ void main() {
       );
 
       await eventsDone;
+      await mainDone;
 
       final source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
@@ -323,7 +390,7 @@ void main() {
     test('can refresh the page via the fullReload service extension', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
-      await makeEditAndWaitForRebuild();
+      await makeEditAndRecompile();
 
       final eventsDone = expectLater(
         client.onIsolateEvent,
@@ -335,7 +402,7 @@ void main() {
           ]),
         ),
       );
-
+      final mainDone = waitForMainToExecute();
       final fullReload = context.getRegisteredServiceExtension('fullReload');
       expect(
         await fakeClient.callServiceExtension(fullReload!),
@@ -343,6 +410,7 @@ void main() {
       );
 
       await eventsDone;
+      await mainDone;
 
       final source = await context.webDriver.pageSource;
       // Should see only the new text
@@ -370,9 +438,13 @@ void main() {
         (event) => event.kind == EventKind.kPauseBreakpoint,
       );
 
-      await makeEditAndWaitForRebuild();
+      await makeEditAndRecompile();
+      final mainDone = waitForMainToExecute();
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
       await fakeClient.callServiceExtension(hotRestart!);
+
+      await mainDone;
+
       final source = await context.webDriver.pageSource;
 
       // Main is re-invoked which shouldn't clear the state.
@@ -390,6 +462,7 @@ void main() {
     test('can evaluate expressions after hot restart', () async {
       final client = context.debugConnection.vmService;
 
+      await recompile();
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
       await fakeClient.callServiceExtension(hotRestart!);
 
@@ -411,95 +484,110 @@ void main() {
     });
   }, timeout: Timeout.factor(2));
 
-  group('Injected client with hot restart', () {
-    group('and with debugging', () {
-      setUp(() async {
-        setCurrentLogWriter(debug: debug);
-        await context.setUp(
-          testSettings: TestSettings(
-            reloadConfiguration: ReloadConfiguration.hotRestart,
-          ),
+  group(
+    'Injected client with hot restart',
+    () {
+      group('and with debugging', () {
+        setUp(() async {
+          setCurrentLogWriter(debug: debug);
+          await context.setUp(
+            testSettings: TestSettings(
+              reloadConfiguration: ReloadConfiguration.hotRestart,
+              compilationMode: compilationMode,
+              moduleFormat: provider.ddcModuleFormat,
+              canaryFeatures: provider.canaryFeatures,
+            ),
+          );
+        });
+
+        tearDown(() async {
+          await context.tearDown();
+          undoEdit();
+        });
+
+        test('can hot restart changes ', () async {
+          final mainDone = waitForMainToExecute();
+          await makeEditAndRecompile();
+          await mainDone;
+          final source = await context.webDriver.pageSource;
+
+          // Main is re-invoked which shouldn't clear the state.
+          expect(source.contains(originalString), isTrue);
+          expect(source.contains(newString), isTrue);
+          // The ext.flutter.disassemble callback is invoked and waited for.
+          expect(
+            source,
+            contains('start disassemble end disassemble $newString'),
+          );
+        });
+
+        test(
+          'fires isolate create/destroy events during hot restart',
+          () async {
+            final client = context.debugConnection.vmService;
+            await client.streamListen('Isolate');
+
+            final eventsDone = expectLater(
+              client.onIsolateEvent,
+              emitsThrough(
+                emitsInOrder([
+                  _hasKind(EventKind.kIsolateExit),
+                  _hasKind(EventKind.kIsolateStart),
+                  _hasKind(EventKind.kIsolateRunnable),
+                ]),
+              ),
+            );
+
+            await makeEditAndRecompile();
+
+            await eventsDone;
+          },
         );
       });
 
-      tearDown(() async {
-        await context.tearDown();
-        undoEdit();
+      group('and without debugging', () {
+        setUp(() async {
+          setCurrentLogWriter(debug: debug);
+          await context.setUp(
+            testSettings: TestSettings(
+              reloadConfiguration: ReloadConfiguration.hotRestart,
+              compilationMode: compilationMode,
+              moduleFormat: provider.ddcModuleFormat,
+              canaryFeatures: provider.canaryFeatures,
+            ),
+            debugSettings: TestDebugSettings.noDevTools().copyWith(
+              enableDebugging: false,
+            ),
+          );
+        });
+
+        tearDown(() async {
+          await context.tearDown();
+          undoEdit();
+        });
+
+        test('can hot restart changes ', () async {
+          final mainDone = waitForMainToExecute(debuggingEnabled: false);
+          await makeEditAndRecompile();
+          await mainDone;
+          final source = await context.webDriver.pageSource;
+
+          // Main is re-invoked which shouldn't clear the state.
+          expect(source.contains(originalString), isTrue);
+          expect(source.contains(newString), isTrue);
+          // The ext.flutter.disassemble callback is invoked and waited for.
+          expect(
+            source,
+            contains('start disassemble end disassemble $newString'),
+          );
+        });
       });
+    },
+    // `BuildResult`s are only ever emitted when using the build daemon.
+    skip: compilationMode != CompilationMode.buildDaemon,
+    timeout: Timeout.factor(2),
+  );
 
-      test('can hot restart changes ', () async {
-        await makeEditAndWaitForRebuild();
-
-        final source = await context.webDriver.pageSource;
-
-        // Main is re-invoked which shouldn't clear the state.
-        expect(source.contains(originalString), isTrue);
-        expect(source.contains(newString), isTrue);
-        // The ext.flutter.disassemble callback is invoked and waited for.
-        expect(
-          source,
-          contains('start disassemble end disassemble $newString'),
-        );
-      });
-
-      test('fires isolate create/destroy events during hot restart', () async {
-        final client = context.debugConnection.vmService;
-        await client.streamListen('Isolate');
-
-        final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(
-            emitsInOrder([
-              _hasKind(EventKind.kIsolateExit),
-              _hasKind(EventKind.kIsolateStart),
-              _hasKind(EventKind.kIsolateRunnable),
-            ]),
-          ),
-        );
-
-        await makeEditAndWaitForRebuild();
-
-        await eventsDone;
-      });
-    });
-
-    group('and without debugging', () {
-      setUp(() async {
-        setCurrentLogWriter(debug: debug);
-        await context.setUp(
-          testSettings: TestSettings(
-            reloadConfiguration: ReloadConfiguration.hotRestart,
-          ),
-          debugSettings: TestDebugSettings.noDevTools().copyWith(
-            enableDebugging: false,
-          ),
-        );
-      });
-
-      tearDown(() async {
-        await context.tearDown();
-        undoEdit();
-      });
-
-      test('can hot restart changes ', () async {
-        await makeEditAndWaitForRebuild();
-
-        final source = await context.webDriver.pageSource;
-
-        // Main is re-invoked which shouldn't clear the state.
-        expect(source.contains(originalString), isTrue);
-        expect(source.contains(newString), isTrue);
-        // The ext.flutter.disassemble callback is invoked and waited for.
-        expect(
-          source,
-          contains('start disassemble end disassemble $newString'),
-        );
-      });
-    });
-  }, timeout: Timeout.factor(2));
-
-  // TODO(https://github.com/dart-lang/webdev/issues/2380): Run these tests with
-  // the FrontendServer as well.
   group('when isolates_paused_on_start is true', () {
     late VmService client;
     late VmService fakeClient;
@@ -507,7 +595,12 @@ void main() {
     setUp(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        testSettings: TestSettings(enableExpressionEvaluation: true),
+        testSettings: TestSettings(
+          enableExpressionEvaluation: true,
+          compilationMode: compilationMode,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
+        ),
       );
       client = context.debugConnection.vmService;
       fakeClient = await context.connectFakeClient();
@@ -523,7 +616,7 @@ void main() {
     test(
       'after hot-restart, does not run app until there is a resume event',
       () async {
-        await makeEditAndWaitForRebuild();
+        await makeEditAndRecompile();
 
         final eventsDone = expectLater(
           client.onIsolateEvent,
@@ -536,6 +629,7 @@ void main() {
           ),
         );
 
+        final mainDone = waitForMainToExecute();
         final hotRestart = context.getRegisteredServiceExtension('hotRestart');
         expect(
           await fakeClient.callServiceExtension(hotRestart!),
@@ -551,6 +645,8 @@ void main() {
         final isolateId = vm.isolates!.first.id!;
         await client.resume(isolateId);
 
+        await mainDone;
+
         final sourceAfterResume = await context.webDriver.pageSource;
         expect(sourceAfterResume.contains(newString), isTrue);
       },
@@ -559,8 +655,8 @@ void main() {
     test(
       'after page refresh, does not run app until there is a resume event',
       () async {
-        await makeEditAndWaitForRebuild();
-
+        final mainDone = waitForMainToExecute();
+        await makeEditAndRecompile();
         await context.webDriver.driver.refresh();
 
         final eventsDone = expectLater(
@@ -582,6 +678,8 @@ void main() {
         final vm = await client.getVM();
         final isolateId = vm.isolates!.first.id!;
         await client.resume(isolateId);
+
+        await mainDone;
 
         final sourceAfterResume = await context.webDriver.pageSource;
         expect(sourceAfterResume.contains(newString), isTrue);

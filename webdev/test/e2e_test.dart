@@ -88,13 +88,11 @@ void main() {
 
     await expectLater(
         process.stdout,
-        emitsThrough(
-            contains('Unable to create merged directory at ${d.sandbox}.')));
-    await expectLater(
-        process.stdout,
-        emitsThrough(
-            'Choose a different directory or delete the contents of that '
-            'directory.'));
+        emitsThrough(contains(
+          'Unable to create merged directory ${d.sandbox}. '
+          'Choose a different directory or delete the contents of that '
+          'directory.',
+        )));
 
     await process.shouldExit(isNot(0));
   });
@@ -113,7 +111,7 @@ void main() {
       final process = await testRunner.runWebDev(args,
           workingDirectory: soundExampleDirectory);
 
-      await checkProcessStdout(process, ['Succeeded']);
+      await checkProcessStdout(process, ['Built with build_runner']);
       await process.shouldExit(0);
     },
     // https://github.com/dart-lang/webdev/issues/2489,
@@ -133,7 +131,7 @@ void main() {
           final process = await testRunner.runWebDev(args,
               workingDirectory: soundExampleDirectory);
 
-          final expectedItems = <Object>['Succeeded'];
+          final expectedItems = <Object>['Built with build_runner'];
 
           await checkProcessStdout(process, expectedItems);
           await process.shouldExit(0);
@@ -166,7 +164,7 @@ void main() {
         final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
 
-        final expectedItems = <Object>['Succeeded'];
+        final expectedItems = <Object>['Built with build_runner'];
 
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
@@ -189,7 +187,7 @@ void main() {
         final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
 
-        final expectedItems = <Object>['Succeeded'];
+        final expectedItems = <Object>['Built with build_runner'];
 
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
@@ -215,7 +213,8 @@ void main() {
         final hostUrl = 'http://localhost:$openPort';
 
         // Wait for the initial build to finish.
-        await expectLater(process.stdout, emitsThrough(contains('Succeeded')));
+        await expectLater(
+            process.stdout, emitsThrough(contains('Built with build_runner')));
 
         final client = HttpClient();
 
@@ -382,15 +381,15 @@ void main() {
                   'valueAsString',
                   'Hello World!!'));
 
-          result =
-              await vmService.evaluate(isolateId, libraryId, 'main.toString()');
+          result = await vmService.evaluate(
+              isolateId, libraryId, 'topLevelMethod()');
 
           expect(
               result,
               const TypeMatcher<InstanceRef>().having(
                   (instance) => instance.valueAsString,
                   'valueAsString',
-                  contains('Hello World!!')));
+                  equals('verify this!')));
         } finally {
           await vmService?.dispose();
           await exitWebdev(process);
@@ -555,7 +554,7 @@ void main() {
 
           expect(
               () =>
-                  vmService!.evaluate(isolateId, libraryId, 'main.toString()'),
+                  vmService!.evaluate(isolateId, libraryId, 'topLevelMethod()'),
               throwsRPCError);
         } finally {
           await vmService?.dispose();

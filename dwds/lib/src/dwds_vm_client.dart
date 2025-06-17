@@ -9,7 +9,6 @@ import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/debug_service.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
@@ -443,24 +442,14 @@ Future<Map<String, dynamic>> _hotRestart(
 }
 
 void _waitForResumeEventToRunMain(ChromeProxyService chromeProxyService) {
-  final issuedReadyToRunMainCompleter = Completer<void>();
-
-  final resumeEventsSubscription = chromeProxyService
-      .resumeAfterRestartEventsStream
+  StreamSubscription<String>? resumeEventsSubscription;
+  resumeEventsSubscription = chromeProxyService.resumeAfterRestartEventsStream
       .listen((_) async {
+        await resumeEventsSubscription!.cancel();
         await chromeProxyService.inspector.jsEvaluate(
           '\$dartReadyToRunMain();',
         );
-        if (!issuedReadyToRunMainCompleter.isCompleted) {
-          issuedReadyToRunMainCompleter.complete();
-        }
       });
-
-  safeUnawaited(
-    issuedReadyToRunMainCompleter.future.then((_) {
-      resumeEventsSubscription.cancel();
-    }),
-  );
 }
 
 Future<Map<String, dynamic>> _fullReload(

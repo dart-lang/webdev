@@ -4,9 +4,14 @@
 
 // Note: this is a copy from flutter tools, updated to work with dwds tests
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/config.dart';
 import 'package:dwds/expression_compiler.dart';
+// ignore: implementation_imports
+import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/utilities.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
@@ -38,6 +43,8 @@ class WebDevFS {
   final PackageUriMapper packageUriMapper;
   final String index;
   final UrlEncoder? urlTunneler;
+  List<Uri> sources = <Uri>[];
+  DateTime? lastCompiled;
 
   @Deprecated('Only sound null safety is supported as of Dart 3.0')
   final bool soundNullSafety;
@@ -73,109 +80,118 @@ class WebDevFS {
     required String dillOutputPath,
     required ResidentCompiler generator,
     required List<Uri> invalidatedFiles,
+    required bool initialCompile,
+    required bool fullRestart,
   }) async {
     final mainPath = mainUri.toFilePath();
     final outputDirectoryPath = fileSystem.file(mainPath).parent.path;
     final entryPoint = mainUri.toString();
 
-    var ddcModuleLoader = 'ddc_module_loader.js';
-    var require = 'require.js';
-    var stackMapper = 'stack_trace_mapper.js';
-    var main = 'main.dart.js';
-    var bootstrap = 'main_module.bootstrap.js';
-
+    var prefix = '';
     // If base path is not overwritten, use main's subdirectory
     // to store all files, so the paths match the requests.
     if (assetServer.basePath.isEmpty) {
       final directory = p.dirname(entryPoint);
-      ddcModuleLoader = '$directory/ddc_module_loader.js';
-      require = '$directory/require.js';
-      stackMapper = '$directory/stack_trace_mapper.js';
-      main = '$directory/main.dart.js';
-      bootstrap = '$directory/main_module.bootstrap.js';
+      prefix = '$directory/';
     }
 
-    assetServer.writeFile(
-        entryPoint, fileSystem.file(mainPath).readAsStringSync());
-    assetServer.writeFile(stackMapper, stackTraceMapper.readAsStringSync());
+    if (initialCompile) {
+      final ddcModuleLoader = '${prefix}ddc_module_loader.js';
+      final require = '${prefix}require.js';
+      final stackMapper = '${prefix}stack_trace_mapper.js';
+      final main = '${prefix}main.dart.js';
+      final bootstrap = '${prefix}main_module.bootstrap.js';
 
-    switch (ddcModuleFormat) {
-      case ModuleFormat.amd:
-        assetServer.writeFile(require, requireJS.readAsStringSync());
-        assetServer.writeFile(
-          main,
-          generateBootstrapScript(
-            requireUrl: 'require.js',
-            mapperUrl: 'stack_trace_mapper.js',
-            entrypoint: entryPoint,
-          ),
-        );
-        assetServer.writeFile(
-          bootstrap,
-          generateMainModule(
-            entrypoint: entryPoint,
-          ),
-        );
-        break;
-      case ModuleFormat.ddc:
-        assetServer.writeFile(
-            ddcModuleLoader, ddcModuleLoaderJS.readAsStringSync());
-        String bootstrapper;
-        String mainModule;
-        if (compilerOptions.canaryFeatures) {
-          bootstrapper = generateDDCLibraryBundleBootstrapScript(
+      assetServer.writeFile(
+          entryPoint, fileSystem.file(mainPath).readAsStringSync());
+      assetServer.writeFile(stackMapper, stackTraceMapper.readAsStringSync());
+
+      switch (ddcModuleFormat) {
+        case ModuleFormat.amd:
+          assetServer.writeFile(require, requireJS.readAsStringSync());
+          assetServer.writeFile(
+            main,
+            generateBootstrapScript(
+              requireUrl: 'require.js',
+              mapperUrl: 'stack_trace_mapper.js',
+              entrypoint: entryPoint,
+            ),
+          );
+          assetServer.writeFile(
+            bootstrap,
+            generateMainModule(
+              entrypoint: entryPoint,
+            ),
+          );
+          break;
+        case ModuleFormat.ddc:
+          assetServer.writeFile(
+              ddcModuleLoader, ddcModuleLoaderJS.readAsStringSync());
+          String bootstrapper;
+          String mainModule;
+          if (compilerOptions.canaryFeatures) {
+            bootstrapper = generateDDCLibraryBundleBootstrapScript(
+                ddcModuleLoaderUrl: ddcModuleLoader,
+                mapperUrl: stackMapper,
+                entrypoint: entryPoint,
+                bootstrapUrl: bootstrap);
+            const onLoadEndBootstrap = 'on_load_end_bootstrap.js';
+            assetServer.writeFile(onLoadEndBootstrap,
+                generateDDCLibraryBundleOnLoadEndBootstrap());
+            mainModule = generateDDCLibraryBundleMainModule(
+                entrypoint: entryPoint, onLoadEndBootstrap: onLoadEndBootstrap);
+          } else {
+            bootstrapper = generateDDCBootstrapScript(
               ddcModuleLoaderUrl: ddcModuleLoader,
               mapperUrl: stackMapper,
               entrypoint: entryPoint,
-              bootstrapUrl: bootstrap);
-          mainModule =
-              generateDDCLibraryBundleMainModule(entrypoint: entryPoint);
-        } else {
-          bootstrapper = generateDDCBootstrapScript(
-            ddcModuleLoaderUrl: ddcModuleLoader,
-            mapperUrl: stackMapper,
-            entrypoint: entryPoint,
-            bootstrapUrl: bootstrap,
-          );
+              bootstrapUrl: bootstrap,
+            );
 
-          // DDC uses a simple heuristic to determine exported identifier names.
-          // The module name (entrypoint name here) has its extension removed,
-          // and special path elements like '/', '\', and '..' are replaced with
-          // '__'.
-          final exportedMainName = pathToJSIdentifier(entryPoint.split('.')[0]);
-          mainModule = generateDDCMainModule(
-              entrypoint: entryPoint, exportedMain: exportedMainName);
-        }
-        assetServer.writeFile(
-          main,
-          bootstrapper,
-        );
-        assetServer.writeFile(
-          bootstrap,
-          mainModule,
-        );
-        break;
-      default:
-        throw Exception('Unsupported DDC module format $ddcModuleFormat.');
+            // DDC uses a simple heuristic to determine exported identifier
+            // names. The module name (entrypoint name here) has its extension
+            // removed, and special path elements like '/', '\', and '..' are
+            // replaced with
+            // '__'.
+            final exportedMainName =
+                pathToJSIdentifier(entryPoint.split('.')[0]);
+            mainModule = generateDDCMainModule(
+                entrypoint: entryPoint, exportedMain: exportedMainName);
+          }
+          assetServer.writeFile(
+            main,
+            bootstrapper,
+          );
+          assetServer.writeFile(
+            bootstrap,
+            mainModule,
+          );
+          break;
+        default:
+          throw Exception('Unsupported DDC module format $ddcModuleFormat.');
+      }
+
+      assetServer.writeFile('main_module.digests', '{}');
+
+      final sdk = dartSdk;
+      final sdkSourceMap = dartSdkSourcemap;
+      assetServer.writeFile('dart_sdk.js', sdk.readAsStringSync());
+      assetServer.writeFile('dart_sdk.js.map', sdkSourceMap.readAsStringSync());
+      generator.reset();
     }
 
-    assetServer.writeFile('main_module.digests', '{}');
-
-    final sdk = dartSdk;
-    final sdkSourceMap = dartSdkSourcemap;
-    assetServer.writeFile('dart_sdk.js', sdk.readAsStringSync());
-    assetServer.writeFile('dart_sdk.js.map', sdkSourceMap.readAsStringSync());
-
-    generator.reset();
     final compilerOutput = await generator.recompile(
       Uri.parse('org-dartlang-app:///$mainUri'),
       invalidatedFiles,
       outputPath: p.join(dillOutputPath, 'app.dill'),
       packageConfig: packageUriMapper.packageConfig,
+      recompileRestart: fullRestart,
     );
     if (compilerOutput == null || compilerOutput.errorCount > 0) {
       return UpdateFSReport(success: false);
     }
+    sources = compilerOutput.sources;
+    lastCompiled = DateTime.now();
 
     File codeFile;
     File manifestFile;
@@ -197,11 +213,101 @@ class WebDevFS {
     } on FileSystemException catch (err) {
       throw Exception('Failed to load recompiled sources:\n$err');
     }
+    if (ddcModuleFormat == ModuleFormat.ddc &&
+        compilerOptions.canaryFeatures &&
+        !initialCompile) {
+      if (fullRestart) {
+        performRestart(modules);
+      } else {
+        performReload(modules, prefix);
+      }
+    }
     return UpdateFSReport(
       success: true,
       syncedBytes: codeFile.lengthSync(),
       invalidatedSourcesCount: invalidatedFiles.length,
     )..invalidatedModules = modules;
+  }
+
+  /// Given a list of [modules] that need to be loaded, writes a list of sources
+  /// mapped to their ids to the file system that can then be consumed by the
+  /// hot restart callback.
+  ///
+  /// For example:
+  /// ```json
+  /// [
+  ///   {
+  ///     "src": "<file_name>",
+  ///     "id": "<id>",
+  ///   },
+  /// ]
+  /// ```
+  void performRestart(List<String> modules) {
+    final srcIdsList = <Map<String, String>>[];
+    for (final src in modules) {
+      srcIdsList.add(<String, String>{'src': src, 'id': src});
+    }
+    assetServer.writeFile('restart_scripts.json', json.encode(srcIdsList));
+  }
+
+  static const String reloadScriptsFileName = 'reload_scripts.json';
+
+  /// Given a list of [modules] that need to be reloaded, writes a file that
+  /// contains a list of objects each with two fields:
+  ///
+  /// `src`: A string that corresponds to the file path containing a DDC library
+  /// bundle.
+  /// `libraries`: An array of strings containing the libraries that were
+  /// compiled in `src`.
+  ///
+  /// For example:
+  /// ```json
+  /// [
+  ///   {
+  ///     "src": "<file_name>",
+  ///     "libraries": ["<lib1>", "<lib2>"],
+  ///   },
+  /// ]
+  /// ```
+  ///
+  /// The path of the output file should stay consistent across the lifetime of
+  /// the app.
+  ///
+  /// [entrypointDirectory] is used to make the module paths relative to the
+  /// entrypoint, which is needed in order to load `src`s correctly.
+  void performReload(List<String> modules, String entrypointDirectory) {
+    final moduleToLibrary = <Map<String, Object>>[];
+    for (final module in modules) {
+      final metadata = ModuleMetadata.fromJson(
+        json.decode(utf8
+                .decode(assetServer.getMetadata('$module.metadata').toList()))
+            as Map<String, dynamic>,
+      );
+      final libraries = metadata.libraries.keys.toList();
+      moduleToLibrary.add(<String, Object>{
+        'src': _findModuleToLoad(module, entrypointDirectory),
+        'libraries': libraries
+      });
+    }
+    assetServer.writeFile(reloadScriptsFileName, json.encode(moduleToLibrary));
+  }
+
+  /// Given a [module] location from the [ModuleMetadata], return its path in
+  /// the server relative to the entrypoint in [entrypointDirectory].
+  ///
+  /// This is needed in cases where the entrypoint is in a subdirectory in the
+  /// package.
+  String _findModuleToLoad(String module, String entrypointDirectory) {
+    if (entrypointDirectory.isEmpty) return module;
+    assert(entrypointDirectory.endsWith('/'));
+    if (module.startsWith(entrypointDirectory)) {
+      return module.substring(entrypointDirectory.length);
+    }
+    var numDirs = entrypointDirectory.split('/').length - 1;
+    while (numDirs-- > 0) {
+      module = '../$module';
+    }
+    return module;
   }
 
   File get ddcModuleLoaderJS =>
@@ -243,4 +349,69 @@ class UpdateFSReport {
   ///
   /// Only used for JavaScript compilation.
   List<String>? invalidatedModules;
+}
+
+/// The result of an invalidation check from [ProjectFileInvalidator].
+class InvalidationResult {
+  const InvalidationResult({this.uris});
+
+  final List<Uri>? uris;
+}
+
+/// The [ProjectFileInvalidator] track the dependencies for a running
+/// application to determine when they are dirty.
+class ProjectFileInvalidator {
+  ProjectFileInvalidator({required FileSystem fileSystem})
+      : _fileSystem = fileSystem;
+
+  final FileSystem _fileSystem;
+
+  static const String _pubCachePathLinuxAndMac = '.pub-cache';
+  static const String _pubCachePathWindows = 'Pub/Cache';
+
+  Future<InvalidationResult> findInvalidated({
+    required DateTime? lastCompiled,
+    required List<Uri> urisToMonitor,
+    required String packagesPath,
+  }) async {
+    if (lastCompiled == null) {
+      // Initial load.
+      assert(urisToMonitor.isEmpty);
+      return InvalidationResult(uris: <Uri>[]);
+    }
+
+    final urisToScan = <Uri>[
+      // Don't watch pub cache directories to speed things up a little.
+      for (final Uri uri in urisToMonitor)
+        if (_isNotInPubCache(uri)) uri,
+    ];
+    final invalidatedFiles = <Uri>[];
+    for (final uri in urisToScan) {
+      // Calling fs.statSync() is more performant than fs.file().statSync(),
+      // but uri.toFilePath() does not work with MultiRootFileSystem.
+      final updatedAt = uri.hasScheme && uri.scheme != 'file'
+          ? _fileSystem.file(uri).statSync().modified
+          : _fileSystem
+              .statSync(uri.toFilePath(windows: Platform.isWindows))
+              .modified;
+      if (updatedAt.isAfter(lastCompiled)) {
+        invalidatedFiles.add(uri);
+      }
+    }
+    // We need to check the .dart_tool/package_config.json file too since it is
+    // not used in compilation.
+    final packageFile = _fileSystem.file(packagesPath);
+    final packageUri = packageFile.uri;
+    final updatedAt = packageFile.statSync().modified;
+    if (updatedAt.isAfter(lastCompiled)) {
+      invalidatedFiles.add(packageUri);
+    }
+
+    return InvalidationResult(uris: invalidatedFiles);
+  }
+
+  bool _isNotInPubCache(Uri uri) {
+    return !(Platform.isWindows && uri.path.contains(_pubCachePathWindows)) &&
+        !uri.path.contains(_pubCachePathLinuxAndMac);
+  }
 }

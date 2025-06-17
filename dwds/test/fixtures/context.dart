@@ -24,6 +24,7 @@ import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:file/local.dart';
+import 'package:frontend_server_common/src/devfs.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
 import 'package:http/io_client.dart';
@@ -114,6 +115,10 @@ class TestContext {
   final _logger = logging.Logger('Context');
 
   final _serviceNameToMethod = <String, String?>{};
+
+  late LocalFileSystem frontendServerFileSystem;
+
+  late String _hostname;
 
   /// Internal VM service.
   ///
@@ -305,9 +310,9 @@ class TestContext {
             final entry = p.toUri(
               p.join(project.webAssetsPath, project.dartEntryFileName),
             );
-            final fileSystem = LocalFileSystem();
+            frontendServerFileSystem = LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
-              fileSystem,
+              frontendServerFileSystem,
               project.packageConfigFile,
               useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
             );
@@ -333,20 +338,23 @@ class TestContext {
             );
 
             final assetServerPort = await findUnusedPort();
+            _hostname = appMetadata.hostname;
             await webRunner.run(
-              fileSystem,
-              appMetadata.hostname,
+              frontendServerFileSystem,
+              _hostname,
               assetServerPort,
               filePathToServe,
+              initialCompile: true,
+              fullRestart: false,
             );
 
             if (testSettings.enableExpressionEvaluation) {
               expressionCompiler = webRunner.expressionCompiler;
             }
 
-            basePath = webRunner.devFS.assetServer.basePath;
-            assetReader = webRunner.devFS.assetServer;
-            _assetHandler = webRunner.devFS.assetServer.handleRequest;
+            basePath = webRunner.devFS!.assetServer.basePath;
+            assetReader = webRunner.devFS!.assetServer;
+            _assetHandler = webRunner.devFS!.assetServer.handleRequest;
             loadStrategy = switch (testSettings.moduleFormat) {
               ModuleFormat.amd =>
                 FrontendServerRequireStrategyProvider(
@@ -364,6 +372,9 @@ class TestContext {
                       packageUriMapper,
                       () async => {},
                       buildSettings,
+                      hotReloadSourcesUri: Uri.parse(
+                        'http://localhost:$port/${WebDevFS.reloadScriptsFileName}',
+                      ),
                     ).strategy
                     : FrontendServerDdcStrategyProvider(
                       testSettings.reloadConfiguration,
@@ -570,6 +581,30 @@ class TestContext {
     final file = File(project.dartLibFilePath(libFileName));
     final fileContents = file.readAsStringSync();
     file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
+  }
+
+  void addLibraryFile({required String libFileName, required String contents}) {
+    final file = File(project.dartLibFilePath(libFileName));
+    // Library folder may not exist yet, so create it.
+    file.createSync(recursive: true);
+    file.writeAsStringSync(contents);
+  }
+
+  void removeLibraryFile({required String libFileName}) {
+    final file = File(project.dartLibFilePath(libFileName));
+    file.deleteSync();
+  }
+
+  Future<void> recompile({required bool fullRestart}) async {
+    await webRunner.run(
+      frontendServerFileSystem,
+      _hostname,
+      await findUnusedPort(),
+      webCompatiblePath([project.directoryToServe, project.filePathToServe]),
+      initialCompile: false,
+      fullRestart: fullRestart,
+    );
+    return;
   }
 
   Future<void> waitForSuccessfulBuild({

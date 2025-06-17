@@ -135,6 +135,22 @@ class TestProject {
     htmlEntryFileName: 'index.html',
   );
 
+  static const testHotRestartBreakpoints = TestProject._(
+    packageName: '_test_hot_restart_breakpoints',
+    packageDirectory: '_testHotRestartBreakpoints',
+    webAssetsPath: 'web',
+    dartEntryFileName: 'main.dart',
+    htmlEntryFileName: 'index.html',
+  );
+
+  static const testHotReload = TestProject._(
+    packageName: '_test_hot_reload',
+    packageDirectory: '_testHotReload',
+    webAssetsPath: 'web',
+    dartEntryFileName: 'main.dart',
+    htmlEntryFileName: 'index.html',
+  );
+
   const TestProject._({
     required this.packageName,
     required this.packageDirectory,

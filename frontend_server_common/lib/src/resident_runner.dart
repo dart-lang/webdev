@@ -63,13 +63,21 @@ class ResidentWebRunner {
 
   late ResidentCompiler generator;
   late ExpressionCompiler expressionCompiler;
-  late WebDevFS devFS;
-  late Uri uri;
+  ProjectFileInvalidator? _projectFileInvalidator;
+  WebDevFS? devFS;
+  Uri? uri;
   late Iterable<String> modules;
 
   Future<int> run(
-      FileSystem fileSystem, String? hostname, int port, String index) async {
-    devFS = WebDevFS(
+    FileSystem fileSystem,
+    String? hostname,
+    int port,
+    String index, {
+    required bool initialCompile,
+    required bool fullRestart,
+  }) async {
+    _projectFileInvalidator ??= ProjectFileInvalidator(fileSystem: fileSystem);
+    devFS ??= WebDevFS(
       fileSystem: fileSystem,
       hostname: hostname ?? 'localhost',
       port: port,
@@ -80,9 +88,10 @@ class ResidentWebRunner {
       sdkLayout: sdkLayout,
       compilerOptions: compilerOptions,
     );
-    uri = await devFS.create();
+    uri ??= await devFS!.create();
 
-    final report = await _updateDevFS();
+    final report = await _updateDevFS(
+        initialCompile: initialCompile, fullRestart: fullRestart);
     if (!report.success) {
       _logger.severe('Failed to compile application.');
       return 1;
@@ -94,17 +103,25 @@ class ResidentWebRunner {
     return 0;
   }
 
-  Future<UpdateFSReport> _updateDevFS() async {
-    final report = await devFS.update(
+  Future<UpdateFSReport> _updateDevFS(
+      {required bool initialCompile, required bool fullRestart}) async {
+    final invalidationResult = await _projectFileInvalidator!.findInvalidated(
+      lastCompiled: devFS!.lastCompiled,
+      urisToMonitor: devFS!.sources,
+      packagesPath: packageConfigFile.toFilePath(),
+    );
+    final report = await devFS!.update(
         mainUri: mainUri,
         dillOutputPath: outputPath,
         generator: generator,
-        invalidatedFiles: []);
+        invalidatedFiles: invalidationResult.uris!,
+        initialCompile: initialCompile,
+        fullRestart: fullRestart);
     return report;
   }
 
   Future<void> stop() async {
     await generator.shutdown();
-    await devFS.dispose();
+    await devFS!.dispose();
   }
 }
