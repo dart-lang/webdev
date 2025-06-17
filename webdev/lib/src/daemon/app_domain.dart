@@ -25,6 +25,9 @@ class AppDomain extends Domain {
 
   final _appStates = <String, _AppState>{};
 
+  // Prevents duplicate stdout listeners for the same appId
+  final _activeListeners = <String>{};
+
   // Mapping from service name to service method.
   final Map<String, String> _registeredMethodsForService = <String, String>{};
 
@@ -85,24 +88,11 @@ class AppDomain extends Domain {
         'deviceId': 'chrome',
         'launchMode': 'run'
       });
-      // TODO(grouma) - limit the catch to the appropriate error.
-      try {
-        await vmService.streamCancel('Stdout');
-      } catch (_) {}
-      try {
-        await vmService.streamListen('Stdout');
-      } catch (_) {}
-      try {
-        vmService.onServiceEvent.listen(_onServiceEvent);
-        await vmService.streamListen('Service');
-      } catch (_) {}
+
+      // Set up VM service listeners (only once per appId to prevent duplicates)
       // ignore: cancel_subscriptions
-      final stdOutSub = vmService.onStdoutEvent.listen((log) {
-        sendEvent('app.log', {
-          'appId': appId,
-          'log': utf8.decode(base64.decode(log.bytes!)),
-        });
-      });
+      final stdOutSub = await _setupVmServiceListeners(appId, vmService);
+
       sendEvent('app.debugPort', {
         'appId': appId,
         'port': debugConnection.port,
@@ -121,8 +111,7 @@ class AppDomain extends Domain {
       appConnection.runMain();
 
       unawaited(debugConnection.onDone.whenComplete(() {
-        appState.dispose();
-        _appStates.remove(appId);
+        _cleanupAppConnection(appId, appState);
       }));
     }
 
@@ -223,6 +212,44 @@ class AppDomain extends Domain {
     return true;
   }
 
+  /// Sets up VM service listeners for the given appId if not already active.
+  /// Returns the stdout subscription if created, null otherwise.
+  Future<StreamSubscription<Event>?> _setupVmServiceListeners(
+      String appId, VmService vmService) async {
+    if (_activeListeners.contains(appId)) {
+      return null; // Already listening for this appId
+    }
+
+    _activeListeners.add(appId);
+
+    // TODO(grouma) - limit the catch to the appropriate error.
+    try {
+      await vmService.streamCancel('Stdout');
+    } catch (_) {}
+    try {
+      await vmService.streamListen('Stdout');
+    } catch (_) {}
+    try {
+      vmService.onServiceEvent.listen(_onServiceEvent);
+      await vmService.streamListen('Service');
+    } catch (_) {}
+
+    // ignore: cancel_subscriptions
+    return vmService.onStdoutEvent.listen((log) {
+      sendEvent('app.log', {
+        'appId': appId,
+        'log': utf8.decode(base64.decode(log.bytes!)),
+      });
+    });
+  }
+
+  /// Cleans up an app connection and its associated listeners.
+  void _cleanupAppConnection(String appId, _AppState appState) {
+    appState.dispose();
+    _appStates.remove(appId);
+    _activeListeners.remove(appId);
+  }
+
   @override
   void dispose() {
     _isShutdown = true;
@@ -230,13 +257,14 @@ class AppDomain extends Domain {
       state.dispose();
     }
     _appStates.clear();
+    _activeListeners.clear();
   }
 }
 
 class _AppState {
   final DebugConnection _debugConnection;
   final StreamSubscription<BuildResult> _resultSub;
-  final StreamSubscription<Event> _stdOutSub;
+  final StreamSubscription<Event>? _stdOutSub;
 
   bool _isDisposed = false;
 
@@ -247,7 +275,7 @@ class _AppState {
   void dispose() {
     if (_isDisposed) return;
     _isDisposed = true;
-    _stdOutSub.cancel();
+    _stdOutSub?.cancel();
     _resultSub.cancel();
     _debugConnection.close();
   }
