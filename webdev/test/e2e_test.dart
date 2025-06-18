@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:io/io.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_common/utilities.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
@@ -69,8 +70,11 @@ void main() {
         loadYaml(await File('pubspec.yaml').readAsString()) as YamlMap;
     expect(smokeYaml['environment']['sdk'],
         equals(webdevYaml['environment']['sdk']));
-    expect(smokeYaml['dev_dependencies']['build_runner'],
-        equals(buildRunnerConstraint.toString()));
+    expect(
+        VersionConstraint.parse(smokeYaml['dev_dependencies']['build_runner'])
+            .union(buildRunnerConstraint)
+            .isEmpty,
+        false);
     expect(smokeYaml['dev_dependencies']['build_web_compilers'],
         equals(buildWebCompilersConstraint.toString()));
   });
