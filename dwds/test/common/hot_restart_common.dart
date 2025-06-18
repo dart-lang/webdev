@@ -411,7 +411,7 @@ void runTests({
       var vm = await client.getVM();
       var isolateId = vm.isolates!.first.id!;
       await client.streamListen('Debug');
-      final stream = client.onEvent('Debug');
+      final stream = client.onDebugEvent;
       final scriptList = await client.getScripts(isolateId);
       final main = scriptList.scripts!.firstWhere(
         (script) => script.uri!.contains('main.dart'),

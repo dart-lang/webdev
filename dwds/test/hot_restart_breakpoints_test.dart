@@ -83,7 +83,7 @@ void main() {
       await client.setFlag('pause_isolates_on_start', 'true');
       await client.streamListen(EventStreams.kIsolate);
       await client.streamListen(EventStreams.kDebug);
-      stream = client.onEvent(EventStreams.kDebug);
+      stream = client.onDebugEvent;
       consoleSubscription = context.webkitDebugger.onConsoleAPICalled.listen(
         (e) => consoleLogs.add(e.args.first.value as String),
       );

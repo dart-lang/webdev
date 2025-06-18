@@ -49,7 +49,7 @@ class TestProject {
       webAssetsPath,
       dartEntryFileName,
     ];
-    editable
+    return editable
         ? p.joinAll([_fixturesCopy.absolute.path, ...entryFilePathInPkg])
         : absolutePath(pathFromFixtures: p.joinAll(entryFilePathInPkg));
   }
