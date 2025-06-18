@@ -30,25 +30,21 @@ const _clientScript = 'dwds/src/injected/client';
 /// to include the injected DWDS client, enabling debugging capabilities
 /// and source mapping when running in a browser environment.
 ///
-/// The `_injectDebuggingSupportCode` flag determines whether debugging-related
-/// functionality should be included:
-/// - When `true`, the DWDS client is injected, enabling debugging features.
-/// - When `false`, debugging support is disabled, meaning the application will
-///   run without debugging.
-///
-/// This separation allows for scenarios where debugging is not needed or
-/// should be explicitly avoided.
+/// TODO(yjessy): Remove this when the DWDS WebSocket connection is implemented.
+/// The `_useDwdsWebSocketConnection` flag determines the communication protocol:
+/// - When `true`, uses a socket-based implementation.
+/// - When `false`, uses Chrome-based communication protocol.
 class DwdsInjector {
   final Future<String>? _extensionUri;
   final _devHandlerPaths = StreamController<String>();
   final _logger = Logger('DwdsInjector');
-  final bool _injectDebuggingSupportCode;
+  final bool _useDwdsWebSocketConnection;
 
   DwdsInjector({
     Future<String>? extensionUri,
-    bool injectDebuggingSupportCode = true,
+    bool useDwdsWebSocketConnection = false,
   }) : _extensionUri = extensionUri,
-       _injectDebuggingSupportCode = injectDebuggingSupportCode;
+       _useDwdsWebSocketConnection = useDwdsWebSocketConnection;
 
   /// Returns the embedded dev handler paths.
   ///
@@ -108,17 +104,15 @@ class DwdsInjector {
           await globalToolConfiguration.loadStrategy.trackEntrypoint(
             entrypoint,
           );
-          // If true, inject the debugging client and hoist the main function
-          // to enable debugging support.
-          if (_injectDebuggingSupportCode) {
-            body = await _injectClientAndHoistMain(
-              body,
-              appId,
-              devHandlerPath,
-              entrypoint,
-              await _extensionUri,
-            );
-          }
+          // Always inject the debugging client and hoist the main function.
+          body = await _injectClientAndHoistMain(
+            body,
+            appId,
+            devHandlerPath,
+            entrypoint,
+            await _extensionUri,
+            _useDwdsWebSocketConnection,
+          );
           body += await globalToolConfiguration.loadStrategy.bootstrapFor(
             entrypoint,
           );
@@ -154,6 +148,7 @@ Future<String> _injectClientAndHoistMain(
   String devHandlerPath,
   String entrypointPath,
   String? extensionUri,
+  bool useDwdsWebSocketConnection,
 ) async {
   final bodyLines = body.split('\n');
   final extensionIndex = bodyLines.indexWhere(
@@ -172,6 +167,7 @@ Future<String> _injectClientAndHoistMain(
     devHandlerPath,
     entrypointPath,
     extensionUri,
+    useDwdsWebSocketConnection,
   );
   result += '''
   // Injected by dwds for debugging support.
@@ -203,6 +199,7 @@ Future<String> _injectedClientSnippet(
   String devHandlerPath,
   String entrypointPath,
   String? extensionUri,
+  bool useDwdsWebSocketConnection,
 ) async {
   final loadStrategy = globalToolConfiguration.loadStrategy;
   final buildSettings = loadStrategy.buildSettings;
@@ -221,6 +218,7 @@ Future<String> _injectedClientSnippet(
       'window.\$dartEmitDebugEvents = ${debugSettings.emitDebugEvents};\n'
       'window.\$isInternalBuild = ${appMetadata.isInternalBuild};\n'
       'window.\$isFlutterApp = ${buildSettings.isFlutterApp};\n'
+      'window.\$useDwdsWebSocketConnection = $useDwdsWebSocketConnection;\n'
       '${loadStrategy is DdcLibraryBundleStrategy ? 'window.\$hotReloadSourcesPath = "${loadStrategy.hotReloadSourcesUri.toString()}";\n' : ''}'
       '${loadStrategy.loadClientSnippet(_clientScript)}';
 

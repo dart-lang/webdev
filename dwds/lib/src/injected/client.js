@@ -7978,7 +7978,10 @@
       t2 = new A.BuiltJsonSerializersBuilder(A.MapBuilder_MapBuilder(t1, t2), A.MapBuilder_MapBuilder(t3, t2), A.MapBuilder_MapBuilder(t3, t2), A.MapBuilder_MapBuilder(type$.FullType, type$.Function), A.ListBuilder_ListBuilder(B.List_empty0, type$.SerializerPlugin));
       t2.add$1(0, new A.BigIntSerializer(A.BuiltList_BuiltList$from([B.Type_BigInt_DZK, A.getRuntimeTypeOfDartObject($.$get$_BigIntImpl_zero())], t1)));
       t2.add$1(0, new A.BoolSerializer(A.BuiltList_BuiltList$from([B.Type_bool_wF1], t1)));
+      t2.add$1(0, new A.ListSerializer(A.BuiltList_BuiltList$from([B.Type_List_hc9, A.createRuntimeType(A._arrayInstanceType(A._setArrayType([], type$.JSArray_Object)))], t1)));
       t3 = type$.Object;
+      t2.add$1(0, new A.MapSerializer(A.BuiltList_BuiltList$from([B.Type_Map_9Aj, A.getRuntimeTypeOfDartObject(A.LinkedHashMap_LinkedHashMap$_empty(t3, t3))], t1)));
+      t2.add$1(0, new A.SetSerializer(A.BuiltSet_BuiltSet$from([B.Type_Set_tZi, A.getRuntimeTypeOfDartObject(A.LinkedHashSet_LinkedHashSet$_empty(t3))], t1)));
       t2.add$1(0, new A.BuiltListSerializer(A.BuiltList_BuiltList$from([B.Type_BuiltList_fj6, A.getRuntimeTypeOfDartObject(A.BuiltList_BuiltList$from(B.List_empty0, t3))], t1)));
       t2.add$1(0, new A.BuiltListMultimapSerializer(A.BuiltList_BuiltList$from([B.Type_BuiltListMultimap_HQW, A.getRuntimeTypeOfDartObject(A.BuiltListMultimap_BuiltListMultimap(t3, t3))], t1)));
       t2.add$1(0, new A.BuiltMapSerializer(A.BuiltList_BuiltList$from([B.Type_BuiltMap_TeX, A.getRuntimeTypeOfDartObject(A.BuiltMap_BuiltMap(t3, t3))], t1)));
@@ -8137,6 +8140,16 @@
     JsonObjectSerializer: function JsonObjectSerializer(t0) {
       this.types = t0;
     },
+    ListSerializer: function ListSerializer(t0) {
+      this.types = t0;
+    },
+    ListSerializer_serialize_closure: function ListSerializer_serialize_closure(t0, t1) {
+      this.serializers = t0;
+      this.elementType = t1;
+    },
+    MapSerializer: function MapSerializer(t0) {
+      this.types = t0;
+    },
     NullSerializer: function NullSerializer(t0) {
       this.types = t0;
     },
@@ -8145,6 +8158,13 @@
     },
     RegExpSerializer: function RegExpSerializer(t0) {
       this.types = t0;
+    },
+    SetSerializer: function SetSerializer(t0) {
+      this.types = t0;
+    },
+    SetSerializer_serialize_closure: function SetSerializer_serialize_closure(t0, t1) {
+      this.serializers = t0;
+      this.elementType = t1;
     },
     StringSerializer: function StringSerializer(t0) {
       this.types = t0;
@@ -8269,7 +8289,7 @@
     },
     ConnectRequestBuilder: function ConnectRequestBuilder() {
       var _ = this;
-      _._entrypointPath = _._instanceId = _._appId = _._$v = null;
+      _._entrypointPath = _._instanceId = _._connect_request$_appId = _._connect_request$_$v = null;
     },
     DebugEvent: function DebugEvent() {
     },
@@ -8316,7 +8336,7 @@
     },
     DebugInfoBuilder: function DebugInfoBuilder() {
       var _ = this;
-      _._tabId = _._tabUrl = _._workspaceName = _._isFlutterApp = _._isInternalBuild = _._extensionUrl = _._dwdsVersion = _._authUrl = _._appUrl = _._appOrigin = _._appInstanceId = _._debug_info$_appId = _._appEntrypointPath = _._debug_info$_$v = null;
+      _._tabId = _._tabUrl = _._workspaceName = _._isFlutterApp = _._isInternalBuild = _._extensionUrl = _._dwdsVersion = _._authUrl = _._appUrl = _._appOrigin = _._appInstanceId = _._appId = _._appEntrypointPath = _._$v = null;
     },
     DevToolsRequest: function DevToolsRequest() {
     },
@@ -9606,13 +9626,19 @@
           throw exception;
       }
     },
+    _sendConnectRequest(clientSink) {
+      var t1 = $.$get$serializers(),
+        t2 = new A.ConnectRequestBuilder();
+      type$.nullable_void_Function_ConnectRequestBuilder._as(new A._sendConnectRequest_closure()).call$1(t2);
+      A._trySendEvent(clientSink, B.C_JsonCodec.encode$2$toEncodable(t1.serialize$1(t2._connect_request$_build$0()), null), type$.dynamic);
+    },
     _launchCommunicationWithDebugExtension() {
       var t1, t2;
       type$.JSObject._as(init.G.window).addEventListener("message", A._functionToJS1(A.client___handleAuthRequest$closure()));
       t1 = $.$get$serializers();
       t2 = new A.DebugInfoBuilder();
       type$.nullable_void_Function_DebugInfoBuilder._as(new A._launchCommunicationWithDebugExtension_closure()).call$1(t2);
-      A._dispatchEvent("dart-app-ready", B.C_JsonCodec.encode$2$toEncodable(t1.serialize$1(t2._debug_info$_build$0()), null));
+      A._dispatchEvent("dart-app-ready", B.C_JsonCodec.encode$2$toEncodable(t1.serialize$1(t2._build$0()), null));
     },
     _dispatchEvent(message, detail) {
       var t1 = init.G,
@@ -9794,9 +9820,9 @@
     },
     main__closure9: function main__closure9() {
     },
-    main__closure10: function main__closure10() {
-    },
     main_closure0: function main_closure0() {
+    },
+    _sendConnectRequest_closure: function _sendConnectRequest_closure() {
     },
     _launchCommunicationWithDebugExtension_closure: function _launchCommunicationWithDebugExtension_closure() {
     },
@@ -11566,8 +11592,11 @@
       return this;
     },
     toList$1$growable(_, growable) {
-      var t1 = J.JSArray_JSArray$fixed(0, this.$ti._precomputed1);
-      return t1;
+      var t1 = this.$ti._precomputed1;
+      return growable ? J.JSArray_JSArray$growable(0, t1) : J.JSArray_JSArray$fixed(0, t1);
+    },
+    toList$0(_) {
+      return this.toList$1$growable(0, true);
     }
   };
   A.EmptyIterator.prototype = {
@@ -20823,6 +20852,143 @@
       return "JsonObject";
     }
   };
+  A.ListSerializer.prototype = {
+    serialize$3$specifiedType(serializers, list, specifiedType) {
+      var t1, t2, elementType;
+      type$.List_dynamic._as(list);
+      if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
+        if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
+          serializers._throwMissingBuilderFactory$1(specifiedType);
+      t1 = specifiedType.parameters;
+      t2 = t1.length;
+      if (t2 === 0)
+        elementType = B.FullType_null_List_empty_false;
+      else {
+        if (0 >= t2)
+          return A.ioore(t1, 0);
+        elementType = t1[0];
+      }
+      return J.map$1$1$ax(list, new A.ListSerializer_serialize_closure(serializers, elementType), type$.nullable_Object);
+    },
+    serialize$2(serializers, list) {
+      return this.serialize$3$specifiedType(serializers, list, B.FullType_null_List_empty_false);
+    },
+    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
+      var isUnderspecified, t1, t2, elementType, result;
+      type$.Iterable_dynamic._as(serialized);
+      isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
+      t1 = specifiedType.parameters;
+      t2 = t1.length;
+      if (t2 === 0)
+        elementType = B.FullType_null_List_empty_false;
+      else {
+        if (0 >= t2)
+          return A.ioore(t1, 0);
+        elementType = t1[0];
+      }
+      result = isUnderspecified ? A._setArrayType([], type$.JSArray_Object) : type$.List_dynamic._as(serializers.newBuilder$1(specifiedType));
+      for (t1 = J.get$iterator$ax(serialized), t2 = J.getInterceptor$ax(result); t1.moveNext$0();)
+        t2.add$1(result, serializers.deserialize$2$specifiedType(t1.get$current(), elementType));
+      return result;
+    },
+    deserialize$2(serializers, serialized) {
+      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
+    },
+    $isSerializer: 1,
+    $isStructuredSerializer: 1,
+    get$types() {
+      return this.types;
+    },
+    get$wireName() {
+      return "List";
+    }
+  };
+  A.ListSerializer_serialize_closure.prototype = {
+    call$1(item) {
+      return this.serializers.serialize$2$specifiedType(item, this.elementType);
+    },
+    $signature: 3
+  };
+  A.MapSerializer.prototype = {
+    serialize$3$specifiedType(serializers, $Map, specifiedType) {
+      var t1, t2, t3, keyType, valueType, result, key;
+      type$.Map_dynamic_dynamic._as($Map);
+      if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
+        if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
+          serializers._throwMissingBuilderFactory$1(specifiedType);
+      t1 = specifiedType.parameters;
+      t2 = t1.length;
+      t3 = t2 === 0;
+      if (t3)
+        keyType = B.FullType_null_List_empty_false;
+      else {
+        if (0 >= t2)
+          return A.ioore(t1, 0);
+        keyType = t1[0];
+      }
+      if (t3)
+        valueType = B.FullType_null_List_empty_false;
+      else {
+        if (1 >= t2)
+          return A.ioore(t1, 1);
+        valueType = t1[1];
+      }
+      result = [];
+      for (t1 = $Map.get$keys(), t1 = t1.get$iterator(t1); t1.moveNext$0();) {
+        key = t1.get$current();
+        result.push(serializers.serialize$2$specifiedType(key, keyType));
+        result.push(serializers.serialize$2$specifiedType($Map.$index(0, key), valueType));
+      }
+      return result;
+    },
+    serialize$2(serializers, $Map) {
+      return this.serialize$3$specifiedType(serializers, $Map, B.FullType_null_List_empty_false);
+    },
+    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
+      var isUnderspecified, t1, t2, t3, keyType, valueType, result, i;
+      type$.Iterable_dynamic._as(serialized);
+      isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
+      t1 = specifiedType.parameters;
+      t2 = t1.length;
+      t3 = t2 === 0;
+      if (t3)
+        keyType = B.FullType_null_List_empty_false;
+      else {
+        if (0 >= t2)
+          return A.ioore(t1, 0);
+        keyType = t1[0];
+      }
+      if (t3)
+        valueType = B.FullType_null_List_empty_false;
+      else {
+        if (1 >= t2)
+          return A.ioore(t1, 1);
+        valueType = t1[1];
+      }
+      if (isUnderspecified) {
+        t1 = type$.Object;
+        result = A.LinkedHashMap_LinkedHashMap$_empty(t1, t1);
+      } else
+        result = type$.Map_dynamic_dynamic._as(serializers.newBuilder$1(specifiedType));
+      t1 = J.getInterceptor$asx(serialized);
+      if (B.JSInt_methods.$mod(t1.get$length(serialized), 2) === 1)
+        throw A.wrapException(A.ArgumentError$("odd length", null));
+      for (i = 0; i !== t1.get$length(serialized); i += 2)
+        result.$indexSet(0, serializers.deserialize$2$specifiedType(t1.elementAt$1(serialized, i), keyType), serializers.deserialize$2$specifiedType(t1.elementAt$1(serialized, i + 1), valueType));
+      return result;
+    },
+    deserialize$2(serializers, serialized) {
+      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
+    },
+    $isSerializer: 1,
+    $isStructuredSerializer: 1,
+    get$types() {
+      return this.types;
+    },
+    get$wireName() {
+      return "Map";
+    }
+  };
   A.NullSerializer.prototype = {
     serialize$3$specifiedType(serializers, value, specifiedType) {
       type$.Null._as(value);
@@ -20903,6 +21069,63 @@
     get$wireName() {
       return "RegExp";
     }
+  };
+  A.SetSerializer.prototype = {
+    serialize$3$specifiedType(serializers, set, specifiedType) {
+      var t1, t2, elementType;
+      type$.Set_dynamic._as(set);
+      if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
+        if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
+          serializers._throwMissingBuilderFactory$1(specifiedType);
+      t1 = specifiedType.parameters;
+      t2 = t1.length;
+      if (t2 === 0)
+        elementType = B.FullType_null_List_empty_false;
+      else {
+        if (0 >= t2)
+          return A.ioore(t1, 0);
+        elementType = t1[0];
+      }
+      return set.map$1$1(0, new A.SetSerializer_serialize_closure(serializers, elementType), type$.nullable_Object);
+    },
+    serialize$2(serializers, set) {
+      return this.serialize$3$specifiedType(serializers, set, B.FullType_null_List_empty_false);
+    },
+    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
+      var isUnderspecified, t1, t2, elementType, result;
+      type$.Iterable_dynamic._as(serialized);
+      isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
+      t1 = specifiedType.parameters;
+      t2 = t1.length;
+      if (t2 === 0)
+        elementType = B.FullType_null_List_empty_false;
+      else {
+        if (0 >= t2)
+          return A.ioore(t1, 0);
+        elementType = t1[0];
+      }
+      result = isUnderspecified ? A.LinkedHashSet_LinkedHashSet$_empty(type$.Object) : type$.Set_dynamic._as(serializers.newBuilder$1(specifiedType));
+      for (t1 = J.get$iterator$ax(serialized); t1.moveNext$0();)
+        result.add$1(0, serializers.deserialize$2$specifiedType(t1.get$current(), elementType));
+      return result;
+    },
+    deserialize$2(serializers, serialized) {
+      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
+    },
+    $isSerializer: 1,
+    $isStructuredSerializer: 1,
+    get$types() {
+      return this.types;
+    },
+    get$wireName() {
+      return "Set";
+    }
+  };
+  A.SetSerializer_serialize_closure.prototype = {
+    call$1(item) {
+      return this.serializers.serialize$2$specifiedType(item, this.elementType);
+    },
+    $signature: 3
   };
   A.StringSerializer.prototype = {
     serialize$3$specifiedType(serializers, string, specifiedType) {
@@ -21428,7 +21651,6 @@
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
       var t1, t2, value, $$v, _$result,
-        _s11_ = "BuildResult",
         result = new A.BuildResultBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
       for (t1 = type$.BuildStatus; iterator.moveNext$0();) {
@@ -21452,13 +21674,7 @@
         }
       }
       _$result = result._build_result$_$v;
-      if (_$result == null) {
-        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_build_result$_$this()._status, _s11_, "status", t1);
-        _$result = new A._$BuildResult(t2);
-        A.BuiltValueNullFieldError_checkNotNull(t2, _s11_, "status", t1);
-      }
-      A.ArgumentError_checkNotNull(_$result, "other", type$.BuildResult);
-      return result._build_result$_$v = _$result;
+      return result._build_result$_$v = _$result == null ? new A._$BuildResult(A.BuiltValueNullFieldError_checkNotNull(result.get$_build_result$_$this()._status, "BuildResult", "status", t1)) : _$result;
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -21525,7 +21741,7 @@
             t1 = serializers.deserialize$2$specifiedType(value, B.FullType_PT1);
             t1.toString;
             A._asString(t1);
-            result.get$_connect_request$_$this()._appId = t1;
+            result.get$_connect_request$_$this()._connect_request$_appId = t1;
             break;
           case "instanceId":
             t1 = serializers.deserialize$2$specifiedType(value, B.FullType_PT1);
@@ -21541,7 +21757,7 @@
             break;
         }
       }
-      return result._build$0();
+      return result._connect_request$_build$0();
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -21579,33 +21795,24 @@
   A.ConnectRequestBuilder.prototype = {
     get$_connect_request$_$this() {
       var _this = this,
-        $$v = _this._$v;
+        $$v = _this._connect_request$_$v;
       if ($$v != null) {
-        _this._appId = $$v.appId;
+        _this._connect_request$_appId = $$v.appId;
         _this._instanceId = $$v.instanceId;
         _this._entrypointPath = $$v.entrypointPath;
-        _this._$v = null;
+        _this._connect_request$_$v = null;
       }
       return _this;
     },
-    _build$0() {
-      var t1, t2, t3, t4, _this = this,
+    _connect_request$_build$0() {
+      var t1, _this = this,
         _s14_ = "ConnectRequest",
-        _s10_ = "instanceId",
-        _s14_0 = "entrypointPath",
-        _$result = _this._$v;
+        _$result = _this._connect_request$_$v;
       if (_$result == null) {
         t1 = type$.String;
-        t2 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._appId, _s14_, "appId", t1);
-        t3 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._instanceId, _s14_, _s10_, t1);
-        t4 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._entrypointPath, _s14_, _s14_0, t1);
-        _$result = new A._$ConnectRequest(t2, t3, t4);
-        A.BuiltValueNullFieldError_checkNotNull(t2, _s14_, "appId", t1);
-        A.BuiltValueNullFieldError_checkNotNull(t3, _s14_, _s10_, t1);
-        A.BuiltValueNullFieldError_checkNotNull(t4, _s14_, _s14_0, t1);
+        _$result = new A._$ConnectRequest(A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._connect_request$_appId, _s14_, "appId", t1), A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._instanceId, _s14_, "instanceId", t1), A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._entrypointPath, _s14_, "entrypointPath", t1));
       }
-      A.ArgumentError_checkNotNull(_$result, "other", type$.ConnectRequest);
-      return _this._$v = _$result;
+      return _this._connect_request$_$v = _$result;
     }
   };
   A.DebugEvent.prototype = {};
@@ -21769,23 +21976,13 @@
       return _this;
     },
     _debug_event$_build$0() {
-      var t1, t2, t3, t4, t5, _this = this,
+      var t1, _this = this,
         _s10_ = "DebugEvent",
-        _s9_ = "eventData",
-        _s9_0 = "timestamp",
         _$result = _this._debug_event$_$v;
       if (_$result == null) {
         t1 = type$.String;
-        t2 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_debug_event$_$this()._debug_event$_kind, _s10_, "kind", t1);
-        t3 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_debug_event$_$this()._eventData, _s10_, _s9_, t1);
-        t4 = type$.int;
-        t5 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_debug_event$_$this()._timestamp, _s10_, _s9_0, t4);
-        _$result = new A._$DebugEvent(t2, t3, t5);
-        A.BuiltValueNullFieldError_checkNotNull(t2, _s10_, "kind", t1);
-        A.BuiltValueNullFieldError_checkNotNull(t3, _s10_, _s9_, t1);
-        A.BuiltValueNullFieldError_checkNotNull(t5, _s10_, _s9_0, t4);
+        _$result = new A._$DebugEvent(A.BuiltValueNullFieldError_checkNotNull(_this.get$_debug_event$_$this()._debug_event$_kind, _s10_, "kind", t1), A.BuiltValueNullFieldError_checkNotNull(_this.get$_debug_event$_$this()._eventData, _s10_, "eventData", t1), A.BuiltValueNullFieldError_checkNotNull(_this.get$_debug_event$_$this()._timestamp, _s10_, "timestamp", type$.int));
       }
-      A.ArgumentError_checkNotNull(_$result, "other", type$.DebugEvent);
       return _this._debug_event$_$v = _$result;
     }
   };
@@ -21830,17 +22027,10 @@
       return _this;
     },
     _debug_event$_build$0() {
-      var _$failedField, e, _$result0, t1, exception, t2, _this = this,
-        _s18_ = "BatchedDebugEvents",
-        _$result = null;
+      var _$failedField, e, _$result0, exception, t1, _this = this, _$result = null;
       try {
         _$result0 = _this._debug_event$_$v;
-        if (_$result0 == null) {
-          t1 = _this.get$events().build$0();
-          _$result0 = new A._$BatchedDebugEvents(t1);
-          A.BuiltValueNullFieldError_checkNotNull(t1, _s18_, "events", type$.BuiltList_DebugEvent);
-        }
-        _$result = _$result0;
+        _$result = _$result0 == null ? new A._$BatchedDebugEvents(_this.get$events().build$0()) : _$result0;
       } catch (exception) {
         _$failedField = A._Cell$named("_$failedField");
         try {
@@ -21848,15 +22038,12 @@
           _this.get$events().build$0();
         } catch (exception) {
           e = A.unwrapException(exception);
-          t1 = A.BuiltValueNestedFieldError$(_s18_, _$failedField.readLocal$0(), J.toString$0$(e));
+          t1 = A.BuiltValueNestedFieldError$("BatchedDebugEvents", _$failedField.readLocal$0(), J.toString$0$(e));
           throw A.wrapException(t1);
         }
         throw exception;
       }
-      t1 = type$.BatchedDebugEvents;
-      t2 = t1._as(_$result);
-      A.ArgumentError_checkNotNull(t2, "other", t1);
-      _this._debug_event$_$v = t2;
+      _this._debug_event$_$v = type$.BatchedDebugEvents._as(_$result);
       return _$result;
     },
     set$_events(_events) {
@@ -21956,7 +22143,7 @@
             break;
           case "appId":
             t1 = A._asStringQ(serializers.deserialize$2$specifiedType(value, B.FullType_PT1));
-            result.get$_$this()._debug_info$_appId = t1;
+            result.get$_$this()._appId = t1;
             break;
           case "appInstanceId":
             t1 = A._asStringQ(serializers.deserialize$2$specifiedType(value, B.FullType_PT1));
@@ -22004,7 +22191,7 @@
             break;
         }
       }
-      return result._debug_info$_build$0();
+      return result._build$0();
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -22054,10 +22241,10 @@
   A.DebugInfoBuilder.prototype = {
     get$_$this() {
       var _this = this,
-        $$v = _this._debug_info$_$v;
+        $$v = _this._$v;
       if ($$v != null) {
         _this._appEntrypointPath = $$v.appEntrypointPath;
-        _this._debug_info$_appId = $$v.appId;
+        _this._appId = $$v.appId;
         _this._appInstanceId = $$v.appInstanceId;
         _this._appOrigin = $$v.appOrigin;
         _this._appUrl = $$v.appUrl;
@@ -22069,17 +22256,14 @@
         _this._workspaceName = $$v.workspaceName;
         _this._tabUrl = $$v.tabUrl;
         _this._tabId = $$v.tabId;
-        _this._debug_info$_$v = null;
+        _this._$v = null;
       }
       return _this;
     },
-    _debug_info$_build$0() {
+    _build$0() {
       var _this = this,
-        _$result = _this._debug_info$_$v;
-      if (_$result == null)
-        _$result = new A._$DebugInfo(_this.get$_$this()._appEntrypointPath, _this.get$_$this()._debug_info$_appId, _this.get$_$this()._appInstanceId, _this.get$_$this()._appOrigin, _this.get$_$this()._appUrl, _this.get$_$this()._authUrl, _this.get$_$this()._dwdsVersion, _this.get$_$this()._extensionUrl, _this.get$_$this()._isInternalBuild, _this.get$_$this()._isFlutterApp, _this.get$_$this()._workspaceName, _this.get$_$this()._tabUrl, _this.get$_$this()._tabId);
-      A.ArgumentError_checkNotNull(_$result, "other", type$.DebugInfo);
-      return _this._debug_info$_$v = _$result;
+        _$result = _this._$v;
+      return _this._$v = _$result == null ? new A._$DebugInfo(_this.get$_$this()._appEntrypointPath, _this.get$_$this()._appId, _this.get$_$this()._appInstanceId, _this.get$_$this()._appOrigin, _this.get$_$this()._appUrl, _this.get$_$this()._authUrl, _this.get$_$this()._dwdsVersion, _this.get$_$this()._extensionUrl, _this.get$_$this()._isInternalBuild, _this.get$_$this()._isFlutterApp, _this.get$_$this()._workspaceName, _this.get$_$this()._tabUrl, _this.get$_$this()._tabId) : _$result;
     }
   };
   A.DevToolsRequest.prototype = {};
@@ -22185,8 +22369,7 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, _$result, t2, t3,
-        _s15_ = "promptExtension",
+      var t1, value, _$result,
         _s16_ = "DevToolsResponse",
         result = new A.DevToolsResponseBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
@@ -22218,13 +22401,8 @@
       _$result = result._devtools_request$_$v;
       if (_$result == null) {
         t1 = type$.bool;
-        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_devtools_request$_$this()._success, _s16_, "success", t1);
-        t3 = A.BuiltValueNullFieldError_checkNotNull(result.get$_devtools_request$_$this()._promptExtension, _s16_, _s15_, t1);
-        _$result = new A._$DevToolsResponse(t2, t3, result.get$_devtools_request$_$this()._error);
-        A.BuiltValueNullFieldError_checkNotNull(t2, _s16_, "success", t1);
-        A.BuiltValueNullFieldError_checkNotNull(t3, _s16_, _s15_, t1);
+        _$result = new A._$DevToolsResponse(A.BuiltValueNullFieldError_checkNotNull(result.get$_devtools_request$_$this()._success, _s16_, "success", t1), A.BuiltValueNullFieldError_checkNotNull(result.get$_devtools_request$_$this()._promptExtension, _s16_, "promptExtension", t1), result.get$_devtools_request$_$this()._error);
       }
-      A.ArgumentError_checkNotNull(_$result, "other", type$.DevToolsResponse);
       return result._devtools_request$_$v = _$result;
     },
     deserialize$2(serializers, serialized) {
@@ -22281,19 +22459,13 @@
       return _this;
     },
     _devtools_request$_build$0() {
-      var t1, t2, t3, _this = this,
+      var t1, _this = this,
         _s15_ = "DevToolsRequest",
-        _s10_ = "instanceId",
         _$result = _this._devtools_request$_$v;
       if (_$result == null) {
         t1 = type$.String;
-        t2 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_devtools_request$_$this()._devtools_request$_appId, _s15_, "appId", t1);
-        t3 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_devtools_request$_$this()._devtools_request$_instanceId, _s15_, _s10_, t1);
-        _$result = new A._$DevToolsRequest(t2, t3, _this.get$_devtools_request$_$this()._contextId, _this.get$_devtools_request$_$this()._devtools_request$_tabUrl, _this.get$_devtools_request$_$this()._uriOnly, _this.get$_devtools_request$_$this()._devtools_request$_client);
-        A.BuiltValueNullFieldError_checkNotNull(t2, _s15_, "appId", t1);
-        A.BuiltValueNullFieldError_checkNotNull(t3, _s15_, _s10_, t1);
+        _$result = new A._$DevToolsRequest(A.BuiltValueNullFieldError_checkNotNull(_this.get$_devtools_request$_$this()._devtools_request$_appId, _s15_, "appId", t1), A.BuiltValueNullFieldError_checkNotNull(_this.get$_devtools_request$_$this()._devtools_request$_instanceId, _s15_, "instanceId", t1), _this.get$_devtools_request$_$this()._contextId, _this.get$_devtools_request$_$this()._devtools_request$_tabUrl, _this.get$_devtools_request$_$this()._uriOnly, _this.get$_devtools_request$_$this()._devtools_request$_client);
       }
-      A.ArgumentError_checkNotNull(_$result, "other", type$.DevToolsRequest);
       return _this._devtools_request$_$v = _$result;
     }
   };
@@ -22344,8 +22516,7 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, $$v, _$result, t2, t3,
-        _s10_ = "stackTrace",
+      var t1, value, $$v, _$result,
         _s13_ = "ErrorResponse",
         result = new A.ErrorResponseBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
@@ -22385,13 +22556,8 @@
       _$result = result._error_response$_$v;
       if (_$result == null) {
         t1 = type$.String;
-        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_error_response$_$this()._error_response$_error, _s13_, "error", t1);
-        t3 = A.BuiltValueNullFieldError_checkNotNull(result.get$_error_response$_$this()._error_response$_stackTrace, _s13_, _s10_, t1);
-        _$result = new A._$ErrorResponse(t2, t3);
-        A.BuiltValueNullFieldError_checkNotNull(t2, _s13_, "error", t1);
-        A.BuiltValueNullFieldError_checkNotNull(t3, _s13_, _s10_, t1);
+        _$result = new A._$ErrorResponse(A.BuiltValueNullFieldError_checkNotNull(result.get$_error_response$_$this()._error_response$_error, _s13_, "error", t1), A.BuiltValueNullFieldError_checkNotNull(result.get$_error_response$_$this()._error_response$_stackTrace, _s13_, "stackTrace", t1));
       }
-      A.ArgumentError_checkNotNull(_$result, "other", type$.ErrorResponse);
       return result._error_response$_$v = _$result;
     },
     deserialize$2(serializers, serialized) {
@@ -22457,7 +22623,7 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, _$result, t2, t3, t4,
+      var t1, value, _$result,
         _s16_ = "ExtensionRequest",
         result = new A.ExtensionRequestBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
@@ -22487,17 +22653,7 @@
         }
       }
       _$result = result._extension_request$_$v;
-      if (_$result == null) {
-        t1 = type$.int;
-        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._id, _s16_, "id", t1);
-        t3 = type$.String;
-        t4 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._command, _s16_, "command", t3);
-        _$result = new A._$ExtensionRequest(t2, t4, result.get$_extension_request$_$this()._commandParams);
-        A.BuiltValueNullFieldError_checkNotNull(t2, _s16_, "id", t1);
-        A.BuiltValueNullFieldError_checkNotNull(t4, _s16_, "command", t3);
-      }
-      A.ArgumentError_checkNotNull(_$result, "other", type$.ExtensionRequest);
-      return result._extension_request$_$v = _$result;
+      return result._extension_request$_$v = _$result == null ? new A._$ExtensionRequest(A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._id, _s16_, "id", type$.int), A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._command, _s16_, "command", type$.String), result.get$_extension_request$_$this()._commandParams) : _$result;
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -22527,7 +22683,7 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, _$result, t2, t3, t4, t5, t6,
+      var t1, value, _$result,
         _s17_ = "ExtensionResponse",
         result = new A.ExtensionResponseBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
@@ -22563,20 +22719,7 @@
         }
       }
       _$result = result._extension_request$_$v;
-      if (_$result == null) {
-        t1 = type$.int;
-        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._id, _s17_, "id", t1);
-        t3 = type$.bool;
-        t4 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._extension_request$_success, _s17_, "success", t3);
-        t5 = type$.String;
-        t6 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._extension_request$_result, _s17_, "result", t5);
-        _$result = new A._$ExtensionResponse(t2, t4, t6, result.get$_extension_request$_$this()._extension_request$_error);
-        A.BuiltValueNullFieldError_checkNotNull(t2, _s17_, "id", t1);
-        A.BuiltValueNullFieldError_checkNotNull(t4, _s17_, "success", t3);
-        A.BuiltValueNullFieldError_checkNotNull(t6, _s17_, "result", t5);
-      }
-      A.ArgumentError_checkNotNull(_$result, "other", type$.ExtensionResponse);
-      return result._extension_request$_$v = _$result;
+      return result._extension_request$_$v = _$result == null ? new A._$ExtensionResponse(A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._id, _s17_, "id", type$.int), A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._extension_request$_success, _s17_, "success", type$.bool), A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._extension_request$_result, _s17_, "result", type$.String), result.get$_extension_request$_$this()._extension_request$_error) : _$result;
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -22599,7 +22742,7 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, $$v, _$result, t2, t3,
+      var t1, value, $$v, _$result,
         _s14_ = "ExtensionEvent",
         result = new A.ExtensionEventBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
@@ -22639,13 +22782,8 @@
       _$result = result._extension_request$_$v;
       if (_$result == null) {
         t1 = type$.String;
-        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._params, _s14_, "params", t1);
-        t3 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._extension_request$_method, _s14_, "method", t1);
-        _$result = new A._$ExtensionEvent(t2, t3);
-        A.BuiltValueNullFieldError_checkNotNull(t2, _s14_, "params", t1);
-        A.BuiltValueNullFieldError_checkNotNull(t3, _s14_, "method", t1);
+        _$result = new A._$ExtensionEvent(A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._params, _s14_, "params", t1), A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._extension_request$_method, _s14_, "method", t1));
       }
-      A.ArgumentError_checkNotNull(_$result, "other", type$.ExtensionEvent);
       return result._extension_request$_$v = _$result;
     },
     deserialize$2(serializers, serialized) {
@@ -22881,17 +23019,10 @@
       return t1;
     },
     _extension_request$_build$0() {
-      var _$failedField, e, _$result0, t1, exception, t2, _this = this,
-        _s13_ = "BatchedEvents",
-        _$result = null;
+      var _$failedField, e, _$result0, exception, t1, _this = this, _$result = null;
       try {
         _$result0 = _this._extension_request$_$v;
-        if (_$result0 == null) {
-          t1 = _this.get$events().build$0();
-          _$result0 = new A._$BatchedEvents(t1);
-          A.BuiltValueNullFieldError_checkNotNull(t1, _s13_, "events", type$.BuiltList_ExtensionEvent);
-        }
-        _$result = _$result0;
+        _$result = _$result0 == null ? new A._$BatchedEvents(_this.get$events().build$0()) : _$result0;
       } catch (exception) {
         _$failedField = A._Cell$named("_$failedField");
         try {
@@ -22899,15 +23030,12 @@
           _this.get$events().build$0();
         } catch (exception) {
           e = A.unwrapException(exception);
-          t1 = A.BuiltValueNestedFieldError$(_s13_, _$failedField.readLocal$0(), J.toString$0$(e));
+          t1 = A.BuiltValueNestedFieldError$("BatchedEvents", _$failedField.readLocal$0(), J.toString$0$(e));
           throw A.wrapException(t1);
         }
         throw exception;
       }
-      t1 = type$.BatchedEvents;
-      t2 = t1._as(_$result);
-      A.ArgumentError_checkNotNull(t2, "other", t1);
-      _this._extension_request$_$v = t2;
+      _this._extension_request$_$v = type$.BatchedEvents._as(_$result);
       return _$result;
     },
     set$_extension_request$_events(_events) {
@@ -22923,8 +23051,7 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, $$v, _$result, t2,
-        _s16_ = "HotReloadRequest",
+      var t1, value, $$v, _$result,
         result = new A.HotReloadRequestBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
       for (; iterator.moveNext$0();) {
@@ -22948,14 +23075,7 @@
         }
       }
       _$result = result._hot_reload_request$_$v;
-      if (_$result == null) {
-        t1 = type$.String;
-        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_hot_reload_request$_$this()._hot_reload_request$_id, _s16_, "id", t1);
-        _$result = new A._$HotReloadRequest(t2);
-        A.BuiltValueNullFieldError_checkNotNull(t2, _s16_, "id", t1);
-      }
-      A.ArgumentError_checkNotNull(_$result, "other", type$.HotReloadRequest);
-      return result._hot_reload_request$_$v = _$result;
+      return result._hot_reload_request$_$v = _$result == null ? new A._$HotReloadRequest(A.BuiltValueNullFieldError_checkNotNull(result.get$_hot_reload_request$_$this()._hot_reload_request$_id, "HotReloadRequest", "id", type$.String)) : _$result;
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -23103,20 +23223,10 @@
       return _this;
     },
     _hot_reload_response$_build$0() {
-      var t1, t2, t3, t4, _this = this,
+      var _this = this,
         _s17_ = "HotReloadResponse",
         _$result = _this._hot_reload_response$_$v;
-      if (_$result == null) {
-        t1 = type$.String;
-        t2 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_hot_reload_response$_$this()._hot_reload_response$_id, _s17_, "id", t1);
-        t3 = type$.bool;
-        t4 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_hot_reload_response$_$this()._hot_reload_response$_success, _s17_, "success", t3);
-        _$result = new A._$HotReloadResponse(t2, t4, _this.get$_hot_reload_response$_$this()._errorMessage);
-        A.BuiltValueNullFieldError_checkNotNull(t2, _s17_, "id", t1);
-        A.BuiltValueNullFieldError_checkNotNull(t4, _s17_, "success", t3);
-      }
-      A.ArgumentError_checkNotNull(_$result, "other", type$.HotReloadResponse);
-      return _this._hot_reload_response$_$v = _$result;
+      return _this._hot_reload_response$_$v = _$result == null ? new A._$HotReloadResponse(A.BuiltValueNullFieldError_checkNotNull(_this.get$_hot_reload_response$_$this()._hot_reload_response$_id, _s17_, "id", type$.String), A.BuiltValueNullFieldError_checkNotNull(_this.get$_hot_reload_response$_$this()._hot_reload_response$_success, _s17_, "success", type$.bool), _this.get$_hot_reload_response$_$this()._errorMessage) : _$result;
     }
   };
   A.IsolateExit.prototype = {};
@@ -23187,10 +23297,7 @@
   A.IsolateExitBuilder.prototype = {
     _isolate_events$_build$0() {
       var _$result = this._isolate_events$_$v;
-      if (_$result == null)
-        _$result = new A._$IsolateExit();
-      A.ArgumentError_checkNotNull(_$result, "other", type$.IsolateExit);
-      return this._isolate_events$_$v = _$result;
+      return this._isolate_events$_$v = _$result == null ? new A._$IsolateExit() : _$result;
     }
   };
   A._$IsolateStart.prototype = {
@@ -23211,10 +23318,7 @@
   A.IsolateStartBuilder.prototype = {
     _isolate_events$_build$0() {
       var _$result = this._isolate_events$_$v;
-      if (_$result == null)
-        _$result = new A._$IsolateStart();
-      A.ArgumentError_checkNotNull(_$result, "other", type$.IsolateStart);
-      return this._isolate_events$_$v = _$result;
+      return this._isolate_events$_$v = _$result == null ? new A._$IsolateStart() : _$result;
     }
   };
   A.RegisterEvent.prototype = {};
@@ -23308,22 +23412,10 @@
       return _this;
     },
     _register_event$_build$0() {
-      var t1, t2, t3, t4, _this = this,
+      var _this = this,
         _s13_ = "RegisterEvent",
-        _s9_ = "eventData",
-        _s9_0 = "timestamp",
         _$result = _this._register_event$_$v;
-      if (_$result == null) {
-        t1 = type$.String;
-        t2 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_register_event$_$this()._register_event$_eventData, _s13_, _s9_, t1);
-        t3 = type$.int;
-        t4 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_register_event$_$this()._register_event$_timestamp, _s13_, _s9_0, t3);
-        _$result = new A._$RegisterEvent(t2, t4);
-        A.BuiltValueNullFieldError_checkNotNull(t2, _s13_, _s9_, t1);
-        A.BuiltValueNullFieldError_checkNotNull(t4, _s13_, _s9_0, t3);
-      }
-      A.ArgumentError_checkNotNull(_$result, "other", type$.RegisterEvent);
-      return _this._register_event$_$v = _$result;
+      return _this._register_event$_$v = _$result == null ? new A._$RegisterEvent(A.BuiltValueNullFieldError_checkNotNull(_this.get$_register_event$_$this()._register_event$_eventData, _s13_, "eventData", type$.String), A.BuiltValueNullFieldError_checkNotNull(_this.get$_register_event$_$this()._register_event$_timestamp, _s13_, "timestamp", type$.int)) : _$result;
     }
   };
   A.RunRequest.prototype = {};
@@ -23336,11 +23428,8 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var _$result;
       type$.Iterable_nullable_Object._as(serialized);
-      _$result = new A._$RunRequest();
-      A.ArgumentError_checkNotNull(_$result, "other", type$.RunRequest);
-      return _$result;
+      return new A._$RunRequest();
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -26635,14 +26724,16 @@
               client.get$stream().listen$2$onError(new A.main__closure7(manager, client), new A.main__closure8());
               if (A._asBool(t1.$dwdsEnableDevToolsLaunch))
                 A._EventStreamSubscription$(t2._as(t1.window), "keydown", type$.nullable_void_Function_JSObject._as(new A.main__closure9()), false, t2);
-              if (A._isChromium()) {
-                t1 = client.get$sink();
-                t2 = $.$get$serializers();
-                t3 = new A.ConnectRequestBuilder();
-                type$.nullable_void_Function_ConnectRequestBuilder._as(new A.main__closure10()).call$1(t3);
-                A._trySendEvent(t1, B.C_JsonCodec.encode$2$toEncodable(t2.serialize$1(t3._build$0()), null), type$.dynamic);
-              } else
-                A.runMain();
+              if (A._asString(t1.$dartModuleStrategy) !== "ddc-library-bundle")
+                if (A._isChromium())
+                  A._sendConnectRequest(client.get$sink());
+                else
+                  A.runMain();
+              else {
+                A._sendConnectRequest(client.get$sink());
+                if (A._asBool(t1.$useDwdsWebSocketConnection))
+                  A.runMain();
+              }
               A._launchCommunicationWithDebugExtension();
               // implicit return
               return A._asyncReturn(null, $async$completer);
@@ -26939,19 +27030,6 @@
     },
     $signature: 2
   };
-  A.main__closure10.prototype = {
-    call$1(b) {
-      var t1 = init.G,
-        t2 = A._asString(t1.$dartAppId);
-      b.get$_connect_request$_$this()._appId = t2;
-      t2 = A._asStringQ(t1.$dartAppInstanceId);
-      b.get$_connect_request$_$this()._instanceId = t2;
-      t1 = A._asString(t1.$dartEntrypointPath);
-      b.get$_connect_request$_$this()._entrypointPath = t1;
-      return b;
-    },
-    $signature: 80
-  };
   A.main_closure0.prototype = {
     call$2(error, stackTrace) {
       type$.Object._as(error);
@@ -26959,6 +27037,19 @@
       A.print("Unhandled error detected in the injected client.js script.\n\nYou can disable this script in webdev by passing --no-injected-client if it\nis preventing your app from loading, but note that this will also prevent\nall debugging and hot reload/restart functionality from working.\n\nThe original error is below, please file an issue at\nhttps://github.com/dart-lang/webdev/issues/new and attach this output:\n\n" + A.S(error) + "\n" + stackTrace.toString$0(0) + "\n");
     },
     $signature: 14
+  };
+  A._sendConnectRequest_closure.prototype = {
+    call$1(b) {
+      var t1 = init.G,
+        t2 = A._asString(t1.$dartAppId);
+      b.get$_connect_request$_$this()._connect_request$_appId = t2;
+      t2 = A._asStringQ(t1.$dartAppInstanceId);
+      b.get$_connect_request$_$this()._instanceId = t2;
+      t1 = A._asString(t1.$dartEntrypointPath);
+      b.get$_connect_request$_$this()._entrypointPath = t1;
+      return b;
+    },
+    $signature: 80
   };
   A._launchCommunicationWithDebugExtension_closure.prototype = {
     call$1(b) {
@@ -26968,7 +27059,7 @@
       b.get$_$this()._appEntrypointPath = t2;
       t2 = type$.JavaScriptObject;
       t3 = A._asStringQ(t2._as(t1.window).$dartAppId);
-      b.get$_$this()._debug_info$_appId = t3;
+      b.get$_$this()._appId = t3;
       t3 = A._asStringQ(t1.$dartAppInstanceId);
       b.get$_$this()._appInstanceId = t3;
       t3 = type$.JSObject;
@@ -27845,7 +27936,7 @@
       _inherit = hunkHelpers.inherit,
       _inheritMany = hunkHelpers.inheritMany;
     _inherit(A.Object, null);
-    _inheritMany(A.Object, [A.JS_CONST, J.Interceptor, A.SafeToStringHook, J.ArrayIterator, A.Iterable, A.CastIterator, A.Closure, A.MapBase, A.Error, A.ListBase, A.SentinelValue, A.ListIterator, A.MappedIterator, A.WhereIterator, A.ExpandIterator, A.TakeIterator, A.SkipIterator, A.EmptyIterator, A.WhereTypeIterator, A.FixedLengthListMixin, A.UnmodifiableListMixin, A.ConstantMap, A._KeysOrValuesOrElementsIterator, A.TypeErrorDecoder, A.NullThrownFromJavaScriptException, A.ExceptionAndStackTrace, A._StackTrace, A.LinkedHashMapCell, A.LinkedHashMapKeyIterator, A.LinkedHashMapValueIterator, A.LinkedHashMapEntryIterator, A._Record, A.JSSyntaxRegExp, A._MatchImplementation, A._AllMatchesIterator, A.StringMatch, A._StringAllMatchesIterator, A._Cell, A.Rti, A._FunctionParameters, A._Type, A._TimerImpl, A._AsyncAwaitCompleter, A.AsyncError, A.TimeoutException, A._Completer, A._FutureListener, A._Future, A._AsyncCallbackEntry, A.Stream, A._StreamController, A._SyncStreamControllerDispatch, A._AsyncStreamControllerDispatch, A._BufferingStreamSubscription, A._StreamSinkWrapper, A._DelayedEvent, A._DelayedDone, A._PendingEvents, A._DoneStreamSubscription, A._StreamIterator, A._ZoneFunction, A._ZoneSpecification, A._ZoneDelegate, A._Zone, A._HashMapKeyIterator, A.SetBase, A._HashSetIterator, A._LinkedHashSetCell, A._LinkedHashSetIterator, A._UnmodifiableMapMixin, A.MapView, A._ListQueueIterator, A._SplayTreeNode, A._SplayTree, A._SplayTreeIterator, A.Codec, A.Converter, A._Base64Encoder, A._Base64Decoder, A.ByteConversionSink, A._JsonStringifier, A._Utf8Encoder, A._Utf8Decoder, A._BigIntImpl, A.DateTime, A.Duration, A.OutOfMemoryError, A.StackOverflowError, A._Exception, A.FormatException, A.IntegerDivisionByZeroException, A.MapEntry, A.Null, A._StringStackTrace, A.StringBuffer, A._Uri, A.UriData, A._SimpleUri, A.NullRejectionException, A._JSRandom, A.AsyncMemoizer, A.DelegatingStreamSink, A.ErrorResult, A.ValueResult, A.StreamQueue, A._NextRequest, A._HasNextRequest, A.BuiltList, A.ListBuilder, A.BuiltListMultimap, A.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, A.BuiltSet, A.SetBuilder, A.BuiltSetMultimap, A.SetMultimapBuilder, A.EnumClass, A.IndentingBuiltValueToStringHelper, A.JsonObject, A.FullType, A.BigIntSerializer, A.BoolSerializer, A.BuiltJsonSerializers, A.BuiltJsonSerializersBuilder, A.BuiltListMultimapSerializer, A.BuiltListSerializer, A.BuiltMapSerializer, A.BuiltSetMultimapSerializer, A.BuiltSetSerializer, A.DateTimeSerializer, A.DoubleSerializer, A.DurationSerializer, A.Int32Serializer, A.Int64Serializer, A.IntSerializer, A.JsonObjectSerializer, A.NullSerializer, A.NumSerializer, A.RegExpSerializer, A.StringSerializer, A.Uint8ListSerializer, A.UriSerializer, A.CanonicalizedMap, A.DefaultEquality, A.IterableEquality, A.ListEquality, A._UnorderedEquality, A._MapEntry, A.MapEquality, A.DeepCollectionEquality, A._QueueList_Object_ListMixin, A.BuildResult, A._$BuildStatusSerializer, A._$BuildResultSerializer, A.BuildResultBuilder, A.ConnectRequest, A._$ConnectRequestSerializer, A.ConnectRequestBuilder, A.DebugEvent, A.BatchedDebugEvents, A._$DebugEventSerializer, A._$BatchedDebugEventsSerializer, A.DebugEventBuilder, A.BatchedDebugEventsBuilder, A.DebugInfo, A._$DebugInfoSerializer, A.DebugInfoBuilder, A.DevToolsRequest, A.DevToolsResponse, A._$DevToolsRequestSerializer, A._$DevToolsResponseSerializer, A.DevToolsRequestBuilder, A.DevToolsResponseBuilder, A.ErrorResponse, A._$ErrorResponseSerializer, A.ErrorResponseBuilder, A.ExtensionRequest, A.ExtensionResponse, A.ExtensionEvent, A.BatchedEvents, A._$ExtensionRequestSerializer, A._$ExtensionResponseSerializer, A._$ExtensionEventSerializer, A._$BatchedEventsSerializer, A.ExtensionRequestBuilder, A.ExtensionResponseBuilder, A.ExtensionEventBuilder, A.BatchedEventsBuilder, A.HotReloadRequest, A._$HotReloadRequestSerializer, A.HotReloadRequestBuilder, A.HotReloadResponse, A._$HotReloadResponseSerializer, A.HotReloadResponseBuilder, A.IsolateExit, A.IsolateStart, A._$IsolateExitSerializer, A._$IsolateStartSerializer, A.IsolateExitBuilder, A.IsolateStartBuilder, A.RegisterEvent, A._$RegisterEventSerializer, A.RegisterEventBuilder, A.RunRequest, A._$RunRequestSerializer, A.BatchedStreamController, A.SocketClient, A.Int32, A.Int64, A._StackState, A.BaseClient, A.BaseRequest, A.BaseResponse, A.ClientException, A.MediaType, A.Level, A.LogRecord, A.Logger, A.Context, A.Style, A.ParsedPath, A.PathException, A.Pool, A.PoolResource, A.SourceFile, A.SourceLocationMixin, A.SourceSpanMixin, A.Highlighter, A._Highlight, A._Line, A.SourceLocation, A.SourceSpanException, A.StreamChannelMixin, A._GuaranteeSink, A.StreamChannelController, A.StringScanner, A.RNG, A.UuidV1, A.EventStreamProvider, A._EventStreamSubscription, A.BrowserWebSocket, A.WebSocketEvent, A.WebSocketException, A.WebSocketChannelException, A.DdcLibraryBundleRestarter, A.DdcRestarter, A.ReloadingManager, A.HotReloadFailedException, A.RequireRestarter]);
+    _inheritMany(A.Object, [A.JS_CONST, J.Interceptor, A.SafeToStringHook, J.ArrayIterator, A.Iterable, A.CastIterator, A.Closure, A.MapBase, A.Error, A.ListBase, A.SentinelValue, A.ListIterator, A.MappedIterator, A.WhereIterator, A.ExpandIterator, A.TakeIterator, A.SkipIterator, A.EmptyIterator, A.WhereTypeIterator, A.FixedLengthListMixin, A.UnmodifiableListMixin, A.ConstantMap, A._KeysOrValuesOrElementsIterator, A.TypeErrorDecoder, A.NullThrownFromJavaScriptException, A.ExceptionAndStackTrace, A._StackTrace, A.LinkedHashMapCell, A.LinkedHashMapKeyIterator, A.LinkedHashMapValueIterator, A.LinkedHashMapEntryIterator, A._Record, A.JSSyntaxRegExp, A._MatchImplementation, A._AllMatchesIterator, A.StringMatch, A._StringAllMatchesIterator, A._Cell, A.Rti, A._FunctionParameters, A._Type, A._TimerImpl, A._AsyncAwaitCompleter, A.AsyncError, A.TimeoutException, A._Completer, A._FutureListener, A._Future, A._AsyncCallbackEntry, A.Stream, A._StreamController, A._SyncStreamControllerDispatch, A._AsyncStreamControllerDispatch, A._BufferingStreamSubscription, A._StreamSinkWrapper, A._DelayedEvent, A._DelayedDone, A._PendingEvents, A._DoneStreamSubscription, A._StreamIterator, A._ZoneFunction, A._ZoneSpecification, A._ZoneDelegate, A._Zone, A._HashMapKeyIterator, A.SetBase, A._HashSetIterator, A._LinkedHashSetCell, A._LinkedHashSetIterator, A._UnmodifiableMapMixin, A.MapView, A._ListQueueIterator, A._SplayTreeNode, A._SplayTree, A._SplayTreeIterator, A.Codec, A.Converter, A._Base64Encoder, A._Base64Decoder, A.ByteConversionSink, A._JsonStringifier, A._Utf8Encoder, A._Utf8Decoder, A._BigIntImpl, A.DateTime, A.Duration, A.OutOfMemoryError, A.StackOverflowError, A._Exception, A.FormatException, A.IntegerDivisionByZeroException, A.MapEntry, A.Null, A._StringStackTrace, A.StringBuffer, A._Uri, A.UriData, A._SimpleUri, A.NullRejectionException, A._JSRandom, A.AsyncMemoizer, A.DelegatingStreamSink, A.ErrorResult, A.ValueResult, A.StreamQueue, A._NextRequest, A._HasNextRequest, A.BuiltList, A.ListBuilder, A.BuiltListMultimap, A.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, A.BuiltSet, A.SetBuilder, A.BuiltSetMultimap, A.SetMultimapBuilder, A.EnumClass, A.IndentingBuiltValueToStringHelper, A.JsonObject, A.FullType, A.BigIntSerializer, A.BoolSerializer, A.BuiltJsonSerializers, A.BuiltJsonSerializersBuilder, A.BuiltListMultimapSerializer, A.BuiltListSerializer, A.BuiltMapSerializer, A.BuiltSetMultimapSerializer, A.BuiltSetSerializer, A.DateTimeSerializer, A.DoubleSerializer, A.DurationSerializer, A.Int32Serializer, A.Int64Serializer, A.IntSerializer, A.JsonObjectSerializer, A.ListSerializer, A.MapSerializer, A.NullSerializer, A.NumSerializer, A.RegExpSerializer, A.SetSerializer, A.StringSerializer, A.Uint8ListSerializer, A.UriSerializer, A.CanonicalizedMap, A.DefaultEquality, A.IterableEquality, A.ListEquality, A._UnorderedEquality, A._MapEntry, A.MapEquality, A.DeepCollectionEquality, A._QueueList_Object_ListMixin, A.BuildResult, A._$BuildStatusSerializer, A._$BuildResultSerializer, A.BuildResultBuilder, A.ConnectRequest, A._$ConnectRequestSerializer, A.ConnectRequestBuilder, A.DebugEvent, A.BatchedDebugEvents, A._$DebugEventSerializer, A._$BatchedDebugEventsSerializer, A.DebugEventBuilder, A.BatchedDebugEventsBuilder, A.DebugInfo, A._$DebugInfoSerializer, A.DebugInfoBuilder, A.DevToolsRequest, A.DevToolsResponse, A._$DevToolsRequestSerializer, A._$DevToolsResponseSerializer, A.DevToolsRequestBuilder, A.DevToolsResponseBuilder, A.ErrorResponse, A._$ErrorResponseSerializer, A.ErrorResponseBuilder, A.ExtensionRequest, A.ExtensionResponse, A.ExtensionEvent, A.BatchedEvents, A._$ExtensionRequestSerializer, A._$ExtensionResponseSerializer, A._$ExtensionEventSerializer, A._$BatchedEventsSerializer, A.ExtensionRequestBuilder, A.ExtensionResponseBuilder, A.ExtensionEventBuilder, A.BatchedEventsBuilder, A.HotReloadRequest, A._$HotReloadRequestSerializer, A.HotReloadRequestBuilder, A.HotReloadResponse, A._$HotReloadResponseSerializer, A.HotReloadResponseBuilder, A.IsolateExit, A.IsolateStart, A._$IsolateExitSerializer, A._$IsolateStartSerializer, A.IsolateExitBuilder, A.IsolateStartBuilder, A.RegisterEvent, A._$RegisterEventSerializer, A.RegisterEventBuilder, A.RunRequest, A._$RunRequestSerializer, A.BatchedStreamController, A.SocketClient, A.Int32, A.Int64, A._StackState, A.BaseClient, A.BaseRequest, A.BaseResponse, A.ClientException, A.MediaType, A.Level, A.LogRecord, A.Logger, A.Context, A.Style, A.ParsedPath, A.PathException, A.Pool, A.PoolResource, A.SourceFile, A.SourceLocationMixin, A.SourceSpanMixin, A.Highlighter, A._Highlight, A._Line, A.SourceLocation, A.SourceSpanException, A.StreamChannelMixin, A._GuaranteeSink, A.StreamChannelController, A.StringScanner, A.RNG, A.UuidV1, A.EventStreamProvider, A._EventStreamSubscription, A.BrowserWebSocket, A.WebSocketEvent, A.WebSocketException, A.WebSocketChannelException, A.DdcLibraryBundleRestarter, A.DdcRestarter, A.ReloadingManager, A.HotReloadFailedException, A.RequireRestarter]);
     _inheritMany(J.Interceptor, [J.JSBool, J.JSNull, J.JavaScriptObject, J.JavaScriptBigInt, J.JavaScriptSymbol, J.JSNumber, J.JSString]);
     _inheritMany(J.JavaScriptObject, [J.LegacyJavaScriptObject, J.JSArray, A.NativeByteBuffer, A.NativeTypedData]);
     _inheritMany(J.LegacyJavaScriptObject, [J.PlainJavaScriptObject, J.UnknownJavaScriptObject, J.JavaScriptFunction]);
@@ -27856,7 +27947,7 @@
     _inheritMany(A._CastIterableBase, [A.CastIterable, A.__CastListBase__CastIterableBase_ListMixin]);
     _inherit(A._EfficientLengthCastIterable, A.CastIterable);
     _inherit(A._CastListBase, A.__CastListBase__CastIterableBase_ListMixin);
-    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.Instantiation, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._CustomHashMap_closure, A._LinkedCustomHashMap_closure, A._BigIntImpl_hashCode_finish, A._Uri__makePath_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure, A.FutureOfVoidToJSPromise_get_toJS__closure, A.jsify__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.BuiltListMultimap_BuiltListMultimap_closure, A.BuiltListMultimap_hashCode_closure, A.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.BuiltSet_hashCode_closure, A.BuiltSetMultimap_hashCode_closure, A.SetMultimapBuilder_replace_closure, A.newBuiltValueToStringHelper_closure, A.BuiltListMultimapSerializer_serialize_closure, A.BuiltListMultimapSerializer_deserialize_closure, A.BuiltListSerializer_serialize_closure, A.BuiltListSerializer_deserialize_closure, A.BuiltSetMultimapSerializer_serialize_closure, A.BuiltSetMultimapSerializer_deserialize_closure, A.BuiltSetSerializer_serialize_closure, A.BuiltSetSerializer_deserialize_closure, A.CanonicalizedMap_keys_closure, A.WebSocketClient_stream_closure, A.BaseRequest_closure0, A.BrowserClient_send_closure, A.BrowserClient_send_closure0, A.ByteStream_toBytes_closure, A.MediaType_toString__closure, A.expectQuotedString_closure, A.Context_joinAll_closure, A.Context_split_closure, A._validateArgList_closure, A.Pool__runOnRelease_closure, A.Highlighter$__closure, A.Highlighter$___closure, A.Highlighter$__closure0, A.Highlighter__collateLines_closure, A.Highlighter__collateLines_closure1, A.Highlighter__collateLines__closure, A.Highlighter_highlight_closure, A.SseClient_closure0, A.SseClient_closure1, A.generateUuidV4_generateBits, A._GuaranteeSink__addError_closure, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.BrowserWebSocket_connect_closure, A.BrowserWebSocket_connect_closure0, A.BrowserWebSocket_connect_closure1, A.BrowserWebSocket_connect_closure2, A.AdapterWebSocketChannel_closure, A.AdapterWebSocketChannel__closure, A.AdapterWebSocketChannel__closure0, A.AdapterWebSocketChannel_closure0, A.main__closure1, A.main__closure3, A.main___closure2, A.main___closure1, A.main__closure5, A.main___closure0, A.main___closure, A.main__closure7, A.main__closure8, A.main__closure9, A.main__closure10, A._launchCommunicationWithDebugExtension_closure, A._handleAuthRequest_closure, A._sendResponse_closure, A.DdcLibraryBundleRestarter_restart_closure, A.DdcLibraryBundleRestarter_hotReloadStart_closure0, A.DdcRestarter_restart_closure0, A.DdcRestarter_restart_closure, A.RequireRestarter__reloadModule_closure0, A.JSArrayExtension_toDartIterable_closure]);
+    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.Instantiation, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._CustomHashMap_closure, A._LinkedCustomHashMap_closure, A._BigIntImpl_hashCode_finish, A._Uri__makePath_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure, A.FutureOfVoidToJSPromise_get_toJS__closure, A.jsify__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.BuiltListMultimap_BuiltListMultimap_closure, A.BuiltListMultimap_hashCode_closure, A.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.BuiltSet_hashCode_closure, A.BuiltSetMultimap_hashCode_closure, A.SetMultimapBuilder_replace_closure, A.newBuiltValueToStringHelper_closure, A.BuiltListMultimapSerializer_serialize_closure, A.BuiltListMultimapSerializer_deserialize_closure, A.BuiltListSerializer_serialize_closure, A.BuiltListSerializer_deserialize_closure, A.BuiltSetMultimapSerializer_serialize_closure, A.BuiltSetMultimapSerializer_deserialize_closure, A.BuiltSetSerializer_serialize_closure, A.BuiltSetSerializer_deserialize_closure, A.ListSerializer_serialize_closure, A.SetSerializer_serialize_closure, A.CanonicalizedMap_keys_closure, A.WebSocketClient_stream_closure, A.BaseRequest_closure0, A.BrowserClient_send_closure, A.BrowserClient_send_closure0, A.ByteStream_toBytes_closure, A.MediaType_toString__closure, A.expectQuotedString_closure, A.Context_joinAll_closure, A.Context_split_closure, A._validateArgList_closure, A.Pool__runOnRelease_closure, A.Highlighter$__closure, A.Highlighter$___closure, A.Highlighter$__closure0, A.Highlighter__collateLines_closure, A.Highlighter__collateLines_closure1, A.Highlighter__collateLines__closure, A.Highlighter_highlight_closure, A.SseClient_closure0, A.SseClient_closure1, A.generateUuidV4_generateBits, A._GuaranteeSink__addError_closure, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.BrowserWebSocket_connect_closure, A.BrowserWebSocket_connect_closure0, A.BrowserWebSocket_connect_closure1, A.BrowserWebSocket_connect_closure2, A.AdapterWebSocketChannel_closure, A.AdapterWebSocketChannel__closure, A.AdapterWebSocketChannel__closure0, A.AdapterWebSocketChannel_closure0, A.main__closure1, A.main__closure3, A.main___closure2, A.main___closure1, A.main__closure5, A.main___closure0, A.main___closure, A.main__closure7, A.main__closure8, A.main__closure9, A._sendConnectRequest_closure, A._launchCommunicationWithDebugExtension_closure, A._handleAuthRequest_closure, A._sendResponse_closure, A.DdcLibraryBundleRestarter_restart_closure, A.DdcLibraryBundleRestarter_hotReloadStart_closure0, A.DdcRestarter_restart_closure0, A.DdcRestarter_restart_closure, A.RequireRestarter__reloadModule_closure0, A.JSArrayExtension_toDartIterable_closure]);
     _inheritMany(A.Closure2Args, [A._CastListBase_sort_closure, A.CastMap_forEach_closure, A.ConstantMap_map_closure, A.JsLinkedHashMap_addAll_closure, A.initHooks_closure0, A._awaitOnObject_closure0, A._wrapJsFunctionForAsync_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure0, A._Future_timeout_closure1, A._BufferingStreamSubscription_asFuture_closure0, A.LinkedHashMap_LinkedHashMap$from_closure, A.MapBase_mapToString_closure, A._JsonStringifier_writeMap_closure, A._BigIntImpl_hashCode_combine, A.Uri__parseIPv4Address_error, A.Uri_parseIPv6Address_error, A.Uri_parseIPv6Address_parseHex, A.FutureOfJSAnyToJSPromise_get_toJS_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure0, A.FutureOfVoidToJSPromise_get_toJS_closure, A.FutureOfVoidToJSPromise_get_toJS__closure0, A.StreamQueue__ensureListening_closure1, A.hashObjects_closure, A.MapBuilder_replace_closure, A.CanonicalizedMap_addAll_closure, A.CanonicalizedMap_forEach_closure, A.CanonicalizedMap_map_closure, A.safeUnawaited_closure, A.BaseRequest_closure, A.MediaType_toString_closure, A.Pool__runOnRelease_closure0, A.Highlighter__collateLines_closure0, A.generateUuidV4_printDigits, A.generateUuidV4_bitsDigits, A.main__closure4, A.main_closure0]);
     _inherit(A.CastList, A._CastListBase);
     _inheritMany(A.MapBase, [A.CastMap, A.JsLinkedHashMap, A._HashMap, A._JsonMap]);
@@ -27982,7 +28073,7 @@
     arrayRti: Symbol("$ti"),
     rttc: {}
   };
-  A._Universe_addRules(init.typeUniverse, JSON.parse('{"JavaScriptFunction":"LegacyJavaScriptObject","PlainJavaScriptObject":"LegacyJavaScriptObject","UnknownJavaScriptObject":"LegacyJavaScriptObject","JavaScriptObject":{"JSObject":[]},"JSArray":{"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"JSIndexable":["1"],"Iterable.E":"1"},"JSBool":{"bool":[],"TrustedGetRuntimeType":[]},"JSNull":{"Null":[],"TrustedGetRuntimeType":[]},"LegacyJavaScriptObject":{"JavaScriptObject":[],"JSObject":[]},"JSArraySafeToStringHook":{"SafeToStringHook":[]},"JSUnmodifiableArray":{"JSArray":["1"],"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"JSIndexable":["1"],"Iterable.E":"1"},"ArrayIterator":{"Iterator":["1"]},"JSNumber":{"double":[],"num":[],"Comparable":["num"]},"JSInt":{"double":[],"int":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSNumNotInt":{"double":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSString":{"String":[],"Comparable":["String"],"Pattern":[],"JSIndexable":["@"],"TrustedGetRuntimeType":[]},"_CastIterableBase":{"Iterable":["2"]},"CastIterator":{"Iterator":["2"]},"CastIterable":{"_CastIterableBase":["1","2"],"Iterable":["2"],"Iterable.E":"2"},"_EfficientLengthCastIterable":{"CastIterable":["1","2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"_CastListBase":{"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"]},"CastList":{"_CastListBase":["1","2"],"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","Iterable.E":"2"},"CastMap":{"MapBase":["3","4"],"Map":["3","4"],"MapBase.K":"3","MapBase.V":"4"},"LateError":{"Error":[]},"CodeUnits":{"ListBase":["int"],"UnmodifiableListMixin":["int"],"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"],"ListBase.E":"int","Iterable.E":"int","UnmodifiableListMixin.E":"int"},"EfficientLengthIterable":{"Iterable":["1"]},"ListIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"SubListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"ListIterator":{"Iterator":["1"]},"MappedIterable":{"Iterable":["2"],"Iterable.E":"2"},"EfficientLengthMappedIterable":{"MappedIterable":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"MappedIterator":{"Iterator":["2"]},"MappedListIterable":{"ListIterable":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListIterable.E":"2","Iterable.E":"2"},"WhereIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereIterator":{"Iterator":["1"]},"ExpandIterable":{"Iterable":["2"],"Iterable.E":"2"},"ExpandIterator":{"Iterator":["2"]},"TakeIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthTakeIterable":{"TakeIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"TakeIterator":{"Iterator":["1"]},"SkipIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthSkipIterable":{"SkipIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"SkipIterator":{"Iterator":["1"]},"EmptyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"EmptyIterator":{"Iterator":["1"]},"WhereTypeIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereTypeIterator":{"Iterator":["1"]},"UnmodifiableListBase":{"ListBase":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"ReversedListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"ConstantMap":{"Map":["1","2"]},"ConstantStringMap":{"ConstantMap":["1","2"],"Map":["1","2"]},"_KeysOrValues":{"Iterable":["1"],"Iterable.E":"1"},"_KeysOrValuesOrElementsIterator":{"Iterator":["1"]},"Instantiation":{"Closure":[],"Function":[]},"Instantiation1":{"Closure":[],"Function":[]},"NullError":{"TypeError":[],"Error":[]},"JsNoSuchMethodError":{"Error":[]},"UnknownJsTypeError":{"Error":[]},"NullThrownFromJavaScriptException":{"Exception":[]},"_StackTrace":{"StackTrace":[]},"Closure":{"Function":[]},"Closure0Args":{"Closure":[],"Function":[]},"Closure2Args":{"Closure":[],"Function":[]},"TearOffClosure":{"Closure":[],"Function":[]},"StaticClosure":{"Closure":[],"Function":[]},"BoundClosure":{"Closure":[],"Function":[]},"RuntimeError":{"Error":[]},"JsLinkedHashMap":{"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"LinkedHashMapKeysIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapKeyIterator":{"Iterator":["1"]},"LinkedHashMapValuesIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapValueIterator":{"Iterator":["1"]},"LinkedHashMapEntriesIterable":{"EfficientLengthIterable":["MapEntry<1,2>"],"Iterable":["MapEntry<1,2>"],"Iterable.E":"MapEntry<1,2>"},"LinkedHashMapEntryIterator":{"Iterator":["MapEntry<1,2>"]},"JsIdentityLinkedHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"JSSyntaxRegExp":{"RegExp":[],"Pattern":[]},"_MatchImplementation":{"RegExpMatch":[],"Match":[]},"_AllMatchesIterable":{"Iterable":["RegExpMatch"],"Iterable.E":"RegExpMatch"},"_AllMatchesIterator":{"Iterator":["RegExpMatch"]},"StringMatch":{"Match":[]},"_StringAllMatchesIterable":{"Iterable":["Match"],"Iterable.E":"Match"},"_StringAllMatchesIterator":{"Iterator":["Match"]},"NativeByteBuffer":{"JavaScriptObject":[],"JSObject":[],"ByteBuffer":[],"TrustedGetRuntimeType":[]},"NativeTypedData":{"JavaScriptObject":[],"JSObject":[]},"NativeByteData":{"JavaScriptObject":[],"ByteData":[],"JSObject":[],"TrustedGetRuntimeType":[]},"NativeTypedArray":{"JavaScriptIndexingBehavior":["1"],"JavaScriptObject":[],"JSObject":[],"JSIndexable":["1"]},"NativeTypedArrayOfDouble":{"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"JSIndexable":["double"],"Iterable":["double"],"FixedLengthListMixin":["double"]},"NativeTypedArrayOfInt":{"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"]},"NativeFloat32List":{"Float32List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"JSIndexable":["double"],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeFloat64List":{"Float64List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"JSIndexable":["double"],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeInt16List":{"NativeTypedArrayOfInt":[],"Int16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt32List":{"NativeTypedArrayOfInt":[],"Int32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt8List":{"NativeTypedArrayOfInt":[],"Int8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint16List":{"NativeTypedArrayOfInt":[],"Uint16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint32List":{"NativeTypedArrayOfInt":[],"Uint32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8ClampedList":{"NativeTypedArrayOfInt":[],"Uint8ClampedList":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8List":{"NativeTypedArrayOfInt":[],"Uint8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"_Type":{"Type":[]},"_Error":{"Error":[]},"_TypeError":{"TypeError":[],"Error":[]},"AsyncError":{"Error":[]},"_TimerImpl":{"Timer":[]},"_AsyncAwaitCompleter":{"Completer":["1"]},"_Completer":{"Completer":["1"]},"_AsyncCompleter":{"_Completer":["1"],"Completer":["1"]},"_SyncCompleter":{"_Completer":["1"],"Completer":["1"]},"_Future":{"Future":["1"]},"StreamView":{"Stream":["1"]},"_StreamController":{"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_AsyncStreamController":{"_AsyncStreamControllerDispatch":["1"],"_StreamController":["1"],"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_SyncStreamController":{"_SyncStreamControllerDispatch":["1"],"_StreamController":["1"],"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_ControllerStream":{"_StreamImpl":["1"],"Stream":["1"],"Stream.T":"1"},"_ControllerSubscription":{"_BufferingStreamSubscription":["1"],"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamSinkWrapper":{"StreamSink":["1"]},"_BufferingStreamSubscription":{"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamImpl":{"Stream":["1"]},"_DelayedData":{"_DelayedEvent":["1"]},"_DelayedError":{"_DelayedEvent":["@"]},"_DelayedDone":{"_DelayedEvent":["@"]},"_DoneStreamSubscription":{"StreamSubscription":["1"]},"_EmptyStream":{"Stream":["1"],"Stream.T":"1"},"_ForwardingStream":{"Stream":["2"]},"_ForwardingStreamSubscription":{"_BufferingStreamSubscription":["2"],"StreamSubscription":["2"],"_EventSink":["2"],"_EventDispatch":["2"],"_BufferingStreamSubscription.T":"2"},"_MapStream":{"_ForwardingStream":["1","2"],"Stream":["2"],"Stream.T":"2"},"_ZoneSpecification":{"ZoneSpecification":[]},"_ZoneDelegate":{"ZoneDelegate":[]},"_Zone":{"Zone":[]},"_CustomZone":{"_Zone":[],"Zone":[]},"_RootZone":{"_Zone":[],"Zone":[]},"_SplayTreeSetNode":{"_SplayTreeNode":["1","_SplayTreeSetNode<1>"],"_SplayTreeNode.K":"1","_SplayTreeNode.1":"_SplayTreeSetNode<1>"},"_HashMap":{"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_IdentityHashMap":{"_HashMap":["1","2"],"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_CustomHashMap":{"_HashMap":["1","2"],"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashMapKeyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashMapKeyIterator":{"Iterator":["1"]},"_LinkedCustomHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashSet":{"_SetBase":["1"],"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashSetIterator":{"Iterator":["1"]},"_LinkedHashSet":{"_SetBase":["1"],"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_LinkedHashSetIterator":{"Iterator":["1"]},"UnmodifiableListView":{"ListBase":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListBase.E":"1","Iterable.E":"1","UnmodifiableListMixin.E":"1"},"ListBase":{"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"MapBase":{"Map":["1","2"]},"MapView":{"Map":["1","2"]},"UnmodifiableMapView":{"_UnmodifiableMapView_MapView__UnmodifiableMapMixin":["1","2"],"MapView":["1","2"],"_UnmodifiableMapMixin":["1","2"],"Map":["1","2"]},"ListQueue":{"Queue":["1"],"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"_ListQueueIterator":{"Iterator":["1"]},"SetBase":{"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SetBase":{"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SplayTreeIterator":{"Iterator":["3"]},"_SplayTreeKeyIterator":{"_SplayTreeIterator":["1","2","1"],"Iterator":["1"],"_SplayTreeIterator.K":"1","_SplayTreeIterator.T":"1","_SplayTreeIterator.1":"2"},"SplayTreeSet":{"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"_SplayTree":["1","_SplayTreeSetNode<1>"],"Iterable":["1"],"Iterable.E":"1","_SplayTree.1":"_SplayTreeSetNode<1>","_SplayTree.K":"1"},"Encoding":{"Codec":["String","List<int>"]},"_JsonMap":{"MapBase":["String","@"],"Map":["String","@"],"MapBase.K":"String","MapBase.V":"@"},"_JsonMapKeyIterable":{"ListIterable":["String"],"EfficientLengthIterable":["String"],"Iterable":["String"],"ListIterable.E":"String","Iterable.E":"String"},"AsciiCodec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"_UnicodeSubsetEncoder":{"Converter":["String","List<int>"],"StreamTransformer":["String","List<int>"]},"AsciiEncoder":{"Converter":["String","List<int>"],"StreamTransformer":["String","List<int>"]},"_UnicodeSubsetDecoder":{"Converter":["List<int>","String"],"StreamTransformer":["List<int>","String"]},"AsciiDecoder":{"Converter":["List<int>","String"],"StreamTransformer":["List<int>","String"]},"Base64Codec":{"Codec":["List<int>","String"],"Codec.S":"List<int>"},"Base64Encoder":{"Converter":["List<int>","String"],"StreamTransformer":["List<int>","String"]},"Base64Decoder":{"Converter":["String","List<int>"],"StreamTransformer":["String","List<int>"]},"Converter":{"StreamTransformer":["1","2"]},"JsonUnsupportedObjectError":{"Error":[]},"JsonCyclicError":{"Error":[]},"JsonCodec":{"Codec":["Object?","String"],"Codec.S":"Object?"},"JsonEncoder":{"Converter":["Object?","String"],"StreamTransformer":["Object?","String"]},"JsonDecoder":{"Converter":["String","Object?"],"StreamTransformer":["String","Object?"]},"Latin1Codec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"Latin1Encoder":{"Converter":["String","List<int>"],"StreamTransformer":["String","List<int>"]},"Latin1Decoder":{"Converter":["List<int>","String"],"StreamTransformer":["List<int>","String"]},"Utf8Codec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"Utf8Encoder":{"Converter":["String","List<int>"],"StreamTransformer":["String","List<int>"]},"Utf8Decoder":{"Converter":["List<int>","String"],"StreamTransformer":["List<int>","String"]},"BigInt":{"Comparable":["BigInt"]},"DateTime":{"Comparable":["DateTime"]},"double":{"num":[],"Comparable":["num"]},"Duration":{"Comparable":["Duration"]},"int":{"num":[],"Comparable":["num"]},"List":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"num":{"Comparable":["num"]},"RegExp":{"Pattern":[]},"RegExpMatch":{"Match":[]},"Set":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"String":{"Comparable":["String"],"Pattern":[]},"_BigIntImpl":{"BigInt":[],"Comparable":["BigInt"]},"AssertionError":{"Error":[]},"TypeError":{"Error":[]},"ArgumentError":{"Error":[]},"RangeError":{"Error":[]},"IndexError":{"Error":[]},"UnsupportedError":{"Error":[]},"UnimplementedError":{"Error":[]},"StateError":{"Error":[]},"ConcurrentModificationError":{"Error":[]},"OutOfMemoryError":{"Error":[]},"StackOverflowError":{"Error":[]},"_Exception":{"Exception":[]},"FormatException":{"Exception":[]},"IntegerDivisionByZeroException":{"Exception":[],"Error":[]},"_StringStackTrace":{"StackTrace":[]},"StringBuffer":{"StringSink":[]},"_Uri":{"Uri":[]},"_SimpleUri":{"Uri":[]},"_DataUri":{"Uri":[]},"NullRejectionException":{"Exception":[]},"_JSRandom":{"Random":[]},"DelegatingStreamSink":{"StreamSink":["1"]},"ErrorResult":{"Result":["0&"]},"ValueResult":{"Result":["1"]},"_NextRequest":{"_EventRequest":["1"]},"_HasNextRequest":{"_EventRequest":["1"]},"BuiltList":{"Iterable":["1"]},"_BuiltList":{"BuiltList":["1"],"Iterable":["1"],"Iterable.E":"1"},"_BuiltListMultimap":{"BuiltListMultimap":["1","2"]},"_BuiltMap":{"BuiltMap":["1","2"]},"BuiltSet":{"Iterable":["1"]},"_BuiltSet":{"BuiltSet":["1"],"Iterable":["1"],"Iterable.E":"1"},"_BuiltSetMultimap":{"BuiltSetMultimap":["1","2"]},"BuiltValueNullFieldError":{"Error":[]},"BuiltValueNestedFieldError":{"Error":[]},"BoolJsonObject":{"JsonObject":[]},"ListJsonObject":{"JsonObject":[]},"MapJsonObject":{"JsonObject":[]},"NumJsonObject":{"JsonObject":[]},"StringJsonObject":{"JsonObject":[]},"DeserializationError":{"Error":[]},"BigIntSerializer":{"PrimitiveSerializer":["BigInt"],"Serializer":["BigInt"]},"BoolSerializer":{"PrimitiveSerializer":["bool"],"Serializer":["bool"]},"BuiltJsonSerializers":{"Serializers":[]},"BuiltListMultimapSerializer":{"StructuredSerializer":["BuiltListMultimap<@,@>"],"Serializer":["BuiltListMultimap<@,@>"]},"BuiltListSerializer":{"StructuredSerializer":["BuiltList<@>"],"Serializer":["BuiltList<@>"]},"BuiltMapSerializer":{"StructuredSerializer":["BuiltMap<@,@>"],"Serializer":["BuiltMap<@,@>"]},"BuiltSetMultimapSerializer":{"StructuredSerializer":["BuiltSetMultimap<@,@>"],"Serializer":["BuiltSetMultimap<@,@>"]},"BuiltSetSerializer":{"StructuredSerializer":["BuiltSet<@>"],"Serializer":["BuiltSet<@>"]},"DateTimeSerializer":{"PrimitiveSerializer":["DateTime"],"Serializer":["DateTime"]},"DoubleSerializer":{"PrimitiveSerializer":["double"],"Serializer":["double"]},"DurationSerializer":{"PrimitiveSerializer":["Duration"],"Serializer":["Duration"]},"Int32Serializer":{"PrimitiveSerializer":["Int32"],"Serializer":["Int32"]},"Int64Serializer":{"PrimitiveSerializer":["Int64"],"Serializer":["Int64"]},"IntSerializer":{"PrimitiveSerializer":["int"],"Serializer":["int"]},"JsonObjectSerializer":{"PrimitiveSerializer":["JsonObject"],"Serializer":["JsonObject"]},"NullSerializer":{"PrimitiveSerializer":["Null"],"Serializer":["Null"]},"NumSerializer":{"PrimitiveSerializer":["num"],"Serializer":["num"]},"RegExpSerializer":{"PrimitiveSerializer":["RegExp"],"Serializer":["RegExp"]},"StringSerializer":{"PrimitiveSerializer":["String"],"Serializer":["String"]},"Uint8ListSerializer":{"PrimitiveSerializer":["Uint8List"],"Serializer":["Uint8List"]},"UriSerializer":{"PrimitiveSerializer":["Uri"],"Serializer":["Uri"]},"CanonicalizedMap":{"Map":["2","3"]},"DefaultEquality":{"Equality":["1"]},"IterableEquality":{"Equality":["Iterable<1>"]},"ListEquality":{"Equality":["List<1>"]},"_UnorderedEquality":{"Equality":["2"]},"SetEquality":{"_UnorderedEquality":["1","Set<1>"],"Equality":["Set<1>"],"_UnorderedEquality.E":"1","_UnorderedEquality.T":"Set<1>"},"MapEquality":{"Equality":["Map<1,2>"]},"DeepCollectionEquality":{"Equality":["@"]},"QueueList":{"ListBase":["1"],"List":["1"],"Queue":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListBase.E":"1","QueueList.E":"1","Iterable.E":"1"},"_CastQueueList":{"QueueList":["2"],"ListBase":["2"],"List":["2"],"Queue":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","QueueList.E":"2","Iterable.E":"2"},"_$BuildStatusSerializer":{"PrimitiveSerializer":["BuildStatus"],"Serializer":["BuildStatus"]},"_$BuildResultSerializer":{"StructuredSerializer":["BuildResult"],"Serializer":["BuildResult"]},"_$BuildResult":{"BuildResult":[]},"_$ConnectRequestSerializer":{"StructuredSerializer":["ConnectRequest"],"Serializer":["ConnectRequest"]},"_$ConnectRequest":{"ConnectRequest":[]},"_$DebugEventSerializer":{"StructuredSerializer":["DebugEvent"],"Serializer":["DebugEvent"]},"_$BatchedDebugEventsSerializer":{"StructuredSerializer":["BatchedDebugEvents"],"Serializer":["BatchedDebugEvents"]},"_$DebugEvent":{"DebugEvent":[]},"_$BatchedDebugEvents":{"BatchedDebugEvents":[]},"_$DebugInfoSerializer":{"StructuredSerializer":["DebugInfo"],"Serializer":["DebugInfo"]},"_$DebugInfo":{"DebugInfo":[]},"_$DevToolsRequestSerializer":{"StructuredSerializer":["DevToolsRequest"],"Serializer":["DevToolsRequest"]},"_$DevToolsResponseSerializer":{"StructuredSerializer":["DevToolsResponse"],"Serializer":["DevToolsResponse"]},"_$DevToolsRequest":{"DevToolsRequest":[]},"_$DevToolsResponse":{"DevToolsResponse":[]},"_$ErrorResponseSerializer":{"StructuredSerializer":["ErrorResponse"],"Serializer":["ErrorResponse"]},"_$ErrorResponse":{"ErrorResponse":[]},"_$ExtensionRequestSerializer":{"StructuredSerializer":["ExtensionRequest"],"Serializer":["ExtensionRequest"]},"_$ExtensionResponseSerializer":{"StructuredSerializer":["ExtensionResponse"],"Serializer":["ExtensionResponse"]},"_$ExtensionEventSerializer":{"StructuredSerializer":["ExtensionEvent"],"Serializer":["ExtensionEvent"]},"_$BatchedEventsSerializer":{"StructuredSerializer":["BatchedEvents"],"Serializer":["BatchedEvents"]},"_$ExtensionRequest":{"ExtensionRequest":[]},"_$ExtensionResponse":{"ExtensionResponse":[]},"_$ExtensionEvent":{"ExtensionEvent":[]},"_$BatchedEvents":{"BatchedEvents":[]},"_$HotReloadRequestSerializer":{"StructuredSerializer":["HotReloadRequest"],"Serializer":["HotReloadRequest"]},"_$HotReloadRequest":{"HotReloadRequest":[]},"_$HotReloadResponseSerializer":{"StructuredSerializer":["HotReloadResponse"],"Serializer":["HotReloadResponse"]},"_$HotReloadResponse":{"HotReloadResponse":[]},"_$IsolateExitSerializer":{"StructuredSerializer":["IsolateExit"],"Serializer":["IsolateExit"]},"_$IsolateStartSerializer":{"StructuredSerializer":["IsolateStart"],"Serializer":["IsolateStart"]},"_$IsolateExit":{"IsolateExit":[]},"_$IsolateStart":{"IsolateStart":[]},"_$RegisterEventSerializer":{"StructuredSerializer":["RegisterEvent"],"Serializer":["RegisterEvent"]},"_$RegisterEvent":{"RegisterEvent":[]},"_$RunRequestSerializer":{"StructuredSerializer":["RunRequest"],"Serializer":["RunRequest"]},"_$RunRequest":{"RunRequest":[]},"SseSocketClient":{"SocketClient":[]},"WebSocketClient":{"SocketClient":[]},"Int32":{"Comparable":["Object"]},"Int64":{"Comparable":["Object"]},"ByteStream":{"StreamView":["List<int>"],"Stream":["List<int>"],"Stream.T":"List<int>","StreamView.T":"List<int>"},"ClientException":{"Exception":[]},"Request":{"BaseRequest":[]},"StreamedResponseV2":{"StreamedResponse":[]},"CaseInsensitiveMap":{"CanonicalizedMap":["String","String","1"],"Map":["String","1"],"CanonicalizedMap.K":"String","CanonicalizedMap.V":"1","CanonicalizedMap.C":"String"},"Level":{"Comparable":["Level"]},"PathException":{"Exception":[]},"PosixStyle":{"InternalStyle":[]},"UrlStyle":{"InternalStyle":[]},"WindowsStyle":{"InternalStyle":[]},"FileLocation":{"SourceLocation":[],"Comparable":["SourceLocation"]},"_FileSpan":{"SourceSpanWithContext":[],"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceLocation":{"Comparable":["SourceLocation"]},"SourceLocationMixin":{"SourceLocation":[],"Comparable":["SourceLocation"]},"SourceSpan":{"Comparable":["SourceSpan"]},"SourceSpanBase":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanException":{"Exception":[]},"SourceSpanFormatException":{"FormatException":[],"Exception":[]},"SourceSpanMixin":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanWithContext":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SseClient":{"StreamChannel":["String?"]},"GuaranteeChannel":{"StreamChannel":["1"]},"_GuaranteeSink":{"StreamSink":["1"]},"StreamChannelMixin":{"StreamChannel":["1"]},"StringScannerException":{"FormatException":[],"Exception":[]},"_EventStream":{"Stream":["1"],"Stream.T":"1"},"_EventStreamSubscription":{"StreamSubscription":["1"]},"BrowserWebSocket":{"WebSocket":[]},"TextDataReceived":{"WebSocketEvent":[]},"BinaryDataReceived":{"WebSocketEvent":[]},"CloseReceived":{"WebSocketEvent":[]},"WebSocketException":{"Exception":[]},"WebSocketConnectionClosed":{"Exception":[]},"AdapterWebSocketChannel":{"WebSocketChannel":[],"StreamChannel":["@"]},"_WebSocketSink":{"WebSocketSink":[],"DelegatingStreamSink":["@"],"StreamSink":["@"],"DelegatingStreamSink.T":"@"},"WebSocketChannelException":{"Exception":[]},"DdcLibraryBundleRestarter":{"Restarter":[]},"DdcRestarter":{"Restarter":[]},"RequireRestarter":{"Restarter":[]},"HotReloadFailedException":{"Exception":[]},"Int8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8ClampedList":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Float32List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]},"Float64List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]}}'));
+  A._Universe_addRules(init.typeUniverse, JSON.parse('{"JavaScriptFunction":"LegacyJavaScriptObject","PlainJavaScriptObject":"LegacyJavaScriptObject","UnknownJavaScriptObject":"LegacyJavaScriptObject","JavaScriptObject":{"JSObject":[]},"JSArray":{"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"JSIndexable":["1"],"Iterable.E":"1"},"JSBool":{"bool":[],"TrustedGetRuntimeType":[]},"JSNull":{"Null":[],"TrustedGetRuntimeType":[]},"LegacyJavaScriptObject":{"JavaScriptObject":[],"JSObject":[]},"JSArraySafeToStringHook":{"SafeToStringHook":[]},"JSUnmodifiableArray":{"JSArray":["1"],"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"JSIndexable":["1"],"Iterable.E":"1"},"ArrayIterator":{"Iterator":["1"]},"JSNumber":{"double":[],"num":[],"Comparable":["num"]},"JSInt":{"double":[],"int":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSNumNotInt":{"double":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSString":{"String":[],"Comparable":["String"],"Pattern":[],"JSIndexable":["@"],"TrustedGetRuntimeType":[]},"_CastIterableBase":{"Iterable":["2"]},"CastIterator":{"Iterator":["2"]},"CastIterable":{"_CastIterableBase":["1","2"],"Iterable":["2"],"Iterable.E":"2"},"_EfficientLengthCastIterable":{"CastIterable":["1","2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"_CastListBase":{"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"]},"CastList":{"_CastListBase":["1","2"],"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","Iterable.E":"2"},"CastMap":{"MapBase":["3","4"],"Map":["3","4"],"MapBase.K":"3","MapBase.V":"4"},"LateError":{"Error":[]},"CodeUnits":{"ListBase":["int"],"UnmodifiableListMixin":["int"],"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"],"ListBase.E":"int","Iterable.E":"int","UnmodifiableListMixin.E":"int"},"EfficientLengthIterable":{"Iterable":["1"]},"ListIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"SubListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"ListIterator":{"Iterator":["1"]},"MappedIterable":{"Iterable":["2"],"Iterable.E":"2"},"EfficientLengthMappedIterable":{"MappedIterable":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"MappedIterator":{"Iterator":["2"]},"MappedListIterable":{"ListIterable":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListIterable.E":"2","Iterable.E":"2"},"WhereIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereIterator":{"Iterator":["1"]},"ExpandIterable":{"Iterable":["2"],"Iterable.E":"2"},"ExpandIterator":{"Iterator":["2"]},"TakeIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthTakeIterable":{"TakeIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"TakeIterator":{"Iterator":["1"]},"SkipIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthSkipIterable":{"SkipIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"SkipIterator":{"Iterator":["1"]},"EmptyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"EmptyIterator":{"Iterator":["1"]},"WhereTypeIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereTypeIterator":{"Iterator":["1"]},"UnmodifiableListBase":{"ListBase":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"ReversedListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"ConstantMap":{"Map":["1","2"]},"ConstantStringMap":{"ConstantMap":["1","2"],"Map":["1","2"]},"_KeysOrValues":{"Iterable":["1"],"Iterable.E":"1"},"_KeysOrValuesOrElementsIterator":{"Iterator":["1"]},"Instantiation":{"Closure":[],"Function":[]},"Instantiation1":{"Closure":[],"Function":[]},"NullError":{"TypeError":[],"Error":[]},"JsNoSuchMethodError":{"Error":[]},"UnknownJsTypeError":{"Error":[]},"NullThrownFromJavaScriptException":{"Exception":[]},"_StackTrace":{"StackTrace":[]},"Closure":{"Function":[]},"Closure0Args":{"Closure":[],"Function":[]},"Closure2Args":{"Closure":[],"Function":[]},"TearOffClosure":{"Closure":[],"Function":[]},"StaticClosure":{"Closure":[],"Function":[]},"BoundClosure":{"Closure":[],"Function":[]},"RuntimeError":{"Error":[]},"JsLinkedHashMap":{"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"LinkedHashMapKeysIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapKeyIterator":{"Iterator":["1"]},"LinkedHashMapValuesIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapValueIterator":{"Iterator":["1"]},"LinkedHashMapEntriesIterable":{"EfficientLengthIterable":["MapEntry<1,2>"],"Iterable":["MapEntry<1,2>"],"Iterable.E":"MapEntry<1,2>"},"LinkedHashMapEntryIterator":{"Iterator":["MapEntry<1,2>"]},"JsIdentityLinkedHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"JSSyntaxRegExp":{"RegExp":[],"Pattern":[]},"_MatchImplementation":{"RegExpMatch":[],"Match":[]},"_AllMatchesIterable":{"Iterable":["RegExpMatch"],"Iterable.E":"RegExpMatch"},"_AllMatchesIterator":{"Iterator":["RegExpMatch"]},"StringMatch":{"Match":[]},"_StringAllMatchesIterable":{"Iterable":["Match"],"Iterable.E":"Match"},"_StringAllMatchesIterator":{"Iterator":["Match"]},"NativeByteBuffer":{"JavaScriptObject":[],"JSObject":[],"ByteBuffer":[],"TrustedGetRuntimeType":[]},"NativeTypedData":{"JavaScriptObject":[],"JSObject":[]},"NativeByteData":{"JavaScriptObject":[],"ByteData":[],"JSObject":[],"TrustedGetRuntimeType":[]},"NativeTypedArray":{"JavaScriptIndexingBehavior":["1"],"JavaScriptObject":[],"JSObject":[],"JSIndexable":["1"]},"NativeTypedArrayOfDouble":{"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"JSIndexable":["double"],"Iterable":["double"],"FixedLengthListMixin":["double"]},"NativeTypedArrayOfInt":{"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"]},"NativeFloat32List":{"Float32List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"JSIndexable":["double"],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeFloat64List":{"Float64List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"JSIndexable":["double"],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeInt16List":{"NativeTypedArrayOfInt":[],"Int16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt32List":{"NativeTypedArrayOfInt":[],"Int32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt8List":{"NativeTypedArrayOfInt":[],"Int8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint16List":{"NativeTypedArrayOfInt":[],"Uint16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint32List":{"NativeTypedArrayOfInt":[],"Uint32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8ClampedList":{"NativeTypedArrayOfInt":[],"Uint8ClampedList":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8List":{"NativeTypedArrayOfInt":[],"Uint8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"_Type":{"Type":[]},"_Error":{"Error":[]},"_TypeError":{"TypeError":[],"Error":[]},"AsyncError":{"Error":[]},"_TimerImpl":{"Timer":[]},"_AsyncAwaitCompleter":{"Completer":["1"]},"_Completer":{"Completer":["1"]},"_AsyncCompleter":{"_Completer":["1"],"Completer":["1"]},"_SyncCompleter":{"_Completer":["1"],"Completer":["1"]},"_Future":{"Future":["1"]},"StreamView":{"Stream":["1"]},"_StreamController":{"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_AsyncStreamController":{"_AsyncStreamControllerDispatch":["1"],"_StreamController":["1"],"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_SyncStreamController":{"_SyncStreamControllerDispatch":["1"],"_StreamController":["1"],"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_ControllerStream":{"_StreamImpl":["1"],"Stream":["1"],"Stream.T":"1"},"_ControllerSubscription":{"_BufferingStreamSubscription":["1"],"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamSinkWrapper":{"StreamSink":["1"]},"_BufferingStreamSubscription":{"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamImpl":{"Stream":["1"]},"_DelayedData":{"_DelayedEvent":["1"]},"_DelayedError":{"_DelayedEvent":["@"]},"_DelayedDone":{"_DelayedEvent":["@"]},"_DoneStreamSubscription":{"StreamSubscription":["1"]},"_EmptyStream":{"Stream":["1"],"Stream.T":"1"},"_ForwardingStream":{"Stream":["2"]},"_ForwardingStreamSubscription":{"_BufferingStreamSubscription":["2"],"StreamSubscription":["2"],"_EventSink":["2"],"_EventDispatch":["2"],"_BufferingStreamSubscription.T":"2"},"_MapStream":{"_ForwardingStream":["1","2"],"Stream":["2"],"Stream.T":"2"},"_ZoneSpecification":{"ZoneSpecification":[]},"_ZoneDelegate":{"ZoneDelegate":[]},"_Zone":{"Zone":[]},"_CustomZone":{"_Zone":[],"Zone":[]},"_RootZone":{"_Zone":[],"Zone":[]},"_SplayTreeSetNode":{"_SplayTreeNode":["1","_SplayTreeSetNode<1>"],"_SplayTreeNode.K":"1","_SplayTreeNode.1":"_SplayTreeSetNode<1>"},"_HashMap":{"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_IdentityHashMap":{"_HashMap":["1","2"],"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_CustomHashMap":{"_HashMap":["1","2"],"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashMapKeyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashMapKeyIterator":{"Iterator":["1"]},"_LinkedCustomHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashSet":{"_SetBase":["1"],"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashSetIterator":{"Iterator":["1"]},"_LinkedHashSet":{"_SetBase":["1"],"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_LinkedHashSetIterator":{"Iterator":["1"]},"UnmodifiableListView":{"ListBase":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListBase.E":"1","Iterable.E":"1","UnmodifiableListMixin.E":"1"},"ListBase":{"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"MapBase":{"Map":["1","2"]},"MapView":{"Map":["1","2"]},"UnmodifiableMapView":{"_UnmodifiableMapView_MapView__UnmodifiableMapMixin":["1","2"],"MapView":["1","2"],"_UnmodifiableMapMixin":["1","2"],"Map":["1","2"]},"ListQueue":{"Queue":["1"],"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"_ListQueueIterator":{"Iterator":["1"]},"SetBase":{"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SetBase":{"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SplayTreeIterator":{"Iterator":["3"]},"_SplayTreeKeyIterator":{"_SplayTreeIterator":["1","2","1"],"Iterator":["1"],"_SplayTreeIterator.K":"1","_SplayTreeIterator.T":"1","_SplayTreeIterator.1":"2"},"SplayTreeSet":{"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"_SplayTree":["1","_SplayTreeSetNode<1>"],"Iterable":["1"],"Iterable.E":"1","_SplayTree.1":"_SplayTreeSetNode<1>","_SplayTree.K":"1"},"Encoding":{"Codec":["String","List<int>"]},"_JsonMap":{"MapBase":["String","@"],"Map":["String","@"],"MapBase.K":"String","MapBase.V":"@"},"_JsonMapKeyIterable":{"ListIterable":["String"],"EfficientLengthIterable":["String"],"Iterable":["String"],"ListIterable.E":"String","Iterable.E":"String"},"AsciiCodec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"_UnicodeSubsetEncoder":{"Converter":["String","List<int>"],"StreamTransformer":["String","List<int>"]},"AsciiEncoder":{"Converter":["String","List<int>"],"StreamTransformer":["String","List<int>"]},"_UnicodeSubsetDecoder":{"Converter":["List<int>","String"],"StreamTransformer":["List<int>","String"]},"AsciiDecoder":{"Converter":["List<int>","String"],"StreamTransformer":["List<int>","String"]},"Base64Codec":{"Codec":["List<int>","String"],"Codec.S":"List<int>"},"Base64Encoder":{"Converter":["List<int>","String"],"StreamTransformer":["List<int>","String"]},"Base64Decoder":{"Converter":["String","List<int>"],"StreamTransformer":["String","List<int>"]},"Converter":{"StreamTransformer":["1","2"]},"JsonUnsupportedObjectError":{"Error":[]},"JsonCyclicError":{"Error":[]},"JsonCodec":{"Codec":["Object?","String"],"Codec.S":"Object?"},"JsonEncoder":{"Converter":["Object?","String"],"StreamTransformer":["Object?","String"]},"JsonDecoder":{"Converter":["String","Object?"],"StreamTransformer":["String","Object?"]},"Latin1Codec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"Latin1Encoder":{"Converter":["String","List<int>"],"StreamTransformer":["String","List<int>"]},"Latin1Decoder":{"Converter":["List<int>","String"],"StreamTransformer":["List<int>","String"]},"Utf8Codec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"Utf8Encoder":{"Converter":["String","List<int>"],"StreamTransformer":["String","List<int>"]},"Utf8Decoder":{"Converter":["List<int>","String"],"StreamTransformer":["List<int>","String"]},"BigInt":{"Comparable":["BigInt"]},"DateTime":{"Comparable":["DateTime"]},"double":{"num":[],"Comparable":["num"]},"Duration":{"Comparable":["Duration"]},"int":{"num":[],"Comparable":["num"]},"List":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"num":{"Comparable":["num"]},"RegExp":{"Pattern":[]},"RegExpMatch":{"Match":[]},"Set":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"String":{"Comparable":["String"],"Pattern":[]},"_BigIntImpl":{"BigInt":[],"Comparable":["BigInt"]},"AssertionError":{"Error":[]},"TypeError":{"Error":[]},"ArgumentError":{"Error":[]},"RangeError":{"Error":[]},"IndexError":{"Error":[]},"UnsupportedError":{"Error":[]},"UnimplementedError":{"Error":[]},"StateError":{"Error":[]},"ConcurrentModificationError":{"Error":[]},"OutOfMemoryError":{"Error":[]},"StackOverflowError":{"Error":[]},"_Exception":{"Exception":[]},"FormatException":{"Exception":[]},"IntegerDivisionByZeroException":{"Exception":[],"Error":[]},"_StringStackTrace":{"StackTrace":[]},"StringBuffer":{"StringSink":[]},"_Uri":{"Uri":[]},"_SimpleUri":{"Uri":[]},"_DataUri":{"Uri":[]},"NullRejectionException":{"Exception":[]},"_JSRandom":{"Random":[]},"DelegatingStreamSink":{"StreamSink":["1"]},"ErrorResult":{"Result":["0&"]},"ValueResult":{"Result":["1"]},"_NextRequest":{"_EventRequest":["1"]},"_HasNextRequest":{"_EventRequest":["1"]},"BuiltList":{"Iterable":["1"]},"_BuiltList":{"BuiltList":["1"],"Iterable":["1"],"Iterable.E":"1"},"_BuiltListMultimap":{"BuiltListMultimap":["1","2"]},"_BuiltMap":{"BuiltMap":["1","2"]},"BuiltSet":{"Iterable":["1"]},"_BuiltSet":{"BuiltSet":["1"],"Iterable":["1"],"Iterable.E":"1"},"_BuiltSetMultimap":{"BuiltSetMultimap":["1","2"]},"BuiltValueNullFieldError":{"Error":[]},"BuiltValueNestedFieldError":{"Error":[]},"BoolJsonObject":{"JsonObject":[]},"ListJsonObject":{"JsonObject":[]},"MapJsonObject":{"JsonObject":[]},"NumJsonObject":{"JsonObject":[]},"StringJsonObject":{"JsonObject":[]},"DeserializationError":{"Error":[]},"BigIntSerializer":{"PrimitiveSerializer":["BigInt"],"Serializer":["BigInt"]},"BoolSerializer":{"PrimitiveSerializer":["bool"],"Serializer":["bool"]},"BuiltJsonSerializers":{"Serializers":[]},"BuiltListMultimapSerializer":{"StructuredSerializer":["BuiltListMultimap<@,@>"],"Serializer":["BuiltListMultimap<@,@>"]},"BuiltListSerializer":{"StructuredSerializer":["BuiltList<@>"],"Serializer":["BuiltList<@>"]},"BuiltMapSerializer":{"StructuredSerializer":["BuiltMap<@,@>"],"Serializer":["BuiltMap<@,@>"]},"BuiltSetMultimapSerializer":{"StructuredSerializer":["BuiltSetMultimap<@,@>"],"Serializer":["BuiltSetMultimap<@,@>"]},"BuiltSetSerializer":{"StructuredSerializer":["BuiltSet<@>"],"Serializer":["BuiltSet<@>"]},"DateTimeSerializer":{"PrimitiveSerializer":["DateTime"],"Serializer":["DateTime"]},"DoubleSerializer":{"PrimitiveSerializer":["double"],"Serializer":["double"]},"DurationSerializer":{"PrimitiveSerializer":["Duration"],"Serializer":["Duration"]},"Int32Serializer":{"PrimitiveSerializer":["Int32"],"Serializer":["Int32"]},"Int64Serializer":{"PrimitiveSerializer":["Int64"],"Serializer":["Int64"]},"IntSerializer":{"PrimitiveSerializer":["int"],"Serializer":["int"]},"JsonObjectSerializer":{"PrimitiveSerializer":["JsonObject"],"Serializer":["JsonObject"]},"ListSerializer":{"StructuredSerializer":["List<@>"],"Serializer":["List<@>"]},"MapSerializer":{"StructuredSerializer":["Map<@,@>"],"Serializer":["Map<@,@>"]},"NullSerializer":{"PrimitiveSerializer":["Null"],"Serializer":["Null"]},"NumSerializer":{"PrimitiveSerializer":["num"],"Serializer":["num"]},"RegExpSerializer":{"PrimitiveSerializer":["RegExp"],"Serializer":["RegExp"]},"SetSerializer":{"StructuredSerializer":["Set<@>"],"Serializer":["Set<@>"]},"StringSerializer":{"PrimitiveSerializer":["String"],"Serializer":["String"]},"Uint8ListSerializer":{"PrimitiveSerializer":["Uint8List"],"Serializer":["Uint8List"]},"UriSerializer":{"PrimitiveSerializer":["Uri"],"Serializer":["Uri"]},"CanonicalizedMap":{"Map":["2","3"]},"DefaultEquality":{"Equality":["1"]},"IterableEquality":{"Equality":["Iterable<1>"]},"ListEquality":{"Equality":["List<1>"]},"_UnorderedEquality":{"Equality":["2"]},"SetEquality":{"_UnorderedEquality":["1","Set<1>"],"Equality":["Set<1>"],"_UnorderedEquality.E":"1","_UnorderedEquality.T":"Set<1>"},"MapEquality":{"Equality":["Map<1,2>"]},"DeepCollectionEquality":{"Equality":["@"]},"QueueList":{"ListBase":["1"],"List":["1"],"Queue":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListBase.E":"1","QueueList.E":"1","Iterable.E":"1"},"_CastQueueList":{"QueueList":["2"],"ListBase":["2"],"List":["2"],"Queue":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","QueueList.E":"2","Iterable.E":"2"},"_$BuildStatusSerializer":{"PrimitiveSerializer":["BuildStatus"],"Serializer":["BuildStatus"]},"_$BuildResultSerializer":{"StructuredSerializer":["BuildResult"],"Serializer":["BuildResult"]},"_$BuildResult":{"BuildResult":[]},"_$ConnectRequestSerializer":{"StructuredSerializer":["ConnectRequest"],"Serializer":["ConnectRequest"]},"_$ConnectRequest":{"ConnectRequest":[]},"_$DebugEventSerializer":{"StructuredSerializer":["DebugEvent"],"Serializer":["DebugEvent"]},"_$BatchedDebugEventsSerializer":{"StructuredSerializer":["BatchedDebugEvents"],"Serializer":["BatchedDebugEvents"]},"_$DebugEvent":{"DebugEvent":[]},"_$BatchedDebugEvents":{"BatchedDebugEvents":[]},"_$DebugInfoSerializer":{"StructuredSerializer":["DebugInfo"],"Serializer":["DebugInfo"]},"_$DebugInfo":{"DebugInfo":[]},"_$DevToolsRequestSerializer":{"StructuredSerializer":["DevToolsRequest"],"Serializer":["DevToolsRequest"]},"_$DevToolsResponseSerializer":{"StructuredSerializer":["DevToolsResponse"],"Serializer":["DevToolsResponse"]},"_$DevToolsRequest":{"DevToolsRequest":[]},"_$DevToolsResponse":{"DevToolsResponse":[]},"_$ErrorResponseSerializer":{"StructuredSerializer":["ErrorResponse"],"Serializer":["ErrorResponse"]},"_$ErrorResponse":{"ErrorResponse":[]},"_$ExtensionRequestSerializer":{"StructuredSerializer":["ExtensionRequest"],"Serializer":["ExtensionRequest"]},"_$ExtensionResponseSerializer":{"StructuredSerializer":["ExtensionResponse"],"Serializer":["ExtensionResponse"]},"_$ExtensionEventSerializer":{"StructuredSerializer":["ExtensionEvent"],"Serializer":["ExtensionEvent"]},"_$BatchedEventsSerializer":{"StructuredSerializer":["BatchedEvents"],"Serializer":["BatchedEvents"]},"_$ExtensionRequest":{"ExtensionRequest":[]},"_$ExtensionResponse":{"ExtensionResponse":[]},"_$ExtensionEvent":{"ExtensionEvent":[]},"_$BatchedEvents":{"BatchedEvents":[]},"_$HotReloadRequestSerializer":{"StructuredSerializer":["HotReloadRequest"],"Serializer":["HotReloadRequest"]},"_$HotReloadRequest":{"HotReloadRequest":[]},"_$HotReloadResponseSerializer":{"StructuredSerializer":["HotReloadResponse"],"Serializer":["HotReloadResponse"]},"_$HotReloadResponse":{"HotReloadResponse":[]},"_$IsolateExitSerializer":{"StructuredSerializer":["IsolateExit"],"Serializer":["IsolateExit"]},"_$IsolateStartSerializer":{"StructuredSerializer":["IsolateStart"],"Serializer":["IsolateStart"]},"_$IsolateExit":{"IsolateExit":[]},"_$IsolateStart":{"IsolateStart":[]},"_$RegisterEventSerializer":{"StructuredSerializer":["RegisterEvent"],"Serializer":["RegisterEvent"]},"_$RegisterEvent":{"RegisterEvent":[]},"_$RunRequestSerializer":{"StructuredSerializer":["RunRequest"],"Serializer":["RunRequest"]},"_$RunRequest":{"RunRequest":[]},"SseSocketClient":{"SocketClient":[]},"WebSocketClient":{"SocketClient":[]},"Int32":{"Comparable":["Object"]},"Int64":{"Comparable":["Object"]},"ByteStream":{"StreamView":["List<int>"],"Stream":["List<int>"],"Stream.T":"List<int>","StreamView.T":"List<int>"},"ClientException":{"Exception":[]},"Request":{"BaseRequest":[]},"StreamedResponseV2":{"StreamedResponse":[]},"CaseInsensitiveMap":{"CanonicalizedMap":["String","String","1"],"Map":["String","1"],"CanonicalizedMap.K":"String","CanonicalizedMap.V":"1","CanonicalizedMap.C":"String"},"Level":{"Comparable":["Level"]},"PathException":{"Exception":[]},"PosixStyle":{"InternalStyle":[]},"UrlStyle":{"InternalStyle":[]},"WindowsStyle":{"InternalStyle":[]},"FileLocation":{"SourceLocation":[],"Comparable":["SourceLocation"]},"_FileSpan":{"SourceSpanWithContext":[],"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceLocation":{"Comparable":["SourceLocation"]},"SourceLocationMixin":{"SourceLocation":[],"Comparable":["SourceLocation"]},"SourceSpan":{"Comparable":["SourceSpan"]},"SourceSpanBase":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanException":{"Exception":[]},"SourceSpanFormatException":{"FormatException":[],"Exception":[]},"SourceSpanMixin":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanWithContext":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SseClient":{"StreamChannel":["String?"]},"GuaranteeChannel":{"StreamChannel":["1"]},"_GuaranteeSink":{"StreamSink":["1"]},"StreamChannelMixin":{"StreamChannel":["1"]},"StringScannerException":{"FormatException":[],"Exception":[]},"_EventStream":{"Stream":["1"],"Stream.T":"1"},"_EventStreamSubscription":{"StreamSubscription":["1"]},"BrowserWebSocket":{"WebSocket":[]},"TextDataReceived":{"WebSocketEvent":[]},"BinaryDataReceived":{"WebSocketEvent":[]},"CloseReceived":{"WebSocketEvent":[]},"WebSocketException":{"Exception":[]},"WebSocketConnectionClosed":{"Exception":[]},"AdapterWebSocketChannel":{"WebSocketChannel":[],"StreamChannel":["@"]},"_WebSocketSink":{"WebSocketSink":[],"DelegatingStreamSink":["@"],"StreamSink":["@"],"DelegatingStreamSink.T":"@"},"WebSocketChannelException":{"Exception":[]},"DdcLibraryBundleRestarter":{"Restarter":[]},"DdcRestarter":{"Restarter":[]},"RequireRestarter":{"Restarter":[]},"HotReloadFailedException":{"Exception":[]},"Int8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8ClampedList":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Float32List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]},"Float64List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]}}'));
   A._Universe_addErasedTypes(init.typeUniverse, JSON.parse('{"UnmodifiableListBase":1,"__CastListBase__CastIterableBase_ListMixin":2,"NativeTypedArray":1,"_DelayedEvent":1,"_SplayTreeSet__SplayTree_Iterable":1,"_SplayTreeSet__SplayTree_Iterable_SetMixin":1,"_QueueList_Object_ListMixin":1,"StreamChannelMixin":1}'));
   var string$ = {
     x00_____: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\u03f6\x00\u0404\u03f4 \u03f4\u03f6\u01f6\u01f6\u03f6\u03fc\u01f4\u03ff\u03ff\u0584\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u05d4\u01f4\x00\u01f4\x00\u0504\u05c4\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u0400\x00\u0400\u0200\u03f7\u0200\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u0200\u0200\u0200\u03f7\x00",
@@ -28010,8 +28101,6 @@
       BuildResult: findType("BuildResult"),
       BuildStatus: findType("BuildStatus"),
       BuiltListMultimap_dynamic_dynamic: findType("BuiltListMultimap<@,@>"),
-      BuiltList_DebugEvent: findType("BuiltList<DebugEvent>"),
-      BuiltList_ExtensionEvent: findType("BuiltList<ExtensionEvent>"),
       BuiltList_dynamic: findType("BuiltList<@>"),
       BuiltList_nullable_Object: findType("BuiltList<Object?>"),
       BuiltMap_dynamic_dynamic: findType("BuiltMap<@,@>"),
@@ -28509,10 +28598,13 @@
     B.Type_JSObject_ttY = A.typeLiteral("JSObject");
     B.Type_JsonObject_5jQ = A.typeLiteral("JsonObject");
     B.Type_ListJsonObject_qcV = A.typeLiteral("ListJsonObject");
+    B.Type_List_hc9 = A.typeLiteral("List<@>");
     B.Type_MapJsonObject_VMr = A.typeLiteral("MapJsonObject");
+    B.Type_Map_9Aj = A.typeLiteral("Map<@,@>");
     B.Type_Null_0Rm = A.typeLiteral("Null");
     B.Type_NumJsonObject_hYY = A.typeLiteral("NumJsonObject");
     B.Type_RegExp_w5l = A.typeLiteral("RegExp");
+    B.Type_Set_tZi = A.typeLiteral("Set<@>");
     B.Type_StringJsonObject_NL7 = A.typeLiteral("StringJsonObject");
     B.Type_Uint16List_kmP = A.typeLiteral("Uint16List");
     B.Type_Uint32List_kmP = A.typeLiteral("Uint32List");

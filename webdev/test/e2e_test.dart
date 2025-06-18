@@ -88,13 +88,11 @@ void main() {
 
     await expectLater(
         process.stdout,
-        emitsThrough(
-            contains('Unable to create merged directory at ${d.sandbox}.')));
-    await expectLater(
-        process.stdout,
-        emitsThrough(
-            'Choose a different directory or delete the contents of that '
-            'directory.'));
+        emitsThrough(contains(
+          'Unable to create merged directory ${d.sandbox}. '
+          'Choose a different directory or delete the contents of that '
+          'directory.',
+        )));
 
     await process.shouldExit(isNot(0));
   });
@@ -113,7 +111,7 @@ void main() {
       final process = await testRunner.runWebDev(args,
           workingDirectory: soundExampleDirectory);
 
-      await checkProcessStdout(process, ['Writing asset manifest completed']);
+      await checkProcessStdout(process, ['Built with build_runner']);
       await process.shouldExit(0);
     },
     // https://github.com/dart-lang/webdev/issues/2489,
@@ -133,7 +131,7 @@ void main() {
           final process = await testRunner.runWebDev(args,
               workingDirectory: soundExampleDirectory);
 
-          final expectedItems = <Object>['Writing asset manifest completed'];
+          final expectedItems = <Object>['Built with build_runner'];
 
           await checkProcessStdout(process, expectedItems);
           await process.shouldExit(0);
@@ -166,7 +164,7 @@ void main() {
         final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
 
-        final expectedItems = <Object>['Writing asset manifest completed'];
+        final expectedItems = <Object>['Built with build_runner'];
 
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
@@ -189,9 +187,7 @@ void main() {
         final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
 
-        final expectedItems = <Object>[
-          'Caching finalized dependency graph completed'
-        ];
+        final expectedItems = <Object>['Built with build_runner'];
 
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
@@ -218,9 +214,7 @@ void main() {
 
         // Wait for the initial build to finish.
         await expectLater(
-            process.stdout,
-            emitsThrough(
-                contains('Caching finalized dependency graph completed')));
+            process.stdout, emitsThrough(contains('Built with build_runner')));
 
         final client = HttpClient();
 
