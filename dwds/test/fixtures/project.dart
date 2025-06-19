@@ -199,22 +199,23 @@ class TestProject {
     final pubspec = Pubspec.parse(
       File(p.join(currentPath, 'pubspec.yaml')).readAsStringSync(),
     );
-    for (final package in pubspec.dependencies.keys) {
-      final dependency = pubspec.dependencies[package]!;
+    for (final dependency in pubspec.dependencies.values) {
       if (dependency is PathDependency) {
-        final dependencyDirectory = Directory(dependency.path);
+        final dependencyDirectory = Directory(
+          p.normalize(p.join(currentPath, dependency.path)),
+        );
         // It may be okay to do some more complicated copying here for path
         // dependencies that aren't immediately under `fixtures`, but for now,
         // only support those that are.
         assert(
-          dependencyDirectory.parent == Directory(currentPath).parent,
+          dependencyDirectory.parent.path == Directory(currentPath).parent.path,
           'Path dependency of $packageDirectory: '
-          '${dependencyDirectory.absolute.path} is not an immediate directory '
-          'in `fixtures`.',
+          '${dependencyDirectory.path} is not an immediate directory in '
+          '`fixtures`.',
         );
         _copyPackageAndPathDependenciesIntoTempDirectory(
           tempDirectory,
-          p.dirname(dependencyDirectory.path),
+          p.basename(dependencyDirectory.path),
           copiedPackageDirectories,
         );
       }
