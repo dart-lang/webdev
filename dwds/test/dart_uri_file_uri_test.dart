@@ -26,13 +26,6 @@ void main() {
   final testProject = TestProject.test;
   final testPackageProject = TestProject.testPackage();
 
-  /// The directory for the general _test package.
-  final testDir = testProject.absolutePackageDirectory;
-
-  /// The directory for the _testPackage package (contained within dwds),
-  /// which imports _test.
-  final testPackageDir = testPackageProject.absolutePackageDirectory;
-
   final context = TestContext(testPackageProject, provider);
 
   for (final compilationMode in CompilationMode.values) {
@@ -71,7 +64,13 @@ void main() {
 
           test('file path to org-dartlang-app', () {
             final webMain = Uri.file(
-              p.join(testPackageDir, 'web', 'main.dart'),
+              p.join(
+                // The directory for the _testPackage package (contained within
+                // dwds), which imports _test.
+                testPackageProject.absolutePackageDirectory,
+                'web',
+                'main.dart',
+              ),
             );
             final uri = DartUri('$webMain');
             expect(uri.serverPath, appServerPath);
@@ -79,14 +78,27 @@ void main() {
 
           test('file path to this package', () {
             final testPackageLib = Uri.file(
-              p.join(testPackageDir, 'lib', 'test_library.dart'),
+              p.join(
+                testPackageProject.absolutePackageDirectory,
+                'lib',
+                'test_library.dart',
+              ),
             );
             final uri = DartUri('$testPackageLib');
             expect(uri.serverPath, serverPath);
           });
 
           test('file path to another package', () {
-            final testLib = Uri.file(p.join(testDir, 'lib', 'library.dart'));
+            final testLib = Uri.file(
+              p.join(
+                // The directory for the general _test package.
+                testPackageProject.absolutePackageDirectory,
+                '..',
+                testProject.packageDirectory,
+                'lib',
+                'library.dart',
+              ),
+            );
             final dartUri = DartUri('$testLib');
             expect(dartUri.serverPath, anotherServerPath);
           });

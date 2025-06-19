@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test_common/utilities.dart';
 
 enum IndexBaseMode { noBase, base }
@@ -17,7 +18,6 @@ class TestProject {
   final String webAssetsPath;
   final String dartEntryFileName;
   final String htmlEntryFileName;
-  final List<TestProject> dependencies;
   final bool editable;
 
   late Directory _fixturesCopy;
@@ -74,7 +74,6 @@ class TestProject {
         dartEntryFileName: 'main.dart',
         htmlEntryFileName:
             baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html',
-        dependencies: [TestProject.test],
       );
 
   static final testCircular1 = TestProject._(
@@ -83,7 +82,6 @@ class TestProject {
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
-    dependencies: [TestProject.testCircular2()],
   );
 
   TestProject.testCircular2({IndexBaseMode baseMode = IndexBaseMode.noBase})
@@ -94,7 +92,6 @@ class TestProject {
         dartEntryFileName: 'main.dart',
         htmlEntryFileName:
             baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html',
-        dependencies: [TestProject.testCircular1],
       );
 
   static final test = TestProject._(
@@ -147,7 +144,6 @@ class TestProject {
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
-    dependencies: [TestProject.testHotRestart1],
     editable: true,
   );
 
@@ -184,18 +180,45 @@ class TestProject {
     required this.webAssetsPath,
     required this.dartEntryFileName,
     required this.htmlEntryFileName,
-    this.dependencies = const <TestProject>[],
     this.editable = false,
   });
 
-  static void _copyPackageIntoTempDirectory(
+  static void _copyPackageAndPathDependenciesIntoTempDirectory(
     Directory tempDirectory,
     String packageDirectory,
+    Set<String> copiedPackageDirectories,
   ) {
+    // There may be cycles in dependencies, so check that we already copied this
+    // package.
+    if (copiedPackageDirectories.contains(packageDirectory)) return;
     final currentPath = absolutePath(pathFromFixtures: packageDirectory);
     final newPath = p.join(tempDirectory.absolute.path, packageDirectory);
     Directory(newPath).createSync();
     copyPathSync(currentPath, newPath);
+    copiedPackageDirectories.add(packageDirectory);
+    final pubspec = Pubspec.parse(
+      File(p.join(currentPath, 'pubspec.yaml')).readAsStringSync(),
+    );
+    for (final package in pubspec.dependencies.keys) {
+      final dependency = pubspec.dependencies[package]!;
+      if (dependency is PathDependency) {
+        final dependencyDirectory = Directory(dependency.path);
+        // It may be okay to do some more complicated copying here for path
+        // dependencies that aren't immediately under `fixtures`, but for now,
+        // only support those that are.
+        assert(
+          dependencyDirectory.parent == Directory(currentPath).parent,
+          'Path dependency of $packageDirectory: '
+          '${dependencyDirectory.absolute.path} is not an immediate directory '
+          'in `fixtures`.',
+        );
+        _copyPackageAndPathDependenciesIntoTempDirectory(
+          tempDirectory,
+          p.dirname(dependencyDirectory.path),
+          copiedPackageDirectories,
+        );
+      }
+    }
   }
 
   Future<void> setUp() async {
@@ -210,19 +233,11 @@ class TestProject {
         Directory.systemTemp.resolveSymbolicLinksSync(),
       );
       _fixturesCopy = systemTempDir.createTempSync();
-      _copyPackageIntoTempDirectory(_fixturesCopy, packageDirectory);
-      // Also copy any of its dependencies, recursively.
-      final copiedPackages = <TestProject>{this};
-      final dependencyQueue = List<TestProject>.from(dependencies);
-      while (dependencyQueue.isNotEmpty) {
-        final dependency = dependencyQueue.removeAt(0);
-        if (copiedPackages.contains(dependency)) continue;
-        _copyPackageIntoTempDirectory(
-          _fixturesCopy,
-          dependency.packageDirectory,
-        );
-        dependencyQueue.addAll(dependency.dependencies);
-      }
+      _copyPackageAndPathDependenciesIntoTempDirectory(
+        _fixturesCopy,
+        packageDirectory,
+        {},
+      );
     }
 
     // Clean up the project.
