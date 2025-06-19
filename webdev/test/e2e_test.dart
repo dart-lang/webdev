@@ -71,10 +71,9 @@ void main() {
     expect(smokeYaml['environment']['sdk'],
         equals(webdevYaml['environment']['sdk']));
     expect(
-        VersionConstraint.parse(smokeYaml['dev_dependencies']['build_runner'])
-            .union(buildRunnerConstraint)
-            .isEmpty,
-        false);
+        buildRunnerConstraint.allowsAny(VersionConstraint.parse(
+            smokeYaml['dev_dependencies']['build_runner'])),
+        true);
     expect(smokeYaml['dev_dependencies']['build_web_compilers'],
         equals(buildWebCompilersConstraint.toString()));
   });
