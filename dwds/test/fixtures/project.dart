@@ -252,9 +252,16 @@ class TestProject {
   }
 
   /// Delete the project if we made a copy.
-  void tearDown() {
+  Future<void> tearDown() async {
     if (editable) {
-      _fixturesCopy.deleteSync(recursive: true);
+      try {
+        _fixturesCopy.deleteSync(recursive: true);
+      } on FileSystemException catch (_) {
+        // On Windows, the build daemon process might still be accessing the
+        // working directory, so wait a second and then try again.
+        await Future.delayed(const Duration(seconds: 1));
+        _fixturesCopy.deleteSync(recursive: true);
+      }
     }
   }
 

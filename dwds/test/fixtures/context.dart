@@ -548,7 +548,7 @@ class TestContext {
     _client?.close();
     await _outputDir?.delete(recursive: true);
     stopLogWriter();
-    project.tearDown();
+    await project.tearDown();
 
     // clear the state for next setup
     _webDriver = null;
