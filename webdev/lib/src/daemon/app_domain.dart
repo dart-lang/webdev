@@ -25,9 +25,6 @@ class AppDomain extends Domain {
 
   final _appStates = <String, _AppState>{};
 
-  // Prevents duplicate stdout listeners for the same appId
-  final _activeListeners = <String>{};
-
   // Mapping from service name to service method.
   final Map<String, String> _registeredMethodsForService = <String, String>{};
 
@@ -66,22 +63,22 @@ class AppDomain extends Domain {
 
   Future<void> _handleAppConnections(WebDevServer server) async {
     final dwds = server.dwds!;
+
     // The connection is established right before `main()` is called.
     await for (final appConnection in dwds.connectedApps) {
+      final appId = appConnection.request.appId;
+
+      // Check if we already have an active app state for this appId
+      if (_appStates.containsKey(appId)) {
+        // Reuse existing connection, just run main again
+        appConnection.runMain();
+        continue;
+      }
+
       final debugConnection = await dwds.debugConnection(appConnection);
       final debugUri = debugConnection.ddsUri ?? debugConnection.uri;
       final vmService = await vmServiceConnectUri(debugUri);
-      final appId = appConnection.request.appId;
-      unawaited(debugConnection.onDone.then((_) {
-        sendEvent('app.log', {
-          'appId': appId,
-          'log': 'Lost connection to device.',
-        });
-        sendEvent('app.stop', {
-          'appId': appId,
-        });
-        daemon.shutdown();
-      }));
+
       sendEvent('app.start', {
         'appId': appId,
         'directory': Directory.current.path,
@@ -89,7 +86,7 @@ class AppDomain extends Domain {
         'launchMode': 'run'
       });
 
-      // Set up VM service listeners (only once per appId to prevent duplicates)
+      // Set up VM service listeners for this appId
       // ignore: cancel_subscriptions
       final stdOutSub = await _setupVmServiceListeners(appId, vmService);
 
@@ -110,7 +107,18 @@ class AppDomain extends Domain {
 
       appConnection.runMain();
 
-      unawaited(debugConnection.onDone.whenComplete(() {
+      // Handle connection termination - send events first, then cleanup
+      unawaited(debugConnection.onDone.then((_) {
+        sendEvent('app.log', {
+          'appId': appId,
+          'log': 'Lost connection to device.',
+        });
+        sendEvent('app.stop', {
+          'appId': appId,
+        });
+        daemon.shutdown();
+
+        // Clean up app resources
         _cleanupAppConnection(appId, appState);
       }));
     }
@@ -212,26 +220,18 @@ class AppDomain extends Domain {
     return true;
   }
 
-  /// Sets up VM service listeners for the given appId if not already active.
-  /// Returns the stdout subscription if created, null otherwise.
-  Future<StreamSubscription<Event>?> _setupVmServiceListeners(
+  /// Sets up VM service listeners for the given appId.
+  /// Returns the stdout subscription.
+  Future<StreamSubscription<Event>> _setupVmServiceListeners(
       String appId, VmService vmService) async {
-    if (_activeListeners.contains(appId)) {
-      return null; // Already listening for this appId
-    }
-
-    _activeListeners.add(appId);
-
-    // TODO(grouma) - limit the catch to the appropriate error.
-    try {
-      await vmService.streamCancel('Stdout');
-    } catch (_) {}
-    try {
-      await vmService.streamListen('Stdout');
-    } catch (_) {}
     try {
       vmService.onServiceEvent.listen(_onServiceEvent);
       await vmService.streamListen('Service');
+    } catch (_) {}
+
+    // Set up stdout listener
+    try {
+      await vmService.streamListen('Stdout');
     } catch (_) {}
 
     // ignore: cancel_subscriptions
@@ -247,7 +247,6 @@ class AppDomain extends Domain {
   void _cleanupAppConnection(String appId, _AppState appState) {
     appState.dispose();
     _appStates.remove(appId);
-    _activeListeners.remove(appId);
   }
 
   @override
@@ -257,14 +256,13 @@ class AppDomain extends Domain {
       state.dispose();
     }
     _appStates.clear();
-    _activeListeners.clear();
   }
 }
 
 class _AppState {
   final DebugConnection _debugConnection;
   final StreamSubscription<BuildResult> _resultSub;
-  final StreamSubscription<Event>? _stdOutSub;
+  final StreamSubscription<Event> _stdOutSub;
 
   bool _isDisposed = false;
 
@@ -275,7 +273,7 @@ class _AppState {
   void dispose() {
     if (_isDisposed) return;
     _isDisposed = true;
-    _stdOutSub?.cancel();
+    _stdOutSub.cancel();
     _resultSub.cancel();
     _debugConnection.close();
   }
