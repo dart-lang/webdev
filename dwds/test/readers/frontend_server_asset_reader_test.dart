@@ -54,7 +54,7 @@ void main() {
   });
 
   tearDown(() async {
-    testProject.tearDown();
+    await testProject.tearDown();
     if (await tempFixtures.exists()) await tempFixtures.delete(recursive: true);
   });
 
