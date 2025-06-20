@@ -63,46 +63,33 @@ class AppDomain extends Domain {
 
   Future<void> _handleAppConnections(WebDevServer server) async {
     final dwds = server.dwds!;
+
     // The connection is established right before `main()` is called.
     await for (final appConnection in dwds.connectedApps) {
+      final appId = appConnection.request.appId;
+
+      // Check if we already have an active app state for this appId
+      if (_appStates.containsKey(appId)) {
+        // Reuse existing connection, just run main again
+        appConnection.runMain();
+        continue;
+      }
+
       final debugConnection = await dwds.debugConnection(appConnection);
       final debugUri = debugConnection.ddsUri ?? debugConnection.uri;
       final vmService = await vmServiceConnectUri(debugUri);
-      final appId = appConnection.request.appId;
-      unawaited(debugConnection.onDone.then((_) {
-        sendEvent('app.log', {
-          'appId': appId,
-          'log': 'Lost connection to device.',
-        });
-        sendEvent('app.stop', {
-          'appId': appId,
-        });
-        daemon.shutdown();
-      }));
+
       sendEvent('app.start', {
         'appId': appId,
         'directory': Directory.current.path,
         'deviceId': 'chrome',
         'launchMode': 'run'
       });
-      // TODO(grouma) - limit the catch to the appropriate error.
-      try {
-        await vmService.streamCancel('Stdout');
-      } catch (_) {}
-      try {
-        await vmService.streamListen('Stdout');
-      } catch (_) {}
-      try {
-        vmService.onServiceEvent.listen(_onServiceEvent);
-        await vmService.streamListen('Service');
-      } catch (_) {}
+
+      // Set up VM service listeners for this appId
       // ignore: cancel_subscriptions
-      final stdOutSub = vmService.onStdoutEvent.listen((log) {
-        sendEvent('app.log', {
-          'appId': appId,
-          'log': utf8.decode(base64.decode(log.bytes!)),
-        });
-      });
+      final stdOutSub = await _setupVmServiceListeners(appId, vmService);
+
       sendEvent('app.debugPort', {
         'appId': appId,
         'port': debugConnection.port,
@@ -120,9 +107,19 @@ class AppDomain extends Domain {
 
       appConnection.runMain();
 
+      // Handle connection termination - send events first, then cleanup
       unawaited(debugConnection.onDone.whenComplete(() {
-        appState.dispose();
-        _appStates.remove(appId);
+        sendEvent('app.log', {
+          'appId': appId,
+          'log': 'Lost connection to device.',
+        });
+        sendEvent('app.stop', {
+          'appId': appId,
+        });
+        daemon.shutdown();
+
+        // Clean up app resources
+        _cleanupAppConnection(appId, appState);
       }));
     }
 
@@ -221,6 +218,36 @@ class AppDomain extends Domain {
     // Wait for the daemon to gracefully shutdown before sending success.
     await daemon.onExit;
     return true;
+  }
+
+  /// Sets up VM service listeners for the given appId.
+  /// Returns the stdout subscription.
+  Future<StreamSubscription<Event>> _setupVmServiceListeners(
+      String appId, VmService vmService) async {
+    try {
+      vmService.onServiceEvent.listen(_onServiceEvent);
+      await vmService.streamListen(EventStreams.kService);
+    } catch (_) {}
+
+    // ignore: cancel_subscriptions
+    final stdoutSubscription = vmService.onStdoutEvent.listen((log) {
+      sendEvent('app.log', {
+        'appId': appId,
+        'log': utf8.decode(base64.decode(log.bytes!)),
+      });
+    });
+
+    try {
+      await vmService.streamListen(EventStreams.kStdout);
+    } catch (_) {}
+
+    return stdoutSubscription;
+  }
+
+  /// Cleans up an app connection and its associated listeners.
+  void _cleanupAppConnection(String appId, _AppState appState) {
+    appState.dispose();
+    _appStates.remove(appId);
   }
 
   @override
