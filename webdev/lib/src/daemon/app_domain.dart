@@ -108,7 +108,7 @@ class AppDomain extends Domain {
       appConnection.runMain();
 
       // Handle connection termination - send events first, then cleanup
-      unawaited(debugConnection.onDone.then((_) {
+      unawaited(debugConnection.onDone.whenComplete(() {
         sendEvent('app.log', {
           'appId': appId,
           'log': 'Lost connection to device.',
@@ -226,21 +226,22 @@ class AppDomain extends Domain {
       String appId, VmService vmService) async {
     try {
       vmService.onServiceEvent.listen(_onServiceEvent);
-      await vmService.streamListen('Service');
-    } catch (_) {}
-
-    // Set up stdout listener
-    try {
-      await vmService.streamListen('Stdout');
+      await vmService.streamListen(EventStreams.kService);
     } catch (_) {}
 
     // ignore: cancel_subscriptions
-    return vmService.onStdoutEvent.listen((log) {
+    final stdoutSubscription = vmService.onStdoutEvent.listen((log) {
       sendEvent('app.log', {
         'appId': appId,
         'log': utf8.decode(base64.decode(log.bytes!)),
       });
     });
+
+    try {
+      await vmService.streamListen(EventStreams.kStdout);
+    } catch (_) {}
+
+    return stdoutSubscription;
   }
 
   /// Cleans up an app connection and its associated listeners.
