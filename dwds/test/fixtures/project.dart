@@ -18,16 +18,13 @@ class TestProject {
   final String webAssetsPath;
   final String dartEntryFileName;
   final String htmlEntryFileName;
-  final bool editable;
 
   late Directory _fixturesCopy;
 
   /// The top level directory in which we run the test server, e.g.
-  /// "/workstation/webdev/fixtures/_testSound".
+  /// "/tmp/_testSound".
   String get absolutePackageDirectory =>
-      editable
-          ? p.join(_fixturesCopy.absolute.path, packageDirectory)
-          : absolutePath(pathFromFixtures: packageDirectory);
+      p.join(_fixturesCopy.absolute.path, packageDirectory);
 
   /// The directory to build and serve, e.g. "example".
   String get directoryToServe => p.split(webAssetsPath).first;
@@ -42,17 +39,13 @@ class TestProject {
   }
 
   /// The path to the Dart entry file, e.g,
-  /// "/workstation/webdev/fixtures/_testSound/example/hello_world/main.dart":
-  String get dartEntryFilePath {
-    final entryFilePathInPkg = [
-      packageDirectory,
-      webAssetsPath,
-      dartEntryFileName,
-    ];
-    return editable
-        ? p.joinAll([_fixturesCopy.absolute.path, ...entryFilePathInPkg])
-        : absolutePath(pathFromFixtures: p.joinAll(entryFilePathInPkg));
-  }
+  /// "/tmp/_testSound/example/hello_world/main.dart":
+  String get dartEntryFilePath => p.joinAll([
+    _fixturesCopy.absolute.path,
+    packageDirectory,
+    webAssetsPath,
+    dartEntryFileName,
+  ]);
 
   /// The URI for the package_config.json is located in:
   /// `<project directory>/.dart_tool/package_config`
@@ -100,7 +93,6 @@ class TestProject {
     webAssetsPath: 'example/hello_world',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
-    editable: true,
   );
 
   static final testScopes = TestProject._(
@@ -117,7 +109,6 @@ class TestProject {
     webAssetsPath: webCompatiblePath(['example', 'append_body']),
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
-    editable: true,
   );
 
   static final testExperiment = TestProject._(
@@ -144,7 +135,6 @@ class TestProject {
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
-    editable: true,
   );
 
   static final testHotRestartBreakpoints = TestProject._(
@@ -153,7 +143,6 @@ class TestProject {
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
-    editable: true,
   );
 
   static final testHotReload = TestProject._(
@@ -162,7 +151,6 @@ class TestProject {
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
-    editable: true,
   );
 
   static final testHotReloadBreakpoints = TestProject._(
@@ -171,7 +159,6 @@ class TestProject {
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
-    editable: true,
   );
 
   TestProject._({
@@ -180,7 +167,6 @@ class TestProject {
     required this.webAssetsPath,
     required this.dartEntryFileName,
     required this.htmlEntryFileName,
-    this.editable = false,
   });
 
   static void _copyPackageAndPathDependenciesIntoTempDirectory(
@@ -225,21 +211,19 @@ class TestProject {
   Future<void> setUp() async {
     // Verify that the web assets path has no starting slash.
     assert(!webAssetsPath.startsWith('/'));
-    // If this project is editable, we should use a copy of the package to edit
-    // instead.
-    if (editable) {
-      final systemTempDir = Directory(
-        // Resolve symbolic links as build_daemon tests rely on paths matching
-        // between the client and the daemon.
-        Directory.systemTemp.resolveSymbolicLinksSync(),
-      );
-      _fixturesCopy = systemTempDir.createTempSync();
-      _copyPackageAndPathDependenciesIntoTempDirectory(
-        _fixturesCopy,
-        packageDirectory,
-        {},
-      );
-    }
+    // Copy the package into a temporary directory to allow editing of files if
+    // needed.
+    final systemTempDir = Directory(
+      // Resolve symbolic links as build_daemon tests rely on paths matching
+      // between the client and the daemon.
+      Directory.systemTemp.resolveSymbolicLinksSync(),
+    );
+    _fixturesCopy = systemTempDir.createTempSync();
+    _copyPackageAndPathDependenciesIntoTempDirectory(
+      _fixturesCopy,
+      packageDirectory,
+      {},
+    );
 
     // Clean up the project.
     // Called when we need to rebuild sdk and the app from previous test
@@ -251,26 +235,24 @@ class TestProject {
     ], workingDirectory: absolutePackageDirectory);
   }
 
-  /// Delete the project if we made a copy.
+  /// Delete the copy of the project.
   Future<void> tearDown() async {
-    if (editable) {
-      try {
-        _fixturesCopy.deleteSync(recursive: true);
-      } on FileSystemException catch (_) {
-        // On Windows, the build daemon process might still be accessing the
-        // working directory, so wait a second and then try again.
-        await Future.delayed(const Duration(seconds: 1));
-        _fixturesCopy.deleteSync(recursive: true);
-      }
+    try {
+      _fixturesCopy.deleteSync(recursive: true);
+    } on FileSystemException catch (_) {
+      // On Windows, the build daemon process might still be accessing the
+      // working directory, so wait a second and then try again.
+      await Future.delayed(const Duration(seconds: 1));
+      _fixturesCopy.deleteSync(recursive: true);
     }
   }
 
   /// The path to the Dart specified file in the 'lib' directory, e.g,
-  /// "/workstation/webdev/fixtures/_testSound/lib/library.dart":
-  String dartLibFilePath(String dartLibFileName) {
-    final libFilePathInPkg = [packageDirectory, 'lib', dartLibFileName];
-    return editable
-        ? p.joinAll([_fixturesCopy.absolute.path, ...libFilePathInPkg])
-        : absolutePath(pathFromFixtures: p.joinAll(libFilePathInPkg));
-  }
+  /// "/tmp/_testSound/lib/library.dart":
+  String dartLibFilePath(String dartLibFileName) => p.joinAll([
+    _fixturesCopy.absolute.path,
+    packageDirectory,
+    'lib',
+    dartLibFileName,
+  ]);
 }

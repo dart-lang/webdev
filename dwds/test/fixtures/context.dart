@@ -565,10 +565,6 @@ class TestContext {
     required String toReplace,
     required String replaceWith,
   }) {
-    assert(
-      project.editable,
-      'Project ${project.packageName} is not marked as editable',
-    );
     final file = File(project.dartEntryFilePath);
     final fileContents = file.readAsStringSync();
     file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
@@ -579,20 +575,12 @@ class TestContext {
     required String toReplace,
     required String replaceWith,
   }) {
-    assert(
-      project.editable,
-      'Project ${project.packageName} is not marked as editable',
-    );
     final file = File(project.dartLibFilePath(libFileName));
     final fileContents = file.readAsStringSync();
     file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
   }
 
   void addLibraryFile({required String libFileName, required String contents}) {
-    assert(
-      project.editable,
-      'Project ${project.packageName} is not marked as editable',
-    );
     final file = File(project.dartLibFilePath(libFileName));
     // Library folder may not exist yet, so create it.
     file.createSync(recursive: true);
