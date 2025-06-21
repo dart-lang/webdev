@@ -16,7 +16,7 @@ import 'common/instance_inspection_common.dart';
 
 void main() {
   // Enable verbose logging for debugging.
-  final debug = false;
+  const debug = false;
   final canaryFeatures = true;
   final compilationMode = CompilationMode.frontendServer;
 

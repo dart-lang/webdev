@@ -14,7 +14,7 @@ import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 void main() {
-  final debug = false;
+  const debug = false;
 
   group('Test SDK configuration provider |', () {
     setUpAll(() {

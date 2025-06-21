@@ -132,11 +132,6 @@ void main() {
         await context.webDriver.driver.refresh();
 
         await eventsDone;
-        // Re-set the edited file:
-        context.makeEditToDartEntryFile(
-          toReplace: 'Bonjour le monde!',
-          replaceWith: 'Hello World!',
-        );
       },
       skip: 'https://github.com/dart-lang/webdev/issues/1888',
     );

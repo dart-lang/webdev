@@ -22,7 +22,7 @@ const newString = 'Bonjour le monde!';
 
 void main() {
   // Enable verbose logging for debugging.
-  final debug = false;
+  const debug = false;
   final provider = TestSdkConfigurationProvider(
     verbose: debug,
     canaryFeatures: true,
@@ -42,14 +42,6 @@ void main() {
     await context.recompile(fullRestart: false);
   }
 
-  void undoEdit() {
-    context.makeEditToDartLibFile(
-      libFileName: 'library1.dart',
-      toReplace: newString,
-      replaceWith: originalString,
-    );
-  }
-
   group('Injected client', () {
     late VmService fakeClient;
 
@@ -67,7 +59,6 @@ void main() {
     });
 
     tearDown(() async {
-      undoEdit();
       await context.tearDown();
     });
 

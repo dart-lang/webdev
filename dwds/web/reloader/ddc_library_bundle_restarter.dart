@@ -25,6 +25,7 @@ extension type _DartDevEmbedder._(JSObject _) implements JSObject {
 
 extension type _DartDevEmbedderConfig._(JSObject _) implements JSObject {
   external JSFunction? capturedMainHandler;
+  external JSFunction? capturedHotReloadEndHandler;
 }
 
 extension type _Debugger._(JSObject _) implements JSObject {
@@ -57,6 +58,8 @@ extension on JSArray<JSString> {
 }
 
 class DdcLibraryBundleRestarter implements Restarter {
+  JSFunction? _capturedHotReloadEndCallback;
+
   Future<void> _runMainWhenReady(
     Future? readyToRunMain,
     JSFunction runMain,
@@ -81,25 +84,8 @@ class DdcLibraryBundleRestarter implements Restarter {
     return true;
   }
 
-  late ({JSArray<JSString> sources, JSArray<JSString> libraries})?
-  _sourcesAndLibrariesToReload;
-
   @override
-  Future<void> reload() async {
-    // Requires a previous call to `fetchLibrariesForHotReload`.
-    await _dartDevEmbedder
-        .hotReload(
-          _sourcesAndLibrariesToReload!.sources,
-          _sourcesAndLibrariesToReload!.libraries,
-        )
-        .toDart;
-    _sourcesAndLibrariesToReload = null;
-  }
-
-  @override
-  Future<JSArray<JSString>> fetchLibrariesForHotReload(
-    String hotReloadSourcesPath,
-  ) async {
+  Future<JSArray<JSString>> hotReloadStart(String hotReloadSourcesPath) async {
     final completer = Completer<String>();
     final xhr = _XMLHttpRequest();
     xhr.withCredentials = true;
@@ -126,10 +112,19 @@ class DdcLibraryBundleRestarter implements Restarter {
         librariesToReload.push(library.toJS);
       }
     }
-    _sourcesAndLibrariesToReload = (
-      sources: filesToLoad,
-      libraries: librariesToReload,
-    );
+    _dartDevEmbedder.config.capturedHotReloadEndHandler =
+        (JSFunction hotReloadEndCallback) {
+          _capturedHotReloadEndCallback = hotReloadEndCallback;
+        }.toJS;
+    await _dartDevEmbedder.hotReload(filesToLoad, librariesToReload).toDart;
     return librariesToReload;
+  }
+
+  @override
+  Future<void> hotReloadEnd() async {
+    // Requires a previous call to `hotReloadStart`.
+    _capturedHotReloadEndCallback!.callAsFunction();
+    _dartDevEmbedder.config.capturedHotReloadEndHandler = null;
+    _capturedHotReloadEndCallback = null;
   }
 }

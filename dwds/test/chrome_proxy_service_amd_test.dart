@@ -16,7 +16,7 @@ import 'fixtures/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
-  final debug = false;
+  const debug = false;
   final canaryFeatures = false;
   final moduleFormat = ModuleFormat.amd;
   final compilationMode = CompilationMode.buildDaemon;

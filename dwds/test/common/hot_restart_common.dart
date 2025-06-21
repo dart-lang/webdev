@@ -54,13 +54,6 @@ void runTests({
     await recompile(hasEdits: true);
   }
 
-  void undoEdit() {
-    context.makeEditToDartEntryFile(
-      toReplace: newString,
-      replaceWith: originalString,
-    );
-  }
-
   /// Wait for main to finish executing before checking expectations by checking
   /// for a log output.
   ///
@@ -77,9 +70,8 @@ void runTests({
         completer.complete();
       }
     });
-    await completer.future.then((_) {
-      subscription.cancel();
-    });
+    await completer.future;
+    await subscription.cancel();
   }
 
   group(
@@ -99,7 +91,6 @@ void runTests({
         });
 
         tearDown(() async {
-          undoEdit();
           await context.tearDown();
         });
 
@@ -132,7 +123,6 @@ void runTests({
         });
 
         tearDown(() async {
-          undoEdit();
           await context.tearDown();
         });
 
@@ -167,7 +157,6 @@ void runTests({
 
         tearDown(() async {
           await context.tearDown();
-          undoEdit();
         });
 
         test('can live reload changes ', () async {
@@ -205,7 +194,6 @@ void runTests({
 
     tearDown(() async {
       await context.tearDown();
-      undoEdit();
     });
 
     test('destroys and recreates the isolate during a hot restart', () async {
@@ -423,7 +411,7 @@ void runTests({
       var vm = await client.getVM();
       var isolateId = vm.isolates!.first.id!;
       await client.streamListen('Debug');
-      final stream = client.onEvent('Debug');
+      final stream = client.onDebugEvent;
       final scriptList = await client.getScripts(isolateId);
       final main = scriptList.scripts!.firstWhere(
         (script) => script.uri!.contains('main.dart'),
@@ -502,7 +490,6 @@ void runTests({
 
         tearDown(() async {
           await context.tearDown();
-          undoEdit();
         });
 
         test('can hot restart changes ', () async {
@@ -563,7 +550,6 @@ void runTests({
 
         tearDown(() async {
           await context.tearDown();
-          undoEdit();
         });
 
         test('can hot restart changes ', () async {
@@ -610,7 +596,6 @@ void runTests({
 
     tearDown(() async {
       await context.tearDown();
-      undoEdit();
     });
 
     test(
