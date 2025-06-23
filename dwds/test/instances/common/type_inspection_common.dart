@@ -80,7 +80,7 @@ void runTests({
           compilationMode: compilationMode,
           enableExpressionEvaluation: true,
           verboseCompiler: debug,
-          experiments: ['records', 'patterns'],
+          experiments: ['dot-shorthands'],
           canaryFeatures: canaryFeatures,
         ),
       );
