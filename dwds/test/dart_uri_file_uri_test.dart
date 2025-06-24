@@ -65,8 +65,8 @@ void main() {
           test('file path to org-dartlang-app', () {
             final webMain = Uri.file(
               p.join(
-                // The directory for the _testPackage package (contained within
-                // dwds), which imports _test.
+                // The directory for the _testPackage package which imports
+                // _test.
                 testPackageProject.absolutePackageDirectory,
                 'web',
                 'main.dart',
@@ -91,7 +91,8 @@ void main() {
           test('file path to another package', () {
             final testLib = Uri.file(
               p.join(
-                // The directory for the general _test package.
+                // The directory for the general _test package. This is going to
+                // be relative to the project in the `TestContext`.
                 testPackageProject.absolutePackageDirectory,
                 '..',
                 testProject.packageDirectory,

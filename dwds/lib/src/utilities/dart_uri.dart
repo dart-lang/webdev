@@ -161,15 +161,24 @@ class DartUri {
   /// Returns resolved path for a package, app, or dart uri.
   static String? toResolvedUri(String uri) => _uriToResolvedUri[uri];
 
+  static String _currentDirectory = p.current;
+
   /// The directory in which we're running.
   ///
   /// We store this here because for tests we may want to act as if we're
   /// running in the directory of a target package, even if the current
   /// directory of the tests is actually the main dwds directory.
-  static String currentDirectory = p.current;
+  static String get currentDirectory => _currentDirectory;
+
+  static set currentDirectory(String newDir) {
+    _currentDirectory = newDir;
+    _currentDirectoryUri = '${p.toUri(newDir)}';
+  }
+
+  static String _currentDirectoryUri = '${p.toUri(currentDirectory)}';
 
   /// The current directory as a file: Uri, saved here to avoid re-computing.
-  static final String currentDirectoryUri = '${p.toUri(currentDirectory)}';
+  static String get currentDirectoryUri => _currentDirectoryUri;
 
   /// Record library and script uris to enable resolving library and script paths.
   static Future<void> initialize() async {

@@ -169,13 +169,14 @@ class TestProject {
     required this.htmlEntryFileName,
   });
 
-  static void _copyPackageAndPathDependenciesIntoTempDirectory(
+  static Future<void> _copyPackageAndPathDependenciesIntoTempDirectory(
     Directory tempDirectory,
-    String packageDirectory,
+    String absolutePackageDirectory,
     Set<String> copiedPackageDirectories,
-  ) {
+  ) async {
     // There may be cycles in dependencies, so check that we already copied this
     // package.
+    final packageDirectory = p.basename(absolutePackageDirectory);
     if (copiedPackageDirectories.contains(packageDirectory)) return;
     final currentPath = absolutePath(pathFromFixtures: packageDirectory);
     final newPath = p.join(tempDirectory.absolute.path, packageDirectory);
@@ -199,13 +200,22 @@ class TestProject {
           '${dependencyDirectory.path} is not an immediate directory in '
           '`fixtures`.',
         );
-        _copyPackageAndPathDependenciesIntoTempDirectory(
+        await _copyPackageAndPathDependenciesIntoTempDirectory(
           tempDirectory,
-          p.basename(dependencyDirectory.path),
+          dependencyDirectory.path,
           copiedPackageDirectories,
         );
       }
     }
+
+    // Clean up the project.
+    // Called when we need to rebuild sdk and the app from previous test
+    // configurations.
+    await Process.run('dart', [
+      'run',
+      'build_runner',
+      'clean',
+    ], workingDirectory: absolutePackageDirectory);
   }
 
   Future<void> setUp() async {
@@ -219,20 +229,11 @@ class TestProject {
       Directory.systemTemp.resolveSymbolicLinksSync(),
     );
     _fixturesCopy = systemTempDir.createTempSync();
-    _copyPackageAndPathDependenciesIntoTempDirectory(
+    await _copyPackageAndPathDependenciesIntoTempDirectory(
       _fixturesCopy,
-      packageDirectory,
+      absolutePackageDirectory,
       {},
     );
-
-    // Clean up the project.
-    // Called when we need to rebuild sdk and the app from previous test
-    // configurations.
-    await Process.run('dart', [
-      'run',
-      'build_runner',
-      'clean',
-    ], workingDirectory: absolutePackageDirectory);
   }
 
   /// Delete the copy of the project.
