@@ -178,24 +178,24 @@ class TestProject {
     // package.
     final packageDirectory = p.basename(absolutePackageDirectory);
     if (copiedPackageDirectories.contains(packageDirectory)) return;
+    final currentPath = absolutePath(pathFromFixtures: packageDirectory);
     final newPath = p.join(tempDirectory.absolute.path, packageDirectory);
     Directory(newPath).createSync();
-    copyPathSync(absolutePackageDirectory, newPath);
+    copyPathSync(currentPath, newPath);
     copiedPackageDirectories.add(packageDirectory);
     final pubspec = Pubspec.parse(
-      File(p.join(absolutePackageDirectory, 'pubspec.yaml')).readAsStringSync(),
+      File(p.join(currentPath, 'pubspec.yaml')).readAsStringSync(),
     );
     for (final dependency in pubspec.dependencies.values) {
       if (dependency is PathDependency) {
         final dependencyDirectory = Directory(
-          p.normalize(p.join(absolutePackageDirectory, dependency.path)),
+          p.normalize(p.join(currentPath, dependency.path)),
         );
         // It may be okay to do some more complicated copying here for path
         // dependencies that aren't immediately under `fixtures`, but for now,
         // only support those that are.
         assert(
-          dependencyDirectory.parent.path ==
-              Directory(absolutePackageDirectory).parent.path,
+          dependencyDirectory.parent.path == Directory(currentPath).parent.path,
           'Path dependency of $packageDirectory: '
           '${dependencyDirectory.path} is not an immediate directory in '
           '`fixtures`.',
