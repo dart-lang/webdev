@@ -170,9 +170,13 @@ class DartUri {
   /// directory of the tests is actually the main dwds directory.
   static String get currentDirectory => _currentDirectory;
 
+  // TODO(srujzs): This is temporary to debug test failures and avoid analysis
+  // issues. Remove.
+  static bool tmp = false;
+
   static set currentDirectory(String newDir) {
     _currentDirectory = newDir;
-    _currentDirectoryUri = '${p.toUri(newDir)}';
+    if (tmp) _currentDirectoryUri = '${p.toUri(newDir)}';
   }
 
   static String _currentDirectoryUri = '${p.toUri(currentDirectory)}';
