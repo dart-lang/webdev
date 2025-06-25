@@ -541,6 +541,7 @@ class TestContext {
     await _webDriver?.quit(closeSession: true);
     _chromeDriver?.kill();
     DartUri.currentDirectory = p.current;
+    print('Setting currentDirectory in tearDown: ${DartUri.currentDirectory}');
     await _daemonClient?.close();
     await ddcService?.stop();
     await _webRunner?.stop();

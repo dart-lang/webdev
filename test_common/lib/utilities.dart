@@ -16,10 +16,8 @@ const newDdcTypeSystemVersion = '3.3.0-242.0.dev';
 /// '/workstation/webdev'.
 String get webdevPath {
   final pathParts = p.split(p.current);
+  print('Path parts: $pathParts');
   // We expect all tests to be run from the webdev mono-repo:
-  // TODO(srujzs): This is just to debug the failures on https://github.com/dart-lang/webdev/pull/2627.
-  // Delete when done debugging.
-  print(pathParts);
   assert(pathParts.contains(webdevDirName));
   return p.joinAll(
     pathParts.sublist(0, pathParts.lastIndexOf(webdevDirName) + 1),
