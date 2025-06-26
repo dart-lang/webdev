@@ -168,15 +168,10 @@ class DartUri {
   /// We store this here because for tests we may want to act as if we're
   /// running in the directory of a target package, even if the current
   /// directory of the tests is actually the main dwds directory.
-  static String get currentDirectory {
-    print('Getting current directory: $_currentDirectory');
-    return _currentDirectory;
-  }
+  static String get currentDirectory => _currentDirectory;
 
   static set currentDirectory(String newDir) {
-    print('Setting current directory: $newDir');
     _currentDirectory = newDir;
-    print('Setting current directory uri: ${p.toUri(newDir)}');
     _currentDirectoryUri = '${p.toUri(newDir)}';
   }
 
@@ -184,10 +179,7 @@ class DartUri {
 
   /// The current directory as a file: Uri, saved in a field to avoid
   /// re-computing.
-  static String get currentDirectoryUri {
-    print('Getting current directory uri: $_currentDirectoryUri');
-    return _currentDirectoryUri;
-  }
+  static String get currentDirectoryUri => _currentDirectoryUri;
 
   /// Record library and script uris to enable resolving library and script paths.
   static Future<void> initialize() async {

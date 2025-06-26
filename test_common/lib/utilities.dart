@@ -16,7 +16,6 @@ const newDdcTypeSystemVersion = '3.3.0-242.0.dev';
 /// '/workstation/webdev'.
 String get webdevPath {
   final pathParts = p.split(p.current);
-  print('Path parts: $pathParts');
   // We expect all tests to be run from the webdev mono-repo:
   assert(pathParts.contains(webdevDirName));
   return p.joinAll(
