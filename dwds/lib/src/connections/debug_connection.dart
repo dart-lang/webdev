@@ -13,7 +13,7 @@ import 'package:vm_service/vm_service.dart';
 /// Supports debugging your running application through the Dart VM Service
 /// Protocol.
 class DebugConnection {
-  final AppDebugServices _appDebugServices;
+  final IAppDebugServices _appDebugServices;
   final _onDoneCompleter = Completer();
 
   /// Null until [close] is called.
@@ -22,9 +22,20 @@ class DebugConnection {
   Future<void>? _closed;
 
   DebugConnection(this._appDebugServices) {
-    _appDebugServices.chromeProxyService.remoteDebugger.onClose.first.then((_) {
-      close();
-    });
+    _setupChromeCloseHandler();
+  }
+
+  /// Sets up Chrome remote debugger close handler if available.
+  void _setupChromeCloseHandler() {
+    try {
+      final chromeProxyService = _appDebugServices.chromeProxyService;
+      if (chromeProxyService != null) {
+        final remoteDebugger = chromeProxyService.remoteDebugger;
+        remoteDebugger.onClose.first.then((_) => close());
+      }
+    } catch (_) {
+      // Chrome proxy service not available in WebSocket-only mode - ignore
+    }
   }
 
   /// The port of the host Dart VM Service.
@@ -41,7 +52,16 @@ class DebugConnection {
 
   Future<void> close() =>
       _closed ??= () async {
-        await _appDebugServices.chromeProxyService.remoteDebugger.close();
+        // Close Chrome remote debugger if available
+        try {
+          final chromeProxyService = _appDebugServices.chromeProxyService;
+          if (chromeProxyService != null) {
+            await chromeProxyService.remoteDebugger.close();
+          }
+        } catch (_) {
+          // Chrome proxy service not available in WebSocket-only mode - ignore
+        }
+
         await _appDebugServices.close();
         _onDoneCompleter.complete();
       }();

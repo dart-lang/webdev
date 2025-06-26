@@ -10,6 +10,7 @@ import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/sockets.dart';
 import 'package:web/web.dart';
 
+import 'ddc_library_bundle_restarter.dart';
 import 'restarter.dart';
 
 class ReloadingManager {
@@ -66,6 +67,19 @@ class ReloadingManager {
   /// Does a hard reload of the application.
   void reloadPage() {
     window.location.reload();
+  }
+
+  /// Handles service extension requests by delegating to the appropriate restarter
+  Future<Map<String, dynamic>?> handleServiceExtension(
+    String method,
+    Map<String, dynamic> args,
+  ) async {
+    final restarter = _restarter;
+    if (restarter is DdcLibraryBundleRestarter) {
+      return restarter.handleServiceExtension(method, args);
+    }
+    // For other restarter types, return null to indicate not supported
+    return null;
   }
 
   void _afterRestart(bool succeeded) {

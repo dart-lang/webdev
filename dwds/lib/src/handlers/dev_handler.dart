@@ -15,6 +15,7 @@ import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/serializers.dart';
+import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
@@ -32,7 +33,10 @@ import 'package:dwds/src/servers/extension_debugger.dart';
 import 'package:dwds/src/services/app_debug_services.dart';
 import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/services/web_socket_app_debug_services.dart';
+import 'package:dwds/src/services/web_socket_debug_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/web_socket_dwds_vm_client.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -56,7 +60,7 @@ class DevHandler {
   final AssetReader _assetReader;
   final String _hostname;
   final _connectedApps = StreamController<AppConnection>.broadcast();
-  final _servicesByAppId = <String, AppDebugServices>{};
+  final _servicesByAppId = <String, IAppDebugServices>{};
   final _appConnectionByAppId = <String, AppConnection>{};
   final Stream<BuildResult> buildResults;
   final Future<ChromeConnection> Function() _chromeConnection;
@@ -79,6 +83,8 @@ class DevHandler {
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
+  final bool useWebSocketConnection;
+
   DevHandler(
     this._chromeConnection,
     this.buildResults,
@@ -93,8 +99,9 @@ class DevHandler {
     this._injected,
     this._spawnDds,
     this._ddsPort,
-    this._launchDevToolsInNewWindow,
-  ) {
+    this._launchDevToolsInNewWindow, {
+    this.useWebSocketConnection = false,
+  }) {
     _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
     if (_extensionBackend != null) {
@@ -239,7 +246,6 @@ class DevHandler {
       expressionCompiler: _expressionCompiler,
       spawnDds: _spawnDds,
       ddsPort: _ddsPort,
-      sendClientRequest: _sendRequestToClients,
     );
   }
 
@@ -252,29 +258,65 @@ class DevHandler {
     );
   }
 
-  Future<AppDebugServices> loadAppServices(AppConnection appConnection) async {
+  Future<IAppDebugServices> loadAppServices(AppConnection appConnection) async {
     final appId = appConnection.request.appId;
     var appServices = _servicesByAppId[appId];
     if (appServices == null) {
-      final debugService = await _startLocalDebugService(
-        await _chromeConnection(),
-        appConnection,
-      );
-      appServices = await _createAppDebugServices(debugService);
-      safeUnawaited(
-        appServices.chromeProxyService.remoteDebugger.onClose.first
-            .whenComplete(() async {
-              await appServices?.close();
-              _servicesByAppId.remove(appConnection.request.appId);
-              _logger.info(
-                'Stopped debug service on '
-                'ws://${debugService.hostname}:${debugService.port}\n',
-              );
-            }),
-      );
+      if (useWebSocketConnection) {
+        appServices = await _createWebSocketAppServices(appConnection);
+      } else {
+        appServices = await _createChromeAppServices(appConnection);
+        _setupChromeServiceCleanup(appServices, appConnection);
+      }
       _servicesByAppId[appId] = appServices;
     }
+
     return appServices;
+  }
+
+  /// Creates WebSocket-based app services for hot reload functionality.
+  Future<IAppDebugServices> _createWebSocketAppServices(
+    AppConnection appConnection,
+  ) async {
+    final webSocketDebugService = await WebSocketDebugService.start(
+      'localhost',
+      appConnection,
+      sendClientRequest: _sendRequestToClients,
+    );
+    return _createAppDebugServicesWebSocketMode(
+      webSocketDebugService,
+      appConnection,
+    );
+  }
+
+  /// Creates Chrome-based app services for full debugging capabilities.
+  Future<IAppDebugServices> _createChromeAppServices(
+    AppConnection appConnection,
+  ) async {
+    final debugService = await _startLocalDebugService(
+      await _chromeConnection(),
+      appConnection,
+    );
+    return _createAppDebugServices(debugService);
+  }
+
+  /// Sets up cleanup handling for Chrome-based services.
+  void _setupChromeServiceCleanup(
+    IAppDebugServices appServices,
+    AppConnection appConnection,
+  ) {
+    safeUnawaited(
+      appServices.chromeProxyService.remoteDebugger.onClose.first.whenComplete(
+        () async {
+          await appServices.close();
+          _servicesByAppId.remove(appConnection.request.appId);
+          _logger.info(
+            'Stopped debug service on '
+            'ws://${appServices.debugService.hostname}:${appServices.debugService.port}\n',
+          );
+        },
+      ),
+    );
   }
 
   void _handleConnection(SocketConnection injectedConnection) {
@@ -294,6 +336,7 @@ class DevHandler {
           appConnection = await _handleConnectRequest(
             message,
             injectedConnection,
+            isWebSocketMode: useWebSocketConnection,
           );
         } else {
           final connection = appConnection;
@@ -302,23 +345,12 @@ class DevHandler {
           }
           if (message is DevToolsRequest) {
             await _handleDebugRequest(connection, injectedConnection);
-          } else if (message is HotReloadResponse) {
-            // The app reload operation has completed. Mark the completer as done.
-            _servicesByAppId[connection.request.appId]?.chromeProxyService
-                .completeHotReload(message);
-          } else if (message is IsolateExit) {
-            _handleIsolateExit(connection);
-          } else if (message is IsolateStart) {
-            await _handleIsolateStart(connection);
-          } else if (message is BatchedDebugEvents) {
-            _servicesByAppId[connection.request.appId]?.chromeProxyService
-                .parseBatchedDebugEvents(message);
-          } else if (message is DebugEvent) {
-            _servicesByAppId[connection.request.appId]?.chromeProxyService
-                .parseDebugEvent(message);
-          } else if (message is RegisterEvent) {
-            _servicesByAppId[connection.request.appId]?.chromeProxyService
-                .parseRegisterEvent(message);
+          } else if (useWebSocketConnection) {
+            // Handle WebSocket-specific messages
+            await _handleWebSocketMessage(connection, message);
+          } else {
+            // Handle Chrome-specific messages
+            await _handleChromeMessage(connection, message);
           }
         }
       } catch (e, s) {
@@ -356,12 +388,70 @@ class DevHandler {
             if (services.connectedInstanceId == null ||
                 services.connectedInstanceId == connection.request.instanceId) {
               services.connectedInstanceId = null;
-              services.chromeProxyService.destroyIsolate();
+              _handleIsolateExit(connection);
             }
           }
         }
       }),
     );
+  }
+
+  /// Handles WebSocket-specific messages.
+  Future<void> _handleWebSocketMessage(
+    AppConnection connection,
+    Object? message,
+  ) async {
+    if (message == null) return;
+
+    if (message is HotReloadResponse) {
+      _servicesByAppId[connection.request.appId]?.webSocketProxyService
+          ?.completeHotReload(message);
+    } else if (message is ServiceExtensionResponse) {
+      final appId = connection.request.appId;
+      final wsService = _servicesByAppId[appId]?.webSocketProxyService;
+
+      if (wsService != null) {
+        wsService.completeServiceExtension(message);
+      } else {
+        _logger.warning(
+          'No WebSocketProxyService found for appId: $appId to complete service extension',
+        );
+      }
+    } else {
+      throw UnsupportedError(
+        'Message type ${message.runtimeType} is not supported in WebSocket mode',
+      );
+    }
+  }
+
+  /// Handles Chrome-specific messages.
+  Future<void> _handleChromeMessage(
+    AppConnection connection,
+    Object? message,
+  ) async {
+    if (message == null) return;
+
+    if (message is HotReloadResponse) {
+      _servicesByAppId[connection.request.appId]?.chromeProxyService
+          .completeHotReload(message);
+    } else if (message is IsolateExit) {
+      _handleIsolateExit(connection);
+    } else if (message is IsolateStart) {
+      await _handleIsolateStart(connection);
+    } else if (message is BatchedDebugEvents) {
+      _servicesByAppId[connection.request.appId]?.chromeProxyService
+          .parseBatchedDebugEvents(message);
+    } else if (message is DebugEvent) {
+      _servicesByAppId[connection.request.appId]?.chromeProxyService
+          .parseDebugEvent(message);
+    } else if (message is RegisterEvent) {
+      _servicesByAppId[connection.request.appId]?.chromeProxyService
+          .parseRegisterEvent(message);
+    } else {
+      throw UnsupportedError(
+        'Message type ${message.runtimeType} is not supported in Chrome mode',
+      );
+    }
   }
 
   Future<void> _handleDebugRequest(
@@ -388,7 +478,7 @@ class DevHandler {
       return;
     }
     final debuggerStart = DateTime.now();
-    AppDebugServices appServices;
+    IAppDebugServices appServices;
     try {
       appServices = await loadAppServices(appConnection);
     } catch (_) {
@@ -469,10 +559,12 @@ class DevHandler {
     );
   }
 
+  /// Handles connection requests for both Chrome and WebSocket modes.
   Future<AppConnection> _handleConnectRequest(
     ConnectRequest message,
-    SocketConnection sseConnection,
-  ) async {
+    SocketConnection sseConnection, {
+    required bool isWebSocketMode,
+  }) async {
     // After a page refresh, reconnect to the same app services if they
     // were previously launched and create the new isolate.
     final services = _servicesByAppId[message.appId];
@@ -498,27 +590,15 @@ class DevHandler {
             existingConnection?.isInKeepAlivePeriod == true);
 
     if (canReuseConnection) {
-      // Disconnect any old connection (eg. those in the keep-alive waiting
-      // state when reloading the page).
-      existingConnection?.shutDown();
-      services.chromeProxyService.destroyIsolate();
-
       // Reconnect to existing service.
-      services.connectedInstanceId = message.instanceId;
-
-      if (services.chromeProxyService.pauseIsolatesOnStart) {
-        // If the pause-isolates-on-start flag is set, we need to wait for
-        // the resume event to run the app's main() method.
-        _waitForResumeEventToRunMain(
-          services.chromeProxyService.resumeAfterRestartEventsStream,
-          readyToRunMainCompleter,
-        );
-      } else {
-        // Otherwise, we can run the app's main() method immediately.
-        readyToRunMainCompleter.complete();
-      }
-
-      await services.chromeProxyService.createIsolate(connection);
+      await _reconnectToService(
+        services,
+        existingConnection,
+        connection,
+        message,
+        readyToRunMainCompleter,
+        isWebSocketMode,
+      );
     } else {
       // If this is the initial app connection, we can run the app's main()
       // method immediately.
@@ -526,7 +606,57 @@ class DevHandler {
     }
     _appConnectionByAppId[message.appId] = connection;
     _connectedApps.add(connection);
+    _logger.fine('App connection established for: ${message.appId}');
     return connection;
+  }
+
+  /// Handles reconnection to existing services.
+  Future<void> _reconnectToService(
+    IAppDebugServices services,
+    AppConnection? existingConnection,
+    AppConnection newConnection,
+    ConnectRequest message,
+    Completer<void> readyToRunMainCompleter,
+    bool isWebSocketMode,
+  ) async {
+    // Disconnect old connection
+    existingConnection?.shutDown();
+    services.connectedInstanceId = message.instanceId;
+
+    if (isWebSocketMode) {
+      services.webSocketProxyService?.destroyIsolate();
+      _logger.finest('WebSocket service reconnected for app: ${message.appId}');
+
+      _setupMainExecution(
+        services.webSocketProxyService?.pauseIsolatesOnStart == true,
+        services.webSocketProxyService?.resumeAfterRestartEventsStream,
+        readyToRunMainCompleter,
+      );
+    } else {
+      services.chromeProxyService.destroyIsolate();
+      _logger.finest('Chrome service reconnected for app: ${message.appId}');
+
+      _setupMainExecution(
+        services.chromeProxyService.pauseIsolatesOnStart,
+        services.chromeProxyService.resumeAfterRestartEventsStream,
+        readyToRunMainCompleter,
+      );
+    }
+
+    await _handleIsolateStart(newConnection);
+  }
+
+  /// Sets up main() execution timing based on pause settings.
+  void _setupMainExecution(
+    bool pauseIsolatesOnStart,
+    Stream<String>? resumeEventsStream,
+    Completer<void> readyToRunMainCompleter,
+  ) {
+    if (pauseIsolatesOnStart && resumeEventsStream != null) {
+      _waitForResumeEventToRunMain(resumeEventsStream, readyToRunMainCompleter);
+    } else {
+      readyToRunMainCompleter.complete();
+    }
   }
 
   /// Waits for a resume event to trigger the app's main() method.
@@ -545,14 +675,30 @@ class DevHandler {
     });
   }
 
+  /// Handles isolate exit events for both WebSocket and Chrome-based debugging.
   void _handleIsolateExit(AppConnection appConnection) {
-    _servicesByAppId[appConnection.request.appId]?.chromeProxyService
-        .destroyIsolate();
+    final appId = appConnection.request.appId;
+
+    if (useWebSocketConnection) {
+      _servicesByAppId[appId]?.webSocketProxyService?.destroyIsolate();
+    } else {
+      _servicesByAppId[appId]?.chromeProxyService.destroyIsolate();
+    }
   }
 
+  /// Handles isolate start events for both WebSocket and Chrome-based debugging.
   Future<void> _handleIsolateStart(AppConnection appConnection) async {
-    await _servicesByAppId[appConnection.request.appId]?.chromeProxyService
-        .createIsolate(appConnection);
+    final appId = appConnection.request.appId;
+
+    if (useWebSocketConnection) {
+      await _servicesByAppId[appId]?.webSocketProxyService?.createIsolate(
+        appConnection,
+      );
+    } else {
+      await _servicesByAppId[appId]?.chromeProxyService.createIsolate(
+        appConnection,
+      );
+    }
   }
 
   void _listen() {
@@ -580,7 +726,7 @@ class DevHandler {
     );
   }
 
-  Future<AppDebugServices> _createAppDebugServices(
+  Future<IAppDebugServices> _createAppDebugServices(
     DebugService debugService,
   ) async {
     final dwdsStats = DwdsStats();
@@ -614,6 +760,28 @@ class DevHandler {
     return appDebugService;
   }
 
+  Future<IAppDebugServices> _createAppDebugServicesWebSocketMode(
+    WebSocketDebugService webSocketDebugService,
+    AppConnection appConnection,
+  ) async {
+    final wsVmClient = await WebSocketDwdsVmClient.create(
+      webSocketDebugService,
+    );
+    final wsAppDebugService = WebSocketAppDebugServices(
+      webSocketDebugService,
+      wsVmClient,
+    );
+
+    safeUnawaited(_handleIsolateStart(appConnection));
+    final debugServiceUri = webSocketDebugService.uri;
+    _logger.info('Debug service listening on $debugServiceUri\n');
+
+    // Notify that DWDS has been launched and a debug connection has been made:
+    _maybeEmitDwdsLaunchEvent();
+
+    return wsAppDebugService;
+  }
+
   Future<void> _listenForDebugExtension() async {
     final extensionBackend = _extensionBackend;
     if (extensionBackend == null) {
@@ -634,6 +802,7 @@ class DevHandler {
     extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
       try {
         await _handleDevToolsRequest(extensionDebugger, devToolsRequest);
+        _logger.finest('DevTools request processed successfully');
       } catch (error) {
         _logger.severe('Encountered error handling DevTools request.');
         extensionDebugger.closeWithError(error);
@@ -688,7 +857,6 @@ class DevHandler {
         expressionCompiler: _expressionCompiler,
         spawnDds: _spawnDds,
         ddsPort: _ddsPort,
-        sendClientRequest: _sendRequestToClients,
       );
       appServices = await _createAppDebugServices(debugService);
       extensionDebugger.sendEvent('dwds.debugUri', debugService.uri);

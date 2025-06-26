@@ -8,33 +8,62 @@ import 'package:dwds/src/services/chrome_proxy_service.dart'
     show ChromeProxyService;
 import 'package:dwds/src/services/debug_service.dart';
 
-/// A container for all the services required for debugging an application.
-class AppDebugServices {
-  final DebugService debugService;
-  final DwdsVmClient dwdsVmClient;
-  final DwdsStats dwdsStats;
-  final Uri? ddsUri;
+/// Common interface for debug service containers.
+abstract class IAppDebugServices {
+  dynamic get debugService;
+  dynamic get dwdsVmClient;
+  dynamic get dwdsStats;
+  Uri? get ddsUri;
+  String? get connectedInstanceId;
+  set connectedInstanceId(String? id);
+  Future<void> close();
+  dynamic get chromeProxyService;
+  dynamic get webSocketProxyService;
+}
 
+/// Chrome-based debug services container.
+class AppDebugServices implements IAppDebugServices {
+  final DebugService _debugService;
+  final DwdsVmClient _dwdsVmClient;
+  final DwdsStats _dwdsStats;
+  final Uri? _ddsUri;
+  Future<void>? _closed;
+  String? _connectedInstanceId;
+
+  AppDebugServices(
+    this._debugService,
+    this._dwdsVmClient,
+    this._dwdsStats,
+    this._ddsUri,
+  );
+
+  @override
+  DebugService get debugService => _debugService;
+
+  @override
+  DwdsVmClient get dwdsVmClient => _dwdsVmClient;
+
+  @override
+  DwdsStats get dwdsStats => _dwdsStats;
+
+  @override
+  Uri? get ddsUri => _ddsUri;
+
+  @override
+  String? get connectedInstanceId => _connectedInstanceId;
+
+  @override
+  set connectedInstanceId(String? id) => _connectedInstanceId = id;
+
+  @override
   ChromeProxyService get chromeProxyService =>
       debugService.chromeProxyService as ChromeProxyService;
 
-  /// Null until [close] is called.
-  ///
-  /// All subsequent calls to [close] will return this future.
-  Future<void>? _closed;
+  // WebSocket functionality not available in Chrome-based service
+  @override
+  dynamic get webSocketProxyService => null;
 
-  /// The instance ID for the currently connected application, if there is one.
-  ///
-  /// We only allow a given app to be debugged in a single tab at a time.
-  String? connectedInstanceId;
-
-  AppDebugServices(
-    this.debugService,
-    this.dwdsVmClient,
-    this.dwdsStats,
-    this.ddsUri,
-  );
-
+  @override
   Future<void> close() =>
       _closed ??= Future.wait([debugService.close(), dwdsVmClient.close()]);
 }

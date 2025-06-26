@@ -7,8 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/data/debug_event.dart';
-import 'package:dwds/data/hot_reload_request.dart';
-import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
@@ -34,13 +32,8 @@ import 'package:vm_service/vm_service.dart' hide vmServiceVersion;
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-/// Defines callbacks for sending messages to the connected client application.
-typedef SendClientRequest = void Function(Object request);
-
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
-  final bool useWebSocket;
-
   /// Cache of all existing StreamControllers.
   ///
   /// These are all created through [onEvent].
@@ -134,12 +127,6 @@ class ChromeProxyService implements VmServiceInterface {
 
   bool terminatingIsolates = false;
 
-  /// Callback function to send messages to the connected client application.
-  final SendClientRequest sendClientRequest;
-
-  /// Pending hot reload request waiting for a response from the client.
-  Completer<HotReloadResponse>? _pendingHotReload;
-
   ChromeProxyService._(
     this._vm,
     this.root,
@@ -150,9 +137,7 @@ class ChromeProxyService implements VmServiceInterface {
     this._skipLists,
     this.executionContext,
     this._compiler,
-    this.sendClientRequest, {
-    this.useWebSocket = false,
-  }) {
+  ) {
     final debugger = Debugger.create(
       remoteDebugger,
       _streamNotify,
@@ -170,9 +155,7 @@ class ChromeProxyService implements VmServiceInterface {
     AppConnection appConnection,
     ExecutionContext executionContext,
     ExpressionCompiler? expressionCompiler,
-    SendClientRequest sendClientRequest, {
-    bool useWebSocket = false,
-  }) async {
+  ) async {
     final vm = VM(
       name: 'ChromeDebugProxy',
       operatingSystem: Platform.operatingSystem,
@@ -201,30 +184,9 @@ class ChromeProxyService implements VmServiceInterface {
       skipLists,
       executionContext,
       expressionCompiler,
-      sendClientRequest,
-      useWebSocket: useWebSocket,
     );
     safeUnawaited(service.createIsolate(appConnection, newConnection: true));
     return service;
-  }
-
-  /// Completes the hot reload completer associated with the response ID.
-  void completeHotReload(HotReloadResponse response) {
-    final completer = _pendingHotReload;
-    _pendingHotReload = null;
-    if (completer != null) {
-      if (response.success) {
-        completer.complete(response);
-      } else {
-        completer.completeError(
-          response.errorMessage ?? 'Unknown client error during hot reload',
-        );
-      }
-    } else {
-      _logger.warning(
-        'Received hot reload response but no pending completer was found (id: ${response.id})',
-      );
-    }
   }
 
   /// Initializes metadata in [Locations], [Modules], and [ExpressionCompiler].
@@ -1169,11 +1131,7 @@ class ChromeProxyService implements VmServiceInterface {
             ],
           };
     try {
-      if (useWebSocket) {
-        await _performWebSocketHotReload();
-      } else {
-        await _performClientSideHotReload();
-      }
+      await _performClientSideHotReload();
     } catch (e) {
       _logger.info('Hot reload failed: $e');
       return getFailedReloadReport(e.toString());
@@ -1202,37 +1160,6 @@ class ChromeProxyService implements VmServiceInterface {
     _logger.info('Issuing \$dartHotReloadDwds request');
     await inspector.jsEvaluate('\$dartHotReloadDwds();', awaitPromise: true);
     _logger.info('\$dartHotReloadDwds request complete.');
-  }
-
-  /// Performs a WebSocket-based hot reload by sending a request and waiting for a response.
-  /// If [requestId] is provided, it will be used for the request; otherwise, a new one is generated.
-  Future<void> _performWebSocketHotReload({String? requestId}) async {
-    final id = requestId ?? createId();
-    if (_pendingHotReload != null) {
-      throw StateError('A hot reload is already pending.');
-    }
-    final completer = Completer<HotReloadResponse>();
-    _pendingHotReload = completer;
-    const timeout = Duration(seconds: 10);
-
-    _logger.info('Issuing HotReloadRequest with ID ($id) to client.');
-    sendClientRequest(HotReloadRequest((b) => b.id = id));
-
-    final response = await completer.future.timeout(
-      timeout,
-      onTimeout:
-          () =>
-              throw TimeoutException(
-                'Client did not respond to hot reload request',
-                timeout,
-              ),
-    );
-
-    if (!response.success) {
-      throw Exception(
-        response.errorMessage ?? 'Client reported hot reload failure.',
-      );
-    }
   }
 
   @override
