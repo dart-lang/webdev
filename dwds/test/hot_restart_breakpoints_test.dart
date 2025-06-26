@@ -110,11 +110,17 @@ void main() {
         isolateId,
         scriptRef,
       );
-      return await client.addBreakpointWithScriptUri(
+      final breakpointAdded = expectLater(
+        stream,
+        emitsThrough(_hasKind(EventKind.kBreakpointAdded)),
+      );
+      final breakpoint = await client.addBreakpointWithScriptUri(
         isolateId,
         scriptRef.uri!,
         bpLine,
       );
+      await breakpointAdded;
+      return breakpoint;
     }
 
     Future<void> resume() async {

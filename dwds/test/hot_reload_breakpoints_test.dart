@@ -98,17 +98,28 @@ void main() {
         isolateId,
         scriptRef,
       );
-      return await client.addBreakpointWithScriptUri(
+      final breakpointAdded = expectLater(
+        stream,
+        emitsThrough(_hasKind(EventKind.kBreakpointAdded)),
+      );
+      final breakpoint = await client.addBreakpointWithScriptUri(
         isolateId,
         scriptRef.uri!,
         bpLine,
       );
+      await breakpointAdded;
+      return breakpoint;
     }
 
     Future<void> removeBreakpoint(Breakpoint bp) async {
       final vm = await client.getVM();
       final isolateId = vm.isolates!.first.id!;
+      final breakpointRemoved = expectLater(
+        stream,
+        emitsThrough(_hasKind(EventKind.kBreakpointRemoved)),
+      );
       await client.removeBreakpoint(isolateId, bp.id!);
+      await breakpointRemoved;
     }
 
     Future<void> resume() async {
@@ -387,7 +398,7 @@ void main() {
       // the old string still as the closure has not been reevaluated.
       await callEvaluateAndExpectLog(oldCapturedString);
     });
-  }, timeout: Timeout.factor(3));
+  }, timeout: Timeout.factor(2));
 
   group('when pause_isolates_on_start is false', () {
     late VmService client;
