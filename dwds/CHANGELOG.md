@@ -1,6 +1,6 @@
 ## 24.3.12-wip
 
-- Removed DWDS requirement for Chrome Debug Port by implementing a WebSocket-based communication protocol that provides essential developer tooling (hot reload, service extensions) when Chrome debugger access is unavailable. - [#2605](https://github.com/dart-lang/webdev/issues/2605)
+- Implemented a WebSocket-based communication protocol that provides essential developer tooling (hot reload, service extensions) when Chrome debugger access is unavailable. - [#2605](https://github.com/dart-lang/webdev/issues/2605)
 - Added WebSocket-based hot reload and service extension support via new `WebSocketProxyService` class that implements VM service protocol over WebSockets.
 - Created new files: `WebSocketProxyService`, `WebSocketDebugService`, `WebSocketAppDebugServices`, and `WebSocketDwdsVmClient` to support socket-based DWDS functionality.
 - Enhanced `DevHandler` with `useWebSocketConnection` flag to toggle between Chrome-based and WebSocket-based communication protocols.
