@@ -1,3 +1,5 @@
+## 24.4.0-wip
+
 ## 24.3.11
 
 - Changed DWDS to always inject the client and added `useDwdsWebSocketConnection` flag to control communication protocol: when true uses socket-based implementation, when false uses Chrome-based communication protocol.
