@@ -125,9 +125,22 @@ class WebSocketProxyService implements VmServiceInterface {
 
     if (!_initializedCompleter.isCompleted) _initializedCompleter.complete();
 
+    // Set up appConnection.onStart listener (like Chrome flow does)
+    appConn.onStart.then((_) {
+      // Unlike Chrome flow, we don't have debugger.resumeFromStart(), but we can trigger resume
+      if (pauseIsolatesOnStart && !_hasResumed) {
+        final resumeEvent = vm_service.Event(
+          kind: vm_service.EventKind.kResume,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          isolate: isolateRef,
+        );
+        _hasResumed = true;
+        _streamNotify(vm_service.EventStreams.kDebug, resumeEvent);
+      }
+    });
+
     // Send pause event if enabled
     if (pauseIsolatesOnStart) {
-      print('JY - isolate paused on start - sending pause event');
       final pauseEvent = vm_service.Event(
         kind: vm_service.EventKind.kPauseStart,
         timestamp: timestamp,
@@ -142,7 +155,6 @@ class WebSocketProxyService implements VmServiceInterface {
       // This handles the case where the app is run from terminal without debug extension
       _scheduleAutoResumeIfNeeded();
     } else {
-      print('JY - isolate not paused on start - sending resume event');
       // If we're not pausing on start, immediately send a resume event
       // to ensure the app knows it can start running
       _logger.info('Not pausing on start, sending immediate resume event');
@@ -592,6 +604,11 @@ class WebSocketProxyService implements VmServiceInterface {
     String? step,
     int? frameIndex,
   }) async {
+    // Check if we should trigger runMain instead
+    if (!_hasResumed && _currentPauseEvent != null) {
+      appConnection.runMain();
+    }
+    
     // Prevent multiple resume calls
     if (_hasResumed && _currentPauseEvent == null) {
       return Success();
@@ -624,7 +641,6 @@ class WebSocketProxyService implements VmServiceInterface {
   /// Schedules an auto-resume if no debugger connection is detected.
   /// This prevents the app from being stuck in a paused state when running from terminal.
   void _scheduleAutoResumeIfNeeded() {
-    print('JY - scheduling auto-resume check');
     _logger.info('Scheduling auto-resume check in 2 seconds');
     // Wait a reasonable amount of time for a debugger to connect
     Timer(Duration(seconds: 2), () {
