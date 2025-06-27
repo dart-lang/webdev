@@ -179,11 +179,11 @@ class TestProject {
     if (copiedPackageDirectories.contains(packageDirectory)) return;
     final currentPath = absolutePath(pathFromFixtures: packageDirectory);
     final newPath = p.join(tempDirectory.absolute.path, packageDirectory);
-    await Directory(newPath).create();
-    await copyPath(currentPath, newPath);
+    Directory(newPath).createSync();
+    copyPathSync(currentPath, newPath);
     copiedPackageDirectories.add(packageDirectory);
     final pubspec = Pubspec.parse(
-      await File(p.join(currentPath, 'pubspec.yaml')).readAsString(),
+      File(p.join(currentPath, 'pubspec.yaml')).readAsStringSync(),
     );
     for (final dependency in pubspec.dependencies.values) {
       if (dependency is PathDependency) {
@@ -225,9 +225,9 @@ class TestProject {
     final systemTempDir = Directory(
       // Resolve symbolic links as build_daemon tests rely on paths matching
       // between the client and the daemon.
-      await Directory.systemTemp.resolveSymbolicLinks(),
+      Directory.systemTemp.resolveSymbolicLinksSync(),
     );
-    _fixturesCopy = await systemTempDir.createTemp();
+    _fixturesCopy = systemTempDir.createTempSync();
     await _copyPackageAndPathDependenciesIntoTempDirectory(
       _fixturesCopy,
       packageDirectory,
@@ -238,12 +238,12 @@ class TestProject {
   /// Delete the copy of the project.
   Future<void> tearDown() async {
     try {
-      await _fixturesCopy.delete(recursive: true);
+      _fixturesCopy.deleteSync(recursive: true);
     } on FileSystemException catch (_) {
       // On Windows, the build daemon process might still be accessing the
       // working directory, so wait a second and then try again.
       await Future.delayed(const Duration(seconds: 1));
-      await _fixturesCopy.delete(recursive: true);
+      _fixturesCopy.deleteSync(recursive: true);
     }
   }
 

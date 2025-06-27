@@ -172,10 +172,10 @@ class DartUri {
 
   static set currentDirectory(String newDir) {
     _currentDirectory = newDir;
-    _currentDirectoryUri = '${p.toUri(newDir)}';
+    _currentDirectoryUri = p.toUri(newDir).toString();
   }
 
-  static String _currentDirectoryUri = '${p.toUri(currentDirectory)}';
+  static String _currentDirectoryUri = p.toUri(currentDirectory).toString();
 
   /// The current directory as a file: Uri, saved in a field to avoid
   /// re-computing.
