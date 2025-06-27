@@ -98,7 +98,7 @@ class TestContext {
   late Handler? _assetHandler;
 
   Client get client => _client!;
-  late Client? _client;
+  Client? _client;
 
   ExpressionCompilerService? ddcService;
 
@@ -106,7 +106,7 @@ class TestContext {
   late int? _port;
 
   Directory get outputDir => _outputDir!;
-  late Directory? _outputDir;
+  Directory? _outputDir;
 
   late WipConnection extensionConnection;
   late AppConnection appConnection;
@@ -538,12 +538,12 @@ class TestContext {
   }
 
   Future<void> tearDown() async {
+    await _webRunner?.stop();
     await _webDriver?.quit(closeSession: true);
     _chromeDriver?.kill();
     DartUri.currentDirectory = p.current;
     await _daemonClient?.close();
     await ddcService?.stop();
-    await _webRunner?.stop();
     await _testServer?.stop();
     _client?.close();
     await _outputDir?.delete(recursive: true);
