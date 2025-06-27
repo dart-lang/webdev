@@ -15,8 +15,9 @@ const newDdcTypeSystemVersion = '3.3.0-242.0.dev';
 /// The path to the webdev directory in the local machine, e.g.
 /// '/workstation/webdev'.
 String get webdevPath {
-  final pathParts = p.split(p.current);
-  // We expect all tests to be run from the webdev mono-repo:
+  // Use `Directory.current` instead of `p.current` as the latter is allowed to
+  // change with `DartUri.currentDirectory` modifications.
+  final pathParts = p.split(Directory.current.path);
   assert(pathParts.contains(webdevDirName));
   return p.joinAll(
     pathParts.sublist(0, pathParts.lastIndexOf(webdevDirName) + 1),
