@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/hot_reload_request.dart';
 import 'package:dwds/data/hot_reload_response.dart';
+import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/service_extension_request.dart';
 import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/src/connections/app_connection.dart';
@@ -126,18 +129,20 @@ class WebSocketProxyService implements VmServiceInterface {
     if (!_initializedCompleter.isCompleted) _initializedCompleter.complete();
 
     // Set up appConnection.onStart listener (like Chrome flow does)
-    appConn.onStart.then((_) {
-      // Unlike Chrome flow, we don't have debugger.resumeFromStart(), but we can trigger resume
-      if (pauseIsolatesOnStart && !_hasResumed) {
-        final resumeEvent = vm_service.Event(
-          kind: vm_service.EventKind.kResume,
-          timestamp: DateTime.now().millisecondsSinceEpoch,
-          isolate: isolateRef,
-        );
-        _hasResumed = true;
-        _streamNotify(vm_service.EventStreams.kDebug, resumeEvent);
-      }
-    });
+    safeUnawaited(
+      appConn.onStart.then((_) {
+        // Unlike Chrome flow, we don't have debugger.resumeFromStart(), but we can trigger resume
+        if (pauseIsolatesOnStart && !_hasResumed) {
+          final resumeEvent = vm_service.Event(
+            kind: vm_service.EventKind.kResume,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            isolate: isolateRef,
+          );
+          _hasResumed = true;
+          _streamNotify(vm_service.EventStreams.kDebug, resumeEvent);
+        }
+      }),
+    );
 
     // Send pause event if enabled
     if (pauseIsolatesOnStart) {
@@ -523,6 +528,63 @@ class WebSocketProxyService implements VmServiceInterface {
     }
   }
 
+  /// Parses the [RegisterEvent] and emits a corresponding Dart VM Service
+  /// protocol [Event].
+  void parseRegisterEvent(RegisterEvent registerEvent) {
+    _logger.fine('Parsing RegisterEvent: ${registerEvent.eventData}');
+
+    if (!_isIsolateRunning || _isolateRef == null) {
+      _logger.warning('Cannot register service extension - no isolate running');
+      return;
+    }
+
+    final service = registerEvent.eventData;
+
+    // Add the service to the isolate's extension RPCs if we had access to the isolate
+    // In WebSocket mode, we don't maintain the full isolate object like Chrome mode,
+    // but we can still emit the ServiceExtensionAdded event for tooling
+
+    final event = vm_service.Event(
+      kind: vm_service.EventKind.kServiceExtensionAdded,
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      isolate: _isolateRef!,
+    );
+    event.extensionRPC = service;
+
+    _streamNotify(vm_service.EventStreams.kIsolate, event);
+    _logger.fine('Emitted ServiceExtensionAdded event for: $service');
+  }
+
+  /// Parses the [BatchedDebugEvents] and emits corresponding Dart VM Service
+  /// protocol [Event]s.
+  void parseBatchedDebugEvents(BatchedDebugEvents debugEvents) {
+    for (final debugEvent in debugEvents.events) {
+      parseDebugEvent(debugEvent);
+    }
+  }
+
+  /// Parses the [DebugEvent] and emits a corresponding Dart VM Service
+  /// protocol [Event].
+  void parseDebugEvent(DebugEvent debugEvent) {
+    if (!_isIsolateRunning || _isolateRef == null) {
+      _logger.warning('Cannot parse debug event - no isolate running');
+      return;
+    }
+
+    _streamNotify(
+      vm_service.EventStreams.kExtension,
+      vm_service.Event(
+          kind: vm_service.EventKind.kExtension,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          isolate: _isolateRef!,
+        )
+        ..extensionKind = debugEvent.kind
+        ..extensionData = vm_service.ExtensionData.parse(
+          jsonDecode(debugEvent.eventData) as Map<String, dynamic>,
+        ),
+    );
+  }
+
   @override
   Future<Success> setFlag(String name, String value) =>
       wrapInErrorHandlerAsync('setFlag', () => _setFlag(name, value));
@@ -608,7 +670,7 @@ class WebSocketProxyService implements VmServiceInterface {
     if (!_hasResumed && _currentPauseEvent != null) {
       appConnection.runMain();
     }
-    
+
     // Prevent multiple resume calls
     if (_hasResumed && _currentPauseEvent == null) {
       return Success();

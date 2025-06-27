@@ -62,47 +62,10 @@ class Dwds {
   Future<DebugConnection> debugConnection(AppConnection appConnection) async {
     if (!_enableDebugging) throw StateError('Debugging is not enabled.');
 
-    final appDebugServices = await _devHandler.loadAppServices(appConnection);
-
-    // Initialize the appropriate proxy service based on connection type
     if (_useDwdsWebSocketConnection) {
-      await _initializeWebSocketService(appDebugServices);
+      return await _devHandler.createDebugConnectionForWebSocket(appConnection);
     } else {
-      await _initializeChromeService(appDebugServices);
-    }
-
-    return DebugConnection(appDebugServices);
-  }
-
-  /// Initializes and waits for WebSocket proxy service to be ready.
-  Future<void> _initializeWebSocketService(dynamic appDebugServices) async {
-    try {
-      final webSocketProxyService = appDebugServices.webSocketProxyService;
-      if (webSocketProxyService != null) {
-        await webSocketProxyService.isInitialized;
-        _logger.fine('WebSocket proxy service initialized successfully');
-      } else {
-        _logger.warning('WebSocket proxy service is null');
-      }
-    } catch (e) {
-      _logger.severe('Failed to initialize WebSocket proxy service: $e');
-      rethrow;
-    }
-  }
-
-  /// Initializes and waits for Chrome proxy service to be ready.
-  Future<void> _initializeChromeService(dynamic appDebugServices) async {
-    try {
-      final chromeProxyService = appDebugServices.chromeProxyService;
-      if (chromeProxyService != null) {
-        await chromeProxyService.isInitialized;
-        _logger.fine('Chrome proxy service initialized successfully');
-      } else {
-        _logger.warning('Chrome proxy service is null');
-      }
-    } catch (e) {
-      _logger.severe('Failed to initialize Chrome proxy service: $e');
-      rethrow;
+      return await _devHandler.createDebugConnectionForChrome(appConnection);
     }
   }
 

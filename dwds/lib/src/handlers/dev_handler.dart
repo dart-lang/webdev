@@ -403,20 +403,25 @@ class DevHandler {
   ) async {
     if (message == null) return;
 
-    if (message is HotReloadResponse) {
-      _servicesByAppId[connection.request.appId]?.webSocketProxyService
-          ?.completeHotReload(message);
-    } else if (message is ServiceExtensionResponse) {
-      final appId = connection.request.appId;
-      final wsService = _servicesByAppId[appId]?.webSocketProxyService;
+    final appId = connection.request.appId;
+    final wsService = _servicesByAppId[appId]?.webSocketProxyService;
 
-      if (wsService != null) {
-        wsService.completeServiceExtension(message);
-      } else {
-        _logger.warning(
-          'No WebSocketProxyService found for appId: $appId to complete service extension',
-        );
-      }
+    if (wsService == null) {
+      _logger.warning(
+        'No WebSocketProxyService found for appId: $appId to process $message',
+      );
+      return;
+    }
+    if (message is HotReloadResponse) {
+      wsService.completeHotReload(message);
+    } else if (message is ServiceExtensionResponse) {
+      wsService.completeServiceExtension(message);
+    } else if (message is RegisterEvent) {
+      wsService.parseRegisterEvent(message);
+    } else if (message is BatchedDebugEvents) {
+      wsService.parseBatchedDebugEvents(message);
+    } else if (message is DebugEvent) {
+      wsService.parseDebugEvent(message);
     } else {
       throw UnsupportedError(
         'Message type ${message.runtimeType} is not supported in WebSocket mode',
@@ -559,6 +564,47 @@ class DevHandler {
     );
   }
 
+  /// Creates a debug connection for WebSocket mode.
+  Future<DebugConnection> createDebugConnectionForWebSocket(
+    AppConnection appConnection,
+  ) async {
+    final appDebugServices = await loadAppServices(appConnection);
+
+    // Initialize WebSocket proxy service
+    final webSocketProxyService = appDebugServices.webSocketProxyService;
+    if (webSocketProxyService != null) {
+      await webSocketProxyService.isInitialized;
+      _logger.fine('WebSocket proxy service initialized successfully');
+    } else {
+      _logger.warning('WebSocket proxy service is null');
+    }
+
+    return DebugConnection(appDebugServices);
+  }
+
+  /// Creates a debug connection for Chrome mode.
+  Future<DebugConnection> createDebugConnectionForChrome(
+    AppConnection appConnection,
+  ) async {
+    final appDebugServices = await loadAppServices(appConnection);
+
+    // Initialize Chrome proxy service
+    try {
+      final chromeProxyService = appDebugServices.chromeProxyService;
+      if (chromeProxyService != null) {
+        await chromeProxyService.isInitialized;
+        _logger.fine('Chrome proxy service initialized successfully');
+      } else {
+        _logger.warning('Chrome proxy service is null');
+      }
+    } catch (e) {
+      _logger.severe('Failed to initialize Chrome proxy service: $e');
+      rethrow;
+    }
+
+    return DebugConnection(appDebugServices);
+  }
+
   /// Handles connection requests for both Chrome and WebSocket modes.
   Future<AppConnection> _handleConnectRequest(
     ConnectRequest message,
@@ -600,9 +646,30 @@ class DevHandler {
         isWebSocketMode,
       );
     } else {
+      // Complete the readyToRunMainCompleter immediately since we're
+      // creating a new connection.
       // If this is the initial app connection, we can run the app's main()
       // method immediately.
       readyToRunMainCompleter.complete();
+
+      // For WebSocket mode, we need to proactively create and emit a debug connection
+      // since Flutter tools won't call debugConnection() for WebServerDevice
+      if (isWebSocketMode) {
+        try {
+          // This will call loadAppServices() and initialize the WebSocket service
+          final debugConnection = await createDebugConnectionForWebSocket(
+            connection,
+          );
+
+          // Emit the debug connection through the extension stream
+          // This should trigger Flutter tools to pick it up as if it was an extension connection
+          extensionDebugConnections.add(debugConnection);
+        } catch (e, s) {
+          _logger.warning(
+            'Failed to create WebSocket debug connection: $e\n$s',
+          );
+        }
+      }
     }
     _appConnectionByAppId[message.appId] = connection;
     _connectedApps.add(connection);
