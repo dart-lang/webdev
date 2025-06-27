@@ -19,7 +19,7 @@ import 'test_utils.dart';
 void main() {
   group('serve app with TLS options', () {
     // Change to true for debugging.
-    final debug = false;
+    const debug = false;
 
     final testRunner = TestRunner();
     late String exampleDirectory;

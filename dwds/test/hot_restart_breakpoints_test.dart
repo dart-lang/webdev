@@ -23,7 +23,7 @@ import 'fixtures/utilities.dart';
 
 void main() {
   // Enable verbose logging for debugging.
-  final debug = false;
+  const debug = false;
   final provider = TestSdkConfigurationProvider(
     verbose: debug,
     canaryFeatures: true,
@@ -35,8 +35,6 @@ void main() {
   final callLogMarker = 'callLog';
 
   tearDownAll(provider.dispose);
-
-  final edits = <({String file, String originalString, String newString})>[];
 
   void makeEdit(String file, String originalString, String newString) {
     if (file == project.dartEntryFileName) {
@@ -51,11 +49,6 @@ void main() {
         replaceWith: newString,
       );
     }
-    edits.add((
-      file: file,
-      originalString: originalString,
-      newString: newString,
-    ));
   }
 
   Future<void> makeEditAndRecompile(
@@ -65,25 +58,6 @@ void main() {
   ) async {
     makeEdit(file, originalString, newString);
     await context.recompile(fullRestart: true);
-  }
-
-  void undoEdits() {
-    for (var i = edits.length - 1; i >= 0; i--) {
-      final edit = edits[i];
-      if (edit.file == project.dartEntryFileName) {
-        context.makeEditToDartEntryFile(
-          toReplace: edit.newString,
-          replaceWith: edit.originalString,
-        );
-      } else {
-        context.makeEditToDartLibFile(
-          libFileName: edit.file,
-          toReplace: edit.newString,
-          replaceWith: edit.originalString,
-        );
-      }
-    }
-    edits.clear();
   }
 
   group('when pause_isolates_on_start is true', () {
@@ -105,11 +79,11 @@ void main() {
         ),
       );
       client = await context.connectFakeClient();
-      await client.setFlag('pause_isolates_on_start', 'true');
-      await client.streamListen('Isolate');
       service = context.service;
-      await service.streamListen('Debug');
-      stream = service.onEvent('Debug');
+      await client.setFlag('pause_isolates_on_start', 'true');
+      await client.streamListen(EventStreams.kIsolate);
+      await client.streamListen(EventStreams.kDebug);
+      stream = client.onDebugEvent;
       consoleSubscription = context.webkitDebugger.onConsoleAPICalled.listen(
         (e) => consoleLogs.add(e.args.first.value as String),
       );
@@ -118,7 +92,6 @@ void main() {
     tearDown(() async {
       await consoleSubscription.cancel();
       consoleLogs.clear();
-      undoEdits();
       await context.tearDown();
     });
 
@@ -137,11 +110,17 @@ void main() {
         isolateId,
         scriptRef,
       );
-      return await client.addBreakpointWithScriptUri(
+      final breakpointAdded = expectLater(
+        stream,
+        emitsThrough(_hasKind(EventKind.kBreakpointAdded)),
+      );
+      final breakpoint = await client.addBreakpointWithScriptUri(
         isolateId,
         scriptRef.uri!,
         bpLine,
       );
+      await breakpointAdded;
+      return breakpoint;
     }
 
     Future<void> resume() async {
@@ -154,7 +133,7 @@ void main() {
     // will execute code that will emit [expectedString].
     Future<void> resumeAndExpectLog(String expectedString) async {
       final completer = Completer<void>();
-      final newSubscription = context.webkitDebugger.onConsoleAPICalled.listen((
+      final subscription = context.webkitDebugger.onConsoleAPICalled.listen((
         e,
       ) {
         if (e.args.first.value == expectedString) {
@@ -162,9 +141,8 @@ void main() {
         }
       });
       await resume();
-      await completer.future.then((_) {
-        newSubscription.cancel();
-      });
+      await completer.future;
+      await subscription.cancel();
     }
 
     Future<void> hotRestartAndHandlePausePost(
@@ -204,11 +182,8 @@ void main() {
       final vm = await client.getVM();
       final isolate = await service.getIsolate(vm.isolates!.first.id!);
       expect(isolate.breakpoints, isEmpty);
-      for (final breakpoint in breakpoints) {
-        await addBreakpoint(
-          file: breakpoint.file,
-          breakpointMarker: breakpoint.breakpointMarker,
-        );
+      for (final (:breakpointMarker, :file) in breakpoints) {
+        await addBreakpoint(file: file, breakpointMarker: breakpointMarker);
       }
       await resume();
     }
@@ -323,8 +298,6 @@ void main() {
         await breakpointFuture;
         expect(consoleLogs.contains(libGenLog), false);
         await resumeAndExpectLog(libGenLog);
-
-        context.removeLibraryFile(libFileName: libFile);
       },
     );
   });

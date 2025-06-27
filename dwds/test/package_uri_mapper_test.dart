@@ -33,22 +33,25 @@ void main() {
               ? 'packages/${project.packageDirectory}/lib/test_library.dart'
               : '/packages/${project.packageName}/test_library.dart';
 
-      final resolvedPath =
-          '/webdev/fixtures/${project.packageDirectory}/lib/test_library.dart';
-
-      final testPackageSoundPath = project.absolutePackageDirectory;
-      final packageConfigFile = Uri.file(
-        p.join(testPackageSoundPath, '.dart_tool', 'package_config.json'),
-      );
+      final resolvedPath = '${project.packageDirectory}/lib/test_library.dart';
 
       late final PackageUriMapper packageUriMapper;
       setUpAll(() async {
+        await project.setUp();
         // Note: Run `dart pub upgrade` before the test cases to fix
         // https://github.com/dart-lang/webdev/issues/1834:
         await Process.run('dart', [
           'pub',
           'upgrade',
-        ], workingDirectory: testPackageSoundPath);
+        ], workingDirectory: project.absolutePackageDirectory);
+
+        final packageConfigFile = Uri.file(
+          p.join(
+            project.absolutePackageDirectory,
+            '.dart_tool',
+            'package_config.json',
+          ),
+        );
 
         packageUriMapper = await PackageUriMapper.create(
           fileSystem,
@@ -56,6 +59,8 @@ void main() {
           useDebuggerModuleNames: useDebuggerModuleNames,
         );
       });
+
+      tearDownAll(project.tearDown);
 
       test('Can convert package urls to server paths', () {
         expect(packageUriMapper.packageUriToServerPath(packageUri), serverPath);

@@ -2227,7 +2227,9 @@ void runTests({
 
     test('reloadSources', () async {
       final service = context.service;
-      final report = await service.reloadSources('');
+      final vm = await service.getVM();
+      final isolateId = vm.isolates!.first.id!;
+      final report = await service.reloadSources(isolateId);
       // TODO(srujzs): This naturally fails regardless of the module format
       // because we didn't set up prerequisite state (the reload scripts). We
       // should create new tests for hot reload within DWDS and remove this

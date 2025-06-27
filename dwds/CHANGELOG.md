@@ -1,5 +1,7 @@
 ## 24.4.0-wip
 
+- Added support for breakpoint registering on a hot reload with the DDC library bundle format using PausePostRequests.
+
 ## 24.3.11
 
 - Changed DWDS to always inject the client and added `useDwdsWebSocketConnection` flag to control communication protocol: when true uses socket-based implementation, when false uses Chrome-based communication protocol.

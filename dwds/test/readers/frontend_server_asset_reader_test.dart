@@ -22,9 +22,9 @@ void main() {
   late Directory tempFixtures;
   late File jsonOriginal;
   late File mapOriginal;
+  late String packagesDir;
 
   final testProject = TestProject.test;
-  final packagesDir = testProject.absolutePackageDirectory;
 
   Future<void> createTempFixtures() async {
     tempFixtures = await Directory.systemTemp.createTemp('dwds_test_fixtures');
@@ -37,15 +37,14 @@ void main() {
     ).copy(p.join(tempFixtures.path, 'main.dart.dill.map'));
   }
 
-  setUpAll(() async {
+  setUp(() async {
+    await testProject.setUp();
+    packagesDir = testProject.absolutePackageDirectory;
     final sdkLayout = TestSdkLayout.defaultSdkLayout;
     await Process.run(sdkLayout.dartPath, [
       'pub',
       'upgrade',
     ], workingDirectory: packagesDir);
-  });
-
-  setUp(() async {
     await createTempFixtures();
     assetReader = FrontendServerAssetReader(
       outputPath: p.join(tempFixtures.path, 'main.dart.dill'),
@@ -55,6 +54,7 @@ void main() {
   });
 
   tearDown(() async {
+    await testProject.tearDown();
     if (await tempFixtures.exists()) await tempFixtures.delete(recursive: true);
   });
 

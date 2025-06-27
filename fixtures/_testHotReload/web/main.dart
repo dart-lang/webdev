@@ -10,11 +10,7 @@ import 'package:_test_hot_reload/library1.dart';
 @JS('document.body.innerHTML')
 external set innerHtml(String html);
 
-@JS('console.log')
-external void log(String s);
-
 void evaluate() {
-  log('evaluate called $reloadValue');
   innerHtml = 'Program is running!\n $reloadValue}\n';
 }
 
