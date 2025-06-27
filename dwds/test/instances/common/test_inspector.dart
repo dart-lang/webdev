@@ -233,7 +233,6 @@ class TestInspector {
   }
 
   Future<void> runStepIntoThroughProgramRecordingStops(
-    Stream<Event> debugStream,
     String isolateId,
 
     /// A list to which the pause location is added after each single-step.
@@ -248,7 +247,7 @@ class TestInspector {
     final completer = Completer<void>();
 
     late StreamSubscription subscription;
-    subscription = debugStream.listen((event) async {
+    subscription = service.onDebugEvent.listen((event) async {
       if (event.kind == EventKind.kPauseInterrupted) {
         final isolate = await service.getIsolate(isolateId);
         final frame = isolate.pauseEvent!.topFrame!;

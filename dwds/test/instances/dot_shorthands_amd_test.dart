@@ -16,8 +16,8 @@ import 'common/dot_shorthands_common.dart';
 
 void main() {
   // Enable verbose logging for debugging.
-  final debug = false;
-  final canaryFeatures = false;
+  const debug = false;
+  const canaryFeatures = false;
 
   group('canary: $canaryFeatures |', () {
     final provider = TestSdkConfigurationProvider(

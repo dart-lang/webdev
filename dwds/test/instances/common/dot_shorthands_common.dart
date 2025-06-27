@@ -28,7 +28,10 @@ void runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakpoint(
+    String breakPointId,
+    Future<void> Function(Event) body,
+  ) => testInspector.onBreakPoint(
     stream,
     isolateId,
     mainScript,
@@ -39,8 +42,8 @@ void runTests({
   Future<InstanceRef> getInstanceRef(frame, expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  group('$compilationMode |', () {
-    setUpAll(() async {
+  group('$compilationMode | dot shorthands:', () {
+    setUp(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
         testSettings: TestSettings(
@@ -58,23 +61,20 @@ void runTests({
       isolateId = vm.isolates!.first.id!;
       final scripts = await service.getScripts(isolateId);
 
-      await service.streamListen('Debug');
-      stream = service.onEvent('Debug');
+      await service.streamListen(EventStreams.kDebug);
+      stream = service.onDebugEvent;
 
       mainScript = scripts.scripts!.firstWhere(
         (each) => each.uri!.contains('main.dart'),
       );
     });
 
-    tearDownAll(() async {
+    tearDown(() async {
       await context.tearDown();
     });
 
-    setUp(() => setCurrentLogWriter(debug: debug));
-    tearDown(() => service.resume(isolateId));
-
-    test('dot shorthands: expression evaluation', () async {
-      await onBreakPoint('testDotShorthands', (event) async {
+    test('expression evaluation and single-stepping', () async {
+      await onBreakpoint('testDotShorthands', (event) async {
         final frame = event.topFrame!.index!;
 
         var instanceRef = await getInstanceRef(frame, '(c = .two).value');
@@ -85,11 +85,7 @@ void runTests({
 
         instanceRef = await getInstanceRef(frame, '(c = .four()).value');
         expect(instanceRef.valueAsString, '4');
-      });
-    });
 
-    test('dot shorthands: single-stepping', () async {
-      await onBreakPoint('testDotShorthands', (event) async {
         final scriptBasename = basename(mainScript.uri!);
 
         const lineA = 116;
@@ -121,7 +117,6 @@ void runTests({
 
         final stops = <String>[];
         await testInspector.runStepIntoThroughProgramRecordingStops(
-          stream,
           isolateId,
           stops,
           provider.ddcModuleFormat == ModuleFormat.ddc ? 13 : 12,
