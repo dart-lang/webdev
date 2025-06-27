@@ -89,7 +89,7 @@ class TestContext {
   WebDriver? _webDriver;
 
   Process get chromeDriver => _chromeDriver!;
-  late Process? _chromeDriver;
+  Process? _chromeDriver;
 
   WebkitDebugger get webkitDebugger => _webkitDebugger!;
   late WebkitDebugger? _webkitDebugger;
@@ -129,10 +129,7 @@ class TestContext {
   /// External VM service.
   VmService get vmService => debugConnection.vmService;
 
-  final String _savedCurrentDirectory;
-
-  TestContext(this.project, this.sdkConfigurationProvider)
-    : _savedCurrentDirectory = p.current;
+  TestContext(this.project, this.sdkConfigurationProvider);
 
   Future<void> setUp({
     TestSettings testSettings = const TestSettings(),
@@ -140,10 +137,6 @@ class TestContext {
     TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
   }) async {
     try {
-      // The frontend server modifies the current path. Make sure that we
-      // restore it every time the context is set up so that if a previous
-      // test failed to tear down, we don't affect future tests.
-      DartUri.currentDirectory = _savedCurrentDirectory;
       // Build settings to return from load strategy.
       final buildSettings = TestBuildSettings(
         appEntrypoint: project.dartEntryFilePackageUri,
