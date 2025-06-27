@@ -137,7 +137,6 @@ class TestContext {
     TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
   }) async {
     try {
-      DartUri.currentDirectory = p.current;
       // Build settings to return from load strategy.
       final buildSettings = TestBuildSettings(
         appEntrypoint: project.dartEntryFilePackageUri,
