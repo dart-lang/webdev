@@ -8,6 +8,7 @@
 library;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
@@ -358,46 +359,52 @@ void main() {
       },
     );
 
-    test('breakpoint in captured code is deleted', () async {
-      var bp = await addBreakpoint(
-        file: mainFile,
-        breakpointMarker: capturedStringMarker,
-      );
+    test(
+      'breakpoint in captured code is deleted',
+      () async {
+        var bp = await addBreakpoint(
+          file: mainFile,
+          breakpointMarker: capturedStringMarker,
+        );
 
-      final oldLog = "log('\$mainValue');";
-      final newLog = "log('\${closure()}');";
-      await makeEditAndRecompile(mainFile, oldLog, newLog);
+        final oldLog = "log('\$mainValue');";
+        final newLog = "log('\${closure()}');";
+        await makeEditAndRecompile(mainFile, oldLog, newLog);
 
-      bp =
-          (await hotReloadAndHandlePausePost([
-            (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
-          ])).first;
+        bp =
+            (await hotReloadAndHandlePausePost([
+              (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
+            ])).first;
 
-      final breakpointFuture = waitForBreakpoint();
+        final breakpointFuture = waitForBreakpoint();
 
-      await callEvaluate();
+        await callEvaluate();
 
-      // Should break at `capturedString`.
-      await breakpointFuture;
-      final oldCapturedString = 'captured closure gen0';
-      // Closure gets evaluated for the first time.
-      await resumeAndExpectLog(oldCapturedString);
+        // Should break at `capturedString`.
+        await breakpointFuture;
+        final oldCapturedString = 'captured closure gen0';
+        // Closure gets evaluated for the first time.
+        await resumeAndExpectLog(oldCapturedString);
 
-      final newCapturedString = 'captured closure gen1';
-      await makeEditAndRecompile(
-        mainFile,
-        oldCapturedString,
-        newCapturedString,
-      );
+        final newCapturedString = 'captured closure gen1';
+        await makeEditAndRecompile(
+          mainFile,
+          oldCapturedString,
+          newCapturedString,
+        );
 
-      await hotReloadAndHandlePausePost([
-        (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
-      ]);
+        await hotReloadAndHandlePausePost([
+          (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
+        ]);
 
-      // Breakpoint should not be hit as it's now deleted. We should also see
-      // the old string still as the closure has not been reevaluated.
-      await callEvaluateAndExpectLog(oldCapturedString);
-    });
+        // Breakpoint should not be hit as it's now deleted. We should also see
+        // the old string still as the closure has not been reevaluated.
+        await callEvaluateAndExpectLog(oldCapturedString);
+      },
+      // TODO(srujzs): Re-enable after
+      // https://github.com/dart-lang/webdev/issues/2640.
+      skip: Platform.isWindows,
+    );
   }, timeout: Timeout.factor(2));
 
   group('when pause_isolates_on_start is false', () {
