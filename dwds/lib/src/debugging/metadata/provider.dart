@@ -227,7 +227,7 @@ class MetadataProvider {
     }
 
     final deletedModules = <String>{};
-    final invalidatedModules = <String>{};
+    // final invalidatedModules = <String>{};
     for (final module in _moduleToLibraries.keys) {
       final deletedModule = !modules.containsKey(module);
       final invalidatedModule = reloadedModules.contains(module);
@@ -247,9 +247,9 @@ class MetadataProvider {
     }
     // The libraries that were removed from the program or those that we
     // invalidated but were never added again.
-    final deletedLibraries = invalidatedLibraries.where(
-      (library) => !_libraries.contains(library),
-    );
+    // final deletedLibraries = invalidatedLibraries.where(
+    //   (library) => !_libraries.contains(library),
+    // );
   }
 
   void _addMetadata(ModuleMetadata metadata) {
