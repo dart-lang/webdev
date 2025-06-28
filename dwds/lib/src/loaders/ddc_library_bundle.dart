@@ -223,10 +223,4 @@ window.\$dartLoader.loader.nextAttempt();
 
   @override
   String? g3RelativePath(String absolutePath) => _g3RelativePath(absolutePath);
-
-  @override
-  MetadataProvider createProvider(String entrypoint, AssetReader reader) =>
-  // DDC library bundle format does not provide module names in the module
-  // metadata.
-  MetadataProvider(entrypoint, reader, useModuleName: false);
 }
