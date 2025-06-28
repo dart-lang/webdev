@@ -253,10 +253,11 @@ class WebDevFS {
   static const String reloadScriptsFileName = 'reload_scripts.json';
 
   /// Given a list of [modules] that need to be reloaded, writes a file that
-  /// contains a list of objects each with two fields:
+  /// contains a list of objects each with three fields:
   ///
   /// `src`: A string that corresponds to the file path containing a DDC library
   /// bundle.
+  /// `module`: The name of the library bundle in `src`.
   /// `libraries`: An array of strings containing the libraries that were
   /// compiled in `src`.
   ///
@@ -265,6 +266,7 @@ class WebDevFS {
   /// [
   ///   {
   ///     "src": "<file_name>",
+  ///     "module": "<module_name>",
   ///     "libraries": ["<lib1>", "<lib2>"],
   ///   },
   /// ]
@@ -286,6 +288,7 @@ class WebDevFS {
       final libraries = metadata.libraries.keys.toList();
       moduleToLibrary.add(<String, Object>{
         'src': _findModuleToLoad(module, entrypointDirectory),
+        'module': metadata.name,
         'libraries': libraries
       });
     }

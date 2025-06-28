@@ -168,7 +168,7 @@ class RequireRestarter implements Restarter {
       );
 
   @override
-  Future<JSArray<JSString>> hotReloadStart(String hotReloadSourcesPath) =>
+  Future<JSObject> hotReloadStart(String hotReloadSourcesPath) =>
       throw UnimplementedError(
         'Hot reload is not supported for the AMD module format.',
       );

@@ -36,61 +36,50 @@ void main() {
   );
   setGlobalsForTesting(toolConfiguration: toolConfiguration);
   test('can parse metadata with empty sources', () async {
-    for (final useModuleName in [true, false]) {
-      final provider = MetadataProvider(
-        'foo.bootstrap.js',
-        FakeAssetReader(metadata: _emptySourceMetadata),
-        useModuleName: useModuleName,
-      );
-      expect(
-        await provider.libraries,
-        contains('org-dartlang-app:///web/main.dart'),
-      );
-    }
+    final provider = MetadataProvider(
+      'foo.bootstrap.js',
+      FakeAssetReader(metadata: _emptySourceMetadata),
+    );
+    expect(
+      await provider.libraries,
+      contains('org-dartlang-app:///web/main.dart'),
+    );
   });
 
   test('throws on metadata with absolute import uris', () async {
-    for (final useModuleName in [true, false]) {
-      final provider = MetadataProvider(
-        'foo.bootstrap.js',
-        FakeAssetReader(metadata: _fileUriMetadata),
-        useModuleName: useModuleName,
-      );
-      await expectLater(
-        provider.libraries,
-        throwsA(const TypeMatcher<AbsoluteImportUriException>()),
-      );
-    }
+    final provider = MetadataProvider(
+      'foo.bootstrap.js',
+      FakeAssetReader(metadata: _fileUriMetadata),
+    );
+    await expectLater(
+      provider.libraries,
+      throwsA(const TypeMatcher<AbsoluteImportUriException>()),
+    );
   });
 
   test(
     'module name exists if useModuleName and otherwise use module uri',
     () async {
-      for (final useModuleName in [true, false]) {
-        final provider = MetadataProvider(
-          'foo.bootstrap.js',
-          FakeAssetReader(metadata: _emptySourceMetadata),
-          useModuleName: useModuleName,
-        );
-        final modulePath = 'foo/web/main.ddc.js';
-        final moduleName = 'web/main';
-        final module = useModuleName ? moduleName : modulePath;
-        expect(
-          await provider.scriptToModule,
-          predicate<Map<String, String>>(
-            (scriptToModule) =>
-                !scriptToModule.values.any(
-                  (value) => value == (useModuleName ? modulePath : moduleName),
-                ),
-          ),
-        );
-        expect(await provider.moduleToSourceMap, {
-          module: 'foo/web/main.ddc.js.map',
-        });
-        expect(await provider.modulePathToModule, {modulePath: module});
-        expect(await provider.moduleToModulePath, {module: modulePath});
-        expect(await provider.modules, {module});
-      }
+      final provider = MetadataProvider(
+        'foo.bootstrap.js',
+        FakeAssetReader(metadata: _emptySourceMetadata),
+      );
+      final modulePath = 'foo/web/main.ddc.js';
+      final moduleName = 'web/main';
+      final module = moduleName;
+      expect(
+        await provider.scriptToModule,
+        predicate<Map<String, String>>(
+          (scriptToModule) =>
+              !scriptToModule.values.any((value) => value == modulePath),
+        ),
+      );
+      expect(await provider.moduleToSourceMap, {
+        module: 'foo/web/main.ddc.js.map',
+      });
+      expect(await provider.modulePathToModule, {modulePath: module});
+      expect(await provider.moduleToModulePath, {module: modulePath});
+      expect(await provider.modules, {module});
     },
   );
 
