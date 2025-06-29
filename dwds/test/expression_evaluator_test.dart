@@ -54,9 +54,9 @@ void main() async {
       final root = 'fakeRoot';
       final entry = 'fake_entrypoint';
       final locations = Locations(assetReader, modules, root);
-      locations.initialize(entry);
+      await locations.initialize(entry);
 
-      final skipLists = SkipLists();
+      final skipLists = SkipLists(root);
       final debugger = await Debugger.create(
         webkitDebugger,
         (_, e) => debugEventController.sink.add(e),

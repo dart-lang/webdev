@@ -17,6 +17,7 @@ import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
@@ -196,7 +197,7 @@ class ChromeProxyService implements VmServiceInterface {
 
     final modules = Modules(root);
     final locations = Locations(assetReader, modules, root);
-    final skipLists = SkipLists();
+    final skipLists = SkipLists(root);
     final service = ChromeProxyService._(
       vm,
       root,
@@ -245,18 +246,20 @@ class ChromeProxyService implements VmServiceInterface {
     Map<String, List> reloadedModules,
   ) async {
     final entrypoint = inspector.appConnection.request.entrypointPath;
-    final modules = reloadedModules.keys.toSet();
-    await globalToolConfiguration.loadStrategy
-        .reinitializeEntrypointAfterReload(entrypoint, modules);
-    _initializeEntrypoint(entrypoint);
+    final invalidatedModuleReport = await globalToolConfiguration.loadStrategy
+        .reinitializeEntrypointAfterReload(entrypoint, reloadedModules);
+    await _initializeEntrypoint(entrypoint, invalidatedModuleReport);
     await inspector.initialize();
   }
 
   /// Initializes metadata in [Locations], [Modules], and [ExpressionCompiler].
-  void _initializeEntrypoint(String entrypoint) {
-    _locations.initialize(entrypoint);
+  Future<void> _initializeEntrypoint(
+    String entrypoint, [
+    InvalidatedModuleReport? invalidatedModuleReport,
+  ]) async {
     _modules.initialize(entrypoint);
-    _skipLists.initialize();
+    await _locations.initialize(entrypoint, invalidatedModuleReport);
+    await _skipLists.initialize(entrypoint, invalidatedModuleReport);
     // We do not need to wait for compiler dependencies to be updated as the
     // [ExpressionEvaluator] is robust to evaluation requests during updates.
     safeUnawaited(_updateCompilerDependencies(entrypoint));

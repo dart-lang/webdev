@@ -5,6 +5,7 @@
 import 'package:async/async.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:logging/logging.dart';
 
@@ -15,6 +16,9 @@ class Modules {
 
   // The Dart server path to containing module.
   final _sourceToModule = <String, String>{};
+
+  // Module to Dart server paths.
+  final _moduleToSources = <String, Set<String>>{};
 
   // The Dart server path to library import uri
   final _sourceToLibrary = <String, Uri>{};
@@ -31,9 +35,13 @@ class Modules {
   /// Intended to be called multiple times throughout the development workflow,
   /// e.g. after a hot-reload.
   void initialize(String entrypoint) {
-    // We only clear the source to module mapping as script IDs may persist
-    // across hot reloads.
+    // TODO(srujzs): Can we do better and only invalidate the sources/modules
+    // that were deleted/reloaded? This would require removing the
+    // deleted/reloaded libraries/sources/modules from the following maps and
+    // then only processing that set in `_initializeMapping`. It's doable, but
+    // these calculations are also not that expensive.
     _sourceToModule.clear();
+    _moduleToSources.clear();
     _sourceToLibrary.clear();
     _libraryToModule.clear();
     _moduleMemoizer = AsyncMemoizer();
@@ -44,6 +52,12 @@ class Modules {
   Future<String?> moduleForSource(String serverPath) async {
     await _moduleMemoizer.runOnce(_initializeMapping);
     return _sourceToModule[serverPath];
+  }
+
+  /// Returns the Dart server paths for the provided module.
+  Future<Set<String>?> sourcesForModule(String module) async {
+    await _moduleMemoizer.runOnce(_initializeMapping);
+    return _moduleToSources[module];
   }
 
   /// Returns the containing library importUri for the provided Dart server path.
@@ -69,11 +83,15 @@ class Modules {
   ) async {
     final serverPath = await globalToolConfiguration.loadStrategy
         .serverPathForModule(entrypoint, module);
+    // TODO(srujzs): We should wait until all scripts are parsed before
+    // accessing.
     return chromePathToRuntimeScriptId[serverPath];
   }
 
-  /// Initializes [_sourceToModule] and [_sourceToLibrary].
-  Future<void> _initializeMapping() async {
+  /// Initializes [_sourceToModule], [_moduleToSources], and [_sourceToLibrary].
+  Future<void> _initializeMapping([
+    InvalidatedModuleReport? invalidatedModuleReport,
+  ]) async {
     final provider = globalToolConfiguration.loadStrategy.metadataProviderFor(
       _entrypoint,
     );
@@ -92,6 +110,7 @@ class Modules {
         final module = scriptToModule[library]!;
 
         _sourceToModule[libraryServerPath] = module;
+        _moduleToSources.putIfAbsent(module, () => {}).add(libraryServerPath);
         _sourceToLibrary[libraryServerPath] = Uri.parse(library);
         _libraryToModule[library] = module;
 
@@ -102,6 +121,7 @@ class Modules {
                   : DartUri(script, _root).serverPath;
 
           _sourceToModule[scriptServerPath] = module;
+          _moduleToSources[module]!.add(scriptServerPath);
           _sourceToLibrary[scriptServerPath] = Uri.parse(library);
         }
       } else {

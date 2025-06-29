@@ -157,7 +157,10 @@ class FakeModules implements Modules {
        _path = path;
 
   @override
-  void initialize(String entrypoint) {}
+  void initialize(
+    String entrypoint, [
+    InvalidatedModuleReport? invalidatedModuleReport,
+  ]) {}
 
   @override
   Future<Uri> libraryForSource(String serverPath) async => Uri(path: _library);
@@ -166,7 +169,10 @@ class FakeModules implements Modules {
   Future<String> moduleForSource(String serverPath) async => _module;
 
   @override
-  Future<Map<String, String>> modules() async => {_module: _path};
+  Future<Set<String>> sourcesForModule(String module) async => {_path};
+
+  @override
+  Future<Map<String, String>> modules() async => {_path: _module};
 
   @override
   Future<String> moduleForLibrary(String libraryUri) async => _module;

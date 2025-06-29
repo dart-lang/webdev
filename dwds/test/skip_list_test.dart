@@ -20,11 +20,11 @@ void main() {
   const fakeRuntimeScriptId = '12';
   group('SkipLists', () {
     setUp(() {
-      skipLists = SkipLists();
+      skipLists = SkipLists('');
     });
 
     test('do not include known ranges', () {
-      final skipList = skipLists.compute('123', {
+      final skipList = skipLists.compute('123', '456', {
         Location.from(
           'foo',
           TargetLineEntry(1, []),
@@ -47,7 +47,7 @@ void main() {
     });
 
     test('do not include start of the file', () {
-      final skipList = skipLists.compute('123', {
+      final skipList = skipLists.compute('123', '456', {
         Location.from(
           'foo',
           TargetLineEntry(0, []),
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('does not depend on order of locations', () {
-      final skipList = skipLists.compute('123', {
+      final skipList = skipLists.compute('123', '456', {
         Location.from(
           'foo',
           TargetLineEntry(10, []),
@@ -92,14 +92,14 @@ void main() {
 
     test('contains the provided id', () {
       final id = '123';
-      final skipList = skipLists.compute(id, {});
+      final skipList = skipLists.compute(id, '456', {});
       for (final range in skipList) {
         expect(range['scriptId'], id);
       }
     });
 
     test('ignores the whole file if provided no locations', () {
-      final skipList = skipLists.compute('123', {});
+      final skipList = skipLists.compute('123', '456', {});
       expect(skipList.length, 1);
       _validateRange(skipList.first, 0, 0, maxValue, maxValue);
     });

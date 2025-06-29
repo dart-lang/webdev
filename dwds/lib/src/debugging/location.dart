@@ -4,6 +4,7 @@
 
 import 'package:async/async.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -151,12 +152,33 @@ class Locations {
 
   Modules get modules => _modules;
 
-  void initialize(String entrypoint) {
-    _sourceToTokenPosTable.clear();
-    _sourceToLocation.clear();
-    _locationMemoizer.clear();
-    _moduleToLocations.clear();
-    _entrypoint = entrypoint;
+  Future<void> initialize(
+    String entrypoint, [
+    InvalidatedModuleReport? invalidatedModuleReport,
+  ]) async {
+    // If we know that only certain modules are deleted or added, we can only
+    // invalidate those.
+    if (invalidatedModuleReport != null) {
+      for (final module in invalidatedModuleReport.deletedModules.union(
+        invalidatedModuleReport.reloadedModules,
+      )) {
+        _locationMemoizer.remove(module);
+        _moduleToLocations.remove(module);
+        final sources = await _modules.sourcesForModule(module);
+        if (sources != null) {
+          for (final serverPath in sources) {
+            _sourceToTokenPosTable.remove(serverPath);
+            _sourceToLocation.remove(serverPath);
+          }
+        }
+      }
+    } else {
+      _sourceToTokenPosTable.clear();
+      _locationMemoizer.clear();
+      _sourceToLocation.clear();
+      _moduleToLocations.clear();
+      _entrypoint = entrypoint;
+    }
   }
 
   /// Returns all [Location] data for a provided Dart source.

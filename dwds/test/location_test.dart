@@ -20,7 +20,7 @@ final sourceMapContents =
     'AAGV,IAFI,kCAAqC,QAAC;AACX,MAA/B,WAAM,AAAwB,0BAAP,QAAF,AAAE,KAAK,GAAP;'
     ';EAEzB","file":"main.ddc.js"}';
 
-void main() {
+void main() async {
   const lines = 100;
   const lineLength = 150;
   final assetReader = FakeAssetReader(sourceMap: sourceMapContents);
@@ -32,7 +32,7 @@ void main() {
 
   final modules = FakeModules(module: _module);
   final locations = Locations(assetReader, modules, '');
-  locations.initialize('fake_entrypoint');
+  await locations.initialize('fake_entrypoint');
 
   group('JS locations |', () {
     const fakeRuntimeScriptId = '12';

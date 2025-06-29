@@ -215,7 +215,9 @@ class MetadataProvider {
     await _metadataMemoizer.runOnce(() => _processMetadata(false));
   }
 
-  Future<void> reinitializeAfterReload(Set<String> reloadedModules) async {
+  Future<InvalidatedModuleReport> reinitializeAfterReload(
+    Map<String, List> reloadedModulesToLibraries,
+  ) async {
     final modules = (await _processMetadata(true))!;
     final invalidatedLibraries = <String>{};
     void invalidateLibrary(String libraryImportUri) {
@@ -227,10 +229,9 @@ class MetadataProvider {
     }
 
     final deletedModules = <String>{};
-    // final invalidatedModules = <String>{};
     for (final module in _moduleToLibraries.keys) {
       final deletedModule = !modules.containsKey(module);
-      final invalidatedModule = reloadedModules.contains(module);
+      final invalidatedModule = reloadedModulesToLibraries.containsKey(module);
       assert(!(deletedModule && invalidatedModule));
       // If the module was either deleted or reloaded, invalidate all previous
       // information both about the module and its libraries.
@@ -242,14 +243,27 @@ class MetadataProvider {
       }
       if (deletedModule) deletedModules.add(module);
     }
-    for (final module in reloadedModules) {
+    final reloadedModules = <String>{};
+    final reloadedLibraries = <String>{};
+    for (final module in reloadedModulesToLibraries.keys) {
+      reloadedModules.add(module);
+      reloadedLibraries.addAll(
+        reloadedModulesToLibraries[module]!.cast<String>(),
+      );
       _addMetadata(modules[module]!);
     }
     // The libraries that were removed from the program or those that we
     // invalidated but were never added again.
-    // final deletedLibraries = invalidatedLibraries.where(
-    //   (library) => !_libraries.contains(library),
-    // );
+    final deletedLibraries =
+        invalidatedLibraries
+            .where((library) => !_libraries.contains(library))
+            .toSet();
+    return InvalidatedModuleReport(
+      deletedModules: deletedModules,
+      deletedLibraries: deletedLibraries,
+      reloadedModules: reloadedModules,
+      reloadedLibraries: reloadedLibraries,
+    );
   }
 
   void _addMetadata(ModuleMetadata metadata) {
@@ -302,4 +316,19 @@ class AbsoluteImportUriException implements Exception {
 
   @override
   String toString() => "AbsoluteImportUriError: '$importUri'";
+}
+
+class InvalidatedModuleReport {
+  final Set<String> deletedModules;
+  final Set<String> deletedLibraries;
+  // The union of invalidated and new modules.
+  final Set<String> reloadedModules;
+  // The union of invalidated and new libraries.
+  final Set<String> reloadedLibraries;
+  InvalidatedModuleReport({
+    required this.deletedModules,
+    required this.deletedLibraries,
+    required this.reloadedModules,
+    required this.reloadedLibraries,
+  });
 }
