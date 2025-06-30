@@ -5,6 +5,8 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'dart:convert';
+
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:test/test.dart';
@@ -114,5 +116,152 @@ void main() {
       expect(parts.length, 1);
       expect(parts[0], 'org-dartlang-app:///web/main.dart');
     }
+  });
+
+  String createMetadataContents(
+    Map<String, List<String>> moduleToLibraries,
+    Map<String, List<String>> libraryToParts,
+  ) {
+    final contents = StringBuffer('');
+    for (final module in moduleToLibraries.keys) {
+      final moduleMetadata = ModuleMetadata(
+        module,
+        'load__web__$module',
+        'foo/web/$module.ddc.js.map',
+        'foo/web/$module.ddc.js',
+      );
+      for (final library in moduleToLibraries[module]!) {
+        moduleMetadata.addLibrary(
+          LibraryMetadata(library, library, libraryToParts[library] ?? []),
+        );
+      }
+      contents.writeln(json.encode(moduleMetadata.toJson()));
+    }
+    contents.write('// intentionally empty: ...');
+    return contents.toString();
+  }
+
+  Future<void> verifyExpectations(
+    MetadataProvider provider,
+    Map<String, List<String>> moduleToLibraries,
+    Map<String, List<String>> libraryToParts,
+  ) async {
+    final scriptToModule = await provider.scriptToModule;
+    final expectedScriptToModule = <String, String>{};
+    for (final module in moduleToLibraries.keys) {
+      final libraries = moduleToLibraries[module]!;
+      for (final library in libraries) {
+        expectedScriptToModule[library] = module;
+        final parts = libraryToParts[library];
+        if (parts != null) {
+          for (final part in parts) {
+            expectedScriptToModule[part] = module;
+          }
+        }
+      }
+    }
+    for (final entry in expectedScriptToModule.entries) {
+      expect(scriptToModule[entry.key], entry.value);
+    }
+
+    final moduleToSourceMap = await provider.moduleToSourceMap;
+    final expectedModuleToSourceMap = moduleToLibraries.keys.fold(
+      <String, String>{},
+      (map, module) {
+        map[module] = 'foo/web/$module.ddc.js.map';
+        return map;
+      },
+    );
+    for (final entry in expectedModuleToSourceMap.entries) {
+      expect(moduleToSourceMap[entry.key], entry.value);
+    }
+
+    final modulePathToModule = await provider.modulePathToModule;
+    final expectedModulePathToModule = moduleToLibraries.keys.fold(
+      <String, String>{},
+      (map, module) {
+        map['foo/web/$module.ddc.js'] = module;
+        return map;
+      },
+    );
+    for (final entry in expectedModulePathToModule.entries) {
+      expect(modulePathToModule[entry.key], entry.value);
+    }
+
+    expect(await provider.modules, containsAll(moduleToLibraries.keys));
+  }
+
+  test('reinitialize produces correct report', () async {
+    final moduleToLibraries = <String, List<String>>{
+      'm1': [
+        'org-dartlang-app:///web/l1.dart',
+        'org-dartlang-app:///web/l2.dart',
+      ],
+      'm2': [
+        'org-dartlang-app:///web/l3.dart',
+        'org-dartlang-app:///web/l4.dart',
+      ],
+      'm3': [
+        'org-dartlang-app:///web/l5.dart',
+        'org-dartlang-app:///web/l6.dart',
+      ],
+    };
+    final libraryToParts = <String, List<String>>{
+      'l1': ['org-dartlang-app:///web/l1_p1.dart'],
+    };
+    final assetReader = FakeAssetReader(
+      metadata: createMetadataContents(moduleToLibraries, libraryToParts),
+    );
+    final provider = MetadataProvider('foo.bootstrap.js', assetReader);
+    await verifyExpectations(provider, moduleToLibraries, libraryToParts);
+
+    final newModuleToLibraries = <String, List<String>>{
+      'm1': [
+        'org-dartlang-app:///web/l1.dart',
+        'org-dartlang-app:///web/l2.dart',
+      ],
+      'm3': ['org-dartlang-app:///web/l3.dart'],
+      'm4': [
+        'org-dartlang-app:///web/l4.dart',
+        'org-dartlang-app:///web/l7.dart',
+      ],
+    };
+    final newLibraryToParts = <String, List<String>>{
+      'l1': ['org-dartlang-app:///web/l1_p1.dart'],
+      'l7': ['org-dartlang-app:///web/l7_p1.dart'],
+    };
+    final reloadedModulesToLibraries = <String, List<String>>{
+      'm3': ['org-dartlang-app:///web/l3.dart'],
+      'm4': [
+        'org-dartlang-app:///web/l4.dart',
+        'org-dartlang-app:///web/l7.dart',
+      ],
+    };
+    assetReader.metadata = createMetadataContents(
+      newModuleToLibraries,
+      newLibraryToParts,
+    );
+    final invalidatedModuleReport = await provider.reinitializeAfterReload(
+      reloadedModulesToLibraries,
+    );
+    expect(invalidatedModuleReport.deletedModules, ['m2']);
+    expect(invalidatedModuleReport.deletedLibraries, [
+      'org-dartlang-app:///web/l5.dart',
+      'org-dartlang-app:///web/l6.dart',
+    ]);
+    expect(
+      invalidatedModuleReport.reloadedModules,
+      reloadedModulesToLibraries.keys,
+    );
+    expect(
+      invalidatedModuleReport.reloadedLibraries,
+      containsAll(
+        reloadedModulesToLibraries.values.fold<List<String>>([], (value, l) {
+          value.addAll(l);
+          return l;
+        }),
+      ),
+    );
+    await verifyExpectations(provider, newModuleToLibraries, newLibraryToParts);
   });
 }

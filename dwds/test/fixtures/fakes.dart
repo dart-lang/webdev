@@ -414,12 +414,11 @@ class FakeStrategy extends LoadStrategy {
 }
 
 class FakeAssetReader implements AssetReader {
-  final String? _metadata;
+  String? metadata;
   final String? _dartSource;
   final String? _sourceMap;
-  const FakeAssetReader({metadata, dartSource, sourceMap})
-    : _metadata = metadata,
-      _dartSource = dartSource,
+  FakeAssetReader({this.metadata, dartSource, sourceMap})
+    : _dartSource = dartSource,
       _sourceMap = sourceMap;
 
   @override
@@ -432,7 +431,7 @@ class FakeAssetReader implements AssetReader {
 
   @override
   Future<String> metadataContents(String serverPath) {
-    return _throwUnimplementedOrReturnContents(_metadata);
+    return _throwUnimplementedOrReturnContents(metadata);
   }
 
   @override

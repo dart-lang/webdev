@@ -170,6 +170,12 @@ class MetadataProvider {
     return _moduleToModulePath.keys.toList();
   }
 
+  /// Compute metadata information after reading the metadata contents.
+  ///
+  /// If [hotReload] is true, skips adding the SDK metadata and caches the
+  /// computed [ModuleMetadata], returning the resulting cache.
+  ///
+  /// Otherwise, adds all metadata and returns null.
   Future<Map<String, ModuleMetadata>?> _processMetadata(bool hotReload) async {
     final modules = hotReload ? <String, ModuleMetadata>{} : null;
     // The merged metadata resides next to the entrypoint.
@@ -211,10 +217,17 @@ class MetadataProvider {
     return modules;
   }
 
+  /// Process all metadata and compute caches once.
   Future<void> _initialize() async {
     await _metadataMemoizer.runOnce(() => _processMetadata(false));
   }
 
+  /// Given a map of hot reloaded modules mapped to their respective libraries,
+  /// determines deleted and invalidated libraries and modules, invalidates them
+  /// in any caches, and recomputes the necessary information.
+  ///
+  /// Returns an [InvalidatedModuleReport] that can be used to invalidate other
+  /// caches after a hot reload.
   Future<InvalidatedModuleReport> reinitializeAfterReload(
     Map<String, List> reloadedModulesToLibraries,
   ) async {
@@ -318,12 +331,23 @@ class AbsoluteImportUriException implements Exception {
   String toString() => "AbsoluteImportUriError: '$importUri'";
 }
 
+/// Computed after a hot reload using
+/// [MetadataProvider.reinitializeAfterReload], represents the modules and
+/// libraries in the program that were deleted, reloaded, and therefore,
+/// invalidated.
+///
+/// Used to recompute caches throughout DWDS.
 class InvalidatedModuleReport {
+  /// Module names that are no longer in the program.
   final Set<String> deletedModules;
+
+  /// Library uris that are no longer in the program.
   final Set<String> deletedLibraries;
-  // The union of invalidated and new modules.
+
+  /// Module names that were loaded during the hot reload.
   final Set<String> reloadedModules;
-  // The union of invalidated and new libraries.
+
+  /// Library uris that were loaded during the hot reload.
   final Set<String> reloadedLibraries;
   InvalidatedModuleReport({
     required this.deletedModules,

@@ -114,7 +114,7 @@ class AppInspector implements AppInspectorInterface {
 
     // TODO(srujzs): We can invalidate these in a smarter way instead of
     // reinitializing when doing a hot reload, but these helpers recompute info
-    // on demand and therefore are not in the critical path.
+    // on demand later and therefore are not in the critical path.
     _classHelper = ClassHelper(this);
     _instanceHelper = InstanceHelper(this);
 
@@ -729,7 +729,7 @@ class AppInspector implements AppInspectorInterface {
   /// This will get repopulated on restarts and reloads.
   ///
   /// If [invalidatedModuleReport] is provided, only invalidates and
-  /// recalculates caches for the invalidated libraries.
+  /// recalculates caches for the invalidated/new libraries.
   ///
   /// Returns the list of scripts refs cached.
   Future<List<ScriptRef>> _populateScriptCaches([
@@ -740,10 +740,13 @@ class AppInspector implements AppInspectorInterface {
           await globalToolConfiguration.loadStrategy
               .metadataProviderFor(appConnection.request.entrypointPath)
               .scripts;
-      final invalidatedLibraries = invalidatedModuleReport?.deletedLibraries
+      final invalidatedAndNewLibraries = invalidatedModuleReport
+          ?.deletedLibraries
           .union(invalidatedModuleReport.reloadedLibraries);
-      if (invalidatedLibraries != null) {
-        for (final libraryUri in invalidatedLibraries) {
+      if (invalidatedAndNewLibraries != null) {
+        // Invalidate any script caches that were computed for the now invalid
+        // libraries. They will get repopulated later.
+        for (final libraryUri in invalidatedAndNewLibraries) {
           final libraryRef = await _libraryHelper.libraryRefFor(libraryUri);
           final libraryId = libraryRef?.id;
           if (libraryId == null) continue;
@@ -768,8 +771,8 @@ class AppInspector implements AppInspectorInterface {
         isolate.libraries ?? <LibraryRef>[],
       );
       for (final uri in userLibraries) {
-        if (invalidatedLibraries != null &&
-            !invalidatedLibraries.contains(uri)) {
+        if (invalidatedAndNewLibraries != null &&
+            !invalidatedAndNewLibraries.contains(uri)) {
           continue;
         }
         final parts = scripts[uri];
