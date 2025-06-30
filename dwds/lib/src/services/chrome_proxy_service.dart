@@ -249,15 +249,18 @@ class ChromeProxyService implements VmServiceInterface {
     final invalidatedModuleReport = await globalToolConfiguration.loadStrategy
         .reinitializeEntrypointAfterReload(entrypoint, reloadedModules);
     await _initializeEntrypoint(entrypoint, invalidatedModuleReport);
-    await inspector.initialize();
+    await inspector.initialize(invalidatedModuleReport);
   }
 
   /// Initializes metadata in [Locations], [Modules], and [ExpressionCompiler].
+  ///
+  /// If [invalidatedModuleReport] is not null, only removes and reinitializes
+  /// invalidated metadata.
   Future<void> _initializeEntrypoint(
     String entrypoint, [
     InvalidatedModuleReport? invalidatedModuleReport,
   ]) async {
-    _modules.initialize(entrypoint);
+    await _modules.initialize(entrypoint, invalidatedModuleReport);
     await _locations.initialize(entrypoint, invalidatedModuleReport);
     await _skipLists.initialize(entrypoint, invalidatedModuleReport);
     // We do not need to wait for compiler dependencies to be updated as the
@@ -353,7 +356,7 @@ class ChromeProxyService implements VmServiceInterface {
     if (!newConnection) {
       await globalToolConfiguration.loadStrategy.trackEntrypoint(entrypoint);
     }
-    _initializeEntrypoint(entrypoint);
+    await _initializeEntrypoint(entrypoint);
 
     debugger.notifyPausedAtStart();
     _inspector = await AppInspector.create(

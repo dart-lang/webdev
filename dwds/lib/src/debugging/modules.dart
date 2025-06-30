@@ -30,22 +30,25 @@ class Modules {
 
   Modules(this._root);
 
-  /// Initializes the mapping from source to module.
+  /// Initializes mappings after invalidating modified libraries/modules.
   ///
   /// Intended to be called multiple times throughout the development workflow,
   /// e.g. after a hot-reload.
-  void initialize(String entrypoint) {
-    // TODO(srujzs): Can we do better and only invalidate the sources/modules
-    // that were deleted/reloaded? This would require removing the
-    // deleted/reloaded libraries/sources/modules from the following maps and
-    // then only processing that set in `_initializeMapping`. It's doable, but
-    // these calculations are also not that expensive.
-    _sourceToModule.clear();
-    _moduleToSources.clear();
-    _sourceToLibrary.clear();
-    _libraryToModule.clear();
-    _moduleMemoizer = AsyncMemoizer();
-    _entrypoint = entrypoint;
+  Future<void> initialize(
+    String entrypoint, [
+    InvalidatedModuleReport? invalidatedModuleReport,
+  ]) async {
+    if (invalidatedModuleReport != null) {
+      assert(_entrypoint == entrypoint);
+      await _initializeMapping(invalidatedModuleReport);
+    } else {
+      _sourceToModule.clear();
+      _moduleToSources.clear();
+      _sourceToLibrary.clear();
+      _libraryToModule.clear();
+      _moduleMemoizer = AsyncMemoizer();
+      _entrypoint = entrypoint;
+    }
   }
 
   /// Returns the containing module for the provided Dart server path.
@@ -88,7 +91,37 @@ class Modules {
     return chromePathToRuntimeScriptId[serverPath];
   }
 
+  String _getLibraryServerPath(String library) =>
+      library.startsWith('dart:')
+          ? library
+          : DartUri(library, _root).serverPath;
+
+  Set<String> _invalidateLibraries(
+    InvalidatedModuleReport invalidatedModuleReport,
+  ) {
+    Set<String> invalidatedLibraries;
+    invalidatedLibraries = invalidatedModuleReport.deletedLibraries.union(
+      invalidatedModuleReport.reloadedLibraries,
+    );
+    final invalidatedModules = invalidatedModuleReport.deletedModules.union(
+      invalidatedModuleReport.reloadedModules,
+    );
+    for (final library in invalidatedLibraries) {
+      final libraryServerPath = _getLibraryServerPath(library);
+      _sourceToLibrary.remove(libraryServerPath);
+      _sourceToModule.remove(libraryServerPath);
+      _libraryToModule.remove(library);
+    }
+    for (final module in invalidatedModules) {
+      _moduleToSources.remove(module);
+    }
+    return invalidatedLibraries;
+  }
+
   /// Initializes [_sourceToModule], [_moduleToSources], and [_sourceToLibrary].
+  ///
+  /// If [invalidatedModuleReport] is not null, only updates the maps for the
+  /// invalidated libraries in the report.
   Future<void> _initializeMapping([
     InvalidatedModuleReport? invalidatedModuleReport,
   ]) async {
@@ -99,12 +132,19 @@ class Modules {
     final libraryToScripts = await provider.scripts;
     final scriptToModule = await provider.scriptToModule;
 
+    final invalidatedLibraries =
+        invalidatedModuleReport != null
+            ? _invalidateLibraries(invalidatedModuleReport)
+            : null;
+
     for (final library in libraryToScripts.keys) {
+      if (invalidatedLibraries != null) {
+        // Note that every module will have at least one library associated with
+        // it, so it's okay to only process the invalidated libraries.
+        if (!invalidatedLibraries.contains(library)) continue;
+      }
       final scripts = libraryToScripts[library]!;
-      final libraryServerPath =
-          library.startsWith('dart:')
-              ? library
-              : DartUri(library, _root).serverPath;
+      final libraryServerPath = _getLibraryServerPath(library);
 
       if (scriptToModule.containsKey(library)) {
         final module = scriptToModule[library]!;
@@ -115,10 +155,7 @@ class Modules {
         _libraryToModule[library] = module;
 
         for (final script in scripts) {
-          final scriptServerPath =
-              script.startsWith('dart:')
-                  ? script
-                  : DartUri(script, _root).serverPath;
+          final scriptServerPath = _getLibraryServerPath(script);
 
           _sourceToModule[scriptServerPath] = module;
           _moduleToSources[module]!.add(scriptServerPath);
