@@ -49,6 +49,7 @@ void runTests({
           compilationMode: compilationMode,
           enableExpressionEvaluation: true,
           verboseCompiler: debug,
+          experiments: ['dot-shorthands'],
           canaryFeatures: canaryFeatures,
           moduleFormat: provider.ddcModuleFormat,
         ),
