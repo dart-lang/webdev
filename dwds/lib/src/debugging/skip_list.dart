@@ -36,6 +36,7 @@ class SkipLists {
       }
     } else {
       _idToList.clear();
+      _urlToId.clear();
     }
   }
 

@@ -54,12 +54,12 @@ class Modules {
       }
       await _initializeMapping(modifiedModuleReport);
     } else {
-      _sourceToModule.clear();
-      _moduleToSources.clear();
-      _sourceToLibrary.clear();
-      _libraryToModule.clear();
-      _moduleMemoizer = AsyncMemoizer();
       _entrypoint = entrypoint;
+      _sourceToLibrary.clear();
+      _sourceToModule.clear();
+      _libraryToModule.clear();
+      _moduleToSources.clear();
+      _moduleMemoizer = AsyncMemoizer();
     }
   }
 

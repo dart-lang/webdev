@@ -171,10 +171,10 @@ class Locations {
         }
       }
     } else {
-      _sourceToTokenPosTable.clear();
       _locationMemoizer.clear();
-      _sourceToLocation.clear();
       _moduleToLocations.clear();
+      _sourceToTokenPosTable.clear();
+      _sourceToLocation.clear();
       _entrypoint = entrypoint;
     }
   }
