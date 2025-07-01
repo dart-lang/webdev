@@ -183,7 +183,7 @@ abstract class LoadStrategy {
     return Future.value();
   }
 
-  Future<InvalidatedModuleReport> reinitializeEntrypointAfterReload(
+  Future<ModifiedModuleReport> reinitializeEntrypointAfterReload(
     String entrypoint,
     Map<String, List> reloadedModulesToLibraries,
   ) {

@@ -20,13 +20,10 @@ class SkipLists {
 
   Future<void> initialize([
     String? entrypoint,
-    InvalidatedModuleReport? invalidatedModuleReport,
+    ModifiedModuleReport? modifiedModuleReport,
   ]) async {
-    if (invalidatedModuleReport != null) {
+    if (modifiedModuleReport != null) {
       assert(entrypoint != null);
-      final invalidatedModules = invalidatedModuleReport.deletedModules.union(
-        invalidatedModuleReport.reloadedModules,
-      );
       for (final url in _urlToId.keys) {
         if (url.isEmpty) continue;
 
@@ -34,7 +31,7 @@ class SkipLists {
         final serverPath = dartUri.serverPath;
         final module = await globalToolConfiguration.loadStrategy
             .moduleForServerPath(entrypoint!, serverPath);
-        if (invalidatedModules.contains(module)) {
+        if (modifiedModuleReport.modifiedModules.contains(module)) {
           _idToList.remove(_urlToId[url]!);
         }
       }

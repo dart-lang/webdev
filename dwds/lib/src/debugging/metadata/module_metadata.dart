@@ -103,6 +103,8 @@ class ModuleMetadata {
   ///
   /// Used as a name of the js module created by the compiler and
   /// as key to store and load modules in the debugger and the browser
+  // TODO(srujzs): Remove once https://github.com/dart-lang/sdk/issues/59618 is
+  // resolved.
   final String name;
 
   /// Name of the function enclosing the module

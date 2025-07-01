@@ -141,7 +141,7 @@ void main() {
     return contents.toString();
   }
 
-  Future<void> verifyExpectations(
+  Future<void> validateProvider(
     MetadataProvider provider,
     Map<String, List<String>> moduleToLibraries,
     Map<String, List<String>> libraryToParts,
@@ -191,7 +191,7 @@ void main() {
     expect(await provider.modules, containsAll(moduleToLibraries.keys));
   }
 
-  test('reinitialize produces correct report', () async {
+  test('reinitialize produces correct ModifiedModuleReport', () async {
     final moduleToLibraries = <String, List<String>>{
       'm1': [
         'org-dartlang-app:///web/l1.dart',
@@ -213,7 +213,7 @@ void main() {
       metadata: createMetadataContents(moduleToLibraries, libraryToParts),
     );
     final provider = MetadataProvider('foo.bootstrap.js', assetReader);
-    await verifyExpectations(provider, moduleToLibraries, libraryToParts);
+    await validateProvider(provider, moduleToLibraries, libraryToParts);
 
     final newModuleToLibraries = <String, List<String>>{
       'm1': [
@@ -241,27 +241,37 @@ void main() {
       newModuleToLibraries,
       newLibraryToParts,
     );
-    final invalidatedModuleReport = await provider.reinitializeAfterReload(
+    final modifiedModuleReport = await provider.reinitializeAfterReload(
       reloadedModulesToLibraries,
     );
-    expect(invalidatedModuleReport.deletedModules, ['m2']);
-    expect(invalidatedModuleReport.deletedLibraries, [
-      'org-dartlang-app:///web/l5.dart',
-      'org-dartlang-app:///web/l6.dart',
-    ]);
+    expect(modifiedModuleReport.deletedModules, ['m2']);
     expect(
-      invalidatedModuleReport.reloadedModules,
-      reloadedModulesToLibraries.keys,
+      modifiedModuleReport.deletedLibraries,
+      unorderedEquals([
+        'org-dartlang-app:///web/l5.dart',
+        'org-dartlang-app:///web/l6.dart',
+      ]),
     );
+    expect(modifiedModuleReport.reloadedModules, ['m3', 'm4']);
     expect(
-      invalidatedModuleReport.reloadedLibraries,
-      containsAll(
-        reloadedModulesToLibraries.values.fold<List<String>>([], (value, l) {
-          value.addAll(l);
-          return l;
-        }),
-      ),
+      modifiedModuleReport.reloadedLibraries,
+      unorderedEquals([
+        'org-dartlang-app:///web/l3.dart',
+        'org-dartlang-app:///web/l4.dart',
+        'org-dartlang-app:///web/l7.dart',
+      ]),
     );
-    await verifyExpectations(provider, newModuleToLibraries, newLibraryToParts);
+    expect(modifiedModuleReport.modifiedModules, ['m2', 'm3', 'm4']);
+    expect(
+      modifiedModuleReport.modifiedLibraries,
+      unorderedEquals([
+        'org-dartlang-app:///web/l3.dart',
+        'org-dartlang-app:///web/l4.dart',
+        'org-dartlang-app:///web/l5.dart',
+        'org-dartlang-app:///web/l6.dart',
+        'org-dartlang-app:///web/l7.dart',
+      ]),
+    );
+    await validateProvider(provider, newModuleToLibraries, newLibraryToParts);
   });
 }

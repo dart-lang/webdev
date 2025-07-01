@@ -202,7 +202,7 @@ class MetadataProvider {
             );
             final moduleName = metadata.name;
             if (hotReload) {
-              modules?[moduleName] = metadata;
+              modules![moduleName] = metadata;
             } else {
               _addMetadata(metadata);
             }
@@ -226,9 +226,9 @@ class MetadataProvider {
   /// determines deleted and invalidated libraries and modules, invalidates them
   /// in any caches, and recomputes the necessary information.
   ///
-  /// Returns an [InvalidatedModuleReport] that can be used to invalidate other
+  /// Returns an [ModifiedModuleReport] that can be used to invalidate other
   /// caches after a hot reload.
-  Future<InvalidatedModuleReport> reinitializeAfterReload(
+  Future<ModifiedModuleReport> reinitializeAfterReload(
     Map<String, List> reloadedModulesToLibraries,
   ) async {
     final modules = (await _processMetadata(true))!;
@@ -271,7 +271,7 @@ class MetadataProvider {
         invalidatedLibraries
             .where((library) => !_libraries.contains(library))
             .toSet();
-    return InvalidatedModuleReport(
+    return ModifiedModuleReport(
       deletedModules: deletedModules,
       deletedLibraries: deletedLibraries,
       reloadedModules: reloadedModules,
@@ -334,10 +334,10 @@ class AbsoluteImportUriException implements Exception {
 /// Computed after a hot reload using
 /// [MetadataProvider.reinitializeAfterReload], represents the modules and
 /// libraries in the program that were deleted, reloaded, and therefore,
-/// invalidated.
+/// modified.
 ///
 /// Used to recompute caches throughout DWDS.
-class InvalidatedModuleReport {
+class ModifiedModuleReport {
   /// Module names that are no longer in the program.
   final Set<String> deletedModules;
 
@@ -349,10 +349,17 @@ class InvalidatedModuleReport {
 
   /// Library uris that were loaded during the hot reload.
   final Set<String> reloadedLibraries;
-  InvalidatedModuleReport({
+
+  /// Module names that were either removed or modified.
+  final Set<String> modifiedModules;
+
+  /// Library uris that were either removed or modified.
+  final Set<String> modifiedLibraries;
+  ModifiedModuleReport({
     required this.deletedModules,
     required this.deletedLibraries,
     required this.reloadedModules,
     required this.reloadedLibraries,
-  });
+  }) : modifiedModules = deletedModules.union(reloadedModules),
+       modifiedLibraries = deletedLibraries.union(reloadedLibraries);
 }

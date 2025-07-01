@@ -235,34 +235,29 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   /// Reinitializes any caches so that they can be recomputed across hot reload.
-  // TODO(srujzs): We can maybe do better here than reinitializing all the data.
-  // Specifically, we can invalidate certain parts as we know what libraries
-  // will be stale, and therefore recompute information only for those libraries
-  // and possibly libraries that depend on them. Currently, there's no good
-  // separation between "existing" information and "new" information, making
-  // this difficult.
-  // https://github.com/dart-lang/webdev/issues/2628
+  ///
+  /// We use the [ModifiedModuleReport] to more efficiently invalidate caches.
   Future<void> _reinitializeForHotReload(
     Map<String, List> reloadedModules,
   ) async {
     final entrypoint = inspector.appConnection.request.entrypointPath;
-    final invalidatedModuleReport = await globalToolConfiguration.loadStrategy
+    final modifiedModuleReport = await globalToolConfiguration.loadStrategy
         .reinitializeEntrypointAfterReload(entrypoint, reloadedModules);
-    await _initializeEntrypoint(entrypoint, invalidatedModuleReport);
-    await inspector.initialize(invalidatedModuleReport);
+    await _initializeEntrypoint(entrypoint, modifiedModuleReport);
+    await inspector.initialize(modifiedModuleReport);
   }
 
   /// Initializes metadata in [Locations], [Modules], and [ExpressionCompiler].
   ///
-  /// If [invalidatedModuleReport] is not null, only removes and reinitializes
-  /// invalidated metadata.
+  /// If [modifiedModuleReport] is not null, only removes and reinitializes
+  /// modified metadata.
   Future<void> _initializeEntrypoint(
     String entrypoint, [
-    InvalidatedModuleReport? invalidatedModuleReport,
+    ModifiedModuleReport? modifiedModuleReport,
   ]) async {
-    await _modules.initialize(entrypoint, invalidatedModuleReport);
-    await _locations.initialize(entrypoint, invalidatedModuleReport);
-    await _skipLists.initialize(entrypoint, invalidatedModuleReport);
+    await _modules.initialize(entrypoint, modifiedModuleReport);
+    await _locations.initialize(entrypoint, modifiedModuleReport);
+    await _skipLists.initialize(entrypoint, modifiedModuleReport);
     // We do not need to wait for compiler dependencies to be updated as the
     // [ExpressionEvaluator] is robust to evaluation requests during updates.
     safeUnawaited(_updateCompilerDependencies(entrypoint));

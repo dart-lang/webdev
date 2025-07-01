@@ -34,13 +34,25 @@ class Modules {
   ///
   /// Intended to be called multiple times throughout the development workflow,
   /// e.g. after a hot-reload.
+  ///
+  /// If [modifiedModuleReport] is not null, removes and recalculates caches for
+  /// any modified modules and libraries.
   Future<void> initialize(
     String entrypoint, [
-    InvalidatedModuleReport? invalidatedModuleReport,
+    ModifiedModuleReport? modifiedModuleReport,
   ]) async {
-    if (invalidatedModuleReport != null) {
+    if (modifiedModuleReport != null) {
       assert(_entrypoint == entrypoint);
-      await _initializeMapping(invalidatedModuleReport);
+      for (final library in modifiedModuleReport.modifiedLibraries) {
+        final libraryServerPath = _getLibraryServerPath(library);
+        _sourceToLibrary.remove(libraryServerPath);
+        _sourceToModule.remove(libraryServerPath);
+        _libraryToModule.remove(library);
+      }
+      for (final module in modifiedModuleReport.modifiedModules) {
+        _moduleToSources.remove(module);
+      }
+      await _initializeMapping(modifiedModuleReport);
     } else {
       _sourceToModule.clear();
       _moduleToSources.clear();
@@ -96,34 +108,12 @@ class Modules {
           ? library
           : DartUri(library, _root).serverPath;
 
-  Set<String> _invalidateLibraries(
-    InvalidatedModuleReport invalidatedModuleReport,
-  ) {
-    Set<String> invalidatedLibraries;
-    invalidatedLibraries = invalidatedModuleReport.deletedLibraries.union(
-      invalidatedModuleReport.reloadedLibraries,
-    );
-    final invalidatedModules = invalidatedModuleReport.deletedModules.union(
-      invalidatedModuleReport.reloadedModules,
-    );
-    for (final library in invalidatedLibraries) {
-      final libraryServerPath = _getLibraryServerPath(library);
-      _sourceToLibrary.remove(libraryServerPath);
-      _sourceToModule.remove(libraryServerPath);
-      _libraryToModule.remove(library);
-    }
-    for (final module in invalidatedModules) {
-      _moduleToSources.remove(module);
-    }
-    return invalidatedLibraries;
-  }
-
   /// Initializes [_sourceToModule], [_moduleToSources], and [_sourceToLibrary].
   ///
-  /// If [invalidatedModuleReport] is not null, only updates the maps for the
-  /// invalidated libraries in the report.
+  /// If [modifiedModuleReport] is not null, only updates the maps for the
+  /// modified libraries in the report.
   Future<void> _initializeMapping([
-    InvalidatedModuleReport? invalidatedModuleReport,
+    ModifiedModuleReport? modifiedModuleReport,
   ]) async {
     final provider = globalToolConfiguration.loadStrategy.metadataProviderFor(
       _entrypoint,
@@ -132,16 +122,11 @@ class Modules {
     final libraryToScripts = await provider.scripts;
     final scriptToModule = await provider.scriptToModule;
 
-    final invalidatedLibraries =
-        invalidatedModuleReport != null
-            ? _invalidateLibraries(invalidatedModuleReport)
-            : null;
-
     for (final library in libraryToScripts.keys) {
-      if (invalidatedLibraries != null) {
+      if (modifiedModuleReport != null) {
         // Note that every module will have at least one library associated with
-        // it, so it's okay to only process the invalidated libraries.
-        if (!invalidatedLibraries.contains(library)) continue;
+        // it, so it's okay to only process the modified libraries.
+        if (!modifiedModuleReport.modifiedLibraries.contains(library)) continue;
       }
       final scripts = libraryToScripts[library]!;
       final libraryServerPath = _getLibraryServerPath(library);

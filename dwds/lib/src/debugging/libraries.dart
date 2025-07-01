@@ -52,16 +52,13 @@ class LibraryHelper extends Domain {
     return _rootLib!;
   }
 
-  void invalidate(InvalidatedModuleReport invalidatedModuleReport) {
-    final invalidatedLibraries = invalidatedModuleReport.deletedLibraries.union(
-      invalidatedModuleReport.reloadedLibraries,
-    );
-    for (final library in invalidatedLibraries) {
+  void invalidate(ModifiedModuleReport modifiedModuleReport) {
+    for (final library in modifiedModuleReport.modifiedLibraries) {
       // These will later be initialized by `libraryFor` if needed.
       _librariesById.remove(library);
       _libraryRefsById.remove(library);
     }
-    for (final library in invalidatedModuleReport.reloadedLibraries) {
+    for (final library in modifiedModuleReport.reloadedLibraries) {
       _libraryRefsById[library] = _createLibraryRef(library);
     }
   }

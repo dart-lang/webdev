@@ -154,14 +154,12 @@ class Locations {
 
   Future<void> initialize(
     String entrypoint, [
-    InvalidatedModuleReport? invalidatedModuleReport,
+    ModifiedModuleReport? modifiedModuleReport,
   ]) async {
     // If we know that only certain modules are deleted or added, we can only
     // invalidate those.
-    if (invalidatedModuleReport != null) {
-      for (final module in invalidatedModuleReport.deletedModules.union(
-        invalidatedModuleReport.reloadedModules,
-      )) {
+    if (modifiedModuleReport != null) {
+      for (final module in modifiedModuleReport.modifiedModules) {
         _locationMemoizer.remove(module);
         _moduleToLocations.remove(module);
         final sources = await _modules.sourcesForModule(module);

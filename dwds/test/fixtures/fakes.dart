@@ -68,9 +68,8 @@ class FakeInspector implements AppInspector {
   }
 
   @override
-  Future<void> initialize([
-    InvalidatedModuleReport? invalidatedModuleReport,
-  ]) async => {};
+  Future<void> initialize([ModifiedModuleReport? modifiedModuleReport]) async =>
+      {};
 
   @override
   Future<InstanceRef?> instanceRefFor(Object value) async =>
@@ -161,7 +160,7 @@ class FakeModules implements Modules {
   @override
   Future<void> initialize(
     String entrypoint, [
-    InvalidatedModuleReport? invalidatedModuleReport,
+    ModifiedModuleReport? modifiedModuleReport,
   ]) async {}
 
   @override

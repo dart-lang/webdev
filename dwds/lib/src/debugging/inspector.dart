@@ -36,8 +36,8 @@ class AppInspector implements AppInspectorInterface {
   var _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
 
   Future<List<ScriptRef>> getScriptRefs([
-    InvalidatedModuleReport? invalidatedModuleReport,
-  ]) => _populateScriptCaches(invalidatedModuleReport);
+    ModifiedModuleReport? modifiedModuleReport,
+  ]) => _populateScriptCaches(modifiedModuleReport);
 
   final _logger = Logger('AppInspector');
 
@@ -106,10 +106,8 @@ class AppInspector implements AppInspectorInterface {
 
   /// Reset all caches and recompute any mappings.
   ///
-  /// Should be called across hot reloads with a valid [invalidatedModuleReport].
-  Future<void> initialize([
-    InvalidatedModuleReport? invalidatedModuleReport,
-  ]) async {
+  /// Should be called across hot reloads with a valid [ModifiedModuleReport].
+  Future<void> initialize([ModifiedModuleReport? modifiedModuleReport]) async {
     _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
 
     // TODO(srujzs): We can invalidate these in a smarter way instead of
@@ -118,9 +116,9 @@ class AppInspector implements AppInspectorInterface {
     _classHelper = ClassHelper(this);
     _instanceHelper = InstanceHelper(this);
 
-    if (invalidatedModuleReport != null) {
+    if (modifiedModuleReport != null) {
       // Invalidate `_libraryHelper` as we use it populate any script caches.
-      _libraryHelper.invalidate(invalidatedModuleReport);
+      _libraryHelper.invalidate(modifiedModuleReport);
     } else {
       _libraryHelper = LibraryHelper(this);
       _scriptRefsById.clear();
@@ -134,7 +132,7 @@ class AppInspector implements AppInspectorInterface {
     isolate.libraries?.clear();
     isolate.libraries?.addAll(libraries);
 
-    final scripts = await getScriptRefs(invalidatedModuleReport);
+    final scripts = await getScriptRefs(modifiedModuleReport);
 
     await DartUri.initialize();
     DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri).nonNulls);
@@ -728,25 +726,22 @@ class AppInspector implements AppInspectorInterface {
   ///
   /// This will get repopulated on restarts and reloads.
   ///
-  /// If [invalidatedModuleReport] is provided, only invalidates and
-  /// recalculates caches for the invalidated/new libraries.
+  /// If [modifiedModuleReport] is provided, only invalidates and
+  /// recalculates caches for the modified libraries.
   ///
   /// Returns the list of scripts refs cached.
   Future<List<ScriptRef>> _populateScriptCaches([
-    InvalidatedModuleReport? invalidatedModuleReport,
+    ModifiedModuleReport? modifiedModuleReport,
   ]) {
     return _scriptCacheMemoizer.runOnce(() async {
       final scripts =
           await globalToolConfiguration.loadStrategy
               .metadataProviderFor(appConnection.request.entrypointPath)
               .scripts;
-      final invalidatedAndNewLibraries = invalidatedModuleReport
-          ?.deletedLibraries
-          .union(invalidatedModuleReport.reloadedLibraries);
-      if (invalidatedAndNewLibraries != null) {
+      if (modifiedModuleReport != null) {
         // Invalidate any script caches that were computed for the now invalid
         // libraries. They will get repopulated later.
-        for (final libraryUri in invalidatedAndNewLibraries) {
+        for (final libraryUri in modifiedModuleReport.modifiedLibraries) {
           final libraryRef = await _libraryHelper.libraryRefFor(libraryUri);
           final libraryId = libraryRef?.id;
           if (libraryId == null) continue;
@@ -771,8 +766,8 @@ class AppInspector implements AppInspectorInterface {
         isolate.libraries ?? <LibraryRef>[],
       );
       for (final uri in userLibraries) {
-        if (invalidatedAndNewLibraries != null &&
-            !invalidatedAndNewLibraries.contains(uri)) {
+        if (modifiedModuleReport != null &&
+            !modifiedModuleReport.modifiedLibraries.contains(uri)) {
           continue;
         }
         final parts = scripts[uri];
