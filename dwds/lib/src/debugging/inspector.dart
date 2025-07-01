@@ -118,9 +118,9 @@ class AppInspector implements AppInspectorInterface {
 
     if (modifiedModuleReport != null) {
       // Invalidate `_libraryHelper` as we use it populate any script caches.
-      _libraryHelper.invalidate(modifiedModuleReport);
+      _libraryHelper.initialize(modifiedModuleReport);
     } else {
-      _libraryHelper = LibraryHelper(this);
+      _libraryHelper = LibraryHelper(this)..initialize();
       _scriptRefsById.clear();
       _serverPathToScriptRef.clear();
       _scriptIdToLibraryId.clear();

@@ -17,15 +17,38 @@ class LibraryHelper extends Domain {
   final Logger _logger = Logger('LibraryHelper');
 
   /// Map of library ID to [Library].
-  final _librariesById = <String, Library>{};
+  late final Map<String, Library> _librariesById;
 
   /// Map of libraryRef ID to [LibraryRef].
-  final _libraryRefsById = <String, LibraryRef>{};
+  late final Map<String, LibraryRef> _libraryRefsById;
 
   LibraryRef? _rootLib;
 
   LibraryHelper(AppInspectorInterface appInspector) {
     inspector = appInspector;
+  }
+
+  /// Initialize any caches.
+  ///
+  /// If [modifiedModuleReport] is not null, invalidates only modified libraries
+  /// from the cache and recomputes values for any eager caches.
+  void initialize([ModifiedModuleReport? modifiedModuleReport]) {
+    _rootLib = null;
+    if (modifiedModuleReport != null) {
+      for (final library in modifiedModuleReport.modifiedLibraries) {
+        // These will later be initialized by `libraryFor` if needed.
+        _librariesById.remove(library);
+        _libraryRefsById.remove(library);
+      }
+      for (final library in modifiedModuleReport.reloadedLibraries) {
+        // These need to be recomputed here as `libraryRefs` only checks if this
+        // map is empty before returning.
+        _libraryRefsById[library] = _createLibraryRef(library);
+      }
+    } else {
+      _librariesById = <String, Library>{};
+      _libraryRefsById = <String, LibraryRef>{};
+    }
   }
 
   Future<LibraryRef> get rootLib async {
@@ -52,26 +75,13 @@ class LibraryHelper extends Domain {
     return _rootLib!;
   }
 
-  /// Removes any modified libraries from the cache and either eagerly or lazily
-  /// computes values for the reloaded libraries in the [modifiedModuleReport].
-  void invalidate(ModifiedModuleReport modifiedModuleReport) {
-    for (final library in modifiedModuleReport.modifiedLibraries) {
-      // These will later be initialized by `libraryFor` if needed.
-      _librariesById.remove(library);
-      _libraryRefsById.remove(library);
-    }
-    for (final library in modifiedModuleReport.reloadedLibraries) {
-      _libraryRefsById[library] = _createLibraryRef(library);
-    }
-  }
-
   LibraryRef _createLibraryRef(String library) =>
       LibraryRef(id: library, name: library, uri: library);
 
   /// Returns all libraryRefs in the app.
   ///
   /// Note this can return a cached result that can be selectively reinitialized
-  /// using [invalidate].
+  /// using [initialize].
   Future<List<LibraryRef>> get libraryRefs async {
     if (_libraryRefsById.isNotEmpty) return _libraryRefsById.values.toList();
     final libraries =
