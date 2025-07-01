@@ -52,6 +52,8 @@ class LibraryHelper extends Domain {
     return _rootLib!;
   }
 
+  /// Removes any modified libraries from the cache and either eagerly or lazily
+  /// computes values for the reloaded libraries in the [modifiedModuleReport].
   void invalidate(ModifiedModuleReport modifiedModuleReport) {
     for (final library in modifiedModuleReport.modifiedLibraries) {
       // These will later be initialized by `libraryFor` if needed.

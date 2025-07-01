@@ -99,7 +99,8 @@ class Modules {
     final serverPath = await globalToolConfiguration.loadStrategy
         .serverPathForModule(entrypoint, module);
     // TODO(srujzs): We should wait until all scripts are parsed before
-    // accessing.
+    // accessing after a hot reload. See
+    // https://github.com/dart-lang/webdev/issues/2640.
     return chromePathToRuntimeScriptId[serverPath];
   }
 

@@ -76,19 +76,19 @@ class MetadataProvider {
     return true;
   }
 
-  /// A set of all libraries in the Dart application.
+  /// A list of all libraries in the Dart application.
   ///
   /// Example:
   ///
-  ///  {
+  ///  [
   ///     dart:web_gl,
   ///     dart:math,
   ///     org-dartlang-app:///web/main.dart
-  ///  }
+  ///  ]
   ///
-  Future<Set<String>> get libraries async {
+  Future<List<String>> get libraries async {
     await _initialize();
-    return _libraries;
+    return _libraries.toList();
   }
 
   /// A map of library uri to dart scripts.
@@ -226,9 +226,9 @@ class MetadataProvider {
   /// determines deleted and invalidated libraries and modules, invalidates them
   /// in any caches, and recomputes the necessary information.
   ///
-  /// Returns an [ModifiedModuleReport] that can be used to invalidate other
+  /// Returns a [ModifiedModuleReport] that can be used to invalidate other
   /// caches after a hot reload.
-  Future<ModifiedModuleReport> reinitializeAfterReload(
+  Future<ModifiedModuleReport> reinitializeAfterHotReload(
     Map<String, List> reloadedModulesToLibraries,
   ) async {
     final modules = (await _processMetadata(true))!;
@@ -265,7 +265,7 @@ class MetadataProvider {
       );
       _addMetadata(modules[module]!);
     }
-    // The libraries that were removed from the program or those that we
+    // The libraries that are removed from the program are those that we
     // invalidated but were never added again.
     final deletedLibraries =
         invalidatedLibraries
@@ -332,7 +332,7 @@ class AbsoluteImportUriException implements Exception {
 }
 
 /// Computed after a hot reload using
-/// [MetadataProvider.reinitializeAfterReload], represents the modules and
+/// [MetadataProvider.reinitializeAfterHotReload], represents the modules and
 /// libraries in the program that were deleted, reloaded, and therefore,
 /// modified.
 ///

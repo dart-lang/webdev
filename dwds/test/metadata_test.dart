@@ -207,7 +207,8 @@ void main() {
       ],
     };
     final libraryToParts = <String, List<String>>{
-      'l1': ['org-dartlang-app:///web/l1_p1.dart'],
+      'org-dartlang-app:///web/l1.dart': ['org-dartlang-app:///web/l1_p1.dart'],
+      'org-dartlang-app:///web/l3.dart': ['org-dartlang-app:///web/l3_p1.dart'],
     };
     final assetReader = FakeAssetReader(
       metadata: createMetadataContents(moduleToLibraries, libraryToParts),
@@ -227,8 +228,9 @@ void main() {
       ],
     };
     final newLibraryToParts = <String, List<String>>{
-      'l1': ['org-dartlang-app:///web/l1_p1.dart'],
-      'l7': ['org-dartlang-app:///web/l7_p1.dart'],
+      'org-dartlang-app:///web/l2.dart': ['org-dartlang-app:///web/l1_p1.dart'],
+      'org-dartlang-app:///web/l3.dart': ['org-dartlang-app:///web/l3_p2.dart'],
+      'org-dartlang-app:///web/l7.dart': ['org-dartlang-app:///web/l7_p1.dart'],
     };
     final reloadedModulesToLibraries = <String, List<String>>{
       'm3': ['org-dartlang-app:///web/l3.dart'],
@@ -241,7 +243,7 @@ void main() {
       newModuleToLibraries,
       newLibraryToParts,
     );
-    final modifiedModuleReport = await provider.reinitializeAfterReload(
+    final modifiedModuleReport = await provider.reinitializeAfterHotReload(
       reloadedModulesToLibraries,
     );
     expect(modifiedModuleReport.deletedModules, ['m2']);

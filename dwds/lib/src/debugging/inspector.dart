@@ -740,7 +740,7 @@ class AppInspector implements AppInspectorInterface {
               .scripts;
       if (modifiedModuleReport != null) {
         // Invalidate any script caches that were computed for the now invalid
-        // libraries. They will get repopulated later.
+        // libraries. They will get repopulated below.
         for (final libraryUri in modifiedModuleReport.modifiedLibraries) {
           final libraryRef = await _libraryHelper.libraryRefFor(libraryUri);
           final libraryId = libraryRef?.id;

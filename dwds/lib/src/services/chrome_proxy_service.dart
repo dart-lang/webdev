@@ -242,7 +242,7 @@ class ChromeProxyService implements VmServiceInterface {
   ) async {
     final entrypoint = inspector.appConnection.request.entrypointPath;
     final modifiedModuleReport = await globalToolConfiguration.loadStrategy
-        .reinitializeEntrypointAfterReload(entrypoint, reloadedModules);
+        .reinitializeProviderAfterHotReload(entrypoint, reloadedModules);
     await _initializeEntrypoint(entrypoint, modifiedModuleReport);
     await inspector.initialize(modifiedModuleReport);
   }
@@ -1211,13 +1211,13 @@ class ChromeProxyService implements VmServiceInterface {
 
     // Initiate a hot reload.
     _logger.info('Issuing \$dartHotReloadStartDwds request');
-    final reloadedModulesMap = await inspector.jsEvaluate(
+    final remoteObject = await inspector.jsEvaluate(
       '\$dartHotReloadStartDwds();',
       awaitPromise: true,
       returnByValue: true,
     );
-    final reloadedModules =
-        (reloadedModulesMap.value as Map).cast<String, List>();
+    final reloadedModulesToLibraries =
+        (remoteObject.value as Map).cast<String, List>();
 
     if (!pauseIsolatesOnStart) {
       // Finish hot reload immediately.
@@ -1252,7 +1252,7 @@ class ChromeProxyService implements VmServiceInterface {
     await pause(isolateId);
     await pausedEvent;
 
-    await _reinitializeForHotReload(reloadedModules);
+    await _reinitializeForHotReload(reloadedModulesToLibraries);
 
     // This lets the client know that we're ready for breakpoint management
     // and a resume.

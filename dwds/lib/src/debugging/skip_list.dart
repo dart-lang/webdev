@@ -25,14 +25,13 @@ class SkipLists {
     if (modifiedModuleReport != null) {
       assert(entrypoint != null);
       for (final url in _urlToId.keys) {
-        if (url.isEmpty) continue;
-
         final dartUri = DartUri(url, _root);
         final serverPath = dartUri.serverPath;
         final module = await globalToolConfiguration.loadStrategy
             .moduleForServerPath(entrypoint!, serverPath);
         if (modifiedModuleReport.modifiedModules.contains(module)) {
           _idToList.remove(_urlToId[url]!);
+          _urlToId.remove(url);
         }
       }
     } else {
@@ -51,7 +50,6 @@ class SkipLists {
     String url,
     Set<Location> locations,
   ) {
-    _urlToId[url] = scriptId;
     if (_idToList.containsKey(scriptId)) return _idToList[scriptId]!;
 
     final sortedLocations =
@@ -82,7 +80,10 @@ class SkipLists {
     }
     ranges.add(_rangeFor(scriptId, startLine, startColumn, maxValue, maxValue));
 
-    _idToList[scriptId] = ranges;
+    if (url.isNotEmpty) {
+      _idToList[scriptId] = ranges;
+      _urlToId[url] = scriptId;
+    }
     return ranges;
   }
 

@@ -183,12 +183,12 @@ abstract class LoadStrategy {
     return Future.value();
   }
 
-  Future<ModifiedModuleReport> reinitializeEntrypointAfterReload(
+  Future<ModifiedModuleReport> reinitializeProviderAfterHotReload(
     String entrypoint,
     Map<String, List> reloadedModulesToLibraries,
   ) {
     final provider = _providers[entrypoint]!;
-    return provider.reinitializeAfterReload(reloadedModulesToLibraries);
+    return provider.reinitializeAfterHotReload(reloadedModulesToLibraries);
   }
 }
 
