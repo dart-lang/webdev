@@ -1,4 +1,4 @@
-## 24.4.0-wip
+## 24.4.0
 
 - Added support for breakpoint registering on a hot reload with the DDC library bundle format using PausePostRequests.
 - `FrontendServerDdcLibraryBundleStrategy.hotReloadSourceUri` is now expected to also provide the reloaded modules.
