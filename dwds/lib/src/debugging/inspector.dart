@@ -35,9 +35,9 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 class AppInspector implements AppInspectorInterface {
   var _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
 
-  Future<List<ScriptRef>> getScriptRefs([
+  Future<List<ScriptRef>> getScriptRefs({
     ModifiedModuleReport? modifiedModuleReport,
-  ]) => _populateScriptCaches(modifiedModuleReport);
+  }) => _populateScriptCaches(modifiedModuleReport: modifiedModuleReport);
 
   final _logger = Logger('AppInspector');
 
@@ -107,7 +107,7 @@ class AppInspector implements AppInspectorInterface {
   /// Reset all caches and recompute any mappings.
   ///
   /// Should be called across hot reloads with a valid [ModifiedModuleReport].
-  Future<void> initialize([ModifiedModuleReport? modifiedModuleReport]) async {
+  Future<void> initialize({ModifiedModuleReport? modifiedModuleReport}) async {
     _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
 
     // TODO(srujzs): We can invalidate these in a smarter way instead of
@@ -118,7 +118,7 @@ class AppInspector implements AppInspectorInterface {
 
     if (modifiedModuleReport != null) {
       // Invalidate `_libraryHelper` as we use it populate any script caches.
-      _libraryHelper.initialize(modifiedModuleReport);
+      _libraryHelper.initialize(modifiedModuleReport: modifiedModuleReport);
     } else {
       _libraryHelper = LibraryHelper(this)..initialize();
       _scriptRefsById.clear();
@@ -132,7 +132,9 @@ class AppInspector implements AppInspectorInterface {
     isolate.libraries?.clear();
     isolate.libraries?.addAll(libraries);
 
-    final scripts = await getScriptRefs(modifiedModuleReport);
+    final scripts = await getScriptRefs(
+      modifiedModuleReport: modifiedModuleReport,
+    );
 
     await DartUri.initialize();
     DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri).nonNulls);
@@ -730,9 +732,9 @@ class AppInspector implements AppInspectorInterface {
   /// recalculates caches for the modified libraries.
   ///
   /// Returns the list of scripts refs cached.
-  Future<List<ScriptRef>> _populateScriptCaches([
+  Future<List<ScriptRef>> _populateScriptCaches({
     ModifiedModuleReport? modifiedModuleReport,
-  ]) {
+  }) {
     return _scriptCacheMemoizer.runOnce(() async {
       final scripts =
           await globalToolConfiguration.loadStrategy

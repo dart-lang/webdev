@@ -17,10 +17,10 @@ class LibraryHelper extends Domain {
   final Logger _logger = Logger('LibraryHelper');
 
   /// Map of library ID to [Library].
-  late final Map<String, Library> _librariesById;
+  final Map<String, Library> _librariesById = {};
 
   /// Map of libraryRef ID to [LibraryRef].
-  late final Map<String, LibraryRef> _libraryRefsById;
+  final Map<String, LibraryRef> _libraryRefsById = {};
 
   LibraryRef? _rootLib;
 
@@ -32,7 +32,7 @@ class LibraryHelper extends Domain {
   ///
   /// If [modifiedModuleReport] is not null, invalidates only modified libraries
   /// from the cache and recomputes values for any eager caches.
-  void initialize([ModifiedModuleReport? modifiedModuleReport]) {
+  void initialize({ModifiedModuleReport? modifiedModuleReport}) {
     _rootLib = null;
     if (modifiedModuleReport != null) {
       for (final library in modifiedModuleReport.modifiedLibraries) {
@@ -45,10 +45,10 @@ class LibraryHelper extends Domain {
         // map is empty before returning.
         _libraryRefsById[library] = _createLibraryRef(library);
       }
-    } else {
-      _librariesById = <String, Library>{};
-      _libraryRefsById = <String, LibraryRef>{};
+      return;
     }
+    _librariesById.clear();
+    _libraryRefsById.clear();
   }
 
   Future<LibraryRef> get rootLib async {

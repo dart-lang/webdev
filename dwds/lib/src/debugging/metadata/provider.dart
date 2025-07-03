@@ -170,14 +170,10 @@ class MetadataProvider {
     return _moduleToModulePath.keys.toList();
   }
 
-  /// Compute metadata information after reading the metadata contents.
-  ///
-  /// If [hotReload] is true, skips adding the SDK metadata and caches the
-  /// computed [ModuleMetadata], returning the resulting cache.
-  ///
-  /// Otherwise, adds all metadata and returns null.
-  Future<Map<String, ModuleMetadata>?> _processMetadata(bool hotReload) async {
-    final modules = hotReload ? <String, ModuleMetadata>{} : null;
+  /// Compute metadata information after reading the metadata contents and
+  /// return a map from module names to their [ModuleMetadata].
+  Future<Map<String, ModuleMetadata>> _processMetadata() async {
+    final modules = <String, ModuleMetadata>{};
     // The merged metadata resides next to the entrypoint.
     // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
     if (entrypoint.endsWith('.bootstrap.js')) {
@@ -188,8 +184,6 @@ class MetadataProvider {
       );
       final merged = await _assetReader.metadataContents(serverPath);
       if (merged != null) {
-        // We can't hot reload the SDK yet, so no need to invalidate this data.
-        if (!hotReload) _addSdkMetadata();
         for (final contents in merged.split('\n')) {
           try {
             if (contents.isEmpty ||
@@ -201,11 +195,7 @@ class MetadataProvider {
               moduleJson as Map<String, dynamic>,
             );
             final moduleName = metadata.name;
-            if (hotReload) {
-              modules![moduleName] = metadata;
-            } else {
-              _addMetadata(metadata);
-            }
+            modules[moduleName] = metadata;
             _logger.fine('Loaded debug metadata for module: $moduleName');
           } catch (e) {
             _logger.warning('Failed to read metadata: $e');
@@ -217,9 +207,13 @@ class MetadataProvider {
     return modules;
   }
 
-  /// Process all metadata and compute caches once.
+  /// Process all metadata, including SDK metadata, and compute caches once.
   Future<void> _initialize() async {
-    await _metadataMemoizer.runOnce(() => _processMetadata(false));
+    await _metadataMemoizer.runOnce(() async {
+      final metadata = await _processMetadata();
+      _addSdkMetadata();
+      metadata.values.forEach(_addMetadata);
+    });
   }
 
   /// Given a map of hot reloaded modules mapped to their respective libraries,
@@ -231,7 +225,7 @@ class MetadataProvider {
   Future<ModifiedModuleReport> reinitializeAfterHotReload(
     Map<String, List> reloadedModulesToLibraries,
   ) async {
-    final modules = (await _processMetadata(true))!;
+    final modules = await _processMetadata();
     final invalidatedLibraries = <String>{};
     void invalidateLibrary(String libraryImportUri) {
       invalidatedLibraries.add(libraryImportUri);

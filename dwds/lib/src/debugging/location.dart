@@ -152,10 +152,14 @@ class Locations {
 
   Modules get modules => _modules;
 
+  /// Initialize any caches.
+  ///
+  /// If [modifiedModuleReport] is not null, only invalidates the caches for the
+  /// modified modules instead.
   Future<void> initialize(
-    String entrypoint, [
+    String entrypoint, {
     ModifiedModuleReport? modifiedModuleReport,
-  ]) async {
+  }) async {
     // If we know that only certain modules are deleted or added, we can only
     // invalidate those.
     if (modifiedModuleReport != null) {
@@ -170,13 +174,13 @@ class Locations {
           }
         }
       }
-    } else {
-      _locationMemoizer.clear();
-      _moduleToLocations.clear();
-      _sourceToTokenPosTable.clear();
-      _sourceToLocation.clear();
-      _entrypoint = entrypoint;
+      return;
     }
+    _locationMemoizer.clear();
+    _moduleToLocations.clear();
+    _sourceToTokenPosTable.clear();
+    _sourceToLocation.clear();
+    _entrypoint = entrypoint;
   }
 
   /// Returns all [Location] data for a provided Dart source.

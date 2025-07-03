@@ -243,8 +243,11 @@ class ChromeProxyService implements VmServiceInterface {
     final entrypoint = inspector.appConnection.request.entrypointPath;
     final modifiedModuleReport = await globalToolConfiguration.loadStrategy
         .reinitializeProviderAfterHotReload(entrypoint, reloadedModules);
-    await _initializeEntrypoint(entrypoint, modifiedModuleReport);
-    await inspector.initialize(modifiedModuleReport);
+    await _initializeEntrypoint(
+      entrypoint,
+      modifiedModuleReport: modifiedModuleReport,
+    );
+    await inspector.initialize(modifiedModuleReport: modifiedModuleReport);
   }
 
   /// Initializes metadata in [Locations], [Modules], and [ExpressionCompiler].
@@ -252,12 +255,21 @@ class ChromeProxyService implements VmServiceInterface {
   /// If [modifiedModuleReport] is not null, only removes and reinitializes
   /// modified metadata.
   Future<void> _initializeEntrypoint(
-    String entrypoint, [
+    String entrypoint, {
     ModifiedModuleReport? modifiedModuleReport,
-  ]) async {
-    await _modules.initialize(entrypoint, modifiedModuleReport);
-    await _locations.initialize(entrypoint, modifiedModuleReport);
-    await _skipLists.initialize(entrypoint, modifiedModuleReport);
+  }) async {
+    await _modules.initialize(
+      entrypoint,
+      modifiedModuleReport: modifiedModuleReport,
+    );
+    await _locations.initialize(
+      entrypoint,
+      modifiedModuleReport: modifiedModuleReport,
+    );
+    await _skipLists.initialize(
+      entrypoint,
+      modifiedModuleReport: modifiedModuleReport,
+    );
     // We do not need to wait for compiler dependencies to be updated as the
     // [ExpressionEvaluator] is robust to evaluation requests during updates.
     safeUnawaited(_updateCompilerDependencies(entrypoint));

@@ -18,26 +18,29 @@ class SkipLists {
 
   SkipLists(this._root);
 
-  Future<void> initialize([
-    String? entrypoint,
+  /// Initialize any caches.
+  ///
+  /// If [modifiedModuleReport] is not null, only invalidates the caches for the
+  /// modified modules instead.
+  Future<void> initialize(
+    String entrypoint, {
     ModifiedModuleReport? modifiedModuleReport,
-  ]) async {
+  }) async {
     if (modifiedModuleReport != null) {
-      assert(entrypoint != null);
       for (final url in _urlToId.keys) {
         final dartUri = DartUri(url, _root);
         final serverPath = dartUri.serverPath;
         final module = await globalToolConfiguration.loadStrategy
-            .moduleForServerPath(entrypoint!, serverPath);
+            .moduleForServerPath(entrypoint, serverPath);
         if (modifiedModuleReport.modifiedModules.contains(module)) {
           _idToList.remove(_urlToId[url]!);
           _urlToId.remove(url);
         }
       }
-    } else {
-      _idToList.clear();
-      _urlToId.clear();
+      return;
     }
+    _idToList.clear();
+    _urlToId.clear();
   }
 
   /// Returns a skipList as defined by the Chrome DevTools Protocol.
