@@ -17,10 +17,10 @@ class LibraryHelper extends Domain {
   final Logger _logger = Logger('LibraryHelper');
 
   /// Map of library ID to [Library].
-  final Map<String, Library> _librariesById = {};
+  final _librariesById = <String, Library>{};
 
   /// Map of libraryRef ID to [LibraryRef].
-  final Map<String, LibraryRef> _libraryRefsById = {};
+  final _libraryRefsById = <String, LibraryRef>{};
 
   LibraryRef? _rootLib;
 

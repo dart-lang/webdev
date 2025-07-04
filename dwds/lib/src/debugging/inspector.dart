@@ -746,6 +746,7 @@ class AppInspector implements AppInspectorInterface {
         for (final libraryUri in modifiedModuleReport.modifiedLibraries) {
           final libraryRef = await _libraryHelper.libraryRefFor(libraryUri);
           final libraryId = libraryRef?.id;
+          // If this was not a pre-existing library, nothing to invalidate.
           if (libraryId == null) continue;
           final scriptRefs = _libraryIdToScriptRefs.remove(libraryId);
           if (scriptRefs == null) continue;
@@ -768,8 +769,7 @@ class AppInspector implements AppInspectorInterface {
         isolate.libraries ?? <LibraryRef>[],
       );
       for (final uri in userLibraries) {
-        if (modifiedModuleReport != null &&
-            !modifiedModuleReport.modifiedLibraries.contains(uri)) {
+        if (modifiedModuleReport?.modifiedLibraries.contains(uri) == false) {
           continue;
         }
         final parts = scripts[uri];

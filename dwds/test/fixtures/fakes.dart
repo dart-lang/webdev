@@ -68,8 +68,7 @@ class FakeInspector implements AppInspector {
   }
 
   @override
-  Future<void> initialize({ModifiedModuleReport? modifiedModuleReport}) async =>
-      {};
+  Future<void> initialize({ModifiedModuleReport? modifiedModuleReport}) async {}
 
   @override
   Future<InstanceRef?> instanceRefFor(Object value) async =>

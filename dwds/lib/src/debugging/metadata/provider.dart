@@ -344,10 +344,10 @@ class ModifiedModuleReport {
   /// Library uris that were loaded during the hot reload.
   final Set<String> reloadedLibraries;
 
-  /// Module names that were either removed or modified.
+  /// Module names that were either removed or modified, including additions.
   final Set<String> modifiedModules;
 
-  /// Library uris that were either removed or modified.
+  /// Library uris that were either removed or modified, including additions.
   final Set<String> modifiedLibraries;
   ModifiedModuleReport({
     required this.deletedModules,

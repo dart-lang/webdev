@@ -122,15 +122,16 @@ void main() {
     Map<String, List<String>> moduleToLibraries,
     Map<String, List<String>> libraryToParts,
   ) {
-    final contents = StringBuffer('');
-    for (final module in moduleToLibraries.keys) {
+    final contents = StringBuffer();
+    for (final MapEntry(key: module, value: libraries)
+        in moduleToLibraries.entries) {
       final moduleMetadata = ModuleMetadata(
         module,
         'load__web__$module',
         'foo/web/$module.ddc.js.map',
         'foo/web/$module.ddc.js',
       );
-      for (final library in moduleToLibraries[module]!) {
+      for (final library in libraries) {
         moduleMetadata.addLibrary(
           LibraryMetadata(library, library, libraryToParts[library] ?? []),
         );
@@ -146,10 +147,12 @@ void main() {
     Map<String, List<String>> moduleToLibraries,
     Map<String, List<String>> libraryToParts,
   ) async {
-    final scriptToModule = await provider.scriptToModule;
     final expectedScriptToModule = <String, String>{};
-    for (final module in moduleToLibraries.keys) {
-      final libraries = moduleToLibraries[module]!;
+    final expectedModuleToSourceMap = <String, String>{};
+    final expectedModulePathToModule = <String, String>{};
+    final expectedModules = <String>{};
+    for (final MapEntry(key: module, value: libraries)
+        in moduleToLibraries.entries) {
       for (final library in libraries) {
         expectedScriptToModule[library] = module;
         final parts = libraryToParts[library];
@@ -159,40 +162,34 @@ void main() {
           }
         }
       }
+      expectedModuleToSourceMap[module] = 'foo/web/$module.ddc.js.map';
+      expectedModulePathToModule['foo/web/$module.ddc.js'] = module;
+      expectedModules.add(module);
     }
-    for (final entry in expectedScriptToModule.entries) {
-      expect(scriptToModule[entry.key], entry.value);
+
+    final scriptToModule = await provider.scriptToModule;
+    for (final MapEntry(key: script, value: module)
+        in expectedScriptToModule.entries) {
+      expect(scriptToModule[script], module);
     }
 
     final moduleToSourceMap = await provider.moduleToSourceMap;
-    final expectedModuleToSourceMap = moduleToLibraries.keys.fold(
-      <String, String>{},
-      (map, module) {
-        map[module] = 'foo/web/$module.ddc.js.map';
-        return map;
-      },
-    );
-    for (final entry in expectedModuleToSourceMap.entries) {
-      expect(moduleToSourceMap[entry.key], entry.value);
+    for (final MapEntry(key: module, value: sourceMap)
+        in expectedModuleToSourceMap.entries) {
+      expect(moduleToSourceMap[module], sourceMap);
     }
 
     final modulePathToModule = await provider.modulePathToModule;
-    final expectedModulePathToModule = moduleToLibraries.keys.fold(
-      <String, String>{},
-      (map, module) {
-        map['foo/web/$module.ddc.js'] = module;
-        return map;
-      },
-    );
-    for (final entry in expectedModulePathToModule.entries) {
-      expect(modulePathToModule[entry.key], entry.value);
+    for (final MapEntry(key: modulePath, value: module)
+        in expectedModulePathToModule.entries) {
+      expect(modulePathToModule[modulePath], module);
     }
 
-    expect(await provider.modules, containsAll(moduleToLibraries.keys));
+    expect(await provider.modules, containsAll(expectedModules));
   }
 
   test('reinitialize produces correct ModifiedModuleReport', () async {
-    final moduleToLibraries = <String, List<String>>{
+    const moduleToLibraries = <String, List<String>>{
       'm1': [
         'org-dartlang-app:///web/l1.dart',
         'org-dartlang-app:///web/l2.dart',
@@ -206,7 +203,7 @@ void main() {
         'org-dartlang-app:///web/l6.dart',
       ],
     };
-    final libraryToParts = <String, List<String>>{
+    const libraryToParts = <String, List<String>>{
       'org-dartlang-app:///web/l1.dart': ['org-dartlang-app:///web/l1_p1.dart'],
       'org-dartlang-app:///web/l3.dart': ['org-dartlang-app:///web/l3_p1.dart'],
     };
@@ -216,7 +213,7 @@ void main() {
     final provider = MetadataProvider('foo.bootstrap.js', assetReader);
     await validateProvider(provider, moduleToLibraries, libraryToParts);
 
-    final newModuleToLibraries = <String, List<String>>{
+    const newModuleToLibraries = <String, List<String>>{
       'm1': [
         'org-dartlang-app:///web/l1.dart',
         'org-dartlang-app:///web/l2.dart',
@@ -227,12 +224,12 @@ void main() {
         'org-dartlang-app:///web/l7.dart',
       ],
     };
-    final newLibraryToParts = <String, List<String>>{
+    const newLibraryToParts = <String, List<String>>{
       'org-dartlang-app:///web/l2.dart': ['org-dartlang-app:///web/l1_p1.dart'],
       'org-dartlang-app:///web/l3.dart': ['org-dartlang-app:///web/l3_p2.dart'],
       'org-dartlang-app:///web/l7.dart': ['org-dartlang-app:///web/l7_p1.dart'],
     };
-    final reloadedModulesToLibraries = <String, List<String>>{
+    const reloadedModulesToLibraries = <String, List<String>>{
       'm3': ['org-dartlang-app:///web/l3.dart'],
       'm4': [
         'org-dartlang-app:///web/l4.dart',

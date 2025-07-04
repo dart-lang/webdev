@@ -124,10 +124,10 @@ class Modules {
     final scriptToModule = await provider.scriptToModule;
 
     for (final library in libraryToScripts.keys) {
-      if (modifiedModuleReport != null) {
+      if (modifiedModuleReport?.modifiedLibraries.contains(library) == false) {
         // Note that every module will have at least one library associated with
         // it, so it's okay to only process the modified libraries.
-        if (!modifiedModuleReport.modifiedLibraries.contains(library)) continue;
+        continue;
       }
       final scripts = libraryToScripts[library]!;
       final libraryServerPath = _getLibraryServerPath(library);
