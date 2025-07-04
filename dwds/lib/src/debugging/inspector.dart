@@ -13,6 +13,7 @@ import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/libraries.dart';
 import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
@@ -34,7 +35,9 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 class AppInspector implements AppInspectorInterface {
   var _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
 
-  Future<List<ScriptRef>> get scriptRefs => _populateScriptCaches();
+  Future<List<ScriptRef>> getScriptRefs({
+    ModifiedModuleReport? modifiedModuleReport,
+  }) => _populateScriptCaches(modifiedModuleReport: modifiedModuleReport);
 
   final _logger = Logger('AppInspector');
 
@@ -103,24 +106,35 @@ class AppInspector implements AppInspectorInterface {
 
   /// Reset all caches and recompute any mappings.
   ///
-  /// Should be called across hot reloads.
-  Future<void> initialize() async {
+  /// Should be called across hot reloads with a valid [ModifiedModuleReport].
+  Future<void> initialize({ModifiedModuleReport? modifiedModuleReport}) async {
     _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
-    _scriptRefsById.clear();
-    _serverPathToScriptRef.clear();
-    _scriptIdToLibraryId.clear();
-    _libraryIdToScriptRefs.clear();
 
-    _libraryHelper = LibraryHelper(this);
+    // TODO(srujzs): We can invalidate these in a smarter way instead of
+    // reinitializing when doing a hot reload, but these helpers recompute info
+    // on demand later and therefore are not in the critical path.
     _classHelper = ClassHelper(this);
     _instanceHelper = InstanceHelper(this);
+
+    if (modifiedModuleReport != null) {
+      // Invalidate `_libraryHelper` as we use it populate any script caches.
+      _libraryHelper.initialize(modifiedModuleReport: modifiedModuleReport);
+    } else {
+      _libraryHelper = LibraryHelper(this)..initialize();
+      _scriptRefsById.clear();
+      _serverPathToScriptRef.clear();
+      _scriptIdToLibraryId.clear();
+      _libraryIdToScriptRefs.clear();
+    }
 
     final libraries = await _libraryHelper.libraryRefs;
     isolate.rootLib = await _libraryHelper.rootLib;
     isolate.libraries?.clear();
     isolate.libraries?.addAll(libraries);
 
-    final scripts = await scriptRefs;
+    final scripts = await getScriptRefs(
+      modifiedModuleReport: modifiedModuleReport,
+    );
 
     await DartUri.initialize();
     DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri).nonNulls);
@@ -583,7 +597,7 @@ class AppInspector implements AppInspectorInterface {
   /// All the scripts in the isolate.
   @override
   Future<ScriptList> getScripts() async {
-    return ScriptList(scripts: await scriptRefs);
+    return ScriptList(scripts: await getScriptRefs());
   }
 
   /// Calls the Chrome Runtime.getProperties API for the object with [objectId].
@@ -714,19 +728,50 @@ class AppInspector implements AppInspectorInterface {
   ///
   /// This will get repopulated on restarts and reloads.
   ///
+  /// If [modifiedModuleReport] is provided, only invalidates and
+  /// recalculates caches for the modified libraries.
+  ///
   /// Returns the list of scripts refs cached.
-  Future<List<ScriptRef>> _populateScriptCaches() {
+  Future<List<ScriptRef>> _populateScriptCaches({
+    ModifiedModuleReport? modifiedModuleReport,
+  }) {
     return _scriptCacheMemoizer.runOnce(() async {
       final scripts =
           await globalToolConfiguration.loadStrategy
               .metadataProviderFor(appConnection.request.entrypointPath)
               .scripts;
+      if (modifiedModuleReport != null) {
+        // Invalidate any script caches that were computed for the now invalid
+        // libraries. They will get repopulated below.
+        for (final libraryUri in modifiedModuleReport.modifiedLibraries) {
+          final libraryRef = await _libraryHelper.libraryRefFor(libraryUri);
+          final libraryId = libraryRef?.id;
+          // If this was not a pre-existing library, nothing to invalidate.
+          if (libraryId == null) continue;
+          final scriptRefs = _libraryIdToScriptRefs.remove(libraryId);
+          if (scriptRefs == null) continue;
+          for (final scriptRef in scriptRefs) {
+            final scriptId = scriptRef.id;
+            final scriptUri = scriptRef.uri;
+            if (scriptId != null && scriptUri != null) {
+              _scriptRefsById.remove(scriptId);
+              _scriptIdToLibraryId.remove(scriptId);
+              _serverPathToScriptRef.remove(
+                DartUri(scriptUri, _root).serverPath,
+              );
+            }
+          }
+        }
+      }
       // For all the non-dart: libraries, find their parts and create scriptRefs
       // for them.
       final userLibraries = _userLibraryUris(
         isolate.libraries ?? <LibraryRef>[],
       );
       for (final uri in userLibraries) {
+        if (modifiedModuleReport?.modifiedLibraries.contains(uri) == false) {
+          continue;
+        }
         final parts = scripts[uri];
         final scriptRefs = [
           ScriptRef(uri: uri, id: createId()),

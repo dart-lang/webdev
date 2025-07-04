@@ -17,6 +17,7 @@ import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
@@ -196,7 +197,7 @@ class ChromeProxyService implements VmServiceInterface {
 
     final modules = Modules(root);
     final locations = Locations(assetReader, modules, root);
-    final skipLists = SkipLists();
+    final skipLists = SkipLists(root);
     final service = ChromeProxyService._(
       vm,
       root,
@@ -234,25 +235,41 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   /// Reinitializes any caches so that they can be recomputed across hot reload.
-  // TODO(srujzs): We can maybe do better here than reinitializing all the data.
-  // Specifically, we can invalidate certain parts as we know what libraries
-  // will be stale, and therefore recompute information only for those libraries
-  // and possibly libraries that depend on them. Currently, there's no good
-  // separation between "existing" information and "new" information, making
-  // this difficult.
-  // https://github.com/dart-lang/webdev/issues/2628
-  Future<void> _reinitializeForHotReload() async {
+  ///
+  /// We use the [ModifiedModuleReport] to more efficiently invalidate caches.
+  Future<void> _reinitializeForHotReload(
+    Map<String, List> reloadedModules,
+  ) async {
     final entrypoint = inspector.appConnection.request.entrypointPath;
-    await globalToolConfiguration.loadStrategy.trackEntrypoint(entrypoint);
-    _initializeEntrypoint(entrypoint);
-    await inspector.initialize();
+    final modifiedModuleReport = await globalToolConfiguration.loadStrategy
+        .reinitializeProviderAfterHotReload(entrypoint, reloadedModules);
+    await _initializeEntrypoint(
+      entrypoint,
+      modifiedModuleReport: modifiedModuleReport,
+    );
+    await inspector.initialize(modifiedModuleReport: modifiedModuleReport);
   }
 
   /// Initializes metadata in [Locations], [Modules], and [ExpressionCompiler].
-  void _initializeEntrypoint(String entrypoint) {
-    _locations.initialize(entrypoint);
-    _modules.initialize(entrypoint);
-    _skipLists.initialize();
+  ///
+  /// If [modifiedModuleReport] is not null, only removes and reinitializes
+  /// modified metadata.
+  Future<void> _initializeEntrypoint(
+    String entrypoint, {
+    ModifiedModuleReport? modifiedModuleReport,
+  }) async {
+    await _modules.initialize(
+      entrypoint,
+      modifiedModuleReport: modifiedModuleReport,
+    );
+    await _locations.initialize(
+      entrypoint,
+      modifiedModuleReport: modifiedModuleReport,
+    );
+    await _skipLists.initialize(
+      entrypoint,
+      modifiedModuleReport: modifiedModuleReport,
+    );
     // We do not need to wait for compiler dependencies to be updated as the
     // [ExpressionEvaluator] is robust to evaluation requests during updates.
     safeUnawaited(_updateCompilerDependencies(entrypoint));
@@ -346,7 +363,7 @@ class ChromeProxyService implements VmServiceInterface {
     if (!newConnection) {
       await globalToolConfiguration.loadStrategy.trackEntrypoint(entrypoint);
     }
-    _initializeEntrypoint(entrypoint);
+    await _initializeEntrypoint(entrypoint);
 
     debugger.notifyPausedAtStart();
     _inspector = await AppInspector.create(
@@ -1206,11 +1223,13 @@ class ChromeProxyService implements VmServiceInterface {
 
     // Initiate a hot reload.
     _logger.info('Issuing \$dartHotReloadStartDwds request');
-    await inspector.jsEvaluate(
+    final remoteObject = await inspector.jsEvaluate(
       '\$dartHotReloadStartDwds();',
       awaitPromise: true,
       returnByValue: true,
     );
+    final reloadedModulesToLibraries =
+        (remoteObject.value as Map).cast<String, List>();
 
     if (!pauseIsolatesOnStart) {
       // Finish hot reload immediately.
@@ -1245,7 +1264,7 @@ class ChromeProxyService implements VmServiceInterface {
     await pause(isolateId);
     await pausedEvent;
 
-    await _reinitializeForHotReload();
+    await _reinitializeForHotReload(reloadedModulesToLibraries);
 
     // This lets the client know that we're ready for breakpoint management
     // and a resume.

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:dwds/src/utilities/shared.dart';
 
@@ -85,7 +86,7 @@ class DdcLibraryBundleRestarter implements Restarter {
   }
 
   @override
-  Future<JSArray<JSString>> hotReloadStart(String hotReloadSourcesPath) async {
+  Future<JSObject> hotReloadStart(String hotReloadSourcesPath) async {
     final completer = Completer<String>();
     final xhr = _XMLHttpRequest();
     xhr.withCredentials = true;
@@ -101,13 +102,17 @@ class DdcLibraryBundleRestarter implements Restarter {
     xhr.send();
     final responseText = await completer.future;
 
-    final srcLibraries = (json.decode(responseText) as List).cast<Map>();
+    final srcModuleLibraries = (json.decode(responseText) as List).cast<Map>();
     final filesToLoad = JSArray<JSString>();
+    final moduleMap = JSObject();
     final librariesToReload = JSArray<JSString>();
-    for (final srcLibrary in srcLibraries) {
-      final srcLibraryCast = srcLibrary.cast<String, Object>();
-      filesToLoad.push((srcLibraryCast['src'] as String).toJS);
-      final libraries = (srcLibraryCast['libraries'] as List).cast<String>();
+    for (final srcModuleLibrary in srcModuleLibraries) {
+      final srcModuleLibraryCast = srcModuleLibrary.cast<String, Object>();
+      filesToLoad.push((srcModuleLibraryCast['src'] as String).toJS);
+      final module = srcModuleLibraryCast['module'] as String;
+      final libraries =
+          (srcModuleLibraryCast['libraries'] as List).cast<String>();
+      moduleMap[module] = libraries.jsify();
       for (final library in libraries) {
         librariesToReload.push(library.toJS);
       }
@@ -117,7 +122,7 @@ class DdcLibraryBundleRestarter implements Restarter {
           _capturedHotReloadEndCallback = hotReloadEndCallback;
         }.toJS;
     await _dartDevEmbedder.hotReload(filesToLoad, librariesToReload).toDart;
-    return librariesToReload;
+    return moduleMap;
   }
 
   @override

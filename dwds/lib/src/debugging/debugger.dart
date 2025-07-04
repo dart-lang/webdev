@@ -594,6 +594,7 @@ class Debugger extends Domain {
             params: {
               'skipList': _skipLists.compute(
                 scriptId,
+                url,
                 await _locations.locationsForUrl(url),
               ),
             },

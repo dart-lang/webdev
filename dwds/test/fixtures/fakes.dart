@@ -68,7 +68,7 @@ class FakeInspector implements AppInspector {
   }
 
   @override
-  Future<void> initialize() async => {};
+  Future<void> initialize({ModifiedModuleReport? modifiedModuleReport}) async {}
 
   @override
   Future<InstanceRef?> instanceRefFor(Object value) async =>
@@ -157,7 +157,10 @@ class FakeModules implements Modules {
        _path = path;
 
   @override
-  void initialize(String entrypoint) {}
+  Future<void> initialize(
+    String entrypoint, {
+    ModifiedModuleReport? modifiedModuleReport,
+  }) async {}
 
   @override
   Future<Uri> libraryForSource(String serverPath) async => Uri(path: _library);
@@ -166,7 +169,10 @@ class FakeModules implements Modules {
   Future<String> moduleForSource(String serverPath) async => _module;
 
   @override
-  Future<Map<String, String>> modules() async => {_module: _path};
+  Future<Set<String>> sourcesForModule(String module) async => {_path};
+
+  @override
+  Future<Map<String, String>> modules() async => {_path: _module};
 
   @override
   Future<String> moduleForLibrary(String libraryUri) async => _module;
@@ -406,12 +412,11 @@ class FakeStrategy extends LoadStrategy {
 }
 
 class FakeAssetReader implements AssetReader {
-  final String? _metadata;
+  String? metadata;
   final String? _dartSource;
   final String? _sourceMap;
-  const FakeAssetReader({metadata, dartSource, sourceMap})
-    : _metadata = metadata,
-      _dartSource = dartSource,
+  FakeAssetReader({this.metadata, dartSource, sourceMap})
+    : _dartSource = dartSource,
       _sourceMap = sourceMap;
 
   @override
@@ -424,7 +429,7 @@ class FakeAssetReader implements AssetReader {
 
   @override
   Future<String> metadataContents(String serverPath) {
-    return _throwUnimplementedOrReturnContents(_metadata);
+    return _throwUnimplementedOrReturnContents(metadata);
   }
 
   @override

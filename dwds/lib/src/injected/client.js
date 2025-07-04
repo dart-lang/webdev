@@ -21651,6 +21651,7 @@
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
       var t1, t2, value, $$v, _$result,
+        _s11_ = "BuildResult",
         result = new A.BuildResultBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
       for (t1 = type$.BuildStatus; iterator.moveNext$0();) {
@@ -21674,7 +21675,13 @@
         }
       }
       _$result = result._build_result$_$v;
-      return result._build_result$_$v = _$result == null ? new A._$BuildResult(A.BuiltValueNullFieldError_checkNotNull(result.get$_build_result$_$this()._status, "BuildResult", "status", t1)) : _$result;
+      if (_$result == null) {
+        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_build_result$_$this()._status, _s11_, "status", t1);
+        _$result = new A._$BuildResult(t2);
+        A.BuiltValueNullFieldError_checkNotNull(t2, _s11_, "status", t1);
+      }
+      A.ArgumentError_checkNotNull(_$result, "other", type$.BuildResult);
+      return result._build_result$_$v = _$result;
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -21805,13 +21812,22 @@
       return _this;
     },
     _connect_request$_build$0() {
-      var t1, _this = this,
+      var t1, t2, t3, t4, _this = this,
         _s14_ = "ConnectRequest",
+        _s10_ = "instanceId",
+        _s14_0 = "entrypointPath",
         _$result = _this._connect_request$_$v;
       if (_$result == null) {
         t1 = type$.String;
-        _$result = new A._$ConnectRequest(A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._connect_request$_appId, _s14_, "appId", t1), A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._instanceId, _s14_, "instanceId", t1), A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._entrypointPath, _s14_, "entrypointPath", t1));
+        t2 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._connect_request$_appId, _s14_, "appId", t1);
+        t3 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._instanceId, _s14_, _s10_, t1);
+        t4 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_connect_request$_$this()._entrypointPath, _s14_, _s14_0, t1);
+        _$result = new A._$ConnectRequest(t2, t3, t4);
+        A.BuiltValueNullFieldError_checkNotNull(t2, _s14_, "appId", t1);
+        A.BuiltValueNullFieldError_checkNotNull(t3, _s14_, _s10_, t1);
+        A.BuiltValueNullFieldError_checkNotNull(t4, _s14_, _s14_0, t1);
       }
+      A.ArgumentError_checkNotNull(_$result, "other", type$.ConnectRequest);
       return _this._connect_request$_$v = _$result;
     }
   };
@@ -21976,13 +21992,23 @@
       return _this;
     },
     _debug_event$_build$0() {
-      var t1, _this = this,
+      var t1, t2, t3, t4, t5, _this = this,
         _s10_ = "DebugEvent",
+        _s9_ = "eventData",
+        _s9_0 = "timestamp",
         _$result = _this._debug_event$_$v;
       if (_$result == null) {
         t1 = type$.String;
-        _$result = new A._$DebugEvent(A.BuiltValueNullFieldError_checkNotNull(_this.get$_debug_event$_$this()._debug_event$_kind, _s10_, "kind", t1), A.BuiltValueNullFieldError_checkNotNull(_this.get$_debug_event$_$this()._eventData, _s10_, "eventData", t1), A.BuiltValueNullFieldError_checkNotNull(_this.get$_debug_event$_$this()._timestamp, _s10_, "timestamp", type$.int));
+        t2 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_debug_event$_$this()._debug_event$_kind, _s10_, "kind", t1);
+        t3 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_debug_event$_$this()._eventData, _s10_, _s9_, t1);
+        t4 = type$.int;
+        t5 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_debug_event$_$this()._timestamp, _s10_, _s9_0, t4);
+        _$result = new A._$DebugEvent(t2, t3, t5);
+        A.BuiltValueNullFieldError_checkNotNull(t2, _s10_, "kind", t1);
+        A.BuiltValueNullFieldError_checkNotNull(t3, _s10_, _s9_, t1);
+        A.BuiltValueNullFieldError_checkNotNull(t5, _s10_, _s9_0, t4);
       }
+      A.ArgumentError_checkNotNull(_$result, "other", type$.DebugEvent);
       return _this._debug_event$_$v = _$result;
     }
   };
@@ -22027,10 +22053,17 @@
       return _this;
     },
     _debug_event$_build$0() {
-      var _$failedField, e, _$result0, exception, t1, _this = this, _$result = null;
+      var _$failedField, e, _$result0, t1, exception, t2, _this = this,
+        _s18_ = "BatchedDebugEvents",
+        _$result = null;
       try {
         _$result0 = _this._debug_event$_$v;
-        _$result = _$result0 == null ? new A._$BatchedDebugEvents(_this.get$events().build$0()) : _$result0;
+        if (_$result0 == null) {
+          t1 = _this.get$events().build$0();
+          _$result0 = new A._$BatchedDebugEvents(t1);
+          A.BuiltValueNullFieldError_checkNotNull(t1, _s18_, "events", type$.BuiltList_DebugEvent);
+        }
+        _$result = _$result0;
       } catch (exception) {
         _$failedField = A._Cell$named("_$failedField");
         try {
@@ -22038,12 +22071,15 @@
           _this.get$events().build$0();
         } catch (exception) {
           e = A.unwrapException(exception);
-          t1 = A.BuiltValueNestedFieldError$("BatchedDebugEvents", _$failedField.readLocal$0(), J.toString$0$(e));
+          t1 = A.BuiltValueNestedFieldError$(_s18_, _$failedField.readLocal$0(), J.toString$0$(e));
           throw A.wrapException(t1);
         }
         throw exception;
       }
-      _this._debug_event$_$v = type$.BatchedDebugEvents._as(_$result);
+      t1 = type$.BatchedDebugEvents;
+      t2 = t1._as(_$result);
+      A.ArgumentError_checkNotNull(t2, "other", t1);
+      _this._debug_event$_$v = t2;
       return _$result;
     },
     set$_events(_events) {
@@ -22263,7 +22299,10 @@
     _build$0() {
       var _this = this,
         _$result = _this._$v;
-      return _this._$v = _$result == null ? new A._$DebugInfo(_this.get$_$this()._appEntrypointPath, _this.get$_$this()._appId, _this.get$_$this()._appInstanceId, _this.get$_$this()._appOrigin, _this.get$_$this()._appUrl, _this.get$_$this()._authUrl, _this.get$_$this()._dwdsVersion, _this.get$_$this()._extensionUrl, _this.get$_$this()._isInternalBuild, _this.get$_$this()._isFlutterApp, _this.get$_$this()._workspaceName, _this.get$_$this()._tabUrl, _this.get$_$this()._tabId) : _$result;
+      if (_$result == null)
+        _$result = new A._$DebugInfo(_this.get$_$this()._appEntrypointPath, _this.get$_$this()._appId, _this.get$_$this()._appInstanceId, _this.get$_$this()._appOrigin, _this.get$_$this()._appUrl, _this.get$_$this()._authUrl, _this.get$_$this()._dwdsVersion, _this.get$_$this()._extensionUrl, _this.get$_$this()._isInternalBuild, _this.get$_$this()._isFlutterApp, _this.get$_$this()._workspaceName, _this.get$_$this()._tabUrl, _this.get$_$this()._tabId);
+      A.ArgumentError_checkNotNull(_$result, "other", type$.DebugInfo);
+      return _this._$v = _$result;
     }
   };
   A.DevToolsRequest.prototype = {};
@@ -22369,7 +22408,8 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, _$result,
+      var t1, value, _$result, t2, t3,
+        _s15_ = "promptExtension",
         _s16_ = "DevToolsResponse",
         result = new A.DevToolsResponseBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
@@ -22401,8 +22441,13 @@
       _$result = result._devtools_request$_$v;
       if (_$result == null) {
         t1 = type$.bool;
-        _$result = new A._$DevToolsResponse(A.BuiltValueNullFieldError_checkNotNull(result.get$_devtools_request$_$this()._success, _s16_, "success", t1), A.BuiltValueNullFieldError_checkNotNull(result.get$_devtools_request$_$this()._promptExtension, _s16_, "promptExtension", t1), result.get$_devtools_request$_$this()._error);
+        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_devtools_request$_$this()._success, _s16_, "success", t1);
+        t3 = A.BuiltValueNullFieldError_checkNotNull(result.get$_devtools_request$_$this()._promptExtension, _s16_, _s15_, t1);
+        _$result = new A._$DevToolsResponse(t2, t3, result.get$_devtools_request$_$this()._error);
+        A.BuiltValueNullFieldError_checkNotNull(t2, _s16_, "success", t1);
+        A.BuiltValueNullFieldError_checkNotNull(t3, _s16_, _s15_, t1);
       }
+      A.ArgumentError_checkNotNull(_$result, "other", type$.DevToolsResponse);
       return result._devtools_request$_$v = _$result;
     },
     deserialize$2(serializers, serialized) {
@@ -22459,13 +22504,19 @@
       return _this;
     },
     _devtools_request$_build$0() {
-      var t1, _this = this,
+      var t1, t2, t3, _this = this,
         _s15_ = "DevToolsRequest",
+        _s10_ = "instanceId",
         _$result = _this._devtools_request$_$v;
       if (_$result == null) {
         t1 = type$.String;
-        _$result = new A._$DevToolsRequest(A.BuiltValueNullFieldError_checkNotNull(_this.get$_devtools_request$_$this()._devtools_request$_appId, _s15_, "appId", t1), A.BuiltValueNullFieldError_checkNotNull(_this.get$_devtools_request$_$this()._devtools_request$_instanceId, _s15_, "instanceId", t1), _this.get$_devtools_request$_$this()._contextId, _this.get$_devtools_request$_$this()._devtools_request$_tabUrl, _this.get$_devtools_request$_$this()._uriOnly, _this.get$_devtools_request$_$this()._devtools_request$_client);
+        t2 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_devtools_request$_$this()._devtools_request$_appId, _s15_, "appId", t1);
+        t3 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_devtools_request$_$this()._devtools_request$_instanceId, _s15_, _s10_, t1);
+        _$result = new A._$DevToolsRequest(t2, t3, _this.get$_devtools_request$_$this()._contextId, _this.get$_devtools_request$_$this()._devtools_request$_tabUrl, _this.get$_devtools_request$_$this()._uriOnly, _this.get$_devtools_request$_$this()._devtools_request$_client);
+        A.BuiltValueNullFieldError_checkNotNull(t2, _s15_, "appId", t1);
+        A.BuiltValueNullFieldError_checkNotNull(t3, _s15_, _s10_, t1);
       }
+      A.ArgumentError_checkNotNull(_$result, "other", type$.DevToolsRequest);
       return _this._devtools_request$_$v = _$result;
     }
   };
@@ -22516,7 +22567,8 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, $$v, _$result,
+      var t1, value, $$v, _$result, t2, t3,
+        _s10_ = "stackTrace",
         _s13_ = "ErrorResponse",
         result = new A.ErrorResponseBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
@@ -22556,8 +22608,13 @@
       _$result = result._error_response$_$v;
       if (_$result == null) {
         t1 = type$.String;
-        _$result = new A._$ErrorResponse(A.BuiltValueNullFieldError_checkNotNull(result.get$_error_response$_$this()._error_response$_error, _s13_, "error", t1), A.BuiltValueNullFieldError_checkNotNull(result.get$_error_response$_$this()._error_response$_stackTrace, _s13_, "stackTrace", t1));
+        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_error_response$_$this()._error_response$_error, _s13_, "error", t1);
+        t3 = A.BuiltValueNullFieldError_checkNotNull(result.get$_error_response$_$this()._error_response$_stackTrace, _s13_, _s10_, t1);
+        _$result = new A._$ErrorResponse(t2, t3);
+        A.BuiltValueNullFieldError_checkNotNull(t2, _s13_, "error", t1);
+        A.BuiltValueNullFieldError_checkNotNull(t3, _s13_, _s10_, t1);
       }
+      A.ArgumentError_checkNotNull(_$result, "other", type$.ErrorResponse);
       return result._error_response$_$v = _$result;
     },
     deserialize$2(serializers, serialized) {
@@ -22623,7 +22680,7 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, _$result,
+      var t1, value, _$result, t2, t3, t4,
         _s16_ = "ExtensionRequest",
         result = new A.ExtensionRequestBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
@@ -22653,7 +22710,17 @@
         }
       }
       _$result = result._extension_request$_$v;
-      return result._extension_request$_$v = _$result == null ? new A._$ExtensionRequest(A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._id, _s16_, "id", type$.int), A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._command, _s16_, "command", type$.String), result.get$_extension_request$_$this()._commandParams) : _$result;
+      if (_$result == null) {
+        t1 = type$.int;
+        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._id, _s16_, "id", t1);
+        t3 = type$.String;
+        t4 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._command, _s16_, "command", t3);
+        _$result = new A._$ExtensionRequest(t2, t4, result.get$_extension_request$_$this()._commandParams);
+        A.BuiltValueNullFieldError_checkNotNull(t2, _s16_, "id", t1);
+        A.BuiltValueNullFieldError_checkNotNull(t4, _s16_, "command", t3);
+      }
+      A.ArgumentError_checkNotNull(_$result, "other", type$.ExtensionRequest);
+      return result._extension_request$_$v = _$result;
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -22683,7 +22750,7 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, _$result,
+      var t1, value, _$result, t2, t3, t4, t5, t6,
         _s17_ = "ExtensionResponse",
         result = new A.ExtensionResponseBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
@@ -22719,7 +22786,20 @@
         }
       }
       _$result = result._extension_request$_$v;
-      return result._extension_request$_$v = _$result == null ? new A._$ExtensionResponse(A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._id, _s17_, "id", type$.int), A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._extension_request$_success, _s17_, "success", type$.bool), A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._extension_request$_result, _s17_, "result", type$.String), result.get$_extension_request$_$this()._extension_request$_error) : _$result;
+      if (_$result == null) {
+        t1 = type$.int;
+        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._id, _s17_, "id", t1);
+        t3 = type$.bool;
+        t4 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._extension_request$_success, _s17_, "success", t3);
+        t5 = type$.String;
+        t6 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._extension_request$_result, _s17_, "result", t5);
+        _$result = new A._$ExtensionResponse(t2, t4, t6, result.get$_extension_request$_$this()._extension_request$_error);
+        A.BuiltValueNullFieldError_checkNotNull(t2, _s17_, "id", t1);
+        A.BuiltValueNullFieldError_checkNotNull(t4, _s17_, "success", t3);
+        A.BuiltValueNullFieldError_checkNotNull(t6, _s17_, "result", t5);
+      }
+      A.ArgumentError_checkNotNull(_$result, "other", type$.ExtensionResponse);
+      return result._extension_request$_$v = _$result;
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -22742,7 +22822,7 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, $$v, _$result,
+      var t1, value, $$v, _$result, t2, t3,
         _s14_ = "ExtensionEvent",
         result = new A.ExtensionEventBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
@@ -22782,8 +22862,13 @@
       _$result = result._extension_request$_$v;
       if (_$result == null) {
         t1 = type$.String;
-        _$result = new A._$ExtensionEvent(A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._params, _s14_, "params", t1), A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._extension_request$_method, _s14_, "method", t1));
+        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._params, _s14_, "params", t1);
+        t3 = A.BuiltValueNullFieldError_checkNotNull(result.get$_extension_request$_$this()._extension_request$_method, _s14_, "method", t1);
+        _$result = new A._$ExtensionEvent(t2, t3);
+        A.BuiltValueNullFieldError_checkNotNull(t2, _s14_, "params", t1);
+        A.BuiltValueNullFieldError_checkNotNull(t3, _s14_, "method", t1);
       }
+      A.ArgumentError_checkNotNull(_$result, "other", type$.ExtensionEvent);
       return result._extension_request$_$v = _$result;
     },
     deserialize$2(serializers, serialized) {
@@ -23019,10 +23104,17 @@
       return t1;
     },
     _extension_request$_build$0() {
-      var _$failedField, e, _$result0, exception, t1, _this = this, _$result = null;
+      var _$failedField, e, _$result0, t1, exception, t2, _this = this,
+        _s13_ = "BatchedEvents",
+        _$result = null;
       try {
         _$result0 = _this._extension_request$_$v;
-        _$result = _$result0 == null ? new A._$BatchedEvents(_this.get$events().build$0()) : _$result0;
+        if (_$result0 == null) {
+          t1 = _this.get$events().build$0();
+          _$result0 = new A._$BatchedEvents(t1);
+          A.BuiltValueNullFieldError_checkNotNull(t1, _s13_, "events", type$.BuiltList_ExtensionEvent);
+        }
+        _$result = _$result0;
       } catch (exception) {
         _$failedField = A._Cell$named("_$failedField");
         try {
@@ -23030,12 +23122,15 @@
           _this.get$events().build$0();
         } catch (exception) {
           e = A.unwrapException(exception);
-          t1 = A.BuiltValueNestedFieldError$("BatchedEvents", _$failedField.readLocal$0(), J.toString$0$(e));
+          t1 = A.BuiltValueNestedFieldError$(_s13_, _$failedField.readLocal$0(), J.toString$0$(e));
           throw A.wrapException(t1);
         }
         throw exception;
       }
-      _this._extension_request$_$v = type$.BatchedEvents._as(_$result);
+      t1 = type$.BatchedEvents;
+      t2 = t1._as(_$result);
+      A.ArgumentError_checkNotNull(t2, "other", t1);
+      _this._extension_request$_$v = t2;
       return _$result;
     },
     set$_extension_request$_events(_events) {
@@ -23051,7 +23146,8 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, $$v, _$result,
+      var t1, value, $$v, _$result, t2,
+        _s16_ = "HotReloadRequest",
         result = new A.HotReloadRequestBuilder(),
         iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
       for (; iterator.moveNext$0();) {
@@ -23075,7 +23171,14 @@
         }
       }
       _$result = result._hot_reload_request$_$v;
-      return result._hot_reload_request$_$v = _$result == null ? new A._$HotReloadRequest(A.BuiltValueNullFieldError_checkNotNull(result.get$_hot_reload_request$_$this()._hot_reload_request$_id, "HotReloadRequest", "id", type$.String)) : _$result;
+      if (_$result == null) {
+        t1 = type$.String;
+        t2 = A.BuiltValueNullFieldError_checkNotNull(result.get$_hot_reload_request$_$this()._hot_reload_request$_id, _s16_, "id", t1);
+        _$result = new A._$HotReloadRequest(t2);
+        A.BuiltValueNullFieldError_checkNotNull(t2, _s16_, "id", t1);
+      }
+      A.ArgumentError_checkNotNull(_$result, "other", type$.HotReloadRequest);
+      return result._hot_reload_request$_$v = _$result;
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -23223,10 +23326,20 @@
       return _this;
     },
     _hot_reload_response$_build$0() {
-      var _this = this,
+      var t1, t2, t3, t4, _this = this,
         _s17_ = "HotReloadResponse",
         _$result = _this._hot_reload_response$_$v;
-      return _this._hot_reload_response$_$v = _$result == null ? new A._$HotReloadResponse(A.BuiltValueNullFieldError_checkNotNull(_this.get$_hot_reload_response$_$this()._hot_reload_response$_id, _s17_, "id", type$.String), A.BuiltValueNullFieldError_checkNotNull(_this.get$_hot_reload_response$_$this()._hot_reload_response$_success, _s17_, "success", type$.bool), _this.get$_hot_reload_response$_$this()._errorMessage) : _$result;
+      if (_$result == null) {
+        t1 = type$.String;
+        t2 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_hot_reload_response$_$this()._hot_reload_response$_id, _s17_, "id", t1);
+        t3 = type$.bool;
+        t4 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_hot_reload_response$_$this()._hot_reload_response$_success, _s17_, "success", t3);
+        _$result = new A._$HotReloadResponse(t2, t4, _this.get$_hot_reload_response$_$this()._errorMessage);
+        A.BuiltValueNullFieldError_checkNotNull(t2, _s17_, "id", t1);
+        A.BuiltValueNullFieldError_checkNotNull(t4, _s17_, "success", t3);
+      }
+      A.ArgumentError_checkNotNull(_$result, "other", type$.HotReloadResponse);
+      return _this._hot_reload_response$_$v = _$result;
     }
   };
   A.IsolateExit.prototype = {};
@@ -23297,7 +23410,10 @@
   A.IsolateExitBuilder.prototype = {
     _isolate_events$_build$0() {
       var _$result = this._isolate_events$_$v;
-      return this._isolate_events$_$v = _$result == null ? new A._$IsolateExit() : _$result;
+      if (_$result == null)
+        _$result = new A._$IsolateExit();
+      A.ArgumentError_checkNotNull(_$result, "other", type$.IsolateExit);
+      return this._isolate_events$_$v = _$result;
     }
   };
   A._$IsolateStart.prototype = {
@@ -23318,7 +23434,10 @@
   A.IsolateStartBuilder.prototype = {
     _isolate_events$_build$0() {
       var _$result = this._isolate_events$_$v;
-      return this._isolate_events$_$v = _$result == null ? new A._$IsolateStart() : _$result;
+      if (_$result == null)
+        _$result = new A._$IsolateStart();
+      A.ArgumentError_checkNotNull(_$result, "other", type$.IsolateStart);
+      return this._isolate_events$_$v = _$result;
     }
   };
   A.RegisterEvent.prototype = {};
@@ -23412,10 +23531,22 @@
       return _this;
     },
     _register_event$_build$0() {
-      var _this = this,
+      var t1, t2, t3, t4, _this = this,
         _s13_ = "RegisterEvent",
+        _s9_ = "eventData",
+        _s9_0 = "timestamp",
         _$result = _this._register_event$_$v;
-      return _this._register_event$_$v = _$result == null ? new A._$RegisterEvent(A.BuiltValueNullFieldError_checkNotNull(_this.get$_register_event$_$this()._register_event$_eventData, _s13_, "eventData", type$.String), A.BuiltValueNullFieldError_checkNotNull(_this.get$_register_event$_$this()._register_event$_timestamp, _s13_, "timestamp", type$.int)) : _$result;
+      if (_$result == null) {
+        t1 = type$.String;
+        t2 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_register_event$_$this()._register_event$_eventData, _s13_, _s9_, t1);
+        t3 = type$.int;
+        t4 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_register_event$_$this()._register_event$_timestamp, _s13_, _s9_0, t3);
+        _$result = new A._$RegisterEvent(t2, t4);
+        A.BuiltValueNullFieldError_checkNotNull(t2, _s13_, _s9_, t1);
+        A.BuiltValueNullFieldError_checkNotNull(t4, _s13_, _s9_0, t3);
+      }
+      A.ArgumentError_checkNotNull(_$result, "other", type$.RegisterEvent);
+      return _this._register_event$_$v = _$result;
     }
   };
   A.RunRequest.prototype = {};
@@ -23428,8 +23559,11 @@
       return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
+      var _$result;
       type$.Iterable_nullable_Object._as(serialized);
-      return new A._$RunRequest();
+      _$result = new A._$RunRequest();
+      A.ArgumentError_checkNotNull(_$result, "other", type$.RunRequest);
+      return _$result;
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -26745,7 +26879,7 @@
   };
   A.main__closure.prototype = {
     call$0() {
-      return A.FutureOfJSAnyToJSPromise_get_toJS(this.manager._restarter.hotReloadStart$1(A.hotReloadSourcesPath()), type$.JSArray_nullable_Object);
+      return A.FutureOfJSAnyToJSPromise_get_toJS(this.manager._restarter.hotReloadStart$1(A.hotReloadSourcesPath()), type$.JSObject);
     },
     $signature: 10
   };
@@ -27162,8 +27296,8 @@
     },
     hotReloadStart$1(hotReloadSourcesPath) {
       var $async$goto = 0,
-        $async$completer = A._makeAsyncAwaitCompleter(type$.JSArray_nullable_Object),
-        $async$returnValue, $async$self = this, t4, srcLibraries, filesToLoad, librariesToReload, t5, t6, srcLibraryCast, libraries, t7, t1, t2, t3, xhr, $async$temp1, $async$temp2, $async$temp3;
+        $async$completer = A._makeAsyncAwaitCompleter(type$.JSObject),
+        $async$returnValue, $async$self = this, t4, srcModuleLibraries, filesToLoad, _this, librariesToReload, t5, t6, srcModuleLibraryCast, module, libraries, t7, t1, t2, t3, xhr, $async$temp1, $async$temp2, $async$temp3;
       var $async$hotReloadStart$1 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -27187,14 +27321,17 @@
               return A._asyncAwait(t1, $async$hotReloadStart$1);
             case 3:
               // returning from await.
-              srcLibraries = $async$temp1.cast$1$0$ax($async$temp2._as($async$temp3.decode$1($async$result)), type$.Map_dynamic_dynamic);
+              srcModuleLibraries = $async$temp1.cast$1$0$ax($async$temp2._as($async$temp3.decode$1($async$result)), type$.Map_dynamic_dynamic);
               t1 = type$.JSArray_nullable_Object;
               filesToLoad = t1._as(new t2.Array());
+              _this = {};
               librariesToReload = t1._as(new t2.Array());
-              for (t1 = srcLibraries.get$iterator(srcLibraries), t5 = type$.String, t6 = type$.Object; t1.moveNext$0();) {
-                srcLibraryCast = t1.get$current().cast$2$0(0, t5, t6);
-                filesToLoad.push(A._asString(srcLibraryCast.$index(0, "src")));
-                libraries = J.cast$1$0$ax(t4._as(srcLibraryCast.$index(0, "libraries")), t5);
+              for (t1 = srcModuleLibraries.get$iterator(srcModuleLibraries), t5 = type$.String, t6 = type$.Object; t1.moveNext$0();) {
+                srcModuleLibraryCast = t1.get$current().cast$2$0(0, t5, t6);
+                filesToLoad.push(A._asString(srcModuleLibraryCast.$index(0, "src")));
+                module = A._asString(srcModuleLibraryCast.$index(0, "module"));
+                libraries = J.cast$1$0$ax(t4._as(srcModuleLibraryCast.$index(0, "libraries")), t5);
+                _this[module] = A.jsify(libraries);
                 for (t7 = libraries.get$iterator(libraries); t7.moveNext$0();)
                   librariesToReload.push(t7.get$current());
               }
@@ -27203,7 +27340,7 @@
               return A._asyncAwait(A.promiseToFuture(t3._as(t3._as(t2.dartDevEmbedder).hotReload(filesToLoad, librariesToReload)), type$.nullable_Object), $async$hotReloadStart$1);
             case 4:
               // returning from await.
-              $async$returnValue = librariesToReload;
+              $async$returnValue = _this;
               // goto return
               $async$goto = 1;
               break;
@@ -28101,6 +28238,8 @@
       BuildResult: findType("BuildResult"),
       BuildStatus: findType("BuildStatus"),
       BuiltListMultimap_dynamic_dynamic: findType("BuiltListMultimap<@,@>"),
+      BuiltList_DebugEvent: findType("BuiltList<DebugEvent>"),
+      BuiltList_ExtensionEvent: findType("BuiltList<ExtensionEvent>"),
       BuiltList_dynamic: findType("BuiltList<@>"),
       BuiltList_nullable_Object: findType("BuiltList<Object?>"),
       BuiltMap_dynamic_dynamic: findType("BuiltMap<@,@>"),
