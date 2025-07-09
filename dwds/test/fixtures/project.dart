@@ -240,9 +240,10 @@ class TestProject {
     try {
       _fixturesCopy.deleteSync(recursive: true);
     } on FileSystemException catch (_) {
+      assert(Platform.isWindows);
       // On Windows, the build daemon process might still be accessing the
-      // working directory, so wait a second and then try again.
-      await Future.delayed(const Duration(seconds: 1));
+      // working directory, so wait a few seconds and then try again.
+      await Future.delayed(const Duration(seconds: 5));
       _fixturesCopy.deleteSync(recursive: true);
     }
   }
