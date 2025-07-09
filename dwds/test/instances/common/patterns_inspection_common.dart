@@ -83,6 +83,7 @@ void runTests({
     tearDown(() => service.resume(isolateId));
 
     test('pattern match case 1', () async {
+      await Future.delayed(Duration(minutes: 20));
       await onBreakPoint('testPatternCase1', (event) async {
         final frame = event.topFrame!;
 
