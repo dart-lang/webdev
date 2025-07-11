@@ -19,7 +19,8 @@ import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// Defines callbacks for sending messages to the connected client.
-typedef SendClientRequest = void Function(Object request);
+/// Returns the number of clients the request was successfully sent to.
+typedef SendClientRequest = int Function(Object request);
 
 // Connection control for WebSocket clients
 bool _acceptNewConnections = true;

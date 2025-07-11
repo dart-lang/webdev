@@ -23,9 +23,66 @@ import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
 /// Defines callbacks for sending messages to the connected client.
-typedef SendClientRequest = void Function(Object request);
+/// Returns the number of clients the request was successfully sent to.
+typedef SendClientRequest = int Function(Object request);
 
 const _pauseIsolatesOnStartFlag = 'pause_isolates_on_start';
+
+/// Tracks hot reload responses from multiple browser windows/tabs.
+class _HotReloadTracker {
+  final String requestId;
+  final Completer<HotReloadResponse> completer;
+  final int expectedResponses;
+  final List<HotReloadResponse> responses = [];
+  final Timer timeoutTimer;
+
+  _HotReloadTracker({
+    required this.requestId,
+    required this.completer,
+    required this.expectedResponses,
+    required this.timeoutTimer,
+  });
+
+  bool get isComplete => responses.length >= expectedResponses;
+
+  void addResponse(HotReloadResponse response) {
+    responses.add(response);
+  }
+
+  bool get allSuccessful => responses.every((r) => r.success);
+
+  void dispose() {
+    timeoutTimer.cancel();
+  }
+}
+
+/// Tracks service extension responses from multiple browser windows/tabs.
+class _ServiceExtensionTracker {
+  final String requestId;
+  final Completer<ServiceExtensionResponse> completer;
+  final int expectedResponses;
+  final List<ServiceExtensionResponse> responses = [];
+  final Timer timeoutTimer;
+
+  _ServiceExtensionTracker({
+    required this.requestId,
+    required this.completer,
+    required this.expectedResponses,
+    required this.timeoutTimer,
+  });
+
+  bool get isComplete => responses.length >= expectedResponses;
+
+  void addResponse(ServiceExtensionResponse response) {
+    responses.add(response);
+  }
+
+  bool get allSuccessful => responses.every((r) => r.success == true);
+
+  void dispose() {
+    timeoutTimer.cancel();
+  }
+}
 
 /// WebSocket-based VM service proxy for web debugging.
 ///
@@ -37,9 +94,9 @@ class WebSocketProxyService implements VmServiceInterface {
   Future<void> get isInitialized => _initializedCompleter.future;
   Completer<void> _initializedCompleter = Completer<void>();
 
-  /// Active service extension requests by ID.
-  final Map<String, Completer<ServiceExtensionResponse>>
-  _pendingServiceExtensions = {};
+  /// Active service extension trackers by request ID.
+  final Map<String, _ServiceExtensionTracker> _pendingServiceExtensionTrackers =
+      {};
 
   /// Sends messages to the client.
   final SendClientRequest sendClientRequest;
@@ -47,8 +104,8 @@ class WebSocketProxyService implements VmServiceInterface {
   /// App connection for this service.
   final AppConnection appConnection;
 
-  /// Current hot reload request (one at a time).
-  Completer<HotReloadResponse>? _pendingHotReload;
+  /// Active hot reload trackers by request ID.
+  final Map<String, _HotReloadTracker> _pendingHotReloads = {};
 
   /// App connection cleanup subscription.
   StreamSubscription<void>? _appConnectionDoneSubscription;
@@ -77,8 +134,6 @@ class WebSocketProxyService implements VmServiceInterface {
   bool get _isIsolateRunning => _isolateRunning;
 
   /// Creates a new isolate for WebSocket debugging.
-  ///
-  /// Destroys existing isolate first if present. Call [destroyIsolate] on restart.
   Future<void> createIsolate([AppConnection? appConnectionOverride]) async {
     final appConn = appConnectionOverride ?? appConnection;
 
@@ -128,10 +183,9 @@ class WebSocketProxyService implements VmServiceInterface {
 
     if (!_initializedCompleter.isCompleted) _initializedCompleter.complete();
 
-    // Set up appConnection.onStart listener (like Chrome flow does)
+    // Set up app connection listener for resume handling
     safeUnawaited(
       appConn.onStart.then((_) {
-        // Unlike Chrome flow, we don't have debugger.resumeFromStart(), but we can trigger resume
         if (pauseIsolatesOnStart && !_hasResumed) {
           final resumeEvent = vm_service.Event(
             kind: vm_service.EventKind.kResume,
@@ -154,15 +208,11 @@ class WebSocketProxyService implements VmServiceInterface {
       _currentPauseEvent = pauseEvent;
       _hasResumed = false;
       _streamNotify(vm_service.EventStreams.kDebug, pauseEvent);
-      // Flutter tools will call resume() to start the app
 
-      // Auto-resume after a short delay if no debugger is connected
-      // This handles the case where the app is run from terminal without debug extension
+      // Auto-resume if no debugger connects
       _scheduleAutoResumeIfNeeded();
     } else {
-      // If we're not pausing on start, immediately send a resume event
-      // to ensure the app knows it can start running
-      _logger.info('Not pausing on start, sending immediate resume event');
+      // Send immediate resume event
       final resumeEvent = vm_service.Event(
         kind: vm_service.EventKind.kResume,
         timestamp: timestamp,
@@ -277,7 +327,7 @@ class WebSocketProxyService implements VmServiceInterface {
     );
   }
 
-  /// Returns a broadcast stream for the given streamId, creating if needed.
+  /// Returns a broadcast stream for the given streamId.
   @override
   Stream<vm_service.Event> onEvent(String streamId) {
     return _streamControllers.putIfAbsent(streamId, () {
@@ -318,7 +368,6 @@ class WebSocketProxyService implements VmServiceInterface {
     final controller = _streamControllers[streamId];
     if (controller != null && !controller.isClosed) {
       controller.add(event);
-      _logger.fine('Added event to stream $streamId: $event');
     } else {
       _logger.warning('Cannot add event to closed/missing stream: $streamId');
     }
@@ -356,13 +405,12 @@ class WebSocketProxyService implements VmServiceInterface {
   Future<vm_service.VM> getVM() => wrapInErrorHandlerAsync('getVM', _getVM);
 
   Future<vm_service.VM> _getVM() {
-    // On web, we do not currently support isolates, so isInitialized is not required.
     return captureElapsedTime(() async {
       return _vm;
     }, (result) => DwdsEvent.getVM());
   }
 
-  /// Throws error if remoteDebugger is accessed (not available in WebSocket mode).
+  /// Not available in WebSocket mode.
   dynamic get remoteDebugger {
     throw UnsupportedError(
       'remoteDebugger not available in WebSocketProxyService.\n'
@@ -404,60 +452,93 @@ class WebSocketProxyService implements VmServiceInterface {
     }
   }
 
-  /// Completes hot reload with response.
+  /// Completes hot reload with response from client.
   void completeHotReload(HotReloadResponse response) {
-    final completer = _pendingHotReload;
-    _pendingHotReload = null;
+    final tracker = _pendingHotReloads[response.id];
 
-    if (completer != null) {
-      if (response.success) {
-        completer.complete(response);
+    if (tracker == null) {
+      _logger.warning(
+        'Received hot reload response but no pending tracker found (id: ${response.id})',
+      );
+      return;
+    }
+
+    tracker.addResponse(response);
+
+    if (tracker.isComplete) {
+      _pendingHotReloads.remove(response.id);
+      tracker.dispose();
+
+      if (tracker.allSuccessful) {
+        tracker.completer.complete(response);
       } else {
-        completer.completeError(
-          response.errorMessage ?? 'Unknown client error during hot reload',
+        final failedResponses = tracker.responses.where((r) => !r.success);
+        final errorMessages = failedResponses
+            .map((r) => r.errorMessage ?? 'Unknown error')
+            .join('; ');
+        tracker.completer.completeError(
+          'Hot reload failed in some clients: $errorMessages',
         );
       }
-    } else {
-      _logger.warning(
-        'Received hot reload response but no pending completer found (id: ${response.id})',
-      );
     }
   }
 
   /// Performs WebSocket-based hot reload.
   Future<void> _performWebSocketHotReload({String? requestId}) async {
-    if (_pendingHotReload != null) {
-      throw StateError('Hot reload already pending');
-    }
-
     final id = requestId ?? createId();
-    final completer = Completer<HotReloadResponse>();
-    _pendingHotReload = completer;
+
+    // Check if there's already a pending hot reload with this ID
+    if (_pendingHotReloads.containsKey(id)) {
+      throw StateError('Hot reload already pending for ID: $id');
+    }
 
     const timeout = Duration(seconds: 10);
     _logger.info('Sending HotReloadRequest with ID ($id) to client');
 
-    await Future.microtask(() {
-      sendClientRequest(HotReloadRequest((b) => b.id = id));
+    // Send the request and get the number of connected clients
+    final clientCount = await Future.microtask(() {
+      return sendClientRequest(HotReloadRequest((b) => b.id = id));
     });
 
-    try {
-      final response = await completer.future.timeout(
-        timeout,
-        onTimeout: () {
-          _pendingHotReload = null;
-          throw TimeoutException(
-            'Client did not respond to hot reload',
-            timeout,
-          );
-        },
-      );
+    if (clientCount == 0) {
+      throw StateError('No clients available for hot reload');
+    }
 
+    // Create tracker for this hot reload request
+    final completer = Completer<HotReloadResponse>();
+    final timeoutTimer = Timer(timeout, () {
+      final tracker = _pendingHotReloads.remove(id);
+      if (tracker != null) {
+        tracker.dispose();
+        if (!completer.isCompleted) {
+          completer.completeError(
+            TimeoutException(
+              'Hot reload timed out - received ${tracker.responses.length}/$clientCount responses',
+              timeout,
+            ),
+          );
+        }
+      }
+    });
+
+    final tracker = _HotReloadTracker(
+      requestId: id,
+      completer: completer,
+      expectedResponses: clientCount,
+      timeoutTimer: timeoutTimer,
+    );
+
+    _pendingHotReloads[id] = tracker;
+
+    try {
+      final response = await completer.future;
       if (!response.success) {
         throw Exception(response.errorMessage ?? 'Client reported failure');
       }
     } catch (e) {
-      _pendingHotReload = null;
+      // Clean up tracker if still present
+      final remainingTracker = _pendingHotReloads.remove(id);
+      remainingTracker?.dispose();
       rethrow;
     }
   }
@@ -479,12 +560,13 @@ class WebSocketProxyService implements VmServiceInterface {
     Map? args,
   }) async {
     final requestId = createId();
-    if (_pendingServiceExtensions.containsKey(requestId)) {
-      throw StateError('Service extension call already pending for this ID');
-    }
 
-    final completer = Completer<ServiceExtensionResponse>();
-    _pendingServiceExtensions[requestId] = completer;
+    // Check if there's already a pending service extension with this ID
+    if (_pendingServiceExtensionTrackers.containsKey(requestId)) {
+      throw StateError(
+        'Service extension call already pending for ID: $requestId',
+      );
+    }
 
     final request = ServiceExtensionRequest.fromArgs(
       id: requestId,
@@ -492,47 +574,100 @@ class WebSocketProxyService implements VmServiceInterface {
       args:
           args != null ? Map<String, dynamic>.from(args) : <String, dynamic>{},
     );
-    sendClientRequest(request);
 
-    final response = await completer.future.timeout(Duration(seconds: 10));
-    _pendingServiceExtensions.remove(requestId);
+    // Send the request and get the number of connected clients
+    final clientCount = sendClientRequest(request);
 
-    if (response.errorMessage != null) {
-      throw RPCError(
-        method,
-        response.errorCode ?? RPCErrorKind.kServerError.code,
-        response.errorMessage!,
-      );
+    if (clientCount == 0) {
+      throw StateError('No clients available for service extension');
     }
-    return Response()..json = response.result;
+
+    // Create tracker for this service extension request
+    const timeout = Duration(seconds: 10);
+    final completer = Completer<ServiceExtensionResponse>();
+    final timeoutTimer = Timer(timeout, () {
+      final tracker = _pendingServiceExtensionTrackers.remove(requestId);
+      if (tracker != null) {
+        tracker.dispose();
+        if (!completer.isCompleted) {
+          completer.completeError(
+            TimeoutException(
+              'Service extension $method timed out - received ${tracker.responses.length}/$clientCount responses',
+              timeout,
+            ),
+          );
+        }
+      }
+    });
+
+    final tracker = _ServiceExtensionTracker(
+      requestId: requestId,
+      completer: completer,
+      expectedResponses: clientCount,
+      timeoutTimer: timeoutTimer,
+    );
+
+    _pendingServiceExtensionTrackers[requestId] = tracker;
+
+    try {
+      final response = await completer.future;
+
+      if (response.errorMessage != null) {
+        throw RPCError(
+          method,
+          response.errorCode ?? RPCErrorKind.kServerError.code,
+          response.errorMessage!,
+        );
+      }
+      return Response()..json = response.result;
+    } catch (e) {
+      // Clean up tracker if still present
+      final remainingTracker = _pendingServiceExtensionTrackers.remove(
+        requestId,
+      );
+      remainingTracker?.dispose();
+      rethrow;
+    }
   }
 
   /// Completes service extension with response.
   void completeServiceExtension(ServiceExtensionResponse response) {
     final id = response.id;
-    final completer = _pendingServiceExtensions.remove(id);
 
-    if (completer != null) {
-      if (response.success == true) {
-        completer.complete(response);
+    final tracker = _pendingServiceExtensionTrackers[id];
+
+    if (tracker == null) {
+      _logger.warning(
+        'No pending tracker found for service extension (id: $id)',
+      );
+      return;
+    }
+
+    tracker.addResponse(response);
+
+    if (tracker.isComplete) {
+      _pendingServiceExtensionTrackers.remove(id);
+      tracker.dispose();
+
+      if (tracker.allSuccessful) {
+        tracker.completer.complete(response);
       } else {
-        completer.completeError(
-          response.errorMessage ??
-              'Unknown client error during service extension',
+        final failedResponses = tracker.responses.where(
+          (r) => r.success != true,
+        );
+        final errorMessages = failedResponses
+            .map((r) => r.errorMessage ?? 'Unknown error')
+            .join('; ');
+        tracker.completer.completeError(
+          'Service extension failed in some clients: $errorMessages',
         );
       }
-    } else {
-      _logger.warning(
-        'No pending completer found for service extension (id: $id)',
-      );
     }
   }
 
   /// Parses the [RegisterEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
   void parseRegisterEvent(RegisterEvent registerEvent) {
-    _logger.fine('Parsing RegisterEvent: ${registerEvent.eventData}');
-
     if (!_isIsolateRunning || _isolateRef == null) {
       _logger.warning('Cannot register service extension - no isolate running');
       return;
@@ -540,10 +675,7 @@ class WebSocketProxyService implements VmServiceInterface {
 
     final service = registerEvent.eventData;
 
-    // Add the service to the isolate's extension RPCs if we had access to the isolate
-    // In WebSocket mode, we don't maintain the full isolate object like Chrome mode,
-    // but we can still emit the ServiceExtensionAdded event for tooling
-
+    // Emit ServiceExtensionAdded event for tooling
     final event = vm_service.Event(
       kind: vm_service.EventKind.kServiceExtensionAdded,
       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -552,7 +684,6 @@ class WebSocketProxyService implements VmServiceInterface {
     event.extensionRPC = service;
 
     _streamNotify(vm_service.EventStreams.kIsolate, event);
-    _logger.fine('Emitted ServiceExtensionAdded event for: $service');
   }
 
   /// Parses the [BatchedDebugEvents] and emits corresponding Dart VM Service
@@ -598,11 +729,11 @@ class WebSocketProxyService implements VmServiceInterface {
     final oldValue = _currentVmServiceFlags[name];
     _currentVmServiceFlags[name] = value == 'true';
 
-    // Handle pause_isolates_on_start flag
+    // Handle pause_isolates_on_start flag changes
     if (name == _pauseIsolatesOnStartFlag &&
         value == 'true' &&
         oldValue == false) {
-      // Send pause event for existing isolate if it wasn't paused initially
+      // Send pause event for existing isolate if not already paused
       if (_isIsolateRunning &&
           _isolateRef != null &&
           _currentPauseEvent == null) {
@@ -666,7 +797,7 @@ class WebSocketProxyService implements VmServiceInterface {
     String? step,
     int? frameIndex,
   }) async {
-    // Check if we should trigger runMain instead
+    // Trigger runMain if this is the first resume
     if (!_hasResumed && _currentPauseEvent != null) {
       appConnection.runMain();
     }
@@ -688,37 +819,25 @@ class WebSocketProxyService implements VmServiceInterface {
       );
 
       _streamNotify(vm_service.EventStreams.kDebug, resumeEvent);
-      _logger.fine('Sent resume event for isolate ${_isolateRef!.id}');
     }
 
     // Handle restart events
     if (_resumeAfterRestartEventsController.hasListener) {
       _resumeAfterRestartEventsController.add(isolateId);
-      return Success();
     }
 
     return Success();
   }
 
-  /// Schedules an auto-resume if no debugger connection is detected.
-  /// This prevents the app from being stuck in a paused state when running from terminal.
+  /// Schedules auto-resume if no debugger connects within timeout.
   void _scheduleAutoResumeIfNeeded() {
-    _logger.info('Scheduling auto-resume check in 2 seconds');
-    // Wait a reasonable amount of time for a debugger to connect
+    // Wait for a debugger to connect, then auto-resume if still paused
     Timer(Duration(seconds: 2), () {
-      // If we're still paused and no debugger has taken control, auto-resume
       if (_currentPauseEvent != null &&
           _currentPauseEvent!.kind == vm_service.EventKind.kPauseStart &&
           !_hasResumed) {
-        _logger.info(
-          'Auto-resuming isolate after timeout (no debugger connected)',
-        );
-        // Auto-resume the isolate
+        _logger.info('Auto-resuming isolate (no debugger connected)');
         safeUnawaited(_resume(_isolateRef?.id ?? '1'));
-      } else {
-        _logger.info(
-          'Auto-resume check: isolate already resumed or no pause event',
-        );
       }
     });
   }

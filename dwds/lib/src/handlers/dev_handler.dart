@@ -140,21 +140,29 @@ class DevHandler {
   }
 
   /// Sends the provided [request] to all connected injected clients.
-  void _sendRequestToClients(Object request) {
-    _logger.finest('Sending request to injected clients: $request');
+  /// Returns the number of clients the request was successfully sent to.
+  int _sendRequestToClients(Object request) {
+    var successfulSends = 0;
     for (final injectedConnection in _injectedConnections) {
       try {
         injectedConnection.sink.add(jsonEncode(serializers.serialize(request)));
+        successfulSends++;
       } on StateError catch (e) {
         // The sink has already closed (app is disconnected), or another StateError occurred.
         _logger.warning(
-          'Failed to send request to client, connection likely closed. Error: $e',
+          'Failed to send request to client ${injectedConnection.hashCode}, '
+          'connection likely closed. Error: $e',
         );
       } catch (e, s) {
         // Catch any other potential errors during sending.
-        _logger.severe('Error sending request to client: $e', e, s);
+        _logger.severe(
+          'Error sending request to client ${injectedConnection.hashCode}: $e',
+          e,
+          s,
+        );
       }
     }
+    return successfulSends;
   }
 
   /// Starts a [DebugService] for local debugging.
@@ -625,20 +633,38 @@ class DevHandler {
       readyToRunMainCompleter.future,
     );
 
-    // We can take over a connection if there is no connectedInstanceId (this
-    // means the client completely disconnected), or if the existing
-    // AppConnection is in the KeepAlive state (this means it disconnected but
-    // is still waiting for a possible reconnect - this happens during a page
-    // reload).
-    final canReuseConnection =
-        services != null &&
-        (services.connectedInstanceId == null ||
-            existingConnection?.isInKeepAlivePeriod == true);
+    // Determine whether to reuse existing services or create new ones
+    // This handles both page refresh (same instance) and new browser window scenarios
+    final bool canReuseConnection;
+    if (isWebSocketMode) {
+      // WebSocket mode: Allow connection reuse for page refreshes and same instance reconnections
+      canReuseConnection =
+          services != null &&
+          ((existingConnection != null &&
+                  (existingConnection.isInKeepAlivePeriod == true ||
+                      existingConnection.request.instanceId ==
+                          message.instanceId)) ||
+              (services.connectedInstanceId == null &&
+                  (existingConnection == null ||
+                      existingConnection.request.instanceId ==
+                          message.instanceId)));
+    } else {
+      // Chrome mode: More restrictive reuse logic
+      // We can take over a connection if there is no connectedInstanceId (this
+      // means the client completely disconnected), or if the existing
+      // AppConnection is in the KeepAlive state (this means it disconnected but
+      // is still waiting for a possible reconnect - this happens during a page
+      // reload).
+      canReuseConnection =
+          services != null &&
+          (services.connectedInstanceId == null ||
+              existingConnection?.isInKeepAlivePeriod == true);
+    }
 
     if (canReuseConnection) {
       // Reconnect to existing service.
       await _reconnectToService(
-        services,
+        services!,
         existingConnection,
         connection,
         message,
@@ -646,17 +672,14 @@ class DevHandler {
         isWebSocketMode,
       );
     } else {
-      // Complete the readyToRunMainCompleter immediately since we're
-      // creating a new connection.
-      // If this is the initial app connection, we can run the app's main()
-      // method immediately.
+      // New browser window or initial connection: run main() immediately
       readyToRunMainCompleter.complete();
 
       // For WebSocket mode, we need to proactively create and emit a debug connection
       // since Flutter tools won't call debugConnection() for WebServerDevice
       if (isWebSocketMode) {
         try {
-          // This will call loadAppServices() and initialize the WebSocket service
+          // Initialize the WebSocket service and create debug connection
           final debugConnection = await createDebugConnectionForWebSocket(
             connection,
           );
