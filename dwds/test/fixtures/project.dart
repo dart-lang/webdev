@@ -22,9 +22,12 @@ class TestProject {
   late Directory _fixturesCopy;
 
   /// The top level directory in which we run the test server, e.g.
-  /// "/tmp/_testSound".
+  /// "/tmp/_testSound/".
   String get absolutePackageDirectory =>
-      p.join(_fixturesCopy.absolute.path, packageDirectory);
+      // Return it as a directory with a trailing slash.
+      Directory.fromUri(
+        _fixturesCopy.absolute.uri.resolve(packageDirectory),
+      ).uri.path;
 
   /// The directory to build and serve, e.g. "example".
   String get directoryToServe => p.split(webAssetsPath).first;
@@ -242,9 +245,18 @@ class TestProject {
     } on FileSystemException catch (_) {
       assert(Platform.isWindows);
       // On Windows, the build daemon process might still be accessing the
-      // working directory, so wait a few seconds and then try again.
-      await Future.delayed(const Duration(seconds: 5));
-      _fixturesCopy.deleteSync(recursive: true);
+      // working directory, so try again with an exponential backoff.
+      var seconds = 1;
+      final maxAttempts = 3;
+      for (var attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+          _fixturesCopy.deleteSync(recursive: true);
+          break;
+        } on FileSystemException catch (_) {
+          await Future.delayed(Duration(seconds: seconds));
+          seconds *= 2;
+        }
+      }
     }
   }
 

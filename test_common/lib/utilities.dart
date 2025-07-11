@@ -12,12 +12,10 @@ const fixturesDirName = 'fixtures';
 
 const newDdcTypeSystemVersion = '3.3.0-242.0.dev';
 
-final _currentDirectory = p.current;
-
 /// The path to the webdev directory in the local machine, e.g.
 /// '/workstation/webdev'.
 String get webdevPath {
-  final pathParts = p.split(_currentDirectory);
+  final pathParts = p.split(p.current);
   assert(pathParts.contains(webdevDirName));
   return p.joinAll(
     pathParts.sublist(0, pathParts.lastIndexOf(webdevDirName) + 1),
