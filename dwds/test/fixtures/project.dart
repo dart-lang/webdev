@@ -24,7 +24,7 @@ class TestProject {
   /// The top level directory in which we run the test server, e.g.
   /// "/tmp/_testSound".
   String get absolutePackageDirectory =>
-      _fixturesCopy.absolute.uri.resolve(packageDirectory).path;
+      p.join(_fixturesCopy.absolute.path, packageDirectory);
 
   /// The directory to build and serve, e.g. "example".
   String get directoryToServe => p.split(webAssetsPath).first;
