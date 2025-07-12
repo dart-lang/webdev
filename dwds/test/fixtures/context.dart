@@ -322,10 +322,12 @@ class TestContext {
             _webRunner = ResidentWebRunner(
               mainUri: entry,
               urlTunneler: debugSettings.urlEncoder,
-              projectDirectory: p.toUri(project.absolutePackageDirectory),
+              projectDirectory: Directory(project.absolutePackageDirectory).uri,
               packageConfigFile: project.packageConfigFile,
               packageUriMapper: packageUriMapper,
-              fileSystemRoots: [p.toUri(project.absolutePackageDirectory)],
+              fileSystemRoots: [
+                Directory(project.absolutePackageDirectory).uri,
+              ],
               fileSystemScheme: 'org-dartlang-app',
               outputPath: outputDir.path,
               compilerOptions: compilerOptions,
