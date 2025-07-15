@@ -208,9 +208,6 @@ class WebSocketProxyService implements VmServiceInterface {
       _currentPauseEvent = pauseEvent;
       _hasResumed = false;
       _streamNotify(vm_service.EventStreams.kDebug, pauseEvent);
-
-      // Auto-resume if no debugger connects
-      _scheduleAutoResumeIfNeeded();
     } else {
       // Send immediate resume event
       final resumeEvent = vm_service.Event(
@@ -821,25 +818,7 @@ class WebSocketProxyService implements VmServiceInterface {
       _streamNotify(vm_service.EventStreams.kDebug, resumeEvent);
     }
 
-    // Handle restart events
-    if (_resumeAfterRestartEventsController.hasListener) {
-      _resumeAfterRestartEventsController.add(isolateId);
-    }
-
     return Success();
-  }
-
-  /// Schedules auto-resume if no debugger connects within timeout.
-  void _scheduleAutoResumeIfNeeded() {
-    // Wait for a debugger to connect, then auto-resume if still paused
-    Timer(Duration(seconds: 2), () {
-      if (_currentPauseEvent != null &&
-          _currentPauseEvent!.kind == vm_service.EventKind.kPauseStart &&
-          !_hasResumed) {
-        _logger.info('Auto-resuming isolate (no debugger connected)');
-        safeUnawaited(_resume(_isolateRef?.id ?? '1'));
-      }
-    });
   }
 
   @override

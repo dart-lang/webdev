@@ -344,7 +344,6 @@ class DevHandler {
           appConnection = await _handleConnectRequest(
             message,
             injectedConnection,
-            isWebSocketMode: useWebSocketConnection,
           );
         } else {
           final connection = appConnection;
@@ -613,12 +612,15 @@ class DevHandler {
     return DebugConnection(appDebugServices);
   }
 
-  /// Handles connection requests for both Chrome and WebSocket modes.
   Future<AppConnection> _handleConnectRequest(
     ConnectRequest message,
-    SocketConnection sseConnection, {
-    required bool isWebSocketMode,
-  }) async {
+    SocketConnection sseConnection,
+  ) async {
+    if (useWebSocketConnection) {
+      return _handleWebSocketConnectRequest(message, sseConnection);
+    }
+
+    // Original Chrome logic from dart-lang/webdev
     // After a page refresh, reconnect to the same app services if they
     // were previously launched and create the new isolate.
     final services = _servicesByAppId[message.appId];
@@ -633,43 +635,90 @@ class DevHandler {
       readyToRunMainCompleter.future,
     );
 
-    // Determine whether to reuse existing services or create new ones
-    // This handles both page refresh (same instance) and new browser window scenarios
-    final bool canReuseConnection;
-    if (isWebSocketMode) {
-      // WebSocket mode: Allow connection reuse for page refreshes and same instance reconnections
-      canReuseConnection =
-          services != null &&
-          ((existingConnection != null &&
-                  (existingConnection.isInKeepAlivePeriod == true ||
-                      existingConnection.request.instanceId ==
-                          message.instanceId)) ||
-              (services.connectedInstanceId == null &&
-                  (existingConnection == null ||
-                      existingConnection.request.instanceId ==
-                          message.instanceId)));
+    // We can take over a connection if there is no connectedInstanceId (this
+    // means the client completely disconnected), or if the existing
+    // AppConnection is in the KeepAlive state (this means it disconnected but
+    // is still waiting for a possible reconnect - this happens during a page
+    // reload).
+    final canReuseConnection =
+        services != null &&
+        (services.connectedInstanceId == null ||
+            existingConnection?.isInKeepAlivePeriod == true);
+
+    if (canReuseConnection) {
+      // Disconnect any old connection (eg. those in the keep-alive waiting
+      // state when reloading the page).
+      existingConnection?.shutDown();
+      services.chromeProxyService.destroyIsolate();
+
+      // Reconnect to existing service.
+      services.connectedInstanceId = message.instanceId;
+
+      if (services.chromeProxyService.pauseIsolatesOnStart) {
+        // If the pause-isolates-on-start flag is set, we need to wait for
+        // the resume event to run the app's main() method.
+        _waitForResumeEventToRunMain(
+          services.chromeProxyService.resumeAfterRestartEventsStream,
+          readyToRunMainCompleter,
+        );
+      } else {
+        // Otherwise, we can run the app's main() method immediately.
+        readyToRunMainCompleter.complete();
+      }
+
+      await services.chromeProxyService.createIsolate(connection);
     } else {
-      // Chrome mode: More restrictive reuse logic
-      // We can take over a connection if there is no connectedInstanceId (this
-      // means the client completely disconnected), or if the existing
-      // AppConnection is in the KeepAlive state (this means it disconnected but
-      // is still waiting for a possible reconnect - this happens during a page
-      // reload).
-      canReuseConnection =
-          services != null &&
-          (services.connectedInstanceId == null ||
-              existingConnection?.isInKeepAlivePeriod == true);
+      // If this is the initial app connection, we can run the app's main()
+      // method immediately.
+      readyToRunMainCompleter.complete();
     }
+    _appConnectionByAppId[message.appId] = connection;
+    _connectedApps.add(connection);
+    return connection;
+  }
+
+  /// Handles WebSocket mode connection requests with multi-window support.
+  Future<AppConnection> _handleWebSocketConnectRequest(
+    ConnectRequest message,
+    SocketConnection sseConnection,
+  ) async {
+    // After a page refresh, reconnect to the same app services if they
+    // were previously launched and create the new isolate.
+    final services = _servicesByAppId[message.appId];
+    final existingConnection = _appConnectionByAppId[message.appId];
+    // Completer to indicate when the app's main() method is ready to be run.
+    // Its future is passed to the AppConnection so that it can be awaited on
+    // before running the app's main() method:
+    final readyToRunMainCompleter = Completer<void>();
+    final connection = AppConnection(
+      message,
+      sseConnection,
+      readyToRunMainCompleter.future,
+    );
+
+    // WebSocket mode: Allow connection reuse for page refreshes and same instance reconnections
+    final canReuseConnection =
+        services != null &&
+        (
+        // Case 1: Existing connection can be reused if in keep-alive or same instance
+        (existingConnection != null &&
+                (existingConnection.isInKeepAlivePeriod == true ||
+                    existingConnection.request.instanceId ==
+                        message.instanceId)) ||
+            // Case 2: No active service connection, allow if no existing conn or same instance
+            (services.connectedInstanceId == null &&
+                (existingConnection == null ||
+                    existingConnection.request.instanceId ==
+                        message.instanceId)));
 
     if (canReuseConnection) {
       // Reconnect to existing service.
       await _reconnectToService(
-        services!,
+        services,
         existingConnection,
         connection,
         message,
         readyToRunMainCompleter,
-        isWebSocketMode,
       );
     } else {
       // New browser window or initial connection: run main() immediately
@@ -677,21 +726,17 @@ class DevHandler {
 
       // For WebSocket mode, we need to proactively create and emit a debug connection
       // since Flutter tools won't call debugConnection() for WebServerDevice
-      if (isWebSocketMode) {
-        try {
-          // Initialize the WebSocket service and create debug connection
-          final debugConnection = await createDebugConnectionForWebSocket(
-            connection,
-          );
+      try {
+        // Initialize the WebSocket service and create debug connection
+        final debugConnection = await createDebugConnectionForWebSocket(
+          connection,
+        );
 
-          // Emit the debug connection through the extension stream
-          // This should trigger Flutter tools to pick it up as if it was an extension connection
-          extensionDebugConnections.add(debugConnection);
-        } catch (e, s) {
-          _logger.warning(
-            'Failed to create WebSocket debug connection: $e\n$s',
-          );
-        }
+        // Emit the debug connection through the extension stream
+        // This should trigger Flutter tools to pick it up as if it was an extension connection
+        extensionDebugConnections.add(debugConnection);
+      } catch (e, s) {
+        _logger.warning('Failed to create WebSocket debug connection: $e\n$s');
       }
     }
     _appConnectionByAppId[message.appId] = connection;
@@ -700,38 +745,26 @@ class DevHandler {
     return connection;
   }
 
-  /// Handles reconnection to existing services.
+  /// Handles reconnection to existing services for web-socket mode.
   Future<void> _reconnectToService(
     IAppDebugServices services,
     AppConnection? existingConnection,
     AppConnection newConnection,
     ConnectRequest message,
     Completer<void> readyToRunMainCompleter,
-    bool isWebSocketMode,
   ) async {
     // Disconnect old connection
     existingConnection?.shutDown();
     services.connectedInstanceId = message.instanceId;
 
-    if (isWebSocketMode) {
-      services.webSocketProxyService?.destroyIsolate();
-      _logger.finest('WebSocket service reconnected for app: ${message.appId}');
+    services.webSocketProxyService?.destroyIsolate();
+    _logger.finest('WebSocket service reconnected for app: ${message.appId}');
 
-      _setupMainExecution(
-        services.webSocketProxyService?.pauseIsolatesOnStart == true,
-        services.webSocketProxyService?.resumeAfterRestartEventsStream,
-        readyToRunMainCompleter,
-      );
-    } else {
-      services.chromeProxyService.destroyIsolate();
-      _logger.finest('Chrome service reconnected for app: ${message.appId}');
-
-      _setupMainExecution(
-        services.chromeProxyService.pauseIsolatesOnStart,
-        services.chromeProxyService.resumeAfterRestartEventsStream,
-        readyToRunMainCompleter,
-      );
-    }
+    _setupMainExecution(
+      services.webSocketProxyService?.pauseIsolatesOnStart == true,
+      services.webSocketProxyService?.resumeAfterRestartEventsStream,
+      readyToRunMainCompleter,
+    );
 
     await _handleIsolateStart(newConnection);
   }
