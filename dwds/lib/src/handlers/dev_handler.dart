@@ -341,10 +341,13 @@ class DevHandler {
               'https://github.com/dart-lang/webdev/issues/new.',
             );
           }
-          appConnection = await _handleConnectRequest(
-            message,
-            injectedConnection,
-          );
+          appConnection =
+              useWebSocketConnection
+                  ? await _handleWebSocketConnectRequest(
+                    message,
+                    injectedConnection,
+                  )
+                  : await _handleConnectRequest(message, injectedConnection);
         } else {
           final connection = appConnection;
           if (connection == null) {
@@ -616,11 +619,6 @@ class DevHandler {
     ConnectRequest message,
     SocketConnection sseConnection,
   ) async {
-    if (useWebSocketConnection) {
-      return _handleWebSocketConnectRequest(message, sseConnection);
-    }
-
-    // Original Chrome logic from dart-lang/webdev
     // After a page refresh, reconnect to the same app services if they
     // were previously launched and create the new isolate.
     final services = _servicesByAppId[message.appId];

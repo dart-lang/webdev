@@ -16,7 +16,6 @@ import 'package:dwds/src/events.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
-// Ensure RPCError and RPCErrorKind are available for error handling
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart' as vm_service;
 import 'package:vm_service/vm_service.dart';
@@ -85,8 +84,6 @@ class _ServiceExtensionTracker {
 }
 
 /// WebSocket-based VM service proxy for web debugging.
-///
-/// Provides hot reload and service extension support via WebSocket communication.
 class WebSocketProxyService implements VmServiceInterface {
   final _logger = Logger('WebSocketProxyService');
 
@@ -102,7 +99,7 @@ class WebSocketProxyService implements VmServiceInterface {
   final SendClientRequest sendClientRequest;
 
   /// App connection for this service.
-  final AppConnection appConnection;
+  AppConnection appConnection;
 
   /// Active hot reload trackers by request ID.
   final Map<String, _HotReloadTracker> _pendingHotReloads = {};
@@ -118,6 +115,26 @@ class WebSocketProxyService implements VmServiceInterface {
     _pauseIsolatesOnStartFlag: false,
   };
 
+  /// Stream controller for resume events after restart.
+  final _resumeAfterRestartEventsController =
+      StreamController<String>.broadcast();
+
+  /// Stream of resume events after restart.
+  Stream<String> get resumeAfterRestartEventsStream =>
+      _resumeAfterRestartEventsController.stream;
+
+  /// Whether there's a pending restart.
+  bool get hasPendingRestart => _resumeAfterRestartEventsController.hasListener;
+
+  /// Whether isolates should pause on start.
+  bool get pauseIsolatesOnStart =>
+      _currentVmServiceFlags[_pauseIsolatesOnStartFlag] ?? false;
+
+  /// Counter for generating unique isolate IDs across page refreshes
+  static int _globalIsolateIdCounter = 0;
+
+  bool get _isIsolateRunning => _isolateRunning;
+
   /// Root VM instance.
   final vm_service.VM _vm;
 
@@ -131,11 +148,18 @@ class WebSocketProxyService implements VmServiceInterface {
   vm_service.Event? _currentPauseEvent;
   bool _hasResumed = false;
 
-  bool get _isIsolateRunning => _isolateRunning;
-
   /// Creates a new isolate for WebSocket debugging.
   Future<void> createIsolate([AppConnection? appConnectionOverride]) async {
     final appConn = appConnectionOverride ?? appConnection;
+
+    // Update the app connection reference if a new one is provided
+    if (appConnectionOverride != null) {
+      _logger.fine(
+        'Updating appConnection reference from '
+        'instanceId: ${appConnection.request.instanceId} to instanceId: ${appConnectionOverride.request.instanceId}',
+      );
+      appConnection = appConnectionOverride;
+    }
 
     // Clean up existing isolate
     if (_isIsolateRunning) {
@@ -149,11 +173,12 @@ class WebSocketProxyService implements VmServiceInterface {
       destroyIsolate();
     });
 
-    // Create isolate reference
+    // Create isolate reference with unique ID that changes on each page refresh
+    final isolateId = '${++_globalIsolateIdCounter}';
     final isolateRef = vm_service.IsolateRef(
-      id: '1',
+      id: isolateId,
       name: 'main()',
-      number: '1',
+      number: isolateId,
       isSystemIsolate: false,
     );
 
@@ -766,21 +791,6 @@ class WebSocketProxyService implements VmServiceInterface {
     return UriList(uris: uris.map(DartUri.toResolvedUri).toList());
   }
 
-  /// Stream controller for resume events after restart.
-  final _resumeAfterRestartEventsController =
-      StreamController<String>.broadcast();
-
-  /// Stream of resume events after restart.
-  Stream<String> get resumeAfterRestartEventsStream =>
-      _resumeAfterRestartEventsController.stream;
-
-  /// Whether there's a pending restart.
-  bool get hasPendingRestart => _resumeAfterRestartEventsController.hasListener;
-
-  /// Whether isolates should pause on start.
-  bool get pauseIsolatesOnStart =>
-      _currentVmServiceFlags[_pauseIsolatesOnStartFlag] ?? false;
-
   /// Resumes execution of the isolate.
   @override
   Future<Success> resume(String isolateId, {String? step, int? frameIndex}) =>
@@ -794,31 +804,87 @@ class WebSocketProxyService implements VmServiceInterface {
     String? step,
     int? frameIndex,
   }) async {
-    // Trigger runMain if this is the first resume
-    if (!_hasResumed && _currentPauseEvent != null) {
+    if (hasPendingRestart && !_resumeAfterRestartEventsController.isClosed) {
+      _resumeAfterRestartEventsController.add(isolateId);
+    } else {
       appConnection.runMain();
     }
+    return Success();
+  }
 
-    // Prevent multiple resume calls
-    if (_hasResumed && _currentPauseEvent == null) {
-      return Success();
-    }
-
-    _currentPauseEvent = null;
-    _hasResumed = true;
-
-    // Send resume event
-    if (_isolateRef != null) {
-      final resumeEvent = vm_service.Event(
-        kind: vm_service.EventKind.kResume,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isolate: _isolateRef!,
+  @override
+  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) =>
+      wrapInErrorHandlerAsync(
+        'lookupPackageUris',
+        () => _lookupPackageUris(isolateId, uris),
       );
 
-      _streamNotify(vm_service.EventStreams.kDebug, resumeEvent);
+  Future<UriList> _lookupPackageUris(
+    String isolateId,
+    List<String> uris,
+  ) async {
+    await isInitialized;
+    return UriList(uris: uris.map(DartUri.toPackageUri).toList());
+  }
+
+  @override
+  Future<Success> registerService(String service, String alias) {
+    return _rpcNotSupportedFuture('registerService');
+  }
+
+  @override
+  Future<FlagList> getFlagList() =>
+      wrapInErrorHandlerAsync('getFlagList', _getFlagList);
+
+  Future<FlagList> _getFlagList() async {
+    // Return basic flag list for WebSocket mode
+    return FlagList(
+      flags: [
+        Flag(
+          name: _pauseIsolatesOnStartFlag,
+          comment: 'If enabled, isolates are paused on start',
+          valueAsString: pauseIsolatesOnStart.toString(),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Future<vm_service.Stack> getStack(
+    String isolateId, {
+    String? idZoneId,
+    int? limit,
+  }) => wrapInErrorHandlerAsync(
+    'getStack',
+    () => _getStack(isolateId, idZoneId: idZoneId, limit: limit),
+  );
+
+  Future<vm_service.Stack> _getStack(
+    String isolateId, {
+    String? idZoneId,
+    int? limit,
+  }) async {
+    if (!_isIsolateRunning || _isolateRef == null) {
+      throw vm_service.RPCError(
+        'getStack',
+        vm_service.RPCErrorKind.kInvalidParams.code,
+        'No running isolate found for id: $isolateId',
+      );
+    }
+    if (_isolateRef!.id != isolateId) {
+      throw vm_service.RPCError(
+        'getStack',
+        vm_service.RPCErrorKind.kInvalidParams.code,
+        'Isolate with id $isolateId not found.',
+      );
     }
 
-    return Success();
+    // Return empty stack since we're in WebSocket mode without Chrome debugging
+    return vm_service.Stack(
+      frames: [],
+      asyncCausalFrames: [],
+      awaiterFrames: [],
+    );
   }
 
   @override
