@@ -696,18 +696,7 @@ class DevHandler {
 
     // WebSocket mode: Allow connection reuse for page refreshes and same instance reconnections
     final canReuseConnection =
-        services != null &&
-        (
-        // Case 1: Existing connection can be reused if in keep-alive or same instance
-        (existingConnection != null &&
-                (existingConnection.isInKeepAlivePeriod == true ||
-                    existingConnection.request.instanceId ==
-                        message.instanceId)) ||
-            // Case 2: No active service connection, allow if no existing conn or same instance
-            (services.connectedInstanceId == null &&
-                (existingConnection == null ||
-                    existingConnection.request.instanceId ==
-                        message.instanceId)));
+        services != null && services.connectedInstanceId == null;
 
     if (canReuseConnection) {
       // Reconnect to existing service.
