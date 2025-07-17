@@ -56,6 +56,9 @@ class Debugger extends Domain {
 
   int _frameErrorCount = 0;
 
+  final StreamController<String> parsedScriptsController =
+      StreamController.broadcast();
+
   Debugger._(
     this._remoteDebugger,
     this._streamNotify,
@@ -489,6 +492,9 @@ class Debugger extends Domain {
     final scriptPath = _pathForChromeScript(e.script.url);
     if (scriptPath != null) {
       chromePathToRuntimeScriptId[scriptPath] = e.script.scriptId;
+      if (parsedScriptsController.hasListener) {
+        parsedScriptsController.sink.add(e.script.url);
+      }
     }
   }
 

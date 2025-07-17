@@ -8,7 +8,6 @@
 library;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
@@ -207,6 +206,37 @@ void main() {
     Future<void> waitForBreakpoint() =>
         expectLater(stream, emitsThrough(_hasKind(EventKind.kPauseBreakpoint)));
 
+    test('empty hot reload keeps breakpoints', () async {
+      final genString = 'main gen0';
+
+      final bp = await addBreakpoint(
+        file: mainFile,
+        breakpointMarker: callLogMarker,
+      );
+
+      var breakpointFuture = waitForBreakpoint();
+
+      await callEvaluate();
+
+      // Should break at `callLog`.
+      await breakpointFuture;
+      await resumeAndExpectLog(genString);
+
+      await context.recompile(fullRestart: false);
+
+      await hotReloadAndHandlePausePost([
+        (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
+      ]);
+
+      breakpointFuture = waitForBreakpoint();
+
+      await callEvaluate();
+
+      // Should break at `callLog`.
+      await breakpointFuture;
+      await resumeAndExpectLog(genString);
+    });
+
     test('after edit and hot reload, breakpoint is in new file', () async {
       final oldString = 'main gen0';
       final newString = 'main gen1';
@@ -359,52 +389,109 @@ void main() {
       },
     );
 
-    test(
-      'breakpoint in captured code is deleted',
-      () async {
-        var bp = await addBreakpoint(
-          file: mainFile,
-          breakpointMarker: capturedStringMarker,
+    // Test that we wait for all scripts to be parsed first before computing
+    // location metadata.
+    test('after adding many files and putting breakpoint in the last one,'
+        'breakpoint is correctly registered', () async {
+      final genLog = 'main gen0';
+
+      final bp = await addBreakpoint(
+        file: mainFile,
+        breakpointMarker: callLogMarker,
+      );
+
+      var breakpointFuture = waitForBreakpoint();
+
+      await callEvaluate();
+
+      // Should break at `callLog`.
+      await breakpointFuture;
+      await resumeAndExpectLog(genLog);
+
+      // Add library files, import them, but only refer to the last one in main.
+      final numFiles = 50;
+      for (var i = 1; i <= numFiles; i++) {
+        final libFile = 'library$i.dart';
+        context.addLibraryFile(
+          libFileName: libFile,
+          contents: '''String get libraryValue$i {
+            return 'lib gen$i'; // Breakpoint: libValue$i
+          }''',
         );
+        final oldImports = "import 'dart:js_interop';";
+        final newImports =
+            '$oldImports\n'
+            "import 'package:_test_hot_reload_breakpoints/$libFile';";
+        makeEdit(mainFile, oldImports, newImports);
+      }
+      final oldLog = "log('\$mainValue');";
+      final newLog = "log('\$libraryValue$numFiles');";
+      await makeEditAndRecompile(mainFile, oldLog, newLog);
 
-        final oldLog = "log('\$mainValue');";
-        final newLog = "log('\${closure()}');";
-        await makeEditAndRecompile(mainFile, oldLog, newLog);
+      await hotReloadAndHandlePausePost([
+        (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
+        (
+          file: 'library$numFiles.dart',
+          breakpointMarker: 'libValue$numFiles',
+          bp: null,
+        ),
+      ]);
 
-        bp =
-            (await hotReloadAndHandlePausePost([
-              (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
-            ])).first;
+      breakpointFuture = waitForBreakpoint();
 
-        final breakpointFuture = waitForBreakpoint();
+      await callEvaluate();
 
-        await callEvaluate();
+      // Should break at `callLog`.
+      await breakpointFuture;
 
-        // Should break at `capturedString`.
-        await breakpointFuture;
-        final oldCapturedString = 'captured closure gen0';
-        // Closure gets evaluated for the first time.
-        await resumeAndExpectLog(oldCapturedString);
+      breakpointFuture = waitForBreakpoint();
 
-        final newCapturedString = 'captured closure gen1';
-        await makeEditAndRecompile(
-          mainFile,
-          oldCapturedString,
-          newCapturedString,
-        );
+      await resume();
+      // Should break at the breakpoint in the last file.
+      await breakpointFuture;
+      await resumeAndExpectLog('lib gen$numFiles');
+    });
 
-        await hotReloadAndHandlePausePost([
-          (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
-        ]);
+    test('breakpoint in captured code is deleted', () async {
+      var bp = await addBreakpoint(
+        file: mainFile,
+        breakpointMarker: capturedStringMarker,
+      );
 
-        // Breakpoint should not be hit as it's now deleted. We should also see
-        // the old string still as the closure has not been reevaluated.
-        await callEvaluateAndExpectLog(oldCapturedString);
-      },
-      // TODO(srujzs): Re-enable after
-      // https://github.com/dart-lang/webdev/issues/2640.
-      skip: Platform.isWindows,
-    );
+      final oldLog = "log('\$mainValue');";
+      final newLog = "log('\${closure()}');";
+      await makeEditAndRecompile(mainFile, oldLog, newLog);
+
+      bp =
+          (await hotReloadAndHandlePausePost([
+            (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
+          ])).first;
+
+      final breakpointFuture = waitForBreakpoint();
+
+      await callEvaluate();
+
+      // Should break at `capturedString`.
+      await breakpointFuture;
+      final oldCapturedString = 'captured closure gen0';
+      // Closure gets evaluated for the first time.
+      await resumeAndExpectLog(oldCapturedString);
+
+      final newCapturedString = 'captured closure gen1';
+      await makeEditAndRecompile(
+        mainFile,
+        oldCapturedString,
+        newCapturedString,
+      );
+
+      await hotReloadAndHandlePausePost([
+        (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
+      ]);
+
+      // Breakpoint should not be hit as it's now deleted. We should also see
+      // the old string still as the closure has not been reevaluated.
+      await callEvaluateAndExpectLog(oldCapturedString);
+    });
   }, timeout: Timeout.factor(2));
 
   group('when pause_isolates_on_start is false', () {

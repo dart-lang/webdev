@@ -13,25 +13,26 @@ abstract class Restarter {
   /// reload by pushing the libraries into the Dart runtime.
   Future<void> hotReloadEnd();
 
-  /// Computes the sources and libraries to reload, loads them into the page,
-  /// and returns a map of module names to libraries using
-  /// [hotReloadSourcesPath] as the path to a JSONified list of maps which
+  /// Using [hotReloadSourcesPath] as the path to a JSONified list of maps which
   /// follows the following format:
   ///
   /// ```json
   /// [
   ///   {
-  ///     "src": "<file_name>",
+  ///     "src": "<base_uri>/<file_name>",
   ///     "module": "<module_name>",
   ///     "libraries": ["<lib1>", "<lib2>"],
   ///   },
   /// ]
   /// ```
   ///
+  /// computes the sources and libraries to reload, loads them into the page,
+  /// and returns a JS version of the list of maps.
+  ///
   /// `src`: A string that corresponds to the file path containing a DDC library
   /// bundle.
   /// `module`: The name of the library bundle in `src`.
   /// `libraries`: An array of strings containing the libraries that were
   /// compiled in `src`.
-  Future<JSObject> hotReloadStart(String hotReloadSourcesPath);
+  Future<JSArray<JSObject>> hotReloadStart(String hotReloadSourcesPath);
 }

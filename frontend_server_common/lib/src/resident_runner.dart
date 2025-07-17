@@ -69,21 +69,25 @@ class ResidentWebRunner {
   late Iterable<String> modules;
 
   Future<int> run(
-    FileSystem fileSystem,
+    FileSystem fileSystem, {
     String? hostname,
-    int port,
-    String index, {
+    int? port,
+    String? index,
     required bool initialCompile,
     required bool fullRestart,
+    // The uri of the `HttpServer` that handles file requests.
+    // TODO(srujzs): This should be the same as the uri of the AssetServer, but
+    // currently is not. Delete when that's fixed.
+    required Uri? fileServerUri,
   }) async {
     _projectFileInvalidator ??= ProjectFileInvalidator(fileSystem: fileSystem);
     devFS ??= WebDevFS(
       fileSystem: fileSystem,
       hostname: hostname ?? 'localhost',
-      port: port,
+      port: port!,
       projectDirectory: projectDirectory,
       packageUriMapper: packageUriMapper,
-      index: index,
+      index: index!,
       urlTunneler: urlTunneler,
       sdkLayout: sdkLayout,
       compilerOptions: compilerOptions,
@@ -91,7 +95,9 @@ class ResidentWebRunner {
     uri ??= await devFS!.create();
 
     final report = await _updateDevFS(
-        initialCompile: initialCompile, fullRestart: fullRestart);
+        initialCompile: initialCompile,
+        fullRestart: fullRestart,
+        fileServerUri: fileServerUri);
     if (!report.success) {
       _logger.severe('Failed to compile application.');
       return 1;
@@ -103,8 +109,14 @@ class ResidentWebRunner {
     return 0;
   }
 
-  Future<UpdateFSReport> _updateDevFS(
-      {required bool initialCompile, required bool fullRestart}) async {
+  Future<UpdateFSReport> _updateDevFS({
+    required bool initialCompile,
+    required bool fullRestart,
+    // The uri of the `TestServer` that handles file requests.
+    // TODO(srujzs): This should be the same as the uri of the AssetServer, but
+    // currently is not. Delete when that's fixed.
+    required Uri? fileServerUri,
+  }) async {
     final invalidationResult = await _projectFileInvalidator!.findInvalidated(
       lastCompiled: devFS!.lastCompiled,
       urisToMonitor: devFS!.sources,
@@ -116,7 +128,8 @@ class ResidentWebRunner {
         generator: generator,
         invalidatedFiles: invalidationResult.uris!,
         initialCompile: initialCompile,
-        fullRestart: fullRestart);
+        fullRestart: fullRestart,
+        fileServerUri: fileServerUri);
     return report;
   }
 
