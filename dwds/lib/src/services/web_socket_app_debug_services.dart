@@ -8,8 +8,6 @@ import 'package:dwds/src/services/web_socket_debug_service.dart';
 import 'package:dwds/src/web_socket_dwds_vm_client.dart';
 
 /// WebSocket-based implementation of app debug services.
-///
-/// Provides debugging capabilities without Chrome dependencies.
 class WebSocketAppDebugServices implements IAppDebugServices {
   final WebSocketDebugService _debugService;
   final WebSocketDwdsVmClient _dwdsVmClient;

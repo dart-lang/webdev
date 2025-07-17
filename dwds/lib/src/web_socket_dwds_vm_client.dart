@@ -29,8 +29,6 @@ enum _NamespacedServiceExtension {
 }
 
 /// WebSocket-based DWDS VM client.
-///
-/// Provides VM service functionality without Chrome dependencies.
 class WebSocketDwdsVmClient {
   final VmService client;
   final StreamController<VmRequest> _requestController;

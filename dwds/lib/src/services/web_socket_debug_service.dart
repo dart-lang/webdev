@@ -27,8 +27,6 @@ bool _acceptNewConnections = true;
 int _clientsConnected = 0;
 
 /// WebSocket-based debug service for web debugging.
-///
-/// Provides hot reload and service extension support without Chrome dependencies.
 class WebSocketDebugService {
   final String hostname;
   final int port;
