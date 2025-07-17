@@ -339,11 +339,12 @@ class TestContext {
             _hostname = appMetadata.hostname;
             await webRunner.run(
               frontendServerFileSystem,
-              _hostname,
-              assetServerPort,
-              filePathToServe,
+              hostname: _hostname,
+              port: assetServerPort,
+              index: filePathToServe,
               initialCompile: true,
               fullRestart: false,
+              fileServerUri: null,
             );
 
             if (testSettings.enableExpressionEvaluation) {
@@ -414,7 +415,7 @@ class TestContext {
                   'remote-debugging-port=$debugPort',
                   if (enableDebugExtension)
                     '--load-extension=debug_extension/prod_build',
-                  if (headless) '--headless',
+                  // if (headless) '--headless',
                 ],
               },
             });
@@ -433,6 +434,10 @@ class TestContext {
       final appConnectionCompleter = Completer();
       final connection = ChromeConnection('localhost', debugPort);
 
+      // TODO(srujzs): In the case of the frontend server, it doesn't make sense
+      // that we initialize a new HTTP server instead of reusing the one in
+      // `TestAssetServer`. Why not just use that one? That seems to match with
+      // what Flutter tools is doing.
       _testServer = await TestServer.start(
         debugSettings: debugSettings.copyWith(
           expressionCompiler: expressionCompiler,
@@ -592,11 +597,9 @@ class TestContext {
   Future<void> recompile({required bool fullRestart}) async {
     await webRunner.run(
       frontendServerFileSystem,
-      _hostname,
-      await findUnusedPort(),
-      webCompatiblePath([project.directoryToServe, project.filePathToServe]),
       initialCompile: false,
       fullRestart: fullRestart,
+      fileServerUri: Uri.parse('http://${testServer.host}:${testServer.port}'),
     );
     return;
   }
