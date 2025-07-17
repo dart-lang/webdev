@@ -415,7 +415,7 @@ class TestContext {
                   'remote-debugging-port=$debugPort',
                   if (enableDebugExtension)
                     '--load-extension=debug_extension/prod_build',
-                  // if (headless) '--headless',
+                  if (headless) '--headless',
                 ],
               },
             });
