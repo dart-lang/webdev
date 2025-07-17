@@ -694,9 +694,19 @@ class DevHandler {
       readyToRunMainCompleter.future,
     );
 
-    // WebSocket mode: Allow connection reuse for page refreshes and same instance reconnections
+    // Allow connection reuse for page refreshes and same instance reconnections
+    final isSameInstance =
+        existingConnection?.request.instanceId == message.instanceId;
+    final isKeepAliveReconnect =
+        existingConnection?.isInKeepAlivePeriod == true;
+    final hasNoActiveConnection = services?.connectedInstanceId == null;
+    final noExistingConnection = existingConnection == null;
+
     final canReuseConnection =
-        services != null && services.connectedInstanceId == null;
+        services != null &&
+        (isSameInstance ||
+            (isKeepAliveReconnect && hasNoActiveConnection) ||
+            (noExistingConnection && hasNoActiveConnection));
 
     if (canReuseConnection) {
       // Reconnect to existing service.

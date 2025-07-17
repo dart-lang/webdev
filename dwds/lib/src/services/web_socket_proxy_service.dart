@@ -153,12 +153,6 @@ class WebSocketProxyService implements VmServiceInterface {
     // Update app connection if override provided
     appConnection = appConnectionOverride ?? appConnection;
 
-    // Clean up existing isolate
-    if (_isIsolateRunning) {
-      destroyIsolate();
-      await Future.delayed(Duration(milliseconds: 10));
-    }
-
     // Auto-cleanup on connection close
     await _appConnectionDoneSubscription?.cancel();
     _appConnectionDoneSubscription = appConnection.onDone.asStream().listen((
