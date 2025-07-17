@@ -146,6 +146,7 @@ class WebSocketProxyService implements VmServiceInterface {
   vm_service.IsolateRef? _isolateRef;
   bool _isolateRunning = false;
   vm_service.Event? _currentPauseEvent;
+  bool _mainHasStarted = false;
 
   /// Creates a new isolate for WebSocket debugging.
   Future<void> createIsolate([AppConnection? appConnectionOverride]) async {
@@ -241,6 +242,7 @@ class WebSocketProxyService implements VmServiceInterface {
     _isolateRef = null;
     _isolateRunning = false;
     _currentPauseEvent = null;
+    _mainHasStarted = false;
 
     if (_initializedCompleter.isCompleted) {
       _initializedCompleter = Completer<void>();
@@ -757,6 +759,26 @@ class WebSocketProxyService implements VmServiceInterface {
     return UriList(uris: uris.map(DartUri.toResolvedUri).toList());
   }
 
+  /// Pauses execution of the isolate.
+  @override
+  Future<Success> pause(String isolateId) =>
+      wrapInErrorHandlerAsync('pause', () => _pause(isolateId));
+
+  Future<Success> _pause(String isolateId) async {
+    // Create a pause event and store it
+    if (_isolateRef != null) {
+      final pauseEvent = vm_service.Event(
+        kind: vm_service.EventKind.kPauseInterrupted,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isolate: _isolateRef!,
+      );
+      _currentPauseEvent = pauseEvent;
+      _streamNotify(vm_service.EventStreams.kDebug, pauseEvent);
+    }
+
+    return Success();
+  }
+
   /// Resumes execution of the isolate.
   @override
   Future<Success> resume(String isolateId, {String? step, int? frameIndex}) =>
@@ -773,7 +795,18 @@ class WebSocketProxyService implements VmServiceInterface {
     if (hasPendingRestart && !_resumeAfterRestartEventsController.isClosed) {
       _resumeAfterRestartEventsController.add(isolateId);
     } else {
-      appConnection.runMain();
+      if (!_mainHasStarted) {
+        try {
+          appConnection.runMain();
+          _mainHasStarted = true;
+        } catch (e) {
+          if (e.toString().contains('Main has already started')) {
+            _mainHasStarted = true;
+          } else {
+            rethrow;
+          }
+        }
+      }
     }
 
     // Clear pause state and send resume event to notify debugging tools
