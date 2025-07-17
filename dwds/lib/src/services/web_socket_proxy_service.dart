@@ -146,20 +146,11 @@ class WebSocketProxyService implements VmServiceInterface {
   vm_service.IsolateRef? _isolateRef;
   bool _isolateRunning = false;
   vm_service.Event? _currentPauseEvent;
-  bool _hasResumed = false;
 
   /// Creates a new isolate for WebSocket debugging.
   Future<void> createIsolate([AppConnection? appConnectionOverride]) async {
-    final appConn = appConnectionOverride ?? appConnection;
-
-    // Update the app connection reference if a new one is provided
-    if (appConnectionOverride != null) {
-      _logger.fine(
-        'Updating appConnection reference from '
-        'instanceId: ${appConnection.request.instanceId} to instanceId: ${appConnectionOverride.request.instanceId}',
-      );
-      appConnection = appConnectionOverride;
-    }
+    // Update app connection if override provided
+    appConnection = appConnectionOverride ?? appConnection;
 
     // Clean up existing isolate
     if (_isIsolateRunning) {
@@ -169,7 +160,9 @@ class WebSocketProxyService implements VmServiceInterface {
 
     // Auto-cleanup on connection close
     await _appConnectionDoneSubscription?.cancel();
-    _appConnectionDoneSubscription = appConn.onDone.asStream().listen((_) {
+    _appConnectionDoneSubscription = appConnection.onDone.asStream().listen((
+      _,
+    ) {
       destroyIsolate();
     });
 
@@ -184,7 +177,6 @@ class WebSocketProxyService implements VmServiceInterface {
 
     _isolateRef = isolateRef;
     _isolateRunning = true;
-    _hasResumed = false;
     _vm.isolates?.add(isolateRef);
     final timestamp = DateTime.now().millisecondsSinceEpoch;
 
@@ -206,23 +198,6 @@ class WebSocketProxyService implements VmServiceInterface {
       ),
     );
 
-    if (!_initializedCompleter.isCompleted) _initializedCompleter.complete();
-
-    // Set up app connection listener for resume handling
-    safeUnawaited(
-      appConn.onStart.then((_) {
-        if (pauseIsolatesOnStart && !_hasResumed) {
-          final resumeEvent = vm_service.Event(
-            kind: vm_service.EventKind.kResume,
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            isolate: isolateRef,
-          );
-          _hasResumed = true;
-          _streamNotify(vm_service.EventStreams.kDebug, resumeEvent);
-        }
-      }),
-    );
-
     // Send pause event if enabled
     if (pauseIsolatesOnStart) {
       final pauseEvent = vm_service.Event(
@@ -231,18 +206,11 @@ class WebSocketProxyService implements VmServiceInterface {
         isolate: isolateRef,
       );
       _currentPauseEvent = pauseEvent;
-      _hasResumed = false;
       _streamNotify(vm_service.EventStreams.kDebug, pauseEvent);
-    } else {
-      // Send immediate resume event
-      final resumeEvent = vm_service.Event(
-        kind: vm_service.EventKind.kResume,
-        timestamp: timestamp,
-        isolate: isolateRef,
-      );
-      _hasResumed = true;
-      _streamNotify(vm_service.EventStreams.kDebug, resumeEvent);
     }
+
+    // Complete initialization after isolate is set up
+    if (!_initializedCompleter.isCompleted) _initializedCompleter.complete();
   }
 
   /// Destroys the isolate and cleans up state.
@@ -273,7 +241,6 @@ class WebSocketProxyService implements VmServiceInterface {
     _isolateRef = null;
     _isolateRunning = false;
     _currentPauseEvent = null;
-    _hasResumed = false;
 
     if (_initializedCompleter.isCompleted) {
       _initializedCompleter = Completer<void>();
@@ -765,7 +732,6 @@ class WebSocketProxyService implements VmServiceInterface {
           isolate: _isolateRef!,
         );
         _currentPauseEvent = pauseEvent;
-        _hasResumed = false;
         _streamNotify(vm_service.EventStreams.kDebug, pauseEvent);
       }
     }
@@ -809,6 +775,18 @@ class WebSocketProxyService implements VmServiceInterface {
     } else {
       appConnection.runMain();
     }
+
+    // Clear pause state and send resume event to notify debugging tools
+    if (_currentPauseEvent != null && _isolateRef != null) {
+      _currentPauseEvent = null;
+      final resumeEvent = vm_service.Event(
+        kind: vm_service.EventKind.kResume,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isolate: _isolateRef!,
+      );
+      _streamNotify(vm_service.EventStreams.kDebug, resumeEvent);
+    }
+
     return Success();
   }
 
