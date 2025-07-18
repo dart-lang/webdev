@@ -754,7 +754,6 @@ class DevHandler {
     existingConnection?.shutDown();
     services.connectedInstanceId = message.instanceId;
 
-    services.webSocketProxyService?.destroyIsolate();
     _logger.finest('WebSocket service reconnected for app: ${message.appId}');
 
     _setupMainExecution(
@@ -800,7 +799,9 @@ class DevHandler {
     final appId = appConnection.request.appId;
 
     if (useWebSocketConnection) {
-      _servicesByAppId[appId]?.webSocketProxyService?.destroyIsolate();
+      _logger.fine(
+        'Isolate exit handled by WebSocket proxy service for app: $appId',
+      );
     } else {
       _servicesByAppId[appId]?.chromeProxyService.destroyIsolate();
     }

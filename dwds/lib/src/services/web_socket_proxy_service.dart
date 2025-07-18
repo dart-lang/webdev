@@ -104,8 +104,12 @@ class WebSocketProxyService implements VmServiceInterface {
   /// Active hot reload trackers by request ID.
   final Map<String, _HotReloadTracker> _pendingHotReloads = {};
 
-  /// App connection cleanup subscription.
-  StreamSubscription<void>? _appConnectionDoneSubscription;
+  /// App connection cleanup subscriptions by connection instance ID.
+  final Map<String, StreamSubscription<void>> _appConnectionDoneSubscriptions =
+      {};
+
+  /// Active connection count for this service.
+  int _activeConnectionCount = 0;
 
   /// Event stream controllers.
   final Map<String, StreamController<vm_service.Event>> _streamControllers = {};
@@ -153,15 +157,42 @@ class WebSocketProxyService implements VmServiceInterface {
     // Update app connection if override provided
     appConnection = appConnectionOverride ?? appConnection;
 
-    // Auto-cleanup on connection close
-    await _appConnectionDoneSubscription?.cancel();
-    _appConnectionDoneSubscription = appConnection.onDone.asStream().listen((
-      _,
-    ) {
-      destroyIsolate();
-    });
+    // Track this connection
+    final connectionId = appConnection.request.instanceId;
 
-    // Create isolate reference with unique ID that changes on each page refresh
+    // Check if this connection is already being tracked
+    final isNewConnection =
+        !_appConnectionDoneSubscriptions.containsKey(connectionId);
+
+    if (isNewConnection) {
+      _activeConnectionCount++;
+      _logger.fine(
+        'Adding new connection: $connectionId (total: $_activeConnectionCount)',
+      );
+    } else {
+      _logger.fine(
+        'Reconnecting existing connection: $connectionId (total: $_activeConnectionCount)',
+      );
+    }
+
+    // Auto-cleanup on connection close
+    final existingSubscription = _appConnectionDoneSubscriptions[connectionId];
+    await existingSubscription?.cancel();
+    _appConnectionDoneSubscriptions[connectionId] = appConnection.onDone
+        .asStream()
+        .listen((_) {
+          _handleConnectionClosed(connectionId);
+        });
+
+    // If we already have a running isolate, just update the connection and return
+    if (_isIsolateRunning && _isolateRef != null) {
+      _logger.fine(
+        'Reusing existing isolate ${_isolateRef!.id} for connection: $connectionId',
+      );
+      return;
+    }
+
+    // Create isolate reference with unique ID
     final isolateId = '${++_globalIsolateIdCounter}';
     final isolateRef = vm_service.IsolateRef(
       id: isolateId,
@@ -174,6 +205,10 @@ class WebSocketProxyService implements VmServiceInterface {
     _isolateRunning = true;
     _vm.isolates?.add(isolateRef);
     final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+    _logger.fine(
+      'Created new isolate: $isolateId for connection: $connectionId',
+    );
 
     // Send lifecycle events
     _streamNotify(
@@ -208,15 +243,55 @@ class WebSocketProxyService implements VmServiceInterface {
     if (!_initializedCompleter.isCompleted) _initializedCompleter.complete();
   }
 
+  /// Handles a connection being closed.
+  void _handleConnectionClosed(String connectionId) {
+    _logger.fine('Connection closed: $connectionId');
+
+    // Only decrement if this connection was actually being tracked
+    if (_appConnectionDoneSubscriptions.containsKey(connectionId)) {
+      // Remove the subscription for this connection
+      _appConnectionDoneSubscriptions[connectionId]?.cancel();
+      _appConnectionDoneSubscriptions.remove(connectionId);
+
+      // Decrease active connection count
+      _activeConnectionCount--;
+      _logger.fine(
+        'Removed connection: $connectionId (remaining: $_activeConnectionCount)',
+      );
+
+      // Only destroy the isolate if there are no more active connections
+      if (_activeConnectionCount <= 0) {
+        _logger.fine('No more active connections, destroying isolate');
+        destroyIsolate();
+      } else {
+        _logger.fine(
+          'Still have $_activeConnectionCount active connections, keeping isolate alive',
+        );
+      }
+    } else {
+      _logger.warning(
+        'Attempted to close connection that was not tracked: $connectionId',
+      );
+    }
+  }
+
   /// Destroys the isolate and cleans up state.
   void destroyIsolate() {
     _logger.fine('Destroying isolate');
-    if (!_isIsolateRunning) return;
+
+    if (!_isIsolateRunning) {
+      _logger.fine('Isolate already destroyed, ignoring');
+      return;
+    }
 
     final isolateRef = _isolateRef;
 
-    _appConnectionDoneSubscription?.cancel();
-    _appConnectionDoneSubscription = null;
+    // Cancel all connection subscriptions
+    for (final subscription in _appConnectionDoneSubscriptions.values) {
+      subscription.cancel();
+    }
+    _appConnectionDoneSubscriptions.clear();
+    _activeConnectionCount = 0;
 
     // Send exit event
     if (isolateRef != null) {
@@ -391,6 +466,19 @@ class WebSocketProxyService implements VmServiceInterface {
 
   Future<vm_service.VM> _getVM() {
     return captureElapsedTime(() async {
+      // Ensure the VM's isolate list is synchronized with our actual state
+      if (_isIsolateRunning && _isolateRef != null) {
+        // Make sure our isolate is in the VM's isolate list
+        final isolateExists =
+            _vm.isolates?.any((ref) => ref.id == _isolateRef!.id) ?? false;
+        if (!isolateExists) {
+          _vm.isolates?.add(_isolateRef!);
+        }
+      } else {
+        // If no isolate is running, make sure the list is empty
+        _vm.isolates?.clear();
+      }
+
       return _vm;
     }, (result) => DwdsEvent.getVM());
   }
