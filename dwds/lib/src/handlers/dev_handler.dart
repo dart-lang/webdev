@@ -162,6 +162,9 @@ class DevHandler {
         );
       }
     }
+    _logger.fine(
+      'Sent request to $successfulSends clients out of ${_injectedConnections.length} total connections',
+    );
     return successfulSends;
   }
 
@@ -392,8 +395,12 @@ class DevHandler {
         _injectedConnections.remove(injectedConnection);
         final connection = appConnection;
         if (connection != null) {
-          _appConnectionByAppId.remove(connection.request.appId);
-          final services = _servicesByAppId[connection.request.appId];
+          final appId = connection.request.appId;
+          final services = _servicesByAppId[appId];
+          // WebSocket mode doesn't need this because WebSocketProxyService handles connection tracking and cleanup
+          if (!useWebSocketConnection) {
+            _appConnectionByAppId.remove(appId);
+          }
           if (services != null) {
             if (services.connectedInstanceId == null ||
                 services.connectedInstanceId == connection.request.instanceId) {

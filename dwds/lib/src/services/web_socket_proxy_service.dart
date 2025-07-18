@@ -258,11 +258,31 @@ class WebSocketProxyService implements VmServiceInterface {
       _logger.fine(
         'Removed connection: $connectionId (remaining: $_activeConnectionCount)',
       );
+      _logger.fine(
+        'Current tracked connections: ${_appConnectionDoneSubscriptions.keys.toList()}',
+      );
 
-      // Only destroy the isolate if there are no more active connections
+      // Instead of destroying the isolate immediately, check if there are still
+      // clients that can receive hot reload requests
       if (_activeConnectionCount <= 0) {
-        _logger.fine('No more active connections, destroying isolate');
-        destroyIsolate();
+        // Double-check by asking the sendClientRequest callback how many clients are available
+        final actualClientCount = sendClientRequest({'type': 'ping'});
+        _logger.fine(
+          'Actual client count from sendClientRequest: $actualClientCount',
+        );
+
+        if (actualClientCount == 0) {
+          _logger.fine(
+            'No clients available for hot reload, destroying isolate',
+          );
+          destroyIsolate();
+        } else {
+          _logger.fine(
+            'Still have $actualClientCount clients available, keeping isolate alive',
+          );
+          // Update our internal counter to match reality
+          _activeConnectionCount = actualClientCount;
+        }
       } else {
         _logger.fine(
           'Still have $_activeConnectionCount active connections, keeping isolate alive',
