@@ -105,7 +105,9 @@ class ResidentWebRunner {
       // align with Flutter tools, but currently is not. Delete when that's fixed.
       required Uri fileServerUri}) async {
     final report = await _updateDevFS(
-        initialCompile: false, fullRestart: fullRestart, fileServerUri: null);
+        initialCompile: false,
+        fullRestart: fullRestart,
+        fileServerUri: fileServerUri);
     if (!report.success) {
       _logger.severe('Failed to compile application.');
       return 1;
