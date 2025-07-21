@@ -41,9 +41,7 @@ class DebugConnection {
 
   Future<void> close() =>
       _closed ??= () async {
-        // Close Chrome remote debugger if available
         await _appDebugServices.chromeProxyService?.remoteDebugger.close();
-
         await _appDebugServices.close();
         _onDoneCompleter.complete();
       }();
