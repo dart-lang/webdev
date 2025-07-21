@@ -34,10 +34,7 @@ class WebSocketAppDebugServices implements IAppDebugServices {
   @override
   Uri? get ddsUri => null;
   @override
-  dynamic get chromeProxyService =>
-      throw UnsupportedError(
-        'Chrome proxy service not available in WebSocket-only mode',
-      );
+  dynamic get chromeProxyService => null;
 
   @override
   dynamic get webSocketProxyService => _debugService.webSocketProxyService;

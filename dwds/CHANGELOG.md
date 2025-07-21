@@ -4,7 +4,6 @@
 - Added WebSocket-based hot reload and service extension support via new `WebSocketProxyService` class that implements VM service protocol over WebSockets.
 - Enhanced `DevHandler` with `useWebSocketConnection` flag to toggle between Chrome-based and WebSocket-based communication protocols.
 
-
 ## 24.4.0
 
 - Added support for breakpoint registering on a hot reload with the DDC library bundle format using PausePostRequests.
