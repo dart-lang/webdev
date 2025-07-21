@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:dwds/src/utilities/shared.dart';
 
@@ -25,6 +26,7 @@ extension type _DartDevEmbedder._(JSObject _) implements JSObject {
 
 extension type _DartDevEmbedderConfig._(JSObject _) implements JSObject {
   external JSFunction? capturedMainHandler;
+  external JSFunction? capturedHotReloadEndHandler;
 }
 
 extension type _Debugger._(JSObject _) implements JSObject {
@@ -64,6 +66,8 @@ extension on JSArray<JSString> {
 }
 
 class DdcLibraryBundleRestarter implements Restarter {
+  JSFunction? _capturedHotReloadEndCallback;
+
   Future<void> _runMainWhenReady(
     Future? readyToRunMain,
     JSFunction runMain,
@@ -88,25 +92,8 @@ class DdcLibraryBundleRestarter implements Restarter {
     return true;
   }
 
-  late ({JSArray<JSString> sources, JSArray<JSString> libraries})?
-  _sourcesAndLibrariesToReload;
-
   @override
-  Future<void> reload() async {
-    // Requires a previous call to `fetchLibrariesForHotReload`.
-    await _dartDevEmbedder
-        .hotReload(
-          _sourcesAndLibrariesToReload!.sources,
-          _sourcesAndLibrariesToReload!.libraries,
-        )
-        .toDart;
-    _sourcesAndLibrariesToReload = null;
-  }
-
-  @override
-  Future<JSArray<JSString>> fetchLibrariesForHotReload(
-    String hotReloadSourcesPath,
-  ) async {
+  Future<JSObject> hotReloadStart(String hotReloadSourcesPath) async {
     final completer = Completer<String>();
     final xhr = _XMLHttpRequest();
     xhr.withCredentials = true;
@@ -122,22 +109,35 @@ class DdcLibraryBundleRestarter implements Restarter {
     xhr.send();
     final responseText = await completer.future;
 
-    final srcLibraries = (json.decode(responseText) as List).cast<Map>();
+    final srcModuleLibraries = (json.decode(responseText) as List).cast<Map>();
     final filesToLoad = JSArray<JSString>();
+    final moduleMap = JSObject();
     final librariesToReload = JSArray<JSString>();
-    for (final srcLibrary in srcLibraries) {
-      final srcLibraryCast = srcLibrary.cast<String, Object>();
-      filesToLoad.push((srcLibraryCast['src'] as String).toJS);
-      final libraries = (srcLibraryCast['libraries'] as List).cast<String>();
+    for (final srcModuleLibrary in srcModuleLibraries) {
+      final srcModuleLibraryCast = srcModuleLibrary.cast<String, Object>();
+      filesToLoad.push((srcModuleLibraryCast['src'] as String).toJS);
+      final module = srcModuleLibraryCast['module'] as String;
+      final libraries =
+          (srcModuleLibraryCast['libraries'] as List).cast<String>();
+      moduleMap[module] = libraries.jsify();
       for (final library in libraries) {
         librariesToReload.push(library.toJS);
       }
     }
-    _sourcesAndLibrariesToReload = (
-      sources: filesToLoad,
-      libraries: librariesToReload,
-    );
-    return librariesToReload;
+    _dartDevEmbedder.config.capturedHotReloadEndHandler =
+        (JSFunction hotReloadEndCallback) {
+          _capturedHotReloadEndCallback = hotReloadEndCallback;
+        }.toJS;
+    await _dartDevEmbedder.hotReload(filesToLoad, librariesToReload).toDart;
+    return moduleMap;
+  }
+
+  @override
+  Future<void> hotReloadEnd() async {
+    // Requires a previous call to `hotReloadStart`.
+    _capturedHotReloadEndCallback!.callAsFunction();
+    _dartDevEmbedder.config.capturedHotReloadEndHandler = null;
+    _capturedHotReloadEndCallback = null;
   }
 
   /// Handles service extension requests using the dart dev embedder

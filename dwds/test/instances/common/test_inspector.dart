@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async' show Completer, StreamSubscription;
+
+import 'package:path/path.dart' show basename;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -213,6 +216,56 @@ class TestInspector {
                 as Instance,
       ),
     );
+  }
+
+  Future<String> _locationToString(
+    VmService service,
+    String isolateId,
+    SourceLocation location,
+  ) async {
+    final script =
+        await service.getObject(isolateId, location.script!.id!) as Script;
+    final scriptName = basename(script.uri!);
+    final tokenPos = location.tokenPos!;
+    final line = script.getLineNumberFromTokenPos(tokenPos);
+    final column = script.getColumnNumberFromTokenPos(tokenPos);
+    return '$scriptName:$line:$column';
+  }
+
+  Future<void> runStepIntoThroughProgramRecordingStops(
+    String isolateId,
+
+    /// A list to which the pause location is added after each single-step.
+    List<String> recordedStops,
+
+    /// A limit on the number of stops to record.
+    ///
+    /// The program will not be resumed after the length of [recordedStops]
+    /// becomes [numStops].
+    int numStops,
+  ) async {
+    final completer = Completer<void>();
+
+    late StreamSubscription subscription;
+    subscription = service.onDebugEvent.listen((event) async {
+      if (event.kind == EventKind.kPauseInterrupted) {
+        final isolate = await service.getIsolate(isolateId);
+        final frame = isolate.pauseEvent!.topFrame!;
+        recordedStops.add(
+          await _locationToString(service, isolateId, frame.location!),
+        );
+        if (recordedStops.length == numStops) {
+          await subscription.cancel();
+          completer.complete();
+        }
+        await service.resume(isolateId, step: StepOption.kInto);
+      } else if (event.kind == EventKind.kPauseExit) {
+        await subscription.cancel();
+        completer.complete();
+      }
+    });
+    await service.resume(isolateId, step: StepOption.kInto);
+    await completer.future;
   }
 }
 

@@ -15,7 +15,7 @@ import 'fixtures/context.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
-  final debug = false;
+  const debug = false;
 
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);

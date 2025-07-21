@@ -41,15 +41,13 @@ class DdcRestarter implements Restarter {
   }
 
   @override
-  Future<void> reload() =>
+  Future<void> hotReloadEnd() =>
       throw UnimplementedError(
         'Hot reload is not supported for the DDC module format.',
       );
 
   @override
-  Future<JSArray<JSString>> fetchLibrariesForHotReload(
-    String hotReloadSourcesPath,
-  ) =>
+  Future<JSObject> hotReloadStart(String hotReloadSourcesPath) =>
       throw UnimplementedError(
         'Hot reload is not supported for the DDC module format.',
       );

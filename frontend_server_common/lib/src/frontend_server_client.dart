@@ -402,7 +402,6 @@ class ResidentCompiler {
       if (compilerOptions.moduleFormat == ModuleFormat.ddc)
         '--dartdevc-module-format=ddc'
     ];
-
     _logger.info(args.join(' '));
     final workingDirectory = projectDirectory.toFilePath();
     _server = await Process.start(sdkLayout.dartAotRuntimePath, args,
@@ -657,7 +656,7 @@ String _toMultiRootPath(
   for (final fileSystemRoot in fileSystemRoots) {
     final rootPath = fileSystemRoot.toFilePath(windows: Platform.isWindows);
     if (filePath.startsWith(rootPath)) {
-      return '$scheme://${filePath.substring(rootPath.length)}';
+      return '$scheme:///${filePath.substring(rootPath.length)}';
     }
   }
   return fileUri.toString();

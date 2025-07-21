@@ -37,20 +37,22 @@ class ReloadingManager {
     return result;
   }
 
-  /// Performs a hot reload using the sources and libraries computes in the
-  /// previous call to [fetchLibrariesForHotReload].
-  Future<void> hotReload() async {
-    await _restarter.reload();
+  /// After a previous call to [hotReloadStart], completes the hot
+  /// reload by pushing the libraries into the Dart runtime.
+  Future<void> hotReloadEnd() async {
+    await _restarter.hotReloadEnd();
   }
 
-  /// Computes the sources and libraries to reload and returns the list of
-  /// libraries using [hotReloadSourcesPath] as the path to a JSONified list of
-  /// maps which follows the following format:
+  /// Computes the sources and libraries to reload, loads them into the page,
+  /// and returns a map of module names to libraries using
+  /// [hotReloadSourcesPath] as the path to a JSONified list of maps which
+  /// follows the following format:
   ///
   /// ```json
   /// [
   ///   {
   ///     "src": "<file_name>",
+  ///     "module": "<module_name>",
   ///     "libraries": ["<lib1>", "<lib2>"],
   ///   },
   /// ]
@@ -58,11 +60,11 @@ class ReloadingManager {
   ///
   /// `src`: A string that corresponds to the file path containing a DDC library
   /// bundle.
+  /// `module`: The name of the library bundle in `src`.
   /// `libraries`: An array of strings containing the libraries that were
   /// compiled in `src`.
-  Future<JSArray<JSString>> fetchLibrariesForHotReload(
-    String hotReloadSourcesPath,
-  ) => _restarter.fetchLibrariesForHotReload(hotReloadSourcesPath);
+  Future<JSObject> hotReloadStart(String hotReloadSourcesPath) =>
+      _restarter.hotReloadStart(hotReloadSourcesPath);
 
   /// Does a hard reload of the application.
   void reloadPage() {

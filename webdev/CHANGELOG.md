@@ -1,7 +1,11 @@
-## 3.7.2-wip
+## 3.8.0-wip
 
+## 3.7.2
+
+- Fixed duplicate app logs on page refresh by preventing multiple stdout listeners for the same appId.
 - Adds `--offline` flag [#2483](https://github.com/dart-lang/webdev/pull/2483).
 - Support the `--hostname` flag when the `--tls-cert-key` and `--tls-cert-chain` flags are present [#2588](https://github.com/dart-lang/webdev/pull/2588).
+- Update `dwds` constraint to `24.3.11`.
 
 ## 3.7.1
 

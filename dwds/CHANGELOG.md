@@ -1,9 +1,14 @@
-## 24.3.12-wip
+## 24.4.1-wip
 
 - Implemented a WebSocket-based communication protocol that provides essential developer tooling (hot reload, service extensions) when Chrome debugger access is unavailable. - [#2605](https://github.com/dart-lang/webdev/issues/2605)
 - Added WebSocket-based hot reload and service extension support via new `WebSocketProxyService` class that implements VM service protocol over WebSockets.
-- Created new files: `WebSocketProxyService`, `WebSocketDebugService`, `WebSocketAppDebugServices`, and `WebSocketDwdsVmClient` to support socket-based DWDS functionality.
 - Enhanced `DevHandler` with `useWebSocketConnection` flag to toggle between Chrome-based and WebSocket-based communication protocols.
+
+
+## 24.4.0
+
+- Added support for breakpoint registering on a hot reload with the DDC library bundle format using PausePostRequests.
+- `FrontendServerDdcLibraryBundleStrategy.hotReloadSourceUri` is now expected to also provide the reloaded modules.
 
 ## 24.3.11
 

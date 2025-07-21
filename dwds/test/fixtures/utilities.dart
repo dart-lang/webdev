@@ -196,9 +196,7 @@ class TestToolConfiguration extends ToolConfiguration {
     TestDebugSettings super.debugSettings =
         const TestDebugSettings.noDevTools(),
     TestBuildSettings buildSettings = const TestBuildSettings.dart(),
-  }) : super(
-         loadStrategy: TestStrategy(const FakeAssetReader(), buildSettings),
-       );
+  }) : super(loadStrategy: TestStrategy(FakeAssetReader(), buildSettings));
 
   TestToolConfiguration.withLoadStrategy({
     TestAppMetadata super.appMetadata = const TestAppMetadata.externalApp(),

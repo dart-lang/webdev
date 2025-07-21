@@ -5,6 +5,7 @@
 import 'package:collection/collection.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/debugging/metadata/class.dart';
+import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:logging/logging.dart';
@@ -25,6 +26,29 @@ class LibraryHelper extends Domain {
 
   LibraryHelper(AppInspectorInterface appInspector) {
     inspector = appInspector;
+  }
+
+  /// Initialize any caches.
+  ///
+  /// If [modifiedModuleReport] is not null, invalidates only modified libraries
+  /// from the cache and recomputes values for any eager caches.
+  void initialize({ModifiedModuleReport? modifiedModuleReport}) {
+    _rootLib = null;
+    if (modifiedModuleReport != null) {
+      for (final library in modifiedModuleReport.modifiedLibraries) {
+        // These will later be initialized by `libraryFor` if needed.
+        _librariesById.remove(library);
+        _libraryRefsById.remove(library);
+      }
+      for (final library in modifiedModuleReport.reloadedLibraries) {
+        // These need to be recomputed here as `libraryRefs` only checks if this
+        // map is empty before returning.
+        _libraryRefsById[library] = _createLibraryRef(library);
+      }
+      return;
+    }
+    _librariesById.clear();
+    _libraryRefsById.clear();
   }
 
   Future<LibraryRef> get rootLib async {
@@ -51,9 +75,13 @@ class LibraryHelper extends Domain {
     return _rootLib!;
   }
 
+  LibraryRef _createLibraryRef(String library) =>
+      LibraryRef(id: library, name: library, uri: library);
+
   /// Returns all libraryRefs in the app.
   ///
-  /// Note this can return a cached result.
+  /// Note this can return a cached result that can be selectively reinitialized
+  /// using [initialize].
   Future<List<LibraryRef>> get libraryRefs async {
     if (_libraryRefsById.isNotEmpty) return _libraryRefsById.values.toList();
     final libraries =
@@ -61,11 +89,7 @@ class LibraryHelper extends Domain {
             .metadataProviderFor(inspector.appConnection.request.entrypointPath)
             .libraries;
     for (final library in libraries) {
-      _libraryRefsById[library] = LibraryRef(
-        id: library,
-        name: library,
-        uri: library,
-      );
+      _libraryRefsById[library] = _createLibraryRef(library);
     }
     return _libraryRefsById.values.toList();
   }

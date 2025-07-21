@@ -4,7 +4,9 @@
 
 import 'dart:io';
 
+import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test_common/utilities.dart';
 
 enum IndexBaseMode { noBase, base }
@@ -17,10 +19,12 @@ class TestProject {
   final String dartEntryFileName;
   final String htmlEntryFileName;
 
+  late Directory _fixturesCopy;
+
   /// The top level directory in which we run the test server, e.g.
-  /// "/workstation/webdev/fixtures/_testSound".
+  /// "/tmp/_testSound".
   String get absolutePackageDirectory =>
-      absolutePath(pathFromFixtures: packageDirectory);
+      p.join(_fixturesCopy.absolute.path, packageDirectory);
 
   /// The directory to build and serve, e.g. "example".
   String get directoryToServe => p.split(webAssetsPath).first;
@@ -35,14 +39,13 @@ class TestProject {
   }
 
   /// The path to the Dart entry file, e.g,
-  /// "/workstation/webdev/fixtures/_testSound/example/hello_world/main.dart":
-  String get dartEntryFilePath => absolutePath(
-    pathFromFixtures: p.joinAll([
-      packageDirectory,
-      webAssetsPath,
-      dartEntryFileName,
-    ]),
-  );
+  /// "/tmp/_testSound/example/hello_world/main.dart":
+  String get dartEntryFilePath => p.joinAll([
+    _fixturesCopy.absolute.path,
+    packageDirectory,
+    webAssetsPath,
+    dartEntryFileName,
+  ]);
 
   /// The URI for the package_config.json is located in:
   /// `<project directory>/.dart_tool/package_config`
@@ -56,7 +59,7 @@ class TestProject {
     'org-dartlang-app:///${p.join(webAssetsPath, dartEntryFileName)}',
   );
 
-  const TestProject.testPackage({IndexBaseMode baseMode = IndexBaseMode.noBase})
+  TestProject.testPackage({IndexBaseMode baseMode = IndexBaseMode.noBase})
     : this._(
         packageName: '_test_package_sound',
         packageDirectory: '_testPackageSound',
@@ -66,7 +69,7 @@ class TestProject {
             baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html',
       );
 
-  static const testCircular1 = TestProject._(
+  static final testCircular1 = TestProject._(
     packageName: '_test_circular1_sound',
     packageDirectory: '_testCircular1Sound',
     webAssetsPath: 'web',
@@ -74,18 +77,17 @@ class TestProject {
     htmlEntryFileName: 'index.html',
   );
 
-  const TestProject.testCircular2({
-    IndexBaseMode baseMode = IndexBaseMode.noBase,
-  }) : this._(
-         packageName: '_test_circular2_sound',
-         packageDirectory: '_testCircular2Sound',
-         webAssetsPath: 'web',
-         dartEntryFileName: 'main.dart',
-         htmlEntryFileName:
-             baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html',
-       );
+  TestProject.testCircular2({IndexBaseMode baseMode = IndexBaseMode.noBase})
+    : this._(
+        packageName: '_test_circular2_sound',
+        packageDirectory: '_testCircular2Sound',
+        webAssetsPath: 'web',
+        dartEntryFileName: 'main.dart',
+        htmlEntryFileName:
+            baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html',
+      );
 
-  static const test = TestProject._(
+  static final test = TestProject._(
     packageName: '_test_sound',
     packageDirectory: '_testSound',
     webAssetsPath: 'example/hello_world',
@@ -109,7 +111,7 @@ class TestProject {
     htmlEntryFileName: 'index.html',
   );
 
-  static const testExperiment = TestProject._(
+  static final testExperiment = TestProject._(
     packageName: '_experiment_sound',
     packageDirectory: '_experimentSound',
     webAssetsPath: 'web',
@@ -117,7 +119,7 @@ class TestProject {
     htmlEntryFileName: 'index.html',
   );
 
-  static const testHotRestart1 = TestProject._(
+  static final testHotRestart1 = TestProject._(
     packageName: '_test_hot_restart1',
     packageDirectory: '_testHotRestart1Sound',
     webAssetsPath: 'web',
@@ -127,7 +129,7 @@ class TestProject {
 
   /// This series of hot restart tests is divided across multiple packages in
   /// order to test correctness when only a subset of libraries are updated.
-  static const testHotRestart2 = TestProject._(
+  static final testHotRestart2 = TestProject._(
     packageName: '_test_hot_restart2',
     packageDirectory: '_testHotRestart2Sound',
     webAssetsPath: 'web',
@@ -135,7 +137,7 @@ class TestProject {
     htmlEntryFileName: 'index.html',
   );
 
-  static const testHotRestartBreakpoints = TestProject._(
+  static final testHotRestartBreakpoints = TestProject._(
     packageName: '_test_hot_restart_breakpoints',
     packageDirectory: '_testHotRestartBreakpoints',
     webAssetsPath: 'web',
@@ -143,7 +145,7 @@ class TestProject {
     htmlEntryFileName: 'index.html',
   );
 
-  static const testHotReload = TestProject._(
+  static final testHotReload = TestProject._(
     packageName: '_test_hot_reload',
     packageDirectory: '_testHotReload',
     webAssetsPath: 'web',
@@ -151,7 +153,15 @@ class TestProject {
     htmlEntryFileName: 'index.html',
   );
 
-  const TestProject._({
+  static final testHotReloadBreakpoints = TestProject._(
+    packageName: '_test_hot_reload_breakpoints',
+    packageDirectory: '_testHotReloadBreakpoints',
+    webAssetsPath: 'web',
+    dartEntryFileName: 'main.dart',
+    htmlEntryFileName: 'index.html',
+  );
+
+  TestProject._({
     required this.packageName,
     required this.packageDirectory,
     required this.webAssetsPath,
@@ -159,25 +169,99 @@ class TestProject {
     required this.htmlEntryFileName,
   });
 
-  void validate() {
-    // Verify that the web assets path has no starting slash:
-    assert(!webAssetsPath.startsWith('/'));
-  }
+  static Future<void> _copyPackageAndPathDependenciesIntoTempDirectory(
+    Directory tempDirectory,
+    String packageDirectory,
+    Set<String> copiedPackageDirectories,
+  ) async {
+    // There may be cycles in dependencies, so check that we already copied this
+    // package.
+    if (copiedPackageDirectories.contains(packageDirectory)) return;
+    final currentPath = absolutePath(pathFromFixtures: packageDirectory);
+    final newPath = p.join(tempDirectory.absolute.path, packageDirectory);
+    Directory(newPath).createSync();
+    copyPathSync(currentPath, newPath);
+    copiedPackageDirectories.add(packageDirectory);
+    final pubspec = Pubspec.parse(
+      File(p.join(currentPath, 'pubspec.yaml')).readAsStringSync(),
+    );
+    for (final dependency in pubspec.dependencies.values) {
+      if (dependency is PathDependency) {
+        final dependencyDirectory = Directory(
+          p.normalize(p.join(currentPath, dependency.path)),
+        );
+        // It may be okay to do some more complicated copying here for path
+        // dependencies that aren't immediately under `fixtures`, but for now,
+        // only support those that are.
+        assert(
+          dependencyDirectory.parent.path == Directory(currentPath).parent.path,
+          'Path dependency of $packageDirectory: '
+          '${dependencyDirectory.path} is not an immediate directory in '
+          '`fixtures`.',
+        );
+        await _copyPackageAndPathDependenciesIntoTempDirectory(
+          tempDirectory,
+          p.basename(dependencyDirectory.path),
+          copiedPackageDirectories,
+        );
+      }
+    }
 
-  /// Clean up the project.
-  /// Called when we need to rebuild sdk and the app from
-  /// previous test configurations.
-  Future<void> cleanUp() async {
+    // Clean up the project.
+    // Called when we need to rebuild sdk and the app from previous test
+    // configurations.
     await Process.run('dart', [
       'run',
       'build_runner',
       'clean',
-    ], workingDirectory: absolutePackageDirectory);
+    ], workingDirectory: newPath);
+  }
+
+  Future<void> setUp() async {
+    // Verify that the web assets path has no starting slash.
+    assert(!webAssetsPath.startsWith('/'));
+    // Copy the package into a temporary directory to allow editing of files if
+    // needed.
+    final systemTempDir = Directory(
+      // Resolve symbolic links as build_daemon tests rely on paths matching
+      // between the client and the daemon.
+      Directory.systemTemp.resolveSymbolicLinksSync(),
+    );
+    _fixturesCopy = systemTempDir.createTempSync();
+    await _copyPackageAndPathDependenciesIntoTempDirectory(
+      _fixturesCopy,
+      packageDirectory,
+      {},
+    );
+  }
+
+  /// Delete the copy of the project.
+  Future<void> tearDown() async {
+    try {
+      _fixturesCopy.deleteSync(recursive: true);
+    } on FileSystemException catch (_) {
+      // On Windows, the build daemon process might still be accessing the
+      // working directory, so try again with an exponential backoff.
+      var seconds = 1;
+      final maxAttempts = 3;
+      for (var attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+          _fixturesCopy.deleteSync(recursive: true);
+          break;
+        } on FileSystemException catch (_) {
+          await Future.delayed(Duration(seconds: seconds));
+          seconds *= 2;
+        }
+      }
+    }
   }
 
   /// The path to the Dart specified file in the 'lib' directory, e.g,
-  /// "/workstation/webdev/fixtures/_testSound/lib/library.dart":
-  String dartLibFilePath(String dartLibFileName) => absolutePath(
-    pathFromFixtures: p.joinAll([packageDirectory, 'lib', dartLibFileName]),
-  );
+  /// "/tmp/_testSound/lib/library.dart":
+  String dartLibFilePath(String dartLibFileName) => p.joinAll([
+    _fixturesCopy.absolute.path,
+    packageDirectory,
+    'lib',
+    dartLibFileName,
+  ]);
 }

@@ -31,7 +31,7 @@ void main() {
     group(
       'When the packageConfigLocator does not specify a package config path',
       () {
-        final strategy = FakeStrategy(FakeAssetReader());
+        late final strategy = FakeStrategy(FakeAssetReader());
 
         test('defaults to "./dart_tool/package_config.json"', () {
           expect(
@@ -43,7 +43,7 @@ void main() {
     );
 
     group('When a custom package config path is specified', () {
-      final strategy = FakeStrategy(
+      late final strategy = FakeStrategy(
         FakeAssetReader(),
         packageConfigPath: 'custom/package_config/path',
       );
@@ -57,7 +57,7 @@ void main() {
     });
 
     group('When default build settings defined', () {
-      final strategy = FakeStrategy(
+      late final strategy = FakeStrategy(
         FakeAssetReader(),
         buildSettings: TestBuildSettings.dart(),
       );
@@ -85,7 +85,7 @@ void main() {
       final isFlutterApp = true;
       final experiments = ['records'];
 
-      final strategy = FakeStrategy(
+      late final strategy = FakeStrategy(
         FakeAssetReader(),
         buildSettings: BuildSettings(
           appEntrypoint: appEntrypoint,

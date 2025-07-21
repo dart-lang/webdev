@@ -51,15 +51,11 @@ class WebDevFS {
 
   final TestSdkLayout sdkLayout;
   final CompilerOptions compilerOptions;
-  late final Directory _savedCurrentDirectory;
 
   Future<Uri> create() async {
-    _savedCurrentDirectory = fileSystem.currentDirectory;
-
-    fileSystem.currentDirectory = projectDirectory.toFilePath();
-
     assetServer = await TestAssetServer.start(
       sdkLayout.sdkDirectory,
+      projectDirectory,
       fileSystem,
       index,
       hostname,
@@ -71,7 +67,6 @@ class WebDevFS {
   }
 
   Future<void> dispose() {
-    fileSystem.currentDirectory = _savedCurrentDirectory;
     return assetServer.close();
   }
 
@@ -84,7 +79,8 @@ class WebDevFS {
     required bool fullRestart,
   }) async {
     final mainPath = mainUri.toFilePath();
-    final outputDirectoryPath = fileSystem.file(mainPath).parent.path;
+    final outputDirectory = fileSystem.directory(
+        fileSystem.file(projectDirectory.resolve(mainPath)).parent.path);
     final entryPoint = mainUri.toString();
 
     var prefix = '';
@@ -103,7 +99,10 @@ class WebDevFS {
       final bootstrap = '${prefix}main_module.bootstrap.js';
 
       assetServer.writeFile(
-          entryPoint, fileSystem.file(mainPath).readAsStringSync());
+          entryPoint,
+          fileSystem
+              .file(projectDirectory.resolve(mainPath))
+              .readAsStringSync());
       assetServer.writeFile(stackMapper, stackTraceMapper.readAsStringSync());
 
       switch (ddcModuleFormat) {
@@ -199,14 +198,13 @@ class WebDevFS {
     File metadataFile;
     List<String> modules;
     try {
-      final parentDirectory = fileSystem.directory(outputDirectoryPath);
       codeFile =
-          parentDirectory.childFile('${compilerOutput.outputFilename}.sources');
+          outputDirectory.childFile('${compilerOutput.outputFilename}.sources');
       manifestFile =
-          parentDirectory.childFile('${compilerOutput.outputFilename}.json');
+          outputDirectory.childFile('${compilerOutput.outputFilename}.json');
       sourcemapFile =
-          parentDirectory.childFile('${compilerOutput.outputFilename}.map');
-      metadataFile = parentDirectory
+          outputDirectory.childFile('${compilerOutput.outputFilename}.map');
+      metadataFile = outputDirectory
           .childFile('${compilerOutput.outputFilename}.metadata');
       modules = assetServer.write(
           codeFile, manifestFile, sourcemapFile, metadataFile);
@@ -253,10 +251,11 @@ class WebDevFS {
   static const String reloadScriptsFileName = 'reload_scripts.json';
 
   /// Given a list of [modules] that need to be reloaded, writes a file that
-  /// contains a list of objects each with two fields:
+  /// contains a list of objects each with three fields:
   ///
   /// `src`: A string that corresponds to the file path containing a DDC library
   /// bundle.
+  /// `module`: The name of the library bundle in `src`.
   /// `libraries`: An array of strings containing the libraries that were
   /// compiled in `src`.
   ///
@@ -265,6 +264,7 @@ class WebDevFS {
   /// [
   ///   {
   ///     "src": "<file_name>",
+  ///     "module": "<module_name>",
   ///     "libraries": ["<lib1>", "<lib2>"],
   ///   },
   /// ]
@@ -286,6 +286,7 @@ class WebDevFS {
       final libraries = metadata.libraries.keys.toList();
       moduleToLibrary.add(<String, Object>{
         'src': _findModuleToLoad(module, entrypointDirectory),
+        'module': metadata.name,
         'libraries': libraries
       });
     }

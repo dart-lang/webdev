@@ -171,7 +171,7 @@ abstract class LoadStrategy {
   /// Creates and returns a [MetadataProvider] with the given [entrypoint] and
   /// [reader].
   MetadataProvider createProvider(String entrypoint, AssetReader reader) =>
-      MetadataProvider(entrypoint, reader, useModuleName: true);
+      MetadataProvider(entrypoint, reader);
 
   /// Initializes a [MetadataProvider] for the application located at the
   /// provided [entrypoint].
@@ -181,6 +181,14 @@ abstract class LoadStrategy {
     // Returns a Future so that the asynchronous g3-implementation can override
     // this method:
     return Future.value();
+  }
+
+  Future<ModifiedModuleReport> reinitializeProviderAfterHotReload(
+    String entrypoint,
+    Map<String, List> reloadedModulesToLibraries,
+  ) {
+    final provider = _providers[entrypoint]!;
+    return provider.reinitializeAfterHotReload(reloadedModulesToLibraries);
   }
 }
 

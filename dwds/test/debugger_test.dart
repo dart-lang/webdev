@@ -88,8 +88,8 @@ void main() async {
       FakeModules(),
       root,
     );
-    locations.initialize('fake_entrypoint');
-    skipLists = SkipLists();
+    await locations.initialize('fake_entrypoint');
+    skipLists = SkipLists(root);
     debugger = await Debugger.create(
       webkitDebugger,
       (_, __) {},

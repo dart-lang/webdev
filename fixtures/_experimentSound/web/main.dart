@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 3.9
+
 import 'dart:async';
 import 'dart:core';
 // TODO: https://github.com/dart-lang/webdev/issues/2508
@@ -24,6 +26,8 @@ void main() {
     testPattern2();
     print('Classes');
     testClass();
+    print('Dot shorthands');
+    testDotShorthands();
   });
 
   document.body!.appendText('Program is running!');
@@ -105,4 +109,25 @@ class GreeterClass {
   void greetInFrench() {
     print('Bonjour $greeteeName');
   }
+}
+
+class C {
+  int value;
+  C(this.value); // lineA
+
+  static C two = C(2); // lineB
+  static C get three => C(3); // lineC
+  static C four() => C(4); // lineD
+}
+
+void testDotShorthands() {
+  C c = C(1);
+  print('breakpoint'); // Breakpoint: testDotShorthands
+  // ignore: experiment_not_enabled
+  c = .two; // lineE
+  // ignore: experiment_not_enabled
+  c = .three; // lineF
+  // ignore: experiment_not_enabled
+  c = .four(); // lineG
+  print(c.value); // lineH
 }

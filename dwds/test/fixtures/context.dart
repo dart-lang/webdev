@@ -89,7 +89,7 @@ class TestContext {
   WebDriver? _webDriver;
 
   Process get chromeDriver => _chromeDriver!;
-  late Process? _chromeDriver;
+  Process? _chromeDriver;
 
   WebkitDebugger get webkitDebugger => _webkitDebugger!;
   late WebkitDebugger? _webkitDebugger;
@@ -98,7 +98,7 @@ class TestContext {
   late Handler? _assetHandler;
 
   Client get client => _client!;
-  late Client? _client;
+  Client? _client;
 
   ExpressionCompilerService? ddcService;
 
@@ -106,7 +106,7 @@ class TestContext {
   late int? _port;
 
   Directory get outputDir => _outputDir!;
-  late Directory? _outputDir;
+  Directory? _outputDir;
 
   late WipConnection extensionConnection;
   late AppConnection appConnection;
@@ -129,18 +129,7 @@ class TestContext {
   /// External VM service.
   VmService get vmService => debugConnection.vmService;
 
-  TestContext(this.project, this.sdkConfigurationProvider) {
-    DartUri.currentDirectory = project.absolutePackageDirectory;
-
-    project.validate();
-
-    _logger.info(
-      'Serving: ${project.directoryToServe}/${project.filePathToServe}',
-    );
-    _logger.info('Project: ${project.absolutePackageDirectory}');
-    _logger.info('Packages: ${project.packageConfigFile}');
-    _logger.info('Entry: ${project.dartEntryFilePath}');
-  }
+  TestContext(this.project, this.sdkConfigurationProvider);
 
   Future<void> setUp({
     TestSettings testSettings = const TestSettings(),
@@ -160,9 +149,16 @@ class TestContext {
       final sdkLayout = sdkConfigurationProvider.sdkLayout;
       final configuration = await sdkConfigurationProvider.configuration;
       configuration.validate();
-      await project.cleanUp();
+      await project.setUp();
 
       DartUri.currentDirectory = project.absolutePackageDirectory;
+
+      _logger.info(
+        'Serving: ${project.directoryToServe}/${project.filePathToServe}',
+      );
+      _logger.info('Project: ${project.absolutePackageDirectory}');
+      _logger.info('Packages: ${project.packageConfigFile}');
+      _logger.info('Entry: ${project.dartEntryFilePath}');
 
       configureLogWriter();
 
@@ -326,10 +322,12 @@ class TestContext {
             _webRunner = ResidentWebRunner(
               mainUri: entry,
               urlTunneler: debugSettings.urlEncoder,
-              projectDirectory: p.toUri(project.absolutePackageDirectory),
+              projectDirectory: Directory(project.absolutePackageDirectory).uri,
               packageConfigFile: project.packageConfigFile,
               packageUriMapper: packageUriMapper,
-              fileSystemRoots: [p.toUri(project.absolutePackageDirectory)],
+              fileSystemRoots: [
+                Directory(project.absolutePackageDirectory).uri,
+              ],
               fileSystemScheme: 'org-dartlang-app',
               outputPath: outputDir.path,
               compilerOptions: compilerOptions,
@@ -542,16 +540,17 @@ class TestContext {
   }
 
   Future<void> tearDown() async {
+    await _webRunner?.stop();
     await _webDriver?.quit(closeSession: true);
     _chromeDriver?.kill();
     DartUri.currentDirectory = p.current;
     await _daemonClient?.close();
     await ddcService?.stop();
-    await _webRunner?.stop();
     await _testServer?.stop();
     _client?.close();
     await _outputDir?.delete(recursive: true);
     stopLogWriter();
+    await project.tearDown();
 
     // clear the state for next setup
     _webDriver = null;
@@ -588,11 +587,6 @@ class TestContext {
     // Library folder may not exist yet, so create it.
     file.createSync(recursive: true);
     file.writeAsStringSync(contents);
-  }
-
-  void removeLibraryFile({required String libFileName}) {
-    final file = File(project.dartLibFilePath(libFileName));
-    file.deleteSync();
   }
 
   Future<void> recompile({required bool fullRestart}) async {

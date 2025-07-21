@@ -51,14 +51,6 @@ void runTests({
     }
   }
 
-  void undoEdit() {
-    context.makeEditToDartLibFile(
-      libFileName: 'library2.dart',
-      toReplace: newString,
-      replaceWith: originalString,
-    );
-  }
-
   group('Injected client', () {
     VmService? fakeClient;
 
@@ -78,7 +70,6 @@ void runTests({
 
     tearDown(() async {
       await context.tearDown();
-      undoEdit();
     });
 
     test(
@@ -145,7 +136,6 @@ void runTests({
 
         tearDown(() async {
           await context.tearDown();
-          undoEdit();
         });
 
         test('properly compares constants after hot restart', () async {
@@ -189,7 +179,6 @@ void runTests({
 
         tearDown(() async {
           await context.tearDown();
-          undoEdit();
         });
 
         test('properly compares constants after hot restart', () async {

@@ -19,7 +19,7 @@ import 'test_utils.dart';
 void main() {
   group('serve app with TLS options', () {
     // Change to true for debugging.
-    final debug = false;
+    const debug = false;
 
     final testRunner = TestRunner();
     late String exampleDirectory;
@@ -53,6 +53,7 @@ void main() {
         '--hostname=0.0.0.0',
         '--tls-cert-chain=localhost+2.pem',
         '--tls-cert-key=localhost+2-key.pem',
+        '--enable-experiment=dot-shorthands',
       ];
 
       final process =
@@ -83,6 +84,7 @@ void main() {
         '--hostname=0.0.0.0',
         '--tls-cert-chain=localhost+2.pem',
         '--tls-cert-key=localhost+2-key.pem',
+        '--enable-experiment=dot-shorthands',
       ];
 
       final process =

@@ -26,6 +26,7 @@ class TestAssetServer implements AssetReader {
   // Fallback to "application/octet-stream" on null which
   // makes no claims as to the structure of the data.
   static const String _defaultMimeType = 'application/octet-stream';
+  final Uri _projectDirectory;
   final FileSystem _fileSystem;
   final HttpServer _httpServer;
   final Map<String, Uint8List> _files = {};
@@ -41,6 +42,7 @@ class TestAssetServer implements AssetReader {
     this._httpServer,
     this._packageUriMapper,
     this.internetAddress,
+    this._projectDirectory,
     this._fileSystem,
     this._sdkLayout,
   ) {
@@ -65,6 +67,7 @@ class TestAssetServer implements AssetReader {
   /// trace.
   static Future<TestAssetServer> start(
     String sdkDirectory,
+    Uri projectDirectory,
     FileSystem fileSystem,
     String index,
     String hostname,
@@ -75,8 +78,8 @@ class TestAssetServer implements AssetReader {
     final address = (await InternetAddress.lookup(hostname)).first;
     final httpServer = await HttpServer.bind(address, port);
     final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
-    final server = TestAssetServer(
-        index, httpServer, packageUriMapper, address, fileSystem, sdkLayout);
+    final server = TestAssetServer(index, httpServer, packageUriMapper, address,
+        projectDirectory, fileSystem, sdkLayout);
     return server;
   }
 
@@ -94,7 +97,7 @@ class TestAssetServer implements AssetReader {
     final headers = <String, String>{};
 
     if (request.url.path.endsWith('.html')) {
-      final indexFile = _fileSystem.file(index);
+      final indexFile = _fileSystem.file(_projectDirectory.resolve(index));
       if (indexFile.existsSync()) {
         headers[HttpHeaders.contentTypeHeader] = 'text/html';
         headers[HttpHeaders.contentLengthHeader] =
@@ -244,8 +247,7 @@ class TestAssetServer implements AssetReader {
     // If this is a dart file, it must be on the local file system and is
     // likely coming from a source map request. The tool doesn't currently
     // consider the case of Dart files as assets.
-    final dartFile =
-        _fileSystem.file(_fileSystem.currentDirectory.uri.resolve(path));
+    final dartFile = _fileSystem.file(_projectDirectory.resolve(path));
     if (dartFile.existsSync()) {
       return dartFile;
     }
@@ -255,7 +257,10 @@ class TestAssetServer implements AssetReader {
     // The file might have been a package file which is signaled by a
     // `/packages/<package>/<path>` request.
     if (segments.first == 'packages') {
-      final resolved = _packageUriMapper.serverPathToResolvedUri(path);
+      var resolved = _packageUriMapper.serverPathToResolvedUri(path);
+      if (resolved != null) {
+        resolved = _projectDirectory.resolveUri(resolved);
+      }
       final packageFile = _fileSystem.file(resolved);
       if (packageFile.existsSync()) {
         return packageFile;
@@ -311,7 +316,7 @@ class TestAssetServer implements AssetReader {
   }
 
   String _parseBasePathFromIndexHtml(String index) {
-    final file = _fileSystem.file(index);
+    final file = _fileSystem.file(_projectDirectory.resolve(index));
     if (!file.existsSync()) {
       throw StateError('Index file $index is not found');
     }
