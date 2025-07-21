@@ -78,8 +78,8 @@ class WebDevFS {
     required bool initialCompile,
     required bool fullRestart,
     // The uri of the `HttpServer` that handles file requests.
-    // TODO(srujzs): This should be the same as the uri of the AssetServer, but
-    // currently is not. Delete when that's fixed.
+    // TODO(srujzs): This should be the same as the uri of the AssetServer to
+    // align with Flutter tools, but currently is not. Delete when that's fixed.
     required Uri? fileServerUri,
   }) async {
     final mainPath = mainUri.toFilePath();
