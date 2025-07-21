@@ -34,7 +34,6 @@ import 'package:dwds/src/services/app_debug_services.dart';
 import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/web_socket_app_debug_services.dart';
-import 'package:dwds/src/services/web_socket_debug_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:dwds/src/web_socket_dwds_vm_client.dart';
 import 'package:logging/logging.dart';

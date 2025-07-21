@@ -17,6 +17,7 @@ import 'package:dwds/src/events.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/services/web_socket_proxy_service.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
@@ -126,15 +127,28 @@ Future<void> _handleSseConnections(
   }
 }
 
+/// Common interface for debug services (Chrome or WebSocket based).
+abstract class IDebugService {
+  String get hostname;
+  int get port;
+  String get uri;
+  Future<String> get encodedUri;
+  ServiceExtensionRegistry get serviceExtensionRegistry;
+  Future<void> close();
+}
+
 /// A Dart Web Debug Service.
 ///
 /// Creates a [ChromeProxyService] from an existing Chrome instance.
-class DebugService {
+class DebugService implements IDebugService {
   static String? _ddsUri;
 
   final VmServiceInterface chromeProxyService;
+  @override
   final String hostname;
+  @override
   final ServiceExtensionRegistry serviceExtensionRegistry;
+  @override
   final int port;
   final String authToken;
   final HttpServer _server;
@@ -162,6 +176,7 @@ class DebugService {
     this._urlEncoder,
   );
 
+  @override
   Future<void> close() =>
       _closed ??= Future.wait([
         _server.close(),
@@ -183,6 +198,7 @@ class DebugService {
     return _dds!;
   }
 
+  @override
   String get uri {
     final dds = _dds;
     if (_spawnDds && dds != null) {
@@ -200,6 +216,7 @@ class DebugService {
   }
 
   String? _encodedUri;
+  @override
   Future<String> get encodedUri async {
     if (_encodedUri != null) return _encodedUri!;
     var encoded = uri;
@@ -300,6 +317,167 @@ class DebugService {
       ddsPort,
       urlEncoder,
     );
+  }
+}
+
+/// Defines callbacks for sending messages to the connected client.
+/// Returns the number of clients the request was successfully sent to.
+typedef SendClientRequest = int Function(Object request);
+
+/// WebSocket-based debug service for web debugging.
+class WebSocketDebugService implements IDebugService {
+  @override
+  final String hostname;
+  @override
+  final int port;
+  final String authToken;
+  final HttpServer _server;
+  final WebSocketProxyService _webSocketProxyService;
+  final ServiceExtensionRegistry _serviceExtensionRegistry;
+  final UrlEncoder? _urlEncoder;
+
+  Future<void>? _closed;
+  DartDevelopmentServiceLauncher? _dds;
+  String? _encodedUri;
+
+  WebSocketDebugService._(
+    this.hostname,
+    this.port,
+    this.authToken,
+    this._webSocketProxyService,
+    this._serviceExtensionRegistry,
+    this._server,
+    this._urlEncoder,
+  );
+
+  /// Returns the WebSocketProxyService instance.
+  WebSocketProxyService get webSocketProxyService => _webSocketProxyService;
+
+  /// Returns the ServiceExtensionRegistry instance.
+  @override
+  ServiceExtensionRegistry get serviceExtensionRegistry =>
+      _serviceExtensionRegistry;
+
+  /// Closes the debug service and associated resources.
+  @override
+  Future<void> close() =>
+      _closed ??= Future.wait([
+        _server.close(),
+        if (_dds != null) _dds!.shutdown(),
+      ]);
+
+  /// Starts DDS (Dart Development Service).
+  Future<DartDevelopmentServiceLauncher> startDartDevelopmentService({
+    int? ddsPort,
+  }) async {
+    const timeout = Duration(seconds: 10);
+
+    try {
+      _dds = await DartDevelopmentServiceLauncher.start(
+        remoteVmServiceUri: Uri(
+          scheme: 'http',
+          host: hostname,
+          port: port,
+          path: authToken,
+        ),
+        serviceUri: Uri(scheme: 'http', host: hostname, port: ddsPort ?? 0),
+      ).timeout(timeout);
+    } catch (e) {
+      throw Exception('Failed to start DDS: $e');
+    }
+    return _dds!;
+  }
+
+  @override
+  String get uri =>
+      Uri(scheme: 'ws', host: hostname, port: port, path: authToken).toString();
+
+  @override
+  Future<String> get encodedUri async {
+    if (_encodedUri != null) return _encodedUri!;
+    var encoded = uri;
+    if (_urlEncoder != null) encoded = await _urlEncoder(encoded);
+    return _encodedUri = encoded;
+  }
+
+  static Future<WebSocketDebugService> start(
+    String hostname,
+    AppConnection appConnection, {
+    required SendClientRequest sendClientRequest,
+    UrlEncoder? urlEncoder,
+  }) async {
+    final authToken = _makeAuthToken();
+    final serviceExtensionRegistry = ServiceExtensionRegistry();
+
+    final webSocketProxyService = await WebSocketProxyService.create(
+      sendClientRequest,
+      appConnection,
+    );
+
+    final handler = _createWebSocketHandler(
+      serviceExtensionRegistry,
+      webSocketProxyService,
+    );
+
+    final server = await startHttpServer(hostname, port: 0);
+    serveHttpRequests(server, handler, (e, s) {
+      Logger('WebSocketDebugService').warning('Error serving requests', e);
+    });
+
+    return WebSocketDebugService._(
+      server.address.host,
+      server.port,
+      authToken,
+      webSocketProxyService,
+      serviceExtensionRegistry,
+      server,
+      urlEncoder,
+    );
+  }
+
+  /// Creates the WebSocket handler for incoming connections.
+  static dynamic _createWebSocketHandler(
+    ServiceExtensionRegistry serviceExtensionRegistry,
+    WebSocketProxyService webSocketProxyService,
+  ) {
+    return webSocketHandler((WebSocketChannel webSocket) {
+      if (!_acceptNewConnections) {
+        webSocket.sink.add(
+          jsonEncode({
+            'error': 'Cannot connect: another service has taken control.',
+          }),
+        );
+        webSocket.sink.close();
+        return;
+      }
+
+      final responseController = StreamController<Map<String, Object?>>();
+      webSocket.sink.addStream(responseController.stream.map(jsonEncode));
+
+      final inputStream = webSocket.stream.map((value) {
+        if (value is List<int>) {
+          value = utf8.decode(value);
+        } else if (value is! String) {
+          throw StateError(
+            'Unexpected value type from web socket: ${value.runtimeType}',
+          );
+        }
+        return Map<String, Object>.from(jsonDecode(value));
+      });
+
+      ++_clientsConnected;
+      VmServerConnection(
+        inputStream,
+        responseController.sink,
+        serviceExtensionRegistry,
+        webSocketProxyService,
+      ).done.whenComplete(() {
+        --_clientsConnected;
+        if (!_acceptNewConnections && _clientsConnected == 0) {
+          _acceptNewConnections = true;
+        }
+      });
+    });
   }
 }
 

@@ -10,7 +10,7 @@ import 'package:dwds/src/services/debug_service.dart';
 
 /// Common interface for debug service containers.
 abstract class IAppDebugServices {
-  dynamic get debugService;
+  IDebugService get debugService;
   dynamic get dwdsVmClient;
   dynamic get dwdsStats;
   Uri? get ddsUri;

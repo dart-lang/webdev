@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/src/services/web_socket_debug_service.dart';
+import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/services/web_socket_proxy_service.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';

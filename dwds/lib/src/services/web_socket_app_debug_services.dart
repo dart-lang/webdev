@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'package:dwds/src/services/app_debug_services.dart';
-import 'package:dwds/src/services/web_socket_debug_service.dart';
+import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/web_socket_dwds_vm_client.dart';
 
 /// WebSocket-based implementation of app debug services.
