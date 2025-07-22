@@ -150,16 +150,11 @@ class DevHandler {
       } on StateError catch (e) {
         // The sink has already closed (app is disconnected), or another StateError occurred.
         _logger.warning(
-          'Failed to send request to client ${injectedConnection.hashCode}, '
-          'connection likely closed. Error: $e',
+          'Failed to send request to client, connection likely closed. Error: $e',
         );
       } catch (e, s) {
         // Catch any other potential errors during sending.
-        _logger.severe(
-          'Error sending request to client ${injectedConnection.hashCode}: $e',
-          e,
-          s,
-        );
+        _logger.severe('Error sending request to client: $e', e, s);
       }
     }
     _logger.fine(
