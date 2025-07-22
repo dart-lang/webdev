@@ -13,7 +13,7 @@ import 'package:dwds/src/services/proxy_service.dart';
 abstract class IAppDebugServices {
   IDebugService get debugService;
   IDwdsVmClient get dwdsVmClient;
-  dynamic get dwdsStats;
+  DwdsStats? get dwdsStats;
   Uri? get ddsUri;
   String? get connectedInstanceId;
   set connectedInstanceId(String? id);
@@ -87,7 +87,7 @@ class WebSocketAppDebugServices implements IAppDebugServices {
 
   // WebSocket-only service - Chrome/DDS features not available
   @override
-  dynamic get dwdsStats => null;
+  DwdsStats? get dwdsStats => null;
   @override
   Uri? get ddsUri => null;
 
