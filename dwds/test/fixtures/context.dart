@@ -339,11 +339,9 @@ class TestContext {
             _hostname = appMetadata.hostname;
             await webRunner.run(
               frontendServerFileSystem,
-              _hostname,
-              assetServerPort,
-              filePathToServe,
-              initialCompile: true,
-              fullRestart: false,
+              hostname: _hostname,
+              port: assetServerPort,
+              index: filePathToServe,
             );
 
             if (testSettings.enableExpressionEvaluation) {
@@ -433,6 +431,10 @@ class TestContext {
       final appConnectionCompleter = Completer();
       final connection = ChromeConnection('localhost', debugPort);
 
+      // TODO(srujzs): In the case of the frontend server, it doesn't make sense
+      // that we initialize a new HTTP server instead of reusing the one in
+      // `TestAssetServer`. We should instead use that one to align with Flutter
+      // tools.
       _testServer = await TestServer.start(
         debugSettings: debugSettings.copyWith(
           expressionCompiler: expressionCompiler,
@@ -590,13 +592,9 @@ class TestContext {
   }
 
   Future<void> recompile({required bool fullRestart}) async {
-    await webRunner.run(
-      frontendServerFileSystem,
-      _hostname,
-      await findUnusedPort(),
-      webCompatiblePath([project.directoryToServe, project.filePathToServe]),
-      initialCompile: false,
+    await webRunner.rerun(
       fullRestart: fullRestart,
+      fileServerUri: Uri.parse('http://${testServer.host}:${testServer.port}'),
     );
     return;
   }

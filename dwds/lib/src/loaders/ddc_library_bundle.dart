@@ -110,7 +110,8 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   /// ```json
   /// [
   ///   {
-  ///     "src": "<file_name>",
+  ///     "src": "<base_uri>/<file_name>",
+  ///     "module": "<module_name>",
   ///     "libraries": ["<lib1>", "<lib2>"],
   ///   },
   /// ]
@@ -118,6 +119,7 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   ///
   /// `src`: A string that corresponds to the file path containing a DDC library
   /// bundle.
+  /// `module`: The name of the library bundle in `src`.
   /// `libraries`: An array of strings containing the libraries that were
   /// compiled in `src`.
   ///

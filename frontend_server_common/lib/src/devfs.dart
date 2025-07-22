@@ -77,6 +77,10 @@ class WebDevFS {
     required List<Uri> invalidatedFiles,
     required bool initialCompile,
     required bool fullRestart,
+    // The uri of the `HttpServer` that handles file requests.
+    // TODO(srujzs): This should be the same as the uri of the AssetServer to
+    // align with Flutter tools, but currently is not. Delete when that's fixed.
+    required Uri? fileServerUri,
   }) async {
     final mainPath = mainUri.toFilePath();
     final outputDirectory = fileSystem.directory(
@@ -215,9 +219,9 @@ class WebDevFS {
         compilerOptions.canaryFeatures &&
         !initialCompile) {
       if (fullRestart) {
-        performRestart(modules);
+        performRestart(modules, fileServerUri!);
       } else {
-        performReload(modules, prefix);
+        performReload(modules, prefix, fileServerUri!);
       }
     }
     return UpdateFSReport(
@@ -235,15 +239,15 @@ class WebDevFS {
   /// ```json
   /// [
   ///   {
-  ///     "src": "<file_name>",
+  ///     "src": "<base_uri>/<file_name>",
   ///     "id": "<id>",
   ///   },
   /// ]
   /// ```
-  void performRestart(List<String> modules) {
+  void performRestart(List<String> modules, Uri fileServerUri) {
     final srcIdsList = <Map<String, String>>[];
     for (final src in modules) {
-      srcIdsList.add(<String, String>{'src': src, 'id': src});
+      srcIdsList.add(<String, String>{'src': '$fileServerUri/$src', 'id': src});
     }
     assetServer.writeFile('restart_scripts.json', json.encode(srcIdsList));
   }
@@ -263,7 +267,7 @@ class WebDevFS {
   /// ```json
   /// [
   ///   {
-  ///     "src": "<file_name>",
+  ///     "src": "<base_uri>/<file_name>",
   ///     "module": "<module_name>",
   ///     "libraries": ["<lib1>", "<lib2>"],
   ///   },
@@ -275,7 +279,8 @@ class WebDevFS {
   ///
   /// [entrypointDirectory] is used to make the module paths relative to the
   /// entrypoint, which is needed in order to load `src`s correctly.
-  void performReload(List<String> modules, String entrypointDirectory) {
+  void performReload(
+      List<String> modules, String entrypointDirectory, Uri fileServerUri) {
     final moduleToLibrary = <Map<String, Object>>[];
     for (final module in modules) {
       final metadata = ModuleMetadata.fromJson(
@@ -285,30 +290,12 @@ class WebDevFS {
       );
       final libraries = metadata.libraries.keys.toList();
       moduleToLibrary.add(<String, Object>{
-        'src': _findModuleToLoad(module, entrypointDirectory),
+        'src': '$fileServerUri/$module',
         'module': metadata.name,
         'libraries': libraries
       });
     }
     assetServer.writeFile(reloadScriptsFileName, json.encode(moduleToLibrary));
-  }
-
-  /// Given a [module] location from the [ModuleMetadata], return its path in
-  /// the server relative to the entrypoint in [entrypointDirectory].
-  ///
-  /// This is needed in cases where the entrypoint is in a subdirectory in the
-  /// package.
-  String _findModuleToLoad(String module, String entrypointDirectory) {
-    if (entrypointDirectory.isEmpty) return module;
-    assert(entrypointDirectory.endsWith('/'));
-    if (module.startsWith(entrypointDirectory)) {
-      return module.substring(entrypointDirectory.length);
-    }
-    var numDirs = entrypointDirectory.split('/').length - 1;
-    while (numDirs-- > 0) {
-      module = '../$module';
-    }
-    return module;
   }
 
   File get ddcModuleLoaderJS =>

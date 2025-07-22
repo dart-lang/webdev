@@ -1,5 +1,8 @@
 ## 24.4.1-wip
 
+- Fixed an issue where we didn't wait until all scripts were parsed before
+  recomputing metadata on a hot reload.
+
 ## 24.4.0
 
 - Added support for breakpoint registering on a hot reload with the DDC library bundle format using PausePostRequests.
