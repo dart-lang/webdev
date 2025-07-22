@@ -569,7 +569,7 @@ class DevHandler {
     );
 
     appServices.connectedInstanceId = appConnection.request.instanceId;
-    appServices.dwdsStats.updateLoadTime(
+    appServices.dwdsStats!.updateLoadTime(
       debuggerStart: debuggerStart,
       devToolsStart: DateTime.now(),
     );
@@ -1039,7 +1039,7 @@ class DevHandler {
 
     final encodedUri = await appServices.debugService.encodedUri;
 
-    appServices.dwdsStats.updateLoadTime(
+    appServices.dwdsStats!.updateLoadTime(
       debuggerStart: debuggerStart,
       devToolsStart: DateTime.now(),
     );
