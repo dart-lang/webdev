@@ -441,16 +441,6 @@ class WebSocketDebugService implements IDebugService {
     WebSocketProxyService webSocketProxyService,
   ) {
     return webSocketHandler((WebSocketChannel webSocket) {
-      if (!_acceptNewConnections) {
-        webSocket.sink.add(
-          jsonEncode({
-            'error': 'Cannot connect: another service has taken control.',
-          }),
-        );
-        webSocket.sink.close();
-        return;
-      }
-
       final responseController = StreamController<Map<String, Object?>>();
       webSocket.sink.addStream(responseController.stream.map(jsonEncode));
 
@@ -473,9 +463,6 @@ class WebSocketDebugService implements IDebugService {
         webSocketProxyService,
       ).done.whenComplete(() {
         --_clientsConnected;
-        if (!_acceptNewConnections && _clientsConnected == 0) {
-          _acceptNewConnections = true;
-        }
       });
     });
   }
