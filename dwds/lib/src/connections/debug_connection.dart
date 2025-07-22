@@ -22,9 +22,11 @@ class DebugConnection {
   Future<void>? _closed;
 
   DebugConnection(this._appDebugServices) {
-    _appDebugServices.chromeProxyService?.remoteDebugger.onClose.first.then(
-      (_) => close(),
-    );
+    // Only setup Chrome-specific close handling if we have a ChromeProxyService
+    final proxyService = _appDebugServices.proxyService;
+    if (proxyService is ChromeProxyService) {
+      proxyService.remoteDebugger.onClose.first.then((_) => close());
+    }
   }
 
   /// The port of the host Dart VM Service.
@@ -41,7 +43,10 @@ class DebugConnection {
 
   Future<void> close() =>
       _closed ??= () async {
-        await _appDebugServices.chromeProxyService?.remoteDebugger.close();
+        final proxyService = _appDebugServices.proxyService;
+        if (proxyService is ChromeProxyService) {
+          await proxyService.remoteDebugger.close();
+        }
         await _appDebugServices.close();
         _onDoneCompleter.complete();
       }();
@@ -50,5 +55,10 @@ class DebugConnection {
 }
 
 /// [ChromeProxyService] of a [DebugConnection] for internal use only.
-ChromeProxyService fetchChromeProxyService(DebugConnection debugConnection) =>
-    debugConnection._appDebugServices.chromeProxyService;
+ChromeProxyService fetchChromeProxyService(DebugConnection debugConnection) {
+  final service = debugConnection._appDebugServices.proxyService;
+  if (service is ChromeProxyService) {
+    return service;
+  }
+  throw StateError('ChromeProxyService not available in this debug connection');
+}

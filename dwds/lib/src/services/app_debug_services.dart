@@ -7,6 +7,8 @@ import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart'
     show ChromeProxyService;
 import 'package:dwds/src/services/debug_service.dart';
+import 'package:dwds/src/services/proxy_service.dart';
+import 'package:dwds/src/web_socket_dwds_vm_client.dart';
 
 /// Common interface for debug service containers.
 abstract class IAppDebugServices {
@@ -17,8 +19,7 @@ abstract class IAppDebugServices {
   String? get connectedInstanceId;
   set connectedInstanceId(String? id);
   Future<void> close();
-  dynamic get chromeProxyService;
-  dynamic get webSocketProxyService;
+  ProxyService get proxyService;
 }
 
 /// Chrome-based debug services container.
@@ -56,14 +57,49 @@ class AppDebugServices implements IAppDebugServices {
   set connectedInstanceId(String? id) => _connectedInstanceId = id;
 
   @override
-  ChromeProxyService get chromeProxyService =>
+  ProxyService get proxyService =>
       debugService.chromeProxyService as ChromeProxyService;
-
-  // WebSocket functionality not available in Chrome-based service
-  @override
-  dynamic get webSocketProxyService => null;
 
   @override
   Future<void> close() =>
       _closed ??= Future.wait([debugService.close(), dwdsVmClient.close()]);
+}
+
+/// WebSocket-based implementation of app debug services.
+class WebSocketAppDebugServices implements IAppDebugServices {
+  final WebSocketDebugService _debugService;
+  final WebSocketDwdsVmClient _dwdsVmClient;
+  Future<void>? _closed;
+  String? _connectedInstanceId;
+
+  WebSocketAppDebugServices(this._debugService, this._dwdsVmClient);
+
+  @override
+  WebSocketDebugService get debugService => _debugService;
+
+  @override
+  WebSocketDwdsVmClient get dwdsVmClient => _dwdsVmClient;
+
+  @override
+  String? get connectedInstanceId => _connectedInstanceId;
+
+  @override
+  set connectedInstanceId(String? id) => _connectedInstanceId = id;
+
+  // WebSocket-only service - Chrome/DDS features not available
+  @override
+  dynamic get dwdsStats => null;
+  @override
+  Uri? get ddsUri => null;
+
+  @override
+  ProxyService get proxyService => _debugService.webSocketProxyService;
+
+  @override
+  Future<void> close() {
+    return _closed ??= Future.wait([
+      debugService.close(),
+      dwdsVmClient.close(),
+    ]);
+  }
 }
