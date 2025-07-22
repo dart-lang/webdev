@@ -9,6 +9,7 @@ import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/debug_service.dart';
+import 'package:dwds/src/services/proxy_service.dart';
 import 'package:dwds/src/services/web_socket_proxy_service.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
@@ -217,16 +218,20 @@ class DwdsVmClient implements IDwdsVmClient {
     VmRequest? response;
     final method = request['method'];
     if (method == _NamespacedServiceExtension.flutterListViews.method) {
-      response = await _flutterListViewsHandler(chromeProxyService);
+      response = await flutterListViewsHandler(chromeProxyService);
     } else if (method == _NamespacedServiceExtension.extDwdsEmitEvent.method) {
-      response = _extDwdsEmitEventHandler(request);
+      response = extDwdsEmitEventHandler(request, _chromeLogger);
     } else if (method == _NamespacedServiceExtension.extDwdsReload.method) {
       response = await _extDwdsReloadHandler(chromeProxyService);
     } else if (method == _NamespacedServiceExtension.extDwdsRestart.method) {
       final client = await clientFuture;
       response = await _extDwdsRestartHandler(chromeProxyService, client);
     } else if (method == _NamespacedServiceExtension.extDwdsSendEvent.method) {
-      response = await _extDwdsSendEventHandler(request, dwdsStats);
+      response = await extDwdsSendEventHandler(
+        request,
+        dwdsStats,
+        _chromeLogger,
+      );
     } else if (method == _NamespacedServiceExtension.extDwdsScreenshot.method) {
       response = await _extDwdsScreenshotHandler(chromeProxyService);
     }
@@ -242,21 +247,6 @@ class DwdsVmClient implements IDwdsVmClient {
     return response;
   }
 
-  static Future<Map<String, Object>> _flutterListViewsHandler(
-    ChromeProxyService chromeProxyService,
-  ) async {
-    final vm = await chromeProxyService.getVM();
-    final isolates = vm.isolates;
-    return <String, Object>{
-      'result': <String, Object>{
-        'views': <Object>[
-          for (final isolate in isolates ?? [])
-            <String, Object>{'id': isolate.id, 'isolate': isolate.toJson()},
-        ],
-      },
-    };
-  }
-
   static Future<Map<String, Object>> _extDwdsScreenshotHandler(
     ChromeProxyService chromeProxyService,
   ) async {
@@ -265,27 +255,6 @@ class DwdsVmClient implements IDwdsVmClient {
       'Page.captureScreenshot',
     );
     return {'result': response.result as Object};
-  }
-
-  static Future<Map<String, Object>> _extDwdsSendEventHandler(
-    VmResponse request,
-    DwdsStats dwdsStats,
-  ) async {
-    _processSendEvent(request, dwdsStats);
-    return {'result': Success().toJson()};
-  }
-
-  static Map<String, Object> _extDwdsEmitEventHandler(VmResponse request) {
-    final event = request['params'] as Map<String, dynamic>?;
-    if (event != null) {
-      final type = event['type'] as String?;
-      final payload = event['payload'] as Map<String, dynamic>?;
-      if (type != null && payload != null) {
-        emitEvent(DwdsEvent(type, payload));
-      }
-    }
-
-    return {'result': Success().toJson()};
   }
 
   static Future<Map<String, Object>> _extDwdsReloadHandler(
@@ -333,6 +302,188 @@ class DwdsVmClient implements IDwdsVmClient {
   ) {
     return _hotRestartQueue.run(() => _hotRestart(chromeProxyService, client));
   }
+}
+
+// WebSocket-based DWDS VM client logger.
+final _webSocketLogger = Logger('WebSocketDwdsVmClient');
+
+/// WebSocket-based DWDS VM client.
+class WebSocketDwdsVmClient implements IDwdsVmClient {
+  @override
+  final VmService client;
+  final StreamController<VmRequest> _requestController;
+  final StreamController<VmResponse> _responseController;
+  Future<void>? _closed;
+
+  WebSocketDwdsVmClient(
+    this.client,
+    this._requestController,
+    this._responseController,
+  );
+
+  @override
+  Future<void> close() =>
+      _closed ??= () async {
+        await _requestController.close();
+        await _responseController.close();
+        await client.dispose();
+      }();
+
+  static Future<WebSocketDwdsVmClient> create(
+    WebSocketDebugService debugService,
+  ) async {
+    _webSocketLogger.fine('Creating WebSocket DWDS VM client');
+    final webSocketProxyService = debugService.webSocketProxyService;
+    final responseController = StreamController<VmResponse>();
+    final responseSink = responseController.sink;
+    final responseStream = responseController.stream.asBroadcastStream();
+    final requestController = StreamController<VmRequest>();
+    final requestSink = requestController.sink;
+    final requestStream = requestController.stream;
+
+    _setUpWebSocketVmServerConnection(
+      webSocketProxyService: webSocketProxyService,
+      debugService: debugService,
+      responseStream: responseStream,
+      responseSink: responseSink,
+      requestStream: requestStream,
+      requestSink: requestSink,
+    );
+
+    final client = _setUpWebSocketVmClient(
+      responseStream: responseStream,
+      requestController: requestController,
+      requestSink: requestSink,
+    );
+
+    _webSocketLogger.fine('WebSocket DWDS VM client created successfully');
+    return WebSocketDwdsVmClient(client, requestController, responseController);
+  }
+
+  static VmService _setUpWebSocketVmClient({
+    required Stream<VmResponse> responseStream,
+    required StreamSink<VmRequest> requestSink,
+    required StreamController<VmRequest> requestController,
+  }) {
+    final client = VmService(responseStream.map(jsonEncode), (request) {
+      if (requestController.isClosed) {
+        _webSocketLogger.warning(
+          'Attempted to send a request but the connection is closed:\n\n$request',
+        );
+        return;
+      }
+      requestSink.add(Map<String, Object>.from(jsonDecode(request)));
+    });
+    return client;
+  }
+
+  static void _setUpWebSocketVmServerConnection({
+    required WebSocketProxyService webSocketProxyService,
+    required WebSocketDebugService debugService,
+    required Stream<VmResponse> responseStream,
+    required StreamSink<VmResponse> responseSink,
+    required Stream<VmRequest> requestStream,
+    required StreamSink<VmRequest> requestSink,
+  }) {
+    responseStream.listen((request) async {
+      final response = await _maybeHandleWebSocketServiceExtensionRequest(
+        request,
+        webSocketProxyService: webSocketProxyService,
+      );
+      if (response != null) {
+        requestSink.add(response);
+      }
+    });
+
+    final vmServerConnection = VmServerConnection(
+      requestStream,
+      responseSink,
+      debugService.serviceExtensionRegistry,
+      webSocketProxyService,
+    );
+
+    // Register service extensions
+    for (final extension in _NamespacedServiceExtension.values) {
+      _webSocketLogger.finest(
+        'Registering service extension: ${extension.method}',
+      );
+      debugService.serviceExtensionRegistry.registerExtension(
+        extension.method,
+        vmServerConnection,
+      );
+    }
+  }
+
+  static Future<VmRequest?> _maybeHandleWebSocketServiceExtensionRequest(
+    VmResponse request, {
+    required WebSocketProxyService webSocketProxyService,
+  }) async {
+    VmRequest? response;
+    final method = request['method'];
+
+    _webSocketLogger.finest('Processing service extension method: $method');
+
+    if (method == _NamespacedServiceExtension.flutterListViews.method) {
+      response = await flutterListViewsHandler(webSocketProxyService);
+    } else if (method == _NamespacedServiceExtension.extDwdsEmitEvent.method) {
+      response = extDwdsEmitEventHandler(request, _webSocketLogger);
+    } else if (method == _NamespacedServiceExtension.extDwdsReload.method) {
+      response = {'result': 'Reload not implemented'};
+    } else if (method == _NamespacedServiceExtension.extDwdsSendEvent.method) {
+      response = await extDwdsSendEventHandler(request, null, _webSocketLogger);
+    } else if (method == _NamespacedServiceExtension.extDwdsScreenshot.method) {
+      response = {'result': 'Screenshot not implemented'};
+    }
+
+    if (response != null) {
+      response['id'] = request['id'] as String;
+      response['jsonrpc'] = '2.0';
+    }
+    return response;
+  }
+}
+
+/// Shared handler for Flutter list views service extension.
+Future<Map<String, Object>> flutterListViewsHandler(
+  ProxyService proxyService,
+) async {
+  final vm = await proxyService.getVM();
+  final isolates = vm.isolates;
+  return <String, Object>{
+    'result': <String, Object>{
+      'views': <Object>[
+        for (final isolate in isolates ?? [])
+          <String, Object>{'id': isolate.id, 'isolate': isolate.toJson()},
+      ],
+    },
+  };
+}
+
+/// Shared handler for DWDS emit event service extension.
+Map<String, Object> extDwdsEmitEventHandler(VmResponse request, Logger logger) {
+  final event = request['params'] as Map<String, dynamic>?;
+  if (event != null) {
+    final type = event['type'] as String?;
+    final payload = event['payload'] as Map<String, dynamic>?;
+    if (type != null && payload != null) {
+      logger.fine('EmitEvent: $type $payload');
+      emitEvent(DwdsEvent(type, payload));
+    }
+  }
+  return {'result': Success().toJson()};
+}
+
+/// Shared handler for DWDS send event service extension.
+Future<Map<String, Object>> extDwdsSendEventHandler(
+  VmResponse request,
+  DwdsStats? dwdsStats,
+  Logger logger,
+) async {
+  logger.fine('SendEvent: $request');
+  if (dwdsStats != null) {
+    _processSendEvent(request, dwdsStats);
+  }
+  return {'result': Success().toJson()};
 }
 
 void _processSendEvent(Map<String, dynamic> request, DwdsStats dwdsStats) {
@@ -520,182 +671,4 @@ Future<void> _disableBreakpointsAndResume(
   _chromeLogger.info(
     'Successfully disabled breakpoints and resumed the isolate',
   );
-}
-
-// WebSocket-based DWDS VM client logger.
-final _webSocketLogger = Logger('WebSocketDwdsVmClient');
-
-/// WebSocket-based DWDS VM client.
-class WebSocketDwdsVmClient implements IDwdsVmClient {
-  @override
-  final VmService client;
-  final StreamController<VmRequest> _requestController;
-  final StreamController<VmResponse> _responseController;
-  Future<void>? _closed;
-
-  WebSocketDwdsVmClient(
-    this.client,
-    this._requestController,
-    this._responseController,
-  );
-
-  @override
-  Future<void> close() =>
-      _closed ??= () async {
-        await _requestController.close();
-        await _responseController.close();
-        await client.dispose();
-      }();
-
-  static Future<WebSocketDwdsVmClient> create(
-    WebSocketDebugService debugService,
-  ) async {
-    _webSocketLogger.fine('Creating WebSocket DWDS VM client');
-    final webSocketProxyService = debugService.webSocketProxyService;
-    final responseController = StreamController<VmResponse>();
-    final responseSink = responseController.sink;
-    final responseStream = responseController.stream.asBroadcastStream();
-    final requestController = StreamController<VmRequest>();
-    final requestSink = requestController.sink;
-    final requestStream = requestController.stream;
-
-    _setUpWebSocketVmServerConnection(
-      webSocketProxyService: webSocketProxyService,
-      debugService: debugService,
-      responseStream: responseStream,
-      responseSink: responseSink,
-      requestStream: requestStream,
-      requestSink: requestSink,
-    );
-
-    final client = _setUpWebSocketVmClient(
-      responseStream: responseStream,
-      requestController: requestController,
-      requestSink: requestSink,
-    );
-
-    _webSocketLogger.fine('WebSocket DWDS VM client created successfully');
-    return WebSocketDwdsVmClient(client, requestController, responseController);
-  }
-
-  static VmService _setUpWebSocketVmClient({
-    required Stream<VmResponse> responseStream,
-    required StreamSink<VmRequest> requestSink,
-    required StreamController<VmRequest> requestController,
-  }) {
-    final client = VmService(responseStream.map(jsonEncode), (request) {
-      if (requestController.isClosed) {
-        _webSocketLogger.warning(
-          'Attempted to send a request but the connection is closed:\n\n$request',
-        );
-        return;
-      }
-      requestSink.add(Map<String, Object>.from(jsonDecode(request)));
-    });
-    return client;
-  }
-
-  static void _setUpWebSocketVmServerConnection({
-    required WebSocketProxyService webSocketProxyService,
-    required WebSocketDebugService debugService,
-    required Stream<VmResponse> responseStream,
-    required StreamSink<VmResponse> responseSink,
-    required Stream<VmRequest> requestStream,
-    required StreamSink<VmRequest> requestSink,
-  }) {
-    responseStream.listen((request) async {
-      final response = await _maybeHandleWebSocketServiceExtensionRequest(
-        request,
-        webSocketProxyService: webSocketProxyService,
-      );
-      if (response != null) {
-        requestSink.add(response);
-      }
-    });
-
-    final vmServerConnection = VmServerConnection(
-      requestStream,
-      responseSink,
-      debugService.serviceExtensionRegistry,
-      webSocketProxyService,
-    );
-
-    // Register service extensions
-    for (final extension in _NamespacedServiceExtension.values) {
-      _webSocketLogger.finest(
-        'Registering service extension: ${extension.method}',
-      );
-      debugService.serviceExtensionRegistry.registerExtension(
-        extension.method,
-        vmServerConnection,
-      );
-    }
-  }
-
-  static Future<VmRequest?> _maybeHandleWebSocketServiceExtensionRequest(
-    VmResponse request, {
-    required WebSocketProxyService webSocketProxyService,
-  }) async {
-    VmRequest? response;
-    final method = request['method'];
-
-    _webSocketLogger.finest('Processing service extension method: $method');
-
-    if (method == _NamespacedServiceExtension.flutterListViews.method) {
-      response = await _webSocketFlutterListViewsHandler(webSocketProxyService);
-    } else if (method == _NamespacedServiceExtension.extDwdsEmitEvent.method) {
-      response = _webSocketExtDwdsEmitEventHandler(request);
-    } else if (method == _NamespacedServiceExtension.extDwdsReload.method) {
-      response = {'result': 'Reload not implemented'};
-    } else if (method == _NamespacedServiceExtension.extDwdsSendEvent.method) {
-      response = _webSocketExtDwdsSendEventHandler(request);
-    } else if (method == _NamespacedServiceExtension.extDwdsScreenshot.method) {
-      response = {'result': 'Screenshot not implemented'};
-    }
-
-    if (response != null) {
-      response['id'] = request['id'] as String;
-      response['jsonrpc'] = '2.0';
-    }
-    return response;
-  }
-
-  static Future<Map<String, Object>> _webSocketFlutterListViewsHandler(
-    WebSocketProxyService webSocketProxyService,
-  ) async {
-    final vm = await webSocketProxyService.getVM();
-    _webSocketLogger.finest(
-      'Retrieved VM with ${vm.isolates?.length ?? 0} isolates',
-    );
-    final isolates = vm.isolates;
-    return <String, Object>{
-      'result': <String, Object>{
-        'views': <Object>[
-          for (final isolate in isolates ?? [])
-            <String, Object>{'id': isolate.id, 'isolate': isolate.toJson()},
-        ],
-      },
-    };
-  }
-
-  static Map<String, Object> _webSocketExtDwdsEmitEventHandler(
-    VmResponse request,
-  ) {
-    final event = request['params'] as Map<String, dynamic>?;
-    if (event != null) {
-      final type = event['type'] as String?;
-      final payload = event['payload'] as Map<String, dynamic>?;
-      if (type != null && payload != null) {
-        _webSocketLogger.fine('EmitEvent: $type $payload');
-      }
-    }
-    return {'result': 'EmitEvent handled'};
-  }
-
-  static Map<String, Object> _webSocketExtDwdsSendEventHandler(
-    VmResponse request,
-  ) {
-    _webSocketLogger.fine('SendEvent: $request');
-    return {'result': 'SendEvent handled'};
-  }
 }
