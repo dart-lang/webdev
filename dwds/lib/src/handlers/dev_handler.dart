@@ -141,6 +141,7 @@ class DevHandler {
   /// Sends the provided [request] to all connected injected clients.
   /// Returns the number of clients the request was successfully sent to.
   int _sendRequestToClients(Object request) {
+    _logger.finest('Sending request to injected clients: $request');
     var successfulSends = 0;
     for (final injectedConnection in _injectedConnections) {
       try {
@@ -358,12 +359,9 @@ class DevHandler {
           }
           if (message is DevToolsRequest) {
             await _handleDebugRequest(connection, injectedConnection);
-          } else if (useWebSocketConnection) {
-            // Handle WebSocket-specific messages
-            await _handleWebSocketMessage(connection, message);
           } else {
-            // Handle Chrome-specific messages
-            await _handleChromeMessage(connection, message);
+            // Handle messages for both WebSocket and Chrome proxy services
+            await _handleMessage(connection, message);
           }
         }
       } catch (e, s) {
@@ -413,66 +411,40 @@ class DevHandler {
     );
   }
 
-  /// Handles WebSocket-specific messages.
-  Future<void> _handleWebSocketMessage(
-    AppConnection connection,
-    Object? message,
-  ) async {
+  /// Handles messages for both WebSocket and Chrome proxy services.
+  Future<void> _handleMessage(AppConnection connection, Object? message) async {
     if (message == null) return;
 
     final appId = connection.request.appId;
     final proxyService = _servicesByAppId[appId]?.proxyService;
-    final wsService =
-        proxyService is WebSocketProxyService ? proxyService : null;
 
-    if (wsService == null) {
+    if (proxyService == null) {
       _logger.warning(
-        'No WebSocketProxyService found for appId: $appId to process $message',
+        'No proxy service found for appId: $appId to process $message',
       );
       return;
     }
+
+    // Handle messages that are specific to certain proxy service types
     if (message is HotReloadResponse) {
-      wsService.completeHotReload(message);
+      proxyService.completeHotReload(message);
     } else if (message is ServiceExtensionResponse) {
-      wsService.completeServiceExtension(message);
-    } else if (message is RegisterEvent) {
-      wsService.parseRegisterEvent(message);
-    } else if (message is BatchedDebugEvents) {
-      wsService.parseBatchedDebugEvents(message);
-    } else if (message is DebugEvent) {
-      wsService.parseDebugEvent(message);
-    } else {
-      throw UnsupportedError(
-        'Message type ${message.runtimeType} is not supported in WebSocket mode',
-      );
-    }
-  }
-
-  /// Handles Chrome-specific messages.
-  Future<void> _handleChromeMessage(
-    AppConnection connection,
-    Object? message,
-  ) async {
-    if (message == null) return;
-
-    final appId = connection.request.appId;
-    final proxyService = _servicesByAppId[appId]?.proxyService;
-    final chromeService =
-        proxyService is ChromeProxyService ? proxyService : null;
-
-    if (message is IsolateExit) {
+      proxyService.completeServiceExtension(message);
+    } else if (message is IsolateExit) {
       _handleIsolateExit(connection);
     } else if (message is IsolateStart) {
       await _handleIsolateStart(connection);
     } else if (message is BatchedDebugEvents) {
-      chromeService?.parseBatchedDebugEvents(message);
+      proxyService.parseBatchedDebugEvents(message);
     } else if (message is DebugEvent) {
-      chromeService?.parseDebugEvent(message);
+      proxyService.parseDebugEvent(message);
     } else if (message is RegisterEvent) {
-      chromeService?.parseRegisterEvent(message);
+      proxyService.parseRegisterEvent(message);
     } else {
+      final serviceType =
+          proxyService is WebSocketProxyService ? 'WebSocket' : 'Chrome';
       throw UnsupportedError(
-        'Message type ${message.runtimeType} is not supported in Chrome mode',
+        'Message type ${message.runtimeType} is not supported in $serviceType mode',
       );
     }
   }
@@ -649,12 +621,12 @@ class DevHandler {
     // AppConnection is in the KeepAlive state (this means it disconnected but
     // is still waiting for a possible reconnect - this happens during a page
     // reload).
-    final canReuseConnection =
+    final canReconnect =
         services != null &&
         (services.connectedInstanceId == null ||
             existingConnection?.isInKeepAlivePeriod == true);
 
-    if (canReuseConnection) {
+    if (canReconnect) {
       // Disconnect any old connection (eg. those in the keep-alive waiting
       // state when reloading the page).
       existingConnection?.shutDown();
@@ -719,13 +691,13 @@ class DevHandler {
     final hasNoActiveConnection = services?.connectedInstanceId == null;
     final noExistingConnection = existingConnection == null;
 
-    final canReuseConnection =
+    final canReconnect =
         services != null &&
         (isSameInstance ||
             (isKeepAliveReconnect && hasNoActiveConnection) ||
             (noExistingConnection && hasNoActiveConnection));
 
-    if (canReuseConnection) {
+    if (canReconnect) {
       // Reconnect to existing service.
       await _reconnectToService(
         services,
@@ -739,7 +711,6 @@ class DevHandler {
       readyToRunMainCompleter.complete();
 
       // For WebSocket mode, we need to proactively create and emit a debug connection
-      // since Flutter tools won't call debugConnection() for WebServerDevice
       try {
         // Initialize the WebSocket service and create debug connection
         final debugConnection = await createDebugConnectionForWebSocket(
@@ -747,7 +718,6 @@ class DevHandler {
         );
 
         // Emit the debug connection through the extension stream
-        // This should trigger Flutter tools to pick it up as if it was an extension connection
         extensionDebugConnections.add(debugConnection);
       } catch (e, s) {
         _logger.warning('Failed to create WebSocket debug connection: $e\n$s');

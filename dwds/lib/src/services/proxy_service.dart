@@ -5,7 +5,10 @@
 import 'dart:async';
 
 import 'package:dwds/data/debug_event.dart';
+import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/register_event.dart';
+import 'package:dwds/data/service_extension_response.dart';
+import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
@@ -182,6 +185,22 @@ abstract class ProxyService implements VmServiceInterface {
   /// protocol [Event].
   void parseRegisterEvent(RegisterEvent registerEvent);
 
+  /// Completes hot reload with response from client.
+  ///
+  /// Default implementation throws UnimplementedError.
+  /// Override in subclasses that support hot reload completion.
+  void completeHotReload(HotReloadResponse response) {
+    throw UnimplementedError('completeHotReload not supported');
+  }
+
+  /// Completes service extension with response from client.
+  ///
+  /// Default implementation throws UnimplementedError.
+  /// Override in subclasses that support service extension completion.
+  void completeServiceExtension(ServiceExtensionResponse response) {
+    throw UnimplementedError('completeServiceExtension not supported');
+  }
+
   /// Standard RPC error for unsupported methods.
   static vm_service.RPCError _rpcNotSupported(String method) {
     return vm_service.RPCError(
@@ -346,6 +365,21 @@ abstract class ProxyService implements VmServiceInterface {
   Future<vm_service.Success> clearCpuSamples(String isolateId) {
     return _rpcNotSupportedFuture('clearCpuSamples');
   }
+
+  /// Creates a new isolate for debugging.
+  ///
+  /// Implementations should handle isolate lifecycle management according to
+  /// their specific debugging mode (Chrome vs WebSocket).
+  Future<void> createIsolate(
+    AppConnection appConnection, {
+    bool newConnection = false,
+  });
+
+  /// Destroys the isolate and cleans up debugging state.
+  ///
+  /// Implementations should handle cleanup according to their specific
+  /// debugging mode and connection management strategy.
+  void destroyIsolate();
 
   /// Prevent DWDS from blocking Dart SDK rolls if changes in package:vm_service
   /// are unimplemented in DWDS.

@@ -122,15 +122,20 @@ class WebSocketProxyService extends ProxyService {
   bool _mainHasStarted = false;
 
   /// Creates a new isolate for WebSocket debugging.
-  Future<void> createIsolate([AppConnection? appConnectionOverride]) async {
-    // Update app connection if override provided
-    appConnection = appConnectionOverride ?? appConnection;
+  @override
+  Future<void> createIsolate(
+    AppConnection appConnection, {
+    bool newConnection = false,
+  }) async {
+    // Update app connection
+    this.appConnection = appConnection;
 
     // Track this connection
     final connectionId = appConnection.request.instanceId;
 
     // Check if this connection is already being tracked
     final isNewConnection =
+        newConnection ||
         !_appConnectionDoneSubscriptions.containsKey(connectionId);
 
     if (isNewConnection) {
@@ -265,6 +270,7 @@ class WebSocketProxyService extends ProxyService {
   }
 
   /// Destroys the isolate and cleans up state.
+  @override
   void destroyIsolate() {
     _logger.fine('Destroying isolate');
 
@@ -452,6 +458,7 @@ class WebSocketProxyService extends ProxyService {
   }
 
   /// Completes hot reload with response from client.
+  @override
   void completeHotReload(HotReloadResponse response) {
     final tracker = _pendingHotReloads[response.id];
 
@@ -630,6 +637,7 @@ class WebSocketProxyService extends ProxyService {
   }
 
   /// Completes service extension with response.
+  @override
   void completeServiceExtension(ServiceExtensionResponse response) {
     final id = response.id;
 

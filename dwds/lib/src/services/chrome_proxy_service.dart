@@ -262,6 +262,7 @@ class ChromeProxyService extends ProxyService {
   ///
   /// If [newConnection] is true, this method does not recompute metadata
   /// information as the metadata couldn't have changed.
+  @override
   Future<void> createIsolate(
     AppConnection appConnection, {
     bool newConnection = false,
@@ -381,6 +382,7 @@ class ChromeProxyService extends ProxyService {
   /// Should be called when there is a hot restart or full page refresh.
   ///
   /// Clears out the [_inspector] and all related cached information.
+  @override
   void destroyIsolate() {
     _logger.fine('Destroying isolate');
     if (!_isIsolateRunning) return;
