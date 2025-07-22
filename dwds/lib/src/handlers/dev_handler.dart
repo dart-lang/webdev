@@ -36,7 +36,6 @@ import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/web_socket_proxy_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
-import 'package:dwds/src/web_socket_dwds_vm_client.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';

@@ -8,12 +8,11 @@ import 'package:dwds/src/services/chrome_proxy_service.dart'
     show ChromeProxyService;
 import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/services/proxy_service.dart';
-import 'package:dwds/src/web_socket_dwds_vm_client.dart';
 
 /// Common interface for debug service containers.
 abstract class IAppDebugServices {
   IDebugService get debugService;
-  dynamic get dwdsVmClient;
+  IDwdsVmClient get dwdsVmClient;
   dynamic get dwdsStats;
   Uri? get ddsUri;
   String? get connectedInstanceId;
@@ -42,7 +41,7 @@ class AppDebugServices implements IAppDebugServices {
   DebugService get debugService => _debugService;
 
   @override
-  DwdsVmClient get dwdsVmClient => _dwdsVmClient;
+  IDwdsVmClient get dwdsVmClient => _dwdsVmClient;
 
   @override
   DwdsStats get dwdsStats => _dwdsStats;
@@ -78,7 +77,7 @@ class WebSocketAppDebugServices implements IAppDebugServices {
   WebSocketDebugService get debugService => _debugService;
 
   @override
-  WebSocketDwdsVmClient get dwdsVmClient => _dwdsVmClient;
+  IDwdsVmClient get dwdsVmClient => _dwdsVmClient;
 
   @override
   String? get connectedInstanceId => _connectedInstanceId;
