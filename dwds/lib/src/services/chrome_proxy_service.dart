@@ -25,29 +25,16 @@ import 'package:dwds/src/services/batched_expression_evaluator.dart';
 import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
+import 'package:dwds/src/services/proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart' hide LogRecord;
-import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart' hide vmServiceVersion;
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
-class ChromeProxyService implements VmServiceInterface {
-  /// Cache of all existing StreamControllers.
-  ///
-  /// These are all created through [onEvent].
-  final _streamControllers = <String, StreamController<Event>>{};
-
-  /// The root `VM` instance. There can only be one of these, but its isolates
-  /// are dynamic and roughly map to chrome tabs.
-  final VM _vm;
-
-  /// Signals when isolate is initialized.
-  Future<void> get isInitialized => _initializedCompleter.future;
-  Completer<void> _initializedCompleter = Completer<void>();
-
+class ChromeProxyService extends ProxyService {
   /// Signals when isolate starts.
   Future<void> get isStarted => _startedCompleter.future;
   Completer<void> _startedCompleter = Completer<void>();
@@ -93,34 +80,6 @@ class ChromeProxyService implements VmServiceInterface {
 
   StreamSubscription<ConsoleAPIEvent>? _consoleSubscription;
 
-  /// The flags that can be set at runtime via [setFlag] and their respective
-  /// values.
-  final Map<String, bool> _currentVmServiceFlags = {
-    _pauseIsolatesOnStartFlag: false,
-  };
-
-  /// The value of the [_pauseIsolatesOnStartFlag].
-  ///
-  /// This value can be updated at runtime via [setFlag].
-  bool get pauseIsolatesOnStart =>
-      _currentVmServiceFlags[_pauseIsolatesOnStartFlag] ?? false;
-
-  /// Whether or not the connected app has a pending restart.
-  bool get hasPendingRestart => _resumeAfterRestartEventsController.hasListener;
-
-  final _resumeAfterRestartEventsController =
-      StreamController<String>.broadcast();
-
-  /// A global stream of resume events for hot restart.
-  ///
-  /// The values in the stream are the isolates IDs for the resume event.
-  ///
-  /// IMPORTANT: This should only be listened to during a hot-restart or page
-  /// refresh. The debugger ignores any resume events as long as there is a
-  /// subscriber to this stream.
-  Stream<String> get resumeAfterRestartEventsStream =>
-      _resumeAfterRestartEventsController.stream;
-
   /// If non-null, a resume event should await the result of this after resuming
   /// execution.
   ///
@@ -135,7 +94,7 @@ class ChromeProxyService implements VmServiceInterface {
   bool terminatingIsolates = false;
 
   ChromeProxyService._(
-    this._vm,
+    VM vm,
     this.root,
     this._assetReader,
     this.remoteDebugger,
@@ -144,10 +103,10 @@ class ChromeProxyService implements VmServiceInterface {
     this._skipLists,
     this.executionContext,
     this._compiler,
-  ) {
+  ) : super(vm) {
     final debugger = Debugger.create(
       remoteDebugger,
-      _streamNotify,
+      streamNotify,
       _locations,
       _skipLists,
       root,
@@ -368,9 +327,9 @@ class ChromeProxyService implements VmServiceInterface {
     // Listen for `registerExtension` and `postEvent` calls.
     _setUpChromeConsoleListeners(isolateRef);
 
-    _vm.isolates?.add(isolateRef);
+    vm.isolates?.add(isolateRef);
 
-    _streamNotify(
+    streamNotify(
       'Isolate',
       Event(
         kind: EventKind.kIsolateStart,
@@ -378,7 +337,7 @@ class ChromeProxyService implements VmServiceInterface {
         isolate: isolateRef,
       ),
     );
-    _streamNotify(
+    streamNotify(
       'Isolate',
       Event(
         kind: EventKind.kIsolateRunnable,
@@ -391,7 +350,7 @@ class ChromeProxyService implements VmServiceInterface {
     // isolate, but devtools doesn't recognize extensions after a page refresh
     // otherwise.
     for (final extensionRpc in await inspector.getExtensionRpcs()) {
-      _streamNotify(
+      streamNotify(
         'Isolate',
         Event(
           kind: EventKind.kServiceExtensionAdded,
@@ -405,7 +364,7 @@ class ChromeProxyService implements VmServiceInterface {
     // kPausePostRequest event to notify client that the app is paused so that
     // it can resume:
     if (hasPendingRestart) {
-      _streamNotify(
+      streamNotify(
         'Debug',
         Event(
           kind: EventKind.kPausePostRequest,
@@ -416,7 +375,7 @@ class ChromeProxyService implements VmServiceInterface {
     }
 
     // The service is considered initialized when the first isolate is created.
-    if (!_initializedCompleter.isCompleted) _initializedCompleter.complete();
+    if (!initializedCompleter.isCompleted) initializedCompleter.complete();
   }
 
   /// Should be called when there is a hot restart or full page refresh.
@@ -429,10 +388,10 @@ class ChromeProxyService implements VmServiceInterface {
     final isolate = inspector.isolate;
     final isolateRef = inspector.isolateRef;
 
-    _initializedCompleter = Completer<void>();
+    initializedCompleter = Completer<void>();
     _startedCompleter = Completer<void>();
     _compilerCompleter = Completer<void>();
-    _streamNotify(
+    streamNotify(
       'Isolate',
       Event(
         kind: EventKind.kIsolateExit,
@@ -440,7 +399,7 @@ class ChromeProxyService implements VmServiceInterface {
         isolate: isolateRef,
       ),
     );
-    _vm.isolates?.removeWhere((ref) => ref.id == isolate.id);
+    vm.isolates?.removeWhere((ref) => ref.id == isolate.id);
     _inspector = null;
     _expressionEvaluator?.close();
     _consoleSubscription?.cancel();
@@ -485,7 +444,7 @@ class ChromeProxyService implements VmServiceInterface {
 
   @override
   Future<Breakpoint> addBreakpointAtEntry(String isolateId, String functionId) {
-    return _rpcNotSupportedFuture('addBreakpointAtEntry');
+    return rpcNotSupportedFuture('addBreakpointAtEntry');
   }
 
   @override
@@ -585,11 +544,6 @@ class ChromeProxyService implements VmServiceInterface {
     } else {
       return Response()..json = decodedResponse;
     }
-  }
-
-  @override
-  Future<Success> clearVMTimeline() {
-    return _rpcNotSupportedFuture('clearVMTimeline');
   }
 
   Future<Response> _getEvaluationResult(
@@ -805,46 +759,6 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   @override
-  Future<AllocationProfile> getAllocationProfile(
-    String isolateId, {
-    bool? gc,
-    bool? reset,
-  }) {
-    return _rpcNotSupportedFuture('getAllocationProfile');
-  }
-
-  @override
-  Future<ClassList> getClassList(String isolateId) {
-    // See dart-lang/webdev/issues/971.
-    return _rpcNotSupportedFuture('getClassList');
-  }
-
-  @override
-  Future<FlagList> getFlagList() {
-    return wrapInErrorHandlerAsync('getFlagList', _getFlagList);
-  }
-
-  Future<FlagList> _getFlagList() {
-    final flags = _currentVmServiceFlags.entries.map<Flag>(
-      (entry) => Flag(name: entry.key, valueAsString: '${entry.value}'),
-    );
-
-    return Future.value(FlagList(flags: flags.toList()));
-  }
-
-  @override
-  Future<InstanceSet> getInstances(
-    String isolateId,
-    String classId,
-    int limit, {
-    bool? includeImplementers,
-    bool? includeSubclasses,
-    String? idZoneId,
-  }) {
-    return _rpcNotSupportedFuture('getInstances');
-  }
-
-  @override
   Future<Isolate> getIsolate(String isolateId) =>
       wrapInErrorHandlerAsync('getIsolate', () => _getIsolate(isolateId));
 
@@ -992,30 +906,8 @@ class ChromeProxyService implements VmServiceInterface {
   Future<VM> _getVM() {
     return captureElapsedTime(() async {
       await isInitialized;
-      return _vm;
+      return vm;
     }, (result) => DwdsEvent.getVM());
-  }
-
-  @override
-  Future<Timeline> getVMTimeline({
-    int? timeOriginMicros,
-    int? timeExtentMicros,
-  }) {
-    return _rpcNotSupportedFuture('getVMTimeline');
-  }
-
-  @override
-  Future<TimelineFlags> getVMTimelineFlags() {
-    return _rpcNotSupportedFuture('getVMTimelineFlags');
-  }
-
-  @override
-  Future<Version> getVersion() =>
-      wrapInErrorHandlerAsync('getVersion', _getVersion);
-
-  Future<Version> _getVersion() async {
-    final version = semver.Version.parse(vmServiceVersion);
-    return Version(major: version.major, minor: version.minor);
   }
 
   @override
@@ -1049,13 +941,8 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   @override
-  Future<Success> kill(String isolateId) {
-    return _rpcNotSupportedFuture('kill');
-  }
-
-  @override
   Stream<Event> onEvent(String streamId) {
-    return _streamControllers.putIfAbsent(streamId, () {
+    return streamControllers.putIfAbsent(streamId, () {
       switch (streamId) {
         case EventStreams.kExtension:
           return StreamController<Event>.broadcast();
@@ -1143,7 +1030,7 @@ class ChromeProxyService implements VmServiceInterface {
 
   @override
   Future<Success> registerService(String service, String alias) {
-    return _rpcNotSupportedFuture('registerService');
+    return rpcNotSupportedFuture('registerService');
   }
 
   @override
@@ -1226,7 +1113,7 @@ class ChromeProxyService implements VmServiceInterface {
 
     // This lets the client know that we're ready for breakpoint management
     // and a resume.
-    _streamNotify(
+    streamNotify(
       'Debug',
       Event(
         kind: EventKind.kPausePostRequest,
@@ -1266,8 +1153,8 @@ class ChromeProxyService implements VmServiceInterface {
   }) async {
     // If there is a subscriber listening for a resume event after hot-restart,
     // then add the event to the stream and skip processing it.
-    if (_resumeAfterRestartEventsController.hasListener) {
-      _resumeAfterRestartEventsController.add(isolateId);
+    if (resumeAfterRestartEventsController.hasListener) {
+      resumeAfterRestartEventsController.add(isolateId);
       return Success();
     }
 
@@ -1331,12 +1218,12 @@ class ChromeProxyService implements VmServiceInterface {
       wrapInErrorHandlerAsync('setFlag', () => _setFlag(name, value));
 
   Future<Success> _setFlag(String name, String value) async {
-    if (!_currentVmServiceFlags.containsKey(name)) {
-      return _rpcNotSupportedFuture('setFlag');
+    if (!currentVmServiceFlags.containsKey(name)) {
+      return rpcNotSupportedFuture('setFlag');
     }
 
     assert(value == 'true' || value == 'false');
-    _currentVmServiceFlags[name] = value == 'true';
+    currentVmServiceFlags[name] = value == 'true';
 
     return Success();
   }
@@ -1347,7 +1234,7 @@ class ChromeProxyService implements VmServiceInterface {
     String libraryId,
     bool isDebuggable,
   ) {
-    return _rpcNotSupportedFuture('setLibraryDebuggable');
+    return rpcNotSupportedFuture('setLibraryDebuggable');
   }
 
   @override
@@ -1366,29 +1253,17 @@ class ChromeProxyService implements VmServiceInterface {
       wrapInErrorHandlerAsync('setVMName', () => _setVMName(name));
 
   Future<Success> _setVMName(String name) async {
-    _vm.name = name;
-    _streamNotify(
+    vm.name = name;
+    streamNotify(
       'VM',
       Event(
         kind: EventKind.kVMUpdate,
         timestamp: DateTime.now().millisecondsSinceEpoch,
         // We are not guaranteed to have an isolate at this point in time.
         isolate: null,
-      )..vm = toVMRef(_vm),
+      )..vm = toVMRef(vm),
     );
     return Success();
-  }
-
-  @override
-  Future<Success> setVMTimelineFlags(List<String> recordedStreams) {
-    return _rpcNotSupportedFuture('setVMTimelineFlags');
-  }
-
-  @override
-  Future<Success> streamCancel(String streamId) {
-    // TODO: We should implement this (as we've already implemented
-    // streamListen).
-    return _rpcNotSupportedFuture('streamCancel');
   }
 
   @override
@@ -1400,20 +1275,6 @@ class ChromeProxyService implements VmServiceInterface {
     // to.
     onEvent(streamId);
     return Success();
-  }
-
-  @override
-  Future<Success> clearCpuSamples(String isolateId) {
-    return _rpcNotSupportedFuture('clearCpuSamples');
-  }
-
-  @override
-  Future<CpuSamples> getCpuSamples(
-    String isolateId,
-    int timeOriginMicros,
-    int timeExtentMicros,
-  ) {
-    return _rpcNotSupportedFuture('getCpuSamples');
   }
 
   /// Returns a streamController that listens for console logs from chrome and
@@ -1488,12 +1349,13 @@ class ChromeProxyService implements VmServiceInterface {
 
   /// Parses the [DebugEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
+  @override
   void parseDebugEvent(DebugEvent debugEvent) {
     if (terminatingIsolates) return;
     if (!_isIsolateRunning) return;
     final isolateRef = inspector.isolateRef;
 
-    _streamNotify(
+    streamNotify(
       EventStreams.kExtension,
       Event(
           kind: EventKind.kExtension,
@@ -1509,6 +1371,7 @@ class ChromeProxyService implements VmServiceInterface {
 
   /// Parses the [RegisterEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
+  @override
   void parseRegisterEvent(RegisterEvent registerEvent) {
     if (terminatingIsolates) return;
     if (!_isIsolateRunning) return;
@@ -1518,7 +1381,7 @@ class ChromeProxyService implements VmServiceInterface {
     final service = registerEvent.eventData;
     isolate.extensionRPCs?.add(service);
 
-    _streamNotify(
+    streamNotify(
       EventStreams.kIsolate,
       Event(
         kind: EventKind.kServiceExtensionAdded,
@@ -1548,7 +1411,7 @@ class ChromeProxyService implements VmServiceInterface {
           if (event.args[1].type != 'object') break;
 
           final inspectee = await _instanceRef(event.args[1]);
-          _streamNotify(
+          streamNotify(
             EventStreams.kDebug,
             Event(
                 kind: EventKind.kInspect,
@@ -1574,14 +1437,8 @@ class ChromeProxyService implements VmServiceInterface {
     });
   }
 
-  void _streamNotify(String streamId, Event event) {
-    final controller = _streamControllers[streamId];
-    if (controller == null) return;
-    controller.add(event);
-  }
-
   Future<void> _firstStreamEvent(String streamId, String eventKind) {
-    final controller = _streamControllers[streamId]!;
+    final controller = streamControllers[streamId]!;
     return controller.stream.firstWhere((event) => event.kind == eventKind);
   }
 
@@ -1616,7 +1473,7 @@ class ChromeProxyService implements VmServiceInterface {
       zone: await _instanceRef(logParams['zone']),
     );
 
-    _streamNotify(
+    streamNotify(
       EventStreams.kLogging,
       Event(
           kind: EventKind.kLogging,
@@ -1660,11 +1517,6 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   @override
-  Future<Timestamp> getVMTimelineMicros() {
-    return _rpcNotSupportedFuture('getVMTimelineMicros');
-  }
-
-  @override
   Future<void> yieldControlToDDS(String uri) async {
     final canYield = DebugService.yieldControlToDDS(uri);
 
@@ -1677,113 +1529,9 @@ class ChromeProxyService implements VmServiceInterface {
     }
   }
 
-  @override
-  Future<InboundReferences> getInboundReferences(
-    String isolateId,
-    String targetId,
-    int limit, {
-    String? idZoneId,
-  }) {
-    return _rpcNotSupportedFuture('getInboundReferences');
-  }
-
-  @override
-  Future<RetainingPath> getRetainingPath(
-    String isolateId,
-    String targetId,
-    int limit, {
-    String? idZoneId,
-  }) {
-    return _rpcNotSupportedFuture('getRetainingPath');
-  }
-
-  @override
-  Future<Success> requestHeapSnapshot(String isolateId) {
-    return _rpcNotSupportedFuture('requestHeapSnapshot');
-  }
-
-  @override
-  Future<IsolateGroup> getIsolateGroup(String isolateGroupId) {
-    return _rpcNotSupportedFuture('getIsolateGroup');
-  }
-
-  @override
-  Future<MemoryUsage> getIsolateGroupMemoryUsage(String isolateGroupId) {
-    return _rpcNotSupportedFuture('getIsolateGroupMemoryUsage');
-  }
-
-  @override
-  Future<ProtocolList> getSupportedProtocols() =>
-      wrapInErrorHandlerAsync('getSupportedProtocols', _getSupportedProtocols);
-
-  Future<ProtocolList> _getSupportedProtocols() async {
-    final version = semver.Version.parse(vmServiceVersion);
-    return ProtocolList(
-      protocols: [
-        Protocol(
-          protocolName: 'VM Service',
-          major: version.major,
-          minor: version.minor,
-        ),
-      ],
-    );
-  }
-
   Future<InstanceRef> _instanceRef(RemoteObject? obj) async {
     final instance = obj == null ? null : await inspector.instanceRefFor(obj);
     return instance ?? InstanceHelper.kNullInstanceRef;
-  }
-
-  static RPCError _rpcNotSupported(String method) {
-    return RPCError(
-      method,
-      RPCErrorKind.kMethodNotFound.code,
-      '$method: Not supported on web devices',
-    );
-  }
-
-  static Future<T> _rpcNotSupportedFuture<T>(String method) {
-    return Future.error(_rpcNotSupported(method));
-  }
-
-  @override
-  Future<ProcessMemoryUsage> getProcessMemoryUsage() =>
-      _rpcNotSupportedFuture('getProcessMemoryUsage');
-
-  @override
-  Future<PortList> getPorts(String isolateId) => throw UnimplementedError();
-
-  @override
-  Future<CpuSamples> getAllocationTraces(
-    String isolateId, {
-    int? timeOriginMicros,
-    int? timeExtentMicros,
-    String? classId,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<Success> setTraceClassAllocation(
-    String isolateId,
-    String classId,
-    bool enable,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Breakpoint> setBreakpointState(
-    String isolateId,
-    String breakpointId,
-    bool enable,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Success> streamCpuSamplesWithUserTag(List<String> userTags) =>
-      _rpcNotSupportedFuture('streamCpuSamplesWithUserTag');
-
-  /// Prevent DWDS from blocking Dart SDK rolls if changes in package:vm_service
-  /// are unimplemented in DWDS.
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
-    return super.noSuchMethod(invocation);
   }
 
   /// Validate that isolateId matches the current isolate we're connected to and
@@ -1839,5 +1587,3 @@ const _stderrTypes = ['error'];
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stdout` logs.
 const _stdoutTypes = ['log', 'info', 'warning'];
-
-const _pauseIsolatesOnStartFlag = 'pause_isolates_on_start';

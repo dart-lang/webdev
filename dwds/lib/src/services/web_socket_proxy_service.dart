@@ -13,13 +13,12 @@ import 'package:dwds/data/service_extension_request.dart';
 import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/events.dart';
+import 'package:dwds/src/services/proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart' as vm_service;
 import 'package:vm_service/vm_service.dart';
-import 'package:vm_service_interface/vm_service_interface.dart';
 
 /// Defines callbacks for sending messages to the connected client.
 /// Returns the number of clients the request was successfully sent to.
@@ -84,12 +83,8 @@ class _ServiceExtensionTracker {
 }
 
 /// WebSocket-based VM service proxy for web debugging.
-class WebSocketProxyService implements VmServiceInterface {
+class WebSocketProxyService extends ProxyService {
   final _logger = Logger('WebSocketProxyService');
-
-  /// Signals when the isolate is ready.
-  Future<void> get isInitialized => _initializedCompleter.future;
-  Completer<void> _initializedCompleter = Completer<void>();
 
   /// Active service extension trackers by request ID.
   final Map<String, _ServiceExtensionTracker> _pendingServiceExtensionTrackers =
@@ -111,42 +106,16 @@ class WebSocketProxyService implements VmServiceInterface {
   /// Active connection count for this service.
   int _activeConnectionCount = 0;
 
-  /// Event stream controllers.
-  final Map<String, StreamController<vm_service.Event>> _streamControllers = {};
-
-  /// VM service runtime flags.
-  final Map<String, bool> _currentVmServiceFlags = {
-    _pauseIsolatesOnStartFlag: false,
-  };
-
-  /// Stream controller for resume events after restart.
-  final _resumeAfterRestartEventsController =
-      StreamController<String>.broadcast();
-
-  /// Stream of resume events after restart.
-  Stream<String> get resumeAfterRestartEventsStream =>
-      _resumeAfterRestartEventsController.stream;
-
-  /// Whether there's a pending restart.
-  bool get hasPendingRestart => _resumeAfterRestartEventsController.hasListener;
-
-  /// Whether isolates should pause on start.
-  bool get pauseIsolatesOnStart =>
-      _currentVmServiceFlags[_pauseIsolatesOnStartFlag] ?? false;
-
   /// Counter for generating unique isolate IDs across page refreshes
   static int _globalIsolateIdCounter = 0;
 
   bool get _isIsolateRunning => _isolateRunning;
 
-  /// Root VM instance.
-  final vm_service.VM _vm;
-
   WebSocketProxyService._(
     this.sendClientRequest,
-    this._vm,
+    vm_service.VM vm,
     this.appConnection,
-  ); // Isolate state
+  ) : super(vm); // Isolate state
   vm_service.IsolateRef? _isolateRef;
   bool _isolateRunning = false;
   vm_service.Event? _currentPauseEvent;
@@ -203,7 +172,7 @@ class WebSocketProxyService implements VmServiceInterface {
 
     _isolateRef = isolateRef;
     _isolateRunning = true;
-    _vm.isolates?.add(isolateRef);
+    vm.isolates?.add(isolateRef);
     final timestamp = DateTime.now().millisecondsSinceEpoch;
 
     _logger.fine(
@@ -240,7 +209,7 @@ class WebSocketProxyService implements VmServiceInterface {
     }
 
     // Complete initialization after isolate is set up
-    if (!_initializedCompleter.isCompleted) _initializedCompleter.complete();
+    if (!initializedCompleter.isCompleted) initializedCompleter.complete();
   }
 
   /// Handles a connection being closed.
@@ -325,7 +294,7 @@ class WebSocketProxyService implements VmServiceInterface {
       );
     }
 
-    _vm.isolates?.removeWhere((ref) => ref.id == isolateRef?.id);
+    vm.isolates?.removeWhere((ref) => ref.id == isolateRef?.id);
 
     // Reset state
     _isolateRef = null;
@@ -333,14 +302,14 @@ class WebSocketProxyService implements VmServiceInterface {
     _currentPauseEvent = null;
     _mainHasStarted = false;
 
-    if (_initializedCompleter.isCompleted) {
-      _initializedCompleter = Completer<void>();
+    if (initializedCompleter.isCompleted) {
+      initializedCompleter = Completer<void>();
     }
   }
 
   /// Sends events to stream controllers.
   void _streamNotify(String streamId, vm_service.Event event) {
-    final controller = _streamControllers[streamId];
+    final controller = streamControllers[streamId];
     if (controller == null) return;
     controller.add(event);
   }
@@ -351,7 +320,7 @@ class WebSocketProxyService implements VmServiceInterface {
     String libraryId,
     bool isDebuggable,
   ) {
-    return _rpcNotSupportedFuture('setLibraryDebuggable');
+    return rpcNotSupportedFuture('setLibraryDebuggable');
   }
 
   @override
@@ -362,18 +331,6 @@ class WebSocketProxyService implements VmServiceInterface {
   }) async {
     // Not supported in WebSocket mode - return success for compatibility
     return Success();
-  }
-
-  static Future<T> _rpcNotSupportedFuture<T>(String method) {
-    return Future.error(_rpcNotSupported(method));
-  }
-
-  static RPCError _rpcNotSupported(String method) {
-    return RPCError(
-      method,
-      RPCErrorKind.kMethodNotFound.code,
-      '$method: Not supported on web devices',
-    );
   }
 
   @override
@@ -407,45 +364,9 @@ class WebSocketProxyService implements VmServiceInterface {
     );
   }
 
-  /// Returns a broadcast stream for the given streamId.
-  @override
-  Stream<vm_service.Event> onEvent(String streamId) {
-    return _streamControllers.putIfAbsent(streamId, () {
-      switch (streamId) {
-        case vm_service.EventStreams.kExtension:
-        case vm_service.EventStreams.kIsolate:
-        case vm_service.EventStreams.kVM:
-        case vm_service.EventStreams.kGC:
-        case vm_service.EventStreams.kTimeline:
-        case vm_service.EventStreams.kService:
-        case vm_service.EventStreams.kDebug:
-        case vm_service.EventStreams.kLogging:
-        case vm_service.EventStreams.kStdout:
-        case vm_service.EventStreams.kStderr:
-          return StreamController<vm_service.Event>.broadcast();
-        default:
-          _logger.warning('Unsupported stream: $streamId');
-          throw vm_service.RPCError(
-            'streamListen',
-            vm_service.RPCErrorKind.kInvalidParams.code,
-            'Stream `$streamId` not supported on web devices',
-          );
-      }
-    }).stream;
-  }
-
-  @override
-  Future<vm_service.Success> streamListen(String streamId) =>
-      wrapInErrorHandlerAsync('streamListen', () => _streamListen(streamId));
-
-  Future<vm_service.Success> _streamListen(String streamId) async {
-    onEvent(streamId);
-    return vm_service.Success();
-  }
-
   /// Adds events to stream controllers.
   void addEvent(String streamId, vm_service.Event event) {
-    final controller = _streamControllers[streamId];
+    final controller = streamControllers[streamId];
     if (controller != null && !controller.isClosed) {
       controller.add(event);
     } else {
@@ -490,16 +411,16 @@ class WebSocketProxyService implements VmServiceInterface {
       if (_isIsolateRunning && _isolateRef != null) {
         // Make sure our isolate is in the VM's isolate list
         final isolateExists =
-            _vm.isolates?.any((ref) => ref.id == _isolateRef!.id) ?? false;
+            vm.isolates?.any((ref) => ref.id == _isolateRef!.id) ?? false;
         if (!isolateExists) {
-          _vm.isolates?.add(_isolateRef!);
+          vm.isolates?.add(_isolateRef!);
         }
       } else {
         // If no isolate is running, make sure the list is empty
-        _vm.isolates?.clear();
+        vm.isolates?.clear();
       }
 
-      return _vm;
+      return vm;
     }, (result) => DwdsEvent.getVM());
   }
 
@@ -508,21 +429,6 @@ class WebSocketProxyService implements VmServiceInterface {
     throw UnsupportedError(
       'remoteDebugger not available in WebSocketProxyService.\n'
       'Called from:\n${StackTrace.current}',
-    );
-  }
-
-  /// Returns supported VM service protocols.
-  @override
-  Future<vm_service.ProtocolList> getSupportedProtocols() async {
-    final version = semver.Version.parse(vm_service.vmServiceVersion);
-    return vm_service.ProtocolList(
-      protocols: [
-        vm_service.Protocol(
-          protocolName: 'VM Service',
-          major: version.major,
-          minor: version.minor,
-        ),
-      ],
     );
   }
 
@@ -760,6 +666,7 @@ class WebSocketProxyService implements VmServiceInterface {
 
   /// Parses the [RegisterEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
+  @override
   void parseRegisterEvent(RegisterEvent registerEvent) {
     if (!_isIsolateRunning || _isolateRef == null) {
       _logger.warning('Cannot register service extension - no isolate running');
@@ -789,6 +696,7 @@ class WebSocketProxyService implements VmServiceInterface {
 
   /// Parses the [DebugEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
+  @override
   void parseDebugEvent(DebugEvent debugEvent) {
     if (!_isIsolateRunning || _isolateRef == null) {
       _logger.warning('Cannot parse debug event - no isolate running');
@@ -814,13 +722,13 @@ class WebSocketProxyService implements VmServiceInterface {
       wrapInErrorHandlerAsync('setFlag', () => _setFlag(name, value));
 
   Future<Success> _setFlag(String name, String value) async {
-    if (!_currentVmServiceFlags.containsKey(name)) {
-      return _rpcNotSupportedFuture('setFlag');
+    if (!currentVmServiceFlags.containsKey(name)) {
+      return rpcNotSupportedFuture('setFlag');
     }
 
     assert(value == 'true' || value == 'false');
-    final oldValue = _currentVmServiceFlags[name];
-    _currentVmServiceFlags[name] = value == 'true';
+    final oldValue = currentVmServiceFlags[name];
+    currentVmServiceFlags[name] = value == 'true';
 
     // Handle pause_isolates_on_start flag changes
     if (name == _pauseIsolatesOnStartFlag &&
@@ -894,8 +802,8 @@ class WebSocketProxyService implements VmServiceInterface {
     String? step,
     int? frameIndex,
   }) async {
-    if (hasPendingRestart && !_resumeAfterRestartEventsController.isClosed) {
-      _resumeAfterRestartEventsController.add(isolateId);
+    if (hasPendingRestart && !resumeAfterRestartEventsController.isClosed) {
+      resumeAfterRestartEventsController.add(isolateId);
     } else {
       if (!_mainHasStarted) {
         try {
@@ -942,7 +850,7 @@ class WebSocketProxyService implements VmServiceInterface {
 
   @override
   Future<Success> registerService(String service, String alias) {
-    return _rpcNotSupportedFuture('registerService');
+    return rpcNotSupportedFuture('registerService');
   }
 
   @override
@@ -999,9 +907,6 @@ class WebSocketProxyService implements VmServiceInterface {
       awaiterFrames: [],
     );
   }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Extended ReloadReport that includes additional metadata in JSON output.
