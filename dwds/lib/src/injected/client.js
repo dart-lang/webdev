@@ -27884,12 +27884,20 @@
             case 0:
               // Function start
               restarter = $async$self._restarter;
-              if (restarter instanceof A.DdcLibraryBundleRestarter) {
-                $async$returnValue = restarter.handleServiceExtension$2(method, args);
-                // goto return
-                $async$goto = 1;
-                break;
-              }
+              $async$goto = restarter instanceof A.DdcLibraryBundleRestarter ? 3 : 4;
+              break;
+            case 3:
+              // then
+              $async$goto = 5;
+              return A._asyncAwait(restarter.handleServiceExtension$2(method, args), $async$handleServiceExtension$2);
+            case 5:
+              // returning from await.
+              $async$returnValue = $async$result;
+              // goto return
+              $async$goto = 1;
+              break;
+            case 4:
+              // join
               $async$returnValue = null;
               // goto return
               $async$goto = 1;

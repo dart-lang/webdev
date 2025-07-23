@@ -559,12 +559,18 @@ class DevHandler {
     final appDebugServices = await loadAppServices(appConnection);
 
     // Initialize WebSocket proxy service
-    final proxyService = appDebugServices.proxyService;
-    if (proxyService is WebSocketProxyService) {
+    try {
+      final proxyService = appDebugServices.proxyService;
+      if (proxyService is! WebSocketProxyService) {
+        throw StateError(
+          'Expected WebSocketProxyService but got ${proxyService.runtimeType}. ',
+        );
+      }
       await proxyService.isInitialized;
       _logger.fine('WebSocket proxy service initialized successfully');
-    } else {
-      _logger.warning('WebSocket proxy service is null');
+    } catch (e) {
+      _logger.severe('Failed to initialize WebSocket proxy service: $e');
+      rethrow;
     }
 
     return DebugConnection(appDebugServices);
@@ -579,12 +585,13 @@ class DevHandler {
     // Initialize Chrome proxy service
     try {
       final proxyService = appDebugServices.proxyService;
-      if (proxyService is ChromeProxyService) {
-        await proxyService.isInitialized;
-        _logger.fine('Chrome proxy service initialized successfully');
-      } else {
-        _logger.warning('Chrome proxy service is null');
+      if (proxyService is! ChromeProxyService) {
+        throw StateError(
+          'Expected ChromeProxyService but got ${proxyService.runtimeType}. ',
+        );
       }
+      await proxyService.isInitialized;
+      _logger.fine('Chrome proxy service initialized successfully');
     } catch (e) {
       _logger.severe('Failed to initialize Chrome proxy service: $e');
       rethrow;

@@ -78,7 +78,7 @@ class ReloadingManager {
   ) async {
     final restarter = _restarter;
     if (restarter is DdcLibraryBundleRestarter) {
-      return restarter.handleServiceExtension(method, args);
+      return await restarter.handleServiceExtension(method, args);
     }
     // For other restarter types, return null to indicate not supported
     return null;
