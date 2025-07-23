@@ -39,7 +39,7 @@ enum _NamespacedServiceExtension {
 }
 
 /// Common interface for DWDS VM clients.
-abstract class IDwdsVmClient {
+abstract class DwdsVmClient {
   /// The VM service client.
   VmService get client;
 
@@ -52,7 +52,7 @@ final _chromeLogger = Logger('DwdsVmClient');
 
 // A client of the vm service that registers some custom extensions like
 // hotRestart.
-class DwdsVmClient implements IDwdsVmClient {
+class ChromeDwdsVmClient implements DwdsVmClient {
   @override
   final VmService client;
   final StreamController<Map<String, Object>> _requestController;
@@ -66,7 +66,11 @@ class DwdsVmClient implements IDwdsVmClient {
   /// Synchronizes hot restarts to avoid races.
   final _hotRestartQueue = AtomicQueue();
 
-  DwdsVmClient(this.client, this._requestController, this._responseController);
+  ChromeDwdsVmClient(
+    this.client,
+    this._requestController,
+    this._responseController,
+  );
 
   @override
   Future<void> close() =>
@@ -76,8 +80,8 @@ class DwdsVmClient implements IDwdsVmClient {
         await client.dispose();
       }();
 
-  static Future<DwdsVmClient> create(
-    DebugService debugService,
+  static Future<ChromeDwdsVmClient> create(
+    ChromeDebugService debugService,
     DwdsStats dwdsStats,
     Uri? ddsUri,
   ) async {
@@ -118,7 +122,7 @@ class DwdsVmClient implements IDwdsVmClient {
       clientCompleter.complete(client);
     }
 
-    final dwdsVmClient = DwdsVmClient(
+    final dwdsVmClient = ChromeDwdsVmClient(
       client,
       requestController,
       responseController,
@@ -176,7 +180,7 @@ class DwdsVmClient implements IDwdsVmClient {
   static void _setUpVmServerConnection({
     required ChromeProxyService chromeProxyService,
     required DwdsStats dwdsStats,
-    required DebugService debugService,
+    required ChromeDebugService debugService,
     required Stream<VmResponse> responseStream,
     required StreamSink<VmResponse> responseSink,
     required Stream<VmRequest> requestStream,
@@ -276,7 +280,7 @@ class DwdsVmClient implements IDwdsVmClient {
   static Future<void> _registerServiceExtensions({
     required VmService client,
     required ChromeProxyService chromeProxyService,
-    required DwdsVmClient dwdsVmClient,
+    required ChromeDwdsVmClient dwdsVmClient,
   }) async {
     client.registerServiceCallback(
       'hotRestart',
@@ -309,7 +313,7 @@ class DwdsVmClient implements IDwdsVmClient {
 final _webSocketLogger = Logger('WebSocketDwdsVmClient');
 
 /// WebSocket-based DWDS VM client.
-class WebSocketDwdsVmClient implements IDwdsVmClient {
+class WebSocketDwdsVmClient implements DwdsVmClient {
   @override
   final VmService client;
   final StreamController<VmRequest> _requestController;

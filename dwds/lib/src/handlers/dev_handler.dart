@@ -59,7 +59,7 @@ class DevHandler {
   final AssetReader _assetReader;
   final String _hostname;
   final _connectedApps = StreamController<AppConnection>.broadcast();
-  final _servicesByAppId = <String, IAppDebugServices>{};
+  final _servicesByAppId = <String, AppDebugServices>{};
   final _appConnectionByAppId = <String, AppConnection>{};
   final Stream<BuildResult> buildResults;
   final Future<ChromeConnection> Function() _chromeConnection;
@@ -163,8 +163,8 @@ class DevHandler {
     return successfulSends;
   }
 
-  /// Starts a [DebugService] for local debugging.
-  Future<DebugService> _startLocalDebugService(
+  /// Starts a [ChromeDebugService] for local debugging.
+  Future<ChromeDebugService> _startLocalDebugService(
     ChromeConnection chromeConnection,
     AppConnection appConnection,
   ) async {
@@ -224,7 +224,7 @@ class DevHandler {
 
     final webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
 
-    return DebugService.start(
+    return ChromeDebugService.start(
       // We assume the user will connect to the debug service on the same
       // machine. This allows consumers of DWDS to provide a `hostname` for
       // debugging through the Dart Debug Extension without impacting the local
@@ -264,7 +264,7 @@ class DevHandler {
     );
   }
 
-  Future<IAppDebugServices> loadAppServices(AppConnection appConnection) async {
+  Future<AppDebugServices> loadAppServices(AppConnection appConnection) async {
     final appId = appConnection.request.appId;
     var appServices = _servicesByAppId[appId];
     if (appServices == null) {
@@ -281,7 +281,7 @@ class DevHandler {
   }
 
   /// Creates WebSocket-based app services for hot reload functionality.
-  Future<IAppDebugServices> _createWebSocketAppServices(
+  Future<AppDebugServices> _createWebSocketAppServices(
     AppConnection appConnection,
   ) async {
     final webSocketDebugService = await WebSocketDebugService.start(
@@ -296,7 +296,7 @@ class DevHandler {
   }
 
   /// Creates Chrome-based app services for full debugging capabilities.
-  Future<IAppDebugServices> _createChromeAppServices(
+  Future<AppDebugServices> _createChromeAppServices(
     AppConnection appConnection,
   ) async {
     final debugService = await _startLocalDebugService(
@@ -308,7 +308,7 @@ class DevHandler {
 
   /// Sets up cleanup handling for Chrome-based services.
   void _setupChromeServiceCleanup(
-    IAppDebugServices appServices,
+    AppDebugServices appServices,
     AppConnection appConnection,
   ) {
     final chromeProxy = appServices.proxyService;
@@ -468,7 +468,7 @@ class DevHandler {
       return;
     }
     final debuggerStart = DateTime.now();
-    IAppDebugServices appServices;
+    AppDebugServices appServices;
     try {
       appServices = await loadAppServices(appConnection);
     } catch (_) {
@@ -733,7 +733,7 @@ class DevHandler {
 
   /// Handles reconnection to existing services for web-socket mode.
   Future<void> _reconnectToService(
-    IAppDebugServices services,
+    AppDebugServices services,
     AppConnection? existingConnection,
     AppConnection newConnection,
     ConnectRequest message,
@@ -846,8 +846,8 @@ class DevHandler {
     );
   }
 
-  Future<IAppDebugServices> _createAppDebugServices(
-    DebugService debugService,
+  Future<AppDebugServices> _createAppDebugServices(
+    ChromeDebugService debugService,
   ) async {
     final dwdsStats = DwdsStats();
     Uri? ddsUri;
@@ -855,8 +855,12 @@ class DevHandler {
       final dds = await debugService.startDartDevelopmentService();
       ddsUri = dds.wsUri;
     }
-    final vmClient = await DwdsVmClient.create(debugService, dwdsStats, ddsUri);
-    final appDebugService = AppDebugServices(
+    final vmClient = await ChromeDwdsVmClient.create(
+      debugService,
+      dwdsStats,
+      ddsUri,
+    );
+    final appDebugService = ChromeAppDebugServices(
       debugService,
       vmClient,
       dwdsStats,
@@ -883,7 +887,7 @@ class DevHandler {
     return appDebugService;
   }
 
-  Future<IAppDebugServices> _createAppDebugServicesWebSocketMode(
+  Future<AppDebugServices> _createAppDebugServicesWebSocketMode(
     WebSocketDebugService webSocketDebugService,
     AppConnection appConnection,
   ) async {
@@ -918,7 +922,7 @@ class DevHandler {
     }
   }
 
-  /// Starts a [DebugService] for Dart Debug Extension.
+  /// Starts a [ChromeProxyService] for Dart Debug Extension.
   void _startExtensionDebugService(ExtensionDebugger extensionDebugger) {
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
@@ -965,7 +969,7 @@ class DevHandler {
     final debuggerStart = DateTime.now();
     var appServices = _servicesByAppId[appId];
     if (appServices == null) {
-      final debugService = await DebugService.start(
+      final debugService = await ChromeDebugService.start(
         _hostname,
         extensionDebugger,
         executionContext,

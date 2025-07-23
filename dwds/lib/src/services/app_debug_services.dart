@@ -10,9 +10,9 @@ import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/services/proxy_service.dart';
 
 /// Common interface for debug service containers.
-abstract class IAppDebugServices {
-  IDebugService get debugService;
-  IDwdsVmClient get dwdsVmClient;
+abstract class AppDebugServices {
+  DebugService get debugService;
+  DwdsVmClient get dwdsVmClient;
   DwdsStats? get dwdsStats;
   Uri? get ddsUri;
   String? get connectedInstanceId;
@@ -22,15 +22,15 @@ abstract class IAppDebugServices {
 }
 
 /// Chrome-based debug services container.
-class AppDebugServices implements IAppDebugServices {
-  final DebugService _debugService;
-  final DwdsVmClient _dwdsVmClient;
+class ChromeAppDebugServices implements AppDebugServices {
+  final ChromeDebugService _debugService;
+  final ChromeDwdsVmClient _dwdsVmClient;
   final DwdsStats _dwdsStats;
   final Uri? _ddsUri;
   Future<void>? _closed;
   String? _connectedInstanceId;
 
-  AppDebugServices(
+  ChromeAppDebugServices(
     this._debugService,
     this._dwdsVmClient,
     this._dwdsStats,
@@ -38,10 +38,10 @@ class AppDebugServices implements IAppDebugServices {
   );
 
   @override
-  DebugService get debugService => _debugService;
+  ChromeDebugService get debugService => _debugService;
 
   @override
-  IDwdsVmClient get dwdsVmClient => _dwdsVmClient;
+  DwdsVmClient get dwdsVmClient => _dwdsVmClient;
 
   @override
   DwdsStats get dwdsStats => _dwdsStats;
@@ -65,7 +65,7 @@ class AppDebugServices implements IAppDebugServices {
 }
 
 /// WebSocket-based implementation of app debug services.
-class WebSocketAppDebugServices implements IAppDebugServices {
+class WebSocketAppDebugServices implements AppDebugServices {
   final WebSocketDebugService _debugService;
   final WebSocketDwdsVmClient _dwdsVmClient;
   Future<void>? _closed;
@@ -77,7 +77,7 @@ class WebSocketAppDebugServices implements IAppDebugServices {
   WebSocketDebugService get debugService => _debugService;
 
   @override
-  IDwdsVmClient get dwdsVmClient => _dwdsVmClient;
+  DwdsVmClient get dwdsVmClient => _dwdsVmClient;
 
   @override
   String? get connectedInstanceId => _connectedInstanceId;

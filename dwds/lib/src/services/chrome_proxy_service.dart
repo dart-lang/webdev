@@ -1548,7 +1548,7 @@ class ChromeProxyService extends ProxyService {
 
   @override
   Future<void> yieldControlToDDS(String uri) async {
-    final canYield = DebugService.yieldControlToDDS(uri);
+    final canYield = ChromeDebugService.yieldControlToDDS(uri);
 
     if (!canYield) {
       throw RPCError(

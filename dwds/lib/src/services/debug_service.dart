@@ -128,7 +128,7 @@ Future<void> _handleSseConnections(
 }
 
 /// Common interface for debug services (Chrome or WebSocket based).
-abstract class IDebugService {
+abstract class DebugService {
   String get hostname;
   int get port;
   String get uri;
@@ -140,7 +140,7 @@ abstract class IDebugService {
 /// A Dart Web Debug Service.
 ///
 /// Creates a [ChromeProxyService] from an existing Chrome instance.
-class DebugService implements IDebugService {
+class ChromeDebugService implements DebugService {
   static String? _ddsUri;
 
   final VmServiceInterface chromeProxyService;
@@ -163,7 +163,7 @@ class DebugService implements IDebugService {
   /// All subsequent calls to [close] will return this future.
   Future<void>? _closed;
 
-  DebugService._(
+  ChromeDebugService._(
     this.chromeProxyService,
     this.hostname,
     this.port,
@@ -235,7 +235,7 @@ class DebugService implements IDebugService {
     return true;
   }
 
-  static Future<DebugService> start(
+  static Future<ChromeDebugService> start(
     String hostname,
     RemoteDebugger remoteDebugger,
     ExecutionContext executionContext,
@@ -305,7 +305,7 @@ class DebugService implements IDebugService {
       _logger.warning('Error serving requests', e);
       emitEvent(DwdsEvent.httpRequestException('DebugService', '$e:$s'));
     });
-    return DebugService._(
+    return ChromeDebugService._(
       chromeProxyService,
       server.address.host,
       server.port,
@@ -325,7 +325,7 @@ class DebugService implements IDebugService {
 typedef SendClientRequest = int Function(Object request);
 
 /// WebSocket-based debug service for web debugging.
-class WebSocketDebugService implements IDebugService {
+class WebSocketDebugService implements DebugService {
   @override
   final String hostname;
   @override
