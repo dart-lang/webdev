@@ -68,6 +68,7 @@ class DwdsVmClient implements IDwdsVmClient {
 
   DwdsVmClient(this.client, this._requestController, this._responseController);
 
+  @override
   Future<void> close() =>
       _closed ??= () async {
         await _requestController.close();

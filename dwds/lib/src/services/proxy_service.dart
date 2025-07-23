@@ -28,8 +28,8 @@ abstract class ProxyService implements VmServiceInterface {
   final vm_service.VM _vm;
 
   /// Signals when isolate is initialized.
-  Future<void> get isInitialized => _initializedCompleter.future;
-  Completer<void> _initializedCompleter = Completer<void>();
+  Future<void> get isInitialized => initializedCompleter.future;
+  Completer<void> initializedCompleter = Completer<void>();
 
   /// The flags that can be set at runtime via [setFlag] and their respective
   /// values.
@@ -67,9 +67,6 @@ abstract class ProxyService implements VmServiceInterface {
   StreamController<String> get resumeAfterRestartEventsController =>
       _resumeAfterRestartEventsController;
   Map<String, bool> get currentVmServiceFlags => _currentVmServiceFlags;
-  Completer<void> get initializedCompleter => _initializedCompleter;
-  set initializedCompleter(Completer<void> completer) =>
-      _initializedCompleter = completer;
 
   ProxyService(this._vm);
 

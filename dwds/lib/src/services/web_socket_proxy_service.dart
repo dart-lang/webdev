@@ -75,7 +75,7 @@ class _ServiceExtensionTracker {
     responses.add(response);
   }
 
-  bool get allSuccessful => responses.every((r) => r.success == true);
+  bool get allSuccessful => responses.every((r) => r.success);
 
   void dispose() {
     timeoutTimer.cancel();
@@ -659,9 +659,7 @@ class WebSocketProxyService extends ProxyService {
       if (tracker.allSuccessful) {
         tracker.completer.complete(response);
       } else {
-        final failedResponses = tracker.responses.where(
-          (r) => r.success != true,
-        );
+        final failedResponses = tracker.responses.where((r) => !r.success);
         final errorMessages = failedResponses
             .map((r) => r.errorMessage ?? 'Unknown error')
             .join('; ');
@@ -696,6 +694,7 @@ class WebSocketProxyService extends ProxyService {
 
   /// Parses the [BatchedDebugEvents] and emits corresponding Dart VM Service
   /// protocol [Event]s.
+  @override
   void parseBatchedDebugEvents(BatchedDebugEvents debugEvents) {
     for (final debugEvent in debugEvents.events) {
       parseDebugEvent(debugEvent);
@@ -770,7 +769,7 @@ class WebSocketProxyService extends ProxyService {
   );
 
   Future<UriList> _lookupResolvedPackageUris(
-    String isolateId,
+    String _,
     List<String> uris,
   ) async {
     await isInitialized;
@@ -782,7 +781,7 @@ class WebSocketProxyService extends ProxyService {
   Future<Success> pause(String isolateId) =>
       wrapInErrorHandlerAsync('pause', () => _pause(isolateId));
 
-  Future<Success> _pause(String isolateId) async {
+  Future<Success> _pause(String _) async {
     // Create a pause event and store it
     if (_isolateRef != null) {
       final pauseEvent = vm_service.Event(
@@ -800,16 +799,9 @@ class WebSocketProxyService extends ProxyService {
   /// Resumes execution of the isolate.
   @override
   Future<Success> resume(String isolateId, {String? step, int? frameIndex}) =>
-      wrapInErrorHandlerAsync(
-        'resume',
-        () => _resume(isolateId, step: step, frameIndex: frameIndex),
-      );
+      wrapInErrorHandlerAsync('resume', () => _resume(isolateId));
 
-  Future<Success> _resume(
-    String isolateId, {
-    String? step,
-    int? frameIndex,
-  }) async {
+  Future<Success> _resume(String isolateId) async {
     if (hasPendingRestart && !resumeAfterRestartEventsController.isClosed) {
       resumeAfterRestartEventsController.add(isolateId);
     } else {
@@ -848,10 +840,7 @@ class WebSocketProxyService extends ProxyService {
         () => _lookupPackageUris(isolateId, uris),
       );
 
-  Future<UriList> _lookupPackageUris(
-    String isolateId,
-    List<String> uris,
-  ) async {
+  Future<UriList> _lookupPackageUris(String _, List<String> uris) async {
     await isInitialized;
     return UriList(uris: uris.map(DartUri.toPackageUri).toList());
   }
@@ -883,16 +872,9 @@ class WebSocketProxyService extends ProxyService {
     String isolateId, {
     String? idZoneId,
     int? limit,
-  }) => wrapInErrorHandlerAsync(
-    'getStack',
-    () => _getStack(isolateId, idZoneId: idZoneId, limit: limit),
-  );
+  }) => wrapInErrorHandlerAsync('getStack', () => _getStack(isolateId));
 
-  Future<vm_service.Stack> _getStack(
-    String isolateId, {
-    String? idZoneId,
-    int? limit,
-  }) async {
+  Future<vm_service.Stack> _getStack(String isolateId) async {
     if (!_isIsolateRunning || _isolateRef == null) {
       throw vm_service.RPCError(
         'getStack',

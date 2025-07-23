@@ -94,7 +94,7 @@ class ChromeProxyService extends ProxyService {
   bool terminatingIsolates = false;
 
   ChromeProxyService._(
-    VM vm,
+    super.vm,
     this.root,
     this._assetReader,
     this.remoteDebugger,
@@ -103,7 +103,7 @@ class ChromeProxyService extends ProxyService {
     this._skipLists,
     this.executionContext,
     this._compiler,
-  ) : super(vm) {
+  ) {
     final debugger = Debugger.create(
       remoteDebugger,
       streamNotify,
@@ -1370,6 +1370,7 @@ class ChromeProxyService extends ProxyService {
 
   /// Parses the [BatchedDebugEvents] and emits corresponding Dart VM Service
   /// protocol [Event]s.
+  @override
   void parseBatchedDebugEvents(BatchedDebugEvents debugEvents) {
     for (final debugEvent in debugEvents.events) {
       parseDebugEvent(debugEvent);
