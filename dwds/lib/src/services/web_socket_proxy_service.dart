@@ -556,15 +556,11 @@ class WebSocketProxyService extends ProxyService {
     Map? args,
   }) => wrapInErrorHandlerAsync(
     'callServiceExtension',
-    () => _callServiceExtension(method, isolateId: isolateId, args: args),
+    () => _callServiceExtension(method, args: args),
   );
 
   /// Calls a service extension on the client.
-  Future<Response> _callServiceExtension(
-    String method, {
-    String? isolateId,
-    Map? args,
-  }) async {
+  Future<Response> _callServiceExtension(String method, {Map? args}) async {
     final requestId = createId();
 
     // Check if there's already a pending service extension with this ID
