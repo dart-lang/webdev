@@ -27144,7 +27144,7 @@
   };
   A.main__closure.prototype = {
     call$0() {
-      return A.FutureOfJSAnyToJSPromise_get_toJS(this.manager._restarter.hotReloadStart$1(A.hotReloadSourcesPath()), type$.JSObject);
+      return A.FutureOfJSAnyToJSPromise_get_toJS(this.manager._restarter.hotReloadStart$1(A.hotReloadSourcesPath()), type$.JSArray_nullable_Object);
     },
     $signature: 10
   };
@@ -27582,8 +27582,8 @@
     },
     hotReloadStart$body$DdcLibraryBundleRestarter(hotReloadSourcesPath) {
       var $async$goto = 0,
-        $async$completer = A._makeAsyncAwaitCompleter(type$.JSObject),
-        $async$returnValue, $async$self = this, t4, srcModuleLibraries, filesToLoad, _this, librariesToReload, t5, t6, srcModuleLibraryCast, module, libraries, t7, t1, t2, t3, xhr, $async$temp1, $async$temp2, $async$temp3;
+        $async$completer = A._makeAsyncAwaitCompleter(type$.JSArray_nullable_Object),
+        $async$returnValue, $async$self = this, t4, srcModuleLibraries, filesToLoad, librariesToReload, t5, t6, t7, srcModuleLibraryCast, src, libraries, t8, t1, t2, t3, xhr, $async$temp1, $async$temp2, $async$temp3;
       var $async$hotReloadStart$1 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -27610,23 +27610,21 @@
               srcModuleLibraries = $async$temp1.cast$1$0$ax($async$temp2._as($async$temp3.decode$1($async$result)), type$.Map_dynamic_dynamic);
               t1 = type$.JSArray_nullable_Object;
               filesToLoad = t1._as(new t2.Array());
-              _this = {};
               librariesToReload = t1._as(new t2.Array());
-              for (t1 = J.get$iterator$ax(srcModuleLibraries), t5 = type$.String, t6 = type$.Object; t1.moveNext$0();) {
-                srcModuleLibraryCast = t1.get$current().cast$2$0(0, t5, t6);
-                filesToLoad.push(A._asString(srcModuleLibraryCast.$index(0, "src")));
-                module = A._asString(srcModuleLibraryCast.$index(0, "module"));
-                libraries = J.cast$1$0$ax(t4._as(srcModuleLibraryCast.$index(0, "libraries")), t5);
-                _this[module] = A.jsify(libraries);
-                for (t7 = J.get$iterator$ax(libraries); t7.moveNext$0();)
-                  librariesToReload.push(t7.get$current());
+              for (t5 = J.get$iterator$ax(srcModuleLibraries), t6 = type$.String, t7 = type$.Object; t5.moveNext$0();) {
+                srcModuleLibraryCast = t5.get$current().cast$2$0(0, t6, t7);
+                src = A._asString(srcModuleLibraryCast.$index(0, "src"));
+                libraries = J.cast$1$0$ax(t4._as(srcModuleLibraryCast.$index(0, "libraries")), t6);
+                filesToLoad.push(src);
+                for (t8 = J.get$iterator$ax(libraries); t8.moveNext$0();)
+                  librariesToReload.push(t8.get$current());
               }
               t3._as(t3._as(t2.dartDevEmbedder).config).capturedHotReloadEndHandler = A._functionToJS1(new A.DdcLibraryBundleRestarter_hotReloadStart_closure0($async$self));
               $async$goto = 4;
               return A._asyncAwait(A.promiseToFuture(t3._as(t3._as(t2.dartDevEmbedder).hotReload(filesToLoad, librariesToReload)), type$.nullable_Object), $async$hotReloadStart$1);
             case 4:
               // returning from await.
-              $async$returnValue = _this;
+              $async$returnValue = t1._as(A.jsify(srcModuleLibraries));
               // goto return
               $async$goto = 1;
               break;

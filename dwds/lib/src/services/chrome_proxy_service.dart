@@ -1068,6 +1068,22 @@ class ChromeProxyService extends ProxyService {
   Future<void> _performClientSideHotReload(String isolateId) async {
     _logger.info('Attempting a hot reload');
 
+    final debugger = await debuggerFuture;
+    final reloadedSrcs = <String>{};
+    final computedReloadedSrcs = Completer<void>();
+    final parsedAllReloadedSrcs = Completer<void>();
+    // Wait until all the reloaded scripts are parsed before we reinitialize
+    // metadata below.
+    final parsedScriptsSubscription = debugger.parsedScriptsController.stream
+        .listen((url) {
+          computedReloadedSrcs.future.then((_) {
+            reloadedSrcs.remove(Uri.parse(url).normalizePath().path);
+            if (reloadedSrcs.isEmpty) {
+              parsedAllReloadedSrcs.complete();
+            }
+          });
+        });
+
     // Initiate a hot reload.
     _logger.info('Issuing \$dartHotReloadStartDwds request');
     final remoteObject = await inspector.jsEvaluate(
@@ -1075,8 +1091,19 @@ class ChromeProxyService extends ProxyService {
       awaitPromise: true,
       returnByValue: true,
     );
-    final reloadedModulesToLibraries =
-        (remoteObject.value as Map).cast<String, List>();
+    final reloadedSrcModuleLibraries = (remoteObject.value as List).cast<Map>();
+    final reloadedModulesToLibraries = <String, List<String>>{};
+    for (final srcModuleLibrary in reloadedSrcModuleLibraries) {
+      final srcModuleLibraryCast = srcModuleLibrary.cast<String, Object>();
+      reloadedSrcs.add(
+        Uri.parse(srcModuleLibraryCast['src'] as String).normalizePath().path,
+      );
+      reloadedModulesToLibraries[srcModuleLibraryCast['module'] as String] =
+          (srcModuleLibraryCast['libraries'] as List).cast<String>();
+    }
+    computedReloadedSrcs.complete();
+    if (reloadedSrcs.isNotEmpty) await parsedAllReloadedSrcs.future;
+    await parsedScriptsSubscription.cancel();
 
     if (!pauseIsolatesOnStart) {
       // Finish hot reload immediately.

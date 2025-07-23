@@ -66,15 +66,12 @@ class ResidentWebRunner {
   ProjectFileInvalidator? _projectFileInvalidator;
   WebDevFS? devFS;
   Uri? uri;
-  late Iterable<String> modules;
 
   Future<int> run(
-    FileSystem fileSystem,
+    FileSystem fileSystem, {
     String? hostname,
-    int port,
-    String index, {
-    required bool initialCompile,
-    required bool fullRestart,
+    required int port,
+    required String index,
   }) async {
     _projectFileInvalidator ??= ProjectFileInvalidator(fileSystem: fileSystem);
     devFS ??= WebDevFS(
@@ -91,20 +88,43 @@ class ResidentWebRunner {
     uri ??= await devFS!.create();
 
     final report = await _updateDevFS(
-        initialCompile: initialCompile, fullRestart: fullRestart);
+        initialCompile: true, fullRestart: false, fileServerUri: null);
     if (!report.success) {
       _logger.severe('Failed to compile application.');
       return 1;
     }
 
-    modules = report.invalidatedModules!;
+    generator.accept();
+    return 0;
+  }
+
+  Future<int> rerun(
+      {required bool fullRestart,
+      // The uri of the `HttpServer` that handles file requests.
+      // TODO(srujzs): This should be the same as the uri of the AssetServer to
+      // align with Flutter tools, but currently is not. Delete when that's fixed.
+      required Uri fileServerUri}) async {
+    final report = await _updateDevFS(
+        initialCompile: false,
+        fullRestart: fullRestart,
+        fileServerUri: fileServerUri);
+    if (!report.success) {
+      _logger.severe('Failed to compile application.');
+      return 1;
+    }
 
     generator.accept();
     return 0;
   }
 
-  Future<UpdateFSReport> _updateDevFS(
-      {required bool initialCompile, required bool fullRestart}) async {
+  Future<UpdateFSReport> _updateDevFS({
+    required bool initialCompile,
+    required bool fullRestart,
+    // The uri of the `TestServer` that handles file requests.
+    // TODO(srujzs): This should be the same as the uri of the AssetServer to
+    // align with Flutter tools, but currently is not. Delete when that's fixed.
+    required Uri? fileServerUri,
+  }) async {
     final invalidationResult = await _projectFileInvalidator!.findInvalidated(
       lastCompiled: devFS!.lastCompiled,
       urisToMonitor: devFS!.sources,
@@ -116,7 +136,8 @@ class ResidentWebRunner {
         generator: generator,
         invalidatedFiles: invalidationResult.uris!,
         initialCompile: initialCompile,
-        fullRestart: fullRestart);
+        fullRestart: fullRestart,
+        fileServerUri: fileServerUri);
     return report;
   }
 
