@@ -13,7 +13,7 @@ import 'package:vm_service/vm_service.dart';
 /// Supports debugging your running application through the Dart VM Service
 /// Protocol.
 class DebugConnection {
-  final IAppDebugServices _appDebugServices;
+  final AppDebugServices _appDebugServices;
   final _onDoneCompleter = Completer();
 
   /// Null until [close] is called.
