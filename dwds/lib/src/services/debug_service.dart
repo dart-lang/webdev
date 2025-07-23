@@ -419,7 +419,7 @@ class WebSocketDebugService implements IDebugService {
       webSocketProxyService,
     );
 
-    final server = await startHttpServer(hostname, port: 0);
+    final server = await startHttpServer(hostname, port: 44456);
     serveHttpRequests(server, handler, (e, s) {
       Logger('WebSocketDebugService').warning('Error serving requests', e);
     });
