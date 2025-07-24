@@ -4,8 +4,6 @@
 
 import 'package:dwds/src/dwds_vm_client.dart';
 import 'package:dwds/src/events.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart'
-    show ChromeProxyService;
 import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/services/proxy_service.dart';
 
@@ -56,8 +54,7 @@ class ChromeAppDebugServices implements AppDebugServices {
   set connectedInstanceId(String? id) => _connectedInstanceId = id;
 
   @override
-  ProxyService get proxyService =>
-      debugService.chromeProxyService as ChromeProxyService;
+  ProxyService get proxyService => debugService.chromeProxyService;
 
   @override
   Future<void> close() =>
@@ -69,7 +66,8 @@ class WebSocketAppDebugServices implements AppDebugServices {
   final WebSocketDebugService _debugService;
   final WebSocketDwdsVmClient _dwdsVmClient;
   Future<void>? _closed;
-  String? _connectedInstanceId;
+  @override
+  String? connectedInstanceId;
 
   WebSocketAppDebugServices(this._debugService, this._dwdsVmClient);
 
@@ -78,12 +76,6 @@ class WebSocketAppDebugServices implements AppDebugServices {
 
   @override
   DwdsVmClient get dwdsVmClient => _dwdsVmClient;
-
-  @override
-  String? get connectedInstanceId => _connectedInstanceId;
-
-  @override
-  set connectedInstanceId(String? id) => _connectedInstanceId = id;
 
   // WebSocket-only service - Chrome/DDS features not available
   @override

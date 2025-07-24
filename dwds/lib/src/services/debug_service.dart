@@ -143,7 +143,7 @@ abstract class DebugService {
 class ChromeDebugService implements DebugService {
   static String? _ddsUri;
 
-  final VmServiceInterface chromeProxyService;
+  final ChromeProxyService chromeProxyService;
   @override
   final String hostname;
   @override

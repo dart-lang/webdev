@@ -85,8 +85,7 @@ class ChromeDwdsVmClient implements DwdsVmClient {
     DwdsStats dwdsStats,
     Uri? ddsUri,
   ) async {
-    final chromeProxyService =
-        debugService.chromeProxyService as ChromeProxyService;
+    final chromeProxyService = debugService.chromeProxyService;
     final responseController = StreamController<VmResponse>();
     final responseSink = responseController.sink;
     // Response stream must be a broadcast stream so that it can have multiple
