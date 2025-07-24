@@ -19,6 +19,8 @@ import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
+import 'package:dwds/data/service_extension_request.dart';
+import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/shared/batched_stream.dart';
 import 'package:dwds/src/sockets.dart';
 import 'package:http/browser_client.dart';
@@ -208,6 +210,8 @@ Future<void>? main() {
             );
           } else if (event is HotReloadRequest) {
             await handleWebSocketHotReloadRequest(event, manager, client.sink);
+          } else if (event is ServiceExtensionRequest) {
+            await handleServiceExtensionRequest(event, client.sink, manager);
           }
         },
         onError: (error) {
@@ -247,10 +251,6 @@ Future<void>? main() {
         }
       } else {
         _sendConnectRequest(client.sink);
-        // TODO(yjessy): Remove this when the DWDS WebSocket connection is implemented.
-        if (useDwdsWebSocketConnection) {
-          runMain();
-        }
       }
       _launchCommunicationWithDebugExtension();
     },
@@ -416,6 +416,30 @@ void _sendHotReloadResponse(
   );
 }
 
+void _sendServiceExtensionResponse(
+  StreamSink clientSink,
+  String requestId, {
+  bool success = true,
+  String? errorMessage,
+  int? errorCode,
+  Map<String, dynamic>? result,
+}) {
+  _trySendEvent(
+    clientSink,
+    jsonEncode(
+      serializers.serialize(
+        ServiceExtensionResponse.fromResult(
+          id: requestId,
+          success: success,
+          errorMessage: errorMessage,
+          errorCode: errorCode,
+          result: result,
+        ),
+      ),
+    ),
+  );
+}
+
 Future<void> handleWebSocketHotReloadRequest(
   HotReloadRequest event,
   ReloadingManager manager,
@@ -430,6 +454,44 @@ Future<void> handleWebSocketHotReloadRequest(
     _sendHotReloadResponse(
       clientSink,
       requestId,
+      success: false,
+      errorMessage: e.toString(),
+    );
+  }
+}
+
+Future<void> handleServiceExtensionRequest(
+  ServiceExtensionRequest request,
+  StreamSink clientSink,
+  ReloadingManager manager,
+) async {
+  try {
+    final result = await manager.handleServiceExtension(
+      request.method,
+      request.args,
+    );
+
+    if (result != null) {
+      _sendServiceExtensionResponse(
+        clientSink,
+        request.id,
+        success: true,
+        result: result,
+      );
+    } else {
+      // Service extension not supported by this restarter type
+      _sendServiceExtensionResponse(
+        clientSink,
+        request.id,
+        success: false,
+        errorMessage: 'Service extension not supported',
+        errorCode: -32601, // Method not found
+      );
+    }
+  } catch (e) {
+    _sendServiceExtensionResponse(
+      clientSink,
+      request.id,
       success: false,
       errorMessage: e.toString(),
     );
@@ -487,10 +549,6 @@ external String get reloadConfiguration;
 
 @JS(r'$dartEntrypointPath')
 external String get dartEntrypointPath;
-
-// TODO(yjessy): Remove this when the DWDS WebSocket connection is implemented.
-@JS(r'$useDwdsWebSocketConnection')
-external bool get useDwdsWebSocketConnection;
 
 @JS(r'$dwdsEnableDevToolsLaunch')
 external bool get dwdsEnableDevToolsLaunch;

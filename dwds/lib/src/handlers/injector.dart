@@ -29,22 +29,12 @@ const _clientScript = 'dwds/src/injected/client';
 /// This class is responsible for modifying the served JavaScript files
 /// to include the injected DWDS client, enabling debugging capabilities
 /// and source mapping when running in a browser environment.
-///
-/// TODO(yjessy): Remove this when the DWDS WebSocket connection is implemented.
-/// The `_useDwdsWebSocketConnection` flag determines the communication protocol:
-/// - When `true`, uses a socket-based implementation.
-/// - When `false`, uses Chrome-based communication protocol.
 class DwdsInjector {
   final Future<String>? _extensionUri;
   final _devHandlerPaths = StreamController<String>();
   final _logger = Logger('DwdsInjector');
-  final bool _useDwdsWebSocketConnection;
 
-  DwdsInjector({
-    Future<String>? extensionUri,
-    bool useDwdsWebSocketConnection = false,
-  }) : _extensionUri = extensionUri,
-       _useDwdsWebSocketConnection = useDwdsWebSocketConnection;
+  DwdsInjector({Future<String>? extensionUri}) : _extensionUri = extensionUri;
 
   /// Returns the embedded dev handler paths.
   ///
@@ -111,7 +101,6 @@ class DwdsInjector {
             devHandlerPath,
             entrypoint,
             await _extensionUri,
-            _useDwdsWebSocketConnection,
           );
           body += await globalToolConfiguration.loadStrategy.bootstrapFor(
             entrypoint,
@@ -148,7 +137,6 @@ Future<String> _injectClientAndHoistMain(
   String devHandlerPath,
   String entrypointPath,
   String? extensionUri,
-  bool useDwdsWebSocketConnection,
 ) async {
   final bodyLines = body.split('\n');
   final extensionIndex = bodyLines.indexWhere(
@@ -167,7 +155,6 @@ Future<String> _injectClientAndHoistMain(
     devHandlerPath,
     entrypointPath,
     extensionUri,
-    useDwdsWebSocketConnection,
   );
   result += '''
   // Injected by dwds for debugging support.
@@ -199,7 +186,6 @@ Future<String> _injectedClientSnippet(
   String devHandlerPath,
   String entrypointPath,
   String? extensionUri,
-  bool useDwdsWebSocketConnection,
 ) async {
   final loadStrategy = globalToolConfiguration.loadStrategy;
   final buildSettings = loadStrategy.buildSettings;
@@ -218,7 +204,6 @@ Future<String> _injectedClientSnippet(
       'window.\$dartEmitDebugEvents = ${debugSettings.emitDebugEvents};\n'
       'window.\$isInternalBuild = ${appMetadata.isInternalBuild};\n'
       'window.\$isFlutterApp = ${buildSettings.isFlutterApp};\n'
-      'window.\$useDwdsWebSocketConnection = $useDwdsWebSocketConnection;\n'
       '${loadStrategy is DdcLibraryBundleStrategy ? 'window.\$hotReloadSourcesPath = "${loadStrategy.hotReloadSourcesUri.toString()}";\n' : ''}'
       '${loadStrategy.loadClientSnippet(_clientScript)}';
 
