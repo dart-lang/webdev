@@ -28,7 +28,7 @@ void main() {
       configureLogWriter(debug);
       await testRunner.setUpAll();
       exampleDirectory =
-          p.absolute(p.join(p.current, '..', 'fixtures', '_experimentSound'));
+          p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'));
 
       final process = await TestProcess.start(
         'dart',
@@ -53,7 +53,6 @@ void main() {
         '--hostname=0.0.0.0',
         '--tls-cert-chain=localhost+2.pem',
         '--tls-cert-key=localhost+2-key.pem',
-        '--enable-experiment=dot-shorthands',
       ];
 
       final process =
