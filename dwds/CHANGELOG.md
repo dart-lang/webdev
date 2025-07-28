@@ -1,4 +1,4 @@
-## 24.4.1-wip
+## 24.4.1
 
 - Implemented a WebSocket-based communication protocol that provides essential developer tooling (hot reload, service extensions) when Chrome debugger access is unavailable. - [#2605](https://github.com/dart-lang/webdev/issues/2605)
 - Added WebSocket-based hot reload and service extension support via new `WebSocketProxyService` class that implements VM service protocol over WebSockets.
