@@ -31,6 +31,7 @@ class Dwds {
   final DevHandler _devHandler;
   final AssetReader _assetReader;
   final bool _enableDebugging;
+  final bool _useDwdsWebSocketConnection;
 
   Dwds._(
     this.middleware,
@@ -38,6 +39,7 @@ class Dwds {
     this._devHandler,
     this._assetReader,
     this._enableDebugging,
+    this._useDwdsWebSocketConnection,
   ) : handler = _devHandler.handler;
 
   Stream<AppConnection> get connectedApps => _devHandler.connectedApps;
@@ -53,12 +55,18 @@ class Dwds {
     await _assetReader.close();
   }
 
+  /// Creates a debug connection for the given app connection.
+  ///
+  /// Returns a [DebugConnection] that wraps the appropriate debug services
+  /// based on the connection type (WebSocket or Chrome-based).
   Future<DebugConnection> debugConnection(AppConnection appConnection) async {
     if (!_enableDebugging) throw StateError('Debugging is not enabled.');
-    final appDebugServices = await _devHandler.loadAppServices(appConnection);
-    final chromeProxyService = appDebugServices.chromeProxyService;
-    await chromeProxyService.isInitialized;
-    return DebugConnection(appDebugServices);
+
+    if (_useDwdsWebSocketConnection) {
+      return await _devHandler.createDebugConnectionForWebSocket(appConnection);
+    } else {
+      return await _devHandler.createDebugConnectionForChrome(appConnection);
+    }
   }
 
   static Future<Dwds> start({
@@ -123,10 +131,7 @@ class Dwds {
       _logger.info('Serving DevTools at $uri\n');
     }
 
-    final injected = DwdsInjector(
-      extensionUri: extensionUri,
-      useDwdsWebSocketConnection: useDwdsWebSocketConnection,
-    );
+    final injected = DwdsInjector(extensionUri: extensionUri);
 
     final devHandler = DevHandler(
       chromeConnection,
@@ -143,6 +148,7 @@ class Dwds {
       debugSettings.spawnDds,
       debugSettings.ddsPort,
       debugSettings.launchDevToolsInNewWindow,
+      useWebSocketConnection: useDwdsWebSocketConnection,
     );
 
     return Dwds._(
@@ -151,6 +157,7 @@ class Dwds {
       devHandler,
       assetReader,
       debugSettings.enableDebugging,
+      useDwdsWebSocketConnection,
     );
   }
 }

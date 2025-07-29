@@ -38,6 +38,13 @@ extension type _Debugger._(JSObject _) implements JSObject {
       await invokeExtension(method, '{}').toDart;
     }
   }
+
+  Future<void> maybeInvokeFlutterReassemble() async {
+    final method = 'ext.flutter.reassemble';
+    if (extensionNames.toDart.contains(method.toJS)) {
+      await invokeExtension(method, '{}').toDart;
+    }
+  }
 }
 
 @JS('XMLHttpRequest')
@@ -128,5 +135,28 @@ class DdcLibraryBundleRestarter implements Restarter {
     _capturedHotReloadEndCallback!.callAsFunction();
     _dartDevEmbedder.config.capturedHotReloadEndHandler = null;
     _capturedHotReloadEndCallback = null;
+  }
+
+  /// Handles service extension requests using the dart dev embedder
+  Future<Map<String, dynamic>?> handleServiceExtension(
+    String method,
+    Map<String, dynamic> args,
+  ) async {
+    if (method == 'ext.flutter.reassemble') {
+      await _dartDevEmbedder.debugger.maybeInvokeFlutterReassemble();
+      return {'status': 'reassemble invoked'};
+    } else if (method == 'getExtensionRpcs') {
+      final rpcs =
+          _dartDevEmbedder.debugger.extensionNames.toDart.cast<String>();
+      return {'rpcs': rpcs};
+    } else {
+      // For other extension methods, delegate to the debugger
+      final params = args.isNotEmpty ? jsonEncode(args) : '{}';
+      final resultJson =
+          await _dartDevEmbedder.debugger
+              .invokeExtension(method, params)
+              .toDart;
+      return jsonDecode(resultJson.toDart) as Map<String, dynamic>;
+    }
   }
 }
