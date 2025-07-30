@@ -195,6 +195,25 @@ class WebDevServer {
       cascade = cascade.add(assetHandler);
     }
 
+    if (options.configuration.spaFallback) {
+      FutureOr<Response> spaFallbackHandler(Request request) async {
+        final uri = request.requestedUri;
+        final hasExtension =
+            uri.pathSegments.isNotEmpty && uri.pathSegments.last.contains('.');
+        if (request.method != 'GET' || hasExtension) {
+          return Response.notFound('Not Found');
+        }
+        final indexResponse =
+            await assetHandler(request.change(path: 'index.html'));
+
+        return indexResponse.statusCode == 200
+            ? indexResponse
+            : Response.notFound('Not Found');
+      }
+
+      cascade = cascade.add(spaFallbackHandler);
+    }
+
     final hostname = options.configuration.hostname;
     final tlsCertChain = options.configuration.tlsCertChain ?? '';
     final tlsCertKey = options.configuration.tlsCertKey ?? '';
