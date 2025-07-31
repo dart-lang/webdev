@@ -28,11 +28,6 @@ void addSharedArgs(ArgParser argParser,
           'A value of "NONE" indicates that no "--output" value should be '
           'passed to `build_runner`.',
     )
-    ..addOption(nullSafetyFlag,
-        abbr: 'n',
-        help: 'DEPRECATED: This flag is ignored and will be removed in an'
-            'upcoming release.',
-        hide: true)
     ..addFlag(releaseFlag,
         abbr: 'r',
         defaultsTo: releaseDefault,
