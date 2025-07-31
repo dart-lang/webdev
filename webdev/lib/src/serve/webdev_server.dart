@@ -197,18 +197,36 @@ class WebDevServer {
 
     if (options.configuration.spaFallback) {
       FutureOr<Response> spaFallbackHandler(Request request) async {
-        final uri = request.requestedUri;
-        final hasExtension =
-            uri.pathSegments.isNotEmpty && uri.pathSegments.last.contains('.');
-        if (request.method != 'GET' || hasExtension) {
+        final hasExt = request.url.pathSegments.isNotEmpty &&
+            request.url.pathSegments.last.contains('.');
+        if (request.method != 'GET' || hasExt) {
           return Response.notFound('Not Found');
         }
-        final indexResponse =
-            await assetHandler(request.change(path: 'index.html'));
 
-        return indexResponse.statusCode == 200
-            ? indexResponse
-            : Response.notFound('Not Found');
+        final indexUri =
+            request.requestedUri.replace(path: 'index.html', query: '');
+
+        final cleanHeaders = Map.of(request.headers)
+          ..remove('if-none-match')
+          ..remove('if-modified-since');
+
+        final proxiedReq = Request(
+          'GET',
+          indexUri,
+          headers: cleanHeaders,
+          context: request.context,
+          protocolVersion: request.protocolVersion,
+        );
+
+        final resp = await assetHandler(proxiedReq);
+
+        if (resp.statusCode != 200 && resp.statusCode != 304) {
+          return Response.notFound('Not Found');
+        }
+        return resp.change(headers: {
+          ...resp.headers,
+          'content-type': 'text/html; charset=utf-8',
+        });
       }
 
       cascade = cascade.add(spaFallbackHandler);
