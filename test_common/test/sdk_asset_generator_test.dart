@@ -20,11 +20,9 @@ void main() {
 
     late Directory tempDir;
     late String sdkDirectory;
-    late String sdkSummaryPath;
     late String compilerWorkerPath;
 
     // Missing assets
-    late String sdkFullDillPath;
     late String amdSdkJsPath;
     late String amdSdkJsMapPath;
     late String ddcSdkJsPath;
@@ -37,20 +35,17 @@ void main() {
       sdkDirectory = tempDir.path;
       final copySdkLayout = TestSdkLayout.createDefault(sdkDirectory);
 
-      sdkSummaryPath = copySdkLayout.summaryPath;
       compilerWorkerPath = copySdkLayout.dartdevcSnapshotPath;
 
       // Copy the SDK directory into a temp directory.
       await copyDirectory(TestSdkLayout.defaultSdkDirectory, sdkDirectory);
 
       // Simulate missing assets.
-      sdkFullDillPath = copySdkLayout.fullDillPath;
       amdSdkJsPath = copySdkLayout.amdJsPath;
       amdSdkJsMapPath = copySdkLayout.amdJsMapPath;
       ddcSdkJsPath = copySdkLayout.ddcJsPath;
       ddcSdkJsMapPath = copySdkLayout.ddcJsMapPath;
 
-      _deleteIfExists(sdkFullDillPath);
       _deleteIfExists(amdSdkJsPath);
       _deleteIfExists(amdSdkJsMapPath);
       _deleteIfExists(ddcSdkJsPath);
@@ -79,8 +74,6 @@ void main() {
       expect(configuration.sdkDirectory, equals(sdkDirectory));
       expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
 
-      expect(sdkLayout.summaryPath, equals(sdkSummaryPath));
-      expect(sdkLayout.fullDillPath, equals(sdkFullDillPath));
       expect(sdkLayout.amdJsPath, equals(amdSdkJsPath));
       expect(sdkLayout.amdJsMapPath, equals(amdSdkJsMapPath));
 
@@ -89,8 +82,6 @@ void main() {
       configuration.validate();
 
       // Validate all assets exist.
-      expect(sdkLayout.summaryPath, _exists);
-      expect(sdkLayout.fullDillPath, _exists);
       expect(sdkLayout.amdJsPath, _exists);
       expect(sdkLayout.amdJsMapPath, _exists);
     });
@@ -113,8 +104,6 @@ void main() {
       expect(configuration.sdkDirectory, equals(sdkDirectory));
       expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
 
-      expect(sdkLayout.summaryPath, equals(sdkSummaryPath));
-      expect(sdkLayout.fullDillPath, equals(sdkFullDillPath));
       expect(sdkLayout.ddcJsPath, equals(ddcSdkJsPath));
       expect(sdkLayout.ddcJsMapPath, equals(ddcSdkJsMapPath));
 
@@ -123,8 +112,6 @@ void main() {
       configuration.validate();
 
       // Validate all assets exist.
-      expect(sdkLayout.summaryPath, _exists);
-      expect(sdkLayout.fullDillPath, _exists);
       expect(sdkLayout.ddcJsPath, _exists);
       expect(sdkLayout.ddcJsMapPath, _exists);
     });

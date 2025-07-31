@@ -4,37 +4,93 @@
 
 import 'package:dwds/src/dwds_vm_client.dart';
 import 'package:dwds/src/events.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart'
-    show ChromeProxyService;
 import 'package:dwds/src/services/debug_service.dart';
+import 'package:dwds/src/services/proxy_service.dart';
 
-/// A container for all the services required for debugging an application.
-class AppDebugServices {
-  final DebugService debugService;
-  final DwdsVmClient dwdsVmClient;
-  final DwdsStats dwdsStats;
-  final Uri? ddsUri;
+/// Common interface for debug service containers.
+abstract class AppDebugServices {
+  DebugService get debugService;
+  DwdsVmClient get dwdsVmClient;
+  DwdsStats? get dwdsStats;
+  Uri? get ddsUri;
+  String? get connectedInstanceId;
+  set connectedInstanceId(String? id);
+  Future<void> close();
+  ProxyService get proxyService;
+}
 
-  ChromeProxyService get chromeProxyService =>
-      debugService.chromeProxyService as ChromeProxyService;
-
-  /// Null until [close] is called.
-  ///
-  /// All subsequent calls to [close] will return this future.
+/// Chrome-based debug services container.
+class ChromeAppDebugServices implements AppDebugServices {
+  final ChromeDebugService _debugService;
+  final ChromeDwdsVmClient _dwdsVmClient;
+  final DwdsStats _dwdsStats;
+  final Uri? _ddsUri;
   Future<void>? _closed;
+  String? _connectedInstanceId;
 
-  /// The instance ID for the currently connected application, if there is one.
-  ///
-  /// We only allow a given app to be debugged in a single tab at a time.
-  String? connectedInstanceId;
-
-  AppDebugServices(
-    this.debugService,
-    this.dwdsVmClient,
-    this.dwdsStats,
-    this.ddsUri,
+  ChromeAppDebugServices(
+    this._debugService,
+    this._dwdsVmClient,
+    this._dwdsStats,
+    this._ddsUri,
   );
 
+  @override
+  ChromeDebugService get debugService => _debugService;
+
+  @override
+  DwdsVmClient get dwdsVmClient => _dwdsVmClient;
+
+  @override
+  DwdsStats get dwdsStats => _dwdsStats;
+
+  @override
+  Uri? get ddsUri => _ddsUri;
+
+  @override
+  String? get connectedInstanceId => _connectedInstanceId;
+
+  @override
+  set connectedInstanceId(String? id) => _connectedInstanceId = id;
+
+  @override
+  ProxyService get proxyService => debugService.chromeProxyService;
+
+  @override
   Future<void> close() =>
       _closed ??= Future.wait([debugService.close(), dwdsVmClient.close()]);
+}
+
+/// WebSocket-based implementation of app debug services.
+class WebSocketAppDebugServices implements AppDebugServices {
+  final WebSocketDebugService _debugService;
+  final WebSocketDwdsVmClient _dwdsVmClient;
+  Future<void>? _closed;
+  @override
+  String? connectedInstanceId;
+
+  WebSocketAppDebugServices(this._debugService, this._dwdsVmClient);
+
+  @override
+  WebSocketDebugService get debugService => _debugService;
+
+  @override
+  DwdsVmClient get dwdsVmClient => _dwdsVmClient;
+
+  // WebSocket-only service - Chrome/DDS features not available
+  @override
+  DwdsStats? get dwdsStats => null;
+  @override
+  Uri? get ddsUri => null;
+
+  @override
+  ProxyService get proxyService => _debugService.webSocketProxyService;
+
+  @override
+  Future<void> close() {
+    return _closed ??= Future.wait([
+      debugService.close(),
+      dwdsVmClient.close(),
+    ]);
+  }
 }
