@@ -47,12 +47,6 @@ class SdkLayout {
   final String summaryPath;
   final String dartdevcSnapshotPath;
 
-  @Deprecated('Only sound null safety is supported as of Dart 3.0')
-  final String soundSummaryPath;
-
-  @Deprecated('Only sound null safety is supported as of Dart 3.0')
-  final String weakSummaryPath;
-
   SdkLayout.createDefault(String sdkDirectory)
     : this(
         sdkDirectory: sdkDirectory,
@@ -73,8 +67,6 @@ class SdkLayout {
   const SdkLayout({
     required this.sdkDirectory,
     required this.summaryPath,
-    this.soundSummaryPath = '',
-    this.weakSummaryPath = '',
     required this.dartdevcSnapshotPath,
   });
 }
@@ -93,17 +85,9 @@ class SdkConfiguration {
   final String? sdkSummaryPath;
   final String? compilerWorkerPath;
 
-  @Deprecated('Only sound null safety is supported as of Dart 3.0')
-  final String? weakSdkSummaryPath;
-
-  @Deprecated('Only sound null safety is supported as of Dart 3.0')
-  final String? soundSdkSummaryPath;
-
   const SdkConfiguration({
     this.sdkDirectory,
     this.sdkSummaryPath,
-    this.weakSdkSummaryPath,
-    this.soundSdkSummaryPath,
     this.compilerWorkerPath,
   });
 
@@ -122,12 +106,6 @@ class SdkConfiguration {
 
   Uri? get sdkDirectoryUri => _toUri(sdkDirectory);
   Uri? get sdkSummaryUri => _toUri(sdkSummaryPath);
-
-  @Deprecated('Only sound null safety is supported as of Dart 3.0')
-  Uri? get soundSdkSummaryUri => _toUri(soundSdkSummaryPath);
-
-  @Deprecated('Only sound null safety is supported as of Dart 3.0')
-  Uri? get weakSdkSummaryUri => _toUri(weakSdkSummaryPath);
 
   /// Note: has to be ///file: Uri to run in an isolate.
   Uri? get compilerWorkerUri => _toAbsoluteUri(compilerWorkerPath);

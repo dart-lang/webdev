@@ -6,15 +6,11 @@
 class CompilerOptions {
   final ModuleFormat moduleFormat;
 
-  @Deprecated('Only sound null safety is supported as of Dart 3.0')
-  final bool soundNullSafety;
-
   final bool canaryFeatures;
   final List<String> experiments;
 
   CompilerOptions({
     required this.moduleFormat,
-    this.soundNullSafety = true,
     required this.canaryFeatures,
     required this.experiments,
   });
