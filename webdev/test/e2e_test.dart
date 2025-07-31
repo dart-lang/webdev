@@ -164,7 +164,7 @@ void main() {
         ];
 
         final process = await testRunner.runWebDev(args,
-            workingDirectory: soundExampleDirectory);
+            workingDirectory: exampleDirectory);
 
         final expectedItems = <Object>['Built with build_runner'];
 
