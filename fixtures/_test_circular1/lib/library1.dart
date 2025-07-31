@@ -5,7 +5,7 @@
 /// A library that we can import.
 library;
 
-import 'package:_test_circular2_sound/library2.dart';
+import 'package:_test_circular2/library2.dart';
 
 String concatenate(String a, String b) {
   return '$a$b'; // Breakpoint: Concatenate
