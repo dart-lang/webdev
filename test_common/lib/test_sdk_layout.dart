@@ -27,7 +27,12 @@ class TestSdkLayout {
   factory TestSdkLayout.createDefaultFromSdkLayout(SdkLayout sdkLayout) =>
       TestSdkLayout(
         sdkDirectory: sdkLayout.sdkDirectory,
-        summaryPath: sdkLayout.summaryPath,
+        summaryPath: p.join(
+          sdkLayout.sdkDirectory,
+          'lib',
+          '_internal',
+          'ddc_outline.dill',
+        ),
         fullDillPath: p.join(
           sdkLayout.sdkDirectory,
           'lib',
