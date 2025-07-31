@@ -30,15 +30,8 @@ void addSharedArgs(ArgParser argParser,
     )
     ..addOption(nullSafetyFlag,
         abbr: 'n',
-        defaultsTo: nullSafetyAuto,
-        allowed: [nullSafetySound, nullSafetyUnsound, nullSafetyAuto],
-        help:
-            'DEPRECATED: If "sound", `package:build_web_compilers` will be run '
-            'with sound null safety support. '
-            'If "unsound", `package:build_web_compilers` will be run without '
-            'sound null safety support. '
-            'If "auto", the default `package:build_web_compilers` '
-            'behavior is used.',
+        help: 'DEPRECATED: This flag is ignored and will be removed in an'
+            'upcoming release.',
         hide: true)
     ..addFlag(releaseFlag,
         abbr: 'r',
