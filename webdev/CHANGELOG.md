@@ -1,4 +1,6 @@
 ## 3.8.0-wip
+ - Remove deprecated `--null-safety` flag. All Dart 3 compiles use sound null
+   safety.
 
 ## 3.7.2
 

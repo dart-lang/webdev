@@ -30,10 +30,6 @@ const releaseFlag = 'release';
 const requireBuildWebCompilersFlag = 'build-web-compilers';
 const enableExpressionEvaluationFlag = 'enable-expression-evaluation';
 const verboseFlag = 'verbose';
-const nullSafetyFlag = 'null-safety';
-const nullSafetySound = 'sound';
-const nullSafetyUnsound = 'unsound';
-const nullSafetyAuto = 'auto';
 const disableDdsFlag = 'disable-dds';
 const enableExperimentOption = 'enable-experiment';
 const canaryFeaturesFlag = 'canary';
@@ -105,7 +101,6 @@ class Configuration {
   final bool? _enableExpressionEvaluation;
   final bool? _verbose;
   final bool? _disableDds;
-  final String? _nullSafety;
   final List<String>? _experiments;
   final bool? _canaryFeatures;
   final bool? _offline;
@@ -132,7 +127,6 @@ class Configuration {
     bool? enableExpressionEvaluation,
     bool? verbose,
     bool? disableDds,
-    String? nullSafety,
     List<String>? experiments,
     bool? canaryFeatures,
     bool? offline,
@@ -155,7 +149,6 @@ class Configuration {
         _disableDds = disableDds,
         _enableExpressionEvaluation = enableExpressionEvaluation,
         _verbose = verbose,
-        _nullSafety = nullSafety,
         _experiments = experiments,
         _canaryFeatures = canaryFeatures,
         _offline = offline {
@@ -231,7 +224,6 @@ class Configuration {
       enableExpressionEvaluation:
           other._enableExpressionEvaluation ?? _enableExpressionEvaluation,
       verbose: other._verbose ?? _verbose,
-      nullSafety: other._nullSafety ?? _nullSafety,
       experiments: other._experiments ?? _experiments,
       canaryFeatures: other._canaryFeatures ?? _canaryFeatures,
       offline: other._offline ?? _offline);
@@ -277,13 +269,6 @@ class Configuration {
   bool get enableExpressionEvaluation => _enableExpressionEvaluation ?? true;
 
   bool get verbose => _verbose ?? false;
-
-  /// Null safety mode:
-  ///
-  /// 'sound', 'unsound', or 'auto'.
-  /// 'auto' indicates that the default `package:build_web_compilers`
-  /// behavior should be used.
-  String get nullSafety => _nullSafety ?? 'auto';
 
   List<String> get experiments => _experiments ?? [];
 
@@ -398,10 +383,6 @@ class Configuration {
         ? argResults[verboseFlag] as bool?
         : defaultConfiguration.verbose;
 
-    final nullSafety = argResults.options.contains(nullSafetyFlag)
-        ? argResults[nullSafetyFlag] as String?
-        : defaultConfiguration.nullSafety;
-
     final disableDds = argResults.options.contains(disableDdsFlag)
         ? argResults[disableDdsFlag] as bool?
         : defaultConfiguration.disableDds;
@@ -441,7 +422,6 @@ class Configuration {
       disableDds: disableDds,
       enableExpressionEvaluation: enableExpressionEvaluation,
       verbose: verbose,
-      nullSafety: nullSafety,
       experiments: experiments,
       canaryFeatures: canaryFeatures,
       offline: offline,
