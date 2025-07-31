@@ -29,7 +29,6 @@ class WebDevFS {
     required this.projectDirectory,
     required this.packageUriMapper,
     required this.index,
-    this.soundNullSafety = true,
     this.urlTunneler,
     required this.sdkLayout,
     required this.compilerOptions,
@@ -45,9 +44,6 @@ class WebDevFS {
   final UrlEncoder? urlTunneler;
   List<Uri> sources = <Uri>[];
   DateTime? lastCompiled;
-
-  @Deprecated('Only sound null safety is supported as of Dart 3.0')
-  final bool soundNullSafety;
 
   final TestSdkLayout sdkLayout;
   final CompilerOptions compilerOptions;
