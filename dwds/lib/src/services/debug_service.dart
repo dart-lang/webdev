@@ -436,11 +436,11 @@ class WebSocketDebugService implements DebugService {
   }
 
   /// Creates the WebSocket handler for incoming connections.
-  static dynamic _createWebSocketHandler(
+  static Handler _createWebSocketHandler(
     ServiceExtensionRegistry serviceExtensionRegistry,
     WebSocketProxyService webSocketProxyService,
   ) {
-    return webSocketHandler((WebSocketChannel webSocket) {
+    return webSocketHandler((WebSocketChannel webSocket, String? subprotocol) {
       final responseController = StreamController<Map<String, Object?>>();
       webSocket.sink.addStream(responseController.stream.map(jsonEncode));
 
