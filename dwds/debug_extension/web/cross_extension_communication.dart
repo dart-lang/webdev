@@ -126,19 +126,17 @@ ExternalExtensionMessage _debugEventMessage({
   required String method,
   required dynamic params,
   required int tabId,
-}) =>
-    ExternalExtensionMessage(
-      name: 'chrome.debugger.event',
-      tabId: tabId,
-      options: DebugEvent(method: method, params: params),
-    );
+}) => ExternalExtensionMessage(
+  name: 'chrome.debugger.event',
+  tabId: tabId,
+  options: DebugEvent(method: method, params: params),
+);
 
 ExternalExtensionMessage _dwdsEventMessage({
   required String method,
   required dynamic params,
   required int tabId,
-}) =>
-    ExternalExtensionMessage(name: method, tabId: tabId, options: params);
+}) => ExternalExtensionMessage(name: method, tabId: tabId, options: params);
 
 // This message is used for cross-extension communication between this extension
 // and the AngularDart DevTools extension.

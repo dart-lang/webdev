@@ -74,8 +74,9 @@ void displayNotification(
     NotificationOptions(
       title: '${isError ? '[Error] ' : ''}Dart Debug Extension',
       message: message,
-      iconUrl:
-          isError ? 'static_assets/dart_warning.png' : 'static_assets/dart.png',
+      iconUrl: isError
+          ? 'static_assets/dart_warning.png'
+          : 'static_assets/dart.png',
       type: 'basic',
     ),
     callback,

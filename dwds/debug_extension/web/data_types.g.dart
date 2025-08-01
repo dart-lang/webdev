@@ -58,16 +58,20 @@ class _$ConnectFailureSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'tabId':
-          result.tabId = serializers.deserialize(
-            value,
-            specifiedType: const FullType(int),
-          )! as int;
+          result.tabId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'reason':
-          result.reason = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String?;
+          result.reason =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
       }
     }
@@ -115,10 +119,12 @@ class _$DevToolsOpenerSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'newWindow':
-          result.newWindow = serializers.deserialize(
-            value,
-            specifiedType: const FullType(bool),
-          )! as bool;
+          result.newWindow =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )!
+                  as bool;
           break;
       }
     }
@@ -164,16 +170,20 @@ class _$DevToolsUrlSerializer implements StructuredSerializer<DevToolsUrl> {
       final Object? value = iterator.current;
       switch (key) {
         case 'tabId':
-          result.tabId = serializers.deserialize(
-            value,
-            specifiedType: const FullType(int),
-          )! as int;
+          result.tabId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'url':
-          result.url = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          )! as String;
+          result.url =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
       }
     }
@@ -231,22 +241,28 @@ class _$DebugStateChangeSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'tabId':
-          result.tabId = serializers.deserialize(
-            value,
-            specifiedType: const FullType(int),
-          )! as int;
+          result.tabId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'newState':
-          result.newState = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          )! as String;
+          result.newState =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'reason':
-          result.reason = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String?;
+          result.reason =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
       }
     }
@@ -341,7 +357,8 @@ class ConnectFailureBuilder
   ConnectFailure build() => _build();
 
   _$ConnectFailure _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$ConnectFailure._(
           tabId: BuiltValueNullFieldError.checkNotNull(
             tabId,
@@ -394,9 +411,9 @@ class _$DevToolsOpener extends DevToolsOpener {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'DevToolsOpener')
-          ..add('newWindow', newWindow))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'DevToolsOpener',
+    )..add('newWindow', newWindow)).toString();
   }
 }
 
@@ -434,7 +451,8 @@ class DevToolsOpenerBuilder
   DevToolsOpener build() => _build();
 
   _$DevToolsOpener _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$DevToolsOpener._(
           newWindow: BuiltValueNullFieldError.checkNotNull(
             newWindow,
@@ -530,7 +548,8 @@ class DevToolsUrlBuilder implements Builder<DevToolsUrl, DevToolsUrlBuilder> {
   DevToolsUrl build() => _build();
 
   _$DevToolsUrl _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$DevToolsUrl._(
           tabId: BuiltValueNullFieldError.checkNotNull(
             tabId,
@@ -558,8 +577,7 @@ class _$DebugStateChange extends DebugStateChange {
 
   factory _$DebugStateChange([
     void Function(DebugStateChangeBuilder)? updates,
-  ]) =>
-      (new DebugStateChangeBuilder()..update(updates))._build();
+  ]) => (new DebugStateChangeBuilder()..update(updates))._build();
 
   _$DebugStateChange._({
     required this.tabId,
@@ -655,7 +673,8 @@ class DebugStateChangeBuilder
   DebugStateChange build() => _build();
 
   _$DebugStateChange _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         new _$DebugStateChange._(
           tabId: BuiltValueNullFieldError.checkNotNull(
             tabId,
