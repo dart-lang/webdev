@@ -41,31 +41,30 @@ void main() {
   const debug = false;
 
   final testRunner = TestRunner();
-  late String soundExampleDirectory;
+  late String exampleDirectory;
   setUpAll(() async {
     configureLogWriter(debug);
     await testRunner.setUpAll();
-    soundExampleDirectory =
-        p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'));
+    exampleDirectory =
+        p.absolute(p.join(p.current, '..', 'fixtures', '_webdev_smoke'));
 
     final process = await TestProcess.start(dartPath, ['pub', 'upgrade'],
-        workingDirectory: soundExampleDirectory,
-        environment: getPubEnvironment());
+        workingDirectory: exampleDirectory, environment: getPubEnvironment());
 
     await process.shouldExit(0);
 
     await d
         .file('.dart_tool/package_config.json', isNotEmpty)
-        .validate(soundExampleDirectory);
-    await d.file('pubspec.lock', isNotEmpty).validate(soundExampleDirectory);
+        .validate(exampleDirectory);
+    await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
   });
 
   tearDownAll(testRunner.tearDownAll);
 
   test('smoke test is configured properly', () async {
-    final smokeYaml = loadYaml(
-            await File('$soundExampleDirectory/pubspec.yaml').readAsString())
-        as YamlMap;
+    final smokeYaml =
+        loadYaml(await File('$exampleDirectory/pubspec.yaml').readAsString())
+            as YamlMap;
     final webdevYaml =
         loadYaml(await File('pubspec.yaml').readAsString()) as YamlMap;
     expect(smokeYaml['environment']['sdk'],
@@ -83,8 +82,8 @@ void main() {
 
     final args = ['build', '-o', 'web:${d.sandbox}'];
 
-    final process = await testRunner.runWebDev(args,
-        workingDirectory: soundExampleDirectory);
+    final process =
+        await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
 
     // NOTE: We'd like this to be more useful
     // See https://github.com/dart-lang/build/issues/1283
@@ -111,8 +110,8 @@ void main() {
         '--delete-conflicting-outputs'
       ];
 
-      final process = await testRunner.runWebDev(args,
-          workingDirectory: soundExampleDirectory);
+      final process =
+          await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
 
       await checkProcessStdout(process, ['Built with build_runner']);
       await process.shouldExit(0);
@@ -132,7 +131,7 @@ void main() {
           }
 
           final process = await testRunner.runWebDev(args,
-              workingDirectory: soundExampleDirectory);
+              workingDirectory: exampleDirectory);
 
           final expectedItems = <Object>['Built with build_runner'];
 
@@ -165,7 +164,7 @@ void main() {
         ];
 
         final process = await testRunner.runWebDev(args,
-            workingDirectory: soundExampleDirectory);
+            workingDirectory: exampleDirectory);
 
         final expectedItems = <Object>['Built with build_runner'];
 
@@ -188,14 +187,14 @@ void main() {
         }
 
         final process = await testRunner.runWebDev(args,
-            workingDirectory: soundExampleDirectory);
+            workingDirectory: exampleDirectory);
 
         final expectedItems = <Object>['Built with build_runner'];
 
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
 
-        await d.nothing('build').validate(soundExampleDirectory);
+        await d.nothing('build').validate(exampleDirectory);
       });
     }
   });
@@ -211,7 +210,7 @@ void main() {
         }
 
         final process = await testRunner.runWebDev(args,
-            workingDirectory: soundExampleDirectory);
+            workingDirectory: exampleDirectory);
 
         final hostUrl = 'http://localhost:$openPort';
 
@@ -254,7 +253,7 @@ void main() {
           ];
 
           final process = await testRunner.runWebDev(args,
-              workingDirectory: soundExampleDirectory);
+              workingDirectory: exampleDirectory);
           await expectLater(
               process.stdout,
               emitsThrough(contains(
@@ -285,7 +284,7 @@ void main() {
           '--verbose',
         ];
         final process = await testRunner.runWebDev(args,
-            workingDirectory: soundExampleDirectory);
+            workingDirectory: exampleDirectory);
         VmService? vmService;
 
         process.stdoutStream().listen(Logger.root.fine);
@@ -322,10 +321,10 @@ void main() {
           await stream.firstWhere(
               (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final isNullSafetyEnabled =
+          final expression =
               '() { const sound = !(<Null>[] is List<int>); return sound; } ()';
-          final result = await vmService.evaluateInFrame(
-              isolateId, 0, isNullSafetyEnabled);
+          final result =
+              await vmService.evaluateInFrame(isolateId, 0, expression);
 
           expect(
               result,
@@ -350,7 +349,7 @@ void main() {
           '--verbose',
         ];
         final process = await testRunner.runWebDev(args,
-            workingDirectory: soundExampleDirectory);
+            workingDirectory: exampleDirectory);
 
         process.stdoutStream().listen(Logger.root.fine);
         process.stderrStream().listen(Logger.root.warning);
@@ -410,7 +409,7 @@ void main() {
           '--verbose',
         ];
         final process = await testRunner.runWebDev(args,
-            workingDirectory: soundExampleDirectory);
+            workingDirectory: exampleDirectory);
 
         process.stdoutStream().listen(Logger.root.fine);
         process.stderrStream().listen(Logger.root.warning);
@@ -481,7 +480,7 @@ void main() {
           '--verbose',
         ];
         final process = await testRunner.runWebDev(args,
-            workingDirectory: soundExampleDirectory);
+            workingDirectory: exampleDirectory);
         VmService? vmService;
 
         try {
@@ -535,7 +534,7 @@ void main() {
           '--verbose',
         ];
         final process = await testRunner.runWebDev(args,
-            workingDirectory: soundExampleDirectory);
+            workingDirectory: exampleDirectory);
         VmService? vmService;
 
         try {
