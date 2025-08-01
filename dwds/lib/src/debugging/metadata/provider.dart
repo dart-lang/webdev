@@ -261,10 +261,9 @@ class MetadataProvider {
     }
     // The libraries that are removed from the program are those that we
     // invalidated but were never added again.
-    final deletedLibraries =
-        invalidatedLibraries
-            .where((library) => !_libraries.contains(library))
-            .toSet();
+    final deletedLibraries = invalidatedLibraries
+        .where((library) => !_libraries.contains(library))
+        .toSet();
     return ModifiedModuleReport(
       deletedModules: deletedModules,
       deletedLibraries: deletedLibraries,

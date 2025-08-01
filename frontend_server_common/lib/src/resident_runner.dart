@@ -88,7 +88,10 @@ class ResidentWebRunner {
     uri ??= await devFS!.create();
 
     final report = await _updateDevFS(
-        initialCompile: true, fullRestart: false, fileServerUri: null);
+      initialCompile: true,
+      fullRestart: false,
+      fileServerUri: null,
+    );
     if (!report.success) {
       _logger.severe('Failed to compile application.');
       return 1;
@@ -98,16 +101,18 @@ class ResidentWebRunner {
     return 0;
   }
 
-  Future<int> rerun(
-      {required bool fullRestart,
-      // The uri of the `HttpServer` that handles file requests.
-      // TODO(srujzs): This should be the same as the uri of the AssetServer to
-      // align with Flutter tools, but currently is not. Delete when that's fixed.
-      required Uri fileServerUri}) async {
+  Future<int> rerun({
+    required bool fullRestart,
+    // The uri of the `HttpServer` that handles file requests.
+    // TODO(srujzs): This should be the same as the uri of the AssetServer to
+    // align with Flutter tools, but currently is not. Delete when that's fixed.
+    required Uri fileServerUri,
+  }) async {
     final report = await _updateDevFS(
-        initialCompile: false,
-        fullRestart: fullRestart,
-        fileServerUri: fileServerUri);
+      initialCompile: false,
+      fullRestart: fullRestart,
+      fileServerUri: fileServerUri,
+    );
     if (!report.success) {
       _logger.severe('Failed to compile application.');
       return 1;
@@ -131,13 +136,14 @@ class ResidentWebRunner {
       packagesPath: packageConfigFile.toFilePath(),
     );
     final report = await devFS!.update(
-        mainUri: mainUri,
-        dillOutputPath: outputPath,
-        generator: generator,
-        invalidatedFiles: invalidationResult.uris!,
-        initialCompile: initialCompile,
-        fullRestart: fullRestart,
-        fileServerUri: fileServerUri);
+      mainUri: mainUri,
+      dillOutputPath: outputPath,
+      generator: generator,
+      invalidatedFiles: invalidationResult.uris!,
+      initialCompile: initialCompile,
+      fullRestart: fullRestart,
+      fileServerUri: fileServerUri,
+    );
     return report;
   }
 

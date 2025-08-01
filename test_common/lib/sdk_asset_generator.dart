@@ -124,17 +124,17 @@ class SdkAssetGenerator {
           .transform<String>(utf8.decoder)
           .transform<String>(const LineSplitter())
           .listen((line) {
-        _logger.fine(line);
-        output.add(line);
-      });
+            _logger.fine(line);
+            output.add(line);
+          });
 
       process.stderr
           .transform<String>(utf8.decoder)
           .transform<String>(const LineSplitter())
           .listen((line) {
-        _logger.warning(line);
-        output.add(line);
-      });
+            _logger.warning(line);
+            output.add(line);
+          });
 
       await process.exitCode.then((int code) {
         if (code != 0) {

@@ -101,10 +101,9 @@ class Modules {
     return chromePathToRuntimeScriptId[serverPath];
   }
 
-  String _getLibraryServerPath(String library) =>
-      library.startsWith('dart:')
-          ? library
-          : DartUri(library, _root).serverPath;
+  String _getLibraryServerPath(String library) => library.startsWith('dart:')
+      ? library
+      : DartUri(library, _root).serverPath;
 
   /// Initializes [_sourceToModule], [_moduleToSources], and [_sourceToLibrary].
   ///

@@ -17,19 +17,28 @@ import 'package:test_common/utilities.dart';
 void main() {
   for (final package in ['dwds', 'webdev']) {
     test('$package is following proper release procedure', () async {
-      final pubspecPath =
-          absolutePath(pathFromWebdev: p.join(package, 'pubspec.yaml'));
+      final pubspecPath = absolutePath(
+        pathFromWebdev: p.join(package, 'pubspec.yaml'),
+      );
       final pubspec = Pubspec.parse(File(pubspecPath).readAsStringSync());
       final version = pubspec.version!;
       final isWip = version.toString().contains('wip');
       if (!isWip) {
-        final wasReleased =
-            await _versionWasReleased(package, version: version);
-        expect(wasReleased, isTrue,
-            reason: _versionNotReleasedReason(package, version: version));
+        final wasReleased = await _versionWasReleased(
+          package,
+          version: version,
+        );
+        expect(
+          wasReleased,
+          isTrue,
+          reason: _versionNotReleasedReason(package, version: version),
+        );
       }
-      expect(isWip, isTrue,
-          reason: _noWipVersionReason(package, version: version));
+      expect(
+        isWip,
+        isTrue,
+        reason: _noWipVersionReason(package, version: version),
+      );
     });
   }
 }
@@ -37,13 +46,18 @@ void main() {
 String _releaseTagName(String package, {required Version version}) =>
     '$package-v$version';
 
-Future<bool> _versionWasReleased(String package,
-    {required Version version}) async {
+Future<bool> _versionWasReleased(
+  String package, {
+  required Version version,
+}) async {
   final releaseTagName = _releaseTagName(package, version: version);
-  final gitProcess = await Process.run(
-    'git',
-    ['tag', '-l', '|', 'grep', releaseTagName],
-  );
+  final gitProcess = await Process.run('git', [
+    'tag',
+    '-l',
+    '|',
+    'grep',
+    releaseTagName,
+  ]);
   final stdout = gitProcess.stdout as String;
   return stdout.contains(releaseTagName);
 }

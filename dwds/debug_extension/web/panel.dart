@@ -276,10 +276,9 @@ Future<void> _launchDebugConnection(Event _) async {
   final json = jsonEncode(
     serializers.serialize(
       DebugStateChange(
-        (b) =>
-            b
-              ..tabId = _tabId
-              ..newState = DebugStateChange.startDebugging,
+        (b) => b
+          ..tabId = _tabId
+          ..newState = DebugStateChange.startDebugging,
       ),
     ),
   );

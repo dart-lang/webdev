@@ -41,12 +41,14 @@ class BuildCommand extends Command<int> {
     final unsupported = extraArgs.where((arg) => !arg.startsWith('-')).toList();
     if (unsupported.isNotEmpty) {
       throw UsageException(
-          'Arguments were provided that are not supported: '
-          '"${unsupported.join(' ')}".',
-          argParser.usage);
+        'Arguments were provided that are not supported: '
+        '"${unsupported.join(' ')}".',
+        argParser.usage,
+      );
     }
-    final validExtraArgs =
-        extraArgs.where((arg) => arg.startsWith('-')).toList();
+    final validExtraArgs = extraArgs
+        .where((arg) => arg.startsWith('-'))
+        .toList();
 
     final configuration = Configuration.fromArgs(argResults);
     configureLogWriter(configuration.verbose);
@@ -56,40 +58,51 @@ class BuildCommand extends Command<int> {
       await validatePubspecLock(configuration);
       arguments = buildRunnerArgs(configuration)..addAll(validExtraArgs);
     } on PackageException catch (e) {
-      logWriter(logging.Level.SEVERE, 'Pubspec errors: ',
-          error: '${e.details}');
+      logWriter(
+        logging.Level.SEVERE,
+        'Pubspec errors: ',
+        error: '${e.details}',
+      );
       rethrow;
     }
 
     try {
       logWriter(logging.Level.INFO, 'Connecting to the build daemon...');
-      final client = await connectClient(
-        Directory.current.path,
-        arguments,
-        (serverLog) {
-          logWriter(toLoggingLevel(serverLog.level), serverLog.message,
-              error: serverLog.error,
-              loggerName: serverLog.loggerName,
-              stackTrace: serverLog.stackTrace);
-        },
-      );
+      final client = await connectClient(Directory.current.path, arguments, (
+        serverLog,
+      ) {
+        logWriter(
+          toLoggingLevel(serverLog.level),
+          serverLog.message,
+          error: serverLog.error,
+          loggerName: serverLog.loggerName,
+          stackTrace: serverLog.stackTrace,
+        );
+      });
       OutputLocation? outputLocation;
       final outputInput = configuration.outputInput;
       if (configuration.outputPath != null) {
-        outputLocation = OutputLocation((b) => b
-          ..output = configuration.outputPath
-          ..useSymlinks = false
-          ..hoist = outputInput != null && outputInput.isNotEmpty);
+        outputLocation = OutputLocation(
+          (b) => b
+            ..output = configuration.outputPath
+            ..useSymlinks = false
+            ..hoist = outputInput != null && outputInput.isNotEmpty,
+        );
       }
-      client.registerBuildTarget(DefaultBuildTarget((b) => b
-        ..target = configuration.outputInput
-        ..outputLocation = outputLocation?.toBuilder()));
+      client.registerBuildTarget(
+        DefaultBuildTarget(
+          (b) => b
+            ..target = configuration.outputInput
+            ..outputLocation = outputLocation?.toBuilder(),
+        ),
+      );
       client.startBuild();
       var exitCode = 0;
       var gotBuildStart = false;
       await for (final result in client.buildResults) {
         final targetResult = result.results.firstWhereOrNull(
-            (buildResult) => buildResult.target == configuration.outputInput);
+          (buildResult) => buildResult.target == configuration.outputInput,
+        );
         if (targetResult == null) continue;
         // We ignore any builds that happen before we get a `started` event,
         // because those could be stale (from some other client).
@@ -114,10 +127,11 @@ class BuildCommand extends Command<int> {
       return exitCode;
     } on OptionsSkew catch (_) {
       logWriter(
-          logging.Level.SEVERE,
-          'Incompatible options with current running build daemon.\n\n'
-          'Please stop other WebDev instances running in this directory '
-          'before starting a new instance with these options.\n\n');
+        logging.Level.SEVERE,
+        'Incompatible options with current running build daemon.\n\n'
+        'Please stop other WebDev instances running in this directory '
+        'before starting a new instance with these options.\n\n',
+      );
       return 1;
     }
   }

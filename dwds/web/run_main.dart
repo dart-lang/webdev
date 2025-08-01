@@ -25,26 +25,25 @@ String? _findNonce() {
 /// Creates a script that will run properly when strict CSP is enforced.
 ///
 /// More specifically, the script has the correct `nonce` value set.
-final HTMLElement Function() _createScript =
-    (() {
-      final nonce = _findNonce();
+final HTMLElement Function() _createScript = (() {
+  final nonce = _findNonce();
 
-      if (nonce == null) {
-        return () => document.createElement('script') as HTMLElement;
-      }
-      return () {
-        final scriptElement = document.createElement('script') as HTMLElement;
-        return scriptElement..setAttribute('nonce', nonce);
-      };
-    })();
+  if (nonce == null) {
+    return () => document.createElement('script') as HTMLElement;
+  }
+  return () {
+    final scriptElement = document.createElement('script') as HTMLElement;
+    return scriptElement..setAttribute('nonce', nonce);
+  };
+})();
 
 /// Runs `window.$dartRunMain()` by injecting a script tag.
 ///
 /// We do this so that we don't see user exceptions bubble up in our own error
 /// handling zone.
 void runMain() {
-  final scriptElement =
-      _createScript()..innerHTML = r'window.$dartRunMain();'.toJS;
+  final scriptElement = _createScript()
+    ..innerHTML = r'window.$dartRunMain();'.toJS;
   document.body!.append(scriptElement.jsify()!);
   // External tear-offs are not allowed.
   // ignore: unnecessary_lambdas

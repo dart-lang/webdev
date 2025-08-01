@@ -411,8 +411,9 @@ class _$DevToolsOpener extends DevToolsOpener {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'DevToolsOpener')
-      ..add('newWindow', newWindow)).toString();
+    return (newBuiltValueToStringHelper(
+      r'DevToolsOpener',
+    )..add('newWindow', newWindow)).toString();
   }
 }
 

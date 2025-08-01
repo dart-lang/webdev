@@ -19,13 +19,14 @@ void main(List<String> args) async {
     }
 
     final client = await FrontendServerClient.start(
-        'org-dartlang-root:///$app',
-        outputDill,
-        p.join(sdkDir, 'lib', '_internal', 'vm_platform_strong.dill'),
-        target: 'vm',
-        fileSystemRoots: [p.url.current],
-        fileSystemScheme: 'org-dartlang-root',
-        verbose: true);
+      'org-dartlang-root:///$app',
+      outputDill,
+      p.join(sdkDir, 'lib', '_internal', 'vm_platform_strong.dill'),
+      target: 'vm',
+      fileSystemRoots: [p.url.current],
+      fileSystemScheme: 'org-dartlang-root',
+      verbose: true,
+    );
     _print('compiling $app');
     var result = await client.compile();
     client.accept();
@@ -33,30 +34,33 @@ void main(List<String> args) async {
 
     Process appProcess;
     final vmServiceCompleter = Completer<VmService>();
-    appProcess = await Process.start(Platform.resolvedExecutable,
-        ['--enable-vm-service', result.dillOutput!]);
+    appProcess = await Process.start(Platform.resolvedExecutable, [
+      '--enable-vm-service',
+      result.dillOutput!,
+    ]);
     final sawHelloWorld = Completer();
     appProcess.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((line) {
-      stdout.writeln('APP -> $line');
-      if (line == 'hello/world') {
-        sawHelloWorld.complete();
-      }
-      if (line.startsWith(
-          'The Dart DevTools debugger and profiler is available at:')) {
-        final observatoryUri =
-            '${line.split(' ').last.replaceFirst('http', 'ws')}ws';
-        vmServiceCompleter.complete(vmServiceConnectUri(observatoryUri));
-      }
-    });
+          stdout.writeln('APP -> $line');
+          if (line == 'hello/world') {
+            sawHelloWorld.complete();
+          }
+          if (line.startsWith(
+            'The Dart DevTools debugger and profiler is available at:',
+          )) {
+            final observatoryUri =
+                '${line.split(' ').last.replaceFirst('http', 'ws')}ws';
+            vmServiceCompleter.complete(vmServiceConnectUri(observatoryUri));
+          }
+        });
     appProcess.stderr
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((line) {
-      stderr.writeln('APP -> $line');
-    });
+          stderr.writeln('APP -> $line');
+        });
 
     final vmService = await vmServiceCompleter.future;
     await sawHelloWorld.future;
@@ -73,16 +77,21 @@ void main(List<String> args) async {
     _print('done recompiling $app');
     _print('reloading $app');
     final vm = await vmService.getVM();
-    await vmService.reloadSources(vm.isolates!.first.id!,
-        rootLibUri: result.dillOutput!);
+    await vmService.reloadSources(
+      vm.isolates!.first.id!,
+      rootLibUri: result.dillOutput!,
+    );
 
     _print('restoring $app to original contents');
     await appFile.writeAsString(originalContent);
     _print('exiting');
-    await client.shutdown().timeout(const Duration(seconds: 1), onTimeout: () {
-      client.kill();
-      return 1;
-    });
+    await client.shutdown().timeout(
+      const Duration(seconds: 1),
+      onTimeout: () {
+        client.kill();
+        return 1;
+      },
+    );
   } finally {
     Directory(p.join('.dart_tool', 'out')).deleteSync(recursive: true);
   }

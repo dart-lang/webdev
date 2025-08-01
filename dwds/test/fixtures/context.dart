@@ -181,17 +181,15 @@ class TestContext {
         ]);
         // On windows this takes a while to boot up, wait for the first line
         // of stdout as a signal that it is ready.
-        final stdOutLines =
-            chromeDriver.stdout
-                .transform(utf8.decoder)
-                .transform(const LineSplitter())
-                .asBroadcastStream();
+        final stdOutLines = chromeDriver.stdout
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .asBroadcastStream();
 
-        final stdErrLines =
-            chromeDriver.stderr
-                .transform(utf8.decoder)
-                .transform(const LineSplitter())
-                .asBroadcastStream();
+        final stdErrLines = chromeDriver.stderr
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .asBroadcastStream();
 
         stdOutLines.listen(
           (line) => _logger.finest('ChromeDriver stdout: $line'),
@@ -244,8 +242,9 @@ class TestContext {
               options,
               (log) {
                 final record = log.toLogRecord();
-                final name =
-                    record.loggerName == '' ? '' : '${record.loggerName}: ';
+                final name = record.loggerName == ''
+                    ? ''
+                    : '${record.loggerName}: ';
                 _logger.log(
                   record.level,
                   '$name${record.message}',
@@ -283,13 +282,12 @@ class TestContext {
               expressionCompiler = ddcService;
             }
 
-            loadStrategy =
-                BuildRunnerRequireStrategyProvider(
-                  assetHandler,
-                  testSettings.reloadConfiguration,
-                  assetReader,
-                  buildSettings,
-                ).strategy;
+            loadStrategy = BuildRunnerRequireStrategyProvider(
+              assetHandler,
+              testSettings.reloadConfiguration,
+              assetReader,
+              buildSettings,
+            ).strategy;
 
             buildResults = daemonClient.buildResults;
           }
@@ -352,37 +350,35 @@ class TestContext {
             assetReader = webRunner.devFS!.assetServer;
             _assetHandler = webRunner.devFS!.assetServer.handleRequest;
             loadStrategy = switch (testSettings.moduleFormat) {
-              ModuleFormat.amd =>
-                FrontendServerRequireStrategyProvider(
-                  testSettings.reloadConfiguration,
-                  assetReader,
-                  packageUriMapper,
-                  () async => {},
-                  buildSettings,
-                ).strategy,
+              ModuleFormat.amd => FrontendServerRequireStrategyProvider(
+                testSettings.reloadConfiguration,
+                assetReader,
+                packageUriMapper,
+                () async => {},
+                buildSettings,
+              ).strategy,
               ModuleFormat.ddc =>
                 buildSettings.canaryFeatures
                     ? FrontendServerDdcLibraryBundleStrategyProvider(
-                      testSettings.reloadConfiguration,
-                      assetReader,
-                      packageUriMapper,
-                      () async => {},
-                      buildSettings,
-                      hotReloadSourcesUri: Uri.parse(
-                        'http://localhost:$port/${WebDevFS.reloadScriptsFileName}',
-                      ),
-                    ).strategy
+                        testSettings.reloadConfiguration,
+                        assetReader,
+                        packageUriMapper,
+                        () async => {},
+                        buildSettings,
+                        hotReloadSourcesUri: Uri.parse(
+                          'http://localhost:$port/${WebDevFS.reloadScriptsFileName}',
+                        ),
+                      ).strategy
                     : FrontendServerDdcStrategyProvider(
-                      testSettings.reloadConfiguration,
-                      assetReader,
-                      packageUriMapper,
-                      () async => {},
-                      buildSettings,
-                    ).strategy,
-              _ =>
-                throw Exception(
-                  'Unsupported DDC module format ${testSettings.moduleFormat.name}.',
-                ),
+                        testSettings.reloadConfiguration,
+                        assetReader,
+                        packageUriMapper,
+                        () async => {},
+                        buildSettings,
+                      ).strategy,
+              _ => throw Exception(
+                'Unsupported DDC module format ${testSettings.moduleFormat.name}.',
+              ),
             };
             buildResults = const Stream<BuildResults>.empty();
           }
@@ -402,20 +398,20 @@ class TestContext {
         if (enableDebugExtension) {
           await _buildDebugExtension();
         }
-        final capabilities =
-            Capabilities.chrome..addAll({
-              Capabilities.chromeOptions: {
-                'args': [
-                  // --disable-gpu speeds up the tests that use ChromeDriver when
-                  // they are run on GitHub Actions.
-                  '--disable-gpu',
-                  'remote-debugging-port=$debugPort',
-                  if (enableDebugExtension)
-                    '--load-extension=debug_extension/prod_build',
-                  if (headless) '--headless',
-                ],
-              },
-            });
+        final capabilities = Capabilities.chrome
+          ..addAll({
+            Capabilities.chromeOptions: {
+              'args': [
+                // --disable-gpu speeds up the tests that use ChromeDriver when
+                // they are run on GitHub Actions.
+                '--disable-gpu',
+                'remote-debugging-port=$debugPort',
+                if (enableDebugExtension)
+                  '--load-extension=debug_extension/prod_build',
+                if (headless) '--headless',
+              ],
+            },
+          });
         _webDriver = await createDriver(
           spec: WebDriverSpec.JsonWire,
           desired: capabilities,
@@ -464,10 +460,9 @@ class TestContext {
         }
       });
 
-      _appUrl =
-          basePath.isEmpty
-              ? 'http://localhost:$port/$filePathToServe'
-              : 'http://localhost:$port/$basePath/$filePathToServe';
+      _appUrl = basePath.isEmpty
+          ? 'http://localhost:$port/$filePathToServe'
+          : 'http://localhost:$port/$basePath/$filePathToServe';
 
       if (testSettings.launchChrome) {
         await _webDriver?.get(appUrl);
@@ -615,10 +610,9 @@ class TestContext {
     if (propagateToBrowser) {
       // Allow change to propagate to the browser.
       // Windows, or at least Travis on Windows, seems to need more time.
-      final delay =
-          Platform.isWindows
-              ? const Duration(seconds: 5)
-              : const Duration(seconds: 2);
+      final delay = Platform.isWindows
+          ? const Duration(seconds: 5)
+          : const Duration(seconds: 2);
       await Future.delayed(delay);
     }
   }

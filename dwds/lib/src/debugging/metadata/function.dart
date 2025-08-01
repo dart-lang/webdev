@@ -17,9 +17,10 @@ class FunctionMetaData {
     RemoteDebugger remoteDebugger,
     RemoteObject remoteObject,
   ) async {
-    final evalExpression =
-        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-            .getFunctionMetadataJsExpression();
+    final evalExpression = globalToolConfiguration
+        .loadStrategy
+        .dartRuntimeDebugger
+        .getFunctionMetadataJsExpression();
 
     final response = await remoteDebugger.sendCommand(
       'Runtime.callFunctionOn',

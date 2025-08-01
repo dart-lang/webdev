@@ -158,9 +158,8 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
               );
               request.completer.complete(result);
             }),
-        onError:
-            (error, stackTrace) =>
-                request.completer.completeError(error, stackTrace),
+        onError: (error, stackTrace) =>
+            request.completer.completeError(error, stackTrace),
       );
     }
   }

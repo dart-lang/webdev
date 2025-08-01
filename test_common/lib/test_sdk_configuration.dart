@@ -51,7 +51,9 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
   Future<SdkConfiguration> _create() async {
     try {
       await copyDirectory(
-          TestSdkLayout.defaultSdkDirectory, _sdkDirectory.path);
+        TestSdkLayout.defaultSdkDirectory,
+        _sdkDirectory.path,
+      );
     } catch (e, s) {
       _logger.severe('Failed to create SDK directory copy', e, s);
       dispose();

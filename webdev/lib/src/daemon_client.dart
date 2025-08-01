@@ -12,11 +12,17 @@ import 'package:build_daemon/data/server_log.dart';
 import 'util.dart';
 
 /// Connects to the `build_runner` daemon.
-Future<BuildDaemonClient> connectClient(String workingDirectory,
-        List<String> options, Function(ServerLog) logHandler) =>
-    BuildDaemonClient.connect(workingDirectory,
-        [dartPath, 'run', 'build_runner', 'daemon', ...options],
-        logHandler: logHandler);
+Future<BuildDaemonClient> connectClient(
+  String workingDirectory,
+  List<String> options,
+  Function(ServerLog) logHandler,
+) => BuildDaemonClient.connect(workingDirectory, [
+  dartPath,
+  'run',
+  'build_runner',
+  'daemon',
+  ...options,
+], logHandler: logHandler);
 
 /// Returns the port of the daemon asset server.
 int daemonPort(String workingDirectory) {

@@ -26,17 +26,13 @@ class ProxyServerAssetReader implements AssetReader {
     bool isHttps = false,
   }) {
     final scheme = isHttps ? 'https://' : 'http://';
-    final inner =
-        HttpClient()
-          ..maxConnectionsPerHost = 200
-          ..idleTimeout = const Duration(seconds: 30)
-          ..connectionTimeout = const Duration(seconds: 30);
-    _client =
-        isHttps
-            ? IOClient(
-              inner..badCertificateCallback = (cert, host, port) => true,
-            )
-            : IOClient(inner);
+    final inner = HttpClient()
+      ..maxConnectionsPerHost = 200
+      ..idleTimeout = const Duration(seconds: 30)
+      ..connectionTimeout = const Duration(seconds: 30);
+    _client = isHttps
+        ? IOClient(inner..badCertificateCallback = (cert, host, port) => true)
+        : IOClient(inner);
     var url = '$scheme$host:$assetServerPort/';
     if (root.isNotEmpty) url += '$root/';
     _handler = proxyHandler(url, client: _client);

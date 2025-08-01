@@ -76,8 +76,9 @@ void main() {
     subDirFrom.createSync();
     subDirTo.createSync();
 
-    final listFrom =
-        from.listSync().map((e) => p.relative(e.path, from: from.path));
+    final listFrom = from.listSync().map(
+      (e) => p.relative(e.path, from: from.path),
+    );
     await updatePath(from.path, to.path);
 
     final listTo = to.listSync().map((e) => p.relative(e.path, from: to.path));
@@ -91,8 +92,9 @@ void main() {
     fileFrom.createSync();
     fileTo.createSync();
 
-    final listFrom =
-        from.listSync().map((e) => p.relative(e.path, from: from.path));
+    final listFrom = from.listSync().map(
+      (e) => p.relative(e.path, from: from.path),
+    );
     await updatePath(from.path, to.path);
 
     final listTo = to.listSync().map((e) => p.relative(e.path, from: to.path));

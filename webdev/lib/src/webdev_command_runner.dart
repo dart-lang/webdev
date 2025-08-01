@@ -20,8 +20,11 @@ Future<int> run(List<String> args) async => (await _CommandRunner().run(args))!;
 
 class _CommandRunner extends CommandRunner<int> {
   _CommandRunner() : super(appName, 'A tool to develop Dart web projects.') {
-    argParser.addFlag('version',
-        negatable: false, help: 'Prints the version of webdev.');
+    argParser.addFlag(
+      'version',
+      negatable: false,
+      help: 'Prints the version of webdev.',
+    );
     addCommand(BuildCommand());
     addCommand(ServeCommand());
     addCommand(DaemonCommand());

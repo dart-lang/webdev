@@ -121,15 +121,16 @@ void testAll({required CompilerOptions compilerOptions}) {
         '--packages',
         packages.path,
       ];
-      final process = await Process.start(
-        executable,
-        args,
-        workingDirectory: outputDir.path,
-      ).then((p) {
-        transformToLines(p.stdout).listen(output.add);
-        transformToLines(p.stderr).listen(output.add);
-        return p;
-      });
+      final process =
+          await Process.start(
+            executable,
+            args,
+            workingDirectory: outputDir.path,
+          ).then((p) {
+            transformToLines(p.stdout).listen(output.add);
+            transformToLines(p.stderr).listen(output.add);
+            return p;
+          });
       expect(
         await process.exitCode,
         0,

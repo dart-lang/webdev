@@ -13,10 +13,7 @@ import 'utilites.dart';
 /// Listens for commands, routes them to the corresponding domain and provides
 /// the result.
 class Daemon {
-  Daemon(
-    Stream<Map<String, dynamic>> commandStream,
-    this._sendCommand,
-  ) {
+  Daemon(Stream<Map<String, dynamic>> commandStream, this._sendCommand) {
     _commandSubscription = commandStream.listen(
       _handleRequest,
       onDone: () {
@@ -66,7 +63,10 @@ class Daemon {
       }
 
       domainValue.handleCommand(
-          name, id, request['params'] as Map<String, dynamic>? ?? {});
+        name,
+        id,
+        request['params'] as Map<String, dynamic>? ?? {},
+      );
     } catch (error, trace) {
       send(<String, dynamic>{
         'id': id,

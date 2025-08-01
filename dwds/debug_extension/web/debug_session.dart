@@ -351,12 +351,9 @@ Future<bool> _connectToDwds({
   }
   final uri = Uri.parse(extensionUrl);
   // Start the client connection with DWDS:
-  final client =
-      uri.isScheme('ws') || uri.isScheme('wss')
-          ? WebSocketClient(WebSocketChannel.connect(uri))
-          : SseSocketClient(
-            SseClient(uri.toString(), debugKey: 'DebugExtension'),
-          );
+  final client = uri.isScheme('ws') || uri.isScheme('wss')
+      ? WebSocketClient(WebSocketChannel.connect(uri))
+      : SseSocketClient(SseClient(uri.toString(), debugKey: 'DebugExtension'));
   final trigger = _tabIdToTrigger[dartAppTabId];
   debugLog('Connecting to DWDS...', verbose: true);
   final debugSession = _DebugSession(
@@ -386,14 +383,13 @@ Future<bool> _connectToDwds({
   final tabUrl = await _getTabUrl(dartAppTabId);
   debugSession.sendEvent(
     DevToolsRequest(
-      (b) =>
-          b
-            ..appId = debugInfo.appId
-            ..instanceId = debugInfo.appInstanceId
-            ..contextId = dartAppContextId
-            ..tabUrl = tabUrl
-            ..uriOnly = true
-            ..client = trigger?.clientName ?? 'unknown',
+      (b) => b
+        ..appId = debugInfo.appId
+        ..instanceId = debugInfo.appInstanceId
+        ..contextId = dartAppContextId
+        ..tabUrl = tabUrl
+        ..uriOnly = true
+        ..client = trigger?.clientName ?? 'unknown',
     ),
   );
   return true;
@@ -445,10 +441,9 @@ void _forwardDwdsEventToChromeDebugger(
 ) {
   try {
     final messageParams = message.commandParams;
-    final params =
-        messageParams == null
-            ? <String, Object>{}
-            : BuiltMap<String, Object>(json.decode(messageParams)).toMap();
+    final params = messageParams == null
+        ? <String, Object>{}
+        : BuiltMap<String, Object>(json.decode(messageParams)).toMap();
 
     chrome.debugger.sendCommand(
       Debuggee(tabId: tabId),
@@ -461,11 +456,10 @@ void _forwardDwdsEventToChromeDebugger(
             jsonEncode(
               serializers.serialize(
                 ExtensionResponse(
-                  (b) =>
-                      b
-                        ..id = message.id
-                        ..success = false
-                        ..result = JSON.stringify(chrome.runtime.lastError),
+                  (b) => b
+                    ..id = message.id
+                    ..success = false
+                    ..result = JSON.stringify(chrome.runtime.lastError),
                 ),
               ),
             ),
@@ -475,11 +469,10 @@ void _forwardDwdsEventToChromeDebugger(
             jsonEncode(
               serializers.serialize(
                 ExtensionResponse(
-                  (b) =>
-                      b
-                        ..id = message.id
-                        ..success = true
-                        ..result = JSON.stringify(e),
+                  (b) => b
+                    ..id = message.id
+                    ..success = true
+                    ..result = JSON.stringify(e),
                 ),
               ),
             ),
@@ -612,10 +605,9 @@ Future<bool> _sendConnectFailureMessage(
   final json = jsonEncode(
     serializers.serialize(
       ConnectFailure(
-        (b) =>
-            b
-              ..tabId = dartAppTabId
-              ..reason = reason.name,
+        (b) => b
+          ..tabId = dartAppTabId
+          ..reason = reason.name,
       ),
     ),
   );
@@ -634,11 +626,10 @@ Future<bool> _sendStopDebuggingMessage(
   final json = jsonEncode(
     serializers.serialize(
       DebugStateChange(
-        (b) =>
-            b
-              ..tabId = dartAppTabId
-              ..reason = reason.name
-              ..newState = DebugStateChange.stopDebugging,
+        (b) => b
+          ..tabId = dartAppTabId
+          ..reason = reason.name
+          ..newState = DebugStateChange.stopDebugging,
       ),
     ),
   );
@@ -747,10 +738,9 @@ DebuggerLocation? _debuggerLocation(int dartAppTabId) {
 /// Construct an [ExtensionEvent] from [method] and [params].
 ExtensionEvent _extensionEventFor(String method, dynamic params) {
   return ExtensionEvent(
-    (b) =>
-        b
-          ..params = jsonEncode(json.decode(JSON.stringify(params)))
-          ..method = jsonEncode(method),
+    (b) => b
+      ..params = jsonEncode(json.decode(JSON.stringify(params)))
+      ..method = jsonEncode(method),
   );
 }
 

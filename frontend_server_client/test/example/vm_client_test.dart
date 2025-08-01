@@ -13,16 +13,26 @@ import 'package:test_process/test_process.dart';
 
 void main() {
   test('vm client example can build and rebuild an app', () async {
-    final process = await TestProcess.start(
-        Platform.resolvedExecutable, ['run', 'example/vm_client.dart']);
-    await expectLater(process.stdout,
-        emitsThrough(contains('done compiling example/app/main.dart')));
+    final process = await TestProcess.start(Platform.resolvedExecutable, [
+      'run',
+      'example/vm_client.dart',
+    ]);
     await expectLater(
-        process.stdout, emitsThrough(contains('APP -> hello/world')));
-    await expectLater(process.stdout,
-        emitsThrough(contains('done recompiling example/app/main.dart')));
+      process.stdout,
+      emitsThrough(contains('done compiling example/app/main.dart')),
+    );
     await expectLater(
-        process.stdout, emitsThrough(contains('APP -> goodbye/world')));
+      process.stdout,
+      emitsThrough(contains('APP -> hello/world')),
+    );
+    await expectLater(
+      process.stdout,
+      emitsThrough(contains('done recompiling example/app/main.dart')),
+    );
+    await expectLater(
+      process.stdout,
+      emitsThrough(contains('APP -> goodbye/world')),
+    );
     expect(await process.exitCode, 0);
   });
 }

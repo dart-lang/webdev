@@ -3,7 +3,7 @@ publish_to: none
 description: >-
   Common tools for the mono-repo.
 environment:
-  sdk: ^3.1.0
+  sdk: ^3.8.0
 
 dev_dependencies:
   args: ^2.4.0

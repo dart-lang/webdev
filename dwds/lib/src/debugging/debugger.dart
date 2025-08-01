@@ -82,10 +82,9 @@ class Debugger extends Domain {
   // DevTools is showing an overlay. Both cannot be shown at the same time:
   // bool _pausedOverlayVisible = false;
 
-  String get pauseState =>
-      _pauseModePauseStates.entries
-          .firstWhere((entry) => entry.value == _pauseState)
-          .key;
+  String get pauseState => _pauseModePauseStates.entries
+      .firstWhere((entry) => entry.value == _pauseState)
+      .key;
 
   /// The JS frames at the current paused location.
   ///
@@ -523,17 +522,15 @@ class Debugger extends Domain {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final jsBreakpointIds = e.hitBreakpoints ?? [];
     if (jsBreakpointIds.isNotEmpty) {
-      final breakpointIds =
-          jsBreakpointIds
-              .map((id) => _breakpoints._dartIdByJsId[id])
-              // In case the breakpoint was set in Chrome DevTools outside of
-              // package:dwds.
-              .where((entry) => entry != null)
-              .toSet();
-      final pauseBreakpoints =
-          isolate.breakpoints
-              ?.where((bp) => breakpointIds.contains(bp.id))
-              .toList();
+      final breakpointIds = jsBreakpointIds
+          .map((id) => _breakpoints._dartIdByJsId[id])
+          // In case the breakpoint was set in Chrome DevTools outside of
+          // package:dwds.
+          .where((entry) => entry != null)
+          .toSet();
+      final pauseBreakpoints = isolate.breakpoints
+          ?.where((bp) => breakpointIds.contains(bp.id))
+          .toList();
       event = Event(
         kind: EventKind.kPauseBreakpoint,
         timestamp: timestamp,

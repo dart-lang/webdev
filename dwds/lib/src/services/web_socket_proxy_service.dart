@@ -573,8 +573,9 @@ class WebSocketProxyService extends ProxyService {
     final request = ServiceExtensionRequest.fromArgs(
       id: requestId,
       method: method,
-      args:
-          args != null ? Map<String, dynamic>.from(args) : <String, dynamic>{},
+      args: args != null
+          ? Map<String, dynamic>.from(args)
+          : <String, dynamic>{},
     );
 
     // Send the request and get the number of connected clients

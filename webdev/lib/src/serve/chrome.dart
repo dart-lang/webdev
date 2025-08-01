@@ -22,10 +22,8 @@ class Chrome {
   final browser_launcher.Chrome _chrome;
   final ChromeConnection chromeConnection;
 
-  Chrome._(
-    this.debugPort,
-    this._chrome,
-  ) : chromeConnection = _chrome.chromeConnection;
+  Chrome._(this.debugPort, this._chrome)
+    : chromeConnection = _chrome.chromeConnection;
 
   Future<void> close() async {
     if (_currentCompleter.isCompleted) _currentCompleter = Completer<Chrome>();
@@ -34,7 +32,8 @@ class Chrome {
 
   /// Connects to an instance of Chrome with an open debug port.
   static Future<Chrome> fromExisting(int port) async => _connect(
-      Chrome._(port, await browser_launcher.Chrome.fromExisting(port)));
+    Chrome._(port, await browser_launcher.Chrome.fromExisting(port)),
+  );
 
   static Future<Chrome> get connectedInstance => _currentCompleter.future;
 
@@ -45,18 +44,29 @@ class Chrome {
   /// Uses a copy of [userDataDir] to sign into the default
   /// user profile, or starts a new session without sign in,
   /// if not specified.
-  static Future<Chrome> start(List<String> urls,
-      {required int port, String? userDataDir}) async {
+  static Future<Chrome> start(
+    List<String> urls, {
+    required int port,
+    String? userDataDir,
+  }) async {
     var signIn = false;
     String? dir;
     // Re-using the directory causes flakiness on Windows, so on that platform
     // pass null to have it create a directory.
     // Issue: https://github.com/dart-lang/webdev/issues/1545
     if (!Platform.isWindows) {
-      final userDataTemp = path.join(Directory.current.absolute.path,
-          '.dart_tool', 'webdev', 'chrome_user_data');
-      final userDataCopy = path.join(Directory.current.absolute.path,
-          '.dart_tool', 'webdev', 'chrome_user_data_copy');
+      final userDataTemp = path.join(
+        Directory.current.absolute.path,
+        '.dart_tool',
+        'webdev',
+        'chrome_user_data',
+      );
+      final userDataCopy = path.join(
+        Directory.current.absolute.path,
+        '.dart_tool',
+        'webdev',
+        'chrome_user_data_copy',
+      );
 
       if (userDataDir != null) {
         signIn = true;
@@ -65,16 +75,20 @@ class Chrome {
         try {
           _logger.info('Copying user data directory...');
           _logger.warning(
-              'Copying user data directory might take >12s on the first '
-              'use of --$userDataDirFlag, and ~2-3s on subsequent runs. '
-              'Run without --$userDataDirFlag to improve performance.');
+            'Copying user data directory might take >12s on the first '
+            'use of --$userDataDirFlag, and ~2-3s on subsequent runs. '
+            'Run without --$userDataDirFlag to improve performance.',
+          );
 
           Directory(dir).createSync(recursive: true);
           await updatePath(
-              path.join(userDataDir, 'Default'), path.join(dir, 'Default'));
+            path.join(userDataDir, 'Default'),
+            path.join(dir, 'Default'),
+          );
 
           _logger.info(
-              'Copied user data directory in ${stopwatch.elapsedMilliseconds} ms');
+            'Copied user data directory in ${stopwatch.elapsedMilliseconds} ms',
+          );
         } catch (e, s) {
           dir = userDataTemp;
           signIn = false;
@@ -94,8 +108,12 @@ class Chrome {
     }
 
     _logger.info('Starting chrome with user data directory: $dir');
-    final chrome = await browser_launcher.Chrome.startWithDebugPort(urls,
-        debugPort: port, userDataDir: dir, signIn: signIn);
+    final chrome = await browser_launcher.Chrome.startWithDebugPort(
+      urls,
+      debugPort: port,
+      userDataDir: dir,
+      signIn: signIn,
+    );
     return _connect(Chrome._(chrome.debugPort, chrome));
   }
 
@@ -110,7 +128,8 @@ class Chrome {
     } catch (e) {
       await chrome.close();
       throw ChromeError(
-          'Unable to connect to Chrome debug port: ${chrome.debugPort}\n $e');
+        'Unable to connect to Chrome debug port: ${chrome.debugPort}\n $e',
+      );
     }
     _currentCompleter.complete(chrome);
     return chrome;
@@ -132,12 +151,15 @@ String? autoDetectChromeUserDataDirectory() {
   final home = Platform.environment['HOME'] ?? '';
   if (Platform.isMacOS) {
     directory = Directory(
-        path.join(home, 'Library', 'Application Support', 'Google', 'Chrome'));
+      path.join(home, 'Library', 'Application Support', 'Google', 'Chrome'),
+    );
   } else if (Platform.isLinux) {
     directory = Directory(path.join(home, '.config', 'google-chrome'));
   } else {
-    _logger.warning('Auto detecting chrome user data directory option is not '
-        'supported for ${Platform.operatingSystem}');
+    _logger.warning(
+      'Auto detecting chrome user data directory option is not '
+      'supported for ${Platform.operatingSystem}',
+    );
     return null;
   }
 
@@ -146,8 +168,10 @@ String? autoDetectChromeUserDataDirectory() {
     return directory.path;
   }
 
-  _logger.warning('Cannot automatically detect chrome user data directory. '
-      'Directory does not exist: ${directory.path}');
+  _logger.warning(
+    'Cannot automatically detect chrome user data directory. '
+    'Directory does not exist: ${directory.path}',
+  );
 
   return null;
 }
