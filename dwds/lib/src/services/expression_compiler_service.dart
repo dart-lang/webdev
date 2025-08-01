@@ -78,7 +78,6 @@ class _Compiler {
       '--module-format',
       compilerOptions.moduleFormat.name,
       if (verbose) '--verbose',
-      '--sound-null-safety',
       for (final experiment in compilerOptions.experiments)
         '--enable-experiment=$experiment',
       if (compilerOptions.canaryFeatures) '--canary',
