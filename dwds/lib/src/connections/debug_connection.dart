@@ -41,15 +41,14 @@ class DebugConnection {
   /// A client of the Dart VM Service with DWDS specific extensions.
   VmService get vmService => _appDebugServices.dwdsVmClient.client;
 
-  Future<void> close() =>
-      _closed ??= () async {
-        final proxyService = _appDebugServices.proxyService;
-        if (proxyService is ChromeProxyService) {
-          await proxyService.remoteDebugger.close();
-        }
-        await _appDebugServices.close();
-        _onDoneCompleter.complete();
-      }();
+  Future<void> close() => _closed ??= () async {
+    final proxyService = _appDebugServices.proxyService;
+    if (proxyService is ChromeProxyService) {
+      await proxyService.remoteDebugger.close();
+    }
+    await _appDebugServices.close();
+    _onDoneCompleter.complete();
+  }();
 
   Future<void> get onDone => _onDoneCompleter.future;
 }

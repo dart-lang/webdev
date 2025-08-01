@@ -34,20 +34,20 @@ void main() {
         group('Debugger module names: $useDebuggerModuleNames |', () {
           final appServerPath =
               compilationMode == CompilationMode.frontendServer
-                  ? 'web/main.dart'
-                  : 'main.dart';
+              ? 'web/main.dart'
+              : 'main.dart';
 
           final serverPath =
               compilationMode == CompilationMode.frontendServer &&
-                      useDebuggerModuleNames
-                  ? 'packages/${testPackageProject.packageDirectory}/lib/test_library.dart'
-                  : 'packages/${testPackageProject.packageName}/test_library.dart';
+                  useDebuggerModuleNames
+              ? 'packages/${testPackageProject.packageDirectory}/lib/test_library.dart'
+              : 'packages/${testPackageProject.packageName}/test_library.dart';
 
           final anotherServerPath =
               compilationMode == CompilationMode.frontendServer &&
-                      useDebuggerModuleNames
-                  ? 'packages/${testProject.packageDirectory}/lib/library.dart'
-                  : 'packages/${testProject.packageName}/library.dart';
+                  useDebuggerModuleNames
+              ? 'packages/${testProject.packageDirectory}/lib/library.dart'
+              : 'packages/${testProject.packageName}/library.dart';
 
           setUpAll(() async {
             await context.setUp(

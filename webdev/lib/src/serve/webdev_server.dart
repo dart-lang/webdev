@@ -31,12 +31,7 @@ class ServerOptions {
   final String target;
   final int daemonPort;
 
-  ServerOptions(
-    this.configuration,
-    this.port,
-    this.target,
-    this.daemonPort,
-  );
+  ServerOptions(this.configuration, this.port, this.target, this.daemonPort);
 }
 
 class WebDevServer {
@@ -82,7 +77,9 @@ class WebDevServer {
   }
 
   static Future<WebDevServer> start(
-      ServerOptions options, Stream<daemon.BuildResults> buildResults) async {
+    ServerOptions options,
+    Stream<daemon.BuildResults> buildResults,
+  ) async {
     var pipeline = const Pipeline();
 
     if (options.configuration.logRequests) {
@@ -93,8 +90,9 @@ class WebDevServer {
 
     // Only provide relevant build results
     final filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
-      final result = results.results
-          .firstWhere((result) => result.target == options.target);
+      final result = results.results.firstWhere(
+        (result) => result.target == options.target,
+      );
       switch (result.status) {
         case daemon.BuildStatus.started:
           return BuildResult((b) => b.status = BuildStatus.started);
@@ -109,13 +107,16 @@ class WebDevServer {
     });
 
     var cascade = Cascade();
-    final client = IOClient(HttpClient()
-      ..maxConnectionsPerHost = 200
-      ..idleTimeout = const Duration(seconds: 30)
-      ..connectionTimeout = const Duration(seconds: 30));
+    final client = IOClient(
+      HttpClient()
+        ..maxConnectionsPerHost = 200
+        ..idleTimeout = const Duration(seconds: 30)
+        ..connectionTimeout = const Duration(seconds: 30),
+    );
     final assetHandler = proxyHandler(
-        'http://localhost:${options.daemonPort}/${options.target}/',
-        client: client);
+      'http://localhost:${options.daemonPort}/${options.target}/',
+      client: client,
+    );
 
     Dwds? dwds;
     ExpressionCompilerService? ddcService;
@@ -130,8 +131,9 @@ class WebDevServer {
       // Can we save build metadata in build_web_compilers and and read it in
       // the load strategy?
       final buildSettings = BuildSettings(
-        appEntrypoint:
-            Uri.parse('org-dartlang-app:///${options.target}/main.dart'),
+        appEntrypoint: Uri.parse(
+          'org-dartlang-app:///${options.target}/main.dart',
+        ),
         canaryFeatures: options.configuration.canaryFeatures,
         isFlutterApp: false,
         experiments: options.configuration.experiments,
@@ -173,14 +175,13 @@ class WebDevServer {
             : null,
       );
 
-      final appMetadata = AppMetadata(
-        hostname: options.configuration.hostname,
-      );
+      final appMetadata = AppMetadata(hostname: options.configuration.hostname);
 
       final toolConfiguration = ToolConfiguration(
-          loadStrategy: loadStrategy,
-          debugSettings: debugSettings,
-          appMetadata: appMetadata);
+        loadStrategy: loadStrategy,
+        debugSettings: debugSettings,
+        appMetadata: appMetadata,
+      );
       dwds = await Dwds.start(
         toolConfiguration: toolConfiguration,
         assetReader: assetReader,
@@ -200,14 +201,18 @@ class WebDevServer {
     final tlsCertKey = options.configuration.tlsCertKey ?? '';
 
     HttpServer server;
-    final protocol =
-        (tlsCertChain.isNotEmpty && tlsCertKey.isNotEmpty) ? 'https' : 'http';
+    final protocol = (tlsCertChain.isNotEmpty && tlsCertKey.isNotEmpty)
+        ? 'https'
+        : 'http';
     if (protocol == 'https') {
       final serverContext = SecurityContext()
         ..useCertificateChain(tlsCertChain)
         ..usePrivateKey(tlsCertKey);
       server = await HttpMultiServer.bindSecure(
-          hostname, options.port, serverContext);
+        hostname,
+        options.port,
+        serverContext,
+      );
     } else {
       server = await HttpMultiServer.bind(hostname, options.port);
     }

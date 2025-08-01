@@ -89,8 +89,9 @@ String? findPackageConfigFilePath() {
   var candidateDir = Directory(p.current).absolute;
 
   while (true) {
-    final candidatePackageConfigFile =
-        File(p.join(candidateDir.path, '.dart_tool', 'package_config.json'));
+    final candidatePackageConfigFile = File(
+      p.join(candidateDir.path, '.dart_tool', 'package_config.json'),
+    );
 
     if (candidatePackageConfigFile.existsSync()) {
       return candidatePackageConfigFile.path;

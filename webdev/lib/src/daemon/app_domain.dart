@@ -83,7 +83,7 @@ class AppDomain extends Domain {
         'appId': appId,
         'directory': Directory.current.path,
         'deviceId': 'chrome',
-        'launchMode': 'run'
+        'launchMode': 'run',
       });
 
       // Set up VM service listeners for this appId
@@ -96,31 +96,30 @@ class AppDomain extends Domain {
         'wsUri': debugConnection.uri,
       });
       // ignore: cancel_subscriptions
-      final resultSub =
-          server.buildResults.listen((r) => _handleBuildResult(r, appId));
+      final resultSub = server.buildResults.listen(
+        (r) => _handleBuildResult(r, appId),
+      );
 
       final appState = _AppState(debugConnection, resultSub, stdOutSub);
       _appStates[appId] = appState;
-      sendEvent('app.started', {
-        'appId': appId,
-      });
+      sendEvent('app.started', {'appId': appId});
 
       appConnection.runMain();
 
       // Handle connection termination - send events first, then cleanup
-      unawaited(debugConnection.onDone.whenComplete(() {
-        sendEvent('app.log', {
-          'appId': appId,
-          'log': 'Lost connection to device.',
-        });
-        sendEvent('app.stop', {
-          'appId': appId,
-        });
-        daemon.shutdown();
+      unawaited(
+        debugConnection.onDone.whenComplete(() {
+          sendEvent('app.log', {
+            'appId': appId,
+            'log': 'Lost connection to device.',
+          });
+          sendEvent('app.stop', {'appId': appId});
+          daemon.shutdown();
 
-        // Clean up app resources
-        _cleanupAppConnection(appId, appState);
-      }));
+          // Clean up app resources
+          _cleanupAppConnection(appId, appState);
+        }),
+      );
     }
 
     // Shutdown could have been triggered while awaiting above.
@@ -148,7 +147,8 @@ class AppDomain extends Domain {
   }
 
   Future<Map<String, dynamic>?> _callServiceExtension(
-      Map<String, dynamic> args) async {
+    Map<String, dynamic> args,
+  ) async {
     final appId = getStringArg(args, 'appId', required: true);
     final appState = _appStates[appId];
     if (appState == null) {
@@ -158,8 +158,10 @@ class AppDomain extends Domain {
     final params = args['params'] != null
         ? (args['params'] as Map<String, dynamic>)
         : <String, dynamic>{};
-    final response = await appState.vmService!
-        .callServiceExtension(methodName, args: params);
+    final response = await appState.vmService!.callServiceExtension(
+      methodName,
+      args: params,
+    );
     return response.json;
   }
 
@@ -171,10 +173,7 @@ class AppDomain extends Domain {
     }
     final fullRestart = getBoolArg(args, 'fullRestart') ?? false;
     if (!fullRestart) {
-      return {
-        'code': 1,
-        'message': 'hot reload not yet supported by webdev',
-      };
+      return {'code': 1, 'message': 'hot reload not yet supported by webdev'};
     }
     // TODO(grouma) - Support pauseAfterRestart.
     // var pauseAfterRestart = getBoolArg(args, 'pause') ?? false;
@@ -188,8 +187,9 @@ class AppDomain extends Domain {
     });
     final restartMethod =
         _registeredMethodsForService['hotRestart'] ?? 'hotRestart';
-    final response =
-        await appState.vmService!.callServiceExtension(restartMethod);
+    final response = await appState.vmService!.callServiceExtension(
+      restartMethod,
+    );
     sendEvent('app.progress', {
       'appId': appId,
       'id': '$_progressEventId',
@@ -198,11 +198,11 @@ class AppDomain extends Domain {
     });
     sendEvent('app.log', {
       'appId': appId,
-      'log': 'Restarted application in ${stopwatch.elapsedMilliseconds}ms'
+      'log': 'Restarted application in ${stopwatch.elapsedMilliseconds}ms',
     });
     return {
       'code': response.type == 'Success' ? 0 : 1,
-      'message': response.toString()
+      'message': response.toString(),
     };
   }
 
@@ -223,7 +223,9 @@ class AppDomain extends Domain {
   /// Sets up VM service listeners for the given appId.
   /// Returns the stdout subscription.
   Future<StreamSubscription<Event>> _setupVmServiceListeners(
-      String appId, VmService vmService) async {
+    String appId,
+    VmService vmService,
+  ) async {
     try {
       vmService.onServiceEvent.listen(_onServiceEvent);
       await vmService.streamListen(EventStreams.kService);

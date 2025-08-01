@@ -299,17 +299,16 @@ class ChromeProxyService extends ProxyService {
     );
 
     final compiler = _compiler;
-    _expressionEvaluator =
-        compiler == null
-            ? null
-            : BatchedExpressionEvaluator(
-              entrypoint,
-              inspector,
-              debugger,
-              _locations,
-              _modules,
-              compiler,
-            );
+    _expressionEvaluator = compiler == null
+        ? null
+        : BatchedExpressionEvaluator(
+            entrypoint,
+            inspector,
+            debugger,
+            _locations,
+            _modules,
+            compiler,
+          );
 
     safeUnawaited(_prewarmExpressionCompilerCache());
 
@@ -1481,24 +1480,21 @@ class ChromeProxyService extends ProxyService {
     // Always attempt to fetch the full properties instead of relying on
     // `RemoteObject.preview` which only has truncated log messages:
     // https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-RemoteObject
-    final logParams =
-        objectId != null
-            ? await _fetchFullLogParams(objectId, logObject: logObject)
-            : _fetchAbbreviatedLogParams(logObject);
+    final logParams = objectId != null
+        ? await _fetchFullLogParams(objectId, logObject: logObject)
+        : _fetchAbbreviatedLogParams(logObject);
 
     final logRecord = LogRecord(
       message: await _instanceRef(logParams['message']),
       loggerName: await _instanceRef(logParams['name']),
-      level:
-          logParams['level'] != null
-              ? int.tryParse(logParams['level']!.value.toString())
-              : 0,
+      level: logParams['level'] != null
+          ? int.tryParse(logParams['level']!.value.toString())
+          : 0,
       error: await _instanceRef(logParams['error']),
       time: event.timestamp.toInt(),
-      sequenceNumber:
-          logParams['sequenceNumber'] != null
-              ? int.tryParse(logParams['sequenceNumber']!.value.toString())
-              : 0,
+      sequenceNumber: logParams['sequenceNumber'] != null
+          ? int.tryParse(logParams['sequenceNumber']!.value.toString())
+          : 0,
       stackTrace: await _instanceRef(logParams['stackTrace']),
       zone: await _instanceRef(logParams['zone']),
     );

@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
-@OnPlatform({
-  'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
-})
+@OnPlatform({'windows': Skip('https://github.com/dart-lang/webdev/issues/711')})
 library;
 
 import 'package:build_verify/build_verify.dart';

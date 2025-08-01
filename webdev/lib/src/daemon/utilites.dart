@@ -14,8 +14,11 @@ dynamic toJsonable(dynamic obj) {
   return '$obj';
 }
 
-String? getStringArg(Map<String, dynamic> args, String name,
-    {bool required = false}) {
+String? getStringArg(
+  Map<String, dynamic> args,
+  String name, {
+  bool required = false,
+}) {
   if (required && !args.containsKey(name)) {
     throw ArgumentError('$name is required');
   }
@@ -26,8 +29,11 @@ String? getStringArg(Map<String, dynamic> args, String name,
   return val as String?;
 }
 
-bool? getBoolArg(Map<String, dynamic> args, String name,
-    {bool required = false}) {
+bool? getBoolArg(
+  Map<String, dynamic> args,
+  String name, {
+  bool required = false,
+}) {
   if (required && !args.containsKey(name)) {
     throw ArgumentError('$name is required');
   }
@@ -36,8 +42,11 @@ bool? getBoolArg(Map<String, dynamic> args, String name,
   return val as bool?;
 }
 
-int? getIntArg(Map<String, dynamic> args, String name,
-    {bool required = false}) {
+int? getIntArg(
+  Map<String, dynamic> args,
+  String name, {
+  bool required = false,
+}) {
   if (required && !args.containsKey(name)) {
     throw ArgumentError('$name is required');
   }

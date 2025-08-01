@@ -35,13 +35,12 @@ void main() async {
   group('can receive', () {
     test('an ExtensionResponse', () async {
       final extensionResponse = ExtensionResponse(
-        (b) =>
-            b
-              ..result = jsonEncode({
-                'result': {'value': 3.14},
-              })
-              ..id = 0
-              ..success = true,
+        (b) => b
+          ..result = jsonEncode({
+            'result': {'value': 3.14},
+          })
+          ..id = 0
+          ..success = true,
       );
       final resultCompleter = Completer();
       unawaited(
@@ -58,10 +57,9 @@ void main() async {
 
     test('an ExtensionEvent', () async {
       final extensionEvent = ExtensionEvent(
-        (b) =>
-            b
-              ..method = jsonEncode('Debugger.paused')
-              ..params = jsonEncode(frames1Json[0]),
+        (b) => b
+          ..method = jsonEncode('Debugger.paused')
+          ..params = jsonEncode(frames1Json[0]),
       );
       connection.controllerIncoming.sink.add(
         jsonEncode(serializers.serialize(extensionEvent)),
@@ -73,16 +71,14 @@ void main() async {
 
     test('a BatchedEvents', () async {
       final event1 = ExtensionEvent(
-        (b) =>
-            b
-              ..method = jsonEncode('Debugger.scriptParsed')
-              ..params = jsonEncode(scriptParsedParams),
+        (b) => b
+          ..method = jsonEncode('Debugger.scriptParsed')
+          ..params = jsonEncode(scriptParsedParams),
       );
       final event2 = ExtensionEvent(
-        (b) =>
-            b
-              ..method = jsonEncode('Debugger.scriptParsed')
-              ..params = jsonEncode(scriptParsedParams),
+        (b) => b
+          ..method = jsonEncode('Debugger.scriptParsed')
+          ..params = jsonEncode(scriptParsedParams),
       );
       final batch = BatchedEvents(
         (b) => b.events = ListBuilder([event1, event2]),
@@ -97,11 +93,10 @@ void main() async {
 
     test('a DevToolsRequest', () async {
       final devToolsRequest = DevToolsRequest(
-        (b) =>
-            b
-              ..tabUrl = 'pi/calculus'
-              ..appId = '3.14'
-              ..instanceId = '6.28',
+        (b) => b
+          ..tabUrl = 'pi/calculus'
+          ..appId = '3.14'
+          ..instanceId = '6.28',
       );
       connection.controllerIncoming.sink.add(
         jsonEncode(serializers.serialize(devToolsRequest)),
@@ -116,11 +111,10 @@ void main() async {
   group('can send', () {
     test('a request with empty params', () async {
       final extensionRequest = ExtensionRequest(
-        (b) =>
-            b
-              ..id = 0
-              ..command = 'Debugger.pause'
-              ..commandParams = jsonEncode({}),
+        (b) => b
+          ..id = 0
+          ..command = 'Debugger.pause'
+          ..commandParams = jsonEncode({}),
       );
       unawaited(extensionDebugger.pause());
       final request = serializers.deserialize(
@@ -134,11 +128,10 @@ void main() async {
         'location': {'scriptId': '555', 'lineNumber': 28},
       };
       final extensionRequest = ExtensionRequest(
-        (b) =>
-            b
-              ..id = 0
-              ..command = 'Debugger.setBreakpoint'
-              ..commandParams = jsonEncode(params),
+        (b) => b
+          ..id = 0
+          ..command = 'Debugger.setBreakpoint'
+          ..commandParams = jsonEncode(params),
       );
       unawaited(
         extensionDebugger.sendCommand('Debugger.setBreakpoint', params: params),
@@ -152,10 +145,9 @@ void main() async {
   group('when closed', () {
     test('DebugExtension.detached event closes the connection', () async {
       final extensionEvent = ExtensionEvent(
-        (b) =>
-            b
-              ..method = jsonEncode('DebugExtension.detached')
-              ..params = jsonEncode({}),
+        (b) => b
+          ..method = jsonEncode('DebugExtension.detached')
+          ..params = jsonEncode({}),
       );
 
       connection.controllerIncoming.sink.add(
@@ -170,10 +162,9 @@ void main() async {
       () async {
         // Close the connection:
         final extensionEvent = ExtensionEvent(
-          (b) =>
-              b
-                ..method = jsonEncode('DebugExtension.detached')
-                ..params = jsonEncode({}),
+          (b) => b
+            ..method = jsonEncode('DebugExtension.detached')
+            ..params = jsonEncode({}),
         );
         connection.controllerIncoming.sink.add(
           jsonEncode(serializers.serialize(extensionEvent)),

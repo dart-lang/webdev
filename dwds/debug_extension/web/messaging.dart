@@ -139,13 +139,14 @@ Future<bool> sendTabsMessage({
   required String body,
   required Script sender,
   required Script recipient,
-}) => _sendMessage(
-  tabId: tabId,
-  type: type,
-  body: body,
-  sender: sender,
-  recipient: recipient,
-);
+}) =>
+    _sendMessage(
+      tabId: tabId,
+      type: type,
+      body: body,
+      sender: sender,
+      recipient: recipient,
+    );
 
 Future<bool> _sendMessage({
   required MessageType type,
@@ -195,8 +196,7 @@ bool _isLegitimateSender(MessageSender sender) {
 
   final senderUri = Uri.parse(sender.origin ?? '');
   final senderHost = senderUri.host;
-  final isDartAppHost =
-      senderHost == 'localhost' ||
+  final isDartAppHost = senderHost == 'localhost' ||
       senderHost == '127.0.0.1' ||
       _isGoogleHost(senderHost);
   final isExtensionOrigin =

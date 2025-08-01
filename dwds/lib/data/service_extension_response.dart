@@ -18,10 +18,9 @@ abstract class ServiceExtensionResponse
   String? get errorMessage;
 
   // Helper method to get result as Map<String, dynamic>
-  Map<String, dynamic>? get result =>
-      resultJson == null || resultJson!.isEmpty
-          ? null
-          : json.decode(resultJson!) as Map<String, dynamic>;
+  Map<String, dynamic>? get result => resultJson == null || resultJson!.isEmpty
+      ? null
+      : json.decode(resultJson!) as Map<String, dynamic>;
 
   ServiceExtensionResponse._();
   factory ServiceExtensionResponse([
@@ -36,13 +35,12 @@ abstract class ServiceExtensionResponse
     int? errorCode,
     String? errorMessage,
   }) => ServiceExtensionResponse(
-    (b) =>
-        b
-          ..id = id
-          ..success = success
-          ..resultJson = result != null ? json.encode(result) : null
-          ..errorCode = errorCode
-          ..errorMessage = errorMessage,
+    (b) => b
+      ..id = id
+      ..success = success
+      ..resultJson = result != null ? json.encode(result) : null
+      ..errorCode = errorCode
+      ..errorMessage = errorMessage,
   );
 
   static Serializer<ServiceExtensionResponse> get serializer =>

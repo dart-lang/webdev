@@ -200,8 +200,9 @@ void main() {
       await expectDartVariables(variables);
 
       final variableNames = variables.keys.toList()..sort();
-      final variableValues =
-          variableNames.map((name) => variables[name]?.valueAsString).toList();
+      final variableValues = variableNames
+          .map((name) => variables[name]?.valueAsString)
+          .toList();
       expect(variableNames, containsAll(['myLocal', 'value']));
       expect(variableValues, containsAll(['a local value', 'arg1']));
     });
@@ -212,8 +213,9 @@ void main() {
       await expectDartVariables(variables);
 
       final variableNames = variables.keys.toList()..sort();
-      final variableValues =
-          variableNames.map((name) => variables[name]?.valueAsString).toList();
+      final variableValues = variableNames
+          .map((name) => variables[name]?.valueAsString)
+          .toList();
       expect(variableNames, containsAll(['i', 'myLocal', 'value']));
       // Ensure the loop variable, i, is captued correctly. The value from the
       // first iteration should be captured by the saved closure.

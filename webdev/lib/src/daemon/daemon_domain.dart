@@ -16,13 +16,7 @@ class DaemonDomain extends Domain {
     registerHandler('version', _version);
     registerHandler('shutdown', _shutdown);
 
-    sendEvent(
-      'daemon.connected',
-      {
-        'version': protocolVersion,
-        'pid': pid,
-      },
-    );
+    sendEvent('daemon.connected', {'version': protocolVersion, 'pid': pid});
   }
 
   Future<String> _version(Map<String, dynamic> args) {

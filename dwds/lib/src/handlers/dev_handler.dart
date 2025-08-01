@@ -117,19 +117,18 @@ class DevHandler {
     return Response.notFound('');
   };
 
-  Future<void> close() =>
-      _closed ??= () async {
-        for (final sub in _subs) {
-          await sub.cancel();
-        }
-        for (final handler in _sseHandlers.values) {
-          handler.shutdown();
-        }
-        await Future.wait(
-          _servicesByAppId.values.map((service) => service.close()),
-        );
-        _servicesByAppId.clear();
-      }();
+  Future<void> close() => _closed ??= () async {
+    for (final sub in _subs) {
+      await sub.cancel();
+    }
+    for (final handler in _sseHandlers.values) {
+      handler.shutdown();
+    }
+    await Future.wait(
+      _servicesByAppId.values.map((service) => service.close()),
+    );
+    _servicesByAppId.clear();
+  }();
 
   void _emitBuildResults(BuildResult result) {
     if (result.status != BuildStatus.succeeded) return;
@@ -340,13 +339,12 @@ class DevHandler {
               'https://github.com/dart-lang/webdev/issues/new.',
             );
           }
-          appConnection =
-              useWebSocketConnection
-                  ? await _handleWebSocketConnectRequest(
-                    message,
-                    injectedConnection,
-                  )
-                  : await _handleConnectRequest(message, injectedConnection);
+          appConnection = useWebSocketConnection
+              ? await _handleWebSocketConnectRequest(
+                  message,
+                  injectedConnection,
+                )
+              : await _handleConnectRequest(message, injectedConnection);
         } else {
           final connection = appConnection;
           if (connection == null) {
@@ -368,10 +366,9 @@ class DevHandler {
             jsonEncode(
               serializers.serialize(
                 ErrorResponse(
-                  (b) =>
-                      b
-                        ..error = '$e'
-                        ..stackTrace = '$s',
+                  (b) => b
+                    ..error = '$e'
+                    ..stackTrace = '$s',
                 ),
               ),
             ),
@@ -436,8 +433,9 @@ class DevHandler {
     } else if (message is RegisterEvent) {
       proxyService.parseRegisterEvent(message);
     } else {
-      final serviceType =
-          proxyService is WebSocketProxyService ? 'WebSocket' : 'Chrome';
+      final serviceType = proxyService is WebSocketProxyService
+          ? 'WebSocket'
+          : 'Chrome';
       throw UnsupportedError(
         'Message type ${message.runtimeType} is not supported in $serviceType mode',
       );
@@ -453,14 +451,13 @@ class DevHandler {
         jsonEncode(
           serializers.serialize(
             DevToolsResponse(
-              (b) =>
-                  b
-                    ..success = false
-                    ..promptExtension = false
-                    ..error =
-                        'Debugging is not enabled.\n\n'
-                        'If you are using webdev please pass the --debug flag.\n'
-                        'Otherwise check the docs for the tool you are using.',
+              (b) => b
+                ..success = false
+                ..promptExtension = false
+                ..error =
+                    'Debugging is not enabled.\n\n'
+                    'If you are using webdev please pass the --debug flag.\n'
+                    'Otherwise check the docs for the tool you are using.',
             ),
           ),
         ),
@@ -478,22 +475,20 @@ class DevHandler {
           'load in a different Chrome window than was launched by '
           'your development tool.';
       var response = DevToolsResponse(
-        (b) =>
-            b
-              ..success = false
-              ..promptExtension = false
-              ..error = error,
+        (b) => b
+          ..success = false
+          ..promptExtension = false
+          ..error = error,
       );
       if (_extensionBackend != null) {
         response = response.rebuild(
-          (b) =>
-              b
-                ..promptExtension = true
-                ..error =
-                    '$error\n\n'
-                    'Your workflow alternatively supports debugging through the '
-                    'Dart Debug Extension.\n\n'
-                    'Would you like to install the extension?',
+          (b) => b
+            ..promptExtension = true
+            ..error =
+                '$error\n\n'
+                'Your workflow alternatively supports debugging through the '
+                'Dart Debug Extension.\n\n'
+                'Would you like to install the extension?',
         );
       }
       sseConnection.sink.add(jsonEncode(serializers.serialize(response)));
@@ -508,13 +503,12 @@ class DevHandler {
         jsonEncode(
           serializers.serialize(
             DevToolsResponse(
-              (b) =>
-                  b
-                    ..success = false
-                    ..promptExtension = false
-                    ..error =
-                        'This app is already being debugged in a different tab. '
-                        'Please close that tab or switch to it.',
+              (b) => b
+                ..success = false
+                ..promptExtension = false
+                ..error =
+                    'This app is already being debugged in a different tab. '
+                    'Please close that tab or switch to it.',
             ),
           ),
         ),
@@ -526,10 +520,9 @@ class DevHandler {
       jsonEncode(
         serializers.serialize(
           DevToolsResponse(
-            (b) =>
-                b
-                  ..success = true
-                  ..promptExtension = false,
+            (b) => b
+              ..success = true
+              ..promptExtension = false,
           ),
         ),
       ),
@@ -826,16 +819,15 @@ class DevHandler {
       _injected.devHandlerPaths.listen((devHandlerPath) async {
         final uri = Uri.parse(devHandlerPath);
         if (!_sseHandlers.containsKey(uri.path)) {
-          final handler =
-              _useSseForInjectedClient
-                  ? SseSocketHandler(
-                    // We provide an essentially indefinite keep alive duration because
-                    // the underlying connection could be lost while the application
-                    // is paused. The connection will get re-established after a resume
-                    // or cleaned up on a full page refresh.
-                    SseHandler(uri, keepAlive: const Duration(days: 3000)),
-                  )
-                  : WebSocketSocketHandler();
+          final handler = _useSseForInjectedClient
+              ? SseSocketHandler(
+                  // We provide an essentially indefinite keep alive duration because
+                  // the underlying connection could be lost while the application
+                  // is paused. The connection will get re-established after a resume
+                  // or cleaned up on a full page refresh.
+                  SseHandler(uri, keepAlive: const Duration(days: 3000)),
+                )
+              : WebSocketSocketHandler();
           _sseHandlers[uri.path] = handler;
           final injectedConnections = handler.connections;
           while (await injectedConnections.hasNext) {
@@ -1105,10 +1097,9 @@ extension<T> on Stream<T> {
   /// Forwards events from the original stream until a period of at least [gap]
   /// occurs in between events, in which case the returned stream will end.
   Stream<T> takeUntilGap(Duration gap) {
-    final controller =
-        isBroadcast
-            ? StreamController<T>.broadcast(sync: true)
-            : StreamController<T>(sync: true);
+    final controller = isBroadcast
+        ? StreamController<T>.broadcast(sync: true)
+        : StreamController<T>(sync: true);
 
     late StreamSubscription<T> subscription;
     Timer? gapTimer;

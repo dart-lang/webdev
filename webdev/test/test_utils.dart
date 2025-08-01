@@ -36,21 +36,30 @@ class TestRunner {
     sdkConfigurationProvider.dispose();
   }
 
-  Future<TestProcess> runWebDev(List<String> args,
-      {String? workingDirectory}) async {
+  Future<TestProcess> runWebDev(
+    List<String> args, {
+    String? workingDirectory,
+  }) async {
     final fullArgs = [_webdevBin, ...args];
 
-    return TestProcess.start(sdkLayout.dartPath, fullArgs,
-        workingDirectory: workingDirectory);
+    return TestProcess.start(
+      sdkLayout.dartPath,
+      fullArgs,
+      workingDirectory: workingDirectory,
+    );
   }
 
   Future<String> prepareWorkspace() async {
-    final exampleDirectory =
-        p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'));
+    final exampleDirectory = p.absolute(
+      p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'),
+    );
 
     final process = await TestProcess.start(
-        sdkLayout.dartPath, ['pub', 'upgrade'],
-        workingDirectory: exampleDirectory, environment: getPubEnvironment());
+      sdkLayout.dartPath,
+      ['pub', 'upgrade'],
+      workingDirectory: exampleDirectory,
+      environment: getPubEnvironment(),
+    );
 
     await process.shouldExit(0);
     return exampleDirectory;

@@ -233,11 +233,8 @@ void main() async {
       await context.setUp(
         debugSettings: TestDebugSettings.noDevTools().copyWith(
           enableDebugExtension: true,
-          urlEncoder:
-              (url) async =>
-                  url.endsWith(r'/$debug')
-                      ? 'http://some-encoded-url:8081/'
-                      : url,
+          urlEncoder: (url) async =>
+              url.endsWith(r'/$debug') ? 'http://some-encoded-url:8081/' : url,
         ),
       );
     });

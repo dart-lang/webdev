@@ -4,7 +4,7 @@ description: The shared analysis configuration for the webdev packages.
 publish_to: none
 
 environment:
-  sdk: ^3.1.0
+  sdk: ^3.8.0
 
 dependencies:
   lints: ^5.0.0

@@ -723,8 +723,9 @@ class _$BatchedEvents extends BatchedEvents {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'BatchedEvents')
-      ..add('events', events)).toString();
+    return (newBuiltValueToStringHelper(
+      r'BatchedEvents',
+    )..add('events', events)).toString();
   }
 }
 

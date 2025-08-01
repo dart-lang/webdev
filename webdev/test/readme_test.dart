@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
-@OnPlatform({
-  'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
-})
+@OnPlatform({'windows': Skip('https://github.com/dart-lang/webdev/issues/711')})
 library;
 
 import 'dart:async';
@@ -34,16 +32,14 @@ Future _readmeCheck(TestRunner testRunner, List<String> args) async {
           .trim();
   await process.shouldExit(0);
 
-  final firstLineStart =
-      _readmeContents.indexOf(LineSplitter.split(output).first);
+  final firstLineStart = _readmeContents.indexOf(
+    LineSplitter.split(output).first,
+  );
 
   expect(firstLineStart, greaterThanOrEqualTo(0));
 
   final sectionEnd = _readmeContents.indexOf('```', firstLineStart);
   expect(sectionEnd, greaterThan(firstLineStart));
 
-  expect(
-    _readmeContents.substring(firstLineStart, sectionEnd).trim(),
-    output,
-  );
+  expect(_readmeContents.substring(firstLineStart, sectionEnd).trim(), output);
 }

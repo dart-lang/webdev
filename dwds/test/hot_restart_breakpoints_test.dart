@@ -267,7 +267,8 @@ void main() {
         final libValueMarker = 'libValue';
         context.addLibraryFile(
           libFileName: libFile,
-          contents: '''String get libraryValue {
+          contents:
+              '''String get libraryValue {
             return '$libGenLog'; // Breakpoint: $libValueMarker
           }''',
         );

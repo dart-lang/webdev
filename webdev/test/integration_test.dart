@@ -15,10 +15,7 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 
 import 'test_utils.dart';
 
-enum StreamType {
-  stdout,
-  stderr,
-}
+enum StreamType { stdout, stderr }
 
 const processTimeout = Duration(minutes: 1);
 
@@ -27,8 +24,10 @@ void main() {
   setUpAll(testRunner.setUpAll);
   tearDownAll(testRunner.tearDownAll);
 
-  Future<void> expectStdoutAndCleanExit(Process process,
-      {required String expectedStdout}) async {
+  Future<void> expectStdoutAndCleanExit(
+    Process process, {
+    required String expectedStdout,
+  }) async {
     final stdoutCompleter = _captureOutput(
       process,
       streamType: StreamType.stdout,
@@ -49,21 +48,17 @@ void main() {
       // cleanly:
       reason: 'stderr: $stderrLogs, stdout: $stdoutLogs',
     );
-    expect(
-      stderrLogs,
-      isEmpty,
-    );
-    expect(
-      stdoutLogs,
-      contains(expectedStdout),
-    );
+    expect(stderrLogs, isEmpty);
+    expect(stdoutLogs, contains(expectedStdout));
   }
 
   test('non-existent commands create errors', () async {
     final process = await testRunner.runWebDev(['monkey']);
 
     await expectLater(
-        process.stdout, emits('Could not find a command named "monkey".'));
+      process.stdout,
+      emits('Could not find a command named "monkey".'),
+    );
 
     await process.shouldExit(64);
   });
@@ -71,37 +66,40 @@ void main() {
   test('passing extra args to build fails with bad usage', () async {
     final process = await testRunner.runWebDev(['build', 'extra', 'args']);
 
-    await expectLater(process.stdout,
-        emits('Arguments were provided that are not supported: "extra args".'));
+    await expectLater(
+      process.stdout,
+      emits('Arguments were provided that are not supported: "extra args".'),
+    );
 
     await process.shouldExit(64);
   });
 
-  test('Errors with `build_runner` should not surface `build_daemon` issues',
-      () async {
-    await d.file('pubspec.yaml', _pubspecYaml).create();
+  test(
+    'Errors with `build_runner` should not surface `build_daemon` issues',
+    () async {
+      await d.file('pubspec.yaml', _pubspecYaml).create();
 
-    await d
-        .file(
+      await d
+          .file(
             'pubspec.lock',
-            _pubspecLock(
-              runnerVersion: '1.2.8',
-              daemonVersion: '0.4.0',
-            ))
-        .create();
+            _pubspecLock(runnerVersion: '1.2.8', daemonVersion: '0.4.0'),
+          )
+          .create();
 
-    await d.dir('.dart_tool', [d.file('package_config.json', '')]).create();
-    await d.file('.dart_tool/package_config.json', '').create();
+      await d.dir('.dart_tool', [d.file('package_config.json', '')]).create();
+      await d.file('.dart_tool/package_config.json', '').create();
 
-    final process =
-        await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
+      final process = await testRunner.runWebDev([
+        'serve',
+      ], workingDirectory: d.sandbox);
 
-    final output = await process.stdout.rest.toList();
+      final output = await process.stdout.rest.toList();
 
-    expect(output, isNot(contains(contains('`build_daemon`'))));
+      expect(output, isNot(contains(contains('`build_daemon`'))));
 
-    await process.shouldExit(78);
-  });
+      await process.shouldExit(78);
+    },
+  );
 
   final invalidRanges = <String, List<String>>{
     'build_runner': ['0.8.9', '3.0.0'],
@@ -119,12 +117,14 @@ void main() {
               .file('pubspec.lock', _pubspecLock(runnerVersion: null))
               .create();
 
-          await d
-              .dir('.dart_tool', [d.file('package_config.json', '')]).create();
+          await d.dir('.dart_tool', [
+            d.file('package_config.json', ''),
+          ]).create();
           await d.file('.dart_tool/package_config.json', '').create();
 
-          final process = await testRunner
-              .runWebDev([command], workingDirectory: d.sandbox);
+          final process = await testRunner.runWebDev([
+            command,
+          ], workingDirectory: d.sandbox);
 
           await checkProcessStdout(process, ['webdev could not run']);
           await process.shouldExit(78);
@@ -137,19 +137,20 @@ void main() {
               .file('pubspec.lock', _pubspecLock(webCompilersVersion: null))
               .create();
 
-          await d
-              .dir('.dart_tool', [d.file('package_config.json', '')]).create();
+          await d.dir('.dart_tool', [
+            d.file('package_config.json', ''),
+          ]).create();
           await d.file('.dart_tool/package_config.json', '').create();
 
-          final process = await testRunner
-              .runWebDev(['serve'], workingDirectory: d.sandbox);
+          final process = await testRunner.runWebDev([
+            'serve',
+          ], workingDirectory: d.sandbox);
 
           await checkProcessStdout(process, ['webdev could not run']);
           await process.shouldExit(78);
         });
 
-        test(
-            '`build_web_compilers` should be ignored with '
+        test('`build_web_compilers` should be ignored with '
             '--no-build-web-compilers', () async {
           await d.file('pubspec.yaml', _pubspecYaml).create();
 
@@ -157,16 +158,18 @@ void main() {
               .file('pubspec.lock', _pubspecLock(webCompilersVersion: null))
               .create();
 
-          await d
-              .dir('.dart_tool', [d.file('package_config.json', '')]).create();
+          await d.dir('.dart_tool', [
+            d.file('package_config.json', ''),
+          ]).create();
           await d.file('.dart_tool/package_config.json', '').create();
 
           // Required for webdev to not complain about nothing to serve.
           await d.dir('web').create();
 
-          final process = await testRunner.runWebDev(
-              ['serve', '--no-build-web-compilers'],
-              workingDirectory: d.sandbox);
+          final process = await testRunner.runWebDev([
+            'serve',
+            '--no-build-web-compilers',
+          ], workingDirectory: d.sandbox);
 
           await process.shouldExit();
         });
@@ -195,19 +198,23 @@ void main() {
 
               await d
                   .file(
-                      'pubspec.lock',
-                      _pubspecLock(
-                          runnerVersion: buildRunnerVersion,
-                          webCompilersVersion: webCompilersVersion,
-                          daemonVersion: buildDaemonVersion))
+                    'pubspec.lock',
+                    _pubspecLock(
+                      runnerVersion: buildRunnerVersion,
+                      webCompilersVersion: webCompilersVersion,
+                      daemonVersion: buildDaemonVersion,
+                    ),
+                  )
                   .create();
 
-              await d.dir(
-                  '.dart_tool', [d.file('package_config.json', '')]).create();
+              await d.dir('.dart_tool', [
+                d.file('package_config.json', ''),
+              ]).create();
               await d.file('.dart_tool/package_config.json', '').create();
 
-              final process = await testRunner
-                  .runWebDev(['serve'], workingDirectory: d.sandbox);
+              final process = await testRunner.runWebDev([
+                'serve',
+              ], workingDirectory: d.sandbox);
 
               await checkProcessStdout(process, ['webdev could not run']);
 
@@ -218,25 +225,24 @@ void main() {
       }
 
       test('no pubspec.yaml', () async {
-        final process =
-            await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
+        final process = await testRunner.runWebDev([
+          'serve',
+        ], workingDirectory: d.sandbox);
 
         await checkProcessStdout(process, ['webdev could not run']);
         await process.shouldExit(78);
       });
 
-      test(
-        'pubspec.yaml, no pubspec.lock',
-        () async {
-          await d.file('pubspec.yaml', _pubspecYaml).create();
+      test('pubspec.yaml, no pubspec.lock', () async {
+        await d.file('pubspec.yaml', _pubspecYaml).create();
 
-          final process = await testRunner
-              .runWebDev(['serve'], workingDirectory: d.sandbox);
+        final process = await testRunner.runWebDev([
+          'serve',
+        ], workingDirectory: d.sandbox);
 
-          await checkProcessStdout(process, ['webdev could not run']);
-          await process.shouldExit(78);
-        },
-      );
+        await checkProcessStdout(process, ['webdev could not run']);
+        await process.shouldExit(78);
+      });
 
       test('should fail if there has been a dependency change', () async {
         await d.file('pubspec.lock', _pubspecLock()).create();
@@ -253,8 +259,9 @@ dependencies:
   args: ^1.0.0
 ''').create();
 
-        final process =
-            await testRunner.runWebDev(['serve'], workingDirectory: d.sandbox);
+        final process = await testRunner.runWebDev([
+          'serve',
+        ], workingDirectory: d.sandbox);
 
         await checkProcessStdout(process, ['webdev could not run']);
         await process.shouldExit(78);
@@ -262,18 +269,24 @@ dependencies:
 
       if (command != 'daemon') {
         test('failure with offline and unresolved dependencies', () async {
-          final createProcess = await Process.start(
-            'dart',
-            ['create', '--no-pub', '--template', 'web', 'temp_app'],
-            workingDirectory: d.sandbox,
+          final createProcess = await Process.start('dart', [
+            'create',
+            '--no-pub',
+            '--template',
+            'web',
+            'temp_app',
+          ], workingDirectory: d.sandbox);
+          await expectStdoutAndCleanExit(
+            createProcess,
+            expectedStdout: 'Created project temp_app',
           );
-          await expectStdoutAndCleanExit(createProcess,
-              expectedStdout: 'Created project temp_app');
 
           final appPath = p.join(d.sandbox, 'temp_app');
 
-          final process = await testRunner
-              .runWebDev([command, '--offline'], workingDirectory: appPath);
+          final process = await testRunner.runWebDev([
+            command,
+            '--offline',
+          ], workingDirectory: appPath);
 
           await checkProcessStdout(process, ['webdev could not run']);
           await process.shouldExit(78);
@@ -291,11 +304,12 @@ String _pubspecYaml = '''
   name: sample
 ''';
 
-String _pubspecLock(
-    {String? runnerVersion = _supportedBuildRunnerVersion,
-    String? webCompilersVersion = _supportedWebCompilersVersion,
-    String? daemonVersion = _supportedBuildDaemonVersion,
-    List<String> extraPkgs = const []}) {
+String _pubspecLock({
+  String? runnerVersion = _supportedBuildRunnerVersion,
+  String? webCompilersVersion = _supportedWebCompilersVersion,
+  String? daemonVersion = _supportedBuildDaemonVersion,
+  List<String> extraPkgs = const [],
+}) {
   final buffer = StringBuffer('''
 # Copy-pasted from a valid run
 packages:
@@ -364,8 +378,9 @@ Completer<String> _captureOutput(
   required StreamType streamType,
   required Future stopCaptureFuture,
 }) {
-  final stream =
-      streamType == StreamType.stdout ? process.stdout : process.stderr;
+  final stream = streamType == StreamType.stdout
+      ? process.stdout
+      : process.stderr;
   final completer = Completer<String>();
   var output = '';
   stream.transform(utf8.decoder).listen((line) {
@@ -377,10 +392,12 @@ Completer<String> _captureOutput(
       }
     }
   });
-  unawaited(stopCaptureFuture.then((_) {
-    if (!completer.isCompleted) {
-      completer.complete(output);
-    }
-  }));
+  unawaited(
+    stopCaptureFuture.then((_) {
+      if (!completer.isCompleted) {
+        completer.complete(output);
+      }
+    }),
+  );
   return completer;
 }

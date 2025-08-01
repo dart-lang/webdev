@@ -787,8 +787,8 @@ void runTests({
           // TODO: Figure out if we can encode the sript as utf8 and avoid this
           final body =
               (moduleFormat == ModuleFormat.ddc && canaryFeatures == true)
-                  ? utf8.decode(result.body.codeUnits)
-                  : result.body;
+              ? utf8.decode(result.body.codeUnits)
+              : result.body;
           expect(script.source, body);
           expect(scriptRef.uri, endsWith('.dart'));
           expect(script.tokenPosTable, isNotEmpty);
@@ -1749,8 +1749,9 @@ void runTests({
       });
 
       test('break on exceptions with setIsolatePauseMode', () async {
-        final oldPauseMode =
-            (await service.getIsolate(isolateId!)).exceptionPauseMode;
+        final oldPauseMode = (await service.getIsolate(
+          isolateId!,
+        )).exceptionPauseMode;
         await service.setIsolatePauseMode(
           isolateId!,
           exceptionPauseMode: ExceptionPauseMode.kAll,

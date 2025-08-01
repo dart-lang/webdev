@@ -14,15 +14,18 @@ import 'package:path/path.dart' as p;
 class TestSdkLayout {
   static final defaultSdkDirectory = SdkLayout.defaultSdkDirectory;
 
-  static TestSdkLayout defaultSdkLayout =
-      TestSdkLayout.createDefault(defaultSdkDirectory);
+  static TestSdkLayout defaultSdkLayout = TestSdkLayout.createDefault(
+    defaultSdkDirectory,
+  );
 
-  static SdkConfiguration defaultSdkConfiguration =
-      createConfiguration(defaultSdkLayout);
+  static SdkConfiguration defaultSdkConfiguration = createConfiguration(
+    defaultSdkLayout,
+  );
 
   factory TestSdkLayout.createDefault(String sdkDirectory) =>
       TestSdkLayout.createDefaultFromSdkLayout(
-          SdkLayout.createDefault(sdkDirectory));
+        SdkLayout.createDefault(sdkDirectory),
+      );
 
   factory TestSdkLayout.createDefaultFromSdkLayout(SdkLayout sdkLayout) =>
       TestSdkLayout(

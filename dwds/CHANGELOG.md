@@ -1,5 +1,6 @@
 ## 24.4.2-wip
 
+- Bump minimum SDK version to 3.8.0
 - Update a call to the `package:shelf_web_socket` `webSocketHandler()` function.
 
 ## 24.4.1

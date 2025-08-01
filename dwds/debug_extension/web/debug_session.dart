@@ -35,8 +35,7 @@ import 'storage.dart';
 import 'utils.dart';
 import 'web_api.dart';
 
-const _notADartAppAlert =
-    'No Dart application detected.'
+const _notADartAppAlert = 'No Dart application detected.'
     ' Are you trying to debug an application that includes a Chrome hosted app'
     ' (an application listed in chrome://apps)? If so, debugging is disabled.'
     ' You can fix this by removing the application from chrome://apps. Please'
@@ -82,11 +81,11 @@ enum Trigger {
   extensionIcon;
 
   String get clientName => switch (this) {
-    Trigger.angularDartDevTools => 'acx-devtools',
-    Trigger.cider => 'cider',
-    Trigger.extensionPanel => 'embedded-devtools',
-    Trigger.extensionIcon => 'devtools',
-  };
+        Trigger.angularDartDevTools => 'acx-devtools',
+        Trigger.cider => 'cider',
+        Trigger.extensionPanel => 'embedded-devtools',
+        Trigger.extensionIcon => 'devtools',
+      };
 }
 
 enum DebuggerLocation {
@@ -96,11 +95,11 @@ enum DebuggerLocation {
   ide;
 
   String get displayName => switch (this) {
-    DebuggerLocation.angularDartDevTools => 'AngularDart DevTools',
-    DebuggerLocation.chromeDevTools => 'Chrome DevTools',
-    DebuggerLocation.dartDevTools => 'a Dart DevTools tab',
-    DebuggerLocation.ide => 'an IDE',
-  };
+        DebuggerLocation.angularDartDevTools => 'AngularDart DevTools',
+        DebuggerLocation.chromeDevTools => 'Chrome DevTools',
+        DebuggerLocation.dartDevTools => 'a Dart DevTools tab',
+        DebuggerLocation.ide => 'an IDE',
+      };
 }
 
 bool get existsActiveDebugSession => _debugSessions.isNotEmpty;
@@ -313,8 +312,7 @@ Future<bool> _isDartFrame({required int tabId, required int contextId}) {
     Debuggee(tabId: tabId),
     'Runtime.evaluate',
     _InjectedParams(
-      expression:
-          '[window.\$dartAppId, '
+      expression: '[window.\$dartAppId, '
           'window.\$dartAppInstanceId, '
           'window.\$dwdsVersion]',
       returnByValue: true,
@@ -351,12 +349,11 @@ Future<bool> _connectToDwds({
   }
   final uri = Uri.parse(extensionUrl);
   // Start the client connection with DWDS:
-  final client =
-      uri.isScheme('ws') || uri.isScheme('wss')
-          ? WebSocketClient(WebSocketChannel.connect(uri))
-          : SseSocketClient(
-            SseClient(uri.toString(), debugKey: 'DebugExtension'),
-          );
+  final client = uri.isScheme('ws') || uri.isScheme('wss')
+      ? WebSocketClient(WebSocketChannel.connect(uri))
+      : SseSocketClient(
+          SseClient(uri.toString(), debugKey: 'DebugExtension'),
+        );
   final trigger = _tabIdToTrigger[dartAppTabId];
   debugLog('Connecting to DWDS...', verbose: true);
   final debugSession = _DebugSession(
@@ -386,14 +383,13 @@ Future<bool> _connectToDwds({
   final tabUrl = await _getTabUrl(dartAppTabId);
   debugSession.sendEvent(
     DevToolsRequest(
-      (b) =>
-          b
-            ..appId = debugInfo.appId
-            ..instanceId = debugInfo.appInstanceId
-            ..contextId = dartAppContextId
-            ..tabUrl = tabUrl
-            ..uriOnly = true
-            ..client = trigger?.clientName ?? 'unknown',
+      (b) => b
+        ..appId = debugInfo.appId
+        ..instanceId = debugInfo.appInstanceId
+        ..contextId = dartAppContextId
+        ..tabUrl = tabUrl
+        ..uriOnly = true
+        ..client = trigger?.clientName ?? 'unknown',
     ),
   );
   return true;
@@ -445,10 +441,9 @@ void _forwardDwdsEventToChromeDebugger(
 ) {
   try {
     final messageParams = message.commandParams;
-    final params =
-        messageParams == null
-            ? <String, Object>{}
-            : BuiltMap<String, Object>(json.decode(messageParams)).toMap();
+    final params = messageParams == null
+        ? <String, Object>{}
+        : BuiltMap<String, Object>(json.decode(messageParams)).toMap();
 
     chrome.debugger.sendCommand(
       Debuggee(tabId: tabId),
@@ -461,11 +456,10 @@ void _forwardDwdsEventToChromeDebugger(
             jsonEncode(
               serializers.serialize(
                 ExtensionResponse(
-                  (b) =>
-                      b
-                        ..id = message.id
-                        ..success = false
-                        ..result = JSON.stringify(chrome.runtime.lastError),
+                  (b) => b
+                    ..id = message.id
+                    ..success = false
+                    ..result = JSON.stringify(chrome.runtime.lastError),
                 ),
               ),
             ),
@@ -475,11 +469,10 @@ void _forwardDwdsEventToChromeDebugger(
             jsonEncode(
               serializers.serialize(
                 ExtensionResponse(
-                  (b) =>
-                      b
-                        ..id = message.id
-                        ..success = true
-                        ..result = JSON.stringify(e),
+                  (b) => b
+                    ..id = message.id
+                    ..success = true
+                    ..result = JSON.stringify(e),
                 ),
               ),
             ),
@@ -612,10 +605,9 @@ Future<bool> _sendConnectFailureMessage(
   final json = jsonEncode(
     serializers.serialize(
       ConnectFailure(
-        (b) =>
-            b
-              ..tabId = dartAppTabId
-              ..reason = reason.name,
+        (b) => b
+          ..tabId = dartAppTabId
+          ..reason = reason.name,
       ),
     ),
   );
@@ -634,11 +626,10 @@ Future<bool> _sendStopDebuggingMessage(
   final json = jsonEncode(
     serializers.serialize(
       DebugStateChange(
-        (b) =>
-            b
-              ..tabId = dartAppTabId
-              ..reason = reason.name
-              ..newState = DebugStateChange.stopDebugging,
+        (b) => b
+          ..tabId = dartAppTabId
+          ..reason = reason.name
+          ..newState = DebugStateChange.stopDebugging,
       ),
     ),
   );
@@ -653,11 +644,11 @@ Future<bool> _sendStopDebuggingMessage(
 _DebugSession? _debugSessionForTab(int tabId, {required TabType type}) {
   return switch (type) {
     TabType.dartApp => _debugSessions.firstWhereOrNull(
-      (session) => session.appTabId == tabId,
-    ),
+        (session) => session.appTabId == tabId,
+      ),
     TabType.devTools => _debugSessions.firstWhereOrNull(
-      (session) => session.devToolsTabId == tabId,
-    ),
+        (session) => session.devToolsTabId == tabId,
+      ),
   };
 }
 
@@ -737,20 +728,18 @@ DebuggerLocation? _debuggerLocation(int dartAppTabId) {
     Trigger.angularDartDevTools => DebuggerLocation.angularDartDevTools,
     Trigger.cider => DebuggerLocation.ide,
     Trigger.extensionPanel => DebuggerLocation.chromeDevTools,
-    Trigger.extensionIcon =>
-      debugSession.devToolsTabId != null
-          ? DebuggerLocation.dartDevTools
-          : DebuggerLocation.ide,
+    Trigger.extensionIcon => debugSession.devToolsTabId != null
+        ? DebuggerLocation.dartDevTools
+        : DebuggerLocation.ide,
   };
 }
 
 /// Construct an [ExtensionEvent] from [method] and [params].
 ExtensionEvent _extensionEventFor(String method, dynamic params) {
   return ExtensionEvent(
-    (b) =>
-        b
-          ..params = jsonEncode(json.decode(JSON.stringify(params)))
-          ..method = jsonEncode(method),
+    (b) => b
+      ..params = jsonEncode(json.decode(JSON.stringify(params)))
+      ..method = jsonEncode(method),
   );
 }
 

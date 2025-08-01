@@ -29,13 +29,13 @@ enum StorageObject {
   multipleAppsDetected;
 
   Persistence get persistence => switch (this) {
-    StorageObject.debugInfo => Persistence.sessionOnly,
-    StorageObject.devToolsOpener => Persistence.acrossSessions,
-    StorageObject.devToolsUri => Persistence.sessionOnly,
-    StorageObject.encodedUri => Persistence.sessionOnly,
-    StorageObject.isAuthenticated => Persistence.sessionOnly,
-    StorageObject.multipleAppsDetected => Persistence.sessionOnly,
-  };
+        StorageObject.debugInfo => Persistence.sessionOnly,
+        StorageObject.devToolsOpener => Persistence.acrossSessions,
+        StorageObject.devToolsUri => Persistence.sessionOnly,
+        StorageObject.encodedUri => Persistence.sessionOnly,
+        StorageObject.isAuthenticated => Persistence.sessionOnly,
+        StorageObject.multipleAppsDetected => Persistence.sessionOnly,
+      };
 }
 
 enum Persistence { sessionOnly, acrossSessions }

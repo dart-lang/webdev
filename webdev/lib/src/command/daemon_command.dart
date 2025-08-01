@@ -22,10 +22,10 @@ import 'configuration.dart';
 import 'shared.dart';
 
 Stream<Map<String, dynamic>> get _stdinCommandStream => stdin
-        .transform<String>(utf8.decoder)
-        .transform<String>(const LineSplitter())
-        .where((String line) => line.startsWith('[{') && line.endsWith('}]'))
-        .map<Map<String, dynamic>>((String line) {
+    .transform<String>(utf8.decoder)
+    .transform<String>(const LineSplitter())
+    .where((String line) => line.startsWith('[{') && line.endsWith('}]'))
+    .map<Map<String, dynamic>>((String line) {
       line = line.substring(1, line.length - 1);
       return json.decode(line) as Map<String, dynamic>;
     });
@@ -61,9 +61,15 @@ class DaemonCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final configuration = Configuration.fromArgs(argResults,
-        defaultConfiguration: Configuration(
-            launchInChrome: true, debug: true, autoRun: false, release: false));
+    final configuration = Configuration.fromArgs(
+      argResults,
+      defaultConfiguration: Configuration(
+        launchInChrome: true,
+        debug: true,
+        autoRun: false,
+        release: false,
+      ),
+    );
     configureLogWriter(configuration.verbose);
     // Validate the pubspec first to ensure we are in a Dart project.
     try {
@@ -76,43 +82,55 @@ class DaemonCommand extends Command<int> {
     Daemon? daemon;
     DevWorkflow? workflow;
     var cancelCount = 0;
-    final cancelSub = StreamGroup.merge([
-      ProcessSignal.sigint.watch(),
-      // SIGTERM is not supported on Windows.
-      Platform.isWindows ? const Stream.empty() : ProcessSignal.sigterm.watch()
-    ]).listen((signal) async {
-      cancelCount++;
-      daemon?.shutdown();
-      if (cancelCount > 1) exit(1);
-    });
+    final cancelSub =
+        StreamGroup.merge([
+          ProcessSignal.sigint.watch(),
+          // SIGTERM is not supported on Windows.
+          Platform.isWindows
+              ? const Stream.empty()
+              : ProcessSignal.sigterm.watch(),
+        ]).listen((signal) async {
+          cancelCount++;
+          daemon?.shutdown();
+          if (cancelCount > 1) exit(1);
+        });
     try {
       daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
       final daemonDomain = DaemonDomain(daemon);
-      configureLogWriter(configuration.verbose, customLogWriter:
-          (level, message, {loggerName, error, stackTrace, verbose}) {
-        if (configuration.verbose || level >= Level.INFO) {
-          daemonDomain.sendEvent('daemon.log', {
-            'log': formatLog(
-              level,
-              message,
-              loggerName: loggerName,
-              error: error,
-              stackTrace: stackTrace,
-            )
-          });
-        }
-      });
+      configureLogWriter(
+        configuration.verbose,
+        customLogWriter:
+            (level, message, {loggerName, error, stackTrace, verbose}) {
+              if (configuration.verbose || level >= Level.INFO) {
+                daemonDomain.sendEvent('daemon.log', {
+                  'log': formatLog(
+                    level,
+                    message,
+                    loggerName: loggerName,
+                    error: error,
+                    stackTrace: stackTrace,
+                  ),
+                });
+              }
+            },
+      );
       daemon.registerDomain(daemonDomain);
       final buildOptions = buildRunnerArgs(configuration);
       final extraArgs = argResults?.rest ?? [];
-      final directoryArgs =
-          extraArgs.where((arg) => !arg.startsWith('-')).toList();
-      final targetPorts =
-          parseDirectoryArgs(directoryArgs, basePort: await findUnusedPort());
+      final directoryArgs = extraArgs
+          .where((arg) => !arg.startsWith('-'))
+          .toList();
+      final targetPorts = parseDirectoryArgs(
+        directoryArgs,
+        basePort: await findUnusedPort(),
+      );
       validateLaunchApps(configuration.launchApps, targetPorts.keys);
 
-      workflow =
-          await DevWorkflow.start(configuration, buildOptions, targetPorts);
+      workflow = await DevWorkflow.start(
+        configuration,
+        buildOptions,
+        targetPorts,
+      );
       daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
       await daemon.onExit;
       exitCode = 0;

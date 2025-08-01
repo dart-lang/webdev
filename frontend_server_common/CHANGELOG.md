@@ -1,5 +1,6 @@
 ## 0.2.3-wip
 
+- Update minimum SDK constraint to 3.8.0.
 - Add bootstrapping code for DDC library bundle format.
 
 ## 0.2.2

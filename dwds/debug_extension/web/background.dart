@@ -217,20 +217,19 @@ bool _isInternalNavigation(NavigationInfo navigationInfo) {
 
 DebugInfo _addTabInfo(DebugInfo debugInfo, {required Tab tab}) {
   return DebugInfo(
-    (b) =>
-        b
-          ..appEntrypointPath = debugInfo.appEntrypointPath
-          ..appId = debugInfo.appId
-          ..appInstanceId = debugInfo.appInstanceId
-          ..appOrigin = debugInfo.appOrigin
-          ..appUrl = debugInfo.appUrl
-          ..authUrl = debugInfo.authUrl
-          ..extensionUrl = debugInfo.extensionUrl
-          ..isInternalBuild = debugInfo.isInternalBuild
-          ..isFlutterApp = debugInfo.isFlutterApp
-          ..workspaceName = debugInfo.workspaceName
-          ..tabUrl = tab.url
-          ..tabId = tab.id,
+    (b) => b
+      ..appEntrypointPath = debugInfo.appEntrypointPath
+      ..appId = debugInfo.appId
+      ..appInstanceId = debugInfo.appInstanceId
+      ..appOrigin = debugInfo.appOrigin
+      ..appUrl = debugInfo.appUrl
+      ..authUrl = debugInfo.authUrl
+      ..extensionUrl = debugInfo.extensionUrl
+      ..isInternalBuild = debugInfo.isInternalBuild
+      ..isFlutterApp = debugInfo.isFlutterApp
+      ..workspaceName = debugInfo.workspaceName
+      ..tabUrl = tab.url
+      ..tabId = tab.id,
   );
 }
 

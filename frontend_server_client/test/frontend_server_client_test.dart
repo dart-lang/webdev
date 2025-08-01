@@ -47,12 +47,14 @@ void main() async {
 
 String get message => p.join('hello', 'world');
 
-''')
+'''),
       ]),
     ]).create();
     packageRoot = p.join(d.sandbox, 'a');
-    await Process.run(Platform.resolvedExecutable, ['pub', 'get'],
-        workingDirectory: packageRoot);
+    await Process.run(Platform.resolvedExecutable, [
+      'pub',
+      'get',
+    ], workingDirectory: packageRoot);
     packageConfig = (await findPackageConfig(Directory(packageRoot)))!;
   });
 
@@ -60,151 +62,161 @@ String get message => p.join('hello', 'world');
     await client.shutdown();
   });
 
-  test(
-    'can compile, recompile, and hot reload a vm app',
-    () async {
-      final entrypoint = p.join(packageRoot, 'bin', 'main.dart');
-      client = await FrontendServerClient.start(
-          entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill);
-      var result = await client.compile();
-      client.accept();
-      expect(result.compilerOutputLines, isEmpty);
-      expect(result.errorCount, 0);
-      expect(
-          result.newSources,
-          containsAll([
-            File(entrypoint).uri,
-            packageConfig.resolve(Uri.parse('package:path/path.dart')),
-          ]));
-      expect(result.removedSources, isEmpty);
-      expect(result.dillOutput, isNotNull);
-      expect(File(result.dillOutput!).existsSync(), true);
-      final process = await Process.start(Platform.resolvedExecutable, [
-        '--observe',
-        '--no-pause-isolates-on-exit',
-        '--pause-isolates-on-start',
-        result.dillOutput!
-      ]);
-      addTearDown(process.kill);
-      final stdoutLines = StreamQueue(process.stdout
-          .transform(utf8.decoder)
-          .transform(const LineSplitter()));
+  test('can compile, recompile, and hot reload a vm app', () async {
+    final entrypoint = p.join(packageRoot, 'bin', 'main.dart');
+    client = await FrontendServerClient.start(
+      entrypoint,
+      p.join(packageRoot, 'out.dill'),
+      vmPlatformDill,
+    );
+    var result = await client.compile();
+    client.accept();
+    expect(result.compilerOutputLines, isEmpty);
+    expect(result.errorCount, 0);
+    expect(
+      result.newSources,
+      containsAll([
+        File(entrypoint).uri,
+        packageConfig.resolve(Uri.parse('package:path/path.dart')),
+      ]),
+    );
+    expect(result.removedSources, isEmpty);
+    expect(result.dillOutput, isNotNull);
+    expect(File(result.dillOutput!).existsSync(), true);
+    final process = await Process.start(Platform.resolvedExecutable, [
+      '--observe',
+      '--no-pause-isolates-on-exit',
+      '--pause-isolates-on-start',
+      result.dillOutput!,
+    ]);
+    addTearDown(process.kill);
+    final stdoutLines = StreamQueue(
+      process.stdout.transform(utf8.decoder).transform(const LineSplitter()),
+    );
 
-      final observatoryLine = await stdoutLines.next;
-      final observatoryUri =
-          '${observatoryLine.split(' ').last.replaceFirst('http', 'ws')}ws';
-      final vmService = await vmServiceConnectUri(observatoryUri);
-      final isolate = await waitForIsolatesAndResume(vmService);
+    final observatoryLine = await stdoutLines.next;
+    final observatoryUri =
+        '${observatoryLine.split(' ').last.replaceFirst('http', 'ws')}ws';
+    final vmService = await vmServiceConnectUri(observatoryUri);
+    final isolate = await waitForIsolatesAndResume(vmService);
 
-      await expectLater(stdoutLines, emitsThrough(p.join('hello', 'world')));
+    await expectLater(stdoutLines, emitsThrough(p.join('hello', 'world')));
 
-      final appFile = File(entrypoint);
-      final originalContent = await appFile.readAsString();
-      final newContent = originalContent.replaceFirst('hello', 'goodbye');
-      await appFile.writeAsString(newContent);
+    final appFile = File(entrypoint);
+    final originalContent = await appFile.readAsString();
+    final newContent = originalContent.replaceFirst('hello', 'goodbye');
+    await appFile.writeAsString(newContent);
 
-      result = await client.compile([File(entrypoint).uri]);
+    result = await client.compile([File(entrypoint).uri]);
 
-      client.accept();
-      expect(result.newSources, isEmpty);
-      expect(result.removedSources, isEmpty);
-      expect(result.compilerOutputLines, isEmpty);
-      expect(result.errorCount, 0);
-      expect(result.dillOutput, endsWith('.incremental.dill'));
+    client.accept();
+    expect(result.newSources, isEmpty);
+    expect(result.removedSources, isEmpty);
+    expect(result.compilerOutputLines, isEmpty);
+    expect(result.errorCount, 0);
+    expect(result.dillOutput, endsWith('.incremental.dill'));
 
-      await vmService.reloadSources(isolate.id!, rootLibUri: result.dillOutput);
+    await vmService.reloadSources(isolate.id!, rootLibUri: result.dillOutput);
 
-      expect(await stdoutLines.next, p.join('goodbye', 'world'));
-      expect(await process.exitCode, 0);
-    },
-  );
+    expect(await stdoutLines.next, p.join('goodbye', 'world'));
+    expect(await process.exitCode, 0);
+  });
 
-  test(
-    'can handle compile errors and reload fixes',
-    () async {
-      final entrypoint = p.join(packageRoot, 'bin', 'main.dart');
-      final entrypointFile = File(entrypoint);
-      final originalContent = await entrypointFile.readAsString();
-      // append two compile errors to the bottom
-      await entrypointFile
-          .writeAsString('$originalContent\nint foo = 1.0;\nString bar = 4;');
+  test('can handle compile errors and reload fixes', () async {
+    final entrypoint = p.join(packageRoot, 'bin', 'main.dart');
+    final entrypointFile = File(entrypoint);
+    final originalContent = await entrypointFile.readAsString();
+    // append two compile errors to the bottom
+    await entrypointFile.writeAsString(
+      '$originalContent\nint foo = 1.0;\nString bar = 4;',
+    );
 
-      client = await FrontendServerClient.start(
-          entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill);
-      var result = await client.compile();
+    client = await FrontendServerClient.start(
+      entrypoint,
+      p.join(packageRoot, 'out.dill'),
+      vmPlatformDill,
+    );
+    var result = await client.compile();
 
-      client.accept();
-      expect(result.errorCount, 2);
-      expect(result.compilerOutputLines,
-          allOf(contains('int foo = 1.0;'), contains('String bar = 4;')));
-      expect(
-          result.newSources,
-          containsAll([
-            File(entrypoint).uri,
-            packageConfig.resolve(Uri.parse('package:path/path.dart')),
-          ]));
-      expect(result.removedSources, isEmpty);
-      expect(result.dillOutput, isNotNull);
-      expect(File(result.dillOutput!).existsSync(), true);
+    client.accept();
+    expect(result.errorCount, 2);
+    expect(
+      result.compilerOutputLines,
+      allOf(contains('int foo = 1.0;'), contains('String bar = 4;')),
+    );
+    expect(
+      result.newSources,
+      containsAll([
+        File(entrypoint).uri,
+        packageConfig.resolve(Uri.parse('package:path/path.dart')),
+      ]),
+    );
+    expect(result.removedSources, isEmpty);
+    expect(result.dillOutput, isNotNull);
+    expect(File(result.dillOutput!).existsSync(), true);
 
-      final process = await Process.start(Platform.resolvedExecutable, [
-        '--observe',
-        '--no-pause-isolates-on-exit',
-        '--pause-isolates-on-start',
-        result.dillOutput!
-      ]);
-      addTearDown(process.kill);
-      final stdoutLines = StreamQueue(process.stdout
-          .transform(utf8.decoder)
-          .transform(const LineSplitter()));
+    final process = await Process.start(Platform.resolvedExecutable, [
+      '--observe',
+      '--no-pause-isolates-on-exit',
+      '--pause-isolates-on-start',
+      result.dillOutput!,
+    ]);
+    addTearDown(process.kill);
+    final stdoutLines = StreamQueue(
+      process.stdout.transform(utf8.decoder).transform(const LineSplitter()),
+    );
 
-      final observatoryLine = await stdoutLines.next;
-      final observatoryUri =
-          '${observatoryLine.split(' ').last.replaceFirst('http', 'ws')}ws';
-      final vmService = await vmServiceConnectUri(observatoryUri);
-      final isolate = await waitForIsolatesAndResume(vmService);
+    final observatoryLine = await stdoutLines.next;
+    final observatoryUri =
+        '${observatoryLine.split(' ').last.replaceFirst('http', 'ws')}ws';
+    final vmService = await vmServiceConnectUri(observatoryUri);
+    final isolate = await waitForIsolatesAndResume(vmService);
 
-      // The program actually runs regardless of the errors, as they don't affect
-      // the runtime behavior.
-      await expectLater(stdoutLines, emitsThrough(p.join('hello', 'world')));
+    // The program actually runs regardless of the errors, as they don't affect
+    // the runtime behavior.
+    await expectLater(stdoutLines, emitsThrough(p.join('hello', 'world')));
 
-      await entrypointFile
-          .writeAsString(originalContent.replaceFirst('hello', 'goodbye'));
-      result = await client.compile([entrypointFile.uri]);
-      client.accept();
-      expect(result.errorCount, 0);
-      expect(result.compilerOutputLines, isEmpty);
-      expect(result.newSources, isEmpty);
-      expect(result.removedSources, isEmpty);
-      expect(result.dillOutput, isNotNull);
-      expect(File(result.dillOutput!).existsSync(), true);
+    await entrypointFile.writeAsString(
+      originalContent.replaceFirst('hello', 'goodbye'),
+    );
+    result = await client.compile([entrypointFile.uri]);
+    client.accept();
+    expect(result.errorCount, 0);
+    expect(result.compilerOutputLines, isEmpty);
+    expect(result.newSources, isEmpty);
+    expect(result.removedSources, isEmpty);
+    expect(result.dillOutput, isNotNull);
+    expect(File(result.dillOutput!).existsSync(), true);
 
-      await vmService.reloadSources(isolate.id!, rootLibUri: result.dillOutput);
+    await vmService.reloadSources(isolate.id!, rootLibUri: result.dillOutput);
 
-      expect(await stdoutLines.next, p.join('goodbye', 'world'));
-      expect(await process.exitCode, 0);
-    },
-  );
+    expect(await stdoutLines.next, p.join('goodbye', 'world'));
+    expect(await process.exitCode, 0);
+  });
 
   test('can compile and recompile a dartdevc app', () async {
-    final entrypoint =
-        p.toUri(p.join(packageRoot, 'bin', 'main.dart')).toString();
+    final entrypoint = p
+        .toUri(p.join(packageRoot, 'bin', 'main.dart'))
+        .toString();
     final dartDevcClient = client = await DartDevcFrontendServerClient.start(
-        entrypoint, p.join(packageRoot, 'out.dill'),
-        platformKernel: p
-            .toUri(p.join(sdkDir, 'lib', '_internal', 'ddc_platform.dill'))
-            .toString());
+      entrypoint,
+      p.join(packageRoot, 'out.dill'),
+      platformKernel: p
+          .toUri(p.join(sdkDir, 'lib', '_internal', 'ddc_platform.dill'))
+          .toString(),
+    );
     var result = await client.compile();
     client.accept();
 
     expect(result.compilerOutputLines, isEmpty);
     expect(result.errorCount, 0);
     expect(
-        result.newSources,
-        containsAll([
-          Uri.parse(entrypoint),
-          packageConfig.resolve(Uri.parse('package:path/path.dart')),
-        ]));
+      result.newSources,
+      containsAll([
+        Uri.parse(entrypoint),
+        packageConfig.resolve(Uri.parse('package:path/path.dart')),
+      ]),
+    );
     expect(result.removedSources, isEmpty);
 
     expect(result.dillOutput, isNotNull);
@@ -214,8 +226,9 @@ String get message => p.join('hello', 'world');
 
     final entrypointUri = Uri.parse(entrypoint);
     expect(
-        utf8.decode(dartDevcClient.assetBytes('${entrypointUri.path}.lib.js')!),
-        contains('hello'));
+      utf8.decode(dartDevcClient.assetBytes('${entrypointUri.path}.lib.js')!),
+      contains('hello'),
+    );
 
     final appFile = File(entrypointUri.toFilePath());
     final originalContent = await appFile.readAsString();
@@ -231,8 +244,9 @@ String get message => p.join('hello', 'world');
     expect(result.jsManifestOutput, endsWith('.incremental.dill.json'));
 
     expect(
-        utf8.decode(dartDevcClient.assetBytes('${entrypointUri.path}.lib.js')!),
-        contains('goodbye'));
+      utf8.decode(dartDevcClient.assetBytes('${entrypointUri.path}.lib.js')!),
+      contains('goodbye'),
+    );
   });
 
   test('can enable experiments', () async {
@@ -246,13 +260,16 @@ int x;
 void main() {
   print(x);
 }
-''')
-      ])
+'''),
+      ]),
     ]).create();
     final entrypoint = p.join(packageRoot, 'bin', 'nnbd.dart');
     client = await FrontendServerClient.start(
-        entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill,
-        enabledExperiments: ['non-nullable']);
+      entrypoint,
+      p.join(packageRoot, 'out.dill'),
+      vmPlatformDill,
+      enabledExperiments: ['non-nullable'],
+    );
     final result = await client.compile();
     client.accept();
     expect(result.errorCount, 1);
@@ -266,27 +283,27 @@ void main() {
 void main() {
   print('hello world');
 }
-''')
+'''),
       ]),
     ]).create();
 
     final entrypoint = p.join(packageRoot, 'bin', 'main with spaces.dart');
-    client = await FrontendServerClient.start(entrypoint,
-        p.join(packageRoot, 'out with spaces.dill'), vmPlatformDill);
+    client = await FrontendServerClient.start(
+      entrypoint,
+      p.join(packageRoot, 'out with spaces.dill'),
+      vmPlatformDill,
+    );
     var result = await client.compile();
     client.accept();
     expect(result.compilerOutputLines, isEmpty);
     expect(result.errorCount, 0);
-    expect(
-        result.newSources,
-        containsAll([
-          File(entrypoint).uri,
-        ]));
+    expect(result.newSources, containsAll([File(entrypoint).uri]));
     expect(result.removedSources, isEmpty);
     expect(result.dillOutput, isNotNull);
     expect(File(result.dillOutput!).existsSync(), true);
-    var processResult =
-        await Process.run(Platform.resolvedExecutable, [result.dillOutput!]);
+    var processResult = await Process.run(Platform.resolvedExecutable, [
+      result.dillOutput!,
+    ]);
 
     expect(processResult.stdout, startsWith('hello world'));
     expect(processResult.exitCode, 0);
@@ -301,8 +318,9 @@ void main() {
     expect(result.newSources, isEmpty);
     expect(result.removedSources, isEmpty);
 
-    processResult =
-        await Process.run(Platform.resolvedExecutable, [result.dillOutput!]);
+    processResult = await Process.run(Platform.resolvedExecutable, [
+      result.dillOutput!,
+    ]);
     expect(processResult.stdout, startsWith('goodbye world'));
     expect(processResult.exitCode, 0);
   });

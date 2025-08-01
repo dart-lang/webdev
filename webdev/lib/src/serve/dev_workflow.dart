@@ -20,39 +20,42 @@ import 'server_manager.dart';
 import 'webdev_server.dart';
 
 Future<BuildDaemonClient> _startBuildDaemon(
-    String workingDirectory, List<String> buildOptions) async {
+  String workingDirectory,
+  List<String> buildOptions,
+) async {
   try {
     logWriter(logging.Level.INFO, 'Connecting to the build daemon...');
-    return await connectClient(
-      workingDirectory,
-      buildOptions,
-      (serverLog) {
-        logWriter(toLoggingLevel(serverLog.level), serverLog.message,
-            loggerName: serverLog.loggerName,
-            error: serverLog.error,
-            stackTrace: serverLog.stackTrace);
-      },
-    );
+    return await connectClient(workingDirectory, buildOptions, (serverLog) {
+      logWriter(
+        toLoggingLevel(serverLog.level),
+        serverLog.message,
+        loggerName: serverLog.loggerName,
+        error: serverLog.error,
+        stackTrace: serverLog.stackTrace,
+      );
+    });
   } on OptionsSkew {
     // TODO(grouma) - Give an option to kill the running daemon.
     throw StateError(
-        'Incompatible options with current running build daemon.\n\n'
-        'Please stop other WebDev instances running in this directory '
-        'before starting a new instance with these options.');
+      'Incompatible options with current running build daemon.\n\n'
+      'Please stop other WebDev instances running in this directory '
+      'before starting a new instance with these options.',
+    );
   }
 }
 
 String _uriForLaunchApp(String launchApp, ServerManager serverManager) {
   final parts = p.url.split(launchApp);
   final dir = parts.first;
-  final server =
-      serverManager.servers.firstWhere((server) => server.target == dir);
+  final server = serverManager.servers.firstWhere(
+    (server) => server.target == dir,
+  );
   return Uri(
-          scheme: 'http',
-          host: server.host,
-          port: server.port,
-          pathSegments: parts.skip(1))
-      .toString();
+    scheme: 'http',
+    host: server.host,
+    port: server.port,
+    pathSegments: parts.skip(1),
+  ).toString();
 }
 
 Future<Chrome?> _startChrome(
@@ -66,15 +69,18 @@ Future<Chrome?> _startChrome(
         Uri(scheme: 'http', host: s.host, port: s.port).toString()
     else
       for (final app in configuration.launchApps)
-        _uriForLaunchApp(app, serverManager)
+        _uriForLaunchApp(app, serverManager),
   ];
   try {
     if (configuration.launchInChrome) {
       final userDataDir = configuration.userDataDir == autoOption
           ? autoDetectChromeUserDataDirectory()
           : configuration.userDataDir;
-      return await Chrome.start(uris,
-          port: configuration.chromeDebugPort, userDataDir: userDataDir);
+      return await Chrome.start(
+        uris,
+        port: configuration.chromeDebugPort,
+        userDataDir: userDataDir,
+      );
     } else if (configuration.chromeDebugPort != 0) {
       return await Chrome.fromExisting(configuration.chromeDebugPort);
     }
@@ -95,22 +101,22 @@ Future<ServerManager> _startServerManager(
   final assetPort = daemonPort(workingDirectory);
   final serverOptions = <ServerOptions>{};
   for (final target in targetPorts.keys) {
-    serverOptions.add(ServerOptions(
-      configuration,
-      targetPorts[target]!,
-      target,
-      assetPort,
-    ));
+    serverOptions.add(
+      ServerOptions(configuration, targetPorts[target]!, target, assetPort),
+    );
   }
   logWriter(logging.Level.INFO, 'Starting resource servers...');
-  final serverManager =
-      await ServerManager.start(serverOptions, client.buildResults);
+  final serverManager = await ServerManager.start(
+    serverOptions,
+    client.buildResults,
+  );
 
   for (final server in serverManager.servers) {
     logWriter(
-        logging.Level.INFO,
-        'Serving `${server.target}` on '
-        '${Uri(scheme: server.protocol, host: server.host, port: server.port)}\n');
+      logging.Level.INFO,
+      'Serving `${server.target}` on '
+      '${Uri(scheme: server.protocol, host: server.host, port: server.port)}\n',
+    );
   }
 
   return serverManager;
@@ -127,25 +133,37 @@ void _registerBuildTargets(
     if (configuration.outputPath != null &&
         (configuration.outputInput == null ||
             target == configuration.outputInput)) {
-      outputLocation = OutputLocation((b) => b
-        ..output = configuration.outputPath
-        ..useSymlinks = true
-        ..hoist = true);
+      outputLocation = OutputLocation(
+        (b) => b
+          ..output = configuration.outputPath
+          ..useSymlinks = true
+          ..hoist = true,
+      );
     }
-    client.registerBuildTarget(DefaultBuildTarget((b) => b
-      ..target = target
-      ..outputLocation = outputLocation?.toBuilder()));
+    client.registerBuildTarget(
+      DefaultBuildTarget(
+        (b) => b
+          ..target = target
+          ..outputLocation = outputLocation?.toBuilder(),
+      ),
+    );
   }
   // Empty string indicates we should build everything, register a corresponding
   // target.
   if (configuration.outputInput == '' && configuration.outputPath != null) {
-    final outputLocation = OutputLocation((b) => b
-      ..output = configuration.outputPath
-      ..useSymlinks = true
-      ..hoist = false);
-    client.registerBuildTarget(DefaultBuildTarget((b) => b
-      ..target = ''
-      ..outputLocation = outputLocation.toBuilder()));
+    final outputLocation = OutputLocation(
+      (b) => b
+        ..output = configuration.outputPath
+        ..useSymlinks = true
+        ..hoist = false,
+    );
+    client.registerBuildTarget(
+      DefaultBuildTarget(
+        (b) => b
+          ..target = ''
+          ..outputLocation = outputLocation.toBuilder(),
+      ),
+    );
   }
 }
 
@@ -163,15 +181,13 @@ class DevWorkflow {
 
   final _wrapWidth = stdout.hasTerminal ? stdout.terminalColumns - 8 : 72;
 
-  DevWorkflow._(
-    this._client,
-    this._chrome,
-    this.serverManager,
-  ) {
+  DevWorkflow._(this._client, this._chrome, this.serverManager) {
     _resultsSub = _client.buildResults.listen((data) {
-      if (data.results.any((result) =>
-          result.status == BuildStatus.failed ||
-          result.status == BuildStatus.succeeded)) {
+      if (data.results.any(
+        (result) =>
+            result.status == BuildStatus.failed ||
+            result.status == BuildStatus.succeeded,
+      )) {
         logWriter(logging.Level.INFO, '${'-' * _wrapWidth}\n');
       }
     });
@@ -198,7 +214,11 @@ class DevWorkflow {
     logWriter(logging.Level.INFO, 'Starting initial build...');
     client.startBuild();
     final serverManager = await _startServerManager(
-        configuration, targetPorts, workingDirectory, client);
+      configuration,
+      targetPorts,
+      workingDirectory,
+      client,
+    );
     final chrome = await _startChrome(configuration, serverManager, client);
     return DevWorkflow._(client, chrome, serverManager);
   }

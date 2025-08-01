@@ -13,15 +13,19 @@ import 'package:test_process/test_process.dart';
 
 void main() {
   test('web client example can build and rebuild an app', () async {
-    final process = await TestProcess.start(
-        Platform.resolvedExecutable, ['run', 'example/web_client.dart']);
-    await expectLater(process.stdout,
-        emitsThrough(contains('done compiling example/app/main.dart')));
+    final process = await TestProcess.start(Platform.resolvedExecutable, [
+      'run',
+      'example/web_client.dart',
+    ]);
+    await expectLater(
+      process.stdout,
+      emitsThrough(contains('done compiling example/app/main.dart')),
+    );
     process.stdin.writeln('new message');
     await expectLater(
-        process.stdout,
-        emitsThrough(
-            contains('Recompile succeeded for example/app/main.dart')));
+      process.stdout,
+      emitsThrough(contains('Recompile succeeded for example/app/main.dart')),
+    );
     process.stdin.writeln('quit');
     expect(await process.exitCode, 0);
   });
