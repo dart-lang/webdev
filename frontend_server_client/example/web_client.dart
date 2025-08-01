@@ -32,6 +32,7 @@ void main(List<String> args) async {
       '--multi-root-scheme=org-dartlang-sdk',
       '--modules=amd',
       '--module-name=dart_sdk',
+      '--sound-null-safety',
       '-o',
       dartSdkJs,
       p.url.join(sdkDir, sdkKernelPath),
