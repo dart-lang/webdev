@@ -1,5 +1,5 @@
-name: _webdev_sound_smoke
-description: A test fixture for webdev testing with sound support.
+name: _webdev_smoke
+description: A test fixture for webdev testing.
 
 publish_to: none
 
