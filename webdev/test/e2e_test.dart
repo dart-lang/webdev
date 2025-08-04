@@ -5,6 +5,7 @@
 @Timeout(Duration(minutes: 5))
 library;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:io/io.dart';
@@ -210,8 +211,12 @@ void main() {
           args.add('--release');
         }
 
+        final stdoutDone = Completer<void>();
+        final stderrDone = Completer<void>();
         final process = await testRunner.runWebDev(args,
             workingDirectory: soundExampleDirectory);
+        process.stdoutStream().listen((_) => {}, onDone: stdoutDone.complete);
+        process.stderrStream().listen((_) => {}, onDone: stderrDone.complete);
 
         final hostUrl = 'http://localhost:$openPort';
 
@@ -239,6 +244,7 @@ void main() {
 
         await process.kill();
         await process.shouldExit();
+        await Future.wait([stdoutDone.future, stderrDone.future]);
       });
     }
   });
