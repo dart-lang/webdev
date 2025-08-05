@@ -1,7 +1,7 @@
-name: _experiment_sound
+name: _test
 version: 1.0.0
 description: >-
-  A fake package used for testing experimental language features.
+  A fake package used for testing.
 publish_to: none
 
 environment:

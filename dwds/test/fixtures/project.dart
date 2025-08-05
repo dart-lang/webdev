@@ -22,7 +22,7 @@ class TestProject {
   late Directory _fixturesCopy;
 
   /// The top level directory in which we run the test server, e.g.
-  /// "/tmp/_testSound".
+  /// "/tmp/_test".
   String get absolutePackageDirectory =>
       p.join(_fixturesCopy.absolute.path, packageDirectory);
 
@@ -39,7 +39,7 @@ class TestProject {
   }
 
   /// The path to the Dart entry file, e.g,
-  /// "/tmp/_testSound/example/hello_world/main.dart":
+  /// "/tmp/_test/example/hello_world/main.dart":
   String get dartEntryFilePath => p.joinAll([
     _fixturesCopy.absolute.path,
     packageDirectory,
@@ -61,8 +61,8 @@ class TestProject {
 
   TestProject.testPackage({IndexBaseMode baseMode = IndexBaseMode.noBase})
     : this._(
-        packageName: '_test_package_sound',
-        packageDirectory: '_testPackageSound',
+        packageName: '_test_package',
+        packageDirectory: '_test_package',
         webAssetsPath: 'web',
         dartEntryFileName: 'main.dart',
         htmlEntryFileName:
@@ -70,8 +70,8 @@ class TestProject {
       );
 
   static final testCircular1 = TestProject._(
-    packageName: '_test_circular1_sound',
-    packageDirectory: '_testCircular1Sound',
+    packageName: '_test_circular1',
+    packageDirectory: '_test_circular1',
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
@@ -79,8 +79,8 @@ class TestProject {
 
   TestProject.testCircular2({IndexBaseMode baseMode = IndexBaseMode.noBase})
     : this._(
-        packageName: '_test_circular2_sound',
-        packageDirectory: '_testCircular2Sound',
+        packageName: '_test_circular2',
+        packageDirectory: '_test_circular2',
         webAssetsPath: 'web',
         dartEntryFileName: 'main.dart',
         htmlEntryFileName:
@@ -88,32 +88,32 @@ class TestProject {
       );
 
   static final test = TestProject._(
-    packageName: '_test_sound',
-    packageDirectory: '_testSound',
+    packageName: '_test',
+    packageDirectory: '_test',
     webAssetsPath: 'example/hello_world',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
   );
 
   static final testScopes = TestProject._(
-    packageName: '_test_sound',
-    packageDirectory: '_testSound',
+    packageName: '_test',
+    packageDirectory: '_test',
     webAssetsPath: webCompatiblePath(['example', 'scopes']),
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'scopes.html',
   );
 
   static final testAppendBody = TestProject._(
-    packageName: '_test_sound',
-    packageDirectory: '_testSound',
+    packageName: '_test',
+    packageDirectory: '_test',
     webAssetsPath: webCompatiblePath(['example', 'append_body']),
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
   );
 
   static final testExperiment = TestProject._(
-    packageName: '_experiment_sound',
-    packageDirectory: '_experimentSound',
+    packageName: '_experiment',
+    packageDirectory: '_experiment',
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
@@ -121,7 +121,7 @@ class TestProject {
 
   static final testHotRestart1 = TestProject._(
     packageName: '_test_hot_restart1',
-    packageDirectory: '_testHotRestart1Sound',
+    packageDirectory: '_test_hot_restart1',
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
@@ -131,7 +131,7 @@ class TestProject {
   /// order to test correctness when only a subset of libraries are updated.
   static final testHotRestart2 = TestProject._(
     packageName: '_test_hot_restart2',
-    packageDirectory: '_testHotRestart2Sound',
+    packageDirectory: '_test_hot_restart2',
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
@@ -139,7 +139,7 @@ class TestProject {
 
   static final testHotRestartBreakpoints = TestProject._(
     packageName: '_test_hot_restart_breakpoints',
-    packageDirectory: '_testHotRestartBreakpoints',
+    packageDirectory: '_test_hot_restart_breakpoints',
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
@@ -147,7 +147,7 @@ class TestProject {
 
   static final testHotReload = TestProject._(
     packageName: '_test_hot_reload',
-    packageDirectory: '_testHotReload',
+    packageDirectory: '_test_hot_reload',
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
@@ -155,7 +155,7 @@ class TestProject {
 
   static final testHotReloadBreakpoints = TestProject._(
     packageName: '_test_hot_reload_breakpoints',
-    packageDirectory: '_testHotReloadBreakpoints',
+    packageDirectory: '_test_hot_reload_breakpoints',
     webAssetsPath: 'web',
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
@@ -257,7 +257,7 @@ class TestProject {
   }
 
   /// The path to the Dart specified file in the 'lib' directory, e.g,
-  /// "/tmp/_testSound/lib/library.dart":
+  /// "/tmp/_test/lib/library.dart":
   String dartLibFilePath(String dartLibFileName) => p.joinAll([
     _fixturesCopy.absolute.path,
     packageDirectory,

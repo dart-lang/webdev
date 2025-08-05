@@ -1,3 +1,7 @@
+## 24.4.2-wip
+
+- Update a call to the `package:shelf_web_socket` `webSocketHandler()` function.
+
 ## 24.4.1
 
 - Implemented a WebSocket-based communication protocol that provides essential developer tooling (hot reload, service extensions) when Chrome debugger access is unavailable. - [#2605](https://github.com/dart-lang/webdev/issues/2605)

@@ -79,16 +79,16 @@ jobs:
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
   job_003:
-    name: "analyzer_and_format; linux; Dart dev; PKGS: example, fixtures/_webdevSoundSmoke, frontend_server_client, frontend_server_common, test_common; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
+    name: "analyzer_and_format; linux; Dart dev; PKGS: example, fixtures/_webdev_smoke, frontend_server_client, frontend_server_common, test_common; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:example-fixtures/_webdevSoundSmoke-frontend_server_client-frontend_server_common-test_common;commands:format-analyze_0"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:example-fixtures/_webdev_smoke-frontend_server_client-frontend_server_common-test_common;commands:format-analyze_0"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:example-fixtures/_webdevSoundSmoke-frontend_server_client-frontend_server_common-test_common
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:example-fixtures/_webdev_smoke-frontend_server_client-frontend_server_common-test_common
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -112,19 +112,19 @@ jobs:
         run: dart analyze --fatal-infos .
         if: "always() && steps.example_pub_upgrade.conclusion == 'success'"
         working-directory: example
-      - id: fixtures__webdevSoundSmoke_pub_upgrade
-        name: fixtures/_webdevSoundSmoke; dart pub upgrade
+      - id: fixtures__webdev_smoke_pub_upgrade
+        name: fixtures/_webdev_smoke; dart pub upgrade
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: fixtures/_webdevSoundSmoke
-      - name: "fixtures/_webdevSoundSmoke; dart format --output=none --set-exit-if-changed ."
+        working-directory: fixtures/_webdev_smoke
+      - name: "fixtures/_webdev_smoke; dart format --output=none --set-exit-if-changed ."
         run: "dart format --output=none --set-exit-if-changed ."
-        if: "always() && steps.fixtures__webdevSoundSmoke_pub_upgrade.conclusion == 'success'"
-        working-directory: fixtures/_webdevSoundSmoke
-      - name: "fixtures/_webdevSoundSmoke; dart analyze --fatal-infos ."
+        if: "always() && steps.fixtures__webdev_smoke_pub_upgrade.conclusion == 'success'"
+        working-directory: fixtures/_webdev_smoke
+      - name: "fixtures/_webdev_smoke; dart analyze --fatal-infos ."
         run: dart analyze --fatal-infos .
-        if: "always() && steps.fixtures__webdevSoundSmoke_pub_upgrade.conclusion == 'success'"
-        working-directory: fixtures/_webdevSoundSmoke
+        if: "always() && steps.fixtures__webdev_smoke_pub_upgrade.conclusion == 'success'"
+        working-directory: fixtures/_webdev_smoke
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         run: dart pub upgrade

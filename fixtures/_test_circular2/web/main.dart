@@ -8,8 +8,8 @@ import 'dart:core';
 // ignore: deprecated_member_use
 import 'dart:html';
 
-import 'package:_test_circular1_sound/library1.dart';
-import 'package:_test_circular2_sound/library2.dart';
+import 'package:_test_circular1/library1.dart';
+import 'package:_test_circular2/library2.dart';
 
 void main() {
   // For setting breakpoints.

@@ -10,9 +10,9 @@ import 'dart:developer';
 // ignore: deprecated_member_use
 import 'dart:html';
 
-import 'package:_test_package_sound/test_library.dart';
-import 'package:_test_sound/deferred_library.dart' deferred as d;
-import 'package:_test_sound/library.dart';
+import 'package:_test_package/test_library.dart';
+import 'package:_test/deferred_library.dart' deferred as d;
+import 'package:_test/library.dart';
 
 extension NumberParsing on String {
   int parseInt() {
