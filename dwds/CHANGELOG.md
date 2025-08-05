@@ -1,6 +1,10 @@
-## 24.4.2-wip
+## 25.0.0-wip
 
 - Update a call to the `package:shelf_web_socket` `webSocketHandler()` function.
+- Remove deprecated parameter `injectDebuggingSupportCode` from `Dwds.start()`.
+- Remove all deprecated fields, getters, and parameters
+  related to the null safety compilation mode. Dart 3 only
+  supports [sound null safety](https://dart.dev/null-safety).
 
 ## 24.4.1
 
