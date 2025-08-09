@@ -368,8 +368,8 @@ class TestContext {
                       packageUriMapper,
                       () async => {},
                       buildSettings,
-                      hotReloadSourcesUri: Uri.parse(
-                        'http://localhost:$port/${WebDevFS.reloadScriptsFileName}',
+                      reloadedSourcesUri: Uri.parse(
+                        'http://localhost:$port/${WebDevFS.reloadedSourcesFileName}',
                       ),
                     ).strategy
                     : FrontendServerDdcStrategyProvider(

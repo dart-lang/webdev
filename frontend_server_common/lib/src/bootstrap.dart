@@ -488,7 +488,10 @@ $_simpleLoaderScript
     // We should have written a file containing all the scripts that need to be
     // reloaded into the page. This is then read when a hot restart is triggered
     // in DDC via the `\$dartReloadModifiedModules` callback.
-    let restartScripts = _currentDirectory + '/restart_scripts.json';
+    // TODO(srujzs): We should avoid using a callback here in the bootstrap once
+    // the embedder supports passing a list of files/libraries to `hotRestart`
+    // instead. Currently, we're forced to read this file twice.
+    let restartScripts = _currentDirectory + '/reloaded_sources.json';
 
     if (!window.\$dartReloadModifiedModules) {
       window.\$dartReloadModifiedModules = (function(appName, callback) {
@@ -502,26 +505,27 @@ $_simpleLoaderScript
             var numLoaded = 0;
             for (var i = 0; i < scripts.length; i++) {
               var script = scripts[i];
-              if (script.id == null) continue;
-              var src = script.src.toString();
-              var oldSrc = window.\$dartLoader.moduleIdToUrl.get(script.id);
+              var module = script.module;
+              if (module == null) continue;
+              var src = script.src;
+              var oldSrc = window.\$dartLoader.moduleIdToUrl.get(module);
 
               // We might actually load from a different uri, delete the old one
               // just to be sure.
               window.\$dartLoader.urlToModuleId.delete(oldSrc);
 
-              window.\$dartLoader.moduleIdToUrl.set(script.id, src);
-              window.\$dartLoader.urlToModuleId.set(src, script.id);
+              window.\$dartLoader.moduleIdToUrl.set(module, src);
+              window.\$dartLoader.urlToModuleId.set(src, module);
 
               numToLoad++;
 
-              var el = document.getElementById(script.id);
+              var el = document.getElementById(module);
               if (el) el.remove();
               el = window.\$dartCreateScript();
               el.src = policy.createScriptURL(src);
               el.async = false;
               el.defer = true;
-              el.id = script.id;
+              el.id = module;
               el.onload = function() {
                 numLoaded++;
                 if (numToLoad == numLoaded) callback();

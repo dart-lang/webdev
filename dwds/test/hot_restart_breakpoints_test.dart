@@ -191,6 +191,24 @@ void main() {
     Future<Event> waitForBreakpoint() =>
         stream.firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
+    test('empty hot restart keeps breakpoints', () async {
+      final genString = 'main gen0';
+
+      await addBreakpoint(file: mainFile, breakpointMarker: callLogMarker);
+
+      final breakpointFuture = waitForBreakpoint();
+
+      await context.recompile(fullRestart: false);
+
+      await hotRestartAndHandlePausePost([
+        (file: mainFile, breakpointMarker: callLogMarker),
+      ]);
+
+      // Should break at `callLog`.
+      await breakpointFuture;
+      await resumeAndExpectLog(genString);
+    });
+
     test('after edit and hot restart, breakpoint is in new file', () async {
       final oldLog = 'main gen0';
       final newLog = 'main gen1';

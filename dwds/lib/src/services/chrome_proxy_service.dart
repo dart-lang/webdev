@@ -91,6 +91,12 @@ class ChromeProxyService extends ProxyService {
   final ExpressionCompiler? _compiler;
   ExpressionEvaluator? _expressionEvaluator;
 
+  /// Isolate creation should wait until this completer is complete to prevent
+  /// computing metadata in an invalid state.
+  ///
+  /// Starts out completed and is reinitialized and completed when needed.
+  Completer<void> allowedToCreateIsolate = Completer<void>()..complete();
+
   bool terminatingIsolates = false;
 
   ChromeProxyService._(
@@ -272,6 +278,15 @@ class ChromeProxyService extends ProxyService {
       throw UnsupportedError(
         'Cannot create multiple isolates for the same app',
       );
+    }
+    // Wait until we're allowed to create the isolate. This is needed in hot
+    // restart as scripts may not be parsed yet.
+    if (!allowedToCreateIsolate.isCompleted) {
+      _logger.info(
+        'Waiting until hot restart is completed before creating '
+        'isolate',
+      );
+      await allowedToCreateIsolate.future;
     }
     // Waiting for the debugger to be ready before initializing the entrypoint.
     //
@@ -1074,15 +1089,18 @@ class ChromeProxyService extends ProxyService {
     final parsedAllReloadedSrcs = Completer<void>();
     // Wait until all the reloaded scripts are parsed before we reinitialize
     // metadata below.
-    final parsedScriptsSubscription = debugger.parsedScriptsController.stream
-        .listen((url) {
-          computedReloadedSrcs.future.then((_) {
-            reloadedSrcs.remove(Uri.parse(url).normalizePath().path);
-            if (reloadedSrcs.isEmpty) {
-              parsedAllReloadedSrcs.complete();
-            }
-          });
-        });
+    late StreamSubscription<String> parsedScriptsSubscription;
+    parsedScriptsSubscription = debugger.parsedScriptsController.stream.listen((
+      url,
+    ) {
+      computedReloadedSrcs.future.then((_) async {
+        reloadedSrcs.remove(Uri.parse(url).normalizePath().path);
+        if (reloadedSrcs.isEmpty) {
+          parsedAllReloadedSrcs.complete();
+          await parsedScriptsSubscription.cancel();
+        }
+      });
+    });
 
     // Initiate a hot reload.
     _logger.info('Issuing \$dartHotReloadStartDwds request');
@@ -1103,7 +1121,6 @@ class ChromeProxyService extends ProxyService {
     }
     computedReloadedSrcs.complete();
     if (reloadedSrcs.isNotEmpty) await parsedAllReloadedSrcs.future;
-    await parsedScriptsSubscription.cancel();
 
     if (!pauseIsolatesOnStart) {
       // Finish hot reload immediately.

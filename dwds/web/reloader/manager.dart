@@ -19,22 +19,50 @@ class ReloadingManager {
 
   ReloadingManager(this._client, this._restarter);
 
-  /// Attempts to perform a hot restart and returns whether it was successful or
-  /// not.
+  /// Attempts to perform a hot restart.
   ///
   /// [runId] is used to hot restart code in the browser for all apps that
   /// - are loaded on the same page
   /// - called hotRestart with the same runId
   ///
   /// The apps are restarted at the same time on the first call.
-  Future<bool> hotRestart({String? runId, Future? readyToRunMain}) async {
+  ///
+  /// [reloadedSourcesPath] is the path to a JSONified list of maps that
+  /// represents the sources that were reloaded in this restart and follows the
+  /// following format:
+  ///
+  /// ```json
+  /// [
+  ///   {
+  ///     "src": "<base_uri>/<file_name>",
+  ///     "module": "<module_name>",
+  ///     "libraries": ["<lib1>", "<lib2>"],
+  ///   },
+  /// ]
+  /// ```
+  ///
+  /// `src`: A string that corresponds to the file path containing a DDC library
+  /// bundle.
+  /// `module`: The name of the library bundle in `src`.
+  /// `libraries`: An array of strings containing the libraries that were
+  /// compiled in `src`.
+  ///
+  /// Returns either the JS version of the list of maps from
+  /// [reloadedSourcesPath] if [reloadedSourcesPath] is non-null and null
+  /// otherwise.
+  Future<JSArray<JSObject>?> hotRestart({
+    String? runId,
+    Future? readyToRunMain,
+    String? reloadedSourcesPath,
+  }) async {
     _beforeRestart();
     final result = await _restarter.restart(
       runId: runId,
       readyToRunMain: readyToRunMain,
+      reloadedSourcesPath: reloadedSourcesPath,
     );
-    _afterRestart(result);
-    return result;
+    _afterRestart(result.$1);
+    return result.$2;
   }
 
   /// After a previous call to [hotReloadStart], completes the hot
@@ -43,7 +71,7 @@ class ReloadingManager {
     await _restarter.hotReloadEnd();
   }
 
-  /// Using [hotReloadSourcesPath] as the path to a JSONified list of maps which
+  /// Using [reloadedSourcesPath] as the path to a JSONified list of maps which
   /// follows the following format:
   ///
   /// ```json
@@ -64,8 +92,8 @@ class ReloadingManager {
   /// `module`: The name of the library bundle in `src`.
   /// `libraries`: An array of strings containing the libraries that were
   /// compiled in `src`.
-  Future<JSArray<JSObject>> hotReloadStart(String hotReloadSourcesPath) =>
-      _restarter.hotReloadStart(hotReloadSourcesPath);
+  Future<JSArray<JSObject>> hotReloadStart(String reloadedSourcesPath) =>
+      _restarter.hotReloadStart(reloadedSourcesPath);
 
   /// Does a hard reload of the application.
   void reloadPage() {

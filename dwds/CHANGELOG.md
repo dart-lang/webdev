@@ -1,6 +1,12 @@
-## 24.4.2-wip
+## 25.0.0
 
 - Update a call to the `package:shelf_web_socket` `webSocketHandler()` function.
+
+**Breaking changes**
+
+- Rename `FrontendServerDdcLibraryBundleStrategy.hotReloadSourcesUri` to
+  `reloadedSourcesUri`. The file that the `Uri` points to should now be updated
+  for both a hot restart and a hot reload.
 
 ## 24.4.1
 

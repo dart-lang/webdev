@@ -133,7 +133,15 @@ class RequireRestarter implements Restarter {
   }
 
   @override
-  Future<bool> restart({String? runId, Future? readyToRunMain}) async {
+  Future<(bool, JSArray<JSObject>?)> restart({
+    String? runId,
+    Future? readyToRunMain,
+    String? reloadedSourcesPath,
+  }) async {
+    assert(
+      reloadedSourcesPath == null,
+      "'reloadedSourcesPath' should not be used for the AMD module format.",
+    );
     await sdk.developer.maybeInvokeFlutterDisassemble();
 
     final newDigests = await _getDigests();
@@ -158,7 +166,7 @@ class RequireRestarter implements Restarter {
     }
     sdk.dart.hotRestart();
     safeUnawaited(_runMainWhenReady(readyToRunMain));
-    return result;
+    return (result, null);
   }
 
   @override
@@ -168,7 +176,7 @@ class RequireRestarter implements Restarter {
       );
 
   @override
-  Future<JSArray<JSObject>> hotReloadStart(String hotReloadSourcesPath) =>
+  Future<JSArray<JSObject>> hotReloadStart(String reloadedSourcesPath) =>
       throw UnimplementedError(
         'Hot reload is not supported for the AMD module format.',
       );

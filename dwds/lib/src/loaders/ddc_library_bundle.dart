@@ -123,9 +123,11 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   /// `libraries`: An array of strings containing the libraries that were
   /// compiled in `src`.
   ///
-  /// This is needed for hot reloads in order to tell the compiler what files
-  /// need to be loaded and what libraries need to be reloaded.
-  final Uri? hotReloadSourcesUri;
+  /// This is needed for hot reloads and restarts in order to tell the compiler
+  /// runtime what files need to be loaded and what libraries need to be
+  /// reloaded. The contents of the file this [Uri] points to should be updated
+  /// whenever a hot reload or hot restart is executed.
+  final Uri? reloadedSourcesUri;
 
   DdcLibraryBundleStrategy(
     this.reloadConfiguration,
@@ -140,7 +142,7 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
     this._buildSettings,
     this._g3RelativePath, {
     String? packageConfigPath,
-    this.hotReloadSourcesUri,
+    this.reloadedSourcesUri,
   }) : super(assetReader, packageConfigPath: packageConfigPath);
 
   @override

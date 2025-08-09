@@ -67,7 +67,7 @@ Future<void>? main() {
 
       hotReloadStartJs =
           () {
-            return manager.hotReloadStart(hotReloadSourcesPath).toJS;
+            return manager.hotReloadStart(hotReloadReloadedSourcesPath).toJS;
           }.toJS;
 
       hotReloadEndJs =
@@ -85,10 +85,16 @@ Future<void>? main() {
                   .hotRestart(
                     runId: runId,
                     readyToRunMain: readyToRunMainCompleter!.future,
+                    reloadedSourcesPath: hotRestartReloadedSourcesPath,
                   )
                   .toJS;
             } else {
-              return manager.hotRestart(runId: runId).toJS;
+              return manager
+                  .hotRestart(
+                    runId: runId,
+                    reloadedSourcesPath: hotRestartReloadedSourcesPath,
+                  )
+                  .toJS;
             }
           }.toJS;
 
@@ -184,7 +190,7 @@ Future<void>? main() {
                 'ReloadConfiguration.hotRestart') {
               await manager.hotRestart();
             } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
-              await manager.hotReloadStart(hotReloadSourcesPath);
+              await manager.hotReloadStart(hotReloadReloadedSourcesPath);
               await manager.hotReloadEnd();
             }
           } else if (event is DevToolsResponse) {
@@ -447,7 +453,7 @@ Future<void> handleWebSocketHotReloadRequest(
 ) async {
   final requestId = event.id;
   try {
-    await manager.hotReloadStart(hotReloadSourcesPath);
+    await manager.hotReloadStart(hotReloadReloadedSourcesPath);
     await manager.hotReloadEnd();
     _sendHotReloadResponse(clientSink, requestId, success: true);
   } catch (e) {
@@ -519,17 +525,18 @@ external set hotReloadStartJs(JSFunction cb);
 @JS(r'$dartHotReloadEndDwds')
 external set hotReloadEndJs(JSFunction cb);
 
-@JS(r'$hotReloadSourcesPath')
-external String? get _hotReloadSourcesPath;
+@JS(r'$reloadedSourcesPath')
+external String? get _reloadedSourcesPath;
 
-String get hotReloadSourcesPath {
-  final path = _hotReloadSourcesPath;
-  if (path == null) {
-    throw StateError(
-      "Expected 'hotReloadSourcePath' to not be null in a hot reload.",
-    );
-  }
-  return path;
+String? get hotRestartReloadedSourcesPath => _reloadedSourcesPath;
+
+String get hotReloadReloadedSourcesPath {
+  final path = _reloadedSourcesPath;
+  assert(
+    path != null,
+    "Expected 'reloadedSourcesPath' to not be null in a hot reload.",
+  );
+  return path!;
 }
 
 @JS(r'$dartHotRestartDwds')
