@@ -31,7 +31,7 @@ const _pauseIsolatesOnStartFlag = 'pause_isolates_on_start';
 /// Grace period before destroying isolate when no clients are detected.
 /// This handles the race condition during page refresh where the old connection
 /// closes before the new connection is established, preventing premature isolate destruction.
-const _isolateDestructionGracePeriod = Duration(seconds: 2);
+const _isolateDestructionGracePeriod = Duration(seconds: 10);
 
 /// Tracks hot reload responses from multiple browser windows/tabs.
 class _HotReloadTracker {
@@ -292,8 +292,14 @@ class WebSocketProxyService extends ProxyService {
             // Double-check client count again before destroying
             final finalClientCount = sendClientRequest({'type': 'ping'});
             if (finalClientCount == 0) {
+              _logger.fine(
+                'Final check confirmed no clients, destroying isolate',
+              );
               destroyIsolate();
             } else {
+              _logger.fine(
+                'Final check found $finalClientCount clients, keeping isolate alive',
+              );
               _activeConnectionCount = finalClientCount;
             }
           });
