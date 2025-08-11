@@ -463,18 +463,6 @@ class WebSocketDwdsVmClient implements DwdsVmClient {
       ),
     );
     await client.registerService('hotRestart', 'DWDS');
-
-    client.registerServiceCallback(
-      'fullReload',
-      (request) => captureElapsedTime(
-        () async => {
-          'result':
-              (await webSocketProxyService.reloadSources('dummy')).toJson(),
-        },
-        (_) => DwdsEvent.fullReload(),
-      ),
-    );
-    await client.registerService('fullReload', 'DWDS');
   }
 }
 
