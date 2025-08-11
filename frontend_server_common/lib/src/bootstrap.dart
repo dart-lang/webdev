@@ -491,7 +491,7 @@ $_simpleLoaderScript
     // TODO(srujzs): We should avoid using a callback here in the bootstrap once
     // the embedder supports passing a list of files/libraries to `hotRestart`
     // instead. Currently, we're forced to read this file twice.
-    let restartScripts = _currentDirectory + '/reloaded_sources.json';
+    let reloadedSources = _currentDirectory + '/reloaded_sources.json';
 
     if (!window.\$dartReloadModifiedModules) {
       window.\$dartReloadModifiedModules = (function(appName, callback) {
@@ -536,7 +536,7 @@ $_simpleLoaderScript
             if (numToLoad == 0) callback();
           }
         };
-        xhttp.open("GET", restartScripts, true);
+        xhttp.open("GET", reloadedSources, true);
         xhttp.send();
       });
     }
