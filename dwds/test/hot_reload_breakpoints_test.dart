@@ -351,7 +351,7 @@ void main() {
 
         // Add a library file, import it, and then refer to it in the log.
         final libFile = 'library.dart';
-        final libGenLog = 'lib gen0';
+        final libGenLog = 'library gen0';
         final libValueMarker = 'libValue';
         context.addLibraryFile(
           libFileName: libFile,
@@ -415,7 +415,7 @@ void main() {
         context.addLibraryFile(
           libFileName: libFile,
           contents: '''String get libraryValue$i {
-            return 'lib gen$i'; // Breakpoint: libValue$i
+            return 'library$i gen1'; // Breakpoint: libValue$i
           }''',
         );
         final oldImports = "import 'dart:js_interop';";
@@ -449,7 +449,7 @@ void main() {
       await resume();
       // Should break at the breakpoint in the last file.
       await breakpointFuture;
-      await resumeAndExpectLog('lib gen$numFiles');
+      await resumeAndExpectLog('library$numFiles gen1');
     });
 
     test('breakpoint in captured code is deleted', () async {
