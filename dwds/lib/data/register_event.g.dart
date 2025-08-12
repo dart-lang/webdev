@@ -7,7 +7,7 @@ part of 'register_event.dart';
 // **************************************************************************
 
 Serializer<RegisterEvent> _$registerEventSerializer =
-    new _$RegisterEventSerializer();
+    _$RegisterEventSerializer();
 
 class _$RegisterEventSerializer implements StructuredSerializer<RegisterEvent> {
   @override
@@ -43,7 +43,7 @@ class _$RegisterEventSerializer implements StructuredSerializer<RegisterEvent> {
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new RegisterEventBuilder();
+    final result = RegisterEventBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -81,28 +81,16 @@ class _$RegisterEvent extends RegisterEvent {
   final int timestamp;
 
   factory _$RegisterEvent([void Function(RegisterEventBuilder)? updates]) =>
-      (new RegisterEventBuilder()..update(updates))._build();
+      (RegisterEventBuilder()..update(updates))._build();
 
   _$RegisterEvent._({required this.eventData, required this.timestamp})
-    : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-      eventData,
-      r'RegisterEvent',
-      'eventData',
-    );
-    BuiltValueNullFieldError.checkNotNull(
-      timestamp,
-      r'RegisterEvent',
-      'timestamp',
-    );
-  }
-
+    : super._();
   @override
   RegisterEvent rebuild(void Function(RegisterEventBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  RegisterEventBuilder toBuilder() => new RegisterEventBuilder()..replace(this);
+  RegisterEventBuilder toBuilder() => RegisterEventBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -156,7 +144,6 @@ class RegisterEventBuilder
 
   @override
   void replace(RegisterEvent other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$RegisterEvent;
   }
 
@@ -171,7 +158,7 @@ class RegisterEventBuilder
   _$RegisterEvent _build() {
     final _$result =
         _$v ??
-        new _$RegisterEvent._(
+        _$RegisterEvent._(
           eventData: BuiltValueNullFieldError.checkNotNull(
             eventData,
             r'RegisterEvent',

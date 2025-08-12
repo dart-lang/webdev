@@ -6,7 +6,7 @@ part of 'debug_info.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<DebugInfo> _$debugInfoSerializer = new _$DebugInfoSerializer();
+Serializer<DebugInfo> _$debugInfoSerializer = _$DebugInfoSerializer();
 
 class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
   @override
@@ -133,7 +133,7 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new DebugInfoBuilder();
+    final result = DebugInfoBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -278,7 +278,7 @@ class _$DebugInfo extends DebugInfo {
   final int? tabId;
 
   factory _$DebugInfo([void Function(DebugInfoBuilder)? updates]) =>
-      (new DebugInfoBuilder()..update(updates))._build();
+      (DebugInfoBuilder()..update(updates))._build();
 
   _$DebugInfo._({
     this.appEntrypointPath,
@@ -295,13 +295,12 @@ class _$DebugInfo extends DebugInfo {
     this.tabUrl,
     this.tabId,
   }) : super._();
-
   @override
   DebugInfo rebuild(void Function(DebugInfoBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  DebugInfoBuilder toBuilder() => new DebugInfoBuilder()..replace(this);
+  DebugInfoBuilder toBuilder() => DebugInfoBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -446,7 +445,6 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
 
   @override
   void replace(DebugInfo other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$DebugInfo;
   }
 
@@ -461,7 +459,7 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
   _$DebugInfo _build() {
     final _$result =
         _$v ??
-        new _$DebugInfo._(
+        _$DebugInfo._(
           appEntrypointPath: appEntrypointPath,
           appId: appId,
           appInstanceId: appInstanceId,

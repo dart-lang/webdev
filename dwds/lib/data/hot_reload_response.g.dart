@@ -7,7 +7,7 @@ part of 'hot_reload_response.dart';
 // **************************************************************************
 
 Serializer<HotReloadResponse> _$hotReloadResponseSerializer =
-    new _$HotReloadResponseSerializer();
+    _$HotReloadResponseSerializer();
 
 class _$HotReloadResponseSerializer
     implements StructuredSerializer<HotReloadResponse> {
@@ -49,7 +49,7 @@ class _$HotReloadResponseSerializer
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new HotReloadResponseBuilder();
+    final result = HotReloadResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -98,28 +98,20 @@ class _$HotReloadResponse extends HotReloadResponse {
 
   factory _$HotReloadResponse([
     void Function(HotReloadResponseBuilder)? updates,
-  ]) => (new HotReloadResponseBuilder()..update(updates))._build();
+  ]) => (HotReloadResponseBuilder()..update(updates))._build();
 
   _$HotReloadResponse._({
     required this.id,
     required this.success,
     this.errorMessage,
-  }) : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, r'HotReloadResponse', 'id');
-    BuiltValueNullFieldError.checkNotNull(
-      success,
-      r'HotReloadResponse',
-      'success',
-    );
-  }
-
+  }) : super._();
   @override
   HotReloadResponse rebuild(void Function(HotReloadResponseBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   HotReloadResponseBuilder toBuilder() =>
-      new HotReloadResponseBuilder()..replace(this);
+      HotReloadResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -181,7 +173,6 @@ class HotReloadResponseBuilder
 
   @override
   void replace(HotReloadResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$HotReloadResponse;
   }
 
@@ -196,7 +187,7 @@ class HotReloadResponseBuilder
   _$HotReloadResponse _build() {
     final _$result =
         _$v ??
-        new _$HotReloadResponse._(
+        _$HotReloadResponse._(
           id: BuiltValueNullFieldError.checkNotNull(
             id,
             r'HotReloadResponse',
