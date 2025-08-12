@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/hot_reload_response.dart';
+import 'package:dwds/data/hot_restart_response.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/src/connections/app_connection.dart';
@@ -184,15 +185,23 @@ abstract class ProxyService implements VmServiceInterface {
 
   /// Completes hot reload with response from client.
   ///
-  /// Default implementation throws UnimplementedError.
+  /// Default implementation throws [UnimplementedError].
   /// Override in subclasses that support hot reload completion.
   void completeHotReload(HotReloadResponse response) {
     throw UnimplementedError('completeHotReload not supported');
   }
 
+  /// Completes hot restart with response from client.
+  ///
+  /// Default implementation throws [UnimplementedError].
+  /// Override in subclasses that support hot restart completion.
+  void completeHotRestart(HotRestartResponse response) {
+    throw UnimplementedError('completeHotRestart not supported');
+  }
+
   /// Completes service extension with response from client.
   ///
-  /// Default implementation throws UnimplementedError.
+  /// Default implementation throws [UnimplementedError].
   /// Override in subclasses that support service extension completion.
   void completeServiceExtension(ServiceExtensionResponse response) {
     throw UnimplementedError('completeServiceExtension not supported');

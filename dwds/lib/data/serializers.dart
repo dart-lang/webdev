@@ -14,6 +14,8 @@ import 'error_response.dart';
 import 'extension_request.dart';
 import 'hot_reload_request.dart';
 import 'hot_reload_response.dart';
+import 'hot_restart_request.dart';
+import 'hot_restart_response.dart';
 import 'service_extension_request.dart';
 import 'service_extension_response.dart';
 import 'isolate_events.dart';
@@ -34,6 +36,8 @@ part 'serializers.g.dart';
   DevToolsResponse,
   HotReloadRequest,
   HotReloadResponse,
+  HotRestartRequest,
+  HotRestartResponse,
   IsolateExit,
   IsolateStart,
   ExtensionRequest,

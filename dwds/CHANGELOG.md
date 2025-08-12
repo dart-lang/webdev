@@ -1,5 +1,7 @@
 ## 24.4.2-wip
 
+- Implemented hot restart over websockets with multi window support.
+- Fix refresh race condition bug by adding an isolate destruction grace period.
 - Update a call to the `package:shelf_web_socket` `webSocketHandler()` function.
 
 ## 24.4.1
