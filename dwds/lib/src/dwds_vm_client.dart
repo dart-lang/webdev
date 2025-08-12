@@ -603,7 +603,7 @@ Future<Map<String, dynamic>> _hotRestart(
     // When using the DDC library bundle format, we determine the sources that
     // were reloaded during a hot restart to then wait until all the sources are
     // parsed before finishing hot restart. This is necessary before we can
-    // recompute any source location metadata.
+    // recompute any source location metadata in the `ChromeProxyService`.
     // TODO(srujzs): We don't do this for the AMD module format, should we? It
     // would require adding an extra parameter in the AMD strategy. As we're
     // planning to deprecate it, for now, do nothing.
