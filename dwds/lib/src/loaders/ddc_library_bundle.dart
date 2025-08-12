@@ -123,8 +123,8 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   /// `libraries`: An array of strings containing the libraries that were
   /// compiled in `src`.
   ///
-  /// This is needed for hot reloads and restarts in order to tell the compiler
-  /// runtime what files need to be loaded and what libraries need to be
+  /// This is needed for hot reloads and restarts in order to tell the module
+  /// loader what files need to be loaded and what libraries need to be
   /// reloaded. The contents of the file this [Uri] points to should be updated
   /// whenever a hot reload or hot restart is executed.
   final Uri? reloadedSourcesUri;
