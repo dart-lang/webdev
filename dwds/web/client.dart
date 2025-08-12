@@ -16,6 +16,8 @@ import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/hot_reload_request.dart';
 import 'package:dwds/data/hot_reload_response.dart';
+import 'package:dwds/data/hot_restart_request.dart';
+import 'package:dwds/data/hot_restart_response.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
@@ -216,6 +218,8 @@ Future<void>? main() {
             );
           } else if (event is HotReloadRequest) {
             await handleWebSocketHotReloadRequest(event, manager, client.sink);
+          } else if (event is HotRestartRequest) {
+            await handleWebSocketHotRestartRequest(event, manager, client.sink);
           } else if (event is ServiceExtensionRequest) {
             await handleServiceExtensionRequest(event, client.sink, manager);
           }
@@ -422,6 +426,21 @@ void _sendHotReloadResponse(
   );
 }
 
+void _sendHotRestartResponse(
+  StreamSink clientSink,
+  String requestId, {
+  bool success = true,
+  String? errorMessage,
+}) {
+  _sendResponse<HotRestartResponse>(
+    clientSink,
+    HotRestartResponse.new,
+    requestId,
+    success: success,
+    errorMessage: errorMessage,
+  );
+}
+
 void _sendServiceExtensionResponse(
   StreamSink clientSink,
   String requestId, {
@@ -458,6 +477,26 @@ Future<void> handleWebSocketHotReloadRequest(
     _sendHotReloadResponse(clientSink, requestId, success: true);
   } catch (e) {
     _sendHotReloadResponse(
+      clientSink,
+      requestId,
+      success: false,
+      errorMessage: e.toString(),
+    );
+  }
+}
+
+Future<void> handleWebSocketHotRestartRequest(
+  HotRestartRequest event,
+  ReloadingManager manager,
+  StreamSink clientSink,
+) async {
+  final requestId = event.id;
+  try {
+    final runId = const Uuid().v4().toString();
+    await manager.hotRestart(runId: runId);
+    _sendHotRestartResponse(clientSink, requestId, success: true);
+  } catch (e) {
+    _sendHotRestartResponse(
       clientSink,
       requestId,
       success: false,

@@ -12,6 +12,7 @@ import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/hot_reload_response.dart';
+import 'package:dwds/data/hot_restart_response.dart';
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/serializers.dart';
@@ -423,6 +424,8 @@ class DevHandler {
     // Handle messages that are specific to certain proxy service types
     if (message is HotReloadResponse) {
       proxyService.completeHotReload(message);
+    } else if (message is HotRestartResponse) {
+      proxyService.completeHotRestart(message);
     } else if (message is ServiceExtensionResponse) {
       proxyService.completeServiceExtension(message);
     } else if (message is IsolateExit) {

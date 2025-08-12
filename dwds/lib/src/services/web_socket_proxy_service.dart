@@ -8,6 +8,8 @@ import 'dart:convert';
 import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/hot_reload_request.dart';
 import 'package:dwds/data/hot_reload_response.dart';
+import 'package:dwds/data/hot_restart_request.dart';
+import 'package:dwds/data/hot_restart_response.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/service_extension_request.dart';
 import 'package:dwds/data/service_extension_response.dart';
@@ -26,6 +28,11 @@ typedef SendClientRequest = int Function(Object request);
 
 const _pauseIsolatesOnStartFlag = 'pause_isolates_on_start';
 
+/// Grace period before destroying isolate when no clients are detected.
+/// This handles the race condition during page refresh where the old connection
+/// closes before the new connection is established, preventing premature isolate destruction.
+const _isolateDestructionGracePeriod = Duration(seconds: 15);
+
 /// Tracks hot reload responses from multiple browser windows/tabs.
 class _HotReloadTracker {
   final String requestId;
@@ -41,9 +48,37 @@ class _HotReloadTracker {
     required this.timeoutTimer,
   });
 
-  bool get isComplete => responses.length >= expectedResponses;
+  bool get gotAllResponses => responses.length >= expectedResponses;
 
   void addResponse(HotReloadResponse response) {
+    responses.add(response);
+  }
+
+  bool get allSuccessful => responses.every((r) => r.success);
+
+  void dispose() {
+    timeoutTimer.cancel();
+  }
+}
+
+/// Tracks hot restart responses from multiple browser windows/tabs.
+class _HotRestartTracker {
+  final String requestId;
+  final Completer<HotRestartResponse> completer;
+  final int expectedResponses;
+  final List<HotRestartResponse> responses = [];
+  final Timer timeoutTimer;
+
+  _HotRestartTracker({
+    required this.requestId,
+    required this.completer,
+    required this.expectedResponses,
+    required this.timeoutTimer,
+  });
+
+  bool get gotAllResponses => responses.length >= expectedResponses;
+
+  void addResponse(HotRestartResponse response) {
     responses.add(response);
   }
 
@@ -69,7 +104,7 @@ class _ServiceExtensionTracker {
     required this.timeoutTimer,
   });
 
-  bool get isComplete => responses.length >= expectedResponses;
+  bool get gotAllResponses => responses.length >= expectedResponses;
 
   void addResponse(ServiceExtensionResponse response) {
     responses.add(response);
@@ -98,6 +133,9 @@ class WebSocketProxyService extends ProxyService {
 
   /// Active hot reload trackers by request ID.
   final Map<String, _HotReloadTracker> _pendingHotReloads = {};
+
+  /// Active hot restart trackers by request ID.
+  final Map<String, _HotRestartTracker> _pendingHotRestarts = {};
 
   /// App connection cleanup subscriptions by connection instance ID.
   final Map<String, StreamSubscription<void>> _appConnectionDoneSubscriptions =
@@ -247,9 +285,24 @@ class WebSocketProxyService extends ProxyService {
 
         if (actualClientCount == 0) {
           _logger.fine(
-            'No clients available for hot reload, destroying isolate',
+            'No clients available for hot reload, scheduling isolate destruction',
           );
-          destroyIsolate();
+          // Add a delay before destroying the isolate to handle page refresh race condition
+          Timer(_isolateDestructionGracePeriod, () {
+            // Double-check client count again before destroying
+            final finalClientCount = sendClientRequest({'type': 'ping'});
+            if (finalClientCount == 0) {
+              _logger.fine(
+                'Final check confirmed no clients, destroying isolate',
+              );
+              destroyIsolate();
+            } else {
+              _logger.fine(
+                'Final check found $finalClientCount clients, keeping isolate alive',
+              );
+              _activeConnectionCount = finalClientCount;
+            }
+          });
         } else {
           _logger.fine(
             'Still have $actualClientCount clients available, keeping isolate alive',
@@ -457,6 +510,25 @@ class WebSocketProxyService extends ProxyService {
     }
   }
 
+  /// Handles hot restart requests.
+  Future<Map<String, dynamic>> hotRestart() async {
+    _logger.info('Attempting a hot restart');
+
+    try {
+      await _performWebSocketHotRestart();
+      _logger.info('Hot restart completed successfully');
+      return {'result': vm_service.Success().toJson()};
+    } catch (e) {
+      _logger.warning('Hot restart failed: $e');
+      return {
+        'error': {
+          'code': vm_service.RPCErrorKind.kInternalError.code,
+          'message': 'Hot restart failed: $e',
+        },
+      };
+    }
+  }
+
   /// Completes hot reload with response from client.
   @override
   void completeHotReload(HotReloadResponse response) {
@@ -471,7 +543,7 @@ class WebSocketProxyService extends ProxyService {
 
     tracker.addResponse(response);
 
-    if (tracker.isComplete) {
+    if (tracker.gotAllResponses) {
       _pendingHotReloads.remove(response.id);
       tracker.dispose();
 
@@ -484,6 +556,38 @@ class WebSocketProxyService extends ProxyService {
             .join('; ');
         tracker.completer.completeError(
           'Hot reload failed in some clients: $errorMessages',
+        );
+      }
+    }
+  }
+
+  /// Completes hot restart with response from client.
+  @override
+  void completeHotRestart(HotRestartResponse response) {
+    final tracker = _pendingHotRestarts[response.id];
+
+    if (tracker == null) {
+      _logger.warning(
+        'Received hot restart response but no pending tracker found (id: ${response.id})',
+      );
+      return;
+    }
+
+    tracker.addResponse(response);
+
+    if (tracker.gotAllResponses) {
+      _pendingHotRestarts.remove(response.id);
+      tracker.dispose();
+
+      if (tracker.allSuccessful) {
+        tracker.completer.complete(response);
+      } else {
+        final failedResponses = tracker.responses.where((r) => !r.success);
+        final errorMessages = failedResponses
+            .map((r) => r.errorMessage ?? 'Unknown error')
+            .join('; ');
+        tracker.completer.completeError(
+          'Hot restart failed in some clients: $errorMessages',
         );
       }
     }
@@ -544,6 +648,66 @@ class WebSocketProxyService extends ProxyService {
     } catch (e) {
       // Clean up tracker if still present
       final remainingTracker = _pendingHotReloads.remove(id);
+      remainingTracker?.dispose();
+      rethrow;
+    }
+  }
+
+  /// Performs WebSocket-based hot restart.
+  Future<void> _performWebSocketHotRestart({String? requestId}) async {
+    final id = requestId ?? createId();
+
+    // Check if there's already a pending hot restart with this ID
+    if (_pendingHotRestarts.containsKey(id)) {
+      throw StateError('Hot restart already pending for ID: $id');
+    }
+
+    const timeout = Duration(seconds: 15);
+    _logger.info('Sending HotRestartRequest with ID ($id) to client');
+
+    // Send the request and get the number of connected clients
+    final clientCount = await Future.microtask(() {
+      return sendClientRequest(HotRestartRequest((b) => b.id = id));
+    });
+
+    if (clientCount == 0) {
+      throw StateError('No clients available for hot restart');
+    }
+
+    // Create tracker for this hot restart request
+    final completer = Completer<HotRestartResponse>();
+    final timeoutTimer = Timer(timeout, () {
+      final tracker = _pendingHotRestarts.remove(id);
+      if (tracker != null) {
+        tracker.dispose();
+        if (!completer.isCompleted) {
+          completer.completeError(
+            TimeoutException(
+              'Hot restart timed out - received ${tracker.responses.length}/$clientCount responses',
+              timeout,
+            ),
+          );
+        }
+      }
+    });
+
+    final tracker = _HotRestartTracker(
+      requestId: id,
+      completer: completer,
+      expectedResponses: clientCount,
+      timeoutTimer: timeoutTimer,
+    );
+
+    _pendingHotRestarts[id] = tracker;
+
+    try {
+      final response = await completer.future;
+      if (!response.success) {
+        throw Exception(response.errorMessage ?? 'Client reported failure');
+      }
+    } catch (e) {
+      // Clean up tracker if still present
+      final remainingTracker = _pendingHotRestarts.remove(id);
       remainingTracker?.dispose();
       rethrow;
     }
@@ -648,7 +812,7 @@ class WebSocketProxyService extends ProxyService {
 
     tracker.addResponse(response);
 
-    if (tracker.isComplete) {
+    if (tracker.gotAllResponses) {
       _pendingServiceExtensionTrackers.remove(id);
       tracker.dispose();
 
