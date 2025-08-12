@@ -31,7 +31,7 @@ const _pauseIsolatesOnStartFlag = 'pause_isolates_on_start';
 /// Grace period before destroying isolate when no clients are detected.
 /// This handles the race condition during page refresh where the old connection
 /// closes before the new connection is established, preventing premature isolate destruction.
-const _isolateDestructionGracePeriod = Duration(seconds: 10);
+const _isolateDestructionGracePeriod = Duration(seconds: 15);
 
 /// Tracks hot reload responses from multiple browser windows/tabs.
 class _HotReloadTracker {
@@ -48,7 +48,7 @@ class _HotReloadTracker {
     required this.timeoutTimer,
   });
 
-  bool get isComplete => responses.length >= expectedResponses;
+  bool get gotAllResponses => responses.length >= expectedResponses;
 
   void addResponse(HotReloadResponse response) {
     responses.add(response);
@@ -76,7 +76,7 @@ class _HotRestartTracker {
     required this.timeoutTimer,
   });
 
-  bool get isComplete => responses.length >= expectedResponses;
+  bool get gotAllResponses => responses.length >= expectedResponses;
 
   void addResponse(HotRestartResponse response) {
     responses.add(response);
@@ -104,7 +104,7 @@ class _ServiceExtensionTracker {
     required this.timeoutTimer,
   });
 
-  bool get isComplete => responses.length >= expectedResponses;
+  bool get gotAllResponses => responses.length >= expectedResponses;
 
   void addResponse(ServiceExtensionResponse response) {
     responses.add(response);
@@ -543,7 +543,7 @@ class WebSocketProxyService extends ProxyService {
 
     tracker.addResponse(response);
 
-    if (tracker.isComplete) {
+    if (tracker.gotAllResponses) {
       _pendingHotReloads.remove(response.id);
       tracker.dispose();
 
@@ -575,7 +575,7 @@ class WebSocketProxyService extends ProxyService {
 
     tracker.addResponse(response);
 
-    if (tracker.isComplete) {
+    if (tracker.gotAllResponses) {
       _pendingHotRestarts.remove(response.id);
       tracker.dispose();
 
@@ -812,7 +812,7 @@ class WebSocketProxyService extends ProxyService {
 
     tracker.addResponse(response);
 
-    if (tracker.isComplete) {
+    if (tracker.gotAllResponses) {
       _pendingServiceExtensionTrackers.remove(id);
       tracker.dispose();
 

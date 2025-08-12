@@ -185,7 +185,7 @@ abstract class ProxyService implements VmServiceInterface {
 
   /// Completes hot reload with response from client.
   ///
-  /// Default implementation throws UnimplementedError.
+  /// Default implementation throws [UnimplementedError].
   /// Override in subclasses that support hot reload completion.
   void completeHotReload(HotReloadResponse response) {
     throw UnimplementedError('completeHotReload not supported');
@@ -193,7 +193,7 @@ abstract class ProxyService implements VmServiceInterface {
 
   /// Completes hot restart with response from client.
   ///
-  /// Default implementation throws UnimplementedError.
+  /// Default implementation throws [UnimplementedError].
   /// Override in subclasses that support hot restart completion.
   void completeHotRestart(HotRestartResponse response) {
     throw UnimplementedError('completeHotRestart not supported');
@@ -201,7 +201,7 @@ abstract class ProxyService implements VmServiceInterface {
 
   /// Completes service extension with response from client.
   ///
-  /// Default implementation throws UnimplementedError.
+  /// Default implementation throws [UnimplementedError].
   /// Override in subclasses that support service extension completion.
   void completeServiceExtension(ServiceExtensionResponse response) {
     throw UnimplementedError('completeServiceExtension not supported');
