@@ -6,6 +6,10 @@
 
 **Breaking changes**
 
+- Remove deprecated parameter `injectDebuggingSupportCode` from `Dwds.start()`.
+- Remove all deprecated fields, getters, and parameters
+  related to the null safety compilation mode. Dart 3 only
+  supports [sound null safety](https://dart.dev/null-safety).
 - Rename `FrontendServerDdcLibraryBundleStrategy.hotReloadSourcesUri` to
   `reloadedSourcesUri`. The file that the `Uri` points to should now be updated
   for both a hot restart and a hot reload.
