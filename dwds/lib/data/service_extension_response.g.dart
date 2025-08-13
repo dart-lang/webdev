@@ -7,7 +7,7 @@ part of 'service_extension_response.dart';
 // **************************************************************************
 
 Serializer<ServiceExtensionResponse> _$serviceExtensionResponseSerializer =
-    new _$ServiceExtensionResponseSerializer();
+    _$ServiceExtensionResponseSerializer();
 
 class _$ServiceExtensionResponseSerializer
     implements StructuredSerializer<ServiceExtensionResponse> {
@@ -66,7 +66,7 @@ class _$ServiceExtensionResponseSerializer
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new ServiceExtensionResponseBuilder();
+    final result = ServiceExtensionResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -132,7 +132,7 @@ class _$ServiceExtensionResponse extends ServiceExtensionResponse {
 
   factory _$ServiceExtensionResponse([
     void Function(ServiceExtensionResponseBuilder)? updates,
-  ]) => (new ServiceExtensionResponseBuilder()..update(updates))._build();
+  ]) => (ServiceExtensionResponseBuilder()..update(updates))._build();
 
   _$ServiceExtensionResponse._({
     required this.id,
@@ -140,19 +140,7 @@ class _$ServiceExtensionResponse extends ServiceExtensionResponse {
     required this.success,
     this.errorCode,
     this.errorMessage,
-  }) : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-      id,
-      r'ServiceExtensionResponse',
-      'id',
-    );
-    BuiltValueNullFieldError.checkNotNull(
-      success,
-      r'ServiceExtensionResponse',
-      'success',
-    );
-  }
-
+  }) : super._();
   @override
   ServiceExtensionResponse rebuild(
     void Function(ServiceExtensionResponseBuilder) updates,
@@ -160,7 +148,7 @@ class _$ServiceExtensionResponse extends ServiceExtensionResponse {
 
   @override
   ServiceExtensionResponseBuilder toBuilder() =>
-      new ServiceExtensionResponseBuilder()..replace(this);
+      ServiceExtensionResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -239,7 +227,6 @@ class ServiceExtensionResponseBuilder
 
   @override
   void replace(ServiceExtensionResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ServiceExtensionResponse;
   }
 
@@ -254,7 +241,7 @@ class ServiceExtensionResponseBuilder
   _$ServiceExtensionResponse _build() {
     final _$result =
         _$v ??
-        new _$ServiceExtensionResponse._(
+        _$ServiceExtensionResponse._(
           id: BuiltValueNullFieldError.checkNotNull(
             id,
             r'ServiceExtensionResponse',

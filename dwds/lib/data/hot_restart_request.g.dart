@@ -1,25 +1,25 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'hot_reload_request.dart';
+part of 'hot_restart_request.dart';
 
 // **************************************************************************
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<HotReloadRequest> _$hotReloadRequestSerializer =
-    _$HotReloadRequestSerializer();
+Serializer<HotRestartRequest> _$hotRestartRequestSerializer =
+    _$HotRestartRequestSerializer();
 
-class _$HotReloadRequestSerializer
-    implements StructuredSerializer<HotReloadRequest> {
+class _$HotRestartRequestSerializer
+    implements StructuredSerializer<HotRestartRequest> {
   @override
-  final Iterable<Type> types = const [HotReloadRequest, _$HotReloadRequest];
+  final Iterable<Type> types = const [HotRestartRequest, _$HotRestartRequest];
   @override
-  final String wireName = 'HotReloadRequest';
+  final String wireName = 'HotRestartRequest';
 
   @override
   Iterable<Object?> serialize(
     Serializers serializers,
-    HotReloadRequest object, {
+    HotRestartRequest object, {
     FullType specifiedType = FullType.unspecified,
   }) {
     final result = <Object?>[
@@ -31,12 +31,12 @@ class _$HotReloadRequestSerializer
   }
 
   @override
-  HotReloadRequest deserialize(
+  HotRestartRequest deserialize(
     Serializers serializers,
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = HotReloadRequestBuilder();
+    final result = HotRestartRequestBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -59,27 +59,27 @@ class _$HotReloadRequestSerializer
   }
 }
 
-class _$HotReloadRequest extends HotReloadRequest {
+class _$HotRestartRequest extends HotRestartRequest {
   @override
   final String id;
 
-  factory _$HotReloadRequest([
-    void Function(HotReloadRequestBuilder)? updates,
-  ]) => (HotReloadRequestBuilder()..update(updates))._build();
+  factory _$HotRestartRequest([
+    void Function(HotRestartRequestBuilder)? updates,
+  ]) => (HotRestartRequestBuilder()..update(updates))._build();
 
-  _$HotReloadRequest._({required this.id}) : super._();
+  _$HotRestartRequest._({required this.id}) : super._();
   @override
-  HotReloadRequest rebuild(void Function(HotReloadRequestBuilder) updates) =>
+  HotRestartRequest rebuild(void Function(HotRestartRequestBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  HotReloadRequestBuilder toBuilder() =>
-      HotReloadRequestBuilder()..replace(this);
+  HotRestartRequestBuilder toBuilder() =>
+      HotRestartRequestBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is HotReloadRequest && id == other.id;
+    return other is HotRestartRequest && id == other.id;
   }
 
   @override
@@ -92,22 +92,22 @@ class _$HotReloadRequest extends HotReloadRequest {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'HotReloadRequest')
+    return (newBuiltValueToStringHelper(r'HotRestartRequest')
       ..add('id', id)).toString();
   }
 }
 
-class HotReloadRequestBuilder
-    implements Builder<HotReloadRequest, HotReloadRequestBuilder> {
-  _$HotReloadRequest? _$v;
+class HotRestartRequestBuilder
+    implements Builder<HotRestartRequest, HotRestartRequestBuilder> {
+  _$HotRestartRequest? _$v;
 
   String? _id;
   String? get id => _$this._id;
   set id(String? id) => _$this._id = id;
 
-  HotReloadRequestBuilder();
+  HotRestartRequestBuilder();
 
-  HotReloadRequestBuilder get _$this {
+  HotRestartRequestBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
       _id = $v.id;
@@ -117,25 +117,25 @@ class HotReloadRequestBuilder
   }
 
   @override
-  void replace(HotReloadRequest other) {
-    _$v = other as _$HotReloadRequest;
+  void replace(HotRestartRequest other) {
+    _$v = other as _$HotRestartRequest;
   }
 
   @override
-  void update(void Function(HotReloadRequestBuilder)? updates) {
+  void update(void Function(HotRestartRequestBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  HotReloadRequest build() => _build();
+  HotRestartRequest build() => _build();
 
-  _$HotReloadRequest _build() {
+  _$HotRestartRequest _build() {
     final _$result =
         _$v ??
-        _$HotReloadRequest._(
+        _$HotRestartRequest._(
           id: BuiltValueNullFieldError.checkNotNull(
             id,
-            r'HotReloadRequest',
+            r'HotRestartRequest',
             'id',
           ),
         );

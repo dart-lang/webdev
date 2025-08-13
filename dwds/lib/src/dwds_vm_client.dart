@@ -360,6 +360,11 @@ class WebSocketDwdsVmClient implements DwdsVmClient {
       requestSink: requestSink,
     );
 
+    await _registerServiceExtensions(
+      client: client,
+      webSocketProxyService: webSocketProxyService,
+    );
+
     _webSocketLogger.fine('WebSocket DWDS VM client created successfully');
     return WebSocketDwdsVmClient(client, requestController, responseController);
   }
@@ -444,6 +449,20 @@ class WebSocketDwdsVmClient implements DwdsVmClient {
       response['jsonrpc'] = '2.0';
     }
     return response;
+  }
+
+  static Future<void> _registerServiceExtensions({
+    required VmService client,
+    required WebSocketProxyService webSocketProxyService,
+  }) async {
+    client.registerServiceCallback(
+      'hotRestart',
+      (request) => captureElapsedTime(
+        () => webSocketProxyService.hotRestart(),
+        (_) => DwdsEvent.hotRestart(),
+      ),
+    );
+    await client.registerService('hotRestart', 'DWDS');
   }
 }
 

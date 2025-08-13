@@ -1,25 +1,25 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'hot_reload_response.dart';
+part of 'hot_restart_response.dart';
 
 // **************************************************************************
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<HotReloadResponse> _$hotReloadResponseSerializer =
-    _$HotReloadResponseSerializer();
+Serializer<HotRestartResponse> _$hotRestartResponseSerializer =
+    _$HotRestartResponseSerializer();
 
-class _$HotReloadResponseSerializer
-    implements StructuredSerializer<HotReloadResponse> {
+class _$HotRestartResponseSerializer
+    implements StructuredSerializer<HotRestartResponse> {
   @override
-  final Iterable<Type> types = const [HotReloadResponse, _$HotReloadResponse];
+  final Iterable<Type> types = const [HotRestartResponse, _$HotRestartResponse];
   @override
-  final String wireName = 'HotReloadResponse';
+  final String wireName = 'HotRestartResponse';
 
   @override
   Iterable<Object?> serialize(
     Serializers serializers,
-    HotReloadResponse object, {
+    HotRestartResponse object, {
     FullType specifiedType = FullType.unspecified,
   }) {
     final result = <Object?>[
@@ -44,12 +44,12 @@ class _$HotReloadResponseSerializer
   }
 
   @override
-  HotReloadResponse deserialize(
+  HotRestartResponse deserialize(
     Serializers serializers,
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = HotReloadResponseBuilder();
+    final result = HotRestartResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -88,7 +88,7 @@ class _$HotReloadResponseSerializer
   }
 }
 
-class _$HotReloadResponse extends HotReloadResponse {
+class _$HotRestartResponse extends HotRestartResponse {
   @override
   final String id;
   @override
@@ -96,27 +96,28 @@ class _$HotReloadResponse extends HotReloadResponse {
   @override
   final String? errorMessage;
 
-  factory _$HotReloadResponse([
-    void Function(HotReloadResponseBuilder)? updates,
-  ]) => (HotReloadResponseBuilder()..update(updates))._build();
+  factory _$HotRestartResponse([
+    void Function(HotRestartResponseBuilder)? updates,
+  ]) => (HotRestartResponseBuilder()..update(updates))._build();
 
-  _$HotReloadResponse._({
+  _$HotRestartResponse._({
     required this.id,
     required this.success,
     this.errorMessage,
   }) : super._();
   @override
-  HotReloadResponse rebuild(void Function(HotReloadResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+  HotRestartResponse rebuild(
+    void Function(HotRestartResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
-  HotReloadResponseBuilder toBuilder() =>
-      HotReloadResponseBuilder()..replace(this);
+  HotRestartResponseBuilder toBuilder() =>
+      HotRestartResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is HotReloadResponse &&
+    return other is HotRestartResponse &&
         id == other.id &&
         success == other.success &&
         errorMessage == other.errorMessage;
@@ -134,7 +135,7 @@ class _$HotReloadResponse extends HotReloadResponse {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'HotReloadResponse')
+    return (newBuiltValueToStringHelper(r'HotRestartResponse')
           ..add('id', id)
           ..add('success', success)
           ..add('errorMessage', errorMessage))
@@ -142,9 +143,9 @@ class _$HotReloadResponse extends HotReloadResponse {
   }
 }
 
-class HotReloadResponseBuilder
-    implements Builder<HotReloadResponse, HotReloadResponseBuilder> {
-  _$HotReloadResponse? _$v;
+class HotRestartResponseBuilder
+    implements Builder<HotRestartResponse, HotRestartResponseBuilder> {
+  _$HotRestartResponse? _$v;
 
   String? _id;
   String? get id => _$this._id;
@@ -158,9 +159,9 @@ class HotReloadResponseBuilder
   String? get errorMessage => _$this._errorMessage;
   set errorMessage(String? errorMessage) => _$this._errorMessage = errorMessage;
 
-  HotReloadResponseBuilder();
+  HotRestartResponseBuilder();
 
-  HotReloadResponseBuilder get _$this {
+  HotRestartResponseBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
       _id = $v.id;
@@ -172,30 +173,30 @@ class HotReloadResponseBuilder
   }
 
   @override
-  void replace(HotReloadResponse other) {
-    _$v = other as _$HotReloadResponse;
+  void replace(HotRestartResponse other) {
+    _$v = other as _$HotRestartResponse;
   }
 
   @override
-  void update(void Function(HotReloadResponseBuilder)? updates) {
+  void update(void Function(HotRestartResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  HotReloadResponse build() => _build();
+  HotRestartResponse build() => _build();
 
-  _$HotReloadResponse _build() {
+  _$HotRestartResponse _build() {
     final _$result =
         _$v ??
-        _$HotReloadResponse._(
+        _$HotRestartResponse._(
           id: BuiltValueNullFieldError.checkNotNull(
             id,
-            r'HotReloadResponse',
+            r'HotRestartResponse',
             'id',
           ),
           success: BuiltValueNullFieldError.checkNotNull(
             success,
-            r'HotReloadResponse',
+            r'HotRestartResponse',
             'success',
           ),
           errorMessage: errorMessage,

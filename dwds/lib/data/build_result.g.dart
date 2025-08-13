@@ -19,16 +19,16 @@ BuildStatus _$valueOf(String name) {
     case 'failed':
       return _$failed;
     default:
-      throw new ArgumentError(name);
+      throw ArgumentError(name);
   }
 }
 
-final BuiltSet<BuildStatus> _$values = new BuiltSet<BuildStatus>(
+final BuiltSet<BuildStatus> _$values = BuiltSet<BuildStatus>(
   const <BuildStatus>[_$started, _$succeeded, _$failed],
 );
 
-Serializer<BuildStatus> _$buildStatusSerializer = new _$BuildStatusSerializer();
-Serializer<BuildResult> _$buildResultSerializer = new _$BuildResultSerializer();
+Serializer<BuildStatus> _$buildStatusSerializer = _$BuildStatusSerializer();
+Serializer<BuildResult> _$buildResultSerializer = _$BuildResultSerializer();
 
 class _$BuildStatusSerializer implements PrimitiveSerializer<BuildStatus> {
   @override
@@ -80,7 +80,7 @@ class _$BuildResultSerializer implements StructuredSerializer<BuildResult> {
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new BuildResultBuilder();
+    final result = BuildResultBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -108,18 +108,15 @@ class _$BuildResult extends BuildResult {
   final BuildStatus status;
 
   factory _$BuildResult([void Function(BuildResultBuilder)? updates]) =>
-      (new BuildResultBuilder()..update(updates))._build();
+      (BuildResultBuilder()..update(updates))._build();
 
-  _$BuildResult._({required this.status}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(status, r'BuildResult', 'status');
-  }
-
+  _$BuildResult._({required this.status}) : super._();
   @override
   BuildResult rebuild(void Function(BuildResultBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  BuildResultBuilder toBuilder() => new BuildResultBuilder()..replace(this);
+  BuildResultBuilder toBuilder() => BuildResultBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -162,7 +159,6 @@ class BuildResultBuilder implements Builder<BuildResult, BuildResultBuilder> {
 
   @override
   void replace(BuildResult other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$BuildResult;
   }
 
@@ -177,7 +173,7 @@ class BuildResultBuilder implements Builder<BuildResult, BuildResultBuilder> {
   _$BuildResult _build() {
     final _$result =
         _$v ??
-        new _$BuildResult._(
+        _$BuildResult._(
           status: BuiltValueNullFieldError.checkNotNull(
             status,
             r'BuildResult',

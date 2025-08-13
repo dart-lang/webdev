@@ -2067,7 +2067,7 @@ void runTests({
         expect(
           resolvedUris.uris,
           containsAll([
-            contains('/_testSound/example/hello_world/main.dart'),
+            contains('/_test/example/hello_world/main.dart'),
             contains('/lib/path.dart'),
             contains('/lib/src/path_set.dart'),
           ]),

@@ -7,7 +7,7 @@ part of 'connect_request.dart';
 // **************************************************************************
 
 Serializer<ConnectRequest> _$connectRequestSerializer =
-    new _$ConnectRequestSerializer();
+    _$ConnectRequestSerializer();
 
 class _$ConnectRequestSerializer
     implements StructuredSerializer<ConnectRequest> {
@@ -49,7 +49,7 @@ class _$ConnectRequestSerializer
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new ConnectRequestBuilder();
+    final result = ConnectRequestBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -97,33 +97,19 @@ class _$ConnectRequest extends ConnectRequest {
   final String entrypointPath;
 
   factory _$ConnectRequest([void Function(ConnectRequestBuilder)? updates]) =>
-      (new ConnectRequestBuilder()..update(updates))._build();
+      (ConnectRequestBuilder()..update(updates))._build();
 
   _$ConnectRequest._({
     required this.appId,
     required this.instanceId,
     required this.entrypointPath,
-  }) : super._() {
-    BuiltValueNullFieldError.checkNotNull(appId, r'ConnectRequest', 'appId');
-    BuiltValueNullFieldError.checkNotNull(
-      instanceId,
-      r'ConnectRequest',
-      'instanceId',
-    );
-    BuiltValueNullFieldError.checkNotNull(
-      entrypointPath,
-      r'ConnectRequest',
-      'entrypointPath',
-    );
-  }
-
+  }) : super._();
   @override
   ConnectRequest rebuild(void Function(ConnectRequestBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  ConnectRequestBuilder toBuilder() =>
-      new ConnectRequestBuilder()..replace(this);
+  ConnectRequestBuilder toBuilder() => ConnectRequestBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -186,7 +172,6 @@ class ConnectRequestBuilder
 
   @override
   void replace(ConnectRequest other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ConnectRequest;
   }
 
@@ -201,7 +186,7 @@ class ConnectRequestBuilder
   _$ConnectRequest _build() {
     final _$result =
         _$v ??
-        new _$ConnectRequest._(
+        _$ConnectRequest._(
           appId: BuiltValueNullFieldError.checkNotNull(
             appId,
             r'ConnectRequest',
