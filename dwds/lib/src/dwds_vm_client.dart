@@ -5,7 +5,9 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/events.dart';
+import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/debug_service.dart';
@@ -585,6 +587,9 @@ Future<Map<String, dynamic>> _hotRestart(
   // Start listening for isolate create events before issuing a hot
   // restart. Only return success after the isolate has fully started.
   final stream = chromeProxyService.onEvent('Isolate');
+  final waitForIsolateStarted = stream.firstWhere(
+    (event) => event.kind == EventKind.kIsolateStart,
+  );
   try {
     // If we should pause isolates on start, then only run main once we get a
     // resume event.
@@ -594,11 +599,58 @@ Future<Map<String, dynamic>> _hotRestart(
     }
     // Generate run id to hot restart all apps loaded into the tab.
     final runId = const Uuid().v4().toString();
+
+    // When using the DDC library bundle format, we determine the sources that
+    // were reloaded during a hot restart to then wait until all the sources are
+    // parsed before finishing hot restart. This is necessary before we can
+    // recompute any source location metadata in the `ChromeProxyService`.
+    // TODO(srujzs): We don't do this for the AMD module format, should we? It
+    // would require adding an extra parameter in the AMD strategy. As we're
+    // planning to deprecate it, for now, do nothing.
+    final isDdcLibraryBundle =
+        globalToolConfiguration.loadStrategy is DdcLibraryBundleStrategy;
+    final computedReloadedSrcs = Completer<void>();
+    final reloadedSrcs = <String>{};
+    if (isDdcLibraryBundle) {
+      // Injected client should send a request to recreate the isolate after the
+      // hot restart. The creation of the isolate should in turn wait until all
+      // scripts are parsed.
+      chromeProxyService.allowedToCreateIsolate = Completer<void>();
+      final debugger = await chromeProxyService.debuggerFuture;
+      late StreamSubscription<String> parsedScriptsSubscription;
+      parsedScriptsSubscription = debugger.parsedScriptsController.stream
+          .listen((url) {
+            computedReloadedSrcs.future.then((_) async {
+              reloadedSrcs.remove(Uri.parse(url).normalizePath().path);
+              if (reloadedSrcs.isEmpty) {
+                chromeProxyService.allowedToCreateIsolate.complete();
+                await parsedScriptsSubscription.cancel();
+              }
+            });
+          });
+    }
     _chromeLogger.info('Issuing \$dartHotRestartDwds request');
-    await chromeProxyService.inspector.jsEvaluate(
+    final remoteObject = await chromeProxyService.inspector.jsEvaluate(
       '\$dartHotRestartDwds(\'$runId\', $pauseIsolatesOnStart);',
       awaitPromise: true,
+      returnByValue: true,
     );
+    if (isDdcLibraryBundle) {
+      final reloadedSrcModuleLibraries =
+          (remoteObject.value as List).cast<Map>();
+      for (final srcModuleLibrary in reloadedSrcModuleLibraries) {
+        final srcModuleLibraryCast = srcModuleLibrary.cast<String, Object>();
+        reloadedSrcs.add(
+          Uri.parse(srcModuleLibraryCast['src'] as String).normalizePath().path,
+        );
+      }
+      if (reloadedSrcs.isEmpty) {
+        chromeProxyService.allowedToCreateIsolate.complete();
+      }
+      computedReloadedSrcs.complete();
+    } else {
+      assert(remoteObject.value == null);
+    }
     _chromeLogger.info('\$dartHotRestartDwds request complete.');
   } on WipError catch (exception) {
     final code = exception.error?['code'];
@@ -620,7 +672,7 @@ Future<Map<String, dynamic>> _hotRestart(
     };
   }
   _chromeLogger.info('Waiting for Isolate Start event.');
-  await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
+  await waitForIsolateStarted;
   chromeProxyService.terminatingIsolates = false;
 
   _chromeLogger.info('Successful hot restart');

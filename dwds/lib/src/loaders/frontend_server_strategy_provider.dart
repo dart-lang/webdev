@@ -151,7 +151,7 @@ class FrontendServerDdcLibraryBundleStrategyProvider
     super._digestsProvider,
     super._buildSettings, {
     super.packageConfigPath,
-    Uri? hotReloadSourcesUri,
+    Uri? reloadedSourcesUri,
   }) {
     _libraryBundleStrategy = DdcLibraryBundleStrategy(
       _configuration,
@@ -166,7 +166,7 @@ class FrontendServerDdcLibraryBundleStrategyProvider
       _buildSettings,
       (String _) => null,
       packageConfigPath: _packageConfigPath,
-      hotReloadSourcesUri: hotReloadSourcesUri,
+      reloadedSourcesUri: reloadedSourcesUri,
     );
   }
 

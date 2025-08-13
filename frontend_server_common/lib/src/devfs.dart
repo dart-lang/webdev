@@ -214,11 +214,7 @@ class WebDevFS {
     if (ddcModuleFormat == ModuleFormat.ddc &&
         compilerOptions.canaryFeatures &&
         !initialCompile) {
-      if (fullRestart) {
-        performRestart(modules, fileServerUri!);
-      } else {
-        performReload(modules, prefix, fileServerUri!);
-      }
+      writeReloadedSources(modules, fileServerUri!);
     }
     return UpdateFSReport(
       success: true,
@@ -227,31 +223,11 @@ class WebDevFS {
     )..invalidatedModules = modules;
   }
 
-  /// Given a list of [modules] that need to be loaded, writes a list of sources
-  /// mapped to their ids to the file system that can then be consumed by the
-  /// hot restart callback.
-  ///
-  /// For example:
-  /// ```json
-  /// [
-  ///   {
-  ///     "src": "<base_uri>/<file_name>",
-  ///     "id": "<id>",
-  ///   },
-  /// ]
-  /// ```
-  void performRestart(List<String> modules, Uri fileServerUri) {
-    final srcIdsList = <Map<String, String>>[];
-    for (final src in modules) {
-      srcIdsList.add(<String, String>{'src': '$fileServerUri/$src', 'id': src});
-    }
-    assetServer.writeFile('restart_scripts.json', json.encode(srcIdsList));
-  }
+  static const String reloadedSourcesFileName = 'reloaded_sources.json';
 
-  static const String reloadScriptsFileName = 'reload_scripts.json';
-
-  /// Given a list of [modules] that need to be reloaded, writes a file that
-  /// contains a list of objects each with three fields:
+  /// Given a list of [modules] that need to be reloaded during a hot restart or
+  /// hot reload, writes a file that contains a list of objects each with three
+  /// fields:
   ///
   /// `src`: A string that corresponds to the file path containing a DDC library
   /// bundle.
@@ -272,11 +248,7 @@ class WebDevFS {
   ///
   /// The path of the output file should stay consistent across the lifetime of
   /// the app.
-  ///
-  /// [entrypointDirectory] is used to make the module paths relative to the
-  /// entrypoint, which is needed in order to load `src`s correctly.
-  void performReload(
-      List<String> modules, String entrypointDirectory, Uri fileServerUri) {
+  void writeReloadedSources(List<String> modules, Uri fileServerUri) {
     final moduleToLibrary = <Map<String, Object>>[];
     for (final module in modules) {
       final metadata = ModuleMetadata.fromJson(
@@ -291,7 +263,8 @@ class WebDevFS {
         'libraries': libraries
       });
     }
-    assetServer.writeFile(reloadScriptsFileName, json.encode(moduleToLibrary));
+    assetServer.writeFile(
+        reloadedSourcesFileName, json.encode(moduleToLibrary));
   }
 
   File get ddcModuleLoaderJS =>

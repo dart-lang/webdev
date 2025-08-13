@@ -78,21 +78,7 @@ class DdcLibraryBundleRestarter implements Restarter {
     runMain.callAsFunction();
   }
 
-  @override
-  Future<bool> restart({String? runId, Future? readyToRunMain}) async {
-    await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
-    final mainHandler =
-        (JSFunction runMain) {
-          _dartDevEmbedder.config.capturedMainHandler = null;
-          safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
-        }.toJS;
-    _dartDevEmbedder.config.capturedMainHandler = mainHandler;
-    await _dartDevEmbedder.hotRestart().toDart;
-    return true;
-  }
-
-  @override
-  Future<JSArray<JSObject>> hotReloadStart(String hotReloadSourcesPath) async {
+  Future<List<Map>> _getSrcModuleLibraries(String reloadedSourcesPath) async {
     final completer = Completer<String>();
     final xhr = _XMLHttpRequest();
     xhr.withCredentials = true;
@@ -104,13 +90,44 @@ class DdcLibraryBundleRestarter implements Restarter {
             completer.complete(xhr.responseText);
           }
         }.toJS;
-    xhr.get(hotReloadSourcesPath, true);
+    xhr.get(reloadedSourcesPath, true);
     xhr.send();
     final responseText = await completer.future;
 
-    final srcModuleLibraries = (json.decode(responseText) as List).cast<Map>();
+    return (json.decode(responseText) as List).cast<Map>();
+  }
+
+  @override
+  Future<(bool, JSArray<JSObject>?)> restart({
+    String? runId,
+    Future? readyToRunMain,
+    String? reloadedSourcesPath,
+  }) async {
+    assert(
+      reloadedSourcesPath != null,
+      "Expected 'reloadedSourcesPath' to not be null in a hot restart.",
+    );
+    await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
+    final mainHandler =
+        (JSFunction runMain) {
+          _dartDevEmbedder.config.capturedMainHandler = null;
+          safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
+        }.toJS;
+    _dartDevEmbedder.config.capturedMainHandler = mainHandler;
+    final srcModuleLibraries = await _getSrcModuleLibraries(
+      reloadedSourcesPath!,
+    );
+    await _dartDevEmbedder.hotRestart().toDart;
+    return (true, srcModuleLibraries.jsify() as JSArray<JSObject>);
+  }
+
+  @override
+  Future<JSArray<JSObject>> hotReloadStart(String reloadedSourcesPath) async {
     final filesToLoad = JSArray<JSString>();
     final librariesToReload = JSArray<JSString>();
+    final srcModuleLibraries = await _getSrcModuleLibraries(
+      reloadedSourcesPath,
+    );
     for (final srcModuleLibrary in srcModuleLibraries) {
       final srcModuleLibraryCast = srcModuleLibrary.cast<String, Object>();
       final src = srcModuleLibraryCast['src'] as String;

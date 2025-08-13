@@ -9,21 +9,24 @@ import 'package:web/web.dart';
 
 import 'restarter.dart';
 
-@anonymous
-@JS()
-@staticInterop
-class DartLibrary {}
-
 @JS(r'dart_library')
 external DartLibrary dartLibrary;
 
-extension DartLibraryExtension on DartLibrary {
+extension type DartLibrary._(JSObject _) implements JSObject {
   external void reload(String? runId, JSPromise? readyToRunMain);
 }
 
 class DdcRestarter implements Restarter {
   @override
-  Future<bool> restart({String? runId, Future? readyToRunMain}) async {
+  Future<(bool, JSArray<JSObject>?)> restart({
+    String? runId,
+    Future? readyToRunMain,
+    String? reloadedSourcesPath,
+  }) async {
+    assert(
+      reloadedSourcesPath == null,
+      "'reloadedSourcesPath' should not be used for the DDC module format.",
+    );
     dartLibrary.reload(runId, readyToRunMain?.toJS);
     final reloadCompleter = Completer<bool>();
     final sub = window.onMessage.listen((event) {
@@ -34,10 +37,13 @@ class DdcRestarter implements Restarter {
         reloadCompleter.complete(true);
       }
     });
-    return reloadCompleter.future.then((value) {
-      sub.cancel();
-      return value;
-    });
+    return (
+      await reloadCompleter.future.then((value) {
+        sub.cancel();
+        return value;
+      }),
+      null,
+    );
   }
 
   @override
@@ -47,7 +53,7 @@ class DdcRestarter implements Restarter {
       );
 
   @override
-  Future<JSArray<JSObject>> hotReloadStart(String hotReloadSourcesPath) =>
+  Future<JSArray<JSObject>> hotReloadStart(String reloadedSourcesPath) =>
       throw UnimplementedError(
         'Hot reload is not supported for the DDC module format.',
       );

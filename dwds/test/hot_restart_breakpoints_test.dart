@@ -191,6 +191,24 @@ void main() {
     Future<Event> waitForBreakpoint() =>
         stream.firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
+    test('empty hot restart keeps breakpoints', () async {
+      final genString = 'main gen0';
+
+      await addBreakpoint(file: mainFile, breakpointMarker: callLogMarker);
+
+      final breakpointFuture = waitForBreakpoint();
+
+      await context.recompile(fullRestart: false);
+
+      await hotRestartAndHandlePausePost([
+        (file: mainFile, breakpointMarker: callLogMarker),
+      ]);
+
+      // Should break at `callLog`.
+      await breakpointFuture;
+      await resumeAndExpectLog(genString);
+    });
+
     test('after edit and hot restart, breakpoint is in new file', () async {
       final oldLog = 'main gen0';
       final newLog = 'main gen1';
@@ -263,7 +281,7 @@ void main() {
 
         // Add a library file, import it, and then refer to it in the log.
         final libFile = 'library.dart';
-        final libGenLog = 'lib gen0';
+        final libGenLog = 'library gen0';
         final libValueMarker = 'libValue';
         context.addLibraryFile(
           libFileName: libFile,
@@ -300,6 +318,56 @@ void main() {
         await resumeAndExpectLog(libGenLog);
       },
     );
+
+    // Test that we wait for all scripts to be parsed first before computing
+    // location metadata.
+    test('after adding many files and putting breakpoint in the last one,'
+        'breakpoint is correctly registered', () async {
+      final genLog = 'main gen0';
+
+      await addBreakpoint(file: mainFile, breakpointMarker: callLogMarker);
+
+      // Add library files, import them, but only refer to the last one in main.
+      final numFiles = 50;
+      for (var i = 1; i <= numFiles; i++) {
+        final libFile = 'library$i.dart';
+        context.addLibraryFile(
+          libFileName: libFile,
+          contents: '''String get libraryValue$i {
+            return 'library$i gen1'; // Breakpoint: libValue$i
+          }''',
+        );
+        final oldImports = "import 'dart:js_interop';";
+        final newImports =
+            '$oldImports\n'
+            "import 'package:_test_hot_restart_breakpoints/$libFile';";
+        makeEdit(mainFile, oldImports, newImports);
+      }
+      final oldLog = "log('$genLog');";
+      final newLog = "log('\$libraryValue$numFiles');";
+      await makeEditAndRecompile(mainFile, oldLog, newLog);
+
+      var breakpointFuture = waitForBreakpoint();
+
+      await hotRestartAndHandlePausePost([
+        (file: mainFile, breakpointMarker: callLogMarker),
+        (file: 'library$numFiles.dart', breakpointMarker: 'libValue$numFiles'),
+      ]);
+
+      final newGenLog = 'library$numFiles gen1';
+
+      // Should break at `callLog`.
+      await breakpointFuture;
+      expect(consoleLogs.contains(newGenLog), false);
+
+      breakpointFuture = waitForBreakpoint();
+
+      await resume();
+      // Should break at the breakpoint in the last file.
+      await breakpointFuture;
+      expect(consoleLogs.contains(newGenLog), false);
+      await resumeAndExpectLog(newGenLog);
+    });
   });
 }
 

@@ -1,12 +1,18 @@
-## 25.0.0-wip
+## 25.0.0
 
 - Implemented hot restart over websockets with multi window support.
 - Fix refresh race condition bug by adding an isolate destruction grace period.
 - Update a call to the `package:shelf_web_socket` `webSocketHandler()` function.
+
+**Breaking changes**
+
 - Remove deprecated parameter `injectDebuggingSupportCode` from `Dwds.start()`.
 - Remove all deprecated fields, getters, and parameters
   related to the null safety compilation mode. Dart 3 only
   supports [sound null safety](https://dart.dev/null-safety).
+- Rename `FrontendServerDdcLibraryBundleStrategy.hotReloadSourcesUri` to
+  `reloadedSourcesUri`. The file that the `Uri` points to should now be updated
+  for both a hot restart and a hot reload.
 
 ## 24.4.1
 
