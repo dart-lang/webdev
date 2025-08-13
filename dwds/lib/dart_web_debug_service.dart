@@ -74,11 +74,6 @@ class Dwds {
     required Stream<BuildResult> buildResults,
     required ConnectionProvider chromeConnection,
     required ToolConfiguration toolConfiguration,
-    // ignore: avoid-unused-parameters
-    @Deprecated(
-      'This parameter is ignored and will be removed in a future version.',
-    )
-    bool injectDebuggingSupportCode = true,
     bool useDwdsWebSocketConnection = false,
   }) async {
     globalToolConfiguration = toolConfiguration;

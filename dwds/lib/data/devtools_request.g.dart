@@ -7,9 +7,9 @@ part of 'devtools_request.dart';
 // **************************************************************************
 
 Serializer<DevToolsRequest> _$devToolsRequestSerializer =
-    new _$DevToolsRequestSerializer();
+    _$DevToolsRequestSerializer();
 Serializer<DevToolsResponse> _$devToolsResponseSerializer =
-    new _$DevToolsResponseSerializer();
+    _$DevToolsResponseSerializer();
 
 class _$DevToolsRequestSerializer
     implements StructuredSerializer<DevToolsRequest> {
@@ -76,7 +76,7 @@ class _$DevToolsRequestSerializer
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new DevToolsRequestBuilder();
+    final result = DevToolsRequestBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -179,7 +179,7 @@ class _$DevToolsResponseSerializer
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new DevToolsResponseBuilder();
+    final result = DevToolsResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -233,7 +233,7 @@ class _$DevToolsRequest extends DevToolsRequest {
   final String? client;
 
   factory _$DevToolsRequest([void Function(DevToolsRequestBuilder)? updates]) =>
-      (new DevToolsRequestBuilder()..update(updates))._build();
+      (DevToolsRequestBuilder()..update(updates))._build();
 
   _$DevToolsRequest._({
     required this.appId,
@@ -242,22 +242,13 @@ class _$DevToolsRequest extends DevToolsRequest {
     this.tabUrl,
     this.uriOnly,
     this.client,
-  }) : super._() {
-    BuiltValueNullFieldError.checkNotNull(appId, r'DevToolsRequest', 'appId');
-    BuiltValueNullFieldError.checkNotNull(
-      instanceId,
-      r'DevToolsRequest',
-      'instanceId',
-    );
-  }
-
+  }) : super._();
   @override
   DevToolsRequest rebuild(void Function(DevToolsRequestBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  DevToolsRequestBuilder toBuilder() =>
-      new DevToolsRequestBuilder()..replace(this);
+  DevToolsRequestBuilder toBuilder() => DevToolsRequestBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -343,7 +334,6 @@ class DevToolsRequestBuilder
 
   @override
   void replace(DevToolsRequest other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$DevToolsRequest;
   }
 
@@ -358,7 +348,7 @@ class DevToolsRequestBuilder
   _$DevToolsRequest _build() {
     final _$result =
         _$v ??
-        new _$DevToolsRequest._(
+        _$DevToolsRequest._(
           appId: BuiltValueNullFieldError.checkNotNull(
             appId,
             r'DevToolsRequest',
@@ -389,32 +379,20 @@ class _$DevToolsResponse extends DevToolsResponse {
 
   factory _$DevToolsResponse([
     void Function(DevToolsResponseBuilder)? updates,
-  ]) => (new DevToolsResponseBuilder()..update(updates))._build();
+  ]) => (DevToolsResponseBuilder()..update(updates))._build();
 
   _$DevToolsResponse._({
     required this.success,
     required this.promptExtension,
     this.error,
-  }) : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-      success,
-      r'DevToolsResponse',
-      'success',
-    );
-    BuiltValueNullFieldError.checkNotNull(
-      promptExtension,
-      r'DevToolsResponse',
-      'promptExtension',
-    );
-  }
-
+  }) : super._();
   @override
   DevToolsResponse rebuild(void Function(DevToolsResponseBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   DevToolsResponseBuilder toBuilder() =>
-      new DevToolsResponseBuilder()..replace(this);
+      DevToolsResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -477,7 +455,6 @@ class DevToolsResponseBuilder
 
   @override
   void replace(DevToolsResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$DevToolsResponse;
   }
 
@@ -492,7 +469,7 @@ class DevToolsResponseBuilder
   _$DevToolsResponse _build() {
     final _$result =
         _$v ??
-        new _$DevToolsResponse._(
+        _$DevToolsResponse._(
           success: BuiltValueNullFieldError.checkNotNull(
             success,
             r'DevToolsResponse',

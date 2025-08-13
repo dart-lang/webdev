@@ -7,7 +7,7 @@ part of 'service_extension_request.dart';
 // **************************************************************************
 
 Serializer<ServiceExtensionRequest> _$serviceExtensionRequestSerializer =
-    new _$ServiceExtensionRequestSerializer();
+    _$ServiceExtensionRequestSerializer();
 
 class _$ServiceExtensionRequestSerializer
     implements StructuredSerializer<ServiceExtensionRequest> {
@@ -49,7 +49,7 @@ class _$ServiceExtensionRequestSerializer
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new ServiceExtensionRequestBuilder();
+    final result = ServiceExtensionRequestBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -98,26 +98,13 @@ class _$ServiceExtensionRequest extends ServiceExtensionRequest {
 
   factory _$ServiceExtensionRequest([
     void Function(ServiceExtensionRequestBuilder)? updates,
-  ]) => (new ServiceExtensionRequestBuilder()..update(updates))._build();
+  ]) => (ServiceExtensionRequestBuilder()..update(updates))._build();
 
   _$ServiceExtensionRequest._({
     required this.id,
     required this.method,
     required this.argsJson,
-  }) : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, r'ServiceExtensionRequest', 'id');
-    BuiltValueNullFieldError.checkNotNull(
-      method,
-      r'ServiceExtensionRequest',
-      'method',
-    );
-    BuiltValueNullFieldError.checkNotNull(
-      argsJson,
-      r'ServiceExtensionRequest',
-      'argsJson',
-    );
-  }
-
+  }) : super._();
   @override
   ServiceExtensionRequest rebuild(
     void Function(ServiceExtensionRequestBuilder) updates,
@@ -125,7 +112,7 @@ class _$ServiceExtensionRequest extends ServiceExtensionRequest {
 
   @override
   ServiceExtensionRequestBuilder toBuilder() =>
-      new ServiceExtensionRequestBuilder()..replace(this);
+      ServiceExtensionRequestBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -188,7 +175,6 @@ class ServiceExtensionRequestBuilder
 
   @override
   void replace(ServiceExtensionRequest other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ServiceExtensionRequest;
   }
 
@@ -203,7 +189,7 @@ class ServiceExtensionRequestBuilder
   _$ServiceExtensionRequest _build() {
     final _$result =
         _$v ??
-        new _$ServiceExtensionRequest._(
+        _$ServiceExtensionRequest._(
           id: BuiltValueNullFieldError.checkNotNull(
             id,
             r'ServiceExtensionRequest',
