@@ -55,8 +55,3 @@ dev_dependencies:
 
 executables:
   webdev:
-
-# REMOVE BEFORE PUBLISHING!
-dependency_overrides:
-  dwds:
-    path: ../dwds
