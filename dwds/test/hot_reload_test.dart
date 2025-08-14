@@ -33,13 +33,17 @@ void main() {
 
   tearDownAll(provider.dispose);
 
+  Future<void> recompile() async {
+    await context.recompile(fullRestart: false);
+  }
+
   Future<void> makeEditAndRecompile() async {
     context.makeEditToDartLibFile(
       libFileName: 'library1.dart',
       toReplace: originalString,
       replaceWith: newString,
     );
-    await context.recompile(fullRestart: false);
+    await recompile();
   }
 
   group('Injected client', () {
@@ -64,11 +68,10 @@ void main() {
 
     test('can hot reload', () async {
       final client = context.debugConnection.vmService;
-      await makeEditAndRecompile();
 
+      await makeEditAndRecompile();
       final vm = await client.getVM();
       final isolate = await client.getIsolate(vm.isolates!.first.id!);
-
       final report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
@@ -80,6 +83,44 @@ void main() {
 
       final rootLib = isolate.rootLib;
       await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
+      source = await context.webDriver.pageSource;
+      expect(source, contains(newString));
+      expect(source.contains(originalString), false);
+    });
+
+    test('can hot reload with no changes, hot reload with changes, and '
+        'hot reload again with no changes', () async {
+      final client = context.debugConnection.vmService;
+
+      // Empty hot reload,
+      await recompile();
+      final vm = await client.getVM();
+      final isolate = await client.getIsolate(vm.isolates!.first.id!);
+      var report = await fakeClient.reloadSources(isolate.id!);
+      expect(report.success, true);
+
+      final rootLib = isolate.rootLib;
+      await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
+      var source = await context.webDriver.pageSource;
+      expect(source, contains(originalString));
+      expect(source.contains(newString), false);
+
+      // Hot reload.
+      await makeEditAndRecompile();
+      report = await fakeClient.reloadSources(isolate.id!);
+      expect(report.success, true);
+
+      await client.evaluate(isolate.id!, rootLib.id!, 'evaluate()');
+      source = await context.webDriver.pageSource;
+      expect(source, contains(newString));
+      expect(source.contains(originalString), false);
+
+      // Empty hot reload.
+      await recompile();
+      report = await fakeClient.reloadSources(isolate.id!);
+      expect(report.success, true);
+
+      await client.evaluate(isolate.id!, rootLib.id!, 'evaluate()');
       source = await context.webDriver.pageSource;
       expect(source, contains(newString));
       expect(source.contains(originalString), false);

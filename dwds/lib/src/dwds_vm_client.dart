@@ -611,20 +611,20 @@ Future<Map<String, dynamic>> _hotRestart(
         globalToolConfiguration.loadStrategy is DdcLibraryBundleStrategy;
     final computedReloadedSrcs = Completer<void>();
     final reloadedSrcs = <String>{};
+    late StreamSubscription<String> parsedScriptsSubscription;
     if (isDdcLibraryBundle) {
       // Injected client should send a request to recreate the isolate after the
       // hot restart. The creation of the isolate should in turn wait until all
       // scripts are parsed.
       chromeProxyService.allowedToCreateIsolate = Completer<void>();
       final debugger = await chromeProxyService.debuggerFuture;
-      late StreamSubscription<String> parsedScriptsSubscription;
       parsedScriptsSubscription = debugger.parsedScriptsController.stream
           .listen((url) {
             computedReloadedSrcs.future.then((_) async {
               reloadedSrcs.remove(Uri.parse(url).normalizePath().path);
-              if (reloadedSrcs.isEmpty) {
+              if (reloadedSrcs.isEmpty &&
+                  !chromeProxyService.allowedToCreateIsolate.isCompleted) {
                 chromeProxyService.allowedToCreateIsolate.complete();
-                await parsedScriptsSubscription.cancel();
               }
             });
           });
@@ -648,6 +648,8 @@ Future<Map<String, dynamic>> _hotRestart(
         chromeProxyService.allowedToCreateIsolate.complete();
       }
       computedReloadedSrcs.complete();
+      await chromeProxyService.allowedToCreateIsolate.future;
+      await parsedScriptsSubscription.cancel();
     } else {
       assert(remoteObject.value == null);
     }
