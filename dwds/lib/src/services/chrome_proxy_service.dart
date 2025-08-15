@@ -1089,18 +1089,15 @@ class ChromeProxyService extends ProxyService {
     final parsedAllReloadedSrcs = Completer<void>();
     // Wait until all the reloaded scripts are parsed before we reinitialize
     // metadata below.
-    late StreamSubscription<String> parsedScriptsSubscription;
-    parsedScriptsSubscription = debugger.parsedScriptsController.stream.listen((
-      url,
-    ) {
-      computedReloadedSrcs.future.then((_) async {
-        reloadedSrcs.remove(Uri.parse(url).normalizePath().path);
-        if (reloadedSrcs.isEmpty) {
-          parsedAllReloadedSrcs.complete();
-          await parsedScriptsSubscription.cancel();
-        }
-      });
-    });
+    final parsedScriptsSubscription = debugger.parsedScriptsController.stream
+        .listen((url) {
+          computedReloadedSrcs.future.then((_) {
+            reloadedSrcs.remove(Uri.parse(url).normalizePath().path);
+            if (reloadedSrcs.isEmpty && !parsedAllReloadedSrcs.isCompleted) {
+              parsedAllReloadedSrcs.complete();
+            }
+          });
+        });
 
     // Initiate a hot reload.
     _logger.info('Issuing \$dartHotReloadStartDwds request');
@@ -1121,6 +1118,7 @@ class ChromeProxyService extends ProxyService {
     }
     computedReloadedSrcs.complete();
     if (reloadedSrcs.isNotEmpty) await parsedAllReloadedSrcs.future;
+    await parsedScriptsSubscription.cancel();
 
     if (!pauseIsolatesOnStart) {
       // Finish hot reload immediately.

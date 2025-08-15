@@ -470,6 +470,42 @@ void runTests({
         ),
       );
     });
+
+    test('can hot restart with no changes, hot restart with changes, and '
+        'hot restart again with no changes', () async {
+      // Empty hot restart.
+      var mainDone = waitForMainToExecute();
+      await recompile();
+      final hotRestart = context.getRegisteredServiceExtension('hotRestart');
+      await fakeClient.callServiceExtension(hotRestart!);
+
+      await mainDone;
+      var source = await context.webDriver.pageSource;
+      expect(source.contains(originalString), isTrue);
+      expect(source.contains(newString), isFalse);
+
+      // Hot restart.
+      mainDone = waitForMainToExecute();
+      await makeEditAndRecompile();
+      await fakeClient.callServiceExtension(hotRestart);
+
+      await mainDone;
+      source = await context.webDriver.pageSource;
+      // Main is re-invoked which shouldn't clear the state.
+      expect(source.contains(originalString), isTrue);
+      expect(source.contains(newString), isTrue);
+
+      // Empty hot restart.
+      mainDone = waitForMainToExecute();
+      await recompile();
+      await fakeClient.callServiceExtension(hotRestart);
+
+      await mainDone;
+      source = await context.webDriver.pageSource;
+      expect(source.contains(originalString), isTrue);
+      // `newString` should now exist twice in the source.
+      expect(source.contains(RegExp('$newString.*$newString')), isTrue);
+    });
   }, timeout: Timeout.factor(2));
 
   group(

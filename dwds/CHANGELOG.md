@@ -1,3 +1,10 @@
+## 25.0.1
+
+### Bug Fixes:
+
+- Fix issue in hot restart where a hot restart with no changes followed by one
+  with changes, a `Future` was completed again, resulting in a crash.
+
 ## 25.0.0
 
 - Implemented hot restart over websockets with multi window support.
