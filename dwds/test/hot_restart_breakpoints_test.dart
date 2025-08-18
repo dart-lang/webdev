@@ -36,27 +36,10 @@ void main() {
 
   tearDownAll(provider.dispose);
 
-  void makeEdit(String file, String originalString, String newString) {
-    if (file == project.dartEntryFileName) {
-      context.makeEditToDartEntryFile(
-        toReplace: originalString,
-        replaceWith: newString,
-      );
-    } else {
-      context.makeEditToDartLibFile(
-        libFileName: file,
-        toReplace: originalString,
-        replaceWith: newString,
-      );
-    }
-  }
-
-  Future<void> makeEditAndRecompile(
-    String file,
-    String originalString,
-    String newString,
+  Future<void> makeEditsAndRecompile(
+    List<({String file, String originalString, String newString})> edits,
   ) async {
-    makeEdit(file, originalString, newString);
+    await context.makeEdits(edits);
     await context.recompile(fullRestart: true);
   }
 
@@ -215,7 +198,9 @@ void main() {
 
       await addBreakpoint(file: mainFile, breakpointMarker: callLogMarker);
 
-      await makeEditAndRecompile(mainFile, oldLog, newLog);
+      await makeEditsAndRecompile([
+        (file: mainFile, originalString: oldLog, newString: newLog),
+      ]);
 
       final breakpointFuture = waitForBreakpoint();
 
@@ -239,7 +224,9 @@ void main() {
       final extraLog = 'hot reload';
       final oldString = "log('";
       final newString = "log('$extraLog');\n$oldString";
-      await makeEditAndRecompile(mainFile, oldString, newString);
+      await makeEditsAndRecompile([
+        (file: mainFile, originalString: oldString, newString: newString),
+      ]);
 
       var breakpointFuture = waitForBreakpoint();
 
@@ -256,7 +243,9 @@ void main() {
       consoleLogs.clear();
 
       // Remove the line we just added.
-      await makeEditAndRecompile(mainFile, newString, oldString);
+      await makeEditsAndRecompile([
+        (file: mainFile, originalString: newString, newString: oldString),
+      ]);
 
       breakpointFuture = waitForBreakpoint();
 
@@ -293,10 +282,13 @@ void main() {
         final newImports =
             '$oldImports\n'
             "import 'package:_test_hot_restart_breakpoints/library.dart';";
-        makeEdit(mainFile, oldImports, newImports);
+        final edits = [
+          (file: mainFile, originalString: oldImports, newString: newImports),
+        ];
         final oldLog = "log('$genLog');";
         final newLog = "log('\$libraryValue');";
-        await makeEditAndRecompile(mainFile, oldLog, newLog);
+        edits.add((file: mainFile, originalString: oldLog, newString: newLog));
+        await makeEditsAndRecompile(edits);
 
         var breakpointFuture = waitForBreakpoint();
 
@@ -329,6 +321,8 @@ void main() {
 
       // Add library files, import them, but only refer to the last one in main.
       final numFiles = 50;
+      final edits =
+          <({String file, String originalString, String newString})>[];
       for (var i = 1; i <= numFiles; i++) {
         final libFile = 'library$i.dart';
         context.addLibraryFile(
@@ -341,11 +335,16 @@ void main() {
         final newImports =
             '$oldImports\n'
             "import 'package:_test_hot_restart_breakpoints/$libFile';";
-        makeEdit(mainFile, oldImports, newImports);
+        edits.add((
+          file: mainFile,
+          originalString: oldImports,
+          newString: newImports,
+        ));
       }
       final oldLog = "log('$genLog');";
       final newLog = "log('\$libraryValue$numFiles');";
-      await makeEditAndRecompile(mainFile, oldLog, newLog);
+      edits.add((file: mainFile, originalString: oldLog, newString: newLog));
+      await makeEditsAndRecompile(edits);
 
       var breakpointFuture = waitForBreakpoint();
 

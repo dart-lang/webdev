@@ -35,28 +35,11 @@ void main() {
 
   tearDownAll(provider.dispose);
 
-  void makeEdit(String file, String originalString, String newString) {
-    if (file == project.dartEntryFileName) {
-      context.makeEditToDartEntryFile(
-        toReplace: originalString,
-        replaceWith: newString,
-      );
-    } else {
-      context.makeEditToDartLibFile(
-        libFileName: file,
-        toReplace: originalString,
-        replaceWith: newString,
-      );
-    }
-  }
-
-  Future<void> makeEditAndRecompile(
-    String file,
-    String originalString,
-    String newString,
+  Future<void> makeEditsAndRecompile(
+    List<({String file, String originalString, String newString})> edits,
   ) async {
-    makeEdit(file, originalString, newString);
-    await context.recompile(fullRestart: false);
+    await context.makeEdits(edits);
+    await context.recompile(fullRestart: true);
   }
 
   group('when pause_isolates_on_start is true', () {
@@ -255,7 +238,9 @@ void main() {
       await resumeAndExpectLog(oldString);
 
       // Modify the string that gets printed.
-      await makeEditAndRecompile(mainFile, oldString, newString);
+      await makeEditsAndRecompile([
+        (file: mainFile, originalString: oldString, newString: newString),
+      ]);
 
       await hotReloadAndHandlePausePost([
         (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
@@ -291,7 +276,9 @@ void main() {
       final extraLog = 'hot reload';
       final oldString = "log('";
       final newString = "log('$extraLog');\n$oldString";
-      await makeEditAndRecompile(mainFile, oldString, newString);
+      await makeEditsAndRecompile([
+        (file: mainFile, originalString: oldString, newString: newString),
+      ]);
 
       bp =
           (await hotReloadAndHandlePausePost([
@@ -307,7 +294,9 @@ void main() {
       await resumeAndExpectLog(genLog);
 
       // Remove the line we just added.
-      await makeEditAndRecompile(mainFile, newString, oldString);
+      await makeEditsAndRecompile([
+        (file: mainFile, originalString: newString, newString: oldString),
+      ]);
 
       await hotReloadAndHandlePausePost([
         (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
@@ -363,10 +352,13 @@ void main() {
         final newImports =
             '$oldImports\n'
             "import 'package:_test_hot_reload_breakpoints/library.dart';";
-        makeEdit(mainFile, oldImports, newImports);
+        final edits = [
+          (file: mainFile, originalString: oldImports, newString: newImports),
+        ];
         final oldLog = "log('\$mainValue');";
         final newLog = "log('\$libraryValue');";
-        await makeEditAndRecompile(mainFile, oldLog, newLog);
+        edits.add((file: mainFile, originalString: oldLog, newString: newLog));
+        await makeEditsAndRecompile(edits);
 
         await hotReloadAndHandlePausePost([
           (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
@@ -410,6 +402,8 @@ void main() {
 
       // Add library files, import them, but only refer to the last one in main.
       final numFiles = 50;
+      final edits =
+          <({String file, String originalString, String newString})>[];
       for (var i = 1; i <= numFiles; i++) {
         final libFile = 'library$i.dart';
         context.addLibraryFile(
@@ -422,11 +416,16 @@ void main() {
         final newImports =
             '$oldImports\n'
             "import 'package:_test_hot_reload_breakpoints/$libFile';";
-        makeEdit(mainFile, oldImports, newImports);
+        edits.add((
+          file: mainFile,
+          originalString: oldImports,
+          newString: newImports,
+        ));
       }
       final oldLog = "log('\$mainValue');";
       final newLog = "log('\$libraryValue$numFiles');";
-      await makeEditAndRecompile(mainFile, oldLog, newLog);
+      edits.add((file: mainFile, originalString: oldLog, newString: newLog));
+      await makeEditsAndRecompile(edits);
 
       await hotReloadAndHandlePausePost([
         (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
@@ -460,7 +459,9 @@ void main() {
 
       final oldLog = "log('\$mainValue');";
       final newLog = "log('\${closure()}');";
-      await makeEditAndRecompile(mainFile, oldLog, newLog);
+      await makeEditsAndRecompile([
+        (file: mainFile, originalString: oldLog, newString: newLog),
+      ]);
 
       bp =
           (await hotReloadAndHandlePausePost([
@@ -478,11 +479,13 @@ void main() {
       await resumeAndExpectLog(oldCapturedString);
 
       final newCapturedString = 'captured closure gen1';
-      await makeEditAndRecompile(
-        mainFile,
-        oldCapturedString,
-        newCapturedString,
-      );
+      await makeEditsAndRecompile([
+        (
+          file: mainFile,
+          originalString: oldCapturedString,
+          newString: newCapturedString,
+        ),
+      ]);
 
       await hotReloadAndHandlePausePost([
         (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
@@ -539,7 +542,9 @@ void main() {
       await callEvaluateAndExpectLog(oldString);
 
       // Modify the string that gets printed and hot reload.
-      await makeEditAndRecompile(mainFile, oldString, newString);
+      await makeEditsAndRecompile([
+        (file: mainFile, originalString: oldString, newString: newString),
+      ]);
       final vm = await client.getVM();
       final isolate = await client.getIsolate(vm.isolates!.first.id!);
       final report = await client.reloadSources(isolate.id!);

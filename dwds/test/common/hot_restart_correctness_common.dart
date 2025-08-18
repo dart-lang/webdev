@@ -38,11 +38,13 @@ void runTests({
   final context = TestContext(testHotRestart2, provider);
 
   Future<void> makeEditAndRecompile() async {
-    context.makeEditToDartLibFile(
-      libFileName: 'library2.dart',
-      toReplace: originalString,
-      replaceWith: newString,
-    );
+    await context.makeEdits([
+      (
+        file: 'library2.dart',
+        originalString: originalString,
+        newString: newString,
+      ),
+    ]);
     if (compilationMode == CompilationMode.frontendServer) {
       await context.recompile(fullRestart: true);
     } else {

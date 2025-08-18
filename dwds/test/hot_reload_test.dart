@@ -40,11 +40,13 @@ void main() {
   }
 
   Future<void> makeEditAndRecompile() async {
-    context.makeEditToDartLibFile(
-      libFileName: 'library1.dart',
-      toReplace: originalString,
-      replaceWith: newString,
-    );
+    await context.makeEdits([
+      (
+        file: 'library1.dart',
+        originalString: originalString,
+        newString: newString,
+      ),
+    ]);
     await recompile();
   }
 

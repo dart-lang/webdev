@@ -47,10 +47,13 @@ void runTests({
   }
 
   Future<void> makeEditAndRecompile() async {
-    context.makeEditToDartEntryFile(
-      toReplace: originalString,
-      replaceWith: newString,
-    );
+    await context.makeEdits([
+      (
+        file: context.project.dartEntryFileName,
+        originalString: originalString,
+        newString: newString,
+      ),
+    ]);
     await recompile(hasEdits: true);
   }
 
