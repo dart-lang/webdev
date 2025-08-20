@@ -50,16 +50,20 @@ void main() {
     await recompile();
   }
 
-  /// Wait for `evaluate` to finish executing before checking expectations by
-  /// checking for a log output.
-  Future<void> waitForEvaluateToExecute() async {
+  // Call `evaluate` through an expression evaluation and wait for
+  // `expectedString` to be printed.
+  Future<void> callEvaluateAndExpectLog(String expectedString) async {
+    final client = context.debugConnection.vmService;
     final completer = Completer<void>();
-    final expectedString = 'evaluate executed';
     final subscription = context.webkitDebugger.onConsoleAPICalled.listen((e) {
       if (e.args.first.value == expectedString) {
         completer.complete();
       }
     });
+    final vm = await client.getVM();
+    final isolate = await client.getIsolate(vm.isolates!.first.id!);
+    final rootLib = isolate.rootLib;
+    await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
     await completer.future;
     await subscription.cancel();
   }
@@ -93,63 +97,35 @@ void main() {
       final report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
-      var source = await context.webDriver.pageSource;
-      // Should not contain the change until the function that updates the page
-      // is evaluated in a hot reload.
-      expect(source, contains(originalString));
-      expect(source.contains(newString), false);
-
-      final evaluateDone = waitForEvaluateToExecute();
-      final rootLib = isolate.rootLib;
-      await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
-      await evaluateDone;
-      source = await context.webDriver.pageSource;
-      expect(source, contains(newString));
-      expect(source.contains(originalString), false);
+      await callEvaluateAndExpectLog(newString);
     });
 
     test('can hot reload with no changes, hot reload with changes, and '
         'hot reload again with no changes', () async {
       final client = context.debugConnection.vmService;
 
-      // Empty hot reload,
+      // Empty hot reload.
       await recompile();
       final vm = await client.getVM();
       final isolate = await client.getIsolate(vm.isolates!.first.id!);
       var report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
-      var evaluateDone = waitForEvaluateToExecute();
-      final rootLib = isolate.rootLib;
-      await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
-      await evaluateDone;
-      var source = await context.webDriver.pageSource;
-      expect(source, contains(originalString));
-      expect(source.contains(newString), false);
+      await callEvaluateAndExpectLog(originalString);
 
       // Hot reload.
       await makeEditAndRecompile();
       report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
-      evaluateDone = waitForEvaluateToExecute();
-      await client.evaluate(isolate.id!, rootLib.id!, 'evaluate()');
-      await evaluateDone;
-      source = await context.webDriver.pageSource;
-      expect(source, contains(newString));
-      expect(source.contains(originalString), false);
+      await callEvaluateAndExpectLog(newString);
 
       // Empty hot reload.
       await recompile();
       report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
-      evaluateDone = waitForEvaluateToExecute();
-      await client.evaluate(isolate.id!, rootLib.id!, 'evaluate()');
-      await evaluateDone;
-      source = await context.webDriver.pageSource;
-      expect(source, contains(newString));
-      expect(source.contains(originalString), false);
+      await callEvaluateAndExpectLog(newString);
     });
   }, timeout: Timeout.factor(2));
 }

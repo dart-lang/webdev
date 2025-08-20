@@ -7,12 +7,13 @@
 @Timeout(Duration(minutes: 5))
 library;
 
+import 'dart:async';
+
 import 'package:dwds/dwds.dart';
 import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
-import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../fixtures/context.dart';
@@ -53,6 +54,18 @@ void runTests({
     }
   }
 
+  /// Wait for `expectedString` to be printed in the console.
+  Future<void> expectLog(String expectedString) async {
+    final completer = Completer<void>();
+    final subscription = context.webkitDebugger.onConsoleAPICalled.listen((e) {
+      if (e.args.first.value == expectedString) {
+        completer.complete();
+      }
+    });
+    await completer.future;
+    await subscription.cancel();
+  }
+
   group('Injected client', () {
     VmService? fakeClient;
 
@@ -74,17 +87,24 @@ void runTests({
       await context.tearDown();
     });
 
+    test('initial state prints the right log', () async {
+      final client = context.debugConnection.vmService;
+
+      final logExpectation = expectLog(
+        'ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
+      );
+      final vm = await client.getVM();
+      final isolate = await client.getIsolate(vm.isolates!.first.id!);
+      final rootLib = isolate.rootLib;
+      await client.evaluate(isolate.id!, rootLib!.id!, 'printConst()');
+      await logExpectation;
+    });
+
     test(
       'properly compares constants after hot restart via the service extension',
       () async {
         final client = context.debugConnection.vmService;
         await client.streamListen('Isolate');
-
-        var source = await context.webDriver.pageSource;
-        expect(
-          source,
-          contains('ConstObject(reloadVariable: 23, ConstantEqualitySuccess)'),
-        );
 
         await makeEditAndRecompile();
 
@@ -99,6 +119,9 @@ void runTests({
           ),
         );
 
+        final logExpectation = expectLog(
+          'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
+        );
         final hotRestart = context.getRegisteredServiceExtension('hotRestart');
         expect(
           await fakeClient!.callServiceExtension(hotRestart!),
@@ -106,16 +129,7 @@ void runTests({
         );
 
         await eventsDone;
-
-        source = await context.webDriver.pageSource;
-        if (dartSdkIsAtLeast('3.4.0-61.0.dev')) {
-          expect(
-            source,
-            contains(
-              'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
-            ),
-          );
-        }
+        await logExpectation;
       },
     );
   }, timeout: Timeout.factor(2));
@@ -141,25 +155,11 @@ void runTests({
         });
 
         test('properly compares constants after hot restart', () async {
-          var source = await context.webDriver.pageSource;
-          expect(
-            source,
-            contains(
-              'ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
-            ),
+          final logExpectation = expectLog(
+            'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
           );
-
           await makeEditAndRecompile();
-
-          source = await context.webDriver.pageSource;
-          if (dartSdkIsAtLeast('3.4.0-61.0.dev')) {
-            expect(
-              source,
-              contains(
-                'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
-              ),
-            );
-          }
+          await logExpectation;
         });
       });
 
@@ -184,25 +184,11 @@ void runTests({
         });
 
         test('properly compares constants after hot restart', () async {
-          var source = await context.webDriver.pageSource;
-          expect(
-            source,
-            contains(
-              'ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
-            ),
+          final logExpectation = expectLog(
+            'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
           );
-
           await makeEditAndRecompile();
-
-          source = await context.webDriver.pageSource;
-          if (dartSdkIsAtLeast('3.4.0-61.0.dev')) {
-            expect(
-              source,
-              contains(
-                'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
-              ),
-            );
-          }
+          await logExpectation;
         });
       });
     },

@@ -492,8 +492,9 @@ class TestContext {
         if (debugSettings.enableDebugging && !testSettings.waitToDebug) {
           await startDebugging();
         }
+        _webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
       } else {
-        // No tab needs to be dicovered, so fulfill the relevant completer.
+        // No tab needs to be discovered, so fulfill the relevant completer.
         tabConnectionCompleter.complete();
       }
     } catch (e, s) {
@@ -538,7 +539,6 @@ class TestContext {
 
   Future<void> startDebugging() async {
     debugConnection = await testServer.dwds.debugConnection(appConnection);
-    _webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
   }
 
   Future<void> tearDown() async {
