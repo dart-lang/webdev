@@ -35,9 +35,7 @@ void main() {
 
   tearDownAll(provider.dispose);
 
-  Future<void> makeEditsAndRecompile(
-    List<({String file, String originalString, String newString})> edits,
-  ) async {
+  Future<void> makeEditsAndRecompile(List<Edit> edits) async {
     await context.makeEdits(edits);
     await context.recompile(fullRestart: true);
   }
@@ -111,9 +109,9 @@ void main() {
       await client.resume(isolate.id!);
     }
 
-    // When the program is executing, we want to check that at some point it
-    // will execute code that will emit [expectedString].
-    Future<void> resumeAndExpectLog(String expectedString) async {
+    // Resume the program, and check that at some point it will execute code
+    // that will print `expectedString` to the console.
+    Future<void> resumeAndWaitForLog(String expectedString) async {
       final completer = Completer<void>();
       final subscription = context.webkitDebugger.onConsoleAPICalled.listen((
         e,
@@ -123,7 +121,14 @@ void main() {
         }
       });
       await resume();
-      await completer.future;
+      await completer.future.timeout(
+        const Duration(minutes: 1),
+        onTimeout: () {
+          throw TimeoutException(
+            "Failed to find log: '$expectedString' in console.",
+          );
+        },
+      );
       await subscription.cancel();
     }
 
@@ -167,9 +172,9 @@ void main() {
       await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
     }
 
-    // Much like `resumeAndExpectLog`, we need a completer to ensure the log
-    // will eventually occur when code is executing.
-    Future<void> callEvaluateAndExpectLog(String expectedString) async {
+    // Call the method `evaluate` in the program and wait for `expectedString`
+    // to be printed to the console.
+    Future<void> callEvaluateAndWaitForLog(String expectedString) async {
       final completer = Completer<void>();
       final subscription = context.webkitDebugger.onConsoleAPICalled.listen((
         e,
@@ -182,7 +187,14 @@ void main() {
       final isolate = await client.getIsolate(vm.isolates!.first.id!);
       final rootLib = isolate.rootLib;
       await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
-      await completer.future;
+      await completer.future.timeout(
+        const Duration(minutes: 1),
+        onTimeout: () {
+          throw TimeoutException(
+            "Failed to find log: '$expectedString' in console.",
+          );
+        },
+      );
       await subscription.cancel();
     }
 
@@ -203,7 +215,7 @@ void main() {
 
       // Should break at `callLog`.
       await breakpointFuture;
-      await resumeAndExpectLog(genString);
+      await resumeAndWaitForLog(genString);
 
       await context.recompile(fullRestart: false);
 
@@ -217,7 +229,7 @@ void main() {
 
       // Should break at `callLog`.
       await breakpointFuture;
-      await resumeAndExpectLog(genString);
+      await resumeAndWaitForLog(genString);
     });
 
     test('after edit and hot reload, breakpoint is in new file', () async {
@@ -235,7 +247,7 @@ void main() {
 
       // Should break at `callLog`.
       await breakpointFuture;
-      await resumeAndExpectLog(oldString);
+      await resumeAndWaitForLog(oldString);
 
       // Modify the string that gets printed.
       await makeEditsAndRecompile([
@@ -252,7 +264,7 @@ void main() {
 
       // Should break at `callLog`.
       await breakpointFuture;
-      await resumeAndExpectLog(newString);
+      await resumeAndWaitForLog(newString);
     });
 
     test('after adding line, hot reload, removing line, and hot reload, '
@@ -270,7 +282,7 @@ void main() {
 
       // Should break at `callLog`.
       await breakpointFuture;
-      await resumeAndExpectLog(genLog);
+      await resumeAndWaitForLog(genLog);
 
       // Add an extra log before the existing log.
       final extraLog = 'hot reload';
@@ -287,11 +299,11 @@ void main() {
 
       breakpointFuture = waitForBreakpoint();
 
-      await callEvaluateAndExpectLog(extraLog);
+      await callEvaluateAndWaitForLog(extraLog);
 
       // Should break at `callLog`.
       await breakpointFuture;
-      await resumeAndExpectLog(genLog);
+      await resumeAndWaitForLog(genLog);
 
       // Remove the line we just added.
       await makeEditsAndRecompile([
@@ -315,7 +327,7 @@ void main() {
       // Should break at `callLog`.
       await breakpointFuture;
       expect(consoleLogs.contains(extraLog), false);
-      await resumeAndExpectLog(genLog);
+      await resumeAndWaitForLog(genLog);
       await consoleSubscription.cancel();
     });
 
@@ -336,7 +348,7 @@ void main() {
 
         // Should break at `callLog`.
         await breakpointFuture;
-        await resumeAndExpectLog(genLog);
+        await resumeAndWaitForLog(genLog);
 
         // Add a library file, import it, and then refer to it in the log.
         final libFile = 'library.dart';
@@ -377,7 +389,7 @@ void main() {
         await resume();
         // Should break at `libValue`.
         await breakpointFuture;
-        await resumeAndExpectLog(libGenLog);
+        await resumeAndWaitForLog(libGenLog);
       },
     );
 
@@ -398,12 +410,11 @@ void main() {
 
       // Should break at `callLog`.
       await breakpointFuture;
-      await resumeAndExpectLog(genLog);
+      await resumeAndWaitForLog(genLog);
 
       // Add library files, import them, but only refer to the last one in main.
       final numFiles = 50;
-      final edits =
-          <({String file, String originalString, String newString})>[];
+      final edits = <Edit>[];
       for (var i = 1; i <= numFiles; i++) {
         final libFile = 'library$i.dart';
         context.addLibraryFile(
@@ -448,7 +459,7 @@ void main() {
       await resume();
       // Should break at the breakpoint in the last file.
       await breakpointFuture;
-      await resumeAndExpectLog('library$numFiles gen1');
+      await resumeAndWaitForLog('library$numFiles gen1');
     });
 
     test('breakpoint in captured code is deleted', () async {
@@ -476,7 +487,7 @@ void main() {
       await breakpointFuture;
       final oldCapturedString = 'captured closure gen0';
       // Closure gets evaluated for the first time.
-      await resumeAndExpectLog(oldCapturedString);
+      await resumeAndWaitForLog(oldCapturedString);
 
       final newCapturedString = 'captured closure gen1';
       await makeEditsAndRecompile([
@@ -493,7 +504,7 @@ void main() {
 
       // Breakpoint should not be hit as it's now deleted. We should also see
       // the old string still as the closure has not been reevaluated.
-      await callEvaluateAndExpectLog(oldCapturedString);
+      await callEvaluateAndWaitForLog(oldCapturedString);
     });
   }, timeout: Timeout.factor(2));
 
@@ -518,7 +529,9 @@ void main() {
       await context.tearDown();
     });
 
-    Future<void> callEvaluateAndExpectLog(String expectedString) async {
+    // Call the method `evaluate` in the program and wait for `expectedString`
+    // to be printed to the console.
+    Future<void> callEvaluateAndWaitForLog(String expectedString) async {
       final completer = Completer<void>();
       final subscription = context.webkitDebugger.onConsoleAPICalled.listen((
         e,
@@ -531,7 +544,14 @@ void main() {
       final isolate = await client.getIsolate(vm.isolates!.first.id!);
       final rootLib = isolate.rootLib;
       await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
-      await completer.future;
+      await completer.future.timeout(
+        const Duration(minutes: 1),
+        onTimeout: () {
+          throw TimeoutException(
+            "Failed to find log: '$expectedString' in console.",
+          );
+        },
+      );
       await subscription.cancel();
     }
 
@@ -539,7 +559,7 @@ void main() {
       final oldString = 'main gen0';
       final newString = 'main gen1';
 
-      await callEvaluateAndExpectLog(oldString);
+      await callEvaluateAndWaitForLog(oldString);
 
       // Modify the string that gets printed and hot reload.
       await makeEditsAndRecompile([
@@ -551,7 +571,7 @@ void main() {
       expect(report.success, true);
 
       // Program should not be paused, so this should execute.
-      await callEvaluateAndExpectLog(newString);
+      await callEvaluateAndWaitForLog(newString);
     });
   }, timeout: Timeout.factor(2));
 }

@@ -50,9 +50,9 @@ void main() {
     await recompile();
   }
 
-  // Call `evaluate` through an expression evaluation and wait for
-  // `expectedString` to be printed.
-  Future<void> callEvaluateAndExpectLog(String expectedString) async {
+  // Call the method `evaluate` in the program and wait for `expectedString` to
+  // be printed to the console.
+  Future<void> callEvaluateAndWaitForLog(String expectedString) async {
     final client = context.debugConnection.vmService;
     final completer = Completer<void>();
     final subscription = context.webkitDebugger.onConsoleAPICalled.listen((e) {
@@ -64,7 +64,14 @@ void main() {
     final isolate = await client.getIsolate(vm.isolates!.first.id!);
     final rootLib = isolate.rootLib;
     await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
-    await completer.future;
+    await completer.future.timeout(
+      const Duration(minutes: 1),
+      onTimeout: () {
+        throw TimeoutException(
+          "Failed to find log: '$expectedString' in console.",
+        );
+      },
+    );
     await subscription.cancel();
   }
 
@@ -97,7 +104,7 @@ void main() {
       final report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
-      await callEvaluateAndExpectLog(newString);
+      await callEvaluateAndWaitForLog(newString);
     });
 
     test('can hot reload with no changes, hot reload with changes, and '
@@ -111,21 +118,21 @@ void main() {
       var report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
-      await callEvaluateAndExpectLog(originalString);
+      await callEvaluateAndWaitForLog(originalString);
 
       // Hot reload.
       await makeEditAndRecompile();
       report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
-      await callEvaluateAndExpectLog(newString);
+      await callEvaluateAndWaitForLog(newString);
 
       // Empty hot reload.
       await recompile();
       report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
-      await callEvaluateAndExpectLog(newString);
+      await callEvaluateAndWaitForLog(newString);
     });
   }, timeout: Timeout.factor(2));
 }

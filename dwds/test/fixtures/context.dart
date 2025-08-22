@@ -572,9 +572,7 @@ class TestContext {
   // TODO(srujzs): It's possible we may want a library file with the same name
   // as the entry file, but this function doesn't allow that. Potentially
   // support that.
-  Future<void> makeEdits(
-    List<({String file, String originalString, String newString})> edits,
-  ) async {
+  Future<void> makeEdits(List<Edit> edits) async {
     // `dart:io`'s `stat` on Windows does not have millisecond precision so we
     // need to make sure we wait long enough that modifications result in a
     // timestamp that is guaranteed to be after the previous compile.
@@ -686,3 +684,5 @@ class TestContext {
     return lineNumber + 1;
   }
 }
+
+typedef Edit = ({String file, String originalString, String newString});

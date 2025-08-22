@@ -57,8 +57,8 @@ void runTests({
     await recompile(hasEdits: true);
   }
 
-  /// Wait for `expectedStrings` to be printed in the console.
-  Future<void> expectLogs(List<String> expectedStrings) async {
+  // Wait for `expectedStrings` to be printed to the console.
+  Future<void> waitForLogs(List<String> expectedStrings) async {
     final expectations = List<String>.from(expectedStrings);
     final completer = Completer<void>();
     final subscription = context.webkitDebugger.onConsoleAPICalled.listen((e) {
@@ -70,7 +70,14 @@ void runTests({
         }
       }
     });
-    await completer.future;
+    await completer.future.timeout(
+      const Duration(minutes: 1),
+      onTimeout: () {
+        throw TimeoutException(
+          'Failed to find logs: $expectedStrings in console.',
+        );
+      },
+    );
     await subscription.cancel();
   }
 
@@ -96,9 +103,9 @@ void runTests({
 
         test('can live reload changes ', () async {
           // A full reload should clear the state.
-          final logExpectation = expectLogs([newString]);
+          final logFuture = waitForLogs([newString]);
           await makeEditAndRecompile();
-          await logExpectation;
+          await logFuture;
         });
       });
 
@@ -124,9 +131,9 @@ void runTests({
 
         test('can live reload changes ', () async {
           // A full reload should clear the state.
-          final logExpectation = expectLogs([newString]);
+          final logFuture = waitForLogs([newString]);
           await makeEditAndRecompile();
-          await logExpectation;
+          await logFuture;
         });
       });
 
@@ -153,9 +160,9 @@ void runTests({
 
         test('can live reload changes ', () async {
           // A full reload should clear the state.
-          final logExpectation = expectLogs([newString]);
+          final logFuture = waitForLogs([newString]);
           await makeEditAndRecompile();
-          await logExpectation;
+          await logFuture;
         });
       });
     },
@@ -292,7 +299,7 @@ void runTests({
         ),
       );
       // Main is re-invoked which shouldn't clear the state.
-      final logExpectation = expectLogs(['$originalString $newString']);
+      final logFuture = waitForLogs(['$originalString $newString']);
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
       expect(
         await fakeClient.callServiceExtension(hotRestart!),
@@ -300,7 +307,7 @@ void runTests({
       );
 
       await eventsDone;
-      await logExpectation;
+      await logFuture;
     });
 
     test('can send events before and after hot restart', () async {
@@ -334,7 +341,7 @@ void runTests({
 
       await recompile();
       // Main is re-invoked which shouldn't clear the state.
-      final logExpectation = expectLogs(['$originalString $originalString']);
+      final logFuture = waitForLogs(['$originalString $originalString']);
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
       expect(
         await fakeClient.callServiceExtension(hotRestart!),
@@ -353,7 +360,7 @@ void runTests({
       );
 
       await eventsDone;
-      await logExpectation;
+      await logFuture;
     });
 
     test('can refresh the page via the fullReload service extension', () async {
@@ -372,7 +379,7 @@ void runTests({
         ),
       );
       // Should see only the new text.
-      final logExpectation = expectLogs([newString]);
+      final logFuture = waitForLogs([newString]);
       final fullReload = context.getRegisteredServiceExtension('fullReload');
       expect(
         await fakeClient.callServiceExtension(fullReload!),
@@ -380,7 +387,7 @@ void runTests({
       );
 
       await eventsDone;
-      await logExpectation;
+      await logFuture;
     });
 
     test('can hot restart while paused', () async {
@@ -405,10 +412,10 @@ void runTests({
 
       await makeEditAndRecompile();
       // Main is re-invoked which shouldn't clear the state.
-      final logExpectation = expectLogs(['$originalString $newString']);
+      final logFuture = waitForLogs(['$originalString $newString']);
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
       await fakeClient.callServiceExtension(hotRestart!);
-      await logExpectation;
+      await logFuture;
 
       vm = await client.getVM();
       isolateId = vm.isolates!.first.id!;
@@ -445,27 +452,25 @@ void runTests({
     test('can hot restart with no changes, hot restart with changes, and '
         'hot restart again with no changes', () async {
       // Empty hot restart.
-      var logExpectation = expectLogs(['$originalString $originalString']);
+      var logFuture = waitForLogs(['$originalString $originalString']);
       await recompile();
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
       await fakeClient.callServiceExtension(hotRestart!);
-      await logExpectation;
+      await logFuture;
 
       // Hot restart.
-      logExpectation = expectLogs([
-        '$originalString $originalString $newString',
-      ]);
+      logFuture = waitForLogs(['$originalString $originalString $newString']);
       await makeEditAndRecompile();
       await fakeClient.callServiceExtension(hotRestart);
-      await logExpectation;
+      await logFuture;
 
       // Empty hot restart.
-      logExpectation = expectLogs([
+      logFuture = waitForLogs([
         '$originalString $originalString $newString $newString',
       ]);
       await recompile();
       await fakeClient.callServiceExtension(hotRestart);
-      await logExpectation;
+      await logFuture;
     });
   }, timeout: Timeout.factor(2));
 
@@ -491,14 +496,14 @@ void runTests({
 
         test('can hot restart changes ', () async {
           // Main is re-invoked which shouldn't clear the state.
-          final logExpectations = expectLogs([
+          final logFutures = waitForLogs([
             '$originalString $newString',
             // The ext.flutter.disassemble callback is invoked and waited for.
             'start disassemble',
             'end disassemble',
           ]);
           await makeEditAndRecompile();
-          await logExpectations;
+          await logFutures;
         });
 
         test(
@@ -547,14 +552,14 @@ void runTests({
 
         test('can hot restart changes ', () async {
           // Main is re-invoked which shouldn't clear the state.
-          final logExpectations = expectLogs([
+          final logFutures = waitForLogs([
             '$originalString $newString',
             // The ext.flutter.disassemble callback is invoked and waited for.
             'start disassemble',
             'end disassemble',
           ]);
           await makeEditAndRecompile();
-          await logExpectations;
+          await logFutures;
         });
       });
     },
@@ -604,7 +609,7 @@ void runTests({
         );
 
         // Main is re-invoked which shouldn't clear the state.
-        final logExpectation = expectLogs(['$originalString $newString']);
+        final logFuture = waitForLogs(['$originalString $newString']);
         final hotRestart = context.getRegisteredServiceExtension('hotRestart');
         expect(
           await fakeClient.callServiceExtension(hotRestart!),
@@ -617,14 +622,14 @@ void runTests({
         final isolateId = vm.isolates!.first.id!;
         await client.resume(isolateId);
 
-        await logExpectation;
+        await logFuture;
       },
     );
 
     test(
       'after page refresh, does not run app until there is a resume event',
       () async {
-        final logExpectation = expectLogs([newString]);
+        final logFuture = waitForLogs([newString]);
         await makeEditAndRecompile();
         await context.webDriver.driver.refresh();
 
@@ -645,7 +650,7 @@ void runTests({
         final isolateId = vm.isolates!.first.id!;
         await client.resume(isolateId);
 
-        await logExpectation;
+        await logFuture;
       },
     );
   });

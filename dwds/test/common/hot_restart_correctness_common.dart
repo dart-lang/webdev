@@ -54,15 +54,22 @@ void runTests({
     }
   }
 
-  /// Wait for `expectedString` to be printed in the console.
-  Future<void> expectLog(String expectedString) async {
+  // Wait for `expectedString` to be printed to the console.
+  Future<void> waitForLog(String expectedString) async {
     final completer = Completer<void>();
     final subscription = context.webkitDebugger.onConsoleAPICalled.listen((e) {
       if (e.args.first.value == expectedString) {
         completer.complete();
       }
     });
-    await completer.future;
+    await completer.future.timeout(
+      const Duration(minutes: 1),
+      onTimeout: () {
+        throw TimeoutException(
+          "Failed to find log: '$expectedString' in console.",
+        );
+      },
+    );
     await subscription.cancel();
   }
 
@@ -90,14 +97,14 @@ void runTests({
     test('initial state prints the right log', () async {
       final client = context.debugConnection.vmService;
 
-      final logExpectation = expectLog(
+      final logFuture = waitForLog(
         'ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
       );
       final vm = await client.getVM();
       final isolate = await client.getIsolate(vm.isolates!.first.id!);
       final rootLib = isolate.rootLib;
       await client.evaluate(isolate.id!, rootLib!.id!, 'printConst()');
-      await logExpectation;
+      await logFuture;
     });
 
     test(
@@ -119,7 +126,7 @@ void runTests({
           ),
         );
 
-        final logExpectation = expectLog(
+        final logFuture = waitForLog(
           'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
         );
         final hotRestart = context.getRegisteredServiceExtension('hotRestart');
@@ -129,7 +136,7 @@ void runTests({
         );
 
         await eventsDone;
-        await logExpectation;
+        await logFuture;
       },
     );
   }, timeout: Timeout.factor(2));
@@ -155,11 +162,11 @@ void runTests({
         });
 
         test('properly compares constants after hot restart', () async {
-          final logExpectation = expectLog(
+          final logFuture = waitForLog(
             'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
           );
           await makeEditAndRecompile();
-          await logExpectation;
+          await logFuture;
         });
       });
 
@@ -184,11 +191,11 @@ void runTests({
         });
 
         test('properly compares constants after hot restart', () async {
-          final logExpectation = expectLog(
+          final logFuture = waitForLog(
             'ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
           );
           await makeEditAndRecompile();
-          await logExpectation;
+          await logFuture;
         });
       });
     },
