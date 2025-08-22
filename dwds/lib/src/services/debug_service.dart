@@ -24,15 +24,86 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart' hide Response;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
+import 'package:stream_channel/stream_channel.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 const _kSseHandlerPath = '\$debugHandler';
 
 bool _acceptNewConnections = true;
-int _clientsConnected = 0;
+
+final _clientConnections = <int, StreamChannel>{};
+int _clientId = 0;
 
 Logger _logger = Logger('DebugService');
+
+void _handleConnection(
+  StreamChannel channel,
+  ChromeProxyService chromeProxyService,
+  ServiceExtensionRegistry serviceExtensionRegistry, {
+  void Function(Map<String, Object>)? onRequest,
+  void Function(Map<String, Object?>)? onResponse,
+}) {
+  final clientId = _clientId++;
+  final responseController = StreamController<Map<String, Object?>>();
+  responseController.stream
+      .asyncMap((response) async {
+        // This error indicates a successful invocation to _yieldControlToDDS.
+        // We don't have a good way to access the list of connected clients
+        // while also being able to determine which client invoked the RPC
+        // without some form of client ID.
+        //
+        // We can probably do better than this, but it will likely involve some
+        // refactoring.
+        if (response case {
+          'error': {
+            'code': DisconnectNonDartDevelopmentServiceClients.kErrorCode,
+          },
+        }) {
+          final nonDdsClients = _clientConnections.entries
+              .where((MapEntry<int, StreamChannel> e) => e.key != clientId)
+              .map((e) => e.value);
+          await Future.wait([
+            for (final client in nonDdsClients) client.sink.close(),
+          ]);
+          // Remove the artificial error and return Success.
+          response.remove('error');
+          response['result'] = Success().toJson();
+        }
+        if (onResponse != null) onResponse(response);
+        channel.sink.add(jsonEncode(response));
+      })
+      .listen(channel.sink.add, onError: channel.sink.addError);
+  final inputStream = channel.stream.map((value) {
+    if (value is List<int>) {
+      value = utf8.decode(value);
+    } else if (value is! String) {
+      throw StateError(
+        'Got value with unexpected type ${value.runtimeType} from web '
+        'socket, expected a List<int> or String.',
+      );
+    }
+    final request = Map<String, Object>.from(jsonDecode(value));
+    if (onRequest != null) onRequest(request);
+    return request;
+  });
+  VmServerConnection(
+    inputStream,
+    responseController.sink,
+    serviceExtensionRegistry,
+    chromeProxyService,
+  ).done.whenComplete(() {
+    _clientConnections.remove(clientId);
+    if (!_acceptNewConnections && _clientConnections.isEmpty) {
+      // DDS has disconnected so we can allow for clients to connect directly
+      // to DWDS.
+      DebugService._ddsUri = null;
+      _acceptNewConnections = true;
+    }
+  });
+  _clientConnections[clientId] = channel;
+}
 
 void Function(WebSocketChannel, String?) _createNewConnectionHandler(
   ChromeProxyService chromeProxyService,
@@ -41,40 +112,13 @@ void Function(WebSocketChannel, String?) _createNewConnectionHandler(
   void Function(Map<String, Object?>)? onResponse,
 }) {
   return (webSocket, subprotocol) {
-    final responseController = StreamController<Map<String, Object?>>();
-    webSocket.sink.addStream(
-      responseController.stream.map((response) {
-        if (onResponse != null) onResponse(response);
-        return jsonEncode(response);
-      }),
-    );
-    final inputStream = webSocket.stream.map((value) {
-      if (value is List<int>) {
-        value = utf8.decode(value);
-      } else if (value is! String) {
-        throw StateError(
-          'Got value with unexpected type ${value.runtimeType} from web '
-          'socket, expected a List<int> or String.',
-        );
-      }
-      final request = Map<String, Object>.from(jsonDecode(value));
-      if (onRequest != null) onRequest(request);
-      return request;
-    });
-    ++_clientsConnected;
-    VmServerConnection(
-      inputStream,
-      responseController.sink,
-      serviceExtensionRegistry,
+    _handleConnection(
+      webSocket,
       chromeProxyService,
-    ).done.whenComplete(() {
-      --_clientsConnected;
-      if (!_acceptNewConnections && _clientsConnected == 0) {
-        // DDS has disconnected so we can allow for clients to connect directly
-        // to DWDS.
-        _acceptNewConnections = true;
-      }
-    });
+      serviceExtensionRegistry,
+      onRequest: onRequest,
+      onResponse: onResponse,
+    );
   };
 }
 
@@ -87,41 +131,12 @@ Future<void> _handleSseConnections(
 }) async {
   while (await handler.connections.hasNext) {
     final connection = await handler.connections.next;
-    final responseController = StreamController<Map<String, Object?>>();
-    final sub = responseController.stream
-        .map((response) {
-          if (onResponse != null) onResponse(response);
-          return jsonEncode(response);
-        })
-        .listen(connection.sink.add);
-    safeUnawaited(
-      chromeProxyService.remoteDebugger.onClose.first.whenComplete(() {
-        connection.sink.close();
-        sub.cancel();
-      }),
-    );
-    final inputStream = connection.stream.map((value) {
-      final request = jsonDecode(value) as Map<String, Object>;
-      if (onRequest != null) onRequest(request);
-      return request;
-    });
-    ++_clientsConnected;
-    final vmServerConnection = VmServerConnection(
-      inputStream,
-      responseController.sink,
-      serviceExtensionRegistry,
+    _handleConnection(
+      connection,
       chromeProxyService,
-    );
-    safeUnawaited(
-      vmServerConnection.done.whenComplete(() {
-        --_clientsConnected;
-        if (!_acceptNewConnections && _clientsConnected == 0) {
-          // DDS has disconnected so we can allow for clients to connect directly
-          // to DWDS.
-          _acceptNewConnections = true;
-        }
-        return sub.cancel();
-      }),
+      serviceExtensionRegistry,
+      onRequest: onRequest,
+      onResponse: onResponse,
     );
   }
 }
@@ -207,15 +222,19 @@ class DebugService {
     return _encodedUri = encoded;
   }
 
-  // TODO(https://github.com/dart-lang/webdev/issues/2399): yieldControlToDDS
-  // should disconnect existing non-DDS clients.
-  static bool yieldControlToDDS(String uri) {
-    if (_clientsConnected > 1) {
-      return false;
+  static void yieldControlToDDS(String uri) {
+    if (_ddsUri != null) {
+      // This exception is identical to the one thrown from
+      // sdk/lib/vmservice/vmservice.dart
+      throw RPCError(
+        '_yieldControlToDDS',
+        RPCErrorKind.kFeatureDisabled.code,
+        'A DDS instance is already connected at $_ddsUri.',
+        {'ddsUri': _ddsUri.toString()},
+      );
     }
-    _ddsUri = uri;
     _acceptNewConnections = false;
-    return true;
+    _ddsUri = uri;
   }
 
   static Future<DebugService> start(

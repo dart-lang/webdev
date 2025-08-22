@@ -38,6 +38,38 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// Defines callbacks for sending messages to the connected client application.
 typedef SendClientRequest = void Function(Object request);
 
+// This event is identical to the one sent by the VM service from
+// sdk/lib/vmservice/vmservice.dart before existing VM service clients are
+// disconnected.
+final class DartDevelopmentServiceConnectedEvent extends Event {
+  DartDevelopmentServiceConnectedEvent({
+    required super.timestamp,
+    required this.uri,
+  }) : message =
+           'A Dart Developer Service instance has connected and this direct '
+               'connection to the VM service will now be closed. Please reconnect to '
+               'the Dart Development Service at $uri.',
+       super(kind: 'DartDevelopmentServiceConnected');
+
+  final String message;
+  final String uri;
+
+  @override
+  Map<String, Object?> toJson() => {
+    ...super.toJson(),
+    'uri': uri,
+    'message': message,
+  };
+}
+
+final class DisconnectNonDartDevelopmentServiceClients extends RPCError {
+  DisconnectNonDartDevelopmentServiceClients()
+    : super('_yieldControlToDDS', kErrorCode);
+
+  // Arbitrary error code that's unlikely to be used elsewhere.
+  static const kErrorCode = -199328;
+}
+
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
   final bool useWebSocket;
@@ -1739,15 +1771,21 @@ class ChromeProxyService implements VmServiceInterface {
 
   @override
   Future<void> yieldControlToDDS(String uri) async {
-    final canYield = DebugService.yieldControlToDDS(uri);
+    // This will throw an RPCError if there's already an existing DDS instance.
+    DebugService.yieldControlToDDS(uri);
 
-    if (!canYield) {
-      throw RPCError(
-        'yieldControlToDDS',
-        RPCErrorKind.kFeatureDisabled.code,
-        'Existing VM service clients prevent DDS from taking control.',
-      );
-    }
+    // Notify existing clients that DDS has connected and they're about to be
+    // disconnected.
+    final event = DartDevelopmentServiceConnectedEvent(
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      uri: uri,
+    );
+    _streamNotify(EventStreams.kService, event);
+
+    // We throw since we have no other way to control what the response content
+    // is for this RPC. The debug service will check for this particular
+    // exception as a signal to close connections to all other clients.
+    throw DisconnectNonDartDevelopmentServiceClients();
   }
 
   @override
