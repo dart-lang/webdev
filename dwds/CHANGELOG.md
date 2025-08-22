@@ -1,9 +1,16 @@
-## 25.0.2
+## 25.0.3
 
 ### Bug Fixes:
 
 - Fix issue in hot restart with the web socket where we didn't pass the reloaded
   sources path, resulting in a null assertion.
+
+## 25.0.2
+
+### Bug Fixes:
+
+- Fix issue where DDS would fail to initialize if DWDS already had existing
+  clients.
 
 ## 25.0.1
 
@@ -80,6 +87,7 @@
   libraries instead of assuming it exists in the global `window`.
 
 ## 24.3.5
+
 - Allow clients to specify the `packageConfigPath` in `LoadStrategy` class and associated providers.
 
 ## 24.3.4
@@ -164,7 +172,7 @@
 
 ## 23.1.1
 
-- Loosen `package:vm_service` constraints to allow `>=13.0.0 <15.0.0`.  - [#2329](https://github.com/dart-lang/webdev/pull/2329)
+- Loosen `package:vm_service` constraints to allow `>=13.0.0 <15.0.0`. - [#2329](https://github.com/dart-lang/webdev/pull/2329)
 
 ## 23.1.0
 
