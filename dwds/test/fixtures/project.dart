@@ -89,6 +89,16 @@ class TestProject {
             : 'index.html',
       );
 
+  TestProject.testParts({IndexBaseMode baseMode = IndexBaseMode.noBase})
+    : this._(
+        packageName: '_test_parts',
+        packageDirectory: '_test_parts',
+        webAssetsPath: 'web',
+        dartEntryFileName: 'main.dart',
+        htmlEntryFileName:
+            baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html',
+      );
+
   static final test = TestProject._(
     packageName: '_test',
     packageDirectory: '_test',
