@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:core';
-// TODO: https://github.com/dart-lang/webdev/issues/2508
-// ignore: deprecated_member_use
-import 'dart:html';
+import 'dart:js_interop';
 
 import 'package:_test_hot_restart1/library1.dart';
 import 'package:_test_hot_restart2/library2.dart';
@@ -23,6 +21,9 @@ import 'package:_test_hot_restart2/library2.dart';
 ///   Constants in reloaded modules fail to compare with constants in stale
 ///   constant containers, causing 'ConstantEqualityFailure's.
 
+@JS('console.log')
+external void log(String _);
+
 class ConstObject {
   const ConstObject();
   String get text => 'ConstObject('
@@ -30,7 +31,10 @@ class ConstObject {
       '${value1 == value2 ? 'ConstantEqualitySuccess' : 'ConstantEqualityFailure'})';
 }
 
+void printConst() {
+  log('${const ConstObject().text}');
+}
+
 void main() {
-  document.body!.innerHtml =
-      'Program is running!\n${const ConstObject().text}\n';
+  printConst();
 }

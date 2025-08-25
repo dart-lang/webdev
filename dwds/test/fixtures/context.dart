@@ -492,8 +492,9 @@ class TestContext {
         if (debugSettings.enableDebugging && !testSettings.waitToDebug) {
           await startDebugging();
         }
+        _webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
       } else {
-        // No tab needs to be dicovered, so fulfill the relevant completer.
+        // No tab needs to be discovered, so fulfill the relevant completer.
         tabConnectionCompleter.complete();
       }
     } catch (e, s) {
@@ -538,7 +539,6 @@ class TestContext {
 
   Future<void> startDebugging() async {
     debugConnection = await testServer.dwds.debugConnection(appConnection);
-    _webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
   }
 
   Future<void> tearDown() async {
@@ -565,23 +565,30 @@ class TestContext {
     _outputDir = null;
   }
 
-  void makeEditToDartEntryFile({
-    required String toReplace,
-    required String replaceWith,
-  }) {
-    final file = File(project.dartEntryFilePath);
-    final fileContents = file.readAsStringSync();
-    file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
-  }
-
-  void makeEditToDartLibFile({
-    required String libFileName,
-    required String toReplace,
-    required String replaceWith,
-  }) {
-    final file = File(project.dartLibFilePath(libFileName));
-    final fileContents = file.readAsStringSync();
-    file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
+  /// Given a list of edits, use file IO to write them to the file system.
+  ///
+  /// If `file` has the same name as the project's entry file name, that file
+  /// will be edited. Otherwise, it's assumed to be a library file.
+  // TODO(srujzs): It's possible we may want a library file with the same name
+  // as the entry file, but this function doesn't allow that. Potentially
+  // support that.
+  Future<void> makeEdits(List<Edit> edits) async {
+    // `dart:io`'s `stat` on Windows does not have millisecond precision so we
+    // need to make sure we wait long enough that modifications result in a
+    // timestamp that is guaranteed to be after the previous compile.
+    // TODO(https://github.com/dart-lang/sdk/issues/51937): Remove once this bug
+    // is fixed.
+    if (Platform.isWindows) await Future.delayed(Duration(seconds: 1));
+    for (var (:file, :originalString, :newString) in edits) {
+      if (file == project.dartEntryFileName) {
+        file = project.dartEntryFilePath;
+      } else {
+        file = project.dartLibFilePath(file);
+      }
+      final f = File(project.dartLibFilePath(file));
+      final fileContents = f.readAsStringSync();
+      f.writeAsStringSync(fileContents.replaceAll(originalString, newString));
+    }
   }
 
   void addLibraryFile({required String libFileName, required String contents}) {
@@ -677,3 +684,5 @@ class TestContext {
     return lineNumber + 1;
   }
 }
+
+typedef Edit = ({String file, String originalString, String newString});

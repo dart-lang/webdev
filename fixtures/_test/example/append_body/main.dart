@@ -4,13 +4,15 @@
 
 import 'dart:async';
 import 'dart:developer';
-// TODO: https://github.com/dart-lang/webdev/issues/2508
-// ignore: deprecated_member_use
-import 'dart:html';
 import 'dart:js_interop';
 
 @JS('console.log')
 external void log(String _);
+
+// We use this to test whether a hot restart or a full reload occurred. In the
+// former, we should see the old log, but in the latter, we should not.
+@JS('\$previousLog')
+external String? previousLog;
 
 void main() {
   var count = 0;
@@ -19,15 +21,17 @@ void main() {
     print('Count is: ${++count}'); // Breakpoint: printCount
   });
 
-  document.body?.appendText('Hello World!');
+  var logMessage = 'Hello World!';
+  // Note that we concatenate instead of logging each one separately to avoid
+  // possibly mixing up logs with a previous call to `main`.
+  if (previousLog != null) logMessage = '$previousLog $logMessage';
+  log(logMessage);
+  previousLog = logMessage;
 
   registerExtension('ext.flutter.disassemble', (_, __) async {
-    document.body?.appendText('start disassemble ');
+    log('start disassemble');
     await Future.delayed(const Duration(seconds: 1));
-    document.body?.appendText('end disassemble ');
+    log('end disassemble');
     return ServiceExtensionResponse.result('{}');
   });
-
-  // Wait for this print statement so that we know main is done executing.
-  log('main executed');
 }
