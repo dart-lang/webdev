@@ -9898,7 +9898,7 @@
               rng[8] = rng[8] & 63 | 128;
               runId = A.UuidParsing_unparse(rng);
               $async$goto = 7;
-              return A._asyncAwait(manager.hotRestart$1$runId(runId), $async$handleWebSocketHotRestartRequest);
+              return A._asyncAwait(manager.hotRestart$2$reloadedSourcesPath$runId(A._asStringQ(init.G.$reloadedSourcesPath), runId), $async$handleWebSocketHotRestartRequest);
             case 7:
               // returning from await.
               A._sendResponse(clientSink, A.hot_restart_response_HotRestartResponse___new_tearOff$closure(), requestId, null, true, type$.HotRestartResponse);
@@ -27753,7 +27753,7 @@
             case 8:
               // then
               $async$goto = 11;
-              return A._asyncAwait($async$self.manager.hotRestart$0(), $async$call$1);
+              return A._asyncAwait($async$self.manager.hotRestart$1$reloadedSourcesPath(A._asStringQ(t1.$reloadedSourcesPath)), $async$call$1);
             case 11:
               // returning from await.
               // goto join
@@ -28313,11 +28313,8 @@
       });
       return A._asyncStartSync($async$hotRestart$3$readyToRunMain$reloadedSourcesPath$runId, $async$completer);
     },
-    hotRestart$0() {
-      return this.hotRestart$3$readyToRunMain$reloadedSourcesPath$runId(null, null, null);
-    },
-    hotRestart$1$runId(runId) {
-      return this.hotRestart$3$readyToRunMain$reloadedSourcesPath$runId(null, null, runId);
+    hotRestart$1$reloadedSourcesPath(reloadedSourcesPath) {
+      return this.hotRestart$3$readyToRunMain$reloadedSourcesPath$runId(null, reloadedSourcesPath, null);
     },
     hotRestart$2$reloadedSourcesPath$runId(reloadedSourcesPath, runId) {
       return this.hotRestart$3$readyToRunMain$reloadedSourcesPath$runId(null, reloadedSourcesPath, runId);

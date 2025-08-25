@@ -190,7 +190,9 @@ Future<void>? main() {
               manager.reloadPage();
             } else if (reloadConfiguration ==
                 'ReloadConfiguration.hotRestart') {
-              await manager.hotRestart();
+              await manager.hotRestart(
+                reloadedSourcesPath: hotRestartReloadedSourcesPath,
+              );
             } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
               await manager.hotReloadStart(hotReloadReloadedSourcesPath);
               await manager.hotReloadEnd();
@@ -493,7 +495,10 @@ Future<void> handleWebSocketHotRestartRequest(
   final requestId = event.id;
   try {
     final runId = const Uuid().v4().toString();
-    await manager.hotRestart(runId: runId);
+    await manager.hotRestart(
+      runId: runId,
+      reloadedSourcesPath: hotRestartReloadedSourcesPath,
+    );
     _sendHotRestartResponse(clientSink, requestId, success: true);
   } catch (e) {
     _sendHotRestartResponse(

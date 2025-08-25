@@ -1,5 +1,12 @@
 ## 25.1.0-wip
 
+## 25.0.3
+
+### Bug Fixes:
+
+- Fix issue in hot restart with the web socket where we didn't pass the reloaded
+  sources path, resulting in a null assertion.
+
 ## 25.0.2
 
 ### Bug Fixes:
