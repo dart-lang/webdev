@@ -480,6 +480,10 @@ class ResidentCompiler {
   ) async {
     _stdoutHandler.reset(suppressCompilerMessages: true, expectSources: false);
 
+    // This hasn't been updated for years and will not work with current
+    // versions of Dart (anything including
+    // https://github.com/dart-lang/sdk/commit/17781dbc3645).
+
     // 'compile-expression' should be invoked after compiler has been started,
     // program was compiled.
     if (_server == null) {
@@ -488,7 +492,6 @@ class ResidentCompiler {
     final server = _server!;
 
     final inputKey = generateV4UUID();
-    if (1 + 1 == 2) throw 'hello #2';
     server.stdin.writeln('compile-expression $inputKey');
     server.stdin.writeln(request.expression);
     request.definitions.forEach(server.stdin.writeln);
