@@ -1,3 +1,10 @@
+## 24.4.0+2
+
+### Bug Fixes:
+
+- Fix issue where `DebugService: Error serving requestsError: Unsupported operation: Cannot send Null`
+  would be spammed on the console.
+
 ## 24.4.0+1
 
 ### Bug Fixes:

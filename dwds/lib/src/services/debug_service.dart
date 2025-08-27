@@ -48,7 +48,7 @@ void _handleConnection(
   final clientId = _clientId++;
   final responseController = StreamController<Map<String, Object?>>();
   responseController.stream
-      .asyncMap((response) async {
+      .asyncMap<String>((response) async {
         // This error indicates a successful invocation to _yieldControlToDDS.
         // We don't have a good way to access the list of connected clients
         // while also being able to determine which client invoked the RPC
@@ -72,7 +72,7 @@ void _handleConnection(
           response['result'] = Success().toJson();
         }
         if (onResponse != null) onResponse(response);
-        channel.sink.add(jsonEncode(response));
+        return jsonEncode(response);
       })
       .listen(channel.sink.add, onError: channel.sink.addError);
   final inputStream = channel.stream.map((value) {
