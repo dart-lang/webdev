@@ -1,5 +1,7 @@
 ## 25.0.4
 
+### Bug Fixes:
+
 - Fix issue where `DebugService: Error serving requestsError: Unsupported operation: Cannot send Null`
   would be spammed on the console.
 
