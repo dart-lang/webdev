@@ -5,7 +5,6 @@
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
-import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../../fixtures/context.dart';
@@ -135,7 +134,7 @@ void runTests({
           matchDisplayedTypeObjectGetters,
         );
       });
-    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'));
+    });
 
     test('int type', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -167,7 +166,7 @@ void runTests({
           matchDisplayedTypeObjectGetters,
         );
       });
-    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'));
+    });
 
     test('list type', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -229,7 +228,7 @@ void runTests({
           matchDisplayedTypeObjectGetters,
         );
       });
-    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'));
+    });
 
     test('set type', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -261,7 +260,7 @@ void runTests({
           matchDisplayedTypeObjectGetters,
         );
       });
-    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'));
+    });
 
     test('record type', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -297,7 +296,7 @@ void runTests({
           matchDisplayedTypeObjectGetters,
         );
       });
-    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'));
+    });
 
     test('class type', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -335,6 +334,6 @@ void runTests({
           matchDisplayedTypeObjectGetters,
         );
       });
-    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'));
+    });
   });
 }

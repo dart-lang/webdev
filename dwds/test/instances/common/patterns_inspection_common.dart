@@ -5,7 +5,6 @@
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
-import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../../fixtures/context.dart';
@@ -98,30 +97,15 @@ void runTests({
       await onBreakPoint('testPatternCase2', (event) async {
         final frame = event.topFrame!;
 
-        if (dartSdkIsAtLeast('3.7.0-246.0.dev')) {
-          expect(await getFrameVariables(frame), {
-            'obj': matchListInstance(type: 'Object'),
-            // Renamed to avoid shadowing variables from previous case.
-            'a\$': matchPrimitiveInstance(
-              kind: InstanceKind.kString,
-              value: 'b',
-            ),
-            'n\$': matchPrimitiveInstance(
-              kind: InstanceKind.kDouble,
-              value: 3.14,
-            ),
-          });
-        } else {
-          expect(await getFrameVariables(frame), {
-            'obj': matchListInstance(type: 'Object'),
-            // Renamed to avoid shadowing variables from previous case.
-            'a': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'b'),
-            'n': matchPrimitiveInstance(
-              kind: InstanceKind.kDouble,
-              value: 3.14,
-            ),
-          });
-        }
+        expect(await getFrameVariables(frame), {
+          'obj': matchListInstance(type: 'Object'),
+          // Renamed to avoid shadowing variables from previous case.
+          'a\$': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'b'),
+          'n\$': matchPrimitiveInstance(
+            kind: InstanceKind.kDouble,
+            value: 3.14,
+          ),
+        });
       });
     });
 
