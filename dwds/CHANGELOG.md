@@ -1,4 +1,9 @@
-## 25.1.0-wip
+## 25.0.4
+
+### Bug Fixes:
+
+- Fix issue where `DebugService: Error serving requestsError: Unsupported operation: Cannot send Null`
+  would be spammed on the console.
 
 ## 25.0.3
 
