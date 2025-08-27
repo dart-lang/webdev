@@ -58,7 +58,7 @@ class Modules {
         if (libraryUri != null) {
           final scriptServerPaths = _scriptsForLibrary[libraryUri];
           if (scriptServerPaths != null) {
-            for(final scriptServerPath in scriptServerPaths) {
+            for (final scriptServerPath in scriptServerPaths) {
               _sourceToLibraryOrPart.remove(scriptServerPath);
               _sourceToLibrary.remove(scriptServerPath);
             }
