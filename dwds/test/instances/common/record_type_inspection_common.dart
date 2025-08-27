@@ -5,7 +5,6 @@
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
-import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../../fixtures/context.dart';
@@ -126,7 +125,7 @@ void runTests({
           matchDisplayedTypeObjectGetters,
         );
       });
-    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'));
+    });
 
     test('simple record type display', () async {
       await onBreakPoint('printSimpleLocalRecord', (event) async {
@@ -190,7 +189,7 @@ void runTests({
           matchDisplayedTypeObjectGetters,
         );
       });
-    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'));
+    });
 
     test('complex record type display', () async {
       await onBreakPoint('printComplexLocalRecord', (event) async {
@@ -245,21 +244,17 @@ void runTests({
       });
     });
 
-    test(
-      'complex record type with named fields getters',
-      () async {
-        await onBreakPoint('printComplexNamedLocalRecord', (event) async {
-          final frame = event.topFrame!.index!;
-          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+    test('complex record type with named fields getters', () async {
+      await onBreakPoint('printComplexNamedLocalRecord', (event) async {
+        final frame = event.topFrame!.index!;
+        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
 
-          expect(
-            await getDisplayedGetters(instanceRef),
-            matchDisplayedTypeObjectGetters,
-          );
-        });
-      },
-      skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),
-    );
+        expect(
+          await getDisplayedGetters(instanceRef),
+          matchDisplayedTypeObjectGetters,
+        );
+      });
+    });
 
     test('complex record type with named fields display', () async {
       await onBreakPoint('printComplexNamedLocalRecord', (event) async {
@@ -332,7 +327,7 @@ void runTests({
           matchDisplayedTypeObjectGetters,
         );
       });
-    }, skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'));
+    });
 
     test('nested record type display', () async {
       await onBreakPoint('printNestedLocalRecord', (event) async {
@@ -392,26 +387,22 @@ void runTests({
       });
     });
 
-    test(
-      'nested record type with named fields getters',
-      () async {
-        await onBreakPoint('printNestedNamedLocalRecord', (event) async {
-          final frame = event.topFrame!.index!;
-          final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
-          final elements = await getElements(instanceRef.id!);
+    test('nested record type with named fields getters', () async {
+      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+        final frame = event.topFrame!.index!;
+        final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
+        final elements = await getElements(instanceRef.id!);
 
-          expect(
-            await getDisplayedGetters(instanceRef),
-            matchDisplayedTypeObjectGetters,
-          );
-          expect(
-            await getDisplayedGetters(elements[1]),
-            matchDisplayedTypeObjectGetters,
-          );
-        });
-      },
-      skip: !dartSdkIsAtLeast('3.4.0-56.0.dev'),
-    );
+        expect(
+          await getDisplayedGetters(instanceRef),
+          matchDisplayedTypeObjectGetters,
+        );
+        expect(
+          await getDisplayedGetters(elements[1]),
+          matchDisplayedTypeObjectGetters,
+        );
+      });
+    });
 
     test('nested record type with named fields display', () async {
       await onBreakPoint('printNestedNamedLocalRecord', (event) async {
