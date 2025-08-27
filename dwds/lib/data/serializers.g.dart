@@ -7,7 +7,7 @@ part of 'serializers.dart';
 // **************************************************************************
 
 Serializers _$serializers =
-    (new Serializers().toBuilder()
+    (Serializers().toBuilder()
           ..add(BatchedDebugEvents.serializer)
           ..add(BatchedEvents.serializer)
           ..add(BuildResult.serializer)
@@ -29,11 +29,11 @@ Serializers _$serializers =
           ..add(RunRequest.serializer)
           ..addBuilderFactory(
             const FullType(BuiltList, const [const FullType(DebugEvent)]),
-            () => new ListBuilder<DebugEvent>(),
+            () => ListBuilder<DebugEvent>(),
           )
           ..addBuilderFactory(
             const FullType(BuiltList, const [const FullType(ExtensionEvent)]),
-            () => new ListBuilder<ExtensionEvent>(),
+            () => ListBuilder<ExtensionEvent>(),
           ))
         .build();
 
