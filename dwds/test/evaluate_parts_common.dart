@@ -124,115 +124,95 @@ void testAll({
       });
 
       test('evaluate expression in main library', () async {
-        await onBreakPoint(
-          isolateId,
-          mainScript,
-          'Concatenate1',
-          () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
+        await onBreakPoint(isolateId, mainScript, 'Concatenate1', () async {
+          final event = await stream.firstWhere(
+            (event) => event.kind == EventKind.kPauseBreakpoint,
+          );
 
-            final result = await context.service.evaluateInFrame(
-              isolateId,
-              event.topFrame!.index!,
-              'a.substring(2, 4)',
-            );
+          final result = await context.service.evaluateInFrame(
+            isolateId,
+            event.topFrame!.index!,
+            'a.substring(2, 4)',
+          );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                'll',
-              ),
-            );
-          },
-        );
+          expect(
+            result,
+            isA<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              'll',
+            ),
+          );
+        });
       });
 
       test('evaluate expression in part1', () async {
-        await onBreakPoint(
-          isolateId,
-          part1Script,
-          'Concatenate2',
-          () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
+        await onBreakPoint(isolateId, part1Script, 'Concatenate2', () async {
+          final event = await stream.firstWhere(
+            (event) => event.kind == EventKind.kPauseBreakpoint,
+          );
 
-            final result = await context.service.evaluateInFrame(
-              isolateId,
-              event.topFrame!.index!,
-              'a + b + 37',
-            );
+          final result = await context.service.evaluateInFrame(
+            isolateId,
+            event.topFrame!.index!,
+            'a + b + 37',
+          );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '42',
-              ),
-            );
-          },
-        );
+          expect(
+            result,
+            isA<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              '42',
+            ),
+          );
+        });
       });
 
       test('evaluate expression in part2', () async {
-        await onBreakPoint(
-          isolateId,
-          part2Script,
-          'Concatenate3',
-          () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
+        await onBreakPoint(isolateId, part2Script, 'Concatenate3', () async {
+          final event = await stream.firstWhere(
+            (event) => event.kind == EventKind.kPauseBreakpoint,
+          );
 
-            final result = await context.service.evaluateInFrame(
-              isolateId,
-              event.topFrame!.index!,
-              'a.length + b + 1',
-            );
+          final result = await context.service.evaluateInFrame(
+            isolateId,
+            event.topFrame!.index!,
+            'a.length + b + 1',
+          );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '42.42',
-              ),
-            );
-          },
-        );
+          expect(
+            result,
+            isA<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              '42.42',
+            ),
+          );
+        });
       });
 
       test('evaluate expression in part3', () async {
-        await onBreakPoint(
-          isolateId,
-          part3Script,
-          'Concatenate4',
-          () async {
-            final event = await stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseBreakpoint,
-            );
+        await onBreakPoint(isolateId, part3Script, 'Concatenate4', () async {
+          final event = await stream.firstWhere(
+            (event) => event.kind == EventKind.kPauseBreakpoint,
+          );
 
-            final result = await context.service.evaluateInFrame(
-              isolateId,
-              event.topFrame!.index!,
-              '(List.of(a)..add(b.keys.first)).toString()',
-            );
+          final result = await context.service.evaluateInFrame(
+            isolateId,
+            event.topFrame!.index!,
+            '(List.of(a)..add(b.keys.first)).toString()',
+          );
 
-            expect(
-              result,
-              isA<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                '[hello, world, foo]',
-              ),
-            );
-          },
-        );
+          expect(
+            result,
+            isA<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              '[hello, world, foo]',
+            ),
+          );
+        });
       });
     });
   });
