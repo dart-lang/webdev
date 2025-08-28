@@ -141,7 +141,7 @@ void main() {
         );
         await context.setUp(
           testSettings: TestSettings(enableExpressionEvaluation: true),
-          debugSettings: TestDebugSettings.withDevTools(context),
+          debugSettings: TestDebugSettings.withDevToolsLaunch(context),
         );
         keyboard = context.webDriver.driver.keyboard;
         events = context.testServer.dwds.events;

@@ -180,7 +180,7 @@ void runTests({
               moduleFormat: provider.ddcModuleFormat,
               canaryFeatures: provider.canaryFeatures,
             ),
-            debugSettings: TestDebugSettings.noDevTools().copyWith(
+            debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
               enableDebugging: false,
             ),
           );

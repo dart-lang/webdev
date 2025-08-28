@@ -1,3 +1,11 @@
+## 25.1.0
+
+- Added `DartDevelopmentServiceConfiguration` to allow for configuring DDS behavior.
+- Added support for serving DevTools via DDS. This will become the sole method of serving
+  DevTools from DWDS in a future major release.
+- Deprecated `spawnDds`, `ddsPort`, and `devToolsLauncher` properties in `DebugSettings`.
+- Added `ddsConfiguration` to `DebugSettings`.
+
 ## 25.0.4
 
 ### Bug Fixes:

@@ -168,8 +168,7 @@ class ChromeDebugService implements DebugService {
   final String authToken;
   final HttpServer _server;
   final bool _useSse;
-  final bool _spawnDds;
-  final int? _ddsPort;
+  final DartDevelopmentServiceConfiguration _ddsConfig;
   final UrlEncoder? _urlEncoder;
   DartDevelopmentServiceLauncher? _dds;
 
@@ -186,8 +185,7 @@ class ChromeDebugService implements DebugService {
     this.serviceExtensionRegistry,
     this._server,
     this._useSse,
-    this._spawnDds,
-    this._ddsPort,
+    this._ddsConfig,
     this._urlEncoder,
   );
 
@@ -208,7 +206,13 @@ class ChromeDebugService implements DebugService {
         port: port,
         path: authToken,
       ),
-      serviceUri: Uri(scheme: 'http', host: hostname, port: _ddsPort ?? 0),
+      serviceUri: Uri(
+        scheme: 'http',
+        host: hostname,
+        port: _ddsConfig.port ?? 0,
+      ),
+      devToolsServerAddress: _ddsConfig.devToolsServerAddress,
+      serveDevTools: _ddsConfig.serveDevTools,
     );
     return _dds!;
   }
@@ -216,7 +220,7 @@ class ChromeDebugService implements DebugService {
   @override
   String get uri {
     final dds = _dds;
-    if (_spawnDds && dds != null) {
+    if (_ddsConfig.enable && dds != null) {
       return (_useSse ? dds.sseUri : dds.wsUri).toString();
     }
     return (_useSse
@@ -263,8 +267,7 @@ class ChromeDebugService implements DebugService {
     UrlEncoder? urlEncoder, {
     void Function(Map<String, Object>)? onRequest,
     void Function(Map<String, Object?>)? onResponse,
-    bool spawnDds = true,
-    int? ddsPort,
+    required DartDevelopmentServiceConfiguration ddsConfig,
     bool useSse = false,
     ExpressionCompiler? expressionCompiler,
   }) async {
@@ -281,7 +284,7 @@ class ChromeDebugService implements DebugService {
     final serviceExtensionRegistry = ServiceExtensionRegistry();
     Handler handler;
     // DDS will always connect to DWDS via web sockets.
-    if (useSse && !spawnDds) {
+    if (useSse && !ddsConfig.enable) {
       final sseHandler = SseHandler(
         Uri.parse('/$authToken/$_kSseHandlerPath'),
         keepAlive: const Duration(seconds: 5),
@@ -332,8 +335,7 @@ class ChromeDebugService implements DebugService {
       serviceExtensionRegistry,
       server,
       useSse,
-      spawnDds,
-      ddsPort,
+      ddsConfig,
       urlEncoder,
     );
   }

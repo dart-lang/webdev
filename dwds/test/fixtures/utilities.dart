@@ -101,23 +101,35 @@ Future<T> retryFnAsync<T>(
 }
 
 class TestDebugSettings extends DebugSettings {
-  TestDebugSettings.withDevTools(TestContext context)
-    : super(
-        devToolsLauncher: (hostname) async {
-          final server = await DevToolsServer().serveDevTools(
-            hostname: hostname,
-            enableStdinCommands: false,
-            customDevToolsPath:
-                context.sdkConfigurationProvider.sdkLayout.devToolsDirectory,
-          );
-          if (server == null) {
-            throw StateError('DevTools server could not be started.');
-          }
-          return DevTools(server.address.host, server.port, server);
-        },
-      );
+  TestDebugSettings.withDevToolsLaunch(
+    TestContext context, {
+    bool serveFromDds = false,
+  }) : super(
+         devToolsLauncher:
+             serveFromDds
+                 ? null
+                 : (hostname) async {
+                   final server = await DevToolsServer().serveDevTools(
+                     hostname: hostname,
+                     enableStdinCommands: false,
+                     customDevToolsPath:
+                         context
+                             .sdkConfigurationProvider
+                             .sdkLayout
+                             .devToolsDirectory,
+                   );
+                   if (server == null) {
+                     throw StateError('DevTools server could not be started.');
+                   }
+                   return DevTools(server.address.host, server.port, server);
+                 },
+         ddsConfiguration: DartDevelopmentServiceConfiguration(
+           serveDevTools: serveFromDds,
+         ),
+       );
 
-  const TestDebugSettings.noDevTools() : super(enableDevToolsLaunch: false);
+  const TestDebugSettings.noDevToolsLaunch()
+    : super(enableDevToolsLaunch: false);
 
   TestDebugSettings._({
     required super.enableDebugging,
@@ -133,6 +145,7 @@ class TestDebugSettings extends DebugSettings {
     required super.devToolsLauncher,
     required super.expressionCompiler,
     required super.urlEncoder,
+    required super.ddsConfiguration,
   });
 
   TestDebugSettings copyWith({
@@ -147,6 +160,7 @@ class TestDebugSettings extends DebugSettings {
     DevToolsLauncher? devToolsLauncher,
     ExpressionCompiler? expressionCompiler,
     UrlEncoder? urlEncoder,
+    DartDevelopmentServiceConfiguration? ddsConfiguration,
   }) {
     return TestDebugSettings._(
       enableDebugging: enableDebugging ?? this.enableDebugging,
@@ -163,6 +177,7 @@ class TestDebugSettings extends DebugSettings {
       devToolsLauncher: devToolsLauncher ?? this.devToolsLauncher,
       expressionCompiler: expressionCompiler ?? this.expressionCompiler,
       urlEncoder: urlEncoder ?? this.urlEncoder,
+      ddsConfiguration: ddsConfiguration ?? this.ddsConfiguration,
     );
   }
 }
@@ -194,14 +209,14 @@ class TestToolConfiguration extends ToolConfiguration {
   TestToolConfiguration.withDefaultLoadStrategy({
     TestAppMetadata super.appMetadata = const TestAppMetadata.externalApp(),
     TestDebugSettings super.debugSettings =
-        const TestDebugSettings.noDevTools(),
+        const TestDebugSettings.noDevToolsLaunch(),
     TestBuildSettings buildSettings = const TestBuildSettings.dart(),
   }) : super(loadStrategy: TestStrategy(FakeAssetReader(), buildSettings));
 
   TestToolConfiguration.withLoadStrategy({
     TestAppMetadata super.appMetadata = const TestAppMetadata.externalApp(),
     TestDebugSettings super.debugSettings =
-        const TestDebugSettings.noDevTools(),
+        const TestDebugSettings.noDevToolsLaunch(),
     required super.loadStrategy,
   });
 }

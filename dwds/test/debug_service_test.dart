@@ -8,6 +8,7 @@ library;
 
 import 'dart:io';
 
+import 'package:dwds/dwds.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
@@ -26,7 +27,10 @@ void main() {
   setUpAll(() async {
     // Disable DDS as we're testing DWDS behavior.
     await context.setUp(
-      debugSettings: TestDebugSettings.noDevTools().copyWith(spawnDds: false),
+      debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+        spawnDds: false,
+        ddsConfiguration: DartDevelopmentServiceConfiguration(enable: false),
+      ),
     );
   });
 
