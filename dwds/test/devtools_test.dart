@@ -58,18 +58,13 @@ void main() {
           await context.tearDown();
         });
 
-        test(
-          'can launch devtools',
-          () async {
-            final windows = await context.webDriver.windows.toList();
-            await context.webDriver.driver.switchTo.window(windows.last);
-            expect(await context.webDriver.pageSource, contains('DevTools'));
-            expect(await context.webDriver.currentUrl, contains('ide=Dwds'));
-            // TODO(https://github.com/dart-lang/webdev/issues/1888): Re-enable.
-          },
-          skip: Platform.isWindows,
-          retry: 0,
-        );
+        test('can launch devtools', () async {
+          final windows = await context.webDriver.windows.toList();
+          await context.webDriver.driver.switchTo.window(windows.last);
+          expect(await context.webDriver.pageSource, contains('DevTools'));
+          expect(await context.webDriver.currentUrl, contains('ide=Dwds'));
+          // TODO(https://github.com/dart-lang/webdev/issues/1888): Re-enable.
+        }, skip: Platform.isWindows);
 
         test(
           'can not launch devtools for the same app in multiple tabs',
@@ -169,9 +164,6 @@ void main() {
       await context.setUp(
         debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
           enableDevToolsLaunch: true,
-          ddsConfiguration: DartDevelopmentServiceConfiguration(
-            serveDevTools: false,
-          ),
         ),
       );
     });
@@ -198,9 +190,6 @@ void main() {
         await context.setUp(
           debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
             enableDebugExtension: true,
-            ddsConfiguration: DartDevelopmentServiceConfiguration(
-              serveDevTools: false,
-            ),
           ),
         );
       });
