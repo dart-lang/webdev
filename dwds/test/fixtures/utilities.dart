@@ -105,6 +105,7 @@ class TestDebugSettings extends DebugSettings {
     TestContext context, {
     bool serveFromDds = false,
   }) : super(
+         // ignore: deprecated_member_use_from_same_package
          devToolsLauncher:
              serveFromDds
                  ? null
@@ -168,12 +169,15 @@ class TestDebugSettings extends DebugSettings {
       useSseForDebugProxy: useSse ?? useSseForDebugProxy,
       useSseForDebugBackend: useSse ?? useSseForDebugBackend,
       useSseForInjectedClient: useSse ?? useSseForInjectedClient,
+      // ignore: deprecated_member_use_from_same_package
       spawnDds: spawnDds ?? this.spawnDds,
+      // ignore: deprecated_member_use_from_same_package
       ddsPort: ddsPort ?? this.ddsPort,
       enableDevToolsLaunch: enableDevToolsLaunch ?? this.enableDevToolsLaunch,
       launchDevToolsInNewWindow:
           launchDevToolsInNewWindow ?? this.launchDevToolsInNewWindow,
       emitDebugEvents: emitDebugEvents ?? this.emitDebugEvents,
+      // ignore: deprecated_member_use_from_same_package
       devToolsLauncher: devToolsLauncher ?? this.devToolsLauncher,
       expressionCompiler: expressionCompiler ?? this.expressionCompiler,
       urlEncoder: urlEncoder ?? this.urlEncoder,
