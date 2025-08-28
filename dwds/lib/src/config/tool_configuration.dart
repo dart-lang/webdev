@@ -59,21 +59,6 @@ class DartDevelopmentServiceConfiguration {
     this.devToolsServerAddress,
   });
 
-  DartDevelopmentServiceConfiguration copyWith({
-    bool? enable,
-    int? port,
-    bool? serveDevTools,
-    Uri? devToolsServerAddress,
-  }) {
-    return DartDevelopmentServiceConfiguration(
-      enable: enable ?? this.enable,
-      port: port ?? this.port,
-      serveDevTools: serveDevTools ?? this.serveDevTools,
-      devToolsServerAddress:
-          devToolsServerAddress ?? this.devToolsServerAddress,
-    );
-  }
-
   final bool enable;
   final int? port;
   final bool serveDevTools;

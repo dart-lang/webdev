@@ -145,13 +145,16 @@ class Dwds {
       debugSettings.useSseForInjectedClient,
       debugSettings.expressionCompiler,
       injected,
-      debugSettings.ddsConfiguration.copyWith(
+      DartDevelopmentServiceConfiguration(
+        // This technically isn't correct, but DartDevelopmentServiceConfiguration.enable
+        // is true by default, so this won't break unmigrated tools.
         // ignore: deprecated_member_use_from_same_package
-        enable: debugSettings.spawnDds,
+        enable: debugSettings.spawnDds && debugSettings.ddsConfiguration.enable,
         // ignore: deprecated_member_use_from_same_package
-        port: debugSettings.ddsPort,
-        // TODO(bkonyi): only allow for DDS to serve DevTools.
-        devToolsServerAddress: launchedDevToolsUri,
+        port: debugSettings.ddsPort ?? debugSettings.ddsConfiguration.port,
+        devToolsServerAddress:
+            launchedDevToolsUri ??
+            debugSettings.ddsConfiguration.devToolsServerAddress,
       ),
       debugSettings.launchDevToolsInNewWindow,
       useWebSocketConnection: useDwdsWebSocketConnection,
