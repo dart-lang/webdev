@@ -119,7 +119,7 @@ void runTests({
               moduleFormat: provider.ddcModuleFormat,
               canaryFeatures: provider.canaryFeatures,
             ),
-            debugSettings: TestDebugSettings.noDevTools().copyWith(
+            debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
               enableDebugging: false,
             ),
           );
@@ -147,7 +147,7 @@ void runTests({
               moduleFormat: provider.ddcModuleFormat,
               canaryFeatures: provider.canaryFeatures,
             ),
-            debugSettings: TestDebugSettings.noDevTools().copyWith(
+            debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
               enableDebugging: false,
               useSse: false,
             ),
@@ -540,7 +540,7 @@ void runTests({
               moduleFormat: provider.ddcModuleFormat,
               canaryFeatures: provider.canaryFeatures,
             ),
-            debugSettings: TestDebugSettings.noDevTools().copyWith(
+            debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
               enableDebugging: false,
             ),
           );

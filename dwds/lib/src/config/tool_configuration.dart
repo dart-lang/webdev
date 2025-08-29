@@ -51,6 +51,20 @@ typedef UrlEncoder = Future<String> Function(String url);
 
 typedef DevToolsLauncher = Future<DevTools> Function(String hostname);
 
+class DartDevelopmentServiceConfiguration {
+  const DartDevelopmentServiceConfiguration({
+    this.enable = true,
+    this.port,
+    this.serveDevTools = true,
+    this.devToolsServerAddress,
+  });
+
+  final bool enable;
+  final int? port;
+  final bool serveDevTools;
+  final Uri? devToolsServerAddress;
+}
+
 /// Debug settings for the connected app.
 ///
 /// These are set by the code runner and passed to DWDS on start up.
@@ -60,14 +74,22 @@ class DebugSettings {
   final bool useSseForDebugProxy;
   final bool useSseForDebugBackend;
   final bool useSseForInjectedClient;
+
+  @Deprecated('Use ddsConfiguration instead.')
   final bool spawnDds;
+  @Deprecated('Use ddsConfiguration instead.')
   final int? ddsPort;
   final bool enableDevToolsLaunch;
   final bool launchDevToolsInNewWindow;
   final bool emitDebugEvents;
+  @Deprecated(
+    'Use ddsConfigurationInstead. DevTools will eventually only be '
+    'served via DDS.',
+  )
   final DevToolsLauncher? devToolsLauncher;
   final ExpressionCompiler? expressionCompiler;
   final UrlEncoder? urlEncoder;
+  final DartDevelopmentServiceConfiguration ddsConfiguration;
 
   const DebugSettings({
     this.enableDebugging = true,
@@ -75,13 +97,18 @@ class DebugSettings {
     this.useSseForDebugProxy = true,
     this.useSseForDebugBackend = true,
     this.useSseForInjectedClient = true,
-    this.spawnDds = true,
-    this.ddsPort,
+    @Deprecated('Use ddsConfiguration instead.') this.spawnDds = true,
+    @Deprecated('Use ddsConfiguration instead.') this.ddsPort,
     this.enableDevToolsLaunch = true,
     this.launchDevToolsInNewWindow = true,
     this.emitDebugEvents = true,
+    @Deprecated(
+      'Use ddsConfigurationInstead. DevTools will eventually only be '
+      'served via DDS.',
+    )
     this.devToolsLauncher,
     this.expressionCompiler,
     this.urlEncoder,
+    this.ddsConfiguration = const DartDevelopmentServiceConfiguration(),
   });
 }

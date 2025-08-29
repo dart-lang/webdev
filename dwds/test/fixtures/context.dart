@@ -134,7 +134,8 @@ class TestContext {
   Future<void> setUp({
     TestSettings testSettings = const TestSettings(),
     TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
-    TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
+    TestDebugSettings debugSettings =
+        const TestDebugSettings.noDevToolsLaunch(),
   }) async {
     try {
       // Build settings to return from load strategy.

@@ -34,116 +34,134 @@ void main() {
 
   final context = TestContext(TestProject.test, provider);
 
-  group('Injected client', () {
-    setUp(() async {
-      await context.setUp(
-        debugSettings: TestDebugSettings.withDevTools(context),
-      );
-      await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-      // Wait for DevTools to actually open.
-      await Future.delayed(const Duration(seconds: 2));
-    });
+  for (final serveFromDds in [true, false]) {
+    group(
+      'Injected client with DevTools served from ${serveFromDds ? 'DDS' : 'DevTools Launcher'}',
+      () {
+        setUp(() async {
+          await context.setUp(
+            debugSettings: TestDebugSettings.withDevToolsLaunch(
+              context,
+              serveFromDds: serveFromDds,
+            ),
+          );
+          await context.webDriver.driver.keyboard.sendChord([
+            Keyboard.alt,
+            'd',
+          ]);
+          // Wait for DevTools to actually open.
+          await Future.delayed(const Duration(seconds: 2));
+        });
 
-    tearDown(() async {
-      await context.tearDown();
-    });
+        tearDown(() async {
+          await context.tearDown();
+        });
 
-    test('can launch devtools', () async {
-      final windows = await context.webDriver.windows.toList();
-      await context.webDriver.driver.switchTo.window(windows.last);
-      expect(await context.webDriver.pageSource, contains('DevTools'));
-      expect(await context.webDriver.currentUrl, contains('ide=Dwds'));
-      // TODO(https://github.com/dart-lang/webdev/issues/1888): Re-enable.
-    }, skip: Platform.isWindows);
+        test('can launch devtools', () async {
+          final windows = await context.webDriver.windows.toList();
+          await context.webDriver.driver.switchTo.window(windows.last);
+          expect(await context.webDriver.pageSource, contains('DevTools'));
+          expect(await context.webDriver.currentUrl, contains('ide=Dwds'));
+          // TODO(https://github.com/dart-lang/webdev/issues/1888): Re-enable.
+        }, skip: Platform.isWindows);
 
-    test(
-      'can not launch devtools for the same app in multiple tabs',
-      () async {
-        final appUrl = await context.webDriver.currentUrl;
-        // Open a new tab, select it, and navigate to the app
-        await context.webDriver.driver.execute(
-          "window.open('$appUrl', '_blank');",
-          [],
+        test(
+          'can not launch devtools for the same app in multiple tabs',
+          () async {
+            final appUrl = await context.webDriver.currentUrl;
+            // Open a new tab, select it, and navigate to the app
+            await context.webDriver.driver.execute(
+              "window.open('$appUrl', '_blank');",
+              [],
+            );
+            await Future.delayed(const Duration(seconds: 2));
+            final newAppWindow = await context.webDriver.windows.last;
+            await newAppWindow.setAsActive();
+
+            // Wait for the page to be ready before trying to open DevTools again.
+            await _waitForPageReady(context);
+
+            // Try to open devtools and check for the alert.
+            await context.webDriver.driver.keyboard.sendChord([
+              Keyboard.alt,
+              'd',
+            ]);
+            await Future.delayed(const Duration(seconds: 2));
+            final alert = context.webDriver.driver.switchTo.alert;
+            expect(alert, isNotNull);
+            expect(
+              await alert.text,
+              contains('This app is already being debugged in a different tab'),
+            );
+            await alert.accept();
+
+            var windows = await context.webDriver.windows.toList();
+            for (final window in windows) {
+              if (window.id != newAppWindow.id) {
+                await window.setAsActive();
+                await window.close();
+              }
+            }
+
+            await newAppWindow.setAsActive();
+            await context.webDriver.driver.keyboard.sendChord([
+              Keyboard.alt,
+              'd',
+            ]);
+            await Future.delayed(const Duration(seconds: 2));
+            windows = await context.webDriver.windows.toList();
+            final devToolsWindow = windows.firstWhere(
+              (window) => window != newAppWindow,
+            );
+            await devToolsWindow.setAsActive();
+            expect(await context.webDriver.pageSource, contains('DevTools'));
+          },
+          skip: 'See https://github.com/dart-lang/webdev/issues/2462',
         );
-        await Future.delayed(const Duration(seconds: 2));
-        final newAppWindow = await context.webDriver.windows.last;
-        await newAppWindow.setAsActive();
 
-        // Wait for the page to be ready before trying to open DevTools again.
-        await _waitForPageReady(context);
+        test(
+          'destroys and recreates the isolate during a page refresh',
+          () async {
+            // This test is the same as one in reload_test, but runs here when there
+            // is a connected client (DevTools) since it can behave differently.
+            // https://github.com/dart-lang/webdev/pull/901#issuecomment-586438132
+            final client = context.debugConnection.vmService;
+            await client.streamListen('Isolate');
+            await context.makeEdits([
+              (
+                file: context.project.dartEntryFileName,
+                originalString: 'Hello World!',
+                newString: 'Bonjour le monde!',
+              ),
+            ]);
+            await context.waitForSuccessfulBuild(propagateToBrowser: true);
 
-        // Try to open devtools and check for the alert.
-        await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-        await Future.delayed(const Duration(seconds: 2));
-        final alert = context.webDriver.driver.switchTo.alert;
-        expect(alert, isNotNull);
-        expect(
-          await alert.text,
-          contains('This app is already being debugged in a different tab'),
+            final eventsDone = expectLater(
+              client.onIsolateEvent,
+              emitsThrough(
+                emitsInOrder([
+                  _hasKind(EventKind.kIsolateExit),
+                  _hasKind(EventKind.kIsolateStart),
+                  _hasKind(EventKind.kIsolateRunnable),
+                ]),
+              ),
+            );
+
+            await context.webDriver.driver.refresh();
+
+            await eventsDone;
+          },
+          skip: 'https://github.com/dart-lang/webdev/issues/1888',
         );
-        await alert.accept();
-
-        var windows = await context.webDriver.windows.toList();
-        for (final window in windows) {
-          if (window.id != newAppWindow.id) {
-            await window.setAsActive();
-            await window.close();
-          }
-        }
-
-        await newAppWindow.setAsActive();
-        await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-        await Future.delayed(const Duration(seconds: 2));
-        windows = await context.webDriver.windows.toList();
-        final devToolsWindow = windows.firstWhere(
-          (window) => window != newAppWindow,
-        );
-        await devToolsWindow.setAsActive();
-        expect(await context.webDriver.pageSource, contains('DevTools'));
       },
-      skip: 'See https://github.com/dart-lang/webdev/issues/2462',
+      timeout: Timeout.factor(2),
     );
-
-    test(
-      'destroys and recreates the isolate during a page refresh',
-      () async {
-        // This test is the same as one in reload_test, but runs here when there
-        // is a connected client (DevTools) since it can behave differently.
-        // https://github.com/dart-lang/webdev/pull/901#issuecomment-586438132
-        final client = context.debugConnection.vmService;
-        await client.streamListen('Isolate');
-        await context.makeEdits([
-          (
-            file: context.project.dartEntryFileName,
-            originalString: 'Hello World!',
-            newString: 'Bonjour le monde!',
-          ),
-        ]);
-        await context.waitForSuccessfulBuild(propagateToBrowser: true);
-
-        final eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(
-            emitsInOrder([
-              _hasKind(EventKind.kIsolateExit),
-              _hasKind(EventKind.kIsolateStart),
-              _hasKind(EventKind.kIsolateRunnable),
-            ]),
-          ),
-        );
-
-        await context.webDriver.driver.refresh();
-
-        await eventsDone;
-      },
-      skip: 'https://github.com/dart-lang/webdev/issues/1888',
-    );
-  }, timeout: Timeout.factor(2));
+  }
 
   group('Injected client without a DevTools server', () {
     setUp(() async {
       await context.setUp(
-        debugSettings: TestDebugSettings.noDevTools().copyWith(
+        debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
           enableDevToolsLaunch: true,
         ),
       );
@@ -169,7 +187,7 @@ void main() {
     () {
       setUp(() async {
         await context.setUp(
-          debugSettings: TestDebugSettings.noDevTools().copyWith(
+          debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
             enableDebugExtension: true,
           ),
         );

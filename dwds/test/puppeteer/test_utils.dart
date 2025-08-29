@@ -47,10 +47,10 @@ Future<Browser> setUpExtensionTest(
     ),
     debugSettings:
         serveDevTools
-            ? TestDebugSettings.withDevTools(
+            ? TestDebugSettings.withDevToolsLaunch(
               context,
             ).copyWith(enableDebugExtension: true, useSse: useSse)
-            : TestDebugSettings.noDevTools().copyWith(
+            : TestDebugSettings.noDevToolsLaunch().copyWith(
               enableDebugExtension: true,
               useSse: useSse,
             ),

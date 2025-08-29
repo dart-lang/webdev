@@ -7,6 +7,7 @@ export 'src/config/tool_configuration.dart'
     show
         AppMetadata,
         UrlEncoder,
+        DartDevelopmentServiceConfiguration,
         DevToolsLauncher,
         DebugSettings,
         ToolConfiguration;

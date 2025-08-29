@@ -311,7 +311,9 @@ void main() {
       late DwdsInjector injector;
       setUp(() async {
         final toolConfiguration = TestToolConfiguration.withDefaultLoadStrategy(
-          debugSettings: TestDebugSettings.noDevTools().copyWith(useSse: false),
+          debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+            useSse: false,
+          ),
         );
         setGlobalsForTesting(toolConfiguration: toolConfiguration);
         injector = DwdsInjector();
