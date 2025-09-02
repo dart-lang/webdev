@@ -464,10 +464,6 @@ class ResidentCompiler {
       _CompileExpressionRequest request) async {
     _stdoutHandler.reset(suppressCompilerMessages: true, expectSources: false);
 
-    // This hasn't been updated for years and will not work with current
-    // versions of Dart (anything including
-    // https://github.com/dart-lang/sdk/commit/17781dbc3645).
-
     // 'compile-expression' should be invoked after compiler has been started,
     // program was compiled.
     if (_server == null) {
