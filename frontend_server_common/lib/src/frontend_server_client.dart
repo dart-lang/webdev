@@ -221,15 +221,16 @@ class _CompileExpressionRequest extends _CompilationRequest {
 
 class _CompileExpressionToJsRequest extends _CompilationRequest {
   _CompileExpressionToJsRequest(
-      super.completer,
-      this.libraryUri,
-      this.scriptUri,
-      this.line,
-      this.column,
-      this.jsModules,
-      this.jsFrameValues,
-      this.moduleName,
-      this.expression);
+    super.completer,
+    this.libraryUri,
+    this.scriptUri,
+    this.line,
+    this.column,
+    this.jsModules,
+    this.jsFrameValues,
+    this.moduleName,
+    this.expression,
+  );
 
   String libraryUri;
   String scriptUri;
@@ -470,8 +471,18 @@ class ResidentCompiler {
     }
 
     final completer = Completer<CompilerOutput?>();
-    _controller.add(_CompileExpressionRequest(completer, expression,
-        definitions, typeDefinitions, libraryUri, scriptUri, klass, isStatic));
+    _controller.add(
+      _CompileExpressionRequest(
+        completer,
+        expression,
+        definitions,
+        typeDefinitions,
+        libraryUri,
+        scriptUri,
+        klass,
+        isStatic,
+      ),
+    );
     return completer.future;
   }
 
@@ -503,20 +514,22 @@ class ResidentCompiler {
 
   /// Compiles dart expression to JavaScript.
   Future<CompilerOutput?> compileExpressionToJs(
-      String libraryUri,
-      String scriptUri,
-      int line,
-      int column,
-      Map<String, String> jsModules,
-      Map<String, String> jsFrameValues,
-      String moduleName,
-      String expression) {
+    String libraryUri,
+    String scriptUri,
+    int line,
+    int column,
+    Map<String, String> jsModules,
+    Map<String, String> jsFrameValues,
+    String moduleName,
+    String expression,
+  ) {
     if (!_controller.hasListener) {
       _controller.stream.listen(_handleCompilationRequest);
     }
 
     final completer = Completer<CompilerOutput?>();
-    _controller.add(_CompileExpressionToJsRequest(
+    _controller.add(
+      _CompileExpressionToJsRequest(
         completer,
         libraryUri,
         scriptUri,
@@ -525,7 +538,9 @@ class ResidentCompiler {
         jsModules,
         jsFrameValues,
         moduleName,
-        expression));
+        expression,
+      ),
+    );
     return completer.future;
   }
 
@@ -545,19 +560,21 @@ class ResidentCompiler {
     final server = _server!;
 
     server.stdin.writeln('JSON_INPUT');
-    server.stdin.writeln(json.encode({
-      'type': 'COMPILE_EXPRESSION_JS',
-      'data': {
-        'expression': request.expression,
-        'libraryUri': request.libraryUri,
-        'scriptUri': request.scriptUri,
-        'line': request.line,
-        'column': request.column,
-        'jsModules': request.jsModules,
-        'jsFrameValues': request.jsFrameValues,
-        'moduleName': request.moduleName,
-      },
-    }));
+    server.stdin.writeln(
+      json.encode({
+        'type': 'COMPILE_EXPRESSION_JS',
+        'data': {
+          'expression': request.expression,
+          'libraryUri': request.libraryUri,
+          'scriptUri': request.scriptUri,
+          'line': request.line,
+          'column': request.column,
+          'jsModules': request.jsModules,
+          'jsFrameValues': request.jsFrameValues,
+          'moduleName': request.moduleName,
+        },
+      }),
+    );
 
     return _stdoutHandler.compilerOutput.future;
   }
@@ -646,24 +663,26 @@ class TestExpressionCompiler implements ExpressionCompiler {
 
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(
-      String isolateId,
-      String libraryUri,
-      String scriptUri,
-      int line,
-      int column,
-      Map<String, String> jsModules,
-      Map<String, String> jsFrameValues,
-      String moduleName,
-      String expression) async {
+    String isolateId,
+    String libraryUri,
+    String scriptUri,
+    int line,
+    int column,
+    Map<String, String> jsModules,
+    Map<String, String> jsFrameValues,
+    String moduleName,
+    String expression,
+  ) async {
     final compilerOutput = await _generator.compileExpressionToJs(
-        libraryUri,
-        scriptUri,
-        line,
-        column,
-        jsModules,
-        jsFrameValues,
-        moduleName,
-        expression);
+      libraryUri,
+      scriptUri,
+      line,
+      column,
+      jsModules,
+      jsFrameValues,
+      moduleName,
+      expression,
+    );
 
     if (compilerOutput != null) {
       final content = utf8.decode(
