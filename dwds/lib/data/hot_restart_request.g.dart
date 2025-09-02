@@ -92,8 +92,9 @@ class _$HotRestartRequest extends HotRestartRequest {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'HotRestartRequest')
-      ..add('id', id)).toString();
+    return (newBuiltValueToStringHelper(
+      r'HotRestartRequest',
+    )..add('id', id)).toString();
   }
 }
 

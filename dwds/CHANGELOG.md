@@ -1,3 +1,7 @@
+## 26.0.0-dev
+- Bumped minimim required sdk to 3.10.0-149.0.dev
+- Added 'scriptUri' parameter to compileExpressionToJs
+
 ## 25.1.0
 
 - Added `DartDevelopmentServiceConfiguration` to allow for configuring DDS behavior.

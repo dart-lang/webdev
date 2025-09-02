@@ -134,8 +134,9 @@ class _$BuildResult extends BuildResult {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'BuildResult')
-      ..add('status', status)).toString();
+    return (newBuiltValueToStringHelper(
+      r'BuildResult',
+    )..add('status', status)).toString();
   }
 }
 

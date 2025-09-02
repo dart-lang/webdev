@@ -142,10 +142,9 @@ class ExtensionDebugger implements RemoteDebugger {
       jsonEncode(
         serializers.serialize(
           ExtensionEvent(
-            (b) =>
-                b
-                  ..method = method
-                  ..params = params,
+            (b) => b
+              ..method = method
+              ..params = params,
           ),
         ),
       ),
@@ -167,11 +166,10 @@ class ExtensionDebugger implements RemoteDebugger {
         jsonEncode(
           serializers.serialize(
             ExtensionRequest(
-              (b) =>
-                  b
-                    ..id = id
-                    ..command = command
-                    ..commandParams = jsonEncode(params ?? {}),
+              (b) => b
+                ..id = id
+                ..command = command
+                ..commandParams = jsonEncode(params ?? {}),
             ),
           ),
         ),
@@ -196,16 +194,15 @@ class ExtensionDebugger implements RemoteDebugger {
   int newId() => _completerId++;
 
   @override
-  Future<void> close() =>
-      _closed ??= () {
-        _closeController.add({});
-        return Future.wait([
-          sseConnection.sink.close(),
-          _notificationController.close(),
-          _devToolsRequestController.close(),
-          _closeController.close(),
-        ]);
-      }();
+  Future<void> close() => _closed ??= () {
+    _closeController.add({});
+    return Future.wait([
+      sseConnection.sink.close(),
+      _notificationController.close(),
+      _devToolsRequestController.close(),
+      _closeController.close(),
+    ]);
+  }();
 
   void closeWithError(Object? error) {
     _logger.shout(
