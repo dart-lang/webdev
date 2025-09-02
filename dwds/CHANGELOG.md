@@ -1,4 +1,4 @@
-## 26.0.0-dev
+## 26.0.0-wip
 - Updated Dart SDK constraints to ">=3.10.0-149.0.dev <4.0.0"
 - Added 'scriptUri' parameter to compileExpressionToJs
 
