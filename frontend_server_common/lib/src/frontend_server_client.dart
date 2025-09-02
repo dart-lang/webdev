@@ -21,11 +21,11 @@ Logger _serverLogger = Logger('FrontendServer');
 
 void defaultConsumer(String message, {StackTrace? stackTrace}) =>
     stackTrace == null
-        ? _serverLogger.info(message)
-        : _serverLogger.severe(message, null, stackTrace);
+    ? _serverLogger.info(message)
+    : _serverLogger.severe(message, null, stackTrace);
 
-typedef CompilerMessageConsumer = void Function(String message,
-    {StackTrace stackTrace});
+typedef CompilerMessageConsumer =
+    void Function(String message, {StackTrace stackTrace});
 
 class CompilerOutput {
   const CompilerOutput(this.outputFilename, this.errorCount, this.sources);
@@ -79,17 +79,18 @@ class StdoutHandler {
       // the stream. Instead use completeError so that the error is returned
       // from the awaited future that the compiler consumers are expecting.
       compilerOutput.completeError(
-          'Frontend server tests encountered an internal problem. '
-          'This can be caused by printing to stdout into the stream that is '
-          'used for communication between frontend server (in sdk) or '
-          'frontend server client (in dwds tests).'
-          '\n\n'
-          'Additional debugging information:\n'
-          '  StdoutState: $_state\n'
-          '  compilerMessageReceived: $_compilerMessageReceived\n'
-          '  message: $message\n'
-          '  _expectSources: $_expectSources\n'
-          '  sources: $_sources\n');
+        'Frontend server tests encountered an internal problem. '
+        'This can be caused by printing to stdout into the stream that is '
+        'used for communication between frontend server (in sdk) or '
+        'frontend server client (in dwds tests).'
+        '\n\n'
+        'Additional debugging information:\n'
+        '  StdoutState: $_state\n'
+        '  compilerMessageReceived: $_compilerMessageReceived\n'
+        '  message: $message\n'
+        '  _expectSources: $_expectSources\n'
+        '  sources: $_sources\n',
+      );
       // There are several event turns before the tool actually exits from a
       // tool exception. Normally, the stream should be cancelled to prevent
       // more events from entering the bad state, but because the error
@@ -112,10 +113,13 @@ class StdoutHandler {
         return;
       }
       final spaceDelimiter = message.lastIndexOf(' ');
-      compilerOutput.complete(CompilerOutput(
+      compilerOutput.complete(
+        CompilerOutput(
           message.substring(boundaryKey.length + 1, spaceDelimiter),
           int.parse(message.substring(spaceDelimiter + 1).trim()),
-          _sources));
+          _sources,
+        ),
+      );
       return;
     }
     if (_state == StdoutState.collectDiagnostic) {
@@ -143,8 +147,10 @@ class StdoutHandler {
 
   // This is needed to get ready to process next compilation result output,
   // with its own boundary key and new completer.
-  void reset(
-      {bool suppressCompilerMessages = false, bool expectSources = true}) {
+  void reset({
+    bool suppressCompilerMessages = false,
+    bool expectSources = true,
+  }) {
     _boundaryKey = null;
     _compilerMessageReceived = false;
     compilerOutput = Completer<CompilerOutput?>();
@@ -215,15 +221,16 @@ class _CompileExpressionRequest extends _CompilationRequest {
 
 class _CompileExpressionToJsRequest extends _CompilationRequest {
   _CompileExpressionToJsRequest(
-      super.completer,
-      this.libraryUri,
-      this.scriptUri,
-      this.line,
-      this.column,
-      this.jsModules,
-      this.jsFrameValues,
-      this.moduleName,
-      this.expression);
+    super.completer,
+    this.libraryUri,
+    this.scriptUri,
+    this.line,
+    this.column,
+    this.jsModules,
+    this.jsFrameValues,
+    this.moduleName,
+    this.expression,
+  );
 
   String libraryUri;
   String scriptUri;
@@ -308,18 +315,24 @@ class ResidentCompiler {
     }
 
     final completer = Completer<CompilerOutput?>();
-    _controller.add(_RecompileRequest(
-        completer, mainUri, invalidatedFiles, outputPath, packageConfig,
-        recompileRestart: recompileRestart));
+    _controller.add(
+      _RecompileRequest(
+        completer,
+        mainUri,
+        invalidatedFiles,
+        outputPath,
+        packageConfig,
+        recompileRestart: recompileRestart,
+      ),
+    );
     return completer.future;
   }
 
   Future<CompilerOutput?> _recompile(_RecompileRequest request) async {
     _stdoutHandler.reset();
 
-    final mainUri = request.packageConfig
-            .toPackageUri(request.mainUri)
-            ?.toString() ??
+    final mainUri =
+        request.packageConfig.toPackageUri(request.mainUri)?.toString() ??
         _toMultiRootPath(request.mainUri, fileSystemScheme, fileSystemRoots);
 
     _compileRequestNeedsConfirmation = true;
@@ -330,8 +343,9 @@ class ResidentCompiler {
     final server = _server!;
 
     final inputKey = generateV4UUID();
-    final instruction =
-        request.recompileRestart ? 'recompile-restart' : 'recompile';
+    final instruction = request.recompileRestart
+        ? 'recompile-restart'
+        : 'recompile';
     server.stdin.writeln('$instruction $mainUri $inputKey');
     _logger.info('<- $instruction $mainUri $inputKey');
     for (final fileUri in request.invalidatedFiles) {
@@ -339,7 +353,8 @@ class ResidentCompiler {
       if (fileUri.scheme == 'package') {
         message = fileUri.toString();
       } else {
-        message = request.packageConfig.toPackageUri(fileUri)?.toString() ??
+        message =
+            request.packageConfig.toPackageUri(fileUri)?.toString() ??
             _toMultiRootPath(fileUri, fileSystemScheme, fileSystemRoots);
       }
       server.stdin.writeln(message);
@@ -369,7 +384,9 @@ class ResidentCompiler {
   }
 
   Future<CompilerOutput?> _compile(
-      String scriptUri, String outputFilePath) async {
+    String scriptUri,
+    String outputFilePath,
+  ) async {
     final frontendServer = sdkLayout.frontendServerSnapshotPath;
     final args = <String>[
       frontendServer,
@@ -380,22 +397,13 @@ class ResidentCompiler {
       '-Ddart.developer.causal_async_stacks=true',
       '--output-dill',
       outputFilePath,
-      ...<String>[
-        '--packages',
-        '$packageConfigFile',
-      ],
+      ...<String>['--packages', '$packageConfigFile'],
       for (final root in fileSystemRoots) ...<String>[
         '--filesystem-root',
         '$root',
       ],
-      ...<String>[
-        '--filesystem-scheme',
-        fileSystemScheme,
-      ],
-      ...<String>[
-        '--platform',
-        platformDill,
-      ],
+      ...<String>['--filesystem-scheme', fileSystemScheme],
+      ...<String>['--platform', platformDill],
       if (useDebuggerModuleNames) '--debugger-module-names',
       '--experimental-emit-debug-metadata',
       for (final experiment in compilerOptions.experiments)
@@ -403,36 +411,44 @@ class ResidentCompiler {
       if (compilerOptions.canaryFeatures) '--dartdevc-canary',
       if (verbose) '--verbose',
       if (compilerOptions.moduleFormat == ModuleFormat.ddc)
-        '--dartdevc-module-format=ddc'
+        '--dartdevc-module-format=ddc',
     ];
     _logger.info(args.join(' '));
     final workingDirectory = projectDirectory.toFilePath();
-    _server = await Process.start(sdkLayout.dartAotRuntimePath, args,
-        workingDirectory: workingDirectory);
+    _server = await Process.start(
+      sdkLayout.dartAotRuntimePath,
+      args,
+      workingDirectory: workingDirectory,
+    );
 
     final server = _server!;
     server.stdout
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter())
-        .listen(_stdoutHandler.handler, onDone: () {
-      // when outputFilename future is not completed, but stdout is closed
-      // process has died unexpectedly.
-      if (!_stdoutHandler.compilerOutput.isCompleted) {
-        _stdoutHandler.compilerOutput.complete(null);
-        throw Exception('the Dart compiler exited unexpectedly.');
-      }
-    });
+        .listen(
+          _stdoutHandler.handler,
+          onDone: () {
+            // when outputFilename future is not completed, but stdout is closed
+            // process has died unexpectedly.
+            if (!_stdoutHandler.compilerOutput.isCompleted) {
+              _stdoutHandler.compilerOutput.complete(null);
+              throw Exception('the Dart compiler exited unexpectedly.');
+            }
+          },
+        );
 
     server.stderr
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter())
         .listen(_logger.info);
 
-    unawaited(server.exitCode.then((int code) {
-      if (code != 0) {
-        throw Exception('the Dart compiler exited unexpectedly.');
-      }
-    }));
+    unawaited(
+      server.exitCode.then((int code) {
+        if (code != 0) {
+          throw Exception('the Dart compiler exited unexpectedly.');
+        }
+      }),
+    );
 
     server.stdin.writeln('compile $scriptUri');
     _logger.info('<- compile $scriptUri');
@@ -455,13 +471,24 @@ class ResidentCompiler {
     }
 
     final completer = Completer<CompilerOutput?>();
-    _controller.add(_CompileExpressionRequest(completer, expression,
-        definitions, typeDefinitions, libraryUri, scriptUri, klass, isStatic));
+    _controller.add(
+      _CompileExpressionRequest(
+        completer,
+        expression,
+        definitions,
+        typeDefinitions,
+        libraryUri,
+        scriptUri,
+        klass,
+        isStatic,
+      ),
+    );
     return completer.future;
   }
 
   Future<CompilerOutput?> _compileExpression(
-      _CompileExpressionRequest request) async {
+    _CompileExpressionRequest request,
+  ) async {
     _stdoutHandler.reset(suppressCompilerMessages: true, expectSources: false);
 
     // 'compile-expression' should be invoked after compiler has been started,
@@ -487,20 +514,22 @@ class ResidentCompiler {
 
   /// Compiles dart expression to JavaScript.
   Future<CompilerOutput?> compileExpressionToJs(
-      String libraryUri,
-      String scriptUri,
-      int line,
-      int column,
-      Map<String, String> jsModules,
-      Map<String, String> jsFrameValues,
-      String moduleName,
-      String expression) {
+    String libraryUri,
+    String scriptUri,
+    int line,
+    int column,
+    Map<String, String> jsModules,
+    Map<String, String> jsFrameValues,
+    String moduleName,
+    String expression,
+  ) {
     if (!_controller.hasListener) {
       _controller.stream.listen(_handleCompilationRequest);
     }
 
     final completer = Completer<CompilerOutput?>();
-    _controller.add(_CompileExpressionToJsRequest(
+    _controller.add(
+      _CompileExpressionToJsRequest(
         completer,
         libraryUri,
         scriptUri,
@@ -509,14 +538,19 @@ class ResidentCompiler {
         jsModules,
         jsFrameValues,
         moduleName,
-        expression));
+        expression,
+      ),
+    );
     return completer.future;
   }
 
   Future<CompilerOutput?> _compileExpressionToJs(
-      _CompileExpressionToJsRequest request) async {
+    _CompileExpressionToJsRequest request,
+  ) async {
     _stdoutHandler.reset(
-        suppressCompilerMessages: !verbose, expectSources: false);
+      suppressCompilerMessages: !verbose,
+      expectSources: false,
+    );
 
     // Compiling an expression should happen after the compiler has been
     // started and the program was compiled.
@@ -526,19 +560,21 @@ class ResidentCompiler {
     final server = _server!;
 
     server.stdin.writeln('JSON_INPUT');
-    server.stdin.writeln(json.encode({
-      'type': 'COMPILE_EXPRESSION_JS',
-      'data': {
-        'expression': request.expression,
-        'libraryUri': request.libraryUri,
-        'scriptUri': request.scriptUri,
-        'line': request.line,
-        'column': request.column,
-        'jsModules': request.jsModules,
-        'jsFrameValues': request.jsFrameValues,
-        'moduleName': request.moduleName,
-      },
-    }));
+    server.stdin.writeln(
+      json.encode({
+        'type': 'COMPILE_EXPRESSION_JS',
+        'data': {
+          'expression': request.expression,
+          'libraryUri': request.libraryUri,
+          'scriptUri': request.scriptUri,
+          'line': request.line,
+          'column': request.column,
+          'jsModules': request.jsModules,
+          'jsFrameValues': request.jsFrameValues,
+          'moduleName': request.moduleName,
+        },
+      }),
+    );
 
     return _stdoutHandler.compilerOutput.future;
   }
@@ -627,31 +663,35 @@ class TestExpressionCompiler implements ExpressionCompiler {
 
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(
-      String isolateId,
-      String libraryUri,
-      String scriptUri,
-      int line,
-      int column,
-      Map<String, String> jsModules,
-      Map<String, String> jsFrameValues,
-      String moduleName,
-      String expression) async {
+    String isolateId,
+    String libraryUri,
+    String scriptUri,
+    int line,
+    int column,
+    Map<String, String> jsModules,
+    Map<String, String> jsFrameValues,
+    String moduleName,
+    String expression,
+  ) async {
     final compilerOutput = await _generator.compileExpressionToJs(
-        libraryUri,
-        scriptUri,
-        line,
-        column,
-        jsModules,
-        jsFrameValues,
-        moduleName,
-        expression);
+      libraryUri,
+      scriptUri,
+      line,
+      column,
+      jsModules,
+      jsFrameValues,
+      moduleName,
+      expression,
+    );
 
     if (compilerOutput != null) {
-      final content = utf8.decode(localFileSystem
-          .file(compilerOutput.outputFilename)
-          .readAsBytesSync());
+      final content = utf8.decode(
+        localFileSystem.file(compilerOutput.outputFilename).readAsBytesSync(),
+      );
       return ExpressionCompilationResult(
-          content, compilerOutput.errorCount > 0);
+        content,
+        compilerOutput.errorCount > 0,
+      );
     }
 
     throw Exception('Failed to compile $expression');
@@ -668,7 +708,10 @@ class TestExpressionCompiler implements ExpressionCompiler {
 /// Convert a file URI into a multi-root scheme URI if provided, otherwise
 /// return unmodified.
 String _toMultiRootPath(
-    Uri fileUri, String? scheme, List<Uri> fileSystemRoots) {
+  Uri fileUri,
+  String? scheme,
+  List<Uri> fileSystemRoots,
+) {
   if (scheme == null || fileSystemRoots.isEmpty || fileUri.scheme != 'file') {
     return fileUri.toString();
   }

@@ -78,8 +78,15 @@ class TestAssetServer implements AssetReader {
     final address = (await InternetAddress.lookup(hostname)).first;
     final httpServer = await HttpServer.bind(address, port);
     final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
-    final server = TestAssetServer(index, httpServer, packageUriMapper, address,
-        projectDirectory, fileSystem, sdkLayout);
+    final server = TestAssetServer(
+      index,
+      httpServer,
+      packageUriMapper,
+      address,
+      projectDirectory,
+      fileSystem,
+      sdkLayout,
+    );
     return server;
   }
 
@@ -100,8 +107,9 @@ class TestAssetServer implements AssetReader {
       final indexFile = _fileSystem.file(_projectDirectory.resolve(index));
       if (indexFile.existsSync()) {
         headers[HttpHeaders.contentTypeHeader] = 'text/html';
-        headers[HttpHeaders.contentLengthHeader] =
-            indexFile.lengthSync().toString();
+        headers[HttpHeaders.contentLengthHeader] = indexFile
+            .lengthSync()
+            .toString();
         return shelf.Response.ok(indexFile.openRead(), headers: headers);
       }
       return shelf.Response.notFound('');
@@ -169,20 +177,25 @@ class TestAssetServer implements AssetReader {
   ///
   /// Returns a list of updated modules.
   List<String> write(
-      File codeFile, File manifestFile, File sourcemapFile, File metadataFile) {
+    File codeFile,
+    File manifestFile,
+    File sourcemapFile,
+    File metadataFile,
+  ) {
     final modules = <String>[];
     final codeBytes = codeFile.readAsBytesSync();
     final sourcemapBytes = sourcemapFile.readAsBytesSync();
     final metadataBytes = metadataFile.readAsBytesSync();
-    final manifest =
-        _castStringKeyedMap(json.decode(manifestFile.readAsStringSync()));
+    final manifest = _castStringKeyedMap(
+      json.decode(manifestFile.readAsStringSync()),
+    );
     for (final filePath in manifest.keys) {
       final offsets = _castStringKeyedMap(manifest[filePath]);
       final codeOffsets = (offsets['code'] as List<dynamic>).cast<int>();
-      final sourcemapOffsets =
-          (offsets['sourcemap'] as List<dynamic>).cast<int>();
-      final metadataOffsets =
-          (offsets['metadata'] as List<dynamic>).cast<int>();
+      final sourcemapOffsets = (offsets['sourcemap'] as List<dynamic>)
+          .cast<int>();
+      final metadataOffsets = (offsets['metadata'] as List<dynamic>)
+          .cast<int>();
       if (codeOffsets.length != 2 ||
           sourcemapOffsets.length != 2 ||
           metadataOffsets.length != 2) {
@@ -202,8 +215,9 @@ class TestAssetServer implements AssetReader {
         codeEnd - codeStart,
       );
 
-      final fileName =
-          filePath.startsWith('/') ? filePath.substring(1) : filePath;
+      final fileName = filePath.startsWith('/')
+          ? filePath.substring(1)
+          : filePath;
       _files[fileName] = byteView;
 
       final sourcemapStart = sourcemapOffsets[0];
@@ -271,7 +285,8 @@ class TestAssetServer implements AssetReader {
     // Otherwise it must be a Dart SDK source.
     final dartSdkParent = _fileSystem.directory(_sdkLayout.sdkDirectory).parent;
     final dartSdkFile = _fileSystem.file(
-        _fileSystem.path.joinAll(<String>[dartSdkParent.path, ...segments]));
+      _fileSystem.path.joinAll(<String>[dartSdkParent.path, ...segments]),
+    );
     return dartSdkFile;
   }
 

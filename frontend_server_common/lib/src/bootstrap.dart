@@ -356,8 +356,10 @@ $_simpleLoaderScript
 ''';
 }
 
-String generateDDCMainModule(
-    {required String entrypoint, String? exportedMain}) {
+String generateDDCMainModule({
+  required String entrypoint,
+  String? exportedMain,
+}) {
   final exportedMainName = exportedMain ?? entrypoint.split('.')[0];
   return '''/* ENTRYPOINT_EXTENTION_MARKER */
 
