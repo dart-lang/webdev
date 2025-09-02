@@ -58,10 +58,9 @@ void maybeForwardMessageToAngularDartDevTools({
 }) {
   if (!_eventsForAngularDartDevTools.contains(method)) return;
 
-  final message =
-      method.startsWith('dwds')
-          ? _dwdsEventMessage(method: method, params: params, tabId: tabId)
-          : _debugEventMessage(method: method, params: params, tabId: tabId);
+  final message = method.startsWith('dwds')
+      ? _dwdsEventMessage(method: method, params: params, tabId: tabId)
+      : _debugEventMessage(method: method, params: params, tabId: tabId);
 
   _forwardMessageToAngularDartDevTools(message);
 }

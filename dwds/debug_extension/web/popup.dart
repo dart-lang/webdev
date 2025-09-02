@@ -109,10 +109,9 @@ Future<bool> _insertAppId() async {
 Future<void> _openIssueTracker(Event _) async {
   final debugInfo = await _fetchDebugInfo(await _tabId);
   final isInternalBuild = debugInfo?.isInternalBuild ?? false;
-  final issueTrackerLink =
-      isInternalBuild
-          ? 'http://b/issues/new?component=775375&template=1791321'
-          : 'https://github.com/dart-lang/webdev/issues/new?labels=dart-debug-extension&projects=&template=dart_debug_extension.md';
+  final issueTrackerLink = isInternalBuild
+      ? 'http://b/issues/new?component=775375&template=1791321'
+      : 'https://github.com/dart-lang/webdev/issues/new?labels=dart-debug-extension&projects=&template=dart_debug_extension.md';
   await createTab(issueTrackerLink);
 }
 
@@ -121,10 +120,9 @@ Future<void> _launchDevTools(Event _) async {
   final json = jsonEncode(
     serializers.serialize(
       DebugStateChange(
-        (b) =>
-            b
-              ..tabId = tabId
-              ..newState = DebugStateChange.startDebugging,
+        (b) => b
+          ..tabId = tabId
+          ..newState = DebugStateChange.startDebugging,
       ),
     ),
   );

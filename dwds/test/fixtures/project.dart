@@ -65,8 +65,9 @@ class TestProject {
         packageDirectory: '_test_package',
         webAssetsPath: 'web',
         dartEntryFileName: 'main.dart',
-        htmlEntryFileName:
-            baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html',
+        htmlEntryFileName: baseMode == IndexBaseMode.base
+            ? 'base_index.html'
+            : 'index.html',
       );
 
   static final testCircular1 = TestProject._(
@@ -83,8 +84,9 @@ class TestProject {
         packageDirectory: '_test_circular2',
         webAssetsPath: 'web',
         dartEntryFileName: 'main.dart',
-        htmlEntryFileName:
-            baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html',
+        htmlEntryFileName: baseMode == IndexBaseMode.base
+            ? 'base_index.html'
+            : 'index.html',
       );
 
   TestProject.testParts({IndexBaseMode baseMode = IndexBaseMode.noBase})
@@ -93,8 +95,9 @@ class TestProject {
         packageDirectory: '_test_parts',
         webAssetsPath: 'web',
         dartEntryFileName: 'main.dart',
-        htmlEntryFileName:
-            baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html',
+        htmlEntryFileName: baseMode == IndexBaseMode.base
+            ? 'base_index.html'
+            : 'index.html',
       );
 
   static final test = TestProject._(

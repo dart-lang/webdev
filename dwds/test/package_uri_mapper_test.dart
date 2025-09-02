@@ -28,10 +28,9 @@ void main() {
         path: '${project.packageName}/test_library.dart',
       );
 
-      final serverPath =
-          useDebuggerModuleNames
-              ? 'packages/${project.packageDirectory}/lib/test_library.dart'
-              : '/packages/${project.packageName}/test_library.dart';
+      final serverPath = useDebuggerModuleNames
+          ? 'packages/${project.packageDirectory}/lib/test_library.dart'
+          : '/packages/${project.packageName}/test_library.dart';
 
       final resolvedPath = '${project.packageDirectory}/lib/test_library.dart';
 

@@ -292,10 +292,9 @@ void main() {
         (file: mainFile, originalString: oldString, newString: newString),
       ]);
 
-      bp =
-          (await hotReloadAndHandlePausePost([
-            (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
-          ])).first;
+      bp = (await hotReloadAndHandlePausePost([
+        (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
+      ])).first;
 
       breakpointFuture = waitForBreakpoint();
 
@@ -356,7 +355,8 @@ void main() {
         final libValueMarker = 'libValue';
         context.addLibraryFile(
           libFileName: libFile,
-          contents: '''String get libraryValue {
+          contents:
+              '''String get libraryValue {
             return '$libGenLog'; // Breakpoint: $libValueMarker
           }''',
         );
@@ -419,7 +419,8 @@ void main() {
         final libFile = 'library$i.dart';
         context.addLibraryFile(
           libFileName: libFile,
-          contents: '''String get libraryValue$i {
+          contents:
+              '''String get libraryValue$i {
             return 'library$i gen1'; // Breakpoint: libValue$i
           }''',
         );
@@ -474,10 +475,9 @@ void main() {
         (file: mainFile, originalString: oldLog, newString: newLog),
       ]);
 
-      bp =
-          (await hotReloadAndHandlePausePost([
-            (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
-          ])).first;
+      bp = (await hotReloadAndHandlePausePost([
+        (file: mainFile, breakpointMarker: capturedStringMarker, bp: bp),
+      ])).first;
 
       final breakpointFuture = waitForBreakpoint();
 

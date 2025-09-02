@@ -51,12 +51,9 @@ Future<void>? main() {
 
       final fixedPath = _fixProtocol(dwdsDevHandlerPath);
       final fixedUri = Uri.parse(fixedPath);
-      final client =
-          fixedUri.isScheme('ws') || fixedUri.isScheme('wss')
-              ? WebSocketClient(WebSocketChannel.connect(fixedUri))
-              : SseSocketClient(
-                SseClient(fixedPath, debugKey: 'InjectedClient'),
-              );
+      final client = fixedUri.isScheme('ws') || fixedUri.isScheme('wss')
+          ? WebSocketClient(WebSocketChannel.connect(fixedUri))
+          : SseSocketClient(SseClient(fixedPath, debugKey: 'InjectedClient'));
 
       final restarter = switch (dartModuleStrategy) {
         'require-js' => await RequireRestarter.create(),
@@ -67,46 +64,42 @@ Future<void>? main() {
 
       final manager = ReloadingManager(client, restarter);
 
-      hotReloadStartJs =
-          () {
-            return manager.hotReloadStart(hotReloadReloadedSourcesPath).toJS;
-          }.toJS;
+      hotReloadStartJs = () {
+        return manager.hotReloadStart(hotReloadReloadedSourcesPath).toJS;
+      }.toJS;
 
-      hotReloadEndJs =
-          () {
-            return manager.hotReloadEnd().toJS;
-          }.toJS;
+      hotReloadEndJs = () {
+        return manager.hotReloadEnd().toJS;
+      }.toJS;
 
       Completer? readyToRunMainCompleter;
 
-      hotRestartJs =
-          (String runId, [bool? pauseIsolatesOnStart]) {
-            if (pauseIsolatesOnStart ?? false) {
-              readyToRunMainCompleter = Completer();
-              return manager
-                  .hotRestart(
-                    runId: runId,
-                    readyToRunMain: readyToRunMainCompleter!.future,
-                    reloadedSourcesPath: hotRestartReloadedSourcesPath,
-                  )
-                  .toJS;
-            } else {
-              return manager
-                  .hotRestart(
-                    runId: runId,
-                    reloadedSourcesPath: hotRestartReloadedSourcesPath,
-                  )
-                  .toJS;
-            }
-          }.toJS;
+      hotRestartJs = (String runId, [bool? pauseIsolatesOnStart]) {
+        if (pauseIsolatesOnStart ?? false) {
+          readyToRunMainCompleter = Completer();
+          return manager
+              .hotRestart(
+                runId: runId,
+                readyToRunMain: readyToRunMainCompleter!.future,
+                reloadedSourcesPath: hotRestartReloadedSourcesPath,
+              )
+              .toJS;
+        } else {
+          return manager
+              .hotRestart(
+                runId: runId,
+                reloadedSourcesPath: hotRestartReloadedSourcesPath,
+              )
+              .toJS;
+        }
+      }.toJS;
 
-      readyToRunMainJs =
-          () {
-            if (readyToRunMainCompleter == null) return;
-            if (readyToRunMainCompleter!.isCompleted) return;
-            readyToRunMainCompleter!.complete();
-            readyToRunMainCompleter = null;
-          }.toJS;
+      readyToRunMainJs = () {
+        if (readyToRunMainCompleter == null) return;
+        if (readyToRunMainCompleter!.isCompleted) return;
+        readyToRunMainCompleter!.complete();
+        readyToRunMainCompleter = null;
+      }.toJS;
 
       final debugEventController = BatchedStreamController<DebugEvent>(
         delay: _batchDelayMilliseconds,
@@ -126,61 +119,55 @@ Future<void>? main() {
         }
       });
 
-      emitDebugEvent =
-          (String kind, String eventData) {
-            if (dartEmitDebugEvents) {
-              _trySendEvent(
-                debugEventController.sink,
-                DebugEvent(
-                  (b) =>
-                      b
-                        ..timestamp = (DateTime.now().millisecondsSinceEpoch)
-                        ..kind = kind
-                        ..eventData = eventData,
-                ),
-              );
-            }
-          }.toJS;
+      emitDebugEvent = (String kind, String eventData) {
+        if (dartEmitDebugEvents) {
+          _trySendEvent(
+            debugEventController.sink,
+            DebugEvent(
+              (b) => b
+                ..timestamp = (DateTime.now().millisecondsSinceEpoch)
+                ..kind = kind
+                ..eventData = eventData,
+            ),
+          );
+        }
+      }.toJS;
 
-      emitRegisterEvent =
-          (String eventData) {
-            _trySendEvent(
-              client.sink,
-              jsonEncode(
-                serializers.serialize(
-                  RegisterEvent(
-                    (b) =>
-                        b
-                          ..timestamp = (DateTime.now().millisecondsSinceEpoch)
-                          ..eventData = eventData,
-                  ),
-                ),
+      emitRegisterEvent = (String eventData) {
+        _trySendEvent(
+          client.sink,
+          jsonEncode(
+            serializers.serialize(
+              RegisterEvent(
+                (b) => b
+                  ..timestamp = (DateTime.now().millisecondsSinceEpoch)
+                  ..eventData = eventData,
               ),
-            );
-          }.toJS;
+            ),
+          ),
+        );
+      }.toJS;
 
-      launchDevToolsJs =
-          () {
-            if (!_isChromium) {
-              window.alert(
-                'Dart DevTools is only supported on Chromium based browsers.',
-              );
-              return;
-            }
-            _trySendEvent(
-              client.sink,
-              jsonEncode(
-                serializers.serialize(
-                  DevToolsRequest(
-                    (b) =>
-                        b
-                          ..appId = dartAppId
-                          ..instanceId = dartAppInstanceId,
-                  ),
-                ),
+      launchDevToolsJs = () {
+        if (!_isChromium) {
+          window.alert(
+            'Dart DevTools is only supported on Chromium based browsers.',
+          );
+          return;
+        }
+        _trySendEvent(
+          client.sink,
+          jsonEncode(
+            serializers.serialize(
+              DevToolsRequest(
+                (b) => b
+                  ..appId = dartAppId
+                  ..instanceId = dartAppInstanceId,
               ),
-            );
-          }.toJS;
+            ),
+          ),
+        );
+      }.toJS;
 
       client.stream.listen(
         (serialized) async {
@@ -303,11 +290,10 @@ void _sendConnectRequest(StreamSink clientSink) {
     jsonEncode(
       serializers.serialize(
         ConnectRequest(
-          (b) =>
-              b
-                ..appId = dartAppId
-                ..instanceId = dartAppInstanceId
-                ..entrypointPath = dartEntrypointPath,
+          (b) => b
+            ..appId = dartAppId
+            ..instanceId = dartAppInstanceId
+            ..entrypointPath = dartEntrypointPath,
         ),
       ),
     ),
@@ -342,18 +328,17 @@ void _launchCommunicationWithDebugExtension() {
   final debugInfoJson = jsonEncode(
     serializers.serialize(
       DebugInfo(
-        (b) =>
-            b
-              ..appEntrypointPath = dartEntrypointPath
-              ..appId = windowContext.$dartAppId
-              ..appInstanceId = dartAppInstanceId
-              ..appOrigin = window.location.origin
-              ..appUrl = window.location.href
-              ..authUrl = _authUrl
-              ..extensionUrl = windowContext.$dartExtensionUri
-              ..isInternalBuild = windowContext.$isInternalBuild
-              ..isFlutterApp = windowContext.$isFlutterApp
-              ..workspaceName = dartWorkspaceName,
+        (b) => b
+          ..appEntrypointPath = dartEntrypointPath
+          ..appId = windowContext.$dartAppId
+          ..appInstanceId = dartAppInstanceId
+          ..appOrigin = window.location.origin
+          ..appUrl = window.location.href
+          ..authUrl = _authUrl
+          ..extensionUrl = windowContext.$dartExtensionUri
+          ..isInternalBuild = windowContext.$isInternalBuild
+          ..isFlutterApp = windowContext.$isFlutterApp
+          ..workspaceName = dartWorkspaceName,
       ),
     ),
   );
