@@ -49,7 +49,7 @@ void main() {
     late Stream<Event> stream;
     // Fetch the log statements that are sent to console.
     final consoleLogs = <String>[];
-    late StreamSubscription<ConsoleAPIEvent> consoleSubscription;
+    StreamSubscription<ConsoleAPIEvent>? consoleSubscription;
 
     setUp(() async {
       setCurrentLogWriter(debug: debug);
@@ -74,7 +74,7 @@ void main() {
     });
 
     tearDown(() async {
-      await consoleSubscription.cancel();
+      await consoleSubscription?.cancel();
       consoleLogs.clear();
       await context.tearDown();
     });

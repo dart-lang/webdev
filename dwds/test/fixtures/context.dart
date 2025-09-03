@@ -434,23 +434,34 @@ class TestContext {
           '${identityHashCode(_chromeDriver)}',
         );
         try {
-          _webDriver = await createDriver(
-            spec: WebDriverSpec.JsonWire,
-            desired: capabilities,
-            uri: Uri.parse(
-              'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/',
-            ),
+          final localWebDriver =
+              _webDriver = await createDriver(
+                spec: WebDriverSpec.JsonWire,
+                desired: capabilities,
+                uri: Uri.parse(
+                  'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/',
+                ),
+              );
+          log(
+            'After first try: _webDriver = $_webDriver; '
+            'localWebDriver = $localWebDriver',
           );
         } on SocketException catch (e) {
           log('Got "$e". Will wait a bit and try again.');
           await Future.delayed(const Duration(seconds: 2));
+          log('Back after the wait. Will now try again.');
           try {
-            _webDriver = await createDriver(
-              spec: WebDriverSpec.JsonWire,
-              desired: capabilities,
-              uri: Uri.parse(
-                'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/',
-              ),
+            final localWebDriver =
+                _webDriver = await createDriver(
+                  spec: WebDriverSpec.JsonWire,
+                  desired: capabilities,
+                  uri: Uri.parse(
+                    'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/',
+                  ),
+                );
+            log(
+              'After second try: _webDriver = $_webDriver; '
+              'localWebDriver = $localWebDriver',
             );
           } on SocketException catch (e) {
             log('Got exception again: "$e"');
@@ -458,6 +469,8 @@ class TestContext {
           }
         }
       }
+
+      log('Is now after the testSettings.launchChrome stuff.');
 
       // The debugger tab must be enabled and connected before certain
       // listeners in DWDS or `main` is run.
