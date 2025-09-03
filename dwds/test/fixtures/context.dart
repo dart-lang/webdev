@@ -132,7 +132,6 @@ class TestContext {
   TestContext(this.project, this.sdkConfigurationProvider);
 
   Future<void> setUp({
-    int setupNum = -1,
     TestSettings testSettings = const TestSettings(),
     TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
     TestDebugSettings debugSettings =
@@ -156,7 +155,7 @@ class TestContext {
       DartUri.currentDirectory = project.absolutePackageDirectory;
 
       void log(String s) {
-        _logger.info('${DateTime.now()}: ($setupNum): $s');
+        _logger.info('${DateTime.now()}: $s');
       }
 
       log('Serving: ${project.directoryToServe}/${project.filePathToServe}');
@@ -177,19 +176,12 @@ class TestContext {
       _outputDir = systemTempDir.createTempSync('foo bar');
 
       final chromeDriverPort = await findUnusedPort();
-      log('Picked chromeDriverPort = $chromeDriverPort');
       final chromeDriverUrlBase = 'wd/hub';
       try {
-        final localDriver =
-            _chromeDriver = await Process.start('chromedriver$_exeExt', [
-              '--port=$chromeDriverPort',
-              '--url-base=$chromeDriverUrlBase',
-            ]);
-        log(
-          'Started chrome driver - identity hash code = ${identityHashCode(localDriver)}',
-        );
-        // On windows this takes a while to boot up, wait for the first line
-        // of stdout as a signal that it is ready.
+        _chromeDriver = await Process.start('chromedriver$_exeExt', [
+          '--port=$chromeDriverPort',
+          '--url-base=$chromeDriverUrlBase',
+        ]);
         final stdOutLines =
             chromeDriver.stdout
                 .transform(utf8.decoder)
@@ -202,11 +194,31 @@ class TestContext {
                 .transform(const LineSplitter())
                 .asBroadcastStream();
 
-        stdOutLines.listen((line) => log('ChromeDriver stdout: $line'));
+        // Sometimes ChromeDriver can be slow to startup.
+        // This was seen on a github actions run:
+        // > 11:22:59.924700: ChromeDriver stdout: Starting ChromeDriver
+        // >                  139.0.7258.154 ([...]) on port 38107
+        // > [...]
+        // > 11:23:00.237350: ChromeDriver stdout: ChromeDriver was started
+        // >                  successfully on port 38107.
+        // Where in the 300+ ms it took before it was actually ready to accept
+        // a connection we had tried - and failed - to connect.
+        // We therefore wait until ChromeDriver reports that it has started
+        // successfully.
+
+        final chromeDriverStartup = Completer();
+        stdOutLines.listen((line) {
+          if (!chromeDriverStartup.isCompleted &&
+              line.contains('was started successfully')) {
+            chromeDriverStartup.complete();
+          }
+          log('ChromeDriver stdout: $line');
+        });
         stdErrLines.listen((line) => log('ChromeDriver stderr: $line'));
 
-        final firstLine = await stdOutLines.first;
-        log('Notice first line = $firstLine');
+        await stdOutLines.first;
+        await chromeDriverStartup.future;
+        log('ChromeDriver has now started');
       } catch (e) {
         throw StateError(
           'Could not start ChromeDriver. Is it installed?\nError: $e',
@@ -226,7 +238,6 @@ class TestContext {
       var filePathToServe = project.filePathToServe;
 
       _port = await findUnusedPort();
-      log('Port #2: $_port');
       switch (testSettings.compilationMode) {
         case CompilationMode.buildDaemon:
           {
@@ -343,7 +354,6 @@ class TestContext {
             );
 
             final assetServerPort = await findUnusedPort();
-            log('Port #3: $assetServerPort');
             _hostname = appMetadata.hostname;
             await webRunner.run(
               frontendServerFileSystem,
@@ -398,7 +408,6 @@ class TestContext {
       }
 
       final debugPort = await findUnusedPort();
-      log('Port #4: $debugPort');
       if (testSettings.launchChrome) {
         // If the environment variable DWDS_DEBUG_CHROME is set to the string
         // true then Chrome will be launched with a UI rather than headless.

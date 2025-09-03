@@ -21,8 +21,6 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-int setupNum = 0;
-
 void main() {
   // Enable verbose logging for debugging.
   const debug = true;
@@ -54,7 +52,6 @@ void main() {
     setUp(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        setupNum: ++setupNum,
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
           compilationMode: CompilationMode.frontendServer,
