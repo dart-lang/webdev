@@ -433,17 +433,30 @@ class TestContext {
           ' -> notice chrome driver identity hash code is '
           '${identityHashCode(_chromeDriver)}',
         );
-        log('Also notice Platform.environment:');
-        for (final entry in Platform.environment.entries) {
-          log('  ${entry.key}: ${entry.value}');
+        try {
+          _webDriver = await createDriver(
+            spec: WebDriverSpec.JsonWire,
+            desired: capabilities,
+            uri: Uri.parse(
+              'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/',
+            ),
+          );
+        } on SocketException catch (e) {
+          log('Got "$e". Will wait a bit and try again.');
+          await Future.delayed(const Duration(seconds: 2));
+          try {
+            _webDriver = await createDriver(
+              spec: WebDriverSpec.JsonWire,
+              desired: capabilities,
+              uri: Uri.parse(
+                'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/',
+              ),
+            );
+          } on SocketException catch (e) {
+            log('Got exception again: "$e"');
+            rethrow;
+          }
         }
-        _webDriver = await createDriver(
-          spec: WebDriverSpec.JsonWire,
-          desired: capabilities,
-          uri: Uri.parse(
-            'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/',
-          ),
-        );
       }
 
       // The debugger tab must be enabled and connected before certain
