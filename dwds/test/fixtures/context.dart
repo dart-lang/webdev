@@ -433,6 +433,10 @@ class TestContext {
           ' -> notice chrome driver identity hash code is '
           '${identityHashCode(_chromeDriver)}',
         );
+        log('Also notice Platform.environment:');
+        for(var entry in Platform.environment.entries) {
+          log('  ${entry.key}: ${entry.value}');
+        }
         _webDriver = await createDriver(
           spec: WebDriverSpec.JsonWire,
           desired: capabilities,
