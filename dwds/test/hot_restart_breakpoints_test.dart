@@ -25,7 +25,7 @@ int setupNum = 0;
 
 void main() {
   // Enable verbose logging for debugging.
-  const debug = false;
+  const debug = true;
   final provider = TestSdkConfigurationProvider(
     verbose: debug,
     canaryFeatures: true,
