@@ -132,6 +132,7 @@ class TestContext {
   TestContext(this.project, this.sdkConfigurationProvider);
 
   Future<void> setUp({
+    int setupNum = -1,
     TestSettings testSettings = const TestSettings(),
     TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
     TestDebugSettings debugSettings =
@@ -154,12 +155,14 @@ class TestContext {
 
       DartUri.currentDirectory = project.absolutePackageDirectory;
 
-      _logger.info(
-        'Serving: ${project.directoryToServe}/${project.filePathToServe}',
-      );
-      _logger.info('Project: ${project.absolutePackageDirectory}');
-      _logger.info('Packages: ${project.packageConfigFile}');
-      _logger.info('Entry: ${project.dartEntryFilePath}');
+      void log(String s) {
+        _logger.info('${DateTime.now()}: ($setupNum): $s');
+      }
+
+      log('Serving: ${project.directoryToServe}/${project.filePathToServe}');
+      log('Project: ${project.absolutePackageDirectory}');
+      log('Packages: ${project.packageConfigFile}');
+      log('Entry: ${project.dartEntryFilePath}');
 
       configureLogWriter();
 
@@ -174,12 +177,17 @@ class TestContext {
       _outputDir = systemTempDir.createTempSync('foo bar');
 
       final chromeDriverPort = await findUnusedPort();
+      log('Picked chromeDriverPort = $chromeDriverPort');
       final chromeDriverUrlBase = 'wd/hub';
       try {
-        _chromeDriver = await Process.start('chromedriver$_exeExt', [
-          '--port=$chromeDriverPort',
-          '--url-base=$chromeDriverUrlBase',
-        ]);
+        final localDriver =
+            _chromeDriver = await Process.start('chromedriver$_exeExt', [
+              '--port=$chromeDriverPort',
+              '--url-base=$chromeDriverUrlBase',
+            ]);
+        log(
+          'Started chrome driver - identity hash code = ${identityHashCode(localDriver)}',
+        );
         // On windows this takes a while to boot up, wait for the first line
         // of stdout as a signal that it is ready.
         final stdOutLines =
@@ -194,14 +202,11 @@ class TestContext {
                 .transform(const LineSplitter())
                 .asBroadcastStream();
 
-        stdOutLines.listen(
-          (line) => _logger.finest('ChromeDriver stdout: $line'),
-        );
-        stdErrLines.listen(
-          (line) => _logger.warning('ChromeDriver stderr: $line'),
-        );
+        stdOutLines.listen((line) => log('ChromeDriver stdout: $line'));
+        stdErrLines.listen((line) => log('ChromeDriver stderr: $line'));
 
-        await stdOutLines.first;
+        final firstLine = await stdOutLines.first;
+        log('Notice first line = $firstLine');
       } catch (e) {
         throw StateError(
           'Could not start ChromeDriver. Is it installed?\nError: $e',
@@ -221,6 +226,7 @@ class TestContext {
       var filePathToServe = project.filePathToServe;
 
       _port = await findUnusedPort();
+      log('Port #2: $_port');
       switch (testSettings.compilationMode) {
         case CompilationMode.buildDaemon:
           {
@@ -337,6 +343,7 @@ class TestContext {
             );
 
             final assetServerPort = await findUnusedPort();
+            log('Port #3: $assetServerPort');
             _hostname = appMetadata.hostname;
             await webRunner.run(
               frontendServerFileSystem,
@@ -391,6 +398,7 @@ class TestContext {
       }
 
       final debugPort = await findUnusedPort();
+      log('Port #4: $debugPort');
       if (testSettings.launchChrome) {
         // If the environment variable DWDS_DEBUG_CHROME is set to the string
         // true then Chrome will be launched with a UI rather than headless.
@@ -417,6 +425,14 @@ class TestContext {
                 ],
               },
             });
+        log(
+          'Now creating web driver for chrome driver port; '
+          'going for port $chromeDriverPort',
+        );
+        log(
+          ' -> notice chrome driver identity hash code is '
+          '${identityHashCode(_chromeDriver)}',
+        );
         _webDriver = await createDriver(
           spec: WebDriverSpec.JsonWire,
           desired: capabilities,
