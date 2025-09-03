@@ -434,7 +434,7 @@ class TestContext {
           '${identityHashCode(_chromeDriver)}',
         );
         log('Also notice Platform.environment:');
-        for(var entry in Platform.environment.entries) {
+        for (var entry in Platform.environment.entries) {
           log('  ${entry.key}: ${entry.value}');
         }
         _webDriver = await createDriver(
