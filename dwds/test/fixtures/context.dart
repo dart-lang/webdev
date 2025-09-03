@@ -154,14 +154,12 @@ class TestContext {
 
       DartUri.currentDirectory = project.absolutePackageDirectory;
 
-      void log(String s) {
-        _logger.info('${DateTime.now()}: $s');
-      }
-
-      log('Serving: ${project.directoryToServe}/${project.filePathToServe}');
-      log('Project: ${project.absolutePackageDirectory}');
-      log('Packages: ${project.packageConfigFile}');
-      log('Entry: ${project.dartEntryFilePath}');
+      _logger.info(
+        'Serving: ${project.directoryToServe}/${project.filePathToServe}',
+      );
+      _logger.info('Project: ${project.absolutePackageDirectory}');
+      _logger.info('Packages: ${project.packageConfigFile}');
+      _logger.info('Entry: ${project.dartEntryFilePath}');
 
       configureLogWriter();
 
@@ -212,13 +210,13 @@ class TestContext {
               line.contains('was started successfully')) {
             chromeDriverStartup.complete();
           }
-          log('ChromeDriver stdout: $line');
+          _logger.finest('ChromeDriver stdout: $line');
         });
-        stdErrLines.listen((line) => log('ChromeDriver stderr: $line'));
+        stdErrLines.listen(
+          (line) => _logger.warning('ChromeDriver stderr: $line'),
+        );
 
-        await stdOutLines.first;
         await chromeDriverStartup.future;
-        log('ChromeDriver has now started');
       } catch (e) {
         throw StateError(
           'Could not start ChromeDriver. Is it installed?\nError: $e',
@@ -434,52 +432,14 @@ class TestContext {
                 ],
               },
             });
-        log(
-          'Now creating web driver for chrome driver port; '
-          'going for port $chromeDriverPort',
+        _webDriver = await createDriver(
+          spec: WebDriverSpec.JsonWire,
+          desired: capabilities,
+          uri: Uri.parse(
+            'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/',
+          ),
         );
-        log(
-          ' -> notice chrome driver identity hash code is '
-          '${identityHashCode(_chromeDriver)}',
-        );
-        try {
-          final localWebDriver =
-              _webDriver = await createDriver(
-                spec: WebDriverSpec.JsonWire,
-                desired: capabilities,
-                uri: Uri.parse(
-                  'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/',
-                ),
-              );
-          log(
-            'After first try: _webDriver = $_webDriver; '
-            'localWebDriver = $localWebDriver',
-          );
-        } on SocketException catch (e) {
-          log('Got "$e". Will wait a bit and try again.');
-          await Future.delayed(const Duration(seconds: 2));
-          log('Back after the wait. Will now try again.');
-          try {
-            final localWebDriver =
-                _webDriver = await createDriver(
-                  spec: WebDriverSpec.JsonWire,
-                  desired: capabilities,
-                  uri: Uri.parse(
-                    'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/',
-                  ),
-                );
-            log(
-              'After second try: _webDriver = $_webDriver; '
-              'localWebDriver = $localWebDriver',
-            );
-          } on SocketException catch (e) {
-            log('Got exception again: "$e"');
-            rethrow;
-          }
-        }
       }
-
-      log('Is now after the testSettings.launchChrome stuff.');
 
       // The debugger tab must be enabled and connected before certain
       // listeners in DWDS or `main` is run.

@@ -39,7 +39,7 @@ jobs:
       - name: mono_repo self validate
         run: dart pub global activate mono_repo 6.6.2
       - name: mono_repo self validate
-        run: true
+        run: dart pub global run mono_repo generate --validate
   job_002:
     name: "analyzer_and_format; linux; Dart dev; PKG: dwds; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`, `dart test test/build/ensure_version_test.dart`"
     runs-on: ubuntu-latest
@@ -267,12 +267,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test specific"
-        run: "dart test/hot_restart_breakpoints_test.dart"
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
-        run: "dart test --total-shards 3 --shard-index 0 --exclude-tags=extension --no-retry --fail-fast"
+        run: "dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -307,7 +303,7 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
-        run: "dart test --total-shards 3 --shard-index 1 --exclude-tags=extension --no-retry --fail-fast"
+        run: "dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -342,7 +338,7 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
-        run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension --no-retry --fail-fast"
+        run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -529,7 +525,7 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
-        run: "dart test --total-shards 3 --shard-index 0 --exclude-tags=extension --no-retry --fail-fast"
+        run: "dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -564,7 +560,7 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
-        run: "dart test --total-shards 3 --shard-index 1 --exclude-tags=extension --no-retry --fail-fast"
+        run: "dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -599,7 +595,7 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
-        run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension --no-retry --fail-fast"
+        run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -762,7 +758,7 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
-        run: "dart test --total-shards 3 --shard-index 0 --exclude-tags=extension --no-retry --fail-fast"
+        run: "dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -787,7 +783,7 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
-        run: "dart test --total-shards 3 --shard-index 1 --exclude-tags=extension --no-retry --fail-fast"
+        run: "dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -812,7 +808,7 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
-        run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension --no-retry --fail-fast"
+        run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -937,7 +933,7 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
-        run: "dart test --total-shards 3 --shard-index 0 --exclude-tags=extension --no-retry --fail-fast"
+        run: "dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -962,7 +958,7 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
-        run: "dart test --total-shards 3 --shard-index 1 --exclude-tags=extension --no-retry --fail-fast"
+        run: "dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -987,7 +983,7 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
-        run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension --no-retry --fail-fast"
+        run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:

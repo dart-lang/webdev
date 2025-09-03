@@ -23,7 +23,7 @@ import 'fixtures/utilities.dart';
 
 void main() {
   // Enable verbose logging for debugging.
-  const debug = true;
+  const debug = false;
   final provider = TestSdkConfigurationProvider(
     verbose: debug,
     canaryFeatures: true,
