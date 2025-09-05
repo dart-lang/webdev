@@ -38,6 +38,7 @@ const disableDdsFlag = 'disable-dds';
 const enableExperimentOption = 'enable-experiment';
 const canaryFeaturesFlag = 'canary';
 const offlineFlag = 'offline';
+const spaFallbackFlag = 'spa-fallback';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
   var auto = argResults.options.contains(autoOption)
@@ -109,6 +110,7 @@ class Configuration {
   final List<String>? _experiments;
   final bool? _canaryFeatures;
   final bool? _offline;
+  final bool? _spaFallback;
 
   Configuration({
     bool? autoRun,
@@ -136,6 +138,7 @@ class Configuration {
     List<String>? experiments,
     bool? canaryFeatures,
     bool? offline,
+    bool? spaFallback,
   })  : _autoRun = autoRun,
         _chromeDebugPort = chromeDebugPort,
         _debugExtension = debugExtension,
@@ -158,7 +161,8 @@ class Configuration {
         _nullSafety = nullSafety,
         _experiments = experiments,
         _canaryFeatures = canaryFeatures,
-        _offline = offline {
+        _offline = offline,
+        _spaFallback = spaFallback {
     _validateConfiguration();
   }
 
@@ -234,7 +238,8 @@ class Configuration {
       nullSafety: other._nullSafety ?? _nullSafety,
       experiments: other._experiments ?? _experiments,
       canaryFeatures: other._canaryFeatures ?? _canaryFeatures,
-      offline: other._offline ?? _offline);
+      offline: other._offline ?? _offline,
+      spaFallback: other._spaFallback ?? _spaFallback);
 
   factory Configuration.noInjectedClientDefaults() =>
       Configuration(autoRun: false, debug: false, debugExtension: false);
@@ -290,6 +295,8 @@ class Configuration {
   bool get canaryFeatures => _canaryFeatures ?? false;
 
   bool get offline => _offline ?? false;
+
+  bool get spaFallback => _spaFallback ?? false;
 
   /// Returns a new configuration with values updated from the parsed args.
   static Configuration fromArgs(ArgResults? argResults,
@@ -419,6 +426,10 @@ class Configuration {
         ? argResults[offlineFlag] as bool?
         : defaultConfiguration.verbose;
 
+    final spaFallback = argResults.options.contains(spaFallbackFlag)
+        ? argResults[spaFallbackFlag] as bool?
+        : defaultConfiguration.spaFallback;
+
     return Configuration(
       autoRun: defaultConfiguration.autoRun,
       chromeDebugPort: chromeDebugPort,
@@ -445,6 +456,7 @@ class Configuration {
       experiments: experiments,
       canaryFeatures: canaryFeatures,
       offline: offline,
+      spaFallback: spaFallback,
     );
   }
 }

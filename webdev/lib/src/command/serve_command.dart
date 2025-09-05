@@ -75,6 +75,10 @@ refresh: Performs a full page refresh.
     ..addFlag(logRequestsFlag,
         negatable: false,
         help: 'Enables logging for each request to the server.')
+    ..addFlag('spa-fallback',
+        negatable: false,
+        help: 'Serves index.html for any 404 from a non-asset request. '
+            'Useful for single-page applications with client-side routing.')
     ..addOption(tlsCertChainFlag,
         help:
             'The file location to a TLS Certificate to create an HTTPs server.\n'
