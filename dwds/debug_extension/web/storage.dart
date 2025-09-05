@@ -47,8 +47,9 @@ Future<bool> setStorageObject<T>({
   void Function()? callback,
 }) {
   final storageKey = _createStorageKey(type, tabId);
-  final json =
-      value is String ? value : jsonEncode(serializers.serialize(value));
+  final json = value is String
+      ? value
+      : jsonEncode(serializers.serialize(value));
   final storageObj = <String, String>{storageKey: json};
   final completer = Completer<bool>();
   final storageArea = _getStorageArea(type.persistence);

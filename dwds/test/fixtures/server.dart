@@ -126,8 +126,9 @@ class TestServer {
       final watch = Stopwatch()..start();
       try {
         final response = await innerHandler(request);
-        final logFn =
-            response.statusCode >= 500 ? _logger.warning : _logger.finest;
+        final logFn = response.statusCode >= 500
+            ? _logger.warning
+            : _logger.finest;
         final msg = _requestLabel(
           response.statusCode,
           request.requestedUri,

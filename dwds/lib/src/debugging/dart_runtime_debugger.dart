@@ -198,7 +198,8 @@ class DartRuntimeDebugger {
 
   /// Generates a JS expression for calling a library method.
   String callLibraryMethodJsExpression(String libraryUri, String methodName) {
-    final findLibraryExpression = '''
+    final findLibraryExpression =
+        '''
      (function() {
        const sdk = ${_loadStrategy.loadModuleSnippet}('dart_sdk');
        const dart = sdk.dart;

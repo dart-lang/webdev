@@ -75,12 +75,11 @@ class ChromeDwdsVmClient implements DwdsVmClient {
   );
 
   @override
-  Future<void> close() =>
-      _closed ??= () async {
-        await _requestController.close();
-        await _responseController.close();
-        await client.dispose();
-      }();
+  Future<void> close() => _closed ??= () async {
+    await _requestController.close();
+    await _responseController.close();
+    await client.dispose();
+  }();
 
   static Future<ChromeDwdsVmClient> create(
     ChromeDebugService debugService,
@@ -110,14 +109,13 @@ class ChromeDwdsVmClient implements DwdsVmClient {
       clientFuture: clientCompleter.future,
     );
 
-    final client =
-        ddsUri == null
-            ? _setUpVmClient(
-              responseStream: responseStream,
-              requestController: requestController,
-              requestSink: requestSink,
-            )
-            : await _setUpDdsClient(ddsUri: ddsUri);
+    final client = ddsUri == null
+        ? _setUpVmClient(
+            responseStream: responseStream,
+            requestController: requestController,
+            requestSink: requestSink,
+          )
+        : await _setUpDdsClient(ddsUri: ddsUri);
 
     if (!clientCompleter.isCompleted) {
       clientCompleter.complete(client);
@@ -328,12 +326,11 @@ class WebSocketDwdsVmClient implements DwdsVmClient {
   );
 
   @override
-  Future<void> close() =>
-      _closed ??= () async {
-        await _requestController.close();
-        await _responseController.close();
-        await client.dispose();
-      }();
+  Future<void> close() => _closed ??= () async {
+    await _requestController.close();
+    await _responseController.close();
+    await client.dispose();
+  }();
 
   static Future<WebSocketDwdsVmClient> create(
     WebSocketDebugService debugService,
@@ -536,14 +533,16 @@ void _recordDwdsStats(DwdsStats dwdsStats, String screen) {
     final devToolsStart = dwdsStats.devToolsStart;
     final debuggerStart = dwdsStats.debuggerStart;
     if (devToolsStart != null) {
-      final devToolLoadTime =
-          DateTime.now().difference(devToolsStart).inMilliseconds;
+      final devToolLoadTime = DateTime.now()
+          .difference(devToolsStart)
+          .inMilliseconds;
       emitEvent(DwdsEvent.devToolsLoad(devToolLoadTime, screen));
       _chromeLogger.fine('DevTools load time: $devToolLoadTime ms');
     }
     if (debuggerStart != null) {
-      final debuggerReadyTime =
-          DateTime.now().difference(debuggerStart).inMilliseconds;
+      final debuggerReadyTime = DateTime.now()
+          .difference(debuggerStart)
+          .inMilliseconds;
       emitEvent(DwdsEvent.debuggerReady(debuggerReadyTime, screen));
       _chromeLogger.fine('Debugger ready time: $debuggerReadyTime ms');
     }
@@ -636,8 +635,8 @@ Future<Map<String, dynamic>> _hotRestart(
       returnByValue: true,
     );
     if (isDdcLibraryBundle) {
-      final reloadedSrcModuleLibraries =
-          (remoteObject.value as List).cast<Map>();
+      final reloadedSrcModuleLibraries = (remoteObject.value as List)
+          .cast<Map>();
       for (final srcModuleLibrary in reloadedSrcModuleLibraries) {
         final srcModuleLibraryCast = srcModuleLibrary.cast<String, Object>();
         reloadedSrcs.add(

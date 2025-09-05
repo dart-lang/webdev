@@ -163,8 +163,10 @@ void main() {
   test('properties', () async {
     final remoteObject = await libraryPublicFinal();
     final properties = await inspector.getProperties(remoteObject.objectId!);
-    final names =
-        properties.map((p) => p.name).where((x) => x != '__proto__').toList();
+    final names = properties
+        .map((p) => p.name)
+        .where((x) => x != '__proto__')
+        .toList();
     final expected = [
       '_privateField',
       'abstractField',

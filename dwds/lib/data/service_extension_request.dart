@@ -15,10 +15,9 @@ abstract class ServiceExtensionRequest
   get argsJson; // Store args as JSON string for built_value compatibility
 
   // Helper method to get args as Map<String, dynamic>
-  Map<String, dynamic> get args =>
-      argsJson.isEmpty
-          ? <String, dynamic>{}
-          : json.decode(argsJson) as Map<String, dynamic>;
+  Map<String, dynamic> get args => argsJson.isEmpty
+      ? <String, dynamic>{}
+      : json.decode(argsJson) as Map<String, dynamic>;
 
   ServiceExtensionRequest._();
   factory ServiceExtensionRequest([
@@ -31,11 +30,10 @@ abstract class ServiceExtensionRequest
     required String method,
     required Map<String, dynamic> args,
   }) => ServiceExtensionRequest(
-    (b) =>
-        b
-          ..id = id
-          ..method = method
-          ..argsJson = json.encode(args),
+    (b) => b
+      ..id = id
+      ..method = method
+      ..argsJson = json.encode(args),
   );
 
   static Serializer<ServiceExtensionRequest> get serializer =>

@@ -121,15 +121,16 @@ void testAll({required CompilerOptions compilerOptions}) {
         '--packages',
         packages.path,
       ];
-      final process = await Process.start(
-        executable,
-        args,
-        workingDirectory: outputDir.path,
-      ).then((p) {
-        transformToLines(p.stdout).listen(output.add);
-        transformToLines(p.stderr).listen(output.add);
-        return p;
-      });
+      final process =
+          await Process.start(
+            executable,
+            args,
+            workingDirectory: outputDir.path,
+          ).then((p) {
+            transformToLines(p.stdout).listen(output.add);
+            transformToLines(p.stderr).listen(output.add);
+            return p;
+          });
       expect(
         await process.exitCode,
         0,
@@ -187,6 +188,7 @@ void testAll({required CompilerOptions compilerOptions}) {
       final compilationResult = await service.compileExpressionToJs(
         '0',
         'org-dartlang-app:/try.dart',
+        'org-dartlang-app:/try.dart',
         2,
         1,
         {},
@@ -234,6 +236,7 @@ void testAll({required CompilerOptions compilerOptions}) {
       final compilationResult1 = await service.compileExpressionToJs(
         '0',
         'org-dartlang-app:/try.dart',
+        'org-dartlang-app:/try.dart',
         2,
         1,
         {},
@@ -243,6 +246,7 @@ void testAll({required CompilerOptions compilerOptions}) {
       );
       final compilationResult2 = await service.compileExpressionToJs(
         '0',
+        'org-dartlang-app:/try.dart',
         'org-dartlang-app:/try.dart',
         2,
         1,
@@ -298,6 +302,7 @@ void testAll({required CompilerOptions compilerOptions}) {
       final compilationResult1 = service.compileExpressionToJs(
         '0',
         'org-dartlang-app:/try.dart',
+        'org-dartlang-app:/try.dart',
         2,
         1,
         {},
@@ -307,6 +312,7 @@ void testAll({required CompilerOptions compilerOptions}) {
       );
       final compilationResult2 = service.compileExpressionToJs(
         '0',
+        'org-dartlang-app:/try.dart',
         'org-dartlang-app:/try.dart',
         2,
         1,

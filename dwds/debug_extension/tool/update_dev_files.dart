@@ -12,10 +12,9 @@ void main() async {
 Future<void> _updateManifestJson() async {
   final manifestJson = File('compiled/manifest.json');
   final extensionKeyTxt = File('extension_key.txt');
-  final extensionKey =
-      await extensionKeyTxt.exists()
-          ? await extensionKeyTxt.readAsString()
-          : null;
+  final extensionKey = await extensionKeyTxt.exists()
+      ? await extensionKeyTxt.readAsString()
+      : null;
   return _transformDevFile(manifestJson, (line) {
     if (_matchesKey(line: line, key: 'name')) {
       return [

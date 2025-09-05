@@ -120,10 +120,9 @@ void main() async {
       [sampleSyncFrame],
       asyncStackTrace: StackTrace({
         'callFrames': [sampleAsyncFrame.json],
-        'parent':
-            StackTrace({
-              'callFrames': [sampleAsyncFrame.json],
-            }).json,
+        'parent': StackTrace({
+          'callFrames': [sampleAsyncFrame.json],
+        }).json,
       }),
     );
 
@@ -143,15 +142,13 @@ void main() async {
       [sampleSyncFrame],
       asyncStackTrace: StackTrace({
         'callFrames': [sampleAsyncFrame.json],
-        'parent':
-            StackTrace({
-              'callFrames': [],
-              'parent':
-                  StackTrace({
-                    'callFrames': [sampleAsyncFrame.json],
-                    'parent': StackTrace({'callFrames': []}).json,
-                  }).json,
-            }).json,
+        'parent': StackTrace({
+          'callFrames': [],
+          'parent': StackTrace({
+            'callFrames': [sampleAsyncFrame.json],
+            'parent': StackTrace({'callFrames': []}).json,
+          }).json,
+        }).json,
       }),
     );
 

@@ -142,8 +142,9 @@ void testAll({required bool isMV3, required bool screenshotsEnabled}) {
 
         test('DevTools is opened with the correct query parameters', () async {
           final appUrl = context.appUrl;
-          final devToolsUrlFragment =
-              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+          final devToolsUrlFragment = useSse
+              ? 'debugger?uri=sse'
+              : 'debugger?uri=ws';
           // Navigate to the Dart app:
           final appTab = await navigateToPage(
             browser,
@@ -178,8 +179,9 @@ void testAll({required bool isMV3, required bool screenshotsEnabled}) {
           'navigating away from the Dart app while debugging closes DevTools',
           () async {
             final appUrl = context.appUrl;
-            final devToolsUrlFragment =
-                useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+            final devToolsUrlFragment = useSse
+                ? 'debugger?uri=sse'
+                : 'debugger?uri=ws';
             // Navigate to the Dart app:
             final appTab = await navigateToPage(
               browser,
@@ -212,8 +214,9 @@ void testAll({required bool isMV3, required bool screenshotsEnabled}) {
 
         test('closing the Dart app while debugging closes DevTools', () async {
           final appUrl = context.appUrl;
-          final devToolsUrlFragment =
-              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+          final devToolsUrlFragment = useSse
+              ? 'debugger?uri=sse'
+              : 'debugger?uri=ws';
           // Navigate to the Dart app:
           final appTab = await navigateToPage(
             browser,
@@ -240,8 +243,9 @@ void testAll({required bool isMV3, required bool screenshotsEnabled}) {
 
         test('Clicking extension icon while debugging shows warning', () async {
           final appUrl = context.appUrl;
-          final devToolsUrlFragment =
-              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+          final devToolsUrlFragment = useSse
+              ? 'debugger?uri=sse'
+              : 'debugger?uri=ws';
           // Navigate to the Dart app:
           final appTab = await navigateToPage(
             browser,
@@ -321,8 +325,9 @@ void testAll({required bool isMV3, required bool screenshotsEnabled}) {
           'Refreshing the Dart app does not open a new Dart DevTools',
           () async {
             final appUrl = context.appUrl;
-            final devToolsUrlFragment =
-                useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+            final devToolsUrlFragment = useSse
+                ? 'debugger?uri=sse'
+                : 'debugger?uri=ws';
             // Navigate to the Dart app:
             final appTab = await navigateToPage(
               browser,
@@ -876,8 +881,9 @@ Future<bool> _clickLaunchButton(Browser browser, {required Panel panel}) async {
 }
 
 Future<Page> _getPanelPage(Browser browser, {required Panel panel}) async {
-  final panelName =
-      panel == Panel.inspector ? 'inspector_panel' : 'debugger_panel';
+  final panelName = panel == Panel.inspector
+      ? 'inspector_panel'
+      : 'debugger_panel';
   var panelTarget = browser.targets.firstWhereOrNull(
     (target) => target.url.contains(panelName),
   );

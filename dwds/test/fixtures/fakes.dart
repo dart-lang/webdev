@@ -166,6 +166,10 @@ class FakeModules implements Modules {
   Future<Uri> libraryForSource(String serverPath) async => Uri(path: _library);
 
   @override
+  Future<Uri> libraryOrPartForSource(String serverPath) async =>
+      Uri(path: _library);
+
+  @override
   Future<String> moduleForSource(String serverPath) async => _module;
 
   @override
@@ -348,10 +352,9 @@ class FakeStrategy extends LoadStrategy {
 
   @override
   shelf.Handler get handler =>
-      (request) =>
-          (request.url.path == 'someDummyPath')
-              ? shelf.Response.ok('some dummy response')
-              : shelf.Response.notFound('someDummyPath');
+      (request) => (request.url.path == 'someDummyPath')
+      ? shelf.Response.ok('some dummy response')
+      : shelf.Response.notFound('someDummyPath');
 
   @override
   BuildSettings get buildSettings => _buildSettings;
@@ -451,6 +454,7 @@ class FakeExpressionCompiler implements ExpressionCompiler {
   Future<ExpressionCompilationResult> compileExpressionToJs(
     String isolateId,
     String libraryUri,
+    String scriptUri,
     int line,
     int column,
     Map<String, String> jsModules,

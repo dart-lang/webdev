@@ -80,7 +80,8 @@ class WebDevFS {
   }) async {
     final mainPath = mainUri.toFilePath();
     final outputDirectory = fileSystem.directory(
-        fileSystem.file(projectDirectory.resolve(mainPath)).parent.path);
+      fileSystem.file(projectDirectory.resolve(mainPath)).parent.path,
+    );
     final entryPoint = mainUri.toString();
 
     var prefix = '';
@@ -99,10 +100,9 @@ class WebDevFS {
       final bootstrap = '${prefix}main_module.bootstrap.js';
 
       assetServer.writeFile(
-          entryPoint,
-          fileSystem
-              .file(projectDirectory.resolve(mainPath))
-              .readAsStringSync());
+        entryPoint,
+        fileSystem.file(projectDirectory.resolve(mainPath)).readAsStringSync(),
+      );
       assetServer.writeFile(stackMapper, stackTraceMapper.readAsStringSync());
 
       switch (ddcModuleFormat) {
@@ -118,27 +118,32 @@ class WebDevFS {
           );
           assetServer.writeFile(
             bootstrap,
-            generateMainModule(
-              entrypoint: entryPoint,
-            ),
+            generateMainModule(entrypoint: entryPoint),
           );
           break;
         case ModuleFormat.ddc:
           assetServer.writeFile(
-              ddcModuleLoader, ddcModuleLoaderJS.readAsStringSync());
+            ddcModuleLoader,
+            ddcModuleLoaderJS.readAsStringSync(),
+          );
           String bootstrapper;
           String mainModule;
           if (compilerOptions.canaryFeatures) {
             bootstrapper = generateDDCLibraryBundleBootstrapScript(
-                ddcModuleLoaderUrl: ddcModuleLoader,
-                mapperUrl: stackMapper,
-                entrypoint: entryPoint,
-                bootstrapUrl: bootstrap);
+              ddcModuleLoaderUrl: ddcModuleLoader,
+              mapperUrl: stackMapper,
+              entrypoint: entryPoint,
+              bootstrapUrl: bootstrap,
+            );
             const onLoadEndBootstrap = 'on_load_end_bootstrap.js';
-            assetServer.writeFile(onLoadEndBootstrap,
-                generateDDCLibraryBundleOnLoadEndBootstrap());
+            assetServer.writeFile(
+              onLoadEndBootstrap,
+              generateDDCLibraryBundleOnLoadEndBootstrap(),
+            );
             mainModule = generateDDCLibraryBundleMainModule(
-                entrypoint: entryPoint, onLoadEndBootstrap: onLoadEndBootstrap);
+              entrypoint: entryPoint,
+              onLoadEndBootstrap: onLoadEndBootstrap,
+            );
           } else {
             bootstrapper = generateDDCBootstrapScript(
               ddcModuleLoaderUrl: ddcModuleLoader,
@@ -152,19 +157,16 @@ class WebDevFS {
             // removed, and special path elements like '/', '\', and '..' are
             // replaced with
             // '__'.
-            final exportedMainName =
-                pathToJSIdentifier(entryPoint.split('.')[0]);
+            final exportedMainName = pathToJSIdentifier(
+              entryPoint.split('.')[0],
+            );
             mainModule = generateDDCMainModule(
-                entrypoint: entryPoint, exportedMain: exportedMainName);
+              entrypoint: entryPoint,
+              exportedMain: exportedMainName,
+            );
           }
-          assetServer.writeFile(
-            main,
-            bootstrapper,
-          );
-          assetServer.writeFile(
-            bootstrap,
-            mainModule,
-          );
+          assetServer.writeFile(main, bootstrapper);
+          assetServer.writeFile(bootstrap, mainModule);
           break;
         default:
           throw Exception('Unsupported DDC module format $ddcModuleFormat.');
@@ -198,16 +200,24 @@ class WebDevFS {
     File metadataFile;
     List<String> modules;
     try {
-      codeFile =
-          outputDirectory.childFile('${compilerOutput.outputFilename}.sources');
-      manifestFile =
-          outputDirectory.childFile('${compilerOutput.outputFilename}.json');
-      sourcemapFile =
-          outputDirectory.childFile('${compilerOutput.outputFilename}.map');
-      metadataFile = outputDirectory
-          .childFile('${compilerOutput.outputFilename}.metadata');
+      codeFile = outputDirectory.childFile(
+        '${compilerOutput.outputFilename}.sources',
+      );
+      manifestFile = outputDirectory.childFile(
+        '${compilerOutput.outputFilename}.json',
+      );
+      sourcemapFile = outputDirectory.childFile(
+        '${compilerOutput.outputFilename}.map',
+      );
+      metadataFile = outputDirectory.childFile(
+        '${compilerOutput.outputFilename}.metadata',
+      );
       modules = assetServer.write(
-          codeFile, manifestFile, sourcemapFile, metadataFile);
+        codeFile,
+        manifestFile,
+        sourcemapFile,
+        metadataFile,
+      );
     } on FileSystemException catch (err) {
       throw Exception('Failed to load recompiled sources:\n$err');
     }
@@ -252,34 +262,37 @@ class WebDevFS {
     final moduleToLibrary = <Map<String, Object>>[];
     for (final module in modules) {
       final metadata = ModuleMetadata.fromJson(
-        json.decode(utf8
-                .decode(assetServer.getMetadata('$module.metadata').toList()))
+        json.decode(
+              utf8.decode(assetServer.getMetadata('$module.metadata').toList()),
+            )
             as Map<String, dynamic>,
       );
       final libraries = metadata.libraries.keys.toList();
       moduleToLibrary.add(<String, Object>{
         'src': '$fileServerUri/$module',
         'module': metadata.name,
-        'libraries': libraries
+        'libraries': libraries,
       });
     }
     assetServer.writeFile(
-        reloadedSourcesFileName, json.encode(moduleToLibrary));
+      reloadedSourcesFileName,
+      json.encode(moduleToLibrary),
+    );
   }
 
   File get ddcModuleLoaderJS =>
       fileSystem.file(sdkLayout.ddcModuleLoaderJsPath);
   File get requireJS => fileSystem.file(sdkLayout.requireJsPath);
   File get dartSdk => fileSystem.file(switch (ddcModuleFormat) {
-        ModuleFormat.amd => sdkLayout.amdJsPath,
-        ModuleFormat.ddc => sdkLayout.ddcJsPath,
-        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
-      });
+    ModuleFormat.amd => sdkLayout.amdJsPath,
+    ModuleFormat.ddc => sdkLayout.ddcJsPath,
+    _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.'),
+  });
   File get dartSdkSourcemap => fileSystem.file(switch (ddcModuleFormat) {
-        ModuleFormat.amd => sdkLayout.amdJsMapPath,
-        ModuleFormat.ddc => sdkLayout.ddcJsMapPath,
-        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.')
-      });
+    ModuleFormat.amd => sdkLayout.amdJsMapPath,
+    ModuleFormat.ddc => sdkLayout.ddcJsMapPath,
+    _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.'),
+  });
   File get stackTraceMapper => fileSystem.file(sdkLayout.stackTraceMapperPath);
   ModuleFormat get ddcModuleFormat => compilerOptions.moduleFormat;
 }
@@ -293,9 +306,9 @@ class UpdateFSReport {
     bool success = false,
     int invalidatedSourcesCount = 0,
     int syncedBytes = 0,
-  })  : _success = success,
-        _invalidatedSourcesCount = invalidatedSourcesCount,
-        _syncedBytes = syncedBytes;
+  }) : _success = success,
+       _invalidatedSourcesCount = invalidatedSourcesCount,
+       _syncedBytes = syncedBytes;
 
   bool get success => _success;
   int get invalidatedSourcesCount => _invalidatedSourcesCount;
@@ -319,7 +332,7 @@ class InvalidationResult {
 /// application to determine when they are dirty.
 class ProjectFileInvalidator {
   ProjectFileInvalidator({required FileSystem fileSystem})
-      : _fileSystem = fileSystem;
+    : _fileSystem = fileSystem;
 
   final FileSystem _fileSystem;
 
@@ -349,8 +362,8 @@ class ProjectFileInvalidator {
       final updatedAt = uri.hasScheme && uri.scheme != 'file'
           ? _fileSystem.file(uri).statSync().modified
           : _fileSystem
-              .statSync(uri.toFilePath(windows: Platform.isWindows))
-              .modified;
+                .statSync(uri.toFilePath(windows: Platform.isWindows))
+                .modified;
       if (updatedAt.isAfter(lastCompiled)) {
         invalidatedFiles.add(uri);
       }

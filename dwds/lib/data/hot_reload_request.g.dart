@@ -92,8 +92,9 @@ class _$HotReloadRequest extends HotReloadRequest {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'HotReloadRequest')
-      ..add('id', id)).toString();
+    return (newBuiltValueToStringHelper(
+      r'HotReloadRequest',
+    )..add('id', id)).toString();
   }
 }
 

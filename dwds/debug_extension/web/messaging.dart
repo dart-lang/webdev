@@ -154,8 +154,12 @@ Future<bool> _sendMessage({
   required Script recipient,
   int? tabId,
 }) {
-  final message =
-      Message(to: recipient, from: sender, type: type, body: body).toJSON();
+  final message = Message(
+    to: recipient,
+    from: sender,
+    type: type,
+    body: body,
+  ).toJSON();
   final completer = Completer<bool>();
   void responseHandler([dynamic _]) {
     final error = chrome.runtime.lastError;
