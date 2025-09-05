@@ -180,11 +180,10 @@ class TestContext {
           '--port=$chromeDriverPort',
           '--url-base=$chromeDriverUrlBase',
         ]);
-        final stdOutLines =
-            chromeDriver.stdout
-                .transform(utf8.decoder)
-                .transform(const LineSplitter())
-                .asBroadcastStream();
+        final stdOutLines = chromeDriver.stdout
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .asBroadcastStream();
 
         final stdErrLines = chromeDriver.stderr
             .transform(utf8.decoder)
