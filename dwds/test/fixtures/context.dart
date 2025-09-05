@@ -180,8 +180,6 @@ class TestContext {
           '--port=$chromeDriverPort',
           '--url-base=$chromeDriverUrlBase',
         ]);
-        // On windows this takes a while to boot up, wait for the first line
-        // of stdout as a signal that it is ready.
         final stdOutLines =
             chromeDriver.stdout
                 .transform(utf8.decoder)
@@ -194,14 +192,31 @@ class TestContext {
                 .transform(const LineSplitter())
                 .asBroadcastStream();
 
-        stdOutLines.listen(
-          (line) => _logger.finest('ChromeDriver stdout: $line'),
-        );
+        // Sometimes ChromeDriver can be slow to startup.
+        // This was seen on a github actions run:
+        // > 11:22:59.924700: ChromeDriver stdout: Starting ChromeDriver
+        // >                  139.0.7258.154 ([...]) on port 38107
+        // > [...]
+        // > 11:23:00.237350: ChromeDriver stdout: ChromeDriver was started
+        // >                  successfully on port 38107.
+        // Where in the 300+ ms it took before it was actually ready to accept
+        // a connection we had tried - and failed - to connect.
+        // We therefore wait until ChromeDriver reports that it has started
+        // successfully.
+
+        final chromeDriverStartup = Completer();
+        stdOutLines.listen((line) {
+          if (!chromeDriverStartup.isCompleted &&
+              line.contains('was started successfully')) {
+            chromeDriverStartup.complete();
+          }
+          _logger.finest('ChromeDriver stdout: $line');
+        });
         stdErrLines.listen(
           (line) => _logger.warning('ChromeDriver stderr: $line'),
         );
 
-        await stdOutLines.first;
+        await chromeDriverStartup.future;
       } catch (e) {
         throw StateError(
           'Could not start ChromeDriver. Is it installed?\nError: $e',
