@@ -7,13 +7,13 @@ part of 'extension_request.dart';
 // **************************************************************************
 
 Serializer<ExtensionRequest> _$extensionRequestSerializer =
-    new _$ExtensionRequestSerializer();
+    _$ExtensionRequestSerializer();
 Serializer<ExtensionResponse> _$extensionResponseSerializer =
-    new _$ExtensionResponseSerializer();
+    _$ExtensionResponseSerializer();
 Serializer<ExtensionEvent> _$extensionEventSerializer =
-    new _$ExtensionEventSerializer();
+    _$ExtensionEventSerializer();
 Serializer<BatchedEvents> _$batchedEventsSerializer =
-    new _$BatchedEventsSerializer();
+    _$BatchedEventsSerializer();
 
 class _$ExtensionRequestSerializer
     implements StructuredSerializer<ExtensionRequest> {
@@ -55,7 +55,7 @@ class _$ExtensionRequestSerializer
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new ExtensionRequestBuilder();
+    final result = ExtensionRequestBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -139,7 +139,7 @@ class _$ExtensionResponseSerializer
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new ExtensionResponseBuilder();
+    final result = ExtensionResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -221,7 +221,7 @@ class _$ExtensionEventSerializer
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new ExtensionEventBuilder();
+    final result = ExtensionEventBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -283,7 +283,7 @@ class _$BatchedEventsSerializer implements StructuredSerializer<BatchedEvents> {
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new BatchedEventsBuilder();
+    final result = BatchedEventsBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -319,28 +319,20 @@ class _$ExtensionRequest extends ExtensionRequest {
 
   factory _$ExtensionRequest([
     void Function(ExtensionRequestBuilder)? updates,
-  ]) => (new ExtensionRequestBuilder()..update(updates))._build();
+  ]) => (ExtensionRequestBuilder()..update(updates))._build();
 
   _$ExtensionRequest._({
     required this.id,
     required this.command,
     this.commandParams,
-  }) : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, r'ExtensionRequest', 'id');
-    BuiltValueNullFieldError.checkNotNull(
-      command,
-      r'ExtensionRequest',
-      'command',
-    );
-  }
-
+  }) : super._();
   @override
   ExtensionRequest rebuild(void Function(ExtensionRequestBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   ExtensionRequestBuilder toBuilder() =>
-      new ExtensionRequestBuilder()..replace(this);
+      ExtensionRequestBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -403,7 +395,6 @@ class ExtensionRequestBuilder
 
   @override
   void replace(ExtensionRequest other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExtensionRequest;
   }
 
@@ -418,7 +409,7 @@ class ExtensionRequestBuilder
   _$ExtensionRequest _build() {
     final _$result =
         _$v ??
-        new _$ExtensionRequest._(
+        _$ExtensionRequest._(
           id: BuiltValueNullFieldError.checkNotNull(
             id,
             r'ExtensionRequest',
@@ -448,34 +439,21 @@ class _$ExtensionResponse extends ExtensionResponse {
 
   factory _$ExtensionResponse([
     void Function(ExtensionResponseBuilder)? updates,
-  ]) => (new ExtensionResponseBuilder()..update(updates))._build();
+  ]) => (ExtensionResponseBuilder()..update(updates))._build();
 
   _$ExtensionResponse._({
     required this.id,
     required this.success,
     required this.result,
     this.error,
-  }) : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, r'ExtensionResponse', 'id');
-    BuiltValueNullFieldError.checkNotNull(
-      success,
-      r'ExtensionResponse',
-      'success',
-    );
-    BuiltValueNullFieldError.checkNotNull(
-      result,
-      r'ExtensionResponse',
-      'result',
-    );
-  }
-
+  }) : super._();
   @override
   ExtensionResponse rebuild(void Function(ExtensionResponseBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   ExtensionResponseBuilder toBuilder() =>
-      new ExtensionResponseBuilder()..replace(this);
+      ExtensionResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -545,7 +523,6 @@ class ExtensionResponseBuilder
 
   @override
   void replace(ExtensionResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExtensionResponse;
   }
 
@@ -560,7 +537,7 @@ class ExtensionResponseBuilder
   _$ExtensionResponse _build() {
     final _$result =
         _$v ??
-        new _$ExtensionResponse._(
+        _$ExtensionResponse._(
           id: BuiltValueNullFieldError.checkNotNull(
             id,
             r'ExtensionResponse',
@@ -590,20 +567,15 @@ class _$ExtensionEvent extends ExtensionEvent {
   final String method;
 
   factory _$ExtensionEvent([void Function(ExtensionEventBuilder)? updates]) =>
-      (new ExtensionEventBuilder()..update(updates))._build();
+      (ExtensionEventBuilder()..update(updates))._build();
 
-  _$ExtensionEvent._({required this.params, required this.method}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(params, r'ExtensionEvent', 'params');
-    BuiltValueNullFieldError.checkNotNull(method, r'ExtensionEvent', 'method');
-  }
-
+  _$ExtensionEvent._({required this.params, required this.method}) : super._();
   @override
   ExtensionEvent rebuild(void Function(ExtensionEventBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  ExtensionEventBuilder toBuilder() =>
-      new ExtensionEventBuilder()..replace(this);
+  ExtensionEventBuilder toBuilder() => ExtensionEventBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -657,7 +629,6 @@ class ExtensionEventBuilder
 
   @override
   void replace(ExtensionEvent other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExtensionEvent;
   }
 
@@ -672,7 +643,7 @@ class ExtensionEventBuilder
   _$ExtensionEvent _build() {
     final _$result =
         _$v ??
-        new _$ExtensionEvent._(
+        _$ExtensionEvent._(
           params: BuiltValueNullFieldError.checkNotNull(
             params,
             r'ExtensionEvent',
@@ -694,18 +665,15 @@ class _$BatchedEvents extends BatchedEvents {
   final BuiltList<ExtensionEvent> events;
 
   factory _$BatchedEvents([void Function(BatchedEventsBuilder)? updates]) =>
-      (new BatchedEventsBuilder()..update(updates))._build();
+      (BatchedEventsBuilder()..update(updates))._build();
 
-  _$BatchedEvents._({required this.events}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(events, r'BatchedEvents', 'events');
-  }
-
+  _$BatchedEvents._({required this.events}) : super._();
   @override
   BatchedEvents rebuild(void Function(BatchedEventsBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  BatchedEventsBuilder toBuilder() => new BatchedEventsBuilder()..replace(this);
+  BatchedEventsBuilder toBuilder() => BatchedEventsBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -735,7 +703,7 @@ class BatchedEventsBuilder
 
   ListBuilder<ExtensionEvent>? _events;
   ListBuilder<ExtensionEvent> get events =>
-      _$this._events ??= new ListBuilder<ExtensionEvent>();
+      _$this._events ??= ListBuilder<ExtensionEvent>();
   set events(ListBuilder<ExtensionEvent>? events) => _$this._events = events;
 
   BatchedEventsBuilder();
@@ -751,7 +719,6 @@ class BatchedEventsBuilder
 
   @override
   void replace(BatchedEvents other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$BatchedEvents;
   }
 
@@ -766,14 +733,14 @@ class BatchedEventsBuilder
   _$BatchedEvents _build() {
     _$BatchedEvents _$result;
     try {
-      _$result = _$v ?? new _$BatchedEvents._(events: events.build());
+      _$result = _$v ?? _$BatchedEvents._(events: events.build());
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'events';
         events.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
+        throw BuiltValueNestedFieldError(
           r'BatchedEvents',
           _$failedField,
           e.toString(),

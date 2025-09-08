@@ -29,7 +29,6 @@ class WebDevFS {
     required this.projectDirectory,
     required this.packageUriMapper,
     required this.index,
-    this.soundNullSafety = true,
     this.urlTunneler,
     required this.sdkLayout,
     required this.compilerOptions,
@@ -45,9 +44,6 @@ class WebDevFS {
   final UrlEncoder? urlTunneler;
   List<Uri> sources = <Uri>[];
   DateTime? lastCompiled;
-
-  @Deprecated('Only sound null safety is supported as of Dart 3.0')
-  final bool soundNullSafety;
 
   final TestSdkLayout sdkLayout;
   final CompilerOptions compilerOptions;
@@ -228,11 +224,7 @@ class WebDevFS {
     if (ddcModuleFormat == ModuleFormat.ddc &&
         compilerOptions.canaryFeatures &&
         !initialCompile) {
-      if (fullRestart) {
-        performRestart(modules, fileServerUri!);
-      } else {
-        performReload(modules, prefix, fileServerUri!);
-      }
+      writeReloadedSources(modules, fileServerUri!);
     }
     return UpdateFSReport(
       success: true,
@@ -241,31 +233,11 @@ class WebDevFS {
     )..invalidatedModules = modules;
   }
 
-  /// Given a list of [modules] that need to be loaded, writes a list of sources
-  /// mapped to their ids to the file system that can then be consumed by the
-  /// hot restart callback.
-  ///
-  /// For example:
-  /// ```json
-  /// [
-  ///   {
-  ///     "src": "<base_uri>/<file_name>",
-  ///     "id": "<id>",
-  ///   },
-  /// ]
-  /// ```
-  void performRestart(List<String> modules, Uri fileServerUri) {
-    final srcIdsList = <Map<String, String>>[];
-    for (final src in modules) {
-      srcIdsList.add(<String, String>{'src': '$fileServerUri/$src', 'id': src});
-    }
-    assetServer.writeFile('restart_scripts.json', json.encode(srcIdsList));
-  }
+  static const String reloadedSourcesFileName = 'reloaded_sources.json';
 
-  static const String reloadScriptsFileName = 'reload_scripts.json';
-
-  /// Given a list of [modules] that need to be reloaded, writes a file that
-  /// contains a list of objects each with three fields:
+  /// Given a list of [modules] that need to be reloaded during a hot restart or
+  /// hot reload, writes a file that contains a list of objects each with three
+  /// fields:
   ///
   /// `src`: A string that corresponds to the file path containing a DDC library
   /// bundle.
@@ -286,21 +258,13 @@ class WebDevFS {
   ///
   /// The path of the output file should stay consistent across the lifetime of
   /// the app.
-  ///
-  /// [entrypointDirectory] is used to make the module paths relative to the
-  /// entrypoint, which is needed in order to load `src`s correctly.
-  void performReload(
-    List<String> modules,
-    String entrypointDirectory,
-    Uri fileServerUri,
-  ) {
+  void writeReloadedSources(List<String> modules, Uri fileServerUri) {
     final moduleToLibrary = <Map<String, Object>>[];
     for (final module in modules) {
       final metadata = ModuleMetadata.fromJson(
         json.decode(
-              utf8.decode(assetServer.getMetadata('$module.metadata').toList()),
-            )
-            as Map<String, dynamic>,
+          utf8.decode(assetServer.getMetadata('$module.metadata').toList()),
+        ) as Map<String, dynamic>,
       );
       final libraries = metadata.libraries.keys.toList();
       moduleToLibrary.add(<String, Object>{
@@ -309,22 +273,23 @@ class WebDevFS {
         'libraries': libraries,
       });
     }
-    assetServer.writeFile(reloadScriptsFileName, json.encode(moduleToLibrary));
+    assetServer.writeFile(
+        reloadedSourcesFileName, json.encode(moduleToLibrary));
   }
 
   File get ddcModuleLoaderJS =>
       fileSystem.file(sdkLayout.ddcModuleLoaderJsPath);
   File get requireJS => fileSystem.file(sdkLayout.requireJsPath);
   File get dartSdk => fileSystem.file(switch (ddcModuleFormat) {
-    ModuleFormat.amd => sdkLayout.amdJsPath,
-    ModuleFormat.ddc => sdkLayout.ddcJsPath,
-    _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.'),
-  });
+        ModuleFormat.amd => sdkLayout.amdJsPath,
+        ModuleFormat.ddc => sdkLayout.ddcJsPath,
+        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.'),
+      });
   File get dartSdkSourcemap => fileSystem.file(switch (ddcModuleFormat) {
-    ModuleFormat.amd => sdkLayout.amdJsMapPath,
-    ModuleFormat.ddc => sdkLayout.ddcJsMapPath,
-    _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.'),
-  });
+        ModuleFormat.amd => sdkLayout.amdJsMapPath,
+        ModuleFormat.ddc => sdkLayout.ddcJsMapPath,
+        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.'),
+      });
   File get stackTraceMapper => fileSystem.file(sdkLayout.stackTraceMapperPath);
   ModuleFormat get ddcModuleFormat => compilerOptions.moduleFormat;
 }
@@ -338,9 +303,9 @@ class UpdateFSReport {
     bool success = false,
     int invalidatedSourcesCount = 0,
     int syncedBytes = 0,
-  }) : _success = success,
-       _invalidatedSourcesCount = invalidatedSourcesCount,
-       _syncedBytes = syncedBytes;
+  })  : _success = success,
+        _invalidatedSourcesCount = invalidatedSourcesCount,
+        _syncedBytes = syncedBytes;
 
   bool get success => _success;
   int get invalidatedSourcesCount => _invalidatedSourcesCount;
@@ -364,7 +329,7 @@ class InvalidationResult {
 /// application to determine when they are dirty.
 class ProjectFileInvalidator {
   ProjectFileInvalidator({required FileSystem fileSystem})
-    : _fileSystem = fileSystem;
+      : _fileSystem = fileSystem;
 
   final FileSystem _fileSystem;
 
@@ -394,8 +359,8 @@ class ProjectFileInvalidator {
       final updatedAt = uri.hasScheme && uri.scheme != 'file'
           ? _fileSystem.file(uri).statSync().modified
           : _fileSystem
-                .statSync(uri.toFilePath(windows: Platform.isWindows))
-                .modified;
+              .statSync(uri.toFilePath(windows: Platform.isWindows))
+              .modified;
       if (updatedAt.isAfter(lastCompiled)) {
         invalidatedFiles.add(uri);
       }

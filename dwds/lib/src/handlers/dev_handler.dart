@@ -6,12 +6,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:collection/collection.dart';
+import 'package:dds/dds_launcher.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/data/connect_request.dart';
 import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/hot_reload_response.dart';
+import 'package:dwds/data/hot_restart_response.dart';
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/serializers.dart';
@@ -69,8 +72,7 @@ class DevHandler {
   final UrlEncoder? _urlEncoder;
   final bool _useSseForDebugProxy;
   final bool _useSseForInjectedClient;
-  final bool _spawnDds;
-  final int? _ddsPort;
+  final DartDevelopmentServiceConfiguration _ddsConfig;
   final bool _launchDevToolsInNewWindow;
   final ExpressionCompiler? _expressionCompiler;
   final DwdsInjector _injected;
@@ -96,8 +98,8 @@ class DevHandler {
     this._useSseForInjectedClient,
     this._expressionCompiler,
     this._injected,
-    this._spawnDds,
-    this._ddsPort,
+
+    this._ddsConfig,
     this._launchDevToolsInNewWindow, {
     this.useWebSocketConnection = false,
   }) {
@@ -249,8 +251,7 @@ class DevHandler {
       // This will provide a websocket based service.
       useSse: false,
       expressionCompiler: _expressionCompiler,
-      spawnDds: _spawnDds,
-      ddsPort: _ddsPort,
+      ddsConfig: _ddsConfig,
     );
   }
 
@@ -420,6 +421,8 @@ class DevHandler {
     // Handle messages that are specific to certain proxy service types
     if (message is HotReloadResponse) {
       proxyService.completeHotReload(message);
+    } else if (message is HotRestartResponse) {
+      proxyService.completeHotRestart(message);
     } else if (message is ServiceExtensionResponse) {
       proxyService.completeServiceExtension(message);
     } else if (message is IsolateExit) {
@@ -446,7 +449,7 @@ class DevHandler {
     AppConnection appConnection,
     SocketConnection sseConnection,
   ) async {
-    if (_devTools == null) {
+    if (_devTools == null && !_ddsConfig.serveDevTools) {
       sseConnection.sink.add(
         jsonEncode(
           serializers.serialize(
@@ -538,6 +541,7 @@ class DevHandler {
       await _launchDevTools(
         chromeProxy.remoteDebugger,
         _constructDevToolsUri(
+          appServices,
           appServices.debugService.uri,
           ideQueryParam: 'Dwds',
         ),
@@ -842,21 +846,21 @@ class DevHandler {
     ChromeDebugService debugService,
   ) async {
     final dwdsStats = DwdsStats();
-    Uri? ddsUri;
-    if (_spawnDds) {
-      final dds = await debugService.startDartDevelopmentService();
-      ddsUri = dds.wsUri;
+    DartDevelopmentServiceLauncher? dds;
+    if (_ddsConfig.enable) {
+      dds = await debugService.startDartDevelopmentService();
     }
     final vmClient = await ChromeDwdsVmClient.create(
       debugService,
       dwdsStats,
-      ddsUri,
+      dds?.wsUri,
     );
     final appDebugService = ChromeAppDebugServices(
       debugService,
       vmClient,
       dwdsStats,
-      ddsUri,
+      dds?.wsUri,
+      dds?.devToolsUri,
     );
     final encodedUri = await debugService.encodedUri;
     _logger.info('Debug service listening on $encodedUri\n');
@@ -974,8 +978,7 @@ class DevHandler {
         },
         useSse: _useSseForDebugProxy,
         expressionCompiler: _expressionCompiler,
-        spawnDds: _spawnDds,
-        ddsPort: _ddsPort,
+        ddsConfig: _ddsConfig,
       );
       appServices = await _createAppDebugServices(debugService);
       extensionDebugger.sendEvent('dwds.debugUri', debugService.uri);
@@ -1015,27 +1018,17 @@ class DevHandler {
     emitEvent(DwdsEvent.devtoolsLaunch());
     // Send the DevTools URI to the Dart Debug Extension so that it can open it:
     final devToolsUri = _constructDevToolsUri(
+      appServices,
       encodedUri,
       ideQueryParam: 'ChromeDevTools',
     );
     return extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
   }
 
-  DevTools _ensureDevTools() {
-    final devTools = _devTools;
-    if (devTools == null) {
-      throw StateError('DevHandler: DevTools is not available');
-    }
-    return devTools;
-  }
-
   Future<void> _launchDevTools(
     RemoteDebugger remoteDebugger,
     String devToolsUri,
   ) async {
-    // TODO(annagrin): move checking whether devtools should be started
-    // and the creation of the uri logic here so it is easier to follow.
-    _ensureDevTools();
     // TODO(grouma) - We may want to log the debugServiceUri if we don't launch
     // DevTools so that users can manually connect.
     emitEvent(DwdsEvent.devtoolsLaunch());
@@ -1046,20 +1039,28 @@ class DevHandler {
   }
 
   String _constructDevToolsUri(
-    String debugServiceUri, {
+    AppDebugServices appDebugServices,
+    String serviceUri, {
     String ideQueryParam = '',
   }) {
-    final devTools = _ensureDevTools();
-    return Uri(
-      scheme: 'http',
-      host: devTools.hostname,
-      port: devTools.port,
-      path: 'debugger',
-      queryParameters: {
-        'uri': debugServiceUri,
-        if (ideQueryParam.isNotEmpty) 'ide': ideQueryParam,
-      },
-    ).toString();
+    final devToolsUri = _devTools?.uri ?? appDebugServices.devToolsUri;
+    if (devToolsUri == null) {
+      throw StateError('DevHandler: DevTools is not available');
+    }
+    return devToolsUri
+        .replace(
+          pathSegments: [
+            // Strips any trailing slashes from the original path
+            ...devToolsUri.pathSegments.whereNot((e) => e.isEmpty),
+            'debugger',
+          ],
+          queryParameters: {
+            ...devToolsUri.queryParameters,
+            'uri': serviceUri,
+            if (ideQueryParam.isNotEmpty) 'ide': ideQueryParam,
+          },
+        )
+        .toString();
   }
 
   static void _maybeEmitDwdsAttachEvent(DevToolsRequest request) {

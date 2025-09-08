@@ -10,6 +10,8 @@ class DevTools {
   final int port;
   final HttpServer _server;
 
+  Uri get uri => Uri(scheme: 'http', host: hostname, port: port);
+
   /// Null until [close] is called.
   ///
   /// All subsequent calls to [close] will return this future.

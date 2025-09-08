@@ -6,9 +6,9 @@ part of 'debug_event.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<DebugEvent> _$debugEventSerializer = new _$DebugEventSerializer();
+Serializer<DebugEvent> _$debugEventSerializer = _$DebugEventSerializer();
 Serializer<BatchedDebugEvents> _$batchedDebugEventsSerializer =
-    new _$BatchedDebugEventsSerializer();
+    _$BatchedDebugEventsSerializer();
 
 class _$DebugEventSerializer implements StructuredSerializer<DebugEvent> {
   @override
@@ -46,7 +46,7 @@ class _$DebugEventSerializer implements StructuredSerializer<DebugEvent> {
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new DebugEventBuilder();
+    final result = DebugEventBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -117,7 +117,7 @@ class _$BatchedDebugEventsSerializer
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new BatchedDebugEventsBuilder();
+    final result = BatchedDebugEventsBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -152,32 +152,19 @@ class _$DebugEvent extends DebugEvent {
   final int timestamp;
 
   factory _$DebugEvent([void Function(DebugEventBuilder)? updates]) =>
-      (new DebugEventBuilder()..update(updates))._build();
+      (DebugEventBuilder()..update(updates))._build();
 
   _$DebugEvent._({
     required this.kind,
     required this.eventData,
     required this.timestamp,
-  }) : super._() {
-    BuiltValueNullFieldError.checkNotNull(kind, r'DebugEvent', 'kind');
-    BuiltValueNullFieldError.checkNotNull(
-      eventData,
-      r'DebugEvent',
-      'eventData',
-    );
-    BuiltValueNullFieldError.checkNotNull(
-      timestamp,
-      r'DebugEvent',
-      'timestamp',
-    );
-  }
-
+  }) : super._();
   @override
   DebugEvent rebuild(void Function(DebugEventBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  DebugEventBuilder toBuilder() => new DebugEventBuilder()..replace(this);
+  DebugEventBuilder toBuilder() => DebugEventBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -238,7 +225,6 @@ class DebugEventBuilder implements Builder<DebugEvent, DebugEventBuilder> {
 
   @override
   void replace(DebugEvent other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$DebugEvent;
   }
 
@@ -253,7 +239,7 @@ class DebugEventBuilder implements Builder<DebugEvent, DebugEventBuilder> {
   _$DebugEvent _build() {
     final _$result =
         _$v ??
-        new _$DebugEvent._(
+        _$DebugEvent._(
           kind: BuiltValueNullFieldError.checkNotNull(
             kind,
             r'DebugEvent',
@@ -281,16 +267,9 @@ class _$BatchedDebugEvents extends BatchedDebugEvents {
 
   factory _$BatchedDebugEvents([
     void Function(BatchedDebugEventsBuilder)? updates,
-  ]) => (new BatchedDebugEventsBuilder()..update(updates))._build();
+  ]) => (BatchedDebugEventsBuilder()..update(updates))._build();
 
-  _$BatchedDebugEvents._({required this.events}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-      events,
-      r'BatchedDebugEvents',
-      'events',
-    );
-  }
-
+  _$BatchedDebugEvents._({required this.events}) : super._();
   @override
   BatchedDebugEvents rebuild(
     void Function(BatchedDebugEventsBuilder) updates,
@@ -298,7 +277,7 @@ class _$BatchedDebugEvents extends BatchedDebugEvents {
 
   @override
   BatchedDebugEventsBuilder toBuilder() =>
-      new BatchedDebugEventsBuilder()..replace(this);
+      BatchedDebugEventsBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -328,7 +307,7 @@ class BatchedDebugEventsBuilder
 
   ListBuilder<DebugEvent>? _events;
   ListBuilder<DebugEvent> get events =>
-      _$this._events ??= new ListBuilder<DebugEvent>();
+      _$this._events ??= ListBuilder<DebugEvent>();
   set events(ListBuilder<DebugEvent>? events) => _$this._events = events;
 
   BatchedDebugEventsBuilder();
@@ -344,7 +323,6 @@ class BatchedDebugEventsBuilder
 
   @override
   void replace(BatchedDebugEvents other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$BatchedDebugEvents;
   }
 
@@ -359,14 +337,14 @@ class BatchedDebugEventsBuilder
   _$BatchedDebugEvents _build() {
     _$BatchedDebugEvents _$result;
     try {
-      _$result = _$v ?? new _$BatchedDebugEvents._(events: events.build());
+      _$result = _$v ?? _$BatchedDebugEvents._(events: events.build());
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'events';
         events.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
+        throw BuiltValueNestedFieldError(
           r'BatchedDebugEvents',
           _$failedField,
           e.toString(),

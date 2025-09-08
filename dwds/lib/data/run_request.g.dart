@@ -6,7 +6,7 @@ part of 'run_request.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<RunRequest> _$runRequestSerializer = new _$RunRequestSerializer();
+Serializer<RunRequest> _$runRequestSerializer = _$RunRequestSerializer();
 
 class _$RunRequestSerializer implements StructuredSerializer<RunRequest> {
   @override
@@ -29,22 +29,21 @@ class _$RunRequestSerializer implements StructuredSerializer<RunRequest> {
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return new RunRequestBuilder().build();
+    return RunRequestBuilder().build();
   }
 }
 
 class _$RunRequest extends RunRequest {
   factory _$RunRequest([void Function(RunRequestBuilder)? updates]) =>
-      (new RunRequestBuilder()..update(updates))._build();
+      (RunRequestBuilder()..update(updates))._build();
 
   _$RunRequest._() : super._();
-
   @override
   RunRequest rebuild(void Function(RunRequestBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  RunRequestBuilder toBuilder() => new RunRequestBuilder()..replace(this);
+  RunRequestBuilder toBuilder() => RunRequestBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -70,7 +69,6 @@ class RunRequestBuilder implements Builder<RunRequest, RunRequestBuilder> {
 
   @override
   void replace(RunRequest other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$RunRequest;
   }
 
@@ -83,7 +81,7 @@ class RunRequestBuilder implements Builder<RunRequest, RunRequestBuilder> {
   RunRequest build() => _build();
 
   _$RunRequest _build() {
-    final _$result = _$v ?? new _$RunRequest._();
+    final _$result = _$v ?? _$RunRequest._();
     replace(_$result);
     return _$result;
   }

@@ -134,7 +134,8 @@ class TestContext {
   Future<void> setUp({
     TestSettings testSettings = const TestSettings(),
     TestAppMetadata appMetadata = const TestAppMetadata.externalApp(),
-    TestDebugSettings debugSettings = const TestDebugSettings.noDevTools(),
+    TestDebugSettings debugSettings =
+        const TestDebugSettings.noDevToolsLaunch(),
   }) async {
     try {
       // Build settings to return from load strategy.
@@ -179,26 +180,43 @@ class TestContext {
           '--port=$chromeDriverPort',
           '--url-base=$chromeDriverUrlBase',
         ]);
-        // On windows this takes a while to boot up, wait for the first line
-        // of stdout as a signal that it is ready.
-        final stdOutLines = chromeDriver.stdout
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .asBroadcastStream();
+        final stdOutLines =
+            chromeDriver.stdout
+                .transform(utf8.decoder)
+                .transform(const LineSplitter())
+                .asBroadcastStream();
 
-        final stdErrLines = chromeDriver.stderr
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .asBroadcastStream();
+        final stdErrLines =
+            chromeDriver.stderr
+                .transform(utf8.decoder)
+                .transform(const LineSplitter())
+                .asBroadcastStream();
 
-        stdOutLines.listen(
-          (line) => _logger.finest('ChromeDriver stdout: $line'),
-        );
+        // Sometimes ChromeDriver can be slow to startup.
+        // This was seen on a github actions run:
+        // > 11:22:59.924700: ChromeDriver stdout: Starting ChromeDriver
+        // >                  139.0.7258.154 ([...]) on port 38107
+        // > [...]
+        // > 11:23:00.237350: ChromeDriver stdout: ChromeDriver was started
+        // >                  successfully on port 38107.
+        // Where in the 300+ ms it took before it was actually ready to accept
+        // a connection we had tried - and failed - to connect.
+        // We therefore wait until ChromeDriver reports that it has started
+        // successfully.
+
+        final chromeDriverStartup = Completer();
+        stdOutLines.listen((line) {
+          if (!chromeDriverStartup.isCompleted &&
+              line.contains('was started successfully')) {
+            chromeDriverStartup.complete();
+          }
+          _logger.finest('ChromeDriver stdout: $line');
+        });
         stdErrLines.listen(
           (line) => _logger.warning('ChromeDriver stderr: $line'),
         );
 
-        await stdOutLines.first;
+        await chromeDriverStartup.future;
       } catch (e) {
         throw StateError(
           'Could not start ChromeDriver. Is it installed?\nError: $e',
@@ -242,9 +260,8 @@ class TestContext {
               options,
               (log) {
                 final record = log.toLogRecord();
-                final name = record.loggerName == ''
-                    ? ''
-                    : '${record.loggerName}: ';
+                final name =
+                    record.loggerName == '' ? '' : '${record.loggerName}: ';
                 _logger.log(
                   record.level,
                   '$name${record.message}',
@@ -282,12 +299,13 @@ class TestContext {
               expressionCompiler = ddcService;
             }
 
-            loadStrategy = BuildRunnerRequireStrategyProvider(
-              assetHandler,
-              testSettings.reloadConfiguration,
-              assetReader,
-              buildSettings,
-            ).strategy;
+            loadStrategy =
+                BuildRunnerRequireStrategyProvider(
+                  assetHandler,
+                  testSettings.reloadConfiguration,
+                  assetReader,
+                  buildSettings,
+                ).strategy;
 
             buildResults = daemonClient.buildResults;
           }
@@ -350,35 +368,37 @@ class TestContext {
             assetReader = webRunner.devFS!.assetServer;
             _assetHandler = webRunner.devFS!.assetServer.handleRequest;
             loadStrategy = switch (testSettings.moduleFormat) {
-              ModuleFormat.amd => FrontendServerRequireStrategyProvider(
-                testSettings.reloadConfiguration,
-                assetReader,
-                packageUriMapper,
-                () async => {},
-                buildSettings,
-              ).strategy,
+              ModuleFormat.amd =>
+                FrontendServerRequireStrategyProvider(
+                  testSettings.reloadConfiguration,
+                  assetReader,
+                  packageUriMapper,
+                  () async => {},
+                  buildSettings,
+                ).strategy,
               ModuleFormat.ddc =>
                 buildSettings.canaryFeatures
                     ? FrontendServerDdcLibraryBundleStrategyProvider(
-                        testSettings.reloadConfiguration,
-                        assetReader,
-                        packageUriMapper,
-                        () async => {},
-                        buildSettings,
-                        hotReloadSourcesUri: Uri.parse(
-                          'http://localhost:$port/${WebDevFS.reloadScriptsFileName}',
-                        ),
-                      ).strategy
+                      testSettings.reloadConfiguration,
+                      assetReader,
+                      packageUriMapper,
+                      () async => {},
+                      buildSettings,
+                      reloadedSourcesUri: Uri.parse(
+                        'http://localhost:$port/${WebDevFS.reloadedSourcesFileName}',
+                      ),
+                    ).strategy
                     : FrontendServerDdcStrategyProvider(
-                        testSettings.reloadConfiguration,
-                        assetReader,
-                        packageUriMapper,
-                        () async => {},
-                        buildSettings,
-                      ).strategy,
-              _ => throw Exception(
-                'Unsupported DDC module format ${testSettings.moduleFormat.name}.',
-              ),
+                      testSettings.reloadConfiguration,
+                      assetReader,
+                      packageUriMapper,
+                      () async => {},
+                      buildSettings,
+                    ).strategy,
+              _ =>
+                throw Exception(
+                  'Unsupported DDC module format ${testSettings.moduleFormat.name}.',
+                ),
             };
             buildResults = const Stream<BuildResults>.empty();
           }
@@ -398,20 +418,20 @@ class TestContext {
         if (enableDebugExtension) {
           await _buildDebugExtension();
         }
-        final capabilities = Capabilities.chrome
-          ..addAll({
-            Capabilities.chromeOptions: {
-              'args': [
-                // --disable-gpu speeds up the tests that use ChromeDriver when
-                // they are run on GitHub Actions.
-                '--disable-gpu',
-                'remote-debugging-port=$debugPort',
-                if (enableDebugExtension)
-                  '--load-extension=debug_extension/prod_build',
-                if (headless) '--headless',
-              ],
-            },
-          });
+        final capabilities =
+            Capabilities.chrome..addAll({
+              Capabilities.chromeOptions: {
+                'args': [
+                  // --disable-gpu speeds up the tests that use ChromeDriver when
+                  // they are run on GitHub Actions.
+                  '--disable-gpu',
+                  'remote-debugging-port=$debugPort',
+                  if (enableDebugExtension)
+                    '--load-extension=debug_extension/prod_build',
+                  if (headless) '--headless',
+                ],
+              },
+            });
         _webDriver = await createDriver(
           spec: WebDriverSpec.JsonWire,
           desired: capabilities,
@@ -460,9 +480,10 @@ class TestContext {
         }
       });
 
-      _appUrl = basePath.isEmpty
-          ? 'http://localhost:$port/$filePathToServe'
-          : 'http://localhost:$port/$basePath/$filePathToServe';
+      _appUrl =
+          basePath.isEmpty
+              ? 'http://localhost:$port/$filePathToServe'
+              : 'http://localhost:$port/$basePath/$filePathToServe';
 
       if (testSettings.launchChrome) {
         await _webDriver?.get(appUrl);
@@ -487,8 +508,9 @@ class TestContext {
         if (debugSettings.enableDebugging && !testSettings.waitToDebug) {
           await startDebugging();
         }
+        _webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
       } else {
-        // No tab needs to be dicovered, so fulfill the relevant completer.
+        // No tab needs to be discovered, so fulfill the relevant completer.
         tabConnectionCompleter.complete();
       }
     } catch (e, s) {
@@ -533,7 +555,6 @@ class TestContext {
 
   Future<void> startDebugging() async {
     debugConnection = await testServer.dwds.debugConnection(appConnection);
-    _webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
   }
 
   Future<void> tearDown() async {
@@ -560,23 +581,30 @@ class TestContext {
     _outputDir = null;
   }
 
-  void makeEditToDartEntryFile({
-    required String toReplace,
-    required String replaceWith,
-  }) {
-    final file = File(project.dartEntryFilePath);
-    final fileContents = file.readAsStringSync();
-    file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
-  }
-
-  void makeEditToDartLibFile({
-    required String libFileName,
-    required String toReplace,
-    required String replaceWith,
-  }) {
-    final file = File(project.dartLibFilePath(libFileName));
-    final fileContents = file.readAsStringSync();
-    file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
+  /// Given a list of edits, use file IO to write them to the file system.
+  ///
+  /// If `file` has the same name as the project's entry file name, that file
+  /// will be edited. Otherwise, it's assumed to be a library file.
+  // TODO(srujzs): It's possible we may want a library file with the same name
+  // as the entry file, but this function doesn't allow that. Potentially
+  // support that.
+  Future<void> makeEdits(List<Edit> edits) async {
+    // `dart:io`'s `stat` on Windows does not have millisecond precision so we
+    // need to make sure we wait long enough that modifications result in a
+    // timestamp that is guaranteed to be after the previous compile.
+    // TODO(https://github.com/dart-lang/sdk/issues/51937): Remove once this bug
+    // is fixed.
+    if (Platform.isWindows) await Future.delayed(Duration(seconds: 1));
+    for (var (:file, :originalString, :newString) in edits) {
+      if (file == project.dartEntryFileName) {
+        file = project.dartEntryFilePath;
+      } else {
+        file = project.dartLibFilePath(file);
+      }
+      final f = File(project.dartLibFilePath(file));
+      final fileContents = f.readAsStringSync();
+      f.writeAsStringSync(fileContents.replaceAll(originalString, newString));
+    }
   }
 
   void addLibraryFile({required String libFileName, required String contents}) {
@@ -610,9 +638,10 @@ class TestContext {
     if (propagateToBrowser) {
       // Allow change to propagate to the browser.
       // Windows, or at least Travis on Windows, seems to need more time.
-      final delay = Platform.isWindows
-          ? const Duration(seconds: 5)
-          : const Duration(seconds: 2);
+      final delay =
+          Platform.isWindows
+              ? const Duration(seconds: 5)
+              : const Duration(seconds: 2);
       await Future.delayed(delay);
     }
   }
@@ -671,3 +700,5 @@ class TestContext {
     return lineNumber + 1;
   }
 }
+
+typedef Edit = ({String file, String originalString, String newString});

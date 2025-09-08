@@ -7,6 +7,8 @@
 @Timeout(Duration(minutes: 5))
 library;
 
+import 'dart:async';
+
 import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
@@ -33,13 +35,44 @@ void main() {
 
   tearDownAll(provider.dispose);
 
-  Future<void> makeEditAndRecompile() async {
-    context.makeEditToDartLibFile(
-      libFileName: 'library1.dart',
-      toReplace: originalString,
-      replaceWith: newString,
-    );
+  Future<void> recompile() async {
     await context.recompile(fullRestart: false);
+  }
+
+  Future<void> makeEditAndRecompile() async {
+    await context.makeEdits([
+      (
+        file: 'library1.dart',
+        originalString: originalString,
+        newString: newString,
+      ),
+    ]);
+    await recompile();
+  }
+
+  // Call the method `evaluate` in the program and wait for `expectedString` to
+  // be printed to the console.
+  Future<void> callEvaluateAndWaitForLog(String expectedString) async {
+    final client = context.debugConnection.vmService;
+    final completer = Completer<void>();
+    final subscription = context.webkitDebugger.onConsoleAPICalled.listen((e) {
+      if (e.args.first.value == expectedString) {
+        completer.complete();
+      }
+    });
+    final vm = await client.getVM();
+    final isolate = await client.getIsolate(vm.isolates!.first.id!);
+    final rootLib = isolate.rootLib;
+    await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
+    await completer.future.timeout(
+      const Duration(minutes: 1),
+      onTimeout: () {
+        throw TimeoutException(
+          "Failed to find log: '$expectedString' in console.",
+        );
+      },
+    );
+    await subscription.cancel();
   }
 
   group('Injected client', () {
@@ -64,25 +97,42 @@ void main() {
 
     test('can hot reload', () async {
       final client = context.debugConnection.vmService;
-      await makeEditAndRecompile();
 
+      await makeEditAndRecompile();
       final vm = await client.getVM();
       final isolate = await client.getIsolate(vm.isolates!.first.id!);
-
       final report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
-      var source = await context.webDriver.pageSource;
-      // Should not contain the change until the function that updates the page
-      // is evaluated in a hot reload.
-      expect(source, contains(originalString));
-      expect(source.contains(newString), false);
+      await callEvaluateAndWaitForLog(newString);
+    });
 
-      final rootLib = isolate.rootLib;
-      await client.evaluate(isolate.id!, rootLib!.id!, 'evaluate()');
-      source = await context.webDriver.pageSource;
-      expect(source, contains(newString));
-      expect(source.contains(originalString), false);
+    test('can hot reload with no changes, hot reload with changes, and '
+        'hot reload again with no changes', () async {
+      final client = context.debugConnection.vmService;
+
+      // Empty hot reload.
+      await recompile();
+      final vm = await client.getVM();
+      final isolate = await client.getIsolate(vm.isolates!.first.id!);
+      var report = await fakeClient.reloadSources(isolate.id!);
+      expect(report.success, true);
+
+      await callEvaluateAndWaitForLog(originalString);
+
+      // Hot reload.
+      await makeEditAndRecompile();
+      report = await fakeClient.reloadSources(isolate.id!);
+      expect(report.success, true);
+
+      await callEvaluateAndWaitForLog(newString);
+
+      // Empty hot reload.
+      await recompile();
+      report = await fakeClient.reloadSources(isolate.id!);
+      expect(report.success, true);
+
+      await callEvaluateAndWaitForLog(newString);
     });
   }, timeout: Timeout.factor(2));
 }

@@ -50,9 +50,8 @@ class TestRunner {
   }
 
   Future<String> prepareWorkspace() async {
-    final exampleDirectory = p.absolute(
-      p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'),
-    );
+    final exampleDirectory =
+        p.absolute(p.join(p.current, '..', 'fixtures', '_webdev_smoke'));
 
     final process = await TestProcess.start(
       sdkLayout.dartPath,

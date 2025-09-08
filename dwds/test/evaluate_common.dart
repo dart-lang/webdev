@@ -12,6 +12,7 @@ import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
+import 'package:test_common/utilities.dart' show dartSdkIsAtLeast;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -362,10 +363,18 @@ void testAll({
             'instance._field',
           );
 
-          expect(
-            result,
-            matchErrorRef(contains("The getter '_field' isn't defined")),
-          );
+          if (dartSdkIsAtLeast('3.10.0-140.0.dev')) {
+            expect(result, matchInstanceRefKind('String'));
+            expect(
+              result,
+              matchInstanceRef(contains("NoSuchMethodError: '_field")),
+            );
+          } else {
+            expect(
+              result,
+              matchErrorRef(contains("The getter '_field' isn't defined")),
+            );
+          }
         });
       });
 

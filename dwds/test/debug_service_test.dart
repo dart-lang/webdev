@@ -6,13 +6,13 @@
 @Timeout(Duration(minutes: 2))
 library;
 
-import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/dwds.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service_io.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
@@ -27,7 +27,10 @@ void main() {
   setUpAll(() async {
     // Disable DDS as we're testing DWDS behavior.
     await context.setUp(
-      debugSettings: TestDebugSettings.noDevTools().copyWith(spawnDds: false),
+      debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+        spawnDds: false,
+        ddsConfiguration: DartDevelopmentServiceConfiguration(enable: false),
+      ),
     );
   });
 
@@ -37,90 +40,64 @@ void main() {
 
   test('Refuses connections without the auth token', () async {
     expect(
-      WebSocket.connect('ws://localhost:${context.debugConnection.port}/ws'),
+      vmServiceConnectUri('ws://localhost:${context.debugConnection.port}/ws'),
       throwsA(isA<WebSocketException>()),
     );
   });
 
   test('Accepts connections with the auth token', () async {
     expect(
-      WebSocket.connect(
+      vmServiceConnectUri(
         '${context.debugConnection.uri}/ws',
-      ).then((ws) => ws.close()),
+      ).then((client) => client.dispose()),
       completes,
     );
   });
 
   test('Refuses additional connections when in single client mode', () async {
-    final ddsWs = await WebSocket.connect('${context.debugConnection.uri}/ws');
-    final completer = Completer<void>();
-    ddsWs.listen((event) {
-      final response = json.decode(event as String);
-      expect(response['id'], '0');
-      expect(response.containsKey('result'), isTrue);
-      final result = response['result'] as Map<String, dynamic>;
-      expect(result['type'], 'Success');
-      completer.complete();
-    });
-
-    const yieldControlToDDS = <String, dynamic>{
-      'jsonrpc': '2.0',
-      'id': '0',
-      'method': '_yieldControlToDDS',
-      'params': {'uri': 'http://localhost:123'},
-    };
-    ddsWs.add(json.encode(yieldControlToDDS));
-    await completer.future;
+    final fakeDds = await vmServiceConnectUri(
+      '${context.debugConnection.uri}/ws',
+    );
+    final result = await fakeDds.callMethod(
+      '_yieldControlToDDS',
+      args: {'uri': 'http://localhost:123'},
+    );
+    expect(result, isA<Success>());
 
     // While DDS is connected, expect additional connections to fail.
     await expectLater(
-      WebSocket.connect('${context.debugConnection.uri}/ws'),
+      vmServiceConnectUri('${context.debugConnection.uri}/ws'),
       throwsA(isA<WebSocketException>()),
     );
 
     // However, once DDS is disconnected, additional clients can connect again.
-    await ddsWs.close();
+    await fakeDds.dispose();
     expect(
-      WebSocket.connect(
+      vmServiceConnectUri(
         '${context.debugConnection.uri}/ws',
-      ).then((ws) => ws.close()),
+      ).then((client) => client.dispose()),
       completes,
     );
   });
 
   test('Refuses to yield to dwds if existing clients found', () async {
-    final ddsWs = await WebSocket.connect('${context.debugConnection.uri}/ws');
-
-    // Connect to vm service.
-    final ws = await WebSocket.connect('${context.debugConnection.uri}/ws');
-
-    final completer = Completer<Map<String, dynamic>>();
-    ddsWs.listen((event) {
-      completer.complete(json.decode(event as String));
-    });
-
-    const yieldControlToDDS = <String, dynamic>{
-      'jsonrpc': '2.0',
-      'id': '0',
-      'method': '_yieldControlToDDS',
-      'params': {'uri': 'http://localhost:123'},
-    };
-
-    // DDS should fail to start with existing vm clients.
-    ddsWs.add(json.encode(yieldControlToDDS));
-
-    final response = await completer.future;
-    expect(response['id'], '0');
-    expect(response.containsKey('error'), isTrue);
-
-    final result = response['error'] as Map<String, dynamic>;
-    expect(result['code'], RPCErrorKind.kFeatureDisabled.code);
-    expect(
-      result['message'],
-      'Existing VM service clients prevent DDS from taking control.',
+    final fakeDds = await vmServiceConnectUri(
+      '${context.debugConnection.uri}/ws',
     );
 
-    await ddsWs.close();
-    await ws.close();
+    // Connect to vm service.
+    final client = await vmServiceConnectUri(
+      '${context.debugConnection.uri}/ws',
+    );
+
+    final result = await fakeDds.callMethod(
+      '_yieldControlToDDS',
+      args: {'uri': 'http://localhost:123'},
+    );
+    expect(result, isA<Success>());
+
+    // The other VM service client should be closed automatically.
+    await client.onDone;
+    await fakeDds.dispose();
   });
 }

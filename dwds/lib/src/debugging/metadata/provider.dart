@@ -67,15 +67,6 @@ class MetadataProvider {
 
   MetadataProvider(this.entrypoint, this._assetReader);
 
-  /// A sound null safety mode for the whole app.
-  ///
-  /// All libraries have to agree on null safety mode.
-  @Deprecated('Only sound null safety is supported as of Dart 3.0')
-  Future<bool> get soundNullSafety async {
-    await _initialize();
-    return true;
-  }
-
   /// A list of all libraries in the Dart application.
   ///
   /// Example:

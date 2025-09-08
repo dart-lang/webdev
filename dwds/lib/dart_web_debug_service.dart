@@ -74,11 +74,6 @@ class Dwds {
     required Stream<BuildResult> buildResults,
     required ConnectionProvider chromeConnection,
     required ToolConfiguration toolConfiguration,
-    // ignore: avoid-unused-parameters
-    @Deprecated(
-      'This parameter is ignored and will be removed in a future version.',
-    )
-    bool injectDebuggingSupportCode = true,
     bool useDwdsWebSocketConnection = false,
   }) async {
     globalToolConfiguration = toolConfiguration;
@@ -119,15 +114,20 @@ class Dwds {
       }
     }
 
+    // TODO(bkonyi): only allow for serving DevTools via DDS.
+    // ignore: deprecated_member_use_from_same_package
     final devToolsLauncher = debugSettings.devToolsLauncher;
-    if (devToolsLauncher != null) {
+    Uri? launchedDevToolsUri;
+    if (devToolsLauncher != null &&
+        // If DDS is configured to serve DevTools, use its instance.
+        !debugSettings.ddsConfiguration.serveDevTools) {
       devTools = await devToolsLauncher(appMetadata.hostname);
-      final uri = Uri(
+      launchedDevToolsUri = Uri(
         scheme: 'http',
         host: devTools.hostname,
         port: devTools.port,
       );
-      _logger.info('Serving DevTools at $uri\n');
+      _logger.info('Serving DevTools at $launchedDevToolsUri\n');
     }
 
     final injected = DwdsInjector(extensionUri: extensionUri);
@@ -144,8 +144,18 @@ class Dwds {
       debugSettings.useSseForInjectedClient,
       debugSettings.expressionCompiler,
       injected,
-      debugSettings.spawnDds,
-      debugSettings.ddsPort,
+      DartDevelopmentServiceConfiguration(
+        // This technically isn't correct, but DartDevelopmentServiceConfiguration.enable
+        // is true by default, so this won't break unmigrated tools.
+        // ignore: deprecated_member_use_from_same_package
+        enable: debugSettings.spawnDds && debugSettings.ddsConfiguration.enable,
+        // ignore: deprecated_member_use_from_same_package
+        port: debugSettings.ddsPort ?? debugSettings.ddsConfiguration.port,
+        devToolsServerAddress:
+            launchedDevToolsUri ??
+            debugSettings.ddsConfiguration.devToolsServerAddress,
+        serveDevTools: debugSettings.ddsConfiguration.serveDevTools,
+      ),
       debugSettings.launchDevToolsInNewWindow,
       useWebSocketConnection: useDwdsWebSocketConnection,
     );

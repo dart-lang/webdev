@@ -1,7 +1,54 @@
-## 24.4.2-wip
+## 25.1.0
 
-- Bump minimum SDK version to 3.8.0
+- Added `DartDevelopmentServiceConfiguration` to allow for configuring DDS behavior.
+- Added support for serving DevTools via DDS. This will become the sole method of serving
+  DevTools from DWDS in a future major release.
+- Deprecated `spawnDds`, `ddsPort`, and `devToolsLauncher` properties in `DebugSettings`.
+- Added `ddsConfiguration` to `DebugSettings`.
+
+## 25.0.4
+
+### Bug Fixes:
+
+- Fix issue where `DebugService: Error serving requestsError: Unsupported operation: Cannot send Null`
+  would be spammed on the console.
+
+## 25.0.3
+
+### Bug Fixes:
+
+- Fix issue in hot restart with the web socket where we didn't pass the reloaded
+  sources path, resulting in a null assertion.
+
+## 25.0.2
+
+### Bug Fixes:
+
+- Fix issue where DDS would fail to initialize if DWDS already had existing
+  clients.
+
+## 25.0.1
+
+### Bug Fixes:
+
+- Fix issue in hot restart where a hot restart with no changes followed by one
+  with changes, a `Future` was completed again, resulting in a crash.
+
+## 25.0.0
+
+- Implemented hot restart over websockets with multi window support.
+- Fix refresh race condition bug by adding an isolate destruction grace period.
 - Update a call to the `package:shelf_web_socket` `webSocketHandler()` function.
+
+**Breaking changes**
+
+- Remove deprecated parameter `injectDebuggingSupportCode` from `Dwds.start()`.
+- Remove all deprecated fields, getters, and parameters
+  related to the null safety compilation mode. Dart 3 only
+  supports [sound null safety](https://dart.dev/null-safety).
+- Rename `FrontendServerDdcLibraryBundleStrategy.hotReloadSourcesUri` to
+  `reloadedSourcesUri`. The file that the `Uri` points to should now be updated
+  for both a hot restart and a hot reload.
 
 ## 24.4.1
 
@@ -55,6 +102,7 @@
   libraries instead of assuming it exists in the global `window`.
 
 ## 24.3.5
+
 - Allow clients to specify the `packageConfigPath` in `LoadStrategy` class and associated providers.
 
 ## 24.3.4
@@ -139,7 +187,7 @@
 
 ## 23.1.1
 
-- Loosen `package:vm_service` constraints to allow `>=13.0.0 <15.0.0`.  - [#2329](https://github.com/dart-lang/webdev/pull/2329)
+- Loosen `package:vm_service` constraints to allow `>=13.0.0 <15.0.0`. - [#2329](https://github.com/dart-lang/webdev/pull/2329)
 
 ## 23.1.0
 

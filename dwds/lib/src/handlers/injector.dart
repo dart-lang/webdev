@@ -206,7 +206,7 @@ Future<String> _injectedClientSnippet(
       'window.\$dartEmitDebugEvents = ${debugSettings.emitDebugEvents};\n'
       'window.\$isInternalBuild = ${appMetadata.isInternalBuild};\n'
       'window.\$isFlutterApp = ${buildSettings.isFlutterApp};\n'
-      '${loadStrategy is DdcLibraryBundleStrategy ? 'window.\$hotReloadSourcesPath = "${loadStrategy.hotReloadSourcesUri.toString()}";\n' : ''}'
+      '${loadStrategy is DdcLibraryBundleStrategy ? 'window.\$reloadedSourcesPath = "${loadStrategy.reloadedSourcesUri.toString()}";\n' : ''}'
       '${loadStrategy.loadClientSnippet(_clientScript)}';
 
   if (extensionUri != null) {

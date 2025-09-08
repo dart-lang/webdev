@@ -78,42 +78,61 @@ class DdcLibraryBundleRestarter implements Restarter {
     runMain.callAsFunction();
   }
 
-  @override
-  Future<bool> restart({String? runId, Future? readyToRunMain}) async {
-    await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
-    final mainHandler = (JSFunction runMain) {
-      _dartDevEmbedder.config.capturedMainHandler = null;
-      safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
-    }.toJS;
-    _dartDevEmbedder.config.capturedMainHandler = mainHandler;
-    await _dartDevEmbedder.hotRestart().toDart;
-    return true;
-  }
-
-  @override
-  Future<JSArray<JSObject>> hotReloadStart(String hotReloadSourcesPath) async {
+  Future<List<Map>> _getSrcModuleLibraries(String reloadedSourcesPath) async {
     final completer = Completer<String>();
     final xhr = _XMLHttpRequest();
     xhr.withCredentials = true;
-    xhr.onreadystatechange = () {
-      // If the request has completed and OK, or the response has not
-      // changed.
-      if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
-        completer.complete(xhr.responseText);
-      }
-    }.toJS;
-    xhr.get(hotReloadSourcesPath, true);
+    xhr.onreadystatechange =
+        () {
+          // If the request has completed and OK, or the response has not
+          // changed.
+          if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
+            completer.complete(xhr.responseText);
+          }
+        }.toJS;
+    xhr.get(reloadedSourcesPath, true);
     xhr.send();
     final responseText = await completer.future;
 
-    final srcModuleLibraries = (json.decode(responseText) as List).cast<Map>();
+    return (json.decode(responseText) as List).cast<Map>();
+  }
+
+  @override
+  Future<(bool, JSArray<JSObject>?)> restart({
+    String? runId,
+    Future? readyToRunMain,
+    String? reloadedSourcesPath,
+  }) async {
+    assert(
+      reloadedSourcesPath != null,
+      "Expected 'reloadedSourcesPath' to not be null in a hot restart.",
+    );
+    await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
+    final mainHandler =
+        (JSFunction runMain) {
+          _dartDevEmbedder.config.capturedMainHandler = null;
+          safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
+        }.toJS;
+    _dartDevEmbedder.config.capturedMainHandler = mainHandler;
+    final srcModuleLibraries = await _getSrcModuleLibraries(
+      reloadedSourcesPath!,
+    );
+    await _dartDevEmbedder.hotRestart().toDart;
+    return (true, srcModuleLibraries.jsify() as JSArray<JSObject>);
+  }
+
+  @override
+  Future<JSArray<JSObject>> hotReloadStart(String reloadedSourcesPath) async {
     final filesToLoad = JSArray<JSString>();
     final librariesToReload = JSArray<JSString>();
+    final srcModuleLibraries = await _getSrcModuleLibraries(
+      reloadedSourcesPath,
+    );
     for (final srcModuleLibrary in srcModuleLibraries) {
       final srcModuleLibraryCast = srcModuleLibrary.cast<String, Object>();
       final src = srcModuleLibraryCast['src'] as String;
-      final libraries = (srcModuleLibraryCast['libraries'] as List)
-          .cast<String>();
+      final libraries =
+          (srcModuleLibraryCast['libraries'] as List).cast<String>();
       filesToLoad.push(src.toJS);
       for (final library in libraries) {
         librariesToReload.push(library.toJS);
@@ -144,15 +163,16 @@ class DdcLibraryBundleRestarter implements Restarter {
       await _dartDevEmbedder.debugger.maybeInvokeFlutterReassemble();
       return {'status': 'reassemble invoked'};
     } else if (method == 'getExtensionRpcs') {
-      final rpcs = _dartDevEmbedder.debugger.extensionNames.toDart
-          .cast<String>();
+      final rpcs =
+          _dartDevEmbedder.debugger.extensionNames.toDart.cast<String>();
       return {'rpcs': rpcs};
     } else {
       // For other extension methods, delegate to the debugger
       final params = args.isNotEmpty ? jsonEncode(args) : '{}';
-      final resultJson = await _dartDevEmbedder.debugger
-          .invokeExtension(method, params)
-          .toDart;
+      final resultJson =
+          await _dartDevEmbedder.debugger
+              .invokeExtension(method, params)
+              .toDart;
       return jsonDecode(resultJson.toDart) as Map<String, dynamic>;
     }
   }

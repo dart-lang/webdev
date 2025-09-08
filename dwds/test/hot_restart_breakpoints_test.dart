@@ -36,27 +36,8 @@ void main() {
 
   tearDownAll(provider.dispose);
 
-  void makeEdit(String file, String originalString, String newString) {
-    if (file == project.dartEntryFileName) {
-      context.makeEditToDartEntryFile(
-        toReplace: originalString,
-        replaceWith: newString,
-      );
-    } else {
-      context.makeEditToDartLibFile(
-        libFileName: file,
-        toReplace: originalString,
-        replaceWith: newString,
-      );
-    }
-  }
-
-  Future<void> makeEditAndRecompile(
-    String file,
-    String originalString,
-    String newString,
-  ) async {
-    makeEdit(file, originalString, newString);
+  Future<void> makeEditsAndRecompile(List<Edit> edits) async {
+    await context.makeEdits(edits);
     await context.recompile(fullRestart: true);
   }
 
@@ -66,7 +47,7 @@ void main() {
     late Stream<Event> stream;
     // Fetch the log statements that are sent to console.
     final consoleLogs = <String>[];
-    late StreamSubscription<ConsoleAPIEvent> consoleSubscription;
+    StreamSubscription<ConsoleAPIEvent>? consoleSubscription;
 
     setUp(() async {
       setCurrentLogWriter(debug: debug);
@@ -90,7 +71,7 @@ void main() {
     });
 
     tearDown(() async {
-      await consoleSubscription.cancel();
+      await consoleSubscription?.cancel();
       consoleLogs.clear();
       await context.tearDown();
     });
@@ -129,9 +110,9 @@ void main() {
       await client.resume(isolate.id!);
     }
 
-    // When the program is executing, we want to check that at some point it
-    // will execute code that will emit [expectedString].
-    Future<void> resumeAndExpectLog(String expectedString) async {
+    // Resume the program, and check that at some point it will execute code
+    // that will print `expectedString` to the console.
+    Future<void> resumeAndWaitForLog(String expectedString) async {
       final completer = Completer<void>();
       final subscription = context.webkitDebugger.onConsoleAPICalled.listen((
         e,
@@ -141,7 +122,14 @@ void main() {
         }
       });
       await resume();
-      await completer.future;
+      await completer.future.timeout(
+        const Duration(minutes: 1),
+        onTimeout: () {
+          throw TimeoutException(
+            "Failed to find log: '$expectedString' in console.",
+          );
+        },
+      );
       await subscription.cancel();
     }
 
@@ -191,13 +179,33 @@ void main() {
     Future<Event> waitForBreakpoint() =>
         stream.firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
+    test('empty hot restart keeps breakpoints', () async {
+      final genString = 'main gen0';
+
+      await addBreakpoint(file: mainFile, breakpointMarker: callLogMarker);
+
+      final breakpointFuture = waitForBreakpoint();
+
+      await context.recompile(fullRestart: false);
+
+      await hotRestartAndHandlePausePost([
+        (file: mainFile, breakpointMarker: callLogMarker),
+      ]);
+
+      // Should break at `callLog`.
+      await breakpointFuture;
+      await resumeAndWaitForLog(genString);
+    });
+
     test('after edit and hot restart, breakpoint is in new file', () async {
       final oldLog = 'main gen0';
       final newLog = 'main gen1';
 
       await addBreakpoint(file: mainFile, breakpointMarker: callLogMarker);
 
-      await makeEditAndRecompile(mainFile, oldLog, newLog);
+      await makeEditsAndRecompile([
+        (file: mainFile, originalString: oldLog, newString: newLog),
+      ]);
 
       final breakpointFuture = waitForBreakpoint();
 
@@ -208,7 +216,7 @@ void main() {
       // Should break at `callLog`.
       await breakpointFuture;
       expect(consoleLogs.contains(newLog), false);
-      await resumeAndExpectLog(newLog);
+      await resumeAndWaitForLog(newLog);
     });
 
     test('after adding line, hot restart, removing line, and hot restart, '
@@ -221,7 +229,9 @@ void main() {
       final extraLog = 'hot reload';
       final oldString = "log('";
       final newString = "log('$extraLog');\n$oldString";
-      await makeEditAndRecompile(mainFile, oldString, newString);
+      await makeEditsAndRecompile([
+        (file: mainFile, originalString: oldString, newString: newString),
+      ]);
 
       var breakpointFuture = waitForBreakpoint();
 
@@ -233,12 +243,14 @@ void main() {
       await breakpointFuture;
       expect(consoleLogs.contains(extraLog), true);
       expect(consoleLogs.contains(genLog), false);
-      await resumeAndExpectLog(genLog);
+      await resumeAndWaitForLog(genLog);
 
       consoleLogs.clear();
 
       // Remove the line we just added.
-      await makeEditAndRecompile(mainFile, newString, oldString);
+      await makeEditsAndRecompile([
+        (file: mainFile, originalString: newString, newString: oldString),
+      ]);
 
       breakpointFuture = waitForBreakpoint();
 
@@ -250,7 +262,7 @@ void main() {
       await breakpointFuture;
       expect(consoleLogs.contains(extraLog), false);
       expect(consoleLogs.contains(genLog), false);
-      await resumeAndExpectLog(genLog);
+      await resumeAndWaitForLog(genLog);
     });
 
     test(
@@ -263,7 +275,7 @@ void main() {
 
         // Add a library file, import it, and then refer to it in the log.
         final libFile = 'library.dart';
-        final libGenLog = 'lib gen0';
+        final libGenLog = 'library gen0';
         final libValueMarker = 'libValue';
         context.addLibraryFile(
           libFileName: libFile,
@@ -276,10 +288,13 @@ void main() {
         final newImports =
             '$oldImports\n'
             "import 'package:_test_hot_restart_breakpoints/library.dart';";
-        makeEdit(mainFile, oldImports, newImports);
+        final edits = [
+          (file: mainFile, originalString: oldImports, newString: newImports),
+        ];
         final oldLog = "log('$genLog');";
         final newLog = "log('\$libraryValue');";
-        await makeEditAndRecompile(mainFile, oldLog, newLog);
+        edits.add((file: mainFile, originalString: oldLog, newString: newLog));
+        await makeEditsAndRecompile(edits);
 
         var breakpointFuture = waitForBreakpoint();
 
@@ -298,9 +313,65 @@ void main() {
         // Should break at `libValue`.
         await breakpointFuture;
         expect(consoleLogs.contains(libGenLog), false);
-        await resumeAndExpectLog(libGenLog);
+        await resumeAndWaitForLog(libGenLog);
       },
     );
+
+    // Test that we wait for all scripts to be parsed first before computing
+    // location metadata.
+    test('after adding many files and putting breakpoint in the last one,'
+        'breakpoint is correctly registered', () async {
+      final genLog = 'main gen0';
+
+      await addBreakpoint(file: mainFile, breakpointMarker: callLogMarker);
+
+      // Add library files, import them, but only refer to the last one in main.
+      final numFiles = 50;
+      final edits = <Edit>[];
+      for (var i = 1; i <= numFiles; i++) {
+        final libFile = 'library$i.dart';
+        context.addLibraryFile(
+          libFileName: libFile,
+          contents: '''String get libraryValue$i {
+            return 'library$i gen1'; // Breakpoint: libValue$i
+          }''',
+        );
+        final oldImports = "import 'dart:js_interop';";
+        final newImports =
+            '$oldImports\n'
+            "import 'package:_test_hot_restart_breakpoints/$libFile';";
+        edits.add((
+          file: mainFile,
+          originalString: oldImports,
+          newString: newImports,
+        ));
+      }
+      final oldLog = "log('$genLog');";
+      final newLog = "log('\$libraryValue$numFiles');";
+      edits.add((file: mainFile, originalString: oldLog, newString: newLog));
+      await makeEditsAndRecompile(edits);
+
+      var breakpointFuture = waitForBreakpoint();
+
+      await hotRestartAndHandlePausePost([
+        (file: mainFile, breakpointMarker: callLogMarker),
+        (file: 'library$numFiles.dart', breakpointMarker: 'libValue$numFiles'),
+      ]);
+
+      final newGenLog = 'library$numFiles gen1';
+
+      // Should break at `callLog`.
+      await breakpointFuture;
+      expect(consoleLogs.contains(newGenLog), false);
+
+      breakpointFuture = waitForBreakpoint();
+
+      await resume();
+      // Should break at the breakpoint in the last file.
+      await breakpointFuture;
+      expect(consoleLogs.contains(newGenLog), false);
+      await resumeAndWaitForLog(newGenLog);
+    });
   });
 }
 

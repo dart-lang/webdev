@@ -8,7 +8,6 @@ import 'package:dwds/src/debugging/inspector.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
-import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -73,12 +72,7 @@ void runTypeSystemVerificationTests({
         final remoteObject = await inspector.jsEvaluate(
           libraryVariableTypeExpression('libraryPublicFinal', compilationMode),
         );
-        expect(
-          remoteObject.json['className'],
-          canaryFeatures || dartSdkIsAtLeast(newDdcTypeSystemVersion)
-              ? 'dart_rti.Rti.new'
-              : 'Function',
-        );
+        expect(remoteObject.json['className'], 'dart_rti.Rti.new');
       });
     });
   });
@@ -244,7 +238,7 @@ void runTests({
         expect(classRef.name, '_ControllerStream<int>');
         expect(classRef.id, 'classes|dart:async|_ControllerStream<int>');
         expect(inspector.isDisplayableObject(ref), isTrue);
-      }, skip: !dartSdkIsAtLeast('3.6.0-148.0.dev'));
+      });
 
       test(
         'for a Dart error',
@@ -432,7 +426,7 @@ void runTests({
         final classRef = instance.classRef!;
         expect(classRef.name, '_ControllerStream<int>');
         expect(inspector.isDisplayableObject(instance), isTrue);
-      }, skip: !dartSdkIsAtLeast('3.6.0-148.0.dev'));
+      });
 
       test(
         'for a Dart error',

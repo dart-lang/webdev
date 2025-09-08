@@ -7,7 +7,7 @@ part of 'hot_reload_request.dart';
 // **************************************************************************
 
 Serializer<HotReloadRequest> _$hotReloadRequestSerializer =
-    new _$HotReloadRequestSerializer();
+    _$HotReloadRequestSerializer();
 
 class _$HotReloadRequestSerializer
     implements StructuredSerializer<HotReloadRequest> {
@@ -36,7 +36,7 @@ class _$HotReloadRequestSerializer
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = new HotReloadRequestBuilder();
+    final result = HotReloadRequestBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -65,19 +65,16 @@ class _$HotReloadRequest extends HotReloadRequest {
 
   factory _$HotReloadRequest([
     void Function(HotReloadRequestBuilder)? updates,
-  ]) => (new HotReloadRequestBuilder()..update(updates))._build();
+  ]) => (HotReloadRequestBuilder()..update(updates))._build();
 
-  _$HotReloadRequest._({required this.id}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, r'HotReloadRequest', 'id');
-  }
-
+  _$HotReloadRequest._({required this.id}) : super._();
   @override
   HotReloadRequest rebuild(void Function(HotReloadRequestBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   HotReloadRequestBuilder toBuilder() =>
-      new HotReloadRequestBuilder()..replace(this);
+      HotReloadRequestBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -122,7 +119,6 @@ class HotReloadRequestBuilder
 
   @override
   void replace(HotReloadRequest other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$HotReloadRequest;
   }
 
@@ -137,7 +133,7 @@ class HotReloadRequestBuilder
   _$HotReloadRequest _build() {
     final _$result =
         _$v ??
-        new _$HotReloadRequest._(
+        _$HotReloadRequest._(
           id: BuiltValueNullFieldError.checkNotNull(
             id,
             r'HotReloadRequest',

@@ -14,11 +14,8 @@ import 'package:test_common/test_sdk_layout.dart';
 /// Implementation for SDK configuration for tests that can generate
 /// missing assets.
 ///
-///  - Generate SDK js, source map, and full dill (normally included in flutter
-///    SDK or produced by build).
-///
-/// TODO(annagrin): update to only generating missing sound artifacts
-/// for frontend server after we have no uses of weak null safety.
+///  - Generate SDK js, source map (normally included in flutter SDK
+///    or produced by build).
 class TestSdkConfigurationProvider extends SdkConfigurationProvider {
   final _logger = Logger('TestSdkConfigurationProvider');
 

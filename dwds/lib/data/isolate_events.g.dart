@@ -6,9 +6,8 @@ part of 'isolate_events.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<IsolateExit> _$isolateExitSerializer = new _$IsolateExitSerializer();
-Serializer<IsolateStart> _$isolateStartSerializer =
-    new _$IsolateStartSerializer();
+Serializer<IsolateExit> _$isolateExitSerializer = _$IsolateExitSerializer();
+Serializer<IsolateStart> _$isolateStartSerializer = _$IsolateStartSerializer();
 
 class _$IsolateExitSerializer implements StructuredSerializer<IsolateExit> {
   @override
@@ -31,7 +30,7 @@ class _$IsolateExitSerializer implements StructuredSerializer<IsolateExit> {
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return new IsolateExitBuilder().build();
+    return IsolateExitBuilder().build();
   }
 }
 
@@ -56,22 +55,21 @@ class _$IsolateStartSerializer implements StructuredSerializer<IsolateStart> {
     Iterable<Object?> serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return new IsolateStartBuilder().build();
+    return IsolateStartBuilder().build();
   }
 }
 
 class _$IsolateExit extends IsolateExit {
   factory _$IsolateExit([void Function(IsolateExitBuilder)? updates]) =>
-      (new IsolateExitBuilder()..update(updates))._build();
+      (IsolateExitBuilder()..update(updates))._build();
 
   _$IsolateExit._() : super._();
-
   @override
   IsolateExit rebuild(void Function(IsolateExitBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  IsolateExitBuilder toBuilder() => new IsolateExitBuilder()..replace(this);
+  IsolateExitBuilder toBuilder() => IsolateExitBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -97,7 +95,6 @@ class IsolateExitBuilder implements Builder<IsolateExit, IsolateExitBuilder> {
 
   @override
   void replace(IsolateExit other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$IsolateExit;
   }
 
@@ -110,7 +107,7 @@ class IsolateExitBuilder implements Builder<IsolateExit, IsolateExitBuilder> {
   IsolateExit build() => _build();
 
   _$IsolateExit _build() {
-    final _$result = _$v ?? new _$IsolateExit._();
+    final _$result = _$v ?? _$IsolateExit._();
     replace(_$result);
     return _$result;
   }
@@ -118,16 +115,15 @@ class IsolateExitBuilder implements Builder<IsolateExit, IsolateExitBuilder> {
 
 class _$IsolateStart extends IsolateStart {
   factory _$IsolateStart([void Function(IsolateStartBuilder)? updates]) =>
-      (new IsolateStartBuilder()..update(updates))._build();
+      (IsolateStartBuilder()..update(updates))._build();
 
   _$IsolateStart._() : super._();
-
   @override
   IsolateStart rebuild(void Function(IsolateStartBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  IsolateStartBuilder toBuilder() => new IsolateStartBuilder()..replace(this);
+  IsolateStartBuilder toBuilder() => IsolateStartBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -154,7 +150,6 @@ class IsolateStartBuilder
 
   @override
   void replace(IsolateStart other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$IsolateStart;
   }
 
@@ -167,7 +162,7 @@ class IsolateStartBuilder
   IsolateStart build() => _build();
 
   _$IsolateStart _build() {
-    final _$result = _$v ?? new _$IsolateStart._();
+    final _$result = _$v ?? _$IsolateStart._();
     replace(_$result);
     return _$result;
   }

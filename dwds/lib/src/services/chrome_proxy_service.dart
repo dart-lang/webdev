@@ -33,6 +33,38 @@ import 'package:vm_service/vm_service.dart' hide vmServiceVersion;
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+// This event is identical to the one sent by the VM service from
+// sdk/lib/vmservice/vmservice.dart before existing VM service clients are
+// disconnected.
+final class DartDevelopmentServiceConnectedEvent extends Event {
+  DartDevelopmentServiceConnectedEvent({
+    required super.timestamp,
+    required this.uri,
+  }) : message =
+           'A Dart Developer Service instance has connected and this direct '
+               'connection to the VM service will now be closed. Please reconnect to '
+               'the Dart Development Service at $uri.',
+       super(kind: 'DartDevelopmentServiceConnected');
+
+  final String message;
+  final String uri;
+
+  @override
+  Map<String, Object?> toJson() => {
+    ...super.toJson(),
+    'uri': uri,
+    'message': message,
+  };
+}
+
+final class DisconnectNonDartDevelopmentServiceClients extends RPCError {
+  DisconnectNonDartDevelopmentServiceClients()
+    : super('_yieldControlToDDS', kErrorCode);
+
+  // Arbitrary error code that's unlikely to be used elsewhere.
+  static const kErrorCode = -199328;
+}
+
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService extends ProxyService {
   /// Signals when isolate starts.
@@ -90,6 +122,12 @@ class ChromeProxyService extends ProxyService {
 
   final ExpressionCompiler? _compiler;
   ExpressionEvaluator? _expressionEvaluator;
+
+  /// Isolate creation should wait until this completer is complete to prevent
+  /// computing metadata in an invalid state.
+  ///
+  /// Starts out completed and is reinitialized and completed when needed.
+  Completer<void> allowedToCreateIsolate = Completer<void>()..complete();
 
   bool terminatingIsolates = false;
 
@@ -272,6 +310,15 @@ class ChromeProxyService extends ProxyService {
       throw UnsupportedError(
         'Cannot create multiple isolates for the same app',
       );
+    }
+    // Wait until we're allowed to create the isolate. This is needed in hot
+    // restart as scripts may not be parsed yet.
+    if (!allowedToCreateIsolate.isCompleted) {
+      _logger.info(
+        'Waiting until hot restart is completed before creating '
+        'isolate',
+      );
+      await allowedToCreateIsolate.future;
     }
     // Waiting for the debugger to be ready before initializing the entrypoint.
     //
@@ -1077,7 +1124,7 @@ class ChromeProxyService extends ProxyService {
         .listen((url) {
           computedReloadedSrcs.future.then((_) {
             reloadedSrcs.remove(Uri.parse(url).normalizePath().path);
-            if (reloadedSrcs.isEmpty) {
+            if (reloadedSrcs.isEmpty && !parsedAllReloadedSrcs.isCompleted) {
               parsedAllReloadedSrcs.complete();
             }
           });
@@ -1544,15 +1591,21 @@ class ChromeProxyService extends ProxyService {
 
   @override
   Future<void> yieldControlToDDS(String uri) async {
-    final canYield = ChromeDebugService.yieldControlToDDS(uri);
+    // This will throw an RPCError if there's already an existing DDS instance.
+    ChromeDebugService.yieldControlToDDS(uri);
 
-    if (!canYield) {
-      throw RPCError(
-        'yieldControlToDDS',
-        RPCErrorKind.kFeatureDisabled.code,
-        'Existing VM service clients prevent DDS from taking control.',
-      );
-    }
+    // Notify existing clients that DDS has connected and they're about to be
+    // disconnected.
+    final event = DartDevelopmentServiceConnectedEvent(
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      uri: uri,
+    );
+    streamNotify(EventStreams.kService, event);
+
+    // We throw since we have no other way to control what the response content
+    // is for this RPC. The debug service will check for this particular
+    // exception as a signal to close connections to all other clients.
+    throw DisconnectNonDartDevelopmentServiceClients();
   }
 
   Future<InstanceRef> _instanceRef(RemoteObject? obj) async {
