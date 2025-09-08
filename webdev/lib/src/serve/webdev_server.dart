@@ -201,9 +201,8 @@ class WebDevServer {
     final tlsCertKey = options.configuration.tlsCertKey ?? '';
 
     HttpServer server;
-    final protocol = (tlsCertChain.isNotEmpty && tlsCertKey.isNotEmpty)
-        ? 'https'
-        : 'http';
+    final protocol =
+        (tlsCertChain.isNotEmpty && tlsCertKey.isNotEmpty) ? 'https' : 'http';
     if (protocol == 'https') {
       final serverContext = SecurityContext()
         ..useCertificateChain(tlsCertChain)

@@ -1,3 +1,7 @@
+## 25.1.1-wip
+
+- Bump SDK constraint to ^3.10.0
+
 ## 25.1.0
 
 - Added `DartDevelopmentServiceConfiguration` to allow for configuring DDS behavior.

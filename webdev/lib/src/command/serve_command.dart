@@ -20,8 +20,7 @@ class ServeCommand extends Command<int> {
   final name = 'serve';
 
   @override
-  final description =
-      'Run a local web development server and a file system'
+  final description = 'Run a local web development server and a file system'
       ' watcher that rebuilds on changes.';
 
   @override
@@ -38,20 +37,17 @@ refresh: Performs a full page refresh.
     )
     ..addFlag(
       debugFlag,
-      help:
-          'Enable the launching of DevTools (Alt + D / Option + D). '
+      help: 'Enable the launching of DevTools (Alt + D / Option + D). '
           'This also enables --$launchInChromeFlag.',
     )
     ..addFlag(
       debugExtensionFlag,
-      help:
-          'Enable the backend for the Dart Debug Extension. '
+      help: 'Enable the backend for the Dart Debug Extension. '
           'Learn more at dart.dev/to/web-debug-extension.',
     )
     ..addFlag(
       enableInjectedClientFlag,
-      help:
-          'Whether or not to inject the client.js script in web apps. This '
+      help: 'Whether or not to inject the client.js script in web apps. This '
           'is required for all debugging related features, but may interact '
           'poorly with proxy servers or other environments.',
       defaultsTo: true,
@@ -59,8 +55,7 @@ refresh: Performs a full page refresh.
     ..addSeparator('Advanced:')
     ..addOption(
       chromeDebugPortFlag,
-      help:
-          'Specify which port the Chrome debugger is listening on. '
+      help: 'Specify which port the Chrome debugger is listening on. '
           'If used with $launchInChromeFlag Chrome will be started with the'
           ' debugger listening on this port.',
     )
@@ -72,8 +67,7 @@ refresh: Performs a full page refresh.
     ..addFlag(
       hotRestartFlag,
       negatable: false,
-      help:
-          'Automatically reloads changed modules after each build '
+      help: 'Automatically reloads changed modules after each build '
           'and restarts your application.\n'
           "Can't be used with $liveReloadFlag.",
       hide: true,
@@ -81,16 +75,14 @@ refresh: Performs a full page refresh.
     ..addFlag(hotReloadFlag, negatable: false, hide: true)
     ..addFlag(
       launchInChromeFlag,
-      help:
-          'Automatically launches your application in Chrome with the '
+      help: 'Automatically launches your application in Chrome with the '
           'debug port open. Use $chromeDebugPortFlag to specify a specific '
           'port to attach to an already running chrome instance instead.',
     )
     ..addOption(
       userDataDirFlag,
       defaultsTo: null,
-      help:
-          'Use with $launchInChromeFlag to specify user data directory '
+      help: 'Use with $launchInChromeFlag to specify user data directory '
           'to pass to chrome. Will start chrome window logged into default '
           'profile with enabled extensions. Use `auto` as a value to infer '
           'the default directory for the current OS. '
@@ -99,8 +91,7 @@ refresh: Performs a full page refresh.
     ..addFlag(
       liveReloadFlag,
       negatable: false,
-      help:
-          'Automatically refreshes the page after each successful build.\n'
+      help: 'Automatically refreshes the page after each successful build.\n'
           "Can't be used with $hotRestartFlag.",
       hide: true,
     )
@@ -117,8 +108,7 @@ refresh: Performs a full page refresh.
     )
     ..addOption(
       tlsCertKeyFlag,
-      help:
-          'The file location to a TLS Key to create an HTTPs server.\n'
+      help: 'The file location to a TLS Key to create an HTTPs server.\n'
           'Must be used with $tlsCertChainFlag.',
     )
     ..addSeparator('Common:');
@@ -146,9 +136,8 @@ refresh: Performs a full page refresh.
     final buildOptions = buildRunnerArgs(configuration)
       ..addAll(argResults!.rest.where((arg) => arg.startsWith('-')).toList());
     final extraArgs = argResults?.rest ?? [];
-    final directoryArgs = extraArgs
-        .where((arg) => !arg.startsWith('-'))
-        .toList();
+    final directoryArgs =
+        extraArgs.where((arg) => !arg.startsWith('-')).toList();
     final targetPorts = parseDirectoryArgs(directoryArgs);
     validateLaunchApps(configuration.launchApps, targetPorts.keys);
 

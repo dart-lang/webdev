@@ -118,12 +118,15 @@ void main() {
     final tempPath = tempDir.path;
 
     // Verify that we can create a new Dart app:
-    createProcess = await Process.start('dart', [
-      'create',
-      '--template',
-      'web',
-      'temp_app',
-    ], workingDirectory: tempPath);
+    createProcess = await Process.start(
+        'dart',
+        [
+          'create',
+          '--template',
+          'web',
+          'temp_app',
+        ],
+        workingDirectory: tempPath);
     await expectStdoutAndCleanExit(
       createProcess!,
       expectedStdout: 'Created project temp_app in temp_app!',
@@ -144,13 +147,16 @@ void main() {
     );
 
     // Verify that `webdev serve` works for our new app:
-    serveProcess = await Process.start('dart', [
-      'pub',
-      'global',
-      'run',
-      'webdev',
-      'serve',
-    ], workingDirectory: appPath);
+    serveProcess = await Process.start(
+        'dart',
+        [
+          'pub',
+          'global',
+          'run',
+          'webdev',
+          'serve',
+        ],
+        workingDirectory: appPath);
     await expectStdoutThenExit(
       serveProcess!,
       expectedStdout: 'Serving `web` on',
@@ -162,13 +168,16 @@ void main() {
     final tempPath = tempDir.path;
 
     // Verify that we can create a new Dart app:
-    createProcess = await Process.start('dart', [
-      'create',
-      '--no-pub',
-      '--template',
-      'web',
-      'temp_app',
-    ], workingDirectory: tempPath);
+    createProcess = await Process.start(
+        'dart',
+        [
+          'create',
+          '--no-pub',
+          '--template',
+          'web',
+          'temp_app',
+        ],
+        workingDirectory: tempPath);
     await expectStdoutAndCleanExit(
       createProcess!,
       expectedStdout: 'Created project temp_app in temp_app!',
@@ -191,15 +200,18 @@ void main() {
     );
 
     // Verify that `webdev serve` works for our new app:
-    serveProcess = await Process.start('dart', [
-      'pub',
-      'global',
-      'run',
-      'webdev',
-      'serve',
-      '--offline',
-      'web:8081',
-    ], workingDirectory: appPath);
+    serveProcess = await Process.start(
+        'dart',
+        [
+          'pub',
+          'global',
+          'run',
+          'webdev',
+          'serve',
+          '--offline',
+          'web:8081',
+        ],
+        workingDirectory: appPath);
     await expectStdoutThenExit(
       serveProcess!,
       expectedStdout: 'Cannot open file\n  pubspec.lock\n',
@@ -248,9 +260,8 @@ Completer<String> _captureOutput(
   required StreamType streamType,
   required Future stopCaptureFuture,
 }) {
-  final stream = streamType == StreamType.stdout
-      ? process.stdout
-      : process.stderr;
+  final stream =
+      streamType == StreamType.stdout ? process.stdout : process.stderr;
   final completer = Completer<String>();
   var output = '';
   stream.transform(utf8.decoder).listen((line) {

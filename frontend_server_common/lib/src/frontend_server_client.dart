@@ -21,11 +21,11 @@ Logger _serverLogger = Logger('FrontendServer');
 
 void defaultConsumer(String message, {StackTrace? stackTrace}) =>
     stackTrace == null
-    ? _serverLogger.info(message)
-    : _serverLogger.severe(message, null, stackTrace);
+        ? _serverLogger.info(message)
+        : _serverLogger.severe(message, null, stackTrace);
 
-typedef CompilerMessageConsumer =
-    void Function(String message, {StackTrace stackTrace});
+typedef CompilerMessageConsumer = void Function(String message,
+    {StackTrace stackTrace});
 
 class CompilerOutput {
   const CompilerOutput(this.outputFilename, this.errorCount, this.sources);
@@ -327,8 +327,9 @@ class ResidentCompiler {
   Future<CompilerOutput?> _recompile(_RecompileRequest request) async {
     _stdoutHandler.reset();
 
-    final mainUri =
-        request.packageConfig.toPackageUri(request.mainUri)?.toString() ??
+    final mainUri = request.packageConfig
+            .toPackageUri(request.mainUri)
+            ?.toString() ??
         _toMultiRootPath(request.mainUri, fileSystemScheme, fileSystemRoots);
 
     _compileRequestNeedsConfirmation = true;
@@ -339,9 +340,8 @@ class ResidentCompiler {
     final server = _server!;
 
     final inputKey = generateV4UUID();
-    final instruction = request.recompileRestart
-        ? 'recompile-restart'
-        : 'recompile';
+    final instruction =
+        request.recompileRestart ? 'recompile-restart' : 'recompile';
     server.stdin.writeln('$instruction $mainUri $inputKey');
     _logger.info('<- $instruction $mainUri $inputKey');
     for (final fileUri in request.invalidatedFiles) {
@@ -349,8 +349,7 @@ class ResidentCompiler {
       if (fileUri.scheme == 'package') {
         message = fileUri.toString();
       } else {
-        message =
-            request.packageConfig.toPackageUri(fileUri)?.toString() ??
+        message = request.packageConfig.toPackageUri(fileUri)?.toString() ??
             _toMultiRootPath(fileUri, fileSystemScheme, fileSystemRoots);
       }
       server.stdin.writeln(message);
@@ -422,16 +421,16 @@ class ResidentCompiler {
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter())
         .listen(
-          _stdoutHandler.handler,
-          onDone: () {
-            // when outputFilename future is not completed, but stdout is closed
-            // process has died unexpectedly.
-            if (!_stdoutHandler.compilerOutput.isCompleted) {
-              _stdoutHandler.compilerOutput.complete(null);
-              throw Exception('the Dart compiler exited unexpectedly.');
-            }
-          },
-        );
+      _stdoutHandler.handler,
+      onDone: () {
+        // when outputFilename future is not completed, but stdout is closed
+        // process has died unexpectedly.
+        if (!_stdoutHandler.compilerOutput.isCompleted) {
+          _stdoutHandler.compilerOutput.complete(null);
+          throw Exception('the Dart compiler exited unexpectedly.');
+        }
+      },
+    );
 
     server.stderr
         .transform<String>(utf8.decoder)

@@ -89,8 +89,7 @@ void main() {
           // the service extension.
           await Future.delayed(const Duration(seconds: 5));
         }
-        final extensionCall =
-            '[{"method":"app.callServiceExtension","id":0,'
+        final extensionCall = '[{"method":"app.callServiceExtension","id":0,'
             '"params" : { "appId" : "$appId", "methodName" : "ext.print"}}]';
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
         // The example app sets up a service extension for printing.
@@ -111,8 +110,7 @@ void main() {
           'daemon',
         ], workingDirectory: exampleDirectory);
         final appId = await waitForAppId(webdev);
-        final extensionCall =
-            '[{"method":"app.restart","id":0,'
+        final extensionCall = '[{"method":"app.restart","id":0,'
             '"params" : { "appId" : "$appId", "fullRestart" : false}}]';
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
         await expectLater(
@@ -131,8 +129,7 @@ void main() {
           'daemon',
         ], workingDirectory: exampleDirectory);
         final appId = await waitForAppId(webdev);
-        final extensionCall =
-            '[{"method":"app.restart","id":0,'
+        final extensionCall = '[{"method":"app.restart","id":0,'
             '"params" : { "appId" : "$appId", "fullRestart" : true}}]';
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
         await expectLater(
@@ -161,8 +158,7 @@ void main() {
           'daemon',
         ], workingDirectory: exampleDirectory);
         final appId = await waitForAppId(webdev);
-        final stopCall =
-            '[{"method":"app.stop","id":0,'
+        final stopCall = '[{"method":"app.stop","id":0,'
             '"params" : { "appId" : "$appId"}}]';
         webdev.stdin.add(utf8.encode('$stopCall\n'));
         await expectLater(

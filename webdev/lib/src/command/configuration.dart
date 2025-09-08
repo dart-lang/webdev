@@ -139,29 +139,29 @@ class Configuration {
     List<String>? experiments,
     bool? canaryFeatures,
     bool? offline,
-  }) : _autoRun = autoRun,
-       _chromeDebugPort = chromeDebugPort,
-       _debugExtension = debugExtension,
-       _debug = debug,
-       _enableInjectedClient = enableInjectedClient,
-       _hostname = hostname,
-       _tlsCertChain = tlsCertChain,
-       _tlsCertKey = tlsCertKey,
-       _launchApps = launchApps,
-       _launchInChrome = launchInChrome,
-       _userDataDir = userDataDir,
-       _logRequests = logRequests,
-       _output = output,
-       _release = release,
-       _reload = reload,
-       _requireBuildWebCompilers = requireBuildWebCompilers,
-       _disableDds = disableDds,
-       _enableExpressionEvaluation = enableExpressionEvaluation,
-       _verbose = verbose,
-       _nullSafety = nullSafety,
-       _experiments = experiments,
-       _canaryFeatures = canaryFeatures,
-       _offline = offline {
+  })  : _autoRun = autoRun,
+        _chromeDebugPort = chromeDebugPort,
+        _debugExtension = debugExtension,
+        _debug = debug,
+        _enableInjectedClient = enableInjectedClient,
+        _hostname = hostname,
+        _tlsCertChain = tlsCertChain,
+        _tlsCertKey = tlsCertKey,
+        _launchApps = launchApps,
+        _launchInChrome = launchInChrome,
+        _userDataDir = userDataDir,
+        _logRequests = logRequests,
+        _output = output,
+        _release = release,
+        _reload = reload,
+        _requireBuildWebCompilers = requireBuildWebCompilers,
+        _disableDds = disableDds,
+        _enableExpressionEvaluation = enableExpressionEvaluation,
+        _verbose = verbose,
+        _nullSafety = nullSafety,
+        _experiments = experiments,
+        _canaryFeatures = canaryFeatures,
+        _offline = offline {
     _validateConfiguration();
   }
 
@@ -221,32 +221,33 @@ class Configuration {
   /// Creates a new [Configuration] with all non-null fields from
   /// [other] overriding the values of `this`.
   Configuration _override(Configuration other) => Configuration(
-    autoRun: other._autoRun ?? _autoRun,
-    chromeDebugPort: other._chromeDebugPort ?? _chromeDebugPort,
-    debugExtension: other._debugExtension ?? _debugExtension,
-    debug: other._debug ?? _debug,
-    enableInjectedClient: other._enableInjectedClient ?? _enableInjectedClient,
-    hostname: other._hostname ?? _hostname,
-    tlsCertChain: other._tlsCertChain ?? _tlsCertChain,
-    tlsCertKey: other._tlsCertKey ?? _tlsCertKey,
-    launchApps: other._launchApps ?? _launchApps,
-    launchInChrome: other._launchInChrome ?? _launchInChrome,
-    userDataDir: other._userDataDir ?? _userDataDir,
-    logRequests: other._logRequests ?? _logRequests,
-    output: other._output ?? _output,
-    release: other._release ?? _release,
-    reload: other._reload ?? _reload,
-    requireBuildWebCompilers:
-        other._requireBuildWebCompilers ?? _requireBuildWebCompilers,
-    disableDds: other._disableDds ?? _disableDds,
-    enableExpressionEvaluation:
-        other._enableExpressionEvaluation ?? _enableExpressionEvaluation,
-    verbose: other._verbose ?? _verbose,
-    nullSafety: other._nullSafety ?? _nullSafety,
-    experiments: other._experiments ?? _experiments,
-    canaryFeatures: other._canaryFeatures ?? _canaryFeatures,
-    offline: other._offline ?? _offline,
-  );
+        autoRun: other._autoRun ?? _autoRun,
+        chromeDebugPort: other._chromeDebugPort ?? _chromeDebugPort,
+        debugExtension: other._debugExtension ?? _debugExtension,
+        debug: other._debug ?? _debug,
+        enableInjectedClient:
+            other._enableInjectedClient ?? _enableInjectedClient,
+        hostname: other._hostname ?? _hostname,
+        tlsCertChain: other._tlsCertChain ?? _tlsCertChain,
+        tlsCertKey: other._tlsCertKey ?? _tlsCertKey,
+        launchApps: other._launchApps ?? _launchApps,
+        launchInChrome: other._launchInChrome ?? _launchInChrome,
+        userDataDir: other._userDataDir ?? _userDataDir,
+        logRequests: other._logRequests ?? _logRequests,
+        output: other._output ?? _output,
+        release: other._release ?? _release,
+        reload: other._reload ?? _reload,
+        requireBuildWebCompilers:
+            other._requireBuildWebCompilers ?? _requireBuildWebCompilers,
+        disableDds: other._disableDds ?? _disableDds,
+        enableExpressionEvaluation:
+            other._enableExpressionEvaluation ?? _enableExpressionEvaluation,
+        verbose: other._verbose ?? _verbose,
+        nullSafety: other._nullSafety ?? _nullSafety,
+        experiments: other._experiments ?? _experiments,
+        canaryFeatures: other._canaryFeatures ?? _canaryFeatures,
+        offline: other._offline ?? _offline,
+      );
 
   factory Configuration.noInjectedClientDefaults() =>
       Configuration(autoRun: false, debug: false, debugExtension: false);
@@ -313,8 +314,8 @@ class Configuration {
 
     final enableInjectedClient =
         argResults.options.contains(enableInjectedClientFlag)
-        ? (argResults[enableInjectedClientFlag] as bool)
-        : defaultConfiguration.enableInjectedClient;
+            ? (argResults[enableInjectedClientFlag] as bool)
+            : defaultConfiguration.enableInjectedClient;
 
     // Change the defaults when we have no injected client to disable all
     // debugging features.
@@ -350,23 +351,21 @@ class Configuration {
         ? argResults[tlsCertKeyFlag] as String?
         : defaultConfiguration.tlsCertKey;
 
-    final launchApps =
-        argResults.options.contains(launchAppOption) &&
+    final launchApps = argResults.options.contains(launchAppOption) &&
             argResults.wasParsed(launchAppOption)
         ? argResults[launchAppOption] as List<String>?
         : defaultConfiguration.launchApps;
 
-    final launchInChrome =
-        argResults.options.contains(launchInChromeFlag) &&
+    final launchInChrome = argResults.options.contains(launchInChromeFlag) &&
             argResults.wasParsed(launchInChromeFlag)
         ? argResults[launchInChromeFlag] as bool?
         // We want to default to launch chrome if the user provides just --debug
         // and not --chrome-debug-port.
         : debug! &&
-              !(argResults.options.contains(launchInChromeFlag) &&
-                  argResults.wasParsed(chromeDebugPortFlag))
-        ? true
-        : defaultConfiguration.launchInChrome;
+                !(argResults.options.contains(launchInChromeFlag) &&
+                    argResults.wasParsed(chromeDebugPortFlag))
+            ? true
+            : defaultConfiguration.launchInChrome;
 
     final userDataDir = argResults.options.contains(userDataDirFlag)
         ? argResults[userDataDirFlag] as String?
@@ -403,13 +402,13 @@ class Configuration {
 
     final requireBuildWebCompilers =
         argResults.options.contains(requireBuildWebCompilersFlag)
-        ? argResults[requireBuildWebCompilersFlag] as bool?
-        : defaultConfiguration.requireBuildWebCompilers;
+            ? argResults[requireBuildWebCompilersFlag] as bool?
+            : defaultConfiguration.requireBuildWebCompilers;
 
     final enableExpressionEvaluation =
         argResults.options.contains(enableExpressionEvaluationFlag)
-        ? argResults[enableExpressionEvaluationFlag] as bool?
-        : defaultConfiguration.enableExpressionEvaluation;
+            ? argResults[enableExpressionEvaluationFlag] as bool?
+            : defaultConfiguration.enableExpressionEvaluation;
 
     final verbose = argResults.options.contains(verboseFlag)
         ? argResults[verboseFlag] as bool?
@@ -423,8 +422,7 @@ class Configuration {
         ? argResults[disableDdsFlag] as bool?
         : defaultConfiguration.disableDds;
 
-    final experiments =
-        argResults.options.contains(enableExperimentOption) &&
+    final experiments = argResults.options.contains(enableExperimentOption) &&
             argResults.wasParsed(enableExperimentOption)
         ? argResults[enableExperimentOption] as List<String>?
         : defaultConfiguration.experiments;

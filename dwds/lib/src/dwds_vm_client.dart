@@ -635,8 +635,8 @@ Future<Map<String, dynamic>> _hotRestart(
       returnByValue: true,
     );
     if (isDdcLibraryBundle) {
-      final reloadedSrcModuleLibraries =
-          (remoteObject.value as List).cast<Map>();
+      final reloadedSrcModuleLibraries = (remoteObject.value as List)
+          .cast<Map>();
       for (final srcModuleLibrary in reloadedSrcModuleLibraries) {
         final srcModuleLibraryCast = srcModuleLibrary.cast<String, Object>();
         reloadedSrcs.add(

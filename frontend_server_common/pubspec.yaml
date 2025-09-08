@@ -3,7 +3,7 @@ publish_to: none
 description: >-
   Frontend server integration code to use for dwds tests. Mimics flutter code.
 environment:
-  sdk: ^3.8.0
+  sdk: ^3.10.0-0.0.dev
 
 dependencies:
   dwds: any

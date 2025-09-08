@@ -3,7 +3,7 @@ publish_to: none
 description: >-
   Common test functionality.
 environment:
-  sdk: ^3.8.0
+  sdk: ^3.10.0-0.0.dev
 
 dependencies:
   dwds: any

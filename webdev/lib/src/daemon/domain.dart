@@ -24,23 +24,21 @@ abstract class Domain {
 
   void handleCommand(String command, dynamic id, Map<String, dynamic> args) {
     Future<dynamic>.sync(() {
-          if (_handlers.containsKey(command)) return _handlers[command]!(args);
-          throw ArgumentError('command not understood: $name.$command');
-        })
-        .then<dynamic>((dynamic result) {
-          if (result == null) {
-            _send(<String, dynamic>{'id': id});
-          } else {
-            _send(<String, dynamic>{'id': id, 'result': toJsonable(result)});
-          }
-        })
-        .catchError((dynamic error, dynamic trace) {
-          _send(<String, dynamic>{
-            'id': id,
-            'error': toJsonable(error),
-            'trace': '$trace',
-          });
-        });
+      if (_handlers.containsKey(command)) return _handlers[command]!(args);
+      throw ArgumentError('command not understood: $name.$command');
+    }).then<dynamic>((dynamic result) {
+      if (result == null) {
+        _send(<String, dynamic>{'id': id});
+      } else {
+        _send(<String, dynamic>{'id': id, 'result': toJsonable(result)});
+      }
+    }).catchError((dynamic error, dynamic trace) {
+      _send(<String, dynamic>{
+        'id': id,
+        'error': toJsonable(error),
+        'trace': '$trace',
+      });
+    });
   }
 
   void sendEvent(String name, [dynamic args]) {

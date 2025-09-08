@@ -23,8 +23,7 @@ void main() {
     expect(
       sdkConstraint.allowsAll(pubspecSdkConstraint),
       true,
-      reason:
-          'Min sdk constraint is outdated. Please update SDK constraint in '
+      reason: 'Min sdk constraint is outdated. Please update SDK constraint in '
           'pubspec to allow latest stable and backwards compatible versions.'
           '\n  Current stable: $sdkVersion, '
           '\n  Webdev pubspec constraint: $pubspecSdkConstraint',

@@ -1,6 +1,6 @@
 ## 4.0.1-wip
 
-- Update Dart SDK constraint to `^3.8.0`.
+- Update Dart SDK constraint to `^3.10.0`.
 
 ## 4.0.0
 

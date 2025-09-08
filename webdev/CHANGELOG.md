@@ -1,6 +1,6 @@
 ## 3.8.0-wip
 
-- Bump minimum SDK constraint to 3.8.0
+- Bump minimum SDK constraint to 3.10.0
 
 ## 3.7.2
 

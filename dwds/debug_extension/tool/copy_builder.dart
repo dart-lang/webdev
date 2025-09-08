@@ -10,12 +10,12 @@ Builder copyBuilder(_) => _CopyBuilder();
 class _CopyBuilder extends Builder {
   @override
   Map<String, List<String>> get buildExtensions => {
-    'web/{{}}.dart.js': ['compiled/{{}}.dart.js'],
-    'web/static_assets/{{}}.png': ['compiled/static_assets/{{}}.png'],
-    'web/static_assets/{{}}.html': ['compiled/static_assets/{{}}.html'],
-    'web/static_assets/{{}}.css': ['compiled/static_assets/{{}}.css'],
-    'web/manifest.json': ['compiled/manifest.json'],
-  };
+        'web/{{}}.dart.js': ['compiled/{{}}.dart.js'],
+        'web/static_assets/{{}}.png': ['compiled/static_assets/{{}}.png'],
+        'web/static_assets/{{}}.html': ['compiled/static_assets/{{}}.html'],
+        'web/static_assets/{{}}.css': ['compiled/static_assets/{{}}.css'],
+        'web/manifest.json': ['compiled/manifest.json'],
+      };
 
   @override
   Future<void> build(BuildStep buildStep) async {

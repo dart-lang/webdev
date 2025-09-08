@@ -5,7 +5,7 @@ description: >-
   A Chrome extension for Dart debugging.
 
 environment:
-  sdk: ^3.8.0
+  sdk: ^3.10.0-0.0.dev
 
 dependencies:
   built_value: ^8.9.0
@@ -22,7 +22,7 @@ dev_dependencies:
   dwds: ^24.1.0
   path: ^1.9.0
   sse: ^4.1.4
-  web_socket_channel: '>=2.2.0 <4.0.0'
+  web_socket_channel: ">=2.2.0 <4.0.0"
 
 dependency_overrides:
   dwds:

@@ -25,8 +25,7 @@ void addSharedArgs(
       outputFlag,
       abbr: 'o',
       defaultsTo: outputDefault,
-      help:
-          'A directory to write the result of a build to. Or a mapping '
+      help: 'A directory to write the result of a build to. Or a mapping '
           'from a top-level directory in the package to the directory to '
           'write a filtered build output to. For example "web:deploy".\n'
           'A value of "NONE" indicates that no "--output" value should be '
@@ -37,8 +36,7 @@ void addSharedArgs(
       abbr: 'n',
       defaultsTo: nullSafetyAuto,
       allowed: [nullSafetySound, nullSafetyUnsound, nullSafetyAuto],
-      help:
-          'DEPRECATED: If "sound", `package:build_web_compilers` will be run '
+      help: 'DEPRECATED: If "sound", `package:build_web_compilers` will be run '
           'with sound null safety support. '
           'If "unsound", `package:build_web_compilers` will be run without '
           'sound null safety support. '
@@ -62,8 +60,7 @@ void addSharedArgs(
     ..addFlag(
       disableDdsFlag,
       negatable: false,
-      help:
-          'Disable the Dart Development Service (DDS). Disabling DDS may '
+      help: 'Disable the Dart Development Service (DDS). Disabling DDS may '
           'result in a degraded developer experience in some tools.',
       hide: true,
     )

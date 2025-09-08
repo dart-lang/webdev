@@ -46,9 +46,8 @@ class BuildCommand extends Command<int> {
         argParser.usage,
       );
     }
-    final validExtraArgs = extraArgs
-        .where((arg) => arg.startsWith('-'))
-        .toList();
+    final validExtraArgs =
+        extraArgs.where((arg) => arg.startsWith('-')).toList();
 
     final configuration = Configuration.fromArgs(argResults);
     configureLogWriter(configuration.verbose);
