@@ -49,8 +49,8 @@ void _copyAppId(String appId) {
 }
 
 Future<bool> _notifyCopiedSuccess(String appId) => sendRuntimeMessage(
-      type: MessageType.appId,
-      body: appId,
-      sender: Script.copier,
-      recipient: Script.background,
-    );
+  type: MessageType.appId,
+  body: appId,
+  sender: Script.copier,
+  recipient: Script.background,
+);
