@@ -263,8 +263,9 @@ class WebDevFS {
     for (final module in modules) {
       final metadata = ModuleMetadata.fromJson(
         json.decode(
-          utf8.decode(assetServer.getMetadata('$module.metadata').toList()),
-        ) as Map<String, dynamic>,
+              utf8.decode(assetServer.getMetadata('$module.metadata').toList()),
+            )
+            as Map<String, dynamic>,
       );
       final libraries = metadata.libraries.keys.toList();
       moduleToLibrary.add(<String, Object>{
@@ -274,22 +275,24 @@ class WebDevFS {
       });
     }
     assetServer.writeFile(
-        reloadedSourcesFileName, json.encode(moduleToLibrary));
+      reloadedSourcesFileName,
+      json.encode(moduleToLibrary),
+    );
   }
 
   File get ddcModuleLoaderJS =>
       fileSystem.file(sdkLayout.ddcModuleLoaderJsPath);
   File get requireJS => fileSystem.file(sdkLayout.requireJsPath);
   File get dartSdk => fileSystem.file(switch (ddcModuleFormat) {
-        ModuleFormat.amd => sdkLayout.amdJsPath,
-        ModuleFormat.ddc => sdkLayout.ddcJsPath,
-        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.'),
-      });
+    ModuleFormat.amd => sdkLayout.amdJsPath,
+    ModuleFormat.ddc => sdkLayout.ddcJsPath,
+    _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.'),
+  });
   File get dartSdkSourcemap => fileSystem.file(switch (ddcModuleFormat) {
-        ModuleFormat.amd => sdkLayout.amdJsMapPath,
-        ModuleFormat.ddc => sdkLayout.ddcJsMapPath,
-        _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.'),
-      });
+    ModuleFormat.amd => sdkLayout.amdJsMapPath,
+    ModuleFormat.ddc => sdkLayout.ddcJsMapPath,
+    _ => throw Exception('Unsupported DDC module format $ddcModuleFormat.'),
+  });
   File get stackTraceMapper => fileSystem.file(sdkLayout.stackTraceMapperPath);
   ModuleFormat get ddcModuleFormat => compilerOptions.moduleFormat;
 }
@@ -303,9 +306,9 @@ class UpdateFSReport {
     bool success = false,
     int invalidatedSourcesCount = 0,
     int syncedBytes = 0,
-  })  : _success = success,
-        _invalidatedSourcesCount = invalidatedSourcesCount,
-        _syncedBytes = syncedBytes;
+  }) : _success = success,
+       _invalidatedSourcesCount = invalidatedSourcesCount,
+       _syncedBytes = syncedBytes;
 
   bool get success => _success;
   int get invalidatedSourcesCount => _invalidatedSourcesCount;
@@ -329,7 +332,7 @@ class InvalidationResult {
 /// application to determine when they are dirty.
 class ProjectFileInvalidator {
   ProjectFileInvalidator({required FileSystem fileSystem})
-      : _fileSystem = fileSystem;
+    : _fileSystem = fileSystem;
 
   final FileSystem _fileSystem;
 
@@ -359,8 +362,8 @@ class ProjectFileInvalidator {
       final updatedAt = uri.hasScheme && uri.scheme != 'file'
           ? _fileSystem.file(uri).statSync().modified
           : _fileSystem
-              .statSync(uri.toFilePath(windows: Platform.isWindows))
-              .modified;
+                .statSync(uri.toFilePath(windows: Platform.isWindows))
+                .modified;
       if (updatedAt.isAfter(lastCompiled)) {
         invalidatedFiles.add(uri);
       }

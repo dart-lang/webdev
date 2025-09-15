@@ -35,8 +35,7 @@ import 'storage.dart';
 import 'utils.dart';
 import 'web_api.dart';
 
-const _notADartAppAlert =
-    'No Dart application detected.'
+const _notADartAppAlert = 'No Dart application detected.'
     ' Are you trying to debug an application that includes a Chrome hosted app'
     ' (an application listed in chrome://apps)? If so, debugging is disabled.'
     ' You can fix this by removing the application from chrome://apps. Please'
@@ -82,11 +81,11 @@ enum Trigger {
   extensionIcon;
 
   String get clientName => switch (this) {
-    Trigger.angularDartDevTools => 'acx-devtools',
-    Trigger.cider => 'cider',
-    Trigger.extensionPanel => 'embedded-devtools',
-    Trigger.extensionIcon => 'devtools',
-  };
+        Trigger.angularDartDevTools => 'acx-devtools',
+        Trigger.cider => 'cider',
+        Trigger.extensionPanel => 'embedded-devtools',
+        Trigger.extensionIcon => 'devtools',
+      };
 }
 
 enum DebuggerLocation {
@@ -96,11 +95,11 @@ enum DebuggerLocation {
   ide;
 
   String get displayName => switch (this) {
-    DebuggerLocation.angularDartDevTools => 'AngularDart DevTools',
-    DebuggerLocation.chromeDevTools => 'Chrome DevTools',
-    DebuggerLocation.dartDevTools => 'a Dart DevTools tab',
-    DebuggerLocation.ide => 'an IDE',
-  };
+        DebuggerLocation.angularDartDevTools => 'AngularDart DevTools',
+        DebuggerLocation.chromeDevTools => 'Chrome DevTools',
+        DebuggerLocation.dartDevTools => 'a Dart DevTools tab',
+        DebuggerLocation.ide => 'an IDE',
+      };
 }
 
 bool get existsActiveDebugSession => _debugSessions.isNotEmpty;
@@ -313,8 +312,7 @@ Future<bool> _isDartFrame({required int tabId, required int contextId}) {
     Debuggee(tabId: tabId),
     'Runtime.evaluate',
     _InjectedParams(
-      expression:
-          '[window.\$dartAppId, '
+      expression: '[window.\$dartAppId, '
           'window.\$dartAppInstanceId, '
           'window.\$dwdsVersion]',
       returnByValue: true,
@@ -644,11 +642,11 @@ Future<bool> _sendStopDebuggingMessage(
 _DebugSession? _debugSessionForTab(int tabId, {required TabType type}) {
   return switch (type) {
     TabType.dartApp => _debugSessions.firstWhereOrNull(
-      (session) => session.appTabId == tabId,
-    ),
+        (session) => session.appTabId == tabId,
+      ),
     TabType.devTools => _debugSessions.firstWhereOrNull(
-      (session) => session.devToolsTabId == tabId,
-    ),
+        (session) => session.devToolsTabId == tabId,
+      ),
   };
 }
 
@@ -728,10 +726,9 @@ DebuggerLocation? _debuggerLocation(int dartAppTabId) {
     Trigger.angularDartDevTools => DebuggerLocation.angularDartDevTools,
     Trigger.cider => DebuggerLocation.ide,
     Trigger.extensionPanel => DebuggerLocation.chromeDevTools,
-    Trigger.extensionIcon =>
-      debugSession.devToolsTabId != null
-          ? DebuggerLocation.dartDevTools
-          : DebuggerLocation.ide,
+    Trigger.extensionIcon => debugSession.devToolsTabId != null
+        ? DebuggerLocation.dartDevTools
+        : DebuggerLocation.ide,
   };
 }
 

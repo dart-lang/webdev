@@ -23,7 +23,7 @@ class Chrome {
   final ChromeConnection chromeConnection;
 
   Chrome._(this.debugPort, this._chrome)
-      : chromeConnection = _chrome.chromeConnection;
+    : chromeConnection = _chrome.chromeConnection;
 
   Future<void> close() async {
     if (_currentCompleter.isCompleted) _currentCompleter = Completer<Chrome>();
@@ -32,8 +32,8 @@ class Chrome {
 
   /// Connects to an instance of Chrome with an open debug port.
   static Future<Chrome> fromExisting(int port) async => _connect(
-        Chrome._(port, await browser_launcher.Chrome.fromExisting(port)),
-      );
+    Chrome._(port, await browser_launcher.Chrome.fromExisting(port)),
+  );
 
   static Future<Chrome> get connectedInstance => _currentCompleter.future;
 

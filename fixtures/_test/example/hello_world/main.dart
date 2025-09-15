@@ -28,7 +28,8 @@ final topLevelList = () {
 }();
 
 final topLevelMap = LinkedHashMap.from(
-    Iterable.generate(1001).toList().reversed.toList().asMap());
+  Iterable.generate(1001).toList().reversed.toList().asMap(),
+);
 
 final myInstance = MyTestClass();
 
@@ -54,17 +55,23 @@ void main() async {
   };
 
   context['registerExtension'] = (String method) {
-    registerExtension(method,
-        (String method, Map<String, String> parameters) async {
+    registerExtension(method, (
+      String method,
+      Map<String, String> parameters,
+    ) async {
       return ServiceExtensionResponse.result(jsonEncode(parameters));
     });
   };
 
   context['registerExtensionWithError'] = (String method) {
-    registerExtension(method,
-        (String method, Map<String, String> parameters) async {
+    registerExtension(method, (
+      String method,
+      Map<String, String> parameters,
+    ) async {
       return ServiceExtensionResponse.error(
-          int.parse(parameters['code']!), parameters['details']!);
+        int.parse(parameters['code']!),
+        parameters['details']!,
+      );
     });
   };
 
@@ -90,8 +97,10 @@ void main() async {
 
   // Register one up front before the proxy connects, the isolate should still
   // recognize this as an available extension.
-  registerExtension('ext.hello_world.existing',
-      (_, __) => Future.value(ServiceExtensionResponse.error(0, '')));
+  registerExtension(
+    'ext.hello_world.existing',
+    (_, __) => Future.value(ServiceExtensionResponse.error(0, '')),
+  );
 
   window.console.debug('Page Ready');
 }

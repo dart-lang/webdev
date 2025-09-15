@@ -131,17 +131,22 @@ Future<void> printDeferred() async {
 }
 
 void printNestedObjectsMultiLine() {
-  printEnclosingObject(// Breakpoint: printEnclosingFunctionMultiLine
-      EnclosingClass(// Breakpoint: printEnclosingObjectMultiLine
-          EnclosedClass(0) // Breakpoint: printNestedObjectMultiLine
-          ));
+  printEnclosingObject(
+    // Breakpoint: printEnclosingFunctionMultiLine
+    EnclosingClass(
+      // Breakpoint: printEnclosingObjectMultiLine
+      EnclosedClass(0), // Breakpoint: printNestedObjectMultiLine
+    ),
+  );
 }
 
 void printObjectMultiLine() {
-  print(// Breakpoint: printMultiLine
-      // Breakpoint: Do not remove, will break callstack tests!
-      createObject() // Breakpoint: printObjectMultiLine
-        ..initialize());
+  print(
+    // Breakpoint: printMultiLine
+    // Breakpoint: Do not remove, will break callstack tests!
+    createObject() // Breakpoint: printObjectMultiLine
+      ..initialize(),
+  );
 }
 
 void printEnclosingObject(EnclosingClass o) {
@@ -208,8 +213,10 @@ void printLargeScope() {
   final t18 = 18;
   final t19 = 19;
 
-  print('$t0 $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, '
-      '$t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19'); // Breakpoint: printLargeScope
+  print(
+    '$t0 $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, '
+    '$t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19',
+  ); // Breakpoint: printLargeScope
 }
 
 class MainClass {

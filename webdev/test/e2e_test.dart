@@ -45,11 +45,16 @@ void main() {
   setUpAll(() async {
     configureLogWriter(debug);
     await testRunner.setUpAll();
-    exampleDirectory =
-        p.absolute(p.join(p.current, '..', 'fixtures', '_webdev_smoke'));
+    exampleDirectory = p.absolute(
+      p.join(p.current, '..', 'fixtures', '_webdev_smoke'),
+    );
 
-    final process = await TestProcess.start(dartPath, ['pub', 'upgrade'],
-        workingDirectory: exampleDirectory, environment: getPubEnvironment());
+    final process = await TestProcess.start(
+      dartPath,
+      ['pub', 'upgrade'],
+      workingDirectory: exampleDirectory,
+      environment: getPubEnvironment(),
+    );
 
     await process.shouldExit(0);
 
@@ -88,8 +93,10 @@ void main() {
 
     final args = ['build', '-o', 'web:${d.sandbox}'];
 
-    final process =
-        await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
+    final process = await testRunner.runWebDev(
+      args,
+      workingDirectory: exampleDirectory,
+    );
 
     // NOTE: We'd like this to be more useful
     // See https://github.com/dart-lang/build/issues/1283
@@ -119,8 +126,10 @@ void main() {
         '--delete-conflicting-outputs',
       ];
 
-      final process =
-          await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
+      final process = await testRunner.runWebDev(
+        args,
+        workingDirectory: exampleDirectory,
+      );
 
       await checkProcessStdout(process, ['Built with build_runner']);
       await process.shouldExit(0);
@@ -139,8 +148,10 @@ void main() {
             args.add('--no-release');
           }
 
-          final process = await testRunner.runWebDev(args,
-              workingDirectory: exampleDirectory);
+          final process = await testRunner.runWebDev(
+            args,
+            workingDirectory: exampleDirectory,
+          );
 
           final expectedItems = <Object>['Built with build_runner'];
 
@@ -172,8 +183,10 @@ void main() {
           '--null-safety=sound',
         ];
 
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
 
         final expectedItems = <Object>['Built with build_runner'];
 
@@ -195,8 +208,10 @@ void main() {
           args.add('--no-release');
         }
 
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
 
         final expectedItems = <Object>['Built with build_runner'];
 
@@ -220,8 +235,10 @@ void main() {
 
         final stdoutDone = Completer<void>();
         final stderrDone = Completer<void>();
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
         process.stdoutStream().listen((_) => {}, onDone: stdoutDone.complete);
         process.stderrStream().listen((_) => {}, onDone: stderrDone.complete);
 
@@ -271,8 +288,10 @@ void main() {
             if (command == 'build') '--output=$dir:foo' else dir,
           ];
 
-          final process = await testRunner.runWebDev(args,
-              workingDirectory: exampleDirectory);
+          final process = await testRunner.runWebDev(
+            args,
+            workingDirectory: exampleDirectory,
+          );
           await expectLater(
             process.stdout,
             emitsThrough(
@@ -306,8 +325,10 @@ void main() {
           '--null-safety=sound',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
         VmService? vmService;
 
         process.stdoutStream().listen(Logger.root.fine);
@@ -358,8 +379,11 @@ void main() {
 
           final expression =
               '() { const sound = !(<Null>[] is List<int>); return sound; } ()';
-          final result =
-              await vmService.evaluateInFrame(isolateId, 0, expression);
+          final result = await vmService.evaluateInFrame(
+            isolateId,
+            0,
+            expression,
+          );
 
           expect(
             result,
@@ -385,8 +409,10 @@ void main() {
           '--enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
 
         process.stdoutStream().listen(Logger.root.fine);
         process.stderrStream().listen(Logger.root.warning);
@@ -458,8 +484,10 @@ void main() {
           '--enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
 
         process.stdoutStream().listen(Logger.root.fine);
         process.stderrStream().listen(Logger.root.warning);
@@ -492,20 +520,24 @@ void main() {
             '[true, false]',
           );
           expect(
-              result,
-              const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.classRef?.name,
-                  'class name',
-                  'JSArray<bool>'));
+            result,
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.classRef?.name,
+              'class name',
+              'JSArray<bool>',
+            ),
+          );
 
           final instanceRef = result as InstanceRef;
           final list = await vmService.getObject(isolateId, instanceRef.id!);
           expect(
-              list,
-              const TypeMatcher<Instance>().having(
-                  (instance) => instance.classRef?.name,
-                  'class name',
-                  'JSArray<bool>'));
+            list,
+            const TypeMatcher<Instance>().having(
+              (instance) => instance.classRef?.name,
+              'class name',
+              'JSArray<bool>',
+            ),
+          );
 
           final elements = (list as Instance).elements;
           expect(elements, [
@@ -537,8 +569,10 @@ void main() {
           '--no-enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
         VmService? vmService;
 
         try {
@@ -607,8 +641,10 @@ void main() {
           '--no-enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
         VmService? vmService;
 
         try {

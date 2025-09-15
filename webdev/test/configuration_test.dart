@@ -91,8 +91,7 @@ void main() {
     expect(defaultConfiguration.nullSafety, equals(nullSafetyAuto));
   });
 
-  test(
-      'must not provide debug related configuration when enableInjectedClient '
+  test('must not provide debug related configuration when enableInjectedClient '
       'is false', () {
     expect(
       () => Configuration(enableInjectedClient: false, debug: true),
@@ -108,8 +107,7 @@ void main() {
     );
   });
 
-  test(
-      'only top level directories or an empty target are allowed for '
+  test('only top level directories or an empty target are allowed for '
       'outputInput', () {
     // Valid
     expect(() => Configuration(outputInput: ''), returnsNormally);

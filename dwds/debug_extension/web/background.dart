@@ -279,9 +279,8 @@ void _setWarningIcon(int tabId) {
 }
 
 void _setDefaultIcon(int tabId) {
-  final iconPath = isDevMode
-      ? 'static_assets/dart_dev.png'
-      : 'static_assets/dart_grey.png';
+  final iconPath =
+      isDevMode ? 'static_assets/dart_dev.png' : 'static_assets/dart_grey.png';
   setExtensionIcon(IconInfo(path: iconPath));
   setExtensionPopup(PopupDetails(popup: '', tabId: tabId));
 }

@@ -150,8 +150,7 @@ void main() {
           await process.shouldExit(78);
         });
 
-        test(
-            '`build_web_compilers` should be ignored with '
+        test('`build_web_compilers` should be ignored with '
             '--no-build-web-compilers', () async {
           await d.file('pubspec.yaml', _pubspecYaml).create();
 
@@ -270,16 +269,13 @@ dependencies:
 
       if (command != 'daemon') {
         test('failure with offline and unresolved dependencies', () async {
-          final createProcess = await Process.start(
-              'dart',
-              [
-                'create',
-                '--no-pub',
-                '--template',
-                'web',
-                'temp_app',
-              ],
-              workingDirectory: d.sandbox);
+          final createProcess = await Process.start('dart', [
+            'create',
+            '--no-pub',
+            '--template',
+            'web',
+            'temp_app',
+          ], workingDirectory: d.sandbox);
           await expectStdoutAndCleanExit(
             createProcess,
             expectedStdout: 'Created project temp_app',
@@ -382,8 +378,9 @@ Completer<String> _captureOutput(
   required StreamType streamType,
   required Future stopCaptureFuture,
 }) {
-  final stream =
-      streamType == StreamType.stdout ? process.stdout : process.stderr;
+  final stream = streamType == StreamType.stdout
+      ? process.stdout
+      : process.stderr;
   final completer = Completer<String>();
   var output = '';
   stream.transform(utf8.decoder).listen((line) {

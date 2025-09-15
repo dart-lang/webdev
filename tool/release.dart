@@ -129,13 +129,10 @@ Future<int> runRelease({
     '../test_common',
   ]) {
     _logInfo('Upgrading pub packages for $packagePath');
-    final pubUpgradeProcess = await Process.run(
-        'dart',
-        [
-          'pub',
-          'upgrade',
-        ],
-        workingDirectory: packagePath);
+    final pubUpgradeProcess = await Process.run('dart', [
+      'pub',
+      'upgrade',
+    ], workingDirectory: packagePath);
     final upgradeErrors = pubUpgradeProcess.stderr as String;
     if (upgradeErrors.isNotEmpty) {
       _logWarning(upgradeErrors);
@@ -159,14 +156,11 @@ Future<int> runRelease({
 
 Future<int> _buildPackage(String package) async {
   _logInfo('Building $package');
-  final buildProcess = await Process.run(
-      'dart',
-      [
-        'run',
-        'build_runner',
-        'build',
-      ],
-      workingDirectory: '../$package');
+  final buildProcess = await Process.run('dart', [
+    'run',
+    'build_runner',
+    'build',
+  ], workingDirectory: '../$package');
 
   final buildErrors = buildProcess.stderr as String;
   if (buildErrors.isNotEmpty) {
@@ -268,24 +262,24 @@ String _removeWip(String wipVersion) {
 
 /// Returns the new pinned DWDS version on success.
 Future<String?> _updateDwdsPin(String package) async {
-  final pubOutdatedProcess = await Process.run(
-      'dart',
-      [
-        'pub',
-        'outdated',
-        '--no-dependency-overrides',
-      ],
-      workingDirectory: '../$package');
+  final pubOutdatedProcess = await Process.run('dart', [
+    'pub',
+    'outdated',
+    '--no-dependency-overrides',
+  ], workingDirectory: '../$package');
   final lines = pubOutdatedProcess.stdout.split('\n') as List<String>;
   String? nextDwdsVersion;
   String? currentDwdsVersion;
   for (final line in lines) {
     if (line.trim().startsWith('dwds')) {
-      final segments =
-          line.trim().split(' ').where((segment) => segment != ' ');
+      final segments = line
+          .trim()
+          .split(' ')
+          .where((segment) => segment != ' ');
       nextDwdsVersion = segments.last;
-      currentDwdsVersion =
-          segments.lastWhere((segment) => segment.startsWith('*')).substring(1);
+      currentDwdsVersion = segments
+          .lastWhere((segment) => segment.startsWith('*'))
+          .substring(1);
       break;
     }
   }

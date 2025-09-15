@@ -44,16 +44,16 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     this._frontendServerClient,
     this._entrypoint,
     String moduleFormat,
-  )   : _bootstrapJs = moduleFormat == 'amd'
-            ? generateAmdBootstrapScript(
-                requireUrl: 'require.js',
-                mapperUrl: 'dart_stack_trace_mapper.js',
-                entrypoint: _entrypoint,
-              )
-            : null,
-        _mainModuleJs = moduleFormat == 'amd'
-            ? generateAmdMainModule(entrypoint: _entrypoint)
-            : null {
+  ) : _bootstrapJs = moduleFormat == 'amd'
+          ? generateAmdBootstrapScript(
+              requireUrl: 'require.js',
+              mapperUrl: 'dart_stack_trace_mapper.js',
+              entrypoint: _entrypoint,
+            )
+          : null,
+      _mainModuleJs = moduleFormat == 'amd'
+          ? generateAmdMainModule(entrypoint: _entrypoint)
+          : null {
     _resetAssets();
   }
 
@@ -152,10 +152,9 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     required String klass,
     required String libraryUri,
     required List<String> typeDefinitions,
-  }) =>
-      throw UnsupportedError(
-        'Use `compileExpressionToJs` for dartdevc based clients',
-      );
+  }) => throw UnsupportedError(
+    'Use `compileExpressionToJs` for dartdevc based clients',
+  );
 
   @override
   Future<CompileResult> compileExpressionToJs({
@@ -166,16 +165,15 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     required String libraryUri,
     required int line,
     required String moduleName,
-  }) =>
-      _frontendServerClient.compileExpressionToJs(
-        expression: expression,
-        column: column,
-        jsFrameValues: jsFrameValues,
-        jsModules: jsModules,
-        libraryUri: libraryUri,
-        line: line,
-        moduleName: moduleName,
-      );
+  }) => _frontendServerClient.compileExpressionToJs(
+    expression: expression,
+    column: column,
+    jsFrameValues: jsFrameValues,
+    jsModules: jsModules,
+    libraryUri: libraryUri,
+    line: line,
+    moduleName: moduleName,
+  );
 
   @override
   void accept() {
@@ -220,5 +218,6 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   }
 }
 
-final _dartdevcPlatformKernel =
-    p.toUri(p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill')).toString();
+final _dartdevcPlatformKernel = p
+    .toUri(p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill'))
+    .toString();
