@@ -12,7 +12,6 @@ void main() {
     argParser = ArgParser()
       ..addFlag('release')
       ..addFlag(launchInChromeFlag, defaultsTo: false)
-      ..addOption(nullSafetyFlag, defaultsTo: nullSafetyAuto)
       ..addOption(userDataDirFlag, defaultsTo: null);
   });
 
@@ -69,12 +68,6 @@ void main() {
   test('must set launchInChrome is to true if using user data directory ', () {
     expect(() => Configuration(launchInChrome: false, userDataDir: 'temp'),
         throwsA(isA<InvalidConfiguration>()));
-  });
-
-  test('nullSafety defaults to auto', () {
-    final argResults = argParser.parse(['']);
-    final defaultConfiguration = Configuration.fromArgs(argResults);
-    expect(defaultConfiguration.nullSafety, equals(nullSafetyAuto));
   });
 
   test(

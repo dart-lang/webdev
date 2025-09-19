@@ -152,30 +152,6 @@ void main() {
         skip: Platform.isWindows,
       );
     }
-    test(
-      'and --null-safety=sound',
-      () async {
-        final args = [
-          'build',
-          '-o',
-          'web:${d.sandbox}',
-          '--no-release',
-          '--null-safety=sound'
-        ];
-
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
-
-        final expectedItems = <Object>['Built with build_runner'];
-
-        await checkProcessStdout(process, expectedItems);
-        await process.shouldExit(0);
-
-        await d.file('main.ddc.js', isNotEmpty).validate();
-      },
-      // https://github.com/dart-lang/webdev/issues/2489
-      skip: Platform.isWindows,
-    );
   });
 
   group('should build with --output=NONE', () {
@@ -285,7 +261,6 @@ void main() {
           'daemon',
           'web:$openPort',
           '--enable-expression-evaluation',
-          '--null-safety=sound',
           '--verbose',
         ];
         final process = await testRunner.runWebDev(args,
