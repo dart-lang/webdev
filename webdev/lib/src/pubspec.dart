@@ -37,15 +37,14 @@ class PackageExceptionDetails {
   static PackageExceptionDetails missingDep(
     String pkgName,
     VersionConstraint constraint,
-  ) =>
-      PackageExceptionDetails._(
-        'You must have a dependency on `$pkgName` in `pubspec.yaml`.',
-        description: '''
+  ) => PackageExceptionDetails._(
+    'You must have a dependency on `$pkgName` in `pubspec.yaml`.',
+    description: '''
 # pubspec.yaml
 dev_dependencies:
   $pkgName: $constraint''',
-        missingDependency: true,
-      );
+    missingDependency: true,
+  );
 
   @override
   String toString() => [error, description].join('\n');
@@ -92,11 +91,13 @@ class PubspecLock {
       dir = next;
     }
 
-    final pubspecLock = loadYaml(
-      await File(
-        p.relative(p.join(dir, 'pubspec.lock')),
-      ).readAsString(),
-    ) as YamlMap;
+    final pubspecLock =
+        loadYaml(
+              await File(
+                p.relative(p.join(dir, 'pubspec.lock')),
+              ).readAsString(),
+            )
+            as YamlMap;
 
     final packages = pubspecLock['packages'] as YamlMap?;
     return PubspecLock(packages);
@@ -113,8 +114,9 @@ class PubspecLock {
       constraint,
     );
 
-    final pkgDataMap =
-        (_packages == null) ? null : _packages[pkgName] as YamlMap?;
+    final pkgDataMap = (_packages == null)
+        ? null
+        : _packages[pkgName] as YamlMap?;
     if (pkgDataMap == null) {
       issues.add(missingDetails);
     } else {
@@ -127,7 +129,8 @@ class PubspecLock {
         final version = pkgDataMap['version'] as String;
         final pkgVersion = Version.parse(version);
         if (!constraint.allows(pkgVersion)) {
-          final error = 'The `$pkgName` version – $pkgVersion – is not '
+          final error =
+              'The `$pkgName` version – $pkgVersion – is not '
               'within the allowed constraint – $constraint.';
           issues.add(PackageExceptionDetails._(error));
         }

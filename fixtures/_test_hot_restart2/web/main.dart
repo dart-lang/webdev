@@ -26,7 +26,8 @@ external void log(String _);
 
 class ConstObject {
   const ConstObject();
-  String get text => 'ConstObject('
+  String get text =>
+      'ConstObject('
       'reloadVariable: $variableToModifyToForceRecompile, '
       '${value1 == value2 ? 'ConstantEqualitySuccess' : 'ConstantEqualityFailure'})';
 }

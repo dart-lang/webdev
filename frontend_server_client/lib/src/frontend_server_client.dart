@@ -25,8 +25,8 @@ class FrontendServerClient {
     this._feServer,
     this._feServerStdoutLines, {
     bool? verbose,
-  })  : _verbose = verbose ?? false,
-        _state = _ClientState.waitingForFirstCompile {
+  }) : _verbose = verbose ?? false,
+       _state = _ClientState.waitingForFirstCompile {
     _feServer.stderr.transform(utf8.decoder).listen(stderr.write);
   }
 
@@ -196,8 +196,8 @@ class FrontendServerClient {
       final compilerOutputLines = <String>[];
       var errorCount = 0;
       String? outputDillPath;
-      while (
-          state != _CompileState.done && await _feServerStdoutLines.hasNext) {
+      while (state != _CompileState.done &&
+          await _feServerStdoutLines.hasNext) {
         final line = await _nextInputLine();
         switch (state) {
           case _CompileState.started:
@@ -256,8 +256,7 @@ class FrontendServerClient {
     required String klass,
     required String libraryUri,
     required List<String> typeDefinitions,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   /// TODO: Document
   Future<CompileResult> compileExpressionToJs({
@@ -268,8 +267,7 @@ class FrontendServerClient {
     required String libraryUri,
     required int line,
     required String moduleName,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   /// Should be invoked when results of compilation are accepted by the client.
   ///
