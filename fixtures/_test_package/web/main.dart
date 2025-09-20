@@ -133,8 +133,7 @@ Future<void> printDeferred() async {
 void printNestedObjectsMultiLine() {
   // dart format off
   printEnclosingObject( // Breakpoint: printEnclosingFunctionMultiLine
-    EnclosingClass(
-      // Breakpoint: printEnclosingObjectMultiLine
+    EnclosingClass( // Breakpoint: printEnclosingObjectMultiLine
       EnclosedClass(0), // Breakpoint: printNestedObjectMultiLine
     ),
   );
