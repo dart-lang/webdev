@@ -1,11 +1,10 @@
 name: _test_hot_restart1
 version: 1.0.0
 description: >-
-    A fake package used for testing hot restart.
+  A fake package used for testing hot restart.
 publish_to: none
-
 environment:
-  sdk: ^3.2.0
+  sdk: ^3.10.0-0.0.dev
 
 dependencies:
   intl: ^0.17.0

@@ -13,8 +13,11 @@ import 'configuration.dart';
 
 final lineLength = stdout.hasTerminal ? stdout.terminalColumns : 80;
 
-void addSharedArgs(ArgParser argParser,
-    {String? outputDefault, bool? releaseDefault}) {
+void addSharedArgs(
+  ArgParser argParser, {
+  String? outputDefault,
+  bool? releaseDefault,
+}) {
   outputDefault ??= outputNone;
   releaseDefault ??= true;
   argParser
@@ -22,63 +25,83 @@ void addSharedArgs(ArgParser argParser,
       outputFlag,
       abbr: 'o',
       defaultsTo: outputDefault,
-      help: 'A directory to write the result of a build to. Or a mapping '
+      help:
+          'A directory to write the result of a build to. Or a mapping '
           'from a top-level directory in the package to the directory to '
           'write a filtered build output to. For example "web:deploy".\n'
           'A value of "NONE" indicates that no "--output" value should be '
           'passed to `build_runner`.',
     )
-    ..addOption(nullSafetyFlag,
-        abbr: 'n',
-        defaultsTo: nullSafetyAuto,
-        allowed: [nullSafetySound, nullSafetyUnsound, nullSafetyAuto],
-        help:
-            'DEPRECATED: If "sound", `package:build_web_compilers` will be run '
-            'with sound null safety support. '
-            'If "unsound", `package:build_web_compilers` will be run without '
-            'sound null safety support. '
-            'If "auto", the default `package:build_web_compilers` '
-            'behavior is used.',
-        hide: true)
-    ..addFlag(releaseFlag,
-        abbr: 'r',
-        defaultsTo: releaseDefault,
-        negatable: true,
-        help: 'Build with release mode defaults for builders.')
-    ..addFlag(requireBuildWebCompilersFlag,
-        defaultsTo: true,
-        negatable: true,
-        help: 'If a dependency on `build_web_compilers` is required to run.')
-    ..addFlag(disableDdsFlag,
-        negatable: false,
-        help: 'Disable the Dart Development Service (DDS). Disabling DDS may '
-            'result in a degraded developer experience in some tools.',
-        hide: true)
-    ..addFlag(enableExpressionEvaluationFlag,
-        abbr: 'e',
-        defaultsTo: true,
-        negatable: true,
-        help: 'Enable expression evaluation features in the debugger.')
-    ..addMultiOption(enableExperimentOption,
-        abbr: 'x',
-        defaultsTo: null,
-        hide: true,
-        help: 'Enable experiment features in the debugger.')
-    ..addFlag(canaryFeaturesFlag,
-        abbr: 'c',
-        defaultsTo: false,
-        negatable: true,
-        hide: true,
-        help: 'Enables DDC canary features.')
-    ..addFlag(verboseFlag,
-        abbr: 'v',
-        defaultsTo: false,
-        negatable: false,
-        help: 'Enables verbose logging.')
-    ..addFlag(offlineFlag,
-        defaultsTo: false,
-        negatable: false,
-        help: 'Disable fetching from pub.dev.');
+    ..addOption(
+      nullSafetyFlag,
+      abbr: 'n',
+      defaultsTo: nullSafetyAuto,
+      allowed: [nullSafetySound, nullSafetyUnsound, nullSafetyAuto],
+      help:
+          'DEPRECATED: If "sound", `package:build_web_compilers` will be run '
+          'with sound null safety support. '
+          'If "unsound", `package:build_web_compilers` will be run without '
+          'sound null safety support. '
+          'If "auto", the default `package:build_web_compilers` '
+          'behavior is used.',
+      hide: true,
+    )
+    ..addFlag(
+      releaseFlag,
+      abbr: 'r',
+      defaultsTo: releaseDefault,
+      negatable: true,
+      help: 'Build with release mode defaults for builders.',
+    )
+    ..addFlag(
+      requireBuildWebCompilersFlag,
+      defaultsTo: true,
+      negatable: true,
+      help: 'If a dependency on `build_web_compilers` is required to run.',
+    )
+    ..addFlag(
+      disableDdsFlag,
+      negatable: false,
+      help:
+          'Disable the Dart Development Service (DDS). Disabling DDS may '
+          'result in a degraded developer experience in some tools.',
+      hide: true,
+    )
+    ..addFlag(
+      enableExpressionEvaluationFlag,
+      abbr: 'e',
+      defaultsTo: true,
+      negatable: true,
+      help: 'Enable expression evaluation features in the debugger.',
+    )
+    ..addMultiOption(
+      enableExperimentOption,
+      abbr: 'x',
+      defaultsTo: null,
+      hide: true,
+      help: 'Enable experiment features in the debugger.',
+    )
+    ..addFlag(
+      canaryFeaturesFlag,
+      abbr: 'c',
+      defaultsTo: false,
+      negatable: true,
+      hide: true,
+      help: 'Enables DDC canary features.',
+    )
+    ..addFlag(
+      verboseFlag,
+      abbr: 'v',
+      defaultsTo: false,
+      negatable: false,
+      help: 'Enables verbose logging.',
+    )
+    ..addFlag(
+      offlineFlag,
+      defaultsTo: false,
+      negatable: false,
+      help: 'Disable fetching from pub.dev.',
+    );
 }
 
 /// Parses the provided [Configuration] to return a list of
@@ -108,8 +131,10 @@ List<String> buildRunnerArgs(Configuration configuration) {
 
 Future<void> validatePubspecLock(Configuration configuration) async {
   final pubspecLock = await PubspecLock.read(offline: configuration.offline);
-  await checkPubspecLock(pubspecLock,
-      requireBuildWebCompilers: configuration.requireBuildWebCompilers);
+  await checkPubspecLock(
+    pubspecLock,
+    requireBuildWebCompilers: configuration.requireBuildWebCompilers,
+  );
 }
 
 /// Checks that the normalized form of [path] is a top level directory under
@@ -124,8 +149,9 @@ void ensureIsTopLevelDir(String path) {
       path.contains(r'\') ||
       path.contains(r'/')) {
     throw InvalidConfiguration(
-        'Only top level directories under the package can be built or served '
-        '(such as `web` or `test`), but was given `$path`.');
+      'Only top level directories under the package can be built or served '
+      '(such as `web` or `test`), but was given `$path`.',
+    );
   }
 }
 
@@ -173,9 +199,10 @@ void validateLaunchApps(List<String> launchApps, Iterable<String> serveDirs) {
     final dir = p.url.split(app).first;
     if (!serveDirs.contains(dir)) {
       throw InvalidConfiguration(
-          'Unable to launch app `$app` since its top level dir (`$dir`) '
-          'is not being served. The currently directories being served are: '
-          '${serveDirs.toList()}');
+        'Unable to launch app `$app` since its top level dir (`$dir`) '
+        'is not being served. The currently directories being served are: '
+        '${serveDirs.toList()}',
+      );
     }
   }
 }

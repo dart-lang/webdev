@@ -1,8 +1,7 @@
 name: _test_hot_restart_breakpoints
 version: 1.0.0
 description: >-
-    A fake package used for testing hot restart breakpoints.
+  A fake package used for testing hot restart breakpoints.
 publish_to: none
-
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.10.0-0.0.dev

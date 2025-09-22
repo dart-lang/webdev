@@ -185,7 +185,8 @@ class RequireStrategy extends LoadStrategy {
   ///
   /// Adds error handler code for require.js which requests a `.errors` file for
   /// any failed module, and logs it to the console.
-  String get _requireJsConfig => '''
+  String get _requireJsConfig =>
+      '''
 $_baseUrlScript;
 require.config({
     baseUrl: baseUrl,

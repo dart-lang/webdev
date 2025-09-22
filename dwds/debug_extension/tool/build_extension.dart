@@ -20,8 +20,8 @@ import 'package:path/path.dart' as p;
 const _prodFlag = 'prod';
 
 void main(List<String> arguments) async {
-  final parser =
-      ArgParser()..addFlag(_prodFlag, negatable: true, defaultsTo: false);
+  final parser = ArgParser()
+    ..addFlag(_prodFlag, negatable: true, defaultsTo: false);
   final argResults = parser.parse(arguments);
 
   exitCode = await run(isProd: argResults[_prodFlag] as bool);

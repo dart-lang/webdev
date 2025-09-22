@@ -45,11 +45,16 @@ void main() {
   setUpAll(() async {
     configureLogWriter(debug);
     await testRunner.setUpAll();
-    exampleDirectory =
-        p.absolute(p.join(p.current, '..', 'fixtures', '_webdev_smoke'));
+    exampleDirectory = p.absolute(
+      p.join(p.current, '..', 'fixtures', '_webdev_smoke'),
+    );
 
-    final process = await TestProcess.start(dartPath, ['pub', 'upgrade'],
-        workingDirectory: exampleDirectory, environment: getPubEnvironment());
+    final process = await TestProcess.start(
+      dartPath,
+      ['pub', 'upgrade'],
+      workingDirectory: exampleDirectory,
+      environment: getPubEnvironment(),
+    );
 
     await process.shouldExit(0);
 
@@ -67,14 +72,20 @@ void main() {
             as YamlMap;
     final webdevYaml =
         loadYaml(await File('pubspec.yaml').readAsString()) as YamlMap;
-    expect(smokeYaml['environment']['sdk'],
-        equals(webdevYaml['environment']['sdk']));
     expect(
-        buildRunnerConstraint.allowsAny(VersionConstraint.parse(
-            smokeYaml['dev_dependencies']['build_runner'])),
-        true);
-    expect(smokeYaml['dev_dependencies']['build_web_compilers'],
-        equals(buildWebCompilersConstraint.toString()));
+      smokeYaml['environment']['sdk'],
+      equals(webdevYaml['environment']['sdk']),
+    );
+    expect(
+      buildRunnerConstraint.allowsAny(
+        VersionConstraint.parse(smokeYaml['dev_dependencies']['build_runner']),
+      ),
+      true,
+    );
+    expect(
+      smokeYaml['dev_dependencies']['build_web_compilers'],
+      equals(buildWebCompilersConstraint.toString()),
+    );
   });
 
   test('build should fail if targeting an existing directory', () async {
@@ -82,19 +93,24 @@ void main() {
 
     final args = ['build', '-o', 'web:${d.sandbox}'];
 
-    final process =
-        await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
+    final process = await testRunner.runWebDev(
+      args,
+      workingDirectory: exampleDirectory,
+    );
 
     // NOTE: We'd like this to be more useful
     // See https://github.com/dart-lang/build/issues/1283
 
     await expectLater(
-        process.stdout,
-        emitsThrough(contains(
+      process.stdout,
+      emitsThrough(
+        contains(
           'Unable to create merged directory ${d.sandbox}. '
           'Choose a different directory or delete the contents of that '
           'directory.',
-        )));
+        ),
+      ),
+    );
 
     await process.shouldExit(isNot(0));
   });
@@ -107,11 +123,13 @@ void main() {
         '-o',
         'web:${d.sandbox}',
         '--',
-        '--delete-conflicting-outputs'
+        '--delete-conflicting-outputs',
       ];
 
-      final process =
-          await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
+      final process = await testRunner.runWebDev(
+        args,
+        workingDirectory: exampleDirectory,
+      );
 
       await checkProcessStdout(process, ['Built with build_runner']);
       await process.shouldExit(0);
@@ -130,8 +148,10 @@ void main() {
             args.add('--no-release');
           }
 
-          final process = await testRunner.runWebDev(args,
-              workingDirectory: exampleDirectory);
+          final process = await testRunner.runWebDev(
+            args,
+            workingDirectory: exampleDirectory,
+          );
 
           final expectedItems = <Object>['Built with build_runner'];
 
@@ -160,11 +180,13 @@ void main() {
           '-o',
           'web:${d.sandbox}',
           '--no-release',
-          '--null-safety=sound'
+          '--null-safety=sound',
         ];
 
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
 
         final expectedItems = <Object>['Built with build_runner'];
 
@@ -186,8 +208,10 @@ void main() {
           args.add('--no-release');
         }
 
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
 
         final expectedItems = <Object>['Built with build_runner'];
 
@@ -211,8 +235,10 @@ void main() {
 
         final stdoutDone = Completer<void>();
         final stderrDone = Completer<void>();
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
         process.stdoutStream().listen((_) => {}, onDone: stdoutDone.complete);
         process.stderrStream().listen((_) => {}, onDone: stderrDone.complete);
 
@@ -220,7 +246,9 @@ void main() {
 
         // Wait for the initial build to finish.
         await expectLater(
-            process.stdout, emitsThrough(contains('Built with build_runner')));
+          process.stdout,
+          emitsThrough(contains('Built with build_runner')),
+        );
 
         final client = HttpClient();
 
@@ -233,8 +261,11 @@ void main() {
 
             final shouldExist = (entry.value ?? withDDC) == withDDC;
 
-            expect(response.statusCode, shouldExist ? 200 : 404,
-                reason: 'Expecting "$url"? $shouldExist');
+            expect(
+              response.statusCode,
+              shouldExist ? 200 : 404,
+              reason: 'Expecting "$url"? $shouldExist',
+            );
           }
         } finally {
           client.close(force: true);
@@ -254,16 +285,22 @@ void main() {
         test('cannot $command directory: `$dir`', () async {
           final args = [
             command,
-            if (command == 'build') '--output=$dir:foo' else dir
+            if (command == 'build') '--output=$dir:foo' else dir,
           ];
 
-          final process = await testRunner.runWebDev(args,
-              workingDirectory: exampleDirectory);
+          final process = await testRunner.runWebDev(
+            args,
+            workingDirectory: exampleDirectory,
+          );
           await expectLater(
-              process.stdout,
-              emitsThrough(contains(
-                  'Invalid configuration: Only top level directories under the '
-                  'package can be built')));
+            process.stdout,
+            emitsThrough(
+              contains(
+                'Invalid configuration: Only top level directories under the '
+                'package can be built',
+              ),
+            ),
+          );
           await expectLater(process.exitCode, completion(ExitCode.config.code));
         });
       }
@@ -288,8 +325,10 @@ void main() {
           '--null-safety=sound',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
         VmService? vmService;
 
         process.stdoutStream().listen(Logger.root.fine);
@@ -298,10 +337,13 @@ void main() {
         try {
           // Wait for debug service Uri
           String? wsUri;
-          await expectLater(process.stdout, emitsThrough((message) {
-            wsUri = getDebugServiceUri(message as String);
-            return wsUri != null;
-          }));
+          await expectLater(
+            process.stdout,
+            emitsThrough((message) {
+              wsUri = getDebugServiceUri(message as String);
+              return wsUri != null;
+            }),
+          );
           Logger.root.fine('vm service uri: $wsUri');
           expect(wsUri, isNotNull);
 
@@ -313,30 +355,44 @@ void main() {
           await vmService.streamListen('Debug');
           final stream = vmService.onEvent('Debug');
 
-          final mainScript = scripts.scripts!
-              .firstWhere((each) => each.uri!.contains('main.dart'));
+          final mainScript = scripts.scripts!.firstWhere(
+            (each) => each.uri!.contains('main.dart'),
+          );
 
           final bpLine = await findBreakpointLine(
-              vmService, 'printCounter', isolateId, mainScript);
+            vmService,
+            'printCounter',
+            isolateId,
+            mainScript,
+          );
 
           final bp = await vmService.addBreakpointWithScriptUri(
-              isolateId, mainScript.uri!, bpLine);
+            isolateId,
+            mainScript.uri!,
+            bpLine,
+          );
           expect(bp, isNotNull);
 
           await stream.firstWhere(
-              (Event event) => event.kind == EventKind.kPauseBreakpoint);
+            (Event event) => event.kind == EventKind.kPauseBreakpoint,
+          );
 
           final expression =
               '() { const sound = !(<Null>[] is List<int>); return sound; } ()';
-          final result =
-              await vmService.evaluateInFrame(isolateId, 0, expression);
+          final result = await vmService.evaluateInFrame(
+            isolateId,
+            0,
+            expression,
+          );
 
           expect(
-              result,
-              const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.valueAsString,
-                  'valueAsString',
-                  'true'));
+            result,
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              'true',
+            ),
+          );
         } finally {
           await vmService?.dispose();
           await exitWebdev(process);
@@ -353,8 +409,10 @@ void main() {
           '--enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
 
         process.stdoutStream().listen(Logger.root.fine);
         process.stderrStream().listen(Logger.root.warning);
@@ -364,10 +422,13 @@ void main() {
         try {
           // Wait for debug service Uri
           String? wsUri;
-          await expectLater(process.stdout, emitsThrough((message) {
-            wsUri = getDebugServiceUri(message as String);
-            return wsUri != null;
-          }));
+          await expectLater(
+            process.stdout,
+            emitsThrough((message) {
+              wsUri = getDebugServiceUri(message as String);
+              return wsUri != null;
+            }),
+          );
           expect(wsUri, isNotNull);
 
           vmService = await vmServiceConnectUri(wsUri!);
@@ -378,25 +439,35 @@ void main() {
 
           await vmService.streamListen('Debug');
 
-          var result = await vmService.evaluate(isolateId, libraryId,
-              '(document?.body?.children?.first as SpanElement)?.text');
+          var result = await vmService.evaluate(
+            isolateId,
+            libraryId,
+            '(document?.body?.children?.first as SpanElement)?.text',
+          );
 
           expect(
-              result,
-              const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.valueAsString,
-                  'valueAsString',
-                  'Hello World!!'));
+            result,
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              'Hello World!!',
+            ),
+          );
 
           result = await vmService.evaluate(
-              isolateId, libraryId, 'topLevelMethod()');
+            isolateId,
+            libraryId,
+            'topLevelMethod()',
+          );
 
           expect(
-              result,
-              const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.valueAsString,
-                  'valueAsString',
-                  equals('verify this!')));
+            result,
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'valueAsString',
+              equals('verify this!'),
+            ),
+          );
         } finally {
           await vmService?.dispose();
           await exitWebdev(process);
@@ -413,8 +484,10 @@ void main() {
           '--enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
 
         process.stdoutStream().listen(Logger.root.fine);
         process.stderrStream().listen(Logger.root.warning);
@@ -424,10 +497,13 @@ void main() {
         try {
           // Wait for debug service Uri
           String? wsUri;
-          await expectLater(process.stdout, emitsThrough((message) {
-            wsUri = getDebugServiceUri(message as String);
-            return wsUri != null;
-          }));
+          await expectLater(
+            process.stdout,
+            emitsThrough((message) {
+              wsUri = getDebugServiceUri(message as String);
+              return wsUri != null;
+            }),
+          );
           expect(wsUri, isNotNull);
 
           vmService = await vmServiceConnectUri(wsUri!);
@@ -438,30 +514,43 @@ void main() {
 
           await vmService.streamListen('Debug');
 
-          final result =
-              await vmService.evaluate(isolateId, libraryId, '[true, false]');
+          final result = await vmService.evaluate(
+            isolateId,
+            libraryId,
+            '[true, false]',
+          );
           expect(
-              result,
-              const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.classRef?.name,
-                  'class name',
-                  'JSArray<bool>'));
+            result,
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.classRef?.name,
+              'class name',
+              'JSArray<bool>',
+            ),
+          );
 
           final instanceRef = result as InstanceRef;
           final list = await vmService.getObject(isolateId, instanceRef.id!);
           expect(
-              list,
-              const TypeMatcher<Instance>().having(
-                  (instance) => instance.classRef?.name,
-                  'class name',
-                  'JSArray<bool>'));
+            list,
+            const TypeMatcher<Instance>().having(
+              (instance) => instance.classRef?.name,
+              'class name',
+              'JSArray<bool>',
+            ),
+          );
 
           final elements = (list as Instance).elements;
           expect(elements, [
-            const TypeMatcher<InstanceRef>()
-                .having((instance) => instance.valueAsString, 'value', 'true'),
-            const TypeMatcher<InstanceRef>()
-                .having((instance) => instance.valueAsString, 'value', 'false'),
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'value',
+              'true',
+            ),
+            const TypeMatcher<InstanceRef>().having(
+              (instance) => instance.valueAsString,
+              'value',
+              'false',
+            ),
           ]);
         } finally {
           await vmService?.dispose();
@@ -480,17 +569,22 @@ void main() {
           '--no-enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
         VmService? vmService;
 
         try {
           // Wait for debug service Uri
           String? wsUri;
-          await expectLater(process.stdout, emitsThrough((message) {
-            wsUri = getDebugServiceUri(message as String);
-            return wsUri != null;
-          }));
+          await expectLater(
+            process.stdout,
+            emitsThrough((message) {
+              wsUri = getDebugServiceUri(message as String);
+              return wsUri != null;
+            }),
+          );
           expect(wsUri, isNotNull);
 
           vmService = await vmServiceConnectUri(wsUri!);
@@ -501,23 +595,36 @@ void main() {
           await vmService.streamListen('Debug');
           final stream = vmService.onEvent('Debug');
 
-          final mainScript = scripts.scripts!
-              .firstWhere((each) => each.uri!.contains('main.dart'));
+          final mainScript = scripts.scripts!.firstWhere(
+            (each) => each.uri!.contains('main.dart'),
+          );
 
           final bpLine = await findBreakpointLine(
-              vmService, 'printCounter', isolateId, mainScript);
+            vmService,
+            'printCounter',
+            isolateId,
+            mainScript,
+          );
 
           final bp = await vmService.addBreakpointWithScriptUri(
-              isolateId, mainScript.uri!, bpLine);
+            isolateId,
+            mainScript.uri!,
+            bpLine,
+          );
           expect(bp, isNotNull);
 
           final event = await stream.firstWhere(
-              (Event event) => event.kind == EventKind.kPauseBreakpoint);
+            (Event event) => event.kind == EventKind.kPauseBreakpoint,
+          );
 
           expect(
-              () => vmService!
-                  .evaluateInFrame(isolateId, event.topFrame!.index!, 'true'),
-              throwsRPCError);
+            () => vmService!.evaluateInFrame(
+              isolateId,
+              event.topFrame!.index!,
+              'true',
+            ),
+            throwsRPCError,
+          );
         } finally {
           await vmService?.dispose();
           await exitWebdev(process);
@@ -534,17 +641,22 @@ void main() {
           '--no-enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(args,
-            workingDirectory: exampleDirectory);
+        final process = await testRunner.runWebDev(
+          args,
+          workingDirectory: exampleDirectory,
+        );
         VmService? vmService;
 
         try {
           // Wait for debug service Uri
           String? wsUri;
-          await expectLater(process.stdout, emitsThrough((message) {
-            wsUri = getDebugServiceUri(message as String);
-            return wsUri != null;
-          }));
+          await expectLater(
+            process.stdout,
+            emitsThrough((message) {
+              wsUri = getDebugServiceUri(message as String);
+              return wsUri != null;
+            }),
+          );
           expect(wsUri, isNotNull);
 
           vmService = await vmServiceConnectUri(wsUri!);
@@ -556,9 +668,9 @@ void main() {
           await vmService.streamListen('Debug');
 
           expect(
-              () =>
-                  vmService!.evaluate(isolateId, libraryId, 'topLevelMethod()'),
-              throwsRPCError);
+            () => vmService!.evaluate(isolateId, libraryId, 'topLevelMethod()'),
+            throwsRPCError,
+          );
         } finally {
           await vmService?.dispose();
           await exitWebdev(process);

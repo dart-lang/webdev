@@ -81,10 +81,9 @@ class PackageUriMapper {
       final root = package.root;
       final relativeUrl = resolvedUri.toString().replaceFirst('$root', '');
       final relativeRoot = _getRelativeRoot(root);
-      final ret =
-          relativeRoot == null
-              ? 'packages/$relativeUrl'
-              : 'packages/$relativeRoot/$relativeUrl';
+      final ret = relativeRoot == null
+          ? 'packages/$relativeUrl'
+          : 'packages/$relativeRoot/$relativeUrl';
       return ret;
     }
     _logger.severe('Expected package uri, but found $packageUri');

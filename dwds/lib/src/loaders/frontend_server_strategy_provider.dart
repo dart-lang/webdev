@@ -38,10 +38,9 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
     return stripLeadingSlashes(stripped.substring(_basePath.length));
   }
 
-  String _addBasePath(String serverPath) =>
-      _basePath.isEmpty
-          ? stripLeadingSlashes(serverPath)
-          : '$_basePath/${stripLeadingSlashes(serverPath)}';
+  String _addBasePath(String serverPath) => _basePath.isEmpty
+      ? stripLeadingSlashes(serverPath)
+      : '$_basePath/${stripLeadingSlashes(serverPath)}';
 
   String _removeJsExtension(String path) =>
       path.endsWith('.js') ? p.withoutExtension(path) : path;

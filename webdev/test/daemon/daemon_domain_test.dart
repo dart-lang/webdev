@@ -26,29 +26,37 @@ void main() {
   group('Daemon', () {
     group('Events', () {
       test('.connected', () async {
-        final webdev = await testRunner
-            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        final webdev = await testRunner.runWebDev([
+          'daemon',
+        ], workingDirectory: exampleDirectory);
         await expectLater(
-            webdev.stdout, emits(startsWith('[{"event":"daemon.connected"')));
+          webdev.stdout,
+          emits(startsWith('[{"event":"daemon.connected"')),
+        );
         await exitWebdev(webdev);
       });
     });
 
     group('Methods', () {
       test('.version', () async {
-        final webdev = await testRunner
-            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        final webdev = await testRunner.runWebDev([
+          'daemon',
+        ], workingDirectory: exampleDirectory);
         webdev.stdin.add(utf8.encode('[{"method":"daemon.version","id":0}]\n'));
         await expectLater(
-            webdev.stdout, emitsThrough(equals('[{"id":0,"result":"0.4.2"}]')));
+          webdev.stdout,
+          emitsThrough(equals('[{"id":0,"result":"0.4.2"}]')),
+        );
         await exitWebdev(webdev);
       });
 
       test('.shutdown', () async {
-        final webdev = await testRunner
-            .runWebDev(['daemon'], workingDirectory: exampleDirectory);
-        webdev.stdin
-            .add(utf8.encode('[{"method":"daemon.shutdown","id":0}]\n'));
+        final webdev = await testRunner.runWebDev([
+          'daemon',
+        ], workingDirectory: exampleDirectory);
+        webdev.stdin.add(
+          utf8.encode('[{"method":"daemon.shutdown","id":0}]\n'),
+        );
         await expectLater(webdev.stdout, emitsThrough(equals('[{"id":0}]')));
         expect(await webdev.exitCode, equals(0));
       });

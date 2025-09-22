@@ -106,24 +106,22 @@ class TestDebugSettings extends DebugSettings {
     bool serveFromDds = false,
   }) : super(
          // ignore: deprecated_member_use_from_same_package
-         devToolsLauncher:
-             serveFromDds
-                 ? null
-                 : (hostname) async {
-                   final server = await DevToolsServer().serveDevTools(
-                     hostname: hostname,
-                     enableStdinCommands: false,
-                     customDevToolsPath:
-                         context
-                             .sdkConfigurationProvider
-                             .sdkLayout
-                             .devToolsDirectory,
-                   );
-                   if (server == null) {
-                     throw StateError('DevTools server could not be started.');
-                   }
-                   return DevTools(server.address.host, server.port, server);
-                 },
+         devToolsLauncher: serveFromDds
+             ? null
+             : (hostname) async {
+                 final server = await DevToolsServer().serveDevTools(
+                   hostname: hostname,
+                   enableStdinCommands: false,
+                   customDevToolsPath: context
+                       .sdkConfigurationProvider
+                       .sdkLayout
+                       .devToolsDirectory,
+                 );
+                 if (server == null) {
+                   throw StateError('DevTools server could not be started.');
+                 }
+                 return DevTools(server.address.host, server.port, server);
+               },
          ddsConfiguration: DartDevelopmentServiceConfiguration(
            serveDevTools: serveFromDds,
          ),

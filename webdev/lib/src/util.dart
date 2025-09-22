@@ -16,8 +16,11 @@ const appName = 'webdev';
 ///
 /// Captures all sync and async stack error traces and passes
 /// them to the [onError] handler.
-void serveHttpRequests(Stream<HttpRequest> requests, Handler handler,
-    void Function(Object, StackTrace) onError) {
+void serveHttpRequests(
+  Stream<HttpRequest> requests,
+  Handler handler,
+  void Function(Object, StackTrace) onError,
+) {
   return Chain.capture(() {
     serveRequests(requests, handler);
   }, onError: onError);

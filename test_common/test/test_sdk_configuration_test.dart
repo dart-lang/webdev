@@ -26,18 +26,30 @@ void main() {
       final sdkDirectory = provider.sdkLayout.sdkDirectory;
       final sdkSummary = provider.sdkLayout.summaryPath;
       try {
-        expect(sdkDirectory, _directoryExists,
-            reason: 'SDK directory should be created');
-        expect(sdkSummary, isNot(_fileExists),
-            reason: 'SDK summary should not be generated yet.');
+        expect(
+          sdkDirectory,
+          _directoryExists,
+          reason: 'SDK directory should be created',
+        );
+        expect(
+          sdkSummary,
+          isNot(_fileExists),
+          reason: 'SDK summary should not be generated yet.',
+        );
 
         await provider.configuration;
-        expect(sdkSummary, _fileExists,
-            reason: 'SDK summary should be generated');
+        expect(
+          sdkSummary,
+          _fileExists,
+          reason: 'SDK summary should be generated',
+        );
       } finally {
         provider.dispose();
-        expect(sdkDirectory, isNot(_directoryExists),
-            reason: 'SDK directory copy should be deleted on dispose');
+        expect(
+          sdkDirectory,
+          isNot(_directoryExists),
+          reason: 'SDK directory copy should be deleted on dispose',
+        );
       }
     });
   });
@@ -45,7 +57,9 @@ void main() {
   group('Test SDK configuration | DDC with DDC modules |', () {
     setCurrentLogWriter(debug: debug);
     final provider = TestSdkConfigurationProvider(
-        verbose: debug, ddcModuleFormat: ModuleFormat.ddc);
+      verbose: debug,
+      ddcModuleFormat: ModuleFormat.ddc,
+    );
     tearDownAll(provider.dispose);
 
     test('Can validate configuration with generated assets', () async {
@@ -109,8 +123,12 @@ void main() {
   });
 }
 
-Matcher _fileExists =
-    predicate((String path) => File(path).existsSync(), 'File exists');
+Matcher _fileExists = predicate(
+  (String path) => File(path).existsSync(),
+  'File exists',
+);
 
 Matcher _directoryExists = predicate(
-    (String path) => Directory(path).existsSync(), 'Directory exists');
+  (String path) => Directory(path).existsSync(),
+  'Directory exists',
+);

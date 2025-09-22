@@ -43,15 +43,22 @@ String? getDebugServiceUri(String line) {
   return null;
 }
 
-Future<int> findBreakpointLine(VmService vmService, String breakpointId,
-    String isolateId, ScriptRef scriptRef) async {
+Future<int> findBreakpointLine(
+  VmService vmService,
+  String breakpointId,
+  String isolateId,
+  ScriptRef scriptRef,
+) async {
   final script = await vmService.getObject(isolateId, scriptRef.id!) as Script;
   final lines = LineSplitter.split(script.source!).toList();
-  final lineNumber =
-      lines.indexWhere((l) => l.endsWith('// Breakpoint: $breakpointId'));
+  final lineNumber = lines.indexWhere(
+    (l) => l.endsWith('// Breakpoint: $breakpointId'),
+  );
   if (lineNumber == -1) {
-    throw StateError('Unable to find breakpoint in ${scriptRef.uri} with id '
-        '$breakpointId');
+    throw StateError(
+      'Unable to find breakpoint in ${scriptRef.uri} with id '
+      '$breakpointId',
+    );
   }
   return lineNumber + 1;
 }

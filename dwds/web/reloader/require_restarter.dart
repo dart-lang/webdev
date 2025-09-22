@@ -170,10 +170,9 @@ class RequireRestarter implements Restarter {
   }
 
   @override
-  Future<void> hotReloadEnd() =>
-      throw UnimplementedError(
-        'Hot reload is not supported for the AMD module format.',
-      );
+  Future<void> hotReloadEnd() => throw UnimplementedError(
+    'Hot reload is not supported for the AMD module format.',
+  );
 
   @override
   Future<JSArray<JSObject>> hotReloadStart(String reloadedSourcesPath) =>
@@ -254,10 +253,9 @@ class RequireRestarter implements Restarter {
           // The bootstrap module is not reloaded but we need to update the
           // $dartRunMain reference to the newly loaded child module.
           // ignore: unnecessary_lambdas
-          dartRunMain =
-              () {
-                dart.getMainLibrary(previousModuleId).main();
-              }.toJS;
+          dartRunMain = () {
+            dart.getMainLibrary(previousModuleId).main();
+          }.toJS;
         } else {
           ++reloadedModules;
           await _reloadModule(moduleId);

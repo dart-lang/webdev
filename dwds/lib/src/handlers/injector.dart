@@ -145,8 +145,9 @@ Future<String> _injectClientAndHoistMain(
   var result = bodyLines.sublist(0, extensionIndex).join('\n');
   // The line after the marker calls `main`. We prevent `main` from
   // being called and make it runnable through a global variable.
-  final mainFunction =
-      bodyLines[extensionIndex + 1].replaceAll('main();', 'main').trim();
+  final mainFunction = bodyLines[extensionIndex + 1]
+      .replaceAll('main();', 'main')
+      .trim();
   // We inject the client in the entry point module as the client expects the
   // application to be in a ready state, that is the main function is hoisted
   // and the Dart SDK is loaded.
@@ -156,7 +157,8 @@ Future<String> _injectClientAndHoistMain(
     entrypointPath,
     extensionUri,
   );
-  result += '''
+  result +=
+      '''
   // Injected by dwds for debugging support.
   if(!window.\$dwdsInitialized) {
     window.\$dwdsInitialized = true;

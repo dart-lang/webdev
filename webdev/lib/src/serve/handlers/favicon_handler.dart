@@ -21,7 +21,8 @@ Handler interceptFavicon(Handler handler) {
   };
 }
 
-final _icon = gzip.decode(base64.decode(
+final _icon = gzip.decode(
+  base64.decode(
     'H4sIAAAAAAAAE+3aTUgUYRgH8DGK0lN06BBBBkGG7Ye7JnrKPiAIjQ6GJX6trQtBRubOul'
     'bQHLNbiYcgEO2SsusmgiiIH4fsw2Z3O4hEdTUPBYoQKyRPM7PO9rKuOuvOvM+7o//l2cPw'
     'sju/h2fnZZbhuBzpVV7OSe/5XMFljjvKcVyBVNIhTuDix7ECMzdyIeIOQ9QD1CrccAkNTA'
@@ -38,4 +39,6 @@ final _icon = gzip.decode(base64.decode(
     'pOHVT9SxNV6MaNdQ7GOisNsauRPvveyqc2GHpcyoC3GN4+LIFh4TyMPr0Kk121MNdX0WGU'
     'Xc6w4MybffMIprrrle/DrunuOgj31sPCqAv+zjZcM9KuRnneN9rUgv58L1lio2Ezz3wfEO'
     'zM9AHZToZ6Hxiyk6HSB0btZAzrQxbYyejahyyzk8m4D1lsJ7OjPpjETkZTHyKeX/DF5cA+'
-    'V6MDUVc1RNz9EGn+JtUiRN1BEF1XsM9rL3vZi/nzD71EuTA+RAAA'));
+    'V6MDUVc1RNz9EGn+JtUiRN1BEF1XsM9rL3vZi/nzD71EuTA+RAAA',
+  ),
+);

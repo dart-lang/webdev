@@ -32,19 +32,23 @@ void main(List<String> args) async {
       p.url.join(sdkDir, sdkKernelPath),
     ]);
     if (sdkCompileResult.exitCode != 0) {
-      _print('Failed to compile the dart sdk to JS:\n'
-          '${sdkCompileResult.stdout}\n'
-          '${sdkCompileResult.stderr}');
+      _print(
+        'Failed to compile the dart sdk to JS:\n'
+        '${sdkCompileResult.stdout}\n'
+        '${sdkCompileResult.stderr}',
+      );
       exit(sdkCompileResult.exitCode);
     }
 
     _print('starting frontend server');
     final client = await DartDevcFrontendServerClient.start(
-        'org-dartlang-root:///$app', outputDill,
-        fileSystemRoots: [p.current],
-        fileSystemScheme: 'org-dartlang-root',
-        platformKernel: p.toUri(sdkKernelPath).toString(),
-        verbose: true);
+      'org-dartlang-root:///$app',
+      outputDill,
+      fileSystemRoots: [p.current],
+      fileSystemScheme: 'org-dartlang-root',
+      platformKernel: p.toUri(sdkKernelPath).toString(),
+      verbose: true,
+    );
 
     _print('compiling $app');
     await client.compile([]);
@@ -56,13 +60,24 @@ void main(List<String> args) async {
         .add(_clientHandler(client))
         .add(createStaticHandler(p.current))
         .add(createFileHandler(dartSdkJs, url: 'example/app/dart_sdk.js'))
-        .add(createFileHandler(
-            p.join(sdkDir, 'lib', 'dev_compiler', 'web',
-                'dart_stack_trace_mapper.js'),
-            url: 'example/app/dart_stack_trace_mapper.js'))
-        .add(createFileHandler(
+        .add(
+          createFileHandler(
+            p.join(
+              sdkDir,
+              'lib',
+              'dev_compiler',
+              'web',
+              'dart_stack_trace_mapper.js',
+            ),
+            url: 'example/app/dart_stack_trace_mapper.js',
+          ),
+        )
+        .add(
+          createFileHandler(
             p.join(sdkDir, 'lib', 'dev_compiler', 'amd', 'require.js'),
-            url: 'example/app/require.js'))
+            url: 'example/app/require.js',
+          ),
+        )
         .add(packagesDirHandler());
     final server = await shelf_io.serve(cascade.handler, 'localhost', 8080);
     _print('server ready');
@@ -72,11 +87,13 @@ void main(List<String> args) async {
     final originalContent = await appFile.readAsString();
     final appLines = const LineSplitter().convert(originalContent);
     final getterText = 'String get message =>';
-    final messageLine =
-        appLines.indexWhere((line) => line.startsWith(getterText));
+    final messageLine = appLines.indexWhere(
+      (line) => line.startsWith(getterText),
+    );
 
     final stdinQueue = StreamQueue(
-        stdin.transform(utf8.decoder).transform(const LineSplitter()));
+      stdin.transform(utf8.decoder).transform(const LineSplitter()),
+    );
     _prompt();
     while (await stdinQueue.hasNext) {
       final newMessage = await stdinQueue.next;
@@ -96,8 +113,9 @@ void main(List<String> args) async {
         await appFile.writeAsString(newContent);
 
         _print('recompiling $app with edits');
-        final result =
-            await client.compile([Uri.parse('org-dartlang-root:///$app')]);
+        final result = await client.compile([
+          Uri.parse('org-dartlang-root:///$app'),
+        ]);
         if (result.errorCount > 0) {
           print('Compile errors: \n${result.compilerOutputLines.join('\n')}');
           await client.reject();
@@ -136,8 +154,10 @@ Handler _clientHandler(DartDevcFrontendServerClient client) {
     }
     final assetBytes = client.assetBytes(path);
     if (assetBytes == null) return Response.notFound('path not found');
-    return Response.ok(assetBytes,
-        headers: {HttpHeaders.contentTypeHeader: 'application/javascript'});
+    return Response.ok(
+      assetBytes,
+      headers: {HttpHeaders.contentTypeHeader: 'application/javascript'},
+    );
   };
 }
 
@@ -146,7 +166,8 @@ void _print(String message) {
 }
 
 void _prompt() => stdout.write(
-    'Enter a new message to print and recompile, or type `quit` to exit:');
+  'Enter a new message to print and recompile, or type `quit` to exit:',
+);
 
 final app = 'example/app/main.dart';
 final dartSdkJs = p.join('.dart_tool', 'out', 'dart_sdk.js');

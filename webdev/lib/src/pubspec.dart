@@ -28,19 +28,23 @@ class PackageExceptionDetails {
   final String? description;
   final bool _missingDependency;
 
-  const PackageExceptionDetails._(this.error,
-      {this.description, bool missingDependency = false})
-      : _missingDependency = missingDependency;
+  const PackageExceptionDetails._(
+    this.error, {
+    this.description,
+    bool missingDependency = false,
+  }) : _missingDependency = missingDependency;
 
   static PackageExceptionDetails missingDep(
-          String pkgName, VersionConstraint constraint) =>
-      PackageExceptionDetails._(
-          'You must have a dependency on `$pkgName` in `pubspec.yaml`.',
-          description: '''
+    String pkgName,
+    VersionConstraint constraint,
+  ) => PackageExceptionDetails._(
+    'You must have a dependency on `$pkgName` in `pubspec.yaml`.',
+    description: '''
 # pubspec.yaml
 dev_dependencies:
   $pkgName: $constraint''',
-          missingDependency: true);
+    missingDependency: true,
+  );
 
   @override
   String toString() => [error, description].join('\n');
@@ -50,16 +54,18 @@ Future _runPubDeps() async {
   final result = Process.runSync(dartPath, ['pub', 'deps']);
 
   if (result.exitCode == 65 || result.exitCode == 66) {
-    throw PackageException(
-        [PackageExceptionDetails._((result.stderr as String).trim())]);
+    throw PackageException([
+      PackageExceptionDetails._((result.stderr as String).trim()),
+    ]);
   }
 
   if (result.exitCode != 0) {
     throw ProcessException(
-        dartPath,
-        ['pub', 'deps'],
-        '***OUT***\n${result.stdout}\n***ERR***\n${result.stderr}\n***',
-        exitCode);
+      dartPath,
+      ['pub', 'deps'],
+      '***OUT***\n${result.stdout}\n***ERR***\n${result.stderr}\n***',
+      exitCode,
+    );
   }
 }
 
@@ -74,11 +80,7 @@ class PubspecLock {
     }
     var dir = p.absolute(p.current);
     while (true) {
-      final candidate = p.join(
-        dir,
-        '.dart_tool',
-        'package_config.json',
-      );
+      final candidate = p.join(dir, '.dart_tool', 'package_config.json');
       if (File(candidate).existsSync()) break;
       final next = p.dirname(dir);
       if (next == dir) {
@@ -89,23 +91,32 @@ class PubspecLock {
       dir = next;
     }
 
-    final pubspecLock = loadYaml(
-            await File(p.relative(p.join(dir, 'pubspec.lock'))).readAsString())
-        as YamlMap;
+    final pubspecLock =
+        loadYaml(
+              await File(
+                p.relative(p.join(dir, 'pubspec.lock')),
+              ).readAsString(),
+            )
+            as YamlMap;
 
     final packages = pubspecLock['packages'] as YamlMap?;
     return PubspecLock(packages);
   }
 
   List<PackageExceptionDetails> checkPackage(
-      String pkgName, VersionConstraint constraint,
-      {String? forArgument}) {
+    String pkgName,
+    VersionConstraint constraint, {
+    String? forArgument,
+  }) {
     final issues = <PackageExceptionDetails>[];
-    final missingDetails =
-        PackageExceptionDetails.missingDep(pkgName, constraint);
+    final missingDetails = PackageExceptionDetails.missingDep(
+      pkgName,
+      constraint,
+    );
 
-    final pkgDataMap =
-        (_packages == null) ? null : _packages[pkgName] as YamlMap?;
+    final pkgDataMap = (_packages == null)
+        ? null
+        : _packages[pkgName] as YamlMap?;
     if (pkgDataMap == null) {
       issues.add(missingDetails);
     } else {
@@ -118,7 +129,8 @@ class PubspecLock {
         final version = pkgDataMap['version'] as String;
         final pkgVersion = Version.parse(version);
         if (!constraint.allows(pkgVersion)) {
-          final error = 'The `$pkgName` version – $pkgVersion – is not '
+          final error =
+              'The `$pkgName` version – $pkgVersion – is not '
               'within the allowed constraint – $constraint.';
           issues.add(PackageExceptionDetails._(error));
         }
@@ -132,7 +144,8 @@ class PubspecLock {
 }
 
 Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
-    PubspecLock pubspecLock) async {
+  PubspecLock pubspecLock,
+) async {
   final buildDaemonConstraint = '^4.0.0';
 
   final issues = <PackageExceptionDetails>[];
@@ -154,13 +167,21 @@ Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
         pubspecLock
             .checkPackage('build_daemon', info.buildDaemonConstraint)
             .isEmpty) {
-      issues.add(PackageExceptionDetails._('$issuePreamble\n'
+      issues.add(
+        PackageExceptionDetails._(
+          '$issuePreamble\n'
           'A newer version of webdev is available which supports '
-          'your version of the `build_daemon`. Please update.'));
+          'your version of the `build_daemon`. Please update.',
+        ),
+      );
     } else {
-      issues.add(PackageExceptionDetails._('$issuePreamble\n'
+      issues.add(
+        PackageExceptionDetails._(
+          '$issuePreamble\n'
           'Please add a dev dependency on `build_daemon` with constraint: '
-          '$buildDaemonConstraint'));
+          '$buildDaemonConstraint',
+        ),
+      );
     }
   }
   return issues;
@@ -171,17 +192,25 @@ final buildWebCompilersConstraint = VersionConstraint.parse('^4.0.4');
 
 // Note the minimum versions should never be dev versions as users will not
 // get them by default.
-Future<void> checkPubspecLock(PubspecLock pubspecLock,
-    {required bool requireBuildWebCompilers}) async {
+Future<void> checkPubspecLock(
+  PubspecLock pubspecLock, {
+  required bool requireBuildWebCompilers,
+}) async {
   final issues = <PackageExceptionDetails>[];
-  final buildRunnerIssues =
-      pubspecLock.checkPackage('build_runner', buildRunnerConstraint);
+  final buildRunnerIssues = pubspecLock.checkPackage(
+    'build_runner',
+    buildRunnerConstraint,
+  );
 
   issues.addAll(buildRunnerIssues);
 
   if (requireBuildWebCompilers) {
-    issues.addAll(pubspecLock.checkPackage(
-        'build_web_compilers', buildWebCompilersConstraint));
+    issues.addAll(
+      pubspecLock.checkPackage(
+        'build_web_compilers',
+        buildWebCompilersConstraint,
+      ),
+    );
   }
 
   if (buildRunnerIssues.isEmpty) {
@@ -202,11 +231,14 @@ class _PackageInfo {
 
 /// Returns the package info for the latest webdev release.
 Future<_PackageInfo> _latestPackageInfo() async {
-  final response = await get(Uri.parse('https://pub.dev/api/packages/webdev'),
-      headers: {HttpHeaders.userAgentHeader: 'webdev $packageVersion'});
+  final response = await get(
+    Uri.parse('https://pub.dev/api/packages/webdev'),
+    headers: {HttpHeaders.userAgentHeader: 'webdev $packageVersion'},
+  );
   final responseObj = json.decode(response.body);
   final pubspec = Pubspec.fromJson(
-      responseObj['latest']['pubspec'] as Map<String, dynamic>);
+    responseObj['latest']['pubspec'] as Map<String, dynamic>,
+  );
   final buildDaemonDependency = pubspec.dependencies['build_daemon'];
   // This should never be satisfied.
   var buildDaemonConstraint = VersionConstraint.parse('0.0.0');

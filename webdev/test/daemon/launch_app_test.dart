@@ -22,17 +22,22 @@ void main() {
   tearDownAll(testRunner.tearDownAll);
 
   test('--launch-app launches the specified app', () async {
-    final webdev = await testRunner.runWebDev(
-        ['daemon', '--launch-app=web/scopes.html'],
-        workingDirectory: exampleDirectory);
+    final webdev = await testRunner.runWebDev([
+      'daemon',
+      '--launch-app=web/scopes.html',
+    ], workingDirectory: exampleDirectory);
     final appId = await waitForAppId(webdev);
 
     // The example app does an initial print.
     await expectLater(
-        webdev.stdout,
-        emitsThrough(
-            startsWith('[{"event":"app.log","params":{"appId":"$appId",'
-                '"log":"Initial print from scopes app\\n"}}')));
+      webdev.stdout,
+      emitsThrough(
+        startsWith(
+          '[{"event":"app.log","params":{"appId":"$appId",'
+          '"log":"Initial print from scopes app\\n"}}',
+        ),
+      ),
+    );
     await exitWebdev(webdev);
   });
 }

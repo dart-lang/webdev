@@ -295,8 +295,9 @@ class _$BatchedDebugEvents extends BatchedDebugEvents {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'BatchedDebugEvents')
-      ..add('events', events)).toString();
+    return (newBuiltValueToStringHelper(
+      r'BatchedDebugEvents',
+    )..add('events', events)).toString();
   }
 }
 

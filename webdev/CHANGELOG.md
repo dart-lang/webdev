@@ -1,5 +1,7 @@
 ## 3.8.0-wip
 
+- Bump minimum SDK constraint to 3.10.0
+
 ## 3.7.2
 
 - Fixed duplicate app logs on page refresh by preventing multiple stdout listeners for the same appId.

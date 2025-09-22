@@ -8,7 +8,7 @@ description: >-
   features for users and tools to build and deploy web applications with Dart.
 repository: https://github.com/dart-lang/webdev/tree/main/webdev
 environment:
-  sdk: ^3.2.0
+  sdk: ^3.10.0-0.0.dev
 
 dependencies:
   args: ^2.3.1
@@ -34,7 +34,7 @@ dependencies:
   shelf_static: ^1.1.0
   stack_trace: ^1.10.0
   sse: ^4.1.0
-  vm_service: '>=14.0.0 <16.0.0'
+  vm_service: ">=14.0.0 <16.0.0"
   vm_service_interface: 2.0.1
   webkit_inspection_protocol: ^1.0.1
   yaml: ^3.1.1

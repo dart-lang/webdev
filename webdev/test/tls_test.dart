@@ -27,8 +27,9 @@ void main() {
     setUpAll(() async {
       configureLogWriter(debug);
       await testRunner.setUpAll();
-      exampleDirectory =
-          p.absolute(p.join(p.current, '..', 'fixtures', '_webdev_smoke'));
+      exampleDirectory = p.absolute(
+        p.join(p.current, '..', 'fixtures', '_webdev_smoke'),
+      );
 
       final process = await TestProcess.start(
         'dart',
@@ -55,16 +56,21 @@ void main() {
         '--tls-cert-key=localhost+2-key.pem',
       ];
 
-      final process =
-          await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
+      final process = await testRunner.runWebDev(
+        args,
+        workingDirectory: exampleDirectory,
+      );
       await expectLater(
-          process.stdout, emitsThrough(contains('Built with build_runner')));
+        process.stdout,
+        emitsThrough(contains('Built with build_runner')),
+      );
 
       final client = HttpClient()
         ..badCertificateCallback = (_, __, ___) => true;
       try {
-        final request =
-            await client.getUrl(Uri.parse('https://localhost:$port'));
+        final request = await client.getUrl(
+          Uri.parse('https://localhost:$port'),
+        );
         final response = await request.close();
         expect(response.statusCode, equals(200));
       } finally {
@@ -86,10 +92,14 @@ void main() {
         '--enable-experiment=dot-shorthands',
       ];
 
-      final process =
-          await testRunner.runWebDev(args, workingDirectory: exampleDirectory);
+      final process = await testRunner.runWebDev(
+        args,
+        workingDirectory: exampleDirectory,
+      );
       await expectLater(
-          process.stdout, emitsThrough(contains('Built with build_runner')));
+        process.stdout,
+        emitsThrough(contains('Built with build_runner')),
+      );
 
       final interfaces = await NetworkInterface.list(
         type: InternetAddressType.IPv4,
@@ -99,13 +109,15 @@ void main() {
 
       if (nonLoopback == null) {
         Logger.root.info(
-            'No non-loopback IPv4 address available, skipping hostname test.');
+          'No non-loopback IPv4 address available, skipping hostname test.',
+        );
       } else {
         final client = HttpClient()
           ..badCertificateCallback = (_, __, ___) => true;
         try {
-          final request = await client
-              .getUrl(Uri.parse('https://${nonLoopback.address}:$port'));
+          final request = await client.getUrl(
+            Uri.parse('https://${nonLoopback.address}:$port'),
+          );
           final response = await request.close();
           expect(response.statusCode, equals(200));
         } finally {

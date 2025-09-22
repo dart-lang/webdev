@@ -45,15 +45,14 @@ Future<Browser> setUpExtensionTest(
       isInternalBuild: isInternalBuild,
       workspaceName: workspaceName,
     ),
-    debugSettings:
-        serveDevTools
-            ? TestDebugSettings.withDevToolsLaunch(
-              context,
-            ).copyWith(enableDebugExtension: true, useSse: useSse)
-            : TestDebugSettings.noDevToolsLaunch().copyWith(
-              enableDebugExtension: true,
-              useSse: useSse,
-            ),
+    debugSettings: serveDevTools
+        ? TestDebugSettings.withDevToolsLaunch(
+            context,
+          ).copyWith(enableDebugExtension: true, useSse: useSse)
+        : TestDebugSettings.noDevToolsLaunch().copyWith(
+            enableDebugExtension: true,
+            useSse: useSse,
+          ),
   );
   return await puppeteer.launch(
     devTools: openChromeDevTools,
@@ -170,8 +169,9 @@ Future<Page> navigateToPage(
   required String url,
   bool isNew = false,
 }) async {
-  final page =
-      isNew ? await browser.newPage() : await _getPageForUrl(browser, url: url);
+  final page = isNew
+      ? await browser.newPage()
+      : await _getPageForUrl(browser, url: url);
   if (isNew) {
     await page.goto(url, wait: Until.domContentLoaded);
   }
@@ -239,7 +239,8 @@ Future<void> _clearStorage({Worker? worker, Page? backgroundPage}) async {
   ).catchError((_) {});
 }
 
-String _clickIconJs({bool isMV3 = false}) => '''
+String _clickIconJs({bool isMV3 = false}) =>
+    '''
   async () => {
     const activeTabs = await chrome.tabs.query({ active: true }, (tabs) => {
       const tab = tabs[0];
@@ -248,7 +249,8 @@ String _clickIconJs({bool isMV3 = false}) => '''
   }
 ''';
 
-String _clearStorageJs({required bool isMV3}) => '''
+String _clearStorageJs({required bool isMV3}) =>
+    '''
     async () => {
       await chrome.storage.local.clear();
       ${isMV3 ? 'await chrome.storage.session.clear();' : ''}

@@ -7,8 +7,14 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
-typedef LogWriter = void Function(Level level, String message,
-    {String? error, String? loggerName, String? stackTrace});
+typedef LogWriter =
+    void Function(
+      Level level,
+      String message, {
+      String? error,
+      String? loggerName,
+      String? stackTrace,
+    });
 
 StreamSubscription<LogRecord>? _loggerSub;
 
@@ -52,10 +58,13 @@ void configureLogWriter({LogWriter? customLogWriter}) {
   Logger.root.level = Level.ALL;
   _loggerSub?.cancel();
   _loggerSub = Logger.root.onRecord.listen((event) {
-    logWriter(event.level, event.message,
-        error: event.error?.toString(),
-        loggerName: event.loggerName,
-        stackTrace: event.stackTrace?.toString());
+    logWriter(
+      event.level,
+      event.message,
+      error: event.error?.toString(),
+      loggerName: event.loggerName,
+      stackTrace: event.stackTrace?.toString(),
+    );
   });
 }
 
@@ -71,9 +80,11 @@ LogWriter createLogWriter({bool debug = false}) =>
       final printFn = debug ? print : printOnFailure;
       final errorMessage = error == null ? '' : ':\n$error';
       final stackMessage = stackTrace == null ? '' : ':\n$stackTrace';
-      printFn('[$level] $loggerName: $message'
-          '$errorMessage'
-          '$stackMessage');
+      printFn(
+        '[$level] $loggerName: $message'
+        '$errorMessage'
+        '$stackMessage',
+      );
     };
 
 LogWriter get logWriter => _logWriter;

@@ -217,20 +217,19 @@ bool _isInternalNavigation(NavigationInfo navigationInfo) {
 
 DebugInfo _addTabInfo(DebugInfo debugInfo, {required Tab tab}) {
   return DebugInfo(
-    (b) =>
-        b
-          ..appEntrypointPath = debugInfo.appEntrypointPath
-          ..appId = debugInfo.appId
-          ..appInstanceId = debugInfo.appInstanceId
-          ..appOrigin = debugInfo.appOrigin
-          ..appUrl = debugInfo.appUrl
-          ..authUrl = debugInfo.authUrl
-          ..extensionUrl = debugInfo.extensionUrl
-          ..isInternalBuild = debugInfo.isInternalBuild
-          ..isFlutterApp = debugInfo.isFlutterApp
-          ..workspaceName = debugInfo.workspaceName
-          ..tabUrl = tab.url
-          ..tabId = tab.id,
+    (b) => b
+      ..appEntrypointPath = debugInfo.appEntrypointPath
+      ..appId = debugInfo.appId
+      ..appInstanceId = debugInfo.appInstanceId
+      ..appOrigin = debugInfo.appOrigin
+      ..appUrl = debugInfo.appUrl
+      ..authUrl = debugInfo.authUrl
+      ..extensionUrl = debugInfo.extensionUrl
+      ..isInternalBuild = debugInfo.isInternalBuild
+      ..isFlutterApp = debugInfo.isFlutterApp
+      ..workspaceName = debugInfo.workspaceName
+      ..tabUrl = tab.url
+      ..tabId = tab.id,
   );
 }
 
@@ -280,8 +279,9 @@ void _setWarningIcon(int tabId) {
 }
 
 void _setDefaultIcon(int tabId) {
-  final iconPath =
-      isDevMode ? 'static_assets/dart_dev.png' : 'static_assets/dart_grey.png';
+  final iconPath = isDevMode
+      ? 'static_assets/dart_dev.png'
+      : 'static_assets/dart_grey.png';
   setExtensionIcon(IconInfo(path: iconPath));
   setExtensionPopup(PopupDetails(popup: '', tabId: tabId));
 }

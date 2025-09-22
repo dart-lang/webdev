@@ -131,17 +131,23 @@ Future<void> printDeferred() async {
 }
 
 void printNestedObjectsMultiLine() {
-  printEnclosingObject(// Breakpoint: printEnclosingFunctionMultiLine
-      EnclosingClass(// Breakpoint: printEnclosingObjectMultiLine
-          EnclosedClass(0) // Breakpoint: printNestedObjectMultiLine
-          ));
+  // dart format off
+  printEnclosingObject( // Breakpoint: printEnclosingFunctionMultiLine
+    EnclosingClass( // Breakpoint: printEnclosingObjectMultiLine
+      EnclosedClass(0), // Breakpoint: printNestedObjectMultiLine
+    ),
+  );
+  // dart format on
 }
 
 void printObjectMultiLine() {
-  print(// Breakpoint: printMultiLine
-      // Breakpoint: Do not remove, will break callstack tests!
-      createObject() // Breakpoint: printObjectMultiLine
-        ..initialize());
+  // dart format off
+  print( // Breakpoint: printMultiLine
+    // Breakpoint: Do not remove, will break callstack tests!
+    createObject() // Breakpoint: printObjectMultiLine
+      ..initialize(),
+  );
+  // dart format on
 }
 
 void printEnclosingObject(EnclosingClass o) {
@@ -208,8 +214,10 @@ void printLargeScope() {
   final t18 = 18;
   final t19 = 19;
 
+  // dart format off
   print('$t0 $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, '
-      '$t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19'); // Breakpoint: printLargeScope
+    '$t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19'); // Breakpoint: printLargeScope
+  // dart format on
 }
 
 class MainClass {

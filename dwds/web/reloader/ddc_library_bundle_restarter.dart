@@ -82,14 +82,13 @@ class DdcLibraryBundleRestarter implements Restarter {
     final completer = Completer<String>();
     final xhr = _XMLHttpRequest();
     xhr.withCredentials = true;
-    xhr.onreadystatechange =
-        () {
-          // If the request has completed and OK, or the response has not
-          // changed.
-          if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
-            completer.complete(xhr.responseText);
-          }
-        }.toJS;
+    xhr.onreadystatechange = () {
+      // If the request has completed and OK, or the response has not
+      // changed.
+      if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
+        completer.complete(xhr.responseText);
+      }
+    }.toJS;
     xhr.get(reloadedSourcesPath, true);
     xhr.send();
     final responseText = await completer.future;
@@ -108,11 +107,10 @@ class DdcLibraryBundleRestarter implements Restarter {
       "Expected 'reloadedSourcesPath' to not be null in a hot restart.",
     );
     await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
-    final mainHandler =
-        (JSFunction runMain) {
-          _dartDevEmbedder.config.capturedMainHandler = null;
-          safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
-        }.toJS;
+    final mainHandler = (JSFunction runMain) {
+      _dartDevEmbedder.config.capturedMainHandler = null;
+      safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
+    }.toJS;
     _dartDevEmbedder.config.capturedMainHandler = mainHandler;
     final srcModuleLibraries = await _getSrcModuleLibraries(
       reloadedSourcesPath!,
@@ -131,8 +129,8 @@ class DdcLibraryBundleRestarter implements Restarter {
     for (final srcModuleLibrary in srcModuleLibraries) {
       final srcModuleLibraryCast = srcModuleLibrary.cast<String, Object>();
       final src = srcModuleLibraryCast['src'] as String;
-      final libraries =
-          (srcModuleLibraryCast['libraries'] as List).cast<String>();
+      final libraries = (srcModuleLibraryCast['libraries'] as List)
+          .cast<String>();
       filesToLoad.push(src.toJS);
       for (final library in libraries) {
         librariesToReload.push(library.toJS);
@@ -163,16 +161,15 @@ class DdcLibraryBundleRestarter implements Restarter {
       await _dartDevEmbedder.debugger.maybeInvokeFlutterReassemble();
       return {'status': 'reassemble invoked'};
     } else if (method == 'getExtensionRpcs') {
-      final rpcs =
-          _dartDevEmbedder.debugger.extensionNames.toDart.cast<String>();
+      final rpcs = _dartDevEmbedder.debugger.extensionNames.toDart
+          .cast<String>();
       return {'rpcs': rpcs};
     } else {
       // For other extension methods, delegate to the debugger
       final params = args.isNotEmpty ? jsonEncode(args) : '{}';
-      final resultJson =
-          await _dartDevEmbedder.debugger
-              .invokeExtension(method, params)
-              .toDart;
+      final resultJson = await _dartDevEmbedder.debugger
+          .invokeExtension(method, params)
+          .toDart;
       return jsonDecode(resultJson.toDart) as Map<String, dynamic>;
     }
   }
