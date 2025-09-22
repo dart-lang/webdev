@@ -421,7 +421,7 @@ void main() {
           libFileName: libFile,
           contents:
               '''String get libraryValue$i {
-            return 'lib gen$i'; // Breakpoint: libValue$i
+            return 'library$i gen1'; // Breakpoint: libValue$i
           }''',
         );
         final oldImports = "import 'dart:js_interop';";
