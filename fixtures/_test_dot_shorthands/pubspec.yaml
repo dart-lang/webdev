@@ -5,12 +5,4 @@ description: >-
 publish_to: none
 
 environment:
-  sdk: ^3.2.0
-
-dependencies:
-  intl: ^0.17.0
-  path: ^1.8.2
-
-dev_dependencies:
-  build_runner: ^2.5.0
-  build_web_compilers: ^4.0.4
+  sdk: ^3.9.0
