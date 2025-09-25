@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/services/expression_compiler.dart' show ModuleFormat;
 import 'package:path/path.dart' show basename;
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
@@ -20,7 +19,7 @@ void runTests({
   required bool canaryFeatures,
   required bool debug,
 }) {
-  final context = TestContext(TestProject.testExperiment, provider);
+  final context = TestContext(TestProject.testDotShorthands, provider);
   final testInspector = TestInspector(context);
 
   late VmService service;
@@ -73,8 +72,8 @@ void runTests({
       await context.tearDown();
     });
 
-    test('expression evaluation and single-stepping', () async {
-      await onBreakpoint('testDotShorthands', (event) async {
+    test('expression evaluation', () async {
+      final bp = onBreakpoint('testDotShorthands', (event) async {
         final frame = event.topFrame!.index!;
 
         var instanceRef = await getInstanceRef(frame, '(c = .two).value');
@@ -86,22 +85,36 @@ void runTests({
         instanceRef = await getInstanceRef(frame, '(c = .four()).value');
         expect(instanceRef.valueAsString, '4');
 
+        await service.resume(isolateId);
+      });
+      final isolate = await service.getIsolate(isolateId);
+      await service.evaluate(
+        isolateId,
+        isolate.rootLib!.id!,
+        'testDotShorthands()',
+      );
+      await bp;
+    });
+
+    test('single-stepping', () async {
+      final bp = onBreakpoint('testDotShorthands', (event) async {
         final scriptBasename = basename(mainScript.uri!);
 
-        const lineA = 116;
-        const lineB = 118;
-        const lineC = 119;
-        const lineD = 120;
-        const lineE = 127;
-        const lineF = 129;
-        const lineG = 131;
-        const lineH = 132;
+        const lineA = 11;
+        const lineB = 13;
+        const lineC = 14;
+        const lineD = 15;
+        const lineE = 22;
+        const lineF = 24;
+        const lineG = 26;
+        const lineH = 27;
 
         final expected = [
           '$scriptBasename:$lineE:3', // on 'c'
-          // TODO(2638): Investigate why this conditional exclusion is needed.
-          if (provider.ddcModuleFormat == ModuleFormat.ddc)
-            '$scriptBasename:$lineB:20', // on '2'
+          '$scriptBasename:$lineB:15', // on 'C'
+          '$scriptBasename:$lineA:10', // on 'v' of 'value'
+          '$scriptBasename:$lineA:16', // on ';'
+          '$scriptBasename:$lineB:20', // on '2'
           '$scriptBasename:$lineF:3', // on 'c'
           '$scriptBasename:$lineC:25', // on 'C'
           '$scriptBasename:$lineA:10', // on 'v' of 'value'
@@ -119,11 +132,20 @@ void runTests({
         await testInspector.runStepIntoThroughProgramRecordingStops(
           isolateId,
           stops,
-          provider.ddcModuleFormat == ModuleFormat.ddc ? 13 : 12,
+          expected.length,
         );
 
         expect(stops, expected);
+
+        await service.resume(isolateId);
       });
+      final isolate = await service.getIsolate(isolateId);
+      await service.evaluate(
+        isolateId,
+        isolate.rootLib!.id!,
+        'testDotShorthands()',
+      );
+      await bp;
     });
   });
 }
