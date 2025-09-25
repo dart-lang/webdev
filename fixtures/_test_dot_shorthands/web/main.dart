@@ -4,8 +4,6 @@
 
 // @dart = 3.9
 
-import 'dart:core';
-
 class C {
   int value;
   C(this.value); // lineA
