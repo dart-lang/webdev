@@ -100,14 +100,14 @@ void runTests({
       final bp = onBreakpoint('testDotShorthands', (event) async {
         final scriptBasename = basename(mainScript.uri!);
 
-        const lineA = 11;
-        const lineB = 13;
-        const lineC = 14;
-        const lineD = 15;
-        const lineE = 22;
-        const lineF = 24;
-        const lineG = 26;
-        const lineH = 27;
+        const lineA = 9;
+        const lineB = 11;
+        const lineC = 12;
+        const lineD = 13;
+        const lineE = 20;
+        const lineF = 22;
+        const lineG = 24;
+        const lineH = 25;
 
         final expected = [
           '$scriptBasename:$lineE:3', // on 'c'
