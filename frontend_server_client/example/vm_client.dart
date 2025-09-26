@@ -41,24 +41,24 @@ void main(List<String> args) async {
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((line) {
-          stdout.writeln('APP -> $line');
-          if (line == 'hello/world') {
-            sawHelloWorld.complete();
-          }
-          if (line.startsWith(
-            'The Dart DevTools debugger and profiler is available at:',
-          )) {
-            final observatoryUri =
-                '${line.split(' ').last.replaceFirst('http', 'ws')}ws';
-            vmServiceCompleter.complete(vmServiceConnectUri(observatoryUri));
-          }
-        });
+      stdout.writeln('APP -> $line');
+      if (line == 'hello/world') {
+        sawHelloWorld.complete();
+      }
+      if (line.startsWith(
+        'The Dart DevTools debugger and profiler is available at:',
+      )) {
+        final observatoryUri =
+            '${line.split(' ').last.replaceFirst('http', 'ws')}ws';
+        vmServiceCompleter.complete(vmServiceConnectUri(observatoryUri));
+      }
+    });
     appProcess.stderr
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((line) {
-          stderr.writeln('APP -> $line');
-        });
+      stderr.writeln('APP -> $line');
+    });
 
     final vmService = await vmServiceCompleter.future;
     await sawHelloWorld.future;
