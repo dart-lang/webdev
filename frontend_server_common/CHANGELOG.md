@@ -1,9 +1,8 @@
 ## 0.2.3-wip
 
-- Update minimum SDK constraint to 3.8.0.
 - Add bootstrapping code for DDC library bundle format.
 - Added scriptUri to compileExpression*Request
-- Updated Dart SDK constraints to ">=3.10.0-149.0.dev <4.0.0"
+- Updated Dart SDK constraints to ^3.10.0-0.0.dev
 
 ## 0.2.2
 
