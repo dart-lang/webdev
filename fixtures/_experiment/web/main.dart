@@ -6,9 +6,10 @@
 
 import 'dart:async';
 import 'dart:core';
-// TODO: https://github.com/dart-lang/webdev/issues/2508
-// ignore: deprecated_member_use
-import 'dart:html';
+import 'dart:js_interop';
+
+@JS('document.body.append')
+external void append(String text);
 
 void main() {
   // for evaluation
@@ -26,11 +27,9 @@ void main() {
     testPattern2();
     print('Classes');
     testClass();
-    print('Dot shorthands');
-    testDotShorthands();
   });
 
-  document.body!.appendText('Program is running!');
+  append('Program is running!');
 }
 
 void printSimpleLocalRecord() {
@@ -93,10 +92,7 @@ class GreeterClass {
   final String greeteeName;
   final bool useFrench;
 
-  GreeterClass({
-    this.greeteeName = 'Snoopy',
-    this.useFrench = false,
-  });
+  GreeterClass({this.greeteeName = 'Snoopy', this.useFrench = false});
 
   void sayHello() {
     useFrench ? greetInFrench() : greetInEnglish();
@@ -109,25 +105,4 @@ class GreeterClass {
   void greetInFrench() {
     print('Bonjour $greeteeName');
   }
-}
-
-class C {
-  int value;
-  C(this.value); // lineA
-
-  static C two = C(2); // lineB
-  static C get three => C(3); // lineC
-  static C four() => C(4); // lineD
-}
-
-void testDotShorthands() {
-  C c = C(1);
-  print('breakpoint'); // Breakpoint: testDotShorthands
-  // ignore: experiment_not_enabled
-  c = .two; // lineE
-  // ignore: experiment_not_enabled
-  c = .three; // lineF
-  // ignore: experiment_not_enabled
-  c = .four(); // lineG
-  print(c.value); // lineH
 }

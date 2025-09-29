@@ -121,6 +121,14 @@ class TestProject {
     htmlEntryFileName: 'index.html',
   );
 
+  static final testDotShorthands = TestProject._(
+    packageName: '_test_dot_shorthands',
+    packageDirectory: '_test_dot_shorthands',
+    webAssetsPath: 'web',
+    dartEntryFileName: 'main.dart',
+    htmlEntryFileName: 'index.html',
+  );
+
   static final testHotRestart1 = TestProject._(
     packageName: '_test_hot_restart1',
     packageDirectory: '_test_hot_restart1',
