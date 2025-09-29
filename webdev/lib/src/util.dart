@@ -30,7 +30,13 @@ void serveHttpRequests(
 final String _sdkDir = (() {
   // The Dart executable is in "/path/to/sdk/bin/dart", so two levels up is
   // "/path/to/sdk".
-  final aboveExecutable = p.dirname(p.dirname(Platform.resolvedExecutable));
+  final String dartExecutable = Platform.isWindows
+      // Use 'where.exe' to support powershell as well
+      ? (Process.runSync('where.exe', ['dart.exe']).stdout as String)
+            .split(RegExp('(\r\n|\r|\n)'))
+            .first
+      : Process.runSync('which', ['dart']).stdout;
+  final aboveExecutable = p.dirname(p.dirname(dartExecutable));
   assert(FileSystemEntity.isFileSync(p.join(aboveExecutable, 'version')));
   return aboveExecutable;
 })();
