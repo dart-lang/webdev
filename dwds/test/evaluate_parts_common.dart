@@ -68,7 +68,7 @@ void testAll({
     late ScriptRef part3Script;
     late Stream<Event> stream;
 
-    setUpAll(() async {
+    setUp(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
         testSettings: TestSettings(
@@ -100,15 +100,12 @@ void testAll({
       part3Script = findScript('package:$packageName/part3.dart');
     });
 
-    tearDownAll(() async {
+    tearDown(() async {
       await context.tearDown();
     });
 
-    tearDown(() async {
-      await service.resume(isolateId);
-    });
-
-    test('evaluate expression in main library', () async {
+    test('evaluate expression in main library and parts', () async {
+      // Main library.
       await onBreakPoint(isolateId, mainScript, 'Concatenate1', () async {
         final event = await stream.firstWhere(
           (event) => event.kind == EventKind.kPauseBreakpoint,
@@ -129,9 +126,9 @@ void testAll({
           ),
         );
       });
-    });
+      await service.resume(isolateId);
 
-    test('evaluate expression in part1', () async {
+      // Part 1.
       await onBreakPoint(isolateId, part1Script, 'Concatenate2', () async {
         final event = await stream.firstWhere(
           (event) => event.kind == EventKind.kPauseBreakpoint,
@@ -152,9 +149,9 @@ void testAll({
           ),
         );
       });
-    });
+      await service.resume(isolateId);
 
-    test('evaluate expression in part2', () async {
+      // Part 2.
       await onBreakPoint(isolateId, part2Script, 'Concatenate3', () async {
         final event = await stream.firstWhere(
           (event) => event.kind == EventKind.kPauseBreakpoint,
@@ -175,9 +172,9 @@ void testAll({
           ),
         );
       });
-    });
+      await service.resume(isolateId);
 
-    test('evaluate expression in part3', () async {
+      // Part 3.
       await onBreakPoint(isolateId, part3Script, 'Concatenate4', () async {
         final event = await stream.firstWhere(
           (event) => event.kind == EventKind.kPauseBreakpoint,
@@ -198,6 +195,7 @@ void testAll({
           ),
         );
       });
+      await service.resume(isolateId);
     });
   });
 }
