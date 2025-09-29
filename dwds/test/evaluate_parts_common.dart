@@ -89,8 +89,8 @@ void testAll({
         return scripts.scripts!.firstWhere((e) => e.uri!.contains(path));
       }
 
-      await service.streamListen('Debug');
-      stream = service.onEvent('Debug');
+      await service.streamListen(EventStreams.kDebug);
+      stream = service.onEvent(EventStreams.kDebug);
 
       final packageName = testParts.packageName;
 
