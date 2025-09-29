@@ -61,7 +61,15 @@ void testAll({
     }
   }
 
-  group('shared context with evaluation', () {
+  group('shared context with evaluation - evaluateInFrame', () {
+    late VmServiceInterface service;
+    late String isolateId;
+    late ScriptRef mainScript;
+    late ScriptRef part1Script;
+    late ScriptRef part2Script;
+    late ScriptRef part3Script;
+    late Stream<Event> stream;
+
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
@@ -72,147 +80,125 @@ void testAll({
           verboseCompiler: debug,
         ),
       );
+
+      service = context.service;
+      final vm = await service.getVM();
+      final isolate = await service.getIsolate(vm.isolates!.first.id!);
+      isolateId = isolate.id!;
+      final scripts = await service.getScripts(isolateId);
+
+      ScriptRef findScript(String path) {
+        return scripts.scripts!.firstWhere((e) => e.uri!.contains(path));
+      }
+
+      await service.streamListen('Debug');
+      stream = service.onEvent('Debug');
+
+      final packageName = testParts.packageName;
+
+      mainScript = findScript('package:$packageName/library.dart');
+      part1Script = findScript('package:$packageName/part1.dart');
+      part2Script = findScript('package:$packageName/part2.dart');
+      part3Script = findScript('package:$packageName/part3.dart');
     });
 
     tearDownAll(() async {
       await context.tearDown();
     });
 
-    setUp(() => setCurrentLogWriter(debug: debug));
+    tearDown(() async {
+      await service.resume(isolateId);
+    });
 
-    group('evaluateInFrame', () {
-      late VmServiceInterface service;
-      VM vm;
-      late Isolate isolate;
-      late String isolateId;
-      ScriptList scripts;
-      late ScriptRef mainScript;
-      late ScriptRef part1Script;
-      late ScriptRef part2Script;
-      late ScriptRef part3Script;
-      late Stream<Event> stream;
-
-      setUp(() async {
-        setCurrentLogWriter(debug: debug);
-        service = context.service;
-        vm = await service.getVM();
-        isolate = await service.getIsolate(vm.isolates!.first.id!);
-        isolateId = isolate.id!;
-        scripts = await service.getScripts(isolateId);
-
-        await service.streamListen('Debug');
-        stream = service.onEvent('Debug');
-
-        final packageName = testParts.packageName;
-
-        mainScript = scripts.scripts!.firstWhere(
-          (each) => each.uri!.contains('package:$packageName/library.dart'),
+    test('evaluate expression in main library', () async {
+      await onBreakPoint(isolateId, mainScript, 'Concatenate1', () async {
+        final event = await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseBreakpoint,
         );
-        part1Script = scripts.scripts!.firstWhere(
-          (each) => each.uri!.contains('package:$packageName/part1.dart'),
+
+        final result = await context.service.evaluateInFrame(
+          isolateId,
+          event.topFrame!.index!,
+          'a.substring(2, 4)',
         );
-        part2Script = scripts.scripts!.firstWhere(
-          (each) => each.uri!.contains('package:$packageName/part2.dart'),
-        );
-        part3Script = scripts.scripts!.firstWhere(
-          (each) => each.uri!.contains('package:$packageName/part3.dart'),
+
+        expect(
+          result,
+          isA<InstanceRef>().having(
+            (instance) => instance.valueAsString,
+            'valueAsString',
+            'll',
+          ),
         );
       });
+    });
 
-      tearDown(() async {
-        await service.resume(isolateId);
+    test('evaluate expression in part1', () async {
+      await onBreakPoint(isolateId, part1Script, 'Concatenate2', () async {
+        final event = await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseBreakpoint,
+        );
+
+        final result = await context.service.evaluateInFrame(
+          isolateId,
+          event.topFrame!.index!,
+          'a + b + 37',
+        );
+
+        expect(
+          result,
+          isA<InstanceRef>().having(
+            (instance) => instance.valueAsString,
+            'valueAsString',
+            '42',
+          ),
+        );
       });
+    });
 
-      test('evaluate expression in main library', () async {
-        await onBreakPoint(isolateId, mainScript, 'Concatenate1', () async {
-          final event = await stream.firstWhere(
-            (event) => event.kind == EventKind.kPauseBreakpoint,
-          );
+    test('evaluate expression in part2', () async {
+      await onBreakPoint(isolateId, part2Script, 'Concatenate3', () async {
+        final event = await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseBreakpoint,
+        );
 
-          final result = await context.service.evaluateInFrame(
-            isolateId,
-            event.topFrame!.index!,
-            'a.substring(2, 4)',
-          );
+        final result = await context.service.evaluateInFrame(
+          isolateId,
+          event.topFrame!.index!,
+          'a.length + b + 1',
+        );
 
-          expect(
-            result,
-            isA<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'valueAsString',
-              'll',
-            ),
-          );
-        });
+        expect(
+          result,
+          isA<InstanceRef>().having(
+            (instance) => instance.valueAsString,
+            'valueAsString',
+            '42.42',
+          ),
+        );
       });
+    });
 
-      test('evaluate expression in part1', () async {
-        await onBreakPoint(isolateId, part1Script, 'Concatenate2', () async {
-          final event = await stream.firstWhere(
-            (event) => event.kind == EventKind.kPauseBreakpoint,
-          );
+    test('evaluate expression in part3', () async {
+      await onBreakPoint(isolateId, part3Script, 'Concatenate4', () async {
+        final event = await stream.firstWhere(
+          (event) => event.kind == EventKind.kPauseBreakpoint,
+        );
 
-          final result = await context.service.evaluateInFrame(
-            isolateId,
-            event.topFrame!.index!,
-            'a + b + 37',
-          );
+        final result = await context.service.evaluateInFrame(
+          isolateId,
+          event.topFrame!.index!,
+          '(List.of(a)..add(b.keys.first)).toString()',
+        );
 
-          expect(
-            result,
-            isA<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'valueAsString',
-              '42',
-            ),
-          );
-        });
-      });
-
-      test('evaluate expression in part2', () async {
-        await onBreakPoint(isolateId, part2Script, 'Concatenate3', () async {
-          final event = await stream.firstWhere(
-            (event) => event.kind == EventKind.kPauseBreakpoint,
-          );
-
-          final result = await context.service.evaluateInFrame(
-            isolateId,
-            event.topFrame!.index!,
-            'a.length + b + 1',
-          );
-
-          expect(
-            result,
-            isA<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'valueAsString',
-              '42.42',
-            ),
-          );
-        });
-      });
-
-      test('evaluate expression in part3', () async {
-        await onBreakPoint(isolateId, part3Script, 'Concatenate4', () async {
-          final event = await stream.firstWhere(
-            (event) => event.kind == EventKind.kPauseBreakpoint,
-          );
-
-          final result = await context.service.evaluateInFrame(
-            isolateId,
-            event.topFrame!.index!,
-            '(List.of(a)..add(b.keys.first)).toString()',
-          );
-
-          expect(
-            result,
-            isA<InstanceRef>().having(
-              (instance) => instance.valueAsString,
-              'valueAsString',
-              '[hello, world, foo]',
-            ),
-          );
-        });
+        expect(
+          result,
+          isA<InstanceRef>().having(
+            (instance) => instance.valueAsString,
+            'valueAsString',
+            '[hello, world, foo]',
+          ),
+        );
       });
     });
   });
