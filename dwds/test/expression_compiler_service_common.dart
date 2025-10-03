@@ -188,6 +188,7 @@ void testAll({required CompilerOptions compilerOptions}) {
       final compilationResult = await service.compileExpressionToJs(
         '0',
         'org-dartlang-app:/try.dart',
+        'org-dartlang-app:/try.dart',
         2,
         1,
         {},
@@ -235,6 +236,7 @@ void testAll({required CompilerOptions compilerOptions}) {
       final compilationResult1 = await service.compileExpressionToJs(
         '0',
         'org-dartlang-app:/try.dart',
+        'org-dartlang-app:/try.dart',
         2,
         1,
         {},
@@ -244,6 +246,7 @@ void testAll({required CompilerOptions compilerOptions}) {
       );
       final compilationResult2 = await service.compileExpressionToJs(
         '0',
+        'org-dartlang-app:/try.dart',
         'org-dartlang-app:/try.dart',
         2,
         1,
@@ -299,6 +302,7 @@ void testAll({required CompilerOptions compilerOptions}) {
       final compilationResult1 = service.compileExpressionToJs(
         '0',
         'org-dartlang-app:/try.dart',
+        'org-dartlang-app:/try.dart',
         2,
         1,
         {},
@@ -308,6 +312,7 @@ void testAll({required CompilerOptions compilerOptions}) {
       );
       final compilationResult2 = service.compileExpressionToJs(
         '0',
+        'org-dartlang-app:/try.dart',
         'org-dartlang-app:/try.dart',
         2,
         1,

@@ -125,6 +125,9 @@ class ExpressionEvaluator {
     final compilationResult = await _compiler.compileExpressionToJs(
       isolateId,
       libraryUri.toString(),
+      // Evaluating at "the library level" (and passing line 0 column 0) we'll
+      // also just pass the library uri as the script uri.
+      libraryUri.toString(),
       0,
       0,
       {},
@@ -280,6 +283,7 @@ class ExpressionEvaluator {
     final dartLocation = locationMap.dartLocation;
     final dartSourcePath = dartLocation.uri.serverPath;
     final libraryUri = await _modules.libraryForSource(dartSourcePath);
+    final scriptUri = await _modules.libraryOrPartForSource(dartSourcePath);
     if (libraryUri == null) {
       return createError(
         EvaluationErrorKind.internal,
@@ -298,6 +302,7 @@ class ExpressionEvaluator {
     _logger.finest(
       'Evaluating "$expression" at $module, '
       '$libraryUri:${dartLocation.line}:${dartLocation.column} '
+      'or rather $scriptUri:${dartLocation.line}:${dartLocation.column} '
       'with scope: $scope',
     );
 
@@ -317,6 +322,7 @@ class ExpressionEvaluator {
     final compilationResult = await _compiler.compileExpressionToJs(
       isolateId,
       libraryUri.toString(),
+      scriptUri.toString(),
       dartLocation.line,
       dartLocation.column,
       {},

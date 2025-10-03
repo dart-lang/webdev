@@ -35,7 +35,7 @@ void main(List<String> args) async {
     Process appProcess;
     final vmServiceCompleter = Completer<VmService>();
     appProcess = await Process.start(Platform.resolvedExecutable, [
-      '--enable-vm-service',
+      '--enable-vm-service=0',
       result.dillOutput!,
     ]);
     final sawHelloWorld = Completer();
