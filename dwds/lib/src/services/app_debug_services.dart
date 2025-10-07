@@ -14,6 +14,7 @@ abstract class AppDebugServices {
   DwdsStats? get dwdsStats;
   Uri? get ddsUri;
   Uri? get devToolsUri;
+  Uri? get dtdUri;
   String? get connectedInstanceId;
   set connectedInstanceId(String? id);
   Future<void> close();
@@ -27,6 +28,7 @@ class ChromeAppDebugServices implements AppDebugServices {
   final DwdsStats _dwdsStats;
   final Uri? _ddsUri;
   final Uri? _devToolsUri;
+  final Uri? _dtdUri;
   Future<void>? _closed;
   String? _connectedInstanceId;
 
@@ -36,6 +38,7 @@ class ChromeAppDebugServices implements AppDebugServices {
     this._dwdsStats,
     this._ddsUri,
     this._devToolsUri,
+    this._dtdUri,
   );
 
   @override
@@ -52,6 +55,9 @@ class ChromeAppDebugServices implements AppDebugServices {
 
   @override
   Uri? get devToolsUri => _devToolsUri;
+
+  @override
+  Uri? get dtdUri => _dtdUri;
 
   @override
   String? get connectedInstanceId => _connectedInstanceId;
@@ -86,11 +92,16 @@ class WebSocketAppDebugServices implements AppDebugServices {
   // WebSocket-only service - Chrome/DDS features not available
   @override
   DwdsStats? get dwdsStats => null;
+
   @override
   // TODO(bkonyi): DDS should still start in WebSocket mode.
   Uri? get ddsUri => null;
+
   @override
   Uri? get devToolsUri => null;
+
+  @override
+  Uri? get dtdUri => null;
 
   @override
   ProxyService get proxyService => _debugService.webSocketProxyService;

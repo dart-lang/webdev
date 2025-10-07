@@ -1,6 +1,7 @@
-## 25.1.1-wip
+## 25.1.1
 
-- Bump SDK constraint to ^3.10.0
+- Bump SDK constraint to ^3.10.0.
+- Expose `dtdUri` via `DebugConnection`.
 
 ## 25.1.0
 
