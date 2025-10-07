@@ -33,8 +33,8 @@ final String _sdkDir = (() {
   final String dartExecutable = Platform.isWindows
       // Use 'where.exe' to support powershell as well
       ? (Process.runSync('where.exe', ['dart.exe']).stdout as String)
-          .split(RegExp('(\r\n|\r|\n)'))
-          .first
+            .split(RegExp('(\r\n|\r|\n)'))
+            .first
       : Process.runSync('which', ['dart']).stdout;
   final aboveExecutable = p.dirname(p.dirname(dartExecutable));
   assert(FileSystemEntity.isFileSync(p.join(aboveExecutable, 'version')));
