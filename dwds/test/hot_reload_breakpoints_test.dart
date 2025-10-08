@@ -81,7 +81,7 @@ void main() {
       );
       final breakpointAdded = expectLater(
         stream,
-        emitsThrough(_hasKind(EventKind.kBreakpointAdded)),
+        emits(_hasKind(EventKind.kBreakpointAdded)),
       );
       final breakpoint = await client.addBreakpointWithScriptUri(
         isolateId,
@@ -97,7 +97,7 @@ void main() {
       final isolateId = vm.isolates!.first.id!;
       final breakpointRemoved = expectLater(
         stream,
-        emitsThrough(_hasKind(EventKind.kBreakpointRemoved)),
+        emits(_hasKind(EventKind.kBreakpointRemoved)),
       );
       await client.removeBreakpoint(isolateId, bp.id!);
       await breakpointRemoved;
@@ -136,9 +136,20 @@ void main() {
       List<({String file, String breakpointMarker, Breakpoint? bp})>
       breakpoints,
     ) async {
+      final breakpointEvents = expectLater(
+        stream,
+        emitsInOrder([
+          _hasKind(EventKind.kPausePostRequest),
+          for (final (:bp, breakpointMarker: _, file: _) in breakpoints) ...[
+            if (bp != null) _hasKind(EventKind.kBreakpointRemoved),
+            _hasKind(EventKind.kBreakpointAdded),
+          ],
+          _hasKind(EventKind.kResume),
+        ]),
+      );
       final waitForPausePost = expectLater(
         stream,
-        emitsThrough(_hasKind(EventKind.kPausePostRequest)),
+        emits(_hasKind(EventKind.kPausePostRequest)),
       );
 
       // Initiate the hot reload by loading the sources into the page.
@@ -162,6 +173,7 @@ void main() {
       }
       // The resume should complete hot reload and resume the program.
       await resume();
+      await breakpointEvents;
       return newBreakpoints;
     }
 
@@ -198,8 +210,13 @@ void main() {
       await subscription.cancel();
     }
 
-    Future<void> waitForBreakpoint() =>
-        expectLater(stream, emitsThrough(_hasKind(EventKind.kPauseBreakpoint)));
+    Future<void> waitForBreakpoint({bool resumeFirst = false}) => expectLater(
+      stream,
+      emitsInOrder([
+        if (resumeFirst) _hasKind(EventKind.kResume),
+        _hasKind(EventKind.kPauseBreakpoint),
+      ]),
+    );
 
     test('empty hot reload keeps breakpoints', () async {
       final genString = 'main gen0';
@@ -384,7 +401,7 @@ void main() {
         // Should break at `callLog`.
         await breakpointFuture;
 
-        breakpointFuture = waitForBreakpoint();
+        breakpointFuture = waitForBreakpoint(resumeFirst: true);
 
         await resume();
         // Should break at `libValue`.
@@ -455,7 +472,7 @@ void main() {
       // Should break at `callLog`.
       await breakpointFuture;
 
-      breakpointFuture = waitForBreakpoint();
+      breakpointFuture = waitForBreakpoint(resumeFirst: true);
 
       await resume();
       // Should break at the breakpoint in the last file.

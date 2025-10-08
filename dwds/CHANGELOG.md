@@ -1,6 +1,7 @@
-## 25.1.1-wip
+## 25.1.1
 
 - Bump SDK constraint to ^3.10.0
+- Fix an issue in `reloadSources` where a `PauseInterrupted` event was sent. - [#61560](https://github.com/dart-lang/sdk/issues/61560)
 
 ## 25.1.0
 

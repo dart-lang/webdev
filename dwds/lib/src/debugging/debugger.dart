@@ -82,9 +82,10 @@ class Debugger extends Domain {
   // DevTools is showing an overlay. Both cannot be shown at the same time:
   // bool _pausedOverlayVisible = false;
 
-  String get pauseState => _pauseModePauseStates.entries
-      .firstWhere((entry) => entry.value == _pauseState)
-      .key;
+  String get pauseState =>
+      _pauseModePauseStates.entries
+          .firstWhere((entry) => entry.value == _pauseState)
+          .key;
 
   /// The JS frames at the current paused location.
   ///
@@ -96,15 +97,32 @@ class Debugger extends Domain {
   bool _isStepping = false;
   DartLocation? _previousSteppingLocation;
 
+  // If not null and not completed, the pause handler completes this instead of
+  // sending a `PauseInterrupted` event to the event stream.
+  //
+  // In some cases e.g. a hot reload, DWDS pauses the execution itself in order
+  // to handle debugging logic like breakpoints. In such cases, sending the
+  // event to the event stream may trigger the client to believe that the user
+  // sent the event. To avoid that and still signal that a pause is completed,
+  // this completer is used. See https://github.com/dart-lang/sdk/issues/61560
+  // for more details.
+  Completer<void>? _pauseInterruptedCompleter;
+
   void updateInspector(AppInspectorInterface appInspector) {
     inspector = appInspector;
     _breakpoints.inspector = appInspector;
   }
 
-  Future<Success> pause() async {
+  Future<Success> pause({bool internalPause = false}) async {
     _isStepping = false;
+    if (internalPause) {
+      _pauseInterruptedCompleter = Completer<void>();
+    }
     final result = await _remoteDebugger.pause();
     handleErrorIfPresent(result);
+    if (internalPause) {
+      await _pauseInterruptedCompleter!.future;
+    }
     return Success();
   }
 
@@ -522,15 +540,17 @@ class Debugger extends Domain {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final jsBreakpointIds = e.hitBreakpoints ?? [];
     if (jsBreakpointIds.isNotEmpty) {
-      final breakpointIds = jsBreakpointIds
-          .map((id) => _breakpoints._dartIdByJsId[id])
-          // In case the breakpoint was set in Chrome DevTools outside of
-          // package:dwds.
-          .where((entry) => entry != null)
-          .toSet();
-      final pauseBreakpoints = isolate.breakpoints
-          ?.where((bp) => breakpointIds.contains(bp.id))
-          .toList();
+      final breakpointIds =
+          jsBreakpointIds
+              .map((id) => _breakpoints._dartIdByJsId[id])
+              // In case the breakpoint was set in Chrome DevTools outside of
+              // package:dwds.
+              .where((entry) => entry != null)
+              .toSet();
+      final pauseBreakpoints =
+          isolate.breakpoints
+              ?.where((bp) => breakpointIds.contains(bp.id))
+              .toList();
       event = Event(
         kind: EventKind.kPauseBreakpoint,
         timestamp: timestamp,
@@ -632,7 +652,13 @@ class Debugger extends Domain {
     // DevTools is showing an overlay. Both cannot be shown at the same time.
     // _showPausedOverlay();
     isolate.pauseEvent = event;
-    _streamNotify('Debug', event);
+    if (event.kind == EventKind.kPauseInterrupted &&
+        _pauseInterruptedCompleter != null &&
+        !_pauseInterruptedCompleter!.isCompleted) {
+      _pauseInterruptedCompleter!.complete();
+    } else {
+      _streamNotify('Debug', event);
+    }
   }
 
   /// Handles resume events coming from the Chrome connection.
