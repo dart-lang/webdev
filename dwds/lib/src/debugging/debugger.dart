@@ -114,14 +114,10 @@ class Debugger extends Domain {
 
   Future<Success> pause({bool internalPause = false}) async {
     _isStepping = false;
-    if (internalPause) {
-      _pauseInterruptedCompleter = Completer<void>();
-    }
+    if (internalPause) _pauseInterruptedCompleter = Completer<void>();
     final result = await _remoteDebugger.pause();
     handleErrorIfPresent(result);
-    if (internalPause) {
-      await _pauseInterruptedCompleter!.future;
-    }
+    await _pauseInterruptedCompleter?.future;
     return Success();
   }
 
