@@ -96,15 +96,28 @@ class Debugger extends Domain {
   bool _isStepping = false;
   DartLocation? _previousSteppingLocation;
 
+  // If not null and not completed, the pause handler completes this instead of
+  // sending a `PauseInterrupted` event to the event stream.
+  //
+  // In some cases e.g. a hot reload, DWDS pauses the execution itself in order
+  // to handle debugging logic like breakpoints. In such cases, sending the
+  // event to the event stream may trigger the client to believe that the user
+  // sent the event. To avoid that and still signal that a pause is completed,
+  // this completer is used. See https://github.com/dart-lang/sdk/issues/61560
+  // for more details.
+  Completer<void>? _internalPauseCompleter;
+
   void updateInspector(AppInspectorInterface appInspector) {
     inspector = appInspector;
     _breakpoints.inspector = appInspector;
   }
 
-  Future<Success> pause() async {
+  Future<Success> pause({bool internalPause = false}) async {
     _isStepping = false;
+    if (internalPause) _internalPauseCompleter = Completer<void>();
     final result = await _remoteDebugger.pause();
     handleErrorIfPresent(result);
+    await _internalPauseCompleter?.future;
     return Success();
   }
 
@@ -632,7 +645,14 @@ class Debugger extends Domain {
     // DevTools is showing an overlay. Both cannot be shown at the same time.
     // _showPausedOverlay();
     isolate.pauseEvent = event;
-    _streamNotify('Debug', event);
+    final internalPauseCompleter = _internalPauseCompleter;
+    if (event.kind == EventKind.kPauseInterrupted &&
+        internalPauseCompleter != null &&
+        !internalPauseCompleter.isCompleted) {
+      internalPauseCompleter.complete();
+    } else {
+      _streamNotify('Debug', event);
+    }
   }
 
   /// Handles resume events coming from the Chrome connection.

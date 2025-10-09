@@ -1,6 +1,8 @@
-## 25.1.1
+## 26.0.0
 
-- Bump SDK constraint to ^3.10.0.
+- Bump SDK constraint to ^3.10.0
+- Added 'scriptUri' parameter to compileExpressionToJs
+- Fix an issue in `reloadSources` where a `PauseInterrupted` event was sent. - [#61560](https://github.com/dart-lang/sdk/issues/61560)
 - Expose `dtdUri` via `DebugConnection`.
 
 ## 25.1.0

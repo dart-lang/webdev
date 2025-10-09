@@ -22,6 +22,14 @@ class Modules {
 
   // The Dart server path to library import uri
   final _sourceToLibrary = <String, Uri>{};
+
+  // The Dart server path to library/part import uri
+  final _sourceToLibraryOrPart = <String, Uri>{};
+
+  // Library import uri to list of script (parts) dart server path for the
+  // library.
+  final _scriptsForLibrary = <Uri, List<String>>{};
+
   var _moduleMemoizer = AsyncMemoizer<void>();
 
   final Map<String, String> _libraryToModule = {};
@@ -45,7 +53,18 @@ class Modules {
       assert(_entrypoint == entrypoint);
       for (final library in modifiedModuleReport.modifiedLibraries) {
         final libraryServerPath = _getLibraryServerPath(library);
-        _sourceToLibrary.remove(libraryServerPath);
+        final libraryUri = _sourceToLibrary.remove(libraryServerPath);
+        _sourceToLibraryOrPart.remove(libraryServerPath);
+        if (libraryUri != null) {
+          final scriptServerPaths = _scriptsForLibrary[libraryUri];
+          if (scriptServerPaths != null) {
+            for (final scriptServerPath in scriptServerPaths) {
+              _sourceToLibraryOrPart.remove(scriptServerPath);
+              _sourceToLibrary.remove(scriptServerPath);
+            }
+            _scriptsForLibrary.remove(libraryUri);
+          }
+        }
         _sourceToModule.remove(libraryServerPath);
         _libraryToModule.remove(library);
       }
@@ -57,6 +76,8 @@ class Modules {
     }
     _entrypoint = entrypoint;
     _sourceToLibrary.clear();
+    _sourceToLibraryOrPart.clear();
+    _scriptsForLibrary.clear();
     _sourceToModule.clear();
     _libraryToModule.clear();
     _moduleToSources.clear();
@@ -79,6 +100,13 @@ class Modules {
   Future<Uri?> libraryForSource(String serverPath) async {
     await _moduleMemoizer.runOnce(_initializeMapping);
     return _sourceToLibrary[serverPath];
+  }
+
+  /// Returns the importUri of the library or part for the provided Dart server
+  /// path.
+  Future<Uri?> libraryOrPartForSource(String serverPath) async {
+    await _moduleMemoizer.runOnce(_initializeMapping);
+    return _sourceToLibraryOrPart[serverPath];
   }
 
   Future<String?> moduleForLibrary(String libraryUri) async {
@@ -105,7 +133,8 @@ class Modules {
       ? library
       : DartUri(library, _root).serverPath;
 
-  /// Initializes [_sourceToModule], [_moduleToSources], and [_sourceToLibrary].
+  /// Initializes [_sourceToModule], [_moduleToSources], [_sourceToLibrary] and
+  /// [_sourceToLibraryOrPart].
   ///
   /// If [modifiedModuleReport] is not null, only updates the maps for the
   /// modified libraries in the report.
@@ -125,6 +154,7 @@ class Modules {
         // it, so it's okay to only process the modified libraries.
         continue;
       }
+      final libraryUri = Uri.parse(library);
       final scripts = libraryToScripts[library]!;
       final libraryServerPath = _getLibraryServerPath(library);
 
@@ -133,15 +163,17 @@ class Modules {
 
         _sourceToModule[libraryServerPath] = module;
         _moduleToSources.putIfAbsent(module, () => {}).add(libraryServerPath);
-        _sourceToLibrary[libraryServerPath] = Uri.parse(library);
+        _sourceToLibrary[libraryServerPath] = libraryUri;
+        _sourceToLibraryOrPart[libraryServerPath] = libraryUri;
         _libraryToModule[library] = module;
 
         for (final script in scripts) {
           final scriptServerPath = _getLibraryServerPath(script);
-
           _sourceToModule[scriptServerPath] = module;
           _moduleToSources[module]!.add(scriptServerPath);
-          _sourceToLibrary[scriptServerPath] = Uri.parse(library);
+          _sourceToLibrary[scriptServerPath] = libraryUri;
+          _sourceToLibraryOrPart[scriptServerPath] = Uri.parse(script);
+          (_scriptsForLibrary[libraryUri] ??= []).add(scriptServerPath);
         }
       } else {
         _logger.warning('No module found for library $library');

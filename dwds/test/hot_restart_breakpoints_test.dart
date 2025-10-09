@@ -93,7 +93,7 @@ void main() {
       );
       final breakpointAdded = expectLater(
         stream,
-        emitsThrough(_hasKind(EventKind.kBreakpointAdded)),
+        emits(_hasKind(EventKind.kBreakpointAdded)),
       );
       final breakpoint = await client.addBreakpointWithScriptUri(
         isolateId,
@@ -134,17 +134,29 @@ void main() {
     }
 
     Future<void> hotRestartAndHandlePausePost(
-      List<({String file, String breakpointMarker})> breakpoints,
+      List<({String file, String breakpointMarker, bool exists})> breakpoints,
     ) async {
-      final eventsDone = expectLater(
+      final isolateEvents = expectLater(
         client.onIsolateEvent,
-        emitsThrough(
-          emitsInOrder([
-            _hasKind(EventKind.kIsolateExit),
-            _hasKind(EventKind.kIsolateStart),
-            _hasKind(EventKind.kIsolateRunnable),
-          ]),
-        ),
+        emitsInOrder([
+          _hasKind(EventKind.kIsolateExit),
+          _hasKind(EventKind.kIsolateStart),
+          _hasKind(EventKind.kIsolateRunnable),
+        ]),
+      );
+      final breakpointEvents = expectLater(
+        stream,
+        emitsInOrder([
+          for (final (:exists, breakpointMarker: _, file: _)
+              in breakpoints) ...[
+            if (exists) _hasKind(EventKind.kBreakpointRemoved),
+          ],
+          _hasKind(EventKind.kResume),
+          _hasKind(EventKind.kPausePostRequest),
+          for (final _ in breakpoints) ...[
+            _hasKind(EventKind.kBreakpointAdded),
+          ],
+        ]),
       );
 
       final waitForPausePost = expectLater(
@@ -158,7 +170,7 @@ void main() {
         const TypeMatcher<Success>(),
       );
 
-      await eventsDone;
+      await isolateEvents;
 
       // DWDS defers running main after a hot restart until the client (e.g.
       // DAP) resumes. Client should listen for this event, remove breakpoints
@@ -170,10 +182,11 @@ void main() {
       final vm = await client.getVM();
       final isolate = await service.getIsolate(vm.isolates!.first.id!);
       expect(isolate.breakpoints, isEmpty);
-      for (final (:breakpointMarker, :file) in breakpoints) {
+      for (final (exists: _, :breakpointMarker, :file) in breakpoints) {
         await addBreakpoint(file: file, breakpointMarker: breakpointMarker);
       }
       await resume();
+      await breakpointEvents;
     }
 
     Future<Event> waitForBreakpoint() =>
@@ -189,7 +202,7 @@ void main() {
       await context.recompile(fullRestart: false);
 
       await hotRestartAndHandlePausePost([
-        (file: mainFile, breakpointMarker: callLogMarker),
+        (exists: true, file: mainFile, breakpointMarker: callLogMarker),
       ]);
 
       // Should break at `callLog`.
@@ -210,7 +223,7 @@ void main() {
       final breakpointFuture = waitForBreakpoint();
 
       await hotRestartAndHandlePausePost([
-        (file: mainFile, breakpointMarker: callLogMarker),
+        (exists: true, file: mainFile, breakpointMarker: callLogMarker),
       ]);
 
       // Should break at `callLog`.
@@ -236,7 +249,7 @@ void main() {
       var breakpointFuture = waitForBreakpoint();
 
       await hotRestartAndHandlePausePost([
-        (file: mainFile, breakpointMarker: callLogMarker),
+        (exists: true, file: mainFile, breakpointMarker: callLogMarker),
       ]);
 
       // Should break at `callLog`.
@@ -255,7 +268,7 @@ void main() {
       breakpointFuture = waitForBreakpoint();
 
       await hotRestartAndHandlePausePost([
-        (file: mainFile, breakpointMarker: callLogMarker),
+        (exists: true, file: mainFile, breakpointMarker: callLogMarker),
       ]);
 
       // Should break at `callLog`.
@@ -299,8 +312,8 @@ void main() {
         var breakpointFuture = waitForBreakpoint();
 
         await hotRestartAndHandlePausePost([
-          (file: mainFile, breakpointMarker: callLogMarker),
-          (file: libFile, breakpointMarker: libValueMarker),
+          (exists: true, file: mainFile, breakpointMarker: callLogMarker),
+          (exists: false, file: libFile, breakpointMarker: libValueMarker),
         ]);
 
         // Should break at `callLog`.
@@ -355,8 +368,12 @@ void main() {
       var breakpointFuture = waitForBreakpoint();
 
       await hotRestartAndHandlePausePost([
-        (file: mainFile, breakpointMarker: callLogMarker),
-        (file: 'library$numFiles.dart', breakpointMarker: 'libValue$numFiles'),
+        (exists: true, file: mainFile, breakpointMarker: callLogMarker),
+        (
+          exists: false,
+          file: 'library$numFiles.dart',
+          breakpointMarker: 'libValue$numFiles',
+        ),
       ]);
 
       final newGenLog = 'library$numFiles gen1';
