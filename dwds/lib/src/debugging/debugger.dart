@@ -105,7 +105,7 @@ class Debugger extends Domain {
   // sent the event. To avoid that and still signal that a pause is completed,
   // this completer is used. See https://github.com/dart-lang/sdk/issues/61560
   // for more details.
-  Completer<void>? _pauseInterruptedCompleter;
+  Completer<void>? _internalPauseCompleter;
 
   void updateInspector(AppInspectorInterface appInspector) {
     inspector = appInspector;
@@ -114,10 +114,10 @@ class Debugger extends Domain {
 
   Future<Success> pause({bool internalPause = false}) async {
     _isStepping = false;
-    if (internalPause) _pauseInterruptedCompleter = Completer<void>();
+    if (internalPause) _internalPauseCompleter = Completer<void>();
     final result = await _remoteDebugger.pause();
     handleErrorIfPresent(result);
-    await _pauseInterruptedCompleter?.future;
+    await _internalPauseCompleter?.future;
     return Success();
   }
 
@@ -645,10 +645,11 @@ class Debugger extends Domain {
     // DevTools is showing an overlay. Both cannot be shown at the same time.
     // _showPausedOverlay();
     isolate.pauseEvent = event;
+    final internalPauseCompleter = _internalPauseCompleter;
     if (event.kind == EventKind.kPauseInterrupted &&
-        _pauseInterruptedCompleter != null &&
-        !_pauseInterruptedCompleter!.isCompleted) {
-      _pauseInterruptedCompleter!.complete();
+        internalPauseCompleter != null &&
+        !internalPauseCompleter.isCompleted) {
+      internalPauseCompleter.complete();
     } else {
       _streamNotify('Debug', event);
     }
