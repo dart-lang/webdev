@@ -861,6 +861,7 @@ class DevHandler {
       dwdsStats,
       dds?.wsUri,
       dds?.devToolsUri,
+      dds?.dtdUri,
     );
     final encodedUri = await debugService.encodedUri;
     _logger.info('Debug service listening on $encodedUri\n');

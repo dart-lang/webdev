@@ -41,6 +41,9 @@ class DebugConnection {
   /// The endpoint of the Dart DevTools instance.
   String? get devToolsUri => _appDebugServices.devToolsUri?.toString();
 
+  /// The endpoint of the Dart Tooling Daemon (DTD).
+  String? get dtdUri => _appDebugServices.dtdUri?.toString();
+
   /// A client of the Dart VM Service with DWDS specific extensions.
   VmService get vmService => _appDebugServices.dwdsVmClient.client;
 
