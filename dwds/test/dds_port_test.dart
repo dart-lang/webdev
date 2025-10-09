@@ -42,6 +42,7 @@ void main() {
       ),
     );
     expect(Uri.parse(context.debugConnection.ddsUri!).port, expectedPort);
+    expect(context.debugConnection.dtdUri, isNotNull);
   });
 
   test('DWDS starts DDS with a specified port', () async {
@@ -58,5 +59,6 @@ void main() {
       ),
     );
     expect(Uri.parse(context.debugConnection.ddsUri!).port, expectedPort);
+    expect(context.debugConnection.dtdUri, isNotNull);
   });
 }
