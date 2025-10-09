@@ -1030,14 +1030,24 @@ class ChromeProxyService extends ProxyService {
     }).stream;
   }
 
+  /// If [internalPause] is true, indicates that this was a pause triggered
+  /// within DWDS, and therefore a `PauseInterrupted` event is never sent to the
+  /// VM service event stream. Instead, we just wait for the pause to be
+  /// completed.
   @override
-  Future<Success> pause(String isolateId) =>
-      wrapInErrorHandlerAsync('pause', () => _pause(isolateId));
+  Future<Success> pause(String isolateId, {bool internalPause = false}) =>
+      wrapInErrorHandlerAsync(
+        'pause',
+        () => _pause(isolateId, internalPause: internalPause),
+      );
 
-  Future<Success> _pause(String isolateId) async {
+  Future<Success> _pause(
+    String isolateId, {
+    required bool internalPause,
+  }) async {
     await isInitialized;
     _checkIsolate('pause', isolateId);
-    return (await debuggerFuture).pause();
+    return (await debuggerFuture).pause(internalPause: internalPause);
   }
 
   // Note: Ignore the optional local parameter, when it is set to `true` the
@@ -1181,9 +1191,7 @@ class ChromeProxyService extends ProxyService {
     };
 
     // Pause and wait for the pause to occur before managing breakpoints.
-    final pausedEvent = _firstStreamEvent('Debug', EventKind.kPauseInterrupted);
-    await pause(isolateId);
-    await pausedEvent;
+    await pause(isolateId, internalPause: true);
 
     await _reinitializeForHotReload(reloadedModulesToLibraries);
 
@@ -1512,11 +1520,6 @@ class ChromeProxyService extends ProxyService {
           break;
       }
     });
-  }
-
-  Future<void> _firstStreamEvent(String streamId, String eventKind) {
-    final controller = streamControllers[streamId]!;
-    return controller.stream.firstWhere((event) => event.kind == eventKind);
   }
 
   Future<void> _handleDeveloperLog(
