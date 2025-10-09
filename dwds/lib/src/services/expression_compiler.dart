@@ -63,6 +63,7 @@ abstract class ExpressionCompiler {
   Future<ExpressionCompilationResult> compileExpressionToJs(
     String isolateId,
     String libraryUri,
+    String scriptUri,
     int line,
     int column,
     Map<String, String> jsModules,
