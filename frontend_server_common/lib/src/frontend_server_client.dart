@@ -201,6 +201,7 @@ class _CompileExpressionRequest extends _CompilationRequest {
     this.definitions,
     this.typeDefinitions,
     this.libraryUri,
+    this.scriptUri,
     this.klass,
     this.isStatic,
   );
@@ -209,6 +210,7 @@ class _CompileExpressionRequest extends _CompilationRequest {
   List<String> definitions;
   List<String> typeDefinitions;
   String? libraryUri;
+  String? scriptUri;
   String? klass;
   bool? isStatic;
 
@@ -221,6 +223,7 @@ class _CompileExpressionToJsRequest extends _CompilationRequest {
   _CompileExpressionToJsRequest(
     super.completer,
     this.libraryUri,
+    this.scriptUri,
     this.line,
     this.column,
     this.jsModules,
@@ -230,6 +233,7 @@ class _CompileExpressionToJsRequest extends _CompilationRequest {
   );
 
   String libraryUri;
+  String scriptUri;
   int line;
   int column;
   Map<String, String> jsModules;
@@ -458,6 +462,7 @@ class ResidentCompiler {
     List<String> definitions,
     List<String> typeDefinitions,
     String libraryUri,
+    String scriptUri,
     String klass,
     bool isStatic,
   ) {
@@ -473,6 +478,7 @@ class ResidentCompiler {
         definitions,
         typeDefinitions,
         libraryUri,
+        scriptUri,
         klass,
         isStatic,
       ),
@@ -509,6 +515,7 @@ class ResidentCompiler {
   /// Compiles dart expression to JavaScript.
   Future<CompilerOutput?> compileExpressionToJs(
     String libraryUri,
+    String scriptUri,
     int line,
     int column,
     Map<String, String> jsModules,
@@ -525,6 +532,7 @@ class ResidentCompiler {
       _CompileExpressionToJsRequest(
         completer,
         libraryUri,
+        scriptUri,
         line,
         column,
         jsModules,
@@ -544,28 +552,29 @@ class ResidentCompiler {
       expectSources: false,
     );
 
-    // 'compile-expression-to-js' should be invoked after compiler has been started,
-    // program was compiled.
+    // Compiling an expression should happen after the compiler has been
+    // started and the program was compiled.
     if (_server == null) {
       return null;
     }
     final server = _server!;
 
-    final inputKey = generateV4UUID();
-    server.stdin.writeln('compile-expression-to-js $inputKey');
-    server.stdin.writeln(request.libraryUri);
-    server.stdin.writeln(request.line);
-    server.stdin.writeln(request.column);
-    request.jsModules.forEach((k, v) {
-      server.stdin.writeln('$k:$v');
-    });
-    server.stdin.writeln(inputKey);
-    request.jsFrameValues.forEach((k, v) {
-      server.stdin.writeln('$k:$v');
-    });
-    server.stdin.writeln(inputKey);
-    server.stdin.writeln(request.moduleName);
-    server.stdin.writeln(request.expression);
+    server.stdin.writeln('JSON_INPUT');
+    server.stdin.writeln(
+      json.encode({
+        'type': 'COMPILE_EXPRESSION_JS',
+        'data': {
+          'expression': request.expression,
+          'libraryUri': request.libraryUri,
+          'scriptUri': request.scriptUri,
+          'line': request.line,
+          'column': request.column,
+          'jsModules': request.jsModules,
+          'jsFrameValues': request.jsFrameValues,
+          'moduleName': request.moduleName,
+        },
+      }),
+    );
 
     return _stdoutHandler.compilerOutput.future;
   }
@@ -656,6 +665,7 @@ class TestExpressionCompiler implements ExpressionCompiler {
   Future<ExpressionCompilationResult> compileExpressionToJs(
     String isolateId,
     String libraryUri,
+    String scriptUri,
     int line,
     int column,
     Map<String, String> jsModules,
@@ -665,6 +675,7 @@ class TestExpressionCompiler implements ExpressionCompiler {
   ) async {
     final compilerOutput = await _generator.compileExpressionToJs(
       libraryUri,
+      scriptUri,
       line,
       column,
       jsModules,
