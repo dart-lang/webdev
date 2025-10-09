@@ -1,3 +1,8 @@
+## 26.1.0-wip
+
+- `pause` now does not send a `PauseInterrupted` event in
+  `WebSocketProxyService` as we didn't actually pause.
+
 ## 26.0.0
 
 - Bump SDK constraint to ^3.10.0
