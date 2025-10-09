@@ -940,22 +940,8 @@ class WebSocketProxyService extends ProxyService {
   /// Pauses execution of the isolate.
   @override
   Future<Success> pause(String isolateId) =>
-      wrapInErrorHandlerAsync('pause', () => _pause(isolateId));
-
-  Future<Success> _pause(String _) async {
-    // Create a pause event and store it
-    if (_isolateRef != null) {
-      final pauseEvent = vm_service.Event(
-        kind: vm_service.EventKind.kPauseInterrupted,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isolate: _isolateRef!,
-      );
-      _currentPauseEvent = pauseEvent;
-      _streamNotify(vm_service.EventStreams.kDebug, pauseEvent);
-    }
-
-    return Success();
-  }
+      // Can't pause with the web socket implementation, so do nothing.
+      Future.value(Success());
 
   /// Resumes execution of the isolate.
   @override
