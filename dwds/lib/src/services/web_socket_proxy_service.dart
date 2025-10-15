@@ -120,9 +120,8 @@ class _ServiceExtensionTracker {
 /// Exception thrown when no browser clients are connected to DWDS.
 class NoClientsAvailableException implements Exception {
   final String message;
-  final String operation;
 
-  NoClientsAvailableException(this.message, {required this.operation});
+  NoClientsAvailableException(this.message);
 
   @override
   String toString() => 'NoClientsAvailableException: $message';
@@ -517,7 +516,6 @@ class WebSocketProxyService extends ProxyService {
       return _ReloadReportWithMetadata(success: true);
     } on NoClientsAvailableException catch (e) {
       // Gracefully handle no clients scenario
-      _logger.info('No clients available for hot reload');
       return _ReloadReportWithMetadata(
         success: false,
         notices: [e.message],
@@ -541,11 +539,7 @@ class WebSocketProxyService extends ProxyService {
       // Return structured response indicating no clients available
       _logger.info('No clients available for hot restart');
       return {
-        'result': {
-          'type': 'Success',
-          'noClientsAvailable': true,
-          'message': e.message,
-        },
+        'result': {'noClientsAvailable': true, 'message': e.message},
       };
     } catch (e) {
       _logger.warning('Hot restart failed: $e');
@@ -641,10 +635,7 @@ class WebSocketProxyService extends ProxyService {
 
     if (clientCount == 0) {
       _logger.warning('No clients available for hot reload');
-      throw NoClientsAvailableException(
-        'No clients available for hot reload',
-        operation: 'hot reload',
-      );
+      throw NoClientsAvailableException('No clients available for hot reload');
     }
 
     // Create tracker for this hot reload request
@@ -705,10 +696,7 @@ class WebSocketProxyService extends ProxyService {
 
     if (clientCount == 0) {
       _logger.warning('No clients available for hot restart');
-      throw NoClientsAvailableException(
-        'No clients available for hot restart',
-        operation: 'hot restart',
-      );
+      throw NoClientsAvailableException('No clients available for hot restart');
     }
 
     // Create tracker for this hot restart request
@@ -774,8 +762,7 @@ class WebSocketProxyService extends ProxyService {
     final request = ServiceExtensionRequest.fromArgs(
       id: requestId,
       method: method,
-      args:
-          args != null ? Map<String, dynamic>.from(args) : <String, dynamic>{},
+      args: <String, Object?>{...?args},
     );
 
     // Send the request and get the number of connected clients
