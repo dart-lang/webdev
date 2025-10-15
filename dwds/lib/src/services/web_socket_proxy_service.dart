@@ -537,7 +537,6 @@ class WebSocketProxyService extends ProxyService {
       return {'result': vm_service.Success().toJson()};
     } on NoClientsAvailableException catch (e) {
       // Return structured response indicating no clients available
-      _logger.info('No clients available for hot restart');
       return {
         'result': {'noClientsAvailable': true, 'message': e.message},
       };
