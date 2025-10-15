@@ -21,7 +21,7 @@ import 'package:vm_service_interface/vm_service_interface.dart';
 const pauseIsolatesOnStartFlag = 'pause_isolates_on_start';
 
 /// Abstract base class for VM service proxy implementations.
-abstract class ProxyService<T extends AppInspector>
+abstract class ProxyService<InspectorT extends AppInspector>
     implements VmServiceInterface {
   /// Cache of all existing StreamControllers.
   ///
@@ -29,7 +29,7 @@ abstract class ProxyService<T extends AppInspector>
   final Map<String, StreamController<vm_service.Event>> _streamControllers = {};
 
   /// Provides variable inspection functionality.
-  T get inspector {
+  InspectorT get inspector {
     if (_inspector == null) {
       throw StateError('No running isolate (inspector is not set).');
     }
@@ -37,11 +37,11 @@ abstract class ProxyService<T extends AppInspector>
   }
 
   @protected
-  set inspector(T? inspector) {
+  set inspector(InspectorT? inspector) {
     _inspector = inspector;
   }
 
-  T? _inspector;
+  InspectorT? _inspector;
 
   /// Determines if there an isolate running currently.
   ///
