@@ -117,6 +117,17 @@ class _ServiceExtensionTracker {
   }
 }
 
+/// Exception thrown when no browser clients are connected to DWDS.
+class NoClientsAvailableException implements Exception {
+  final String message;
+  final String operation;
+
+  NoClientsAvailableException(this.message, {required this.operation});
+
+  @override
+  String toString() => 'NoClientsAvailableException: $message';
+}
+
 /// WebSocket-based VM service proxy for web debugging.
 class WebSocketProxyService extends ProxyService {
   final _logger = Logger('WebSocketProxyService');
@@ -504,6 +515,14 @@ class WebSocketProxyService extends ProxyService {
       await _performWebSocketHotReload();
       _logger.info('Hot reload completed successfully');
       return _ReloadReportWithMetadata(success: true);
+    } on NoClientsAvailableException catch (e) {
+      // Gracefully handle no clients scenario
+      _logger.info('No clients available for hot reload');
+      return _ReloadReportWithMetadata(
+        success: false,
+        notices: [e.message],
+        noClientsAvailable: true,
+      );
     } catch (e) {
       _logger.warning('Hot reload failed: $e');
       return _ReloadReportWithMetadata(success: false, notices: [e.toString()]);
@@ -518,6 +537,16 @@ class WebSocketProxyService extends ProxyService {
       await _performWebSocketHotRestart();
       _logger.info('Hot restart completed successfully');
       return {'result': vm_service.Success().toJson()};
+    } on NoClientsAvailableException catch (e) {
+      // Return structured response indicating no clients available
+      _logger.info('No clients available for hot restart');
+      return {
+        'result': {
+          'type': 'Success',
+          'noClientsAvailable': true,
+          'message': e.message,
+        },
+      };
     } catch (e) {
       _logger.warning('Hot restart failed: $e');
       return {
@@ -611,7 +640,11 @@ class WebSocketProxyService extends ProxyService {
     });
 
     if (clientCount == 0) {
-      throw StateError('No clients available for hot reload');
+      _logger.warning('No clients available for hot reload');
+      throw NoClientsAvailableException(
+        'No clients available for hot reload',
+        operation: 'hot reload',
+      );
     }
 
     // Create tracker for this hot reload request
@@ -671,7 +704,11 @@ class WebSocketProxyService extends ProxyService {
     });
 
     if (clientCount == 0) {
-      throw StateError('No clients available for hot restart');
+      _logger.warning('No clients available for hot restart');
+      throw NoClientsAvailableException(
+        'No clients available for hot restart',
+        operation: 'hot restart',
+      );
     }
 
     // Create tracker for this hot restart request
@@ -737,9 +774,8 @@ class WebSocketProxyService extends ProxyService {
     final request = ServiceExtensionRequest.fromArgs(
       id: requestId,
       method: method,
-      args: args != null
-          ? Map<String, dynamic>.from(args)
-          : <String, dynamic>{},
+      args:
+          args != null ? Map<String, dynamic>.from(args) : <String, dynamic>{},
     );
 
     // Send the request and get the number of connected clients
@@ -940,8 +976,8 @@ class WebSocketProxyService extends ProxyService {
   /// Pauses execution of the isolate.
   @override
   Future<Success> pause(String isolateId) =>
-      // Can't pause with the web socket implementation, so do nothing.
-      Future.value(Success());
+  // Can't pause with the web socket implementation, so do nothing.
+  Future.value(Success());
 
   /// Resumes execution of the isolate.
   @override
@@ -1049,13 +1085,20 @@ class WebSocketProxyService extends ProxyService {
 /// Extended ReloadReport that includes additional metadata in JSON output.
 class _ReloadReportWithMetadata extends vm_service.ReloadReport {
   final List<String>? notices;
-  _ReloadReportWithMetadata({super.success, this.notices});
+  final bool noClientsAvailable;
+
+  _ReloadReportWithMetadata({
+    super.success,
+    this.notices,
+    this.noClientsAvailable = false,
+  });
 
   @override
   Map<String, dynamic> toJson() {
     final jsonified = <String, Object?>{
       'type': 'ReloadReport',
       'success': success ?? false,
+      'noClientsAvailable': noClientsAvailable,
     };
     if (notices != null) {
       jsonified['notices'] = notices!.map((e) => {'message': e}).toList();

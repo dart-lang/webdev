@@ -1,5 +1,6 @@
 ## 26.1.0-wip
 
+- Added `NoClientsAvailableException` and structured error responses with `noClientsAvailable` field for graceful handling when no browser clients are connected during hot reload or hot restart operations.
 - `pause` now does not send a `PauseInterrupted` event in
   `WebSocketProxyService` as we didn't actually pause.
 
