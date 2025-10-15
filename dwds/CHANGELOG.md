@@ -1,4 +1,4 @@
-## 26.1.0-wip
+## 26.1.0
 
 - Added `NoClientsAvailableException` and structured error responses with `noClientsAvailable` field for graceful handling when no browser clients are connected during hot reload or hot restart operations.
 - `pause` now does not send a `PauseInterrupted` event in
