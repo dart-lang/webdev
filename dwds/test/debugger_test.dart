@@ -10,7 +10,6 @@ import 'dart:async';
 
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/frame_computer.dart';
-import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:logging/logging.dart';
@@ -23,7 +22,7 @@ import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
 import 'fixtures/utilities.dart';
 
-late AppInspector inspector;
+late FakeChromeAppInspector inspector;
 late Debugger debugger;
 late FakeWebkitDebugger webkitDebugger;
 late StreamController<DebuggerPausedEvent> pausedController;
@@ -97,7 +96,10 @@ void main() async {
       skipLists,
       root,
     );
-    inspector = FakeInspector(webkitDebugger, fakeIsolate: simpleIsolate);
+    inspector = FakeChromeAppInspector(
+      webkitDebugger,
+      fakeIsolate: simpleIsolate,
+    );
     debugger.updateInspector(inspector);
   });
 
@@ -120,9 +122,10 @@ void main() async {
       [sampleSyncFrame],
       asyncStackTrace: StackTrace({
         'callFrames': [sampleAsyncFrame.json],
-        'parent': StackTrace({
-          'callFrames': [sampleAsyncFrame.json],
-        }).json,
+        'parent':
+            StackTrace({
+              'callFrames': [sampleAsyncFrame.json],
+            }).json,
       }),
     );
 
@@ -142,13 +145,15 @@ void main() async {
       [sampleSyncFrame],
       asyncStackTrace: StackTrace({
         'callFrames': [sampleAsyncFrame.json],
-        'parent': StackTrace({
-          'callFrames': [],
-          'parent': StackTrace({
-            'callFrames': [sampleAsyncFrame.json],
-            'parent': StackTrace({'callFrames': []}).json,
-          }).json,
-        }).json,
+        'parent':
+            StackTrace({
+              'callFrames': [],
+              'parent':
+                  StackTrace({
+                    'callFrames': [sampleAsyncFrame.json],
+                    'parent': StackTrace({'callFrames': []}).json,
+                  }).json,
+            }).json,
       }),
     );
 
@@ -165,7 +170,10 @@ void main() async {
   setUp(() {
     // We need to provide an Isolate so that the code doesn't bail out on a null
     // check before it has a chance to throw.
-    inspector = FakeInspector(webkitDebugger, fakeIsolate: simpleIsolate);
+    inspector = FakeChromeAppInspector(
+      webkitDebugger,
+      fakeIsolate: simpleIsolate,
+    );
     debugger.updateInspector(inspector);
   });
 
@@ -173,7 +181,10 @@ void main() async {
     setUp(() {
       // We need to provide an Isolate so that the code doesn't bail out on a null
       // check before it has a chance to throw.
-      inspector = FakeInspector(webkitDebugger, fakeIsolate: simpleIsolate);
+      inspector = FakeChromeAppInspector(
+        webkitDebugger,
+        fakeIsolate: simpleIsolate,
+      );
       debugger.updateInspector(inspector);
     });
 

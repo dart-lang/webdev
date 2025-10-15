@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/location.dart';
@@ -10,7 +11,6 @@ import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/javascript_builder.dart';
 import 'package:dwds/src/utilities/conversions.dart';
-import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/objects.dart' as chrome;
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -33,7 +33,7 @@ class EvaluationErrorKind {
 /// ExpressionCompilerInterface to compile dart expressions to JavaScript.
 class ExpressionEvaluator {
   final String _entrypoint;
-  final AppInspectorInterface _inspector;
+  final ChromeAppInspector _inspector;
   final Debugger _debugger;
   final Locations _locations;
   final Modules _modules;
@@ -341,9 +341,15 @@ class ExpressionEvaluator {
     final jsCode = _maybeStripTryCatch(jsResult);
 
     // Send JS expression to chrome to evaluate.
-    var result = scope.isEmpty
-        ? await _evaluateJsExpressionInFrame(frameIndex, jsCode)
-        : await _callJsFunctionInFrame(frameIndex, jsCode, scope, frameScope);
+    var result =
+        scope.isEmpty
+            ? await _evaluateJsExpressionInFrame(frameIndex, jsCode)
+            : await _callJsFunctionInFrame(
+              frameIndex,
+              jsCode,
+              scope,
+              frameScope,
+            );
 
     result = await _formatEvaluationError(result);
     _logger.finest('Evaluated "$expression" to "${result.json}"');
@@ -452,12 +458,11 @@ class ExpressionEvaluator {
         return createError(EvaluationErrorKind.type, error);
       } else if (error.startsWith('NetworkError: ')) {
         var modulePath = _loadModuleErrorRegex.firstMatch(error)?.group(1);
-        final module = modulePath != null
-            ? await globalToolConfiguration.loadStrategy.moduleForServerPath(
-                _entrypoint,
-                modulePath,
-              )
-            : 'unknown';
+        final module =
+            modulePath != null
+                ? await globalToolConfiguration.loadStrategy
+                    .moduleForServerPath(_entrypoint, modulePath)
+                : 'unknown';
         modulePath ??= 'unknown';
         error =
             'Module is not loaded : $module (path: $modulePath). '
@@ -533,9 +538,8 @@ class ExpressionEvaluator {
     if (lines.length > 5) {
       final tryLines = lines.getRange(0, 2).toList();
       final bodyLines = lines.getRange(2, lines.length - 3);
-      final catchLines = lines
-          .getRange(lines.length - 3, lines.length)
-          .toList();
+      final catchLines =
+          lines.getRange(lines.length - 3, lines.length).toList();
       if (tryLines[0].isEmpty &&
           tryLines[1] == 'try {' &&
           catchLines[0] == '} catch (error) {' &&

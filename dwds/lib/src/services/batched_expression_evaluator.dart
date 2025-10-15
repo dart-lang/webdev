@@ -6,12 +6,12 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:dwds/shared/batched_stream.dart';
+import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
-import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -28,7 +28,7 @@ class EvaluateRequest {
 
 class BatchedExpressionEvaluator extends ExpressionEvaluator {
   final _logger = Logger('BatchedExpressionEvaluator');
-  final AppInspectorInterface _inspector;
+  final ChromeAppInspector _inspector;
   final _requestController = BatchedStreamController<EvaluateRequest>(
     delay: 200,
   );
@@ -158,8 +158,9 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
               );
               request.completer.complete(result);
             }),
-        onError: (error, stackTrace) =>
-            request.completer.completeError(error, stackTrace),
+        onError:
+            (error, stackTrace) =>
+                request.completer.completeError(error, stackTrace),
       );
     }
   }

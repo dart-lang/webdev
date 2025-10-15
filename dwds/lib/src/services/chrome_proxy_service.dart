@@ -10,9 +10,9 @@ import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
+import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
-import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
@@ -42,8 +42,8 @@ final class DartDevelopmentServiceConnectedEvent extends Event {
     required this.uri,
   }) : message =
            'A Dart Developer Service instance has connected and this direct '
-           'connection to the VM service will now be closed. Please reconnect to '
-           'the Dart Development Service at $uri.',
+               'connection to the VM service will now be closed. Please reconnect to '
+               'the Dart Development Service at $uri.',
        super(kind: 'DartDevelopmentServiceConnected');
 
   final String message;
@@ -66,7 +66,7 @@ final class DisconnectNonDartDevelopmentServiceClients extends RPCError {
 }
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
-class ChromeProxyService extends ProxyService {
+class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   /// Signals when isolate starts.
   Future<void> get isStarted => _startedCompleter.future;
   Completer<void> _startedCompleter = Completer<void>();
@@ -74,9 +74,6 @@ class ChromeProxyService extends ProxyService {
   /// Signals when expression compiler is ready to evaluate.
   Future<void> get isCompilerInitialized => _compilerCompleter.future;
   Completer<void> _compilerCompleter = Completer<void>();
-
-  /// The root at which we're serving.
-  final String root;
 
   final RemoteDebugger remoteDebugger;
   final ExecutionContext executionContext;
@@ -92,23 +89,6 @@ class ChromeProxyService extends ProxyService {
   /// Provides debugger-related functionality.
   Future<Debugger> get debuggerFuture => _debuggerCompleter.future;
   final _debuggerCompleter = Completer<Debugger>();
-
-  /// Provides variable inspection functionality.
-  AppInspector get inspector {
-    if (_inspector == null) {
-      throw StateError('No running isolate (inspector is not set).');
-    }
-    return _inspector!;
-  }
-
-  AppInspector? _inspector;
-
-  /// Determines if there an isolate running currently.
-  ///
-  /// [_inspector] is `null` iff the isolate is not running,
-  /// for example, before the first isolate starts or during
-  /// a hot restart.
-  bool get _isIsolateRunning => _inspector != null;
 
   StreamSubscription<ConsoleAPIEvent>? _consoleSubscription;
 
@@ -133,7 +113,7 @@ class ChromeProxyService extends ProxyService {
 
   ChromeProxyService._(
     super.vm,
-    this.root,
+    super.root,
     this._assetReader,
     this.remoteDebugger,
     this._modules,
@@ -306,7 +286,7 @@ class ChromeProxyService extends ProxyService {
     bool newConnection = false,
   }) async {
     // Inspector is null if the previous isolate is destroyed.
-    if (_isIsolateRunning) {
+    if (isIsolateRunning) {
       throw UnsupportedError(
         'Cannot create multiple isolates for the same app',
       );
@@ -335,7 +315,7 @@ class ChromeProxyService extends ProxyService {
     await _initializeEntrypoint(entrypoint);
 
     debugger.notifyPausedAtStart();
-    _inspector = await AppInspector.create(
+    inspector = await ChromeAppInspector.create(
       appConnection,
       remoteDebugger,
       _assetReader,
@@ -346,16 +326,17 @@ class ChromeProxyService extends ProxyService {
     );
 
     final compiler = _compiler;
-    _expressionEvaluator = compiler == null
-        ? null
-        : BatchedExpressionEvaluator(
-            entrypoint,
-            inspector,
-            debugger,
-            _locations,
-            _modules,
-            compiler,
-          );
+    _expressionEvaluator =
+        compiler == null
+            ? null
+            : BatchedExpressionEvaluator(
+              entrypoint,
+              inspector,
+              debugger,
+              _locations,
+              _modules,
+              compiler,
+            );
 
     safeUnawaited(_prewarmExpressionCompilerCache());
 
@@ -431,7 +412,7 @@ class ChromeProxyService extends ProxyService {
   @override
   void destroyIsolate() {
     _logger.fine('Destroying isolate');
-    if (!_isIsolateRunning) return;
+    if (!isIsolateRunning) return;
 
     final isolate = inspector.isolate;
     final isolateRef = inspector.isolateRef;
@@ -448,7 +429,7 @@ class ChromeProxyService extends ProxyService {
       ),
     );
     vm.isolates?.removeWhere((ref) => ref.id == isolate.id);
-    _inspector = null;
+    inspector = null;
     _expressionEvaluator?.close();
     _consoleSubscription?.cancel();
     _consoleSubscription = null;
@@ -456,7 +437,7 @@ class ChromeProxyService extends ProxyService {
 
   /// Removes the breakpoints in the running isolate.
   Future<void> disableBreakpoints() async {
-    if (!_isIsolateRunning) return;
+    if (!isIsolateRunning) return;
     final isolate = inspector.isolate;
 
     final debugger = await debuggerFuture;
@@ -557,7 +538,7 @@ class ChromeProxyService extends ProxyService {
     Map? args,
   }) async {
     await isInitialized;
-    isolateId ??= _inspector?.isolate.id;
+    isolateId ??= inspector.isolate.id;
     _checkIsolate('callServiceExtension', isolateId);
     args ??= <String, String>{};
     final stringArgs = args.map(
@@ -601,7 +582,7 @@ class ChromeProxyService extends ProxyService {
   ) async {
     try {
       final result = await evaluation();
-      if (!_isIsolateRunning || isolateId != inspector.isolate.id) {
+      if (!isIsolateRunning || isolateId != inspector.isolate.id) {
         _logger.fine(
           'Cannot get evaluation result for isolate $isolateId: '
           ' isolate exited.',
@@ -1382,7 +1363,7 @@ class ChromeProxyService extends ProxyService {
         chromeConsoleSubscription = remoteDebugger.onConsoleAPICalled.listen((
           e,
         ) {
-          if (!_isIsolateRunning) return;
+          if (!isIsolateRunning) return;
           final isolateRef = inspector.isolateRef;
           if (!filter(e)) return;
           final args = e.params?['args'] as List?;
@@ -1402,7 +1383,7 @@ class ChromeProxyService extends ProxyService {
           exceptionsSubscription = remoteDebugger.onExceptionThrown.listen((
             e,
           ) async {
-            if (!_isIsolateRunning) return;
+            if (!isIsolateRunning) return;
             final isolateRef = inspector.isolateRef;
             var description = e.exceptionDetails.exception?.description;
             if (description != null) {
@@ -1436,7 +1417,7 @@ class ChromeProxyService extends ProxyService {
   @override
   void parseDebugEvent(DebugEvent debugEvent) {
     if (terminatingIsolates) return;
-    if (!_isIsolateRunning) return;
+    if (!isIsolateRunning) return;
     final isolateRef = inspector.isolateRef;
 
     streamNotify(
@@ -1458,7 +1439,7 @@ class ChromeProxyService extends ProxyService {
   @override
   void parseRegisterEvent(RegisterEvent registerEvent) {
     if (terminatingIsolates) return;
-    if (!_isIsolateRunning) return;
+    if (!isIsolateRunning) return;
 
     final isolate = inspector.isolate;
     final isolateRef = inspector.isolateRef;
@@ -1482,7 +1463,7 @@ class ChromeProxyService extends ProxyService {
     ) async {
       if (terminatingIsolates) return;
       if (event.type != 'debug') return;
-      if (!_isIsolateRunning) return;
+      if (!isIsolateRunning) return;
 
       final isolate = inspector.isolate;
       if (isolateRef.id != isolate.id) return;
@@ -1530,21 +1511,24 @@ class ChromeProxyService extends ProxyService {
     // Always attempt to fetch the full properties instead of relying on
     // `RemoteObject.preview` which only has truncated log messages:
     // https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-RemoteObject
-    final logParams = objectId != null
-        ? await _fetchFullLogParams(objectId, logObject: logObject)
-        : _fetchAbbreviatedLogParams(logObject);
+    final logParams =
+        objectId != null
+            ? await _fetchFullLogParams(objectId, logObject: logObject)
+            : _fetchAbbreviatedLogParams(logObject);
 
     final logRecord = LogRecord(
       message: await _instanceRef(logParams['message']),
       loggerName: await _instanceRef(logParams['name']),
-      level: logParams['level'] != null
-          ? int.tryParse(logParams['level']!.value.toString())
-          : 0,
+      level:
+          logParams['level'] != null
+              ? int.tryParse(logParams['level']!.value.toString())
+              : 0,
       error: await _instanceRef(logParams['error']),
       time: event.timestamp.toInt(),
-      sequenceNumber: logParams['sequenceNumber'] != null
-          ? int.tryParse(logParams['sequenceNumber']!.value.toString())
-          : 0,
+      sequenceNumber:
+          logParams['sequenceNumber'] != null
+              ? int.tryParse(logParams['sequenceNumber']!.value.toString())
+              : 0,
       stackTrace: await _instanceRef(logParams['stackTrace']),
       zone: await _instanceRef(logParams['zone']),
     );
@@ -1613,7 +1597,7 @@ class ChromeProxyService extends ProxyService {
 
   Future<InstanceRef> _instanceRef(RemoteObject? obj) async {
     final instance = obj == null ? null : await inspector.instanceRefFor(obj);
-    return instance ?? InstanceHelper.kNullInstanceRef;
+    return instance ?? ChromeAppInstanceHelper.kNullInstanceRef;
   }
 
   /// Validate that isolateId matches the current isolate we're connected to and

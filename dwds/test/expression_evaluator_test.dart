@@ -37,7 +37,7 @@ void main() async {
 
     late StreamController<DebuggerPausedEvent> pausedController;
     late StreamController<Event> debugEventController;
-    late FakeInspector inspector;
+    late FakeChromeAppInspector inspector;
     setUp(() async {
       final assetReader = FakeAssetReader(sourceMap: '');
       final toolConfiguration = TestToolConfiguration.withLoadStrategy(
@@ -64,7 +64,10 @@ void main() async {
         skipLists,
         root,
       );
-      inspector = FakeInspector(webkitDebugger, fakeIsolate: simpleIsolate);
+      inspector = FakeChromeAppInspector(
+        webkitDebugger,
+        fakeIsolate: simpleIsolate,
+      );
       debugger.updateInspector(inspector);
 
       _evaluator = ExpressionEvaluator(

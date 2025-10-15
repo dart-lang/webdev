@@ -4,7 +4,7 @@
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -26,7 +26,7 @@ void runTypeSystemVerificationTests({
 
   group('$compilationMode |', () {
     final context = TestContext(project, provider);
-    late AppInspector inspector;
+    late ChromeAppInspector inspector;
 
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
@@ -48,14 +48,13 @@ void runTypeSystemVerificationTests({
 
     String libraryName(CompilationMode compilationMode) =>
         compilationMode == CompilationMode.frontendServer
-        ? 'example/scopes/main.dart'
-        : 'example/scopes/main';
+            ? 'example/scopes/main.dart'
+            : 'example/scopes/main';
 
     String libraryVariableTypeExpression(
       String variable,
       CompilationMode compilationMode,
-    ) =>
-        '''
+    ) => '''
             (function() {
               var dart = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk').dart;
               var libraryName = '${libraryName(compilationMode)}';
@@ -87,7 +86,7 @@ void runTests({
   final project = TestProject.testScopes;
   final context = TestContext(project, provider);
 
-  late AppInspector inspector;
+  late ChromeAppInspector inspector;
 
   group('$compilationMode |', () {
     setUpAll(() async {
@@ -253,9 +252,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
 
       test(
@@ -273,9 +272,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
 
       test(
@@ -293,9 +292,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
 
       test(
@@ -313,9 +312,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
     });
 
@@ -328,9 +327,10 @@ void runTests({
         final classRef = instance.classRef!;
         expect(classRef, isNotNull);
         expect(classRef.name, 'MyTestClass<dynamic>');
-        final boundFieldNames = instance.fields!
-            .map((boundField) => boundField.decl!.name)
-            .toList();
+        final boundFieldNames =
+            instance.fields!
+                .map((boundField) => boundField.decl!.name)
+                .toList();
         expect(boundFieldNames, [
           '_privateField',
           'abstractField',
@@ -341,9 +341,8 @@ void runTests({
           'notFinal',
           'tornOff',
         ]);
-        final fieldNames = instance.fields!
-            .map((boundField) => boundField.name)
-            .toList();
+        final fieldNames =
+            instance.fields!.map((boundField) => boundField.name).toList();
         expect(boundFieldNames, fieldNames);
         for (final field in instance.fields!) {
           expect(field.name, isNotNull);
@@ -441,9 +440,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
 
       test(
@@ -461,9 +460,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
 
       test(
@@ -481,9 +480,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
 
       test(
@@ -501,9 +500,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                canaryFeatures == true
-            ? unsupportedTestMsg
-            : null,
+                    canaryFeatures == true
+                ? unsupportedTestMsg
+                : null,
       );
     });
   });

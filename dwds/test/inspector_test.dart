@@ -8,7 +8,7 @@ library;
 
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -24,7 +24,7 @@ void main() {
 
   final context = TestContext(TestProject.testScopes, provider);
 
-  late AppInspector inspector;
+  late ChromeAppInspector inspector;
 
   setUpAll(() async {
     await context.setUp();
@@ -163,10 +163,8 @@ void main() {
   test('properties', () async {
     final remoteObject = await libraryPublicFinal();
     final properties = await inspector.getProperties(remoteObject.objectId!);
-    final names = properties
-        .map((p) => p.name)
-        .where((x) => x != '__proto__')
-        .toList();
+    final names =
+        properties.map((p) => p.name).where((x) => x != '__proto__').toList();
     final expected = [
       '_privateField',
       'abstractField',

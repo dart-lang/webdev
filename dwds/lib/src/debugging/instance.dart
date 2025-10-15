@@ -5,11 +5,10 @@
 import 'dart:math';
 
 import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:dwds/src/debugging/metadata/function.dart';
 import 'package:dwds/src/utilities/conversions.dart';
-import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
@@ -17,14 +16,13 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
-class InstanceHelper extends Domain {
+class ChromeAppInstanceHelper {
   final _logger = Logger('InstanceHelper');
-  final ClassMetaDataHelper metadataHelper;
+  final ChromeClassMetaDataHelper metadataHelper;
+  final ChromeAppInspector inspector;
 
-  InstanceHelper(AppInspector appInspector)
-    : metadataHelper = ClassMetaDataHelper(appInspector) {
-    inspector = appInspector;
-  }
+  ChromeAppInstanceHelper(this.inspector)
+    : metadataHelper = ChromeClassMetaDataHelper(inspector);
 
   static final InstanceRef kNullInstanceRef = _primitiveInstanceRef(
     InstanceKind.kNull,
@@ -269,9 +267,8 @@ class InstanceHelper extends Domain {
       objectId,
       offset: offset,
       count: count,
-      length: metaData.kind != InstanceKind.kPlainInstance
-          ? metaData.length
-          : null,
+      length:
+          metaData.kind != InstanceKind.kPlainInstance ? metaData.length : null,
     );
 
     final dartProperties = await _dartFieldsFor(properties, remoteObject);
@@ -310,8 +307,9 @@ class InstanceHelper extends Domain {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-        .getMapElementsJsExpression();
+    final expression =
+        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+            .getMapElementsJsExpression();
 
     final keysAndValues = await inspector.jsCallFunctionOn(map, expression, []);
     final keys = await inspector.loadField(keysAndValues, 'keys');
@@ -480,7 +478,7 @@ class InstanceHelper extends Domain {
       shape,
       'positionalCount',
     );
-    if (positionalCountObject == null || positionalCountObject.value is! int) {
+    if (positionalCountObject.value is! int) {
       _logger.warning(
         'Unexpected positional count from record: $positionalCountObject',
       );
@@ -509,12 +507,10 @@ class InstanceHelper extends Domain {
 
     // Collect named fields in the requested range.
     // Account for already collected positional fields.
-    final namedRangeOffset = offset == null
-        ? null
-        : _remainingCount(positionalCount, offset);
-    final namedRangeCount = count == null
-        ? null
-        : _remainingCount(positionalRangeCount, count);
+    final namedRangeOffset =
+        offset == null ? null : _remainingCount(positionalCount, offset);
+    final namedRangeCount =
+        count == null ? null : _remainingCount(positionalRangeCount, count);
     final namedInstance = await instanceFor(
       namedObject,
       offset: namedRangeOffset,
@@ -541,8 +537,9 @@ class InstanceHelper extends Domain {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-        .getRecordFieldsJsExpression();
+    final expression =
+        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+            .getRecordFieldsJsExpression();
 
     final result = await inspector.jsCallFunctionOn(record, expression, []);
     final fieldNameElements = await _recordShapeFields(
@@ -679,8 +676,9 @@ class InstanceHelper extends Domain {
     // We do this in in awkward way because we want the names and types, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-        .getRecordTypeFieldsJsExpression();
+    final expression =
+        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+            .getRecordTypeFieldsJsExpression();
 
     final result = await inspector.jsCallFunctionOn(record, expression, []);
     final fieldNameElements = await _recordShapeFields(
@@ -709,8 +707,9 @@ class InstanceHelper extends Domain {
     final length = metaData.length;
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
-    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-        .getSetElementsJsExpression();
+    final expression =
+        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+            .getSetElementsJsExpression();
 
     final result = await inspector.jsCallFunctionOn(
       remoteObject,
@@ -813,10 +812,9 @@ class InstanceHelper extends Domain {
     //
     // For maps and lists it's more complicated. Treat the actual SDK versions
     // of these as special.
-    final fieldNameExpression = globalToolConfiguration
-        .loadStrategy
-        .dartRuntimeDebugger
-        .getObjectFieldNamesJsExpression();
+    final fieldNameExpression =
+        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+            .getObjectFieldNamesJsExpression();
     final result = await inspector.jsCallFunctionOn(
       remoteObject,
       fieldNameExpression,
@@ -834,9 +832,10 @@ class InstanceHelper extends Domain {
   /// be something returned by value from Chrome, e.g. number, boolean, or
   /// String.
   Future<InstanceRef?> instanceRefFor(Object value) {
-    final remote = value is RemoteObject
-        ? value
-        : RemoteObject({'value': value, 'type': _chromeType(value)});
+    final remote =
+        value is RemoteObject
+            ? value
+            : RemoteObject({'value': value, 'type': _chromeType(value)});
     return _instanceRefForRemote(remote);
   }
 

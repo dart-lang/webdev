@@ -4,16 +4,17 @@
 
 import 'package:collection/collection.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds/src/debugging/chrome_inspector.dart';
+import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
-import 'package:dwds/src/utilities/domain.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// Keeps track of Dart libraries available in the running application.
-class LibraryHelper extends Domain {
+class LibraryHelper<T extends AppInspector> {
   final Logger _logger = Logger('LibraryHelper');
 
   /// Map of library ID to [Library].
@@ -24,9 +25,9 @@ class LibraryHelper extends Domain {
 
   LibraryRef? _rootLib;
 
-  LibraryHelper(AppInspectorInterface appInspector) {
-    inspector = appInspector;
-  }
+  final T inspector;
+
+  LibraryHelper(this.inspector);
 
   /// Initialize any caches.
   ///
@@ -84,14 +85,24 @@ class LibraryHelper extends Domain {
   /// using [initialize].
   Future<List<LibraryRef>> get libraryRefs async {
     if (_libraryRefsById.isNotEmpty) return _libraryRefsById.values.toList();
-    final libraries = await globalToolConfiguration.loadStrategy
-        .metadataProviderFor(inspector.appConnection.request.entrypointPath)
-        .libraries;
+    final libraries =
+        await globalToolConfiguration.loadStrategy
+            .metadataProviderFor(inspector.appConnection.request.entrypointPath)
+            .libraries;
     for (final library in libraries) {
       _libraryRefsById[library] = _createLibraryRef(library);
     }
     return _libraryRefsById.values.toList();
   }
+
+  Future<LibraryRef?> libraryRefFor(String objectId) async {
+    if (_libraryRefsById.isEmpty) await libraryRefs;
+    return _libraryRefsById[objectId];
+  }
+}
+
+class ChromeLibraryHelper extends LibraryHelper<ChromeAppInspector> {
+  ChromeLibraryHelper(super.inspector);
 
   Future<Library?> libraryFor(LibraryRef libraryRef) async {
     final libraryId = libraryRef.id;
@@ -100,11 +111,6 @@ class LibraryHelper extends Domain {
         _librariesById[libraryId] ?? await _constructLibrary(libraryRef);
     if (library == null) return null;
     return _librariesById[libraryId] = library;
-  }
-
-  Future<LibraryRef?> libraryRefFor(String objectId) async {
-    if (_libraryRefsById.isEmpty) await libraryRefs;
-    return _libraryRefsById[objectId];
   }
 
   Future<Library?> _constructLibrary(LibraryRef libraryRef) async {
