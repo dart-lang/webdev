@@ -287,6 +287,7 @@ class DevHandler {
     final webSocketDebugService = await WebSocketDebugService.start(
       'localhost',
       appConnection,
+      _assetReader,
       sendClientRequest: _sendRequestToClients,
     );
     return _createAppDebugServicesWebSocketMode(

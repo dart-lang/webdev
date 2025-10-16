@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:dwds/asset_reader.dart';
+import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
@@ -46,17 +47,10 @@ Isolate get simpleIsolate => Isolate(
   isolateFlags: [],
 );
 
-class FakeInspector implements AppInspector {
+class FakeChromeAppInspector extends FakeInspector
+    implements ChromeAppInspector {
+  FakeChromeAppInspector(this._remoteDebugger, {required super.fakeIsolate});
   final WebkitDebugger _remoteDebugger;
-  final List<String> functionsCalled = [];
-  FakeInspector(this._remoteDebugger, {required this.fakeIsolate});
-
-  Isolate fakeIsolate;
-
-  @override
-  Object noSuchMethod(Invocation invocation) {
-    throw UnsupportedError('This is a fake');
-  }
 
   @override
   Future<RemoteObject> callFunction(
@@ -68,36 +62,12 @@ class FakeInspector implements AppInspector {
   }
 
   @override
-  Future<void> initialize({ModifiedModuleReport? modifiedModuleReport}) async {}
-
-  @override
   Future<InstanceRef?> instanceRefFor(Object value) async =>
-      InstanceHelper.kNullInstanceRef;
+      ChromeAppInstanceHelper.kNullInstanceRef;
 
   @override
   Future<Obj> getObject(String objectId, {int? offset, int? count}) async =>
       Obj.parse({})!;
-
-  @override
-  Future<ScriptList> getScripts() async => ScriptList(scripts: []);
-
-  @override
-  Future<ScriptRef> scriptRefFor(String uri) async =>
-      ScriptRef(id: 'fake', uri: 'fake://uri');
-
-  @override
-  ScriptRef? scriptWithId(String? scriptId) => null;
-
-  @override
-  Isolate get isolate => fakeIsolate;
-
-  @override
-  IsolateRef get isolateRef => IsolateRef(
-    id: fakeIsolate.id,
-    number: fakeIsolate.number,
-    name: fakeIsolate.name,
-    isSystemIsolate: fakeIsolate.isSystemIsolate,
-  );
 
   @override
   Future<List<Property>> getProperties(
@@ -121,6 +91,42 @@ class FakeInspector implements AppInspector {
 
   @override
   bool isNativeJsError(InstanceRef instanceRef) => false;
+}
+
+class FakeInspector implements AppInspector {
+  final List<String> functionsCalled = [];
+  FakeInspector({required this.fakeIsolate});
+
+  Isolate fakeIsolate;
+
+  @override
+  Object noSuchMethod(Invocation invocation) {
+    throw UnsupportedError('This is a fake');
+  }
+
+  @override
+  Future<void> initialize({ModifiedModuleReport? modifiedModuleReport}) async {}
+
+  @override
+  Future<ScriptList> getScripts() async => ScriptList(scripts: []);
+
+  @override
+  Future<ScriptRef> scriptRefFor(String uri) async =>
+      ScriptRef(id: 'fake', uri: 'fake://uri');
+
+  @override
+  ScriptRef? scriptWithId(String? scriptId) => null;
+
+  @override
+  Isolate get isolate => fakeIsolate;
+
+  @override
+  IsolateRef get isolateRef => IsolateRef(
+    id: fakeIsolate.id,
+    number: fakeIsolate.number,
+    name: fakeIsolate.name,
+    isSystemIsolate: fakeIsolate.isSystemIsolate,
+  );
 }
 
 class FakeSseConnection implements SseSocketConnection {

@@ -421,7 +421,8 @@ class WebSocketDebugService implements DebugService {
 
   static Future<WebSocketDebugService> start(
     String hostname,
-    AppConnection appConnection, {
+    AppConnection appConnection,
+    AssetReader assetReader, {
     required SendClientRequest sendClientRequest,
     UrlEncoder? urlEncoder,
   }) async {
@@ -431,6 +432,7 @@ class WebSocketDebugService implements DebugService {
     final webSocketProxyService = await WebSocketProxyService.create(
       sendClientRequest,
       appConnection,
+      assetReader.basePath,
     );
 
     final handler = _createWebSocketHandler(

@@ -4,7 +4,7 @@
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -26,7 +26,7 @@ void runTypeSystemVerificationTests({
 
   group('$compilationMode |', () {
     final context = TestContext(project, provider);
-    late AppInspector inspector;
+    late ChromeAppInspector inspector;
 
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
@@ -87,7 +87,7 @@ void runTests({
   final project = TestProject.testScopes;
   final context = TestContext(project, provider);
 
-  late AppInspector inspector;
+  late ChromeAppInspector inspector;
 
   group('$compilationMode |', () {
     setUpAll(() async {
