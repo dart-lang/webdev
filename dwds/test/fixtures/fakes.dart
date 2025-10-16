@@ -358,10 +358,9 @@ class FakeStrategy extends LoadStrategy {
 
   @override
   shelf.Handler get handler =>
-      (request) =>
-          (request.url.path == 'someDummyPath')
-              ? shelf.Response.ok('some dummy response')
-              : shelf.Response.notFound('someDummyPath');
+      (request) => (request.url.path == 'someDummyPath')
+      ? shelf.Response.ok('some dummy response')
+      : shelf.Response.notFound('someDummyPath');
 
   @override
   BuildSettings get buildSettings => _buildSettings;

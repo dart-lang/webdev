@@ -718,8 +718,9 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
     final request = ServiceExtensionRequest.fromArgs(
       id: requestId,
       method: method,
-      args:
-          args != null ? Map<String, dynamic>.from(args) : <String, dynamic>{},
+      args: args != null
+          ? Map<String, dynamic>.from(args)
+          : <String, dynamic>{},
     );
 
     // Send the request and get the number of connected clients
@@ -918,8 +919,8 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
   /// Pauses execution of the isolate.
   @override
   Future<Success> pause(String isolateId) =>
-  // Can't pause with the web socket implementation, so do nothing.
-  Future.value(Success());
+      // Can't pause with the web socket implementation, so do nothing.
+      Future.value(Success());
 
   /// Resumes execution of the isolate.
   @override

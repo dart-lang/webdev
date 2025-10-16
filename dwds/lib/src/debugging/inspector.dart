@@ -145,10 +145,9 @@ abstract class AppInspector {
     ModifiedModuleReport? modifiedModuleReport,
   }) {
     return _scriptCacheMemoizer.runOnce(() async {
-      final scripts =
-          await globalToolConfiguration.loadStrategy
-              .metadataProviderFor(appConnection.request.entrypointPath)
-              .scripts;
+      final scripts = await globalToolConfiguration.loadStrategy
+          .metadataProviderFor(appConnection.request.entrypointPath)
+          .scripts;
       if (modifiedModuleReport != null) {
         // Invalidate any script caches that were computed for the now invalid
         // libraries. They will get repopulated below.

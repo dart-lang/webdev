@@ -235,8 +235,10 @@ class ChromeAppInspector extends AppInspector {
     String selector, [
     List<dynamic> arguments = const [],
   ]) async {
-    final remoteArguments =
-        arguments.cast<String>().map(remoteObjectFor).toList();
+    final remoteArguments = arguments
+        .cast<String>()
+        .map(remoteObjectFor)
+        .toList();
     // We special case the Dart library, where invokeMethod won't work because
     // it's not really a Dart object.
     if (isLibraryId(targetId)) {
@@ -263,15 +265,15 @@ class ChromeAppInspector extends AppInspector {
     }
     return globalToolConfiguration.loadStrategy is DdcLibraryBundleStrategy
         ? _evaluateLibraryMethodWithDdcLibraryBundle(
-          libraryUri,
-          selector,
-          arguments,
-        )
+            libraryUri,
+            selector,
+            arguments,
+          )
         : _evaluateInLibrary(
-          libraryUri,
-          'function () { return this.$selector.apply(this, arguments); }',
-          arguments,
-        );
+            libraryUri,
+            'function () { return this.$selector.apply(this, arguments); }',
+            arguments,
+          );
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
@@ -575,14 +577,15 @@ class ChromeAppInspector extends AppInspector {
       offset: offset,
       length: length,
     );
-    final args =
-        [offset, rangeCount].map(dartIdFor).map(remoteObjectFor).toList();
+    final args = [
+      offset,
+      rangeCount,
+    ].map(dartIdFor).map(remoteObjectFor).toList();
     // If this is a List, just call sublist. If it's a Map, get the entries, but
     // avoid doing a toList on a large map using skip/take to get the section we
     // want. To make those alternatives easier in JS, pass both count and end.
-    final expression =
-        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-            .getSubRangeJsExpression();
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .getSubRangeJsExpression();
 
     return await jsCallFunctionOn(receiver, expression, args);
   }
@@ -625,9 +628,8 @@ class ChromeAppInspector extends AppInspector {
   /// Updates [Isolate.extensionRPCs] to this set.
   @override
   Future<Set<String>> getExtensionRpcs() async {
-    final expression =
-        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-            .getDartDeveloperExtensionNamesJsExpression();
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .getDartDeveloperExtensionNamesJsExpression();
     final extensionRpcs = <String>{};
     final params = {
       'expression': expression,

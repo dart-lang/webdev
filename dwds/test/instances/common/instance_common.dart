@@ -48,13 +48,14 @@ void runTypeSystemVerificationTests({
 
     String libraryName(CompilationMode compilationMode) =>
         compilationMode == CompilationMode.frontendServer
-            ? 'example/scopes/main.dart'
-            : 'example/scopes/main';
+        ? 'example/scopes/main.dart'
+        : 'example/scopes/main';
 
     String libraryVariableTypeExpression(
       String variable,
       CompilationMode compilationMode,
-    ) => '''
+    ) =>
+        '''
             (function() {
               var dart = ${globalToolConfiguration.loadStrategy.loadModuleSnippet}('dart_sdk').dart;
               var libraryName = '${libraryName(compilationMode)}';
@@ -252,9 +253,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                    canaryFeatures == true
-                ? unsupportedTestMsg
-                : null,
+                canaryFeatures == true
+            ? unsupportedTestMsg
+            : null,
       );
 
       test(
@@ -272,9 +273,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                    canaryFeatures == true
-                ? unsupportedTestMsg
-                : null,
+                canaryFeatures == true
+            ? unsupportedTestMsg
+            : null,
       );
 
       test(
@@ -292,9 +293,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                    canaryFeatures == true
-                ? unsupportedTestMsg
-                : null,
+                canaryFeatures == true
+            ? unsupportedTestMsg
+            : null,
       );
 
       test(
@@ -312,9 +313,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                    canaryFeatures == true
-                ? unsupportedTestMsg
-                : null,
+                canaryFeatures == true
+            ? unsupportedTestMsg
+            : null,
       );
     });
 
@@ -327,10 +328,9 @@ void runTests({
         final classRef = instance.classRef!;
         expect(classRef, isNotNull);
         expect(classRef.name, 'MyTestClass<dynamic>');
-        final boundFieldNames =
-            instance.fields!
-                .map((boundField) => boundField.decl!.name)
-                .toList();
+        final boundFieldNames = instance.fields!
+            .map((boundField) => boundField.decl!.name)
+            .toList();
         expect(boundFieldNames, [
           '_privateField',
           'abstractField',
@@ -341,8 +341,9 @@ void runTests({
           'notFinal',
           'tornOff',
         ]);
-        final fieldNames =
-            instance.fields!.map((boundField) => boundField.name).toList();
+        final fieldNames = instance.fields!
+            .map((boundField) => boundField.name)
+            .toList();
         expect(boundFieldNames, fieldNames);
         for (final field in instance.fields!) {
           expect(field.name, isNotNull);
@@ -440,9 +441,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                    canaryFeatures == true
-                ? unsupportedTestMsg
-                : null,
+                canaryFeatures == true
+            ? unsupportedTestMsg
+            : null,
       );
 
       test(
@@ -460,9 +461,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                    canaryFeatures == true
-                ? unsupportedTestMsg
-                : null,
+                canaryFeatures == true
+            ? unsupportedTestMsg
+            : null,
       );
 
       test(
@@ -480,9 +481,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                    canaryFeatures == true
-                ? unsupportedTestMsg
-                : null,
+                canaryFeatures == true
+            ? unsupportedTestMsg
+            : null,
       );
 
       test(
@@ -500,9 +501,9 @@ void runTests({
         },
         skip:
             provider.ddcModuleFormat == ModuleFormat.ddc &&
-                    canaryFeatures == true
-                ? unsupportedTestMsg
-                : null,
+                canaryFeatures == true
+            ? unsupportedTestMsg
+            : null,
       );
     });
   });

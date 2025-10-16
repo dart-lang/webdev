@@ -190,11 +190,10 @@ class ChromeDebugService implements DebugService {
   );
 
   @override
-  Future<void> close() =>
-      _closed ??= Future.wait([
-        _server.close(),
-        if (_dds != null) _dds!.shutdown(),
-      ]);
+  Future<void> close() => _closed ??= Future.wait([
+    _server.close(),
+    if (_dds != null) _dds!.shutdown(),
+  ]);
 
   Future<DartDevelopmentServiceLauncher> startDartDevelopmentService() async {
     // Note: DDS can handle both web socket and SSE connections with no
@@ -225,11 +224,11 @@ class ChromeDebugService implements DebugService {
     }
     return (_useSse
             ? Uri(
-              scheme: 'sse',
-              host: hostname,
-              port: port,
-              path: '$authToken/\$debugHandler',
-            )
+                scheme: 'sse',
+                host: hostname,
+                port: port,
+                path: '$authToken/\$debugHandler',
+              )
             : Uri(scheme: 'ws', host: hostname, port: port, path: authToken))
         .toString();
   }
@@ -381,11 +380,10 @@ class WebSocketDebugService implements DebugService {
 
   /// Closes the debug service and associated resources.
   @override
-  Future<void> close() =>
-      _closed ??= Future.wait([
-        _server.close(),
-        if (_dds != null) _dds!.shutdown(),
-      ]);
+  Future<void> close() => _closed ??= Future.wait([
+    _server.close(),
+    if (_dds != null) _dds!.shutdown(),
+  ]);
 
   /// Starts DDS (Dart Development Service).
   Future<DartDevelopmentServiceLauncher> startDartDevelopmentService({

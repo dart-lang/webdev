@@ -85,10 +85,9 @@ class LibraryHelper<T extends AppInspector> {
   /// using [initialize].
   Future<List<LibraryRef>> get libraryRefs async {
     if (_libraryRefsById.isNotEmpty) return _libraryRefsById.values.toList();
-    final libraries =
-        await globalToolConfiguration.loadStrategy
-            .metadataProviderFor(inspector.appConnection.request.entrypointPath)
-            .libraries;
+    final libraries = await globalToolConfiguration.loadStrategy
+        .metadataProviderFor(inspector.appConnection.request.entrypointPath)
+        .libraries;
     for (final library in libraries) {
       _libraryRefsById[library] = _createLibraryRef(library);
     }

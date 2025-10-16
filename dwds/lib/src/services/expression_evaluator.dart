@@ -341,15 +341,9 @@ class ExpressionEvaluator {
     final jsCode = _maybeStripTryCatch(jsResult);
 
     // Send JS expression to chrome to evaluate.
-    var result =
-        scope.isEmpty
-            ? await _evaluateJsExpressionInFrame(frameIndex, jsCode)
-            : await _callJsFunctionInFrame(
-              frameIndex,
-              jsCode,
-              scope,
-              frameScope,
-            );
+    var result = scope.isEmpty
+        ? await _evaluateJsExpressionInFrame(frameIndex, jsCode)
+        : await _callJsFunctionInFrame(frameIndex, jsCode, scope, frameScope);
 
     result = await _formatEvaluationError(result);
     _logger.finest('Evaluated "$expression" to "${result.json}"');
@@ -458,11 +452,12 @@ class ExpressionEvaluator {
         return createError(EvaluationErrorKind.type, error);
       } else if (error.startsWith('NetworkError: ')) {
         var modulePath = _loadModuleErrorRegex.firstMatch(error)?.group(1);
-        final module =
-            modulePath != null
-                ? await globalToolConfiguration.loadStrategy
-                    .moduleForServerPath(_entrypoint, modulePath)
-                : 'unknown';
+        final module = modulePath != null
+            ? await globalToolConfiguration.loadStrategy.moduleForServerPath(
+                _entrypoint,
+                modulePath,
+              )
+            : 'unknown';
         modulePath ??= 'unknown';
         error =
             'Module is not loaded : $module (path: $modulePath). '
@@ -538,8 +533,9 @@ class ExpressionEvaluator {
     if (lines.length > 5) {
       final tryLines = lines.getRange(0, 2).toList();
       final bodyLines = lines.getRange(2, lines.length - 3);
-      final catchLines =
-          lines.getRange(lines.length - 3, lines.length).toList();
+      final catchLines = lines
+          .getRange(lines.length - 3, lines.length)
+          .toList();
       if (tryLines[0].isEmpty &&
           tryLines[1] == 'try {' &&
           catchLines[0] == '} catch (error) {' &&

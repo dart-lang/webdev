@@ -267,8 +267,9 @@ class ChromeAppInstanceHelper {
       objectId,
       offset: offset,
       count: count,
-      length:
-          metaData.kind != InstanceKind.kPlainInstance ? metaData.length : null,
+      length: metaData.kind != InstanceKind.kPlainInstance
+          ? metaData.length
+          : null,
     );
 
     final dartProperties = await _dartFieldsFor(properties, remoteObject);
@@ -307,9 +308,8 @@ class ChromeAppInstanceHelper {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression =
-        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-            .getMapElementsJsExpression();
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .getMapElementsJsExpression();
 
     final keysAndValues = await inspector.jsCallFunctionOn(map, expression, []);
     final keys = await inspector.loadField(keysAndValues, 'keys');
@@ -507,10 +507,12 @@ class ChromeAppInstanceHelper {
 
     // Collect named fields in the requested range.
     // Account for already collected positional fields.
-    final namedRangeOffset =
-        offset == null ? null : _remainingCount(positionalCount, offset);
-    final namedRangeCount =
-        count == null ? null : _remainingCount(positionalRangeCount, count);
+    final namedRangeOffset = offset == null
+        ? null
+        : _remainingCount(positionalCount, offset);
+    final namedRangeCount = count == null
+        ? null
+        : _remainingCount(positionalRangeCount, count);
     final namedInstance = await instanceFor(
       namedObject,
       offset: namedRangeOffset,
@@ -537,9 +539,8 @@ class ChromeAppInstanceHelper {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression =
-        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-            .getRecordFieldsJsExpression();
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .getRecordFieldsJsExpression();
 
     final result = await inspector.jsCallFunctionOn(record, expression, []);
     final fieldNameElements = await _recordShapeFields(
@@ -676,9 +677,8 @@ class ChromeAppInstanceHelper {
     // We do this in in awkward way because we want the names and types, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    final expression =
-        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-            .getRecordTypeFieldsJsExpression();
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .getRecordTypeFieldsJsExpression();
 
     final result = await inspector.jsCallFunctionOn(record, expression, []);
     final fieldNameElements = await _recordShapeFields(
@@ -707,9 +707,8 @@ class ChromeAppInstanceHelper {
     final length = metaData.length;
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
-    final expression =
-        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-            .getSetElementsJsExpression();
+    final expression = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
+        .getSetElementsJsExpression();
 
     final result = await inspector.jsCallFunctionOn(
       remoteObject,
@@ -812,9 +811,10 @@ class ChromeAppInstanceHelper {
     //
     // For maps and lists it's more complicated. Treat the actual SDK versions
     // of these as special.
-    final fieldNameExpression =
-        globalToolConfiguration.loadStrategy.dartRuntimeDebugger
-            .getObjectFieldNamesJsExpression();
+    final fieldNameExpression = globalToolConfiguration
+        .loadStrategy
+        .dartRuntimeDebugger
+        .getObjectFieldNamesJsExpression();
     final result = await inspector.jsCallFunctionOn(
       remoteObject,
       fieldNameExpression,
@@ -832,10 +832,9 @@ class ChromeAppInstanceHelper {
   /// be something returned by value from Chrome, e.g. number, boolean, or
   /// String.
   Future<InstanceRef?> instanceRefFor(Object value) {
-    final remote =
-        value is RemoteObject
-            ? value
-            : RemoteObject({'value': value, 'type': _chromeType(value)});
+    final remote = value is RemoteObject
+        ? value
+        : RemoteObject({'value': value, 'type': _chromeType(value)});
     return _instanceRefForRemote(remote);
   }
 
