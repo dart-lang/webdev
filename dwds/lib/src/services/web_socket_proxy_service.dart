@@ -1075,20 +1075,13 @@ class WebSocketProxyService extends ProxyService {
 /// Extended ReloadReport that includes additional metadata in JSON output.
 class _ReloadReportWithMetadata extends vm_service.ReloadReport {
   final List<String>? notices;
-  final bool noClientsAvailable;
-
-  _ReloadReportWithMetadata({
-    super.success,
-    this.notices,
-    this.noClientsAvailable = false,
-  });
+  _ReloadReportWithMetadata({super.success, this.notices});
 
   @override
   Map<String, dynamic> toJson() {
     final jsonified = <String, Object?>{
       'type': 'ReloadReport',
       'success': success ?? false,
-      'noClientsAvailable': noClientsAvailable,
     };
     if (notices != null) {
       jsonified['notices'] = notices!.map((e) => {'message': e}).toList();
