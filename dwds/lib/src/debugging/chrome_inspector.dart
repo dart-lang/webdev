@@ -41,7 +41,7 @@ class ChromeAppInspector extends AppInspector {
 
   @override
   @protected
-  late final libraryHelper = ChromeLibraryHelper(this);
+  late final ChromeLibraryHelper libraryHelper = ChromeLibraryHelper(this);
 
   late ChromeAppClassHelper _classHelper;
   late ChromeAppInstanceHelper _instanceHelper;
