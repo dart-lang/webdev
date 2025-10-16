@@ -49,7 +49,8 @@ abstract class AppInspector {
 
   final AppConnection appConnection;
 
-  late LibraryHelper _libraryHelper;
+  @protected
+  LibraryHelper get libraryHelper;
 
   /// The root URI from which the application is served.
   final String root;
@@ -61,7 +62,7 @@ abstract class AppInspector {
   static final exceptionMessageRegex = RegExp(r'^.*$', multiLine: true);
 
   /// Flutter widget inspector library.
-  Future<LibraryRef?> get flutterWidgetInspectorLibrary => _libraryHelper
+  Future<LibraryRef?> get flutterWidgetInspectorLibrary => libraryHelper
       .libraryRefFor('package:flutter/src/widgets/widget_inspector.dart');
 
   /// Regex used to extract a stack trace line from the exception description.
@@ -73,23 +74,22 @@ abstract class AppInspector {
   /// Reset all caches and recompute any mappings.
   ///
   /// Should be called across hot reloads with a valid [ModifiedModuleReport].
+  @protected
   @mustCallSuper
   Future<void> initialize({ModifiedModuleReport? modifiedModuleReport}) async {
     _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
 
-    if (modifiedModuleReport != null) {
-      // Invalidate `_libraryHelper` as we use it populate any script caches.
-      _libraryHelper.initialize(modifiedModuleReport: modifiedModuleReport);
-    } else {
-      _libraryHelper = LibraryHelper(this)..initialize();
+    // Invalidate `_libraryHelper` as we use it populate any script caches.
+    libraryHelper.initialize(modifiedModuleReport: modifiedModuleReport);
+    if (modifiedModuleReport == null) {
       _scriptRefsById.clear();
       _serverPathToScriptRef.clear();
       _scriptIdToLibraryId.clear();
       _libraryIdToScriptRefs.clear();
     }
 
-    final libraries = await _libraryHelper.libraryRefs;
-    isolate.rootLib = await _libraryHelper.rootLib;
+    final libraries = await libraryHelper.libraryRefs;
+    isolate.rootLib = await libraryHelper.rootLib;
     isolate.libraries?.clear();
     isolate.libraries?.addAll(libraries);
 
@@ -111,7 +111,7 @@ abstract class AppInspector {
   );
 
   Future<LibraryRef?> libraryRefFor(String objectId) =>
-      _libraryHelper.libraryRefFor(objectId);
+      libraryHelper.libraryRefFor(objectId);
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].
   Future<ScriptRef?> scriptRefFor(String uri) async {
@@ -152,7 +152,7 @@ abstract class AppInspector {
         // Invalidate any script caches that were computed for the now invalid
         // libraries. They will get repopulated below.
         for (final libraryUri in modifiedModuleReport.modifiedLibraries) {
-          final libraryRef = await _libraryHelper.libraryRefFor(libraryUri);
+          final libraryRef = await libraryHelper.libraryRefFor(libraryUri);
           final libraryId = libraryRef?.id;
           // If this was not a pre-existing library, nothing to invalidate.
           if (libraryId == null) continue;
@@ -185,7 +185,7 @@ abstract class AppInspector {
           ScriptRef(uri: uri, id: createId()),
           for (final part in parts ?? []) ScriptRef(uri: part, id: createId()),
         ];
-        final libraryRef = await _libraryHelper.libraryRefFor(uri);
+        final libraryRef = await libraryHelper.libraryRefFor(uri);
         final libraryId = libraryRef?.id;
         if (libraryId != null) {
           final libraryIdToScriptRefs = _libraryIdToScriptRefs.putIfAbsent(

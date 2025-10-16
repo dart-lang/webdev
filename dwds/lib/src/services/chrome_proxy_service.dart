@@ -855,50 +855,28 @@ class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     String isolateId,
     List<String> reports, {
     String? scriptId,
+    // Note: Ignore the following optional parameters. They are here to match
+    // the VM service interface.
     int? tokenPos,
     int? endTokenPos,
     bool? forceCompile,
     bool? reportLines,
     List<String>? libraryFilters,
-    // Note: Ignore the optional librariesAlreadyCompiled parameter. It is here
-    // to match the VM service interface.
     List<String>? librariesAlreadyCompiled,
   }) => wrapInErrorHandlerAsync(
     'getSourceReport',
-    () => _getSourceReport(
-      isolateId,
-      reports,
-      scriptId: scriptId,
-      tokenPos: tokenPos,
-      endTokenPos: endTokenPos,
-      forceCompile: forceCompile,
-      reportLines: reportLines,
-      libraryFilters: libraryFilters,
-    ),
+    () => _getSourceReport(isolateId, reports, scriptId: scriptId),
   );
 
   Future<SourceReport> _getSourceReport(
     String isolateId,
     List<String> reports, {
     String? scriptId,
-    int? tokenPos,
-    int? endTokenPos,
-    bool? forceCompile,
-    bool? reportLines,
-    List<String>? libraryFilters,
   }) {
     return captureElapsedTime(() async {
       await isInitialized;
       _checkIsolate('getSourceReport', isolateId);
-      return await inspector.getSourceReport(
-        reports,
-        scriptId: scriptId,
-        tokenPos: tokenPos,
-        endTokenPos: endTokenPos,
-        forceCompile: forceCompile,
-        reportLines: reportLines,
-        libraryFilters: libraryFilters,
-      );
+      return await inspector.getSourceReport(reports, scriptId: scriptId);
     }, (result) => DwdsEvent.getSourceReport());
   }
 

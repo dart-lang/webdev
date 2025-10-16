@@ -4,6 +4,9 @@
 
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/debugging/libraries.dart';
+import 'package:dwds/src/services/web_socket_proxy_service.dart';
+import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart';
 
 /// Provides information about the currently loaded program.
@@ -11,9 +14,15 @@ class WebSocketAppInspector extends AppInspector {
   /// Counter for generating unique isolate IDs across page refreshes
   static int _globalIsolateIdCounter = 0;
 
-  WebSocketAppInspector(super.appConnection, super.isolate, super.root);
+  WebSocketAppInspector._(
+    super.appConnection,
+    super.isolate,
+    super.root,
+    this._service,
+  );
 
   static Future<WebSocketAppInspector> create(
+    WebSocketProxyService service,
     AppConnection appConnection,
     String root,
   ) async {
@@ -27,31 +36,43 @@ class WebSocketAppInspector extends AppInspector {
       startTime: time,
       runnable: true,
       pauseOnExit: false,
-      pauseEvent: Event(
-        kind: EventKind.kPauseStart,
-        timestamp: time,
-        isolate: IsolateRef(
-          id: id,
-          name: name,
-          number: id,
-          isSystemIsolate: false,
-        ),
-      ),
       livePorts: 0,
       libraries: [],
       breakpoints: [],
       isSystemIsolate: false,
       isolateFlags: [],
-    )..extensionRPCs = [];
-    final inspector = WebSocketAppInspector(appConnection, isolate, root);
+    );
+    final inspector = WebSocketAppInspector._(
+      appConnection,
+      isolate,
+      root,
+      service,
+    );
 
     await inspector.initialize();
     return inspector;
   }
 
   @override
-  Future<Set<String>> getExtensionRpcs() {
-    // TODO: implement getExtensionRpcs
-    throw UnimplementedError();
+  @protected
+  late final libraryHelper = LibraryHelper(this);
+
+  final WebSocketProxyService _service;
+
+  /// Invokes the `getExtensionRpcs` service extension, which returns the list
+  /// of registered extensions.
+  ///
+  /// Combines this with the RPCs registered in the [isolate]. Use this over
+  /// [Isolate.extensionRPCs] as this computes a live set.
+  ///
+  /// Updates [Isolate.extensionRPCs] to this set.
+  @override
+  Future<Set<String>> getExtensionRpcs() async {
+    final response = await _service.callServiceExtension('getExtensionRpcs');
+    final extensionRpcs = (response.json!['rpcs'] as List)
+        .cast<String>()
+        .toSet();
+    isolate.extensionRPCs = List.of(extensionRpcs);
+    return extensionRpcs;
   }
 }

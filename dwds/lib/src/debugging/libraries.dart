@@ -10,6 +10,7 @@ import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -33,6 +34,7 @@ class LibraryHelper<T extends AppInspector> {
   ///
   /// If [modifiedModuleReport] is not null, invalidates only modified libraries
   /// from the cache and recomputes values for any eager caches.
+  @mustCallSuper
   void initialize({ModifiedModuleReport? modifiedModuleReport}) {
     _rootLib = null;
     if (modifiedModuleReport != null) {

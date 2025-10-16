@@ -201,7 +201,7 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
       return;
     }
 
-    inspector = await WebSocketAppInspector.create(appConnection, root);
+    inspector = await WebSocketAppInspector.create(this, appConnection, root);
 
     final isolateRef = inspector.isolateRef;
     vm.isolates?.add(isolateRef);

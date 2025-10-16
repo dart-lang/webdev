@@ -24,6 +24,7 @@ import 'package:dwds/src/utilities/objects.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -38,7 +39,10 @@ class ChromeAppInspector extends AppInspector {
   final RemoteDebugger remoteDebugger;
   final ExecutionContext _executionContext;
 
-  late ChromeLibraryHelper _libraryHelper;
+  @override
+  @protected
+  late final libraryHelper = ChromeLibraryHelper(this);
+
   late ChromeAppClassHelper _classHelper;
   late ChromeAppInstanceHelper _instanceHelper;
 
@@ -51,15 +55,10 @@ class ChromeAppInspector extends AppInspector {
   /// Regex used to extract the message from an exception description.
   static final exceptionMessageRegex = RegExp(r'^.*$', multiLine: true);
 
-  /// Flutter widget inspector library.
-  @override
-  Future<LibraryRef?> get flutterWidgetInspectorLibrary => _libraryHelper
-      .libraryRefFor('package:flutter/src/widgets/widget_inspector.dart');
-
   /// Regex used to extract a stack trace line from the exception description.
   static final stackTraceLineRegex = RegExp(r'^\s*at\s.*$', multiLine: true);
 
-  ChromeAppInspector(
+  ChromeAppInspector._(
     super.appConnection,
     super.isolate,
     this.remoteDebugger,
@@ -119,7 +118,7 @@ class ChromeAppInspector extends AppInspector {
       isSystemIsolate: false,
       isolateFlags: [],
     )..extensionRPCs = [];
-    final inspector = ChromeAppInspector(
+    final inspector = ChromeAppInspector._(
       appConnection,
       isolate,
       remoteDebugger,
@@ -343,7 +342,7 @@ class ChromeAppInspector extends AppInspector {
   Future<Library?> getLibrary(String objectId) async {
     final libraryRef = await libraryRefFor(objectId);
     if (libraryRef == null) return null;
-    return _libraryHelper.libraryFor(libraryRef);
+    return libraryHelper.libraryFor(libraryRef);
   }
 
   Future<Obj> getObject(String objectId, {int? offset, int? count}) async {
@@ -437,11 +436,6 @@ class ChromeAppInspector extends AppInspector {
   Future<SourceReport> getSourceReport(
     List<String> reports, {
     String? scriptId,
-    int? tokenPos,
-    int? endTokenPos,
-    bool? forceCompile,
-    bool? reportLines,
-    List<String>? libraryFilters,
   }) {
     if (reports.contains(SourceReportKind.kCoverage)) {
       throwInvalidParam(
