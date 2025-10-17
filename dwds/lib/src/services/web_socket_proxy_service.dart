@@ -527,11 +527,11 @@ class WebSocketProxyService extends ProxyService {
       _logger.info('Hot reload completed successfully');
       return _ReloadReportWithMetadata(success: true);
     } on NoClientsAvailableException catch (e) {
-      // Throw RPC error with kServerError code when no browser clients are
+      // Throw RPC error with kIsolateCannotReload code when no browser clients are
       // connected.
       throw vm_service.RPCError(
         'reloadSources',
-        vm_service.RPCErrorKind.kServerError.code,
+        vm_service.RPCErrorKind.kIsolateCannotReload.code,
         'Hot reload failed: ${e.message}',
       );
     } catch (e) {
@@ -549,11 +549,11 @@ class WebSocketProxyService extends ProxyService {
       _logger.info('Hot restart completed successfully');
       return {'result': vm_service.Success().toJson()};
     } on NoClientsAvailableException catch (e) {
-      // Throw RPC error with kServerError code when no browser clients are
+      // Throw RPC error with kIsolateCannotReload code when no browser clients are
       // connected.
       throw vm_service.RPCError(
         'hotRestart',
-        vm_service.RPCErrorKind.kServerError.code,
+        vm_service.RPCErrorKind.kIsolateCannotReload.code,
         'Hot restart failed: ${e.message}',
       );
     } catch (e) {
