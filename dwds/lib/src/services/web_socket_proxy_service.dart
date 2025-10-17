@@ -401,6 +401,9 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
     return isolate;
   }
 
+  @override
+  Future<ScriptList> getScripts(String isolateId) => inspector.getScripts();
+
   /// Adds events to stream controllers.
   void addEvent(String streamId, vm_service.Event event) {
     final controller = streamControllers[streamId];
@@ -417,7 +420,7 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
     String root,
   ) async {
     final vm = vm_service.VM(
-      name: 'WebSocketDebugProxy',
+      name: 'ChromeDebugProxy', // TODO(bkonyi): revert
       operatingSystem: 'web',
       startTime: DateTime.now().millisecondsSinceEpoch,
       version: 'unknown',
@@ -715,12 +718,19 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
       );
     }
 
+    args ??= <String, String>{};
     final request = ServiceExtensionRequest.fromArgs(
       id: requestId,
       method: method,
-      args: args != null
-          ? Map<String, dynamic>.from(args)
-          : <String, dynamic>{},
+      // Arguments must be converted to their string representation, otherwise
+      // we'll encounter a TypeError when trying to cast args to a
+      // Map<String, String> in the service extension handler.
+      args: args.map<String, String>(
+        (k, v) => MapEntry(
+          k is String ? k : jsonEncode(k),
+          v is String ? v : jsonEncode(v),
+        ),
+      ),
     );
 
     // Send the request and get the number of connected clients

@@ -49,7 +49,6 @@ abstract class AppInspector {
 
   final AppConnection appConnection;
 
-  @protected
   LibraryHelper get libraryHelper;
 
   /// The root URI from which the application is served.
@@ -100,7 +99,6 @@ abstract class AppInspector {
     await DartUri.initialize();
     DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri).nonNulls);
     DartUri.recordAbsoluteUris(scripts.map((script) => script.uri).nonNulls);
-    await getExtensionRpcs();
   }
 
   static IsolateRef _toIsolateRef(Isolate isolate) => IsolateRef(

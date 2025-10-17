@@ -6,7 +6,6 @@ import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/libraries.dart';
 import 'package:dwds/src/services/web_socket_proxy_service.dart';
-import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart';
 
 /// Provides information about the currently loaded program.
@@ -54,7 +53,6 @@ class WebSocketAppInspector extends AppInspector {
   }
 
   @override
-  @protected
   late final libraryHelper = LibraryHelper(this);
 
   final WebSocketProxyService _service;

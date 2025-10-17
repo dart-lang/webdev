@@ -24,7 +24,6 @@ import 'package:dwds/src/utilities/objects.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -40,7 +39,6 @@ class ChromeAppInspector extends AppInspector {
   final ExecutionContext _executionContext;
 
   @override
-  @protected
   late final ChromeLibraryHelper libraryHelper = ChromeLibraryHelper(this);
 
   late ChromeAppClassHelper _classHelper;
@@ -80,6 +78,9 @@ class ChromeAppInspector extends AppInspector {
     // on demand later and therefore are not in the critical path.
     _classHelper = ChromeAppClassHelper(this);
     _instanceHelper = ChromeAppInstanceHelper(this);
+
+    // Populate the extension RPCs in the isolate.
+    await getExtensionRpcs();
   }
 
   static Future<ChromeAppInspector> create(
@@ -117,7 +118,8 @@ class ChromeAppInspector extends AppInspector {
       exceptionPauseMode: debugger.pauseState,
       isSystemIsolate: false,
       isolateFlags: [],
-    )..extensionRPCs = [];
+      extensionRPCs: [],
+    );
     final inspector = ChromeAppInspector._(
       appConnection,
       isolate,
