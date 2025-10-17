@@ -33,6 +33,12 @@ const _pauseIsolatesOnStartFlag = 'pause_isolates_on_start';
 /// closes before the new connection is established, preventing premature isolate destruction.
 const _isolateDestructionGracePeriod = Duration(seconds: 15);
 
+/// Error message when no clients are available for hot reload.
+const _noClientsForHotReload = 'No clients available for hot reload';
+
+/// Error message when no clients are available for hot restart.
+const _noClientsForHotRestart = 'No clients available for hot restart';
+
 /// Tracks hot reload responses from multiple browser windows/tabs.
 class _HotReloadTracker {
   final String requestId;
@@ -121,7 +127,13 @@ class _ServiceExtensionTracker {
 class NoClientsAvailableException implements Exception {
   final String message;
 
-  NoClientsAvailableException(this.message);
+  NoClientsAvailableException._(this.message);
+
+  factory NoClientsAvailableException.hotReload() =>
+      NoClientsAvailableException._(_noClientsForHotReload);
+
+  factory NoClientsAvailableException.hotRestart() =>
+      NoClientsAvailableException._(_noClientsForHotRestart);
 
   @override
   String toString() => 'NoClientsAvailableException: $message';
@@ -637,8 +649,8 @@ class WebSocketProxyService extends ProxyService {
     });
 
     if (clientCount == 0) {
-      _logger.warning('No clients available for hot reload');
-      throw NoClientsAvailableException('No clients available for hot reload');
+      _logger.warning(_noClientsForHotReload);
+      throw NoClientsAvailableException.hotReload();
     }
 
     // Create tracker for this hot reload request
@@ -698,8 +710,8 @@ class WebSocketProxyService extends ProxyService {
     });
 
     if (clientCount == 0) {
-      _logger.warning('No clients available for hot restart');
-      throw NoClientsAvailableException('No clients available for hot restart');
+      _logger.warning(_noClientsForHotRestart);
+      throw NoClientsAvailableException.hotRestart();
     }
 
     // Create tracker for this hot restart request
