@@ -1,5 +1,6 @@
-## 26.1.0-wip
+## 26.1.0
 
+- `reloadSources` and `hotRestart` now throw an RPC error with `kServerError` code when `NoClientsAvailableException` is caught (no browser clients are connected), allowing tooling to detect and handle this scenario.
 - `pause` now does not send a `PauseInterrupted` event in
   `WebSocketProxyService` as we didn't actually pause.
 
