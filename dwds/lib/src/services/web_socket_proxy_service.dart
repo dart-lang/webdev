@@ -960,8 +960,8 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
   /// Pauses execution of the isolate.
   @override
   Future<Success> pause(String isolateId) =>
-  // Can't pause with the web socket implementation, so do nothing.
-  Future.value(Success());
+      // Can't pause with the web socket implementation, so do nothing.
+      Future.value(Success());
 
   /// Resumes execution of the isolate.
   @override
