@@ -34,6 +34,9 @@ const _pauseIsolatesOnStartFlag = 'pause_isolates_on_start';
 /// closes before the new connection is established, preventing premature isolate destruction.
 const _isolateDestructionGracePeriod = Duration(seconds: 15);
 
+/// Error message when no clients are available for hot reload/restart.
+const kNoClientsAvailable = 'No clients available.';
+
 /// Tracks hot reload responses from multiple browser windows/tabs.
 class _HotReloadTracker {
   final String requestId;
@@ -116,6 +119,16 @@ class _ServiceExtensionTracker {
   void dispose() {
     timeoutTimer.cancel();
   }
+}
+
+/// Exception thrown when no browser clients are connected to DWDS.
+class NoClientsAvailableException implements Exception {
+  final String message;
+
+  NoClientsAvailableException._(this.message);
+
+  @override
+  String toString() => 'NoClientsAvailableException: $message';
 }
 
 /// WebSocket-based VM service proxy for web debugging.
@@ -488,6 +501,14 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
       await _performWebSocketHotReload();
       _logger.info('Hot reload completed successfully');
       return _ReloadReportWithMetadata(success: true);
+    } on NoClientsAvailableException catch (e) {
+      // Throw RPC error with kIsolateCannotReload code when no browser clients are
+      // connected.
+      throw vm_service.RPCError(
+        'reloadSources',
+        vm_service.RPCErrorKind.kIsolateCannotReload.code,
+        'Hot reload failed: ${e.message}',
+      );
     } catch (e) {
       _logger.warning('Hot reload failed: $e');
       return _ReloadReportWithMetadata(success: false, notices: [e.toString()]);
@@ -502,6 +523,14 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
       await _performWebSocketHotRestart();
       _logger.info('Hot restart completed successfully');
       return {'result': vm_service.Success().toJson()};
+    } on NoClientsAvailableException catch (e) {
+      // Throw RPC error with kIsolateCannotReload code when no browser clients are
+      // connected.
+      throw vm_service.RPCError(
+        'hotRestart',
+        vm_service.RPCErrorKind.kIsolateCannotReload.code,
+        'Hot restart failed: ${e.message}',
+      );
     } catch (e) {
       _logger.warning('Hot restart failed: $e');
       return {
@@ -595,7 +624,8 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
     });
 
     if (clientCount == 0) {
-      throw StateError('No clients available for hot reload');
+      _logger.warning(kNoClientsAvailable);
+      throw NoClientsAvailableException._(kNoClientsAvailable);
     }
 
     // Create tracker for this hot reload request
@@ -655,7 +685,8 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
     });
 
     if (clientCount == 0) {
-      throw StateError('No clients available for hot restart');
+      _logger.warning(kNoClientsAvailable);
+      throw NoClientsAvailableException._(kNoClientsAvailable);
     }
 
     // Create tracker for this hot restart request
@@ -929,8 +960,8 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
   /// Pauses execution of the isolate.
   @override
   Future<Success> pause(String isolateId) =>
-      // Can't pause with the web socket implementation, so do nothing.
-      Future.value(Success());
+  // Can't pause with the web socket implementation, so do nothing.
+  Future.value(Success());
 
   /// Resumes execution of the isolate.
   @override
