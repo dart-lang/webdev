@@ -235,6 +235,22 @@ abstract class ProxyService<InspectorT extends AppInspector>
     throw UnimplementedError('completeServiceExtension not supported');
   }
 
+  /// Sends `ServiceExtensionAdded` events for each currently registered
+  /// service extension.
+  Future<void> sendServiceExtensionRegisteredEvents() async {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    for (final extensionRpc in await inspector.getExtensionRpcs()) {
+      streamNotify(
+        'Isolate',
+        vm_service.Event(
+          kind: vm_service.EventKind.kServiceExtensionAdded,
+          timestamp: timestamp,
+          isolate: inspector.isolateRef,
+        )..extensionRPC = extensionRpc,
+      );
+    }
+  }
+
   /// Standard RPC error for unsupported methods.
   static vm_service.RPCError _rpcNotSupported(String method) {
     return vm_service.RPCError(

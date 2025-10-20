@@ -376,16 +376,7 @@ class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     // TODO: We shouldn't need to fire these events since they exist on the
     // isolate, but devtools doesn't recognize extensions after a page refresh
     // otherwise.
-    for (final extensionRpc in await inspector.getExtensionRpcs()) {
-      streamNotify(
-        'Isolate',
-        Event(
-          kind: EventKind.kServiceExtensionAdded,
-          timestamp: timestamp,
-          isolate: isolateRef,
-        )..extensionRPC = extensionRpc,
-      );
-    }
+    await sendServiceExtensionRegisteredEvents();
 
     // If the new isolate was created as part of a restart, send a
     // kPausePostRequest event to notify client that the app is paused so that

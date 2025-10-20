@@ -420,7 +420,7 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
     String root,
   ) async {
     final vm = vm_service.VM(
-      name: 'ChromeDebugProxy', // TODO(bkonyi): revert
+      name: 'WebSocketDebugProxy',
       operatingSystem: 'web',
       startTime: DateTime.now().millisecondsSinceEpoch,
       version: 'unknown',
