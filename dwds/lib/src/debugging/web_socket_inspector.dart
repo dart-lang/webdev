@@ -6,13 +6,11 @@ import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/libraries.dart';
 import 'package:dwds/src/services/web_socket_proxy_service.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:vm_service/vm_service.dart';
 
 /// Provides information about the currently loaded program.
 class WebSocketAppInspector extends AppInspector {
-  /// Counter for generating unique isolate IDs across page refreshes
-  static int _globalIsolateIdCounter = 0;
-
   WebSocketAppInspector._(
     super.appConnection,
     super.isolate,
@@ -25,7 +23,7 @@ class WebSocketAppInspector extends AppInspector {
     AppConnection appConnection,
     String root,
   ) async {
-    final id = (++_globalIsolateIdCounter).toString();
+    final id = createId();
     final time = DateTime.now().millisecondsSinceEpoch;
     final name = 'main()';
     final isolate = Isolate(
