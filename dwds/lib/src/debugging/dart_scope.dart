@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -38,7 +38,7 @@ const ddcCapturedAsyncScope = 'capturedAsyncScope';
 ///
 /// See chromedevtools.github.io/devtools-protocol/tot/Debugger#type-CallFrame.
 Future<List<Property>> visibleVariables({
-  required AppInspectorInterface inspector,
+  required ChromeAppInspector inspector,
   required WipCallFrame frame,
 }) async {
   final allProperties = <Property>[];

@@ -5,8 +5,10 @@
 import 'dart:async';
 
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/debugging/frame_computer.dart';
+import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
@@ -45,7 +47,7 @@ const _pauseModePauseStates = {
 /// e.g. 'packages/myapp/main.dart.lib.js' -> '12'
 final chromePathToRuntimeScriptId = <String, String>{};
 
-class Debugger extends Domain {
+class Debugger {
   static final logger = Logger('Debugger');
 
   final RemoteDebugger _remoteDebugger;
@@ -53,6 +55,8 @@ class Debugger extends Domain {
   final StreamNotify _streamNotify;
   final Locations _locations;
   final SkipLists _skipLists;
+
+  late ChromeAppInspector inspector;
 
   int _frameErrorCount = 0;
 
@@ -107,7 +111,7 @@ class Debugger extends Domain {
   // for more details.
   Completer<void>? _internalPauseCompleter;
 
-  void updateInspector(AppInspectorInterface appInspector) {
+  void updateInspector(ChromeAppInspector appInspector) {
     inspector = appInspector;
     _breakpoints.inspector = appInspector;
   }
@@ -762,7 +766,7 @@ String breakpointIdFor(String scriptId, int line, int column) =>
     'bp/$scriptId#$line:$column';
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
-class _Breakpoints extends Domain {
+class _Breakpoints {
   final _logger = Logger('Breakpoints');
   final _dartIdByJsId = <String, String>{};
   final _jsIdByDartId = <String, String>{};
@@ -773,6 +777,8 @@ class _Breakpoints extends Domain {
 
   final Locations locations;
   final RemoteDebugger remoteDebugger;
+
+  late AppInspector inspector;
 
   /// The root URI from which the application is served.
   final String root;

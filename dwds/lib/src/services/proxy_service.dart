@@ -10,8 +10,10 @@ import 'package:dwds/data/hot_restart_response.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/src/connections/app_connection.dart';
+import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart' as vm_service;
 import 'package:vm_service_interface/vm_service_interface.dart';
@@ -19,11 +21,34 @@ import 'package:vm_service_interface/vm_service_interface.dart';
 const pauseIsolatesOnStartFlag = 'pause_isolates_on_start';
 
 /// Abstract base class for VM service proxy implementations.
-abstract class ProxyService implements VmServiceInterface {
+abstract class ProxyService<InspectorT extends AppInspector>
+    implements VmServiceInterface {
   /// Cache of all existing StreamControllers.
   ///
   /// These are all created through [onEvent].
   final Map<String, StreamController<vm_service.Event>> _streamControllers = {};
+
+  /// Provides variable inspection functionality.
+  InspectorT get inspector {
+    if (_inspector == null) {
+      throw StateError('No running isolate (inspector is not set).');
+    }
+    return _inspector!;
+  }
+
+  @protected
+  set inspector(InspectorT? inspector) {
+    _inspector = inspector;
+  }
+
+  InspectorT? _inspector;
+
+  /// Determines if there an isolate running currently.
+  ///
+  /// [_inspector] is `null` iff the isolate is not running,
+  /// for example, before the first isolate starts or during
+  /// a hot restart.
+  bool get isIsolateRunning => _inspector != null;
 
   /// The root `VM` instance.
   final vm_service.VM _vm;
@@ -69,7 +94,10 @@ abstract class ProxyService implements VmServiceInterface {
       _resumeAfterRestartEventsController;
   Map<String, bool> get currentVmServiceFlags => _currentVmServiceFlags;
 
-  ProxyService(this._vm);
+  /// The root at which we're serving.
+  final String root;
+
+  ProxyService(this._vm, this.root);
 
   /// Sends events to stream controllers.
   void streamNotify(String streamId, vm_service.Event event) {
@@ -205,6 +233,22 @@ abstract class ProxyService implements VmServiceInterface {
   /// Override in subclasses that support service extension completion.
   void completeServiceExtension(ServiceExtensionResponse response) {
     throw UnimplementedError('completeServiceExtension not supported');
+  }
+
+  /// Sends `ServiceExtensionAdded` events for each currently registered
+  /// service extension.
+  Future<void> sendServiceExtensionRegisteredEvents() async {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    for (final extensionRpc in await inspector.getExtensionRpcs()) {
+      streamNotify(
+        'Isolate',
+        vm_service.Event(
+          kind: vm_service.EventKind.kServiceExtensionAdded,
+          timestamp: timestamp,
+          isolate: inspector.isolateRef,
+        )..extensionRPC = extensionRpc,
+      );
+    }
   }
 
   /// Standard RPC error for unsupported methods.

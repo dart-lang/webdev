@@ -421,7 +421,8 @@ class WebSocketDebugService implements DebugService {
 
   static Future<WebSocketDebugService> start(
     String hostname,
-    AppConnection appConnection, {
+    AppConnection appConnection,
+    AssetReader assetReader, {
     required SendClientRequest sendClientRequest,
     UrlEncoder? urlEncoder,
   }) async {
@@ -431,6 +432,7 @@ class WebSocketDebugService implements DebugService {
     final webSocketProxyService = await WebSocketProxyService.create(
       sendClientRequest,
       appConnection,
+      assetReader.basePath,
     );
 
     final handler = _createWebSocketHandler(
@@ -459,10 +461,15 @@ class WebSocketDebugService implements DebugService {
     ServiceExtensionRegistry serviceExtensionRegistry,
     WebSocketProxyService webSocketProxyService,
   ) {
-    return webSocketHandler((WebSocketChannel webSocket, String? subprotocol) {
+    return webSocketHandler((
+      WebSocketChannel webSocket,
+      String? subprotocol,
+    ) async {
       final clientId = _clientId++;
       final responseController = StreamController<Map<String, Object?>>();
-      webSocket.sink.addStream(responseController.stream.map(jsonEncode));
+      unawaited(
+        webSocket.sink.addStream(responseController.stream.map(jsonEncode)),
+      );
 
       final inputStream = webSocket.stream.map((value) {
         if (value is List<int>) {
@@ -477,14 +484,17 @@ class WebSocketDebugService implements DebugService {
 
       _clientConnections[clientId] = webSocket;
 
-      VmServerConnection(
-        inputStream,
-        responseController.sink,
-        serviceExtensionRegistry,
-        webSocketProxyService,
-      ).done.whenComplete(() {
-        _clientConnections.remove(clientId);
-      });
+      unawaited(
+        VmServerConnection(
+          inputStream,
+          responseController.sink,
+          serviceExtensionRegistry,
+          webSocketProxyService,
+        ).done.whenComplete(() {
+          _clientConnections.remove(clientId);
+        }),
+      );
+      await webSocketProxyService.sendServiceExtensionRegisteredEvents();
     });
   }
 }

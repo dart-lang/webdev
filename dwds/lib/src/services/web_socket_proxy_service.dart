@@ -14,6 +14,7 @@ import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/service_extension_request.dart';
 import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/src/connections/app_connection.dart';
+import 'package:dwds/src/debugging/web_socket_inspector.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -131,7 +132,7 @@ class NoClientsAvailableException implements Exception {
 }
 
 /// WebSocket-based VM service proxy for web debugging.
-class WebSocketProxyService extends ProxyService {
+class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
   final _logger = Logger('WebSocketProxyService');
 
   /// Active service extension trackers by request ID.
@@ -157,18 +158,14 @@ class WebSocketProxyService extends ProxyService {
   /// Active connection count for this service.
   int _activeConnectionCount = 0;
 
-  /// Counter for generating unique isolate IDs across page refreshes
-  static int _globalIsolateIdCounter = 0;
-
-  bool get _isIsolateRunning => _isolateRunning;
-
   WebSocketProxyService._(
     this.sendClientRequest,
     vm_service.VM vm,
+    String root,
     this.appConnection,
-  ) : super(vm); // Isolate state
-  vm_service.IsolateRef? _isolateRef;
-  bool _isolateRunning = false;
+  ) : super(vm, root);
+
+  // Isolate state
   vm_service.Event? _currentPauseEvent;
   bool _mainHasStarted = false;
 
@@ -210,29 +207,21 @@ class WebSocketProxyService extends ProxyService {
         });
 
     // If we already have a running isolate, just update the connection and return
-    if (_isIsolateRunning && _isolateRef != null) {
+    if (isIsolateRunning) {
       _logger.fine(
-        'Reusing existing isolate ${_isolateRef!.id} for connection: $connectionId',
+        'Reusing existing isolate ${inspector.isolateRef.id} for connection: $connectionId',
       );
       return;
     }
 
-    // Create isolate reference with unique ID
-    final isolateId = '${++_globalIsolateIdCounter}';
-    final isolateRef = vm_service.IsolateRef(
-      id: isolateId,
-      name: 'main()',
-      number: isolateId,
-      isSystemIsolate: false,
-    );
+    inspector = await WebSocketAppInspector.create(this, appConnection, root);
 
-    _isolateRef = isolateRef;
-    _isolateRunning = true;
+    final isolateRef = inspector.isolateRef;
     vm.isolates?.add(isolateRef);
     final timestamp = DateTime.now().millisecondsSinceEpoch;
 
     _logger.fine(
-      'Created new isolate: $isolateId for connection: $connectionId',
+      'Created new isolate: ${isolateRef.id} for connection: $connectionId',
     );
 
     // Send lifecycle events
@@ -340,12 +329,10 @@ class WebSocketProxyService extends ProxyService {
   void destroyIsolate() {
     _logger.fine('Destroying isolate');
 
-    if (!_isIsolateRunning) {
+    if (!isIsolateRunning) {
       _logger.fine('Isolate already destroyed, ignoring');
       return;
     }
-
-    final isolateRef = _isolateRef;
 
     // Cancel all connection subscriptions
     for (final subscription in _appConnectionDoneSubscriptions.values) {
@@ -354,23 +341,21 @@ class WebSocketProxyService extends ProxyService {
     _appConnectionDoneSubscriptions.clear();
     _activeConnectionCount = 0;
 
+    final isolateRef = inspector.isolateRef;
     // Send exit event
-    if (isolateRef != null) {
-      _streamNotify(
-        vm_service.EventStreams.kIsolate,
-        vm_service.Event(
-          kind: vm_service.EventKind.kIsolateExit,
-          timestamp: DateTime.now().millisecondsSinceEpoch,
-          isolate: isolateRef,
-        ),
-      );
-    }
+    _streamNotify(
+      vm_service.EventStreams.kIsolate,
+      vm_service.Event(
+        kind: vm_service.EventKind.kIsolateExit,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isolate: isolateRef,
+      ),
+    );
 
-    vm.isolates?.removeWhere((ref) => ref.id == isolateRef?.id);
+    vm.isolates?.removeWhere((ref) => ref.id == isolateRef.id);
 
     // Reset state
-    _isolateRef = null;
-    _isolateRunning = false;
+    inspector = null;
     _currentPauseEvent = null;
     _mainHasStarted = false;
 
@@ -410,14 +395,15 @@ class WebSocketProxyService extends ProxyService {
       wrapInErrorHandlerAsync('getIsolate', () => _getIsolate(isolateId));
 
   Future<vm_service.Isolate> _getIsolate(String isolateId) async {
-    if (!_isIsolateRunning || _isolateRef == null) {
+    final isolate = inspector.isolate;
+    if (!isIsolateRunning) {
       throw vm_service.RPCError(
         'getIsolate',
         vm_service.RPCErrorKind.kInvalidParams.code,
         'No running isolate found for id: $isolateId',
       );
     }
-    if (_isolateRef!.id != isolateId) {
+    if (isolate.id != isolateId) {
       throw vm_service.RPCError(
         'getIsolate',
         vm_service.RPCErrorKind.kInvalidParams.code,
@@ -425,16 +411,11 @@ class WebSocketProxyService extends ProxyService {
       );
     }
 
-    return vm_service.Isolate(
-      id: _isolateRef!.id!,
-      name: _isolateRef!.name,
-      number: _isolateRef!.number,
-      startTime: DateTime.now().millisecondsSinceEpoch,
-      isSystemIsolate: _isolateRef!.isSystemIsolate,
-      runnable: true,
-      pauseEvent: _currentPauseEvent,
-    );
+    return isolate;
   }
+
+  @override
+  Future<ScriptList> getScripts(String isolateId) => inspector.getScripts();
 
   /// Adds events to stream controllers.
   void addEvent(String streamId, vm_service.Event event) {
@@ -449,6 +430,7 @@ class WebSocketProxyService extends ProxyService {
   static Future<WebSocketProxyService> create(
     SendClientRequest sendClientRequest,
     AppConnection appConnection,
+    String root,
   ) async {
     final vm = vm_service.VM(
       name: 'WebSocketDebugProxy',
@@ -467,6 +449,7 @@ class WebSocketProxyService extends ProxyService {
     final service = WebSocketProxyService._(
       sendClientRequest,
       vm,
+      root,
       appConnection,
     );
     safeUnawaited(service.createIsolate(appConnection));
@@ -480,12 +463,13 @@ class WebSocketProxyService extends ProxyService {
   Future<vm_service.VM> _getVM() {
     return captureElapsedTime(() async {
       // Ensure the VM's isolate list is synchronized with our actual state
-      if (_isIsolateRunning && _isolateRef != null) {
+      if (isIsolateRunning) {
+        final isolateRef = inspector.isolateRef;
         // Make sure our isolate is in the VM's isolate list
         final isolateExists =
-            vm.isolates?.any((ref) => ref.id == _isolateRef!.id) ?? false;
+            vm.isolates?.any((ref) => ref.id == isolateRef.id) ?? false;
         if (!isolateExists) {
-          vm.isolates?.add(_isolateRef!);
+          vm.isolates?.add(isolateRef);
         }
       } else {
         // If no isolate is running, make sure the list is empty
@@ -765,10 +749,19 @@ class WebSocketProxyService extends ProxyService {
       );
     }
 
+    args ??= <String, String>{};
     final request = ServiceExtensionRequest.fromArgs(
       id: requestId,
       method: method,
-      args: <String, Object?>{...?args},
+      // Arguments must be converted to their string representation, otherwise
+      // we'll encounter a TypeError when trying to cast args to a
+      // Map<String, String> in the service extension handler.
+      args: args.map<String, String>(
+        (k, v) => MapEntry(
+          k is String ? k : jsonEncode(k),
+          v is String ? v : jsonEncode(v),
+        ),
+      ),
     );
 
     // Send the request and get the number of connected clients
@@ -864,7 +857,7 @@ class WebSocketProxyService extends ProxyService {
   /// protocol [Event].
   @override
   void parseRegisterEvent(RegisterEvent registerEvent) {
-    if (!_isIsolateRunning || _isolateRef == null) {
+    if (!isIsolateRunning) {
       _logger.warning('Cannot register service extension - no isolate running');
       return;
     }
@@ -875,7 +868,7 @@ class WebSocketProxyService extends ProxyService {
     final event = vm_service.Event(
       kind: vm_service.EventKind.kServiceExtensionAdded,
       timestamp: DateTime.now().millisecondsSinceEpoch,
-      isolate: _isolateRef!,
+      isolate: inspector.isolateRef,
     );
     event.extensionRPC = service;
 
@@ -895,7 +888,7 @@ class WebSocketProxyService extends ProxyService {
   /// protocol [Event].
   @override
   void parseDebugEvent(DebugEvent debugEvent) {
-    if (!_isIsolateRunning || _isolateRef == null) {
+    if (!isIsolateRunning) {
       _logger.warning('Cannot parse debug event - no isolate running');
       return;
     }
@@ -905,7 +898,7 @@ class WebSocketProxyService extends ProxyService {
       vm_service.Event(
           kind: vm_service.EventKind.kExtension,
           timestamp: DateTime.now().millisecondsSinceEpoch,
-          isolate: _isolateRef!,
+          isolate: inspector.isolateRef,
         )
         ..extensionKind = debugEvent.kind
         ..extensionData = vm_service.ExtensionData.parse(
@@ -932,13 +925,11 @@ class WebSocketProxyService extends ProxyService {
         value == 'true' &&
         oldValue == false) {
       // Send pause event for existing isolate if not already paused
-      if (_isIsolateRunning &&
-          _isolateRef != null &&
-          _currentPauseEvent == null) {
+      if (isIsolateRunning && _currentPauseEvent == null) {
         final pauseEvent = vm_service.Event(
           kind: vm_service.EventKind.kPauseStart,
           timestamp: DateTime.now().millisecondsSinceEpoch,
-          isolate: _isolateRef!,
+          isolate: inspector.isolateRef,
         );
         _currentPauseEvent = pauseEvent;
         _streamNotify(vm_service.EventStreams.kDebug, pauseEvent);
@@ -969,8 +960,8 @@ class WebSocketProxyService extends ProxyService {
   /// Pauses execution of the isolate.
   @override
   Future<Success> pause(String isolateId) =>
-  // Can't pause with the web socket implementation, so do nothing.
-  Future.value(Success());
+      // Can't pause with the web socket implementation, so do nothing.
+      Future.value(Success());
 
   /// Resumes execution of the isolate.
   @override
@@ -996,12 +987,12 @@ class WebSocketProxyService extends ProxyService {
     }
 
     // Clear pause state and send resume event to notify debugging tools
-    if (_currentPauseEvent != null && _isolateRef != null) {
+    if (_currentPauseEvent != null) {
       _currentPauseEvent = null;
       final resumeEvent = vm_service.Event(
         kind: vm_service.EventKind.kResume,
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        isolate: _isolateRef!,
+        isolate: inspector.isolateRef,
       );
       _streamNotify(vm_service.EventStreams.kDebug, resumeEvent);
     }
@@ -1051,14 +1042,14 @@ class WebSocketProxyService extends ProxyService {
   }) => wrapInErrorHandlerAsync('getStack', () => _getStack(isolateId));
 
   Future<vm_service.Stack> _getStack(String isolateId) async {
-    if (!_isIsolateRunning || _isolateRef == null) {
+    if (!isIsolateRunning) {
       throw vm_service.RPCError(
         'getStack',
         vm_service.RPCErrorKind.kInvalidParams.code,
         'No running isolate found for id: $isolateId',
       );
     }
-    if (_isolateRef!.id != isolateId) {
+    if (inspector.isolateRef.id != isolateId) {
       throw vm_service.RPCError(
         'getStack',
         vm_service.RPCErrorKind.kInvalidParams.code,

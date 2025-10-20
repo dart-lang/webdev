@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/location.dart';
@@ -10,7 +11,6 @@ import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/javascript_builder.dart';
 import 'package:dwds/src/utilities/conversions.dart';
-import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/objects.dart' as chrome;
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -33,7 +33,7 @@ class EvaluationErrorKind {
 /// ExpressionCompilerInterface to compile dart expressions to JavaScript.
 class ExpressionEvaluator {
   final String _entrypoint;
-  final AppInspectorInterface _inspector;
+  final ChromeAppInspector _inspector;
   final Debugger _debugger;
   final Locations _locations;
   final Modules _modules;

@@ -5,11 +5,10 @@
 import 'dart:math';
 
 import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:dwds/src/debugging/metadata/function.dart';
 import 'package:dwds/src/utilities/conversions.dart';
-import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
@@ -17,14 +16,13 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
-class InstanceHelper extends Domain {
+class ChromeAppInstanceHelper {
   final _logger = Logger('InstanceHelper');
-  final ClassMetaDataHelper metadataHelper;
+  final ChromeClassMetaDataHelper metadataHelper;
+  final ChromeAppInspector inspector;
 
-  InstanceHelper(AppInspector appInspector)
-    : metadataHelper = ClassMetaDataHelper(appInspector) {
-    inspector = appInspector;
-  }
+  ChromeAppInstanceHelper(this.inspector)
+    : metadataHelper = ChromeClassMetaDataHelper(inspector);
 
   static final InstanceRef kNullInstanceRef = _primitiveInstanceRef(
     InstanceKind.kNull,
@@ -480,7 +478,7 @@ class InstanceHelper extends Domain {
       shape,
       'positionalCount',
     );
-    if (positionalCountObject == null || positionalCountObject.value is! int) {
+    if (positionalCountObject.value is! int) {
       _logger.warning(
         'Unexpected positional count from record: $positionalCountObject',
       );
