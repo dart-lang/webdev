@@ -1,3 +1,6 @@
+## 25.1.0+2
+- `reloadSources` and `hotRestart` now throw an RPC error with `kServerError` code when `NoClientsAvailableException` is caught (no browser clients are connected), allowing tooling to detect and handle this scenario.
+
 ## 25.1.0+1
 
 - Bump SDK constraint to ^3.10.0
