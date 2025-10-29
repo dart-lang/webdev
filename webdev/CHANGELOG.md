@@ -1,6 +1,8 @@
 ## 3.8.0-wip
 
-- Bump minimum SDK constraint to 3.10.0
+- Bump minimum SDK constraint to 3.10.0.
+- Remove support for the deprecated `--null-safety` option.
+  All code runs with sound null safety.
 
 ## 3.7.2
 

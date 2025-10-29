@@ -12,7 +12,6 @@ void main() {
     argParser = ArgParser()
       ..addFlag('release')
       ..addFlag(launchInChromeFlag, defaultsTo: false)
-      ..addOption(nullSafetyFlag, defaultsTo: nullSafetyAuto)
       ..addOption(userDataDirFlag, defaultsTo: null);
   });
 
@@ -83,12 +82,6 @@ void main() {
       () => Configuration(launchInChrome: false, userDataDir: 'temp'),
       throwsA(isA<InvalidConfiguration>()),
     );
-  });
-
-  test('nullSafety defaults to auto', () {
-    final argResults = argParser.parse(['']);
-    final defaultConfiguration = Configuration.fromArgs(argResults);
-    expect(defaultConfiguration.nullSafety, equals(nullSafetyAuto));
   });
 
   test('must not provide debug related configuration when enableInjectedClient '
