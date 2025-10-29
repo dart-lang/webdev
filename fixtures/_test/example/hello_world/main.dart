@@ -99,7 +99,7 @@ void main() async {
   // recognize this as an available extension.
   registerExtension(
     'ext.hello_world.existing',
-    (_, __) => Future.value(ServiceExtensionResponse.error(0, '')),
+    (_, _) => Future.value(ServiceExtensionResponse.error(0, '')),
   );
 
   window.console.debug('Page Ready');

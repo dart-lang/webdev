@@ -12,7 +12,7 @@ import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:path/path.dart' as p;
-import 'package:puppeteer/puppeteer.dart' hide Response;
+import 'package:puppeteer/puppeteer.dart' hide Request, Response;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
 import 'package:test/test.dart';
@@ -1037,7 +1037,7 @@ Future<HttpServer> _fakeServer({
   return server;
 }
 
-Response _fakeAuthHandler(request) {
+Response _fakeAuthHandler(Request request) {
   if (request.url.path == authenticationPath) {
     return Response.ok(authenticationResponse);
   }

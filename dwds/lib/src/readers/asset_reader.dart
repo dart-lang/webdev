@@ -11,7 +11,7 @@ import 'package:package_config/package_config.dart';
 abstract class AssetReader {
   /// Base path of the application, for example, set up in the index file:
   ///
-  /// ```
+  /// ```html
   /// <html>
   ///   <head>
   ///     <base href="/abc/">

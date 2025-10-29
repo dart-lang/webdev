@@ -565,7 +565,7 @@ void runTests({
         expect(
           isolate.libraries,
           containsAll([
-            _libRef('package:path/path.dart'),
+            _libRef(equals('package:path/path.dart')),
             // TODO: library names change with kernel dart-lang/sdk#36736
             _libRef(endsWith('main.dart')),
           ]),
@@ -2713,7 +2713,7 @@ void runTests({
 
 final _isSuccess = isA<Success>();
 
-TypeMatcher _libRef(uriMatcher) =>
+TypeMatcher _libRef(Matcher uriMatcher) =>
     isA<LibraryRef>().having((l) => l.uri, 'uri', uriMatcher);
 
 void expectEventually(Matcher expectation) {}

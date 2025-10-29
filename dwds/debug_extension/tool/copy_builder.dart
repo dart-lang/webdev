@@ -5,7 +5,7 @@
 import 'package:build/build.dart';
 
 /// Factory for the build script.
-Builder copyBuilder(_) => _CopyBuilder();
+Builder copyBuilder(BuilderOptions _) => _CopyBuilder();
 
 class _CopyBuilder extends Builder {
   @override

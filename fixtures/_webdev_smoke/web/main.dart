@@ -12,7 +12,7 @@ import 'dart:html';
 void main() {
   print('Initial Print');
 
-  registerExtension('ext.print', (_, __) async {
+  registerExtension('ext.print', (_, _) async {
     print('Hello World');
     return ServiceExtensionResponse.result(json.encode({'success': true}));
   });

@@ -312,7 +312,7 @@ Matcher matchPrimitiveInstance({
     .having((e) => e.kind, 'kind', kind)
     .having(_getValue, 'value', value);
 
-Matcher matchPlainInstance({required libraryId, required String type}) =>
+Matcher matchPlainInstance({required String libraryId, required String type}) =>
     isA<Instance>()
         .having((e) => e.kind, 'kind', InstanceKind.kPlainInstance)
         .having(
@@ -321,7 +321,7 @@ Matcher matchPlainInstance({required libraryId, required String type}) =>
           matchClassRef(name: type, libraryId: libraryId),
         );
 
-Matcher matchListInstance({required dynamic type}) => isA<Instance>()
+Matcher matchListInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kList)
     .having((e) => e.classRef, 'classRef', matchListClassRef(type));
 

@@ -28,7 +28,7 @@ void main() {
   log(logMessage);
   previousLog = logMessage;
 
-  registerExtension('ext.flutter.disassemble', (_, __) async {
+  registerExtension('ext.flutter.disassemble', (_, _) async {
     log('start disassemble');
     await Future.delayed(const Duration(seconds: 1));
     log('end disassemble');
