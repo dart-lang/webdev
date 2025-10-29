@@ -65,8 +65,7 @@ void main() {
         emitsThrough(contains('Built with build_runner')),
       );
 
-      final client = HttpClient()
-        ..badCertificateCallback = (_, __, ___) => true;
+      final client = HttpClient()..badCertificateCallback = (_, _, _) => true;
       try {
         final request = await client.getUrl(
           Uri.parse('https://localhost:$port'),
@@ -112,8 +111,7 @@ void main() {
           'No non-loopback IPv4 address available, skipping hostname test.',
         );
       } else {
-        final client = HttpClient()
-          ..badCertificateCallback = (_, __, ___) => true;
+        final client = HttpClient()..badCertificateCallback = (_, _, _) => true;
         try {
           final request = await client.getUrl(
             Uri.parse('https://${nonLoopback.address}:$port'),

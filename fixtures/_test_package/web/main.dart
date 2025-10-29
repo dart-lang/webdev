@@ -61,7 +61,7 @@ void main() async {
 }
 
 void registerUserExtension(int id) async {
-  registerExtension('ext.extension$id', (_, __) async {
+  registerExtension('ext.extension$id', (_, _) async {
     print('Hello World from extension$id');
     return ServiceExtensionResponse.result(json.encode({'success': true}));
   });
