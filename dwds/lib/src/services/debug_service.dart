@@ -40,7 +40,7 @@ abstract class DebugService<T extends ProxyService> {
   /// The URI pointing to the VM service implementation hosted by the [DebugService].
   String get uri => _uri.toString();
 
-  Uri get _uri {
+  Uri get _uri => _cachedUri ??= () {
     final dds = _dds;
     if (ddsConfig.enable && dds != null) {
       return useSse ? dds.sseUri : dds.wsUri;
@@ -58,8 +58,9 @@ abstract class DebugService<T extends ProxyService> {
             port: _server.port,
             path: authToken,
           );
-  }
+  }();
 
+  Uri? _cachedUri;
   String? _ddsUri;
 
   late final T proxyService;
