@@ -190,6 +190,7 @@ abstract class DebugService<T extends ProxyService> {
   }
 
   @protected
+  @mustCallSuper
   void handleConnection(
     StreamChannel channel,
     ProxyService proxyService,

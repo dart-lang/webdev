@@ -307,7 +307,6 @@ final class ChromeDwdsVmClient
 
   static Future<ChromeDwdsVmClient> create(
     ChromeDebugService debugService,
-    DwdsStats dwdsStats,
     Uri? ddsUri,
   ) async {
     final dwdsVmClient = ChromeDwdsVmClient(debugService: debugService);

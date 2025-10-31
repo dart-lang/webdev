@@ -851,11 +851,7 @@ class DevHandler {
     if (_ddsConfig.enable) {
       dds = await debugService.startDartDevelopmentService();
     }
-    final vmClient = await ChromeDwdsVmClient.create(
-      debugService,
-      dwdsStats,
-      dds?.wsUri,
-    );
+    final vmClient = await ChromeDwdsVmClient.create(debugService, dds?.wsUri);
     final appDebugService = AppDebugServices(
       debugService: debugService,
       dwdsVmClient: vmClient,

@@ -81,7 +81,11 @@ final class ChromeDebugService extends DebugService<ChromeProxyService> {
       executionContext: executionContext,
       expressionCompiler: expressionCompiler,
     );
-    await debugService.initialize(proxyService: chromeProxyService);
+    await debugService.initialize(
+      proxyService: chromeProxyService,
+      onRequest: onRequest,
+      onResponse: onResponse,
+    );
     return debugService;
   }
 
