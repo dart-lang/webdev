@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:dwds/src/services/chrome_debug_exception.dart';
+import 'package:dwds/src/services/chrome/chrome_debug_exception.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';

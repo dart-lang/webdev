@@ -4,7 +4,7 @@
 
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-class ChromeDebugException extends ExceptionDetails implements Exception {
+final class ChromeDebugException extends ExceptionDetails implements Exception {
   /// Optional, additional information about the exception.
   final Object? additionalDetails;
 

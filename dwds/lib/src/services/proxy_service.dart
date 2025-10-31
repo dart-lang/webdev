@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/hot_reload_response.dart';
@@ -12,16 +13,49 @@ import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/events.dart';
+import 'package:dwds/src/services/debug_service.dart';
+import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart' as vm_service;
+import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
-const pauseIsolatesOnStartFlag = 'pause_isolates_on_start';
+// This event is identical to the one sent by the VM service from
+// sdk/lib/vmservice/vmservice.dart before existing VM service clients are
+// disconnected.
+final class DartDevelopmentServiceConnectedEvent extends Event {
+  DartDevelopmentServiceConnectedEvent({
+    required super.timestamp,
+    required this.uri,
+  }) : message =
+           'A Dart Developer Service instance has connected and this direct '
+           'connection to the VM service will now be closed. Please reconnect to '
+           'the Dart Development Service at $uri.',
+       super(kind: 'DartDevelopmentServiceConnected');
+
+  final String message;
+  final String uri;
+
+  @override
+  Map<String, Object?> toJson() => {
+    ...super.toJson(),
+    'uri': uri,
+    'message': message,
+  };
+}
+
+final class DisconnectNonDartDevelopmentServiceClients extends RPCError {
+  DisconnectNonDartDevelopmentServiceClients()
+    : super('_yieldControlToDDS', kErrorCode);
+
+  // Arbitrary error code that's unlikely to be used elsewhere.
+  static const kErrorCode = -199328;
+}
 
 /// Abstract base class for VM service proxy implementations.
-abstract class ProxyService<InspectorT extends AppInspector>
+abstract base class ProxyService<InspectorT extends AppInspector>
     implements VmServiceInterface {
   /// Cache of all existing StreamControllers.
   ///
@@ -50,24 +84,29 @@ abstract class ProxyService<InspectorT extends AppInspector>
   /// a hot restart.
   bool get isIsolateRunning => _inspector != null;
 
+  /// The [DebugService] implementation.
+  final DebugService debugService;
+
   /// The root `VM` instance.
-  final vm_service.VM _vm;
+  final vm_service.VM vm;
 
   /// Signals when isolate is initialized.
   Future<void> get isInitialized => initializedCompleter.future;
   Completer<void> initializedCompleter = Completer<void>();
 
+  static const _kPauseIsolatesOnStartFlag = 'pause_isolates_on_start';
+
   /// The flags that can be set at runtime via [setFlag] and their respective
   /// values.
   final Map<String, bool> _currentVmServiceFlags = {
-    pauseIsolatesOnStartFlag: false,
+    _kPauseIsolatesOnStartFlag: false,
   };
 
-  /// The value of the [pauseIsolatesOnStartFlag].
+  /// The value of the [_kPauseIsolatesOnStartFlag].
   ///
   /// This value can be updated at runtime via [setFlag].
   bool get pauseIsolatesOnStart =>
-      _currentVmServiceFlags[pauseIsolatesOnStartFlag] ?? false;
+      _currentVmServiceFlags[_kPauseIsolatesOnStartFlag] ?? false;
 
   /// Stream controller for resume events after restart.
   final _resumeAfterRestartEventsController =
@@ -87,7 +126,6 @@ abstract class ProxyService<InspectorT extends AppInspector>
   bool get hasPendingRestart => _resumeAfterRestartEventsController.hasListener;
 
   // Protected accessors for subclasses
-  vm_service.VM get vm => _vm;
   Map<String, StreamController<vm_service.Event>> get streamControllers =>
       _streamControllers;
   StreamController<String> get resumeAfterRestartEventsController =>
@@ -97,7 +135,11 @@ abstract class ProxyService<InspectorT extends AppInspector>
   /// The root at which we're serving.
   final String root;
 
-  ProxyService(this._vm, this.root);
+  ProxyService({
+    required this.vm,
+    required this.root,
+    required this.debugService,
+  });
 
   /// Sends events to stream controllers.
   void streamNotify(String streamId, vm_service.Event event) {
@@ -115,10 +157,31 @@ abstract class ProxyService<InspectorT extends AppInspector>
   }
 
   @override
+  Future<void> yieldControlToDDS(String uri) async {
+    // This will throw an RPCError if there's already an existing DDS instance.
+    debugService.yieldControlToDDS(uri);
+
+    // Notify existing clients that DDS has connected and they're about to be
+    // disconnected.
+    final event = DartDevelopmentServiceConnectedEvent(
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      uri: uri,
+    );
+    streamNotify(EventStreams.kService, event);
+
+    // We throw since we have no other way to control what the response content
+    // is for this RPC. The debug service will check for this particular
+    // exception as a signal to close connections to all other clients.
+    throw DisconnectNonDartDevelopmentServiceClients();
+  }
+
+  @override
   Future<vm_service.Success> streamListen(String streamId) =>
       wrapInErrorHandlerAsync('streamListen', () => _streamListen(streamId));
 
   Future<vm_service.Success> _streamListen(String streamId) async {
+    // TODO: This should return an error if the stream is already being listened
+    // to.
     onEvent(streamId);
     return vm_service.Success();
   }
@@ -135,8 +198,50 @@ abstract class ProxyService<InspectorT extends AppInspector>
 
   Future<vm_service.VM> _getVM() {
     return captureElapsedTime(() async {
-      return _vm;
+      return vm;
     }, (result) => DwdsEvent.getVM());
+  }
+
+  @override
+  Future<Isolate> getIsolate(String isolateId) =>
+      wrapInErrorHandlerAsync('getIsolate', () => _getIsolate(isolateId));
+
+  Future<Isolate> _getIsolate(String isolateId) {
+    return captureElapsedTime(() async {
+      await isInitialized;
+      checkIsolate('getIsolate', isolateId);
+      return inspector.isolate;
+    }, (result) => DwdsEvent.getIsolate());
+  }
+
+  @override
+  Future<Success> setName(String isolateId, String name) =>
+      wrapInErrorHandlerAsync('setName', () => _setName(isolateId, name));
+
+  Future<Success> _setName(String isolateId, String name) async {
+    await isInitialized;
+    checkIsolate('setName', isolateId);
+    inspector.isolate.name = name;
+    return Success();
+  }
+
+  @override
+  Future<Success> setVMName(String name) =>
+      wrapInErrorHandlerAsync('setVMName', () => _setVMName(name));
+
+  Future<Success> _setVMName(String name) async {
+    vm.name = name;
+    streamNotify(
+      'VM',
+      Event(
+        kind: EventKind.kVMUpdate,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        // We are not guaranteed to have an isolate at this point in time.
+        isolate: null,
+        vm: toVMRef(vm),
+      ),
+    );
+    return Success();
   }
 
   @override
@@ -195,6 +300,55 @@ abstract class ProxyService<InspectorT extends AppInspector>
     return vm_service.Version(major: version.major, minor: version.minor);
   }
 
+  // Note: Ignore the optional local parameter, when it is set to `true` the
+  // request is intercepted and handled by DDS.
+  @override
+  Future<UriList> lookupResolvedPackageUris(
+    String isolateId,
+    List<String> uris, {
+    bool? local,
+  }) => wrapInErrorHandlerAsync(
+    'lookupResolvedPackageUris',
+    () => _lookupResolvedPackageUris(isolateId, uris),
+  );
+
+  Future<UriList> _lookupResolvedPackageUris(
+    String isolateId,
+    List<String> uris,
+  ) async {
+    await isInitialized;
+    checkIsolate('lookupResolvedPackageUris', isolateId);
+    return UriList(uris: uris.map(DartUri.toResolvedUri).toList());
+  }
+
+  @override
+  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) =>
+      wrapInErrorHandlerAsync(
+        'lookupPackageUris',
+        () => _lookupPackageUris(isolateId, uris),
+      );
+
+  Future<UriList> _lookupPackageUris(
+    String isolateId,
+    List<String> uris,
+  ) async {
+    await isInitialized;
+    checkIsolate('lookupPackageUris', isolateId);
+    return UriList(uris: uris.map(DartUri.toPackageUri).toList());
+  }
+
+  @override
+  Future<ScriptList> getScripts(String isolateId) =>
+      wrapInErrorHandlerAsync('getScripts', () => _getScripts(isolateId));
+
+  Future<ScriptList> _getScripts(String isolateId) {
+    return captureElapsedTime(() async {
+      await isInitialized;
+      checkIsolate('getScripts', isolateId);
+      return inspector.getScripts();
+    }, (result) => DwdsEvent.getScripts());
+  }
+
   /// Parses the [BatchedDebugEvents] and emits corresponding Dart VM Service
   /// protocol [Event]s.
   void parseBatchedDebugEvents(BatchedDebugEvents debugEvents) {
@@ -205,11 +359,45 @@ abstract class ProxyService<InspectorT extends AppInspector>
 
   /// Parses the [DebugEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
-  void parseDebugEvent(DebugEvent debugEvent);
+  @mustCallSuper
+  void parseDebugEvent(DebugEvent debugEvent) {
+    if (!isIsolateRunning) return;
+    final isolateRef = inspector.isolateRef;
+
+    streamNotify(
+      EventStreams.kExtension,
+      Event(
+          kind: EventKind.kExtension,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          isolate: isolateRef,
+        )
+        ..extensionKind = debugEvent.kind
+        ..extensionData = ExtensionData.parse(
+          jsonDecode(debugEvent.eventData) as Map<String, dynamic>,
+        ),
+    );
+  }
 
   /// Parses the [RegisterEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
-  void parseRegisterEvent(RegisterEvent registerEvent);
+  @mustCallSuper
+  void parseRegisterEvent(RegisterEvent registerEvent) {
+    if (!isIsolateRunning) return;
+
+    final isolate = inspector.isolate;
+    final isolateRef = inspector.isolateRef;
+    final service = registerEvent.eventData;
+    isolate.extensionRPCs?.add(service);
+
+    streamNotify(
+      EventStreams.kIsolate,
+      Event(
+        kind: EventKind.kServiceExtensionAdded,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isolate: isolateRef,
+      )..extensionRPC = service,
+    );
+  }
 
   /// Completes hot reload with response from client.
   ///
@@ -372,6 +560,15 @@ abstract class ProxyService<InspectorT extends AppInspector>
       _rpcNotSupportedFuture('getProcessMemoryUsage');
 
   @override
+  Future<Success> setLibraryDebuggable(
+    String isolateId,
+    String libraryId,
+    bool isDebuggable,
+  ) {
+    return rpcNotSupportedFuture('setLibraryDebuggable');
+  }
+
+  @override
   Future<vm_service.PortList> getPorts(String isolateId) =>
       throw UnimplementedError();
 
@@ -416,6 +613,11 @@ abstract class ProxyService<InspectorT extends AppInspector>
     return _rpcNotSupportedFuture('clearCpuSamples');
   }
 
+  @override
+  Future<Success> registerService(String service, String alias) {
+    return rpcNotSupportedFuture('registerService');
+  }
+
   /// Creates a new isolate for debugging.
   ///
   /// Implementations should handle isolate lifecycle management according to
@@ -430,6 +632,32 @@ abstract class ProxyService<InspectorT extends AppInspector>
   /// Implementations should handle cleanup according to their specific
   /// debugging mode and connection management strategy.
   void destroyIsolate();
+
+  /// Validate that isolateId matches the current isolate we're connected to and
+  /// return that isolate.
+  ///
+  /// This is useful to call at the beginning of API methods that are passed an
+  /// isolate id.
+  @protected
+  Isolate checkIsolate(String methodName, String? isolateId) {
+    final currentIsolateId = inspector.isolate.id;
+    if (currentIsolateId == null) {
+      throw StateError('No running isolate ID');
+    }
+    if (isolateId != currentIsolateId) {
+      _throwSentinel(
+        methodName,
+        SentinelKind.kCollected,
+        'Unrecognized isolateId: $isolateId',
+      );
+    }
+    return inspector.isolate;
+  }
+
+  static Never _throwSentinel(String method, String kind, String message) {
+    final data = <String, String>{'kind': kind, 'valueAsString': message};
+    throw SentinelException.parse(method, data);
+  }
 
   /// Prevent DWDS from blocking Dart SDK rolls if changes in package:vm_service
   /// are unimplemented in DWDS.

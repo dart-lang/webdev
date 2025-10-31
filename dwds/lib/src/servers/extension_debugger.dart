@@ -12,7 +12,7 @@ import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
-import 'package:dwds/src/services/chrome_debug_exception.dart';
+import 'package:dwds/src/services/chrome/chrome_debug_exception.dart';
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;

@@ -34,7 +34,8 @@ export 'src/readers/frontend_server_asset_reader.dart'
     show FrontendServerAssetReader;
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/servers/devtools.dart';
-export 'src/services/chrome_debug_exception.dart' show ChromeDebugException;
+export 'src/services/chrome/chrome_debug_exception.dart'
+    show ChromeDebugException;
 export 'src/services/expression_compiler.dart'
     show
         ExpressionCompilationResult,
