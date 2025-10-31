@@ -12,16 +12,48 @@ import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/events.dart';
+import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart' as vm_service;
+import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
-const pauseIsolatesOnStartFlag = 'pause_isolates_on_start';
+// This event is identical to the one sent by the VM service from
+// sdk/lib/vmservice/vmservice.dart before existing VM service clients are
+// disconnected.
+final class DartDevelopmentServiceConnectedEvent extends Event {
+  DartDevelopmentServiceConnectedEvent({
+    required super.timestamp,
+    required this.uri,
+  }) : message =
+           'A Dart Developer Service instance has connected and this direct '
+           'connection to the VM service will now be closed. Please reconnect to '
+           'the Dart Development Service at $uri.',
+       super(kind: 'DartDevelopmentServiceConnected');
+
+  final String message;
+  final String uri;
+
+  @override
+  Map<String, Object?> toJson() => {
+    ...super.toJson(),
+    'uri': uri,
+    'message': message,
+  };
+}
+
+final class DisconnectNonDartDevelopmentServiceClients extends RPCError {
+  DisconnectNonDartDevelopmentServiceClients()
+    : super('_yieldControlToDDS', kErrorCode);
+
+  // Arbitrary error code that's unlikely to be used elsewhere.
+  static const kErrorCode = -199328;
+}
 
 /// Abstract base class for VM service proxy implementations.
-abstract class ProxyService<InspectorT extends AppInspector>
+abstract base class ProxyService<InspectorT extends AppInspector>
     implements VmServiceInterface {
   /// Cache of all existing StreamControllers.
   ///
@@ -50,24 +82,29 @@ abstract class ProxyService<InspectorT extends AppInspector>
   /// a hot restart.
   bool get isIsolateRunning => _inspector != null;
 
+  /// The [DebugService] implementation.
+  final DebugService debugService;
+
   /// The root `VM` instance.
-  final vm_service.VM _vm;
+  final vm_service.VM vm;
 
   /// Signals when isolate is initialized.
   Future<void> get isInitialized => initializedCompleter.future;
   Completer<void> initializedCompleter = Completer<void>();
 
+  static const _kPauseIsolatesOnStartFlag = 'pause_isolates_on_start';
+
   /// The flags that can be set at runtime via [setFlag] and their respective
   /// values.
   final Map<String, bool> _currentVmServiceFlags = {
-    pauseIsolatesOnStartFlag: false,
+    _kPauseIsolatesOnStartFlag: false,
   };
 
-  /// The value of the [pauseIsolatesOnStartFlag].
+  /// The value of the [_kPauseIsolatesOnStartFlag].
   ///
   /// This value can be updated at runtime via [setFlag].
   bool get pauseIsolatesOnStart =>
-      _currentVmServiceFlags[pauseIsolatesOnStartFlag] ?? false;
+      _currentVmServiceFlags[_kPauseIsolatesOnStartFlag] ?? false;
 
   /// Stream controller for resume events after restart.
   final _resumeAfterRestartEventsController =
@@ -87,7 +124,6 @@ abstract class ProxyService<InspectorT extends AppInspector>
   bool get hasPendingRestart => _resumeAfterRestartEventsController.hasListener;
 
   // Protected accessors for subclasses
-  vm_service.VM get vm => _vm;
   Map<String, StreamController<vm_service.Event>> get streamControllers =>
       _streamControllers;
   StreamController<String> get resumeAfterRestartEventsController =>
@@ -97,7 +133,11 @@ abstract class ProxyService<InspectorT extends AppInspector>
   /// The root at which we're serving.
   final String root;
 
-  ProxyService(this._vm, this.root);
+  ProxyService({
+    required this.vm,
+    required this.root,
+    required this.debugService,
+  });
 
   /// Sends events to stream controllers.
   void streamNotify(String streamId, vm_service.Event event) {
@@ -112,6 +152,25 @@ abstract class ProxyService<InspectorT extends AppInspector>
     return _streamControllers.putIfAbsent(streamId, () {
       return StreamController<vm_service.Event>.broadcast();
     }).stream;
+  }
+
+  @override
+  Future<void> yieldControlToDDS(String uri) async {
+    // This will throw an RPCError if there's already an existing DDS instance.
+    debugService.yieldControlToDDS(uri);
+
+    // Notify existing clients that DDS has connected and they're about to be
+    // disconnected.
+    final event = DartDevelopmentServiceConnectedEvent(
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      uri: uri,
+    );
+    streamNotify(EventStreams.kService, event);
+
+    // We throw since we have no other way to control what the response content
+    // is for this RPC. The debug service will check for this particular
+    // exception as a signal to close connections to all other clients.
+    throw DisconnectNonDartDevelopmentServiceClients();
   }
 
   @override
@@ -135,7 +194,7 @@ abstract class ProxyService<InspectorT extends AppInspector>
 
   Future<vm_service.VM> _getVM() {
     return captureElapsedTime(() async {
-      return _vm;
+      return vm;
     }, (result) => DwdsEvent.getVM());
   }
 

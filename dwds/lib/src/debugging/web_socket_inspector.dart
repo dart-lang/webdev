@@ -5,7 +5,7 @@
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/libraries.dart';
-import 'package:dwds/src/services/web_socket_proxy_service.dart';
+import 'package:dwds/src/services/web_socket/web_socket_proxy_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:vm_service/vm_service.dart';
 

@@ -8,7 +8,7 @@ import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/metadata/class.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/services/chrome_debug_exception.dart';
+import 'package:dwds/src/services/chrome/chrome_debug_exception.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart';

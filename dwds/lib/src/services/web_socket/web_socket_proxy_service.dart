@@ -17,6 +17,7 @@ import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/web_socket_inspector.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/proxy_service.dart';
+import 'package:dwds/src/services/web_socket/web_socket_debug_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
@@ -132,12 +133,11 @@ class NoClientsAvailableException implements Exception {
 }
 
 /// WebSocket-based VM service proxy for web debugging.
-class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
+final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
   final _logger = Logger('WebSocketProxyService');
 
   /// Active service extension trackers by request ID.
-  final Map<String, _ServiceExtensionTracker> _pendingServiceExtensionTrackers =
-      {};
+  final _pendingServiceExtensionTrackers = <String, _ServiceExtensionTracker>{};
 
   /// Sends messages to the client.
   final SendClientRequest sendClientRequest;
@@ -146,24 +146,24 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
   AppConnection appConnection;
 
   /// Active hot reload trackers by request ID.
-  final Map<String, _HotReloadTracker> _pendingHotReloads = {};
+  final _pendingHotReloads = <String, _HotReloadTracker>{};
 
   /// Active hot restart trackers by request ID.
-  final Map<String, _HotRestartTracker> _pendingHotRestarts = {};
+  final _pendingHotRestarts = <String, _HotRestartTracker>{};
 
   /// App connection cleanup subscriptions by connection instance ID.
-  final Map<String, StreamSubscription<void>> _appConnectionDoneSubscriptions =
-      {};
+  final _appConnectionDoneSubscriptions = <String, StreamSubscription<void>>{};
 
   /// Active connection count for this service.
   int _activeConnectionCount = 0;
 
-  WebSocketProxyService._(
-    this.sendClientRequest,
-    vm_service.VM vm,
-    String root,
-    this.appConnection,
-  ) : super(vm, root);
+  WebSocketProxyService._({
+    required this.sendClientRequest,
+    required super.vm,
+    required super.root,
+    required super.debugService,
+    required this.appConnection,
+  });
 
   // Isolate state
   vm_service.Event? _currentPauseEvent;
@@ -431,6 +431,7 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
     SendClientRequest sendClientRequest,
     AppConnection appConnection,
     String root,
+    WebSocketDebugService debugService,
   ) async {
     final vm = vm_service.VM(
       name: 'WebSocketDebugProxy',
@@ -447,10 +448,11 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
       pid: -1,
     );
     final service = WebSocketProxyService._(
-      sendClientRequest,
-      vm,
-      root,
-      appConnection,
+      sendClientRequest: sendClientRequest,
+      vm: vm,
+      root: root,
+      debugService: debugService,
+      appConnection: appConnection,
     );
     safeUnawaited(service.createIsolate(appConnection));
     return service;

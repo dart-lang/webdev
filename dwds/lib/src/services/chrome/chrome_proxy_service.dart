@@ -1,4 +1,4 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,7 +22,7 @@ import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/batched_expression_evaluator.dart';
-import 'package:dwds/src/services/debug_service.dart';
+import 'package:dwds/src/services/chrome/chrome_debug_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:dwds/src/services/proxy_service.dart';
@@ -33,40 +33,8 @@ import 'package:vm_service/vm_service.dart' hide vmServiceVersion;
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-// This event is identical to the one sent by the VM service from
-// sdk/lib/vmservice/vmservice.dart before existing VM service clients are
-// disconnected.
-final class DartDevelopmentServiceConnectedEvent extends Event {
-  DartDevelopmentServiceConnectedEvent({
-    required super.timestamp,
-    required this.uri,
-  }) : message =
-           'A Dart Developer Service instance has connected and this direct '
-           'connection to the VM service will now be closed. Please reconnect to '
-           'the Dart Development Service at $uri.',
-       super(kind: 'DartDevelopmentServiceConnected');
-
-  final String message;
-  final String uri;
-
-  @override
-  Map<String, Object?> toJson() => {
-    ...super.toJson(),
-    'uri': uri,
-    'message': message,
-  };
-}
-
-final class DisconnectNonDartDevelopmentServiceClients extends RPCError {
-  DisconnectNonDartDevelopmentServiceClients()
-    : super('_yieldControlToDDS', kErrorCode);
-
-  // Arbitrary error code that's unlikely to be used elsewhere.
-  static const kErrorCode = -199328;
-}
-
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
-class ChromeProxyService extends ProxyService<ChromeAppInspector> {
+final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   /// Signals when isolate starts.
   Future<void> get isStarted => _startedCompleter.future;
   Completer<void> _startedCompleter = Completer<void>();
@@ -111,17 +79,22 @@ class ChromeProxyService extends ProxyService<ChromeAppInspector> {
 
   bool terminatingIsolates = false;
 
-  ChromeProxyService._(
-    super.vm,
-    super.root,
-    this._assetReader,
-    this.remoteDebugger,
-    this._modules,
-    this._locations,
-    this._skipLists,
-    this.executionContext,
-    this._compiler,
-  ) {
+  ChromeProxyService._({
+    required super.vm,
+    required super.debugService,
+    required AssetReader assetReader,
+    required this.remoteDebugger,
+    required Modules modules,
+    required Locations locations,
+    required SkipLists skipLists,
+    required this.executionContext,
+    required ExpressionCompiler? compiler,
+  }) : _assetReader = assetReader,
+       _modules = modules,
+       _locations = locations,
+       _skipLists = skipLists,
+       _compiler = compiler,
+       super(root: assetReader.basePath) {
     final debugger = Debugger.create(
       remoteDebugger,
       streamNotify,
@@ -132,14 +105,14 @@ class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     debugger.then(_debuggerCompleter.complete);
   }
 
-  static Future<ChromeProxyService> create(
-    RemoteDebugger remoteDebugger,
-    String root,
-    AssetReader assetReader,
-    AppConnection appConnection,
-    ExecutionContext executionContext,
-    ExpressionCompiler? expressionCompiler,
-  ) async {
+  static Future<ChromeProxyService> create({
+    required RemoteDebugger remoteDebugger,
+    required ChromeDebugService debugService,
+    required AssetReader assetReader,
+    required AppConnection appConnection,
+    required ExecutionContext executionContext,
+    required ExpressionCompiler? expressionCompiler,
+  }) async {
     final vm = VM(
       name: 'ChromeDebugProxy',
       operatingSystem: Platform.operatingSystem,
@@ -155,19 +128,20 @@ class ChromeProxyService extends ProxyService<ChromeAppInspector> {
       pid: -1,
     );
 
+    final root = assetReader.basePath;
     final modules = Modules(root);
     final locations = Locations(assetReader, modules, root);
     final skipLists = SkipLists(root);
     final service = ChromeProxyService._(
-      vm,
-      root,
-      assetReader,
-      remoteDebugger,
-      modules,
-      locations,
-      skipLists,
-      executionContext,
-      expressionCompiler,
+      vm: vm,
+      debugService: debugService,
+      assetReader: assetReader,
+      remoteDebugger: remoteDebugger,
+      modules: modules,
+      locations: locations,
+      skipLists: skipLists,
+      executionContext: executionContext,
+      compiler: expressionCompiler,
     );
     safeUnawaited(service.createIsolate(appConnection, newConnection: true));
     return service;
@@ -1539,25 +1513,6 @@ class ChromeProxyService extends ProxyService<ChromeAppInspector> {
       }
     }
     return logParams;
-  }
-
-  @override
-  Future<void> yieldControlToDDS(String uri) async {
-    // This will throw an RPCError if there's already an existing DDS instance.
-    ChromeDebugService.yieldControlToDDS(uri);
-
-    // Notify existing clients that DDS has connected and they're about to be
-    // disconnected.
-    final event = DartDevelopmentServiceConnectedEvent(
-      timestamp: DateTime.now().millisecondsSinceEpoch,
-      uri: uri,
-    );
-    streamNotify(EventStreams.kService, event);
-
-    // We throw since we have no other way to control what the response content
-    // is for this RPC. The debug service will check for this particular
-    // exception as a signal to close connections to all other clients.
-    throw DisconnectNonDartDevelopmentServiceClients();
   }
 
   Future<InstanceRef> _instanceRef(RemoteObject? obj) async {

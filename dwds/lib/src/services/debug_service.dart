@@ -10,27 +10,16 @@ import 'dart:typed_data';
 
 import 'package:dds/dds_launcher.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/connections/app_connection.dart';
-import 'package:dwds/src/debugging/execution_context.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/events.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/services/web_socket_proxy_service.dart';
+import 'package:dwds/src/services/proxy_service.dart';
 import 'package:dwds/src/utilities/server.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf/shelf.dart' hide Response;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
-import 'package:sse/server/sse_handler.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-
-const _kSseHandlerPath = '\$debugHandler';
 
 bool _acceptNewConnections = true;
 
@@ -39,157 +28,86 @@ int _clientId = 0;
 
 Logger _logger = Logger('DebugService');
 
-void _handleConnection(
-  StreamChannel channel,
-  ChromeProxyService chromeProxyService,
-  ServiceExtensionRegistry serviceExtensionRegistry, {
-  void Function(Map<String, Object>)? onRequest,
-  void Function(Map<String, Object?>)? onResponse,
-}) {
-  final clientId = _clientId++;
-  final responseController = StreamController<Map<String, Object?>>();
-  responseController.stream
-      .asyncMap<String>((response) async {
-        // This error indicates a successful invocation to _yieldControlToDDS.
-        // We don't have a good way to access the list of connected clients
-        // while also being able to determine which client invoked the RPC
-        // without some form of client ID.
-        //
-        // We can probably do better than this, but it will likely involve some
-        // refactoring.
-        if (response case {
-          'error': {
-            'code': DisconnectNonDartDevelopmentServiceClients.kErrorCode,
-          },
-        }) {
-          final nonDdsClients = _clientConnections.entries
-              .where((MapEntry<int, StreamChannel> e) => e.key != clientId)
-              .map((e) => e.value);
-          await Future.wait([
-            for (final client in nonDdsClients) client.sink.close(),
-          ]);
-          // Remove the artificial error and return Success.
-          response.remove('error');
-          response['result'] = Success().toJson();
-        }
-        if (onResponse != null) onResponse(response);
-        return jsonEncode(response);
-      })
-      .listen(channel.sink.add, onError: channel.sink.addError);
-  final inputStream = channel.stream.map((value) {
-    if (value is List<int>) {
-      value = utf8.decode(value);
-    } else if (value is! String) {
-      throw StateError(
-        'Got value with unexpected type ${value.runtimeType} from web '
-        'socket, expected a List<int> or String.',
-      );
-    }
-    final request = Map<String, Object>.from(jsonDecode(value));
-    if (onRequest != null) onRequest(request);
-    return request;
-  });
-  VmServerConnection(
-    inputStream,
-    responseController.sink,
-    serviceExtensionRegistry,
-    chromeProxyService,
-  ).done.whenComplete(() {
-    _clientConnections.remove(clientId);
-    if (!_acceptNewConnections && _clientConnections.isEmpty) {
-      // DDS has disconnected so we can allow for clients to connect directly
-      // to DWDS.
-      ChromeDebugService._ddsUri = null;
-      _acceptNewConnections = true;
-    }
-  });
-  _clientConnections[clientId] = channel;
-}
-
-void Function(WebSocketChannel, String?) _createNewConnectionHandler(
-  ChromeProxyService chromeProxyService,
-  ServiceExtensionRegistry serviceExtensionRegistry, {
-  void Function(Map<String, Object>)? onRequest,
-  void Function(Map<String, Object?>)? onResponse,
-}) {
-  return (webSocket, subprotocol) {
-    _handleConnection(
-      webSocket,
-      chromeProxyService,
-      serviceExtensionRegistry,
-      onRequest: onRequest,
-      onResponse: onResponse,
-    );
-  };
-}
-
-Future<void> _handleSseConnections(
-  SseHandler handler,
-  ChromeProxyService chromeProxyService,
-  ServiceExtensionRegistry serviceExtensionRegistry, {
-  void Function(Map<String, Object>)? onRequest,
-  void Function(Map<String, Object?>)? onResponse,
-}) async {
-  while (await handler.connections.hasNext) {
-    final connection = await handler.connections.next;
-    _handleConnection(
-      connection,
-      chromeProxyService,
-      serviceExtensionRegistry,
-      onRequest: onRequest,
-      onResponse: onResponse,
-    );
-  }
-}
-
 /// Common interface for debug services (Chrome or WebSocket based).
-abstract class DebugService {
-  String get hostname;
-  int get port;
-  String get uri;
-  Future<String> get encodedUri;
-  ServiceExtensionRegistry get serviceExtensionRegistry;
-  Future<void> close();
-}
+abstract class DebugService<T extends ProxyService> {
+  DebugService({
+    required this.serverHostname,
+    required this.ddsConfig,
+    required this.urlEncoder,
+    required this.useSse,
+  });
 
-/// A Dart Web Debug Service.
-///
-/// Creates a [ChromeProxyService] from an existing Chrome instance.
-class ChromeDebugService implements DebugService {
-  static String? _ddsUri;
+  /// The URI pointing to the VM service implementation hosted by the [DebugService].
+  String get uri => _uri.toString();
 
-  final ChromeProxyService chromeProxyService;
-  @override
-  final String hostname;
-  @override
-  final ServiceExtensionRegistry serviceExtensionRegistry;
-  @override
-  final int port;
-  final String authToken;
-  final HttpServer _server;
-  final bool _useSse;
-  final DartDevelopmentServiceConfiguration _ddsConfig;
-  final UrlEncoder? _urlEncoder;
+  Uri get _uri {
+    final dds = _dds;
+    if (ddsConfig.enable && dds != null) {
+      return useSse ? dds.sseUri : dds.wsUri;
+    }
+    return useSse
+        ? Uri(
+            scheme: 'sse',
+            host: _server.address.host,
+            port: _server.port,
+            path: '$authToken/\$debugHandler',
+          )
+        : Uri(
+            scheme: 'ws',
+            host: _server.address.host,
+            port: _server.port,
+            path: authToken,
+          );
+  }
+
+  String? _ddsUri;
+
+  late final T proxyService;
+
+  final UrlEncoder? urlEncoder;
+
+  late final String authToken = _makeAuthToken();
+  final bool useSse;
+
+  Future<String> get encodedUri async {
+    return _encodedUri ??= await urlEncoder?.call(uri) ?? uri;
+  }
+
+  String? _encodedUri;
+
+  DartDevelopmentServiceConfiguration ddsConfig;
   DartDevelopmentServiceLauncher? _dds;
+
+  final String serverHostname;
+  late final HttpServer _server;
+
+  String get hostname => _uri.host;
+  int get port => _uri.port;
+
+  final serviceExtensionRegistry = ServiceExtensionRegistry();
 
   /// Null until [close] is called.
   ///
   /// All subsequent calls to [close] will return this future.
   Future<void>? _closed;
 
-  ChromeDebugService._(
-    this.chromeProxyService,
-    this.hostname,
-    this.port,
-    this.authToken,
-    this.serviceExtensionRegistry,
-    this._server,
-    this._useSse,
-    this._ddsConfig,
-    this._urlEncoder,
-  );
+  @protected
+  @mustCallSuper
+  @mustBeOverridden
+  Future<void> initialize({required T proxyService}) async {
+    this.proxyService = proxyService;
+  }
 
-  @override
+  @protected
+  Future<void> serve({required shelf.Handler handler}) async {
+    _server = await startHttpServer(serverHostname, port: 44456);
+    serveHttpRequests(_server, handler, (e, s) {
+      _logger.warning('Error serving requests', e);
+      emitEvent(DwdsEvent.httpRequestException('$runtimeType', '$e:$s'));
+    });
+  }
+
+  /// Closes the debug service and associated resources.
   Future<void> close() => _closed ??= Future.wait([
     _server.close(),
     if (_dds != null) _dds!.shutdown(),
@@ -198,51 +116,29 @@ class ChromeDebugService implements DebugService {
   Future<DartDevelopmentServiceLauncher> startDartDevelopmentService() async {
     // Note: DDS can handle both web socket and SSE connections with no
     // additional configuration.
+    final hostname = _server.address.host;
     _dds = await DartDevelopmentServiceLauncher.start(
       remoteVmServiceUri: Uri(
         scheme: 'http',
         host: hostname,
-        port: port,
+        port: _server.port,
         path: authToken,
       ),
       serviceUri: Uri(
         scheme: 'http',
         host: hostname,
-        port: _ddsConfig.port ?? 0,
+        port: ddsConfig.port ?? 0,
       ),
-      devToolsServerAddress: _ddsConfig.devToolsServerAddress,
-      serveDevTools: _ddsConfig.serveDevTools,
+      devToolsServerAddress: ddsConfig.devToolsServerAddress,
+      serveDevTools: ddsConfig.serveDevTools,
     );
     return _dds!;
   }
 
-  @override
-  String get uri {
-    final dds = _dds;
-    if (_ddsConfig.enable && dds != null) {
-      return (_useSse ? dds.sseUri : dds.wsUri).toString();
-    }
-    return (_useSse
-            ? Uri(
-                scheme: 'sse',
-                host: hostname,
-                port: port,
-                path: '$authToken/\$debugHandler',
-              )
-            : Uri(scheme: 'ws', host: hostname, port: port, path: authToken))
-        .toString();
-  }
-
-  String? _encodedUri;
-  @override
-  Future<String> get encodedUri async {
-    if (_encodedUri != null) return _encodedUri!;
-    var encoded = uri;
-    if (_urlEncoder != null) encoded = await _urlEncoder(encoded);
-    return _encodedUri = encoded;
-  }
-
-  static void yieldControlToDDS(String uri) {
+  void yieldControlToDDS(String uri) {
+    // We track the URI of the connected DDS instance seperately instead of
+    // relying on _dds being non-null as there's no guarantee that DWDS is the
+    // tool starting DDS.
     if (_ddsUri != null) {
       // This exception is identical to the one thrown from
       // sdk/lib/vmservice/vmservice.dart
@@ -257,255 +153,118 @@ class ChromeDebugService implements DebugService {
     _ddsUri = uri;
   }
 
-  static Future<ChromeDebugService> start(
-    String hostname,
-    RemoteDebugger remoteDebugger,
-    ExecutionContext executionContext,
-    AssetReader assetReader,
-    AppConnection appConnection,
-    UrlEncoder? urlEncoder, {
+  @protected
+  shelf.Handler initializeWebSocketHandler({
+    required ProxyService proxyService,
     void Function(Map<String, Object>)? onRequest,
     void Function(Map<String, Object?>)? onResponse,
-    required DartDevelopmentServiceConfiguration ddsConfig,
-    bool useSse = false,
-    ExpressionCompiler? expressionCompiler,
-  }) async {
-    final root = assetReader.basePath;
-    final chromeProxyService = await ChromeProxyService.create(
-      remoteDebugger,
-      root,
-      assetReader,
-      appConnection,
-      executionContext,
-      expressionCompiler,
-    );
-    final authToken = _makeAuthToken();
-    final serviceExtensionRegistry = ServiceExtensionRegistry();
-    Handler handler;
-    // DDS will always connect to DWDS via web sockets.
-    if (useSse && !ddsConfig.enable) {
-      final sseHandler = SseHandler(
-        Uri.parse('/$authToken/$_kSseHandlerPath'),
-        keepAlive: const Duration(seconds: 5),
-      );
-      handler = sseHandler.handler;
-      safeUnawaited(
-        _handleSseConnections(
-          sseHandler,
-          chromeProxyService,
+  }) {
+    return _wrapHandler(
+      webSocketHandler((webSocket, subprotocol) {
+        handleConnection(
+          webSocket,
+          proxyService,
           serviceExtensionRegistry,
           onRequest: onRequest,
           onResponse: onResponse,
-        ),
-      );
-    } else {
-      final innerHandler = webSocketHandler(
-        _createNewConnectionHandler(
-          chromeProxyService,
-          serviceExtensionRegistry,
-          onRequest: onRequest,
-          onResponse: onResponse,
-        ),
-      );
-      handler = (shelf.Request request) {
-        if (!_acceptNewConnections) {
-          return shelf.Response.forbidden(
-            'Cannot connect directly to the VM service as a Dart Development '
-            'Service (DDS) instance has taken control and can be found at '
-            '$_ddsUri.',
-          );
-        }
-        if (request.url.pathSegments.first != authToken) {
-          return shelf.Response.forbidden('Incorrect auth token');
-        }
-        return innerHandler(request);
-      };
+        );
+      }),
+      authToken: authToken,
+    );
+  }
+
+  shelf.Handler _wrapHandler(shelf.Handler innerHandler, {String? authToken}) {
+    return (shelf.Request request) {
+      if (!_acceptNewConnections) {
+        return shelf.Response.forbidden(
+          'Cannot connect directly to the VM service as a Dart Development '
+          'Service (DDS) instance has taken control and can be found at $_ddsUri.'
+          '$_ddsUri.',
+        );
+      }
+      if (authToken != null && request.url.pathSegments.first != authToken) {
+        return shelf.Response.forbidden('Incorrect auth token');
+      }
+      return innerHandler(request);
+    };
+  }
+
+  @protected
+  void handleConnection(
+    StreamChannel channel,
+    ProxyService proxyService,
+    ServiceExtensionRegistry serviceExtensionRegistry, {
+    void Function(Map<String, Object>)? onRequest,
+    void Function(Map<String, Object?>)? onResponse,
+  }) {
+    final clientId = _clientId++;
+    final responseController = StreamController<Map<String, Object?>>();
+    responseController.stream
+        .asyncMap<String>((response) async {
+          // This error indicates a successful invocation to _yieldControlToDDS.
+          // We don't have a good way to access the list of connected clients
+          // while also being able to determine which client invoked the RPC
+          // without some form of client ID.
+          //
+          // We can probably do better than this, but it will likely involve some
+          // refactoring.
+          if (response case {
+            'error': {
+              'code': DisconnectNonDartDevelopmentServiceClients.kErrorCode,
+            },
+          }) {
+            final nonDdsClients = _clientConnections.entries
+                .where((MapEntry<int, StreamChannel> e) => e.key != clientId)
+                .map((e) => e.value);
+            await Future.wait([
+              for (final client in nonDdsClients) client.sink.close(),
+            ]);
+            // Remove the artificial error and return Success.
+            response.remove('error');
+            response['result'] = Success().toJson();
+          }
+          if (onResponse != null) onResponse(response);
+          return jsonEncode(response);
+        })
+        .listen(channel.sink.add, onError: channel.sink.addError);
+    final inputStream = channel.stream.map((value) {
+      if (value is List<int>) {
+        value = utf8.decode(value);
+      } else if (value is! String) {
+        throw StateError(
+          'Got value with unexpected type ${value.runtimeType} from web '
+          'socket, expected a List<int> or String.',
+        );
+      }
+      final request = Map<String, Object>.from(jsonDecode(value));
+      if (onRequest != null) onRequest(request);
+      return request;
+    });
+    VmServerConnection(
+      inputStream,
+      responseController.sink,
+      serviceExtensionRegistry,
+      proxyService,
+    ).done.whenComplete(() {
+      _clientConnections.remove(clientId);
+      if (!_acceptNewConnections && _clientConnections.isEmpty) {
+        // DDS has disconnected so we can allow for clients to connect directly
+        // to DWDS.
+        _ddsUri = null;
+        _acceptNewConnections = true;
+      }
+    });
+    _clientConnections[clientId] = channel;
+  }
+
+  // Creates a random auth token for more secure connections.
+  String _makeAuthToken() {
+    final tokenBytes = 8;
+    final bytes = Uint8List(tokenBytes);
+    final random = Random.secure();
+    for (var i = 0; i < tokenBytes; i++) {
+      bytes[i] = random.nextInt(256);
     }
-    final server = await startHttpServer(hostname, port: 44456);
-    serveHttpRequests(server, handler, (e, s) {
-      _logger.warning('Error serving requests', e);
-      emitEvent(DwdsEvent.httpRequestException('DebugService', '$e:$s'));
-    });
-    return ChromeDebugService._(
-      chromeProxyService,
-      server.address.host,
-      server.port,
-      authToken,
-      serviceExtensionRegistry,
-      server,
-      useSse,
-      ddsConfig,
-      urlEncoder,
-    );
+    return base64Url.encode(bytes);
   }
-}
-
-/// Defines callbacks for sending messages to the connected client.
-/// Returns the number of clients the request was successfully sent to.
-typedef SendClientRequest = int Function(Object request);
-
-/// WebSocket-based debug service for web debugging.
-class WebSocketDebugService implements DebugService {
-  @override
-  final String hostname;
-  @override
-  final int port;
-  final String authToken;
-  final HttpServer _server;
-  final WebSocketProxyService _webSocketProxyService;
-  final ServiceExtensionRegistry _serviceExtensionRegistry;
-  final UrlEncoder? _urlEncoder;
-
-  Future<void>? _closed;
-  DartDevelopmentServiceLauncher? _dds;
-  String? _encodedUri;
-
-  WebSocketDebugService._(
-    this.hostname,
-    this.port,
-    this.authToken,
-    this._webSocketProxyService,
-    this._serviceExtensionRegistry,
-    this._server,
-    this._urlEncoder,
-  );
-
-  /// Returns the WebSocketProxyService instance.
-  WebSocketProxyService get webSocketProxyService => _webSocketProxyService;
-
-  /// Returns the ServiceExtensionRegistry instance.
-  @override
-  ServiceExtensionRegistry get serviceExtensionRegistry =>
-      _serviceExtensionRegistry;
-
-  /// Closes the debug service and associated resources.
-  @override
-  Future<void> close() => _closed ??= Future.wait([
-    _server.close(),
-    if (_dds != null) _dds!.shutdown(),
-  ]);
-
-  /// Starts DDS (Dart Development Service).
-  Future<DartDevelopmentServiceLauncher> startDartDevelopmentService({
-    int? ddsPort,
-  }) async {
-    const timeout = Duration(seconds: 10);
-
-    try {
-      _dds = await DartDevelopmentServiceLauncher.start(
-        remoteVmServiceUri: Uri(
-          scheme: 'http',
-          host: hostname,
-          port: port,
-          path: authToken,
-        ),
-        serviceUri: Uri(scheme: 'http', host: hostname, port: ddsPort ?? 0),
-      ).timeout(timeout);
-    } catch (e) {
-      throw Exception('Failed to start DDS: $e');
-    }
-    return _dds!;
-  }
-
-  @override
-  String get uri =>
-      Uri(scheme: 'ws', host: hostname, port: port, path: authToken).toString();
-
-  @override
-  Future<String> get encodedUri async {
-    if (_encodedUri != null) return _encodedUri!;
-    var encoded = uri;
-    if (_urlEncoder != null) encoded = await _urlEncoder(encoded);
-    return _encodedUri = encoded;
-  }
-
-  static Future<WebSocketDebugService> start(
-    String hostname,
-    AppConnection appConnection,
-    AssetReader assetReader, {
-    required SendClientRequest sendClientRequest,
-    UrlEncoder? urlEncoder,
-  }) async {
-    final authToken = _makeAuthToken();
-    final serviceExtensionRegistry = ServiceExtensionRegistry();
-
-    final webSocketProxyService = await WebSocketProxyService.create(
-      sendClientRequest,
-      appConnection,
-      assetReader.basePath,
-    );
-
-    final handler = _createWebSocketHandler(
-      serviceExtensionRegistry,
-      webSocketProxyService,
-    );
-
-    final server = await startHttpServer(hostname, port: 44456);
-    serveHttpRequests(server, handler, (e, s) {
-      Logger('WebSocketDebugService').warning('Error serving requests', e);
-    });
-
-    return WebSocketDebugService._(
-      server.address.host,
-      server.port,
-      authToken,
-      webSocketProxyService,
-      serviceExtensionRegistry,
-      server,
-      urlEncoder,
-    );
-  }
-
-  /// Creates the WebSocket handler for incoming connections.
-  static Handler _createWebSocketHandler(
-    ServiceExtensionRegistry serviceExtensionRegistry,
-    WebSocketProxyService webSocketProxyService,
-  ) {
-    return webSocketHandler((
-      WebSocketChannel webSocket,
-      String? subprotocol,
-    ) async {
-      final clientId = _clientId++;
-      final responseController = StreamController<Map<String, Object?>>();
-      unawaited(
-        webSocket.sink.addStream(responseController.stream.map(jsonEncode)),
-      );
-
-      final inputStream = webSocket.stream.map((value) {
-        if (value is List<int>) {
-          value = utf8.decode(value);
-        } else if (value is! String) {
-          throw StateError(
-            'Unexpected value type from web socket: ${value.runtimeType}',
-          );
-        }
-        return Map<String, Object>.from(jsonDecode(value));
-      });
-
-      _clientConnections[clientId] = webSocket;
-
-      unawaited(
-        VmServerConnection(
-          inputStream,
-          responseController.sink,
-          serviceExtensionRegistry,
-          webSocketProxyService,
-        ).done.whenComplete(() {
-          _clientConnections.remove(clientId);
-        }),
-      );
-      await webSocketProxyService.sendServiceExtensionRegisteredEvents();
-    });
-  }
-}
-
-// Creates a random auth token for more secure connections.
-String _makeAuthToken() {
-  final tokenBytes = 8;
-  final bytes = Uint8List(tokenBytes);
-  final random = Random.secure();
-  for (var i = 0; i < tokenBytes; i++) {
-    bytes[i] = random.nextInt(256);
-  }
-  return base64Url.encode(bytes);
 }

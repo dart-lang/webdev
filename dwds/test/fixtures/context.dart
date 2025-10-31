@@ -18,7 +18,7 @@ import 'package:dwds/src/loaders/build_runner_require.dart';
 import 'package:dwds/src/loaders/frontend_server_strategy_provider.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';

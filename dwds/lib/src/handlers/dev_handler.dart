@@ -34,10 +34,11 @@ import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:dwds/src/servers/extension_debugger.dart';
 import 'package:dwds/src/services/app_debug_services.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
-import 'package:dwds/src/services/debug_service.dart';
+import 'package:dwds/src/services/chrome/chrome_debug_service.dart';
+import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/services/web_socket_proxy_service.dart';
+import 'package:dwds/src/services/web_socket/web_socket_debug_service.dart';
+import 'package:dwds/src/services/web_socket/web_socket_proxy_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
@@ -120,9 +121,7 @@ class DevHandler {
   };
 
   Future<void> close() => _closed ??= () async {
-    for (final sub in _subs) {
-      await sub.cancel();
-    }
+    await Future.wait([for (final sub in _subs) sub.cancel()]);
     for (final handler in _sseHandlers.values) {
       handler.shutdown();
     }
@@ -230,12 +229,12 @@ class DevHandler {
       // machine. This allows consumers of DWDS to provide a `hostname` for
       // debugging through the Dart Debug Extension without impacting the local
       // debug workflow.
-      'localhost',
-      webkitDebugger,
-      executionContext,
-      _assetReader,
-      appConnection,
-      _urlEncoder,
+      hostname: 'localhost',
+      remoteDebugger: webkitDebugger,
+      executionContext: executionContext,
+      assetReader: _assetReader,
+      appConnection: appConnection,
+      urlEncoder: _urlEncoder,
       onResponse: (response) {
         if (response['error'] == null) return;
         _logger.finest('VmService proxy responded with an error:\n$response');
@@ -285,10 +284,11 @@ class DevHandler {
     AppConnection appConnection,
   ) async {
     final webSocketDebugService = await WebSocketDebugService.start(
-      'localhost',
-      appConnection,
-      _assetReader,
+      hostname: 'localhost',
+      appConnection: appConnection,
+      assetReader: _assetReader,
       sendClientRequest: _sendRequestToClients,
+      ddsConfig: _ddsConfig,
     );
     return _createAppDebugServicesWebSocketMode(
       webSocketDebugService,
@@ -856,13 +856,11 @@ class DevHandler {
       dwdsStats,
       dds?.wsUri,
     );
-    final appDebugService = ChromeAppDebugServices(
-      debugService,
-      vmClient,
-      dwdsStats,
-      dds?.wsUri,
-      dds?.devToolsUri,
-      dds?.dtdUri,
+    final appDebugService = AppDebugServices(
+      debugService: debugService,
+      dwdsVmClient: vmClient,
+      dwdsStats: dwdsStats,
+      dds: dds,
     );
     final encodedUri = await debugService.encodedUri;
     _logger.info('Debug service listening on $encodedUri\n');
@@ -889,12 +887,18 @@ class DevHandler {
     WebSocketDebugService webSocketDebugService,
     AppConnection appConnection,
   ) async {
+    DartDevelopmentServiceLauncher? dds;
+    if (_ddsConfig.enable) {
+      dds = await webSocketDebugService.startDartDevelopmentService();
+    }
     final wsVmClient = await WebSocketDwdsVmClient.create(
       webSocketDebugService,
+      dds?.wsUri,
     );
-    final wsAppDebugService = WebSocketAppDebugServices(
-      webSocketDebugService,
-      wsVmClient,
+    final wsAppDebugService = AppDebugServices(
+      debugService: webSocketDebugService,
+      dwdsVmClient: wsVmClient,
+      dds: dds,
     );
 
     safeUnawaited(_handleIsolateStart(appConnection));
@@ -968,12 +972,12 @@ class DevHandler {
     var appServices = _servicesByAppId[appId];
     if (appServices == null) {
       final debugService = await ChromeDebugService.start(
-        _hostname,
-        extensionDebugger,
-        executionContext,
-        _assetReader,
-        connection,
-        _urlEncoder,
+        hostname: _hostname,
+        remoteDebugger: extensionDebugger,
+        executionContext: executionContext,
+        assetReader: _assetReader,
+        appConnection: connection,
+        urlEncoder: _urlEncoder,
         onResponse: (response) {
           if (response['error'] == null) return;
           _logger.finest('VmService proxy responded with an error:\n$response');
