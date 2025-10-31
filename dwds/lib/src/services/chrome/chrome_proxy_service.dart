@@ -431,7 +431,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     int? column,
   }) async {
     await isInitialized;
-    _checkIsolate('addBreakpoint', isolateId);
+    checkIsolate('addBreakpoint', isolateId);
     return (await debuggerFuture).addBreakpoint(scriptId, line, column: column);
   }
 
@@ -459,7 +459,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     int? column,
   }) async {
     await isInitialized;
-    _checkIsolate('addBreakpointWithScriptUri', isolateId);
+    checkIsolate('addBreakpointWithScriptUri', isolateId);
     if (Uri.parse(scriptUri).scheme == 'dart') {
       // TODO(annagrin): Support setting breakpoints in dart SDK locations.
       // Issue: https://github.com/dart-lang/webdev/issues/1584
@@ -503,7 +503,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   }) async {
     await isInitialized;
     isolateId ??= inspector.isolate.id;
-    _checkIsolate('callServiceExtension', isolateId);
+    checkIsolate('callServiceExtension', isolateId);
     args ??= <String, String>{};
     final stringArgs = args.map(
       (k, v) => MapEntry(
@@ -640,7 +640,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
       final evaluator = _expressionEvaluator;
       if (evaluator != null) {
         await isCompilerInitialized;
-        _checkIsolate('evaluate', isolateId);
+        checkIsolate('evaluate', isolateId);
 
         late Obj object;
         try {
@@ -730,7 +730,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
       final evaluator = _expressionEvaluator;
       if (evaluator != null) {
         await isCompilerInitialized;
-        _checkIsolate('evaluateInFrame', isolateId);
+        checkIsolate('evaluateInFrame', isolateId);
 
         return await _getEvaluationResult(
           isolateId,
@@ -752,18 +752,6 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   }
 
   @override
-  Future<Isolate> getIsolate(String isolateId) =>
-      wrapInErrorHandlerAsync('getIsolate', () => _getIsolate(isolateId));
-
-  Future<Isolate> _getIsolate(String isolateId) {
-    return captureElapsedTime(() async {
-      await isInitialized;
-      _checkIsolate('getIsolate', isolateId);
-      return inspector.isolate;
-    }, (result) => DwdsEvent.getIsolate());
-  }
-
-  @override
   Future<MemoryUsage> getMemoryUsage(String isolateId) =>
       wrapInErrorHandlerAsync(
         'getMemoryUsage',
@@ -772,7 +760,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
 
   Future<MemoryUsage> _getMemoryUsage(String isolateId) async {
     await isInitialized;
-    _checkIsolate('getMemoryUsage', isolateId);
+    checkIsolate('getMemoryUsage', isolateId);
     return inspector.getMemoryUsage();
   }
 
@@ -799,20 +787,8 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     int? count,
   }) async {
     await isInitialized;
-    _checkIsolate('getObject', isolateId);
+    checkIsolate('getObject', isolateId);
     return inspector.getObject(objectId, offset: offset, count: count);
-  }
-
-  @override
-  Future<ScriptList> getScripts(String isolateId) =>
-      wrapInErrorHandlerAsync('getScripts', () => _getScripts(isolateId));
-
-  Future<ScriptList> _getScripts(String isolateId) {
-    return captureElapsedTime(() async {
-      await isInitialized;
-      _checkIsolate('getScripts', isolateId);
-      return inspector.getScripts();
-    }, (result) => DwdsEvent.getScripts());
   }
 
   @override
@@ -840,7 +816,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   }) {
     return captureElapsedTime(() async {
       await isInitialized;
-      _checkIsolate('getSourceReport', isolateId);
+      checkIsolate('getSourceReport', isolateId);
       return await inspector.getSourceReport(reports, scriptId: scriptId);
     }, (result) => DwdsEvent.getSourceReport());
   }
@@ -867,18 +843,8 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   Future<Stack> _getStack(String isolateId, {int? limit}) async {
     await isInitialized;
     await isStarted;
-    _checkIsolate('getStack', isolateId);
+    checkIsolate('getStack', isolateId);
     return (await debuggerFuture).getStack(limit: limit);
-  }
-
-  @override
-  Future<VM> getVM() => wrapInErrorHandlerAsync('getVM', _getVM);
-
-  Future<VM> _getVM() {
-    return captureElapsedTime(() async {
-      await isInitialized;
-      return vm;
-    }, (result) => DwdsEvent.getVM());
   }
 
   @override
@@ -906,7 +872,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     List argumentIds,
   ) async {
     await isInitialized;
-    _checkIsolate('invoke', isolateId);
+    checkIsolate('invoke', isolateId);
     final remote = await inspector.invoke(targetId, selector, argumentIds);
     return _instanceRef(remote);
   }
@@ -968,50 +934,8 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     required bool internalPause,
   }) async {
     await isInitialized;
-    _checkIsolate('pause', isolateId);
+    checkIsolate('pause', isolateId);
     return (await debuggerFuture).pause(internalPause: internalPause);
-  }
-
-  // Note: Ignore the optional local parameter, when it is set to `true` the
-  // request is intercepted and handled by DDS.
-  @override
-  Future<UriList> lookupResolvedPackageUris(
-    String isolateId,
-    List<String> uris, {
-    bool? local,
-  }) => wrapInErrorHandlerAsync(
-    'lookupResolvedPackageUris',
-    () => _lookupResolvedPackageUris(isolateId, uris),
-  );
-
-  Future<UriList> _lookupResolvedPackageUris(
-    String isolateId,
-    List<String> uris,
-  ) async {
-    await isInitialized;
-    _checkIsolate('lookupResolvedPackageUris', isolateId);
-    return UriList(uris: uris.map(DartUri.toResolvedUri).toList());
-  }
-
-  @override
-  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) =>
-      wrapInErrorHandlerAsync(
-        'lookupPackageUris',
-        () => _lookupPackageUris(isolateId, uris),
-      );
-
-  Future<UriList> _lookupPackageUris(
-    String isolateId,
-    List<String> uris,
-  ) async {
-    await isInitialized;
-    _checkIsolate('lookupPackageUris', isolateId);
-    return UriList(uris: uris.map(DartUri.toPackageUri).toList());
-  }
-
-  @override
-  Future<Success> registerService(String service, String alias) {
-    return rpcNotSupportedFuture('registerService');
   }
 
   @override
@@ -1023,7 +947,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     String? packagesUri,
   }) async {
     await isInitialized;
-    _checkIsolate('reloadSources', isolateId);
+    checkIsolate('reloadSources', isolateId);
 
     ReloadReport getFailedReloadReport(String error) =>
         _ReloadReportWithMetadata(success: false)
@@ -1141,7 +1065,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     String breakpointId,
   ) async {
     await isInitialized;
-    _checkIsolate('removeBreakpoint', isolateId);
+    checkIsolate('removeBreakpoint', isolateId);
     return (await debuggerFuture).removeBreakpoint(breakpointId);
   }
 
@@ -1168,7 +1092,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
       await captureElapsedTime(() async {
         await isInitialized;
         await isStarted;
-        _checkIsolate('resume', isolateId);
+        checkIsolate('resume', isolateId);
         final debugger = await debuggerFuture;
         return await debugger.resume(step: step, frameIndex: frameIndex);
       }, (result) => DwdsEvent.resume(step));
@@ -1213,74 +1137,10 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     String? exceptionPauseMode,
   }) async {
     await isInitialized;
-    _checkIsolate('setIsolatePauseMode', isolateId);
+    checkIsolate('setIsolatePauseMode', isolateId);
     return (await debuggerFuture).setExceptionPauseMode(
       exceptionPauseMode ?? ExceptionPauseMode.kNone,
     );
-  }
-
-  @override
-  Future<Success> setFlag(String name, String value) =>
-      wrapInErrorHandlerAsync('setFlag', () => _setFlag(name, value));
-
-  Future<Success> _setFlag(String name, String value) async {
-    if (!currentVmServiceFlags.containsKey(name)) {
-      return rpcNotSupportedFuture('setFlag');
-    }
-
-    assert(value == 'true' || value == 'false');
-    currentVmServiceFlags[name] = value == 'true';
-
-    return Success();
-  }
-
-  @override
-  Future<Success> setLibraryDebuggable(
-    String isolateId,
-    String libraryId,
-    bool isDebuggable,
-  ) {
-    return rpcNotSupportedFuture('setLibraryDebuggable');
-  }
-
-  @override
-  Future<Success> setName(String isolateId, String name) =>
-      wrapInErrorHandlerAsync('setName', () => _setName(isolateId, name));
-
-  Future<Success> _setName(String isolateId, String name) async {
-    await isInitialized;
-    _checkIsolate('setName', isolateId);
-    inspector.isolate.name = name;
-    return Success();
-  }
-
-  @override
-  Future<Success> setVMName(String name) =>
-      wrapInErrorHandlerAsync('setVMName', () => _setVMName(name));
-
-  Future<Success> _setVMName(String name) async {
-    vm.name = name;
-    streamNotify(
-      'VM',
-      Event(
-        kind: EventKind.kVMUpdate,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        // We are not guaranteed to have an isolate at this point in time.
-        isolate: null,
-      )..vm = toVMRef(vm),
-    );
-    return Success();
-  }
-
-  @override
-  Future<Success> streamListen(String streamId) =>
-      wrapInErrorHandlerAsync('streamListen', () => _streamListen(streamId));
-
-  Future<Success> _streamListen(String streamId) async {
-    // TODO: This should return an error if the stream is already being listened
-    // to.
-    onEvent(streamId);
-    return Success();
   }
 
   /// Returns a streamController that listens for console logs from chrome and
@@ -1345,35 +1205,12 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     return controller;
   }
 
-  /// Parses the [BatchedDebugEvents] and emits corresponding Dart VM Service
-  /// protocol [Event]s.
-  @override
-  void parseBatchedDebugEvents(BatchedDebugEvents debugEvents) {
-    for (final debugEvent in debugEvents.events) {
-      parseDebugEvent(debugEvent);
-    }
-  }
-
   /// Parses the [DebugEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
   @override
   void parseDebugEvent(DebugEvent debugEvent) {
     if (terminatingIsolates) return;
-    if (!isIsolateRunning) return;
-    final isolateRef = inspector.isolateRef;
-
-    streamNotify(
-      EventStreams.kExtension,
-      Event(
-          kind: EventKind.kExtension,
-          timestamp: DateTime.now().millisecondsSinceEpoch,
-          isolate: isolateRef,
-        )
-        ..extensionKind = debugEvent.kind
-        ..extensionData = ExtensionData.parse(
-          jsonDecode(debugEvent.eventData) as Map<String, dynamic>,
-        ),
-    );
+    super.parseDebugEvent(debugEvent);
   }
 
   /// Parses the [RegisterEvent] and emits a corresponding Dart VM Service
@@ -1381,21 +1218,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   @override
   void parseRegisterEvent(RegisterEvent registerEvent) {
     if (terminatingIsolates) return;
-    if (!isIsolateRunning) return;
-
-    final isolate = inspector.isolate;
-    final isolateRef = inspector.isolateRef;
-    final service = registerEvent.eventData;
-    isolate.extensionRPCs?.add(service);
-
-    streamNotify(
-      EventStreams.kIsolate,
-      Event(
-        kind: EventKind.kServiceExtensionAdded,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isolate: isolateRef,
-      )..extensionRPC = service,
-    );
+    super.parseRegisterEvent(registerEvent);
   }
 
   /// Listens for chrome console events and handles the ones we care about.
@@ -1518,31 +1341,6 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   Future<InstanceRef> _instanceRef(RemoteObject? obj) async {
     final instance = obj == null ? null : await inspector.instanceRefFor(obj);
     return instance ?? ChromeAppInstanceHelper.kNullInstanceRef;
-  }
-
-  /// Validate that isolateId matches the current isolate we're connected to and
-  /// return that isolate.
-  ///
-  /// This is useful to call at the beginning of API methods that are passed an
-  /// isolate id.
-  Isolate _checkIsolate(String methodName, String? isolateId) {
-    final currentIsolateId = inspector.isolate.id;
-    if (currentIsolateId == null) {
-      throw StateError('No running isolate ID');
-    }
-    if (isolateId != currentIsolateId) {
-      _throwSentinel(
-        methodName,
-        SentinelKind.kCollected,
-        'Unrecognized isolateId: $isolateId',
-      );
-    }
-    return inspector.isolate;
-  }
-
-  static Never _throwSentinel(String method, String kind, String message) {
-    final data = <String, String>{'kind': kind, 'valueAsString': message};
-    throw SentinelException.parse(method, data);
   }
 }
 

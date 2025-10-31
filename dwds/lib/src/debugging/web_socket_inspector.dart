@@ -38,6 +38,7 @@ class WebSocketAppInspector extends AppInspector {
       breakpoints: [],
       isSystemIsolate: false,
       isolateFlags: [],
+      extensionRPCs: [],
     );
     final inspector = WebSocketAppInspector._(
       appConnection,
