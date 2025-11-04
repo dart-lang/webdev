@@ -95,6 +95,8 @@ abstract class DebugService<T extends ProxyService> {
   @protected
   @mustCallSuper
   @mustBeOverridden
+  // False positive
+  // ignore: avoid-redundant-async
   Future<void> initialize({required T proxyService}) async {
     this.proxyService = proxyService;
   }
