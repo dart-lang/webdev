@@ -5,19 +5,16 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/hot_reload_request.dart';
 import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/hot_restart_request.dart';
 import 'package:dwds/data/hot_restart_response.dart';
-import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/service_extension_request.dart';
 import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/web_socket_inspector.dart';
-import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/proxy_service.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/services/web_socket/web_socket_debug_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart' as vm_service;
@@ -132,12 +129,11 @@ class NoClientsAvailableException implements Exception {
 }
 
 /// WebSocket-based VM service proxy for web debugging.
-class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
+final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
   final _logger = Logger('WebSocketProxyService');
 
   /// Active service extension trackers by request ID.
-  final Map<String, _ServiceExtensionTracker> _pendingServiceExtensionTrackers =
-      {};
+  final _pendingServiceExtensionTrackers = <String, _ServiceExtensionTracker>{};
 
   /// Sends messages to the client.
   final SendClientRequest sendClientRequest;
@@ -146,24 +142,55 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
   AppConnection appConnection;
 
   /// Active hot reload trackers by request ID.
-  final Map<String, _HotReloadTracker> _pendingHotReloads = {};
+  final _pendingHotReloads = <String, _HotReloadTracker>{};
 
   /// Active hot restart trackers by request ID.
-  final Map<String, _HotRestartTracker> _pendingHotRestarts = {};
+  final _pendingHotRestarts = <String, _HotRestartTracker>{};
 
   /// App connection cleanup subscriptions by connection instance ID.
-  final Map<String, StreamSubscription<void>> _appConnectionDoneSubscriptions =
-      {};
+  final _appConnectionDoneSubscriptions = <String, StreamSubscription<void>>{};
 
   /// Active connection count for this service.
   int _activeConnectionCount = 0;
 
-  WebSocketProxyService._(
-    this.sendClientRequest,
-    vm_service.VM vm,
+  WebSocketProxyService._({
+    required this.sendClientRequest,
+    required super.vm,
+    required super.root,
+    required super.debugService,
+    required this.appConnection,
+  });
+
+  static Future<WebSocketProxyService> create(
+    SendClientRequest sendClientRequest,
+    AppConnection appConnection,
     String root,
-    this.appConnection,
-  ) : super(vm, root);
+    WebSocketDebugService debugService,
+  ) async {
+    final vm = vm_service.VM(
+      name: 'WebSocketDebugProxy',
+      operatingSystem: 'web',
+      startTime: DateTime.now().millisecondsSinceEpoch,
+      version: 'unknown',
+      isolates: [],
+      isolateGroups: [],
+      systemIsolates: [],
+      systemIsolateGroups: [],
+      targetCPU: 'Web',
+      hostCPU: 'DWDS',
+      architectureBits: -1,
+      pid: -1,
+    );
+    final service = WebSocketProxyService._(
+      sendClientRequest: sendClientRequest,
+      vm: vm,
+      root: root,
+      debugService: debugService,
+      appConnection: appConnection,
+    );
+    safeUnawaited(service.createIsolate(appConnection));
+    return service;
+  }
 
   // Isolate state
   vm_service.Event? _currentPauseEvent;
@@ -225,7 +252,7 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
     );
 
     // Send lifecycle events
-    _streamNotify(
+    streamNotify(
       vm_service.EventStreams.kIsolate,
       vm_service.Event(
         kind: vm_service.EventKind.kIsolateStart,
@@ -233,7 +260,7 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
         isolate: isolateRef,
       ),
     );
-    _streamNotify(
+    streamNotify(
       vm_service.EventStreams.kIsolate,
       vm_service.Event(
         kind: vm_service.EventKind.kIsolateRunnable,
@@ -250,7 +277,7 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
         isolate: isolateRef,
       );
       _currentPauseEvent = pauseEvent;
-      _streamNotify(vm_service.EventStreams.kDebug, pauseEvent);
+      streamNotify(vm_service.EventStreams.kDebug, pauseEvent);
     }
 
     // Complete initialization after isolate is set up
@@ -343,7 +370,7 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
 
     final isolateRef = inspector.isolateRef;
     // Send exit event
-    _streamNotify(
+    streamNotify(
       vm_service.EventStreams.kIsolate,
       vm_service.Event(
         kind: vm_service.EventKind.kIsolateExit,
@@ -364,22 +391,6 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
     }
   }
 
-  /// Sends events to stream controllers.
-  void _streamNotify(String streamId, vm_service.Event event) {
-    final controller = streamControllers[streamId];
-    if (controller == null) return;
-    controller.add(event);
-  }
-
-  @override
-  Future<Success> setLibraryDebuggable(
-    String isolateId,
-    String libraryId,
-    bool isDebuggable,
-  ) {
-    return rpcNotSupportedFuture('setLibraryDebuggable');
-  }
-
   @override
   Future<Success> setIsolatePauseMode(
     String isolateId, {
@@ -388,104 +399,6 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
   }) async {
     // Not supported in WebSocket mode - return success for compatibility
     return Success();
-  }
-
-  @override
-  Future<vm_service.Isolate> getIsolate(String isolateId) =>
-      wrapInErrorHandlerAsync('getIsolate', () => _getIsolate(isolateId));
-
-  Future<vm_service.Isolate> _getIsolate(String isolateId) async {
-    final isolate = inspector.isolate;
-    if (!isIsolateRunning) {
-      throw vm_service.RPCError(
-        'getIsolate',
-        vm_service.RPCErrorKind.kInvalidParams.code,
-        'No running isolate found for id: $isolateId',
-      );
-    }
-    if (isolate.id != isolateId) {
-      throw vm_service.RPCError(
-        'getIsolate',
-        vm_service.RPCErrorKind.kInvalidParams.code,
-        'Isolate with id $isolateId not found.',
-      );
-    }
-
-    return isolate;
-  }
-
-  @override
-  Future<ScriptList> getScripts(String isolateId) => inspector.getScripts();
-
-  /// Adds events to stream controllers.
-  void addEvent(String streamId, vm_service.Event event) {
-    final controller = streamControllers[streamId];
-    if (controller != null && !controller.isClosed) {
-      controller.add(event);
-    } else {
-      _logger.warning('Cannot add event to closed/missing stream: $streamId');
-    }
-  }
-
-  static Future<WebSocketProxyService> create(
-    SendClientRequest sendClientRequest,
-    AppConnection appConnection,
-    String root,
-  ) async {
-    final vm = vm_service.VM(
-      name: 'WebSocketDebugProxy',
-      operatingSystem: 'web',
-      startTime: DateTime.now().millisecondsSinceEpoch,
-      version: 'unknown',
-      isolates: [],
-      isolateGroups: [],
-      systemIsolates: [],
-      systemIsolateGroups: [],
-      targetCPU: 'Web',
-      hostCPU: 'DWDS',
-      architectureBits: -1,
-      pid: -1,
-    );
-    final service = WebSocketProxyService._(
-      sendClientRequest,
-      vm,
-      root,
-      appConnection,
-    );
-    safeUnawaited(service.createIsolate(appConnection));
-    return service;
-  }
-
-  /// Returns the root VM object.
-  @override
-  Future<vm_service.VM> getVM() => wrapInErrorHandlerAsync('getVM', _getVM);
-
-  Future<vm_service.VM> _getVM() {
-    return captureElapsedTime(() async {
-      // Ensure the VM's isolate list is synchronized with our actual state
-      if (isIsolateRunning) {
-        final isolateRef = inspector.isolateRef;
-        // Make sure our isolate is in the VM's isolate list
-        final isolateExists =
-            vm.isolates?.any((ref) => ref.id == isolateRef.id) ?? false;
-        if (!isolateExists) {
-          vm.isolates?.add(isolateRef);
-        }
-      } else {
-        // If no isolate is running, make sure the list is empty
-        vm.isolates?.clear();
-      }
-
-      return vm;
-    }, (result) => DwdsEvent.getVM());
-  }
-
-  /// Not available in WebSocket mode.
-  dynamic get remoteDebugger {
-    throw UnsupportedError(
-      'remoteDebugger not available in WebSocketProxyService.\n'
-      'Called from:\n${StackTrace.current}',
-    );
   }
 
   @override
@@ -516,7 +429,7 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
   }
 
   /// Handles hot restart requests.
-  Future<Map<String, dynamic>> hotRestart() async {
+  Future<Map<String, Object?>> hotRestart() async {
     _logger.info('Attempting a hot restart');
 
     try {
@@ -853,60 +766,6 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
     }
   }
 
-  /// Parses the [RegisterEvent] and emits a corresponding Dart VM Service
-  /// protocol [Event].
-  @override
-  void parseRegisterEvent(RegisterEvent registerEvent) {
-    if (!isIsolateRunning) {
-      _logger.warning('Cannot register service extension - no isolate running');
-      return;
-    }
-
-    final service = registerEvent.eventData;
-
-    // Emit ServiceExtensionAdded event for tooling
-    final event = vm_service.Event(
-      kind: vm_service.EventKind.kServiceExtensionAdded,
-      timestamp: DateTime.now().millisecondsSinceEpoch,
-      isolate: inspector.isolateRef,
-    );
-    event.extensionRPC = service;
-
-    _streamNotify(vm_service.EventStreams.kIsolate, event);
-  }
-
-  /// Parses the [BatchedDebugEvents] and emits corresponding Dart VM Service
-  /// protocol [Event]s.
-  @override
-  void parseBatchedDebugEvents(BatchedDebugEvents debugEvents) {
-    for (final debugEvent in debugEvents.events) {
-      parseDebugEvent(debugEvent);
-    }
-  }
-
-  /// Parses the [DebugEvent] and emits a corresponding Dart VM Service
-  /// protocol [Event].
-  @override
-  void parseDebugEvent(DebugEvent debugEvent) {
-    if (!isIsolateRunning) {
-      _logger.warning('Cannot parse debug event - no isolate running');
-      return;
-    }
-
-    _streamNotify(
-      vm_service.EventStreams.kExtension,
-      vm_service.Event(
-          kind: vm_service.EventKind.kExtension,
-          timestamp: DateTime.now().millisecondsSinceEpoch,
-          isolate: inspector.isolateRef,
-        )
-        ..extensionKind = debugEvent.kind
-        ..extensionData = vm_service.ExtensionData.parse(
-          jsonDecode(debugEvent.eventData) as Map<String, dynamic>,
-        ),
-    );
-  }
-
   @override
   Future<Success> setFlag(String name, String value) =>
       wrapInErrorHandlerAsync('setFlag', () => _setFlag(name, value));
@@ -932,29 +791,11 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
           isolate: inspector.isolateRef,
         );
         _currentPauseEvent = pauseEvent;
-        _streamNotify(vm_service.EventStreams.kDebug, pauseEvent);
+        streamNotify(vm_service.EventStreams.kDebug, pauseEvent);
       }
     }
 
     return Success();
-  }
-
-  @override
-  Future<UriList> lookupResolvedPackageUris(
-    String isolateId,
-    List<String> uris, {
-    bool? local,
-  }) => wrapInErrorHandlerAsync(
-    'lookupResolvedPackageUris',
-    () => _lookupResolvedPackageUris(isolateId, uris),
-  );
-
-  Future<UriList> _lookupResolvedPackageUris(
-    String _,
-    List<String> uris,
-  ) async {
-    await isInitialized;
-    return UriList(uris: uris.map(DartUri.toResolvedUri).toList());
   }
 
   /// Pauses execution of the isolate.
@@ -994,27 +835,10 @@ class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
         timestamp: DateTime.now().millisecondsSinceEpoch,
         isolate: inspector.isolateRef,
       );
-      _streamNotify(vm_service.EventStreams.kDebug, resumeEvent);
+      streamNotify(vm_service.EventStreams.kDebug, resumeEvent);
     }
 
     return Success();
-  }
-
-  @override
-  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) =>
-      wrapInErrorHandlerAsync(
-        'lookupPackageUris',
-        () => _lookupPackageUris(isolateId, uris),
-      );
-
-  Future<UriList> _lookupPackageUris(String _, List<String> uris) async {
-    await isInitialized;
-    return UriList(uris: uris.map(DartUri.toPackageUri).toList());
-  }
-
-  @override
-  Future<Success> registerService(String service, String alias) {
-    return rpcNotSupportedFuture('registerService');
   }
 
   @override

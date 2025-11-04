@@ -1,6 +1,10 @@
+## 26.2.1-wip
+
+- Add support for DDS APIs and serving Dart DevTools when no Chrome Debugger is available.
+
 ## 26.2.0
 
-- Add support for more service APIs over websocket connections with no Chrome Debugger available.
+- Add support for more service APIs over websocket connections when no Chrome Debugger is available.
 
 ## 26.1.0
 
