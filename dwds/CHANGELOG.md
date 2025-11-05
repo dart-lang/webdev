@@ -1,4 +1,4 @@
-## 26.2.1-wip
+## 26.2.1
 
 - Add support for DDS APIs and serving Dart DevTools when no Chrome Debugger is available.
 
