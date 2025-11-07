@@ -20,6 +20,8 @@ class AppConnection {
   final SocketConnection _connection;
   final Future<void> _readyToRunMain;
 
+  bool get hasStarted => _startedCompleter.isCompleted;
+
   AppConnection(this.request, this._connection, this._readyToRunMain) {
     safeUnawaited(_connection.sink.done.then((v) => _doneCompleter.complete()));
   }

@@ -192,10 +192,6 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
     return service;
   }
 
-  // Isolate state
-  vm_service.Event? _currentPauseEvent;
-  bool _mainHasStarted = false;
-
   /// Creates a new isolate for WebSocket debugging.
   @override
   Future<void> createIsolate(
@@ -276,7 +272,7 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
         timestamp: timestamp,
         isolate: isolateRef,
       );
-      _currentPauseEvent = pauseEvent;
+      inspector.isolate.pauseEvent = pauseEvent;
       streamNotify(vm_service.EventStreams.kDebug, pauseEvent);
     }
 
@@ -383,8 +379,6 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
 
     // Reset state
     inspector = null;
-    _currentPauseEvent = null;
-    _mainHasStarted = false;
 
     if (initializedCompleter.isCompleted) {
       initializedCompleter = Completer<void>();
@@ -784,13 +778,13 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
         value == 'true' &&
         oldValue == false) {
       // Send pause event for existing isolate if not already paused
-      if (isIsolateRunning && _currentPauseEvent == null) {
+      if (isIsolateRunning && inspector.isolate.pauseEvent == null) {
         final pauseEvent = vm_service.Event(
           kind: vm_service.EventKind.kPauseStart,
           timestamp: DateTime.now().millisecondsSinceEpoch,
           isolate: inspector.isolateRef,
         );
-        _currentPauseEvent = pauseEvent;
+        inspector.isolate.pauseEvent = pauseEvent;
         streamNotify(vm_service.EventStreams.kDebug, pauseEvent);
       }
     }
@@ -812,24 +806,13 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
   Future<Success> _resume(String isolateId) async {
     if (hasPendingRestart && !resumeAfterRestartEventsController.isClosed) {
       resumeAfterRestartEventsController.add(isolateId);
-    } else {
-      if (!_mainHasStarted) {
-        try {
-          appConnection.runMain();
-          _mainHasStarted = true;
-        } catch (e) {
-          if (e.toString().contains('Main has already started')) {
-            _mainHasStarted = true;
-          } else {
-            rethrow;
-          }
-        }
-      }
+    } else if (!appConnection.hasStarted) {
+      appConnection.runMain();
     }
 
     // Clear pause state and send resume event to notify debugging tools
-    if (_currentPauseEvent != null) {
-      _currentPauseEvent = null;
+    if (inspector.isolate.pauseEvent != null) {
+      inspector.isolate.pauseEvent = null;
       final resumeEvent = vm_service.Event(
         kind: vm_service.EventKind.kResume,
         timestamp: DateTime.now().millisecondsSinceEpoch,
