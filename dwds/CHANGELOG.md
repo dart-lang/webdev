@@ -1,3 +1,7 @@
+## 26.2.2
+
+- Fix issue where isolate pause events were not reported correctly when using the web socket proxy service.
+
 ## 26.2.1
 
 - Add support for DDS APIs and serving Dart DevTools when no Chrome Debugger is available.
