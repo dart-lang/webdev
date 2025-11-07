@@ -39,6 +39,7 @@ linter:
     - unnecessary_lambdas
     - unnecessary_parenthesis
     - unnecessary_statements
+    - use_null_aware_elements
 
 # TODO(https://github.com/dart-lang/webdev/issues/2053): Enable commented-out rules with fixes.
 dart_code_metrics:
