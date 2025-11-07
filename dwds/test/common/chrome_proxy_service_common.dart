@@ -12,7 +12,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:http/http.dart' as http;

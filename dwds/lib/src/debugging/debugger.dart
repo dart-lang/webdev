@@ -12,7 +12,7 @@ import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
-import 'package:dwds/src/services/chrome_debug_exception.dart';
+import 'package:dwds/src/services/chrome/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/objects.dart' show Property;
