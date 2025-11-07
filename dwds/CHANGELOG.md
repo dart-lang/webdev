@@ -1,6 +1,10 @@
-## 26.2.2-wip
+## 26.2.3-wip
 
 - Update `package:built_value` dependency constraint to `^8.11.2`.
+
+## 26.2.2
+
+- Fix issue where isolate pause events were not reported correctly when using the web socket proxy service.
 
 ## 26.2.1
 
