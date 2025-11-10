@@ -1,6 +1,6 @@
 ## 26.2.3-wip
 
-- Bump `build_web_compilers` to ^4.4.1.
+- Update `package:built_value` dependency constraint to `^8.11.2`.
 
 ## 26.2.2
 
