@@ -8,11 +8,11 @@ To use `webdev` with a package, make sure you have entries in `pubspec.yaml`
 similar to:
 
 ```yaml
-...
+
+---
 dev_dependencies:
   build_runner: ^2.4.0
-  build_web_compilers: ^4.0.4
-...
+  build_web_compilers: ^4.4.1
 ```
 
 ## Installation

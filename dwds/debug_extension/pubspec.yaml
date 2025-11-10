@@ -16,7 +16,7 @@ dev_dependencies:
   args: ^2.5.0
   build: ^2.4.1
   build_runner: ^2.4.12
-  build_web_compilers: ^4.0.11
+  build_web_compilers: ^4.4.1
   built_collection: ^5.1.1
   built_value_generator: ^8.9.2
   dwds: ^24.1.0

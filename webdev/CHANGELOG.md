@@ -1,6 +1,7 @@
 ## 3.8.0-wip
 
 - Bump minimum SDK constraint to 3.10.0
+- Bump `build_web_compilers` to ^4.4.1.
 
 ## 3.7.2
 

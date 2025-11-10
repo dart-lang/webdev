@@ -1,3 +1,7 @@
+## 26.2.3-wip
+
+- Bump `build_web_compilers` to ^4.4.1.
+
 ## 26.2.2
 
 - Fix issue where isolate pause events were not reported correctly when using the web socket proxy service.
