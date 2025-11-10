@@ -532,7 +532,6 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
       throw RPCError(
         method,
         decodedResponse['code'] as int,
-        // ignore: avoid-unnecessary-type-casts
         decodedResponse['message'] as String,
         decodedResponse['data'] as Map,
       );
