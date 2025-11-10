@@ -5,20 +5,21 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/data/hot_reload_request.dart';
-import 'package:dwds/data/hot_reload_response.dart';
-import 'package:dwds/data/hot_restart_request.dart';
-import 'package:dwds/data/hot_restart_response.dart';
-import 'package:dwds/data/service_extension_request.dart';
-import 'package:dwds/data/service_extension_response.dart';
-import 'package:dwds/src/connections/app_connection.dart';
-import 'package:dwds/src/debugging/web_socket_inspector.dart';
-import 'package:dwds/src/services/proxy_service.dart';
-import 'package:dwds/src/services/web_socket/web_socket_debug_service.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart' as vm_service;
 import 'package:vm_service/vm_service.dart';
+
+import '../../../data/hot_reload_request.dart';
+import '../../../data/hot_reload_response.dart';
+import '../../../data/hot_restart_request.dart';
+import '../../../data/hot_restart_response.dart';
+import '../../../data/service_extension_request.dart';
+import '../../../data/service_extension_response.dart';
+import '../../connections/app_connection.dart';
+import '../../debugging/web_socket_inspector.dart';
+import '../../utilities/shared.dart';
+import '../proxy_service.dart';
+import 'web_socket_debug_service.dart';
 
 /// Defines callbacks for sending messages to the connected client.
 /// Returns the number of clients the request was successfully sent to.
@@ -879,7 +880,7 @@ class _ReloadReportWithMetadata extends vm_service.ReloadReport {
   _ReloadReportWithMetadata({super.success, this.notices});
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     final jsonified = <String, Object?>{
       'type': 'ReloadReport',
       'success': success ?? false,

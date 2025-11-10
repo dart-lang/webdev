@@ -30,7 +30,7 @@ abstract class RemoteDebugger {
 
   Future<WipResponse> sendCommand(
     String command, {
-    Map<String, dynamic>? params,
+    Map<String, Object?>? params,
   });
 
   Future<void> disable();
@@ -47,11 +47,11 @@ abstract class RemoteDebugger {
 
   Future<WipResponse> removeBreakpoint(String breakpointId);
 
-  Future<WipResponse> stepInto({Map<String, dynamic>? params});
+  Future<WipResponse> stepInto({Map<String, Object?>? params});
 
   Future<WipResponse> stepOut();
 
-  Future<WipResponse> stepOver({Map<String, dynamic>? params});
+  Future<WipResponse> stepOver({Map<String, Object?>? params});
 
   Future<WipResponse> enablePage();
 

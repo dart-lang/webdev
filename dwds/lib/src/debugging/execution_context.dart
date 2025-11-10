@@ -5,8 +5,9 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:logging/logging.dart';
+
+import 'remote_debugger.dart';
 
 abstract class ExecutionContext {
   /// Returns the context ID that contains the running Dart application,
@@ -52,7 +53,8 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
             'contextId': context,
           },
         );
-        if (result.result?['result']?['value'] != null) {
+        if ((result.result?['result'] as Map<String, Object?>?)?['value'] !=
+            null) {
           _logger.fine('Found dart execution context: $context');
           return context;
         }
@@ -90,7 +92,8 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
           // If we cannot detect or parse the context ID, add `null` to the stream
           // to indicate an error context - those will be skipped when trying to find
           // the dart context, with a warning.
-          final id = e.params?['context']?['id']?.toString();
+          final id = (e.params?['context'] as Map<String, Object?>?)?['id']
+              ?.toString();
           final parsedId = id == null ? null : int.parse(id);
           if (id == null) {
             _logger.warning('Cannot find execution context id: $e');

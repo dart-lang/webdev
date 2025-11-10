@@ -96,12 +96,12 @@ void sendErrorMessageToCider({
 
 void _sendMessageToCider(String json) {
   final message = {'key': _ciderDartMessageKey, 'json': json};
-  _ciderPort!.postMessage(jsify(message));
+  _ciderPort!.postMessage(jsify(message) as Object);
 }
 
-Future<void> _handleMessageFromCider(dynamic message, Port _) async {
-  final key = getProperty(message, 'key');
-  final json = getProperty(message, 'json');
+Future<void> _handleMessageFromCider(Object? message, Port _) async {
+  final key = getProperty<String>(message!, 'key');
+  final json = getProperty<Object?>(message, 'json');
   if (key != _ciderDartMessageKey || json is! String) {
     sendErrorMessageToCider(
       errorType: CiderErrorType.invalidRequest,
@@ -110,7 +110,7 @@ Future<void> _handleMessageFromCider(dynamic message, Port _) async {
     return;
   }
 
-  final decoded = jsonDecode(json) as Map<String, dynamic>;
+  final decoded = jsonDecode(json) as Map<String, Object?>;
   final messageType = decoded['messageType'] as String?;
   final messageBody = decoded['messageBody'] as String?;
 

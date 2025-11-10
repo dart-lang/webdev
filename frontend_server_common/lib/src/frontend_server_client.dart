@@ -636,7 +636,7 @@ class ResidentCompiler {
   }
 
   /// stop the service normally
-  Future<dynamic> shutdown() async {
+  Future<Object?> shutdown() async {
     // Server was never successfully created.
     if (_server == null) {
       return 0;
@@ -645,7 +645,7 @@ class ResidentCompiler {
   }
 
   /// kill the service
-  Future<dynamic> kill() async {
+  Future<Object?> kill() async {
     if (_server == null) {
       return 0;
     }

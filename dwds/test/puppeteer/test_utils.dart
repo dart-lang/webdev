@@ -14,9 +14,9 @@ import '../fixtures/utilities.dart';
 
 enum ConsoleSource { background, devTools, worker }
 
-final _backgroundLogs = [];
-final _devToolsLogs = [];
-final _workerLogs = [];
+final _backgroundLogs = <String>[];
+final _devToolsLogs = <String>[];
+final _workerLogs = <String>[];
 
 Future<String> buildDebugExtension({required bool isMV3}) async {
   final extensionDir = absolutePath(pathFromDwds: 'debug_extension');
@@ -49,7 +49,7 @@ Future<Browser> setUpExtensionTest(
         ? TestDebugSettings.withDevToolsLaunch(
             context,
           ).copyWith(enableDebugExtension: true, useSse: useSse)
-        : TestDebugSettings.noDevToolsLaunch().copyWith(
+        : const TestDebugSettings.noDevToolsLaunch().copyWith(
             enableDebugExtension: true,
             useSse: useSse,
           ),
@@ -57,7 +57,7 @@ Future<Browser> setUpExtensionTest(
   return await puppeteer.launch(
     devTools: openChromeDevTools,
     headless: false,
-    timeout: Duration(seconds: 60),
+    timeout: const Duration(seconds: 60),
     args: [
       '--load-extension=$extensionPath',
       '--disable-extensions-except=$extensionPath',
@@ -160,8 +160,7 @@ Future<void> clickOnExtensionIcon({
 // Note: The following delay is required to reduce flakiness. It makes
 // sure the service worker execution context is ready.
 Future<void> workerEvalDelay() async {
-  await Future.delayed(Duration(seconds: 1));
-  return;
+  await Future<void>.delayed(const Duration(seconds: 1));
 }
 
 Future<Page> navigateToPage(

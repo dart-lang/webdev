@@ -191,10 +191,10 @@ class TestAssetServer implements AssetReader {
     );
     for (final filePath in manifest.keys) {
       final offsets = _castStringKeyedMap(manifest[filePath]);
-      final codeOffsets = (offsets['code'] as List<dynamic>).cast<int>();
-      final sourcemapOffsets = (offsets['sourcemap'] as List<dynamic>)
+      final codeOffsets = (offsets['code'] as List<Object?>).cast<int>();
+      final sourcemapOffsets = (offsets['sourcemap'] as List<Object?>)
           .cast<int>();
-      final metadataOffsets = (offsets['metadata'] as List<dynamic>)
+      final metadataOffsets = (offsets['metadata'] as List<Object?>)
           .cast<int>();
       if (codeOffsets.length != 2 ||
           sourcemapOffsets.length != 2 ||
@@ -354,9 +354,9 @@ class TestAssetServer implements AssetReader {
   }
 }
 
-/// Given a data structure which is a Map of String to dynamic values, return
-/// the same structure (`Map<String, dynamic>`) with the correct runtime types.
-Map<String, dynamic> _castStringKeyedMap(dynamic untyped) {
-  final map = untyped as Map<dynamic, dynamic>;
-  return map.cast<String, dynamic>();
+/// Given a data structure which is a Map of String to Object? values, return
+/// the same structure (`Map<String, Object?>`) with the correct runtime types.
+Map<String, Object?> _castStringKeyedMap(Object? untyped) {
+  final map = untyped as Map<Object?, Object?>;
+  return map.cast<String, Object?>();
 }

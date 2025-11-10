@@ -30,11 +30,16 @@ final _eventsForAngularDartDevTools = {
 };
 
 Future<void> handleMessagesFromAngularDartDevTools(
-  dynamic jsRequest,
+  Object? jsRequest,
   // ignore: avoid-unused-parameters
   MessageSender sender,
   Function sendResponse,
 ) async {
+  if (sendResponse is! void Function(Object)) {
+    throw StateError(
+      'Unexpected sendResponse signature: ${sendResponse.runtimeType}',
+    );
+  }
   if (jsRequest == null) return;
   final message = jsRequest as ExternalExtensionMessage;
   if (message.name == 'chrome.debugger.sendCommand') {
@@ -53,7 +58,7 @@ Future<void> handleMessagesFromAngularDartDevTools(
 
 void maybeForwardMessageToAngularDartDevTools({
   required String method,
-  required dynamic params,
+  required Object? params,
   required int tabId,
 }) {
   if (!_eventsForAngularDartDevTools.contains(method)) return;
@@ -67,7 +72,7 @@ void maybeForwardMessageToAngularDartDevTools({
 
 void _forwardCommandToChromeDebugger(
   ExternalExtensionMessage message,
-  Function sendResponse,
+  void Function(Object) sendResponse,
 ) {
   try {
     final options = message.options as SendCommandOptions;
@@ -76,7 +81,7 @@ void _forwardCommandToChromeDebugger(
       options.method,
       options.commandParams,
       allowInterop(
-        ([result]) => _respondWithChromeResult(result, sendResponse),
+        ([Object? result]) => _respondWithChromeResult(result, sendResponse),
       ),
     );
   } catch (e) {
@@ -84,7 +89,10 @@ void _forwardCommandToChromeDebugger(
   }
 }
 
-void _respondWithChromeResult(Object? chromeResult, Function sendResponse) {
+void _respondWithChromeResult(
+  Object? chromeResult,
+  void Function(Object) sendResponse,
+) {
   // No result indicates that an error occurred.
   if (chromeResult == null) {
     sendResponse(
@@ -96,7 +104,10 @@ void _respondWithChromeResult(Object? chromeResult, Function sendResponse) {
   }
 }
 
-Future<void> _respondWithEncodedUri(int tabId, Function sendResponse) async {
+Future<void> _respondWithEncodedUri(
+  int tabId,
+  void Function(Object) sendResponse,
+) async {
   final encodedUri = await fetchStorageObject<String>(
     type: StorageObject.encodedUri,
     tabId: tabId,
@@ -110,7 +121,7 @@ void _forwardMessageToAngularDartDevTools(ExternalExtensionMessage message) {
     message,
     // options
     null,
-    allowInterop(([result]) => _checkForErrors(result, message.name)),
+    allowInterop(([Object? result]) => _checkForErrors(result, message.name)),
   );
 }
 
@@ -124,7 +135,7 @@ void _checkForErrors(Object? chromeResult, String messageName) {
 
 ExternalExtensionMessage _debugEventMessage({
   required String method,
-  required dynamic params,
+  required Object? params,
   required int tabId,
 }) => ExternalExtensionMessage(
   name: 'chrome.debugger.event',
@@ -134,7 +145,7 @@ ExternalExtensionMessage _debugEventMessage({
 
 ExternalExtensionMessage _dwdsEventMessage({
   required String method,
-  required dynamic params,
+  required Object? params,
   required int tabId,
 }) => ExternalExtensionMessage(name: method, tabId: tabId, options: params);
 
@@ -145,11 +156,11 @@ ExternalExtensionMessage _dwdsEventMessage({
 class ExternalExtensionMessage {
   external int get tabId;
   external String get name;
-  external dynamic get options;
+  external Object? get options;
   external factory ExternalExtensionMessage({
     required int tabId,
     required String name,
-    required dynamic options,
+    required Object? options,
   });
 }
 

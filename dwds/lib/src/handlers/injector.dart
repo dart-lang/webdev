@@ -8,11 +8,12 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/loaders/ddc_library_bundle.dart';
-import 'package:dwds/src/version.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
+
+import '../config/tool_configuration.dart';
+import '../loaders/ddc_library_bundle.dart';
+import '../version.dart';
 
 /// File extension that build_web_compilers will place the
 /// [entrypointExtensionMarker] in.

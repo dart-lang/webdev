@@ -172,7 +172,7 @@ void _registerBuildTargets(
 /// Connects to the Build Daemon, creates servers, launches Chrome and wires up
 /// the DevTools.
 class DevWorkflow {
-  final _doneCompleter = Completer();
+  final _doneCompleter = Completer<void>();
   final BuildDaemonClient _client;
   final Chrome? _chrome;
 

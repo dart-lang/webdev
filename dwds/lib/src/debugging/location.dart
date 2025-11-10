@@ -3,15 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async/async.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/debugging/modules.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/parser.dart';
 import 'package:source_maps/source_maps.dart';
+
+import '../config/tool_configuration.dart';
+import '../readers/asset_reader.dart';
+import '../utilities/dart_uri.dart';
+import 'metadata/provider.dart';
+import 'modules.dart';
 
 var _startTokenId = 1337;
 

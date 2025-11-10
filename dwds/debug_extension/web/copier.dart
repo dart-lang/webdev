@@ -21,16 +21,20 @@ void main() {
 }
 
 void _registerListeners() {
-  chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
+  chrome.runtime.onMessage.addListener(
+    allowInterop<void Function(Object?, MessageSender, Function)>(
+      _handleRuntimeMessages,
+    ),
+  );
 }
 
 void _handleRuntimeMessages(
-  dynamic jsRequest,
+  Object? jsRequest,
   MessageSender sender,
   Function sendResponse,
 ) {
   interceptMessage<String>(
-    message: jsRequest,
+    message: jsRequest as String?,
     expectedType: MessageType.appId,
     expectedSender: Script.background,
     expectedRecipient: Script.copier,
@@ -38,7 +42,7 @@ void _handleRuntimeMessages(
     messageHandler: _copyAppId,
   );
 
-  sendResponse(defaultResponse);
+  (sendResponse as void Function(Object?))(defaultResponse);
 }
 
 void _copyAppId(String appId) {

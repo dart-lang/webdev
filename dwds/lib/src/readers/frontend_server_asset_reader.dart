@@ -5,10 +5,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
+
+import 'asset_reader.dart';
 
 /// A reader for Dart sources and related source maps provided by the Frontend
 /// Server.
@@ -110,13 +111,12 @@ class FrontendServerAssetReader implements AssetReader {
     }
     final sourceContents = map.readAsBytesSync();
     final sourceInfo =
-        jsonDecode(json.readAsStringSync()) as Map<String, dynamic>;
+        jsonDecode(json.readAsStringSync()) as Map<String, Object?>;
     for (final key in sourceInfo.keys) {
-      final info = sourceInfo[key];
+      final info = sourceInfo[key] as Map<String, Object?>;
+      final sourceMap = info['sourcemap'] as List<int>;
       _mapContents[key] = utf8.decode(
-        sourceContents
-            .getRange(info['sourcemap'][0] as int, info['sourcemap'][1] as int)
-            .toList(),
+        sourceContents.getRange(sourceMap[0], sourceMap[1]).toList(),
       );
     }
   }

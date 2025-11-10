@@ -16,7 +16,7 @@ abstract class SocketConnection {
   bool get isInKeepAlivePeriod;
 
   /// Messages added to the sink must be JSON encodable.
-  StreamSink<dynamic> get sink;
+  StreamSink<Object?> get sink;
 
   Stream<String> get stream;
 
@@ -41,7 +41,7 @@ class SseSocketConnection extends SocketConnection {
   @override
   bool get isInKeepAlivePeriod => _connection.isInKeepAlivePeriod;
   @override
-  StreamSink<dynamic> get sink => _connection.sink;
+  StreamSink<Object?> get sink => _connection.sink;
   @override
   Stream<String> get stream => _connection.stream;
   @override
@@ -86,10 +86,10 @@ class WebSocketConnection extends SocketConnection {
   bool get isInKeepAlivePeriod => false;
 
   @override
-  StreamSink<dynamic> get sink => _channel.sink;
+  StreamSink<Object?> get sink => _channel.sink;
 
   @override
-  Stream<String> get stream => _channel.stream.map((dynamic o) => o.toString());
+  Stream<String> get stream => _channel.stream.map((Object? o) => o.toString());
 
   @override
   void shutdown() => _channel.sink.close();

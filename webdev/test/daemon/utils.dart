@@ -24,8 +24,8 @@ Future<String> waitForAppId(TestProcess webdev) async {
     var line = await webdev.stdout.next;
     if (line.startsWith('[{"event":"app.started"')) {
       line = line.substring(1, line.length - 1);
-      final message = json.decode(line) as Map<String, dynamic>;
-      appId = message['params']['appId'] as String;
+      final message = json.decode(line) as Map<String, Object?>;
+      appId = (message['params']! as Map<String, Object?>)['appId'] as String;
       break;
     }
   }

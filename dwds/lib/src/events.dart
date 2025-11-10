@@ -58,7 +58,7 @@ class DwdsEventKind {
 
 class DwdsEvent {
   final String type;
-  final Map<String, dynamic> payload;
+  final Map<String, Object?> payload;
 
   DwdsEvent(this.type, this.payload);
 
@@ -128,7 +128,7 @@ class DwdsEvent {
         'exception': exception,
       });
 
-  void addException(dynamic exception) {
+  void addException(Object? exception) {
     payload['exception'] = exception;
   }
 

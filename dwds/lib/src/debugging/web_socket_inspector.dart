@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/connections/app_connection.dart';
-import 'package:dwds/src/debugging/inspector.dart';
-import 'package:dwds/src/debugging/libraries.dart';
-import 'package:dwds/src/services/web_socket/web_socket_proxy_service.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:vm_service/vm_service.dart';
+
+import '../connections/app_connection.dart';
+import '../services/web_socket/web_socket_proxy_service.dart';
+import '../utilities/shared.dart';
+import 'inspector.dart';
+import 'libraries.dart';
 
 /// Provides information about the currently loaded program.
 class WebSocketAppInspector extends AppInspector {

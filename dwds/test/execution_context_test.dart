@@ -142,9 +142,9 @@ class TestExtensionDebugger extends ExtensionDebugger {
   @override
   Future<WipResponse> sendCommand(
     String command, {
-    Map<String, dynamic>? params,
+    Map<String, Object?>? params,
   }) {
-    final id = params?['contextId'];
+    final id = params?['contextId'] as int?;
     final response = super.sendCommand(command, params: params);
 
     /// Mock stale contexts that cause the evaluation to throw.
@@ -187,7 +187,7 @@ class TestDebuggerConnection {
   /// Return the initial context ID from the DevToolsRequest.
   Future<TestContextId> defaultContextId() async {
     // Give the previous events time to propagate.
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     return TestContextId.from(await extensionDebugger.executionContext!.id);
   }
 
@@ -201,7 +201,7 @@ class TestDebuggerConnection {
     final executionContextId = extensionDebugger.executionContext!.id;
 
     // Give it time to send the evaluate request.
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
 
     // Respond to the evaluate request.
     _sendEvaluationResponse({
@@ -221,7 +221,7 @@ class TestDebuggerConnection {
     final executionContextId = extensionDebugger.executionContext!.id;
 
     // Give it time to send the evaluate request.
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
 
     // Respond to the evaluate request.
     _sendEvaluationResponse({
@@ -259,7 +259,7 @@ class TestDebuggerConnection {
     );
   }
 
-  void _sendEvaluationResponse(Map<String, dynamic> response) {
+  void _sendEvaluationResponse(Map<String, Object?> response) {
     // Respond to the evaluate request.
     final extensionResponse = ExtensionResponse(
       (b) => b
@@ -297,7 +297,7 @@ class TestDebuggerConnection {
 
   Future<ExecutionContext?> _waitForExecutionContext() async {
     while (extensionDebugger.executionContext == null) {
-      await Future.delayed(Duration(milliseconds: 20));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
     }
     return extensionDebugger.executionContext;
   }

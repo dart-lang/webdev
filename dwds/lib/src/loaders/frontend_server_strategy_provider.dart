@@ -2,14 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/loaders/ddc.dart';
-import 'package:dwds/src/loaders/ddc_library_bundle.dart';
-import 'package:dwds/src/loaders/require.dart';
-import 'package:dwds/src/loaders/strategy.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:path/path.dart' as p;
+
+import '../debugging/metadata/provider.dart';
+import '../readers/asset_reader.dart';
+import '../services/expression_compiler.dart';
+import 'ddc.dart';
+import 'ddc_library_bundle.dart';
+import 'require.dart';
+import 'strategy.dart';
 
 abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
   final ReloadConfiguration _configuration;

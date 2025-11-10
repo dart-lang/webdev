@@ -26,13 +26,13 @@ void main() {
   group('Basic configuration', () {
     test('Can validate default configuration layout', () async {
       final defaultConfiguration =
-          await DefaultSdkConfigurationProvider().configuration;
+          await const DefaultSdkConfigurationProvider().configuration;
       defaultConfiguration.validateSdkDir();
       defaultConfiguration.validateSummaries();
     });
 
     test('Cannot validate an empty configuration layout', () async {
-      final emptyConfiguration = SdkConfiguration.empty();
+      final emptyConfiguration = const SdkConfiguration.empty();
       expect(emptyConfiguration.validateSdkDir, _throwsDoesNotExistException);
       expect(emptyConfiguration.validate, _throwsDoesNotExistException);
     });
@@ -52,7 +52,7 @@ void main() {
 
     test('Can validate existing configuration layout', () async {
       final defaultSdkConfiguration =
-          await DefaultSdkConfigurationProvider().configuration;
+          await const DefaultSdkConfigurationProvider().configuration;
 
       final sdkDirectory = outputDir.path;
       final sdkLayout = FakeSdkLayout(sdkDirectory);

@@ -15,7 +15,7 @@ import 'util.dart';
 Future<BuildDaemonClient> connectClient(
   String workingDirectory,
   List<String> options,
-  Function(ServerLog) logHandler,
+  void Function(ServerLog) logHandler,
 ) => BuildDaemonClient.connect(workingDirectory, [
   dartPath,
   'run',

@@ -8,42 +8,43 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:dds/dds_launcher.dart';
-import 'package:dwds/data/build_result.dart';
-import 'package:dwds/data/connect_request.dart';
-import 'package:dwds/data/debug_event.dart';
-import 'package:dwds/data/devtools_request.dart';
-import 'package:dwds/data/error_response.dart';
-import 'package:dwds/data/hot_reload_response.dart';
-import 'package:dwds/data/hot_restart_response.dart';
-import 'package:dwds/data/isolate_events.dart';
-import 'package:dwds/data/register_event.dart';
-import 'package:dwds/data/serializers.dart';
-import 'package:dwds/data/service_extension_response.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/connections/app_connection.dart';
-import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/debugging/execution_context.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/debugging/webkit_debugger.dart';
-import 'package:dwds/src/dwds_vm_client.dart';
-import 'package:dwds/src/events.dart';
-import 'package:dwds/src/handlers/injector.dart';
-import 'package:dwds/src/handlers/socket_connections.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:dwds/src/servers/devtools.dart';
-import 'package:dwds/src/servers/extension_backend.dart';
-import 'package:dwds/src/servers/extension_debugger.dart';
-import 'package:dwds/src/services/app_debug_services.dart';
-import 'package:dwds/src/services/chrome/chrome_debug_service.dart';
-import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/services/web_socket/web_socket_debug_service.dart';
-import 'package:dwds/src/services/web_socket/web_socket_proxy_service.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import '../../data/build_result.dart';
+import '../../data/connect_request.dart';
+import '../../data/debug_event.dart';
+import '../../data/devtools_request.dart';
+import '../../data/error_response.dart';
+import '../../data/hot_reload_response.dart';
+import '../../data/hot_restart_response.dart';
+import '../../data/isolate_events.dart';
+import '../../data/register_event.dart';
+import '../../data/serializers.dart';
+import '../../data/service_extension_response.dart';
+import '../config/tool_configuration.dart';
+import '../connections/app_connection.dart';
+import '../connections/debug_connection.dart';
+import '../debugging/execution_context.dart';
+import '../debugging/remote_debugger.dart';
+import '../debugging/webkit_debugger.dart';
+import '../dwds_vm_client.dart';
+import '../events.dart';
+import '../readers/asset_reader.dart';
+import '../servers/devtools.dart';
+import '../servers/extension_backend.dart';
+import '../servers/extension_debugger.dart';
+import '../services/app_debug_services.dart';
+import '../services/chrome/chrome_debug_service.dart';
+import '../services/chrome/chrome_proxy_service.dart';
+import '../services/expression_compiler.dart';
+import '../services/web_socket/web_socket_debug_service.dart';
+import '../services/web_socket/web_socket_proxy_service.dart';
+import '../utilities/shared.dart';
+import 'injector.dart';
+import 'socket_connections.dart';
 
 /// When enabled, this logs VM service protocol and Chrome debug protocol
 /// traffic to disk.
@@ -202,7 +203,8 @@ class DevHandler {
           'expression': r'window["$dartAppInstanceId"];',
           'contextId': contextId,
         });
-        final evaluatedAppId = result.result?['result']?['value'];
+        final evaluatedAppId =
+            (result.result?['result'] as Map<String, Object?>?)?['value'];
         if (evaluatedAppId == appInstanceId) {
           appTab = tab;
           executionContext = RemoteDebuggerExecutionContext(

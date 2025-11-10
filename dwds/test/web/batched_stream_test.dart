@@ -35,7 +35,7 @@ void main() {
         final inputAdded = controller.sink.addStream(inputController.stream);
 
         batchOne.forEach(inputController.sink.add);
-        await Future.delayed(delay);
+        await Future<void>.delayed(delay);
         batchTwo.forEach(inputController.sink.add);
 
         await inputController.close();
@@ -63,7 +63,7 @@ void main() {
       final input = List<int>.generate(size, (index) => index);
       for (final e in input) {
         inputController.sink.add(e);
-        await Future.delayed(delay);
+        await Future<void>.delayed(delay);
       }
 
       await inputController.close();

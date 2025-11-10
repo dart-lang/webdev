@@ -101,9 +101,9 @@ class ReloadingManager {
   }
 
   /// Handles service extension requests by delegating to the appropriate restarter
-  Future<Map<String, dynamic>?> handleServiceExtension(
+  Future<Map<String, Object?>?> handleServiceExtension(
     String method,
-    Map<String, dynamic> args,
+    Map<String, Object?> args,
   ) async {
     final restarter = _restarter;
     if (restarter is DdcLibraryBundleRestarter) {

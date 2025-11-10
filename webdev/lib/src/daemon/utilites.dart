@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-dynamic toJsonable(dynamic obj) {
+Object? toJsonable(Object? obj) {
   if (obj is String ||
       obj is int ||
       obj is bool ||
-      obj is Map<dynamic, dynamic> ||
-      obj is List<dynamic> ||
+      obj is Map<Object?, Object?> ||
+      obj is List<Object?> ||
       obj == null) {
     return obj;
   }
@@ -15,7 +15,7 @@ dynamic toJsonable(dynamic obj) {
 }
 
 String? getStringArg(
-  Map<String, dynamic> args,
+  Map<String, Object?> args,
   String name, {
   bool required = false,
 }) {
@@ -30,7 +30,7 @@ String? getStringArg(
 }
 
 bool? getBoolArg(
-  Map<String, dynamic> args,
+  Map<String, Object?> args,
   String name, {
   bool required = false,
 }) {
@@ -43,7 +43,7 @@ bool? getBoolArg(
 }
 
 int? getIntArg(
-  Map<String, dynamic> args,
+  Map<String, Object?> args,
   String name, {
   bool required = false,
 }) {

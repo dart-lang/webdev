@@ -76,12 +76,12 @@ class LibraryMetadata {
 
   LibraryMetadata(this.name, this.importUri, this.partUris);
 
-  LibraryMetadata.fromJson(Map<String, dynamic> json)
+  LibraryMetadata.fromJson(Map<String, Object?> json)
     : name = _readRequiredField(json, 'name'),
       importUri = _readRequiredField(json, 'importUri'),
       partUris = _readOptionalList(json, 'partUris') ?? [];
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'name': name,
       'importUri': importUri,
@@ -147,7 +147,7 @@ class ModuleMetadata {
     }
   }
 
-  ModuleMetadata.fromJson(Map<String, dynamic> json)
+  ModuleMetadata.fromJson(Map<String, Object?> json)
     : version = _readRequiredField(json, 'version'),
       name = _readRequiredField(json, 'name'),
       closureName = _readRequiredField(json, 'closureName'),
@@ -163,12 +163,15 @@ class ModuleMetadata {
       );
     }
 
-    for (final l in _readRequiredList(json, 'libraries')) {
-      addLibrary(LibraryMetadata.fromJson(l as Map<String, dynamic>));
+    for (final l in _readRequiredList<Map<String, Object?>>(
+      json,
+      'libraries',
+    )) {
+      addLibrary(LibraryMetadata.fromJson(l));
     }
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'version': version,
       'name': name,
@@ -180,22 +183,22 @@ class ModuleMetadata {
   }
 }
 
-T _readRequiredField<T>(Map<String, dynamic> json, String field) {
+T _readRequiredField<T>(Map<String, Object?> json, String field) {
   if (!json.containsKey(field)) {
     throw FormatException('Required field $field is not set in $json');
   }
   return json[field]! as T;
 }
 
-T? _readOptionalField<T>(Map<String, dynamic> json, String field) =>
+T? _readOptionalField<T>(Map<String, Object?> json, String field) =>
     json[field] as T?;
 
-List<T> _readRequiredList<T>(Map<String, dynamic> json, String field) {
-  final list = _readRequiredField<List<dynamic>>(json, field);
-  return List.castFrom<dynamic, T>(list);
+List<T> _readRequiredList<T>(Map<String, Object?> json, String field) {
+  final list = _readRequiredField<List<Object?>>(json, field);
+  return List.castFrom<Object?, T>(list);
 }
 
-List<T>? _readOptionalList<T>(Map<String, dynamic> json, String field) {
-  final list = _readOptionalField<List<dynamic>>(json, field);
-  return list == null ? null : List.castFrom<dynamic, T>(list);
+List<T>? _readOptionalList<T>(Map<String, Object?> json, String field) {
+  final list = _readOptionalField<List<Object?>>(json, field);
+  return list == null ? null : List.castFrom<Object?, T>(list);
 }

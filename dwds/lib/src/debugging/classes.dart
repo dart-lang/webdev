@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/chrome_inspector.dart';
-import 'package:dwds/src/debugging/metadata/class.dart';
-import 'package:dwds/src/services/chrome/chrome_debug_exception.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import '../config/tool_configuration.dart';
+import '../services/chrome/chrome_debug_exception.dart';
+import '../utilities/shared.dart';
+import 'chrome_inspector.dart';
+import 'metadata/class.dart';
 
 /// Keeps track of Dart classes available in the running application.
 class ChromeAppClassHelper {
@@ -93,7 +94,9 @@ class ChromeAppClassHelper {
 
     final classDescriptor = _mapify(result.value);
     final methodRefs = <FuncRef>[];
-    final methodDescriptors = _mapify(classDescriptor['methods']);
+    final methodDescriptors = _mapify(
+      classDescriptor['methods'],
+    ).cast<String, Map<String, Object?>>();
     methodDescriptors.forEach((name, descriptor) {
       final methodId = 'methods|$classId|$name';
       methodRefs.add(
@@ -112,7 +115,9 @@ class ChromeAppClassHelper {
     });
     final fieldRefs = <FieldRef>[];
 
-    final fieldDescriptors = _mapify(classDescriptor['fields']);
+    final fieldDescriptors = _mapify(
+      classDescriptor['fields'],
+    ).cast<String, Map<String, Object?>>();
     fieldDescriptors.forEach((name, descriptor) {
       final classMetaData = ClassMetaData(
         runtimeKind: RuntimeObjectKind.type,
@@ -163,6 +168,6 @@ class ChromeAppClassHelper {
     );
   }
 
-  Map<String, dynamic> _mapify(dynamic map) =>
-      (map as Map<String, dynamic>?) ?? <String, dynamic>{};
+  Map<String, Object?> _mapify(Object? map) =>
+      (map as Map<String, Object?>?) ?? <String, Object?>{};
 }

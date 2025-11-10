@@ -5,10 +5,11 @@
 import 'dart:convert';
 
 import 'package:async/async.dart';
-import 'package:dwds/src/debugging/metadata/module_metadata.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+
+import '../../readers/asset_reader.dart';
+import 'module_metadata.dart';
 
 /// A provider of metadata in which data is collected through DDC outputs.
 class MetadataProvider {
@@ -22,7 +23,7 @@ class MetadataProvider {
   final Map<String, String> _moduleToModulePath = {};
   final Map<String, Set<String>> _moduleToLibraries = {};
   final Map<String, List<String>> _scripts = {};
-  final _metadataMemoizer = AsyncMemoizer();
+  final _metadataMemoizer = AsyncMemoizer<void>();
 
   /// Implicitly imported libraries in any DDC component.
   ///
@@ -183,7 +184,7 @@ class MetadataProvider {
             }
             final moduleJson = json.decode(contents);
             final metadata = ModuleMetadata.fromJson(
-              moduleJson as Map<String, dynamic>,
+              moduleJson as Map<String, Object?>,
             );
             final moduleName = metadata.name;
             modules[moduleName] = metadata;

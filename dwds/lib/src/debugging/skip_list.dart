@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/location.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
+import '../config/tool_configuration.dart';
+import '../utilities/dart_uri.dart';
+import 'location.dart';
+import 'metadata/provider.dart';
 
 const maxValue = 2147483647;
 
 class SkipLists {
   // Map of script ID to scriptList.
-  final _idToList = <String, List<Map<String, dynamic>>>{};
+  final _idToList = <String, List<Map<String, Object?>>>{};
   // Map of url to script ID.
   final _urlToId = <String, String>{};
   final String _root;
@@ -49,7 +49,7 @@ class SkipLists {
   /// https://chromedevtools.github.io/devtools-protocol/tot/Debugger/#method-stepInto
   ///
   /// Can return a cached value.
-  List<Map<String, dynamic>> compute(
+  List<Map<String, Object?>> compute(
     String scriptId,
     String url,
     Set<Location> locations,
@@ -59,7 +59,7 @@ class SkipLists {
     final sortedLocations = locations.toList()
       ..sort((a, b) => a.jsLocation.compareTo(b.jsLocation));
 
-    final ranges = <Map<String, dynamic>>[];
+    final ranges = <Map<String, Object?>>[];
     var startLine = 0;
     var startColumn = 0;
     for (final location in sortedLocations) {
@@ -90,7 +90,7 @@ class SkipLists {
     return ranges;
   }
 
-  Map<String, dynamic> _rangeFor(
+  Map<String, Object?> _rangeFor(
     String scriptId,
     int startLine,
     int startColumn,

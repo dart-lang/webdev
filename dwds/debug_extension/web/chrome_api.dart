@@ -233,7 +233,7 @@ class Port {
 @JS()
 @anonymous
 class OnPortMessageHandler {
-  external void addListener(void Function(dynamic, Port) callback);
+  external void addListener(void Function(Object?, Port) callback);
 }
 
 @JS()
@@ -246,7 +246,7 @@ class ConnectionHandler {
 @anonymous
 class OnMessageHandler {
   external void addListener(
-    dynamic Function(dynamic, MessageSender, Function) callback,
+    Object? Function(Object?, MessageSender, Function) callback,
   );
 }
 
@@ -307,16 +307,16 @@ class OnChangedHandler {
 @JS()
 @anonymous
 class Tabs {
-  external dynamic query(
+  external Object? query(
     QueryInfo queryInfo,
     void Function(List<Tab>) callback,
   );
 
-  external dynamic create(TabInfo tabInfo, void Function(Tab) callback);
+  external Object? create(TabInfo tabInfo, void Function(Tab) callback);
 
-  external dynamic get(int tabId, void Function(Tab?) callback);
+  external Object? get(int tabId, void Function(Tab?) callback);
 
-  external dynamic remove(int tabId, void Function()? callback);
+  external Object? remove(int tabId, void Function()? callback);
 
   external Object sendMessage(
     int tabId,
@@ -339,7 +339,7 @@ class OnActivatedHandler {
 @JS()
 @anonymous
 class OnRemovedHandler {
-  external void addListener(void Function(int tabId, dynamic info) callback);
+  external void addListener(void Function(int tabId, Object? info) callback);
 }
 
 @JS()
@@ -403,7 +403,10 @@ class NavigationInfo {
 @JS()
 @anonymous
 class Windows {
-  external dynamic create(WindowInfo? createData, Function(WindowObj) callback);
+  external Object? create(
+    WindowInfo? createData,
+    void Function(WindowObj) callback,
+  );
 
   external OnFocusChangedHandler get onFocusChanged;
 }

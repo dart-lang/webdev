@@ -15,7 +15,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// level of stack.
 List<WipCallFrame> frames1 = frames1Json.map(WipCallFrame.new).toList();
 
-List<Map<String, dynamic>> frames1Json = [
+List<Map<String, Object?>> frames1Json = [
   {
     "callFrameId": "{\"ordinal\":0,\"injectedScriptId\":2}",
     "functionName": "",
@@ -92,10 +92,10 @@ List<Map<String, dynamic>> frames1Json = [
 /// elements of a scope chain.
 ///
 /// It has two variables named 'a' and 'b' in the first scope.
-var variables1 = [
+List<WipResponse> variables1 = [
   WipResponse({
     'id': 1,
-    'result': {'result': []},
+    'result': {'result': <Object?>[]},
   }),
   WipResponse({
     'id': 2,
@@ -114,7 +114,7 @@ var variables1 = [
   }),
   WipResponse({
     'id': 3,
-    'result': {'result': []},
+    'result': {'result': <Object?>[]},
   }),
   // Fake that the SDK is loaded.
   WipResponse({
@@ -128,16 +128,16 @@ var variables1 = [
   }),
   WipResponse({
     'id': 5,
-    'result': {'result': []},
+    'result': {'result': <Object?>[]},
   }),
   WipResponse({
     'id': 6,
-    'result': {'result': []},
+    'result': {'result': <Object?>[]},
   }),
 ];
 
 /// Sample data for a Debugger.scriptParsed event
-var scriptParsedParams = {
+Map<String, Object> scriptParsedParams = {
   "endColumn": 0,
   "endLine": 53,
   "executionContextAuxData": {

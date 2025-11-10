@@ -14,6 +14,7 @@ import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/servers/extension_debugger.dart';
 import 'package:test/test.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
@@ -42,7 +43,7 @@ void main() async {
           ..id = 0
           ..success = true,
       );
-      final resultCompleter = Completer();
+      final resultCompleter = Completer<WipResponse>();
       unawaited(
         extensionDebugger
             .sendCommand('Runtime.evaluate', params: {'expression': '\$pi'})
@@ -52,7 +53,10 @@ void main() async {
         jsonEncode(serializers.serialize(extensionResponse)),
       );
       final response = await resultCompleter.future;
-      expect(response.result['result']['value'], 3.14);
+      expect(
+        (response.result!['result']! as Map<String, Object?>)['value'],
+        3.14,
+      );
     });
 
     test('an ExtensionEvent', () async {

@@ -5,14 +5,15 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/loaders/require.dart';
-import 'package:dwds/src/loaders/strategy.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
+
+import '../debugging/metadata/provider.dart';
+import '../readers/asset_reader.dart';
+import '../services/expression_compiler.dart';
+import 'require.dart';
+import 'strategy.dart';
 
 /// Provides a [RequireStrategy] suitable for use with `package:build_runner`.
 class BuildRunnerRequireStrategyProvider {
@@ -64,7 +65,7 @@ class BuildRunnerRequireStrategyProvider {
       throw StateError('Could not read digests at path: $digestsPath');
     }
     final body = await response.readAsString();
-    final digests = json.decode(body) as Map<String, dynamic>;
+    final digests = json.decode(body) as Map<String, Object?>;
 
     for (final key in digests.keys) {
       if (!modules.containsKey(key)) {

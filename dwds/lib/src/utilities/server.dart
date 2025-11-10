@@ -4,13 +4,14 @@
 
 import 'dart:io';
 
-import 'package:dwds/src/services/chrome/chrome_debug_exception.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     as wip;
+
+import '../services/chrome/chrome_debug_exception.dart';
 
 /// Returns a port that is probably, but not definitely, not in use.
 ///
@@ -78,7 +79,7 @@ void handleErrorIfPresent(wip.WipResponse? response, {String? evalContents}) {
   if (result == null) return;
   if (result.containsKey('exceptionDetails')) {
     throw ChromeDebugException(
-      result['exceptionDetails'] as Map<String, dynamic>,
+      result['exceptionDetails'] as Map<String, Object?>,
       evalContents: evalContents,
     );
   }
@@ -87,12 +88,12 @@ void handleErrorIfPresent(wip.WipResponse? response, {String? evalContents}) {
 /// Returns result contained in the response.
 /// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
 /// result or the result is null.
-Map<String, dynamic> getResultOrHandleError(
+Map<String, Object?> getResultOrHandleError(
   wip.WipResponse? response, {
   String? evalContents,
 }) {
   handleErrorIfPresent(response, evalContents: evalContents);
-  final result = response?.result?['result'];
+  final result = response?.result?['result'] as Map<String, Object?>?;
   if (result == null) {
     throw ChromeDebugException({
       'text': 'null result from Chrome Devtools',

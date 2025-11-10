@@ -68,8 +68,8 @@ final sampleAsyncFrame = CallFrame({
 });
 
 final Map<String, WipScript> scripts = {
-  '69': WipScript(<String, dynamic>{'url': 'http://127.0.0.1:8081/foo.ddc.js'}),
-  '71': WipScript(<String, dynamic>{'url': 'http://127.0.0.1:8081/bar.ddc.js'}),
+  '69': WipScript(<String, Object?>{'url': 'http://127.0.0.1:8081/foo.ddc.js'}),
+  '71': WipScript(<String, Object?>{'url': 'http://127.0.0.1:8081/bar.ddc.js'}),
 };
 
 void main() async {
@@ -145,10 +145,10 @@ void main() async {
       asyncStackTrace: StackTrace({
         'callFrames': [sampleAsyncFrame.json],
         'parent': StackTrace({
-          'callFrames': [],
+          'callFrames': <Map<String, Object?>>[],
           'parent': StackTrace({
             'callFrames': [sampleAsyncFrame.json],
-            'parent': StackTrace({'callFrames': []}).json,
+            'parent': StackTrace({'callFrames': <Map<String, Object?>>[]}).json,
           }).json,
         }).json,
       }),

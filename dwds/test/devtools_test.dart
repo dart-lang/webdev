@@ -24,7 +24,7 @@ Future<void> _waitForPageReady(TestContext context) async {
   while (attempt-- > 0) {
     final content = await context.webDriver.pageSource;
     if (content.contains('hello_world')) return;
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
   }
   throw StateError('Page never initialized');
 }
@@ -51,7 +51,7 @@ void main() {
             'd',
           ]);
           // Wait for DevTools to actually open.
-          await Future.delayed(const Duration(seconds: 2));
+          await Future<void>.delayed(const Duration(seconds: 2));
         });
 
         tearDown(() async {
@@ -75,7 +75,7 @@ void main() {
               "window.open('$appUrl', '_blank');",
               [],
             );
-            await Future.delayed(const Duration(seconds: 2));
+            await Future<void>.delayed(const Duration(seconds: 2));
             final newAppWindow = await context.webDriver.windows.last;
             await newAppWindow.setAsActive();
 
@@ -87,7 +87,7 @@ void main() {
               Keyboard.alt,
               'd',
             ]);
-            await Future.delayed(const Duration(seconds: 2));
+            await Future<void>.delayed(const Duration(seconds: 2));
             final alert = context.webDriver.driver.switchTo.alert;
             expect(alert, isNotNull);
             expect(
@@ -109,7 +109,7 @@ void main() {
               Keyboard.alt,
               'd',
             ]);
-            await Future.delayed(const Duration(seconds: 2));
+            await Future<void>.delayed(const Duration(seconds: 2));
             windows = await context.webDriver.windows.toList();
             final devToolsWindow = windows.firstWhere(
               (window) => window != newAppWindow,
@@ -155,16 +155,16 @@ void main() {
           skip: 'https://github.com/dart-lang/webdev/issues/1888',
         );
       },
-      timeout: Timeout.factor(2),
+      timeout: const Timeout.factor(2),
     );
   }
 
   group('Injected client without a DevTools server', () {
     setUp(() async {
       await context.setUp(
-        debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+        debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
           enableDevToolsLaunch: true,
-          ddsConfiguration: DartDevelopmentServiceConfiguration(
+          ddsConfiguration: const DartDevelopmentServiceConfiguration(
             serveDevTools: false,
           ),
         ),
@@ -178,7 +178,7 @@ void main() {
     test('gives a good error if devtools is not served', () async {
       // Try to open devtools and check for the alert.
       await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-      await Future.delayed(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(seconds: 2));
       final alert = context.webDriver.driver.switchTo.alert;
       expect(alert, isNotNull);
       expect(await alert.text, contains('--debug'));
@@ -191,7 +191,7 @@ void main() {
     () {
       setUp(() async {
         await context.setUp(
-          debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+          debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
             enableDebugExtension: true,
           ),
         );
@@ -208,7 +208,7 @@ void main() {
         });
         // Try to open devtools and check for the alert.
         await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-        await Future.delayed(const Duration(seconds: 2));
+        await Future<void>.delayed(const Duration(seconds: 2));
         final alert = context.webDriver.driver.switchTo.alert;
         expect(alert, isNotNull);
         expect(await alert.text, contains('--debug'));
@@ -219,7 +219,7 @@ void main() {
     },
     tags: ['extension'],
     skip: 'https://github.com/dart-lang/webdev/issues/2114',
-    timeout: Timeout.factor(2),
+    timeout: const Timeout.factor(2),
   );
 }
 

@@ -87,7 +87,7 @@ void main() {
         if (Platform.isWindows) {
           // Windows takes a bit longer to run the application and register
           // the service extension.
-          await Future.delayed(const Duration(seconds: 5));
+          await Future<void>.delayed(const Duration(seconds: 5));
         }
         final extensionCall =
             '[{"method":"app.callServiceExtension","id":0,'

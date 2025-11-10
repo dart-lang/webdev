@@ -377,9 +377,8 @@ Future<bool> _authenticateUser(String authUrl) async {
   return responseText.contains('Dart Debug Authentication Success!');
 }
 
-void _sendResponse<T>(
+void _sendHotReloadResponse(
   StreamSink clientSink,
-  T Function(void Function(dynamic)) builder,
   String requestId, {
   bool success = true,
   String? errorMessage,
@@ -388,7 +387,7 @@ void _sendResponse<T>(
     clientSink,
     jsonEncode(
       serializers.serialize(
-        builder((b) {
+        HotReloadResponse((HotReloadResponseBuilder b) {
           b.id = requestId;
           b.success = success;
           if (errorMessage != null) b.errorMessage = errorMessage;
@@ -398,33 +397,23 @@ void _sendResponse<T>(
   );
 }
 
-void _sendHotReloadResponse(
-  StreamSink clientSink,
-  String requestId, {
-  bool success = true,
-  String? errorMessage,
-}) {
-  _sendResponse<HotReloadResponse>(
-    clientSink,
-    HotReloadResponse.new,
-    requestId,
-    success: success,
-    errorMessage: errorMessage,
-  );
-}
-
 void _sendHotRestartResponse(
   StreamSink clientSink,
   String requestId, {
   bool success = true,
   String? errorMessage,
 }) {
-  _sendResponse<HotRestartResponse>(
+  _trySendEvent(
     clientSink,
-    HotRestartResponse.new,
-    requestId,
-    success: success,
-    errorMessage: errorMessage,
+    jsonEncode(
+      serializers.serialize(
+        HotRestartResponse((HotRestartResponseBuilder b) {
+          b.id = requestId;
+          b.success = success;
+          if (errorMessage != null) b.errorMessage = errorMessage;
+        }),
+      ),
+    ),
   );
 }
 
@@ -434,7 +423,7 @@ void _sendServiceExtensionResponse(
   bool success = true,
   String? errorMessage,
   int? errorCode,
-  Map<String, dynamic>? result,
+  Map<String, Object?>? result,
 }) {
   _trySendEvent(
     clientSink,

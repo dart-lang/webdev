@@ -237,7 +237,7 @@ Future<_PackageInfo> _latestPackageInfo() async {
   );
   final responseObj = json.decode(response.body);
   final pubspec = Pubspec.fromJson(
-    responseObj['latest']['pubspec'] as Map<String, dynamic>,
+    responseObj['latest']['pubspec'] as Map<String, Object?>,
   );
   final buildDaemonDependency = pubspec.dependencies['build_daemon'];
   // This should never be satisfied.

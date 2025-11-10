@@ -126,7 +126,7 @@ class RequireRestarter implements Restarter {
   late SplayTreeSet<String> _dirtyModules;
   var _running = Completer<bool>()..complete(true);
 
-  var count = 0;
+  int count = 0;
 
   RequireRestarter._() {
     _dirtyModules = SplayTreeSet(_moduleTopologicalCompare);
@@ -275,7 +275,7 @@ class RequireRestarter implements Restarter {
   }
 
   Future<void> _reloadModule(String moduleId) {
-    final completer = Completer();
+    final completer = Completer<void>();
     final stackTrace = StackTrace.current;
     requireLoader.forceLoadModule(
       moduleId.toJS,

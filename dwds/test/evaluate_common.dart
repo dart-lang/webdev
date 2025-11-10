@@ -150,18 +150,28 @@ void testAll({
         } catch (_) {}
       });
 
-      Future<void> onBreakPoint(script, bpId, body) =>
-          onBp(stream, isolateId, script, bpId, body);
+      Future<void> onBreakPoint(
+        ScriptRef script,
+        String bpId,
+        Future<void> Function(Event) body,
+      ) => onBp(stream, isolateId, script, bpId, body);
 
-      Future<Response> evaluateInFrame(frame, expr, {scope}) async =>
-          await context.service.evaluateInFrame(
-            isolateId,
-            frame,
-            expr,
-            scope: scope,
-          );
+      Future<Response> evaluateInFrame(
+        int frame,
+        String expr, {
+        Map<String, String>? scope,
+      }) async => await context.service.evaluateInFrame(
+        isolateId,
+        frame,
+        expr,
+        scope: scope,
+      );
 
-      Future<InstanceRef> getInstanceRef(frame, expr, {scope}) async {
+      Future<InstanceRef> getInstanceRef(
+        int frame,
+        String expr, {
+        Map<String, String>? scope,
+      }) async {
         final result = await evaluateInFrame(frame, expr, scope: scope);
         expect(result, isA<InstanceRef>());
         return result as InstanceRef;
@@ -654,11 +664,22 @@ void testAll({
 
       tearDown(() async {});
 
-      Future<Response> evaluate(targetId, expr, {scope}) async => await context
-          .service
-          .evaluate(isolateId, targetId, expr, scope: scope);
+      Future<Response> evaluate(
+        String targetId,
+        String expr, {
+        Map<String, String>? scope,
+      }) async => await context.service.evaluate(
+        isolateId,
+        targetId,
+        expr,
+        scope: scope,
+      );
 
-      Future<InstanceRef> getInstanceRef(targetId, expr, {scope}) async {
+      Future<InstanceRef> getInstanceRef(
+        String targetId,
+        String expr, {
+        Map<String, String>? scope,
+      }) async {
         final result = await evaluate(targetId, expr, scope: scope);
         expect(result, isA<InstanceRef>());
         return result as InstanceRef;
@@ -676,7 +697,7 @@ void testAll({
           final libraryId = getRootLibraryId();
 
           final type = await getInstanceRef(libraryId, '(0,1).runtimeType');
-          final result = await getInstanceRef(type.id, 'hashCode');
+          final result = await getInstanceRef(type.id!, 'hashCode');
 
           expect(result, matchInstanceRefKind('Double'));
         },
@@ -687,7 +708,7 @@ void testAll({
         final libraryId = getRootLibraryId();
 
         final type = await getInstanceRef(libraryId, 'Object()');
-        final result = await getInstanceRef(type.id, 'hashCode');
+        final result = await getInstanceRef(type.id!, 'hashCode');
 
         expect(result, matchInstanceRefKind('Double'));
       });
@@ -895,26 +916,27 @@ Future<String> _setBreakpointInInjectedClient(WipDebugger debugger) async {
       'columnNumber': 0,
     },
   );
-  return result.json['result']['breakpointId'];
+  return (result.json['result']! as Map<String, Object?>)['breakpointId']!
+      as String;
 }
 
 Matcher matchInstanceRefKind(String kind) =>
     isA<InstanceRef>().having((instance) => instance.kind, 'kind', kind);
 
-Matcher matchInstanceRef(dynamic value) => isA<InstanceRef>().having(
+Matcher matchInstanceRef(Object? value) => isA<InstanceRef>().having(
   (instance) => instance.valueAsString,
   'valueAsString',
   value,
 );
 
-Matcher matchInstanceClassName(dynamic className) => isA<Instance>().having(
+Matcher matchInstanceClassName(Object? className) => isA<Instance>().having(
   (instance) => instance.classRef!.name,
   'class name',
   className,
 );
 
-Matcher matchInstanceRefClassName(dynamic className) => isA<InstanceRef>()
+Matcher matchInstanceRefClassName(Object? className) => isA<InstanceRef>()
     .having((instance) => instance.classRef!.name, 'class name', className);
 
-Matcher matchErrorRef(dynamic message) =>
+Matcher matchErrorRef(Object? message) =>
     isA<ErrorRef>().having((instance) => instance.message, 'message', message);

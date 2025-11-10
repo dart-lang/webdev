@@ -80,10 +80,8 @@ class FakeChromeAppInspector extends FakeInspector
       'Runtime.getProperties',
       params: {'objectId': objectId, 'ownProperties': true},
     );
-    final result = response.result?['result'];
-    return result
-        .map<Property>((each) => Property(each as Map<String, dynamic>))
-        .toList();
+    final result = response.result?['result'] as List<Map<String, Object?>>;
+    return result.map<Property>(Property.new).toList();
   }
 
   @override
@@ -234,19 +232,20 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Stream<WipDomain>? get onClosed => null;
 
   @override
-  Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => Stream.empty();
+  Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared =>
+      const Stream.empty();
 
   @override
   late Stream<DebuggerPausedEvent> onPaused;
 
   @override
-  Stream<DebuggerResumedEvent> get onResumed => Stream.empty();
+  Stream<DebuggerResumedEvent> get onResumed => const Stream.empty();
 
   @override
-  Stream<ScriptParsedEvent> get onScriptParsed => Stream.empty();
+  Stream<ScriptParsedEvent> get onScriptParsed => const Stream.empty();
 
   @override
-  Stream<TargetCrashedEvent> get onTargetCrashed => Stream.empty();
+  Stream<TargetCrashedEvent> get onTargetCrashed => const Stream.empty();
 
   @override
   Future<WipResponse> pause() async => fakeWipResponse;
@@ -263,7 +262,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
   @override
   Future<WipResponse> sendCommand(
     String command, {
-    Map<String, dynamic>? params,
+    Map<String, Object?>? params,
   }) async {
     // Force the results that we expect for looking up the variables.
     if (command == 'Runtime.getProperties') {
@@ -281,27 +280,27 @@ class FakeWebkitDebugger implements WebkitDebugger {
       fakeWipResponse;
 
   @override
-  Future<WipResponse> stepInto({Map<String, dynamic>? params}) async =>
+  Future<WipResponse> stepInto({Map<String, Object?>? params}) async =>
       fakeWipResponse;
 
   @override
   Future<WipResponse> stepOut() async => fakeWipResponse;
 
   @override
-  Future<WipResponse> stepOver({Map<String, dynamic>? params}) async =>
+  Future<WipResponse> stepOver({Map<String, Object?>? params}) async =>
       fakeWipResponse;
 
   @override
-  Stream<ConsoleAPIEvent> get onConsoleAPICalled => Stream.empty();
+  Stream<ConsoleAPIEvent> get onConsoleAPICalled => const Stream.empty();
 
   @override
-  Stream<ExceptionThrownEvent> get onExceptionThrown => Stream.empty();
+  Stream<ExceptionThrownEvent> get onExceptionThrown => const Stream.empty();
 
   @override
   Future<void> close() async {}
 
   @override
-  Stream<WipConnection> get onClose => Stream.empty();
+  Stream<WipConnection> get onClose => const Stream.empty();
 
   @override
   Future<RemoteObject> evaluate(
@@ -315,7 +314,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
     String callFrameId,
     String expression,
   ) async {
-    return RemoteObject(<String, dynamic>{});
+    return RemoteObject(<String, Object?>{});
   }
 
   @override
@@ -422,18 +421,16 @@ class FakeStrategy extends LoadStrategy {
 
 class FakeAssetReader implements AssetReader {
   String? metadata;
-  final String? _dartSource;
-  final String? _sourceMap;
-  FakeAssetReader({this.metadata, dartSource, sourceMap})
-    : _dartSource = dartSource,
-      _sourceMap = sourceMap;
+  final String? dartSource;
+  final String? sourceMap;
+  FakeAssetReader({this.metadata, this.dartSource, this.sourceMap});
 
   @override
   String get basePath => '';
 
   @override
   Future<String> dartSourceContents(String serverPath) {
-    return _throwUnimplementedOrReturnContents(_dartSource);
+    return _throwUnimplementedOrReturnContents(dartSource);
   }
 
   @override
@@ -443,7 +440,7 @@ class FakeAssetReader implements AssetReader {
 
   @override
   Future<String> sourceMapContents(String serverPath) {
-    return _throwUnimplementedOrReturnContents(_sourceMap);
+    return _throwUnimplementedOrReturnContents(sourceMap);
   }
 
   @override

@@ -12,7 +12,7 @@ import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:path/path.dart' as p;
-import 'package:puppeteer/puppeteer.dart' hide Response;
+import 'package:puppeteer/puppeteer.dart' hide Request, Response;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
 import 'package:test/test.dart';
@@ -531,7 +531,7 @@ void testAll({required bool isMV3, required bool screenshotsEnabled}) {
               final chromeDevToolsPage = await getChromeDevToolsPage(browser);
               // There are no hooks for when a panel is added to Chrome DevTools,
               // therefore we rely on a slight delay:
-              await Future.delayed(Duration(seconds: 1));
+              await Future<void>.delayed(const Duration(seconds: 1));
               if (isFlutterApp) {
                 await _tabLeft(chromeDevToolsPage);
                 final inspectorPanelElement = await _getPanelElement(
@@ -564,7 +564,7 @@ void testAll({required bool isMV3, required bool screenshotsEnabled}) {
             final chromeDevToolsPage = await getChromeDevToolsPage(browser);
             // There are no hooks for when a panel is added to Chrome DevTools,
             // therefore we rely on a slight delay:
-            await Future.delayed(Duration(seconds: 1));
+            await Future<void>.delayed(const Duration(seconds: 1));
             // Navigate to the Dart Debugger panel:
             await _tabLeft(chromeDevToolsPage);
             if (isFlutterApp) {
@@ -630,7 +630,7 @@ void testAll({required bool isMV3, required bool screenshotsEnabled}) {
               final chromeDevToolsPage = await getChromeDevToolsPage(browser);
               // There are no hooks for when a panel is added to Chrome DevTools,
               // therefore we rely on a slight delay:
-              await Future.delayed(Duration(seconds: 1));
+              await Future<void>.delayed(const Duration(seconds: 1));
               // Navigate to the Dart Debugger panel:
               await _tabLeft(chromeDevToolsPage);
               if (isFlutterApp) {
@@ -674,7 +674,7 @@ void testAll({required bool isMV3, required bool screenshotsEnabled}) {
               final chromeDevToolsPage = await getChromeDevToolsPage(browser);
               // There are no hooks for when a panel is added to Chrome DevTools,
               // therefore we rely on a slight delay:
-              await Future.delayed(Duration(seconds: 1));
+              await Future<void>.delayed(const Duration(seconds: 1));
               // Navigate to the Dart Debugger panel:
               await _tabLeft(chromeDevToolsPage);
               if (isFlutterApp) {
@@ -691,7 +691,7 @@ void testAll({required bool isMV3, required bool screenshotsEnabled}) {
                 isFalse,
               );
               // Set the 'data-multiple-dart-apps' attribute on the DOM.
-              await appTab.evaluate(_setMultipleAppsAttributeJs);
+              await appTab.evaluate<void>(_setMultipleAppsAttributeJs);
               final appTabId = await _getCurrentTabId(
                 worker: worker,
                 backgroundPage: backgroundPage,
@@ -748,7 +748,7 @@ void testAll({required bool isMV3, required bool screenshotsEnabled}) {
         );
         browser = await puppeteer.launch(
           headless: false,
-          timeout: Duration(seconds: 60),
+          timeout: const Duration(seconds: 60),
           args: [
             '--load-extension=$extensionPath',
             '--disable-extensions-except=$extensionPath',
@@ -872,7 +872,7 @@ Future<bool> _clickLaunchButton(Browser browser, {required Panel panel}) async {
       elementSelector: '#launchDebugConnectionButton',
     );
     // Slight delay to guarantee button is clickable:
-    await Future.delayed(Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
     await launchButton!.click();
     return true;
   } catch (_) {
@@ -943,16 +943,18 @@ Future<T> _fetchStorageObj<T>(
   Page? backgroundPage,
 }) async {
   final json = await retryFnAsync<String>(() async {
-    final storageObj = await evaluate(
-      _fetchStorageObjJs(
-        storageKey,
-        // Only local storage exists for MV2:
-        storageArea: worker != null ? storageArea : 'local',
-      ),
-      worker: worker,
-      backgroundPage: backgroundPage,
-    );
-    return storageObj[storageKey];
+    final storageObj =
+        (await evaluate(
+              _fetchStorageObjJs(
+                storageKey,
+                // Only local storage exists for MV2:
+                storageArea: worker != null ? storageArea : 'local',
+              ),
+              worker: worker,
+              backgroundPage: backgroundPage,
+            ))
+            as Map<String, String>;
+    return storageObj[storageKey]!;
   });
   if (T == String) return json as T;
   return serializers.deserialize(jsonDecode(json)) as T;
@@ -1014,7 +1016,7 @@ Future<void> _takeScreenshot(
   // coerced into having a "page" type, there doesn't seem to be a way to verify
   // that the DOM has been loaded. Therefore we use a slight delay before taking
   // a screenshot. See https://github.com/puppeteer/puppeteer/issues/9371.
-  await Future.delayed(Duration(seconds: 1));
+  await Future<void>.delayed(const Duration(seconds: 1));
   final screenshot = await page.screenshot();
   final screenshotPath = p.join(
     'test',
@@ -1037,7 +1039,7 @@ Future<HttpServer> _fakeServer({
   return server;
 }
 
-Response _fakeAuthHandler(request) {
+Response _fakeAuthHandler(Request request) {
   if (request.url.path == authenticationPath) {
     return Response.ok(authenticationResponse);
   }

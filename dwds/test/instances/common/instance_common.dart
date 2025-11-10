@@ -175,11 +175,11 @@ void runTests({
         final ref = await inspector.instanceRefFor(count);
         expect(ref!.kind, InstanceKind.kPlainInstance);
         final classRef = ref.classRef!;
-        expect(classRef.name, 'MyTestClass<dynamic>');
+        expect(classRef.name, 'MyTestClass<Object?>');
         expect(
           classRef.id,
           'classes|org-dartlang-app:///example/scopes/main.dart'
-          '|MyTestClass<dynamic>',
+          '|MyTestClass<Object?>',
         );
         expect(inspector.isDisplayableObject(ref), isTrue);
       });
@@ -327,7 +327,7 @@ void runTests({
         expect(instance!.kind, InstanceKind.kPlainInstance);
         final classRef = instance.classRef!;
         expect(classRef, isNotNull);
-        expect(classRef.name, 'MyTestClass<dynamic>');
+        expect(classRef.name, 'MyTestClass<Object?>');
         final boundFieldNames = instance.fields!
             .map((boundField) => boundField.decl!.name)
             .toList();
@@ -376,7 +376,7 @@ void runTests({
         expect(instance!.kind, InstanceKind.kPlainInstance);
         final classRef = instance.classRef!;
         expect(classRef, isNotNull);
-        expect(classRef.name, 'MyTestClass<dynamic>');
+        expect(classRef.name, 'MyTestClass<Object?>');
         expect(inspector.isDisplayableObject(instance), isTrue);
       });
 

@@ -100,7 +100,7 @@ String dartIdFor(Object? argument) {
     }
     return argument.objectId!;
   }
-  if (argument is Map<String, dynamic>) {
+  if (argument is Map<String, Object?>) {
     final id = argument['objectId'] as String?;
     if (id == null) {
       throw ArgumentError.value(argument, 'objectId', 'No objectId found');

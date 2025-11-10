@@ -27,9 +27,9 @@ void main() {
   setUpAll(() async {
     // Disable DDS as we're testing DWDS behavior.
     await context.setUp(
-      debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+      debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
         spawnDds: false,
-        ddsConfiguration: DartDevelopmentServiceConfiguration(enable: false),
+        ddsConfiguration: const DartDevelopmentServiceConfiguration(enable: false),
       ),
     );
   });

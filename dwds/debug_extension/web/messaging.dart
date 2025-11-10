@@ -68,7 +68,7 @@ class Message {
   });
 
   factory Message.fromJSON(String json) {
-    final decoded = jsonDecode(json) as Map<String, dynamic>;
+    final decoded = jsonDecode(json) as Map<String, Object?>;
 
     return Message(
       to: Script.fromString(decoded['to'] as String),
@@ -161,7 +161,7 @@ Future<bool> _sendMessage({
     body: body,
   ).toJSON();
   final completer = Completer<bool>();
-  void responseHandler([dynamic _]) {
+  void responseHandler([Object? _]) {
     final error = chrome.runtime.lastError;
     if (error != null) {
       debugError(

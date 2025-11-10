@@ -12,13 +12,13 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// Represents a property of an object.
 class Property {
-  final Map<String, dynamic>? _map;
+  final Map<String, Object?>? _map;
 
   RemoteObject? _remoteObjectValue;
 
   Property(this._map);
 
-  Map<String, dynamic>? get map => _map;
+  Map<String, Object?>? get map => _map;
 
   /// The remote object value in unwrapped form.
   ///
@@ -36,7 +36,7 @@ class Property {
     if (val is RemoteObject) {
       _remoteObjectValue = val;
     } else {
-      _remoteObjectValue = RemoteObject(val as Map<String, dynamic>);
+      _remoteObjectValue = RemoteObject(val as Map<String, Object?>);
     }
     return _remoteObjectValue;
   }

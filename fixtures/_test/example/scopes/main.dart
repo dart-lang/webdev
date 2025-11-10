@@ -74,7 +74,7 @@ void main() async {
     return '$local: parameter, $another'; // Breakpoint: nestedFunction
   }
 
-  dynamic nestedWithClosure(String banana) {
+  Object? nestedWithClosure(String banana) {
     return () => '$local + $banana';
   }
 

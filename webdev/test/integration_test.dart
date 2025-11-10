@@ -251,7 +251,7 @@ void main() {
         await d.file('.dart_tool/package_config.json', '').create();
 
         // Ensure there is a noticeable delta in the creation times
-        await Future.delayed(const Duration(milliseconds: 1100));
+        await Future<void>.delayed(const Duration(milliseconds: 1100));
 
         await d.file('pubspec.yaml', '''
 name: sample

@@ -81,7 +81,7 @@ void main() {
     setUp(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        testSettings: TestSettings(
+        testSettings: const TestSettings(
           enableExpressionEvaluation: true,
           compilationMode: CompilationMode.frontendServer,
           moduleFormat: ModuleFormat.ddc,
@@ -134,5 +134,5 @@ void main() {
 
       await callEvaluateAndWaitForLog(newString);
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: const Timeout.factor(2));
 }

@@ -73,17 +73,19 @@ void main() {
     final webdevYaml =
         loadYaml(await File('pubspec.yaml').readAsString()) as YamlMap;
     expect(
-      smokeYaml['environment']['sdk'],
-      equals(webdevYaml['environment']['sdk']),
+      (smokeYaml['environment'] as YamlMap)['sdk'],
+      equals((webdevYaml['environment'] as YamlMap)['sdk']),
     );
     expect(
       buildRunnerConstraint.allowsAny(
-        VersionConstraint.parse(smokeYaml['dev_dependencies']['build_runner']),
+        VersionConstraint.parse(
+          (smokeYaml['dev_dependencies'] as YamlMap)['build_runner'] as String,
+        ),
       ),
       true,
     );
     expect(
-      smokeYaml['dev_dependencies']['build_web_compilers'],
+      (smokeYaml['dev_dependencies'] as YamlMap)['build_web_compilers'],
       equals(buildWebCompilersConstraint.toString()),
     );
   });
@@ -339,8 +341,8 @@ void main() {
           String? wsUri;
           await expectLater(
             process.stdout,
-            emitsThrough((message) {
-              wsUri = getDebugServiceUri(message as String);
+            emitsThrough((String message) {
+              wsUri = getDebugServiceUri(message);
               return wsUri != null;
             }),
           );
@@ -424,8 +426,8 @@ void main() {
           String? wsUri;
           await expectLater(
             process.stdout,
-            emitsThrough((message) {
-              wsUri = getDebugServiceUri(message as String);
+            emitsThrough((String message) {
+              wsUri = getDebugServiceUri(message);
               return wsUri != null;
             }),
           );
@@ -499,8 +501,8 @@ void main() {
           String? wsUri;
           await expectLater(
             process.stdout,
-            emitsThrough((message) {
-              wsUri = getDebugServiceUri(message as String);
+            emitsThrough((String message) {
+              wsUri = getDebugServiceUri(message);
               return wsUri != null;
             }),
           );
@@ -580,8 +582,8 @@ void main() {
           String? wsUri;
           await expectLater(
             process.stdout,
-            emitsThrough((message) {
-              wsUri = getDebugServiceUri(message as String);
+            emitsThrough((String message) {
+              wsUri = getDebugServiceUri(message);
               return wsUri != null;
             }),
           );
@@ -652,8 +654,8 @@ void main() {
           String? wsUri;
           await expectLater(
             process.stdout,
-            emitsThrough((message) {
-              wsUri = getDebugServiceUri(message as String);
+            emitsThrough((String message) {
+              wsUri = getDebugServiceUri(message);
               return wsUri != null;
             }),
           );

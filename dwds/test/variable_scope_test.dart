@@ -28,7 +28,7 @@ void main() {
 
   setUpAll(() async {
     setCurrentLogWriter(debug: debug);
-    await context.setUp(testSettings: TestSettings(verboseCompiler: debug));
+    await context.setUp(testSettings: const TestSettings(verboseCompiler: debug));
   });
 
   tearDownAll(() async {

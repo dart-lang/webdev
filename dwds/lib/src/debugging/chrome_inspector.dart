@@ -4,28 +4,29 @@
 
 import 'dart:math' as math;
 
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/connections/app_connection.dart';
-import 'package:dwds/src/debugging/classes.dart';
-import 'package:dwds/src/debugging/debugger.dart';
-import 'package:dwds/src/debugging/execution_context.dart';
-import 'package:dwds/src/debugging/inspector.dart';
-import 'package:dwds/src/debugging/instance.dart';
-import 'package:dwds/src/debugging/libraries.dart';
-import 'package:dwds/src/debugging/location.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/loaders/ddc_library_bundle.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:dwds/src/utilities/conversions.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/domain.dart';
-import 'package:dwds/src/utilities/objects.dart';
-import 'package:dwds/src/utilities/server.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import '../config/tool_configuration.dart';
+import '../connections/app_connection.dart';
+import '../loaders/ddc_library_bundle.dart';
+import '../readers/asset_reader.dart';
+import '../utilities/conversions.dart';
+import '../utilities/dart_uri.dart';
+import '../utilities/domain.dart';
+import '../utilities/objects.dart';
+import '../utilities/server.dart';
+import '../utilities/shared.dart';
+import 'classes.dart';
+import 'debugger.dart';
+import 'execution_context.dart';
+import 'inspector.dart';
+import 'instance.dart';
+import 'libraries.dart';
+import 'location.dart';
+import 'metadata/provider.dart';
+import 'remote_debugger.dart';
 
 /// An inspector for a running Dart application contained in the
 /// [WipConnection].
@@ -234,7 +235,7 @@ class ChromeAppInspector extends AppInspector {
   Future<RemoteObject> invoke(
     String targetId,
     String selector, [
-    List<dynamic> arguments = const [],
+    List<Object?> arguments = const [],
   ]) async {
     final remoteArguments = arguments
         .cast<String>()
@@ -532,7 +533,7 @@ class ChromeAppInspector extends AppInspector {
       params: {'objectId': rangeId, 'ownProperties': true},
     );
     return jsProperties
-        .map<Property>((each) => Property(each as Map<String, dynamic>))
+        .map<Property>((each) => Property(each as Map<String, Object?>))
         .where(_isVisibleProperty)
         .toList();
   }

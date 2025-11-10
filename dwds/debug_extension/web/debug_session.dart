@@ -320,7 +320,7 @@ Future<bool> _isDartFrame({required int tabId, required int contextId}) {
       returnByValue: true,
       contextId: contextId,
     ),
-    allowInterop((dynamic response) {
+    allowInterop((Object? response) {
       final evalResponse = response as _EvalResponse;
       final value = evalResponse.result.value;
       final appId = value?[0];
@@ -449,7 +449,7 @@ void _forwardDwdsEventToChromeDebugger(
       Debuggee(tabId: tabId),
       message.command,
       js_util.jsify(params),
-      allowInterop(([e]) {
+      allowInterop(([Object? e]) {
         // No arguments indicate that an error occurred.
         if (e == null) {
           client.sink.add(
@@ -491,7 +491,7 @@ void _forwardDwdsEventToChromeDebugger(
 void _forwardChromeDebuggerEventToDwds(
   Debuggee source,
   String method,
-  dynamic params,
+  Object? params,
 ) {
   final debugSession = _debugSessions.firstWhereOrNull(
     (session) => session.appTabId == source.tabId,
@@ -736,7 +736,7 @@ DebuggerLocation? _debuggerLocation(int dartAppTabId) {
 }
 
 /// Construct an [ExtensionEvent] from [method] and [params].
-ExtensionEvent _extensionEventFor(String method, dynamic params) {
+ExtensionEvent _extensionEventFor(String method, Object? params) {
   return ExtensionEvent(
     (b) => b
       ..params = jsonEncode(json.decode(JSON.stringify(params)))
@@ -783,7 +783,7 @@ class _DebugSession {
     required this.trigger,
     required void Function(String data) onIncoming,
     required void Function() onDone,
-    required void Function(dynamic error) onError,
+    required void Function(Object? error) onError,
     required bool cancelOnError,
   }) : _socketClient = client {
     // Collect extension events and send them periodically to the server.

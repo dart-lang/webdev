@@ -133,7 +133,10 @@ void main() async {
         pausedController.sink.add(
           DebuggerPausedEvent({
             'method': '',
-            'params': {'reason': 'other', 'callFrames': []},
+            'params': {
+              'reason': 'other',
+              'callFrames': <Map<String, Object?>>[],
+            },
           }),
         );
 

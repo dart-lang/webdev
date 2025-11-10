@@ -300,7 +300,7 @@
       return t1;
     },
     JSArray__compareAny(a, b) {
-      var t1 = type$.Comparable_dynamic;
+      var t1 = type$.Comparable_Object?;
       return J.compareTo$1$ns(t1._as(a), t1._as(b));
     },
     getInterceptor$(receiver) {
@@ -547,7 +547,7 @@
   A = {JS_CONST: function JS_CONST() {
     },
     CastIterable_CastIterable(source, $S, $T) {
-      if (type$.EfficientLengthIterable_dynamic._is(source))
+      if (type$.EfficientLengthIterable_Object?._is(source))
         return new A._EfficientLengthCastIterable(source, $S._eval$1("@<0>")._bind$1($T)._eval$1("_EfficientLengthCastIterable<1,2>"));
       return new A.CastIterable(source, $S._eval$1("@<0>")._bind$1($T)._eval$1("CastIterable<1,2>"));
     },
@@ -600,7 +600,7 @@
       return new A.SubListIterable(_iterable, _start, _endOrLength, $E._eval$1("SubListIterable<0>"));
     },
     MappedIterable_MappedIterable(iterable, $function, $S, $T) {
-      if (type$.EfficientLengthIterable_dynamic._is(iterable))
+      if (type$.EfficientLengthIterable_Object?._is(iterable))
         return new A.EfficientLengthMappedIterable(iterable, $function, $S._eval$1("@<0>")._bind$1($T)._eval$1("EfficientLengthMappedIterable<1,2>"));
       return new A.MappedIterable(iterable, $function, $S._eval$1("@<0>")._bind$1($T)._eval$1("MappedIterable<1,2>"));
     },
@@ -608,13 +608,13 @@
       var _s9_ = "takeCount";
       A.ArgumentError_checkNotNull(takeCount, _s9_, type$.int);
       A.RangeError_checkNotNegative(takeCount, _s9_);
-      if (type$.EfficientLengthIterable_dynamic._is(iterable))
+      if (type$.EfficientLengthIterable_Object?._is(iterable))
         return new A.EfficientLengthTakeIterable(iterable, takeCount, $E._eval$1("EfficientLengthTakeIterable<0>"));
       return new A.TakeIterable(iterable, takeCount, $E._eval$1("TakeIterable<0>"));
     },
     SkipIterable_SkipIterable(iterable, count, $E) {
       var _s5_ = "count";
-      if (type$.EfficientLengthIterable_dynamic._is(iterable)) {
+      if (type$.EfficientLengthIterable_Object?._is(iterable)) {
         A.ArgumentError_checkNotNull(count, _s5_, type$.int);
         A.RangeError_checkNotNegative(count, _s5_);
         return new A.EfficientLengthSkipIterable(iterable, count, $E._eval$1("EfficientLengthSkipIterable<0>"));
@@ -1048,7 +1048,7 @@
         if (result != null)
           return result;
       }
-      return type$.JavaScriptIndexingBehavior_dynamic._is(object);
+      return type$.JavaScriptIndexingBehavior_Object?._is(object);
     },
     S(value) {
       var result;
@@ -1327,7 +1327,7 @@
         operation = table[index];
       }
       verb = typeof encodedVerb == "string" ? encodedVerb : "modify;remove from;add to".split(";")[encodedVerb];
-      object = type$.List_dynamic._is(o) ? "list" : "ByteData";
+      object = type$.List_Object?._is(o) ? "list" : "ByteData";
       flags = o.$flags | 0;
       article = "a ";
       if ((flags & 4) !== 0)
@@ -2241,10 +2241,10 @@
     },
     _ensureNativeList(list) {
       var t1, result, i;
-      if (type$.JSIndexable_dynamic._is(list))
+      if (type$.JSIndexable_Object?._is(list))
         return list;
       t1 = J.getInterceptor$asx(list);
-      result = A.List_List$filled(t1.get$length(list), null, false, type$.dynamic);
+      result = A.List_List$filled(t1.get$length(list), null, false, type$.Object?);
       for (i = 0; i < t1.get$length(list); ++i)
         B.JSArray_methods.$indexSet(result, i, t1.$index(list, i));
       return result;
@@ -2500,7 +2500,7 @@
     },
     _arrayInstanceType(object) {
       var rti = object[init.arrayRti],
-        defaultRti = type$.JSArray_dynamic;
+        defaultRti = type$.JSArray_Object?;
       if (rti == null)
         return defaultRti;
       if (rti.constructor !== defaultRti.constructor)
@@ -2952,7 +2952,7 @@
       if (kind === 5)
         return "erased";
       if (kind === 2)
-        return "dynamic";
+        return "Object?";
       if (kind === 3)
         return "void";
       if (kind === 1)
@@ -3874,13 +3874,13 @@
         thenCallback = new A._awaitOnObject_closure(bodyFunction),
         errorCallback = new A._awaitOnObject_closure0(bodyFunction);
       if (object instanceof A._Future)
-        object._thenAwait$1$2(thenCallback, errorCallback, type$.dynamic);
+        object._thenAwait$1$2(thenCallback, errorCallback, type$.Object?);
       else {
-        t1 = type$.dynamic;
+        t1 = type$.Object?;
         if (object instanceof A._Future)
           object.then$1$2$onError(thenCallback, errorCallback, t1);
         else {
-          future = new A._Future($.Zone__current, type$._Future_dynamic);
+          future = new A._Future($.Zone__current, type$._Future_Object?);
           future._state = 8;
           future._resultOrListeners = object;
           future._thenAwait$1$2(thenCallback, errorCallback, t1);
@@ -3901,7 +3901,7 @@
           }
         };
       }($function, 1);
-      return $.Zone__current.registerBinaryCallback$3$1(new A._wrapJsFunctionForAsync_closure($protected), type$.void, type$.int, type$.dynamic);
+      return $.Zone__current.registerBinaryCallback$3$1(new A._wrapJsFunctionForAsync_closure($protected), type$.void, type$.int, type$.Object?);
     },
     _asyncStarHelper(object, bodyFunctionOrErrorCode, controller) {
       var t1, t2, t3,
@@ -3932,7 +3932,7 @@
         }
         return;
       }
-      type$.void_Function_int_dynamic._as(bodyFunctionOrErrorCode);
+      type$.void_Function_int_Object?._as(bodyFunctionOrErrorCode);
       if (object instanceof A._IterationMarker) {
         if (controller.cancelationFuture != null) {
           bodyFunctionOrErrorCode.call$2(2, null);
@@ -3947,7 +3947,7 @@
           A.scheduleMicrotask(new A._asyncStarHelper_closure(controller, bodyFunctionOrErrorCode));
           return;
         } else if (t1 === 1) {
-          t1 = controller.$ti._eval$1("Stream<1>")._as(type$.Stream_dynamic._as(object.value));
+          t1 = controller.$ti._eval$1("Stream<1>")._as(type$.Stream_Object?._as(object.value));
           t2 = controller.___AsyncStarStreamController_controller_A;
           t2 === $ && A.throwLateFieldNI(_s10_);
           t2.addStream$2$cancelOnError(t1, false).then$1$1(new A._asyncStarHelper_closure0(controller, bodyFunctionOrErrorCode), type$.Null);
@@ -4062,7 +4062,7 @@
     _Future__chainCoreFuture(source, target, sync) {
       var t2, t3, ignoreError, listeners, _box_0 = {},
         t1 = _box_0.source = source;
-      for (t2 = type$._Future_dynamic; t3 = t1._state, (t3 & 4) !== 0; t1 = source) {
+      for (t2 = type$._Future_Object?; t3 = t1._state, (t3 & 4) !== 0; t1 = source) {
         source = t2._as(t1._resultOrListeners);
         _box_0.source = source;
       }
@@ -4074,7 +4074,7 @@
       ignoreError = target._state & 1;
       t2 = t1._state = t3 | ignoreError;
       if ((t2 & 24) === 0) {
-        listeners = type$.nullable__FutureListener_dynamic_dynamic._as(target._resultOrListeners);
+        listeners = type$.nullable__FutureListener_Object?_Object?._as(target._resultOrListeners);
         target._state = target._state & 1 | 4;
         target._resultOrListeners = t1;
         t1._prependListeners$1(listeners);
@@ -4099,7 +4099,7 @@
     _Future__propagateToListeners(source, listeners) {
       var t2, t3, _box_0, t4, t5, hasError, asyncError, nextListener, nextListener0, sourceResult, t6, zone, oldZone, result, current, _box_1 = {},
         t1 = _box_1.source = source;
-      for (t2 = type$.AsyncError, t3 = type$.nullable__FutureListener_dynamic_dynamic;;) {
+      for (t2 = type$.AsyncError, t3 = type$.nullable__FutureListener_Object?_Object?;;) {
         _box_0 = {};
         t4 = t1._state;
         t5 = (t4 & 16) === 0;
@@ -4197,10 +4197,10 @@
       }
     },
     _registerErrorHandler(errorHandler, zone) {
-      if (type$.dynamic_Function_Object_StackTrace._is(errorHandler))
-        return zone.registerBinaryCallback$3$1(errorHandler, type$.dynamic, type$.Object, type$.StackTrace);
-      if (type$.dynamic_Function_Object._is(errorHandler))
-        return zone.registerUnaryCallback$2$1(errorHandler, type$.dynamic, type$.Object);
+      if (type$.Object?_Function_Object_StackTrace._is(errorHandler))
+        return zone.registerBinaryCallback$3$1(errorHandler, type$.Object?, type$.Object, type$.StackTrace);
+      if (type$.Object?_Function_Object._is(errorHandler))
+        return zone.registerUnaryCallback$2$1(errorHandler, type$.Object?, type$.Object);
       throw A.wrapException(A.ArgumentError$value(errorHandler, "onError", string$.Error_));
     },
     _microtaskLoop() {
@@ -4304,9 +4304,9 @@
       if (handleError == null)
         handleError = A.async___nullErrorHandler$closure();
       if (type$.void_Function_Object_StackTrace._is(handleError))
-        return zone.registerBinaryCallback$3$1(handleError, type$.dynamic, type$.Object, type$.StackTrace);
+        return zone.registerBinaryCallback$3$1(handleError, type$.Object?, type$.Object, type$.StackTrace);
       if (type$.void_Function_Object._is(handleError))
-        return zone.registerUnaryCallback$2$1(handleError, type$.dynamic, type$.Object);
+        return zone.registerUnaryCallback$2$1(handleError, type$.Object?, type$.Object);
       throw A.wrapException(A.ArgumentError$("handleError callback must take either an Object (the error), or both an Object (the error) and a StackTrace.", null));
     },
     _nullDataHandler(value) {
@@ -5027,7 +5027,7 @@
       return result;
     },
     ListBase__compareAny(a, b) {
-      var t1 = type$.Comparable_dynamic;
+      var t1 = type$.Comparable_Object?;
       return J.compareTo$1$ns(t1._as(a), t1._as(b));
     },
     MapBase_mapToString(m) {
@@ -6352,7 +6352,7 @@
           return A.ioore($.toStringVisiting, -1);
         $.toStringVisiting.pop();
       }
-      t1 = A.StringBuffer__writeAll(leftDelimiter, type$.Iterable_dynamic._as(parts), ", ") + rightDelimiter;
+      t1 = A.StringBuffer__writeAll(leftDelimiter, type$.Iterable_Object?._as(parts), ", ") + rightDelimiter;
       return t1.charCodeAt(0) == 0 ? t1 : t1;
     },
     Iterable_iterableToFullString(iterable, leftDelimiter, rightDelimiter) {
@@ -8182,11 +8182,11 @@
         return new A.StringJsonObject(value);
       else if (A._isBool(value))
         return new A.BoolJsonObject(value);
-      else if (type$.List_dynamic._is(value))
+      else if (type$.List_Object?._is(value))
         return new A.ListJsonObject(new A.UnmodifiableListView(value, type$.UnmodifiableListView_nullable_Object));
       else if (type$.Map_of_String_and_nullable_Object._is(value))
         return new A.MapJsonObject(new A.UnmodifiableMapView(value, type$.UnmodifiableMapView_of_String_and_nullable_Object));
-      else if (type$.Map_dynamic_dynamic._is(value))
+      else if (type$.Map_Object?_Object?._is(value))
         return new A.MapJsonObject(new A.UnmodifiableMapView(value.cast$2$0(0, type$.String, type$.nullable_Object), type$.UnmodifiableMapView_of_String_and_nullable_Object));
       else
         throw A.wrapException(A.ArgumentError$value(value, "value", "Must be bool, List<Object?>, Map<String?, Object?>, num or String"));
@@ -8210,7 +8210,7 @@
     },
     Serializers_Serializers() {
       var t1 = type$.Type,
-        t2 = type$.Serializer_dynamic,
+        t2 = type$.Serializer_Object?,
         t3 = type$.String;
       t2 = new A.BuiltJsonSerializersBuilder(A.MapBuilder_MapBuilder(t1, t2), A.MapBuilder_MapBuilder(t3, t2), A.MapBuilder_MapBuilder(t3, t2), A.MapBuilder_MapBuilder(type$.FullType, type$.Function), A.ListBuilder_ListBuilder(B.List_empty0, type$.SerializerPlugin));
       t2.add$1(0, new A.BigIntSerializer(A.BuiltList_BuiltList$from([B.Type_BigInt_DZK, A.getRuntimeTypeOfDartObject($.$get$_BigIntImpl_zero())], t1)));
@@ -10051,7 +10051,7 @@
       var t1 = $.$get$serializers(),
         t2 = new A.ConnectRequestBuilder();
       type$.nullable_void_Function_ConnectRequestBuilder._as(new A._sendConnectRequest_closure()).call$1(t2);
-      A._trySendEvent(clientSink, B.C_JsonCodec.encode$2$toEncodable(t1.serialize$1(t2._connect_request$_build$0()), null), type$.dynamic);
+      A._trySendEvent(clientSink, B.C_JsonCodec.encode$2$toEncodable(t1.serialize$1(t2._connect_request$_build$0()), null), type$.Object?);
     },
     _launchCommunicationWithDebugExtension() {
       var t1, t2;
@@ -10109,10 +10109,10 @@
       return A._asyncStartSync($async$_authenticateUser, $async$completer);
     },
     _sendResponse(clientSink, builder, requestId, errorMessage, success, $T) {
-      A._trySendEvent(clientSink, B.C_JsonCodec.encode$2$toEncodable($.$get$serializers().serialize$1(builder.call$1(new A._sendResponse_closure(requestId, success, errorMessage))), null), type$.dynamic);
+      A._trySendEvent(clientSink, B.C_JsonCodec.encode$2$toEncodable($.$get$serializers().serialize$1(builder.call$1(new A._sendResponse_closure(requestId, success, errorMessage))), null), type$.Object?);
     },
     _sendServiceExtensionResponse(clientSink, requestId, errorCode, errorMessage, result, success) {
-      A._trySendEvent(clientSink, B.C_JsonCodec.encode$2$toEncodable($.$get$serializers().serialize$1(A.ServiceExtensionResponse_ServiceExtensionResponse$fromResult(errorCode, errorMessage, requestId, result, success)), null), type$.dynamic);
+      A._trySendEvent(clientSink, B.C_JsonCodec.encode$2$toEncodable($.$get$serializers().serialize$1(A.ServiceExtensionResponse_ServiceExtensionResponse$fromResult(errorCode, errorMessage, requestId, result, success)), null), type$.Object?);
     },
     handleWebSocketHotReloadRequest($event, manager, clientSink) {
       return A.handleWebSocketHotReloadRequest$body($event, manager, clientSink);
@@ -10270,7 +10270,7 @@
               // Function start
               $async$handler = 3;
               t1 = request.argsJson;
-              t1 = t1.length === 0 ? A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.dynamic) : type$.Map_String_dynamic._as(B.C_JsonCodec.decode$1(t1));
+              t1 = t1.length === 0 ? A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.Object?) : type$.Map_String_Object?._as(B.C_JsonCodec.decode$1(t1));
               $async$goto = 6;
               return A._asyncAwait(manager.handleServiceExtension$2(request.method, t1), $async$handleServiceExtensionRequest);
             case 6:
@@ -10990,7 +10990,7 @@
       A._arrayInstanceType(receiver)._eval$1("Iterable<1>")._as(iterable);
       receiver.$flags & 1 && A.throwUnsupportedOperation(receiver, "insertAll", 2);
       A.RangeError_checkValueInInterval(index, 0, receiver.length, "index");
-      if (!type$.EfficientLengthIterable_dynamic._is(iterable))
+      if (!type$.EfficientLengthIterable_Object?._is(iterable))
         iterable = J.toList$0$ax(iterable);
       insertionLength = J.get$length$asx(iterable);
       receiver.length = receiver.length + insertionLength;
@@ -11046,7 +11046,7 @@
     },
     _addAllFromArray$1(receiver, array) {
       var len, i;
-      type$.JSArray_dynamic._as(array);
+      type$.JSArray_Object?._as(array);
       len = array.length;
       if (len === 0)
         return;
@@ -11064,7 +11064,7 @@
       return new A.MappedListIterable(receiver, t1._bind$1($T)._eval$1("1(2)")._as(f), t1._eval$1("@<1>")._bind$1($T)._eval$1("MappedListIterable<1,2>"));
     },
     map$1(receiver, f) {
-      return this.map$1$1(receiver, f, type$.dynamic);
+      return this.map$1$1(receiver, f, type$.Object?);
     },
     join$1(receiver, separator) {
       var i,
@@ -11131,7 +11131,7 @@
       if ($length === 0)
         return;
       A.RangeError_checkNotNegative(skipCount, "skipCount");
-      if (type$.List_dynamic._is(iterable)) {
+      if (type$.List_Object?._is(iterable)) {
         otherList = iterable;
         otherStart = skipCount;
       } else {
@@ -11929,7 +11929,7 @@
       return new A.MappedListIterable(this, t1._bind$1($T)._eval$1("1(ListIterable.E)")._as(toElement), t1._eval$1("@<ListIterable.E>")._bind$1($T)._eval$1("MappedListIterable<1,2>"));
     },
     map$1(_, toElement) {
-      return this.map$1$1(0, toElement, type$.dynamic);
+      return this.map$1$1(0, toElement, type$.Object?);
     },
     reduce$1(_, combine) {
       var $length, value, i, _this = this;
@@ -12124,7 +12124,7 @@
       return new A.MappedIterable(this, t1._bind$1($T)._eval$1("1(2)")._as(toElement), t1._eval$1("@<1>")._bind$1($T)._eval$1("MappedIterable<1,2>"));
     },
     map$1(_, toElement) {
-      return this.map$1$1(0, toElement, type$.dynamic);
+      return this.map$1$1(0, toElement, type$.Object?);
     }
   };
   A.WhereIterator.prototype = {
@@ -12261,7 +12261,7 @@
       return new A.EmptyIterable($T._eval$1("EmptyIterable<0>"));
     },
     map$1(_, toElement) {
-      return this.map$1$1(0, toElement, type$.dynamic);
+      return this.map$1$1(0, toElement, type$.Object?);
     },
     skip$1(_, count) {
       A.RangeError_checkNotNegative(count, "count");
@@ -12374,7 +12374,7 @@
       return result;
     },
     map$1(_, transform) {
-      var t1 = type$.dynamic;
+      var t1 = type$.Object?;
       return this.map$2$1(0, transform, t1, t1);
     },
     $isMap: 1
@@ -13257,7 +13257,7 @@
       return t1;
     },
     readLocal$0() {
-      return this.readLocal$1$0(type$.dynamic);
+      return this.readLocal$1$0(type$.Object?);
     },
     _readLocal$0() {
       var t1 = this.__late_helper$_value;
@@ -13749,7 +13749,7 @@
         t2 = t1.___AsyncStarStreamController_controller_A;
       t2 === $ && A.throwLateFieldNI("controller");
       if ((t2._state & 4) === 0) {
-        t1.cancelationFuture = new A._Future($.Zone__current, type$._Future_dynamic);
+        t1.cancelationFuture = new A._Future($.Zone__current, type$._Future_Object?);
         if (t1.isSuspended) {
           t1.isSuspended = false;
           A.scheduleMicrotask(new A._AsyncStarStreamController__closure(this.body));
@@ -13856,14 +13856,14 @@
       var exception, _this = this,
         errorCallback = _this.errorCallback,
         result = null,
-        t1 = type$.dynamic,
+        t1 = type$.Object?,
         t2 = type$.Object,
         t3 = asyncError.error,
         t4 = _this.result._zone;
-      if (type$.dynamic_Function_Object_StackTrace._is(errorCallback))
+      if (type$.Object?_Function_Object_StackTrace._is(errorCallback))
         result = t4.runBinary$3$3(errorCallback, t3, asyncError.stackTrace, t1, t2, type$.StackTrace);
       else
-        result = t4.runUnary$2$2(type$.dynamic_Function_Object._as(errorCallback), t3, t1, t2);
+        result = t4.runUnary$2$2(type$.Object?_Function_Object._as(errorCallback), t3, t1, t2);
       try {
         t1 = _this.$ti._eval$1("2/")._as(result);
         return t1;
@@ -13884,7 +13884,7 @@
       t1._bind$1($R)._eval$1("1/(2)")._as(f);
       currentZone = $.Zone__current;
       if (currentZone === B.C__RootZone) {
-        if (onError != null && !type$.dynamic_Function_Object_StackTrace._is(onError) && !type$.dynamic_Function_Object._is(onError))
+        if (onError != null && !type$.Object?_Function_Object_StackTrace._is(onError) && !type$.Object?_Function_Object._is(onError))
           throw A.wrapException(A.ArgumentError$value(onError, "onError", string$.Error_));
       } else {
         f = currentZone.registerUnaryCallback$2$1(f, $R._eval$1("0/"), t1._precomputed1);
@@ -13927,12 +13927,12 @@
     },
     whenComplete$1(action) {
       var t1, t2, result;
-      type$.dynamic_Function._as(action);
+      type$.Object?_Function._as(action);
       t1 = this.$ti;
       t2 = $.Zone__current;
       result = new A._Future(t2, t1);
       if (t2 !== B.C__RootZone)
-        action = t2.registerCallback$1$1(action, type$.dynamic);
+        action = t2.registerCallback$1$1(action, type$.Object?);
       this._addListener$1(new A._FutureListener(result, 8, action, null, t1._eval$1("_FutureListener<1,1>")));
       return result;
     },
@@ -13948,11 +13948,11 @@
       var source, _this = this,
         t1 = _this._state;
       if (t1 <= 3) {
-        listener._nextListener = type$.nullable__FutureListener_dynamic_dynamic._as(_this._resultOrListeners);
+        listener._nextListener = type$.nullable__FutureListener_Object?_Object?._as(_this._resultOrListeners);
         _this._resultOrListeners = listener;
       } else {
         if ((t1 & 4) !== 0) {
-          source = type$._Future_dynamic._as(_this._resultOrListeners);
+          source = type$._Future_Object?._as(_this._resultOrListeners);
           if ((source._state & 24) === 0) {
             source._addListener$1(listener);
             return;
@@ -13969,7 +13969,7 @@
         return;
       t1 = _this._state;
       if (t1 <= 3) {
-        existingListeners = type$.nullable__FutureListener_dynamic_dynamic._as(_this._resultOrListeners);
+        existingListeners = type$.nullable__FutureListener_Object?_Object?._as(_this._resultOrListeners);
         _this._resultOrListeners = listeners;
         if (existingListeners != null) {
           next = listeners._nextListener;
@@ -13979,7 +13979,7 @@
         }
       } else {
         if ((t1 & 4) !== 0) {
-          source = type$._Future_dynamic._as(_this._resultOrListeners);
+          source = type$._Future_Object?._as(_this._resultOrListeners);
           if ((source._state & 24) === 0) {
             source._prependListeners$1(listeners);
             return;
@@ -13991,7 +13991,7 @@
       }
     },
     _removeListeners$0() {
-      var current = type$.nullable__FutureListener_dynamic_dynamic._as(this._resultOrListeners);
+      var current = type$.nullable__FutureListener_Object?_Object?._as(this._resultOrListeners);
       this._resultOrListeners = null;
       return this._reverseListeners$1(current);
     },
@@ -14125,7 +14125,7 @@
       var e, s, t1, exception, t2, t3, originalSource, joinedResult, _this = this, completeResult = null;
       try {
         t1 = _this._box_0.listener;
-        completeResult = t1.result._zone.run$1$1(type$.dynamic_Function._as(t1.callback), type$.dynamic);
+        completeResult = t1.result._zone.run$1$1(type$.Object?_Function._as(t1.callback), type$.Object?);
       } catch (exception) {
         e = A.unwrapException(exception);
         s = A.getTraceFromException(exception);
@@ -14284,7 +14284,7 @@
       return new A._MapStream(t1._bind$1($S)._eval$1("1(Stream.T)")._as(convert), this, t1._eval$1("@<Stream.T>")._bind$1($S)._eval$1("_MapStream<1,2>"));
     },
     map$1(_, convert) {
-      return this.map$1$1(0, convert, type$.dynamic);
+      return this.map$1$1(0, convert, type$.Object?);
     },
     get$length(_) {
       var t1 = {},
@@ -14386,13 +14386,13 @@
       if (t2 >= 4)
         throw A.wrapException(_this._badEventState$0());
       if ((t2 & 2) !== 0) {
-        t1 = new A._Future($.Zone__current, type$._Future_dynamic);
+        t1 = new A._Future($.Zone__current, type$._Future_Object?);
         t1._asyncComplete$1(null);
         return t1;
       }
       t2 = _this._varData;
       t3 = cancelOnError === true;
-      t4 = new A._Future($.Zone__current, type$._Future_dynamic);
+      t4 = new A._Future($.Zone__current, type$._Future_Object?);
       t5 = t1._eval$1("~(1)")._as(_this.get$_add());
       t6 = t3 ? A._AddStreamState_makeErrorHandler(_this) : _this.get$_addError();
       t6 = source.listen$4$cancelOnError$onDone$onError(t5, t3, _this.get$_close(), t6);
@@ -14949,7 +14949,7 @@
   };
   A._DelayedEvent.prototype = {
     set$next(next) {
-      this.next = type$.nullable__DelayedEvent_dynamic._as(next);
+      this.next = type$.nullable__DelayedEvent_Object?._as(next);
     },
     get$next() {
       return this.next;
@@ -15759,7 +15759,7 @@
         result = _this._keys;
       if (result != null)
         return result;
-      result = A.List_List$filled(_this._collection$_length, null, false, type$.dynamic);
+      result = A.List_List$filled(_this._collection$_length, null, false, type$.Object?);
       strings = _this._strings;
       index = 0;
       if (strings != null) {
@@ -16047,7 +16047,7 @@
         result = _this._collection$_elements;
       if (result != null)
         return result;
-      result = A.List_List$filled(_this._collection$_length, null, false, type$.dynamic);
+      result = A.List_List$filled(_this._collection$_length, null, false, type$.Object?);
       strings = _this._strings;
       index = 0;
       if (strings != null) {
@@ -16315,7 +16315,7 @@
       return new A.MappedListIterable(receiver, t1._bind$1($T)._eval$1("1(ListBase.E)")._as(f), t1._eval$1("@<ListBase.E>")._bind$1($T)._eval$1("MappedListIterable<1,2>"));
     },
     map$1(receiver, f) {
-      return this.map$1$1(receiver, f, type$.dynamic);
+      return this.map$1$1(receiver, f, type$.Object?);
     },
     skip$1(receiver, count) {
       return A.SubListIterable$(receiver, count, null, A.instanceType(receiver)._eval$1("ListBase.E"));
@@ -16388,7 +16388,7 @@
       if ($length === 0)
         return;
       A.RangeError_checkNotNegative(skipCount, "skipCount");
-      if (type$.List_dynamic._is(iterable)) {
+      if (type$.List_Object?._is(iterable)) {
         otherStart = skipCount;
         otherList = iterable;
       } else {
@@ -16441,7 +16441,7 @@
       return result;
     },
     map$1(_, transform) {
-      var t1 = type$.dynamic;
+      var t1 = type$.Object?;
       return this.map$2$1(0, transform, t1, t1);
     },
     containsKey$1(key) {
@@ -16526,7 +16526,7 @@
       return this._collection$_map.map$2$1(0, A._instanceType(this)._bind$1($K2)._bind$1($V2)._eval$1("MapEntry<1,2>(3,4)")._as(transform), $K2, $V2);
     },
     map$1(_, transform) {
-      var t1 = type$.dynamic;
+      var t1 = type$.Object?;
       return this.map$2$1(0, transform, t1, t1);
     },
     $isMap: 1
@@ -16685,7 +16685,7 @@
       return new A.EfficientLengthMappedIterable(this, t1._bind$1($T)._eval$1("1(2)")._as(f), t1._eval$1("@<1>")._bind$1($T)._eval$1("EfficientLengthMappedIterable<1,2>"));
     },
     map$1(_, f) {
-      return this.map$1$1(0, f, type$.dynamic);
+      return this.map$1$1(0, f, type$.Object?);
     },
     toString$0(_) {
       return A.Iterable_iterableToFullString(this, "{", "}");
@@ -17047,7 +17047,7 @@
     },
     forEach$1(_, f) {
       var keys, i, key, value, _this = this;
-      type$.void_Function_String_dynamic._as(f);
+      type$.void_Function_String_Object?._as(f);
       if (_this._processed == null)
         return _this._convert$_data.forEach$1(0, f);
       keys = _this._convert$_computeKeys$0();
@@ -17064,7 +17064,7 @@
       }
     },
     _convert$_computeKeys$0() {
-      var keys = type$.nullable_List_dynamic._as(this._convert$_data);
+      var keys = type$.nullable_List_Object?._as(this._convert$_data);
       if (keys == null)
         keys = this._convert$_data = A._setArrayType(Object.keys(this._original), type$.JSArray_String);
       return keys;
@@ -17073,7 +17073,7 @@
       var result, keys, i, t1, key, _this = this;
       if (_this._processed == null)
         return _this._convert$_data;
-      result = A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.dynamic);
+      result = A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.Object?);
       keys = _this._convert$_computeKeys$0();
       for (i = 0; t1 = keys.length, i < t1; ++i) {
         key = keys[i];
@@ -17584,7 +17584,7 @@
         _this.writeStringContent$1(object);
         _this.writeString$1('"');
         return true;
-      } else if (type$.List_dynamic._is(object)) {
+      } else if (type$.List_Object?._is(object)) {
         _this._checkCycle$1(object);
         _this.writeList$1(object);
         t1 = _this._seen;
@@ -17592,7 +17592,7 @@
           return A.ioore(t1, -1);
         t1.pop();
         return true;
-      } else if (type$.Map_dynamic_dynamic._is(object)) {
+      } else if (type$.Map_Object?_Object?._is(object)) {
         _this._checkCycle$1(object);
         success = _this.writeMap$1(object);
         t1 = _this._seen;
@@ -18640,7 +18640,7 @@
       return A.MappedIterable_MappedIterable(this, t1._bind$1($T)._eval$1("1(Iterable.E)")._as(toElement), t1._eval$1("Iterable.E"), $T);
     },
     map$1(_, toElement) {
-      return this.map$1$1(0, toElement, type$.dynamic);
+      return this.map$1$1(0, toElement, type$.Object?);
     },
     contains$1(_, element) {
       var t1;
@@ -18809,7 +18809,7 @@
           t1 = false;
         if (t1)
           pathToSplit = B.JSString_methods.substring$1(pathToSplit, 1);
-        result = pathToSplit.length === 0 ? B.List_empty : A.List_List$unmodifiable(new A.MappedListIterable(A._setArrayType(pathToSplit.split("/"), type$.JSArray_String), type$.dynamic_Function_String._as(A.core_Uri_decodeComponent$closure()), type$.MappedListIterable_String_dynamic), type$.String);
+        result = pathToSplit.length === 0 ? B.List_empty : A.List_List$unmodifiable(new A.MappedListIterable(A._setArrayType(pathToSplit.split("/"), type$.JSArray_String), type$.Object?_Function_String._as(A.core_Uri_decodeComponent$closure()), type$.MappedListIterable_String_Object?), type$.String);
         _this.___Uri_pathSegments_FI !== $ && A.throwLateFieldADI("pathSegments");
         value = _this.___Uri_pathSegments_FI = result;
       }
@@ -19460,7 +19460,7 @@
       t1 = this._convertedObjects;
       if (t1.containsKey$1(o))
         return t1.$index(0, o);
-      if (type$.Map_dynamic_dynamic._is(o)) {
+      if (type$.Map_Object?_Object?._is(o)) {
         convertedMap = {};
         t1.$indexSet(0, o, convertedMap);
         for (t1 = o.get$keys(), t1 = t1.get$iterator(t1); t1.moveNext$0();) {
@@ -19468,10 +19468,10 @@
           convertedMap[key] = this.call$1(o.$index(0, key));
         }
         return convertedMap;
-      } else if (type$.Iterable_dynamic._is(o)) {
+      } else if (type$.Iterable_Object?._is(o)) {
         convertedList = [];
         t1.$indexSet(0, o, convertedList);
-        B.JSArray_methods.addAll$1(convertedList, J.map$1$1$ax(o, this, type$.dynamic));
+        B.JSArray_methods.addAll$1(convertedList, J.map$1$1$ax(o, this, type$.Object?));
         return convertedList;
       } else
         return o;
@@ -19798,7 +19798,7 @@
       return new A.MappedListIterable(t1, t2._bind$1($T)._eval$1("1(2)")._as(this.$ti._bind$1($T)._eval$1("1(2)")._as(f)), t2._eval$1("@<1>")._bind$1($T)._eval$1("MappedListIterable<1,2>"));
     },
     map$1(_, f) {
-      return this.map$1$1(0, f, type$.dynamic);
+      return this.map$1$1(0, f, type$.Object?);
     },
     contains$1(_, element) {
       return B.JSArray_methods.contains$1(this._list, element);
@@ -19975,7 +19975,7 @@
   A._BuiltListMultimap.prototype = {
     _BuiltListMultimap$copy$2(keys, lookup, $K, $V) {
       var t1, t2, t3, key;
-      for (t1 = keys.get$iterator(keys), t2 = this._list_multimap$_map, t3 = type$.Iterable_dynamic; t1.moveNext$0();) {
+      for (t1 = keys.get$iterator(keys), t2 = this._list_multimap$_map, t3 = type$.Iterable_Object?; t1.moveNext$0();) {
         key = t1.get$current();
         if ($K._is(key))
           t2.$indexSet(0, key, A.BuiltList_BuiltList$from(t3._as(lookup.call$1(key)), $V));
@@ -20052,7 +20052,7 @@
       t4 = t1._eval$1("Map<1,BuiltList<2>>");
       _this.__ListMultimapBuilder__builtMap_A = t4._as(A.LinkedHashMap_LinkedHashMap$_empty(t2, t3));
       _this.__ListMultimapBuilder__builderMap_A = t1._eval$1("Map<1,ListBuilder<2>>")._as(A.LinkedHashMap_LinkedHashMap$_empty(t2, t1._eval$1("ListBuilder<2>")));
-      for (t5 = keys.get$iterator(keys), t6 = type$.Iterable_dynamic, t1 = t1._rest[1]; t5.moveNext$0();) {
+      for (t5 = keys.get$iterator(keys), t6 = type$.Iterable_Object?, t1 = t1._rest[1]; t5.moveNext$0();) {
         key = t5.get$current();
         if (t2._is(key))
           for (t7 = J.get$iterator$ax(t6._as(lookup.call$1(key))); t7.moveNext$0();) {
@@ -20173,8 +20173,8 @@
       return this._map$_map.__js_helper$_length;
     },
     map$1(_, f) {
-      var t1 = type$.dynamic;
-      return new A._BuiltMap(null, this._map$_map.map$2$1(0, this.$ti._eval$1("MapEntry<@,@>(1,2)")._as(f), t1, t1), type$._BuiltMap_dynamic_dynamic);
+      var t1 = type$.Object?;
+      return new A._BuiltMap(null, this._map$_map.map$2$1(0, this.$ti._eval$1("MapEntry<@,@>(1,2)")._as(f), t1, t1), type$._BuiltMap_Object?_Object?);
     }
   };
   A.BuiltMap_BuiltMap_closure.prototype = {
@@ -20348,7 +20348,7 @@
       return new A.EfficientLengthMappedIterable(t1, t2._bind$1($T)._eval$1("1(2)")._as(this.$ti._bind$1($T)._eval$1("1(2)")._as(f)), t2._eval$1("@<1>")._bind$1($T)._eval$1("EfficientLengthMappedIterable<1,2>"));
     },
     map$1(_, f) {
-      return this.map$1$1(0, f, type$.dynamic);
+      return this.map$1$1(0, f, type$.Object?);
     },
     contains$1(_, element) {
       return this._set$_set.contains$1(0, element);
@@ -20610,7 +20610,7 @@
       t4 = t1._eval$1("Map<1,BuiltSet<2>>");
       _this.__SetMultimapBuilder__builtMap_A = t4._as(A.LinkedHashMap_LinkedHashMap$_empty(t2, t3));
       _this.__SetMultimapBuilder__builderMap_A = t1._eval$1("Map<1,SetBuilder<2>>")._as(A.LinkedHashMap_LinkedHashMap$_empty(t2, t1._eval$1("SetBuilder<2>")));
-      for (t5 = keys.get$iterator(keys), t6 = type$.Iterable_dynamic, t1 = t1._rest[1]; t5.moveNext$0();) {
+      for (t5 = keys.get$iterator(keys), t6 = type$.Iterable_Object?, t1 = t1._rest[1]; t5.moveNext$0();) {
         key = t5.get$current();
         if (t2._is(key))
           for (t7 = J.get$iterator$ax(t6._as(lookup.call$1(key))); t7.moveNext$0();) {
@@ -20966,11 +20966,11 @@
         serializer = _this.serializerForType$1(t1.get$runtimeType(object));
         if (serializer == null)
           throw A.wrapException(A.StateError$(A._noSerializerMessageFor(t1.get$runtimeType(object).toString$0(0))));
-        if (type$.StructuredSerializer_dynamic._is(serializer)) {
+        if (type$.StructuredSerializer_Object?._is(serializer)) {
           result = [serializer.get$wireName()];
           B.JSArray_methods.addAll$1(result, serializer.serialize$2(_this, object));
           return result;
-        } else if (type$.PrimitiveSerializer_dynamic._is(serializer))
+        } else if (type$.PrimitiveSerializer_Object?._is(serializer))
           return object == null ? [serializer.get$wireName(), null] : A._setArrayType([serializer.get$wireName(), serializer.serialize$2(_this, object)], type$.JSArray_Object);
         else
           throw A.wrapException(A.StateError$(_s62_));
@@ -20978,9 +20978,9 @@
         serializer = _this.serializerForType$1(t1);
         if (serializer == null)
           return _this.serialize$1(object);
-        if (type$.StructuredSerializer_dynamic._is(serializer))
+        if (type$.StructuredSerializer_Object?._is(serializer))
           return object == null ? null : J.toList$0$ax(serializer.serialize$3$specifiedType(_this, object, specifiedType));
-        else if (type$.PrimitiveSerializer_dynamic._is(serializer))
+        else if (type$.PrimitiveSerializer_Object?._is(serializer))
           return object == null ? null : serializer.serialize$3$specifiedType(_this, object, specifiedType);
         else
           throw A.wrapException(A.StateError$(_s62_));
@@ -21013,7 +21013,7 @@
         serializer = _this._wireNameToSerializer._map$_map.$index(0, wireName);
         if (serializer == null)
           throw A.wrapException(A.StateError$(A._noSerializerMessageFor(wireName)));
-        if (type$.StructuredSerializer_dynamic._is(serializer))
+        if (type$.StructuredSerializer_Object?._is(serializer))
           try {
             t1 = serializer.deserialize$2(_this, t1.sublist$1(object, 1));
             return t1;
@@ -21025,7 +21025,7 @@
             } else
               throw exception;
           }
-        else if (type$.PrimitiveSerializer_dynamic._is(serializer))
+        else if (type$.PrimitiveSerializer_Object?._is(serializer))
           try {
             primitive = t1.$index(object, 1);
             t1 = primitive == null ? null : serializer.deserialize$2(_this, primitive);
@@ -21043,11 +21043,11 @@
       } else {
         serializer0 = _this.serializerForType$1(t1);
         if (serializer0 == null)
-          if (type$.List_dynamic._is(object) && typeof J.get$first$ax(object) == "string")
+          if (type$.List_Object?._is(object) && typeof J.get$first$ax(object) == "string")
             return _this.deserialize$1(objectBeforePlugins);
           else
             throw A.wrapException(A.StateError$(A._noSerializerMessageFor(t1.toString$0(0))));
-        if (type$.StructuredSerializer_dynamic._is(serializer0))
+        if (type$.StructuredSerializer_Object?._is(serializer0))
           try {
             t1 = object == null ? null : serializer0.deserialize$3$specifiedType(_this, type$.Iterable_nullable_Object._as(object), specifiedType);
             return t1;
@@ -21059,7 +21059,7 @@
             } else
               throw exception;
           }
-        else if (type$.PrimitiveSerializer_dynamic._is(serializer0))
+        else if (type$.PrimitiveSerializer_Object?._is(serializer0))
           try {
             t1 = object == null ? null : serializer0.deserialize$3$specifiedType(_this, object, specifiedType);
             return t1;
@@ -21095,7 +21095,7 @@
   A.BuiltJsonSerializersBuilder.prototype = {
     add$1(_, serializer) {
       var t1, t2, t3, t4, t5, t6, $name, genericsStart, t7;
-      if (!type$.StructuredSerializer_dynamic._is(serializer) && !type$.PrimitiveSerializer_dynamic._is(serializer))
+      if (!type$.StructuredSerializer_Object?._is(serializer) && !type$.PrimitiveSerializer_Object?._is(serializer))
         throw A.wrapException(A.ArgumentError$(string$.serial, null));
       this._wireNameToSerializer.$indexSet(0, serializer.get$wireName(), serializer);
       for (t1 = J.get$iterator$ax(serializer.get$types()), t2 = this._typeToSerializer, t3 = t2.$ti, t4 = t3._precomputed1, t3 = t3._rest[1], t5 = this._typeNameToSerializer; t1.moveNext$0();) {
@@ -21132,7 +21132,7 @@
   A.BuiltListMultimapSerializer.prototype = {
     serialize$3$specifiedType(serializers, builtListMultimap, specifiedType) {
       var t1, t2, t3, keyType, valueType, result, key, result0, t4, t5, t6, t7;
-      type$.BuiltListMultimap_dynamic_dynamic._as(builtListMultimap);
+      type$.BuiltListMultimap_Object?_Object?._as(builtListMultimap);
       if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
         if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
           serializers._throwMissingBuilderFactory$1(specifiedType);
@@ -21196,7 +21196,7 @@
         t2 = type$.Object;
         result = A.ListMultimapBuilder_ListMultimapBuilder(t2, t2);
       } else
-        result = type$.ListMultimapBuilder_dynamic_dynamic._as(serializers.newBuilder$1(specifiedType));
+        result = type$.ListMultimapBuilder_Object?_Object?._as(serializers.newBuilder$1(specifiedType));
       t2 = J.getInterceptor$asx(serialized);
       if (B.JSInt_methods.$mod(t2.get$length(serialized), 2) === 1)
         throw A.wrapException(A.ArgumentError$("odd length", null));
@@ -21262,7 +21262,7 @@
   A.BuiltListSerializer.prototype = {
     serialize$3$specifiedType(serializers, builtList, specifiedType) {
       var t1, t2, elementType;
-      type$.BuiltList_dynamic._as(builtList);
+      type$.BuiltList_Object?._as(builtList);
       if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
         if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
           serializers._throwMissingBuilderFactory$1(specifiedType);
@@ -21284,7 +21284,7 @@
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
       var isUnderspecified, t1, t2, elementType, result;
-      type$.Iterable_dynamic._as(serialized);
+      type$.Iterable_Object?._as(serialized);
       isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
       t1 = specifiedType.parameters;
       t2 = t1.length;
@@ -21295,8 +21295,8 @@
           return A.ioore(t1, 0);
         elementType = t1[0];
       }
-      result = isUnderspecified ? A.ListBuilder_ListBuilder(B.List_empty0, type$.Object) : type$.ListBuilder_dynamic._as(serializers.newBuilder$1(specifiedType));
-      result.replace$1(J.map$1$1$ax(serialized, new A.BuiltListSerializer_deserialize_closure(serializers, elementType), type$.dynamic));
+      result = isUnderspecified ? A.ListBuilder_ListBuilder(B.List_empty0, type$.Object) : type$.ListBuilder_Object?._as(serializers.newBuilder$1(specifiedType));
+      result.replace$1(J.map$1$1$ax(serialized, new A.BuiltListSerializer_deserialize_closure(serializers, elementType), type$.Object?));
       return result.build$0();
     },
     deserialize$2(serializers, serialized) {
@@ -21326,7 +21326,7 @@
   A.BuiltMapSerializer.prototype = {
     serialize$3$specifiedType(serializers, builtMap, specifiedType) {
       var t1, t2, t3, keyType, valueType, result, key;
-      type$.BuiltMap_dynamic_dynamic._as(builtMap);
+      type$.BuiltMap_Object?_Object?._as(builtMap);
       if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
         if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
           serializers._throwMissingBuilderFactory$1(specifiedType);
@@ -21360,7 +21360,7 @@
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
       var isUnderspecified, t1, t2, t3, keyType, valueType, result, i, key, value;
-      type$.Iterable_dynamic._as(serialized);
+      type$.Iterable_Object?._as(serialized);
       isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
       t1 = specifiedType.parameters;
       t2 = t1.length;
@@ -21383,7 +21383,7 @@
         t1 = type$.Object;
         result = A.MapBuilder_MapBuilder(t1, t1);
       } else
-        result = type$.MapBuilder_dynamic_dynamic._as(serializers.newBuilder$1(specifiedType));
+        result = type$.MapBuilder_Object?_Object?._as(serializers.newBuilder$1(specifiedType));
       t1 = J.getInterceptor$asx(serialized);
       if (B.JSInt_methods.$mod(t1.get$length(serialized), 2) === 1)
         throw A.wrapException(A.ArgumentError$("odd length", null));
@@ -21413,7 +21413,7 @@
   A.BuiltSetMultimapSerializer.prototype = {
     serialize$3$specifiedType(serializers, builtSetMultimap, specifiedType) {
       var t1, t2, t3, keyType, valueType, result, key, result0, t4, t5, t6, t7;
-      type$.BuiltSetMultimap_dynamic_dynamic._as(builtSetMultimap);
+      type$.BuiltSetMultimap_Object?_Object?._as(builtSetMultimap);
       if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
         if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
           serializers._throwMissingBuilderFactory$1(specifiedType);
@@ -21453,7 +21453,7 @@
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
       var isUnderspecified, t2, t3, t4, keyType, valueType, result, t5, t6, i, key, t7, value, t8, t9,
-        t1 = type$.Iterable_dynamic;
+        t1 = type$.Iterable_Object?;
       t1._as(serialized);
       isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
       t2 = specifiedType.parameters;
@@ -21477,7 +21477,7 @@
         t2 = type$.Object;
         result = A.SetMultimapBuilder_SetMultimapBuilder(t2, t2);
       } else
-        result = type$.SetMultimapBuilder_dynamic_dynamic._as(serializers.newBuilder$1(specifiedType));
+        result = type$.SetMultimapBuilder_Object?_Object?._as(serializers.newBuilder$1(specifiedType));
       t2 = J.getInterceptor$asx(serialized);
       if (B.JSInt_methods.$mod(t2.get$length(serialized), 2) === 1)
         throw A.wrapException(A.ArgumentError$("odd length", null));
@@ -21533,7 +21533,7 @@
   A.BuiltSetSerializer.prototype = {
     serialize$3$specifiedType(serializers, builtSet, specifiedType) {
       var t1, t2, elementType;
-      type$.BuiltSet_dynamic._as(builtSet);
+      type$.BuiltSet_Object?._as(builtSet);
       if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
         if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
           serializers._throwMissingBuilderFactory$1(specifiedType);
@@ -21555,7 +21555,7 @@
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
       var isUnderspecified, t1, t2, elementType, result;
-      type$.Iterable_dynamic._as(serialized);
+      type$.Iterable_Object?._as(serialized);
       isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
       t1 = specifiedType.parameters;
       t2 = t1.length;
@@ -21566,8 +21566,8 @@
           return A.ioore(t1, 0);
         elementType = t1[0];
       }
-      result = isUnderspecified ? A.SetBuilder_SetBuilder(type$.Object) : type$.SetBuilder_dynamic._as(serializers.newBuilder$1(specifiedType));
-      result.replace$1(J.map$1$1$ax(serialized, new A.BuiltSetSerializer_deserialize_closure(serializers, elementType), type$.dynamic));
+      result = isUnderspecified ? A.SetBuilder_SetBuilder(type$.Object) : type$.SetBuilder_Object?._as(serializers.newBuilder$1(specifiedType));
+      result.replace$1(J.map$1$1$ax(serialized, new A.BuiltSetSerializer_deserialize_closure(serializers, elementType), type$.Object?));
       return result.build$0();
     },
     deserialize$2(serializers, serialized) {
@@ -21780,7 +21780,7 @@
   A.ListSerializer.prototype = {
     serialize$3$specifiedType(serializers, list, specifiedType) {
       var t1, t2, elementType;
-      type$.List_dynamic._as(list);
+      type$.List_Object?._as(list);
       if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
         if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
           serializers._throwMissingBuilderFactory$1(specifiedType);
@@ -21800,7 +21800,7 @@
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
       var isUnderspecified, t1, t2, elementType, result;
-      type$.Iterable_dynamic._as(serialized);
+      type$.Iterable_Object?._as(serialized);
       isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
       t1 = specifiedType.parameters;
       t2 = t1.length;
@@ -21811,7 +21811,7 @@
           return A.ioore(t1, 0);
         elementType = t1[0];
       }
-      result = isUnderspecified ? A._setArrayType([], type$.JSArray_Object) : type$.List_dynamic._as(serializers.newBuilder$1(specifiedType));
+      result = isUnderspecified ? A._setArrayType([], type$.JSArray_Object) : type$.List_Object?._as(serializers.newBuilder$1(specifiedType));
       for (t1 = J.get$iterator$ax(serialized), t2 = J.getInterceptor$ax(result); t1.moveNext$0();)
         t2.add$1(result, serializers.deserialize$2$specifiedType(t1.get$current(), elementType));
       return result;
@@ -21837,7 +21837,7 @@
   A.MapSerializer.prototype = {
     serialize$3$specifiedType(serializers, $Map, specifiedType) {
       var t1, t2, t3, keyType, valueType, result, key;
-      type$.Map_dynamic_dynamic._as($Map);
+      type$.Map_Object?_Object?._as($Map);
       if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
         if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
           serializers._throwMissingBuilderFactory$1(specifiedType);
@@ -21871,7 +21871,7 @@
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
       var isUnderspecified, t1, t2, t3, keyType, valueType, result, i;
-      type$.Iterable_dynamic._as(serialized);
+      type$.Iterable_Object?._as(serialized);
       isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
       t1 = specifiedType.parameters;
       t2 = t1.length;
@@ -21894,7 +21894,7 @@
         t1 = type$.Object;
         result = A.LinkedHashMap_LinkedHashMap$_empty(t1, t1);
       } else
-        result = type$.Map_dynamic_dynamic._as(serializers.newBuilder$1(specifiedType));
+        result = type$.Map_Object?_Object?._as(serializers.newBuilder$1(specifiedType));
       t1 = J.getInterceptor$asx(serialized);
       if (B.JSInt_methods.$mod(t1.get$length(serialized), 2) === 1)
         throw A.wrapException(A.ArgumentError$("odd length", null));
@@ -21998,7 +21998,7 @@
   A.SetSerializer.prototype = {
     serialize$3$specifiedType(serializers, set, specifiedType) {
       var t1, t2, elementType;
-      type$.Set_dynamic._as(set);
+      type$.Set_Object?._as(set);
       if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
         if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
           serializers._throwMissingBuilderFactory$1(specifiedType);
@@ -22018,7 +22018,7 @@
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
       var isUnderspecified, t1, t2, elementType, result;
-      type$.Iterable_dynamic._as(serialized);
+      type$.Iterable_Object?._as(serialized);
       isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
       t1 = specifiedType.parameters;
       t2 = t1.length;
@@ -22029,7 +22029,7 @@
           return A.ioore(t1, 0);
         elementType = t1[0];
       }
-      result = isUnderspecified ? A.LinkedHashSet_LinkedHashSet$_empty(type$.Object) : type$.Set_dynamic._as(serializers.newBuilder$1(specifiedType));
+      result = isUnderspecified ? A.LinkedHashSet_LinkedHashSet$_empty(type$.Object) : type$.Set_Object?._as(serializers.newBuilder$1(specifiedType));
       for (t1 = J.get$iterator$ax(serialized); t1.moveNext$0();)
         result.add$1(0, serializers.deserialize$2$specifiedType(t1.get$current(), elementType));
       return result;
@@ -22170,7 +22170,7 @@
       return this._base.map$2$1(0, new A.CanonicalizedMap_map_closure(this, this.$ti._bind$1($K2)._bind$1($V2)._eval$1("MapEntry<1,2>(CanonicalizedMap.K,CanonicalizedMap.V)")._as(transform), $K2, $V2), $K2, $V2);
     },
     map$1(_, transform) {
-      var t1 = type$.dynamic;
+      var t1 = type$.Object?;
       return this.map$2$1(0, transform, t1, t1);
     },
     toString$0(_) {
@@ -22393,30 +22393,30 @@
   A.DeepCollectionEquality.prototype = {
     equals$2(e1, e2) {
       var _this = this,
-        t1 = type$.Set_dynamic;
+        t1 = type$.Set_Object?;
       if (t1._is(e1))
-        return t1._is(e2) && new A.SetEquality(_this, type$.SetEquality_dynamic).equals$2(e1, e2);
-      t1 = type$.Map_dynamic_dynamic;
+        return t1._is(e2) && new A.SetEquality(_this, type$.SetEquality_Object?).equals$2(e1, e2);
+      t1 = type$.Map_Object?_Object?;
       if (t1._is(e1))
-        return t1._is(e2) && new A.MapEquality(_this, _this, type$.MapEquality_dynamic_dynamic).equals$2(e1, e2);
-      t1 = type$.List_dynamic;
+        return t1._is(e2) && new A.MapEquality(_this, _this, type$.MapEquality_Object?_Object?).equals$2(e1, e2);
+      t1 = type$.List_Object?;
       if (t1._is(e1))
-        return t1._is(e2) && new A.ListEquality(_this, type$.ListEquality_dynamic).equals$2(e1, e2);
-      t1 = type$.Iterable_dynamic;
+        return t1._is(e2) && new A.ListEquality(_this, type$.ListEquality_Object?).equals$2(e1, e2);
+      t1 = type$.Iterable_Object?;
       if (t1._is(e1))
-        return t1._is(e2) && new A.IterableEquality(_this, type$.IterableEquality_dynamic).equals$2(e1, e2);
+        return t1._is(e2) && new A.IterableEquality(_this, type$.IterableEquality_Object?).equals$2(e1, e2);
       return J.$eq$(e1, e2);
     },
     hash$1(o) {
       var _this = this;
-      if (type$.Set_dynamic._is(o))
-        return new A.SetEquality(_this, type$.SetEquality_dynamic).hash$1(o);
-      if (type$.Map_dynamic_dynamic._is(o))
-        return new A.MapEquality(_this, _this, type$.MapEquality_dynamic_dynamic).hash$1(o);
-      if (type$.List_dynamic._is(o))
-        return new A.ListEquality(_this, type$.ListEquality_dynamic).hash$1(o);
-      if (type$.Iterable_dynamic._is(o))
-        return new A.IterableEquality(_this, type$.IterableEquality_dynamic).hash$1(o);
+      if (type$.Set_Object?._is(o))
+        return new A.SetEquality(_this, type$.SetEquality_Object?).hash$1(o);
+      if (type$.Map_Object?_Object?._is(o))
+        return new A.MapEquality(_this, _this, type$.MapEquality_Object?_Object?).hash$1(o);
+      if (type$.List_Object?._is(o))
+        return new A.ListEquality(_this, type$.ListEquality_Object?).hash$1(o);
+      if (type$.Iterable_Object?._is(o))
+        return new A.IterableEquality(_this, type$.IterableEquality_Object?).hash$1(o);
       return J.get$hashCode$(o);
     },
     isValidKey$1(o) {
@@ -28087,7 +28087,7 @@
               t5 = A.StreamController_StreamController(null, null, null, false, type$.List_DebugEvent);
               debugEventController = new A.BatchedStreamController(t3, 1000, t4, t5, new A._AsyncCompleter(new A._Future(t2, type$._Future_bool), type$._AsyncCompleter_bool), type$.BatchedStreamController_DebugEvent);
               t2 = A.List_List$filled(A.QueueList__computeInitialCapacity(null), null, false, type$.nullable_Result_DebugEvent);
-              t3 = A.ListQueue$(type$._EventRequest_dynamic);
+              t3 = A.ListQueue$(type$._EventRequest_Object?);
               t6 = type$.StreamQueue_DebugEvent;
               debugEventController.__BatchedStreamController__inputQueue_A = t6._as(new A.StreamQueue(new A._ControllerStream(t4, A._instanceType(t4)._eval$1("_ControllerStream<1>")), new A.QueueList(t2, 0, 0, type$.QueueList_Result_DebugEvent), t3, t6));
               A.safeUnawaited(debugEventController._batchAndSendEvents$0());
@@ -28137,8 +28137,8 @@
       t2 = init.G;
       t3 = type$.nullable_JSArray_nullable_Object;
       if (pauseIsolatesOnStart === true) {
-        t4 = new A._Future($.Zone__current, type$._Future_dynamic);
-        this._box_0.readyToRunMainCompleter = new A._AsyncCompleter(t4, type$._AsyncCompleter_dynamic);
+        t4 = new A._Future($.Zone__current, type$._Future_Object?);
+        this._box_0.readyToRunMainCompleter = new A._AsyncCompleter(t4, type$._AsyncCompleter_Object?);
         return A.FutureOfJSAnyToJSPromise_get_toJS(t1.hotRestart$3$readyToRunMain$reloadedSourcesPath$runId(t4, A._asStringQ(t2.$reloadedSourcesPath), runId), t3);
       } else
         return A.FutureOfJSAnyToJSPromise_get_toJS(t1.hotRestart$2$reloadedSourcesPath$runId(A._asStringQ(t2.$reloadedSourcesPath), runId), t3);
@@ -28175,7 +28175,7 @@
         t2 = $.$get$serializers();
         t3 = new A.BatchedDebugEventsBuilder();
         type$.nullable_void_Function_BatchedDebugEventsBuilder._as(new A.main___closure2(events)).call$1(t3);
-        A._trySendEvent(t1, B.C_JsonCodec.encode$2$toEncodable(t2.serialize$1(t3._debug_event$_build$0()), null), type$.dynamic);
+        A._trySendEvent(t1, B.C_JsonCodec.encode$2$toEncodable(t2.serialize$1(t3._debug_event$_build$0()), null), type$.Object?);
       }
     },
     $signature: 75
@@ -28221,7 +28221,7 @@
       t2 = $.$get$serializers();
       t3 = new A.RegisterEventBuilder();
       type$.nullable_void_Function_RegisterEventBuilder._as(new A.main___closure0(eventData)).call$1(t3);
-      A._trySendEvent(t1, B.C_JsonCodec.encode$2$toEncodable(t2.serialize$1(t3._register_event$_build$0()), null), type$.dynamic);
+      A._trySendEvent(t1, B.C_JsonCodec.encode$2$toEncodable(t2.serialize$1(t3._register_event$_build$0()), null), type$.Object?);
     },
     $signature: 79
   };
@@ -28245,7 +28245,7 @@
       t2 = $.$get$serializers();
       t3 = new A.DevToolsRequestBuilder();
       type$.nullable_void_Function_DevToolsRequestBuilder._as(new A.main___closure()).call$1(t3);
-      A._trySendEvent(t1, B.C_JsonCodec.encode$2$toEncodable(t2.serialize$1(t3._devtools_request$_build$0()), null), type$.dynamic);
+      A._trySendEvent(t1, B.C_JsonCodec.encode$2$toEncodable(t2.serialize$1(t3._devtools_request$_build$0()), null), type$.Object?);
     },
     $signature: 1
   };
@@ -28537,7 +28537,7 @@
     },
     _getSrcModuleLibraries$1(reloadedSourcesPath) {
       var $async$goto = 0,
-        $async$completer = A._makeAsyncAwaitCompleter(type$.List_Map_dynamic_dynamic),
+        $async$completer = A._makeAsyncAwaitCompleter(type$.List_Map_Object?_Object?),
         $async$returnValue, t1, xhr, $async$temp1, $async$temp2, $async$temp3;
       var $async$_getSrcModuleLibraries$1 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
@@ -28553,13 +28553,13 @@
               xhr.open("GET", reloadedSourcesPath, true);
               xhr.send();
               $async$temp1 = J;
-              $async$temp2 = type$.List_dynamic;
+              $async$temp2 = type$.List_Object?;
               $async$temp3 = B.C_JsonCodec;
               $async$goto = 3;
               return A._asyncAwait(t1, $async$_getSrcModuleLibraries$1);
             case 3:
               // returning from await.
-              $async$returnValue = $async$temp1.cast$1$0$ax($async$temp2._as($async$temp3.decode$1($async$result)), type$.Map_dynamic_dynamic);
+              $async$returnValue = $async$temp1.cast$1$0$ax($async$temp2._as($async$temp3.decode$1($async$result)), type$.Map_Object?_Object?);
               // goto return
               $async$goto = 1;
               break;
@@ -28629,7 +28629,7 @@
             case 3:
               // returning from await.
               srcModuleLibraries = $async$result;
-              for (t3 = J.get$iterator$ax(srcModuleLibraries), t4 = type$.String, t5 = type$.Object, t6 = type$.List_dynamic; t3.moveNext$0();) {
+              for (t3 = J.get$iterator$ax(srcModuleLibraries), t4 = type$.String, t5 = type$.Object, t6 = type$.List_Object?; t3.moveNext$0();) {
                 srcModuleLibraryCast = t3.get$current().cast$2$0(0, t4, t5);
                 src = A._asString(srcModuleLibraryCast.$index(0, "src"));
                 libraries = J.cast$1$0$ax(t6._as(srcModuleLibraryCast.$index(0, "libraries")), t4);
@@ -28674,11 +28674,11 @@
       return A._asyncStartSync($async$hotReloadEnd$0, $async$completer);
     },
     handleServiceExtension$2(method, args) {
-      return this.handleServiceExtension$body$DdcLibraryBundleRestarter(method, type$.Map_String_dynamic._as(args));
+      return this.handleServiceExtension$body$DdcLibraryBundleRestarter(method, type$.Map_String_Object?._as(args));
     },
     handleServiceExtension$body$DdcLibraryBundleRestarter(method, args) {
       var $async$goto = 0,
-        $async$completer = A._makeAsyncAwaitCompleter(type$.nullable_Map_String_dynamic),
+        $async$completer = A._makeAsyncAwaitCompleter(type$.nullable_Map_String_Object?),
         $async$returnValue, t1, t2, params, $async$temp1, $async$temp2;
       var $async$handleServiceExtension$2 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
@@ -28695,7 +28695,7 @@
               return A._asyncAwait(A._Debugger_maybeInvokeFlutterReassemble(A._asJSObject(A._asJSObject(init.G.dartDevEmbedder).debugger)), $async$handleServiceExtension$2);
             case 6:
               // returning from await.
-              $async$returnValue = A.LinkedHashMap_LinkedHashMap$_literal(["status", "reassemble invoked"], type$.String, type$.dynamic);
+              $async$returnValue = A.LinkedHashMap_LinkedHashMap$_literal(["status", "reassemble invoked"], type$.String, type$.Object?);
               // goto return
               $async$goto = 1;
               break;
@@ -28711,7 +28711,7 @@
               t1 = type$.JSArray_nullable_Object._as(A._asJSObject(A._asJSObject(init.G.dartDevEmbedder).debugger).extensionNames);
               t1 = type$.List_String._is(t1) ? t1 : new A.CastList(t1, A._arrayInstanceType(t1)._eval$1("CastList<1,String>"));
               t2 = type$.String;
-              $async$returnValue = A.LinkedHashMap_LinkedHashMap$_literal(["rpcs", J.cast$1$0$ax(t1, t2)], t2, type$.dynamic);
+              $async$returnValue = A.LinkedHashMap_LinkedHashMap$_literal(["rpcs", J.cast$1$0$ax(t1, t2)], t2, type$.Object?);
               // goto return
               $async$goto = 1;
               break;
@@ -28721,7 +28721,7 @@
             case 9:
               // else
               params = args.get$isNotEmpty(args) ? B.C_JsonCodec.encode$2$toEncodable(args, null) : "{}";
-              $async$temp1 = type$.Map_String_dynamic;
+              $async$temp1 = type$.Map_String_Object?;
               $async$temp2 = B.C_JsonCodec;
               $async$goto = 10;
               return A._asyncAwait(A.promiseToFuture(A._asJSObject(A._asJSObject(A._asJSObject(init.G.dartDevEmbedder).debugger).invokeExtension(method, params)), type$.String), $async$handleServiceExtension$2);
@@ -28811,7 +28811,7 @@
     call$1($event) {
       var t1 = $event.data,
         message = t1 == null ? null : A.dartify(t1);
-      if (type$.Map_dynamic_dynamic._is(message) && J.$eq$(message.$index(0, "type"), "DDC_STATE_CHANGE") && J.$eq$(message.$index(0, "state"), "restart_end"))
+      if (type$.Map_Object?_Object?._is(message) && J.$eq$(message.$index(0, "type"), "DDC_STATE_CHANGE") && J.$eq$(message.$index(0, "state"), "restart_end"))
         this.reloadCompleter.complete$1(true);
     },
     $signature: 2
@@ -28884,11 +28884,11 @@
       return A._asyncStartSync($async$hotReloadEnd$0, $async$completer);
     },
     handleServiceExtension$2(method, args) {
-      return this.handleServiceExtension$body$ReloadingManager(method, type$.Map_String_dynamic._as(args));
+      return this.handleServiceExtension$body$ReloadingManager(method, type$.Map_String_Object?._as(args));
     },
     handleServiceExtension$body$ReloadingManager(method, args) {
       var $async$goto = 0,
-        $async$completer = A._makeAsyncAwaitCompleter(type$.nullable_Map_String_dynamic),
+        $async$completer = A._makeAsyncAwaitCompleter(type$.nullable_Map_String_Object?),
         $async$returnValue, $async$self = this, restarter;
       var $async$handleServiceExtension$2 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
@@ -29071,7 +29071,7 @@
               // returning from await.
               response = $async$result;
               t1 = type$.String;
-              $async$returnValue = type$.Map_dynamic_dynamic._as(B.C_JsonCodec.decode$2$reviver(A.encodingForContentTypeHeader(A._contentTypeForHeaders(response.headers)).decode$1(response.bodyBytes), null)).cast$2$0(0, t1, t1);
+              $async$returnValue = type$.Map_Object?_Object?._as(B.C_JsonCodec.decode$2$reviver(A.encodingForContentTypeHeader(A._contentTypeForHeaders(response.headers)).decode$1(response.bodyBytes), null)).cast$2$0(0, t1, t1);
               // goto return
               $async$goto = 1;
               break;
@@ -29285,8 +29285,8 @@
       return A._asyncStartSync($async$_reload$1, $async$completer);
     },
     _reloadModule$1(moduleId) {
-      var t1 = new A._Future($.Zone__current, type$._Future_dynamic),
-        completer = new A._AsyncCompleter(t1, type$._AsyncCompleter_dynamic),
+      var t1 = new A._Future($.Zone__current, type$._Future_Object?),
+        completer = new A._AsyncCompleter(t1, type$._AsyncCompleter_Object?),
         stackTrace = A.StackTrace_current();
       type$.JavaScriptObject._as(init.G.$requireLoader).forceLoadModule(moduleId, A._functionToJS0(new A.RequireRestarter__reloadModule_closure(completer)), A._functionToJS1(new A.RequireRestarter__reloadModule_closure0(completer, stackTrace)));
       return t1;
@@ -29410,25 +29410,25 @@
     _static_0(A, "async___nullDoneHandler$closure", "_nullDoneHandler", 0);
     _static(A, "async___rootHandleUncaughtError$closure", 5, null, ["call$5"], ["_rootHandleUncaughtError"], 94, 0);
     _static(A, "async___rootRun$closure", 4, null, ["call$1$4", "call$4"], ["_rootRun", function($self, $parent, zone, f) {
-      return A._rootRun($self, $parent, zone, f, type$.dynamic);
+      return A._rootRun($self, $parent, zone, f, type$.Object?);
     }], 95, 1);
     _static(A, "async___rootRunUnary$closure", 5, null, ["call$2$5", "call$5"], ["_rootRunUnary", function($self, $parent, zone, f, arg) {
-      var t1 = type$.dynamic;
+      var t1 = type$.Object?;
       return A._rootRunUnary($self, $parent, zone, f, arg, t1, t1);
     }], 96, 1);
     _static(A, "async___rootRunBinary$closure", 6, null, ["call$3$6", "call$6"], ["_rootRunBinary", function($self, $parent, zone, f, arg1, arg2) {
-      var t1 = type$.dynamic;
+      var t1 = type$.Object?;
       return A._rootRunBinary($self, $parent, zone, f, arg1, arg2, t1, t1, t1);
     }], 97, 1);
     _static(A, "async___rootRegisterCallback$closure", 4, null, ["call$1$4", "call$4"], ["_rootRegisterCallback", function($self, $parent, zone, f) {
-      return A._rootRegisterCallback($self, $parent, zone, f, type$.dynamic);
+      return A._rootRegisterCallback($self, $parent, zone, f, type$.Object?);
     }], 98, 0);
     _static(A, "async___rootRegisterUnaryCallback$closure", 4, null, ["call$2$4", "call$4"], ["_rootRegisterUnaryCallback", function($self, $parent, zone, f) {
-      var t1 = type$.dynamic;
+      var t1 = type$.Object?;
       return A._rootRegisterUnaryCallback($self, $parent, zone, f, t1, t1);
     }], 99, 0);
     _static(A, "async___rootRegisterBinaryCallback$closure", 4, null, ["call$3$4", "call$4"], ["_rootRegisterBinaryCallback", function($self, $parent, zone, f) {
-      var t1 = type$.dynamic;
+      var t1 = type$.Object?;
       return A._rootRegisterBinaryCallback($self, $parent, zone, f, t1, t1, t1);
     }], 100, 0);
     _static(A, "async___rootErrorCallback$closure", 5, null, ["call$5"], ["_rootErrorCallback"], 101, 0);
@@ -29671,17 +29671,17 @@
       BrowserWebSocket: findType("BrowserWebSocket"),
       BuildResult: findType("BuildResult"),
       BuildStatus: findType("BuildStatus"),
-      BuiltListMultimap_dynamic_dynamic: findType("BuiltListMultimap<@,@>"),
-      BuiltList_dynamic: findType("BuiltList<@>"),
+      BuiltListMultimap_Object?_Object?: findType("BuiltListMultimap<@,@>"),
+      BuiltList_Object?: findType("BuiltList<@>"),
       BuiltList_nullable_Object: findType("BuiltList<Object?>"),
-      BuiltMap_dynamic_dynamic: findType("BuiltMap<@,@>"),
-      BuiltSetMultimap_dynamic_dynamic: findType("BuiltSetMultimap<@,@>"),
-      BuiltSet_dynamic: findType("BuiltSet<@>"),
+      BuiltMap_Object?_Object?: findType("BuiltMap<@,@>"),
+      BuiltSetMultimap_Object?_Object?: findType("BuiltSetMultimap<@,@>"),
+      BuiltSet_Object?: findType("BuiltSet<@>"),
       ByteBuffer: findType("ByteBuffer"),
       ByteData: findType("ByteData"),
       CaseInsensitiveMap_String: findType("CaseInsensitiveMap<String>"),
       CodeUnits: findType("CodeUnits"),
-      Comparable_dynamic: findType("Comparable<@>"),
+      Comparable_Object?: findType("Comparable<@>"),
       ConnectRequest: findType("ConnectRequest"),
       DateTime: findType("DateTime"),
       DebugEvent: findType("DebugEvent"),
@@ -29689,7 +29689,7 @@
       DevToolsRequest: findType("DevToolsRequest"),
       DevToolsResponse: findType("DevToolsResponse"),
       Duration: findType("Duration"),
-      EfficientLengthIterable_dynamic: findType("EfficientLengthIterable<@>"),
+      EfficientLengthIterable_Object?: findType("EfficientLengthIterable<@>"),
       Error: findType("Error"),
       ErrorResponse: findType("ErrorResponse"),
       Exception: findType("Exception"),
@@ -29713,9 +29713,9 @@
       Int8List: findType("Int8List"),
       IsolateExit: findType("IsolateExit"),
       IsolateStart: findType("IsolateStart"),
-      IterableEquality_dynamic: findType("IterableEquality<@>"),
+      IterableEquality_Object?: findType("IterableEquality<@>"),
       Iterable_String: findType("Iterable<String>"),
-      Iterable_dynamic: findType("Iterable<@>"),
+      Iterable_Object?: findType("Iterable<@>"),
       Iterable_int: findType("Iterable<int>"),
       Iterable_nullable_Object: findType("Iterable<Object?>"),
       JSArray_FullType: findType("JSArray<FullType>"),
@@ -29725,41 +29725,41 @@
       JSArray_Type: findType("JSArray<Type>"),
       JSArray__Highlight: findType("JSArray<_Highlight>"),
       JSArray__Line: findType("JSArray<_Line>"),
-      JSArray_dynamic: findType("JSArray<@>"),
+      JSArray_Object?: findType("JSArray<@>"),
       JSArray_int: findType("JSArray<int>"),
       JSArray_nullable_Object: findType("JSArray<Object?>"),
       JSArray_nullable_String: findType("JSArray<String?>"),
-      JSIndexable_dynamic: findType("JSIndexable<@>"),
+      JSIndexable_Object?: findType("JSIndexable<@>"),
       JSNull: findType("JSNull"),
       JSObject: findType("JSObject"),
       JavaScriptFunction: findType("JavaScriptFunction"),
-      JavaScriptIndexingBehavior_dynamic: findType("JavaScriptIndexingBehavior<@>"),
+      JavaScriptIndexingBehavior_Object?: findType("JavaScriptIndexingBehavior<@>"),
       JavaScriptObject: findType("JavaScriptObject"),
       JsonObject: findType("JsonObject"),
       Level: findType("Level"),
       ListBuilder_DebugEvent: findType("ListBuilder<DebugEvent>"),
       ListBuilder_ExtensionEvent: findType("ListBuilder<ExtensionEvent>"),
-      ListBuilder_dynamic: findType("ListBuilder<@>"),
-      ListEquality_dynamic: findType("ListEquality<@>"),
-      ListMultimapBuilder_dynamic_dynamic: findType("ListMultimapBuilder<@,@>"),
+      ListBuilder_Object?: findType("ListBuilder<@>"),
+      ListEquality_Object?: findType("ListEquality<@>"),
+      ListMultimapBuilder_Object?_Object?: findType("ListMultimapBuilder<@,@>"),
       List_DebugEvent: findType("List<DebugEvent>"),
       List_ExtensionEvent: findType("List<ExtensionEvent>"),
-      List_Map_dynamic_dynamic: findType("List<Map<@,@>>"),
+      List_Map_Object?_Object?: findType("List<Map<@,@>>"),
       List_String: findType("List<String>"),
-      List_dynamic: findType("List<@>"),
+      List_Object?: findType("List<@>"),
       List_int: findType("List<int>"),
       List_nullable_Object: findType("List<Object?>"),
       List_nullable__Highlight: findType("List<_Highlight?>"),
       Logger: findType("Logger"),
-      MapBuilder_dynamic_dynamic: findType("MapBuilder<@,@>"),
+      MapBuilder_Object?_Object?: findType("MapBuilder<@,@>"),
       MapEntry_String_String: findType("MapEntry<String,String>"),
       MapEntry_of_Object_and_List__Highlight: findType("MapEntry<Object,List<_Highlight>>"),
-      MapEquality_dynamic_dynamic: findType("MapEquality<@,@>"),
+      MapEquality_Object?_Object?: findType("MapEquality<@,@>"),
       Map_String_String: findType("Map<String,String>"),
-      Map_String_dynamic: findType("Map<String,@>"),
-      Map_dynamic_dynamic: findType("Map<@,@>"),
+      Map_String_Object?: findType("Map<String,@>"),
+      Map_Object?_Object?: findType("Map<@,@>"),
       Map_of_String_and_nullable_Object: findType("Map<String,Object?>"),
-      MappedListIterable_String_dynamic: findType("MappedListIterable<String,@>"),
+      MappedListIterable_String_Object?: findType("MappedListIterable<String,@>"),
       MediaType: findType("MediaType"),
       NativeArrayBuffer: findType("NativeArrayBuffer"),
       NativeTypedArrayOfInt: findType("NativeTypedArrayOfInt"),
@@ -29767,7 +29767,7 @@
       Null: findType("Null"),
       Object: findType("Object"),
       PoolResource: findType("PoolResource"),
-      PrimitiveSerializer_dynamic: findType("PrimitiveSerializer<@>"),
+      PrimitiveSerializer_Object?: findType("PrimitiveSerializer<@>"),
       QueueList_Result_DebugEvent: findType("QueueList<Result<DebugEvent>>"),
       Record: findType("Record"),
       Record_0: findType("+()"),
@@ -29780,13 +29780,13 @@
       ReversedListIterable_String: findType("ReversedListIterable<String>"),
       RunRequest: findType("RunRequest"),
       SerializerPlugin: findType("SerializerPlugin"),
-      Serializer_dynamic: findType("Serializer<@>"),
+      Serializer_Object?: findType("Serializer<@>"),
       ServiceExtensionRequest: findType("ServiceExtensionRequest"),
       ServiceExtensionResponse: findType("ServiceExtensionResponse"),
-      SetBuilder_dynamic: findType("SetBuilder<@>"),
-      SetEquality_dynamic: findType("SetEquality<@>"),
-      SetMultimapBuilder_dynamic_dynamic: findType("SetMultimapBuilder<@,@>"),
-      Set_dynamic: findType("Set<@>"),
+      SetBuilder_Object?: findType("SetBuilder<@>"),
+      SetEquality_Object?: findType("SetEquality<@>"),
+      SetMultimapBuilder_Object?_Object?: findType("SetMultimapBuilder<@,@>"),
+      Set_Object?: findType("Set<@>"),
       SourceLocation: findType("SourceLocation"),
       SourceSpan: findType("SourceSpan"),
       SourceSpanWithContext: findType("SourceSpanWithContext"),
@@ -29794,11 +29794,11 @@
       StackTrace: findType("StackTrace"),
       StreamChannelController_nullable_Object: findType("StreamChannelController<Object?>"),
       StreamQueue_DebugEvent: findType("StreamQueue<DebugEvent>"),
-      Stream_dynamic: findType("Stream<@>"),
+      Stream_Object?: findType("Stream<@>"),
       StreamedResponse: findType("StreamedResponse"),
       String: findType("String"),
       String_Function_Match: findType("String(Match)"),
-      StructuredSerializer_dynamic: findType("StructuredSerializer<@>"),
+      StructuredSerializer_Object?: findType("StructuredSerializer<@>"),
       Timer: findType("Timer"),
       TrustedGetRuntimeType: findType("TrustedGetRuntimeType"),
       Type: findType("Type"),
@@ -29821,19 +29821,19 @@
       _AsyncCompleter_String: findType("_AsyncCompleter<String>"),
       _AsyncCompleter_Uint8List: findType("_AsyncCompleter<Uint8List>"),
       _AsyncCompleter_bool: findType("_AsyncCompleter<bool>"),
-      _AsyncCompleter_dynamic: findType("_AsyncCompleter<@>"),
+      _AsyncCompleter_Object?: findType("_AsyncCompleter<@>"),
       _AsyncCompleter_void: findType("_AsyncCompleter<~>"),
       _AsyncStreamController_List_int: findType("_AsyncStreamController<List<int>>"),
       _BigIntImpl: findType("_BigIntImpl"),
-      _BuiltMap_dynamic_dynamic: findType("_BuiltMap<@,@>"),
-      _EventRequest_dynamic: findType("_EventRequest<@>"),
+      _BuiltMap_Object?_Object?: findType("_BuiltMap<@,@>"),
+      _EventRequest_Object?: findType("_EventRequest<@>"),
       _EventStream_JSObject: findType("_EventStream<JSObject>"),
       _Future_BrowserWebSocket: findType("_Future<BrowserWebSocket>"),
       _Future_PoolResource: findType("_Future<PoolResource>"),
       _Future_String: findType("_Future<String>"),
       _Future_Uint8List: findType("_Future<Uint8List>"),
       _Future_bool: findType("_Future<bool>"),
-      _Future_dynamic: findType("_Future<@>"),
+      _Future_Object?: findType("_Future<@>"),
       _Future_int: findType("_Future<int>"),
       _Future_void: findType("_Future<~>"),
       _Highlight: findType("_Highlight"),
@@ -29847,19 +29847,19 @@
       bool_Function_Object: findType("bool(Object)"),
       bool_Function__Highlight: findType("bool(_Highlight)"),
       double: findType("double"),
-      dynamic: findType("@"),
-      dynamic_Function: findType("@()"),
-      dynamic_Function_Object: findType("@(Object)"),
-      dynamic_Function_Object_StackTrace: findType("@(Object,StackTrace)"),
-      dynamic_Function_String: findType("@(String)"),
+      Object?: findType("@"),
+      Object?_Function: findType("@()"),
+      Object?_Function_Object: findType("@(Object)"),
+      Object?_Function_Object_StackTrace: findType("@(Object,StackTrace)"),
+      Object?_Function_String: findType("@(String)"),
       int: findType("int"),
       nullable_Future_Null: findType("Future<Null>?"),
       nullable_JSArray_nullable_Object: findType("JSArray<Object?>?"),
       nullable_JSObject: findType("JSObject?"),
       nullable_ListBuilder_DebugEvent: findType("ListBuilder<DebugEvent>?"),
       nullable_ListBuilder_ExtensionEvent: findType("ListBuilder<ExtensionEvent>?"),
-      nullable_List_dynamic: findType("List<@>?"),
-      nullable_Map_String_dynamic: findType("Map<String,@>?"),
+      nullable_List_Object?: findType("List<@>?"),
+      nullable_Map_String_Object?: findType("Map<String,@>?"),
       nullable_Map_of_nullable_Object_and_nullable_Object: findType("Map<Object?,Object?>?"),
       nullable_Object: findType("Object?"),
       nullable_Result_DebugEvent: findType("Result<DebugEvent>?"),
@@ -29869,8 +29869,8 @@
       nullable_Zone: findType("Zone?"),
       nullable_ZoneDelegate: findType("ZoneDelegate?"),
       nullable_ZoneSpecification: findType("ZoneSpecification?"),
-      nullable__DelayedEvent_dynamic: findType("_DelayedEvent<@>?"),
-      nullable__FutureListener_dynamic_dynamic: findType("_FutureListener<@,@>?"),
+      nullable__DelayedEvent_Object?: findType("_DelayedEvent<@>?"),
+      nullable__FutureListener_Object?_Object?: findType("_FutureListener<@,@>?"),
       nullable__Highlight: findType("_Highlight?"),
       nullable__LinkedHashSetCell: findType("_LinkedHashSetCell?"),
       nullable_bool: findType("bool?"),
@@ -29897,9 +29897,9 @@
       void_Function_List_int: findType("~(List<int>)"),
       void_Function_Object: findType("~(Object)"),
       void_Function_Object_StackTrace: findType("~(Object,StackTrace)"),
-      void_Function_String_dynamic: findType("~(String,@)"),
+      void_Function_String_Object?: findType("~(String,@)"),
       void_Function_Timer: findType("~(Timer)"),
-      void_Function_int_dynamic: findType("~(int,@)")
+      void_Function_int_Object?: findType("~(int,@)")
     };
   })();
   (function constants() {
@@ -30162,7 +30162,7 @@
     B.Type__$HotReloadRequest_ynq = A.typeLiteral("_$HotReloadRequest");
     B.List_dz9 = makeConstList([B.Type_HotReloadRequest_EsW, B.Type__$HotReloadRequest_ynq], type$.JSArray_Type);
     B.List_empty = makeConstList([], type$.JSArray_String);
-    B.List_empty0 = makeConstList([], type$.JSArray_dynamic);
+    B.List_empty0 = makeConstList([], type$.JSArray_Object?);
     B.List_fAJ = makeConstList(["d", "D", "\u2202", "\xce"], type$.JSArray_String);
     B.Type__$DebugEvent_YX4 = A.typeLiteral("_$DebugEvent");
     B.List_fK8 = makeConstList([B.Type_DebugEvent_gLJ, B.Type__$DebugEvent_YX4], type$.JSArray_Type);
@@ -30322,7 +30322,7 @@
     _lazyFinal($, "_AsyncRun__scheduleImmediateClosure", "$get$_AsyncRun__scheduleImmediateClosure", () => A._AsyncRun__initializeScheduleImmediate());
     _lazyFinal($, "Future__nullFuture", "$get$Future__nullFuture", () => $.$get$nullFuture());
     _lazyFinal($, "_RootZone__rootMap", "$get$_RootZone__rootMap", () => {
-      var t1 = type$.dynamic;
+      var t1 = type$.Object?;
       return A.HashMap_HashMap(null, null, null, t1, t1);
     });
     _lazyFinal($, "_Utf8Decoder__reusableBuffer", "$get$_Utf8Decoder__reusableBuffer", () => A.NativeUint8List_NativeUint8List(4096));

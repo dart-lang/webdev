@@ -14,10 +14,10 @@ abstract class ServiceExtensionRequest
   String
   get argsJson; // Store args as JSON string for built_value compatibility
 
-  // Helper method to get args as Map<String, dynamic>
-  Map<String, dynamic> get args => argsJson.isEmpty
-      ? <String, dynamic>{}
-      : json.decode(argsJson) as Map<String, dynamic>;
+  // Helper method to get args as Map<String, Object?>
+  Map<String, Object?> get args => argsJson.isEmpty
+      ? <String, Object?>{}
+      : json.decode(argsJson) as Map<String, Object?>;
 
   ServiceExtensionRequest._();
   factory ServiceExtensionRequest([
@@ -28,7 +28,7 @@ abstract class ServiceExtensionRequest
   factory ServiceExtensionRequest.fromArgs({
     required String id,
     required String method,
-    required Map<String, dynamic> args,
+    required Map<String, Object?> args,
   }) => ServiceExtensionRequest(
     (b) => b
       ..id = id
