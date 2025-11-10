@@ -122,8 +122,8 @@ class TestContext {
 
   /// Internal VM service.
   ///
-  /// Prefer using [vmService] instead in tests when possible, to include testing
-  /// of the VmServerConnection (bypassed when using [service]).
+  /// Prefer using [vmService] instead in tests when possible, to include
+  /// testing of the VmServerConnection (bypassed when using [service]).
   ChromeProxyService get service => fetchChromeProxyService(debugConnection);
 
   /// External VM service.
@@ -393,7 +393,8 @@ class TestContext {
                         buildSettings,
                       ).strategy,
               _ => throw Exception(
-                'Unsupported DDC module format ${testSettings.moduleFormat.name}.',
+                'Unsupported DDC module format '
+                '${testSettings.moduleFormat.name}.',
               ),
             };
             buildResults = const Stream<BuildResults>.empty();
@@ -589,8 +590,9 @@ class TestContext {
     // timestamp that is guaranteed to be after the previous compile.
     // TODO(https://github.com/dart-lang/sdk/issues/51937): Remove once this bug
     // is fixed.
-    if (Platform.isWindows)
+    if (Platform.isWindows) {
       await Future<void>.delayed(const Duration(seconds: 1));
+    }
     for (var (:file, :originalString, :newString) in edits) {
       if (file == project.dartEntryFileName) {
         file = project.dartEntryFilePath;

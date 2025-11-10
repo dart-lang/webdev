@@ -84,6 +84,7 @@ Future<Chrome?> _startChrome(
     } else if (configuration.chromeDebugPort != 0) {
       return await Chrome.fromExisting(configuration.chromeDebugPort);
     }
+    // ignore: avoid_catching_errors
   } on ChromeError {
     await serverManager.stop();
     await client.close();

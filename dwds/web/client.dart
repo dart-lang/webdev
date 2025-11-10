@@ -215,9 +215,9 @@ Future<void>? main() {
         },
         onError: (error) {
           // An error is propagated on a full page reload as Chrome presumably
-          // forces the SSE connection to close in a bad state. This does not cause
-          // any adverse effects so simply swallow this error as to not print the
-          // misleading unhandled error message.
+          // forces the SSE connection to close in a bad state. This does not
+          // cause any adverse effects so simply swallow this error as to not
+          // print the misleading unhandled error message.
         },
       );
 
@@ -274,6 +274,7 @@ $stackTrace
 void _trySendEvent<T>(StreamSink<T> sink, T serialized) {
   try {
     sink.add(serialized);
+    // ignore: avoid_catching_errors
   } on StateError catch (_) {
     // An error is propagated on a full page reload as Chrome presumably
     // forces the SSE connection to close in a bad state.
@@ -578,9 +579,6 @@ external String get dartEntrypointPath;
 @JS(r'$dwdsEnableDevToolsLaunch')
 external bool get dwdsEnableDevToolsLaunch;
 
-@JS('window.top.document.dispatchEvent')
-external void dispatchEvent(CustomEvent event);
-
 @JS(r'$dartEmitDebugEvents')
 external bool get dartEmitDebugEvents;
 
@@ -589,12 +587,6 @@ external set emitDebugEvent(JSFunction func);
 
 @JS(r'$emitRegisterEvent')
 external set emitRegisterEvent(JSFunction func);
-
-@JS(r'$isInternalBuild')
-external bool get isInternalBuild;
-
-@JS(r'$isFlutterApp')
-external bool get isFlutterApp;
 
 @JS(r'$dartWorkspaceName')
 external String? get dartWorkspaceName;

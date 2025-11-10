@@ -72,8 +72,8 @@ void serveHttpRequests(
   }, onError: onError);
 }
 
-/// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
-/// result.
+/// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on
+/// the result.
 void handleErrorIfPresent(wip.WipResponse? response, {String? evalContents}) {
   final result = response?.result;
   if (result == null) return;
@@ -86,8 +86,8 @@ void handleErrorIfPresent(wip.WipResponse? response, {String? evalContents}) {
 }
 
 /// Returns result contained in the response.
-/// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
-/// result or the result is null.
+/// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on
+/// the result or the result is null.
 Map<String, Object?> getResultOrHandleError(
   wip.WipResponse? response, {
   String? evalContents,

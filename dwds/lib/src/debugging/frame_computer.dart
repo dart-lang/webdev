@@ -113,7 +113,7 @@ class FrameComputer {
               'url': callFrame.url,
               'functionName': callFrame.functionName,
               'location': location.json,
-              'scopeChain': [],
+              'scopeChain': <Map<String, Object?>>[],
             });
 
             final frame = await debugger.calculateDartFrameFor(

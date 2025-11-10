@@ -31,14 +31,14 @@ dependencies:
   shelf_static: ^1.1.0
   shelf_web_socket: ">=2.0.0 <4.0.0"
   source_maps: ^0.10.10
+  sse: ^4.1.2
   stack_trace: ^1.10.0
   stream_channel: ^2.1.2
-  sse: ^4.1.2
   uuid: ^4.0.0
   vm_service: ">=14.2.4 <16.0.0"
   vm_service_interface: ^2.0.1
-  web_socket_channel: ">=2.2.0 <4.0.0"
   web: ^1.1.0
+  web_socket_channel: ">=2.2.0 <4.0.0"
   webkit_inspection_protocol: ^1.0.1
 
 dev_dependencies:
@@ -51,9 +51,9 @@ dev_dependencies:
   build_version: ^2.1.1
   build_web_compilers: ^4.4.1
   built_value_generator: ^8.4.2
-  graphs: ^2.1.0
   frontend_server_common:
     path: ../frontend_server_common
+  graphs: ^2.1.0
   io: ^1.0.5
   js: ">=0.6.4 <0.8.0"
   pubspec_parse: ^1.2.0

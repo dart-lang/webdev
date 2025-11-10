@@ -108,7 +108,8 @@ abstract base class DwdsVmClient<
     final client = VmService(_responseStream.map(jsonEncode), (request) {
       if (_requestController.isClosed) {
         logger.warning(
-          'Attempted to send a request but the connection is closed:\n\n$request',
+          'Attempted to send a request but the connection is closed:\n\n'
+          '$request',
         );
         return;
       }
@@ -432,6 +433,7 @@ final class ChromeDwdsVmClient
       logger.info('Attempting to get execution context ID.');
       await tryGetContextId(chromeProxyService);
       logger.info('Got execution context ID.');
+      // ignore: avoid_catching_errors
     } on StateError catch (e) {
       // We couldn't find the execution context. `hotRestart` may have been
       // triggered in the middle of a full reload.
@@ -459,9 +461,9 @@ final class ChromeDwdsVmClient
       final runId = const Uuid().v4().toString();
 
       // When using the DDC library bundle format, we determine the sources that
-      // were reloaded during a hot restart to then wait until all the sources are
-      // parsed before finishing hot restart. This is necessary before we can
-      // recompute any source location metadata in the `ChromeProxyService`.
+      // were reloaded during a hot restart to then wait until all the sources
+      // are parsed before finishing hot restart. This is necessary before we
+      // can recompute any source location metadata in the `ChromeProxyService`.
       // TODO(srujzs): We don't do this for the AMD module format, should we? It
       // would require adding an extra parameter in the AMD strategy. As we're
       // planning to deprecate it, for now, do nothing.
@@ -471,9 +473,9 @@ final class ChromeDwdsVmClient
       final reloadedSrcs = <String>{};
       late StreamSubscription<String> parsedScriptsSubscription;
       if (isDdcLibraryBundle) {
-        // Injected client should send a request to recreate the isolate after the
-        // hot restart. The creation of the isolate should in turn wait until all
-        // scripts are parsed.
+        // Injected client should send a request to recreate the isolate after
+        // the hot restart. The creation of the isolate should in turn wait
+        // until all scripts are parsed.
         chromeProxyService.allowedToCreateIsolate = Completer<void>();
         final debugger = await chromeProxyService.debuggerFuture;
         parsedScriptsSubscription = debugger.parsedScriptsController.stream

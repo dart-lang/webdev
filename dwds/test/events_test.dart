@@ -302,8 +302,8 @@ void main() {
             (event) => event.kind == EventKind.kPauseBreakpoint,
           );
 
-          // Evaluation succeeds and return ErrorRef containing compilation error,
-          // so event is marked as success.
+          // Evaluation succeeds and return ErrorRef containing compilation
+          // error, so event is marked as success.
           final expression = 'some-bad-expression';
           await expectEventDuring(
             matchesEvent(DwdsEventKind.evaluateInFrame, {

@@ -97,7 +97,8 @@ class Modules {
     return _moduleToSources[module];
   }
 
-  /// Returns the containing library importUri for the provided Dart server path.
+  /// Returns the containing library importUri for the provided Dart server
+  /// path.
   Future<Uri?> libraryForSource(String serverPath) async {
     await _moduleMemoizer.runOnce(_initializeMapping);
     return _sourceToLibrary[serverPath];

@@ -396,10 +396,10 @@ class Locations {
   }) {
     final index = entry.sourceUrlId;
     if (index == null) return null;
-    // Source map URLS are relative to the script. They may have platform separators
-    // or they may use URL semantics. To be sure, we split and re-join them.
-    // This works on Windows because path treats both / and \ as separators.
-    // It will fail if the path has both separators in it.
+    // Source map URLS are relative to the script. They may have platform
+    // separators or they may use URL semantics. To be sure, we split and
+    // re-join them. This works on Windows because path treats both / and
+    // \ as separators. It will fail if the path has both separators in it.
     final relativeSegments = p.split(sourceUrls[index]);
     final path = p.url.normalize(
       p.url.joinAll([scriptLocation, ...relativeSegments]),

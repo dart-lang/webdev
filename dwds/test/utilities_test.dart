@@ -75,7 +75,8 @@ void main() {
         expect(
           error,
           isRPCErrorWithMessage(
-            'Unexpected DWDS error for exceptionCallback: Exception: An unexpected exception',
+            'Unexpected DWDS error for exceptionCallback: Exception: An '
+            'unexpected exception',
           ),
         );
       }

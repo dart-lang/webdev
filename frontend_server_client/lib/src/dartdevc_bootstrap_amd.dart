@@ -41,12 +41,12 @@ document.head.appendChild(requireEl);
 /// method.
 ///
 /// RE: Object.keys usage in app.main:
-/// This attaches the main entrypoint and hot reload functionality to the window.
-/// The app module will have a single property which contains the actual application
-/// code. The property name is based off of the entrypoint that is generated, for example
-/// the file `foo/bar/baz.dart` will generate a property named approximately
-/// `foo__bar__baz`. Rather than attempt to guess, we assume the first property of
-/// this object is the module.
+/// This attaches the main entrypoint and hot reload functionality to the
+/// window. The app module will have a single property which contains the actual
+/// application code. The property name is based off of the entrypoint that is
+/// generated, for example the file `foo/bar/baz.dart` will generate a property named approximately
+/// `foo__bar__baz`. Rather than attempt to guess, we assume the first property
+/// of this object is the module.
 String generateAmdMainModule({required String entrypoint}) {
   return '''/* ENTRYPOINT_EXTENTION_MARKER */
 // Create the main module loaded below.

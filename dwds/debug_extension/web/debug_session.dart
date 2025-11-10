@@ -278,7 +278,9 @@ Future<void> _onDebuggerEvent(
 }
 
 Future<void> _maybeConnectToDwds(int tabId, Object? params) async {
-  final context = json.decode(JSON.stringify(params))['context'];
+  final context =
+      (json.decode(JSON.stringify(params)) as Map<String, Object?>)['context']!
+          as Map<String, Object?>;
   final contextOrigin = context['origin'] as String?;
   if (contextOrigin == null) return;
   if (contextOrigin.contains('chrome-extension:')) return;

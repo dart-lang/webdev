@@ -55,7 +55,7 @@ final sampleSyncFrame = WipCallFrame({
   'functionLocation': {'scriptId': '69', 'lineNumber': 88, 'columnNumber': 72},
   'location': {'scriptId': '69', 'lineNumber': 37, 'columnNumber': 0},
   'url': '',
-  'scopeChain': [],
+  'scopeChain': <Map<String, Object?>>[],
   'this': {'type': 'undefined'},
 });
 
@@ -91,7 +91,7 @@ void main() async {
     skipLists = SkipLists(root);
     debugger = await Debugger.create(
       webkitDebugger,
-      (_, __) {},
+      (_, _) {},
       locations,
       skipLists,
       root,
@@ -176,8 +176,8 @@ void main() async {
 
   group('errors', () {
     setUp(() {
-      // We need to provide an Isolate so that the code doesn't bail out on a null
-      // check before it has a chance to throw.
+      // We need to provide an Isolate so that the code doesn't bail out on a
+      // null check before it has a chance to throw.
       inspector = FakeChromeAppInspector(
         webkitDebugger,
         fakeIsolate: simpleIsolate,

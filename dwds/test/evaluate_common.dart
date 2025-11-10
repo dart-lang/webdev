@@ -596,7 +596,8 @@ void testAll({
               attempt,
               lessThan(maxAttempts),
               reason:
-                  'Failed to receive and async frame error in $attempt attempts',
+                  'Failed to receive and async frame error in $attempt '
+                  'attempts',
             );
             await Future<void>.delayed(const Duration(milliseconds: 10));
             attempt++;

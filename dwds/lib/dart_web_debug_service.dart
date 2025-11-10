@@ -146,8 +146,9 @@ class Dwds {
       debugSettings.expressionCompiler,
       injected,
       DartDevelopmentServiceConfiguration(
-        // This technically isn't correct, but DartDevelopmentServiceConfiguration.enable
-        // is true by default, so this won't break unmigrated tools.
+        // This technically isn't correct, but
+        // DartDevelopmentServiceConfiguration.enable is true by default, so
+        // this won't break unmigrated tools.
         // ignore: deprecated_member_use_from_same_package
         enable: debugSettings.spawnDds && debugSettings.ddsConfiguration.enable,
         // ignore: deprecated_member_use_from_same_package

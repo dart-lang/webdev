@@ -374,7 +374,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
 
   /// Should be called when there is a hot restart or full page refresh.
   ///
-  /// Clears out the [_inspector] and all related cached information.
+  /// Clears out the [inspector] and all related cached information.
   @override
   void destroyIsolate() {
     _logger.fine('Destroying isolate');

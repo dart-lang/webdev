@@ -42,7 +42,7 @@ void main() async {
     return '$local: parameter, $another'; // Breakpoint: nestedFunction
   }
 
-  Object? nestedWithClosure(String banana) {
+  Function nestedWithClosure(String banana) {
     return () => '$local + $banana';
   }
 

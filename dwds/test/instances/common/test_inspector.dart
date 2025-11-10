@@ -240,8 +240,8 @@ class TestInspector {
 
     /// A limit on the number of stops to record.
     ///
-    /// The program will not be resumed after the length of [recordedStops]
-    /// becomes [numStops].
+    /// The program will not be resumed after the length of recordedStops
+    /// becomes numStops.
     int numStops,
   ) async {
     final completer = Completer<void>();

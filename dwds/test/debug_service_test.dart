@@ -29,7 +29,9 @@ void main() {
     await context.setUp(
       debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
         spawnDds: false,
-        ddsConfiguration: const DartDevelopmentServiceConfiguration(enable: false),
+        ddsConfiguration: const DartDevelopmentServiceConfiguration(
+          enable: false,
+        ),
       ),
     );
   });

@@ -227,7 +227,8 @@ class FrontendServerClient {
               removedSources.add(diffUri);
             } else {
               throw StateError(
-                'unrecognized diff line, should start with a + or - but got: $line',
+                'unrecognized diff line, should start with a + or - but got: '
+                '$line',
               );
             }
             continue;

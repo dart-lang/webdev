@@ -743,11 +743,11 @@ void runTests({
         expect(inst.count, null);
         expect(inst.associations!.length, 1001);
         final fifth = inst.associations![4];
-        expect(fifth.key.valueAsString, '4');
-        expect(fifth.value.valueAsString, '996');
+        expect((fifth.key as InstanceRef).valueAsString, '4');
+        expect((fifth.value as InstanceRef).valueAsString, '996');
         final sixth = inst.associations![5];
-        expect(sixth.key.valueAsString, '5');
-        expect(sixth.value.valueAsString, '995');
+        expect((sixth.key as InstanceRef).valueAsString, '5');
+        expect((sixth.value as InstanceRef).valueAsString, '995');
       });
 
       test('bool', () async {
@@ -995,11 +995,11 @@ void runTests({
           expect(inst.count, null);
           expect(inst.associations!.length, 1001);
           final fifth = inst.associations![4];
-          expect(fifth.key.valueAsString, '4');
-          expect(fifth.value.valueAsString, '996');
+          expect((fifth.key as InstanceRef).valueAsString, '4');
+          expect((fifth.value as InstanceRef).valueAsString, '996');
           final sixth = inst.associations![5];
-          expect(sixth.key.valueAsString, '5');
-          expect(sixth.value.valueAsString, '995');
+          expect((sixth.key as InstanceRef).valueAsString, '5');
+          expect((sixth.value as InstanceRef).valueAsString, '995');
         });
 
         test('Maps with null count and offset greater than 0 are '
@@ -1020,8 +1020,8 @@ void runTests({
           expect(inst.count, null);
           expect(inst.associations!.length, 1);
           final only = inst.associations![0];
-          expect(only.key.valueAsString, '1000');
-          expect(only.value.valueAsString, '0');
+          expect((only.key as InstanceRef).valueAsString, '1000');
+          expect((only.value as InstanceRef).valueAsString, '0');
         });
 
         test('Maps with null count are not truncated', () async {
@@ -1041,11 +1041,11 @@ void runTests({
           expect(inst.count, null);
           expect(inst.associations!.length, 1001);
           final fifth = inst.associations![4];
-          expect(fifth.key.valueAsString, '4');
-          expect(fifth.value.valueAsString, '996');
+          expect((fifth.key as InstanceRef).valueAsString, '4');
+          expect((fifth.value as InstanceRef).valueAsString, '996');
           final sixth = inst.associations![5];
-          expect(sixth.key.valueAsString, '5');
-          expect(sixth.value.valueAsString, '995');
+          expect((sixth.key as InstanceRef).valueAsString, '5');
+          expect((sixth.value as InstanceRef).valueAsString, '995');
         });
 
         test('Maps with offset/count are truncated', () async {
@@ -1060,11 +1060,11 @@ void runTests({
           expect(inst.count, 7);
           expect(inst.associations!.length, 7);
           final fifth = inst.associations![0];
-          expect(fifth.key.valueAsString, '4');
-          expect(fifth.value.valueAsString, '996');
+          expect((fifth.key as InstanceRef).valueAsString, '4');
+          expect((fifth.value as InstanceRef).valueAsString, '996');
           final sixth = inst.associations![1];
-          expect(sixth.key.valueAsString, '5');
-          expect(sixth.value.valueAsString, '995');
+          expect((sixth.key as InstanceRef).valueAsString, '5');
+          expect((sixth.value as InstanceRef).valueAsString, '995');
         });
 
         test(
@@ -1090,8 +1090,8 @@ void runTests({
             expect(inst.count, 1);
             expect(inst.associations!.length, 1);
             final only = inst.associations![0];
-            expect(only.key.valueAsString, '1000');
-            expect(only.value.valueAsString, '0');
+            expect((only.key as InstanceRef).valueAsString, '1000');
+            expect((only.value as InstanceRef).valueAsString, '0');
           },
         );
 
@@ -1761,7 +1761,8 @@ void runTests({
           (event) => event.kind == EventKind.kPauseException,
         );
         expect(event.exception, isNotNull);
-        // Check that the exception stack trace has been mapped to Dart source files.
+        // Check that the exception stack trace has been mapped to Dart source
+        // files.
         expect(event.exception!.valueAsString, contains('main.dart'));
 
         final stack = await service.getStack(isolateId!);
@@ -2468,7 +2469,8 @@ void runTests({
                   );
 
           String emitDebugEvent(String data) =>
-              "\$emitDebugEvent('$extensionKind', '{ \"$eventData\": \"$data\" }');";
+              "\$emitDebugEvent('$extensionKind', '{ \"$eventData\": \"$data\""
+              "}');";
 
           final size = 2;
           final batch1 = List.generate(size, (int i) => 'data$i');

@@ -220,7 +220,7 @@ class _Compiler {
 /// Uses [_address] and [_port] to communicate and to redirect asset
 /// requests to the asset server.
 ///
-/// Configuration created by [_sdkConfigurationProvider] describes the
+/// Configuration created by [sdkConfigurationProvider] describes the
 /// locations of SDK files used in expression compilation (summaries,
 /// libraries spec, compiler worker snapshot).
 ///

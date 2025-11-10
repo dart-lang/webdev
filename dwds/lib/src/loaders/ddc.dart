@@ -128,7 +128,7 @@ class DdcStrategy extends LoadStrategy {
   /// an app URI.
   final String? Function(String appUri) _serverPathForAppUri;
 
-  /// Returns the relative path in google3, determined by the [absolutePath].
+  /// Returns the relative path in google3, determined by the absolutePath.
   ///
   /// Returns `null` if not a google3 app.
   final String? Function(String absolutePath) _g3RelativePath;

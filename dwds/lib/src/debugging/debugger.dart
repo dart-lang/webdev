@@ -424,6 +424,7 @@ class Debugger {
   // void _showPausedOverlay() async {
   //   if (_pausedOverlayVisible) return;
   //   handleErrorIfPresent(await _remoteDebugger?.sendCommand('DOM.enable'));
+  // ignore: lines_longer_than_80_chars
   //   handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.enable'));
   //   handleErrorIfPresent(await _remoteDebugger
   //       ?.sendCommand('Overlay.setPausedInDebuggerMessage', params: {
@@ -435,6 +436,7 @@ class Debugger {
   // Removes the paused at breakpoint overlay from the application.
   // void _hidePausedOverlay() async {
   //   if (!_pausedOverlayVisible) return;
+  // ignore: lines_longer_than_80_chars
   //   handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.disable'));
   //   _pausedOverlayVisible = false;
   // }
@@ -500,7 +502,8 @@ class Debugger {
   void logAnyFrameErrors({required String frameType}) {
     if (_frameErrorCount > 0) {
       logger.warning(
-        'Error calculating Dart variables for $_frameErrorCount $frameType frames.',
+        'Error calculating Dart variables for $_frameErrorCount $frameType '
+        'frames.',
       );
     }
     _frameErrorCount = 0;

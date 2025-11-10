@@ -89,9 +89,9 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
     _remoteDebugger
         .eventStream('Runtime.executionContextCreated', (e) {
           // Parse and add the context ID to the stream.
-          // If we cannot detect or parse the context ID, add `null` to the stream
-          // to indicate an error context - those will be skipped when trying to find
-          // the dart context, with a warning.
+          // If we cannot detect or parse the context ID, add `null` to the
+          // stream to indicate an error context - those will be skipped when
+          // trying to find the dart context, with a warning.
           final id = (e.params?['context'] as Map<String, Object?>?)?['id']
               ?.toString();
           final parsedId = id == null ? null : int.parse(id);

@@ -182,7 +182,8 @@ class DartUri {
   /// re-computing.
   static String get currentDirectoryUri => _currentDirectoryUri;
 
-  /// Record library and script uris to enable resolving library and script paths.
+  /// Record library and script uris to enable resolving library and script
+  /// paths.
   static Future<void> initialize() async {
     clear();
     await _loadPackageConfig(

@@ -80,8 +80,9 @@ abstract class LoadStrategy {
   String get _defaultPackageConfigPath =>
       p.join(DartUri.currentDirectory, '.dart_tool', 'package_config.json');
 
-  /// Returns the absolute file path of the `package_config.json` file in the `.dart_tool`
-  /// directory, searching recursively from the current directory hierarchy.
+  /// Returns the absolute file path of the `package_config.json` file in the
+  /// `.dart_tool` directory, searching recursively from the current directory
+  /// hierarchy.
   static String? _findPackageConfigFilePath() {
     var candidateDir = Directory(DartUri.currentDirectory).absolute;
 

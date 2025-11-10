@@ -66,7 +66,7 @@ Future<void> _handleRuntimeMessages(
   Function sendResponse,
 ) async {
   if (jsRequest is! String) return;
-
+  if (sendResponse is! void Function(Object?)) return;
   interceptMessage<String>(
     message: jsRequest,
     expectedType: MessageType.isAuthenticated,
