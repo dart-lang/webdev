@@ -220,5 +220,17 @@ void main() {
       final resolved = DartUri.toPackageUri('g3:///path.dart');
       expect(resolved, 'package:path/path.dart');
     });
+
+    test('can resolve absolute file paths', () {
+      final absolute = 'file:///cloud/user/workspace/project/path.dart';
+      final resolved = DartUri.toPackageUri(absolute);
+      expect(resolved, absolute);
+    });
+
+    test('can resolve absolute g3 paths', () {
+      final absolute = 'google3:///cloud/user/workspace/project/path.dart';
+      final resolved = DartUri.toPackageUri(absolute);
+      expect(resolved, absolute);
+    });
   });
 }

@@ -147,12 +147,21 @@ class DartUri {
     final packageUri = _resolvedUriToUri[uri];
     if (packageUri != null) return packageUri;
 
-    // If this is an internal app, then the given uri might be g3-relative:
+    // If this is an internal app, then the given uri might
+    // be relative or absolute google3 uri.
     if (globalToolConfiguration.appMetadata.isInternalBuild) {
-      // TODO(https://github.com/dart-lang/webdev/issues/2198): Verify if the
-      // intermediary conversion to resolvedUri is causing performance issues.
       final resolvedUri = _g3RelativeUriToResolvedUri[uri];
-      return _resolvedUriToUri[resolvedUri];
+      final g3PackageUri = _resolvedUriToUri[resolvedUri];
+      if (g3PackageUri != null) {
+        return g3PackageUri;
+      }
+
+      // If the input is an absolute URI (like file:/// or google3:///),
+      // return it as is, as DWDS can use it directly.
+      final parsedUri = Uri.tryParse(uri);
+      if (parsedUri != null && parsedUri.hasAbsolutePath) {
+        return uri;
+      }
     }
 
     return null;
