@@ -82,11 +82,11 @@ void _detectMultipleDartApps() {
 }
 
 void _detectMultipleDartAppsCallback(
-  List<dynamic> mutations,
+  List<Object?> mutations,
   MutationObserver observer,
 ) {
   for (final mutation in mutations) {
-    if (_isMultipleAppsMutation(mutation)) {
+    if (_isMultipleAppsMutation(mutation!)) {
       _sendMessageToBackgroundScript(
         type: MessageType.multipleAppsDetected,
         body: 'true',
@@ -96,13 +96,14 @@ void _detectMultipleDartAppsCallback(
   }
 }
 
-bool _isMultipleAppsMutation(dynamic mutation) {
+bool _isMultipleAppsMutation(Object mutation) {
   final isAttributeMutation =
       hasProperty(mutation, 'type') &&
-      getProperty(mutation, 'type') == 'attributes';
+      getProperty<String>(mutation, 'type') == 'attributes';
   if (isAttributeMutation) {
     return hasProperty(mutation, 'attributeName') &&
-        getProperty(mutation, 'attributeName') == _multipleAppsAttribute;
+        getProperty<String>(mutation, 'attributeName') ==
+            _multipleAppsAttribute;
   }
   return false;
 }

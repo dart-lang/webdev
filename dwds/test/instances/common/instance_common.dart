@@ -136,8 +136,8 @@ void runTests({
 
     final unsupportedTestMsg =
         'This test is not supported with the DDC Library '
-        "Bundle Format because the dartDevEmbedder doesn't let you access compiled "
-        'constructors at runtime.';
+        "Bundle Format because the dartDevEmbedder doesn't let you access "
+        'compiled constructors at runtime.';
 
     group('instanceRef', () {
       setUp(() => setCurrentLogWriter(debug: debug));
@@ -175,11 +175,11 @@ void runTests({
         final ref = await inspector.instanceRefFor(count);
         expect(ref!.kind, InstanceKind.kPlainInstance);
         final classRef = ref.classRef!;
-        expect(classRef.name, 'MyTestClass<dynamic>');
+        expect(classRef.name, 'MyTestClass<Object?>');
         expect(
           classRef.id,
           'classes|org-dartlang-app:///example/scopes/main.dart'
-          '|MyTestClass<dynamic>',
+          '|MyTestClass<Object?>',
         );
         expect(inspector.isDisplayableObject(ref), isTrue);
       });
@@ -327,7 +327,7 @@ void runTests({
         expect(instance!.kind, InstanceKind.kPlainInstance);
         final classRef = instance.classRef!;
         expect(classRef, isNotNull);
-        expect(classRef.name, 'MyTestClass<dynamic>');
+        expect(classRef.name, 'MyTestClass<Object?>');
         final boundFieldNames = instance.fields!
             .map((boundField) => boundField.decl!.name)
             .toList();
@@ -376,7 +376,7 @@ void runTests({
         expect(instance!.kind, InstanceKind.kPlainInstance);
         final classRef = instance.classRef!;
         expect(classRef, isNotNull);
-        expect(classRef.name, 'MyTestClass<dynamic>');
+        expect(classRef.name, 'MyTestClass<Object?>');
         expect(inspector.isDisplayableObject(instance), isTrue);
       });
 
@@ -387,7 +387,7 @@ void runTests({
         final classRef = instance.classRef!;
         expect(classRef, isNotNull);
         expect(classRef.name, matchListClassName('String'));
-        final first = instance.elements![0];
+        final first = instance.elements![0] as InstanceRef;
         expect(first.valueAsString, 'library');
         expect(inspector.isDisplayableObject(instance), isTrue);
       });
@@ -413,7 +413,7 @@ void runTests({
         expect(instance!.kind, InstanceKind.kMap);
         final classRef = instance.classRef!;
         expect(classRef.name, 'IdentityMap<String, int>');
-        final first = instance.associations![0].value;
+        final first = instance.associations![0].value as InstanceRef;
         expect(first.valueAsString, '1');
         expect(inspector.isDisplayableObject(instance), isTrue);
       });

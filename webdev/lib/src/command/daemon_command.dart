@@ -21,16 +21,16 @@ import '../serve/utils.dart';
 import 'configuration.dart';
 import 'shared.dart';
 
-Stream<Map<String, dynamic>> get _stdinCommandStream => stdin
+Stream<Map<String, Object?>> get _stdinCommandStream => stdin
     .transform<String>(utf8.decoder)
     .transform<String>(const LineSplitter())
     .where((String line) => line.startsWith('[{') && line.endsWith('}]'))
-    .map<Map<String, dynamic>>((String line) {
+    .map<Map<String, Object?>>((String line) {
       line = line.substring(1, line.length - 1);
-      return json.decode(line) as Map<String, dynamic>;
+      return json.decode(line) as Map<String, Object?>;
     });
 
-void _stdoutCommandResponse(Map<String, dynamic> command) {
+void _stdoutCommandResponse(Map<String, Object?> command) {
   stdout.writeln('[${json.encode(command)}]');
 }
 
@@ -87,7 +87,7 @@ class DaemonCommand extends Command<int> {
           ProcessSignal.sigint.watch(),
           // SIGTERM is not supported on Windows.
           Platform.isWindows
-              ? const Stream.empty()
+              ? const Stream<ProcessSignal>.empty()
               : ProcessSignal.sigterm.watch(),
         ]).listen((signal) async {
           cancelCount++;

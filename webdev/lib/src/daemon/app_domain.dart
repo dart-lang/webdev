@@ -146,8 +146,8 @@ class AppDomain extends Domain {
     _initialize(serverManager);
   }
 
-  Future<Map<String, dynamic>?> _callServiceExtension(
-    Map<String, dynamic> args,
+  Future<Map<String, Object?>?> _callServiceExtension(
+    Map<String, Object?> args,
   ) async {
     final appId = getStringArg(args, 'appId', required: true);
     final appState = _appStates[appId];
@@ -156,8 +156,8 @@ class AppDomain extends Domain {
     }
     final methodName = getStringArg(args, 'methodName', required: true)!;
     final params = args['params'] != null
-        ? (args['params'] as Map<String, dynamic>)
-        : <String, dynamic>{};
+        ? (args['params'] as Map<String, Object?>)
+        : <String, Object?>{};
     final response = await appState.vmService!.callServiceExtension(
       methodName,
       args: params,
@@ -165,7 +165,7 @@ class AppDomain extends Domain {
     return response.json;
   }
 
-  Future<Map<String, dynamic>> _restart(Map<String, dynamic> args) async {
+  Future<Map<String, Object?>> _restart(Map<String, Object?> args) async {
     final appId = getStringArg(args, 'appId', required: true);
     final appState = _appStates[appId];
     if (appState == null) {
@@ -206,7 +206,7 @@ class AppDomain extends Domain {
     };
   }
 
-  Future<bool> _stop(Map<String, dynamic> args) async {
+  Future<bool> _stop(Map<String, Object?> args) async {
     final appId = getStringArg(args, 'appId', required: true);
     final appState = _appStates[appId];
     if (appState == null) {

@@ -8,42 +8,43 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:dds/dds_launcher.dart';
-import 'package:dwds/data/build_result.dart';
-import 'package:dwds/data/connect_request.dart';
-import 'package:dwds/data/debug_event.dart';
-import 'package:dwds/data/devtools_request.dart';
-import 'package:dwds/data/error_response.dart';
-import 'package:dwds/data/hot_reload_response.dart';
-import 'package:dwds/data/hot_restart_response.dart';
-import 'package:dwds/data/isolate_events.dart';
-import 'package:dwds/data/register_event.dart';
-import 'package:dwds/data/serializers.dart';
-import 'package:dwds/data/service_extension_response.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/connections/app_connection.dart';
-import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/debugging/execution_context.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/debugging/webkit_debugger.dart';
-import 'package:dwds/src/dwds_vm_client.dart';
-import 'package:dwds/src/events.dart';
-import 'package:dwds/src/handlers/injector.dart';
-import 'package:dwds/src/handlers/socket_connections.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:dwds/src/servers/devtools.dart';
-import 'package:dwds/src/servers/extension_backend.dart';
-import 'package:dwds/src/servers/extension_debugger.dart';
-import 'package:dwds/src/services/app_debug_services.dart';
-import 'package:dwds/src/services/chrome/chrome_debug_service.dart';
-import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/services/web_socket/web_socket_debug_service.dart';
-import 'package:dwds/src/services/web_socket/web_socket_proxy_service.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import '../../data/build_result.dart';
+import '../../data/connect_request.dart';
+import '../../data/debug_event.dart';
+import '../../data/devtools_request.dart';
+import '../../data/error_response.dart';
+import '../../data/hot_reload_response.dart';
+import '../../data/hot_restart_response.dart';
+import '../../data/isolate_events.dart';
+import '../../data/register_event.dart';
+import '../../data/serializers.dart';
+import '../../data/service_extension_response.dart';
+import '../config/tool_configuration.dart';
+import '../connections/app_connection.dart';
+import '../connections/debug_connection.dart';
+import '../debugging/execution_context.dart';
+import '../debugging/remote_debugger.dart';
+import '../debugging/webkit_debugger.dart';
+import '../dwds_vm_client.dart';
+import '../events.dart';
+import '../readers/asset_reader.dart';
+import '../servers/devtools.dart';
+import '../servers/extension_backend.dart';
+import '../servers/extension_debugger.dart';
+import '../services/app_debug_services.dart';
+import '../services/chrome/chrome_debug_service.dart';
+import '../services/chrome/chrome_proxy_service.dart';
+import '../services/expression_compiler.dart';
+import '../services/web_socket/web_socket_debug_service.dart';
+import '../services/web_socket/web_socket_proxy_service.dart';
+import '../utilities/shared.dart';
+import 'injector.dart';
+import 'socket_connections.dart';
 
 /// When enabled, this logs VM service protocol and Chrome debug protocol
 /// traffic to disk.
@@ -147,10 +148,13 @@ class DevHandler {
       try {
         injectedConnection.sink.add(jsonEncode(serializers.serialize(request)));
         successfulSends++;
+        // ignore: avoid_catching_errors
       } on StateError catch (e) {
-        // The sink has already closed (app is disconnected), or another StateError occurred.
+        // The sink has already closed (app is disconnected), or another
+        // StateError occurred.
         _logger.warning(
-          'Failed to send request to client, connection likely closed. Error: $e',
+          'Failed to send request to client, connection likely closed. '
+          'Error: $e',
         );
       } catch (e, s) {
         // Catch any other potential errors during sending.
@@ -158,7 +162,8 @@ class DevHandler {
       }
     }
     _logger.fine(
-      'Sent request to $successfulSends clients out of ${_injectedConnections.length} total connections',
+      'Sent request to $successfulSends clients out of '
+      '${_injectedConnections.length} total connections',
     );
     return successfulSends;
   }
@@ -202,7 +207,8 @@ class DevHandler {
           'expression': r'window["$dartAppInstanceId"];',
           'contextId': contextId,
         });
-        final evaluatedAppId = result.result?['result']?['value'];
+        final evaluatedAppId =
+            (result.result?['result'] as Map<String, Object?>?)?['value'];
         if (evaluatedAppId == appInstanceId) {
           appTab = tab;
           executionContext = RemoteDebuggerExecutionContext(
@@ -375,6 +381,7 @@ class DevHandler {
               ),
             ),
           );
+          // ignore: avoid_catching_errors
         } on StateError catch (_) {
           // The sink has already closed (app is disconnected), swallow the
           // error.
@@ -389,7 +396,8 @@ class DevHandler {
         if (connection != null) {
           final appId = connection.request.appId;
           final services = _servicesByAppId[appId];
-          // WebSocket mode doesn't need this because WebSocketProxyService handles connection tracking and cleanup
+          // WebSocket mode doesn't need this because WebSocketProxyService
+          // handles connection tracking and cleanup
           if (!useWebSocketConnection) {
             _appConnectionByAppId.remove(appId);
           }
@@ -441,7 +449,8 @@ class DevHandler {
           ? 'WebSocket'
           : 'Chrome';
       throw UnsupportedError(
-        'Message type ${message.runtimeType} is not supported in $serviceType mode',
+        'Message type ${message.runtimeType} is not supported in $serviceType '
+        'mode',
       );
     }
   }
@@ -561,7 +570,7 @@ class DevHandler {
       final proxyService = appDebugServices.proxyService;
       if (proxyService is! WebSocketProxyService) {
         throw StateError(
-          'Expected WebSocketProxyService but got ${proxyService.runtimeType}. ',
+          'Expected WebSocketProxyService but got ${proxyService.runtimeType}.',
         );
       }
       await proxyService.isInitialized;
@@ -710,7 +719,8 @@ class DevHandler {
       // New browser window or initial connection: run main() immediately
       readyToRunMainCompleter.complete();
 
-      // For WebSocket mode, we need to proactively create and emit a debug connection
+      // For WebSocket mode, we need to proactively create and emit a debug
+      // connection
       try {
         // Initialize the WebSocket service and create debug connection
         final debugConnection = await createDebugConnectionForWebSocket(
@@ -802,7 +812,8 @@ class DevHandler {
     }
   }
 
-  /// Handles isolate start events for both WebSocket and Chrome-based debugging.
+  /// Handles isolate start events for both WebSocket and Chrome-based
+  /// debugging.
   Future<void> _handleIsolateStart(AppConnection appConnection) async {
     final appId = appConnection.request.appId;
 
@@ -826,10 +837,11 @@ class DevHandler {
         if (!_sseHandlers.containsKey(uri.path)) {
           final handler = _useSseForInjectedClient
               ? SseSocketHandler(
-                  // We provide an essentially indefinite keep alive duration because
-                  // the underlying connection could be lost while the application
-                  // is paused. The connection will get re-established after a resume
-                  // or cleaned up on a full page refresh.
+                  // We provide an essentially indefinite keep alive duration
+                  // because the underlying connection could be lost while the
+                  // application is paused. The connection will get
+                  // re-established after a resume or cleaned up on a full page
+                  // refresh.
                   SseHandler(uri, keepAlive: const Duration(days: 3000)),
                 )
               : WebSocketSocketHandler();

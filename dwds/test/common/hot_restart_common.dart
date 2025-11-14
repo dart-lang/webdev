@@ -119,7 +119,7 @@ void runTests({
               moduleFormat: provider.ddcModuleFormat,
               canaryFeatures: provider.canaryFeatures,
             ),
-            debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+            debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
               enableDebugging: false,
             ),
           );
@@ -147,7 +147,7 @@ void runTests({
               moduleFormat: provider.ddcModuleFormat,
               canaryFeatures: provider.canaryFeatures,
             ),
-            debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+            debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
               enableDebugging: false,
               useSse: false,
             ),
@@ -168,7 +168,7 @@ void runTests({
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
     skip: compilationMode != CompilationMode.buildDaemon,
-    timeout: Timeout.factor(2),
+    timeout: const Timeout.factor(2),
   );
 
   group('Injected client', () {
@@ -472,7 +472,7 @@ void runTests({
       await fakeClient.callServiceExtension(hotRestart);
       await logFuture;
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: const Timeout.factor(2));
 
   group(
     'Injected client with hot restart',
@@ -540,7 +540,7 @@ void runTests({
               moduleFormat: provider.ddcModuleFormat,
               canaryFeatures: provider.canaryFeatures,
             ),
-            debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+            debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
               enableDebugging: false,
             ),
           );
@@ -565,7 +565,7 @@ void runTests({
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
     skip: compilationMode != CompilationMode.buildDaemon,
-    timeout: Timeout.factor(2),
+    timeout: const Timeout.factor(2),
   );
 
   group('when isolates_paused_on_start is true', () {

@@ -5,16 +5,17 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:dwds/shared/batched_stream.dart';
-import 'package:dwds/src/debugging/chrome_inspector.dart';
-import 'package:dwds/src/debugging/debugger.dart';
-import 'package:dwds/src/debugging/location.dart';
-import 'package:dwds/src/debugging/modules.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/services/expression_evaluator.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import '../../shared/batched_stream.dart';
+import '../debugging/chrome_inspector.dart';
+import '../debugging/debugger.dart';
+import '../debugging/location.dart';
+import '../debugging/modules.dart';
+import '../utilities/shared.dart';
+import 'expression_compiler.dart';
+import 'expression_evaluator.dart';
 
 class EvaluateRequest {
   final String isolateId;
@@ -84,7 +85,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
 
       if (libraryUri != request.libraryUri ||
           isolateId != request.isolateId ||
-          !MapEquality().equals(scope, request.scope)) {
+          !const MapEquality<String, String>().equals(scope, request.scope)) {
         _logger.fine('New batch due to');
         if (libraryUri != request.libraryUri) {
           _logger.fine(' - library uri: $libraryUri != ${request.libraryUri}');
@@ -92,7 +93,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
         if (isolateId != request.isolateId) {
           _logger.fine(' - isolateId: $isolateId != ${request.isolateId}');
         }
-        if (!MapEquality().equals(scope, request.scope)) {
+        if (!const MapEquality<String, String>().equals(scope, request.scope)) {
           _logger.fine(' - scope: $scope != ${request.scope}');
         }
 
@@ -159,7 +160,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
               request.completer.complete(result);
             }),
         onError: (error, stackTrace) =>
-            request.completer.completeError(error, stackTrace),
+            request.completer.completeError(error!, stackTrace),
       );
     }
   }

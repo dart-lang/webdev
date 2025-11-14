@@ -2,11 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-include: package:lints/recommended.yaml
+include: package:dart_flutter_team_lints/analysis_options.yaml
 
 analyzer:
-#  language:
-#    strict-casts: true
+  language:
+    strict-casts: true
   errors:
     dead_code: error
     unused_element: error
@@ -15,27 +15,18 @@ analyzer:
 
 linter:
   rules:
-    - always_declare_return_types
     - avoid_classes_with_only_static_members
     - avoid_returning_this
     - avoid_unused_constructor_parameters
     - avoid_void_async
     - cancel_subscriptions
-    - directives_ordering
     - join_return_with_assignment
     - library_names
     - literal_only_boolean_expressions
-    - omit_local_variable_types
-    - only_throw_errors
     - package_prefixed_library_names
     - prefer_final_in_for_each
     - prefer_final_locals
-    - prefer_single_quotes
-    # - prefer_relative_imports
     - prefer_void_to_null
-    - test_types_in_equals
-    - throw_in_finally
-    - unawaited_futures
     - unnecessary_lambdas
     - unnecessary_parenthesis
     - unnecessary_statements

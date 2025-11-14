@@ -124,7 +124,7 @@ final bool isDevMode = () {
 final bool isMV3 = () {
   final extensionManifest = chrome.runtime.getManifest();
   final manifestVersion =
-      getProperty(extensionManifest, 'manifest_version') ?? 2;
+      getProperty<int?>(extensionManifest, 'manifest_version') ?? 2;
   return manifestVersion == 3;
 }();
 

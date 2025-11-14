@@ -55,7 +55,7 @@ final sampleSyncFrame = WipCallFrame({
   'functionLocation': {'scriptId': '69', 'lineNumber': 88, 'columnNumber': 72},
   'location': {'scriptId': '69', 'lineNumber': 37, 'columnNumber': 0},
   'url': '',
-  'scopeChain': [],
+  'scopeChain': <Map<String, Object?>>[],
   'this': {'type': 'undefined'},
 });
 
@@ -68,8 +68,8 @@ final sampleAsyncFrame = CallFrame({
 });
 
 final Map<String, WipScript> scripts = {
-  '69': WipScript(<String, dynamic>{'url': 'http://127.0.0.1:8081/foo.ddc.js'}),
-  '71': WipScript(<String, dynamic>{'url': 'http://127.0.0.1:8081/bar.ddc.js'}),
+  '69': WipScript(<String, Object?>{'url': 'http://127.0.0.1:8081/foo.ddc.js'}),
+  '71': WipScript(<String, Object?>{'url': 'http://127.0.0.1:8081/bar.ddc.js'}),
 };
 
 void main() async {
@@ -91,7 +91,7 @@ void main() async {
     skipLists = SkipLists(root);
     debugger = await Debugger.create(
       webkitDebugger,
-      (_, __) {},
+      (_, _) {},
       locations,
       skipLists,
       root,
@@ -145,10 +145,10 @@ void main() async {
       asyncStackTrace: StackTrace({
         'callFrames': [sampleAsyncFrame.json],
         'parent': StackTrace({
-          'callFrames': [],
+          'callFrames': <Map<String, Object?>>[],
           'parent': StackTrace({
             'callFrames': [sampleAsyncFrame.json],
-            'parent': StackTrace({'callFrames': []}).json,
+            'parent': StackTrace({'callFrames': <Map<String, Object?>>[]}).json,
           }).json,
         }).json,
       }),
@@ -176,8 +176,8 @@ void main() async {
 
   group('errors', () {
     setUp(() {
-      // We need to provide an Isolate so that the code doesn't bail out on a null
-      // check before it has a chance to throw.
+      // We need to provide an Isolate so that the code doesn't bail out on a
+      // null check before it has a chance to throw.
       inspector = FakeChromeAppInspector(
         webkitDebugger,
         fakeIsolate: simpleIsolate,

@@ -38,7 +38,7 @@ void main(List<String> args) async {
       '--enable-vm-service=0',
       result.dillOutput!,
     ]);
-    final sawHelloWorld = Completer();
+    final sawHelloWorld = Completer<void>();
     appProcess.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())

@@ -49,7 +49,7 @@ class TestInspector {
     }
   }
 
-  Future<Map<dynamic, Object?>> getFields(
+  Future<Map<Object?, Object?>> getFields(
     String isolateId,
     InstanceRef instanceRef, {
     int? offset,
@@ -80,7 +80,7 @@ class TestInspector {
     final associations = instance.associations;
     final elements = instance.elements;
 
-    Map<dynamic, InstanceRef>? fieldRefs;
+    Map<Object?, InstanceRef>? fieldRefs;
     if (fields != null) {
       fieldRefs = _boundFieldsToMap(fields);
     } else if (associations != null) {
@@ -98,7 +98,7 @@ class TestInspector {
       return fieldRefs;
     }
 
-    final fieldValues = <dynamic, Object?>{};
+    final fieldValues = <Object?, Object?>{};
     for (final p in fieldRefs.entries) {
       fieldValues[p.key] =
           _getValue(p.value) ??
@@ -174,34 +174,34 @@ class TestInspector {
       await service.invoke(isolateId, instanceId, 'toString', [])
           as InstanceRef;
 
-  Future<Map<dynamic, String?>> getDisplayedFields(
+  Future<Map<Object?, String?>> getDisplayedFields(
     String isolateId,
     InstanceRef ref,
   ) async {
     final fieldRefs =
-        await getFields(isolateId, ref, depth: 1) as Map<dynamic, InstanceRef>;
+        await getFields(isolateId, ref, depth: 1) as Map<Object?, InstanceRef>;
 
     Future<String?> toStringValue(InstanceRef ref) async =>
         ref.valueAsString ??
         (await getDisplayedRef(isolateId, ref.id!)).valueAsString;
 
     final fields = await Future.wait(fieldRefs.values.map(toStringValue));
-    return Map<dynamic, String?>.fromIterables(fieldRefs.keys, fields);
+    return Map<Object?, String?>.fromIterables(fieldRefs.keys, fields);
   }
 
-  Future<Map<dynamic, String?>> getDisplayedGetters(
+  Future<Map<Object?, String?>> getDisplayedGetters(
     String isolateId,
     InstanceRef ref,
   ) async {
     final fieldRefs =
-        await getGetters(isolateId, ref) as Map<dynamic, InstanceRef>;
+        await getGetters(isolateId, ref) as Map<Object?, InstanceRef>;
 
     Future<String?> toStringValue(InstanceRef ref) async =>
         ref.valueAsString ??
         (await getDisplayedRef(isolateId, ref.id!)).valueAsString;
 
     final fields = await Future.wait(fieldRefs.values.map(toStringValue));
-    return Map<dynamic, String?>.fromIterables(fieldRefs.keys, fields);
+    return Map<Object?, String?>.fromIterables(fieldRefs.keys, fields);
   }
 
   Future<List<Instance>> getElements(
@@ -240,8 +240,8 @@ class TestInspector {
 
     /// A limit on the number of stops to record.
     ///
-    /// The program will not be resumed after the length of [recordedStops]
-    /// becomes [numStops].
+    /// The program will not be resumed after the length of recordedStops
+    /// becomes numStops.
     int numStops,
   ) async {
     final completer = Completer<void>();
@@ -271,20 +271,23 @@ class TestInspector {
 
 Map<String, InstanceRef> _associationsToMap(
   Iterable<MapAssociation> associations,
-) => Map.fromEntries(
-  associations.map((e) => MapEntry(e.key.valueAsString, e.value)),
+) => Map<String, InstanceRef>.fromEntries(
+  associations.map(
+    (e) =>
+        MapEntry((e.key as InstanceRef).valueAsString!, e.value as InstanceRef),
+  ),
 );
 
-Map<dynamic, InstanceRef> _boundFieldsToMap(Iterable<BoundField> fields) =>
-    Map.fromEntries(
-      fields.where((e) => e.name != null).map((e) => MapEntry(e.name, e.value)),
-    );
-
-Map<dynamic, InstanceRef> _elementsToMap(List<dynamic> fields) =>
+Map<Object?, InstanceRef> _boundFieldsToMap(Iterable<BoundField> fields) =>
     Map.fromEntries(
       fields
-          .where((e) => e != null)
-          .map((e) => MapEntry(fields.indexOf(e), e!)),
+          .where((e) => e.name != null)
+          .map((e) => MapEntry(e.name, e.value as InstanceRef)),
+    );
+
+Map<Object?, InstanceRef> _elementsToMap(List<Object?> fields) =>
+    Map.fromEntries(
+      fields.nonNulls.map((e) => MapEntry(fields.indexOf(e), e as InstanceRef)),
     );
 
 Matcher matchRecordInstanceRef({required int length}) => isA<InstanceRef>()
@@ -297,7 +300,7 @@ Matcher matchRecordTypeInstanceRef({required int length}) => isA<InstanceRef>()
     .having((e) => e.length, 'length', length)
     .having((e) => e.classRef!, 'classRef', matchRecordTypeClassRef);
 
-Matcher matchTypeInstanceRef(dynamic name) => isA<InstanceRef>()
+Matcher matchTypeInstanceRef(Object? name) => isA<InstanceRef>()
     .having((e) => e.kind, 'kind', InstanceKind.kType)
     .having((e) => e.name, 'type ref name', name)
     .having((e) => e.classRef, 'classRef', matchTypeClassRef);
@@ -307,12 +310,12 @@ Matcher matchPrimitiveInstanceRef({required String kind}) =>
 
 Matcher matchPrimitiveInstance({
   required String kind,
-  required dynamic value,
+  required Object? value,
 }) => isA<Instance>()
     .having((e) => e.kind, 'kind', kind)
     .having(_getValue, 'value', value);
 
-Matcher matchPlainInstance({required libraryId, required String type}) =>
+Matcher matchPlainInstance({required String libraryId, required String type}) =>
     isA<Instance>()
         .having((e) => e.kind, 'kind', InstanceKind.kPlainInstance)
         .having(
@@ -321,7 +324,7 @@ Matcher matchPlainInstance({required libraryId, required String type}) =>
           matchClassRef(name: type, libraryId: libraryId),
         );
 
-Matcher matchListInstance({required dynamic type}) => isA<Instance>()
+Matcher matchListInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kList)
     .having((e) => e.classRef, 'classRef', matchListClassRef(type));
 
@@ -343,10 +346,10 @@ Matcher matchRecordTypeInstance({required int length}) => isA<Instance>()
     .having((e) => e.length, 'length', length)
     .having((e) => e.classRef, 'classRef', matchRecordTypeClassRef);
 
-Matcher matchTypeStringInstance(dynamic name) =>
+Matcher matchTypeStringInstance(Object? name) =>
     matchPrimitiveInstance(kind: InstanceKind.kString, value: name);
 
-Matcher matchTypeInstance(dynamic name) => isA<Instance>()
+Matcher matchTypeInstance(Object? name) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kType)
     .having((e) => e.name, 'type name', name)
     .having((e) => e.classRef, 'classRef', matchTypeClassRef);
@@ -368,7 +371,7 @@ Matcher matchRecordTypeClass = anyOf(
   matchClass(name: matchRecordTypeClassName, libraryId: _dartRuntimeLibrary),
 );
 
-Matcher matchClass({dynamic name, String? libraryId}) => isA<Class>()
+Matcher matchClass({Object? name, String? libraryId}) => isA<Class>()
     .having((e) => e.name, 'class name', name)
     .having((e) => e.library, 'library', matchLibraryRef(libraryId));
 
@@ -397,11 +400,11 @@ Matcher matchMapClassRef(String type) =>
 Matcher matchSetClassRef(String type) =>
     matchClassRef(name: type, libraryId: _dartJsHelperLibrary);
 
-Matcher matchClassRef({dynamic name, dynamic libraryId}) => isA<ClassRef>()
+Matcher matchClassRef({Object? name, Object? libraryId}) => isA<ClassRef>()
     .having((e) => e.name, 'class ref name', name)
     .having((e) => e.library, 'library', matchLibraryRef(libraryId));
 
-Matcher matchLibraryRef(dynamic libraryId) => isA<LibraryRef>()
+Matcher matchLibraryRef(Object? libraryId) => isA<LibraryRef>()
     .having((e) => e.name, 'library name', libraryId)
     .having((e) => e.id, 'id', libraryId)
     .having((e) => e.uri, 'uri', libraryId);

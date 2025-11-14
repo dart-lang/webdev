@@ -8,11 +8,12 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/loaders/ddc_library_bundle.dart';
-import 'package:dwds/src/version.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
+
+import '../config/tool_configuration.dart';
+import '../loaders/ddc_library_bundle.dart';
+import '../version.dart';
 
 /// File extension that build_web_compilers will place the
 /// [entrypointExtensionMarker] in.
@@ -195,19 +196,21 @@ Future<String> _injectedClientSnippet(
   final debugSettings = globalToolConfiguration.debugSettings;
 
   var injectedBody =
-      'window.\$dartAppId = "$appId";\n'
-      'window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
-      'window.\$dartModuleStrategy = "${loadStrategy.id}";\n'
-      'window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
-      'window.\$dwdsVersion = "$packageVersion";\n'
-      'window.\$dwdsDevHandlerPath = "$devHandlerPath";\n'
-      'window.\$dwdsEnableDevToolsLaunch = ${debugSettings.enableDevToolsLaunch};\n'
-      'window.\$dartEntrypointPath = "$entrypointPath";\n'
-      'window.\$dartEmitDebugEvents = ${debugSettings.emitDebugEvents};\n'
-      'window.\$isInternalBuild = ${appMetadata.isInternalBuild};\n'
-      'window.\$isFlutterApp = ${buildSettings.isFlutterApp};\n'
-      '${loadStrategy is DdcLibraryBundleStrategy ? 'window.\$reloadedSourcesPath = "${loadStrategy.reloadedSourcesUri.toString()}";\n' : ''}'
-      '${loadStrategy.loadClientSnippet(_clientScript)}';
+      '''
+      window.\$dartAppId = "$appId";
+      window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";
+      window.\$dartModuleStrategy = "${loadStrategy.id}";
+      window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};
+      window.\$dwdsVersion = "$packageVersion";
+      window.\$dwdsDevHandlerPath = "$devHandlerPath";
+      window.\$dwdsEnableDevToolsLaunch = ${debugSettings.enableDevToolsLaunch};
+      window.\$dartEntrypointPath = "$entrypointPath";
+      window.\$dartEmitDebugEvents = ${debugSettings.emitDebugEvents};
+      window.\$isInternalBuild = ${appMetadata.isInternalBuild};
+      window.\$isFlutterApp = ${buildSettings.isFlutterApp};
+      ${loadStrategy is DdcLibraryBundleStrategy ? 'window.\$reloadedSourcesPath = "${loadStrategy.reloadedSourcesUri.toString()}";' : ''}
+      ${loadStrategy.loadClientSnippet(_clientScript)}
+''';
 
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';

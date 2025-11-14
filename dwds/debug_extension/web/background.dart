@@ -61,12 +61,12 @@ void _registerListeners() {
 }
 
 Future<void> _handleRuntimeMessages(
-  dynamic jsRequest,
+  Object? jsRequest,
   MessageSender sender,
   Function sendResponse,
 ) async {
   if (jsRequest is! String) return;
-
+  if (sendResponse is! void Function(Object?)) return;
   interceptMessage<String>(
     message: jsRequest,
     expectedType: MessageType.isAuthenticated,

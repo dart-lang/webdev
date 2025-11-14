@@ -27,7 +27,10 @@ void runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(
+    String breakPointId,
+    Future<void> Function(Event) body,
+  ) => testInspector.onBreakPoint(
     stream,
     isolateId,
     mainScript,
@@ -35,22 +38,23 @@ void runTests({
     body,
   );
 
-  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(String instanceId) =>
+      service.getObject(isolateId, instanceId);
 
-  Future<Map<Object?, String?>> getDisplayedFields(instanceRef) =>
+  Future<Map<Object?, String?>> getDisplayedFields(InstanceRef instanceRef) =>
       testInspector.getDisplayedFields(isolateId, instanceRef);
 
-  Future<Map<Object?, String?>> getDisplayedGetters(instanceRef) =>
+  Future<Map<Object?, String?>> getDisplayedGetters(InstanceRef instanceRef) =>
       testInspector.getDisplayedGetters(isolateId, instanceRef);
 
-  Future<InstanceRef> getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(int frame, String expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
   Future<Map<Object?, Object?>> getFields(
-    instanceRef, {
-    offset,
-    count,
-    depth = -1,
+    InstanceRef instanceRef, {
+    int? offset,
+    int? count,
+    int depth = -1,
   }) => testInspector.getFields(
     isolateId,
     instanceRef,
@@ -62,9 +66,9 @@ void runTests({
   Future<List<Instance>> getElements(String instanceId) =>
       testInspector.getElements(isolateId, instanceId);
 
-  final matchTypeObjectFields = {};
+  final matchTypeObjectFields = <Object?, Object?>{};
 
-  final matchDisplayedTypeObjectFields = {};
+  final matchDisplayedTypeObjectFields = <Object?, Object?>{};
 
   final matchDisplayedTypeObjectGetters = {
     'hashCode': matches('[0-9]*'),
@@ -114,7 +118,7 @@ void runTests({
         final instance = await getObject(instanceId);
         expect(instance, matchTypeInstance('String'));
 
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
         expect(await getObject(classId), matchTypeClass);
         expect(await getFields(instanceRef, depth: 1), matchTypeObjectFields);
         expect(
@@ -146,7 +150,7 @@ void runTests({
         final instance = await getObject(instanceId);
         expect(instance, matchTypeInstance('int'));
 
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
         expect(await getObject(classId), matchTypeClass);
         expect(await getFields(instanceRef, depth: 1), matchTypeObjectFields);
         expect(
@@ -178,7 +182,7 @@ void runTests({
         final instance = await getObject(instanceId);
         expect(instance, matchTypeInstance('List<int>'));
 
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
         expect(await getObject(classId), matchTypeClass);
         expect(await getFields(instanceRef, depth: 1), matchTypeObjectFields);
         expect(
@@ -205,7 +209,7 @@ void runTests({
         final instance = await getObject(instanceId);
         expect(instance, matchTypeInstance('IdentityMap<int, String>'));
 
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
         expect(await getObject(classId), matchTypeClass);
         expect(await getFields(instanceRef, depth: 1), matchTypeObjectFields);
         expect(
@@ -240,7 +244,7 @@ void runTests({
         final instance = await getObject(instanceId);
         expect(instance, matchTypeInstance('IdentitySet<int>'));
 
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
         expect(await getObject(classId), matchTypeClass);
         expect(await getFields(instanceRef, depth: 1), matchTypeObjectFields);
         expect(
@@ -276,7 +280,7 @@ void runTests({
           matchTypeInstance('String'),
         ]);
 
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
         expect(await getObject(classId), matchRecordTypeClass);
         expect(await getFields(instanceRef, depth: 2), {
           1: matchTypeObjectFields,
@@ -311,7 +315,7 @@ void runTests({
         final instance = await getObject(instanceId);
         expect(instance, matchTypeInstance('_Uri'));
 
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
         expect(await getObject(classId), matchTypeClass);
         expect(await getFields(instanceRef, depth: 1), matchTypeObjectFields);
         expect(

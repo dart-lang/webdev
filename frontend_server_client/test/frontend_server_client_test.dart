@@ -330,14 +330,14 @@ Future<Isolate> waitForIsolatesAndResume(VmService vmService) async {
   var vm = await vmService.getVM();
   var isolates = vm.isolates;
   while (isolates == null || isolates.isEmpty) {
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     vm = await vmService.getVM();
     isolates = vm.isolates;
   }
   final isolateRef = isolates.first;
   var isolate = await vmService.getIsolate(isolateRef.id!);
   while (isolate.pauseEvent?.kind != EventKind.kPauseStart) {
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     isolate = await vmService.getIsolate(isolateRef.id!);
   }
   await vmService.resume(isolate.id!);

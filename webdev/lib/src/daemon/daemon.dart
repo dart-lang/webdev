@@ -13,7 +13,7 @@ import 'utilites.dart';
 /// Listens for commands, routes them to the corresponding domain and provides
 /// the result.
 class Daemon {
-  Daemon(Stream<Map<String, dynamic>> commandStream, this._sendCommand) {
+  Daemon(Stream<Map<String, Object?>> commandStream, this._sendCommand) {
     _commandSubscription = commandStream.listen(
       _handleRequest,
       onDone: () {
@@ -22,9 +22,9 @@ class Daemon {
     );
   }
 
-  late StreamSubscription<Map<String, dynamic>> _commandSubscription;
+  late StreamSubscription<Map<String, Object?>> _commandSubscription;
 
-  final void Function(Map<String, dynamic>) _sendCommand;
+  final void Function(Map<String, Object?>) _sendCommand;
 
   final Completer<int> _onExitCompleter = Completer<int>();
   final Map<String, Domain> _domainMap = <String, Domain>{};
@@ -38,7 +38,7 @@ class Daemon {
 
   Future<int> get onExit => _onExitCompleter.future;
 
-  void _handleRequest(Map<String, dynamic> request) {
+  void _handleRequest(Map<String, Object?> request) {
     // {id, method, params}
 
     // [id] is an opaque type to us.
@@ -65,10 +65,10 @@ class Daemon {
       domainValue.handleCommand(
         name,
         id,
-        request['params'] as Map<String, dynamic>? ?? {},
+        request['params'] as Map<String, Object?>? ?? {},
       );
     } catch (error, trace) {
-      send(<String, dynamic>{
+      send(<String, Object?>{
         'id': id,
         'error': toJsonable(error),
         'trace': '$trace',
@@ -76,7 +76,7 @@ class Daemon {
     }
   }
 
-  void send(Map<String, dynamic> map) => _sendCommand(map);
+  void send(Map<String, Object?> map) => _sendCommand(map);
 
   void shutdown({Object? error}) {
     _commandSubscription.cancel();

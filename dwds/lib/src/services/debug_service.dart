@@ -9,10 +9,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dds/dds_launcher.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/events.dart';
-import 'package:dwds/src/services/proxy_service.dart';
-import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -20,6 +16,12 @@ import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+import '../config/tool_configuration.dart';
+import '../events.dart';
+import '../utilities/server.dart';
+import 'proxy_service.dart';
 
 bool _acceptNewConnections = true;
 
@@ -37,7 +39,8 @@ abstract class DebugService<T extends ProxyService> {
     required this.useSse,
   });
 
-  /// The URI pointing to the VM service implementation hosted by the [DebugService].
+  /// The URI pointing to the VM service implementation hosted by the
+  /// [DebugService].
   String get uri => _uri.toString();
 
   Uri get _uri => _cachedUri ??= () {
@@ -163,9 +166,9 @@ abstract class DebugService<T extends ProxyService> {
     void Function(Map<String, Object?>)? onResponse,
   }) {
     return _wrapHandler(
-      webSocketHandler((webSocket, subprotocol) {
+      webSocketHandler((WebSocketChannel webSocket, subprotocol) {
         handleConnection(
-          webSocket,
+          webSocket.cast<Object>(),
           proxyService,
           serviceExtensionRegistry,
           onRequest: onRequest,
@@ -181,7 +184,8 @@ abstract class DebugService<T extends ProxyService> {
       if (!_acceptNewConnections) {
         return shelf.Response.forbidden(
           'Cannot connect directly to the VM service as a Dart Development '
-          'Service (DDS) instance has taken control and can be found at $_ddsUri.'
+          'Service (DDS) instance has taken control and can be found at '
+          '$_ddsUri.'
           '$_ddsUri.',
         );
       }
@@ -195,7 +199,7 @@ abstract class DebugService<T extends ProxyService> {
   @protected
   @mustCallSuper
   void handleConnection(
-    StreamChannel channel,
+    StreamChannel<Object> channel,
     ProxyService proxyService,
     ServiceExtensionRegistry serviceExtensionRegistry, {
     void Function(Map<String, Object>)? onRequest,
@@ -210,8 +214,8 @@ abstract class DebugService<T extends ProxyService> {
           // while also being able to determine which client invoked the RPC
           // without some form of client ID.
           //
-          // We can probably do better than this, but it will likely involve some
-          // refactoring.
+          // We can probably do better than this, but it will likely involve
+          // some refactoring.
           if (response case {
             'error': {
               'code': DisconnectNonDartDevelopmentServiceClients.kErrorCode,
@@ -240,7 +244,9 @@ abstract class DebugService<T extends ProxyService> {
           'socket, expected a List<int> or String.',
         );
       }
-      final request = Map<String, Object>.from(jsonDecode(value));
+      final request = Map<String, Object>.from(
+        jsonDecode(value as String) as Map<String, Object>,
+      );
       if (onRequest != null) onRequest(request);
       return request;
     });

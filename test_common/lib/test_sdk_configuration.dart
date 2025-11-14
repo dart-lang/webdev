@@ -8,8 +8,8 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/sdk_configuration.dart';
 import 'package:logging/logging.dart';
 
-import 'package:test_common/sdk_asset_generator.dart';
-import 'package:test_common/test_sdk_layout.dart';
+import 'sdk_asset_generator.dart';
+import 'test_sdk_layout.dart';
 
 /// Implementation for SDK configuration for tests that can generate
 /// missing assets.

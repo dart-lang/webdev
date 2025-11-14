@@ -19,7 +19,7 @@ final _logger = Logger('Utilities');
 
 void safeUnawaited(
   Future<void> future, {
-  void Function(dynamic, StackTrace)? onError,
+  void Function(Object?, StackTrace)? onError,
 }) {
   onError ??= (error, stackTrace) =>
       _logger.warning('Error in unawaited Future:', error, stackTrace);
@@ -35,7 +35,7 @@ Future<T> wrapInErrorHandlerAsync<T>(
   String command,
   Future<T> Function() asyncCallback,
 ) {
-  return asyncCallback().catchError((error) {
+  return asyncCallback().catchError((Object error) {
     return Future<T>.error(
       RPCError(
         command,

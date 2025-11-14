@@ -235,9 +235,10 @@ Future<_PackageInfo> _latestPackageInfo() async {
     Uri.parse('https://pub.dev/api/packages/webdev'),
     headers: {HttpHeaders.userAgentHeader: 'webdev $packageVersion'},
   );
-  final responseObj = json.decode(response.body);
+  final responseObj = json.decode(response.body) as Map<String, Object?>;
   final pubspec = Pubspec.fromJson(
-    responseObj['latest']['pubspec'] as Map<String, dynamic>,
+    (responseObj['latest']! as Map<String, Object?>)['pubspec']
+        as Map<String, Object?>,
   );
   final buildDaemonDependency = pubspec.dependencies['build_daemon'];
   // This should never be satisfied.

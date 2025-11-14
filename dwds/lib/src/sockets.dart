@@ -8,7 +8,7 @@ import 'package:sse/client/sse_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 abstract class SocketClient {
-  StreamSink<dynamic> get sink;
+  StreamSink<Object?> get sink;
   Stream<String> get stream;
   void close();
 }
@@ -18,7 +18,7 @@ class SseSocketClient extends SocketClient {
   SseSocketClient(this._client);
 
   @override
-  StreamSink<dynamic> get sink => _client.sink;
+  StreamSink<Object?> get sink => _client.sink;
 
   @override
   Stream<String> get stream => _client.stream;
@@ -33,9 +33,9 @@ class WebSocketClient extends SocketClient {
   WebSocketClient(this._channel);
 
   @override
-  StreamSink<dynamic> get sink => _channel.sink;
+  StreamSink<Object?> get sink => _channel.sink;
   @override
-  Stream<String> get stream => _channel.stream.map((dynamic o) => o.toString());
+  Stream<String> get stream => _channel.stream.map((Object? o) => o.toString());
 
   @override
   void close() => _channel.sink.close();

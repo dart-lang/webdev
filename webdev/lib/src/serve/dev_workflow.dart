@@ -84,6 +84,7 @@ Future<Chrome?> _startChrome(
     } else if (configuration.chromeDebugPort != 0) {
       return await Chrome.fromExisting(configuration.chromeDebugPort);
     }
+    // ignore: avoid_catching_errors
   } on ChromeError {
     await serverManager.stop();
     await client.close();
@@ -172,7 +173,7 @@ void _registerBuildTargets(
 /// Connects to the Build Daemon, creates servers, launches Chrome and wires up
 /// the DevTools.
 class DevWorkflow {
-  final _doneCompleter = Completer();
+  final _doneCompleter = Completer<void>();
   final BuildDaemonClient _client;
   final Chrome? _chrome;
 

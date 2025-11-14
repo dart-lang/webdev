@@ -28,7 +28,9 @@ void main() {
 
   setUpAll(() async {
     setCurrentLogWriter(debug: debug);
-    await context.setUp(testSettings: TestSettings(verboseCompiler: debug));
+    await context.setUp(
+      testSettings: const TestSettings(verboseCompiler: debug),
+    );
   });
 
   tearDownAll(() async {
@@ -287,8 +289,8 @@ void main() {
       );
       expect(parameter.value, matches(RegExp(r'\d+ world')));
       final ticks = await debugger.evaluateJsOnCallFrameIndex(1, 'ticks');
-      // We don't know how many ticks there were before we stopped, but it should
-      // be a positive number.
+      // We don't know how many ticks there were before we stopped, but it
+      // should be a positive number.
       expect(ticks.value, isPositive);
     });
   });

@@ -16,7 +16,7 @@ abstract class SocketConnection {
   bool get isInKeepAlivePeriod;
 
   /// Messages added to the sink must be JSON encodable.
-  StreamSink<dynamic> get sink;
+  StreamSink<Object?> get sink;
 
   Stream<String> get stream;
 
@@ -24,7 +24,8 @@ abstract class SocketConnection {
   void shutdown();
 }
 
-/// A handler that accepts (transport-agnostic) bidirectional socket connections.
+/// A handler that accepts (transport-agnostic) bidirectional socket
+/// connections.
 abstract class SocketHandler {
   StreamQueue<SocketConnection> get connections;
   FutureOr<Response> handler(Request request);
@@ -32,7 +33,8 @@ abstract class SocketHandler {
 }
 
 /// An implementation of [SocketConnection] that users server-sent events (SSE)
-/// and HTTP POSTS for bidirectional communication by wrapping an [SseConnection].
+/// and HTTP POSTS for bidirectional communication by wrapping an
+/// [SseConnection].
 class SseSocketConnection extends SocketConnection {
   final SseConnection _connection;
 
@@ -41,7 +43,7 @@ class SseSocketConnection extends SocketConnection {
   @override
   bool get isInKeepAlivePeriod => _connection.isInKeepAlivePeriod;
   @override
-  StreamSink<dynamic> get sink => _connection.sink;
+  StreamSink<Object?> get sink => _connection.sink;
   @override
   Stream<String> get stream => _connection.stream;
   @override
@@ -76,8 +78,8 @@ class SseSocketHandler extends SocketHandler {
   void shutdown() => _sseHandler.shutdown();
 }
 
-/// An implementation of [SocketConnection] that uses WebSockets for communication
-/// by wrapping [WebSocketChannel].
+/// An implementation of [SocketConnection] that uses WebSockets for
+/// communication by wrapping [WebSocketChannel].
 class WebSocketConnection extends SocketConnection {
   final WebSocketChannel _channel;
   WebSocketConnection(this._channel);
@@ -86,10 +88,10 @@ class WebSocketConnection extends SocketConnection {
   bool get isInKeepAlivePeriod => false;
 
   @override
-  StreamSink<dynamic> get sink => _channel.sink;
+  StreamSink<Object?> get sink => _channel.sink;
 
   @override
-  Stream<String> get stream => _channel.stream.map((dynamic o) => o.toString());
+  Stream<String> get stream => _channel.stream.map((Object? o) => o.toString());
 
   @override
   void shutdown() => _channel.sink.close();

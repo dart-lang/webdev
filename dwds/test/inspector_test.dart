@@ -142,7 +142,7 @@ void main() {
           await inspector.getObject(remoteObject.objectId!) as Instance;
       final classRef = instance.classRef!;
       final clazz = await inspector.getObject(classRef.id!) as Class;
-      expect(clazz.name, 'MyTestClass<dynamic>');
+      expect(clazz.name, 'MyTestClass<Object?>');
     });
   });
 

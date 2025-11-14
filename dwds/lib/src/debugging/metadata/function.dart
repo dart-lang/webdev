@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/utilities/server.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import '../../config/tool_configuration.dart';
+import '../../utilities/server.dart';
+import '../remote_debugger.dart';
 
 /// Meta data for a remote Dart function in Chrome.
 class FunctionMetaData {
@@ -31,7 +32,9 @@ class FunctionMetaData {
       },
     );
     handleErrorIfPresent(response, evalContents: evalExpression);
-    final name = response.result?['result']?['value'] as String?;
+    final name =
+        (response.result?['result'] as Map<String, Object>?)?['value']
+            as String?;
     if (name == null) return FunctionMetaData('<unknown>');
     if (name.isEmpty) return FunctionMetaData('Closure');
     return FunctionMetaData(name);

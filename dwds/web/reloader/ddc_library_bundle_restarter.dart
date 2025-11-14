@@ -153,9 +153,9 @@ class DdcLibraryBundleRestarter implements Restarter {
   }
 
   /// Handles service extension requests using the dart dev embedder
-  Future<Map<String, dynamic>?> handleServiceExtension(
+  Future<Map<String, Object?>?> handleServiceExtension(
     String method,
-    Map<String, dynamic> args,
+    Map<String, Object?> args,
   ) async {
     if (method == 'ext.flutter.reassemble') {
       await _dartDevEmbedder.debugger.maybeInvokeFlutterReassemble();
@@ -170,7 +170,7 @@ class DdcLibraryBundleRestarter implements Restarter {
       final resultJson = await _dartDevEmbedder.debugger
           .invokeExtension(method, params)
           .toDart;
-      return jsonDecode(resultJson.toDart) as Map<String, dynamic>;
+      return jsonDecode(resultJson.toDart) as Map<String, Object?>;
     }
   }
 }

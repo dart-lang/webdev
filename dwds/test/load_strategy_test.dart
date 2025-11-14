@@ -59,7 +59,7 @@ void main() {
     group('When default build settings defined', () {
       late final strategy = FakeStrategy(
         FakeAssetReader(),
-        buildSettings: TestBuildSettings.dart(),
+        buildSettings: const TestBuildSettings.dart(),
       );
 
       test('uses the default app entrypoint', () {

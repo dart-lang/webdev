@@ -31,7 +31,10 @@ void main() {
     setUp(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        testSettings: TestSettings(autoRun: false, verboseCompiler: debug),
+        testSettings: const TestSettings(
+          autoRun: false,
+          verboseCompiler: debug,
+        ),
       );
       service = context.service;
     });
@@ -45,7 +48,7 @@ void main() {
       final isolate = await service.getIsolate(vm.isolates!.first.id!);
       expect(isolate.pauseEvent!.kind, EventKind.kPauseStart);
       final stream = service.onEvent('Debug');
-      final resumeCompleter = Completer();
+      final resumeCompleter = Completer<void>();
       // The underlying stream is a broadcast stream so we need to add a
       // listener before calling resume so that we don't miss events.
       unawaited(
@@ -67,13 +70,13 @@ void main() {
       await stream.firstWhere((event) => event.kind == EventKind.kResume);
       expect(isolate.pauseEvent!.kind, EventKind.kResume);
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: const Timeout.factor(2));
 
   group('while debugger is not attached', () {
     setUp(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        testSettings: TestSettings(autoRun: false, waitToDebug: true),
+        testSettings: const TestSettings(autoRun: false, waitToDebug: true),
       );
     });
 

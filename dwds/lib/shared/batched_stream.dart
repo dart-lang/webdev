@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:async/async.dart';
-import 'package:dwds/src/utilities/shared.dart';
+import '../src/utilities/shared.dart';
 
 /// Stream controller allowing to batch events.
 class BatchedStreamController<T> {
@@ -40,7 +40,7 @@ class BatchedStreamController<T> {
   Stream<List<T>> get stream => _outputController.stream;
 
   /// Close the controller.
-  Future<dynamic> close() {
+  Future<Object?> close() {
     safeUnawaited(_inputController.close());
     return _completer.future.then((value) => _outputController.close());
   }

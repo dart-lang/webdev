@@ -6,13 +6,14 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:logging/logging.dart';
+
+import '../utilities/sdk_configuration.dart';
+import 'expression_compiler.dart';
 
 class _Compiler {
   static final _logger = Logger('ExpressionCompilerService');
-  final StreamQueue<dynamic> _responseQueue;
+  final StreamQueue<Object?> _responseQueue;
   final ReceivePort _receivePort;
   final SendPort _sendPort;
 
@@ -22,7 +23,7 @@ class _Compiler {
 
   /// Sends [request] on [_sendPort] and returns the next event from the
   /// response stream.
-  Future<Map<String, dynamic>> _send(Map<String, Object> request) async {
+  Future<Map<String, Object?>> _send(Map<String, Object> request) async {
     _sendPort.send(request);
     if (!await _responseQueue.hasNext) {
       return {
@@ -31,7 +32,7 @@ class _Compiler {
       };
     }
     final response = await _responseQueue.next;
-    if (response is! Map<String, dynamic>) {
+    if (response is! Map<String, Object?>) {
       return {
         'succeeded': false,
         'errors': ['compilation worker returned invalid response: $response'],
@@ -107,7 +108,7 @@ class _Compiler {
   }
 
   Future<bool> updateDependencies(Map<String, ModuleInfo> modules) async {
-    final updateCompleter = Completer();
+    final updateCompleter = Completer<void>();
     _dependencyUpdate = updateCompleter.future;
 
     _logger.info('Updating dependencies...');
@@ -189,7 +190,7 @@ class _Compiler {
     return ExpressionCompilationResult(result, !succeeded);
   }
 
-  String _createErrorMsg(Map<String, dynamic> response) {
+  String _createErrorMsg(Map<String, Object?> response) {
     final errors = response['errors'] as List<String>?;
     if (errors != null && errors.isNotEmpty) return errors.first;
 
@@ -219,7 +220,7 @@ class _Compiler {
 /// Uses [_address] and [_port] to communicate and to redirect asset
 /// requests to the asset server.
 ///
-/// Configuration created by [_sdkConfigurationProvider] describes the
+/// Configuration created by [sdkConfigurationProvider] describes the
 /// locations of SDK files used in expression compilation (summaries,
 /// libraries spec, compiler worker snapshot).
 ///

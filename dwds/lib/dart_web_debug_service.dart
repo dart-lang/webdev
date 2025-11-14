@@ -4,21 +4,22 @@
 
 import 'dart:async';
 
-import 'package:dwds/data/build_result.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/connections/app_connection.dart';
-import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/events.dart';
-import 'package:dwds/src/handlers/dev_handler.dart';
-import 'package:dwds/src/handlers/injector.dart';
-import 'package:dwds/src/handlers/socket_connections.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:dwds/src/servers/devtools.dart';
-import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import 'data/build_result.dart';
+import 'src/config/tool_configuration.dart';
+import 'src/connections/app_connection.dart';
+import 'src/connections/debug_connection.dart';
+import 'src/events.dart';
+import 'src/handlers/dev_handler.dart';
+import 'src/handlers/injector.dart';
+import 'src/handlers/socket_connections.dart';
+import 'src/readers/asset_reader.dart';
+import 'src/servers/devtools.dart';
+import 'src/servers/extension_backend.dart';
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 
@@ -145,8 +146,9 @@ class Dwds {
       debugSettings.expressionCompiler,
       injected,
       DartDevelopmentServiceConfiguration(
-        // This technically isn't correct, but DartDevelopmentServiceConfiguration.enable
-        // is true by default, so this won't break unmigrated tools.
+        // This technically isn't correct, but
+        // DartDevelopmentServiceConfiguration.enable is true by default, so
+        // this won't break unmigrated tools.
         // ignore: deprecated_member_use_from_same_package
         enable: debugSettings.spawnDds && debugSettings.ddsConfiguration.enable,
         // ignore: deprecated_member_use_from_same_package

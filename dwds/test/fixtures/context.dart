@@ -122,8 +122,8 @@ class TestContext {
 
   /// Internal VM service.
   ///
-  /// Prefer using [vmService] instead in tests when possible, to include testing
-  /// of the VmServerConnection (bypassed when using [service]).
+  /// Prefer using [vmService] instead in tests when possible, to include
+  /// testing of the VmServerConnection (bypassed when using [service]).
   ChromeProxyService get service => fetchChromeProxyService(debugConnection);
 
   /// External VM service.
@@ -202,7 +202,7 @@ class TestContext {
         // We therefore wait until ChromeDriver reports that it has started
         // successfully.
 
-        final chromeDriverStartup = Completer();
+        final chromeDriverStartup = Completer<void>();
         stdOutLines.listen((line) {
           if (!chromeDriverStartup.isCompleted &&
               line.contains('was started successfully')) {
@@ -320,7 +320,7 @@ class TestContext {
             final entry = p.toUri(
               p.join(project.webAssetsPath, project.dartEntryFileName),
             );
-            frontendServerFileSystem = LocalFileSystem();
+            frontendServerFileSystem = const LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
               frontendServerFileSystem,
               project.packageConfigFile,
@@ -393,7 +393,8 @@ class TestContext {
                         buildSettings,
                       ).strategy,
               _ => throw Exception(
-                'Unsupported DDC module format ${testSettings.moduleFormat.name}.',
+                'Unsupported DDC module format '
+                '${testSettings.moduleFormat.name}.',
               ),
             };
             buildResults = const Stream<BuildResults>.empty();
@@ -439,8 +440,8 @@ class TestContext {
 
       // The debugger tab must be enabled and connected before certain
       // listeners in DWDS or `main` is run.
-      final tabConnectionCompleter = Completer();
-      final appConnectionCompleter = Completer();
+      final tabConnectionCompleter = Completer<void>();
+      final appConnectionCompleter = Completer<void>();
       final connection = ChromeConnection('localhost', debugPort);
 
       // TODO(srujzs): In the case of the frontend server, it doesn't make sense
@@ -589,7 +590,9 @@ class TestContext {
     // timestamp that is guaranteed to be after the previous compile.
     // TODO(https://github.com/dart-lang/sdk/issues/51937): Remove once this bug
     // is fixed.
-    if (Platform.isWindows) await Future.delayed(Duration(seconds: 1));
+    if (Platform.isWindows) {
+      await Future<void>.delayed(const Duration(seconds: 1));
+    }
     for (var (:file, :originalString, :newString) in edits) {
       if (file == project.dartEntryFileName) {
         file = project.dartEntryFilePath;
@@ -636,7 +639,7 @@ class TestContext {
       final delay = Platform.isWindows
           ? const Duration(seconds: 5)
           : const Duration(seconds: 2);
-      await Future.delayed(delay);
+      await Future<void>.delayed(delay);
     }
   }
 

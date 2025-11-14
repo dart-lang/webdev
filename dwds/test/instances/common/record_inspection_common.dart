@@ -26,7 +26,10 @@ void runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(
+    String breakPointId,
+    Future<void> Function(Event) body,
+  ) => testInspector.onBreakPoint(
     stream,
     isolateId,
     mainScript,
@@ -34,19 +37,20 @@ void runTests({
     body,
   );
 
-  Future<Instance> getInstance(frame, expression) =>
+  Future<Instance> getInstance(int frame, String expression) =>
       testInspector.getInstance(isolateId, frame, expression);
 
-  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(String instanceId) =>
+      service.getObject(isolateId, instanceId);
 
-  Future<InstanceRef> getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(int frame, String expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
   Future<Map<Object?, Object?>> getFields(
-    instanceRef, {
-    offset,
-    count,
-    depth = -1,
+    InstanceRef instanceRef, {
+    int? offset,
+    int? count,
+    int depth = -1,
   }) => testInspector.getFields(
     isolateId,
     instanceRef,
@@ -94,7 +98,7 @@ void runTests({
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -123,8 +127,11 @@ void runTests({
         expect(await getFields(instanceRef), {1: true, 2: 3});
         expect(await getFields(instanceRef, offset: 0), {1: true, 2: 3});
         expect(await getFields(instanceRef, offset: 1), {2: 3});
-        expect(await getFields(instanceRef, offset: 2), {});
-        expect(await getFields(instanceRef, offset: 0, count: 0), {});
+        expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
+        expect(
+          await getFields(instanceRef, offset: 0, count: 0),
+          <Object?, Object?>{},
+        );
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
@@ -134,7 +141,10 @@ void runTests({
           1: true,
           2: 3,
         });
-        expect(await getFields(instanceRef, offset: 2, count: 5), {});
+        expect(
+          await getFields(instanceRef, offset: 2, count: 5),
+          <Object?, Object?>{},
+        );
       });
     });
 
@@ -158,7 +168,7 @@ void runTests({
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -190,8 +200,11 @@ void runTests({
           'cat': 'Vasya',
         });
         expect(await getFields(instanceRef, offset: 1), {'cat': 'Vasya'});
-        expect(await getFields(instanceRef, offset: 2), {});
-        expect(await getFields(instanceRef, offset: 0, count: 0), {});
+        expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
+        expect(
+          await getFields(instanceRef, offset: 0, count: 0),
+          <Object?, Object?>{},
+        );
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
@@ -201,7 +214,10 @@ void runTests({
           1: true,
           'cat': 'Vasya',
         });
-        expect(await getFields(instanceRef, offset: 2, count: 5), {});
+        expect(
+          await getFields(instanceRef, offset: 2, count: 5),
+          <Object?, Object?>{},
+        );
       });
     });
 
@@ -225,7 +241,7 @@ void runTests({
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -273,8 +289,11 @@ void runTests({
         expect(await getFields(instanceRef, offset: 2), {
           3: {'a': 1, 'b': 5},
         });
-        expect(await getFields(instanceRef, offset: 3), {});
-        expect(await getFields(instanceRef, offset: 0, count: 0), {});
+        expect(await getFields(instanceRef, offset: 3), <Object?, Object?>{});
+        expect(
+          await getFields(instanceRef, offset: 0, count: 0),
+          <Object?, Object?>{},
+        );
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
@@ -285,7 +304,10 @@ void runTests({
           2: 3,
           3: {'a': 1, 'b': 5},
         });
-        expect(await getFields(instanceRef, offset: 3, count: 5), {});
+        expect(
+          await getFields(instanceRef, offset: 3, count: 5),
+          <Object?, Object?>{},
+        );
       });
     });
 
@@ -313,7 +335,7 @@ void runTests({
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -361,8 +383,11 @@ void runTests({
         expect(await getFields(instanceRef, offset: 2), {
           'array': {'a': 1, 'b': 5},
         });
-        expect(await getFields(instanceRef, offset: 3), {});
-        expect(await getFields(instanceRef, offset: 0, count: 0), {});
+        expect(await getFields(instanceRef, offset: 3), <Object?, Object?>{});
+        expect(
+          await getFields(instanceRef, offset: 0, count: 0),
+          <Object?, Object?>{},
+        );
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
@@ -373,7 +398,10 @@ void runTests({
           2: 3,
           'array': {'a': 1, 'b': 5},
         });
-        expect(await getFields(instanceRef, offset: 3, count: 5), {});
+        expect(
+          await getFields(instanceRef, offset: 3, count: 5),
+          <Object?, Object?>{},
+        );
       });
     });
 
@@ -401,7 +429,7 @@ void runTests({
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -438,8 +466,11 @@ void runTests({
         expect(await getFields(instanceRef, offset: 1), {
           2: {1: false, 2: 5},
         });
-        expect(await getFields(instanceRef, offset: 2), {});
-        expect(await getFields(instanceRef, offset: 0, count: 0), {});
+        expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
+        expect(
+          await getFields(instanceRef, offset: 0, count: 0),
+          <Object?, Object?>{},
+        );
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
@@ -449,7 +480,10 @@ void runTests({
           1: true,
           2: {1: false, 2: 5},
         });
-        expect(await getFields(instanceRef, offset: 2, count: 5), {});
+        expect(
+          await getFields(instanceRef, offset: 2, count: 5),
+          <Object?, Object?>{},
+        );
       });
     });
 
@@ -472,7 +506,7 @@ void runTests({
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -515,8 +549,11 @@ void runTests({
         expect(await getFields(instanceRef, offset: 1, count: 2), {
           'inner': {1: false, 2: 5},
         });
-        expect(await getFields(instanceRef, offset: 2), {});
-        expect(await getFields(instanceRef, offset: 0, count: 0), {});
+        expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
+        expect(
+          await getFields(instanceRef, offset: 0, count: 0),
+          <Object?, Object?>{},
+        );
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
@@ -526,7 +563,10 @@ void runTests({
           1: true,
           'inner': {1: false, 2: 5},
         });
-        expect(await getFields(instanceRef, offset: 2, count: 5), {});
+        expect(
+          await getFields(instanceRef, offset: 2, count: 5),
+          <Object?, Object?>{},
+        );
       });
     });
 

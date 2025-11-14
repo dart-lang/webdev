@@ -265,7 +265,7 @@ class WebDevFS {
         json.decode(
               utf8.decode(assetServer.getMetadata('$module.metadata').toList()),
             )
-            as Map<String, dynamic>,
+            as Map<String, Object?>,
       );
       final libraries = metadata.libraries.keys.toList();
       moduleToLibrary.add(<String, Object>{
@@ -347,7 +347,7 @@ class ProjectFileInvalidator {
     if (lastCompiled == null) {
       // Initial load.
       assert(urisToMonitor.isEmpty);
-      return InvalidationResult(uris: <Uri>[]);
+      return const InvalidationResult(uris: <Uri>[]);
     }
 
     final urisToScan = <Uri>[

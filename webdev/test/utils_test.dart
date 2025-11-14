@@ -134,7 +134,7 @@ void main() {
     final fileTo = File(p.join(to.path, '1'));
 
     fileTo.writeAsStringSync('contentsTo');
-    await Future.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
     fileFrom.writeAsStringSync('contentsFrom');
 
     final stats = fileFrom.statSync();
@@ -150,7 +150,7 @@ void main() {
     final fileTo = File(p.join(to.path, '1'));
 
     fileFrom.writeAsStringSync('contentsFrom');
-    await Future.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
     fileTo.writeAsStringSync('contentsTo');
 
     final stats = fileFrom.statSync();
@@ -176,7 +176,7 @@ void main() {
 
     fileTo1.writeAsStringSync('contentsTo1');
     fileTo2.writeAsStringSync('contentsTo2');
-    await Future.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
     fileFrom.writeAsStringSync('contentsFrom');
 
     await updatePath(from.path, to.path);
@@ -199,7 +199,7 @@ void main() {
     final fileTo2 = File(p.join(subDirTo2.path, 'b'));
 
     fileFrom.writeAsStringSync('contentsFrom');
-    await Future.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
     fileTo1.writeAsStringSync('contentsTo1');
     fileTo2.writeAsStringSync('contentsTo2');
 

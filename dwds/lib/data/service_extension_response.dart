@@ -17,10 +17,10 @@ abstract class ServiceExtensionResponse
   int? get errorCode;
   String? get errorMessage;
 
-  // Helper method to get result as Map<String, dynamic>
-  Map<String, dynamic>? get result => resultJson == null || resultJson!.isEmpty
+  // Helper method to get result as Map<String, Object?>
+  Map<String, Object?>? get result => resultJson == null || resultJson!.isEmpty
       ? null
-      : json.decode(resultJson!) as Map<String, dynamic>;
+      : json.decode(resultJson!) as Map<String, Object?>;
 
   ServiceExtensionResponse._();
   factory ServiceExtensionResponse([
@@ -31,7 +31,7 @@ abstract class ServiceExtensionResponse
   factory ServiceExtensionResponse.fromResult({
     required String id,
     required bool success,
-    Map<String, dynamic>? result,
+    Map<String, Object?>? result,
     int? errorCode,
     String? errorMessage,
   }) => ServiceExtensionResponse(

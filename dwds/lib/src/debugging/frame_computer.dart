@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/debugging/debugger.dart';
-import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import '../utilities/synchronized.dart';
+import 'debugger.dart';
 
 class FrameComputer {
   static final logger = Logger('FrameComputer');
@@ -112,7 +113,7 @@ class FrameComputer {
               'url': callFrame.url,
               'functionName': callFrame.functionName,
               'location': location.json,
-              'scopeChain': [],
+              'scopeChain': <Map<String, Object?>>[],
             });
 
             final frame = await debugger.calculateDartFrameFor(

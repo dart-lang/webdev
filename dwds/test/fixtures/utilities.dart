@@ -21,7 +21,7 @@ Future<BuildDaemonClient> connectClient(
   String dartPath,
   String workingDirectory,
   List<String> options,
-  Function(ServerLog) logHandler,
+  void Function(ServerLog) logHandler,
 ) => BuildDaemonClient.connect(workingDirectory, [
   dartPath,
   'run',
@@ -55,7 +55,7 @@ Future<T> retryFn<T>(
     throw Exception(failureMessage);
   }
 
-  await Future.delayed(Duration(milliseconds: delayInMs));
+  await Future<void>.delayed(Duration(milliseconds: delayInMs));
   try {
     final result = callback();
     if (expectedResult != null && result == expectedResult) return result;
@@ -84,7 +84,7 @@ Future<T> retryFnAsync<T>(
     throw Exception(failureMessage);
   }
 
-  await Future.delayed(Duration(milliseconds: delayInMs));
+  await Future<void>.delayed(Duration(milliseconds: delayInMs));
   try {
     final result = await callback();
     if (result != null) return result;

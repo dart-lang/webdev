@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import 'remote_debugger.dart';
 
 /// A remote debugger with a Webkit Inspection Protocol connection.
 class WebkitDebugger implements RemoteDebugger {
@@ -27,7 +28,7 @@ class WebkitDebugger implements RemoteDebugger {
   @override
   Future<WipResponse> sendCommand(
     String command, {
-    Map<String, dynamic>? params,
+    Map<String, Object?>? params,
   }) => _wipDebugger.sendCommand(command, params: params);
 
   @override
@@ -58,14 +59,14 @@ class WebkitDebugger implements RemoteDebugger {
       _wipDebugger.removeBreakpoint(breakpointId);
 
   @override
-  Future<WipResponse> stepInto({Map<String, dynamic>? params}) =>
+  Future<WipResponse> stepInto({Map<String, Object?>? params}) =>
       _wipDebugger.stepInto(params: params);
 
   @override
   Future<WipResponse> stepOut() => _wipDebugger.stepOut();
 
   @override
-  Future<WipResponse> stepOver({Map<String, dynamic>? params}) =>
+  Future<WipResponse> stepOver({Map<String, Object?>? params}) =>
       _wipDebugger.stepOver(params: params);
 
   @override

@@ -5,13 +5,14 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
+
+import '../debugging/dart_runtime_debugger.dart';
+import '../debugging/metadata/provider.dart';
+import '../readers/asset_reader.dart';
+import '../services/expression_compiler.dart';
+import '../utilities/dart_uri.dart';
 
 abstract class LoadStrategy {
   final AssetReader _assetReader;
@@ -79,8 +80,9 @@ abstract class LoadStrategy {
   String get _defaultPackageConfigPath =>
       p.join(DartUri.currentDirectory, '.dart_tool', 'package_config.json');
 
-  /// Returns the absolute file path of the `package_config.json` file in the `.dart_tool`
-  /// directory, searching recursively from the current directory hierarchy.
+  /// Returns the absolute file path of the `package_config.json` file in the
+  /// `.dart_tool` directory, searching recursively from the current directory
+  /// hierarchy.
   static String? _findPackageConfigFilePath() {
     var candidateDir = Directory(DartUri.currentDirectory).absolute;
 

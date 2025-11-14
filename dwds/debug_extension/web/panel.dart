@@ -80,7 +80,7 @@ Future<void> _registerListeners() async {
 }
 
 void _handleRuntimeMessages(
-  dynamic jsRequest,
+  Object? jsRequest,
   // ignore: avoid-unused-parameters
   MessageSender sender,
   // ignore: avoid-unused-parameters

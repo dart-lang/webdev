@@ -4,13 +4,14 @@
 
 import 'dart:convert';
 
-import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/loaders/ddc.dart';
-import 'package:dwds/src/loaders/strategy.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:shelf/shelf.dart';
+
+import '../debugging/dart_runtime_debugger.dart';
+import '../debugging/metadata/provider.dart';
+import '../readers/asset_reader.dart';
+import '../services/expression_compiler.dart';
+import 'ddc.dart';
+import 'strategy.dart';
 
 // TODO(srujzs): This is mostly a copy of `DdcStrategy`. Some of the
 // functionality in here may not make sense with the library bundle format yet.
@@ -97,7 +98,7 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   /// an app URI.
   final String? Function(String appUri) _serverPathForAppUri;
 
-  /// Returns the relative path in google3, determined by the [absolutePath].
+  /// Returns the relative path in google3, determined by the absolutePath.
   ///
   /// Returns `null` if not a google3 app.
   final String? Function(String absolutePath) _g3RelativePath;

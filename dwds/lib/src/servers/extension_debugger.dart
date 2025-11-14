@@ -6,16 +6,17 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:dwds/data/devtools_request.dart';
-import 'package:dwds/data/extension_request.dart';
-import 'package:dwds/data/serializers.dart';
-import 'package:dwds/src/debugging/execution_context.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/handlers/socket_connections.dart';
-import 'package:dwds/src/services/chrome/chrome_debug_exception.dart';
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
+
+import '../../data/devtools_request.dart';
+import '../../data/extension_request.dart';
+import '../../data/serializers.dart';
+import '../debugging/execution_context.dart';
+import '../debugging/remote_debugger.dart';
+import '../handlers/socket_connections.dart';
+import '../services/chrome/chrome_debug_exception.dart';
 
 final _logger = Logger('ExtensionDebugger');
 
@@ -91,10 +92,10 @@ class ExtensionDebugger implements RemoteDebugger {
             'params': json.decode(message.params),
           };
           // Note: package:sse will try to keep the connection alive, even after
-          // the client has been closed. Therefore the extension sends an event to
-          // notify DWDS that we should close the connection, instead of relying
-          // on the done event sent when the client is closed. See details:
-          // https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
+          // the client has been closed. Therefore the extension sends an event
+          // to notify DWDS that we should close the connection, instead of
+          // relying on the done event sent when the client is closed. See
+          // details: https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
           if (map['method'] == 'DebugExtension.detached') {
             close();
           } else {
@@ -156,7 +157,7 @@ class ExtensionDebugger implements RemoteDebugger {
   @override
   Future<WipResponse> sendCommand(
     String command, {
-    Map<String, dynamic>? params,
+    Map<String, Object?>? params,
   }) {
     final completer = Completer<WipResponse>();
     final id = newId();
@@ -174,6 +175,7 @@ class ExtensionDebugger implements RemoteDebugger {
           ),
         ),
       );
+      // ignore: avoid_catching_errors
     } on StateError catch (error, stackTrace) {
       if (error.message.contains('Cannot add event after closing')) {
         _logger.severe('Socket connection closed. Shutting down debugger.');
@@ -206,7 +208,8 @@ class ExtensionDebugger implements RemoteDebugger {
 
   void closeWithError(Object? error) {
     _logger.shout(
-      'Closing extension debugger due to error. Restart app for debugging functionality',
+      'Closing extension debugger due to error. Restart app for debugging '
+      'functionality',
       error,
     );
     close();
@@ -247,14 +250,14 @@ class ExtensionDebugger implements RemoteDebugger {
   }
 
   @override
-  Future<WipResponse> stepInto({Map<String, dynamic>? params}) =>
+  Future<WipResponse> stepInto({Map<String, Object?>? params}) =>
       sendCommand('Debugger.stepInto', params: params);
 
   @override
   Future<WipResponse> stepOut() => sendCommand('Debugger.stepOut');
 
   @override
-  Future<WipResponse> stepOver({Map<String, dynamic>? params}) =>
+  Future<WipResponse> stepOver({Map<String, Object?>? params}) =>
       sendCommand('Debugger.stepOver', params: params);
 
   @override
@@ -269,7 +272,7 @@ class ExtensionDebugger implements RemoteDebugger {
     bool? returnByValue,
     int? contextId,
   }) async {
-    final params = <String, dynamic>{'expression': expression};
+    final params = <String, Object?>{'expression': expression};
     if (returnByValue != null) {
       params['returnByValue'] = returnByValue;
     }
@@ -278,7 +281,7 @@ class ExtensionDebugger implements RemoteDebugger {
     }
     final response = await sendCommand('Runtime.evaluate', params: params);
     final result = _validateResult(response.result);
-    return RemoteObject(result['result'] as Map<String, dynamic>);
+    return RemoteObject(result['result'] as Map<String, Object?>);
   }
 
   @override
@@ -286,7 +289,7 @@ class ExtensionDebugger implements RemoteDebugger {
     String callFrameId,
     String expression,
   ) async {
-    final params = <String, dynamic>{
+    final params = <String, Object?>{
       'callFrameId': callFrameId,
       'expression': expression,
     };
@@ -295,14 +298,14 @@ class ExtensionDebugger implements RemoteDebugger {
       params: params,
     );
     final result = _validateResult(response.result);
-    return RemoteObject(result['result'] as Map<String, dynamic>);
+    return RemoteObject(result['result'] as Map<String, Object?>);
   }
 
   @override
   Future<List<WipBreakLocation>> getPossibleBreakpoints(
     WipLocation start,
   ) async {
-    final params = <String, dynamic>{'start': start.toJsonMap()};
+    final params = <String, Object?>{'start': start.toJsonMap()};
     final response = await sendCommand(
       'Debugger.getPossibleBreakpoints',
       params: params,
@@ -310,7 +313,7 @@ class ExtensionDebugger implements RemoteDebugger {
     final result = _validateResult(response.result);
     final locations = result['locations'] as List;
     return List.from(
-      locations.map((map) => WipBreakLocation(map as Map<String, dynamic>)),
+      locations.map((map) => WipBreakLocation(map as Map<String, Object?>)),
     );
   }
 
@@ -370,13 +373,13 @@ class ExtensionDebugger implements RemoteDebugger {
     }
   }
 
-  Map<String, dynamic> _validateResult(Map<String, dynamic>? result) {
+  Map<String, Object?> _validateResult(Map<String, Object?>? result) {
     if (result == null) {
       throw ChromeDebugException({'text': 'null result from Chrome Devtools'});
     }
     if (result.containsKey('exceptionDetails')) {
       throw ChromeDebugException(
-        result['exceptionDetails'] as Map<String, dynamic>,
+        result['exceptionDetails'] as Map<String, Object?>,
       );
     }
     return result;

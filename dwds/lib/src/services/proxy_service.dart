@@ -5,22 +5,23 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/data/debug_event.dart';
-import 'package:dwds/data/hot_reload_response.dart';
-import 'package:dwds/data/hot_restart_response.dart';
-import 'package:dwds/data/register_event.dart';
-import 'package:dwds/data/service_extension_response.dart';
-import 'package:dwds/src/connections/app_connection.dart';
-import 'package:dwds/src/debugging/inspector.dart';
-import 'package:dwds/src/events.dart';
-import 'package:dwds/src/services/debug_service.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart' as vm_service;
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
+
+import '../../data/debug_event.dart';
+import '../../data/hot_reload_response.dart';
+import '../../data/hot_restart_response.dart';
+import '../../data/register_event.dart';
+import '../../data/service_extension_response.dart';
+import '../connections/app_connection.dart';
+import '../debugging/inspector.dart';
+import '../events.dart';
+import '../utilities/dart_uri.dart';
+import '../utilities/shared.dart';
+import 'debug_service.dart';
 
 // This event is identical to the one sent by the VM service from
 // sdk/lib/vmservice/vmservice.dart before existing VM service clients are
@@ -31,8 +32,8 @@ final class DartDevelopmentServiceConnectedEvent extends Event {
     required this.uri,
   }) : message =
            'A Dart Developer Service instance has connected and this direct '
-           'connection to the VM service will now be closed. Please reconnect to '
-           'the Dart Development Service at $uri.',
+           'connection to the VM service will now be closed. Please reconnect '
+           'to the Dart Development Service at $uri.',
        super(kind: 'DartDevelopmentServiceConnected');
 
   final String message;
@@ -373,7 +374,7 @@ abstract base class ProxyService<InspectorT extends AppInspector>
         )
         ..extensionKind = debugEvent.kind
         ..extensionData = ExtensionData.parse(
-          jsonDecode(debugEvent.eventData) as Map<String, dynamic>,
+          jsonDecode(debugEvent.eventData) as Map<String, Object?>,
         ),
     );
   }
@@ -662,7 +663,7 @@ abstract base class ProxyService<InspectorT extends AppInspector>
   /// Prevent DWDS from blocking Dart SDK rolls if changes in package:vm_service
   /// are unimplemented in DWDS.
   @override
-  dynamic noSuchMethod(Invocation invocation) {
+  Object? noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
 }

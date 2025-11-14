@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/loaders/strategy.dart';
+import '../loaders/strategy.dart';
 
 class DartRuntimeDebugger {
   final LoadStrategy _loadStrategy;
@@ -107,7 +107,8 @@ class DartRuntimeDebugger {
   /// Generates a JS expression for retrieving Dart Developer Extension Names.
   String getDartDeveloperExtensionNamesJsExpression() {
     return _generateJsExpression(
-      "${_loadStrategy.loadModuleSnippet}('dart_sdk').developer._extensions.keys.toList();",
+      "${_loadStrategy.loadModuleSnippet}('dart_sdk')'"
+          '.developer._extensions.keys.toList();"',
       'dartDevEmbedder.debugger.extensionNames',
     );
   }
@@ -180,10 +181,12 @@ class DartRuntimeDebugger {
 
     return _generateJsExpression(
       generateInstanceMethodJsExpression(
-        '${_loadStrategy.loadModuleSnippet}("dart_sdk").dart.dsendRepl(this, "$methodName", arguments)',
+        '${_loadStrategy.loadModuleSnippet}("dart_sdk").dart.dsendRepl(this, '
+        '"$methodName", arguments)',
       ),
       generateInstanceMethodJsExpression(
-        'dartDevEmbedder.debugger.callInstanceMethod(this, "$methodName", arguments)',
+        'dartDevEmbedder.debugger.callInstanceMethod(this, "$methodName", '
+        'arguments)',
       ),
     );
   }
@@ -191,8 +194,11 @@ class DartRuntimeDebugger {
   /// Generates a JS expression to invoke a Dart extension method.
   String invokeExtensionJsExpression(String methodName, String encodedJson) {
     return _generateJsExpression(
-      "${_loadStrategy.loadModuleSnippet}('dart_sdk').developer.invokeExtension('$methodName', JSON.stringify($encodedJson));",
-      "dartDevEmbedder.debugger.invokeExtension('$methodName', JSON.stringify($encodedJson));",
+      "${_loadStrategy.loadModuleSnippet}('dart_sdk')"
+          ".developer.invokeExtension('$methodName',"
+          'JSON.stringify($encodedJson));',
+      "dartDevEmbedder.debugger.invokeExtension('$methodName',"
+          'JSON.stringify($encodedJson));',
     );
   }
 
@@ -209,14 +215,15 @@ class DartRuntimeDebugger {
      })();
      ''';
 
-    // `callLibraryMethod` expects an array of arguments. Chrome DevTools spreads
-    // arguments individually when calling functions. This code reconstructs the
-    // expected argument array.
+    // `callLibraryMethod` expects an array of arguments. Chrome DevTools
+    // spreads arguments individually when calling functions. This code
+    // reconstructs the expected argument array.
     return _generateJsExpression(
       findLibraryExpression,
       _wrapWithBundleLoader(
         '',
-        'callLibraryMethod("$libraryUri", "$methodName", Array.from(arguments))',
+        'callLibraryMethod("$libraryUri", "$methodName", '
+            'Array.from(arguments))',
       ),
     );
   }

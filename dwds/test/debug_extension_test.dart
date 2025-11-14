@@ -50,7 +50,7 @@ void main() async {
     final title = await context.webDriver.title;
     if (title == 'Dart DevTools') return;
 
-    await Future.delayed(retryWait);
+    await Future<void>.delayed(retryWait);
     return waitForDartDevToolsWithRetry(
       retryCount: retryCount--,
       retryWait: retryWait,
@@ -231,7 +231,7 @@ void main() async {
   group('With encoding', () {
     setUp(() async {
       await context.setUp(
-        debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+        debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
           enableDebugExtension: true,
           urlEncoder: (url) async =>
               url.endsWith(r'/$debug') ? 'http://some-encoded-url:8081/' : url,
@@ -259,8 +259,10 @@ void main() async {
 
     setUp(() async {
       await context.setUp(
-        appMetadata: TestAppMetadata.externalApp().copyWith(hostname: 'any'),
-        debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+        appMetadata: const TestAppMetadata.externalApp().copyWith(
+          hostname: 'any',
+        ),
+        debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
           enableDebugExtension: true,
         ),
       );

@@ -5,17 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/events.dart';
-import 'package:dwds/src/loaders/ddc_library_bundle.dart';
-import 'package:dwds/src/services/chrome/chrome_debug_exception.dart';
-import 'package:dwds/src/services/chrome/chrome_debug_service.dart';
-import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
-import 'package:dwds/src/services/debug_service.dart';
-import 'package:dwds/src/services/proxy_service.dart';
-import 'package:dwds/src/services/web_socket/web_socket_debug_service.dart';
-import 'package:dwds/src/services/web_socket/web_socket_proxy_service.dart';
-import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
@@ -23,6 +12,18 @@ import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import 'config/tool_configuration.dart';
+import 'events.dart';
+import 'loaders/ddc_library_bundle.dart';
+import 'services/chrome/chrome_debug_exception.dart';
+import 'services/chrome/chrome_debug_service.dart';
+import 'services/chrome/chrome_proxy_service.dart';
+import 'services/debug_service.dart';
+import 'services/proxy_service.dart';
+import 'services/web_socket/web_socket_debug_service.dart';
+import 'services/web_socket/web_socket_proxy_service.dart';
+import 'utilities/synchronized.dart';
 
 /// Type of requests added to the request controller.
 typedef VmRequest = Map<String, Object>;
@@ -107,11 +108,14 @@ abstract base class DwdsVmClient<
     final client = VmService(_responseStream.map(jsonEncode), (request) {
       if (_requestController.isClosed) {
         logger.warning(
-          'Attempted to send a request but the connection is closed:\n\n$request',
+          'Attempted to send a request but the connection is closed:\n\n'
+          '$request',
         );
         return;
       }
-      _requestSink.add(Map<String, Object>.from(jsonDecode(request)));
+      _requestSink.add(
+        Map<String, Object>.from(jsonDecode(request) as Map<String, Object>),
+      );
     });
     return client;
   }
@@ -214,11 +218,11 @@ abstract base class DwdsVmClient<
     return {'result': Success().toJson()};
   }
 
-  void _processSendEvent(Map<String, dynamic> request, DwdsStats dwdsStats) {
-    final event = request['params'] as Map<String, dynamic>?;
+  void _processSendEvent(Map<String, Object?> request, DwdsStats dwdsStats) {
+    final event = request['params'] as Map<String, Object?>?;
     if (event == null) return;
     final type = event['type'] as String?;
-    final payload = event['payload'] as Map<String, dynamic>?;
+    final payload = event['payload'] as Map<String, Object?>?;
     switch (type) {
       case 'DevtoolsEvent':
         {
@@ -262,10 +266,10 @@ abstract base class DwdsVmClient<
     VmResponse request,
     Logger logger,
   ) {
-    final event = request['params'] as Map<String, dynamic>?;
+    final event = request['params'] as Map<String, Object?>?;
     if (event != null) {
       final type = event['type'] as String?;
-      final payload = event['payload'] as Map<String, dynamic>?;
+      final payload = event['payload'] as Map<String, Object?>?;
       if (type != null && payload != null) {
         logger.fine('EmitEvent: $type $payload');
         emitEvent(DwdsEvent(type, payload));
@@ -283,8 +287,8 @@ abstract base class DwdsVmClient<
     return <String, Object>{
       'result': <String, Object>{
         'views': <Object>[
-          for (final isolate in isolates ?? [])
-            <String, Object>{'id': isolate.id, 'isolate': isolate.toJson()},
+          for (final isolate in isolates ?? <IsolateRef>[])
+            <String, Object>{'id': isolate.id!, 'isolate': isolate.toJson()},
         ],
       },
     };
@@ -397,7 +401,7 @@ final class ChromeDwdsVmClient
     return {'result': Success().toJson()};
   }
 
-  Future<Map<String, dynamic>> hotRestart(
+  Future<Map<String, Object?>> hotRestart(
     ChromeProxyService chromeProxyService,
     VmService client,
   ) {
@@ -412,12 +416,12 @@ final class ChromeDwdsVmClient
     for (var retry = 0; retry < retries; retry++) {
       final tryId = await chromeProxyService.executionContext.id;
       if (tryId != null) return tryId;
-      await Future.delayed(const Duration(milliseconds: waitInMs));
+      await Future<void>.delayed(const Duration(milliseconds: waitInMs));
     }
     throw StateError('No context with the running Dart application.');
   }
 
-  Future<Map<String, dynamic>> _hotRestart(
+  Future<Map<String, Object?>> _hotRestart(
     ChromeProxyService chromeProxyService,
     VmService client,
   ) async {
@@ -429,6 +433,7 @@ final class ChromeDwdsVmClient
       logger.info('Attempting to get execution context ID.');
       await tryGetContextId(chromeProxyService);
       logger.info('Got execution context ID.');
+      // ignore: avoid_catching_errors
     } on StateError catch (e) {
       // We couldn't find the execution context. `hotRestart` may have been
       // triggered in the middle of a full reload.
@@ -456,9 +461,9 @@ final class ChromeDwdsVmClient
       final runId = const Uuid().v4().toString();
 
       // When using the DDC library bundle format, we determine the sources that
-      // were reloaded during a hot restart to then wait until all the sources are
-      // parsed before finishing hot restart. This is necessary before we can
-      // recompute any source location metadata in the `ChromeProxyService`.
+      // were reloaded during a hot restart to then wait until all the sources
+      // are parsed before finishing hot restart. This is necessary before we
+      // can recompute any source location metadata in the `ChromeProxyService`.
       // TODO(srujzs): We don't do this for the AMD module format, should we? It
       // would require adding an extra parameter in the AMD strategy. As we're
       // planning to deprecate it, for now, do nothing.
@@ -468,9 +473,9 @@ final class ChromeDwdsVmClient
       final reloadedSrcs = <String>{};
       late StreamSubscription<String> parsedScriptsSubscription;
       if (isDdcLibraryBundle) {
-        // Injected client should send a request to recreate the isolate after the
-        // hot restart. The creation of the isolate should in turn wait until all
-        // scripts are parsed.
+        // Injected client should send a request to recreate the isolate after
+        // the hot restart. The creation of the isolate should in turn wait
+        // until all scripts are parsed.
         chromeProxyService.allowedToCreateIsolate = Completer<void>();
         final debugger = await chromeProxyService.debuggerFuture;
         parsedScriptsSubscription = debugger.parsedScriptsController.stream
@@ -549,7 +554,7 @@ final class ChromeDwdsVmClient
         });
   }
 
-  Future<Map<String, dynamic>> _fullReload(
+  Future<Map<String, Object?>> _fullReload(
     ChromeProxyService chromeProxyService,
   ) async {
     logger.info('Attempting a full reload');

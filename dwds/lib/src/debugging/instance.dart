@@ -4,16 +4,17 @@
 
 import 'dart:math';
 
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/chrome_inspector.dart';
-import 'package:dwds/src/debugging/metadata/class.dart';
-import 'package:dwds/src/debugging/metadata/function.dart';
-import 'package:dwds/src/utilities/conversions.dart';
-import 'package:dwds/src/utilities/objects.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import '../config/tool_configuration.dart';
+import '../utilities/conversions.dart';
+import '../utilities/objects.dart';
+import '../utilities/shared.dart';
+import 'chrome_inspector.dart';
+import 'metadata/class.dart';
+import 'metadata/function.dart';
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class ChromeAppInstanceHelper {
@@ -226,8 +227,8 @@ class ChromeAppInstanceHelper {
     );
   }
 
-  /// Create a plain instance of [classRef] from [remoteObject] and the JS
-  /// properties [properties].
+  /// Create a plain instance of classRef from [remoteObject] and the JS
+  /// properties properties.
   Future<Instance?> _plainInstanceFor(
     ClassMetaData metaData,
     RemoteObject remoteObject, {
@@ -331,14 +332,14 @@ class ChromeAppInstanceHelper {
     return associations;
   }
 
-  /// Create a Map instance with class [classRef] from [remoteObject].
+  /// Create a Map instance with class classRef from [remoteObject].
   ///
   /// Returns an instance containing [count] associations, if available,
   /// starting from the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
   /// If [count] is `null`, return all fields starting from the offset.
-  /// [length] is the expected length of the whole object, read from
+  /// length is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _mapInstanceFor(
     ClassMetaData metaData,
@@ -372,14 +373,14 @@ class ChromeAppInstanceHelper {
     );
   }
 
-  /// Create a List instance of [classRef] from [remoteObject].
+  /// Create a List instance of classRef from [remoteObject].
   ///
   /// Returns an instance containing [count] elements, if available,
   /// starting from the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
   /// If [count] is `null`, return all fields starting from the offset.
-  /// [length] is the expected length of the whole object, read from
+  /// length is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _listInstanceFor(
     ClassMetaData metaData,
@@ -469,7 +470,7 @@ class ChromeAppInstanceHelper {
   /// and `named` fields.
   ///
   /// Returns list of field names for the record shape.
-  Future<List<dynamic>> _recordShapeFields(
+  Future<List<Object?>> _recordShapeFields(
     RemoteObject shape, {
     int? offset,
     int? count,
@@ -519,7 +520,10 @@ class ChromeAppInstanceHelper {
       count: namedRangeCount,
     );
     final namedElements =
-        namedInstance?.elements?.map((e) => e.valueAsString) ?? [];
+        namedInstance?.elements?.cast<InstanceRef>().map(
+          (e) => e.valueAsString,
+        ) ??
+        <String>[];
 
     return [...positionalElements, ...namedElements];
   }
@@ -562,8 +566,8 @@ class ChromeAppInstanceHelper {
 
   /// Create a list of `BoundField`s from field [names] and [values].
   List<BoundField> _elementsToBoundFields(
-    List<dynamic> names,
-    List<dynamic> values,
+    List<Object?> names,
+    List<Object?> values,
   ) {
     if (names.length != values.length) {
       _logger.warning('Bound field names and values are not the same length.');
@@ -581,14 +585,14 @@ class ChromeAppInstanceHelper {
     return requested < collected ? 0 : requested - collected;
   }
 
-  /// Create a Record instance with class [classRef] from [remoteObject].
+  /// Create a Record instance with class classRef from [remoteObject].
   ///
   /// Returns an instance containing [count] fields, if available,
   /// starting from the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
   /// If [count] is `null`, return all fields starting from the offset.
-  /// [length] is the expected length of the whole object, read from
+  /// length is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _recordInstanceFor(
     ClassMetaData metaData,
@@ -621,14 +625,14 @@ class ChromeAppInstanceHelper {
     );
   }
 
-  /// Create a RecordType instance with class [classRef] from [remoteObject].
+  /// Create a RecordType instance with class classRef from [remoteObject].
   ///
   /// Returns an instance containing [count] fields, if available,
   /// starting from the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
   /// If [count] is `null`, return all fields starting from the offset.
-  /// [length] is the expected length of the whole object, read from
+  /// length is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _recordTypeInstanceFor(
     ClassMetaData metaData,
@@ -742,13 +746,13 @@ class ChromeAppInstanceHelper {
     return setInstance;
   }
 
-  /// Create Type instance with class [classRef] from [remoteObject].
+  /// Create Type instance with class classRef from [remoteObject].
   ///
   /// Collect information from the internal [remoteObject] and present
   /// it as an instance of [Type] class.
   ///
   /// Returns an instance containing `hashCode` and `runtimeType` fields.
-  /// [length] is the expected length of the whole object, read from
+  /// length is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _plainTypeInstanceFor(
     ClassMetaData metaData,
