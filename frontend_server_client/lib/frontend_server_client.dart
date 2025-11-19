@@ -6,3 +6,4 @@ export 'src/dartdevc_frontend_server_client.dart'
     show DartDevcFrontendServerClient;
 export 'src/frontend_server_client.dart'
     show CompileResult, FrontendServerClient;
+export 'src/package_config_utils.dart' show findNearestPackageConfigPath;

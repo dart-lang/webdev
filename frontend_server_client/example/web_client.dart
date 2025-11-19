@@ -14,6 +14,11 @@ import 'package:shelf_packages_handler/shelf_packages_handler.dart';
 import 'package:shelf_static/shelf_static.dart';
 
 void main(List<String> args) async {
+  // Change to package root so relative paths work in CI
+  final scriptDir = p.dirname(p.fromUri(Platform.script));
+  final packageRoot = p.dirname(scriptDir);
+  Directory.current = packageRoot;
+
   try {
     watch.start();
     if (args.isNotEmpty) {
@@ -41,12 +46,15 @@ void main(List<String> args) async {
     }
 
     _print('starting frontend server');
+    final packagesPath = findNearestPackageConfigPath();
     final client = await DartDevcFrontendServerClient.start(
       'org-dartlang-root:///$app',
       outputDill,
-      fileSystemRoots: [p.current],
+      // Use an absolute filesystem root so org-dartlang-root:/// URIs resolve reliably in CI
+      fileSystemRoots: [Directory.current.path],
       fileSystemScheme: 'org-dartlang-root',
       platformKernel: p.toUri(sdkKernelPath).toString(),
+      packagesJson: packagesPath ?? '.dart_tool/package_config.json',
       verbose: true,
     );
 
@@ -58,7 +66,7 @@ void main(List<String> args) async {
     _print('starting shelf server');
     final cascade = Cascade()
         .add(_clientHandler(client))
-        .add(createStaticHandler(p.current))
+        .add(createStaticHandler(Directory.current.path))
         .add(createFileHandler(dartSdkJs, url: 'example/app/dart_sdk.js'))
         .add(
           createFileHandler(
