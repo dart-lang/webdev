@@ -8,14 +8,19 @@ library;
 
 import 'dart:io';
 
+import 'package:frontend_server_client/src/package_config_utils.dart';
 import 'package:test/test.dart';
 import 'package:test_process/test_process.dart';
 
 void main() {
   test('vm client example can build and rebuild an app', () async {
+    // Resolve the example script path based on the package root.
+    final exampleFilePath = await pathFromNearestPackageConfig(
+      'example/vm_client.dart',
+    );
     final process = await TestProcess.start(Platform.resolvedExecutable, [
       'run',
-      'example/vm_client.dart',
+      exampleFilePath,
     ]);
     await expectLater(
       process.stdout,

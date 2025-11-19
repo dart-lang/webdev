@@ -9,12 +9,11 @@ environment:
 
 dependencies:
   async: ^2.5.0
+  package_config: ^2.1.0
   path: ^1.8.0
 
 dev_dependencies:
-  analysis_config:
-    path: ../_analysis_config
-  package_config: ^2.0.0
+  dart_flutter_team_lints: ^3.5.2
   shelf: ^1.0.0
   shelf_packages_handler: ^3.0.0
   shelf_static: ^1.1.0

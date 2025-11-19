@@ -18,9 +18,10 @@ import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 
 void main() async {
-  late FrontendServerClient client;
+  FrontendServerClient? client;
   late PackageConfig packageConfig;
   late String packageRoot;
+  late String packagesJsonPath;
 
   setUp(() async {
     await d.dir('a', [
@@ -30,7 +31,7 @@ dependencies:
   path: ^1.0.0
 
 environment:
-  sdk: ^3.10.0-0.0.dev
+  sdk: ^3.0.0
       '''),
       d.dir('bin', [
         d.file('main.dart', '''
@@ -56,10 +57,13 @@ String get message => p.join('hello', 'world');
       'get',
     ], workingDirectory: packageRoot);
     packageConfig = (await findPackageConfig(Directory(packageRoot)))!;
+    packagesJsonPath =
+        findNearestPackageConfigPath(Directory(packageRoot)) ??
+        p.join(packageRoot, '.dart_tool', 'package_config.json');
   });
 
   tearDown(() async {
-    await client.shutdown();
+    await client?.shutdown();
   });
 
   test('can compile, recompile, and hot reload a vm app', () async {
@@ -68,9 +72,10 @@ String get message => p.join('hello', 'world');
       entrypoint,
       p.join(packageRoot, 'out.dill'),
       vmPlatformDill,
+      packagesJson: packagesJsonPath,
     );
-    var result = await client.compile();
-    client.accept();
+    var result = await client!.compile();
+    client!.accept();
     expect(result.compilerOutputLines, isEmpty);
     expect(result.errorCount, 0);
     expect(
@@ -93,11 +98,13 @@ String get message => p.join('hello', 'world');
     final stdoutLines = StreamQueue(
       process.stdout.transform(utf8.decoder).transform(const LineSplitter()),
     );
+    addTearDown(stdoutLines.cancel);
 
     final observatoryLine = await stdoutLines.next;
     final observatoryUri =
         '${observatoryLine.split(' ').last.replaceFirst('http', 'ws')}ws';
     final vmService = await vmServiceConnectUri(observatoryUri);
+    addTearDown(vmService.dispose);
     final isolate = await waitForIsolatesAndResume(vmService);
 
     await expectLater(stdoutLines, emitsThrough(p.join('hello', 'world')));
@@ -107,9 +114,9 @@ String get message => p.join('hello', 'world');
     final newContent = originalContent.replaceFirst('hello', 'goodbye');
     await appFile.writeAsString(newContent);
 
-    result = await client.compile([File(entrypoint).uri]);
+    result = await client!.compile([File(entrypoint).uri]);
 
-    client.accept();
+    client!.accept();
     expect(result.newSources, isEmpty);
     expect(result.removedSources, isEmpty);
     expect(result.compilerOutputLines, isEmpty);
@@ -135,10 +142,11 @@ String get message => p.join('hello', 'world');
       entrypoint,
       p.join(packageRoot, 'out.dill'),
       vmPlatformDill,
+      packagesJson: packagesJsonPath,
     );
-    var result = await client.compile();
+    var result = await client!.compile();
 
-    client.accept();
+    client!.accept();
     expect(result.errorCount, 2);
     expect(
       result.compilerOutputLines,
@@ -165,11 +173,13 @@ String get message => p.join('hello', 'world');
     final stdoutLines = StreamQueue(
       process.stdout.transform(utf8.decoder).transform(const LineSplitter()),
     );
+    addTearDown(stdoutLines.cancel);
 
     final observatoryLine = await stdoutLines.next;
     final observatoryUri =
         '${observatoryLine.split(' ').last.replaceFirst('http', 'ws')}ws';
     final vmService = await vmServiceConnectUri(observatoryUri);
+    addTearDown(vmService.dispose);
     final isolate = await waitForIsolatesAndResume(vmService);
 
     // The program actually runs regardless of the errors, as they don't affect
@@ -179,8 +189,8 @@ String get message => p.join('hello', 'world');
     await entrypointFile.writeAsString(
       originalContent.replaceFirst('hello', 'goodbye'),
     );
-    result = await client.compile([entrypointFile.uri]);
-    client.accept();
+    result = await client!.compile([entrypointFile.uri]);
+    client!.accept();
     expect(result.errorCount, 0);
     expect(result.compilerOutputLines, isEmpty);
     expect(result.newSources, isEmpty);
@@ -204,9 +214,10 @@ String get message => p.join('hello', 'world');
       platformKernel: p
           .toUri(p.join(sdkDir, 'lib', '_internal', 'ddc_platform.dill'))
           .toString(),
+      packagesJson: packagesJsonPath,
     );
-    var result = await client.compile();
-    client.accept();
+    var result = await client!.compile();
+    client!.accept();
 
     expect(result.compilerOutputLines, isEmpty);
     expect(result.errorCount, 0);
@@ -235,8 +246,8 @@ String get message => p.join('hello', 'world');
     final newContent = originalContent.replaceFirst('hello', 'goodbye');
     await appFile.writeAsString(newContent);
 
-    result = await client.compile([entrypointUri]);
-    client.accept();
+    result = await client!.compile([entrypointUri]);
+    client!.accept();
     expect(result.newSources, isEmpty);
     expect(result.removedSources, isEmpty);
     expect(result.compilerOutputLines, isEmpty);
@@ -269,9 +280,10 @@ void main() {
       p.join(packageRoot, 'out.dill'),
       vmPlatformDill,
       enabledExperiments: ['non-nullable'],
+      packagesJson: packagesJsonPath,
     );
-    final result = await client.compile();
-    client.accept();
+    final result = await client!.compile();
+    client!.accept();
     expect(result.errorCount, 1);
     expect(result.compilerOutputLines, contains(contains('int x;')));
   });
@@ -292,9 +304,10 @@ void main() {
       entrypoint,
       p.join(packageRoot, 'out with spaces.dill'),
       vmPlatformDill,
+      packagesJson: packagesJsonPath,
     );
-    var result = await client.compile();
-    client.accept();
+    var result = await client!.compile();
+    client!.accept();
     expect(result.compilerOutputLines, isEmpty);
     expect(result.errorCount, 0);
     expect(result.newSources, containsAll([File(entrypoint).uri]));
@@ -312,7 +325,7 @@ void main() {
     final originalContent = await appFile.readAsString();
     final newContent = originalContent.replaceFirst('hello', 'goodbye');
     await appFile.writeAsString(newContent);
-    result = await client.compile([appFile.uri]);
+    result = await client!.compile([appFile.uri]);
     expect(result.compilerOutputLines, isEmpty);
     expect(result.errorCount, 0);
     expect(result.newSources, isEmpty);
@@ -330,14 +343,14 @@ Future<Isolate> waitForIsolatesAndResume(VmService vmService) async {
   var vm = await vmService.getVM();
   var isolates = vm.isolates;
   while (isolates == null || isolates.isEmpty) {
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     vm = await vmService.getVM();
     isolates = vm.isolates;
   }
   final isolateRef = isolates.first;
   var isolate = await vmService.getIsolate(isolateRef.id!);
   while (isolate.pauseEvent?.kind != EventKind.kPauseStart) {
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     isolate = await vmService.getIsolate(isolateRef.id!);
   }
   await vmService.resume(isolate.id!);
