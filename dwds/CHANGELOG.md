@@ -1,6 +1,7 @@
 ## 26.2.3-wip
 
 - Bump `build_web_compilers` to ^4.4.1.
+- Fix source map path normalization for library bundles (resolves failing evaluate expression test).
 
 ## 26.2.2
 

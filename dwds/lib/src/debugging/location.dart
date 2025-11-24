@@ -384,6 +384,27 @@ class Locations {
     });
   }
 
+  /// Normalizes source map paths that traverse parent directories ("..") so
+  /// they resolve to the expected `packages/<pkg>/lib/<file>` form.
+  String _normalizeSourceMapPath(String path, String sourceUrl) {
+    // Only apply fix for paths that used ".." (parent directory traversal)
+    // and are missing the expected "/lib/" directory.
+    if (!sourceUrl.startsWith('..') || path.contains('/lib/')) {
+      return path;
+    }
+
+    final match = RegExp(r'packages/[^/]+/([^/]+)/(.+)').firstMatch(path);
+    if (match != null) {
+      final packageName = match.group(1);
+      final fileName = match.group(2);
+      if (packageName != null && fileName != null) {
+        return 'packages/$packageName/lib/$fileName';
+      }
+    }
+
+    return path;
+  }
+
   /// Creates a TokenPos [Location] for an entry in the source map.
   Location? _locationForSourceMapEntry({
     required TargetLineEntry lineEntry,
@@ -400,8 +421,9 @@ class Locations {
     // This works on Windows because path treats both / and \ as separators.
     // It will fail if the path has both separators in it.
     final relativeSegments = p.split(sourceUrls[index]);
-    final path = p.url.normalize(
-      p.url.joinAll([scriptLocation, ...relativeSegments]),
+    final path = _normalizeSourceMapPath(
+      p.url.normalize(p.url.joinAll([scriptLocation, ...relativeSegments])),
+      sourceUrls[index],
     );
 
     try {
