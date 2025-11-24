@@ -134,14 +134,12 @@ abstract base class DwdsVmClient<
     required Stream<VmRequest> requestStream,
     required StreamSink<VmRequest> requestSink,
     DwdsStats? dwdsStats,
-    Future<VmService>? clientFuture,
   }) {
     responseStream.listen((request) async {
       final response = await _maybeHandleServiceExtensionRequest(
         request,
         proxyService: proxyService,
         dwdsStats: dwdsStats,
-        clientFuture: clientFuture,
       );
       if (response != null) {
         requestSink.add(response);
@@ -169,13 +167,11 @@ abstract base class DwdsVmClient<
     VmResponse request, {
     required T proxyService,
     required DwdsStats? dwdsStats,
-    required Future<VmService>? clientFuture,
   }) async {
     final response = await maybeHandleServiceExtensionRequestImpl(
       request,
       proxyService: proxyService,
       dwdsStats: dwdsStats,
-      clientFuture: clientFuture,
     );
     if (response != null) {
       response['id'] = request['id'] as String;
@@ -192,7 +188,6 @@ abstract base class DwdsVmClient<
     VmResponse request, {
     required T proxyService,
     DwdsStats? dwdsStats,
-    Future<VmService>? clientFuture,
   });
 
   @mustBeOverridden
@@ -351,7 +346,6 @@ final class ChromeDwdsVmClient
     VmResponse request, {
     required ChromeProxyService proxyService,
     DwdsStats? dwdsStats,
-    Future<VmService>? clientFuture,
   }) async {
     VmRequest? response;
     final method = request['method'];
@@ -362,8 +356,7 @@ final class ChromeDwdsVmClient
     } else if (method == _NamespacedServiceExtension.extDwdsReload.method) {
       response = await _extDwdsReloadHandler(proxyService);
     } else if (method == _NamespacedServiceExtension.extDwdsRestart.method) {
-      final client = await clientFuture;
-      response = await _extDwdsRestartHandler(proxyService, client!);
+      response = await _extDwdsRestartHandler(proxyService, client);
     } else if (method == _NamespacedServiceExtension.extDwdsSendEvent.method) {
       response = await extDwdsSendEventHandler(request, dwdsStats, logger);
     } else if (method == _NamespacedServiceExtension.extDwdsScreenshot.method) {
@@ -638,7 +631,6 @@ final class WebSocketDwdsVmClient
     VmResponse request, {
     required WebSocketProxyService proxyService,
     DwdsStats? dwdsStats,
-    Future<void>? clientFuture,
   }) async {
     VmRequest? response;
     final method = request['method'];
