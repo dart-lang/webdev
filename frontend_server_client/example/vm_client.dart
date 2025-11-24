@@ -12,18 +12,26 @@ import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 
 void main(List<String> args) async {
+  // Change to package root so relative paths work in CI
+  final scriptDir = p.dirname(p.fromUri(Platform.script));
+  final packageRoot = p.dirname(scriptDir);
+  Directory.current = packageRoot;
+
   try {
     watch.start();
     if (args.isNotEmpty) {
       throw ArgumentError('No command line args are supported');
     }
 
+    final packagesPath = findNearestPackageConfigPath();
     final client = await FrontendServerClient.start(
       'org-dartlang-root:///$app',
       outputDill,
       p.join(sdkDir, 'lib', '_internal', 'vm_platform_strong.dill'),
+      packagesJson: packagesPath ?? '.dart_tool/package_config.json',
       target: 'vm',
-      fileSystemRoots: [p.url.current],
+      // Use an absolute filesystem root so org-dartlang-root:/// URIs resolve reliably in CI
+      fileSystemRoots: [Directory.current.path],
       fileSystemScheme: 'org-dartlang-root',
       verbose: true,
     );
@@ -38,7 +46,7 @@ void main(List<String> args) async {
       '--enable-vm-service=0',
       result.dillOutput!,
     ]);
-    final sawHelloWorld = Completer();
+    final sawHelloWorld = Completer<void>();
     appProcess.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
@@ -52,7 +60,9 @@ void main(List<String> args) async {
           )) {
             final observatoryUri =
                 '${line.split(' ').last.replaceFirst('http', 'ws')}ws';
-            vmServiceCompleter.complete(vmServiceConnectUri(observatoryUri));
+            if (!vmServiceCompleter.isCompleted) {
+              vmServiceCompleter.complete(vmServiceConnectUri(observatoryUri));
+            }
           }
         });
     appProcess.stderr

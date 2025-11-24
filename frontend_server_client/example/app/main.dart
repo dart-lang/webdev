@@ -8,7 +8,7 @@ Future<void> main() async {
   print(message);
   while (!message.contains('goodbye')) {
     print('waiting for hot reload to change message');
-    await Future.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
   }
   print(message);
 }
