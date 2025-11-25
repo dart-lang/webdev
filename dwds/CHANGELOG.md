@@ -1,6 +1,7 @@
 ## 26.2.3-wip
 
 - Bump `build_web_compilers` to ^4.4.1.
+- Remove unused `clientFuture` arg from `DwdsVmClient` methods.
 
 ## 26.2.2
 
