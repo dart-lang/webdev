@@ -51,9 +51,10 @@ dev_dependencies:
   build_version: ^2.1.1
   build_web_compilers: ^4.4.1
   built_value_generator: ^8.4.2
-  graphs: ^2.1.0
+  dart_flutter_team_lints: any
   frontend_server_common:
-    path: ../frontend_server_common
+    path: ../frontend_server_common  
+  graphs: ^2.1.0
   io: ^1.0.5
   js: ">=0.6.4 <0.8.0"
   pubspec_parse: ^1.2.0

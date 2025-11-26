@@ -1,4 +1,4 @@
-include: package:analysis_config/analysis_options.yaml
+include: package:dart_flutter_team_lints/analysis_options.yaml
 
 analyzer:
   exclude:

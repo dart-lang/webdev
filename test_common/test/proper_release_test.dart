@@ -18,7 +18,7 @@ void main() {
   for (final package in ['dwds', 'webdev']) {
     test('$package is following proper release procedure', () async {
       final pubspecPath = absolutePath(
-        pathFromWebdev: p.join(package, 'pubspec.yaml'),
+        pathFromProjectRoot: p.join(package, 'pubspec.yaml'),
       );
       final pubspec = Pubspec.parse(File(pubspecPath).readAsStringSync());
       final version = pubspec.version!;
