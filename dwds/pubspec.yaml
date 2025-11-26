@@ -53,7 +53,7 @@ dev_dependencies:
   built_value_generator: ^8.4.2
   dart_flutter_team_lints: any
   frontend_server_common:
-    path: ../frontend_server_common  
+    path: test/frontend_server_common  
   graphs: ^2.1.0
   io: ^1.0.5
   js: ">=0.6.4 <0.8.0"
