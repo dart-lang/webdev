@@ -111,7 +111,7 @@ abstract base class DwdsVmClient<
         );
         return;
       }
-      _requestSink.add(Map<String, Object>.from(jsonDecode(request)));
+      _requestSink.add(Map<String, Object>.from(jsonDecode(request) as Map));
     });
     return client;
   }
@@ -283,8 +283,11 @@ abstract base class DwdsVmClient<
     return <String, Object>{
       'result': <String, Object>{
         'views': <Object>[
-          for (final isolate in isolates ?? [])
-            <String, Object>{'id': isolate.id, 'isolate': isolate.toJson()},
+          for (final IsolateRef isolate in isolates ?? [])
+            <String, Object>{
+              'id': isolate.id ?? '',
+              'isolate': isolate.toJson(),
+            },
         ],
       },
     };

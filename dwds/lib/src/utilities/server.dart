@@ -98,5 +98,5 @@ Map<String, dynamic> getResultOrHandleError(
       'text': 'null result from Chrome Devtools',
     }, evalContents: evalContents);
   }
-  return result;
+  return result as Map<String, dynamic>;
 }

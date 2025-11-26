@@ -68,7 +68,7 @@ class Debugger {
     this._streamNotify,
     this._locations,
     this._skipLists,
-    root,
+    String root,
   ) : _breakpoints = _Breakpoints(
         locations: _locations,
         remoteDebugger: _remoteDebugger,
@@ -757,7 +757,7 @@ Future<T> sendCommandAndValidateResult<T>(
       params,
     );
   }
-  return result;
+  return result as T;
 }
 
 /// Returns the breakpoint ID for the provided Dart script ID and Dart line

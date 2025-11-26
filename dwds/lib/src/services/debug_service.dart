@@ -240,7 +240,9 @@ abstract class DebugService<T extends ProxyService> {
           'socket, expected a List<int> or String.',
         );
       }
-      final request = Map<String, Object>.from(jsonDecode(value));
+      final request = Map<String, Object>.from(
+        jsonDecode(value as String) as Map,
+      );
       if (onRequest != null) onRequest(request);
       return request;
     });

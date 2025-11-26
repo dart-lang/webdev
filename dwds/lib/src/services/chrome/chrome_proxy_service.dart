@@ -31,7 +31,8 @@ import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:vm_service/vm_service.dart' hide vmServiceVersion;
 import 'package:vm_service_interface/vm_service_interface.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
+    hide StackTrace;
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
@@ -1254,7 +1255,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
           break;
         case 'dart.developer.log':
           await _handleDeveloperLog(isolateRef, event).catchError(
-            (error, stackTrace) => _logger.warning(
+            (Object error, StackTrace stackTrace) => _logger.warning(
               'Error handling developer log:',
               error,
               stackTrace,
@@ -1277,7 +1278,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     // `RemoteObject.preview` which only has truncated log messages:
     // https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-RemoteObject
     final logParams = objectId != null
-        ? await _fetchFullLogParams(objectId, logObject: logObject)
+        ? await _fetchFullLogParams(objectId as String, logObject: logObject)
         : _fetchAbbreviatedLogParams(logObject);
 
     final logRecord = LogRecord(
@@ -1330,7 +1331,8 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
 
   Map<String, RemoteObject> _fetchAbbreviatedLogParams(Map? logObject) {
     final logParams = <String, RemoteObject>{};
-    for (final dynamic property in logObject?['preview']?['properties'] ?? []) {
+    final properties = logObject?['preview']?['properties'] as List? ?? [];
+    for (final dynamic property in properties) {
       if (property is Map<String, dynamic> && property['name'] != null) {
         logParams[property['name'] as String] = RemoteObject(property);
       }
