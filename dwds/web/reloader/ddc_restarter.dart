@@ -13,7 +13,17 @@ import 'restarter.dart';
 external DartLibrary dartLibrary;
 
 extension type DartLibrary._(JSObject _) implements JSObject {
-  external void reload(String? runId, JSPromise? readyToRunMain);
+  external void reload(ReloadConfiguration configuration);
+}
+
+@anonymous
+@JS()
+@staticInterop
+class ReloadConfiguration {
+  external factory ReloadConfiguration({
+    String? runId,
+    JSPromise? readyToRunMain,
+  });
 }
 
 class DdcRestarter implements Restarter {
@@ -27,7 +37,9 @@ class DdcRestarter implements Restarter {
       reloadedSourcesPath == null,
       "'reloadedSourcesPath' should not be used for the DDC module format.",
     );
-    dartLibrary.reload(runId, readyToRunMain?.toJS);
+    dartLibrary.reload(
+      ReloadConfiguration(runId: runId, readyToRunMain: readyToRunMain?.toJS),
+    );
     final reloadCompleter = Completer<bool>();
     final sub = window.onMessage.listen((event) {
       final message = event.data?.dartify();
