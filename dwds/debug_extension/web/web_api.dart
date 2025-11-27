@@ -36,7 +36,7 @@ Future<FetchResponse> fetchRequest(String resourceUrl) async {
       _nativeJsFetch(resourceUrl, options),
     );
     final body = await promiseToFuture<String?>(
-      js_util.callMethod(response, 'text', []),
+      js_util.callMethod(response as Object, 'text', []),
     );
     final ok = js_util.getProperty<bool>(response, 'ok');
     final status = js_util.getProperty<int>(response, 'status');

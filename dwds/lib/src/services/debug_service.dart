@@ -163,7 +163,7 @@ abstract class DebugService<T extends ProxyService> {
     void Function(Map<String, Object?>)? onResponse,
   }) {
     return _wrapHandler(
-      webSocketHandler((webSocket, subprotocol) {
+      webSocketHandler((StreamChannel webSocket, String? subprotocol) {
         handleConnection(
           webSocket,
           proxyService,

@@ -144,7 +144,7 @@ class TestExtensionDebugger extends ExtensionDebugger {
     String command, {
     Map<String, dynamic>? params,
   }) {
-    final id = params?['contextId'];
+    final id = params?['contextId'] as int?;
     final response = super.sendCommand(command, params: params);
 
     /// Mock stale contexts that cause the evaluation to throw.

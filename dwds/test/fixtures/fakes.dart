@@ -80,9 +80,10 @@ class FakeChromeAppInspector extends FakeInspector
       'Runtime.getProperties',
       params: {'objectId': objectId, 'ownProperties': true},
     );
-    final result = response.result?['result'];
+    final result = response.result?['result'] as List?;
+    if (result == null) return <Property>[];
     return result
-        .map<Property>((each) => Property(each as Map<String, dynamic>))
+        .map<Property>((dynamic each) => Property(each as Map<String, dynamic>))
         .toList();
   }
 
@@ -424,7 +425,7 @@ class FakeAssetReader implements AssetReader {
   String? metadata;
   final String? _dartSource;
   final String? _sourceMap;
-  FakeAssetReader({this.metadata, dartSource, sourceMap})
+  FakeAssetReader({this.metadata, String? dartSource, String? sourceMap})
     : _dartSource = dartSource,
       _sourceMap = sourceMap;
 

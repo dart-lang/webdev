@@ -952,7 +952,7 @@ Future<T> _fetchStorageObj<T>(
       worker: worker,
       backgroundPage: backgroundPage,
     );
-    return storageObj[storageKey];
+    return storageObj[storageKey] as String;
   });
   if (T == String) return json as T;
   return serializers.deserialize(jsonDecode(json)) as T;

@@ -98,7 +98,7 @@ void _detectMultipleDartAppsCallback(
 
 bool _isMultipleAppsMutation(dynamic mutation) {
   final isAttributeMutation =
-      hasProperty(mutation, 'type') &&
+      hasProperty(mutation as Object, 'type') &&
       getProperty(mutation, 'type') == 'attributes';
   if (isAttributeMutation) {
     return hasProperty(mutation, 'attributeName') &&

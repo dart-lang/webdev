@@ -30,7 +30,7 @@ void _handleRuntimeMessages(
   Function sendResponse,
 ) {
   interceptMessage<String>(
-    message: jsRequest,
+    message: jsRequest is String ? jsRequest : null,
     expectedType: MessageType.appId,
     expectedSender: Script.background,
     expectedRecipient: Script.copier,

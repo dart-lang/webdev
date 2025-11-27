@@ -28,7 +28,10 @@ void runTests({
 
   final testInspector = TestInspector(context);
 
-  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(
+    String breakPointId,
+    Future<void> Function(Event) body,
+  ) => testInspector.onBreakPoint(
     stream,
     isolateId,
     mainScript,
@@ -36,21 +39,25 @@ void runTests({
     body,
   );
 
-  Future<Instance> getInstance(frame, expression) =>
+  Future<Instance> getInstance(int frame, String expression) =>
       testInspector.getInstance(isolateId, frame, expression);
 
-  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(String instanceId) =>
+      service.getObject(isolateId, instanceId);
 
-  Future<InstanceRef> getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(int frame, String expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  Future<Map<Object?, Object?>> getFields(instanceRef, {offset, count}) =>
-      testInspector.getFields(
-        isolateId,
-        instanceRef,
-        offset: offset,
-        count: count,
-      );
+  Future<Map<Object?, Object?>> getFields(
+    InstanceRef instanceRef, {
+    int? offset,
+    int? count,
+  }) => testInspector.getFields(
+    isolateId,
+    instanceRef,
+    offset: offset,
+    count: count,
+  );
 
   group('$compilationMode |', () {
     setUpAll(() async {

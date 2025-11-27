@@ -272,19 +272,23 @@ class TestInspector {
 Map<String, InstanceRef> _associationsToMap(
   Iterable<MapAssociation> associations,
 ) => Map.fromEntries(
-  associations.map((e) => MapEntry(e.key.valueAsString, e.value)),
+  associations.map(
+    (e) => MapEntry(e.key.valueAsString as String, e.value as InstanceRef),
+  ),
 );
 
 Map<dynamic, InstanceRef> _boundFieldsToMap(Iterable<BoundField> fields) =>
     Map.fromEntries(
-      fields.where((e) => e.name != null).map((e) => MapEntry(e.name, e.value)),
+      fields
+          .where((e) => e.name != null)
+          .map((e) => MapEntry(e.name, e.value as InstanceRef)),
     );
 
 Map<dynamic, InstanceRef> _elementsToMap(List<dynamic> fields) =>
     Map.fromEntries(
       fields
           .where((e) => e != null)
-          .map((e) => MapEntry(fields.indexOf(e), e!)),
+          .map((e) => MapEntry(fields.indexOf(e), e as InstanceRef)),
     );
 
 Matcher matchRecordInstanceRef({required int length}) => isA<InstanceRef>()
@@ -321,7 +325,7 @@ Matcher matchPlainInstance({required libraryId, required String type}) =>
           matchClassRef(name: type, libraryId: libraryId),
         );
 
-Matcher matchListInstance({required dynamic type}) => isA<Instance>()
+Matcher matchListInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kList)
     .having((e) => e.classRef, 'classRef', matchListClassRef(type));
 

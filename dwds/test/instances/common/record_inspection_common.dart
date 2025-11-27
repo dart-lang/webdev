@@ -26,7 +26,10 @@ void runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(
+    String breakPointId,
+    Future<void> Function(Event) body,
+  ) => testInspector.onBreakPoint(
     stream,
     isolateId,
     mainScript,
@@ -34,19 +37,20 @@ void runTests({
     body,
   );
 
-  Future<Instance> getInstance(frame, expression) =>
+  Future<Instance> getInstance(int frame, String expression) =>
       testInspector.getInstance(isolateId, frame, expression);
 
-  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(String instanceId) =>
+      service.getObject(isolateId, instanceId);
 
-  Future<InstanceRef> getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(int frame, String expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
   Future<Map<Object?, Object?>> getFields(
-    instanceRef, {
-    offset,
-    count,
-    depth = -1,
+    InstanceRef instanceRef, {
+    int? offset,
+    int? count,
+    int depth = -1,
   }) => testInspector.getFields(
     isolateId,
     instanceRef,
@@ -96,7 +100,7 @@ void runTests({
         final instanceRef = await getInstanceRef(frame, 'record');
         final classId = instanceRef.classRef!.id;
 
-        expect(await getObject(classId), matchRecordClass);
+        expect(await getObject(classId!), matchRecordClass);
 
         final stringRef = await getInstanceRef(frame, 'record.toString()');
         final stringRefId = stringRef.id!;
@@ -160,7 +164,7 @@ void runTests({
         final instanceRef = await getInstanceRef(frame, 'record');
         final classId = instanceRef.classRef!.id;
 
-        expect(await getObject(classId), matchRecordClass);
+        expect(await getObject(classId!), matchRecordClass);
 
         final stringRef = await getInstanceRef(frame, 'record.toString()');
         final stringId = stringRef.id!;
@@ -227,7 +231,7 @@ void runTests({
         final instanceRef = await getInstanceRef(frame, 'record');
         final classId = instanceRef.classRef!.id;
 
-        expect(await getObject(classId), matchRecordClass);
+        expect(await getObject(classId!), matchRecordClass);
 
         final stringRef = await getInstanceRef(frame, 'record.toString()');
         final stringId = stringRef.id!;
@@ -315,7 +319,7 @@ void runTests({
         final instanceRef = await getInstanceRef(frame, 'record');
         final classId = instanceRef.classRef!.id;
 
-        expect(await getObject(classId), matchRecordClass);
+        expect(await getObject(classId!), matchRecordClass);
 
         final stringRef = await getInstanceRef(frame, 'record.toString()');
         final stringId = stringRef.id!;
@@ -403,7 +407,7 @@ void runTests({
         final instanceRef = await getInstanceRef(frame, 'record');
         final classId = instanceRef.classRef!.id;
 
-        expect(await getObject(classId), matchRecordClass);
+        expect(await getObject(classId!), matchRecordClass);
 
         final stringRef = await getInstanceRef(frame, 'record.toString()');
         final stringId = stringRef.id!;
@@ -474,7 +478,7 @@ void runTests({
         final instanceRef = await getInstanceRef(frame, 'record');
         final classId = instanceRef.classRef!.id;
 
-        expect(await getObject(classId), matchRecordClass);
+        expect(await getObject(classId!), matchRecordClass);
 
         final stringRef = await getInstanceRef(frame, 'record.toString()');
         final stringId = stringRef.id!;
