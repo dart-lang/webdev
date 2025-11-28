@@ -771,6 +771,20 @@ class _Breakpoints {
   final _dartIdByJsId = <String, String>{};
   final _jsIdByDartId = <String, String>{};
 
+  /// JS location -> JS breakpoint ID
+  final _jsIdByJsLocKey = <String, String>{};
+
+  /// JS breakpoint ID -> JS location
+  final _jsLocKeyByJsId = <String, String>{};
+
+  String _jsLocKey(JsLocation location) =>
+      '${location.runtimeScriptId}:${location.line}:${location.column}';
+
+  String? _lookupExistingJsBreakpoint(JsLocation location) {
+    final jsLocKey = _jsLocKey(location);
+    return _jsIdByJsLocKey[jsLocKey];
+  }
+
   final _bpByDartId = <String, Future<Breakpoint>>{};
 
   final _queue = AtomicQueue();
@@ -835,7 +849,11 @@ class _Breakpoints {
               'cannot set JS breakpoint at $location',
         );
       }
-      _note(jsId: jsBreakpointId, bp: dartBreakpoint);
+      _note(
+        jsId: jsBreakpointId,
+        bp: dartBreakpoint,
+        jsLocation: location.jsLocation,
+      );
       return dartBreakpoint;
     } on WipError catch (wipError) {
       throw RPCError('addBreakpoint', 102, '$wipError');
@@ -880,18 +898,19 @@ class _Breakpoints {
     return _queue.run(() async {
       final scriptId = location.jsLocation.runtimeScriptId;
       if (scriptId != null) {
-        return sendCommandAndValidateResult<String>(
-          remoteDebugger,
-          method: 'Debugger.setBreakpoint',
-          resultField: 'breakpointId',
-          params: {
-            'location': {
-              'lineNumber': location.jsLocation.line,
-              'columnNumber': location.jsLocation.column,
-              'scriptId': scriptId,
-            },
-          },
-        );
+        return _lookupExistingJsBreakpoint(location.jsLocation) ??
+            await sendCommandAndValidateResult<String>(
+              remoteDebugger,
+              method: 'Debugger.setBreakpoint',
+              resultField: 'breakpointId',
+              params: {
+                'location': {
+                  'lineNumber': location.jsLocation.line,
+                  'columnNumber': location.jsLocation.column,
+                  'scriptId': scriptId,
+                },
+              },
+            );
       } else {
         _logger.fine('No runtime script ID for location $location');
         return null;
@@ -901,11 +920,24 @@ class _Breakpoints {
 
   /// Records the internal Dart <=> JS breakpoint id mapping and adds the
   /// breakpoint to the current isolates list of breakpoints.
-  void _note({required Breakpoint bp, required String jsId}) {
+  void _note({
+    required Breakpoint bp,
+    required String jsId,
+    required JsLocation jsLocation,
+  }) {
     final bpId = bp.id;
     if (bpId != null) {
       _dartIdByJsId[jsId] = bpId;
       _jsIdByDartId[bpId] = jsId;
+
+      // Cache JS breakpoint id.
+      final jsLocKey = _jsLocKey(jsLocation);
+      if (_jsIdByJsLocKey.containsKey(jsLocKey)) {
+        _logger.fine('Reused existing JS breakpoint $jsId for $jsLocKey');
+      }
+      _jsIdByJsLocKey[jsLocKey] = jsId;
+      _jsLocKeyByJsId[jsId] = jsLocKey;
+
       final isolate = inspector.isolate;
       isolate.breakpoints?.add(bp);
     }
@@ -916,6 +948,11 @@ class _Breakpoints {
     required String dartId,
   }) async {
     final isolate = inspector.isolate;
+    // Clear from JS location caches
+    final jsLocKey = _jsLocKeyByJsId.remove(jsId);
+    if (jsLocKey != null) {
+      _jsIdByJsLocKey.remove(jsLocKey);
+    }
     _dartIdByJsId.remove(jsId);
     _jsIdByDartId.remove(dartId);
     isolate.breakpoints?.removeWhere((b) => b.id == dartId);
