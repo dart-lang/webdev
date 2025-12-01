@@ -26,7 +26,17 @@ String get _testCommonPackageRoot {
   final scriptPath = Platform.script.toFilePath();
   final isTest = scriptPath.contains('dart_test.kernel');
   if (isTest) {
-    return p.current; // p.current is the package root for tests
+    // When running tests, p.current might be dwds, so we need to check
+    // if we're in test_common or need to navigate to it
+    var current = p.current;
+    if (p.basename(current) == 'dwds') {
+      // Check if test_common exists as a sibling
+      final testCommonPath = p.join(p.dirname(current), 'test_common');
+      if (Directory(testCommonPath).existsSync()) {
+        return testCommonPath;
+      }
+    }
+    return current; // p.current is the package root for tests
   }
   var current = p.dirname(scriptPath);
   while (current != p.dirname(current)) {
