@@ -10,50 +10,26 @@ const webdevDirName = 'webdev';
 const dwdsDirName = 'dwds';
 const fixturesDirName = 'fixtures';
 
-/// The path to the project root directory, e.g. `webdev/` or `pkg/` in the
-/// Dart SDK.
-String get projectRootDir {
-  return p.dirname(_testCommonPackageRoot);
+/// The path to the webdev directory in the local machine, e.g.
+/// '/workstation/webdev'.
+String get webdevPath {
+  final pathParts = p.split(p.current);
+  assert(pathParts.contains(webdevDirName));
+  return p.joinAll(
+    pathParts.sublist(0, pathParts.lastIndexOf(webdevDirName) + 1),
+  );
 }
 
 /// The path to the DWDS directory in the local machine, e.g.
 /// '/workstation/webdev/dwds'.
 String get dwdsPath {
-  return p.join(projectRootDir, dwdsDirName);
-}
-
-String get _testCommonPackageRoot {
-  final scriptPath = Platform.script.toFilePath();
-  final isTest = scriptPath.contains('dart_test.kernel');
-  if (isTest) {
-    // When running tests, p.current might be dwds, so we need to check
-    // if we're in test_common or need to navigate to it
-    var current = p.current;
-    if (p.basename(current) == 'dwds') {
-      // Check if test_common exists as a sibling
-      final testCommonPath = p.join(p.dirname(current), 'test_common');
-      if (Directory(testCommonPath).existsSync()) {
-        return testCommonPath;
-      }
-    }
-    return current; // p.current is the package root for tests
-  }
-  var current = p.dirname(scriptPath);
-  while (current != p.dirname(current)) {
-    if (File(p.join(current, 'pubspec.yaml')).existsSync()) {
-      return current; // This is the package root
-    }
-    current = p.dirname(current);
-  }
-  throw StateError(
-    'Could not find test_common package root from ${Platform.script.path}.',
-  );
+  return p.join(webdevPath, dwdsDirName);
 }
 
 /// The path to the fixtures directory in the local machine, e.g.
 /// '/workstation/webdev/fixtures'.
 String get fixturesPath {
-  return p.join(_testCommonPackageRoot, fixturesDirName);
+  return p.join(webdevPath, fixturesDirName);
 }
 
 // Creates a path compatible for web.
@@ -63,25 +39,25 @@ String webCompatiblePath(List<String> pathParts) {
   return p.joinAll([...pathParts]).replaceAll('\\', '/');
 }
 
-/// Expects one of [pathFromProjectRoot], [pathFromDwds] or [pathFromFixtures] to be
+/// Expects one of [pathFromWebdev], [pathFromDwds] or [pathFromFixtures]  to be
 /// provided. Returns the absolute path in the local machine to that path, e.g.
 ///   absolutePath(pathFromFixtures: '_test/example') ->
 ///   '/workstation/webdev/fixtures/_test/example'
 String absolutePath({
-  String? pathFromProjectRoot,
+  String? pathFromWebdev,
   String? pathFromDwds,
   String? pathFromFixtures,
 }) {
-  if (pathFromProjectRoot != null) {
+  if (pathFromWebdev != null) {
     assert(pathFromDwds == null && pathFromFixtures == null);
-    return p.normalize(p.join(projectRootDir, pathFromProjectRoot));
+    return p.normalize(p.join(webdevPath, pathFromWebdev));
   }
   if (pathFromDwds != null) {
     assert(pathFromFixtures == null);
     return p.normalize(p.join(dwdsPath, pathFromDwds));
   }
   if (pathFromFixtures != null) {
-    assert(pathFromDwds == null && pathFromProjectRoot == null);
+    assert(pathFromDwds == null && pathFromWebdev == null);
     return p.normalize(p.join(fixturesPath, pathFromFixtures));
   }
   throw Exception('Expected a path parameter.');
