@@ -1,0 +1,23 @@
+name: frontend_server_common
+publish_to: none
+description: >-
+  Frontend server integration code to use for dwds tests. Mimics flutter code.
+environment:
+  sdk: ^3.10.0-0.0.dev
+
+dependencies:
+  dwds: any
+  file: ">=6.0.0 <8.0.0"
+  logging: ^1.0.1
+  meta: ^1.4.0
+  mime: ^1.0.0
+  shelf: ^1.1.4
+  package_config: ^2.0.0
+  path: ^1.8.0
+  pub_semver: ^2.1.1
+  test_common:
+    path: ../test_common
+
+dev_dependencies:
+  analysis_config:
+    path: ../_analysis_config
