@@ -124,7 +124,6 @@ Future<int> runRelease({
   for (final packagePath in [
     '../dwds',
     '../webdev',
-    '../frontend_server_common',
     '../frontend_server_client',
     '../test_common',
   ]) {
