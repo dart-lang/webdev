@@ -449,7 +449,7 @@ void _forwardDwdsEventToChromeDebugger(
       Debuggee(tabId: tabId),
       message.command,
       js_util.jsify(params),
-      allowInterop(([e]) {
+      allowInterop(([Object? e]) {
         // No arguments indicate that an error occurred.
         if (e == null) {
           client.sink.add(

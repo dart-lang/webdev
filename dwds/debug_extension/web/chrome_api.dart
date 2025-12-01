@@ -403,7 +403,10 @@ class NavigationInfo {
 @JS()
 @anonymous
 class Windows {
-  external dynamic create(WindowInfo? createData, Function(WindowObj) callback);
+  external dynamic create(
+    WindowInfo? createData,
+    void Function(WindowObj) callback,
+  );
 
   external OnFocusChangedHandler get onFocusChanged;
 }

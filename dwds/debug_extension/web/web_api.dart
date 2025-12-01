@@ -32,11 +32,11 @@ external Object _nativeJsFetch(String resourceUrl, FetchOptions options);
 Future<FetchResponse> fetchRequest(String resourceUrl) async {
   try {
     final options = FetchOptions(method: 'GET', credentials: 'include');
-    final response = await promiseToFuture(
+    final response = await promiseToFuture<Object>(
       _nativeJsFetch(resourceUrl, options),
     );
     final body = await promiseToFuture<String?>(
-      js_util.callMethod(response as Object, 'text', []),
+      js_util.callMethod(response, 'text', []),
     );
     final ok = js_util.getProperty<bool>(response, 'ok');
     final status = js_util.getProperty<int>(response, 'status');

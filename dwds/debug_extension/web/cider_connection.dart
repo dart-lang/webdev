@@ -100,8 +100,8 @@ void _sendMessageToCider(String json) {
 }
 
 Future<void> _handleMessageFromCider(dynamic message, Port _) async {
-  final key = getProperty(message as Object, 'key');
-  final json = getProperty(message, 'json');
+  final key = getProperty<String?>(message as Object, 'key');
+  final json = getProperty<String?>(message, 'json');
   if (key != _ciderDartMessageKey || json is! String) {
     sendErrorMessageToCider(
       errorType: CiderErrorType.invalidRequest,

@@ -151,7 +151,7 @@ void interceptStorageChange<T>({
     final isExpected = hasProperty(storageObj, expectedStorageKey);
     if (!isExpected) return;
 
-    final objProp = getProperty(storageObj, expectedStorageKey);
+    final objProp = getProperty<Object?>(storageObj, expectedStorageKey);
     final json = getProperty(objProp as Object, 'newValue') as String?;
     T? decodedObj;
     if (json == null || T == String) {

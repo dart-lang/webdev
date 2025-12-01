@@ -76,7 +76,7 @@ void _forwardCommandToChromeDebugger(
       options.method,
       options.commandParams,
       allowInterop(
-        ([result]) => _respondWithChromeResult(result, sendResponse),
+        ([Object? result]) => _respondWithChromeResult(result, sendResponse),
       ),
     );
   } catch (e) {
@@ -110,7 +110,7 @@ void _forwardMessageToAngularDartDevTools(ExternalExtensionMessage message) {
     message,
     // options
     null,
-    allowInterop(([result]) => _checkForErrors(result, message.name)),
+    allowInterop(([Object? result]) => _checkForErrors(result, message.name)),
   );
 }
 

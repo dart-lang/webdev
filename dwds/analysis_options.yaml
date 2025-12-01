@@ -6,7 +6,3 @@ analyzer:
     - "lib/data/*"
     # Ignore debug extension builds
     - "debug_extension/compiled/*"
-
-linter:
-  rules:
-    - always_use_package_imports
