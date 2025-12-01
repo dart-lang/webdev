@@ -5,17 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/events.dart';
-import 'package:dwds/src/loaders/ddc_library_bundle.dart';
-import 'package:dwds/src/services/chrome/chrome_debug_exception.dart';
-import 'package:dwds/src/services/chrome/chrome_debug_service.dart';
-import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
-import 'package:dwds/src/services/debug_service.dart';
-import 'package:dwds/src/services/proxy_service.dart';
-import 'package:dwds/src/services/web_socket/web_socket_debug_service.dart';
-import 'package:dwds/src/services/web_socket/web_socket_proxy_service.dart';
-import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
@@ -23,6 +12,18 @@ import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import 'config/tool_configuration.dart';
+import 'events.dart';
+import 'loaders/ddc_library_bundle.dart';
+import 'services/chrome/chrome_debug_exception.dart';
+import 'services/chrome/chrome_debug_service.dart';
+import 'services/chrome/chrome_proxy_service.dart';
+import 'services/debug_service.dart';
+import 'services/proxy_service.dart';
+import 'services/web_socket/web_socket_debug_service.dart';
+import 'services/web_socket/web_socket_proxy_service.dart';
+import 'utilities/synchronized.dart';
 
 /// Type of requests added to the request controller.
 typedef VmRequest = Map<String, Object>;
@@ -415,7 +416,7 @@ final class ChromeDwdsVmClient
     for (var retry = 0; retry < retries; retry++) {
       final tryId = await chromeProxyService.executionContext.id;
       if (tryId != null) return tryId;
-      await Future.delayed(const Duration(milliseconds: waitInMs));
+      await Future<void>.delayed(const Duration(milliseconds: waitInMs));
     }
     throw StateError('No context with the running Dart application.');
   }

@@ -35,7 +35,7 @@ Future<T> wrapInErrorHandlerAsync<T>(
   String command,
   Future<T> Function() asyncCallback,
 ) {
-  return asyncCallback().catchError((error) {
+  return asyncCallback().catchError((Object error) {
     return Future<T>.error(
       RPCError(
         command,
