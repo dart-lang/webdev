@@ -196,7 +196,10 @@ void runTests({
           expect(await getObject(instanceId), matchListInstance(type: 'int'));
 
           expect(await getFields(instanceRef), {0: 0.0, 1: 1.0, 2: 2.0});
-          expect(await getFields(instanceRef, offset: 1, count: 0), {});
+          expect(
+            await getFields(instanceRef, offset: 1, count: 0),
+            <Object?, Object?>{},
+          );
           expect(await getFields(instanceRef, offset: 0), {
             0: 0.0,
             1: 1.0,
@@ -209,7 +212,10 @@ void runTests({
             0: 1.0,
             1: 2.0,
           });
-          expect(await getFields(instanceRef, offset: 3, count: 3), {});
+          expect(
+            await getFields(instanceRef, offset: 3, count: 3),
+            <Object?, Object?>{},
+          );
         });
       });
 
@@ -248,7 +254,10 @@ void runTests({
 
           expect(await getFields(instanceRef), {'a': 1, 'b': 2, 'c': 3});
 
-          expect(await getFields(instanceRef, offset: 1, count: 0), {});
+          expect(
+            await getFields(instanceRef, offset: 1, count: 0),
+            <Object?, Object?>{},
+          );
           expect(await getFields(instanceRef, offset: 0), {
             'a': 1,
             'b': 2,
@@ -261,7 +270,10 @@ void runTests({
             'b': 2,
             'c': 3,
           });
-          expect(await getFields(instanceRef, offset: 3, count: 3), {});
+          expect(
+            await getFields(instanceRef, offset: 3, count: 3),
+            <Object?, Object?>{},
+          );
         });
       });
 
@@ -319,8 +331,14 @@ void runTests({
             0: 5.0,
             1: 7.0,
           });
-          expect(await getFields(instanceRef, offset: 1, count: 0), {});
-          expect(await getFields(instanceRef, offset: 10, count: 2), {});
+          expect(
+            await getFields(instanceRef, offset: 1, count: 0),
+            <Object?, Object?>{},
+          );
+          expect(
+            await getFields(instanceRef, offset: 10, count: 2),
+            <Object?, Object?>{},
+          );
         });
       });
 

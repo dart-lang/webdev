@@ -19,7 +19,7 @@ void main() {
     var metadata = createMetadata(null);
     expect(metadata.length, isNull);
 
-    metadata = createMetadata({});
+    metadata = createMetadata(<String, dynamic>{});
     expect(metadata.length, isNull);
 
     metadata = createMetadata('{}');

@@ -2010,11 +2010,11 @@ void runTests({
       final stream = service.onEvent('Debug');
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
-      final pauseCompleter = Completer();
+      final pauseCompleter = Completer<void>();
       final pauseSub = context.tabConnection.debugger.onPaused.listen((_) {
         pauseCompleter.complete();
       });
-      final resumeCompleter = Completer();
+      final resumeCompleter = Completer<void>();
       final resumeSub = context.tabConnection.debugger.onResumed.listen((_) {
         resumeCompleter.complete();
       });
@@ -2485,7 +2485,7 @@ void runTests({
           for (final data in batch1) {
             await context.tabConnection.runtime.evaluate(emitDebugEvent(data));
           }
-          await Future.delayed(delay);
+          await Future<void>.delayed(delay);
           for (final data in batch2) {
             await context.tabConnection.runtime.evaluate(emitDebugEvent(data));
           }
@@ -2713,7 +2713,7 @@ void runTests({
 
 final _isSuccess = isA<Success>();
 
-TypeMatcher _libRef(uriMatcher) =>
+TypeMatcher _libRef(Object uriMatcher) =>
     isA<LibraryRef>().having((l) => l.uri, 'uri', uriMatcher);
 
 void expectEventually(Matcher expectation) {}

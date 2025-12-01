@@ -14,9 +14,9 @@ import '../fixtures/utilities.dart';
 
 enum ConsoleSource { background, devTools, worker }
 
-final _backgroundLogs = [];
-final _devToolsLogs = [];
-final _workerLogs = [];
+final List<String> _backgroundLogs = <String>[];
+final List<String> _devToolsLogs = <String>[];
+final List<String> _workerLogs = <String>[];
 
 Future<String> buildDebugExtension({required bool isMV3}) async {
   final extensionDir = absolutePath(pathFromDwds: 'debug_extension');
@@ -160,7 +160,7 @@ Future<void> clickOnExtensionIcon({
 // Note: The following delay is required to reduce flakiness. It makes
 // sure the service worker execution context is ready.
 Future<void> workerEvalDelay() async {
-  await Future.delayed(Duration(seconds: 1));
+  await Future<void>.delayed(const Duration(seconds: 1));
   return;
 }
 

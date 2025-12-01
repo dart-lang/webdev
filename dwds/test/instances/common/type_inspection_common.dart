@@ -66,9 +66,9 @@ void runTests({
   Future<List<Instance>> getElements(String instanceId) =>
       testInspector.getElements(isolateId, instanceId);
 
-  final matchTypeObjectFields = {};
+  final matchTypeObjectFields = <Object?, Object?>{};
 
-  final matchDisplayedTypeObjectFields = {};
+  final matchDisplayedTypeObjectFields = <Object?, String?>{};
 
   final matchDisplayedTypeObjectGetters = {
     'hashCode': matches('[0-9]*'),
