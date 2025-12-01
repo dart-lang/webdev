@@ -50,7 +50,7 @@ void main() async {
     final title = await context.webDriver.title;
     if (title == 'Dart DevTools') return;
 
-    await Future.delayed(retryWait);
+    await Future<void>.delayed(retryWait);
     return waitForDartDevToolsWithRetry(
       retryCount: retryCount--,
       retryWait: retryWait,

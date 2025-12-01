@@ -156,8 +156,8 @@ void main() {
       final logs = <String>[];
 
       void logWriter(
-        level,
-        message, {
+        Object? level,
+        String message, {
         String? error,
         String? loggerName,
         String? stackTrace,

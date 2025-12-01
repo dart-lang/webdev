@@ -55,7 +55,7 @@ final sampleSyncFrame = WipCallFrame({
   'functionLocation': {'scriptId': '69', 'lineNumber': 88, 'columnNumber': 72},
   'location': {'scriptId': '69', 'lineNumber': 37, 'columnNumber': 0},
   'url': '',
-  'scopeChain': [],
+  'scopeChain': <dynamic>[],
   'this': {'type': 'undefined'},
 });
 
@@ -145,10 +145,10 @@ void main() async {
       asyncStackTrace: StackTrace({
         'callFrames': [sampleAsyncFrame.json],
         'parent': StackTrace({
-          'callFrames': [],
+          'callFrames': <dynamic>[],
           'parent': StackTrace({
             'callFrames': [sampleAsyncFrame.json],
-            'parent': StackTrace({'callFrames': []}).json,
+            'parent': StackTrace({'callFrames': <dynamic>[]}).json,
           }).json,
         }).json,
       }),

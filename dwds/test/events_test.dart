@@ -41,7 +41,7 @@ void main() {
 
     test('emits HTTP_REQUEST_EXCEPTION event', () async {
       Future<void> throwAsyncException() async {
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
         throw Exception('async error');
       }
 
@@ -77,7 +77,7 @@ void main() {
 
       // Ignore the response.
       final response = await request.close();
-      await response.drain();
+      await response.drain<void>();
 
       // Wait for expected events.
       await events;

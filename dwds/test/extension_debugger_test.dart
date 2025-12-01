@@ -42,7 +42,7 @@ void main() async {
           ..id = 0
           ..success = true,
       );
-      final resultCompleter = Completer();
+      final resultCompleter = Completer<dynamic>();
       unawaited(
         extensionDebugger
             .sendCommand('Runtime.evaluate', params: {'expression': '\$pi'})
