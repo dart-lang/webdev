@@ -29,7 +29,7 @@ jobs:
           echo "VERSION_TAG=$(webdev --version)" >> $GITHUB_OUTPUT
       - name: Checkout Webdev at version tag
         id: checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
         with:
           ref: webdev-v${{ steps.version.outputs.VERSION_TAG }}
       - name: Upgrade deps
