@@ -2,18 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/asset_reader.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/connections/app_connection.dart';
-import 'package:dwds/src/debugging/execution_context.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
-import 'package:dwds/src/services/debug_service.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:sse/server/sse_handler.dart';
+
+import '../../../asset_reader.dart';
+import '../../config/tool_configuration.dart';
+import '../../connections/app_connection.dart';
+import '../../debugging/execution_context.dart';
+import '../../debugging/remote_debugger.dart';
+import '../../utilities/shared.dart';
+import '../debug_service.dart';
+import '../expression_compiler.dart';
+import 'chrome_proxy_service.dart';
 
 /// A Dart Web Debug Service.
 ///

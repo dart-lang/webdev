@@ -1761,7 +1761,8 @@ void runTests({
           (event) => event.kind == EventKind.kPauseException,
         );
         expect(event.exception, isNotNull);
-        // Check that the exception stack trace has been mapped to Dart source files.
+        // Check that the exception stack trace has been mapped to Dart
+        // source files.
         expect(event.exception!.valueAsString, contains('main.dart'));
 
         final stack = await service.getStack(isolateId!);
@@ -2468,7 +2469,8 @@ void runTests({
                   );
 
           String emitDebugEvent(String data) =>
-              "\$emitDebugEvent('$extensionKind', '{ \"$eventData\": \"$data\" }');";
+              "\$emitDebugEvent('$extensionKind', "
+              "'{ \"$eventData\": \"$data\" }');";
 
           final size = 2;
           final batch1 = List.generate(size, (int i) => 'data$i');

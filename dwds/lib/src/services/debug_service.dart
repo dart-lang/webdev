@@ -9,10 +9,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dds/dds_launcher.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/events.dart';
-import 'package:dwds/src/services/proxy_service.dart';
-import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -20,6 +16,11 @@ import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
+
+import '../config/tool_configuration.dart';
+import '../events.dart';
+import '../utilities/server.dart';
+import 'proxy_service.dart';
 
 bool _acceptNewConnections = true;
 
@@ -180,9 +181,9 @@ abstract class DebugService<T extends ProxyService> {
     return (shelf.Request request) {
       if (!_acceptNewConnections) {
         return shelf.Response.forbidden(
-          'Cannot connect directly to the VM service as a Dart Development '
-          'Service (DDS) instance has taken control and can be found at $_ddsUri.'
-          '$_ddsUri.',
+          'Cannot connect directly to the VM service as a '
+          'Dart Development Service (DDS) instance has taken control and '
+          'can be found at $_ddsUri.',
         );
       }
       if (authToken != null && request.url.pathSegments.first != authToken) {
@@ -210,8 +211,8 @@ abstract class DebugService<T extends ProxyService> {
           // while also being able to determine which client invoked the RPC
           // without some form of client ID.
           //
-          // We can probably do better than this, but it will likely involve some
-          // refactoring.
+          // We can probably do better than this, but it will likely involve
+          // some refactoring.
           if (response case {
             'error': {
               'code': DisconnectNonDartDevelopmentServiceClients.kErrorCode,

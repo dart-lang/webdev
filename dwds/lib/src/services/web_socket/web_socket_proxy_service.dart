@@ -5,20 +5,21 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/data/hot_reload_request.dart';
-import 'package:dwds/data/hot_reload_response.dart';
-import 'package:dwds/data/hot_restart_request.dart';
-import 'package:dwds/data/hot_restart_response.dart';
-import 'package:dwds/data/service_extension_request.dart';
-import 'package:dwds/data/service_extension_response.dart';
-import 'package:dwds/src/connections/app_connection.dart';
-import 'package:dwds/src/debugging/web_socket_inspector.dart';
-import 'package:dwds/src/services/proxy_service.dart';
-import 'package:dwds/src/services/web_socket/web_socket_debug_service.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart' as vm_service;
 import 'package:vm_service/vm_service.dart';
+
+import '../../../data/hot_reload_request.dart';
+import '../../../data/hot_reload_response.dart';
+import '../../../data/hot_restart_request.dart';
+import '../../../data/hot_restart_response.dart';
+import '../../../data/service_extension_request.dart';
+import '../../../data/service_extension_response.dart';
+import '../../connections/app_connection.dart';
+import '../../debugging/web_socket_inspector.dart';
+import '../../utilities/shared.dart';
+import '../proxy_service.dart';
+import 'web_socket_debug_service.dart';
 
 /// Defines callbacks for sending messages to the connected client.
 /// Returns the number of clients the request was successfully sent to.
@@ -27,8 +28,9 @@ typedef SendClientRequest = int Function(Object request);
 const _pauseIsolatesOnStartFlag = 'pause_isolates_on_start';
 
 /// Grace period before destroying isolate when no clients are detected.
-/// This handles the race condition during page refresh where the old connection
-/// closes before the new connection is established, preventing premature isolate destruction.
+/// This handles the race condition during page refresh where the old
+/// connection closes before the new connection is established, preventing
+/// premature isolate destruction.
 const _isolateDestructionGracePeriod = Duration(seconds: 15);
 
 /// Error message when no clients are available for hot reload/restart.
@@ -212,11 +214,13 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
     if (isNewConnection) {
       _activeConnectionCount++;
       _logger.fine(
-        'Adding new connection: $connectionId (total: $_activeConnectionCount)',
+        'Adding new connection: $connectionId '
+        '(total: $_activeConnectionCount)',
       );
     } else {
       _logger.fine(
-        'Reconnecting existing connection: $connectionId (total: $_activeConnectionCount)',
+        'Reconnecting existing connection: $connectionId '
+        '(total: $_activeConnectionCount)',
       );
     }
 
@@ -229,10 +233,12 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
           _handleConnectionClosed(connectionId);
         });
 
-    // If we already have a running isolate, just update the connection and return
+    // If we already have a running isolate, just update the connection and
+    // return
     if (isIsolateRunning) {
       _logger.fine(
-        'Reusing existing isolate ${inspector.isolateRef.id} for connection: $connectionId',
+        'Reusing existing isolate ${inspector.isolateRef.id} '
+        'for connection: $connectionId',
       );
       return;
     }
@@ -293,16 +299,19 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
       // Decrease active connection count
       _activeConnectionCount--;
       _logger.fine(
-        'Removed connection: $connectionId (remaining: $_activeConnectionCount)',
+        'Removed connection: $connectionId '
+        '(remaining: $_activeConnectionCount)',
       );
       _logger.fine(
-        'Current tracked connections: ${_appConnectionDoneSubscriptions.keys.toList()}',
+        'Current tracked connections: '
+        '${_appConnectionDoneSubscriptions.keys.toList()}',
       );
 
-      // Instead of destroying the isolate immediately, check if there are still
-      // clients that can receive hot reload requests
+      // Instead of destroying the isolate immediately, check if there are
+      // still clients that can receive hot reload requests
       if (_activeConnectionCount <= 0) {
-        // Double-check by asking the sendClientRequest callback how many clients are available
+        // Double-check by asking the sendClientRequest callback how many
+        // clients are available
         final actualClientCount = sendClientRequest({'type': 'ping'});
         _logger.fine(
           'Actual client count from sendClientRequest: $actualClientCount',
@@ -310,9 +319,11 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
 
         if (actualClientCount == 0) {
           _logger.fine(
-            'No clients available for hot reload, scheduling isolate destruction',
+            'No clients available for hot reload, '
+            'scheduling isolate destruction',
           );
-          // Add a delay before destroying the isolate to handle page refresh race condition
+          // Add a delay before destroying the isolate to handle page refresh
+          // race condition
           Timer(_isolateDestructionGracePeriod, () {
             // Double-check client count again before destroying
             final finalClientCount = sendClientRequest({'type': 'ping'});
@@ -323,21 +334,24 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
               destroyIsolate();
             } else {
               _logger.fine(
-                'Final check found $finalClientCount clients, keeping isolate alive',
+                'Final check found $finalClientCount clients, '
+                'keeping isolate alive',
               );
               _activeConnectionCount = finalClientCount;
             }
           });
         } else {
           _logger.fine(
-            'Still have $actualClientCount clients available, keeping isolate alive',
+            'Still have $actualClientCount clients available, '
+            'keeping isolate alive',
           );
           // Update our internal counter to match reality
           _activeConnectionCount = actualClientCount;
         }
       } else {
         _logger.fine(
-          'Still have $_activeConnectionCount active connections, keeping isolate alive',
+          'Still have $_activeConnectionCount active connections, '
+          'keeping isolate alive',
         );
       }
     } else {
@@ -409,8 +423,8 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
       _logger.info('Hot reload completed successfully');
       return _ReloadReportWithMetadata(success: true);
     } on NoClientsAvailableException catch (e) {
-      // Throw RPC error with kIsolateCannotReload code when no browser clients are
-      // connected.
+      // Throw RPC error with kIsolateCannotReload code when no browser
+      // clients are connected.
       throw vm_service.RPCError(
         'reloadSources',
         vm_service.RPCErrorKind.kIsolateCannotReload.code,
@@ -431,8 +445,8 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
       _logger.info('Hot restart completed successfully');
       return {'result': vm_service.Success().toJson()};
     } on NoClientsAvailableException catch (e) {
-      // Throw RPC error with kIsolateCannotReload code when no browser clients are
-      // connected.
+      // Throw RPC error with kIsolateCannotReload code when no browser
+      // clients are connected.
       throw vm_service.RPCError(
         'hotRestart',
         vm_service.RPCErrorKind.kIsolateCannotReload.code,
@@ -456,7 +470,8 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
 
     if (tracker == null) {
       _logger.warning(
-        'Received hot reload response but no pending tracker found (id: ${response.id})',
+        'Received hot reload response but no pending tracker found '
+        '(id: ${response.id})',
       );
       return;
     }
@@ -488,7 +503,8 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
 
     if (tracker == null) {
       _logger.warning(
-        'Received hot restart response but no pending tracker found (id: ${response.id})',
+        'Received hot restart response but no pending tracker found '
+        '(id: ${response.id})',
       );
       return;
     }
@@ -544,7 +560,8 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
         if (!completer.isCompleted) {
           completer.completeError(
             TimeoutException(
-              'Hot reload timed out - received ${tracker.responses.length}/$clientCount responses',
+              'Hot reload timed out - received '
+              '${tracker.responses.length}/$clientCount responses',
               timeout,
             ),
           );
@@ -605,7 +622,8 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
         if (!completer.isCompleted) {
           completer.completeError(
             TimeoutException(
-              'Hot restart timed out - received ${tracker.responses.length}/$clientCount responses',
+              'Hot restart timed out - received '
+              '${tracker.responses.length}/$clientCount responses',
               timeout,
             ),
           );
@@ -660,8 +678,8 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
     final request = ServiceExtensionRequest.fromArgs(
       id: requestId,
       method: method,
-      // Arguments must be converted to their string representation, otherwise
-      // we'll encounter a TypeError when trying to cast args to a
+      // Arguments must be converted to their string representation,
+      // otherwise we'll encounter a TypeError when trying to cast args to a
       // Map<String, String> in the service extension handler.
       args: args.map<String, String>(
         (k, v) => MapEntry(
@@ -688,7 +706,8 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
         if (!completer.isCompleted) {
           completer.completeError(
             TimeoutException(
-              'Service extension $method timed out - received ${tracker.responses.length}/$clientCount responses',
+              'Service extension $method timed out - received '
+              '${tracker.responses.length}/$clientCount responses',
               timeout,
             ),
           );
@@ -864,7 +883,8 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
       );
     }
 
-    // Return empty stack since we're in WebSocket mode without Chrome debugging
+    // Return empty stack since we're in WebSocket mode without Chrome
+    // debugging
     return vm_service.Stack(
       frames: [],
       asyncCausalFrames: [],
@@ -873,7 +893,8 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
   }
 }
 
-/// Extended ReloadReport that includes additional metadata in JSON output.
+/// Extended ReloadReport that includes additional metadata in JSON
+/// output.
 class _ReloadReportWithMetadata extends vm_service.ReloadReport {
   final List<String>? notices;
   _ReloadReportWithMetadata({super.success, this.notices});

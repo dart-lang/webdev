@@ -207,7 +207,7 @@ void main() {
     setUpAll(() async {
       final toolConfiguration = TestToolConfiguration.withLoadStrategy(
         loadStrategy: G3TestStrategy(FakeAssetReader()),
-        appMetadata: TestAppMetadata.internalApp(),
+        appMetadata: const TestAppMetadata.internalApp(),
       );
       setGlobalsForTesting(toolConfiguration: toolConfiguration);
       await DartUri.initialize();

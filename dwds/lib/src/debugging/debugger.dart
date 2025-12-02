@@ -4,26 +4,27 @@
 
 import 'dart:async';
 
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/chrome_inspector.dart';
-import 'package:dwds/src/debugging/dart_scope.dart';
-import 'package:dwds/src/debugging/frame_computer.dart';
-import 'package:dwds/src/debugging/inspector.dart';
-import 'package:dwds/src/debugging/location.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/debugging/skip_list.dart';
-import 'package:dwds/src/services/chrome/chrome_debug_exception.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/domain.dart';
-import 'package:dwds/src/utilities/objects.dart' show Property;
-import 'package:dwds/src/utilities/server.dart';
-import 'package:dwds/src/utilities/shared.dart';
-import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
+
+import '../config/tool_configuration.dart';
+import '../services/chrome/chrome_debug_exception.dart';
+import '../utilities/dart_uri.dart';
+import '../utilities/domain.dart';
+import '../utilities/objects.dart' show Property;
+import '../utilities/server.dart';
+import '../utilities/shared.dart';
+import '../utilities/synchronized.dart';
+import 'chrome_inspector.dart';
+import 'dart_scope.dart';
+import 'frame_computer.dart';
+import 'inspector.dart';
+import 'location.dart';
+import 'remote_debugger.dart';
+import 'skip_list.dart';
 
 /// Adds [event] to the stream with [streamId] if there is anybody listening
 /// on that stream.
@@ -346,8 +347,9 @@ class Debugger {
   /// If we do not have [Location] data for the embedded JS location, null is
   /// returned.
   Future<Location?> _sourceLocation(DebuggerPausedEvent e) async {
-    final frame = e.params?['callFrames']?[0];
-    final location = frame?['location'];
+    final callFrames = e.params?['callFrames'] as List<dynamic>?;
+    final frame = callFrames?[0] as Map<String, dynamic>?;
+    final location = frame?['location'] as Map<String, dynamic>?;
     if (location == null) return null;
 
     final scriptId = location['scriptId'] as String?;
@@ -368,8 +370,10 @@ class Debugger {
 
   /// Returns script ID for the paused event.
   String? _frameScriptId(DebuggerPausedEvent e) {
-    final frame = e.params?['callFrames']?[0];
-    return frame?['location']?['scriptId'] as String?;
+    final callFrames = e.params?['callFrames'] as List<dynamic>?;
+    final frame = callFrames?[0] as Map<String, dynamic>?;
+    final location = frame?['location'] as Map<String, dynamic>?;
+    return location?['scriptId'] as String?;
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
@@ -498,7 +502,8 @@ class Debugger {
   void logAnyFrameErrors({required String frameType}) {
     if (_frameErrorCount > 0) {
       logger.warning(
-        'Error calculating Dart variables for $_frameErrorCount $frameType frames.',
+        'Error calculating Dart variables for '
+        '$_frameErrorCount $frameType frames.',
       );
     }
     _frameErrorCount = 0;

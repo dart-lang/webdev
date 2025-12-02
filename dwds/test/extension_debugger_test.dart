@@ -14,6 +14,7 @@ import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/servers/extension_debugger.dart';
 import 'package:test/test.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
@@ -51,8 +52,12 @@ void main() async {
       connection.controllerIncoming.sink.add(
         jsonEncode(serializers.serialize(extensionResponse)),
       );
-      final response = await resultCompleter.future;
-      expect(response.result['result']['value'], 3.14);
+      final response = await resultCompleter.future as WipResponse;
+      expect(
+        ((response.result as Map<String, dynamic>)['result']
+            as Map<String, dynamic>)['value'],
+        3.14,
+      );
     });
 
     test('an ExtensionEvent', () async {

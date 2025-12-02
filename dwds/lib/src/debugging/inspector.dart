@@ -5,15 +5,16 @@
 import 'dart:collection';
 
 import 'package:async/async.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/connections/app_connection.dart';
-import 'package:dwds/src/debugging/libraries.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import '../config/tool_configuration.dart';
+import '../connections/app_connection.dart';
+import '../utilities/dart_uri.dart';
+import '../utilities/shared.dart';
+import 'libraries.dart';
+import 'metadata/provider.dart';
 
 /// An inspector for a running Dart application contained in the
 /// [WipConnection].

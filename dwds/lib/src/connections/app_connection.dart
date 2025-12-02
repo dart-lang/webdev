@@ -5,11 +5,11 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/data/connect_request.dart';
-import 'package:dwds/data/run_request.dart';
-import 'package:dwds/data/serializers.dart';
-import 'package:dwds/src/handlers/socket_connections.dart';
-import 'package:dwds/src/utilities/shared.dart';
+import '../../data/connect_request.dart';
+import '../../data/run_request.dart';
+import '../../data/serializers.dart';
+import '../handlers/socket_connections.dart';
+import '../utilities/shared.dart';
 
 /// A connection between the application loaded in the browser and DWDS.
 class AppConnection {
