@@ -24,7 +24,7 @@ import 'utils.dart';
 //
 // Prevents the message port from closing. See:
 // https://developer.chrome.com/docs/extensions/mv3/messaging/#simple
-final defaultResponse = jsify({'response': 'received'});
+final defaultResponse = jsify({'response': 'received'}) as Object;
 
 enum Script {
   background,

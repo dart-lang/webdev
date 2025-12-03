@@ -92,7 +92,7 @@ List<Map<String, dynamic>> frames1Json = [
 /// elements of a scope chain.
 ///
 /// It has two variables named 'a' and 'b' in the first scope.
-var variables1 = [
+List<WipResponse> variables1 = [
   WipResponse({
     'id': 1,
     'result': {'result': <Map<String, dynamic>>[]},
@@ -137,7 +137,7 @@ var variables1 = [
 ];
 
 /// Sample data for a Debugger.scriptParsed event
-var scriptParsedParams = {
+Map<String, Object> scriptParsedParams = {
   "endColumn": 0,
   "endLine": 53,
   "executionContextAuxData": {

@@ -1335,7 +1335,8 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
 
   Map<String, RemoteObject> _fetchAbbreviatedLogParams(Map? logObject) {
     final logParams = <String, RemoteObject>{};
-    final properties = logObject?['preview']?['properties'] as List? ?? [];
+    final preview = logObject?['preview'] as Map<String, dynamic>?;
+    final properties = preview?['properties'] as List? ?? [];
     for (final dynamic property in properties) {
       if (property is Map<String, dynamic> && property['name'] != null) {
         logParams[property['name'] as String] = RemoteObject(property);

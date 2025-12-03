@@ -95,31 +95,33 @@ class ChromeAppClassHelper {
     final classDescriptor = _mapify(result.value);
     final methodRefs = <FuncRef>[];
     final methodDescriptors = _mapify(classDescriptor['methods']);
-    methodDescriptors.forEach((name, descriptor) {
+    methodDescriptors.forEach((name, dynamic descriptor) {
+      final typedDescriptor = descriptor as Map<String, dynamic>;
       final methodId = 'methods|$classId|$name';
       methodRefs.add(
         FuncRef(
           id: methodId,
           name: name,
           owner: classRef,
-          isConst: descriptor['isConst'] as bool? ?? false,
-          isStatic: descriptor['isStatic'] as bool? ?? false,
-          implicit: descriptor['isImplicit'] as bool? ?? false,
-          isAbstract: descriptor['isAbstract'] as bool? ?? false,
-          isGetter: descriptor['isGetter'] as bool? ?? false,
-          isSetter: descriptor['isSetter'] as bool? ?? false,
+          isConst: typedDescriptor['isConst'] as bool? ?? false,
+          isStatic: typedDescriptor['isStatic'] as bool? ?? false,
+          implicit: typedDescriptor['isImplicit'] as bool? ?? false,
+          isAbstract: typedDescriptor['isAbstract'] as bool? ?? false,
+          isGetter: typedDescriptor['isGetter'] as bool? ?? false,
+          isSetter: typedDescriptor['isSetter'] as bool? ?? false,
         ),
       );
     });
     final fieldRefs = <FieldRef>[];
 
     final fieldDescriptors = _mapify(classDescriptor['fields']);
-    fieldDescriptors.forEach((name, descriptor) {
+    fieldDescriptors.forEach((name, dynamic descriptor) {
+      final typedDescriptor = descriptor as Map<String, dynamic>;
       final classMetaData = ClassMetaData(
         runtimeKind: RuntimeObjectKind.type,
         classRef: classRefFor(
-          descriptor['classLibraryId'],
-          descriptor['className'],
+          typedDescriptor['classLibraryId'],
+          typedDescriptor['className'],
         ),
       );
 
@@ -133,9 +135,9 @@ class ChromeAppClassHelper {
             kind: classMetaData.kind,
             classRef: classMetaData.classRef,
           ),
-          isConst: descriptor['isConst'] as bool? ?? false,
-          isFinal: descriptor['isFinal'] as bool? ?? false,
-          isStatic: descriptor['isStatic'] as bool? ?? false,
+          isConst: typedDescriptor['isConst'] as bool? ?? false,
+          isFinal: typedDescriptor['isFinal'] as bool? ?? false,
+          isStatic: typedDescriptor['isStatic'] as bool? ?? false,
           id: createId(),
         ),
       );

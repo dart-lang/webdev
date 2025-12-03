@@ -38,7 +38,8 @@ abstract class DebugService<T extends ProxyService> {
     required this.useSse,
   });
 
-  /// The URI pointing to the VM service implementation hosted by the [DebugService].
+  /// The URI pointing to the VM service implementation hosted by the
+  /// [DebugService].
   String get uri => _uri.toString();
 
   Uri get _uri => _cachedUri ??= () {

@@ -181,7 +181,7 @@ Future<void> _handleRuntimeMessages(
     },
   );
 
-  sendResponse(defaultResponse);
+  (sendResponse as void Function(Object?))(defaultResponse);
 }
 
 Future<void> _detectNavigationAwayFromDartApp(

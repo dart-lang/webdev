@@ -43,9 +43,9 @@ Future<void> handleMessagesFromAngularDartDevTools(
     await _respondWithEncodedUri(message.tabId, sendResponse);
   } else if (message.name == 'dwds.startDebugging') {
     await attachDebugger(message.tabId, trigger: Trigger.angularDartDevTools);
-    sendResponse(true);
+    (sendResponse as void Function(Object?))(true);
   } else {
-    sendResponse(
+    (sendResponse as void Function(Object?))(
       ErrorResponse()..error = 'Unknown message name: ${message.name}',
     );
   }
@@ -80,19 +80,19 @@ void _forwardCommandToChromeDebugger(
       ),
     );
   } catch (e) {
-    sendResponse(ErrorResponse()..error = '$e');
+    (sendResponse as void Function(Object?))(ErrorResponse()..error = '$e');
   }
 }
 
 void _respondWithChromeResult(Object? chromeResult, Function sendResponse) {
   // No result indicates that an error occurred.
   if (chromeResult == null) {
-    sendResponse(
+    (sendResponse as void Function(Object?))(
       ErrorResponse()
         ..error = JSON.stringify(chrome.runtime.lastError ?? 'Unknown error.'),
     );
   } else {
-    sendResponse(chromeResult);
+    (sendResponse as void Function(Object?))(chromeResult);
   }
 }
 
@@ -101,7 +101,7 @@ Future<void> _respondWithEncodedUri(int tabId, Function sendResponse) async {
     type: StorageObject.encodedUri,
     tabId: tabId,
   );
-  sendResponse(encodedUri ?? '');
+  (sendResponse as void Function(Object?))(encodedUri ?? '');
 }
 
 void _forwardMessageToAngularDartDevTools(ExternalExtensionMessage message) {

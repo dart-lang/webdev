@@ -122,8 +122,8 @@ class TestContext {
 
   /// Internal VM service.
   ///
-  /// Prefer using [vmService] instead in tests when possible, to include testing
-  /// of the VmServerConnection (bypassed when using [service]).
+  /// Prefer using [vmService] instead in tests when possible, to include
+  /// testing of the VmServerConnection (bypassed when using [service]).
   ChromeProxyService get service => fetchChromeProxyService(debugConnection);
 
   /// External VM service.
@@ -320,7 +320,7 @@ class TestContext {
             final entry = p.toUri(
               p.join(project.webAssetsPath, project.dartEntryFileName),
             );
-            frontendServerFileSystem = LocalFileSystem();
+            frontendServerFileSystem = const LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
               frontendServerFileSystem,
               project.packageConfigFile,
@@ -382,7 +382,8 @@ class TestContext {
                         () async => {},
                         buildSettings,
                         reloadedSourcesUri: Uri.parse(
-                          'http://localhost:$port/${WebDevFS.reloadedSourcesFileName}',
+                          'http://localhost:$port/'
+                          '${WebDevFS.reloadedSourcesFileName}',
                         ),
                       ).strategy
                     : FrontendServerDdcStrategyProvider(

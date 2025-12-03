@@ -3,16 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:collection/collection.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/chrome_inspector.dart';
-import 'package:dwds/src/debugging/inspector.dart';
-import 'package:dwds/src/debugging/metadata/class.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/services/chrome/chrome_debug_exception.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import '../config/tool_configuration.dart';
+import '../services/chrome/chrome_debug_exception.dart';
+import 'chrome_inspector.dart';
+import 'inspector.dart';
+import 'metadata/class.dart';
+import 'metadata/provider.dart';
 
 /// Keeps track of Dart libraries available in the running application.
 class LibraryHelper<T extends AppInspector> {

@@ -38,7 +38,7 @@ void _handleRuntimeMessages(
     messageHandler: _copyAppId,
   );
 
-  sendResponse(defaultResponse);
+  (sendResponse as void Function(Object?))(defaultResponse);
 }
 
 void _copyAppId(String appId) {

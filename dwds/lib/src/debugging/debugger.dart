@@ -425,8 +425,10 @@ class Debugger {
   // Renders the paused at breakpoint overlay over the application.
   // void _showPausedOverlay() async {
   //   if (_pausedOverlayVisible) return;
-  //   handleErrorIfPresent(await _remoteDebugger?.sendCommand('DOM.enable'));
-  //   handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.enable'));
+  //   handleErrorIfPresent(
+  //       await _remoteDebugger?.sendCommand('DOM.enable'));
+  //   handleErrorIfPresent(
+  //       await _remoteDebugger?.sendCommand('Overlay.enable'));
   //   handleErrorIfPresent(await _remoteDebugger
   //       ?.sendCommand('Overlay.setPausedInDebuggerMessage', params: {
   //     'message': 'Paused',
@@ -437,7 +439,8 @@ class Debugger {
   // Removes the paused at breakpoint overlay from the application.
   // void _hidePausedOverlay() async {
   //   if (!_pausedOverlayVisible) return;
-  //   handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.disable'));
+  //   handleErrorIfPresent(
+  //       await _remoteDebugger?.sendCommand('Overlay.disable'));
   //   _pausedOverlayVisible = false;
   // }
 

@@ -165,7 +165,8 @@ class ChromeAppInspector extends AppInspector {
     if (namedArgs.isNotEmpty) {
       throw UnsupportedError('Named arguments are not yet supported');
     }
-    // We use the JS pseudo-variable 'arguments' to get the list of all arguments.
+    // We use the JS pseudo-variable 'arguments' to get the list of all
+    // arguments.
     final send = globalToolConfiguration.loadStrategy.dartRuntimeDebugger
         .callInstanceMethodJsExpression(methodName);
     final remote = await jsCallFunctionOn(receiver, send, positionalArgs);
