@@ -54,19 +54,5 @@ dev_dependencies:
   test_process: ^2.0.2
   webdriver: ^3.0.0
 
-dependency_overrides:
-  build_web_compilers:
-    path: /Users/markzipan/Projects/build/build_web_compilers
-  build_runner:
-    path: /Users/markzipan/Projects/build/build_runner
-  build_modules:
-    path: /Users/markzipan/Projects/build/build_modules
-  build:
-    path: /Users/markzipan/Projects/build/build
-  scratch_space:
-    path: /Users/markzipan/Projects/build/scratch_space
-  dwds:
-    path: /Users/markzipan/Projects/webdev/dwds
-
 executables:
   webdev:
