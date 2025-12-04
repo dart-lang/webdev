@@ -1,3 +1,7 @@
+## 3.8.1-wip
+
+- Adding initial DDC library bundler support behind the `canary` flag.
+
 ## 3.8.0-wip
 
 - Bump minimum SDK constraint to 3.10.0

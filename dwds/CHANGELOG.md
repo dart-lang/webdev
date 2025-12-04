@@ -1,3 +1,7 @@
+## 26.2.4-wip
+
+- Updating bootstrapper for DDC library bundler module format.
+
 ## 26.2.3-wip
 
 - Bump `build_web_compilers` to ^4.4.1.
