@@ -333,14 +333,15 @@ String ddcUriToSourceUrl(String basePath, String target, Uri uri) {
   if (uri.isScheme('asset')) {
     // This indicates that this asset is the 'main' web asset. We directly
     // serve all files under the package's [target] directory.
-    jsPath = uri.pathSegments.skip(1).join('/');
+    var pathParts = uri.pathSegments.skip(1);
+    if (pathParts.first == target) {
+      pathParts = pathParts.skip(1);
+    }
+    jsPath = pathParts.join('/');
   } else if (uri.isScheme('package')) {
     jsPath = 'packages/${uri.path}';
   } else {
     jsPath = uri.path;
-  }
-  if (jsPath.startsWith(target)) {
-    jsPath = jsPath.substring(target.length);
   }
   return '$basePath/$jsPath';
 }
