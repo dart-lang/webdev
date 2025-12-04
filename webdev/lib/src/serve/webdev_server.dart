@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart' as daemon;
@@ -10,6 +11,7 @@ import 'package:dds/devtools_server.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/sdk_configuration.dart';
+import 'package:file/local.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:http_multi_server/http_multi_server.dart';
@@ -21,9 +23,13 @@ import '../command/configuration.dart';
 import '../util.dart';
 import 'chrome.dart';
 import 'handlers/favicon_handler.dart';
-import 'utils.dart' show findPackageConfigFilePath;
+import 'utils.dart' show findPackageConfigFilePath, findPackageConfigUri;
 
 Logger _logger = Logger('WebDevServer');
+
+const reloadedSourcesFileName = 'reloaded_sources.json';
+const jsLibraryBundleExtension = '.ddc.js';
+const multiRootScheme = 'org-dartlang-app';
 
 class ServerOptions {
   final Configuration configuration;
@@ -80,6 +86,7 @@ class WebDevServer {
     ServerOptions options,
     Stream<daemon.BuildResults> buildResults,
   ) async {
+    final basePath = 'http://localhost:${options.port}';
     var pipeline = const Pipeline();
 
     if (options.configuration.logRequests) {
@@ -88,8 +95,47 @@ class WebDevServer {
 
     pipeline = pipeline.addMiddleware(interceptFavicon);
 
+    /// JSON-ifiable list of sources that were reloaded in this restart and
+    /// follows the following format:
+    ///
+    /// `src`: A string that corresponds to the file path containing a DDC library
+    /// bundle. To support embedded libraries, the path should include the
+    /// `baseUri` of the web server.
+    /// `module`: The name of the library bundle in `src`.
+    /// `libraries`: An array of strings containing the libraries that were
+    /// compiled in `src`.
+    ///
+    /// For example:
+    /// ```json
+    /// [
+    ///   {
+    ///     "src": "<baseUri>/<file_name>",
+    ///     "module": "<module_name>",
+    ///     "libraries": ["<lib1>", "<lib2>"],
+    ///   },
+    /// ]
+    /// ```
+    ///
+    /// The path of the output file should stay consistent across the lifetime of
+    /// the app.
+    final reloadedSources = <Map<String, dynamic>>[];
+
     // Only provide relevant build results
     final filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
+      if (options.configuration.canaryFeatures) {
+        // Clear reloaded sources for the new build results.
+        reloadedSources.clear();
+        results.changedAssets?.forEach((uri) {
+          if (uri.path.endsWith(jsLibraryBundleExtension)) {
+            final reloadedSource = {
+              'src': ddcUriToSourceUrl(basePath, options.target, uri),
+              'module': ddcUriToLibraryId(uri),
+              'libraries': [ddcUriToLibraryId(uri)],
+            };
+            reloadedSources.add(reloadedSource);
+          }
+        });
+      }
       final result = results.results.firstWhere(
         (result) => result.target == options.target,
       );
@@ -132,20 +178,39 @@ class WebDevServer {
       // the load strategy?
       final buildSettings = BuildSettings(
         appEntrypoint: Uri.parse(
-          'org-dartlang-app:///${options.target}/main.dart',
+          '$multiRootScheme:///${options.target}/main.dart',
         ),
         canaryFeatures: options.configuration.canaryFeatures,
         isFlutterApp: false,
         experiments: options.configuration.experiments,
       );
 
-      final loadStrategy = BuildRunnerRequireStrategyProvider(
-        assetHandler,
-        options.configuration.reload,
-        assetReader,
-        buildSettings,
-        packageConfigPath: findPackageConfigFilePath(),
-      ).strategy;
+      final LoadStrategy loadStrategy;
+      if (options.configuration.canaryFeatures) {
+        final frontendServerFileSystem = LocalFileSystem();
+        final packageUriMapper = await PackageUriMapper.create(
+          frontendServerFileSystem,
+          findPackageConfigUri()!,
+          useDebuggerModuleNames: false,
+        );
+        loadStrategy = FrontendServerDdcLibraryBundleStrategyProvider(
+          options.configuration.reload,
+          assetReader,
+          packageUriMapper,
+          () async => {},
+          buildSettings,
+          packageConfigPath: findPackageConfigFilePath(),
+          reloadedSourcesUri: Uri.parse('$basePath/$reloadedSourcesFileName'),
+        ).strategy;
+      } else {
+        loadStrategy = BuildRunnerRequireStrategyProvider(
+          assetHandler,
+          options.configuration.reload,
+          assetReader,
+          buildSettings,
+          packageConfigPath: findPackageConfigFilePath(),
+        ).strategy;
+      }
 
       if (options.configuration.enableExpressionEvaluation) {
         ddcService = ExpressionCompilerService(
@@ -191,6 +256,18 @@ class WebDevServer {
       );
       pipeline = pipeline.addMiddleware(dwds.middleware);
       cascade = cascade.add(dwds.handler);
+      if (options.configuration.canaryFeatures) {
+        // Add a handler to serve reloaded sources.
+        cascade = cascade.add((Request request) {
+          if (request.url.path == reloadedSourcesFileName) {
+            return Response.ok(
+              jsonEncode(reloadedSources),
+              headers: {'Content-Type': 'application/json'},
+            );
+          }
+          return Response.notFound('');
+        });
+      }
       cascade = cascade.add(assetHandler);
     } else {
       cascade = cascade.add(assetHandler);
@@ -232,4 +309,58 @@ class WebDevServer {
       ddcService: ddcService,
     );
   }
+}
+
+/// Transforms a package:build JS asset id [uri] into a source url compatible
+/// with DDC's bootstrapper.
+///
+/// [basePath] is the path from which JS files as served up to but not
+/// including the path.
+/// [target] is the path whose files will be served from [basePath].
+/// [uri] is the asset id's uri being transformed.
+///
+/// Example:
+/// basePath: http://localhost:8080
+/// target: web
+///
+/// uri: asset:some_package/web/main.ddc.js
+/// returns http://localhost:8080/main.ddc.js
+///
+/// uri: package:some_package/src/sub_dir/file.ddc.js
+/// returns http://localhost:8080/some_package/src/sub_dir/file.ddc.js
+String ddcUriToSourceUrl(String basePath, String target, Uri uri) {
+  String jsPath;
+  if (uri.isScheme('asset')) {
+    // This indicates that this asset is the 'main' web asset. We directly
+    // serve all files under the package's [target] directory.
+    jsPath = uri.pathSegments.skip(1).join('/');
+  } else if (uri.isScheme('package')) {
+    jsPath = 'packages/${uri.path}';
+  } else {
+    jsPath = uri.path;
+  }
+  if (jsPath.startsWith(target)) {
+    jsPath = jsPath.substring(target.length);
+  }
+  return '$basePath/$jsPath';
+}
+
+/// Transforms a package:build JS asset id [uri] into a library id compatible
+/// with DDC's bootstrapper.
+///
+/// Example:
+/// uri: asset:some_package/web/main.ddc.js
+/// returns org-dartlang-app:///web/main.dart
+///
+/// uri: package:some_package/src/sub_dir/file.ddc.js
+/// returns package:some_package/src/sub_dir/file.dart
+String ddcUriToLibraryId(Uri uri) {
+  final jsPath = uri.isScheme('package')
+      ? 'package:${uri.path}'
+      : '$multiRootScheme:///${uri.path}';
+  final prefix = jsPath.substring(
+    0,
+    jsPath.length - jsLibraryBundleExtension.length,
+  );
+  return '$prefix.dart';
 }
