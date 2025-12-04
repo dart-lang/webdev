@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/loaders/ddc.dart';
@@ -193,9 +195,19 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
     modulePaths.forEach((name, path) {
       scripts.add(<String, String>{'src': '$path.js', 'id': name});
     });
-    return '''
-$baseUrlScript
-''';
+    // canary-mode uses the Frontend Server, which begins script loads via a
+    // separate pathway.
+    final scriptLoader = buildSettings.canaryFeatures
+        ? '''
+var scripts = ${const JsonEncoder.withIndent(" ").convert(scripts)};
+window.\$dartLoader.loadConfig.loadScriptFn = function(loader) {
+  loader.addScriptsToQueue(scripts, null);
+  loader.loadEnqueuedModules();
+};
+window.\$dartLoader.loader.nextAttempt();
+'''
+        : '';
+    return '$baseUrlScript\n$scriptLoader';
   }
 
   @override
