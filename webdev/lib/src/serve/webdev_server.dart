@@ -226,8 +226,10 @@ class WebDevServer {
       final debugSettings = DebugSettings(
         enableDebugExtension: options.configuration.debugExtension,
         enableDebugging: options.configuration.debug,
+        // ignore: deprecated_member_use
         spawnDds: !options.configuration.disableDds,
         expressionCompiler: ddcService,
+        // ignore: deprecated_member_use
         devToolsLauncher: shouldServeDevTools
             ? (String hostname) async {
                 final server = await DevToolsServer().serveDevTools(
