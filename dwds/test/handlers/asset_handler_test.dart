@@ -22,7 +22,7 @@ void main() {
     setUpAll(() async {
       setCurrentLogWriter();
       await context.setUp(
-        testSettings: TestSettings(
+        testSettings: const TestSettings(
           enableExpressionEvaluation: true,
           verboseCompiler: false,
         ),
