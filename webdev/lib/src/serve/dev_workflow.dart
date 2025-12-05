@@ -144,7 +144,8 @@ void _registerBuildTargets(
       DefaultBuildTarget(
         (b) => b
           ..target = target
-          ..outputLocation = outputLocation?.toBuilder(),
+          ..outputLocation = outputLocation?.toBuilder()
+          ..reportChangedAssets = true,
       ),
     );
   }
@@ -161,7 +162,8 @@ void _registerBuildTargets(
       DefaultBuildTarget(
         (b) => b
           ..target = ''
-          ..outputLocation = outputLocation.toBuilder(),
+          ..outputLocation = outputLocation.toBuilder()
+          ..reportChangedAssets = true,
       ),
     );
   }

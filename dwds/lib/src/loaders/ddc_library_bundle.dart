@@ -195,15 +195,19 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
     modulePaths.forEach((name, path) {
       scripts.add(<String, String>{'src': '$path.js', 'id': name});
     });
-    return '''
-$baseUrlScript
+    // canary-mode uses the Frontend Server, which begins script loads via a
+    // separate pathway.
+    final scriptLoader = buildSettings.canaryFeatures
+        ? '''
 var scripts = ${const JsonEncoder.withIndent(" ").convert(scripts)};
 window.\$dartLoader.loadConfig.loadScriptFn = function(loader) {
   loader.addScriptsToQueue(scripts, null);
   loader.loadEnqueuedModules();
 };
 window.\$dartLoader.loader.nextAttempt();
-''';
+'''
+        : '';
+    return '$baseUrlScript\n$scriptLoader';
   }
 
   @override

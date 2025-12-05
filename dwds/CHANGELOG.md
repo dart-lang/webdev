@@ -3,6 +3,7 @@
 - Bump `build_web_compilers` to ^4.4.1.
 - Remove unused `clientFuture` arg from `DwdsVmClient` methods.
 - Fix pausing starting of `main` after the hot restart.
+- Updating bootstrapper for DDC library bundler module format + Frontend Server.
 
 ## 26.2.2
 

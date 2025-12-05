@@ -93,7 +93,8 @@ class BuildCommand extends Command<int> {
         DefaultBuildTarget(
           (b) => b
             ..target = configuration.outputInput
-            ..outputLocation = outputLocation?.toBuilder(),
+            ..outputLocation = outputLocation?.toBuilder()
+            ..reportChangedAssets = true,
         ),
       );
       client.startBuild();

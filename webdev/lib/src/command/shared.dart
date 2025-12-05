@@ -126,6 +126,24 @@ List<String> buildRunnerArgs(Configuration configuration) {
     arguments.add('--enable-experiment=$experiment');
   }
 
+  if (configuration.canaryFeatures) {
+    arguments
+      ..add('--define')
+      ..add('build_web_compilers|sdk_js=web-hot-reload=true');
+    arguments
+      ..add('--define')
+      ..add('build_web_compilers|entrypoint=web-hot-reload=true');
+    arguments
+      ..add('--define')
+      ..add('build_web_compilers|entrypoint_marker=web-hot-reload=true');
+    arguments
+      ..add('--define')
+      ..add('build_web_compilers|ddc=web-hot-reload=true');
+    arguments
+      ..add('--define')
+      ..add('build_web_compilers|ddc_modules=web-hot-reload=true');
+  }
+
   return arguments;
 }
 
