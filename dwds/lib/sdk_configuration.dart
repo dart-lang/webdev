@@ -4,7 +4,7 @@
 
 export 'src/utilities/sdk_configuration.dart'
     show
-        SdkLayout,
+        DefaultSdkConfigurationProvider,
         SdkConfiguration,
         SdkConfigurationProvider,
-        DefaultSdkConfigurationProvider;
+        SdkLayout;

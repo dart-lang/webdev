@@ -26,7 +26,10 @@ void runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(
+    String breakPointId,
+    Future<void> Function(Event) body,
+  ) => testInspector.onBreakPoint(
     stream,
     isolateId,
     mainScript,
@@ -34,16 +37,19 @@ void runTests({
     body,
   );
 
-  Future<InstanceRef> getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(int frame, String expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  Future<Map<Object?, Object?>> getFields(instanceRef, {offset, count}) =>
-      testInspector.getFields(
-        isolateId,
-        instanceRef,
-        offset: offset,
-        count: count,
-      );
+  Future<Map<Object?, Object?>> getFields(
+    InstanceRef instanceRef, {
+    int? offset,
+    int? count,
+  }) => testInspector.getFields(
+    isolateId,
+    instanceRef,
+    offset: offset,
+    count: count,
+  );
 
   Future<Map<String?, Instance?>> getFrameVariables(Frame frame) =>
       testInspector.getFrameVariables(isolateId, frame);

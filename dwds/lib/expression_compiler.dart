@@ -4,8 +4,8 @@
 
 export 'src/services/expression_compiler.dart'
     show
+        CompilerOptions,
         ExpressionCompilationResult,
         ExpressionCompiler,
-        CompilerOptions,
         ModuleFormat,
         ModuleInfo;

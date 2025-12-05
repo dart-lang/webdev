@@ -37,7 +37,7 @@ void main() {
     await server.close();
 
     await context.setUp(
-      debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+      debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
         ddsPort: expectedPort,
       ),
     );
@@ -52,7 +52,7 @@ void main() {
     await server.close();
 
     await context.setUp(
-      debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+      debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
         ddsConfiguration: DartDevelopmentServiceConfiguration(
           port: expectedPort,
         ),

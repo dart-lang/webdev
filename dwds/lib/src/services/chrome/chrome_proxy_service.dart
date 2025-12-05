@@ -6,32 +6,34 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/data/debug_event.dart';
-import 'package:dwds/data/register_event.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/connections/app_connection.dart';
-import 'package:dwds/src/debugging/chrome_inspector.dart';
-import 'package:dwds/src/debugging/debugger.dart';
-import 'package:dwds/src/debugging/execution_context.dart';
-import 'package:dwds/src/debugging/instance.dart';
-import 'package:dwds/src/debugging/location.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/debugging/modules.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/debugging/skip_list.dart';
-import 'package:dwds/src/events.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:dwds/src/services/batched_expression_evaluator.dart';
-import 'package:dwds/src/services/chrome/chrome_debug_service.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/services/expression_evaluator.dart';
-import 'package:dwds/src/services/proxy_service.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:vm_service/vm_service.dart' hide vmServiceVersion;
 import 'package:vm_service_interface/vm_service_interface.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
+    hide StackTrace;
+
+import '../../../data/debug_event.dart';
+import '../../../data/register_event.dart';
+import '../../config/tool_configuration.dart';
+import '../../connections/app_connection.dart';
+import '../../debugging/chrome_inspector.dart';
+import '../../debugging/debugger.dart';
+import '../../debugging/execution_context.dart';
+import '../../debugging/instance.dart';
+import '../../debugging/location.dart';
+import '../../debugging/metadata/provider.dart';
+import '../../debugging/modules.dart';
+import '../../debugging/remote_debugger.dart';
+import '../../debugging/skip_list.dart';
+import '../../events.dart';
+import '../../readers/asset_reader.dart';
+import '../../utilities/dart_uri.dart';
+import '../../utilities/shared.dart';
+import '../batched_expression_evaluator.dart';
+import '../expression_compiler.dart';
+import '../expression_evaluator.dart';
+import '../proxy_service.dart';
+import 'chrome_debug_service.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
@@ -1254,7 +1256,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
           break;
         case 'dart.developer.log':
           await _handleDeveloperLog(isolateRef, event).catchError(
-            (error, stackTrace) => _logger.warning(
+            (Object error, StackTrace stackTrace) => _logger.warning(
               'Error handling developer log:',
               error,
               stackTrace,
@@ -1271,13 +1273,16 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     IsolateRef isolateRef,
     ConsoleAPIEvent event,
   ) async {
-    final logObject = event.params?['args'][1] as Map?;
+    final params = event.params;
+    final args = params?['args'] as List?;
+    final logObject =
+        (args != null && args.length > 1 ? args[1] : null) as Map?;
     final objectId = logObject?['objectId'];
     // Always attempt to fetch the full properties instead of relying on
     // `RemoteObject.preview` which only has truncated log messages:
     // https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-RemoteObject
     final logParams = objectId != null
-        ? await _fetchFullLogParams(objectId, logObject: logObject)
+        ? await _fetchFullLogParams(objectId as String, logObject: logObject)
         : _fetchAbbreviatedLogParams(logObject);
 
     final logRecord = LogRecord(
@@ -1330,7 +1335,9 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
 
   Map<String, RemoteObject> _fetchAbbreviatedLogParams(Map? logObject) {
     final logParams = <String, RemoteObject>{};
-    for (final dynamic property in logObject?['preview']?['properties'] ?? []) {
+    final preview = logObject?['preview'] as Map<String, dynamic>?;
+    final properties = preview?['properties'] as List? ?? [];
+    for (final dynamic property in properties) {
       if (property is Map<String, dynamic> && property['name'] != null) {
         logParams[property['name'] as String] = RemoteObject(property);
       }

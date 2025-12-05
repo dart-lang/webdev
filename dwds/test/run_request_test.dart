@@ -45,7 +45,7 @@ void main() {
       final isolate = await service.getIsolate(vm.isolates!.first.id!);
       expect(isolate.pauseEvent!.kind, EventKind.kPauseStart);
       final stream = service.onEvent('Debug');
-      final resumeCompleter = Completer();
+      final resumeCompleter = Completer<void>();
       // The underlying stream is a broadcast stream so we need to add a
       // listener before calling resume so that we don't miss events.
       unawaited(

@@ -30,7 +30,7 @@ void main() {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        testSettings: TestSettings(
+        testSettings: const TestSettings(
           compilationMode: CompilationMode.buildDaemon,
           enableExpressionEvaluation: true,
           verboseCompiler: debug,

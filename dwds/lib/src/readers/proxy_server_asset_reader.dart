@@ -5,12 +5,13 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
+
+import 'asset_reader.dart';
 
 /// A reader for resources provided by a proxy server.
 class ProxyServerAssetReader implements AssetReader {

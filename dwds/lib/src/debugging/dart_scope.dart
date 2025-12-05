@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/debugging/chrome_inspector.dart';
-import 'package:dwds/src/utilities/objects.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import '../utilities/objects.dart';
+import 'chrome_inspector.dart';
 
 /// The regular expressions used to filter out temp variables.
 /// Needs to be kept in sync with SDK repo.

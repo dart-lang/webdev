@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/location.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
+import '../config/tool_configuration.dart';
+import '../utilities/dart_uri.dart';
+import 'location.dart';
+import 'metadata/provider.dart';
 
 const maxValue = 2147483647;
 

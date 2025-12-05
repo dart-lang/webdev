@@ -38,7 +38,7 @@ void runTests({
     body,
   );
 
-  Future<InstanceRef> getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(int frame, String expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
   group('$compilationMode | dot shorthands:', () {

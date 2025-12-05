@@ -40,7 +40,7 @@ void main() {
     test('can add and remove after a refresh', () async {
       final stream = service.onEvent('Isolate');
       // Wait for the page to be fully loaded before refreshing.
-      await Future.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
       // Now wait for the shutdown event.
       final exitEvent = stream.firstWhere(
         (e) => e.kind != EventKind.kIsolateExit,

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dds/dds_launcher.dart';
-import 'package:dwds/src/dwds_vm_client.dart';
-import 'package:dwds/src/events.dart';
-import 'package:dwds/src/services/debug_service.dart';
-import 'package:dwds/src/services/proxy_service.dart';
+import '../dwds_vm_client.dart';
+import '../events.dart';
+import 'debug_service.dart';
+import 'proxy_service.dart';
 
 /// Common interface for debug service containers.
 class AppDebugServices<

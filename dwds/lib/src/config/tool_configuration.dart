@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/loaders/strategy.dart';
-import 'package:dwds/src/servers/devtools.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
+import '../loaders/strategy.dart';
+import '../servers/devtools.dart';
+import '../services/expression_compiler.dart';
 
 /// Configuration about the app, debug settings, and file system.
 ///

@@ -278,7 +278,8 @@ Future<void> _onDebuggerEvent(
 }
 
 Future<void> _maybeConnectToDwds(int tabId, Object? params) async {
-  final context = json.decode(JSON.stringify(params))['context'];
+  final decoded = json.decode(JSON.stringify(params)) as Map<String, dynamic>;
+  final context = decoded['context'] as Map<String, dynamic>;
   final contextOrigin = context['origin'] as String?;
   if (contextOrigin == null) return;
   if (contextOrigin.contains('chrome-extension:')) return;
@@ -449,7 +450,7 @@ void _forwardDwdsEventToChromeDebugger(
       Debuggee(tabId: tabId),
       message.command,
       js_util.jsify(params),
-      allowInterop(([e]) {
+      allowInterop(([Object? e]) {
         // No arguments indicate that an error occurred.
         if (e == null) {
           client.sink.add(

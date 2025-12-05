@@ -6,16 +6,17 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:dwds/data/devtools_request.dart';
-import 'package:dwds/data/extension_request.dart';
-import 'package:dwds/data/serializers.dart';
-import 'package:dwds/src/debugging/execution_context.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/handlers/socket_connections.dart';
-import 'package:dwds/src/services/chrome/chrome_debug_exception.dart';
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
+
+import '../../data/devtools_request.dart';
+import '../../data/extension_request.dart';
+import '../../data/serializers.dart';
+import '../debugging/execution_context.dart';
+import '../debugging/remote_debugger.dart';
+import '../handlers/socket_connections.dart';
+import '../services/chrome/chrome_debug_exception.dart';
 
 final _logger = Logger('ExtensionDebugger');
 
@@ -90,10 +91,10 @@ class ExtensionDebugger implements RemoteDebugger {
             'method': json.decode(message.method),
             'params': json.decode(message.params),
           };
-          // Note: package:sse will try to keep the connection alive, even after
-          // the client has been closed. Therefore the extension sends an event to
-          // notify DWDS that we should close the connection, instead of relying
-          // on the done event sent when the client is closed. See details:
+          // Note: package:sse tries to keep the connection alive even after the
+          // client has been closed. The extension sends an event to notify DWDS
+          // to close the connection, instead of relying on the done event sent
+          // when the client is closed. Details:
           // https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
           if (map['method'] == 'DebugExtension.detached') {
             close();
@@ -174,8 +175,9 @@ class ExtensionDebugger implements RemoteDebugger {
           ),
         ),
       );
-    } on StateError catch (error, stackTrace) {
-      if (error.message.contains('Cannot add event after closing')) {
+    } on Exception catch (error, stackTrace) {
+      final message = '$error';
+      if (message.contains('Cannot add event after closing')) {
         _logger.severe('Socket connection closed. Shutting down debugger.');
         closeWithError(error);
       } else {
@@ -206,7 +208,8 @@ class ExtensionDebugger implements RemoteDebugger {
 
   void closeWithError(Object? error) {
     _logger.shout(
-      'Closing extension debugger due to error. Restart app for debugging functionality',
+      'Closing extension debugger due to error. '
+      'Restart app for debugging functionality',
       error,
     );
     close();

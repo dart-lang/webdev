@@ -31,7 +31,10 @@ void runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(
+    String breakPointId,
+    Future<void> Function(Event) body,
+  ) => testInspector.onBreakPoint(
     stream,
     isolateId,
     mainScript,
@@ -39,7 +42,8 @@ void runTests({
     body,
   );
 
-  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(String instanceId) =>
+      service.getObject(isolateId, instanceId);
 
   group('$compilationMode |', () {
     setUpAll(() async {

@@ -75,7 +75,7 @@ void testAll({required CompilerOptions compilerOptions}) {
         'localhost',
         port,
         verbose: false,
-        sdkConfigurationProvider: DefaultSdkConfigurationProvider(),
+        sdkConfigurationProvider: const DefaultSdkConfigurationProvider(),
       );
 
       await service.initialize(compilerOptions);

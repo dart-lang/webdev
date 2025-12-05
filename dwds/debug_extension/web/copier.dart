@@ -30,7 +30,7 @@ void _handleRuntimeMessages(
   Function sendResponse,
 ) {
   interceptMessage<String>(
-    message: jsRequest,
+    message: jsRequest is String ? jsRequest : null,
     expectedType: MessageType.appId,
     expectedSender: Script.background,
     expectedRecipient: Script.copier,
@@ -38,7 +38,7 @@ void _handleRuntimeMessages(
     messageHandler: _copyAppId,
   );
 
-  sendResponse(defaultResponse);
+  (sendResponse as void Function(Object?))(defaultResponse);
 }
 
 void _copyAppId(String appId) {

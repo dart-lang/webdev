@@ -47,7 +47,7 @@ void main() {
     setUp(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        testSettings: TestSettings(
+        testSettings: const TestSettings(
           enableExpressionEvaluation: true,
           compilationMode: CompilationMode.frontendServer,
           moduleFormat: ModuleFormat.ddc,
@@ -523,7 +523,7 @@ void main() {
       // the old string still as the closure has not been reevaluated.
       await callEvaluateAndWaitForLog(oldCapturedString);
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: const Timeout.factor(2));
 
   group('when pause_isolates_on_start is false', () {
     late VmService client;
@@ -531,7 +531,7 @@ void main() {
     setUp(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
-        testSettings: TestSettings(
+        testSettings: const TestSettings(
           enableExpressionEvaluation: true,
           compilationMode: CompilationMode.frontendServer,
           moduleFormat: ModuleFormat.ddc,
@@ -590,7 +590,7 @@ void main() {
       // Program should not be paused, so this should execute.
       await callEvaluateAndWaitForLog(newString);
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: const Timeout.factor(2));
 }
 
 TypeMatcher<Event> _hasKind(String kind) =>

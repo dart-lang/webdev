@@ -41,7 +41,7 @@ void main() {
 
     test('emits HTTP_REQUEST_EXCEPTION event', () async {
       Future<void> throwAsyncException() async {
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
         throw Exception('async error');
       }
 
@@ -77,7 +77,7 @@ void main() {
 
       // Ignore the response.
       final response = await request.close();
-      await response.drain();
+      await response.drain<void>();
 
       // Wait for expected events.
       await events;
@@ -140,7 +140,7 @@ void main() {
           ),
         );
         await context.setUp(
-          testSettings: TestSettings(enableExpressionEvaluation: true),
+          testSettings: const TestSettings(enableExpressionEvaluation: true),
           debugSettings: TestDebugSettings.withDevToolsLaunch(context),
         );
         keyboard = context.webDriver.driver.keyboard;
@@ -302,8 +302,8 @@ void main() {
             (event) => event.kind == EventKind.kPauseBreakpoint,
           );
 
-          // Evaluation succeeds and return ErrorRef containing compilation error,
-          // so event is marked as success.
+          // Evaluation succeeds and return ErrorRef containing compilation
+          // error, so event is marked as success.
           final expression = 'some-bad-expression';
           await expectEventDuring(
             matchesEvent(DwdsEventKind.evaluateInFrame, {
@@ -530,7 +530,7 @@ void main() {
     },
     // TODO(elliette): Re-enable (https://github.com/dart-lang/webdev/issues/1852).
     skip: Platform.isWindows,
-    timeout: Timeout.factor(2),
+    timeout: const Timeout.factor(2),
   );
 }
 

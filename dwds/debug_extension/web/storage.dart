@@ -54,7 +54,7 @@ Future<bool> setStorageObject<T>({
   final completer = Completer<bool>();
   final storageArea = _getStorageArea(type.persistence);
   storageArea.set(
-    jsify(storageObj),
+    jsify(storageObj) as Object,
     allowInterop(() {
       if (callback != null) {
         callback();
@@ -151,8 +151,8 @@ void interceptStorageChange<T>({
     final isExpected = hasProperty(storageObj, expectedStorageKey);
     if (!isExpected) return;
 
-    final objProp = getProperty(storageObj, expectedStorageKey);
-    final json = getProperty(objProp, 'newValue') as String?;
+    final objProp = getProperty<Object?>(storageObj, expectedStorageKey);
+    final json = getProperty(objProp as Object, 'newValue') as String?;
     T? decodedObj;
     if (json == null || T == String) {
       decodedObj = json as T?;

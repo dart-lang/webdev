@@ -3,15 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async/async.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/debugging/modules.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/parser.dart';
 import 'package:source_maps/source_maps.dart';
+
+import '../config/tool_configuration.dart';
+import '../readers/asset_reader.dart';
+import '../utilities/dart_uri.dart';
+import 'metadata/provider.dart';
+import 'modules.dart';
 
 var _startTokenId = 1337;
 
@@ -395,10 +396,10 @@ class Locations {
   }) {
     final index = entry.sourceUrlId;
     if (index == null) return null;
-    // Source map URLS are relative to the script. They may have platform separators
-    // or they may use URL semantics. To be sure, we split and re-join them.
-    // This works on Windows because path treats both / and \ as separators.
-    // It will fail if the path has both separators in it.
+    // Source map URLS are relative to the script. They may have platform
+    // separators or they may use URL semantics. To be sure, we split and
+    // re-join them. This works on Windows because path treats both / and \
+    // as separators. It will fail if the path has both separators in it.
     final relativeSegments = p.split(sourceUrls[index]);
     final path = p.url.normalize(
       p.url.joinAll([scriptLocation, ...relativeSegments]),

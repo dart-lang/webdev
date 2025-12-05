@@ -4,16 +4,17 @@
 
 import 'dart:math';
 
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/chrome_inspector.dart';
-import 'package:dwds/src/debugging/metadata/class.dart';
-import 'package:dwds/src/debugging/metadata/function.dart';
-import 'package:dwds/src/utilities/conversions.dart';
-import 'package:dwds/src/utilities/objects.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import '../config/tool_configuration.dart';
+import '../utilities/conversions.dart';
+import '../utilities/objects.dart';
+import '../utilities/shared.dart';
+import 'chrome_inspector.dart';
+import 'metadata/class.dart';
+import 'metadata/function.dart';
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class ChromeAppInstanceHelper {
@@ -519,7 +520,8 @@ class ChromeAppInstanceHelper {
       count: namedRangeCount,
     );
     final namedElements =
-        namedInstance?.elements?.map((e) => e.valueAsString) ?? [];
+        namedInstance?.elements?.map((e) => (e as InstanceRef).valueAsString) ??
+        [];
 
     return [...positionalElements, ...namedElements];
   }

@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async/async.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
-import 'package:dwds/src/debugging/debugger.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:logging/logging.dart';
+
+import '../config/tool_configuration.dart';
+import '../utilities/dart_uri.dart';
+import 'debugger.dart';
+import 'metadata/provider.dart';
 
 /// Tracks modules for the compiled application.
 class Modules {
@@ -96,7 +97,8 @@ class Modules {
     return _moduleToSources[module];
   }
 
-  /// Returns the containing library importUri for the provided Dart server path.
+  /// Returns the containing library importUri for the provided Dart server
+  /// path.
   Future<Uri?> libraryForSource(String serverPath) async {
     await _moduleMemoizer.runOnce(_initializeMapping);
     return _sourceToLibrary[serverPath];

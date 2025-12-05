@@ -270,7 +270,7 @@ class TestProject {
           _fixturesCopy.deleteSync(recursive: true);
           break;
         } on FileSystemException catch (_) {
-          await Future.delayed(Duration(seconds: seconds));
+          await Future<void>.delayed(Duration(seconds: seconds));
           seconds *= 2;
         }
       }
