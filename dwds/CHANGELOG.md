@@ -4,6 +4,7 @@
 - Remove unused `clientFuture` arg from `DwdsVmClient` methods.
 - Fix pausing starting of `main` after the hot restart.
 - Updating bootstrapper for DDC library bundler module format + Frontend Server.
+- Fix setting up breakpoints when handling in-app restarts with attached debugger.
 
 ## 26.2.2
 
