@@ -14,6 +14,7 @@ import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/hot_reload_response.dart';
+import 'package:dwds/data/hot_restart_request.dart';
 import 'package:dwds/data/hot_restart_response.dart';
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/register_event.dart';
@@ -413,6 +414,11 @@ class DevHandler {
     final proxyService = _servicesByAppId[appId]?.proxyService;
 
     if (proxyService == null) {
+      if (message is HotRestartRequest) {
+        _logger.finest('No debugger, let the app handle the restart itself.');
+        connection.hotRestart(message);
+        return;
+      }
       _logger.warning(
         'No proxy service found for appId: $appId to process $message',
       );
@@ -436,6 +442,20 @@ class DevHandler {
       proxyService.parseDebugEvent(message);
     } else if (message is RegisterEvent) {
       proxyService.parseRegisterEvent(message);
+    } else if (message is HotRestartRequest) {
+      final services = _servicesByAppId[appId]!;
+      if (services.dwdsVmClient is! ChromeDwdsVmClient ||
+          services.proxyService is! ChromeProxyService) {
+        throw UnsupportedError(
+          'In-app restart requests are only supported by '
+          'ChromeDwdsVmClient and ChromeProxyService',
+        );
+      }
+      final chromeClient = services.dwdsVmClient as ChromeDwdsVmClient;
+      final chromeProxyService = services.proxyService as ChromeProxyService;
+      unawaited(
+        chromeClient.hotRestart(chromeProxyService, chromeClient.client),
+      );
     } else {
       final serviceType = proxyService is WebSocketProxyService
           ? 'WebSocket'

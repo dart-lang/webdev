@@ -94,6 +94,15 @@ Future<void>? main() {
         }
       }.toJS;
 
+      requestHotRestartJs = (String runId) {
+        _trySendEvent(
+          client.sink,
+          jsonEncode(
+            serializers.serialize(HotRestartRequest((b) => b..id = runId)),
+          ),
+        );
+      }.toJS;
+
       readyToRunMainJs = () {
         if (readyToRunMainCompleter == null) return;
         if (readyToRunMainCompleter!.isCompleted) return;
@@ -568,8 +577,15 @@ String get hotReloadReloadedSourcesPath {
   return path!;
 }
 
+/// Debugger-initiated hot restart.
 @JS(r'$dartHotRestartDwds')
 external set hotRestartJs(JSFunction cb);
+
+/// App-initiated hot restart.
+///
+/// When there's no debugger attached, the DWDS dev handler sends the request back, and it will be handled by the client stream listener.
+@JS(r'$dartRequestHotRestartDwds')
+external set requestHotRestartJs(JSFunction cb);
 
 @JS(r'$dartReadyToRunMain')
 external set readyToRunMainJs(JSFunction cb);
