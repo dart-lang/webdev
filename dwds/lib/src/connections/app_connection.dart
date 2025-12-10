@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dwds/data/connect_request.dart';
-import 'package:dwds/data/hot_restart_request.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
@@ -47,11 +46,4 @@ class AppConnection {
     _connection.sink.add(jsonEncode(serializers.serialize(RunRequest())));
     _startedCompleter.complete();
   }
-
-  /// The request to restart when no debugger attached.
-  ///
-  /// In this case, there's no need to block main execution until the debugger
-  /// resends breakpoints.
-  void hotRestart(HotRestartRequest request) =>
-      _connection.sink.add(jsonEncode(serializers.serialize(request)));
 }
