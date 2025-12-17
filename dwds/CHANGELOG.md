@@ -5,6 +5,8 @@
 - Fix pausing starting of `main` after the hot restart.
 - Updating bootstrapper for DDC library bundler module format + Frontend Server.
 - Fix setting up breakpoints when handling in-app restarts with attached debugger.
+- Fix setting up breakpoints when handling full reloads from attached
+  debugger / page refreshes.
 
 ## 26.2.2
 
