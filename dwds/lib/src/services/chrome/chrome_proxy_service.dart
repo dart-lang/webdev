@@ -55,8 +55,8 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   final Modules _modules;
 
   /// Provides debugger-related functionality.
-  Future<Debugger> get debuggerFuture => _debuggerCompleter.future;
-  final _debuggerCompleter = Completer<Debugger>();
+  Future<Debugger> get debuggerFuture => _debuggerCompleter!.future;
+  Completer<Debugger>? _debuggerCompleter;
 
   StreamSubscription<ConsoleAPIEvent>? _consoleSubscription;
 
@@ -95,14 +95,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
        _skipLists = skipLists,
        _compiler = compiler,
        super(root: assetReader.basePath) {
-    final debugger = Debugger.create(
-      remoteDebugger,
-      streamNotify,
-      _locations,
-      _skipLists,
-      root,
-    );
-    debugger.then(_debuggerCompleter.complete);
+    _initializeDebugger();
   }
 
   static Future<ChromeProxyService> create({
@@ -145,6 +138,25 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     );
     safeUnawaited(service.createIsolate(appConnection, newConnection: true));
     return service;
+  }
+
+  Future<Debugger> _initializeDebugger() async {
+    if (_debuggerCompleter != null && !_debuggerCompleter!.isCompleted) {
+      _logger.warning(
+        'Request to reinitialize debugger during initialization.',
+      );
+      return _debuggerCompleter!.future;
+    }
+    _debuggerCompleter = Completer<Debugger>();
+    final debugger = await Debugger.create(
+      remoteDebugger,
+      streamNotify,
+      _locations,
+      _skipLists,
+      root,
+    );
+    _debuggerCompleter!.complete(debugger);
+    return debugger;
   }
 
   /// Reinitializes any caches so that they can be recomputed across hot reload.
@@ -375,7 +387,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   /// Clears out the [_inspector] and all related cached information.
   @override
   void destroyIsolate() {
-    _logger.fine('Destroying isolate');
+    _logger.fine('$hashCode Destroying isolate');
     if (!isIsolateRunning) return;
 
     final isolate = inspector.isolate;

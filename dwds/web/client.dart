@@ -29,7 +29,6 @@ import 'package:http/browser_client.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web/web.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'reloader/ddc_library_bundle_restarter.dart';
 import 'reloader/ddc_restarter.dart';
@@ -52,7 +51,12 @@ Future<void>? main() {
       final fixedPath = _fixProtocol(dwdsDevHandlerPath);
       final fixedUri = Uri.parse(fixedPath);
       final client = fixedUri.isScheme('ws') || fixedUri.isScheme('wss')
-          ? WebSocketClient(WebSocketChannel.connect(fixedUri))
+          ? WebSocketClient(
+              await PersistentWebSocket.connect(
+                fixedUri,
+                onReconnect: initializeConnection,
+              ),
+            )
           : SseSocketClient(SseClient(fixedPath, debugKey: 'InjectedClient'));
 
       final restarter = switch (dartModuleStrategy) {
@@ -178,6 +182,7 @@ Future<void>? main() {
         );
       }.toJS;
 
+      var mainRun = false;
       client.stream.listen(
         (serialized) async {
           final event = serializers.deserialize(jsonDecode(serialized));
@@ -206,7 +211,13 @@ Future<void>? main() {
               }
             }
           } else if (event is RunRequest) {
-            runMain();
+            // If main has already been run (e.g., in the situation where we
+            // lost connection to DWDS and reattached), don't try and run main
+            // again.
+            if (!mainRun) {
+              mainRun = true;
+              runMain();
+            }
           } else if (event is ErrorResponse) {
             window.reportError(
               'Error from backend:\n\n'
@@ -249,18 +260,7 @@ Future<void>? main() {
           }
         });
       }
-
-      if (dartModuleStrategy != 'ddc-library-bundle') {
-        if (_isChromium) {
-          _sendConnectRequest(client.sink);
-        } else {
-          // If not Chromium we just invoke main, devtools aren't supported.
-          runMain();
-        }
-      } else {
-        _sendConnectRequest(client.sink);
-      }
-      _launchCommunicationWithDebugExtension();
+      initializeConnection(client.sink);
     },
     (error, stackTrace) {
       print('''
@@ -278,6 +278,20 @@ $stackTrace
 ''');
     },
   );
+}
+
+void initializeConnection(StreamSink clientSink) {
+  if (dartModuleStrategy != 'ddc-library-bundle') {
+    if (_isChromium) {
+      _sendConnectRequest(clientSink);
+    } else {
+      // If not Chromium we just invoke main, devtools aren't supported.
+      runMain();
+    }
+  } else {
+    _sendConnectRequest(clientSink);
+  }
+  _launchCommunicationWithDebugExtension();
 }
 
 void _trySendEvent<T>(StreamSink<T> sink, T serialized) {

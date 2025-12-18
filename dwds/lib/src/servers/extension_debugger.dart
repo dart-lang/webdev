@@ -30,6 +30,9 @@ class ExtensionDebugger implements RemoteDebugger {
   final _eventStreams = <String, Stream>{};
   var _completerId = 0;
 
+  @override
+  Future<void> Function()? onReconnect;
+
   /// Null until [close] is called.
   ///
   /// All subsequent calls to [close] will return this future.
