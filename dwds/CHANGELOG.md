@@ -7,6 +7,7 @@
 - Fix setting up breakpoints when handling in-app restarts with attached debugger.
 - Fix setting up breakpoints when handling full reloads from attached
   debugger / page refreshes.
+- Remove `package:built_value` dependency from `HotReloadRequest` and use standard Dart JSON serialization instead.
 
 ## 26.2.2
 
