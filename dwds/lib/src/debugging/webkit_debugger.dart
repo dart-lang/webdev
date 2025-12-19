@@ -54,6 +54,8 @@ class WebkitDebugger implements RemoteDebugger {
     _onTargetCrashedController,
   ];
 
+  final _streamSubscriptions = <StreamSubscription>[];
+
   @override
   Future<void> Function()? onReconnect;
 
@@ -95,24 +97,32 @@ class WebkitDebugger implements RemoteDebugger {
       _initialize();
     });
 
-    _wipDebugger.connection.runtime
-      ..onConsoleAPICalled.listen(_onConsoleAPICalledController.add)
-      ..onExceptionThrown.listen(_onExceptionThrownController.add);
-    _wipDebugger
-      ..onGlobalObjectCleared.listen(_onGlobalObjectClearedController.add)
-      ..onPaused.listen(_onPausedController.add)
-      ..onResumed.listen(_onResumedController.add)
-      ..onScriptParsed.listen(_onScriptParsedController.add)
-      ..eventStream(
-        'Inspector.targetCrashed',
-        (WipEvent event) => TargetCrashedEvent(event.json),
-      ).listen(_onTargetCrashedController.add);
+    final runtime = _wipDebugger.connection.runtime;
+    _streamSubscriptions
+      ..forEach((e) => e.cancel())
+      ..clear()
+      ..addAll([
+        runtime.onConsoleAPICalled.listen(_onConsoleAPICalledController.add),
+        runtime.onExceptionThrown.listen(_onExceptionThrownController.add),
+        _wipDebugger.onGlobalObjectCleared.listen(
+          _onGlobalObjectClearedController.add,
+        ),
+        _wipDebugger.onPaused.listen(_onPausedController.add),
+        _wipDebugger.onResumed.listen(_onResumedController.add),
+        _wipDebugger.onScriptParsed.listen(_onScriptParsedController.add),
+        _wipDebugger
+            .eventStream(
+              'Inspector.targetCrashed',
+              (WipEvent event) => TargetCrashedEvent(event.json),
+            )
+            .listen(_onTargetCrashedController.add),
 
-    for (final MapEntry(:key, value: (:controller, :transformer))
-        in _eventStreams.entries) {
-      final stream = _wipDebugger.eventStream(key, transformer);
-      stream.listen(controller.add, onError: controller.addError);
-    }
+        for (final MapEntry(:key, value: (:controller, :transformer))
+            in _eventStreams.entries)
+          _wipDebugger
+              .eventStream(key, transformer)
+              .listen(controller.add, onError: controller.addError),
+      ]);
   }
 
   @override
@@ -130,7 +140,10 @@ class WebkitDebugger implements RemoteDebugger {
   }) => _wipDebugger.sendCommand(command, params: params);
 
   @override
-  Future<void> close() => _closed ??= _wipDebugger.connection.close();
+  Future<void> close() => _closed ??= () async {
+    await _wipDebugger.connection.close();
+    await Future.wait([for (final sub in _streamSubscriptions) sub.cancel()]);
+  }();
 
   @override
   Future<void> disable() => _wipDebugger.disable();
