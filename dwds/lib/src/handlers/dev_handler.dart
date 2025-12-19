@@ -635,21 +635,11 @@ class DevHandler {
       readyToRunMainCompleter.future,
     );
 
-    // We can take over a connection if there is no connectedInstanceId (this
-    // means the client completely disconnected), or if the existing
-    // AppConnection is in the KeepAlive state (this means it disconnected but
-    // is still waiting for a possible reconnect - this happens during a page
-    // reload).
-    final canReconnect =
-        services != null &&
-        (services.connectedInstanceId == null ||
-            existingConnection?.isInKeepAlivePeriod == true);
-
-    if (canReconnect) {
+    if (_canReconnect(existingConnection, message)) {
       // Disconnect any old connection (eg. those in the keep-alive waiting
       // state when reloading the page).
       existingConnection?.shutDown();
-      final chromeProxy = services.proxyService;
+      final chromeProxy = services!.proxyService;
       if (chromeProxy is ChromeProxyService) {
         chromeProxy.destroyIsolate();
       }
@@ -702,24 +692,10 @@ class DevHandler {
       readyToRunMainCompleter.future,
     );
 
-    // Allow connection reuse for page refreshes and same instance reconnections
-    final isSameInstance =
-        existingConnection?.request.instanceId == message.instanceId;
-    final isKeepAliveReconnect =
-        existingConnection?.isInKeepAlivePeriod == true;
-    final hasNoActiveConnection = services?.connectedInstanceId == null;
-    final noExistingConnection = existingConnection == null;
-
-    final canReconnect =
-        services != null &&
-        (isSameInstance ||
-            (isKeepAliveReconnect && hasNoActiveConnection) ||
-            (noExistingConnection && hasNoActiveConnection));
-
-    if (canReconnect) {
+    if (_canReconnect(existingConnection, message)) {
       // Reconnect to existing service.
       await _reconnectToService(
-        services,
+        services!,
         existingConnection,
         connection,
         message,
@@ -746,6 +722,30 @@ class DevHandler {
     _connectedApps.add(connection);
     _logger.fine('App connection established for: ${message.appId}');
     return connection;
+  }
+
+  /// Allow connection reuse for page refreshes and same instance reconnections
+  bool _canReconnect(
+    AppConnection? existingConnection,
+    ConnectRequest message,
+  ) {
+    final services = _servicesByAppId[message.appId];
+
+    if (services == null) {
+      return false;
+    }
+
+    if (existingConnection?.request.instanceId == message.instanceId) {
+      return true;
+    }
+
+    final isKeepAliveReconnect =
+        existingConnection?.isInKeepAlivePeriod == true;
+    final hasNoActiveConnection = services.connectedInstanceId == null;
+    final noExistingConnection = existingConnection == null;
+
+    return (isKeepAliveReconnect && hasNoActiveConnection) ||
+        (noExistingConnection && hasNoActiveConnection);
   }
 
   /// Handles reconnection to existing services for web-socket mode.

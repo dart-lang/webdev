@@ -46,7 +46,22 @@ Future<void>? main() {
     () async {
       // Set the unique id for this instance of the app.
       // Test apps may already have this set.
-      dartAppInstanceId ??= const Uuid().v1();
+      const dartAppInstanceIdKey = 'dartAppInstanceId';
+      if (dartAppInstanceId == null) {
+        // Check the session storage for the instance id.
+        final storedInstanceId = window.sessionStorage.getItem(
+          dartAppInstanceIdKey,
+        );
+        if (storedInstanceId != null) {
+          dartAppInstanceId = storedInstanceId;
+        } else {
+          dartAppInstanceId = const Uuid().v1();
+          window.sessionStorage.setItem(
+            dartAppInstanceIdKey,
+            dartAppInstanceId!,
+          );
+        }
+      }
 
       final fixedPath = _fixProtocol(dwdsDevHandlerPath);
       final fixedUri = Uri.parse(fixedPath);

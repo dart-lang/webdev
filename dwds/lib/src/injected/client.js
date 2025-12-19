@@ -27881,7 +27881,7 @@
     $call$body$main_closure() {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.void),
-        uri, fixedPath, fixedUri, client, _0_0, t2, manager, t3, t4, t5, debugEventController, t6, _box_0, t1, $async$temp1;
+        storedInstanceId, t2, t3, uri, fixedPath, fixedUri, client, _0_0, manager, t4, t5, debugEventController, t6, _box_0, t1, $async$temp1;
       var $async$call$0 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -27891,8 +27891,18 @@
               // Function start
               _box_0 = {};
               t1 = init.G;
-              if (A._asStringQ(t1.$dartAppInstanceId) == null)
-                t1.$dartAppInstanceId = new A.UuidV1(null).generate$1$options(null);
+              if (A._asStringQ(t1.$dartAppInstanceId) == null) {
+                storedInstanceId = A._asStringQ(A._asJSObject(A._asJSObject(t1.window).sessionStorage).getItem("dartAppInstanceId"));
+                if (storedInstanceId != null)
+                  t1.$dartAppInstanceId = storedInstanceId;
+                else {
+                  t1.$dartAppInstanceId = new A.UuidV1(null).generate$1$options(null);
+                  t2 = A._asJSObject(A._asJSObject(t1.window).sessionStorage);
+                  t3 = A._asStringQ(t1.$dartAppInstanceId);
+                  t3.toString;
+                  t2.setItem("dartAppInstanceId", t3);
+                }
+              }
               uri = A.Uri_parse(A._asString(t1.$dwdsDevHandlerPath));
               if (A._asString(A._asJSObject(A._asJSObject(t1.window).location).protocol) === "https:" && uri.get$scheme() === "http" && uri.get$host() !== "localhost")
                 uri = uri.replace$1$scheme("https");
