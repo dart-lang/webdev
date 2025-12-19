@@ -55,8 +55,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   final Modules _modules;
 
   /// Provides debugger-related functionality.
-  Future<Debugger> get debuggerFuture => _debuggerCompleter!.future;
-  Completer<Debugger>? _debuggerCompleter;
+  late final Future<Debugger> debuggerFuture;
 
   StreamSubscription<ConsoleAPIEvent>? _consoleSubscription;
 
@@ -95,7 +94,13 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
        _skipLists = skipLists,
        _compiler = compiler,
        super(root: assetReader.basePath) {
-    _initializeDebugger();
+    debuggerFuture = Debugger.create(
+      remoteDebugger,
+      streamNotify,
+      _locations,
+      _skipLists,
+      root,
+    );
   }
 
   static Future<ChromeProxyService> create({
@@ -138,25 +143,6 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     );
     safeUnawaited(service.createIsolate(appConnection, newConnection: true));
     return service;
-  }
-
-  Future<Debugger> _initializeDebugger() async {
-    if (_debuggerCompleter != null && !_debuggerCompleter!.isCompleted) {
-      _logger.warning(
-        'Request to reinitialize debugger during initialization.',
-      );
-      return _debuggerCompleter!.future;
-    }
-    _debuggerCompleter = Completer<Debugger>();
-    final debugger = await Debugger.create(
-      remoteDebugger,
-      streamNotify,
-      _locations,
-      _skipLists,
-      root,
-    );
-    _debuggerCompleter!.complete(debugger);
-    return debugger;
   }
 
   /// Reinitializes any caches so that they can be recomputed across hot reload.
