@@ -1,10 +1,11 @@
-## 26.2.3-wip
+## 26.2.3
 
 - Bump `build_web_compilers` to ^4.4.1.
 - Remove unused `clientFuture` arg from `DwdsVmClient` methods.
 - Fix pausing starting of `main` after the hot restart.
 - Updating bootstrapper for DDC library bundler module format + Frontend Server.
 - Fix setting up breakpoints when handling in-app restarts with attached debugger.
+- Fix issue where the web socket connections with the target application and Chrome debugger close when the computer sleeps.
 - Fix setting up breakpoints when handling full reloads from attached
   debugger / page refreshes.
 

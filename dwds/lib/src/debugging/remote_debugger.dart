@@ -10,6 +10,10 @@ class TargetCrashedEvent extends WipEvent {
 
 /// A generic debugger used in remote debugging.
 abstract class RemoteDebugger {
+  /// An optional callback that's invoked in the case where the debugger
+  /// connection needs to be reinitialized.
+  Future<void> Function()? onReconnect;
+
   Stream<ConsoleAPIEvent> get onConsoleAPICalled;
 
   Stream<ExceptionThrownEvent> get onExceptionThrown;

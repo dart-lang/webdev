@@ -328,6 +328,9 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   @override
   Future<WipResponse> pageReload() async => fakeWipResponse;
+
+  @override
+  Future<void> Function()? onReconnect;
 }
 
 /// Fake execution context that is needed for id only
