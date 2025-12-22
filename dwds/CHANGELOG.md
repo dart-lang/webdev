@@ -1,3 +1,7 @@
+## 26.2.4-wip
+
+- Remove `package:built_value` dependency from `HotReloadRequest` and use standard Dart JSON serialization instead.
+
 ## 26.2.3
 
 - Bump `build_web_compilers` to ^4.4.1.
@@ -8,7 +12,6 @@
 - Fix issue where the web socket connections with the target application and Chrome debugger close when the computer sleeps.
 - Fix setting up breakpoints when handling full reloads from attached
   debugger / page refreshes.
-- Remove `package:built_value` dependency from `HotReloadRequest` and use standard Dart JSON serialization instead.
 
 ## 26.2.2
 
