@@ -55,8 +55,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   final Modules _modules;
 
   /// Provides debugger-related functionality.
-  Future<Debugger> get debuggerFuture => _debuggerCompleter.future;
-  final _debuggerCompleter = Completer<Debugger>();
+  late final Future<Debugger> debuggerFuture;
 
   StreamSubscription<ConsoleAPIEvent>? _consoleSubscription;
 
@@ -95,14 +94,13 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
        _skipLists = skipLists,
        _compiler = compiler,
        super(root: assetReader.basePath) {
-    final debugger = Debugger.create(
+    debuggerFuture = Debugger.create(
       remoteDebugger,
       streamNotify,
       _locations,
       _skipLists,
       root,
     );
-    debugger.then(_debuggerCompleter.complete);
   }
 
   static Future<ChromeProxyService> create({
@@ -375,7 +373,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   /// Clears out the [_inspector] and all related cached information.
   @override
   void destroyIsolate() {
-    _logger.fine('Destroying isolate');
+    _logger.fine('$hashCode Destroying isolate');
     if (!isIsolateRunning) return;
 
     final isolate = inspector.isolate;

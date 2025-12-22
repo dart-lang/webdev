@@ -228,6 +228,7 @@ class Debugger {
       skipLists,
       root,
     );
+    remoteDebugger.onReconnect = debugger._initialize;
     await debugger._initialize();
     return debugger;
   }

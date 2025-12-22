@@ -171,12 +171,13 @@ class DevHandler {
   ) async {
     ChromeTab? appTab;
     ExecutionContext? executionContext;
-    WipConnection? tabConnection;
+    WipConnection? connection;
+    late final debugger = WebkitDebugger(WipDebugger(connection!));
     final appInstanceId = appConnection.request.instanceId;
     for (final tab in await chromeConnection.getTabs()) {
       if (tab.isChromeExtension || tab.isBackgroundPage) continue;
 
-      final connection = tabConnection = await tab.connect();
+      connection = await tab.connect();
       if (_enableLogging) {
         connection.onSend.listen((message) {
           _log('  wip', '==> $message');
@@ -208,7 +209,7 @@ class DevHandler {
           appTab = tab;
           executionContext = RemoteDebuggerExecutionContext(
             contextId,
-            WebkitDebugger(WipDebugger(connection)),
+            debugger,
           );
           break;
         }
@@ -216,14 +217,12 @@ class DevHandler {
       if (appTab != null) break;
       safeUnawaited(connection.close());
     }
-    if (appTab == null || tabConnection == null || executionContext == null) {
+    if (appTab == null || connection == null || executionContext == null) {
       throw AppConnectionException(
         'Could not connect to application with appInstanceId: '
         '$appInstanceId',
       );
     }
-
-    final webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
 
     return ChromeDebugService.start(
       // We assume the user will connect to the debug service on the same
@@ -231,7 +230,7 @@ class DevHandler {
       // debugging through the Dart Debug Extension without impacting the local
       // debug workflow.
       hostname: 'localhost',
-      remoteDebugger: webkitDebugger,
+      remoteDebugger: debugger,
       executionContext: executionContext,
       assetReader: _assetReader,
       appConnection: appConnection,
