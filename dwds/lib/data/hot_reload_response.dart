@@ -4,28 +4,51 @@
 
 library hot_reload_response;
 
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
-
-part 'hot_reload_response.g.dart';
-
 /// A response to a hot reload request.
-abstract class HotReloadResponse
-    implements Built<HotReloadResponse, HotReloadResponseBuilder> {
-  static Serializer<HotReloadResponse> get serializer =>
-      _$hotReloadResponseSerializer;
-
+class HotReloadResponse {
   /// The unique identifier matching the request.
-  String get id;
+  final String id;
 
   /// Whether the hot reload succeeded on the client.
-  bool get success;
+  final bool success;
 
   /// An optional error message if success is false.
-  @BuiltValueField(wireName: 'error')
-  String? get errorMessage;
+  final String? errorMessage;
 
-  HotReloadResponse._();
-  factory HotReloadResponse([void Function(HotReloadResponseBuilder) updates]) =
-      _$HotReloadResponse;
+  HotReloadResponse({
+    required this.id,
+    required this.success,
+    this.errorMessage,
+  });
+
+  /// Creates a [HotReloadResponse] from a JSON map.
+  factory HotReloadResponse.fromJson(Map<String, dynamic> json) {
+    return HotReloadResponse(
+      id: json['id'] as String,
+      success: json['success'] as bool,
+      errorMessage: json['error'] as String?,
+    );
+  }
+
+  /// Converts this [HotReloadResponse] to a JSON map.
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'success': success,
+    if (errorMessage != null) 'error': errorMessage,
+  };
+
+  @override
+  bool operator ==(Object other) =>
+      identical(other, this) ||
+      other is HotReloadResponse &&
+          id == other.id &&
+          success == other.success &&
+          errorMessage == other.errorMessage;
+
+  @override
+  int get hashCode => Object.hash(id, success, errorMessage);
+
+  @override
+  String toString() =>
+      'HotReloadResponse(id: $id, success: $success, errorMessage: $errorMessage)';
 }

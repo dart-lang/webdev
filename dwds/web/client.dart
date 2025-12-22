@@ -417,7 +417,7 @@ Future<bool> _authenticateUser(String authUrl) async {
 
 void _sendResponse<T>(
   StreamSink clientSink,
-  T Function(void Function(dynamic)) builder,
+  T Function(String, bool, String?) constructor,
   String requestId, {
   bool success = true,
   String? errorMessage,
@@ -425,13 +425,7 @@ void _sendResponse<T>(
   _trySendEvent(
     clientSink,
     jsonEncode(
-      serializers.serialize(
-        builder((b) {
-          b.id = requestId;
-          b.success = success;
-          if (errorMessage != null) b.errorMessage = errorMessage;
-        }),
-      ),
+      serializers.serialize(constructor(requestId, success, errorMessage)),
     ),
   );
 }
@@ -444,7 +438,8 @@ void _sendHotReloadResponse(
 }) {
   _sendResponse<HotReloadResponse>(
     clientSink,
-    HotReloadResponse.new,
+    (id, success, errorMessage) =>
+        HotReloadResponse(id: id, success: success, errorMessage: errorMessage),
     requestId,
     success: success,
     errorMessage: errorMessage,
@@ -459,7 +454,12 @@ void _sendHotRestartResponse(
 }) {
   _sendResponse<HotRestartResponse>(
     clientSink,
-    HotRestartResponse.new,
+    (id, success, errorMessage) => HotRestartResponse(
+      (b) => b
+        ..id = id
+        ..success = success
+        ..errorMessage = errorMessage,
+    ),
     requestId,
     success: success,
     errorMessage: errorMessage,
