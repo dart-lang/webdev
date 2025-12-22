@@ -12,10 +12,6 @@ import 'debug_info.dart';
 import 'devtools_request.dart';
 import 'error_response.dart';
 import 'extension_request.dart';
-<<<<<<< HEAD
-=======
-import 'hot_restart_request.dart';
->>>>>>> main
 import 'hot_restart_response.dart';
 import 'service_extension_request.dart';
 import 'service_extension_response.dart';
