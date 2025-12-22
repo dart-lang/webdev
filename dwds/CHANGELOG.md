@@ -1,3 +1,7 @@
+## 26.2.4-wip
+
+- Remove `package:built_value` dependency from `HotReloadRequest` and use standard Dart JSON serialization instead.
+
 ## 26.2.3
 
 - Bump `build_web_compilers` to ^4.4.1.

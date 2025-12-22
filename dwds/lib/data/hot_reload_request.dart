@@ -4,21 +4,28 @@
 
 library hot_reload_request;
 
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
-
-part 'hot_reload_request.g.dart';
-
 /// A request to hot reload the application.
-abstract class HotReloadRequest
-    implements Built<HotReloadRequest, HotReloadRequestBuilder> {
-  static Serializer<HotReloadRequest> get serializer =>
-      _$hotReloadRequestSerializer;
-
+class HotReloadRequest {
   /// A unique identifier for this request.
-  String get id;
+  final String id;
 
-  HotReloadRequest._();
-  factory HotReloadRequest([void Function(HotReloadRequestBuilder) updates]) =
-      _$HotReloadRequest;
+  HotReloadRequest({required this.id});
+
+  /// Creates a [HotReloadRequest] from a JSON map.
+  factory HotReloadRequest.fromJson(Map<String, dynamic> json) {
+    return HotReloadRequest(id: json['id'] as String);
+  }
+
+  /// Converts this [HotReloadRequest] to a JSON map.
+  Map<String, dynamic> toJson() => {'id': id};
+
+  @override
+  bool operator ==(Object other) =>
+      identical(other, this) || other is HotReloadRequest && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  String toString() => 'HotReloadRequest(id: $id)';
 }
