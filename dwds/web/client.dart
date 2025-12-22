@@ -427,8 +427,8 @@ void _sendResponse<T>(
   final encoded = response is HotReloadResponse
       ? ['HotReloadResponse', response.toJson()]
       : response is HotRestartResponse
-          ? ['HotRestartResponse', response.toJson()]
-          : serializers.serialize(response);
+      ? ['HotRestartResponse', response.toJson()]
+      : serializers.serialize(response);
 
   _trySendEvent(clientSink, jsonEncode(encoded));
 }
