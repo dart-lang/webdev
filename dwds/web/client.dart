@@ -426,6 +426,8 @@ void _sendResponse<T>(
   final response = constructor(requestId, success, errorMessage);
   final encoded = response is HotReloadResponse
       ? ['HotReloadResponse', response.toJson()]
+      : response is HotRestartResponse
+      ? ['HotRestartResponse', response.toJson()]
       : serializers.serialize(response);
 
   _trySendEvent(clientSink, jsonEncode(encoded));
@@ -456,10 +458,9 @@ void _sendHotRestartResponse(
   _sendResponse<HotRestartResponse>(
     clientSink,
     (id, success, errorMessage) => HotRestartResponse(
-      (b) => b
-        ..id = id
-        ..success = success
-        ..errorMessage = errorMessage,
+      id: id,
+      success: success,
+      errorMessage: errorMessage,
     ),
     requestId,
     success: success,

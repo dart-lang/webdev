@@ -21,7 +21,6 @@ Serializers _$serializers =
           ..add(ExtensionEvent.serializer)
           ..add(ExtensionRequest.serializer)
           ..add(ExtensionResponse.serializer)
-          ..add(HotRestartResponse.serializer)
           ..add(IsolateExit.serializer)
           ..add(IsolateStart.serializer)
           ..add(RegisterEvent.serializer)
