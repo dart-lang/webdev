@@ -116,9 +116,10 @@ Future<void>? main() {
       requestHotRestartJs = (String runId) {
         _trySendEvent(
           client.sink,
-          jsonEncode(
-            serializers.serialize(HotRestartRequest((b) => b..id = runId)),
-          ),
+          jsonEncode([
+            'HotRestartRequest',
+            HotRestartRequest(id: runId).toJson(),
+          ]),
         );
       }.toJS;
 
@@ -422,12 +423,12 @@ void _sendResponse<T>(
   bool success = true,
   String? errorMessage,
 }) {
-  _trySendEvent(
-    clientSink,
-    jsonEncode(
-      serializers.serialize(constructor(requestId, success, errorMessage)),
-    ),
-  );
+  final response = constructor(requestId, success, errorMessage);
+  final encoded = response is HotReloadResponse
+      ? ['HotReloadResponse', response.toJson()]
+      : serializers.serialize(response);
+
+  _trySendEvent(clientSink, jsonEncode(encoded));
 }
 
 void _sendHotReloadResponse(

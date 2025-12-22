@@ -4,21 +4,28 @@
 
 library hot_restart_request;
 
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
-
-part 'hot_restart_request.g.dart';
-
 /// A request to hot restart the application.
-abstract class HotRestartRequest
-    implements Built<HotRestartRequest, HotRestartRequestBuilder> {
-  static Serializer<HotRestartRequest> get serializer =>
-      _$hotRestartRequestSerializer;
-
+class HotRestartRequest {
   /// A unique identifier for this request.
-  String get id;
+  final String id;
 
-  HotRestartRequest._();
-  factory HotRestartRequest([void Function(HotRestartRequestBuilder) updates]) =
-      _$HotRestartRequest;
+  HotRestartRequest({required this.id});
+
+  /// Creates a [HotRestartRequest] from a JSON map.
+  factory HotRestartRequest.fromJson(Map<String, dynamic> json) {
+    return HotRestartRequest(id: json['id'] as String);
+  }
+
+  /// Converts this [HotRestartRequest] to a JSON map.
+  Map<String, dynamic> toJson() => {'id': id};
+
+  @override
+  bool operator ==(Object other) =>
+      identical(other, this) || other is HotRestartRequest && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  String toString() => 'HotRestartRequest(id: $id)';
 }

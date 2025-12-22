@@ -588,7 +588,7 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
 
     // Send the request and get the number of connected clients
     final clientCount = await Future.microtask(() {
-      return sendClientRequest(HotRestartRequest((b) => b.id = id));
+      return sendClientRequest(HotRestartRequest(id: id));
     });
 
     if (clientCount == 0) {
