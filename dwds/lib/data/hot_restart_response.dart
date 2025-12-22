@@ -27,9 +27,8 @@ class HotRestartResponse {
       );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'success': success,
-        if (errorMessage != null) 'error': errorMessage,
-      };
+    'id': id,
+    'success': success,
+    if (errorMessage != null) 'error': errorMessage,
+  };
 }
-
