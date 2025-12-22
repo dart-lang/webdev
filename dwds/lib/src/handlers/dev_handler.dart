@@ -327,12 +327,32 @@ class DevHandler {
     }
   }
 
+  /// Deserializes a message from JSON, handling both built_value serializers
+  /// and custom fromJson() implementations.
+  Object? _deserializeMessage(dynamic decoded) {
+    if (decoded is List && decoded.length == 2 && decoded[0] is String) {
+      final typeName = decoded[0] as String;
+      final jsonData = decoded[1] as Map<String, dynamic>;
+
+      switch (typeName) {
+        case 'HotReloadResponse':
+          return HotReloadResponse.fromJson(jsonData);
+        case 'HotRestartResponse':
+          return HotRestartResponse.fromJson(jsonData);
+        default:
+          // Fall through to serializers.deserialize
+          break;
+      }
+    }
+    return serializers.deserialize(decoded);
+  }
+
   void _handleConnection(SocketConnection injectedConnection) {
     _injectedConnections.add(injectedConnection);
     AppConnection? appConnection;
     injectedConnection.stream.listen((data) async {
       try {
-        final message = serializers.deserialize(jsonDecode(data));
+        final message = _deserializeMessage(jsonDecode(data));
         if (message is ConnectRequest) {
           if (appConnection != null) {
             throw StateError(

@@ -2,31 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library hot_restart_response;
-
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
-
-part 'hot_restart_response.g.dart';
-
 /// A response to a hot restart request.
-abstract class HotRestartResponse
-    implements Built<HotRestartResponse, HotRestartResponseBuilder> {
-  static Serializer<HotRestartResponse> get serializer =>
-      _$hotRestartResponseSerializer;
-
+class HotRestartResponse {
   /// The unique identifier matching the request.
-  String get id;
+  final String id;
 
   /// Whether the hot restart succeeded on the client.
-  bool get success;
+  final bool success;
 
   /// An optional error message if success is false.
-  @BuiltValueField(wireName: 'error')
-  String? get errorMessage;
+  final String? errorMessage;
 
-  HotRestartResponse._();
-  factory HotRestartResponse([
-    void Function(HotRestartResponseBuilder) updates,
-  ]) = _$HotRestartResponse;
+  HotRestartResponse({
+    required this.id,
+    required this.success,
+    this.errorMessage,
+  });
+
+  factory HotRestartResponse.fromJson(Map<String, dynamic> json) =>
+      HotRestartResponse(
+        id: json['id'] as String,
+        success: json['success'] as bool,
+        errorMessage: json['error'] as String?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'success': success,
+        if (errorMessage != null) 'error': errorMessage,
+      };
 }
+

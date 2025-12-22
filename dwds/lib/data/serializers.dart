@@ -12,7 +12,6 @@ import 'debug_info.dart';
 import 'devtools_request.dart';
 import 'error_response.dart';
 import 'extension_request.dart';
-import 'hot_restart_response.dart';
 import 'service_extension_request.dart';
 import 'service_extension_response.dart';
 import 'isolate_events.dart';
@@ -31,7 +30,6 @@ part 'serializers.g.dart';
   DebugInfo,
   DevToolsRequest,
   DevToolsResponse,
-  HotRestartResponse,
   IsolateExit,
   IsolateStart,
   ExtensionRequest,
