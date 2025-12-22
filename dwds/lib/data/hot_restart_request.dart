@@ -13,20 +13,15 @@ class HotRestartRequest {
 
   /// Creates a [HotRestartRequest] from a JSON map.
   factory HotRestartRequest.fromJson(Map<String, dynamic> json) {
-    return HotRestartRequest(
-      id: json['id'] as String,
-    );
+    return HotRestartRequest(id: json['id'] as String);
   }
 
   /// Converts this [HotRestartRequest] to a JSON map.
-  Map<String, dynamic> toJson() => {
-    'id': id,
-  };
+  Map<String, dynamic> toJson() => {'id': id};
 
   @override
   bool operator ==(Object other) =>
-      identical(other, this) ||
-      other is HotRestartRequest && id == other.id;
+      identical(other, this) || other is HotRestartRequest && id == other.id;
 
   @override
   int get hashCode => id.hashCode;
