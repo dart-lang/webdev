@@ -1,41 +1,34 @@
 // Copyright (c) 2025, the Dart project authors. All rights reserved.
 // Defines the request for service extension calls over WebSocket.
 
-import 'dart:convert';
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+class ServiceExtensionRequest {
+  final String id;
+  final String method;
+  final Map<String, dynamic> args;
 
-part 'service_extension_request.g.dart';
+  ServiceExtensionRequest({
+    required this.id,
+    required this.method,
+    Map<String, dynamic>? args,
+  }) : args = args ?? const <String, dynamic>{};
 
-abstract class ServiceExtensionRequest
-    implements Built<ServiceExtensionRequest, ServiceExtensionRequestBuilder> {
-  String get id;
-  String get method;
-  String
-  get argsJson; // Store args as JSON string for built_value compatibility
-
-  // Helper method to get args as Map<String, dynamic>
-  Map<String, dynamic> get args => argsJson.isEmpty
-      ? <String, dynamic>{}
-      : json.decode(argsJson) as Map<String, dynamic>;
-
-  ServiceExtensionRequest._();
-  factory ServiceExtensionRequest([
-    void Function(ServiceExtensionRequestBuilder) updates,
-  ]) = _$ServiceExtensionRequest;
-
-  // Convenient factory method to create with args Map
   factory ServiceExtensionRequest.fromArgs({
     required String id,
     required String method,
     required Map<String, dynamic> args,
-  }) => ServiceExtensionRequest(
-    (b) => b
-      ..id = id
-      ..method = method
-      ..argsJson = json.encode(args),
-  );
+  }) => ServiceExtensionRequest(id: id, method: method, args: args);
 
-  static Serializer<ServiceExtensionRequest> get serializer =>
-      _$serviceExtensionRequestSerializer;
+  factory ServiceExtensionRequest.fromJson(Map<String, dynamic> json) =>
+      ServiceExtensionRequest(
+        id: json['id'] as String,
+        method: json['method'] as String,
+        args: (json['args'] as Map?)?.cast<String, dynamic>() ??
+            const <String, dynamic>{},
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'method': method,
+        'args': args,
+      };
 }

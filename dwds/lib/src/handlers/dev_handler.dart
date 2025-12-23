@@ -13,12 +13,14 @@ import 'package:dwds/data/connect_request.dart';
 import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
+import 'package:dwds/data/hot_reload_request.dart';
 import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/hot_restart_request.dart';
 import 'package:dwds/data/hot_restart_response.dart';
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/serializers.dart';
+import 'package:dwds/data/service_extension_request.dart';
 import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/connections/app_connection.dart';
@@ -139,6 +141,43 @@ class DevHandler {
     }
   }
 
+  /// Serializes an outgoing request to the injected client.
+  /// For plain Dart types (converted away from built_value), emit the
+  /// wire format `[TypeName, json]`. Built_value types use `serializers`.
+  Object? _serializeMessage(Object request) {
+    if (request is HotReloadRequest) {
+      return ['HotReloadRequest', request.toJson()];
+    } else if (request is HotRestartRequest) {
+      return ['HotRestartRequest', request.toJson()];
+    } else if (request is ServiceExtensionRequest) {
+      return ['ServiceExtensionRequest', request.toJson()];
+    } else if (request is Map) {
+      // Already a raw message (e.g., ping)
+      return request;
+    }
+    return serializers.serialize(request);
+  }
+
+  /// Deserializes a message from JSON, handling both built_value serializers
+  /// and custom fromJson() implementations.
+  Object? _deserializeMessage(dynamic decoded) {
+    if (decoded is List && decoded.length == 2 && decoded[0] is String) {
+      final typeName = decoded[0] as String;
+      final jsonData = decoded[1] as Map<String, dynamic>;
+
+      switch (typeName) {
+        case 'HotReloadResponse':
+          return HotReloadResponse.fromJson(jsonData);
+        case 'HotRestartResponse':
+          return HotRestartResponse.fromJson(jsonData);
+        default:
+          // Fall through to serializers.deserialize
+          break;
+      }
+    }
+    return serializers.deserialize(decoded);
+  }
+
   /// Sends the provided [request] to all connected injected clients.
   /// Returns the number of clients the request was successfully sent to.
   int _sendRequestToClients(Object request) {
@@ -146,7 +185,7 @@ class DevHandler {
     var successfulSends = 0;
     for (final injectedConnection in _injectedConnections) {
       try {
-        injectedConnection.sink.add(jsonEncode(serializers.serialize(request)));
+        injectedConnection.sink.add(jsonEncode(_serializeMessage(request)));
         successfulSends++;
       } on StateError catch (e) {
         // The sink has already closed (app is disconnected), or another StateError occurred.
@@ -325,26 +364,6 @@ class DevHandler {
         }),
       );
     }
-  }
-
-  /// Deserializes a message from JSON, handling both built_value serializers
-  /// and custom fromJson() implementations.
-  Object? _deserializeMessage(dynamic decoded) {
-    if (decoded is List && decoded.length == 2 && decoded[0] is String) {
-      final typeName = decoded[0] as String;
-      final jsonData = decoded[1] as Map<String, dynamic>;
-
-      switch (typeName) {
-        case 'HotReloadResponse':
-          return HotReloadResponse.fromJson(jsonData);
-        case 'HotRestartResponse':
-          return HotRestartResponse.fromJson(jsonData);
-        default:
-          // Fall through to serializers.deserialize
-          break;
-      }
-    }
-    return serializers.deserialize(decoded);
   }
 
   void _handleConnection(SocketConnection injectedConnection) {

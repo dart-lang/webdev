@@ -201,7 +201,7 @@ Future<void>? main() {
       var mainRun = false;
       client.stream.listen(
         (serialized) async {
-          final event = serializers.deserialize(jsonDecode(serialized));
+          final event = _deserializeEvent(jsonDecode(serialized));
           if (event is BuildResult) {
             if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
               manager.reloadPage();
@@ -321,6 +321,28 @@ void _trySendEvent<T>(StreamSink<T> sink, T serialized) {
       'Injected client connection is closed.',
     );
   }
+}
+
+/// Deserializes incoming events from the server.
+/// Handles both wire format ['TypeName', json] for plain Dart types
+/// and built_value serializers for legacy types.
+Object? _deserializeEvent(dynamic decoded) {
+  if (decoded is List && decoded.length == 2 && decoded[0] is String) {
+    final typeName = decoded[0] as String;
+    final jsonData = decoded[1] as Map<String, dynamic>;
+    switch (typeName) {
+      case 'HotReloadRequest':
+        return HotReloadRequest.fromJson(jsonData);
+      case 'HotRestartRequest':
+        return HotRestartRequest.fromJson(jsonData);
+      case 'ServiceExtensionRequest':
+        return ServiceExtensionRequest.fromJson(jsonData);
+      default:
+        // Fall back to built_value serializers
+        break;
+    }
+  }
+  return serializers.deserialize(decoded);
 }
 
 void _sendConnectRequest(StreamSink clientSink) {
