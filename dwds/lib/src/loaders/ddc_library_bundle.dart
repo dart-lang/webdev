@@ -195,9 +195,10 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
     modulePaths.forEach((name, path) {
       scripts.add(<String, String>{'src': '$path.js', 'id': name});
     });
-    // canary-mode uses the Frontend Server, which begins script loads via a
-    // separate pathway.
-    final scriptLoader = buildSettings.canaryFeatures
+    // Flutter always depends on the injected loader, but canary-enabled
+    // Frontend Server implementations load scripts via a separate pathway.
+    final scriptLoader =
+        buildSettings.isFlutterApp || !buildSettings.canaryFeatures
         ? '''
 var scripts = ${const JsonEncoder.withIndent(" ").convert(scripts)};
 window.\$dartLoader.loadConfig.loadScriptFn = function(loader) {
