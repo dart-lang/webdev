@@ -83,7 +83,7 @@ void main() {
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
-          compilationMode: CompilationMode.frontendServer,
+          compilationMode: CompilationMode.buildDaemonAndFrontendServer,
           moduleFormat: ModuleFormat.ddc,
           canaryFeatures: true,
         ),

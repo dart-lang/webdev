@@ -129,6 +129,11 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
   /// whenever a hot reload or hot restart is executed.
   final Uri? reloadedSourcesUri;
 
+  /// When enabled, injects the script loader into the bootstrapper from
+  /// within DWDS. This is used throughout Flutter Web but may be disabled
+  /// for specific workflows where the script loader is managed separately.
+  final bool injectScriptLoad;
+
   DdcLibraryBundleStrategy(
     this.reloadConfiguration,
     this._moduleProvider,
@@ -143,6 +148,7 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
     this._g3RelativePath, {
     String? packageConfigPath,
     this.reloadedSourcesUri,
+    this.injectScriptLoad = true,
   }) : super(assetReader, packageConfigPath: packageConfigPath);
 
   @override
@@ -195,10 +201,9 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
     modulePaths.forEach((name, path) {
       scripts.add(<String, String>{'src': '$path.js', 'id': name});
     });
-    // Flutter always depends on the injected loader, but canary-enabled
+    // Flutter always depends on the injected loader, but some canary-enabled
     // Frontend Server implementations load scripts via a separate pathway.
-    final scriptLoader =
-        buildSettings.isFlutterApp || !buildSettings.canaryFeatures
+    final scriptLoader = injectScriptLoad
         ? '''
 var scripts = ${const JsonEncoder.withIndent(" ").convert(scripts)};
 window.\$dartLoader.loadConfig.loadScriptFn = function(loader) {
