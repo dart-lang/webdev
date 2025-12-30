@@ -1,7 +1,6 @@
-## 3.8.1
+## 3.8.1-wip
 
 - Adding initial DDC library bundler support behind the `canary` flag.
-- Added an explicit toggle for embedding DDC's script loading logic.
 
 ## 3.8.0-wip
 

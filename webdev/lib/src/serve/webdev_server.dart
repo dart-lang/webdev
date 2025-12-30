@@ -199,8 +199,6 @@ class WebDevServer {
           packageUriMapper,
           () async => {},
           buildSettings,
-          injectScriptLoad:
-              buildSettings.isFlutterApp || !buildSettings.canaryFeatures,
           packageConfigPath: findPackageConfigFilePath(),
           reloadedSourcesUri: Uri.parse('$basePath/$reloadedSourcesFileName'),
         ).strategy;
