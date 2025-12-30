@@ -203,7 +203,7 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
     });
     // Flutter always depends on the injected loader, but some canary-enabled
     // Frontend Server implementations load scripts via a separate pathway.
-    final scriptLoader = injectScriptLoad
+    final scriptLoader = buildSettings.isFlutterApp || injectScriptLoad
         ? '''
 var scripts = ${const JsonEncoder.withIndent(" ").convert(scripts)};
 window.\$dartLoader.loadConfig.loadScriptFn = function(loader) {
