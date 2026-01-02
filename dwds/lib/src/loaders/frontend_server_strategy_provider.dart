@@ -151,6 +151,7 @@ class FrontendServerDdcLibraryBundleStrategyProvider
     super._buildSettings, {
     super.packageConfigPath,
     Uri? reloadedSourcesUri,
+    bool injectScriptLoad = true,
   }) {
     _libraryBundleStrategy = DdcLibraryBundleStrategy(
       _configuration,
@@ -166,6 +167,7 @@ class FrontendServerDdcLibraryBundleStrategyProvider
       (String _) => null,
       packageConfigPath: _packageConfigPath,
       reloadedSourcesUri: reloadedSourcesUri,
+      injectScriptLoad: injectScriptLoad,
     );
   }
 

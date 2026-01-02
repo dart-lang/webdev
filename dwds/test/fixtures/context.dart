@@ -62,7 +62,11 @@ Matcher isRPCErrorWithCode(int code) =>
     isA<RPCError>().having((e) => e.code, 'code', equals(code));
 Matcher throwsRPCErrorWithCode(int code) => throwsA(isRPCErrorWithCode(code));
 
-enum CompilationMode { buildDaemon, frontendServer }
+enum CompilationMode {
+  buildDaemon,
+  frontendServer,
+  buildDaemonAndFrontendServer,
+}
 
 class TestContext {
   final TestProject project;
@@ -394,6 +398,106 @@ class TestContext {
                       ).strategy,
               _ => throw Exception(
                 'Unsupported DDC module format ${testSettings.moduleFormat.name}.',
+              ),
+            };
+            buildResults = const Stream<BuildResults>.empty();
+          }
+          break;
+        case CompilationMode.buildDaemonAndFrontendServer:
+          {
+            final options = [
+              if (testSettings.enableExpressionEvaluation) ...[
+                '--define',
+                'build_web_compilers|ddc=generate-full-dill=true',
+              ],
+              for (final experiment in buildSettings.experiments)
+                '--enable-experiment=$experiment',
+              '--define',
+              'build_web_compilers|ddc=canary=true',
+              '--define',
+              'build_web_compilers|sdk_js=canary=true',
+              '--define',
+              'build_web_compilers|sdk_js=web-hot-reload=true',
+              '--define',
+              'build_web_compilers|entrypoint=web-hot-reload=true',
+              '--define',
+              'build_web_compilers|entrypoint_marker=web-hot-reload=true',
+              '--define',
+              'build_web_compilers|ddc=web-hot-reload=true',
+              '--define',
+              'build_web_compilers|ddc_modules=web-hot-reload=true',
+              '--verbose',
+            ];
+            _daemonClient = await connectClient(
+              sdkLayout.dartPath,
+              project.absolutePackageDirectory,
+              options,
+              (log) {
+                final record = log.toLogRecord();
+                final name = record.loggerName == ''
+                    ? ''
+                    : '${record.loggerName}: ';
+                _logger.log(
+                  record.level,
+                  '$name${record.message}',
+                  record.error,
+                  record.stackTrace,
+                );
+              },
+            );
+            daemonClient.registerBuildTarget(
+              DefaultBuildTarget((b) => b..target = project.directoryToServe),
+            );
+            daemonClient.startBuild();
+
+            await waitForSuccessfulBuild();
+
+            final assetServerPort = daemonPort(
+              project.absolutePackageDirectory,
+            );
+            _assetHandler = proxyHandler(
+              'http://localhost:$assetServerPort/${project.directoryToServe}/',
+              client: client,
+            );
+            assetReader = ProxyServerAssetReader(
+              assetServerPort,
+              root: project.directoryToServe,
+            );
+
+            if (testSettings.enableExpressionEvaluation) {
+              ddcService = ExpressionCompilerService(
+                'localhost',
+                port,
+                verbose: testSettings.verboseCompiler,
+                sdkConfigurationProvider: sdkConfigurationProvider,
+              );
+              expressionCompiler = ddcService;
+            }
+            frontendServerFileSystem = LocalFileSystem();
+            final packageUriMapper = await PackageUriMapper.create(
+              frontendServerFileSystem,
+              project.packageConfigFile,
+              useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
+            );
+            loadStrategy = switch ((
+              testSettings.moduleFormat,
+              buildSettings.canaryFeatures,
+            )) {
+              (ModuleFormat.ddc, true) =>
+                FrontendServerDdcLibraryBundleStrategyProvider(
+                  testSettings.reloadConfiguration,
+                  assetReader,
+                  packageUriMapper,
+                  () async => {},
+                  buildSettings,
+                  injectScriptLoad: false,
+                  reloadedSourcesUri: Uri.parse(
+                    'http://localhost:$port/${WebDevFS.reloadedSourcesFileName}',
+                  ),
+                ).strategy,
+              _ => throw Exception(
+                'Unsupported DDC module format when compiling with Frontend '
+                'Server + build_runner ${testSettings.moduleFormat.name}.',
               ),
             };
             buildResults = const Stream<BuildResults>.empty();
