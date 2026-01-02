@@ -1,6 +1,6 @@
 ## 26.2.4
 
-- Remove `package:built_value` dependency from `HotReloadRequest`, `HotReloadResponse`, `HotRestartRequest`, and `HotRestartResponse` and use standard Dart JSON serialization instead.
+- Remove `package:built_value` dependency from `HotReloadRequest`, `HotReloadResponse`, `HotRestartRequest`, `HotRestartResponse`, `ServiceExtensionRequest`, and `ServiceExtensionResponse`; switch to standard Dart JSON serialization.
 - Adding guards for dwds-injected library loading for Flutter Web.
 
 ## 26.2.3
