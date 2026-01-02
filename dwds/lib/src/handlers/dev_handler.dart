@@ -170,6 +170,8 @@ class DevHandler {
           return HotReloadResponse.fromJson(jsonData);
         case 'HotRestartResponse':
           return HotRestartResponse.fromJson(jsonData);
+        case 'ServiceExtensionResponse':
+          return ServiceExtensionResponse.fromJson(jsonData);
         default:
           // Fall through to serializers.deserialize
           break;

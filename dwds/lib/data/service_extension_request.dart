@@ -22,13 +22,10 @@ class ServiceExtensionRequest {
       ServiceExtensionRequest(
         id: json['id'] as String,
         method: json['method'] as String,
-        args: (json['args'] as Map?)?.cast<String, dynamic>() ??
+        args:
+            (json['args'] as Map?)?.cast<String, dynamic>() ??
             const <String, dynamic>{},
       );
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'method': method,
-        'args': args,
-      };
+  Map<String, dynamic> toJson() => {'id': id, 'method': method, 'args': args};
 }

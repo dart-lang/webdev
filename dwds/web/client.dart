@@ -498,19 +498,16 @@ void _sendServiceExtensionResponse(
   int? errorCode,
   Map<String, dynamic>? result,
 }) {
+  final response = ServiceExtensionResponse.fromResult(
+    id: requestId,
+    success: success,
+    errorMessage: errorMessage,
+    errorCode: errorCode,
+    result: result,
+  );
   _trySendEvent(
     clientSink,
-    jsonEncode(
-      serializers.serialize(
-        ServiceExtensionResponse.fromResult(
-          id: requestId,
-          success: success,
-          errorMessage: errorMessage,
-          errorCode: errorCode,
-          result: result,
-        ),
-      ),
-    ),
+    jsonEncode(['ServiceExtensionResponse', response.toJson()]),
   );
 }
 
