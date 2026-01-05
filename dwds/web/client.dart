@@ -333,6 +333,8 @@ Object? _deserializeEvent(dynamic decoded) {
     switch (typeName) {
       case 'ConnectRequest':
         return ConnectRequest.fromJson(jsonData);
+      case 'RunRequest':
+        return RunRequest.fromJson(jsonData);
       case 'HotReloadRequest':
         return HotReloadRequest.fromJson(jsonData);
       case 'HotRestartRequest':

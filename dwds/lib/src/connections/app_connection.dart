@@ -44,7 +44,7 @@ class AppConnection {
 
   Future<void> _runMain() async {
     await _readyToRunMain;
-    _connection.sink.add(jsonEncode(serializers.serialize(RunRequest())));
+    _connection.sink.add(jsonEncode(['RunRequest', RunRequest().toJson()]));
     _startedCompleter.complete();
   }
 
