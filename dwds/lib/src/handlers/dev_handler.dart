@@ -151,7 +151,10 @@ class DevHandler {
       RunRequest() => ['RunRequest', request.toJson()],
       HotReloadRequest() => ['HotReloadRequest', request.toJson()],
       HotRestartRequest() => ['HotRestartRequest', request.toJson()],
-      ServiceExtensionRequest() => ['ServiceExtensionRequest', request.toJson()],
+      ServiceExtensionRequest() => [
+        'ServiceExtensionRequest',
+        request.toJson(),
+      ],
       Map() => request, // Already a raw message (e.g., ping)
       _ => serializers.serialize(request),
     };
