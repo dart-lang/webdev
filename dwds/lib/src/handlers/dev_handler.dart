@@ -147,7 +147,6 @@ class DevHandler {
   Object? _serializeMessage(Object request) {
     return switch (request) {
       ConnectRequest() => ['ConnectRequest', request.toJson()],
-      RunRequest() => ['RunRequest', request.toJson()],
       HotReloadRequest() => ['HotReloadRequest', request.toJson()],
       HotRestartRequest() => ['HotRestartRequest', request.toJson()],
       ServiceExtensionRequest() => [
