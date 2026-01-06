@@ -12,7 +12,6 @@ Serializers _$serializers =
           ..add(BatchedEvents.serializer)
           ..add(BuildResult.serializer)
           ..add(BuildStatus.serializer)
-          ..add(ConnectRequest.serializer)
           ..add(DebugEvent.serializer)
           ..add(DebugInfo.serializer)
           ..add(DevToolsRequest.serializer)

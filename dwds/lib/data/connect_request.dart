@@ -2,28 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
-
-part 'connect_request.g.dart';
-
 /// A request to open DevTools.
-abstract class ConnectRequest
-    implements Built<ConnectRequest, ConnectRequestBuilder> {
-  static Serializer<ConnectRequest> get serializer =>
-      _$connectRequestSerializer;
-
-  factory ConnectRequest([Function(ConnectRequestBuilder) updates]) =
-      _$ConnectRequest;
-
-  ConnectRequest._();
-
+class ConnectRequest {
   /// Identifies a given application, across tabs/windows.
-  String get appId;
+  final String appId;
 
   /// Identifies a given instance of an application, unique per tab/window.
-  String get instanceId;
+  final String instanceId;
 
   /// The entrypoint for the Dart application.
-  String get entrypointPath;
+  final String entrypointPath;
+
+  ConnectRequest({
+    required this.appId,
+    required this.instanceId,
+    required this.entrypointPath,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'appId': appId,
+    'instanceId': instanceId,
+    'entrypointPath': entrypointPath,
+  };
+
+  factory ConnectRequest.fromJson(Map<String, dynamic> json) {
+    return ConnectRequest(
+      appId: json['appId'] as String,
+      instanceId: json['instanceId'] as String,
+      entrypointPath: json['entrypointPath'] as String,
+    );
+  }
 }

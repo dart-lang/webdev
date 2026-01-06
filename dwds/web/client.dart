@@ -331,6 +331,8 @@ Object? _deserializeEvent(dynamic decoded) {
     final typeName = decoded[0] as String;
     final jsonData = decoded[1] as Map<String, dynamic>;
     switch (typeName) {
+      case 'ConnectRequest':
+        return ConnectRequest.fromJson(jsonData);
       case 'HotReloadRequest':
         return HotReloadRequest.fromJson(jsonData);
       case 'HotRestartRequest':
@@ -346,19 +348,12 @@ Object? _deserializeEvent(dynamic decoded) {
 }
 
 void _sendConnectRequest(StreamSink clientSink) {
-  _trySendEvent(
-    clientSink,
-    jsonEncode(
-      serializers.serialize(
-        ConnectRequest(
-          (b) => b
-            ..appId = dartAppId
-            ..instanceId = dartAppInstanceId
-            ..entrypointPath = dartEntrypointPath,
-        ),
-      ),
-    ),
+  final request = ConnectRequest(
+    appId: dartAppId,
+    instanceId: dartAppInstanceId!,
+    entrypointPath: dartEntrypointPath,
   );
+  _trySendEvent(clientSink, jsonEncode(['ConnectRequest', request.toJson()]));
 }
 
 /// Returns [url] modified if necessary so that, if the current page is served

@@ -6,7 +6,6 @@ import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 
 import 'build_result.dart';
-import 'connect_request.dart';
 import 'debug_event.dart';
 import 'debug_info.dart';
 import 'devtools_request.dart';
@@ -23,7 +22,6 @@ part 'serializers.g.dart';
   BatchedEvents,
   BatchedDebugEvents,
   BuildResult,
-  ConnectRequest,
   DebugEvent,
   DebugInfo,
   DevToolsRequest,

@@ -145,17 +145,17 @@ class DevHandler {
   /// For plain Dart types (converted away from built_value), emit the
   /// wire format `[TypeName, json]`. Built_value types use `serializers`.
   Object? _serializeMessage(Object request) {
-    if (request is HotReloadRequest) {
-      return ['HotReloadRequest', request.toJson()];
-    } else if (request is HotRestartRequest) {
-      return ['HotRestartRequest', request.toJson()];
-    } else if (request is ServiceExtensionRequest) {
-      return ['ServiceExtensionRequest', request.toJson()];
-    } else if (request is Map) {
-      // Already a raw message (e.g., ping)
-      return request;
-    }
-    return serializers.serialize(request);
+    return switch (request) {
+      ConnectRequest() => ['ConnectRequest', request.toJson()],
+      HotReloadRequest() => ['HotReloadRequest', request.toJson()],
+      HotRestartRequest() => ['HotRestartRequest', request.toJson()],
+      ServiceExtensionRequest() => [
+        'ServiceExtensionRequest',
+        request.toJson(),
+      ],
+      Map() => request, // Already a raw message (e.g., ping)
+      _ => serializers.serialize(request),
+    };
   }
 
   /// Deserializes a message from JSON, handling both built_value serializers
@@ -166,6 +166,8 @@ class DevHandler {
       final jsonData = decoded[1] as Map<String, dynamic>;
 
       switch (typeName) {
+        case 'ConnectRequest':
+          return ConnectRequest.fromJson(jsonData);
         case 'HotReloadResponse':
           return HotReloadResponse.fromJson(jsonData);
         case 'HotRestartResponse':
