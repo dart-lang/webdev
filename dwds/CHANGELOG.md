@@ -1,6 +1,6 @@
 ## 26.2.4-wip
 
-- Remove `package:built_value` dependency from `ConnectRequest`, `HotReloadRequest`, `HotReloadResponse`, `HotRestartRequest`, `HotRestartResponse`, `ServiceExtensionRequest`, and `ServiceExtensionResponse`; switch to standard Dart JSON serialization.
+- Remove `package:built_value` dependency from `ConnectRequest`, `DebugInfo`, `HotReloadRequest`, `HotReloadResponse`, `HotRestartRequest`, `HotRestartResponse`, `ServiceExtensionRequest`, and `ServiceExtensionResponse`; switch to standard Dart JSON serialization.
 
 ## 26.2.3
 

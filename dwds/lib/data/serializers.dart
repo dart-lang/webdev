@@ -23,7 +23,6 @@ part 'serializers.g.dart';
   BatchedDebugEvents,
   BuildResult,
   DebugEvent,
-  DebugInfo,
   DevToolsRequest,
   DevToolsResponse,
   IsolateExit,

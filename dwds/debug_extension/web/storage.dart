@@ -15,6 +15,8 @@ import 'dart:js_util';
 // ignore: deprecated_member_use
 import 'package:js/js.dart';
 
+import 'package:dwds/data/debug_info.dart';
+
 import 'chrome_api.dart';
 import 'data_serializers.dart';
 import 'logger.dart';
@@ -49,6 +51,8 @@ Future<bool> setStorageObject<T>({
   final storageKey = _createStorageKey(type, tabId);
   final json = value is String
       ? value
+      : value is DebugInfo
+      ? jsonEncode(value.toJson())
       : jsonEncode(serializers.serialize(value));
   final storageObj = <String, String>{storageKey: json};
   final completer = Completer<bool>();
@@ -86,6 +90,10 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
         debugLog('Fetched: $json', prefix: storageKey);
         if (T == String) {
           completer.complete(json as T);
+        } else if (T == DebugInfo) {
+          final value =
+              DebugInfo.fromJson(jsonDecode(json) as Map<String, dynamic>) as T;
+          completer.complete(value);
         } else {
           final value = serializers.deserialize(jsonDecode(json)) as T;
           completer.complete(value);
@@ -115,6 +123,10 @@ Future<List<T>> fetchAllStorageObjectsOfType<T>({required StorageObject type}) {
         if (json != null) {
           if (T == String) {
             result.add(json as T);
+          } else if (T == DebugInfo) {
+            result.add(
+              DebugInfo.fromJson(jsonDecode(json) as Map<String, dynamic>) as T,
+            );
           } else {
             result.add(serializers.deserialize(jsonDecode(json)) as T);
           }
@@ -156,6 +168,9 @@ void interceptStorageChange<T>({
     T? decodedObj;
     if (json == null || T == String) {
       decodedObj = json as T?;
+    } else if (T == DebugInfo) {
+      decodedObj =
+          DebugInfo.fromJson(jsonDecode(json) as Map<String, dynamic>) as T?;
     } else {
       decodedObj = serializers.deserialize(jsonDecode(json)) as T?;
     }

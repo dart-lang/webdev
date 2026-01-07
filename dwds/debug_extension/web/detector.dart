@@ -131,9 +131,10 @@ Future<void> _sendMessageToBackgroundScript({
 }
 
 void _sendAuthRequest(String debugInfoJson) {
-  final debugInfo =
-      serializers.deserialize(jsonDecode(debugInfoJson)) as DebugInfo?;
-  final appOrigin = debugInfo?.appOrigin;
+  final debugInfo = DebugInfo.fromJson(
+    jsonDecode(debugInfoJson) as Map<String, dynamic>,
+  );
+  final appOrigin = debugInfo.appOrigin;
   if (appOrigin != null) {
     window.postMessage('dart-auth-request', appOrigin);
   }
