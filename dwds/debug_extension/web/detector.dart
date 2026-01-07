@@ -19,7 +19,6 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
-import 'data_serializers.dart';
 import 'logger.dart';
 import 'messaging.dart';
 
