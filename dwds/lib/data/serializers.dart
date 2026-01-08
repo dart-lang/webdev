@@ -33,6 +33,5 @@ part 'serializers.g.dart';
   ExtensionEvent,
   ErrorResponse,
   RegisterEvent,
-  RunRequest,
 ])
 final Serializers serializers = _$serializers;

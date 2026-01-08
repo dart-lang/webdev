@@ -19,6 +19,7 @@ import 'package:dwds/data/hot_restart_request.dart';
 import 'package:dwds/data/hot_restart_response.dart';
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/register_event.dart';
+import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/data/service_extension_request.dart';
 import 'package:dwds/data/service_extension_response.dart';
@@ -147,6 +148,7 @@ class DevHandler {
   Object? _serializeMessage(Object request) {
     return switch (request) {
       ConnectRequest() => ['ConnectRequest', request.toJson()],
+      RunRequest() => ['RunRequest', request.toJson()],
       HotReloadRequest() => ['HotReloadRequest', request.toJson()],
       HotRestartRequest() => ['HotRestartRequest', request.toJson()],
       ServiceExtensionRequest() => [
@@ -168,6 +170,8 @@ class DevHandler {
       switch (typeName) {
         case 'ConnectRequest':
           return ConnectRequest.fromJson(jsonData);
+        case 'RunRequest':
+          return RunRequest.fromJson(jsonData);
         case 'HotReloadResponse':
           return HotReloadResponse.fromJson(jsonData);
         case 'HotRestartResponse':
