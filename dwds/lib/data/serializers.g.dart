@@ -22,7 +22,6 @@ Serializers _$serializers =
           ..add(IsolateExit.serializer)
           ..add(IsolateStart.serializer)
           ..add(RegisterEvent.serializer)
-          ..add(RunRequest.serializer)
           ..addBuilderFactory(
             const FullType(BuiltList, const [const FullType(DebugEvent)]),
             () => ListBuilder<DebugEvent>(),
