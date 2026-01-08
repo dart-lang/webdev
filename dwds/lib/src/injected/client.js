@@ -9895,7 +9895,7 @@
         A._sendConnectRequest(clientSink);
       A._asJSObject(t1.window).addEventListener("message", A._functionToJS1(A.client___handleAuthRequest$closure()));
       t2 = type$.JavaScriptObject;
-      A._dispatchEvent("dart-app-ready", B.C_JsonCodec.encode$2$toEncodable(new A.DebugInfo(A._asString(t1.$dartEntrypointPath), A._asStringQ(t2._as(t1.window).$dartAppId), A._asStringQ(t1.$dartAppInstanceId), A._asString(A._asJSObject(A._asJSObject(t1.window).location).origin), A._asString(A._asJSObject(A._asJSObject(t1.window).location).href), A._authUrl(), A._asStringQ(t2._as(t1.window).$dartExtensionUri), A._asBoolQ(t2._as(t1.window).$isInternalBuild), A._asBoolQ(t2._as(t1.window).$isFlutterApp), A._asStringQ(t1.$dartWorkspaceName)).toJson$0(), null));
+      A._dispatchEvent("dart-app-ready", B.C_JsonCodec.encode$2$toEncodable(new A.DebugInfo(A._asString(t1.$dartEntrypointPath), A._asStringQ(t2._as(t1.window).$dartAppId), A._asStringQ(t1.$dartAppInstanceId), A._asString(A._asJSObject(A._asJSObject(t1.window).location).origin), A._asString(A._asJSObject(A._asJSObject(t1.window).location).href), A._authUrl(), A._asStringQ(t2._as(t1.window).$dartExtensionUri), A._asBoolQ(t2._as(t1.window).$isInternalBuild), A._asBoolQ(t2._as(t1.window).$isFlutterApp), A._asStringQ(t1.$dartWorkspaceName)), null));
     },
     _trySendEvent(sink, serialized, $T) {
       var exception;

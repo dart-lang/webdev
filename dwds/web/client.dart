@@ -393,7 +393,7 @@ void _launchCommunicationWithDebugExtension() {
       isInternalBuild: windowContext.$isInternalBuild,
       isFlutterApp: windowContext.$isFlutterApp,
       workspaceName: dartWorkspaceName,
-    ).toJson(),
+    ),
   );
   _dispatchEvent('dart-app-ready', debugInfoJson);
 }

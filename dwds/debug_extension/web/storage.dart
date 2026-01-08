@@ -51,7 +51,7 @@ Future<bool> setStorageObject<T>({
   final json = value is String
       ? value
       : value is DebugInfo
-      ? jsonEncode(value.toJson())
+      ? jsonEncode(value)
       : jsonEncode(serializers.serialize(value));
   final storageObj = <String, String>{storageKey: json};
   final completer = Completer<bool>();
