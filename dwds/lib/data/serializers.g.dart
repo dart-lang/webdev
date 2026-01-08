@@ -13,7 +13,6 @@ Serializers _$serializers =
           ..add(BuildResult.serializer)
           ..add(BuildStatus.serializer)
           ..add(DebugEvent.serializer)
-          ..add(DebugInfo.serializer)
           ..add(DevToolsRequest.serializer)
           ..add(DevToolsResponse.serializer)
           ..add(ErrorResponse.serializer)

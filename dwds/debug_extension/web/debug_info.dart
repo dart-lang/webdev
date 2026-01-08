@@ -14,7 +14,6 @@ import 'dart:html';
 import 'dart:js';
 
 import 'package:dwds/data/debug_info.dart';
-import 'package:dwds/data/serializers.dart';
 // TODO: https://github.com/dart-lang/webdev/issues/2508
 // ignore: deprecated_member_use
 import 'package:js/js.dart';
@@ -28,18 +27,15 @@ String _readDartDebugInfo() {
   final windowContext = JsObject.fromBrowserObject(window);
 
   return jsonEncode(
-    serializers.serialize(
-      DebugInfo(
-        (b) => b
-          ..appEntrypointPath = windowContext['\$dartEntrypointPath'] as String?
-          ..appId = windowContext['\$dartAppId'] as String?
-          ..appInstanceId = windowContext['\$dartAppInstanceId'] as String?
-          ..appOrigin = window.location.origin
-          ..appUrl = window.location.href
-          ..extensionUrl = windowContext['\$dartExtensionUri'] as String?
-          ..isInternalBuild = windowContext['\$isInternalBuild'] as bool?
-          ..isFlutterApp = windowContext['\$isFlutterApp'] as bool?,
-      ),
+    DebugInfo(
+      appEntrypointPath: windowContext['\$dartEntrypointPath'] as String?,
+      appId: windowContext['\$dartAppId'] as String?,
+      appInstanceId: windowContext['\$dartAppInstanceId'] as String?,
+      appOrigin: window.location.origin,
+      appUrl: window.location.href,
+      extensionUrl: windowContext['\$dartExtensionUri'] as String?,
+      isInternalBuild: windowContext['\$isInternalBuild'] as bool?,
+      isFlutterApp: windowContext['\$isFlutterApp'] as bool?,
     ),
   );
 }

@@ -384,20 +384,17 @@ void _launchCommunicationWithDebugExtension() {
   // Send the dart-app-ready event along with debug info to the Dart Debug
   // Extension so that it can debug the Dart app:
   final debugInfoJson = jsonEncode(
-    serializers.serialize(
-      DebugInfo(
-        (b) => b
-          ..appEntrypointPath = dartEntrypointPath
-          ..appId = windowContext.$dartAppId
-          ..appInstanceId = dartAppInstanceId
-          ..appOrigin = window.location.origin
-          ..appUrl = window.location.href
-          ..authUrl = _authUrl
-          ..extensionUrl = windowContext.$dartExtensionUri
-          ..isInternalBuild = windowContext.$isInternalBuild
-          ..isFlutterApp = windowContext.$isFlutterApp
-          ..workspaceName = dartWorkspaceName,
-      ),
+    DebugInfo(
+      appEntrypointPath: dartEntrypointPath,
+      appId: windowContext.$dartAppId,
+      appInstanceId: dartAppInstanceId,
+      appOrigin: window.location.origin,
+      appUrl: window.location.href,
+      authUrl: _authUrl,
+      extensionUrl: windowContext.$dartExtensionUri,
+      isInternalBuild: windowContext.$isInternalBuild,
+      isFlutterApp: windowContext.$isFlutterApp,
+      workspaceName: dartWorkspaceName,
     ),
   );
   _dispatchEvent('dart-app-ready', debugInfoJson);

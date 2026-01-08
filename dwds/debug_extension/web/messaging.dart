@@ -11,6 +11,7 @@ import 'dart:convert';
 // ignore: deprecated_member_use
 import 'dart:js_util';
 
+import 'package:dwds/data/debug_info.dart';
 // TODO: https://github.com/dart-lang/webdev/issues/2508
 // ignore: deprecated_member_use
 import 'package:js/js.dart';
@@ -110,6 +111,13 @@ void interceptMessage<T>({
     }
     if (T == String) {
       messageHandler(decodedMessage.body as T);
+    } else if (T == DebugInfo) {
+      messageHandler(
+        DebugInfo.fromJson(
+              jsonDecode(decodedMessage.body) as Map<String, dynamic>,
+            )
+            as T,
+      );
     } else {
       messageHandler(
         serializers.deserialize(jsonDecode(decodedMessage.body)) as T,
