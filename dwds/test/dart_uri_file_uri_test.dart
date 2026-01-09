@@ -28,24 +28,23 @@ void main() {
 
   final context = TestContext(testPackageProject, provider);
 
-  for (final compilationMode in CompilationMode.values) {
+  for (final compilationMode in CompilationMode.values.where(
+    (mode) => !mode.usesDdcModulesOnly,
+  )) {
     group('$compilationMode |', () {
       for (final useDebuggerModuleNames in [false, true]) {
         group('Debugger module names: $useDebuggerModuleNames |', () {
-          final appServerPath =
-              compilationMode == CompilationMode.frontendServer
+          final appServerPath = compilationMode.usesFrontendServer
               ? 'web/main.dart'
               : 'main.dart';
 
           final serverPath =
-              compilationMode == CompilationMode.frontendServer &&
-                  useDebuggerModuleNames
+              compilationMode.usesFrontendServer && useDebuggerModuleNames
               ? 'packages/${testPackageProject.packageDirectory}/lib/test_library.dart'
               : 'packages/${testPackageProject.packageName}/test_library.dart';
 
           final anotherServerPath =
-              compilationMode == CompilationMode.frontendServer &&
-                  useDebuggerModuleNames
+              compilationMode.usesFrontendServer && useDebuggerModuleNames
               ? 'packages/${testProject.packageDirectory}/lib/library.dart'
               : 'packages/${testProject.packageName}/library.dart';
 

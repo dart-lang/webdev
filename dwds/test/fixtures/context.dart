@@ -63,9 +63,19 @@ Matcher isRPCErrorWithCode(int code) =>
 Matcher throwsRPCErrorWithCode(int code) => throwsA(isRPCErrorWithCode(code));
 
 enum CompilationMode {
-  buildDaemon,
-  frontendServer,
-  buildDaemonAndFrontendServer,
+  buildDaemon(false, true, false),
+  frontendServer(true, false, false),
+  buildDaemonAndFrontendServer(true, true, true);
+
+  final bool usesFrontendServer;
+  final bool usesBuildDaemon;
+  final bool usesDdcModulesOnly;
+
+  const CompilationMode(
+    this.usesFrontendServer,
+    this.usesBuildDaemon,
+    this.usesDdcModulesOnly,
+  );
 }
 
 class TestContext {
@@ -422,6 +432,8 @@ class TestContext {
               'build_web_compilers|entrypoint=web-hot-reload=true',
               '--define',
               'build_web_compilers|entrypoint_marker=web-hot-reload=true',
+              '--define',
+              'build_web_compilers|entrypoint_marker=web-assets-path=${project.webAssetsPath}',
               '--define',
               'build_web_compilers|ddc=web-hot-reload=true',
               '--define',
