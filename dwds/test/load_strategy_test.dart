@@ -139,7 +139,9 @@ void main() {
 
     final context = TestContext(project, provider);
 
-    for (final compilationMode in CompilationMode.values) {
+    for (final compilationMode in CompilationMode.values.where(
+      (mode) => !mode.usesDdcModulesOnly,
+    )) {
       group('compiled with ${compilationMode.name}', () {
         setUpAll(() async {
           await context.setUp(
