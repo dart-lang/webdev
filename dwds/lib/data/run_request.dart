@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+/// A request to run the application's main method.
+class RunRequest {
+  RunRequest();
 
-part 'run_request.g.dart';
+  Map<String, dynamic> toJson() => {};
 
-abstract class RunRequest implements Built<RunRequest, RunRequestBuilder> {
-  static Serializer<RunRequest> get serializer => _$runRequestSerializer;
-
-  factory RunRequest([Function(RunRequestBuilder) updates]) = _$RunRequest;
-
-  RunRequest._();
+  factory RunRequest.fromJson(Map<String, dynamic> json) {
+    return RunRequest();
+  }
 }

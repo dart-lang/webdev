@@ -12,9 +12,7 @@ Serializers _$serializers =
           ..add(BatchedEvents.serializer)
           ..add(BuildResult.serializer)
           ..add(BuildStatus.serializer)
-          ..add(ConnectRequest.serializer)
           ..add(DebugEvent.serializer)
-          ..add(DebugInfo.serializer)
           ..add(DevToolsRequest.serializer)
           ..add(DevToolsResponse.serializer)
           ..add(ErrorResponse.serializer)
@@ -24,7 +22,6 @@ Serializers _$serializers =
           ..add(IsolateExit.serializer)
           ..add(IsolateStart.serializer)
           ..add(RegisterEvent.serializer)
-          ..add(RunRequest.serializer)
           ..addBuilderFactory(
             const FullType(BuiltList, const [const FullType(DebugEvent)]),
             () => ListBuilder<DebugEvent>(),

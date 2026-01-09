@@ -19,7 +19,6 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
-import 'data_serializers.dart';
 import 'logger.dart';
 import 'messaging.dart';
 
@@ -131,9 +130,10 @@ Future<void> _sendMessageToBackgroundScript({
 }
 
 void _sendAuthRequest(String debugInfoJson) {
-  final debugInfo =
-      serializers.deserialize(jsonDecode(debugInfoJson)) as DebugInfo?;
-  final appOrigin = debugInfo?.appOrigin;
+  final debugInfo = DebugInfo.fromJson(
+    jsonDecode(debugInfoJson) as Map<String, dynamic>,
+  );
+  final appOrigin = debugInfo.appOrigin;
   if (appOrigin != null) {
     window.postMessage('dart-auth-request', appOrigin);
   }

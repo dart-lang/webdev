@@ -331,6 +331,10 @@ Object? _deserializeEvent(dynamic decoded) {
     final typeName = decoded[0] as String;
     final jsonData = decoded[1] as Map<String, dynamic>;
     switch (typeName) {
+      case 'ConnectRequest':
+        return ConnectRequest.fromJson(jsonData);
+      case 'RunRequest':
+        return RunRequest.fromJson(jsonData);
       case 'HotReloadRequest':
         return HotReloadRequest.fromJson(jsonData);
       case 'HotRestartRequest':
@@ -346,19 +350,12 @@ Object? _deserializeEvent(dynamic decoded) {
 }
 
 void _sendConnectRequest(StreamSink clientSink) {
-  _trySendEvent(
-    clientSink,
-    jsonEncode(
-      serializers.serialize(
-        ConnectRequest(
-          (b) => b
-            ..appId = dartAppId
-            ..instanceId = dartAppInstanceId
-            ..entrypointPath = dartEntrypointPath,
-        ),
-      ),
-    ),
+  final request = ConnectRequest(
+    appId: dartAppId,
+    instanceId: dartAppInstanceId!,
+    entrypointPath: dartEntrypointPath,
   );
+  _trySendEvent(clientSink, jsonEncode(['ConnectRequest', request.toJson()]));
 }
 
 /// Returns [url] modified if necessary so that, if the current page is served
@@ -387,20 +384,17 @@ void _launchCommunicationWithDebugExtension() {
   // Send the dart-app-ready event along with debug info to the Dart Debug
   // Extension so that it can debug the Dart app:
   final debugInfoJson = jsonEncode(
-    serializers.serialize(
-      DebugInfo(
-        (b) => b
-          ..appEntrypointPath = dartEntrypointPath
-          ..appId = windowContext.$dartAppId
-          ..appInstanceId = dartAppInstanceId
-          ..appOrigin = window.location.origin
-          ..appUrl = window.location.href
-          ..authUrl = _authUrl
-          ..extensionUrl = windowContext.$dartExtensionUri
-          ..isInternalBuild = windowContext.$isInternalBuild
-          ..isFlutterApp = windowContext.$isFlutterApp
-          ..workspaceName = dartWorkspaceName,
-      ),
+    DebugInfo(
+      appEntrypointPath: dartEntrypointPath,
+      appId: windowContext.$dartAppId,
+      appInstanceId: dartAppInstanceId,
+      appOrigin: window.location.origin,
+      appUrl: window.location.href,
+      authUrl: _authUrl,
+      extensionUrl: windowContext.$dartExtensionUri,
+      isInternalBuild: windowContext.$isInternalBuild,
+      isFlutterApp: windowContext.$isFlutterApp,
+      workspaceName: dartWorkspaceName,
     ),
   );
   _dispatchEvent('dart-app-ready', debugInfoJson);

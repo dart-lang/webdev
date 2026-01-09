@@ -8,7 +8,6 @@ import 'dart:convert';
 import 'package:dwds/data/connect_request.dart';
 import 'package:dwds/data/hot_restart_request.dart';
 import 'package:dwds/data/run_request.dart';
-import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/utilities/shared.dart';
 
@@ -44,7 +43,7 @@ class AppConnection {
 
   Future<void> _runMain() async {
     await _readyToRunMain;
-    _connection.sink.add(jsonEncode(serializers.serialize(RunRequest())));
+    _connection.sink.add(jsonEncode(['RunRequest', RunRequest().toJson()]));
     _startedCompleter.complete();
   }
 
