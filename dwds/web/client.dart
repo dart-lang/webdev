@@ -336,6 +336,8 @@ Object? _deserializeEvent(dynamic decoded) {
         return HotRestartRequest.fromJson(jsonData);
       case 'ServiceExtensionRequest':
         return ServiceExtensionRequest.fromJson(jsonData);
+      case 'BuildResult':
+        return BuildResult.fromJson(jsonData);
       default:
         // Fall back to built_value serializers
         break;
