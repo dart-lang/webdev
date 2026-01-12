@@ -138,7 +138,7 @@ class DevHandler {
   void _emitBuildResults(BuildResult result) {
     if (result.status != BuildStatus.succeeded) return;
     for (final injectedConnection in _injectedConnections) {
-      injectedConnection.sink.add(jsonEncode(serializers.serialize(result)));
+      injectedConnection.sink.add(jsonEncode(_serializeMessage(result)));
     }
   }
 
@@ -155,6 +155,7 @@ class DevHandler {
         'ServiceExtensionRequest',
         request.toJson(),
       ],
+      BuildResult() => ['BuildResult', request.toJson()],
       Map() => request, // Already a raw message (e.g., ping)
       _ => serializers.serialize(request),
     };

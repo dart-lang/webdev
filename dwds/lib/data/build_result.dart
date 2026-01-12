@@ -2,30 +2,46 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:built_collection/built_collection.dart';
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+enum BuildStatus {
+  started,
+  succeeded,
+  failed;
 
-part 'build_result.g.dart';
+  factory BuildStatus.fromJson(String json) {
+    return BuildStatus.values.firstWhere(
+      (e) => e.name == json,
+      orElse: () {
+        throw ArgumentError('Unknown BuildStatus: $json');
+      },
+    );
+  }
 
-class BuildStatus extends EnumClass {
-  static const BuildStatus started = _$started;
-  static const BuildStatus succeeded = _$succeeded;
-  static const BuildStatus failed = _$failed;
-
-  static Serializer<BuildStatus> get serializer => _$buildStatusSerializer;
-
-  const BuildStatus._(String name) : super(name);
-  static BuildStatus valueOf(String name) => _$valueOf(name);
-  static BuiltSet<BuildStatus> get values => _$values;
+  String toJson() => name;
 }
 
-abstract class BuildResult implements Built<BuildResult, BuildResultBuilder> {
-  static Serializer<BuildResult> get serializer => _$buildResultSerializer;
+class BuildResult {
+  final BuildStatus status;
 
-  BuildStatus get status;
+  BuildResult({required this.status});
 
-  factory BuildResult([void Function(BuildResultBuilder) b]) = _$BuildResult;
+  factory BuildResult.fromJson(Map<String, dynamic> json) {
+    return BuildResult(status: BuildStatus.fromJson(json['status'] as String));
+  }
 
-  BuildResult._();
+  Map<String, dynamic> toJson() {
+    return {'status': status.toJson()};
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BuildResult &&
+          runtimeType == other.runtimeType &&
+          status == other.status;
+
+  @override
+  int get hashCode => status.hashCode;
+
+  @override
+  String toString() => 'BuildResult(status: $status)';
 }

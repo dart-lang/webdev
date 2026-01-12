@@ -10,8 +10,6 @@ Serializers _$serializers =
     (Serializers().toBuilder()
           ..add(BatchedDebugEvents.serializer)
           ..add(BatchedEvents.serializer)
-          ..add(BuildResult.serializer)
-          ..add(BuildStatus.serializer)
           ..add(DebugEvent.serializer)
           ..add(DevToolsRequest.serializer)
           ..add(DevToolsResponse.serializer)
