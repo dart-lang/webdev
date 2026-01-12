@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
 
-import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/data/connect_request.dart';
 import 'package:dwds/data/debug_event.dart';
@@ -137,13 +136,10 @@ Future<void>? main() {
         if (dartEmitDebugEvents) {
           _trySendEvent(
             client.sink,
-            jsonEncode(
-              serializers.serialize(
-                BatchedDebugEvents(
-                  (b) => b.events = ListBuilder<DebugEvent>(events),
-                ),
-              ),
-            ),
+            jsonEncode([
+              'BatchedDebugEvents',
+              BatchedDebugEvents(events: events).toJson(),
+            ]),
           );
         }
       });
@@ -153,10 +149,9 @@ Future<void>? main() {
           _trySendEvent(
             debugEventController.sink,
             DebugEvent(
-              (b) => b
-                ..timestamp = (DateTime.now().millisecondsSinceEpoch)
-                ..kind = kind
-                ..eventData = eventData,
+              kind: kind,
+              eventData: eventData,
+              timestamp: DateTime.now().millisecondsSinceEpoch,
             ),
           );
         }

@@ -155,6 +155,8 @@ class DevHandler {
         'ServiceExtensionRequest',
         request.toJson(),
       ],
+      DebugEvent() => ['DebugEvent', request.toJson()],
+      BatchedDebugEvents() => ['BatchedDebugEvents', request.toJson()],
       Map() => request, // Already a raw message (e.g., ping)
       _ => serializers.serialize(request),
     };
@@ -176,6 +178,10 @@ class DevHandler {
           return HotReloadResponse.fromJson(jsonData);
         case 'HotRestartResponse':
           return HotRestartResponse.fromJson(jsonData);
+        case 'DebugEvent':
+          return DebugEvent.fromJson(jsonData);
+        case 'BatchedDebugEvents':
+          return BatchedDebugEvents.fromJson(jsonData);
         case 'ServiceExtensionResponse':
           return ServiceExtensionResponse.fromJson(jsonData);
         default:
