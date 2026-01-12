@@ -5,7 +5,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 
-import 'debug_event.dart';
 import 'debug_info.dart';
 import 'devtools_request.dart';
 import 'error_response.dart';
@@ -19,8 +18,6 @@ part 'serializers.g.dart';
 /// Serializers for all the types used in DWDS communication.
 @SerializersFor([
   BatchedEvents,
-  BatchedDebugEvents,
-  DebugEvent,
   DevToolsRequest,
   DevToolsResponse,
   IsolateExit,
