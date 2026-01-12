@@ -2,36 +2,83 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:built_collection/built_collection.dart';
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+class DebugEvent {
+  final String kind;
+  final String eventData;
+  final int timestamp;
 
-part 'debug_event.g.dart';
+  DebugEvent({
+    required this.kind,
+    required this.eventData,
+    required this.timestamp,
+  });
 
-abstract class DebugEvent implements Built<DebugEvent, DebugEventBuilder> {
-  static Serializer<DebugEvent> get serializer => _$debugEventSerializer;
+  factory DebugEvent.fromJson(Map<String, dynamic> json) {
+    return DebugEvent(
+      kind: json['kind'] as String,
+      eventData: json['eventData'] as String,
+      timestamp: json['timestamp'] as int,
+    );
+  }
 
-  factory DebugEvent([Function(DebugEventBuilder) updates]) = _$DebugEvent;
+  Map<String, dynamic> toJson() {
+    return {'kind': kind, 'eventData': eventData, 'timestamp': timestamp};
+  }
 
-  DebugEvent._();
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DebugEvent &&
+          runtimeType == other.runtimeType &&
+          kind == other.kind &&
+          eventData == other.eventData &&
+          timestamp == other.timestamp;
 
-  String get kind;
+  @override
+  int get hashCode => Object.hash(kind, eventData, timestamp);
 
-  String get eventData;
-
-  int get timestamp;
+  @override
+  String toString() =>
+      'DebugEvent(kind: $kind, eventData: $eventData, timestamp: $timestamp)';
 }
 
 /// A batched group of events, currently always Debugger.scriptParsed
-abstract class BatchedDebugEvents
-    implements Built<BatchedDebugEvents, BatchedDebugEventsBuilder> {
-  static Serializer<BatchedDebugEvents> get serializer =>
-      _$batchedDebugEventsSerializer;
+class BatchedDebugEvents {
+  final List<DebugEvent> events;
 
-  factory BatchedDebugEvents([Function(BatchedDebugEventsBuilder) updates]) =
-      _$BatchedDebugEvents;
+  BatchedDebugEvents({required this.events});
 
-  BatchedDebugEvents._();
+  factory BatchedDebugEvents.fromJson(Map<String, dynamic> json) {
+    return BatchedDebugEvents(
+      events: (json['events'] as List)
+          .map((e) => DebugEvent.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
 
-  BuiltList<DebugEvent> get events;
+  Map<String, dynamic> toJson() {
+    return {'events': events.map((e) => e.toJson()).toList()};
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BatchedDebugEvents &&
+          runtimeType == other.runtimeType &&
+          _listEquals(events, other.events);
+
+  @override
+  int get hashCode => Object.hashAll(events);
+
+  @override
+  String toString() => 'BatchedDebugEvents(events: $events)';
+}
+
+bool _listEquals<T>(List<T>? a, List<T>? b) {
+  if (a == null) return b == null;
+  if (b == null || a.length != b.length) return false;
+  for (int i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }
