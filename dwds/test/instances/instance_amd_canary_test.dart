@@ -27,7 +27,9 @@ void main() {
     );
     tearDownAll(provider.dispose);
 
-    for (final compilationMode in CompilationMode.values) {
+    for (final compilationMode in CompilationMode.values.where(
+      (mode) => !mode.usesDdcModulesOnly,
+    )) {
       runTypeSystemVerificationTests(
         provider: provider,
         compilationMode: compilationMode,
