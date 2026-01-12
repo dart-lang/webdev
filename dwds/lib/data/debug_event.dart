@@ -22,11 +22,7 @@ class DebugEvent {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'kind': kind,
-      'eventData': eventData,
-      'timestamp': timestamp,
-    };
+    return {'kind': kind, 'eventData': eventData, 'timestamp': timestamp};
   }
 
   @override
@@ -61,9 +57,7 @@ class BatchedDebugEvents {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'events': events.map((e) => e.toJson()).toList(),
-    };
+    return {'events': events.map((e) => e.toJson()).toList()};
   }
 
   @override
@@ -88,4 +82,3 @@ bool _listEquals<T>(List<T>? a, List<T>? b) {
   }
   return true;
 }
-
