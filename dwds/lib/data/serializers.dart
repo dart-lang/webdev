@@ -9,7 +9,6 @@ import 'debug_info.dart';
 import 'devtools_request.dart';
 import 'extension_request.dart';
 import 'isolate_events.dart';
-import 'register_event.dart';
 import 'run_request.dart';
 
 part 'serializers.g.dart';
@@ -24,6 +23,5 @@ part 'serializers.g.dart';
   ExtensionRequest,
   ExtensionResponse,
   ExtensionEvent,
-  RegisterEvent,
 ])
 final Serializers serializers = _$serializers;
