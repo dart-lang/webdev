@@ -6,10 +6,7 @@ class ErrorResponse {
   final String error;
   final String stackTrace;
 
-  ErrorResponse({
-    required this.error,
-    required this.stackTrace,
-  });
+  ErrorResponse({required this.error, required this.stackTrace});
 
   factory ErrorResponse.fromJson(Map<String, dynamic> json) {
     return ErrorResponse(
@@ -19,10 +16,7 @@ class ErrorResponse {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'error': error,
-      'stackTrace': stackTrace,
-    };
+    return {'error': error, 'stackTrace': stackTrace};
   }
 
   @override
@@ -37,6 +31,5 @@ class ErrorResponse {
   int get hashCode => Object.hash(error, stackTrace);
 
   @override
-  String toString() =>
-      'ErrorResponse(error: $error, stackTrace: $stackTrace)';
+  String toString() => 'ErrorResponse(error: $error, stackTrace: $stackTrace)';
 }
