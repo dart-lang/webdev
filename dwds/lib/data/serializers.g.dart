@@ -11,7 +11,6 @@ Serializers _$serializers =
           ..add(BatchedEvents.serializer)
           ..add(DevToolsRequest.serializer)
           ..add(DevToolsResponse.serializer)
-          ..add(ErrorResponse.serializer)
           ..add(ExtensionEvent.serializer)
           ..add(ExtensionRequest.serializer)
           ..add(ExtensionResponse.serializer)

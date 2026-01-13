@@ -1,3 +1,6 @@
+## 26.2.5-wip
+- Remove `package:built_value` dependency from `ErrorResponse`; switch to standard Dart JSON serialization.
+
 ## 26.2.4
 - Remove `package:built_value` dependency from `DebugEvent`, `BatchedDebugEvents`, `ConnectRequest`, `RunRequest`, `DebugInfo`, `HotReloadRequest`, `HotReloadResponse`, `HotRestartRequest`, `HotRestartResponse`, `ServiceExtensionRequest`, `ServiceExtensionResponse` and `BuildResult`; switch to standard Dart JSON serialization.
 - Adding guards for dwds-injected library loading for Flutter Web.

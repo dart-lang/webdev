@@ -158,6 +158,7 @@ class DevHandler {
       BuildResult() => ['BuildResult', request.toJson()],
       DebugEvent() => ['DebugEvent', request.toJson()],
       BatchedDebugEvents() => ['BatchedDebugEvents', request.toJson()],
+      ErrorResponse() => ['ErrorResponse', request.toJson()],
       Map() => request, // Already a raw message (e.g., ping)
       _ => serializers.serialize(request),
     };
@@ -185,6 +186,8 @@ class DevHandler {
           return BatchedDebugEvents.fromJson(jsonData);
         case 'ServiceExtensionResponse':
           return ServiceExtensionResponse.fromJson(jsonData);
+        case 'ErrorResponse':
+          return ErrorResponse.fromJson(jsonData);
         default:
           // Fall through to serializers.deserialize
           break;
@@ -420,11 +423,10 @@ class DevHandler {
         try {
           injectedConnection.sink.add(
             jsonEncode(
-              serializers.serialize(
+              _serializeMessage(
                 ErrorResponse(
-                  (b) => b
-                    ..error = '$e'
-                    ..stackTrace = '$s',
+                  error: '$e',
+                  stackTrace: '$s',
                 ),
               ),
             ),

@@ -2,21 +2,41 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+class ErrorResponse {
+  final String error;
+  final String stackTrace;
 
-part 'error_response.g.dart';
+  ErrorResponse({
+    required this.error,
+    required this.stackTrace,
+  });
 
-abstract class ErrorResponse
-    implements Built<ErrorResponse, ErrorResponseBuilder> {
-  static Serializer<ErrorResponse> get serializer => _$errorResponseSerializer;
+  factory ErrorResponse.fromJson(Map<String, dynamic> json) {
+    return ErrorResponse(
+      error: json['error'] as String,
+      stackTrace: json['stackTrace'] as String,
+    );
+  }
 
-  factory ErrorResponse([Function(ErrorResponseBuilder) updates]) =
-      _$ErrorResponse;
+  Map<String, dynamic> toJson() {
+    return {
+      'error': error,
+      'stackTrace': stackTrace,
+    };
+  }
 
-  ErrorResponse._();
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ErrorResponse &&
+        other.error == error &&
+        other.stackTrace == stackTrace;
+  }
 
-  String get error;
+  @override
+  int get hashCode => Object.hash(error, stackTrace);
 
-  String get stackTrace;
+  @override
+  String toString() =>
+      'ErrorResponse(error: $error, stackTrace: $stackTrace)';
 }

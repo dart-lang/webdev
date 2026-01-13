@@ -164,8 +164,8 @@ Future<void>? main() {
             serializers.serialize(
               RegisterEvent(
                 (b) => b
-                  ..timestamp = (DateTime.now().millisecondsSinceEpoch)
-                  ..eventData = eventData,
+                  ..eventData = eventData
+                  ..timestamp = DateTime.now().millisecondsSinceEpoch,
               ),
             ),
           ),
@@ -338,6 +338,8 @@ Object? _deserializeEvent(dynamic decoded) {
         return ServiceExtensionRequest.fromJson(jsonData);
       case 'BuildResult':
         return BuildResult.fromJson(jsonData);
+      case 'ErrorResponse':
+        return ErrorResponse.fromJson(jsonData);
       default:
         // Fall back to built_value serializers
         break;
