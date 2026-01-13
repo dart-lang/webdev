@@ -164,8 +164,8 @@ Future<void>? main() {
             serializers.serialize(
               RegisterEvent(
                 (b) => b
-                  ..eventData = eventData
-                  ..timestamp = DateTime.now().millisecondsSinceEpoch,
+                  ..timestamp = (DateTime.now().millisecondsSinceEpoch)
+                  ..eventData = eventData,
               ),
             ),
           ),

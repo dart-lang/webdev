@@ -26957,10 +26957,9 @@
   };
   A.main___closure0.prototype = {
     call$1(b) {
-      var t1;
-      b.get$_register_event$_$this()._eventData = this.eventData;
-      t1 = Date.now();
+      var t1 = Date.now();
       b.get$_register_event$_$this()._timestamp = t1;
+      b.get$_register_event$_$this()._eventData = this.eventData;
       return b;
     },
     $signature: 78
