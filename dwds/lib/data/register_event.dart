@@ -2,21 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+class RegisterEvent {
+  final String eventData;
+  final int timestamp;
 
-part 'register_event.g.dart';
+  RegisterEvent({required this.eventData, required this.timestamp});
 
-abstract class RegisterEvent
-    implements Built<RegisterEvent, RegisterEventBuilder> {
-  static Serializer<RegisterEvent> get serializer => _$registerEventSerializer;
+  factory RegisterEvent.fromJson(Map<String, dynamic> json) {
+    return RegisterEvent(
+      eventData: json['eventData'] as String,
+      timestamp: json['timestamp'] as int,
+    );
+  }
 
-  factory RegisterEvent([Function(RegisterEventBuilder) updates]) =
-      _$RegisterEvent;
+  Map<String, dynamic> toJson() {
+    return {'eventData': eventData, 'timestamp': timestamp};
+  }
 
-  RegisterEvent._();
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is RegisterEvent &&
+        other.eventData == eventData &&
+        other.timestamp == timestamp;
+  }
 
-  String get eventData;
+  @override
+  int get hashCode => Object.hash(eventData, timestamp);
 
-  int get timestamp;
+  @override
+  String toString() =>
+      'RegisterEvent(eventData: $eventData, timestamp: $timestamp)';
 }
