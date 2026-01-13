@@ -4,7 +4,6 @@
 
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
-import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 
 import 'data_types.dart';
@@ -18,7 +17,6 @@ part 'data_serializers.g.dart';
   DebugStateChange,
   DevToolsOpener,
   DevToolsUrl,
-  DevToolsRequest,
   ExtensionEvent,
   ExtensionRequest,
   ExtensionResponse,

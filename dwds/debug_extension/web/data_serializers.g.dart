@@ -12,7 +12,6 @@ Serializers _$serializers =
           ..add(ConnectFailure.serializer)
           ..add(DebugStateChange.serializer)
           ..add(DevToolsOpener.serializer)
-          ..add(DevToolsRequest.serializer)
           ..add(DevToolsUrl.serializer)
           ..add(ExtensionEvent.serializer)
           ..add(ExtensionRequest.serializer)
