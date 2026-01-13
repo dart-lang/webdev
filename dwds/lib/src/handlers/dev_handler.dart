@@ -423,12 +423,7 @@ class DevHandler {
         try {
           injectedConnection.sink.add(
             jsonEncode(
-              _serializeMessage(
-                ErrorResponse(
-                  error: '$e',
-                  stackTrace: '$s',
-                ),
-              ),
+              _serializeMessage(ErrorResponse(error: '$e', stackTrace: '$s')),
             ),
           );
         } on StateError catch (_) {
