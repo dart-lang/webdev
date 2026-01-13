@@ -17,7 +17,6 @@ Serializers _$serializers =
           ..add(ExtensionResponse.serializer)
           ..add(IsolateExit.serializer)
           ..add(IsolateStart.serializer)
-          ..add(RegisterEvent.serializer)
           ..addBuilderFactory(
             const FullType(BuiltList, const [const FullType(ExtensionEvent)]),
             () => ListBuilder<ExtensionEvent>(),

@@ -158,6 +158,7 @@ class DevHandler {
       BuildResult() => ['BuildResult', request.toJson()],
       DebugEvent() => ['DebugEvent', request.toJson()],
       BatchedDebugEvents() => ['BatchedDebugEvents', request.toJson()],
+      RegisterEvent() => ['RegisterEvent', request.toJson()],
       Map() => request, // Already a raw message (e.g., ping)
       _ => serializers.serialize(request),
     };
@@ -185,6 +186,8 @@ class DevHandler {
           return BatchedDebugEvents.fromJson(jsonData);
         case 'ServiceExtensionResponse':
           return ServiceExtensionResponse.fromJson(jsonData);
+        case 'RegisterEvent':
+          return RegisterEvent.fromJson(jsonData);
         default:
           // Fall through to serializers.deserialize
           break;
