@@ -1,10 +1,7 @@
-## 3.8.1-wip
+## 3.8.0
 
 - Adding initial DDC library bundler support behind the `canary` flag.
-- Update `dwds` constraint to `^26.2.4`.
-
-## 3.8.0-wip
-
+- Bump `dwds` constraint to `^26.2.4`.
 - Bump minimum SDK constraint to 3.10.0
 - Bump `build_web_compilers` to ^4.4.1.
 
