@@ -1,6 +1,7 @@
 ## 3.8.1-wip
 
 - Adding initial DDC library bundler support behind the `canary` flag.
+- Update `dwds` constraint to `^26.2.4`.
 
 ## 3.8.0-wip
 
