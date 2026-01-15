@@ -18,8 +18,6 @@ part 'serializers.g.dart';
   BatchedEvents,
   DevToolsRequest,
   DevToolsResponse,
-  IsolateExit,
-  IsolateStart,
   ExtensionRequest,
   ExtensionResponse,
   ExtensionEvent,
