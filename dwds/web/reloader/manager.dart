@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:js_interop';
 
 import 'package:dwds/data/isolate_events.dart';
-import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/sockets.dart';
 import 'package:web/web.dart';
 
