@@ -149,7 +149,19 @@ class WebkitDebugger implements RemoteDebugger {
   Future<void> disable() => _wipDebugger.disable();
 
   @override
-  Future<void> enable() => _wipDebugger.enable();
+  Future<void> enable() async {
+    // TODO(markzipan): Handle race conditions more gracefully.
+    // Try to enable the debugger multiple times.
+    var attempts = 3;
+    while (true) {
+      try {
+        await _wipDebugger.enable().timeout(const Duration(seconds: 5));
+        return;
+      } on TimeoutException {
+        if (attempts-- == 0) rethrow;
+      }
+    }
+  }
 
   @override
   Future<String> getScriptSource(String scriptId) =>
