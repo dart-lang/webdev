@@ -160,15 +160,13 @@ Future<void>? main() {
       emitRegisterEvent = (String eventData) {
         _trySendEvent(
           client.sink,
-          jsonEncode(
-            serializers.serialize(
-              RegisterEvent(
-                (b) => b
-                  ..timestamp = (DateTime.now().millisecondsSinceEpoch)
-                  ..eventData = eventData,
-              ),
-            ),
-          ),
+          jsonEncode([
+            'RegisterEvent',
+            RegisterEvent(
+              eventData: eventData,
+              timestamp: DateTime.now().millisecondsSinceEpoch,
+            ).toJson(),
+          ]),
         );
       }.toJS;
 
@@ -335,6 +333,8 @@ Object? _deserializeEvent(dynamic decoded) {
         return BuildResult.fromJson(jsonData);
       case 'DevToolsResponse':
         return DevToolsResponse.fromJson(jsonData);
+      case 'ErrorResponse':
+        return ErrorResponse.fromJson(jsonData);
       default:
         // Fall back to built_value serializers
         break;

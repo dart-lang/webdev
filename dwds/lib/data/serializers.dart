@@ -5,12 +5,8 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 
-import 'debug_info.dart';
-import 'error_response.dart';
 import 'extension_request.dart';
 import 'isolate_events.dart';
-import 'register_event.dart';
-import 'run_request.dart';
 
 part 'serializers.g.dart';
 
@@ -22,7 +18,5 @@ part 'serializers.g.dart';
   ExtensionRequest,
   ExtensionResponse,
   ExtensionEvent,
-  ErrorResponse,
-  RegisterEvent,
 ])
 final Serializers serializers = _$serializers;
