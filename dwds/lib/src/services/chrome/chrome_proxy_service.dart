@@ -141,7 +141,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
       executionContext: executionContext,
       compiler: expressionCompiler,
     );
-    safeUnawaited(service.createIsolate(appConnection, newConnection: true));
+    await service.createIsolate(appConnection, newConnection: true);
     return service;
   }
 
