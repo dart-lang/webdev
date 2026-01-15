@@ -84,12 +84,7 @@ class DevToolsRequest {
 
   @override
   int get hashCode =>
-      appId.hashCode ^
-      instanceId.hashCode ^
-      contextId.hashCode ^
-      tabUrl.hashCode ^
-      uriOnly.hashCode ^
-      client.hashCode;
+      Object.hash(appId, instanceId, contextId, tabUrl, uriOnly, client);
 
   @override
   String toString() {
@@ -142,8 +137,7 @@ class DevToolsResponse {
   }
 
   @override
-  int get hashCode =>
-      success.hashCode ^ promptExtension.hashCode ^ error.hashCode;
+  int get hashCode => Object.hash(success, promptExtension, error);
 
   @override
   String toString() {

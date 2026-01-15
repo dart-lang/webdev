@@ -6450,7 +6450,7 @@
     Map_castFrom(source, $K, $V, $K2, $V2) {
       return new A.CastMap(source, $K._eval$1("@<0>")._bind$1($V)._bind$1($K2)._bind$1($V2)._eval$1("CastMap<1,2,3,4>"));
     },
-    Object_hash(object1, object2, object3, object4) {
+    Object_hash(object1, object2, object3, object4, object5, object6) {
       var t1;
       if (B.C_SentinelValue === object3) {
         t1 = J.get$hashCode$(object1);
@@ -6463,12 +6463,29 @@
         object3 = J.get$hashCode$(object3);
         return A.SystemHash_finish(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine($.$get$_hashSeed(), t1), object2), object3));
       }
+      if (B.C_SentinelValue === object5) {
+        t1 = J.get$hashCode$(object1);
+        object2 = J.get$hashCode$(object2);
+        object3 = J.get$hashCode$(object3);
+        object4 = J.get$hashCode$(object4);
+        return A.SystemHash_finish(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine($.$get$_hashSeed(), t1), object2), object3), object4));
+      }
+      if (B.C_SentinelValue === object6) {
+        t1 = J.get$hashCode$(object1);
+        object2 = J.get$hashCode$(object2);
+        object3 = J.get$hashCode$(object3);
+        object4 = J.get$hashCode$(object4);
+        object5 = J.get$hashCode$(object5);
+        return A.SystemHash_finish(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine($.$get$_hashSeed(), t1), object2), object3), object4), object5));
+      }
       t1 = J.get$hashCode$(object1);
       object2 = J.get$hashCode$(object2);
       object3 = J.get$hashCode$(object3);
       object4 = J.get$hashCode$(object4);
-      object4 = A.SystemHash_finish(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine($.$get$_hashSeed(), t1), object2), object3), object4));
-      return object4;
+      object5 = J.get$hashCode$(object5);
+      object6 = J.get$hashCode$(object6);
+      object6 = A.SystemHash_finish(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine($.$get$_hashSeed(), t1), object2), object3), object4), object5), object6));
+      return object6;
     },
     Object_hashAll(objects) {
       var t1,
@@ -12392,7 +12409,7 @@
       return other instanceof A.Instantiation1 && this._genericClosure.$eq(0, other._genericClosure) && A.getRuntimeTypeOfClosure(this) === A.getRuntimeTypeOfClosure(other);
     },
     get$hashCode(_) {
-      return A.Object_hash(this._genericClosure, A.getRuntimeTypeOfClosure(this), B.C_SentinelValue, B.C_SentinelValue);
+      return A.Object_hash(this._genericClosure, A.getRuntimeTypeOfClosure(this), B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue);
     },
     toString$0(_) {
       var t1 = B.JSArray_methods.join$1([A.createRuntimeType(this.$ti._precomputed1)], ", ");
@@ -12984,7 +13001,7 @@
       return other instanceof A._Record2 && this.$shape === other.$shape && J.$eq$(this._0, other._0) && J.$eq$(this._1, other._1);
     },
     get$hashCode(_) {
-      return A.Object_hash(this.$shape, this._0, this._1, B.C_SentinelValue);
+      return A.Object_hash(this.$shape, this._0, this._1, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue);
     }
   };
   A.JSSyntaxRegExp.prototype = {
@@ -18288,7 +18305,7 @@
       return other instanceof A.DateTime && this._value === other._value && this._microsecond === other._microsecond && this.isUtc === other.isUtc;
     },
     get$hashCode(_) {
-      return A.Object_hash(this._value, this._microsecond, B.C_SentinelValue, B.C_SentinelValue);
+      return A.Object_hash(this._value, this._microsecond, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue);
     },
     compareTo$1(_, other) {
       var r;
@@ -22529,7 +22546,7 @@
       return t1;
     },
     get$hashCode(_) {
-      return A.Object_hash(this.kind, this.eventData, this.timestamp, B.C_SentinelValue);
+      return A.Object_hash(this.kind, this.eventData, this.timestamp, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue);
     },
     toString$0(_) {
       return "DebugEvent(kind: " + this.kind + ", eventData: " + this.eventData + ", timestamp: " + this.timestamp + ")";
@@ -22619,7 +22636,7 @@
     },
     get$hashCode(_) {
       var _null = null;
-      return B.JSString_methods.get$hashCode(this.appId) ^ J.get$hashCode$(this.instanceId) ^ B.JSNull_methods.get$hashCode(_null) ^ B.JSNull_methods.get$hashCode(_null) ^ B.JSNull_methods.get$hashCode(_null) ^ B.JSNull_methods.get$hashCode(_null);
+      return A.Object_hash(this.appId, this.instanceId, _null, _null, _null, _null);
     },
     toString$0(_) {
       return "DevToolsRequest { appId: " + this.appId + ", instanceId: " + A.S(this.instanceId) + ", contextId: null, tabUrl: null, uriOnly: null, client: null, }";
@@ -22645,7 +22662,7 @@
       return other instanceof A.DevToolsResponse && other.success === _this.success && other.promptExtension === _this.promptExtension && other.error == _this.error;
     },
     get$hashCode(_) {
-      return (B.JSBool_methods.get$hashCode(this.success) ^ B.JSBool_methods.get$hashCode(this.promptExtension) ^ J.get$hashCode$(this.error)) >>> 0;
+      return A.Object_hash(this.success, this.promptExtension, this.error, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue);
     },
     toString$0(_) {
       return "DevToolsResponse { success: " + this.success + ", promptExtension: " + this.promptExtension + ", error: " + A.S(this.error) + " }";
@@ -22663,7 +22680,7 @@
       return other instanceof A.ErrorResponse && other.error === this.error && other.stackTrace === this.stackTrace;
     },
     get$hashCode(_) {
-      return A.Object_hash(this.error, this.stackTrace, B.C_SentinelValue, B.C_SentinelValue);
+      return A.Object_hash(this.error, this.stackTrace, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue);
     },
     toString$0(_) {
       return "ErrorResponse(error: " + this.error + ", stackTrace: " + this.stackTrace + ")";
@@ -23141,7 +23158,7 @@
       return t1;
     },
     get$hashCode(_) {
-      return A.Object_hash(this.id, this.success, this.errorMessage, B.C_SentinelValue);
+      return A.Object_hash(this.id, this.success, this.errorMessage, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue);
     },
     toString$0(_) {
       return "HotReloadResponse(id: " + this.id + ", success: " + this.success + ", errorMessage: " + A.S(this.errorMessage) + ")";
@@ -23284,7 +23301,7 @@
       return other instanceof A.RegisterEvent && other.eventData === this.eventData && other.timestamp === this.timestamp;
     },
     get$hashCode(_) {
-      return A.Object_hash(this.eventData, this.timestamp, B.C_SentinelValue, B.C_SentinelValue);
+      return A.Object_hash(this.eventData, this.timestamp, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue);
     },
     toString$0(_) {
       return "RegisterEvent(eventData: " + this.eventData + ", timestamp: " + this.timestamp + ")";
@@ -25204,7 +25221,7 @@
       return _this._file$_start === other._file$_start && _this._file$_end === other._file$_end && J.$eq$(_this.file.url, other.file.url);
     },
     get$hashCode(_) {
-      return A.Object_hash(this._file$_start, this._file$_end, this.file.url, B.C_SentinelValue);
+      return A.Object_hash(this._file$_start, this._file$_end, this.file.url, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue);
     },
     $isSourceSpanWithContext: 1
   };
@@ -25860,7 +25877,7 @@
       return other instanceof A.SourceSpanMixin && this.get$start().$eq(0, other.get$start()) && this.get$end().$eq(0, other.get$end());
     },
     get$hashCode(_) {
-      return A.Object_hash(this.get$start(), this.get$end(), B.C_SentinelValue, B.C_SentinelValue);
+      return A.Object_hash(this.get$start(), this.get$end(), B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue);
     },
     toString$0(_) {
       var _this = this;
@@ -28233,7 +28250,6 @@
     B.JSArray_methods = J.JSArray.prototype;
     B.JSBool_methods = J.JSBool.prototype;
     B.JSInt_methods = J.JSInt.prototype;
-    B.JSNull_methods = J.JSNull.prototype;
     B.JSNumber_methods = J.JSNumber.prototype;
     B.JSString_methods = J.JSString.prototype;
     B.JavaScriptFunction_methods = J.JavaScriptFunction.prototype;

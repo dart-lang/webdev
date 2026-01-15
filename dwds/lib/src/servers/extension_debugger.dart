@@ -387,10 +387,8 @@ class ExtensionDebugger implements RemoteDebugger {
   }
 
   static Object? _deserialize(dynamic decoded) {
-    if (decoded is List &&
-        decoded.length == 2 &&
-        decoded[0] == 'DevToolsRequest') {
-      return DevToolsRequest.fromJson(decoded[1] as Map<String, dynamic>);
+    if (decoded case ['DevToolsRequest', final Map<String, dynamic> request]) {
+      return DevToolsRequest.fromJson(request);
     }
     return serializers.deserialize(decoded);
   }
