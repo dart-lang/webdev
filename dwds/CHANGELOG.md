@@ -1,5 +1,8 @@
-## 26.2.5-wip
-- Remove `package:built_value` dependency from `DevToolsRequest`, and `DevToolsResponse`, `ErrorResponse` and `RegisterEvent`; switch to standard Dart JSON serialization.
+## 26.2.6-wip
+- Remove `package:built_value` dependency from `DevToolsRequest`, and `DevToolsResponse`; switch to standard Dart JSON serialization.
+
+## 26.2.5
+- Remove `package:built_value` dependency from `ErrorResponse` and `RegisterEvent`; switch to standard Dart JSON serialization.
 - Adding retries to Chrome Proxy Service connections.
 
 ## 26.2.4
