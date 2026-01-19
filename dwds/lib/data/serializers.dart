@@ -6,15 +6,12 @@ import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 
 import 'extension_request.dart';
-import 'isolate_events.dart';
 
 part 'serializers.g.dart';
 
 /// Serializers for all the types used in DWDS communication.
 @SerializersFor([
   BatchedEvents,
-  IsolateExit,
-  IsolateStart,
   ExtensionRequest,
   ExtensionResponse,
   ExtensionEvent,

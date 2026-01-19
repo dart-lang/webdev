@@ -2,27 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
-
-part 'isolate_events.g.dart';
-
 /// An event that signifies the main isolate has exited.
-abstract class IsolateExit implements Built<IsolateExit, IsolateExitBuilder> {
-  static Serializer<IsolateExit> get serializer => _$isolateExitSerializer;
+class IsolateExit {
+  IsolateExit();
 
-  factory IsolateExit([Function(IsolateExitBuilder) updates]) = _$IsolateExit;
+  factory IsolateExit.fromJson(Map<String, dynamic> _) => IsolateExit();
 
-  IsolateExit._();
+  Map<String, dynamic> toJson() => {};
+
+  @override
+  String toString() => 'IsolateExit{}';
 }
 
 /// An event that signifies the main isolate has started.
-abstract class IsolateStart
-    implements Built<IsolateStart, IsolateStartBuilder> {
-  static Serializer<IsolateStart> get serializer => _$isolateStartSerializer;
+class IsolateStart {
+  IsolateStart();
 
-  factory IsolateStart([Function(IsolateStartBuilder) updates]) =
-      _$IsolateStart;
+  factory IsolateStart.fromJson(Map<String, dynamic> _) => IsolateStart();
 
-  IsolateStart._();
+  Map<String, dynamic> toJson() => {};
+
+  @override
+  String toString() => 'IsolateStart{}';
 }
