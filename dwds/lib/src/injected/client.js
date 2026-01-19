@@ -8158,30 +8158,6 @@
     SetMultimapBuilder_replace_closure: function SetMultimapBuilder_replace_closure(t0) {
       this.multimap = t0;
     },
-    $jc(hash, value) {
-      hash = hash + value & 536870911;
-      hash = hash + ((hash & 524287) << 10) & 536870911;
-      return hash ^ hash >>> 6;
-    },
-    $jf(hash) {
-      hash = hash + ((hash & 67108863) << 3) & 536870911;
-      hash ^= hash >>> 11;
-      return hash + ((hash & 16383) << 15) & 536870911;
-    },
-    BuiltValueNullFieldError_checkNotNull(value, type, field, $T) {
-      if (value == null)
-        throw A.wrapException(new A.BuiltValueNullFieldError(type, field));
-      return value;
-    },
-    newBuiltValueToStringHelper_closure: function newBuiltValueToStringHelper_closure() {
-    },
-    IndentingBuiltValueToStringHelper: function IndentingBuiltValueToStringHelper(t0) {
-      this._result = t0;
-    },
-    BuiltValueNullFieldError: function BuiltValueNullFieldError(t0, t1) {
-      this.type = t0;
-      this.field = t1;
-    },
     JsonObject_JsonObject(value) {
       if (typeof value == "number")
         return new A.NumJsonObject(value);
@@ -8556,97 +8532,15 @@
       this.appId = t0;
       this.instanceId = t1;
     },
-<<<<<<< HEAD
-    DevToolsResponse: function DevToolsResponse() {
-    },
-    _$DevToolsRequestSerializer: function _$DevToolsRequestSerializer() {
-    },
-    _$DevToolsResponseSerializer: function _$DevToolsResponseSerializer() {
-    },
-    _$DevToolsRequest: function _$DevToolsRequest(t0, t1, t2, t3, t4, t5) {
-      var _ = this;
-      _.appId = t0;
-      _.instanceId = t1;
-      _.contextId = t2;
-      _.tabUrl = t3;
-      _.uriOnly = t4;
-      _.client = t5;
-    },
-    DevToolsRequestBuilder: function DevToolsRequestBuilder() {
-      var _ = this;
-      _._devtools_request$_client = _._uriOnly = _._tabUrl = _._contextId = _._instanceId = _._appId = _._$v = null;
-    },
-    _$DevToolsResponse: function _$DevToolsResponse(t0, t1, t2) {
-=======
     DevToolsResponse: function DevToolsResponse(t0, t1, t2) {
->>>>>>> main
       this.success = t0;
       this.promptExtension = t1;
       this.error = t2;
     },
-<<<<<<< HEAD
-    DevToolsResponseBuilder: function DevToolsResponseBuilder() {
-      var _ = this;
-      _._error = _._promptExtension = _._success = _._$v = null;
-    },
-=======
->>>>>>> main
     ErrorResponse: function ErrorResponse(t0, t1) {
       this.error = t0;
       this.stackTrace = t1;
     },
-<<<<<<< HEAD
-=======
-    ExtensionRequest: function ExtensionRequest() {
-    },
-    ExtensionResponse: function ExtensionResponse() {
-    },
-    ExtensionEvent: function ExtensionEvent() {
-    },
-    BatchedEvents: function BatchedEvents() {
-    },
-    _$ExtensionRequestSerializer: function _$ExtensionRequestSerializer() {
-    },
-    _$ExtensionResponseSerializer: function _$ExtensionResponseSerializer() {
-    },
-    _$ExtensionEventSerializer: function _$ExtensionEventSerializer() {
-    },
-    _$BatchedEventsSerializer: function _$BatchedEventsSerializer() {
-    },
-    _$ExtensionRequest: function _$ExtensionRequest(t0, t1, t2) {
-      this.id = t0;
-      this.command = t1;
-      this.commandParams = t2;
-    },
-    ExtensionRequestBuilder: function ExtensionRequestBuilder() {
-      var _ = this;
-      _._commandParams = _._command = _._id = _._$v = null;
-    },
-    _$ExtensionResponse: function _$ExtensionResponse(t0, t1, t2, t3) {
-      var _ = this;
-      _.id = t0;
-      _.success = t1;
-      _.result = t2;
-      _.error = t3;
-    },
-    ExtensionResponseBuilder: function ExtensionResponseBuilder() {
-      var _ = this;
-      _._error = _._extension_request$_result = _._success = _._id = _._$v = null;
-    },
-    _$ExtensionEvent: function _$ExtensionEvent(t0, t1) {
-      this.params = t0;
-      this.method = t1;
-    },
-    ExtensionEventBuilder: function ExtensionEventBuilder() {
-      this._extension_request$_method = this._params = this._$v = null;
-    },
-    _$BatchedEvents: function _$BatchedEvents(t0) {
-      this.events = t0;
-    },
-    BatchedEventsBuilder: function BatchedEventsBuilder() {
-      this._events = this._$v = null;
-    },
->>>>>>> main
     HotReloadRequest: function HotReloadRequest(t0) {
       this.id = t0;
     },
@@ -12928,13 +12822,13 @@
     call$2(o, tag) {
       return this.getUnknownTag(o, tag);
     },
-    $signature: 57
+    $signature: 56
   };
   A.initHooks_closure1.prototype = {
     call$1(tag) {
       return this.prototypeForTag(A._asString(tag));
     },
-    $signature: 39
+    $signature: 38
   };
   A._Record.prototype = {
     get$runtimeType(_) {
@@ -13513,7 +13407,7 @@
       t2 = this.span;
       t1.firstChild ? t1.removeChild(t2) : t1.appendChild(t2);
     },
-    $signature: 61
+    $signature: 60
   };
   A._AsyncRun__scheduleImmediateJsOverride_internalCallback.prototype = {
     call$0() {
@@ -13619,17 +13513,13 @@
     call$2(error, stackTrace) {
       this.bodyFunction.call$2(1, new A.ExceptionAndStackTrace(error, type$.StackTrace._as(stackTrace)));
     },
-    $signature: 66
+    $signature: 65
   };
   A._wrapJsFunctionForAsync_closure.prototype = {
     call$2(errorCode, result) {
       this.$protected(A._asInt(errorCode), result);
     },
-<<<<<<< HEAD
-    $signature: 35
-=======
-    $signature: 44
->>>>>>> main
+    $signature: 34
   };
   A._asyncStarHelper_closure.prototype = {
     call$0() {
@@ -13703,11 +13593,7 @@
         return t1.cancelationFuture;
       }
     },
-<<<<<<< HEAD
-    $signature: 37
-=======
-    $signature: 49
->>>>>>> main
+    $signature: 36
   };
   A._AsyncStarStreamController__closure.prototype = {
     call$0() {
@@ -15607,7 +15493,7 @@
           t2._processUncaughtError$3(zone, A._asObject(e), t1._as(s));
       }
     },
-    $signature: 104
+    $signature: 102
   };
   A._ZoneDelegate.prototype = {$isZoneDelegate: 1};
   A._rootHandleError_closure.prototype = {
@@ -16247,11 +16133,7 @@
     call$2(k, v) {
       this.result.$indexSet(0, this.K._as(k), this.V._as(v));
     },
-<<<<<<< HEAD
     $signature: 22
-=======
-    $signature: 31
->>>>>>> main
   };
   A.ListBase.prototype = {
     get$iterator(receiver) {
@@ -17105,11 +16987,7 @@
       }
       return null;
     },
-<<<<<<< HEAD
     $signature: 24
-=======
-    $signature: 27
->>>>>>> main
   };
   A._Utf8Decoder__decoderNonfatal_closure.prototype = {
     call$0() {
@@ -17121,11 +16999,7 @@
       }
       return null;
     },
-<<<<<<< HEAD
     $signature: 24
-=======
-    $signature: 27
->>>>>>> main
   };
   A.AsciiCodec.prototype = {
     encode$1(source) {
@@ -18307,11 +18181,7 @@
       hash = hash + ((hash & 524287) << 10) & 536870911;
       return hash ^ hash >>> 6;
     },
-<<<<<<< HEAD
-    $signature: 43
-=======
-    $signature: 47
->>>>>>> main
+    $signature: 42
   };
   A._BigIntImpl_hashCode_finish.prototype = {
     call$1(hash) {
@@ -18319,11 +18189,7 @@
       hash ^= hash >>> 11;
       return hash + ((hash & 16383) << 15) & 536870911;
     },
-<<<<<<< HEAD
-    $signature: 46
-=======
-    $signature: 34
->>>>>>> main
+    $signature: 45
   };
   A.DateTime.prototype = {
     $eq(_, other) {
@@ -18738,11 +18604,7 @@
     call$2(msg, position) {
       throw A.wrapException(A.FormatException$("Illegal IPv6 address, " + msg, this.host, position));
     },
-<<<<<<< HEAD
-    $signature: 55
-=======
-    $signature: 39
->>>>>>> main
+    $signature: 54
   };
   A._Uri.prototype = {
     get$_text() {
@@ -19400,11 +19262,7 @@
       t1.call(t1, wrapper);
       return wrapper;
     },
-<<<<<<< HEAD
-    $signature: 68
-=======
-    $signature: 56
->>>>>>> main
+    $signature: 67
   };
   A.FutureOfVoidToJSPromise_get_toJS_closure.prototype = {
     call$2(resolve, reject) {
@@ -19418,11 +19276,7 @@
       var t1 = this.resolve;
       return t1.call(t1);
     },
-<<<<<<< HEAD
-    $signature: 71
-=======
-    $signature: 58
->>>>>>> main
+    $signature: 70
   };
   A.FutureOfVoidToJSPromise_get_toJS__closure0.prototype = {
     call$2(error, stackTrace) {
@@ -19730,11 +19584,7 @@
     call$2(h, i) {
       return A._combine(A._asInt(h), J.get$hashCode$(i));
     },
-<<<<<<< HEAD
-    $signature: 72
-=======
-    $signature: 67
->>>>>>> main
+    $signature: 71
   };
   A.BuiltList.prototype = {
     toBuilder$0() {
@@ -20223,8 +20073,8 @@
         t1 = _this.$ti;
       t1._precomputed1._as(key);
       t1._rest[1]._as(value);
-      _this._checkKey$1(key);
-      _this._checkValue$1(value);
+      _this._map$_checkKey$1(key);
+      _this._map$_checkValue$1(value);
       if (_this._mapOwner != null) {
         t2 = _this._createMap$0();
         t3 = _this.__MapBuilder__map_A;
@@ -20260,7 +20110,7 @@
       var t1 = this.$ti;
       return A.LinkedHashMap_LinkedHashMap$_empty(t1._precomputed1, t1._rest[1]);
     },
-    _checkKey$1(key) {
+    _map$_checkKey$1(key) {
       var t1 = this.$ti._precomputed1;
       t1._as(key);
       if ($.$get$isSoundMode())
@@ -20270,7 +20120,7 @@
       if (key == null)
         throw A.wrapException(A.ArgumentError$("null key", null));
     },
-    _checkValue$1(value) {
+    _map$_checkValue$1(value) {
       var t1 = this.$ti._rest[1];
       t1._as(value);
       if ($.$get$isSoundMode())
@@ -20286,11 +20136,7 @@
       var t1 = this.$this.$ti;
       this.replacement.$indexSet(0, t1._precomputed1._as(key), t1._rest[1]._as(value));
     },
-<<<<<<< HEAD
     $signature: 22
-=======
-    $signature: 31
->>>>>>> main
   };
   A.BuiltSet.prototype = {
     get$hashCode(_) {
@@ -20613,8 +20459,8 @@
                 _this.__SetMultimapBuilder__builtMap_A = t4._as(A.LinkedHashMap_LinkedHashMap$from(_this.__SetMultimapBuilder__builtMap_A, t2, t3));
                 _this._builtMapOwner = null;
               }
-              _this._set_multimap$_checkKey$1(key);
-              _this._set_multimap$_checkValue$1(value);
+              _this._checkKey$1(key);
+              _this._checkValue$1(value);
               t8 = _this._getValuesBuilder$1(key);
               t9 = t8.$ti._precomputed1;
               t9._as(value);
@@ -20629,7 +20475,7 @@
           throw A.wrapException(A.ArgumentError$("map contained invalid key: " + A.S(key), null));
       }
     },
-    _set_multimap$_checkKey$1(key) {
+    _checkKey$1(key) {
       var t1 = this.$ti._precomputed1;
       t1._as(key);
       if ($.$get$isSoundMode())
@@ -20639,7 +20485,7 @@
       if (key == null)
         throw A.wrapException(A.ArgumentError$("invalid key: " + A.S(key), null));
     },
-    _set_multimap$_checkValue$1(value) {
+    _checkValue$1(value) {
       var t1 = this.$ti._rest[1];
       t1._as(value);
       if ($.$get$isSoundMode())
@@ -20655,50 +20501,6 @@
       return this.multimap.$index(0, k);
     },
     $signature: 5
-  };
-  A.newBuiltValueToStringHelper_closure.prototype = {
-    call$1(className) {
-      var t1 = new A.StringBuffer("");
-      t1._contents = className;
-      t1._contents = className + " {\n";
-      $._indentingBuiltValueToStringHelperIndent = $._indentingBuiltValueToStringHelperIndent + 2;
-      return new A.IndentingBuiltValueToStringHelper(t1);
-    },
-<<<<<<< HEAD
-    $signature: 74
-=======
-    $signature: 73
->>>>>>> main
-  };
-  A.IndentingBuiltValueToStringHelper.prototype = {
-    add$2(_, field, value) {
-      var t1, t2;
-      if (value != null) {
-        t1 = this._result;
-        t1.toString;
-        t2 = (t1._contents += B.JSString_methods.$mul(" ", $._indentingBuiltValueToStringHelperIndent)) + field;
-        t1._contents = t2;
-        t1._contents = t2 + "=";
-        t2 = A.S(value);
-        t1._contents = (t1._contents += t2) + ",\n";
-      }
-    },
-    toString$0(_) {
-      var t2, stringResult,
-        t1 = $._indentingBuiltValueToStringHelperIndent - 2;
-      $._indentingBuiltValueToStringHelperIndent = t1;
-      t2 = this._result;
-      t2.toString;
-      t2._contents = (t2._contents += B.JSString_methods.$mul(" ", t1)) + "}";
-      stringResult = t2.toString$0(0);
-      this._result = null;
-      return stringResult;
-    }
-  };
-  A.BuiltValueNullFieldError.prototype = {
-    toString$0(_) {
-      return 'Tried to construct class "' + this.type + '" with null for non-nullable field "' + this.field + '".';
-    }
   };
   A.JsonObject.prototype = {
     toString$0(_) {
@@ -20794,38 +20596,34 @@
     call$0() {
       return A.ListBuilder_ListBuilder(B.List_empty0, type$.Object);
     },
-    $signature: 81
+    $signature: 73
   };
   A.Serializers_Serializers_closure0.prototype = {
     call$0() {
       var t1 = type$.Object;
       return A.ListMultimapBuilder_ListMultimapBuilder(t1, t1);
     },
-    $signature: 88
+    $signature: 79
   };
   A.Serializers_Serializers_closure1.prototype = {
     call$0() {
       var t1 = type$.Object;
       return A.MapBuilder_MapBuilder(t1, t1);
     },
-    $signature: 103
+    $signature: 86
   };
   A.Serializers_Serializers_closure2.prototype = {
     call$0() {
       return A.SetBuilder_SetBuilder(type$.Object);
     },
-<<<<<<< HEAD
     $signature: 33
-=======
-    $signature: 87
->>>>>>> main
   };
   A.Serializers_Serializers_closure3.prototype = {
     call$0() {
       var t1 = type$.Object;
       return A.SetMultimapBuilder_SetMultimapBuilder(t1, t1);
     },
-    $signature: 36
+    $signature: 35
   };
   A.FullType.prototype = {
     $eq(_, other) {
@@ -21087,12 +20885,12 @@
       if (!type$.StructuredSerializer_dynamic._is(serializer) && !type$.PrimitiveSerializer_dynamic._is(serializer))
         throw A.wrapException(A.ArgumentError$(string$.serial, null));
       this._wireNameToSerializer.$indexSet(0, serializer.get$wireName(), serializer);
-      for (t1 = J.get$iterator$ax(serializer.get$types()), t2 = this._typeToSerializer, t3 = t2.$ti, t4 = t3._precomputed1, t3 = t3._rest[1], t5 = this._typeNameToSerializer; t1.moveNext$0();) {
+      for (t1 = serializer.get$types(), t1 = t1.get$iterator(t1), t2 = this._typeToSerializer, t3 = t2.$ti, t4 = t3._precomputed1, t3 = t3._rest[1], t5 = this._typeNameToSerializer; t1.moveNext$0();) {
         t6 = t1.get$current();
         t4._as(t6);
         t3._as(serializer);
-        t2._checkKey$1(t6);
-        t2._checkValue$1(serializer);
+        t2._map$_checkKey$1(t6);
+        t2._map$_checkValue$1(serializer);
         t2.get$_safeMap().$indexSet(0, t6, serializer);
         $name = t6.toString$0(0);
         genericsStart = B.JSString_methods.indexOf$1($name, "<");
@@ -21100,8 +20898,8 @@
         t7 = t5.$ti;
         t7._precomputed1._as(t6);
         t7._rest[1]._as(serializer);
-        t5._checkKey$1(t6);
-        t5._checkValue$1(serializer);
+        t5._map$_checkKey$1(t6);
+        t5._map$_checkValue$1(serializer);
         t5.get$_safeMap().$indexSet(0, t6, serializer);
       }
     },
@@ -21381,8 +21179,8 @@
         value = serializers.deserialize$2$specifiedType(t1.elementAt$1(serialized, i + 1), valueType);
         t3._as(key);
         t2._as(value);
-        result._checkKey$1(key);
-        result._checkValue$1(value);
+        result._map$_checkKey$1(key);
+        result._map$_checkValue$1(value);
         result.get$_safeMap().$indexSet(0, key, value);
       }
       return result.build$0();
@@ -21482,8 +21280,8 @@
             result.__SetMultimapBuilder__builtMap_A = t3._as(A.LinkedHashMap_LinkedHashMap$from(t8, t4, t6));
             result._builtMapOwner = null;
           }
-          result._set_multimap$_checkKey$1(key);
-          result._set_multimap$_checkValue$1(value);
+          result._checkKey$1(key);
+          result._checkValue$1(value);
           t8 = result._getValuesBuilder$1(key);
           t9 = t8.$ti._precomputed1;
           t9._as(value);
@@ -22547,13 +22345,13 @@
     call$1(e) {
       return type$.BuildStatus._as(e)._core$_name === this.json;
     },
-    $signature: 40
+    $signature: 39
   };
   A.BuildStatus_BuildStatus$fromJson_closure0.prototype = {
     call$0() {
       throw A.wrapException(A.ArgumentError$("Unknown BuildStatus: " + this.json, null));
     },
-    $signature: 41
+    $signature: 40
   };
   A.BuildResult.prototype = {
     toJson$0() {
@@ -22629,7 +22427,7 @@
     call$1(e) {
       return type$.DebugEvent._as(e).toJson$0();
     },
-    $signature: 42
+    $signature: 41
   };
   A.DebugInfo.prototype = {
     toJson$0() {
@@ -22681,54 +22479,9 @@
           t1 = other.instanceId === this.instanceId;
       return t1;
     },
-<<<<<<< HEAD
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value,
-        result = new A.DevToolsRequestBuilder(),
-        iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
-      while (iterator.moveNext$0()) {
-        t1 = iterator.get$current();
-        t1.toString;
-        A._asString(t1);
-        iterator.moveNext$0();
-        value = iterator.get$current();
-        switch (t1) {
-          case "appId":
-            t1 = serializers.deserialize$2$specifiedType(value, B.FullType_PT1);
-            t1.toString;
-            A._asString(t1);
-            result.get$_$this()._appId = t1;
-            break;
-          case "instanceId":
-            t1 = serializers.deserialize$2$specifiedType(value, B.FullType_PT1);
-            t1.toString;
-            A._asString(t1);
-            result.get$_$this()._instanceId = t1;
-            break;
-          case "contextId":
-            t1 = A._asIntQ(serializers.deserialize$2$specifiedType(value, B.FullType_rTD));
-            result.get$_$this()._contextId = t1;
-            break;
-          case "tabUrl":
-            t1 = A._asStringQ(serializers.deserialize$2$specifiedType(value, B.FullType_PT1));
-            result.get$_$this()._tabUrl = t1;
-            break;
-          case "uriOnly":
-            t1 = A._asBoolQ(serializers.deserialize$2$specifiedType(value, B.FullType_R6B));
-            result.get$_$this()._uriOnly = t1;
-            break;
-          case "client":
-            t1 = A._asStringQ(serializers.deserialize$2$specifiedType(value, B.FullType_PT1));
-            result.get$_$this()._devtools_request$_client = t1;
-            break;
-        }
-      }
-      return result._build$0();
-=======
     get$hashCode(_) {
       var _null = null;
       return A.Object_hash(this.appId, this.instanceId, _null, _null, _null, _null);
->>>>>>> main
     },
     toString$0(_) {
       return "DevToolsRequest { appId: " + this.appId + ", instanceId: " + this.instanceId + ", contextId: null, tabUrl: null, uriOnly: null, client: null, }";
@@ -22745,62 +22498,6 @@
         t1.$indexSet(0, "error", t2);
       return t1;
     },
-<<<<<<< HEAD
-    serialize$2(serializers, object) {
-      return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, _$result,
-        _s16_ = "DevToolsResponse",
-        result = new A.DevToolsResponseBuilder(),
-        iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
-      while (iterator.moveNext$0()) {
-        t1 = iterator.get$current();
-        t1.toString;
-        A._asString(t1);
-        iterator.moveNext$0();
-        value = iterator.get$current();
-        switch (t1) {
-          case "success":
-            t1 = serializers.deserialize$2$specifiedType(value, B.FullType_R6B);
-            t1.toString;
-            A._asBool(t1);
-            result.get$_$this()._success = t1;
-            break;
-          case "promptExtension":
-            t1 = serializers.deserialize$2$specifiedType(value, B.FullType_R6B);
-            t1.toString;
-            A._asBool(t1);
-            result.get$_$this()._promptExtension = t1;
-            break;
-          case "error":
-            t1 = A._asStringQ(serializers.deserialize$2$specifiedType(value, B.FullType_PT1));
-            result.get$_$this()._error = t1;
-            break;
-        }
-      }
-      _$result = result._$v;
-      if (_$result == null) {
-        t1 = type$.bool;
-        _$result = new A._$DevToolsResponse(A.BuiltValueNullFieldError_checkNotNull(result.get$_$this()._success, _s16_, "success", t1), A.BuiltValueNullFieldError_checkNotNull(result.get$_$this()._promptExtension, _s16_, "promptExtension", t1), result.get$_$this()._error);
-      }
-      return result._$v = _$result;
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isStructuredSerializer: 1,
-    get$types() {
-      return B.List_TEH;
-    },
-    get$wireName() {
-      return "DevToolsResponse";
-    }
-  };
-  A._$DevToolsRequest.prototype = {
-=======
->>>>>>> main
     $eq(_, other) {
       var _this = this;
       if (other == null)
@@ -22813,80 +22510,7 @@
       return A.Object_hash(this.success, this.promptExtension, this.error, B.C_SentinelValue, B.C_SentinelValue, B.C_SentinelValue);
     },
     toString$0(_) {
-<<<<<<< HEAD
-      var _this = this,
-        t1 = $.$get$newBuiltValueToStringHelper().call$1("DevToolsRequest"),
-        t2 = J.getInterceptor$ax(t1);
-      t2.add$2(t1, "appId", _this.appId);
-      t2.add$2(t1, "instanceId", _this.instanceId);
-      t2.add$2(t1, "contextId", _this.contextId);
-      t2.add$2(t1, "tabUrl", _this.tabUrl);
-      t2.add$2(t1, "uriOnly", _this.uriOnly);
-      t2.add$2(t1, "client", _this.client);
-      return t2.toString$0(t1);
-    }
-  };
-  A.DevToolsRequestBuilder.prototype = {
-    get$_$this() {
-      var _this = this,
-        $$v = _this._$v;
-      if ($$v != null) {
-        _this._appId = $$v.appId;
-        _this._instanceId = $$v.instanceId;
-        _this._contextId = $$v.contextId;
-        _this._tabUrl = $$v.tabUrl;
-        _this._uriOnly = $$v.uriOnly;
-        _this._devtools_request$_client = $$v.client;
-        _this._$v = null;
-      }
-      return _this;
-    },
-    _build$0() {
-      var t1, _this = this,
-        _s15_ = "DevToolsRequest",
-        _$result = _this._$v;
-      if (_$result == null) {
-        t1 = type$.String;
-        _$result = new A._$DevToolsRequest(A.BuiltValueNullFieldError_checkNotNull(_this.get$_$this()._appId, _s15_, "appId", t1), A.BuiltValueNullFieldError_checkNotNull(_this.get$_$this()._instanceId, _s15_, "instanceId", t1), _this.get$_$this()._contextId, _this.get$_$this()._tabUrl, _this.get$_$this()._uriOnly, _this.get$_$this()._devtools_request$_client);
-      }
-      return _this._$v = _$result;
-    }
-  };
-  A._$DevToolsResponse.prototype = {
-    $eq(_, other) {
-      var _this = this;
-      if (other == null)
-        return false;
-      if (other === _this)
-        return true;
-      return other instanceof A._$DevToolsResponse && _this.success === other.success && _this.promptExtension === other.promptExtension && _this.error == other.error;
-    },
-    get$hashCode(_) {
-      return A.$jf(A.$jc(A.$jc(A.$jc(0, B.JSBool_methods.get$hashCode(this.success)), B.JSBool_methods.get$hashCode(this.promptExtension)), J.get$hashCode$(this.error)));
-    },
-    toString$0(_) {
-      var t1 = $.$get$newBuiltValueToStringHelper().call$1("DevToolsResponse"),
-        t2 = J.getInterceptor$ax(t1);
-      t2.add$2(t1, "success", this.success);
-      t2.add$2(t1, "promptExtension", this.promptExtension);
-      t2.add$2(t1, "error", this.error);
-      return t2.toString$0(t1);
-    }
-  };
-  A.DevToolsResponseBuilder.prototype = {
-    get$_$this() {
-      var _this = this,
-        $$v = _this._$v;
-      if ($$v != null) {
-        _this._success = $$v.success;
-        _this._promptExtension = $$v.promptExtension;
-        _this._error = $$v.error;
-        _this._$v = null;
-      }
-      return _this;
-=======
       return "DevToolsResponse { success: " + this.success + ", promptExtension: " + this.promptExtension + ", error: " + A.S(this.error) + " }";
->>>>>>> main
     }
   };
   A.ErrorResponse.prototype = {
@@ -22907,438 +22531,6 @@
       return "ErrorResponse(error: " + this.error + ", stackTrace: " + this.stackTrace + ")";
     }
   };
-<<<<<<< HEAD
-=======
-  A.ExtensionRequest.prototype = {};
-  A.ExtensionResponse.prototype = {};
-  A.ExtensionEvent.prototype = {};
-  A.BatchedEvents.prototype = {};
-  A._$ExtensionRequestSerializer.prototype = {
-    serialize$3$specifiedType(serializers, object, specifiedType) {
-      var result, value;
-      type$.ExtensionRequest._as(object);
-      result = ["id", serializers.serialize$2$specifiedType(object.id, B.FullType_rTD), "command", serializers.serialize$2$specifiedType(object.command, B.FullType_PT1)];
-      value = object.commandParams;
-      if (value != null) {
-        result.push("commandParams");
-        result.push(serializers.serialize$2$specifiedType(value, B.FullType_PT1));
-      }
-      return result;
-    },
-    serialize$2(serializers, object) {
-      return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, _$result,
-        _s16_ = "ExtensionRequest",
-        result = new A.ExtensionRequestBuilder(),
-        iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
-      while (iterator.moveNext$0()) {
-        t1 = iterator.get$current();
-        t1.toString;
-        A._asString(t1);
-        iterator.moveNext$0();
-        value = iterator.get$current();
-        switch (t1) {
-          case "id":
-            t1 = serializers.deserialize$2$specifiedType(value, B.FullType_rTD);
-            t1.toString;
-            A._asInt(t1);
-            result.get$_$this()._id = t1;
-            break;
-          case "command":
-            t1 = serializers.deserialize$2$specifiedType(value, B.FullType_PT1);
-            t1.toString;
-            A._asString(t1);
-            result.get$_$this()._command = t1;
-            break;
-          case "commandParams":
-            t1 = A._asStringQ(serializers.deserialize$2$specifiedType(value, B.FullType_PT1));
-            result.get$_$this()._commandParams = t1;
-            break;
-        }
-      }
-      _$result = result._$v;
-      return result._$v = _$result == null ? new A._$ExtensionRequest(A.BuiltValueNullFieldError_checkNotNull(result.get$_$this()._id, _s16_, "id", type$.int), A.BuiltValueNullFieldError_checkNotNull(result.get$_$this()._command, _s16_, "command", type$.String), result.get$_$this()._commandParams) : _$result;
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isStructuredSerializer: 1,
-    get$types() {
-      return B.List_2dD;
-    },
-    get$wireName() {
-      return "ExtensionRequest";
-    }
-  };
-  A._$ExtensionResponseSerializer.prototype = {
-    serialize$3$specifiedType(serializers, object, specifiedType) {
-      var result, value;
-      type$.ExtensionResponse._as(object);
-      result = ["id", serializers.serialize$2$specifiedType(object.id, B.FullType_rTD), "success", serializers.serialize$2$specifiedType(object.success, B.FullType_R6B), "result", serializers.serialize$2$specifiedType(object.result, B.FullType_PT1)];
-      value = object.error;
-      if (value != null) {
-        result.push("error");
-        result.push(serializers.serialize$2$specifiedType(value, B.FullType_PT1));
-      }
-      return result;
-    },
-    serialize$2(serializers, object) {
-      return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, _$result,
-        _s17_ = "ExtensionResponse",
-        result = new A.ExtensionResponseBuilder(),
-        iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
-      while (iterator.moveNext$0()) {
-        t1 = iterator.get$current();
-        t1.toString;
-        A._asString(t1);
-        iterator.moveNext$0();
-        value = iterator.get$current();
-        switch (t1) {
-          case "id":
-            t1 = serializers.deserialize$2$specifiedType(value, B.FullType_rTD);
-            t1.toString;
-            A._asInt(t1);
-            result.get$_$this()._id = t1;
-            break;
-          case "success":
-            t1 = serializers.deserialize$2$specifiedType(value, B.FullType_R6B);
-            t1.toString;
-            A._asBool(t1);
-            result.get$_$this()._success = t1;
-            break;
-          case "result":
-            t1 = serializers.deserialize$2$specifiedType(value, B.FullType_PT1);
-            t1.toString;
-            A._asString(t1);
-            result.get$_$this()._extension_request$_result = t1;
-            break;
-          case "error":
-            t1 = A._asStringQ(serializers.deserialize$2$specifiedType(value, B.FullType_PT1));
-            result.get$_$this()._error = t1;
-            break;
-        }
-      }
-      _$result = result._$v;
-      return result._$v = _$result == null ? new A._$ExtensionResponse(A.BuiltValueNullFieldError_checkNotNull(result.get$_$this()._id, _s17_, "id", type$.int), A.BuiltValueNullFieldError_checkNotNull(result.get$_$this()._success, _s17_, "success", type$.bool), A.BuiltValueNullFieldError_checkNotNull(result.get$_$this()._extension_request$_result, _s17_, "result", type$.String), result.get$_$this()._error) : _$result;
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isStructuredSerializer: 1,
-    get$types() {
-      return B.List_RWp;
-    },
-    get$wireName() {
-      return "ExtensionResponse";
-    }
-  };
-  A._$ExtensionEventSerializer.prototype = {
-    serialize$3$specifiedType(serializers, object, specifiedType) {
-      type$.ExtensionEvent._as(object);
-      return ["params", serializers.serialize$2$specifiedType(object.params, B.FullType_PT1), "method", serializers.serialize$2$specifiedType(object.method, B.FullType_PT1)];
-    },
-    serialize$2(serializers, object) {
-      return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, value, $$v, _$result,
-        _s14_ = "ExtensionEvent",
-        result = new A.ExtensionEventBuilder(),
-        iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
-      while (iterator.moveNext$0()) {
-        t1 = iterator.get$current();
-        t1.toString;
-        A._asString(t1);
-        iterator.moveNext$0();
-        value = iterator.get$current();
-        switch (t1) {
-          case "params":
-            t1 = serializers.deserialize$2$specifiedType(value, B.FullType_PT1);
-            t1.toString;
-            A._asString(t1);
-            $$v = result._$v;
-            if ($$v != null) {
-              result._params = $$v.params;
-              result._extension_request$_method = $$v.method;
-              result._$v = null;
-            }
-            result._params = t1;
-            break;
-          case "method":
-            t1 = serializers.deserialize$2$specifiedType(value, B.FullType_PT1);
-            t1.toString;
-            A._asString(t1);
-            $$v = result._$v;
-            if ($$v != null) {
-              result._params = $$v.params;
-              result._extension_request$_method = $$v.method;
-              result._$v = null;
-            }
-            result._extension_request$_method = t1;
-            break;
-        }
-      }
-      _$result = result._$v;
-      if (_$result == null) {
-        t1 = type$.String;
-        _$result = new A._$ExtensionEvent(A.BuiltValueNullFieldError_checkNotNull(result.get$_$this()._params, _s14_, "params", t1), A.BuiltValueNullFieldError_checkNotNull(result.get$_$this()._extension_request$_method, _s14_, "method", t1));
-      }
-      return result._$v = _$result;
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isStructuredSerializer: 1,
-    get$types() {
-      return B.List_yvR;
-    },
-    get$wireName() {
-      return "ExtensionEvent";
-    }
-  };
-  A._$BatchedEventsSerializer.prototype = {
-    serialize$3$specifiedType(serializers, object, specifiedType) {
-      return ["events", serializers.serialize$2$specifiedType(type$.BatchedEvents._as(object).events, B.FullType_ahP)];
-    },
-    serialize$2(serializers, object) {
-      return this.serialize$3$specifiedType(serializers, object, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, t2, t3, t4, t5, value, $$v, t6, t7, t8, t9,
-        result = new A.BatchedEventsBuilder(),
-        iterator = J.get$iterator$ax(type$.Iterable_nullable_Object._as(serialized));
-      for (t1 = type$.BuiltList_nullable_Object, t2 = type$.ExtensionEvent, t3 = type$.List_ExtensionEvent, t4 = type$.ListBuilder_ExtensionEvent; iterator.moveNext$0();) {
-        t5 = iterator.get$current();
-        t5.toString;
-        A._asString(t5);
-        iterator.moveNext$0();
-        value = iterator.get$current();
-        switch (t5) {
-          case "events":
-            $$v = result._$v;
-            if ($$v != null) {
-              t5 = $$v.events;
-              t6 = t5.$ti;
-              t7 = new A.ListBuilder(t6._eval$1("ListBuilder<1>"));
-              t8 = t6._eval$1("_BuiltList<1>");
-              t9 = t6._eval$1("List<1>");
-              if (t8._is(t5)) {
-                t8._as(t5);
-                t7.__ListBuilder__list_A = t9._as(t5._list);
-                t7._listOwner = t5;
-              } else
-                t7.__ListBuilder__list_A = t9._as(A.List_List$from(t5, true, t6._precomputed1));
-              result._events = t7;
-              result._$v = null;
-            }
-            t5 = result._events;
-            if (t5 == null) {
-              t5 = new A.ListBuilder(t4);
-              t5.__ListBuilder__list_A = t3._as(A.List_List$from(B.List_empty0, true, t2));
-              result.set$_events(t5);
-            }
-            t6 = serializers.deserialize$2$specifiedType(value, B.FullType_ahP);
-            t6.toString;
-            t1._as(t6);
-            t7 = t5.$ti;
-            t8 = t7._eval$1("_BuiltList<1>");
-            t9 = t7._eval$1("List<1>");
-            if (t8._is(t6)) {
-              t8._as(t6);
-              t5.__ListBuilder__list_A = t9._as(t6._list);
-              t5._listOwner = t6;
-            } else {
-              t5.__ListBuilder__list_A = t9._as(A.List_List$from(t6, true, t7._precomputed1));
-              t5._listOwner = null;
-            }
-            break;
-        }
-      }
-      return result._build$0();
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isStructuredSerializer: 1,
-    get$types() {
-      return B.List_oDF;
-    },
-    get$wireName() {
-      return "BatchedEvents";
-    }
-  };
-  A._$ExtensionRequest.prototype = {
-    $eq(_, other) {
-      var _this = this;
-      if (other == null)
-        return false;
-      if (other === _this)
-        return true;
-      return other instanceof A._$ExtensionRequest && _this.id === other.id && _this.command === other.command && _this.commandParams == other.commandParams;
-    },
-    get$hashCode(_) {
-      return A.$jf(A.$jc(A.$jc(A.$jc(0, B.JSInt_methods.get$hashCode(this.id)), B.JSString_methods.get$hashCode(this.command)), J.get$hashCode$(this.commandParams)));
-    },
-    toString$0(_) {
-      var t1 = $.$get$newBuiltValueToStringHelper().call$1("ExtensionRequest"),
-        t2 = J.getInterceptor$ax(t1);
-      t2.add$2(t1, "id", this.id);
-      t2.add$2(t1, "command", this.command);
-      t2.add$2(t1, "commandParams", this.commandParams);
-      return t2.toString$0(t1);
-    }
-  };
-  A.ExtensionRequestBuilder.prototype = {
-    get$_$this() {
-      var _this = this,
-        $$v = _this._$v;
-      if ($$v != null) {
-        _this._id = $$v.id;
-        _this._command = $$v.command;
-        _this._commandParams = $$v.commandParams;
-        _this._$v = null;
-      }
-      return _this;
-    }
-  };
-  A._$ExtensionResponse.prototype = {
-    $eq(_, other) {
-      var _this = this;
-      if (other == null)
-        return false;
-      if (other === _this)
-        return true;
-      return other instanceof A._$ExtensionResponse && _this.id === other.id && _this.success === other.success && _this.result === other.result && _this.error == other.error;
-    },
-    get$hashCode(_) {
-      var _this = this;
-      return A.$jf(A.$jc(A.$jc(A.$jc(A.$jc(0, B.JSInt_methods.get$hashCode(_this.id)), B.JSBool_methods.get$hashCode(_this.success)), B.JSString_methods.get$hashCode(_this.result)), J.get$hashCode$(_this.error)));
-    },
-    toString$0(_) {
-      var _this = this,
-        t1 = $.$get$newBuiltValueToStringHelper().call$1("ExtensionResponse"),
-        t2 = J.getInterceptor$ax(t1);
-      t2.add$2(t1, "id", _this.id);
-      t2.add$2(t1, "success", _this.success);
-      t2.add$2(t1, "result", _this.result);
-      t2.add$2(t1, "error", _this.error);
-      return t2.toString$0(t1);
-    }
-  };
-  A.ExtensionResponseBuilder.prototype = {
-    get$_$this() {
-      var _this = this,
-        $$v = _this._$v;
-      if ($$v != null) {
-        _this._id = $$v.id;
-        _this._success = $$v.success;
-        _this._extension_request$_result = $$v.result;
-        _this._error = $$v.error;
-        _this._$v = null;
-      }
-      return _this;
-    }
-  };
-  A._$ExtensionEvent.prototype = {
-    $eq(_, other) {
-      if (other == null)
-        return false;
-      if (other === this)
-        return true;
-      return other instanceof A._$ExtensionEvent && this.params === other.params && this.method === other.method;
-    },
-    get$hashCode(_) {
-      return A.$jf(A.$jc(A.$jc(0, B.JSString_methods.get$hashCode(this.params)), B.JSString_methods.get$hashCode(this.method)));
-    },
-    toString$0(_) {
-      var t1 = $.$get$newBuiltValueToStringHelper().call$1("ExtensionEvent"),
-        t2 = J.getInterceptor$ax(t1);
-      t2.add$2(t1, "params", this.params);
-      t2.add$2(t1, "method", this.method);
-      return t2.toString$0(t1);
-    }
-  };
-  A.ExtensionEventBuilder.prototype = {
-    get$_$this() {
-      var _this = this,
-        $$v = _this._$v;
-      if ($$v != null) {
-        _this._params = $$v.params;
-        _this._extension_request$_method = $$v.method;
-        _this._$v = null;
-      }
-      return _this;
-    }
-  };
-  A._$BatchedEvents.prototype = {
-    $eq(_, other) {
-      if (other == null)
-        return false;
-      if (other === this)
-        return true;
-      return other instanceof A._$BatchedEvents && this.events.$eq(0, other.events);
-    },
-    get$hashCode(_) {
-      return A.$jf(A.$jc(0, this.events.get$hashCode(0)));
-    },
-    toString$0(_) {
-      var t1 = $.$get$newBuiltValueToStringHelper().call$1("BatchedEvents"),
-        t2 = J.getInterceptor$ax(t1);
-      t2.add$2(t1, "events", this.events);
-      return t2.toString$0(t1);
-    }
-  };
-  A.BatchedEventsBuilder.prototype = {
-    get$events() {
-      var t1, _this = this,
-        $$v = _this._$v;
-      if ($$v != null) {
-        t1 = $$v.events;
-        _this._events = A.ListBuilder_ListBuilder(t1, t1.$ti._precomputed1);
-        _this._$v = null;
-      }
-      t1 = _this._events;
-      if (t1 == null) {
-        t1 = A.ListBuilder_ListBuilder(B.List_empty0, type$.ExtensionEvent);
-        _this.set$_events(t1);
-      }
-      return t1;
-    },
-    _build$0() {
-      var _$failedField, e, _$result0, exception, t1, t2, _this = this, _$result = null;
-      try {
-        _$result0 = _this._$v;
-        _$result = _$result0 == null ? new A._$BatchedEvents(_this.get$events().build$0()) : _$result0;
-      } catch (exception) {
-        _$failedField = A._Cell$named("_$failedField");
-        try {
-          _$failedField.__late_helper$_value = "events";
-          _this.get$events().build$0();
-        } catch (exception) {
-          e = A.unwrapException(exception);
-          t1 = _$failedField.readLocal$0();
-          t2 = J.toString$0$(e);
-          throw A.wrapException(new A.BuiltValueNestedFieldError("BatchedEvents", t1, t2));
-        }
-        throw exception;
-      }
-      _this._$v = type$.BatchedEvents._as(_$result);
-      return _$result;
-    },
-    set$_events(_events) {
-      this._events = type$.nullable_ListBuilder_ExtensionEvent._as(_events);
-    }
-  };
->>>>>>> main
   A.HotReloadRequest.prototype = {
     toJson$0() {
       return A.LinkedHashMap_LinkedHashMap$_literal(["id", this.id], type$.String, type$.dynamic);
@@ -23573,21 +22765,13 @@
     call$0() {
       return true;
     },
-<<<<<<< HEAD
     $signature: 26
-=======
-    $signature: 25
->>>>>>> main
   };
   A.BatchedStreamController__hasEventDuring_closure.prototype = {
     call$0() {
       return false;
     },
-<<<<<<< HEAD
     $signature: 26
-=======
-    $signature: 25
->>>>>>> main
   };
   A.SocketClient.prototype = {};
   A.SseSocketClient.prototype = {
@@ -23616,7 +22800,7 @@
     call$1(o) {
       return J.toString$0$(o);
     },
-    $signature: 44
+    $signature: 43
   };
   A.PersistentWebSocket.prototype = {
     get$_incomingStreamController() {
@@ -23795,7 +22979,7 @@
       type$.WebSocket._as(socket);
       return new A.PersistentWebSocket(_this.logger, _this.debugName, _this.maxRetryAttempts, new A._AsyncCompleter(new A._Future($.Zone__current, type$._Future_void), type$._AsyncCompleter_void), _this.uri, _this.onReconnect, socket, A.StreamController_StreamController(null, null, null, type$.dynamic));
     },
-    $signature: 45
+    $signature: 44
   };
   A.PersistentWebSocket__listenWithRetry_attemptRetry.prototype = {
     call$1(message) {
@@ -23822,11 +23006,7 @@
       });
       return A._asyncStartSync($async$call$1, $async$completer);
     },
-<<<<<<< HEAD
     $signature: 27
-=======
-    $signature: 26
->>>>>>> main
   };
   A.PersistentWebSocket__listenWithRetry_closure.prototype = {
     call$1(e) {
@@ -23893,11 +23073,7 @@
       });
       return A._asyncStartSync($async$call$1, $async$completer);
     },
-<<<<<<< HEAD
-    $signature: 47
-=======
-    $signature: 48
->>>>>>> main
+    $signature: 46
   };
   A._PersistentWebSocket_Object_StreamChannelMixin.prototype = {};
   A.safeUnawaited_closure.prototype = {
@@ -23905,11 +23081,7 @@
       type$.StackTrace._as(stackTrace);
       return $.$get$_logger().log$4(B.Level_WARNING_900, "Error in unawaited Future:", error, stackTrace);
     },
-<<<<<<< HEAD
     $signature: 20
-=======
-    $signature: 24
->>>>>>> main
   };
   A.Int32.prototype = {
     _toInt$1(val) {
@@ -24078,17 +23250,13 @@
     call$2(key1, key2) {
       return A._asString(key1).toLowerCase() === A._asString(key2).toLowerCase();
     },
-<<<<<<< HEAD
-    $signature: 48
-=======
-    $signature: 33
->>>>>>> main
+    $signature: 47
   };
   A.BaseRequest_closure0.prototype = {
     call$1(key) {
       return B.JSString_methods.get$hashCode(A._asString(key).toLowerCase());
     },
-    $signature: 49
+    $signature: 48
   };
   A.BaseResponse.prototype = {
     BaseResponse$7$contentLength$headers$isRedirect$persistentConnection$reasonPhrase$request(statusCode, contentLength, headers, isRedirect, persistentConnection, reasonPhrase, request) {
@@ -24232,7 +23400,7 @@
     $defaultValues() {
       return [null];
     },
-    $signature: 50
+    $signature: 49
   };
   A._readBody_closure.prototype = {
     call$1(_) {
@@ -24245,7 +23413,7 @@
       A._asObject(_);
       return this._box_0.isError;
     },
-    $signature: 51
+    $signature: 50
   };
   A.ByteStream.prototype = {
     toBytes$0() {
@@ -24260,7 +23428,7 @@
     call$1(bytes) {
       return this.completer.complete$1(new Uint8Array(A._ensureNativeList(type$.List_int._as(bytes))));
     },
-    $signature: 52
+    $signature: 51
   };
   A.ClientException.prototype = {
     toString$0(_) {
@@ -24348,7 +23516,7 @@
       scanner.expectDone$0();
       return A.MediaType$(t4, t5, parameters);
     },
-    $signature: 53
+    $signature: 52
   };
   A.MediaType_toString_closure.prototype = {
     call$2(attribute, value) {
@@ -24367,7 +23535,7 @@
       } else
         t1._contents = t3 + value;
     },
-    $signature: 54
+    $signature: 53
   };
   A.MediaType_toString__closure.prototype = {
     call$1(match) {
@@ -24470,7 +23638,7 @@
         $parent._children.$indexSet(0, thisName, t1);
       return t1;
     },
-    $signature: 56
+    $signature: 55
   };
   A.Context.prototype = {
     absolute$15(part1, part2, part3, part4, part5, part6, part7, part8, part9, part10, part11, part12, part13, part14, part15) {
@@ -24717,7 +23885,7 @@
       A._asStringQ(arg);
       return arg == null ? "null" : '"' + arg + '"';
     },
-    $signature: 58
+    $signature: 57
   };
   A.InternalStyle.prototype = {
     getRoot$1(path) {
@@ -25611,7 +24779,7 @@
     call$0() {
       return this.color;
     },
-    $signature: 59
+    $signature: 58
   };
   A.Highlighter$__closure.prototype = {
     call$1(line) {
@@ -25619,7 +24787,7 @@
         t2 = A._arrayInstanceType(t1);
       return new A.WhereIterable(t1, t2._eval$1("bool(1)")._as(new A.Highlighter$___closure()), t2._eval$1("WhereIterable<1>")).get$length(0);
     },
-    $signature: 60
+    $signature: 59
   };
   A.Highlighter$___closure.prototype = {
     call$1(highlight) {
@@ -25632,21 +24800,21 @@
     call$1(line) {
       return type$._Line._as(line).url;
     },
-    $signature: 62
+    $signature: 61
   };
   A.Highlighter__collateLines_closure.prototype = {
     call$1(highlight) {
       var t1 = type$._Highlight._as(highlight).span.get$sourceUrl();
       return t1 == null ? new A.Object() : t1;
     },
-    $signature: 63
+    $signature: 62
   };
   A.Highlighter__collateLines_closure0.prototype = {
     call$2(highlight1, highlight2) {
       var t1 = type$._Highlight;
       return t1._as(highlight1).span.compareTo$1(0, t1._as(highlight2).span);
     },
-    $signature: 64
+    $signature: 63
   };
   A.Highlighter__collateLines_closure1.prototype = {
     call$1(entry) {
@@ -25689,7 +24857,7 @@
       }
       return lines;
     },
-    $signature: 65
+    $signature: 64
   };
   A.Highlighter__collateLines__closure.prototype = {
     call$1(highlight) {
@@ -25856,7 +25024,7 @@
       }
       return A._Highlight__normalizeEndOfLine(A._Highlight__normalizeTrailingNewline(A._Highlight__normalizeNewlines(newSpan)));
     },
-    $signature: 67
+    $signature: 66
   };
   A._Line.prototype = {
     toString$0(_) {
@@ -26224,7 +25392,7 @@
       });
       return A._asyncStartSync($async$call$0, $async$completer);
     },
-    $signature: 70
+    $signature: 69
   };
   A.StreamChannelMixin.prototype = {};
   A.StringScannerException.prototype = {
@@ -26775,7 +25943,7 @@
     $defaultValues() {
       return [null];
     },
-    $signature: 73
+    $signature: 72
   };
   A.main__closure2.prototype = {
     call$1(runId) {
@@ -26784,7 +25952,7 @@
       t1 = type$.dynamic;
       A._trySendEvent(this.client.get$sink(), B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["HotRestartRequest", A.LinkedHashMap_LinkedHashMap$_literal(["id", runId], type$.String, t1)], type$.JSArray_Object), null), t1);
     },
-    $signature: 23
+    $signature: 31
   };
   A.main__closure3.prototype = {
     call$0() {
@@ -26805,11 +25973,7 @@
       if (A._asBool(init.G.$dartEmitDebugEvents))
         A._trySendEvent(this.client.get$sink(), B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["BatchedDebugEvents", new A.BatchedDebugEvents(events).toJson$0()], type$.JSArray_Object), null), type$.dynamic);
     },
-<<<<<<< HEAD
-    $signature: 75
-=======
-    $signature: 76
->>>>>>> main
+    $signature: 74
   };
   A.main__closure5.prototype = {
     call$2(kind, eventData) {
@@ -26821,14 +25985,14 @@
         A._trySendEvent(new A._StreamSinkWrapper(t1, A._instanceType(t1)._eval$1("_StreamSinkWrapper<1>")), new A.DebugEvent(kind, eventData, Date.now()), type$.DebugEvent);
       }
     },
-    $signature: 76
+    $signature: 75
   };
   A.main__closure6.prototype = {
     call$1(eventData) {
       A._asString(eventData);
       A._trySendEvent(this.client.get$sink(), B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["RegisterEvent", new A.RegisterEvent(eventData, Date.now()).toJson$0()], type$.JSArray_Object), null), type$.dynamic);
     },
-    $signature: 23
+    $signature: 31
   };
   A.main__closure7.prototype = {
     call$0() {
@@ -26838,26 +26002,6 @@
         return;
       }
       t1 = this.client.get$sink();
-<<<<<<< HEAD
-      t2 = $.$get$serializers();
-      t3 = new A.DevToolsRequestBuilder();
-      type$.nullable_void_Function_DevToolsRequestBuilder._as(new A.main___closure()).call$1(t3);
-      A._trySendEvent(t1, B.C_JsonCodec.encode$2$toEncodable(t2.serialize$1(t3._build$0()), null), type$.dynamic);
-    },
-    $signature: 1
-  };
-  A.main___closure.prototype = {
-    call$1(b) {
-      var t1 = init.G,
-        t2 = A._asString(t1.$dartAppId);
-      b.get$_$this()._appId = t2;
-      t1 = A._asStringQ(t1.$dartAppInstanceId);
-      b.get$_$this()._instanceId = t1;
-      return b;
-    },
-    $signature: 77
-  };
-=======
       t2 = init.G;
       t3 = A._asString(t2.$dartAppId);
       t2 = A._asStringQ(t2.$dartAppInstanceId);
@@ -26866,7 +26010,6 @@
     },
     $signature: 1
   };
->>>>>>> main
   A.main__closure8.prototype = {
     call$1(serialized) {
       return this.$call$body$main__closure(A._asString(serialized));
@@ -27033,11 +26176,7 @@
       });
       return A._asyncStartSync($async$call$1, $async$completer);
     },
-<<<<<<< HEAD
     $signature: 27
-=======
-    $signature: 26
->>>>>>> main
   };
   A.main__closure9.prototype = {
     call$1(error) {
@@ -27067,19 +26206,19 @@
     call$1(isAuthenticated) {
       return A._dispatchEvent("dart-auth-response", "" + A._asBool(isAuthenticated));
     },
-    $signature: 78
+    $signature: 76
   };
   A._sendHotReloadResponse_closure.prototype = {
     call$3(id, success, errorMessage) {
       return new A.HotReloadResponse(id, success, errorMessage);
     },
-    $signature: 79
+    $signature: 77
   };
   A._sendHotRestartResponse_closure.prototype = {
     call$3(id, success, errorMessage) {
       return new A.HotRestartResponse(id, success, errorMessage);
     },
-    $signature: 80
+    $signature: 78
   };
   A.DdcLibraryBundleRestarter.prototype = {
     _runMainWhenReady$2(readyToRunMain, runMain) {
@@ -27396,7 +26535,7 @@
       this.sub.cancel$0();
       return value;
     },
-    $signature: 82
+    $signature: 80
   };
   A.ReloadingManager.prototype = {
     hotRestart$3$readyToRunMain$reloadedSourcesPath$runId(readyToRunMain, reloadedSourcesPath, runId) {
@@ -27901,7 +27040,7 @@
     call$1(e) {
       this.completer.completeError$2(new A.HotReloadFailedException(A._asString(type$.JavaScriptObject._as(e).message)), this.stackTrace);
     },
-    $signature: 85
+    $signature: 83
   };
   A._createScript_closure.prototype = {
     call$0() {
@@ -27910,7 +27049,7 @@
         return new A._createScript__closure();
       return new A._createScript__closure0(nonce);
     },
-    $signature: 86
+    $signature: 84
   };
   A._createScript__closure.prototype = {
     call$0() {
@@ -27982,39 +27121,39 @@
     _static_1(A, "async___nullDataHandler$closure", "_nullDataHandler", 7);
     _static_2(A, "async___nullErrorHandler$closure", "_nullErrorHandler", 8);
     _static_0(A, "async___nullDoneHandler$closure", "_nullDoneHandler", 0);
-    _static(A, "async___rootHandleUncaughtError$closure", 5, null, ["call$5"], ["_rootHandleUncaughtError"], 89, 0);
+    _static(A, "async___rootHandleUncaughtError$closure", 5, null, ["call$5"], ["_rootHandleUncaughtError"], 87, 0);
     _static(A, "async___rootRun$closure", 4, null, ["call$1$4", "call$4"], ["_rootRun", function($self, $parent, zone, f) {
       return A._rootRun($self, $parent, zone, f, type$.dynamic);
-    }], 90, 1);
+    }], 88, 1);
     _static(A, "async___rootRunUnary$closure", 5, null, ["call$2$5", "call$5"], ["_rootRunUnary", function($self, $parent, zone, f, arg) {
       var t1 = type$.dynamic;
       return A._rootRunUnary($self, $parent, zone, f, arg, t1, t1);
-    }], 91, 1);
+    }], 89, 1);
     _static(A, "async___rootRunBinary$closure", 6, null, ["call$3$6", "call$6"], ["_rootRunBinary", function($self, $parent, zone, f, arg1, arg2) {
       var t1 = type$.dynamic;
       return A._rootRunBinary($self, $parent, zone, f, arg1, arg2, t1, t1, t1);
-    }], 92, 1);
+    }], 90, 1);
     _static(A, "async___rootRegisterCallback$closure", 4, null, ["call$1$4", "call$4"], ["_rootRegisterCallback", function($self, $parent, zone, f) {
       return A._rootRegisterCallback($self, $parent, zone, f, type$.dynamic);
-    }], 93, 0);
+    }], 91, 0);
     _static(A, "async___rootRegisterUnaryCallback$closure", 4, null, ["call$2$4", "call$4"], ["_rootRegisterUnaryCallback", function($self, $parent, zone, f) {
       var t1 = type$.dynamic;
       return A._rootRegisterUnaryCallback($self, $parent, zone, f, t1, t1);
-    }], 94, 0);
+    }], 92, 0);
     _static(A, "async___rootRegisterBinaryCallback$closure", 4, null, ["call$3$4", "call$4"], ["_rootRegisterBinaryCallback", function($self, $parent, zone, f) {
       var t1 = type$.dynamic;
       return A._rootRegisterBinaryCallback($self, $parent, zone, f, t1, t1, t1);
-    }], 95, 0);
-    _static(A, "async___rootErrorCallback$closure", 5, null, ["call$5"], ["_rootErrorCallback"], 96, 0);
-    _static(A, "async___rootScheduleMicrotask$closure", 4, null, ["call$4"], ["_rootScheduleMicrotask"], 97, 0);
-    _static(A, "async___rootCreateTimer$closure", 5, null, ["call$5"], ["_rootCreateTimer"], 98, 0);
-    _static(A, "async___rootCreatePeriodicTimer$closure", 5, null, ["call$5"], ["_rootCreatePeriodicTimer"], 99, 0);
-    _static(A, "async___rootPrint$closure", 4, null, ["call$4"], ["_rootPrint"], 100, 0);
-    _static_1(A, "async___printToZone$closure", "_printToZone", 101);
-    _static(A, "async___rootFork$closure", 5, null, ["call$5"], ["_rootFork"], 102, 0);
+    }], 93, 0);
+    _static(A, "async___rootErrorCallback$closure", 5, null, ["call$5"], ["_rootErrorCallback"], 94, 0);
+    _static(A, "async___rootScheduleMicrotask$closure", 4, null, ["call$4"], ["_rootScheduleMicrotask"], 95, 0);
+    _static(A, "async___rootCreateTimer$closure", 5, null, ["call$5"], ["_rootCreateTimer"], 96, 0);
+    _static(A, "async___rootCreatePeriodicTimer$closure", 5, null, ["call$5"], ["_rootCreatePeriodicTimer"], 97, 0);
+    _static(A, "async___rootPrint$closure", 4, null, ["call$4"], ["_rootPrint"], 98, 0);
+    _static_1(A, "async___printToZone$closure", "_printToZone", 99);
+    _static(A, "async___rootFork$closure", 5, null, ["call$5"], ["_rootFork"], 100, 0);
     _instance(A._Completer.prototype, "get$completeError", 0, 1, function() {
       return [null];
-    }, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 38, 0, 0);
+    }, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 37, 0, 0);
     _instance_2_u(A._Future.prototype, "get$_completeError", "_completeError$2", 8);
     var _;
     _instance_1_u(_ = A._StreamController.prototype, "get$_add", "_add$1", 10);
@@ -28028,11 +27167,7 @@
     _instance_0_u(_ = A._ForwardingStreamSubscription.prototype, "get$_onPause", "_onPause$0", 0);
     _instance_0_u(_, "get$_onResume", "_onResume$0", 0);
     _instance_1_u(_, "get$_handleData", "_handleData$1", 10);
-<<<<<<< HEAD
     _instance_2_u(_, "get$_handleError", "_handleError$2", 20);
-=======
-    _instance_2_u(_, "get$_handleError", "_handleError$2", 24);
->>>>>>> main
     _instance_0_u(_, "get$_handleDone", "_handleDone$0", 0);
     _static_2(A, "collection___defaultEquals$closure", "_defaultEquals0", 16);
     _static_1(A, "collection___defaultHashCode$closure", "_defaultHashCode", 17);
@@ -28045,11 +27180,7 @@
     _static_1(A, "core_Uri_decodeComponent$closure", "Uri_decodeComponent", 15);
     _static(A, "math__max$closure", 2, null, ["call$1$2", "call$2"], ["max", function(a, b) {
       return A.max(a, b, type$.num);
-<<<<<<< HEAD
-    }], 103, 1);
-=======
-    }], 75, 1);
->>>>>>> main
+    }], 101, 1);
     _instance_2_u(_ = A.DeepCollectionEquality.prototype, "get$equals", "equals$2", 16);
     _instance_1_u(_, "get$hash", "hash$1", 17);
     _instance_1_u(_, "get$isValidKey", "isValidKey$1", 14);
@@ -28059,22 +27190,18 @@
     _instance_1_u(_ = A.SseClient.prototype, "get$_onIncomingControlMessage", "_onIncomingControlMessage$1", 2);
     _instance_1_u(_, "get$_onIncomingMessage", "_onIncomingMessage$1", 2);
     _instance_0_u(_, "get$_onOutgoingDone", "_onOutgoingDone$0", 0);
-    _instance_1_u(_, "get$_onOutgoingMessage", "_onOutgoingMessage$1", 87);
-    _static_1(A, "client__initializeConnection$closure", "initializeConnection", 69);
+    _instance_1_u(_, "get$_onOutgoingMessage", "_onOutgoingMessage$1", 85);
+    _static_1(A, "client__initializeConnection$closure", "initializeConnection", 68);
     _static_1(A, "client___handleAuthRequest$closure", "_handleAuthRequest", 2);
-    _instance_1_u(_ = A.RequireRestarter.prototype, "get$_moduleParents", "_moduleParents$1", 83);
-    _instance_2_u(_, "get$_moduleTopologicalCompare", "_moduleTopologicalCompare$2", 84);
+    _instance_1_u(_ = A.RequireRestarter.prototype, "get$_moduleParents", "_moduleParents$1", 81);
+    _instance_2_u(_, "get$_moduleTopologicalCompare", "_moduleTopologicalCompare$2", 82);
   })();
   (function inheritance() {
     var _mixin = hunkHelpers.mixin,
       _inherit = hunkHelpers.inherit,
       _inheritMany = hunkHelpers.inheritMany;
     _inherit(A.Object, null);
-<<<<<<< HEAD
-    _inheritMany(A.Object, [A.JS_CONST, J.Interceptor, A.SafeToStringHook, J.ArrayIterator, A.Stream, A.CastStreamSubscription, A.Iterable, A.CastIterator, A.Closure, A.MapBase, A.Error, A.ListBase, A.SentinelValue, A.ListIterator, A.MappedIterator, A.WhereIterator, A.ExpandIterator, A.TakeIterator, A.SkipIterator, A.EmptyIterator, A.WhereTypeIterator, A.FixedLengthListMixin, A.UnmodifiableListMixin, A._Record, A.ConstantMap, A._KeysOrValuesOrElementsIterator, A.TypeErrorDecoder, A.NullThrownFromJavaScriptException, A.ExceptionAndStackTrace, A._StackTrace, A.LinkedHashMapCell, A.LinkedHashMapKeyIterator, A.LinkedHashMapValueIterator, A.LinkedHashMapEntryIterator, A.JSSyntaxRegExp, A._MatchImplementation, A._AllMatchesIterator, A.StringMatch, A._StringAllMatchesIterator, A._Cell, A._UnmodifiableNativeByteBufferView, A.Rti, A._FunctionParameters, A._Type, A._TimerImpl, A._AsyncAwaitCompleter, A._AsyncStarStreamController, A._IterationMarker, A.AsyncError, A._Completer, A._FutureListener, A._Future, A._AsyncCallbackEntry, A._StreamController, A._AsyncStreamControllerDispatch, A._BufferingStreamSubscription, A._StreamSinkWrapper, A._AddStreamState, A._DelayedEvent, A._DelayedDone, A._PendingEvents, A._DoneStreamSubscription, A._StreamIterator, A._ZoneFunction, A._Zone, A._ZoneDelegate, A._ZoneSpecification, A._HashMapKeyIterator, A.SetBase, A._HashSetIterator, A._LinkedHashSetCell, A._LinkedHashSetIterator, A._UnmodifiableMapMixin, A.MapView, A._ListQueueIterator, A._SplayTreeNode, A._SplayTree, A._SplayTreeIterator, A.Codec, A.Converter, A._Base64Encoder, A._Base64Decoder, A.ByteConversionSink, A._JsonStringifier, A._Utf8Encoder, A._Utf8Decoder, A._BigIntImpl, A.DateTime, A.Duration, A._Enum, A.OutOfMemoryError, A.StackOverflowError, A._Exception, A.FormatException, A.IntegerDivisionByZeroException, A.MapEntry, A.Null, A._StringStackTrace, A.StringBuffer, A._Uri, A.UriData, A._SimpleUri, A.NullRejectionException, A._JSRandom, A._JSSecureRandom, A.AsyncMemoizer, A.ErrorResult, A.ValueResult, A.StreamQueue, A._NextRequest, A._HasNextRequest, A.BuiltList, A.ListBuilder, A.BuiltListMultimap, A.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, A.BuiltSet, A.SetBuilder, A.BuiltSetMultimap, A.SetMultimapBuilder, A.IndentingBuiltValueToStringHelper, A.JsonObject, A.FullType, A.BigIntSerializer, A.BoolSerializer, A.BuiltJsonSerializers, A.BuiltJsonSerializersBuilder, A.BuiltListMultimapSerializer, A.BuiltListSerializer, A.BuiltMapSerializer, A.BuiltSetMultimapSerializer, A.BuiltSetSerializer, A.DateTimeSerializer, A.DoubleSerializer, A.DurationSerializer, A.Int32Serializer, A.Int64Serializer, A.IntSerializer, A.JsonObjectSerializer, A.ListSerializer, A.MapSerializer, A.NullSerializer, A.NumSerializer, A.RegExpSerializer, A.SetSerializer, A.StringSerializer, A.Uint8ListSerializer, A.UriSerializer, A.CanonicalizedMap, A.DefaultEquality, A.IterableEquality, A.ListEquality, A._UnorderedEquality, A._MapEntry, A.MapEquality, A.DeepCollectionEquality, A._QueueList_Object_ListMixin, A.BuildResult, A.ConnectRequest, A.DebugEvent, A.BatchedDebugEvents, A.DebugInfo, A.DevToolsRequest, A.DevToolsResponse, A._$DevToolsRequestSerializer, A._$DevToolsResponseSerializer, A.DevToolsRequestBuilder, A.DevToolsResponseBuilder, A.ErrorResponse, A.HotReloadRequest, A.HotReloadResponse, A.HotRestartRequest, A.HotRestartResponse, A.RegisterEvent, A.RunRequest, A.ServiceExtensionRequest, A.ServiceExtensionResponse, A.BatchedStreamController, A.SocketClient, A._PersistentWebSocket_Object_StreamChannelMixin, A.Int32, A.Int64, A._StackState, A.BaseClient, A.BaseRequest, A.BaseResponse, A.ClientException, A.MediaType, A.Level, A.LogRecord, A.Logger, A.Context, A.Style, A.ParsedPath, A.PathException, A.Pool, A.PoolResource, A.SourceFile, A.SourceLocationMixin, A.SourceSpanMixin, A.Highlighter, A._Highlight, A._Line, A.SourceLocation, A.SourceSpanException, A.StreamChannelMixin, A.StringScanner, A.RNG, A.UuidV1, A.EventStreamProvider, A._EventStreamSubscription, A.BrowserWebSocket, A.WebSocketEvent, A.WebSocketException, A.DdcLibraryBundleRestarter, A.DdcRestarter, A.ReloadingManager, A.HotReloadFailedException, A.RequireRestarter]);
-=======
-    _inheritMany(A.Object, [A.JS_CONST, J.Interceptor, A.SafeToStringHook, J.ArrayIterator, A.Stream, A.CastStreamSubscription, A.Iterable, A.CastIterator, A.Closure, A.MapBase, A.Error, A.ListBase, A.SentinelValue, A.ListIterator, A.MappedIterator, A.WhereIterator, A.ExpandIterator, A.TakeIterator, A.SkipIterator, A.EmptyIterator, A.WhereTypeIterator, A.FixedLengthListMixin, A.UnmodifiableListMixin, A._Record, A.ConstantMap, A._KeysOrValuesOrElementsIterator, A.TypeErrorDecoder, A.NullThrownFromJavaScriptException, A.ExceptionAndStackTrace, A._StackTrace, A.LinkedHashMapCell, A.LinkedHashMapKeyIterator, A.LinkedHashMapValueIterator, A.LinkedHashMapEntryIterator, A.JSSyntaxRegExp, A._MatchImplementation, A._AllMatchesIterator, A.StringMatch, A._StringAllMatchesIterator, A._Cell, A._UnmodifiableNativeByteBufferView, A.Rti, A._FunctionParameters, A._Type, A._TimerImpl, A._AsyncAwaitCompleter, A._AsyncStarStreamController, A._IterationMarker, A.AsyncError, A._Completer, A._FutureListener, A._Future, A._AsyncCallbackEntry, A._StreamController, A._AsyncStreamControllerDispatch, A._BufferingStreamSubscription, A._StreamSinkWrapper, A._AddStreamState, A._DelayedEvent, A._DelayedDone, A._PendingEvents, A._DoneStreamSubscription, A._StreamIterator, A._ZoneFunction, A._Zone, A._ZoneDelegate, A._ZoneSpecification, A._HashMapKeyIterator, A.SetBase, A._HashSetIterator, A._LinkedHashSetCell, A._LinkedHashSetIterator, A._UnmodifiableMapMixin, A.MapView, A._ListQueueIterator, A._SplayTreeNode, A._SplayTree, A._SplayTreeIterator, A.Codec, A.Converter, A._Base64Encoder, A._Base64Decoder, A.ByteConversionSink, A._JsonStringifier, A._Utf8Encoder, A._Utf8Decoder, A._BigIntImpl, A.DateTime, A.Duration, A._Enum, A.OutOfMemoryError, A.StackOverflowError, A._Exception, A.FormatException, A.IntegerDivisionByZeroException, A.MapEntry, A.Null, A._StringStackTrace, A.StringBuffer, A._Uri, A.UriData, A._SimpleUri, A.NullRejectionException, A._JSRandom, A._JSSecureRandom, A.AsyncMemoizer, A.ErrorResult, A.ValueResult, A.StreamQueue, A._NextRequest, A._HasNextRequest, A.BuiltList, A.ListBuilder, A.BuiltListMultimap, A.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, A.BuiltSet, A.SetBuilder, A.BuiltSetMultimap, A.SetMultimapBuilder, A.IndentingBuiltValueToStringHelper, A.JsonObject, A.FullType, A.BigIntSerializer, A.BoolSerializer, A.BuiltJsonSerializers, A.BuiltJsonSerializersBuilder, A.BuiltListMultimapSerializer, A.BuiltListSerializer, A.BuiltMapSerializer, A.BuiltSetMultimapSerializer, A.BuiltSetSerializer, A.DateTimeSerializer, A.DoubleSerializer, A.DurationSerializer, A.Int32Serializer, A.Int64Serializer, A.IntSerializer, A.JsonObjectSerializer, A.ListSerializer, A.MapSerializer, A.NullSerializer, A.NumSerializer, A.RegExpSerializer, A.SetSerializer, A.StringSerializer, A.Uint8ListSerializer, A.UriSerializer, A.CanonicalizedMap, A.DefaultEquality, A.IterableEquality, A.ListEquality, A._UnorderedEquality, A._MapEntry, A.MapEquality, A.DeepCollectionEquality, A._QueueList_Object_ListMixin, A.BuildResult, A.ConnectRequest, A.DebugEvent, A.BatchedDebugEvents, A.DebugInfo, A.DevToolsRequest, A.DevToolsResponse, A.ErrorResponse, A.ExtensionRequest, A.ExtensionResponse, A.ExtensionEvent, A.BatchedEvents, A._$ExtensionRequestSerializer, A._$ExtensionResponseSerializer, A._$ExtensionEventSerializer, A._$BatchedEventsSerializer, A.ExtensionRequestBuilder, A.ExtensionResponseBuilder, A.ExtensionEventBuilder, A.BatchedEventsBuilder, A.HotReloadRequest, A.HotReloadResponse, A.HotRestartRequest, A.HotRestartResponse, A.RegisterEvent, A.RunRequest, A.ServiceExtensionRequest, A.ServiceExtensionResponse, A.BatchedStreamController, A.SocketClient, A._PersistentWebSocket_Object_StreamChannelMixin, A.Int32, A.Int64, A._StackState, A.BaseClient, A.BaseRequest, A.BaseResponse, A.ClientException, A.MediaType, A.Level, A.LogRecord, A.Logger, A.Context, A.Style, A.ParsedPath, A.PathException, A.Pool, A.PoolResource, A.SourceFile, A.SourceLocationMixin, A.SourceSpanMixin, A.Highlighter, A._Highlight, A._Line, A.SourceLocation, A.SourceSpanException, A.StreamChannelMixin, A.StringScanner, A.RNG, A.UuidV1, A.EventStreamProvider, A._EventStreamSubscription, A.BrowserWebSocket, A.WebSocketEvent, A.WebSocketException, A.DdcLibraryBundleRestarter, A.DdcRestarter, A.ReloadingManager, A.HotReloadFailedException, A.RequireRestarter]);
->>>>>>> main
+    _inheritMany(A.Object, [A.JS_CONST, J.Interceptor, A.SafeToStringHook, J.ArrayIterator, A.Stream, A.CastStreamSubscription, A.Iterable, A.CastIterator, A.Closure, A.MapBase, A.Error, A.ListBase, A.SentinelValue, A.ListIterator, A.MappedIterator, A.WhereIterator, A.ExpandIterator, A.TakeIterator, A.SkipIterator, A.EmptyIterator, A.WhereTypeIterator, A.FixedLengthListMixin, A.UnmodifiableListMixin, A._Record, A.ConstantMap, A._KeysOrValuesOrElementsIterator, A.TypeErrorDecoder, A.NullThrownFromJavaScriptException, A.ExceptionAndStackTrace, A._StackTrace, A.LinkedHashMapCell, A.LinkedHashMapKeyIterator, A.LinkedHashMapValueIterator, A.LinkedHashMapEntryIterator, A.JSSyntaxRegExp, A._MatchImplementation, A._AllMatchesIterator, A.StringMatch, A._StringAllMatchesIterator, A._Cell, A._UnmodifiableNativeByteBufferView, A.Rti, A._FunctionParameters, A._Type, A._TimerImpl, A._AsyncAwaitCompleter, A._AsyncStarStreamController, A._IterationMarker, A.AsyncError, A._Completer, A._FutureListener, A._Future, A._AsyncCallbackEntry, A._StreamController, A._AsyncStreamControllerDispatch, A._BufferingStreamSubscription, A._StreamSinkWrapper, A._AddStreamState, A._DelayedEvent, A._DelayedDone, A._PendingEvents, A._DoneStreamSubscription, A._StreamIterator, A._ZoneFunction, A._Zone, A._ZoneDelegate, A._ZoneSpecification, A._HashMapKeyIterator, A.SetBase, A._HashSetIterator, A._LinkedHashSetCell, A._LinkedHashSetIterator, A._UnmodifiableMapMixin, A.MapView, A._ListQueueIterator, A._SplayTreeNode, A._SplayTree, A._SplayTreeIterator, A.Codec, A.Converter, A._Base64Encoder, A._Base64Decoder, A.ByteConversionSink, A._JsonStringifier, A._Utf8Encoder, A._Utf8Decoder, A._BigIntImpl, A.DateTime, A.Duration, A._Enum, A.OutOfMemoryError, A.StackOverflowError, A._Exception, A.FormatException, A.IntegerDivisionByZeroException, A.MapEntry, A.Null, A._StringStackTrace, A.StringBuffer, A._Uri, A.UriData, A._SimpleUri, A.NullRejectionException, A._JSRandom, A._JSSecureRandom, A.AsyncMemoizer, A.ErrorResult, A.ValueResult, A.StreamQueue, A._NextRequest, A._HasNextRequest, A.BuiltList, A.ListBuilder, A.BuiltListMultimap, A.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, A.BuiltSet, A.SetBuilder, A.BuiltSetMultimap, A.SetMultimapBuilder, A.JsonObject, A.FullType, A.BigIntSerializer, A.BoolSerializer, A.BuiltJsonSerializers, A.BuiltJsonSerializersBuilder, A.BuiltListMultimapSerializer, A.BuiltListSerializer, A.BuiltMapSerializer, A.BuiltSetMultimapSerializer, A.BuiltSetSerializer, A.DateTimeSerializer, A.DoubleSerializer, A.DurationSerializer, A.Int32Serializer, A.Int64Serializer, A.IntSerializer, A.JsonObjectSerializer, A.ListSerializer, A.MapSerializer, A.NullSerializer, A.NumSerializer, A.RegExpSerializer, A.SetSerializer, A.StringSerializer, A.Uint8ListSerializer, A.UriSerializer, A.CanonicalizedMap, A.DefaultEquality, A.IterableEquality, A.ListEquality, A._UnorderedEquality, A._MapEntry, A.MapEquality, A.DeepCollectionEquality, A._QueueList_Object_ListMixin, A.BuildResult, A.ConnectRequest, A.DebugEvent, A.BatchedDebugEvents, A.DebugInfo, A.DevToolsRequest, A.DevToolsResponse, A.ErrorResponse, A.HotReloadRequest, A.HotReloadResponse, A.HotRestartRequest, A.HotRestartResponse, A.RegisterEvent, A.RunRequest, A.ServiceExtensionRequest, A.ServiceExtensionResponse, A.BatchedStreamController, A.SocketClient, A._PersistentWebSocket_Object_StreamChannelMixin, A.Int32, A.Int64, A._StackState, A.BaseClient, A.BaseRequest, A.BaseResponse, A.ClientException, A.MediaType, A.Level, A.LogRecord, A.Logger, A.Context, A.Style, A.ParsedPath, A.PathException, A.Pool, A.PoolResource, A.SourceFile, A.SourceLocationMixin, A.SourceSpanMixin, A.Highlighter, A._Highlight, A._Line, A.SourceLocation, A.SourceSpanException, A.StreamChannelMixin, A.StringScanner, A.RNG, A.UuidV1, A.EventStreamProvider, A._EventStreamSubscription, A.BrowserWebSocket, A.WebSocketEvent, A.WebSocketException, A.DdcLibraryBundleRestarter, A.DdcRestarter, A.ReloadingManager, A.HotReloadFailedException, A.RequireRestarter]);
     _inheritMany(J.Interceptor, [J.JSBool, J.JSNull, J.JavaScriptObject, J.JavaScriptBigInt, J.JavaScriptSymbol, J.JSNumber, J.JSString]);
     _inheritMany(J.JavaScriptObject, [J.LegacyJavaScriptObject, J.JSArray, A.NativeByteBuffer, A.NativeTypedData]);
     _inheritMany(J.LegacyJavaScriptObject, [J.PlainJavaScriptObject, J.UnknownJavaScriptObject, J.JavaScriptFunction]);
@@ -28086,11 +27213,11 @@
     _inheritMany(A._CastIterableBase, [A.CastIterable, A.__CastListBase__CastIterableBase_ListMixin]);
     _inherit(A._EfficientLengthCastIterable, A.CastIterable);
     _inherit(A._CastListBase, A.__CastListBase__CastIterableBase_ListMixin);
-    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.Instantiation, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._asyncStarHelper_closure0, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._CustomHashMap_closure, A._LinkedCustomHashMap_closure, A._BigIntImpl_hashCode_finish, A._Uri__makePath_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure, A.FutureOfVoidToJSPromise_get_toJS__closure, A.jsify__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.BuiltListMultimap_BuiltListMultimap_closure, A.BuiltListMultimap_hashCode_closure, A.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.BuiltSet_hashCode_closure, A.BuiltSetMultimap_hashCode_closure, A.SetMultimapBuilder_replace_closure, A.newBuiltValueToStringHelper_closure, A.BuiltListMultimapSerializer_serialize_closure, A.BuiltListMultimapSerializer_deserialize_closure, A.BuiltListSerializer_serialize_closure, A.BuiltListSerializer_deserialize_closure, A.BuiltSetMultimapSerializer_serialize_closure, A.BuiltSetMultimapSerializer_deserialize_closure, A.BuiltSetSerializer_serialize_closure, A.BuiltSetSerializer_deserialize_closure, A.ListSerializer_serialize_closure, A.SetSerializer_serialize_closure, A.CanonicalizedMap_keys_closure, A.BuildStatus_BuildStatus$fromJson_closure, A.BatchedDebugEvents_toJson_closure, A.WebSocketClient_stream_closure, A.PersistentWebSocket_connect_closure, A.PersistentWebSocket__listenWithRetry_attemptRetry, A.PersistentWebSocket__listenWithRetry_closure, A.BaseRequest_closure0, A.BrowserClient_send_closure, A._readBody_closure, A._readBody_closure0, A.ByteStream_toBytes_closure, A.MediaType_toString__closure, A.expectQuotedString_closure, A.Context_joinAll_closure, A.Context_split_closure, A._validateArgList_closure, A.Pool__runOnRelease_closure, A.Highlighter$__closure, A.Highlighter$___closure, A.Highlighter$__closure0, A.Highlighter__collateLines_closure, A.Highlighter__collateLines_closure1, A.Highlighter__collateLines__closure, A.Highlighter_highlight_closure, A.SseClient_closure0, A.SseClient_closure1, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.BrowserWebSocket_connect_closure, A.BrowserWebSocket_connect_closure0, A.BrowserWebSocket_connect_closure1, A.BrowserWebSocket_connect_closure2, A.main__closure1, A.main__closure2, A.main__closure4, A.main__closure6, A.main__closure8, A.main__closure9, A.main__closure10, A._handleAuthRequest_closure, A._sendHotReloadResponse_closure, A._sendHotRestartResponse_closure, A.DdcLibraryBundleRestarter_restart_closure, A.DdcLibraryBundleRestarter_hotReloadStart_closure, A.DdcRestarter_restart_closure0, A.DdcRestarter_restart_closure, A.RequireRestarter__reloadModule_closure0, A.JSArrayExtension_toDartIterable_closure]);
+    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.Instantiation, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._asyncStarHelper_closure0, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._CustomHashMap_closure, A._LinkedCustomHashMap_closure, A._BigIntImpl_hashCode_finish, A._Uri__makePath_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure, A.FutureOfVoidToJSPromise_get_toJS__closure, A.jsify__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.BuiltListMultimap_BuiltListMultimap_closure, A.BuiltListMultimap_hashCode_closure, A.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.BuiltSet_hashCode_closure, A.BuiltSetMultimap_hashCode_closure, A.SetMultimapBuilder_replace_closure, A.BuiltListMultimapSerializer_serialize_closure, A.BuiltListMultimapSerializer_deserialize_closure, A.BuiltListSerializer_serialize_closure, A.BuiltListSerializer_deserialize_closure, A.BuiltSetMultimapSerializer_serialize_closure, A.BuiltSetMultimapSerializer_deserialize_closure, A.BuiltSetSerializer_serialize_closure, A.BuiltSetSerializer_deserialize_closure, A.ListSerializer_serialize_closure, A.SetSerializer_serialize_closure, A.CanonicalizedMap_keys_closure, A.BuildStatus_BuildStatus$fromJson_closure, A.BatchedDebugEvents_toJson_closure, A.WebSocketClient_stream_closure, A.PersistentWebSocket_connect_closure, A.PersistentWebSocket__listenWithRetry_attemptRetry, A.PersistentWebSocket__listenWithRetry_closure, A.BaseRequest_closure0, A.BrowserClient_send_closure, A._readBody_closure, A._readBody_closure0, A.ByteStream_toBytes_closure, A.MediaType_toString__closure, A.expectQuotedString_closure, A.Context_joinAll_closure, A.Context_split_closure, A._validateArgList_closure, A.Pool__runOnRelease_closure, A.Highlighter$__closure, A.Highlighter$___closure, A.Highlighter$__closure0, A.Highlighter__collateLines_closure, A.Highlighter__collateLines_closure1, A.Highlighter__collateLines__closure, A.Highlighter_highlight_closure, A.SseClient_closure0, A.SseClient_closure1, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.BrowserWebSocket_connect_closure, A.BrowserWebSocket_connect_closure0, A.BrowserWebSocket_connect_closure1, A.BrowserWebSocket_connect_closure2, A.main__closure1, A.main__closure2, A.main__closure4, A.main__closure6, A.main__closure8, A.main__closure9, A.main__closure10, A._handleAuthRequest_closure, A._sendHotReloadResponse_closure, A._sendHotRestartResponse_closure, A.DdcLibraryBundleRestarter_restart_closure, A.DdcLibraryBundleRestarter_hotReloadStart_closure, A.DdcRestarter_restart_closure0, A.DdcRestarter_restart_closure, A.RequireRestarter__reloadModule_closure0, A.JSArrayExtension_toDartIterable_closure]);
     _inheritMany(A.Closure2Args, [A._CastListBase_sort_closure, A.CastMap_forEach_closure, A.ConstantMap_map_closure, A.JsLinkedHashMap_addAll_closure, A.initHooks_closure0, A._awaitOnObject_closure0, A._wrapJsFunctionForAsync_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure0, A._Future_timeout_closure1, A._AddStreamState_makeErrorHandler_closure, A._BufferingStreamSubscription_asFuture_closure0, A.LinkedHashMap_LinkedHashMap$from_closure, A.MapBase_mapToString_closure, A._JsonStringifier_writeMap_closure, A._BigIntImpl_hashCode_combine, A.Uri_parseIPv6Address_error, A.FutureOfJSAnyToJSPromise_get_toJS_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure0, A.FutureOfVoidToJSPromise_get_toJS_closure, A.FutureOfVoidToJSPromise_get_toJS__closure0, A.StreamQueue__ensureListening_closure1, A.hashObjects_closure, A.MapBuilder_replace_closure, A.CanonicalizedMap_addAll_closure, A.CanonicalizedMap_forEach_closure, A.CanonicalizedMap_map_closure, A.safeUnawaited_closure, A.BaseRequest_closure, A.MediaType_toString_closure, A.Pool__runOnRelease_closure0, A.Highlighter__collateLines_closure0, A.main__closure5, A.main_closure0]);
     _inherit(A.CastList, A._CastListBase);
     _inheritMany(A.MapBase, [A.CastMap, A.JsLinkedHashMap, A._HashMap, A._JsonMap]);
-    _inheritMany(A.Error, [A.LateError, A.TypeError, A.JsNoSuchMethodError, A.UnknownJsTypeError, A.RuntimeError, A._Error, A.JsonUnsupportedObjectError, A.AssertionError, A.ArgumentError, A.UnsupportedError, A.UnimplementedError, A.StateError, A.ConcurrentModificationError, A.BuiltValueNullFieldError, A.DeserializationError]);
+    _inheritMany(A.Error, [A.LateError, A.TypeError, A.JsNoSuchMethodError, A.UnknownJsTypeError, A.RuntimeError, A._Error, A.JsonUnsupportedObjectError, A.AssertionError, A.ArgumentError, A.UnsupportedError, A.UnimplementedError, A.StateError, A.ConcurrentModificationError, A.DeserializationError]);
     _inherit(A.UnmodifiableListBase, A.ListBase);
     _inheritMany(A.UnmodifiableListBase, [A.CodeUnits, A.UnmodifiableListView]);
     _inheritMany(A.Closure0Args, [A.nullFuture_closure, A._AsyncRun__scheduleImmediateJsOverride_internalCallback, A._AsyncRun__scheduleImmediateWithSetImmediate_internalCallback, A._TimerImpl_internalCallback, A._TimerImpl$periodic_closure, A._asyncStarHelper_closure, A._AsyncStarStreamController__resumeBody, A._AsyncStarStreamController__resumeBody_closure, A._AsyncStarStreamController_closure0, A._AsyncStarStreamController_closure1, A._AsyncStarStreamController_closure, A._AsyncStarStreamController__closure, A.Future_Future$microtask_closure, A.Future_Future$delayed_closure, A._Future__addListener_closure, A._Future__prependListeners_closure, A._Future__chainCoreFuture_closure, A._Future__asyncCompleteWithValue_closure, A._Future__asyncCompleteErrorObject_closure, A._Future__propagateToListeners_handleWhenCompleteCallback, A._Future__propagateToListeners_handleValueCallback, A._Future__propagateToListeners_handleError, A._Future_timeout_closure, A.Stream_length_closure0, A.Stream_first_closure, A._StreamController__subscribe_closure, A._StreamController__recordCancel_complete, A._AddStreamState_cancel_closure, A._BufferingStreamSubscription_asFuture_closure, A._BufferingStreamSubscription_asFuture__closure, A._BufferingStreamSubscription__sendError_sendError, A._BufferingStreamSubscription__sendDone_sendDone, A._PendingEvents_schedule_closure, A._cancelAndValue_closure, A._CustomZone_bindCallback_closure, A._CustomZone_bindCallbackGuarded_closure, A._RootZone_bindCallback_closure, A._RootZone_bindCallbackGuarded_closure, A._rootHandleError_closure, A._Utf8Decoder__decoder_closure, A._Utf8Decoder__decoderNonfatal_closure, A.StreamQueue__ensureListening_closure0, A.Serializers_Serializers_closure, A.Serializers_Serializers_closure0, A.Serializers_Serializers_closure1, A.Serializers_Serializers_closure2, A.Serializers_Serializers_closure3, A.BuildStatus_BuildStatus$fromJson_closure0, A.BatchedStreamController__hasEventOrTimeOut_closure, A.BatchedStreamController__hasEventDuring_closure, A.MediaType_MediaType$parse_closure, A.Logger_Logger_closure, A.Highlighter_closure, A.Highlighter__writeFileStart_closure, A.Highlighter__writeMultilineHighlights_closure, A.Highlighter__writeMultilineHighlights_closure0, A.Highlighter__writeMultilineHighlights_closure1, A.Highlighter__writeMultilineHighlights_closure2, A.Highlighter__writeMultilineHighlights__closure, A.Highlighter__writeMultilineHighlights__closure0, A.Highlighter__writeHighlightedText_closure, A.Highlighter__writeIndicator_closure, A.Highlighter__writeIndicator_closure0, A.Highlighter__writeIndicator_closure1, A.Highlighter__writeSidebar_closure, A._Highlight_closure, A.SseClient_closure, A.SseClient__closure, A.SseClient__onOutgoingMessage_closure, A.main_closure, A.main__closure, A.main__closure0, A.main__closure3, A.main__closure7, A.DdcLibraryBundleRestarter__getSrcModuleLibraries_closure, A.RequireRestarter__reload_closure, A.RequireRestarter__reloadModule_closure, A._createScript_closure, A._createScript__closure, A._createScript__closure0, A.runMain_closure]);
@@ -28154,15 +27281,6 @@
     _inherit(A.QueueList, A._QueueList_Object_ListMixin);
     _inherit(A._CastQueueList, A.QueueList);
     _inherit(A.BuildStatus, A._Enum);
-<<<<<<< HEAD
-    _inherit(A._$DevToolsRequest, A.DevToolsRequest);
-    _inherit(A._$DevToolsResponse, A.DevToolsResponse);
-=======
-    _inherit(A._$ExtensionRequest, A.ExtensionRequest);
-    _inherit(A._$ExtensionResponse, A.ExtensionResponse);
-    _inherit(A._$ExtensionEvent, A.ExtensionEvent);
-    _inherit(A._$BatchedEvents, A.BatchedEvents);
->>>>>>> main
     _inheritMany(A.SocketClient, [A.SseSocketClient, A.WebSocketClient]);
     _inherit(A.PersistentWebSocket, A._PersistentWebSocket_Object_StreamChannelMixin);
     _inherit(A.BrowserClient, A.BaseClient);
@@ -28200,11 +27318,7 @@
     typeUniverse: {eC: new Map(), tR: {}, eT: {}, tPV: {}, sEA: []},
     mangledGlobalNames: {int: "int", double: "double", num: "num", String: "String", bool: "bool", Null: "Null", List: "List", Object: "Object", Map: "Map", JSObject: "JSObject"},
     mangledNames: {},
-<<<<<<< HEAD
-    types: ["~()", "Null()", "~(JSObject)", "Object?(@)", "Null(Object,StackTrace)", "@(@)", "Null(@)", "~(@)", "~(Object,StackTrace)", "Object?(Object?)", "~(Object?)", "JSObject()", "~(~())", "Future<~>()", "bool(Object?)", "String(String)", "bool(Object?,Object?)", "int(Object?)", "bool(_Highlight)", "Null(JSObject)", "~(@,StackTrace)", "int(@,@)", "~(@,@)", "~(Object?,Object?)", "@()", "Null(JavaScriptFunction,JavaScriptFunction)", "bool()", "Future<~>(String)", "String(Match)", "bool(String)", "int()", "Null(String)", "Null(JavaScriptFunction)", "SetBuilder<Object>()", "MapBuilder<Object,Object>()", "~(int,@)", "SetMultimapBuilder<Object,Object>()", "_Future<@>?()", "~(Object[StackTrace?])", "@(String)", "bool(BuildStatus)", "0&()", "Map<String,@>(DebugEvent)", "int(int,int)", "String(@)", "PersistentWebSocket(WebSocket)", "int(int)", "Future<~>(WebSocketEvent)", "bool(String,String)", "int(String)", "Null(String,String[Object?])", "bool(Object)", "~(List<int>)", "MediaType()", "~(String,String)", "0&(String,int?)", "Logger()", "@(@,String)", "String(String?)", "String?()", "int(_Line)", "Null(~())", "Object(_Line)", "Object(_Highlight)", "int(_Highlight,_Highlight)", "List<_Line>(MapEntry<Object,List<_Highlight>>)", "Null(@,StackTrace)", "SourceSpanWithContext()", "JSObject(Object,StackTrace)", "~(StreamSink<@>)", "Future<Null>()", "Object?(~)", "int(int,@)", "JSObject(String[bool?])", "IndentingBuiltValueToStringHelper(String)", "~(List<DebugEvent>)", "Null(String,String)", "DevToolsRequestBuilder(DevToolsRequestBuilder)", "~(bool)", "HotReloadResponse(String,bool,String?)", "HotRestartResponse(String,bool,String?)", "ListBuilder<Object>()", "bool(bool)", "List<String>(String)", "int(String,String)", "Null(JavaScriptObject)", "JSObject()()", "~(String?)", "ListMultimapBuilder<Object,Object>()", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "~(String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "0^(0^,0^)<num>", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)"],
-=======
-    types: ["~()", "Null()", "~(JSObject)", "Object?(@)", "Null(Object,StackTrace)", "@(@)", "Null(@)", "~(@)", "~(Object,StackTrace)", "Object?(Object?)", "~(Object?)", "JSObject()", "~(~())", "Future<~>()", "bool(Object?)", "String(String)", "bool(Object?,Object?)", "int(Object?)", "bool(_Highlight)", "Null(JSObject)", "int(@,@)", "~(Object?,Object?)", "Null(JavaScriptFunction,JavaScriptFunction)", "Null(String)", "~(@,StackTrace)", "bool()", "Future<~>(String)", "@()", "String(Match)", "bool(String)", "int()", "~(@,@)", "Null(JavaScriptFunction)", "bool(String,String)", "int(int)", "~(Object[StackTrace?])", "SetMultimapBuilder<Object,Object>()", "@(String)", "@(@,String)", "0&(String,int?)", "bool(BuildStatus)", "0&()", "Map<String,@>(DebugEvent)", "ListBuilder<ExtensionEvent>()", "~(int,@)", "String(@)", "PersistentWebSocket(WebSocket)", "int(int,int)", "Future<~>(WebSocketEvent)", "_Future<@>?()", "int(String)", "Null(String,String[Object?])", "bool(Object)", "~(List<int>)", "MediaType()", "~(String,String)", "JSObject(Object,StackTrace)", "Logger()", "Object?(~)", "String(String?)", "String?()", "int(_Line)", "Null(~())", "Object(_Line)", "Object(_Highlight)", "int(_Highlight,_Highlight)", "List<_Line>(MapEntry<Object,List<_Highlight>>)", "int(int,@)", "SourceSpanWithContext()", "~(StreamSink<@>)", "~(String?)", "Future<Null>()", "Null(@,StackTrace)", "IndentingBuiltValueToStringHelper(String)", "JSObject(String[bool?])", "0^(0^,0^)<num>", "~(List<DebugEvent>)", "Null(String,String)", "~(bool)", "HotReloadResponse(String,bool,String?)", "HotRestartResponse(String,bool,String?)", "ListBuilder<Object>()", "bool(bool)", "List<String>(String)", "int(String,String)", "Null(JavaScriptObject)", "JSObject()()", "SetBuilder<Object>()", "ListMultimapBuilder<Object,Object>()", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "~(String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "MapBuilder<Object,Object>()", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)"],
->>>>>>> main
+    types: ["~()", "Null()", "~(JSObject)", "Object?(@)", "Null(Object,StackTrace)", "@(@)", "Null(@)", "~(@)", "~(Object,StackTrace)", "Object?(Object?)", "~(Object?)", "JSObject()", "~(~())", "Future<~>()", "bool(Object?)", "String(String)", "bool(Object?,Object?)", "int(Object?)", "bool(_Highlight)", "Null(JSObject)", "~(@,StackTrace)", "int(@,@)", "~(@,@)", "~(Object?,Object?)", "@()", "Null(JavaScriptFunction,JavaScriptFunction)", "bool()", "Future<~>(String)", "String(Match)", "bool(String)", "int()", "Null(String)", "Null(JavaScriptFunction)", "SetBuilder<Object>()", "~(int,@)", "SetMultimapBuilder<Object,Object>()", "_Future<@>?()", "~(Object[StackTrace?])", "@(String)", "bool(BuildStatus)", "0&()", "Map<String,@>(DebugEvent)", "int(int,int)", "String(@)", "PersistentWebSocket(WebSocket)", "int(int)", "Future<~>(WebSocketEvent)", "bool(String,String)", "int(String)", "Null(String,String[Object?])", "bool(Object)", "~(List<int>)", "MediaType()", "~(String,String)", "0&(String,int?)", "Logger()", "@(@,String)", "String(String?)", "String?()", "int(_Line)", "Null(~())", "Object(_Line)", "Object(_Highlight)", "int(_Highlight,_Highlight)", "List<_Line>(MapEntry<Object,List<_Highlight>>)", "Null(@,StackTrace)", "SourceSpanWithContext()", "JSObject(Object,StackTrace)", "~(StreamSink<@>)", "Future<Null>()", "Object?(~)", "int(int,@)", "JSObject(String[bool?])", "ListBuilder<Object>()", "~(List<DebugEvent>)", "Null(String,String)", "~(bool)", "HotReloadResponse(String,bool,String?)", "HotRestartResponse(String,bool,String?)", "ListMultimapBuilder<Object,Object>()", "bool(bool)", "List<String>(String)", "int(String,String)", "Null(JavaScriptObject)", "JSObject()()", "~(String?)", "MapBuilder<Object,Object>()", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "~(String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "0^(0^,0^)<num>", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)"],
     interceptorsByTag: null,
     leafTags: null,
     arrayRti: Symbol("$ti"),
@@ -28212,12 +27326,8 @@
       "2;": (t1, t2) => o => o instanceof A._Record_2 && t1._is(o._0) && t2._is(o._1)
     }
   };
-<<<<<<< HEAD
-  A._Universe_addRules(init.typeUniverse, JSON.parse('{"JavaScriptFunction":"LegacyJavaScriptObject","PlainJavaScriptObject":"LegacyJavaScriptObject","UnknownJavaScriptObject":"LegacyJavaScriptObject","NativeSharedArrayBuffer":"NativeByteBuffer","JavaScriptObject":{"JSObject":[]},"JSArray":{"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"Iterable.E":"1"},"JSBool":{"bool":[],"TrustedGetRuntimeType":[]},"JSNull":{"Null":[],"TrustedGetRuntimeType":[]},"LegacyJavaScriptObject":{"JavaScriptObject":[],"JSObject":[]},"JSArraySafeToStringHook":{"SafeToStringHook":[]},"JSUnmodifiableArray":{"JSArray":["1"],"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"Iterable.E":"1"},"ArrayIterator":{"Iterator":["1"]},"JSNumber":{"double":[],"num":[],"Comparable":["num"]},"JSInt":{"double":[],"int":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSNumNotInt":{"double":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSString":{"String":[],"Comparable":["String"],"Pattern":[],"TrustedGetRuntimeType":[]},"CastStream":{"Stream":["2"],"Stream.T":"2"},"CastStreamSubscription":{"StreamSubscription":["2"]},"_CastIterableBase":{"Iterable":["2"]},"CastIterator":{"Iterator":["2"]},"CastIterable":{"_CastIterableBase":["1","2"],"Iterable":["2"],"Iterable.E":"2"},"_EfficientLengthCastIterable":{"CastIterable":["1","2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"_CastListBase":{"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"]},"CastList":{"_CastListBase":["1","2"],"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","Iterable.E":"2"},"CastMap":{"MapBase":["3","4"],"Map":["3","4"],"MapBase.K":"3","MapBase.V":"4"},"LateError":{"Error":[]},"CodeUnits":{"ListBase":["int"],"UnmodifiableListMixin":["int"],"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"],"ListBase.E":"int","Iterable.E":"int","UnmodifiableListMixin.E":"int"},"EfficientLengthIterable":{"Iterable":["1"]},"ListIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"SubListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"ListIterator":{"Iterator":["1"]},"MappedIterable":{"Iterable":["2"],"Iterable.E":"2"},"EfficientLengthMappedIterable":{"MappedIterable":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"MappedIterator":{"Iterator":["2"]},"MappedListIterable":{"ListIterable":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListIterable.E":"2","Iterable.E":"2"},"WhereIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereIterator":{"Iterator":["1"]},"ExpandIterable":{"Iterable":["2"],"Iterable.E":"2"},"ExpandIterator":{"Iterator":["2"]},"TakeIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthTakeIterable":{"TakeIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"TakeIterator":{"Iterator":["1"]},"SkipIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthSkipIterable":{"SkipIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"SkipIterator":{"Iterator":["1"]},"EmptyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"EmptyIterator":{"Iterator":["1"]},"WhereTypeIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereTypeIterator":{"Iterator":["1"]},"UnmodifiableListBase":{"ListBase":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"ReversedListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"_Record_2":{"_Record2":[],"_Record":[]},"ConstantMap":{"Map":["1","2"]},"ConstantStringMap":{"ConstantMap":["1","2"],"Map":["1","2"]},"_KeysOrValues":{"Iterable":["1"],"Iterable.E":"1"},"_KeysOrValuesOrElementsIterator":{"Iterator":["1"]},"Instantiation":{"Closure":[],"Function":[]},"Instantiation1":{"Closure":[],"Function":[]},"NullError":{"TypeError":[],"Error":[]},"JsNoSuchMethodError":{"Error":[]},"UnknownJsTypeError":{"Error":[]},"NullThrownFromJavaScriptException":{"Exception":[]},"_StackTrace":{"StackTrace":[]},"Closure":{"Function":[]},"Closure0Args":{"Closure":[],"Function":[]},"Closure2Args":{"Closure":[],"Function":[]},"TearOffClosure":{"Closure":[],"Function":[]},"StaticClosure":{"Closure":[],"Function":[]},"BoundClosure":{"Closure":[],"Function":[]},"RuntimeError":{"Error":[]},"JsLinkedHashMap":{"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"LinkedHashMapKeysIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapKeyIterator":{"Iterator":["1"]},"LinkedHashMapValuesIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapValueIterator":{"Iterator":["1"]},"LinkedHashMapEntriesIterable":{"EfficientLengthIterable":["MapEntry<1,2>"],"Iterable":["MapEntry<1,2>"],"Iterable.E":"MapEntry<1,2>"},"LinkedHashMapEntryIterator":{"Iterator":["MapEntry<1,2>"]},"JsIdentityLinkedHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_Record2":{"_Record":[]},"JSSyntaxRegExp":{"RegExp":[],"Pattern":[]},"_MatchImplementation":{"RegExpMatch":[],"Match":[]},"_AllMatchesIterable":{"Iterable":["RegExpMatch"],"Iterable.E":"RegExpMatch"},"_AllMatchesIterator":{"Iterator":["RegExpMatch"]},"StringMatch":{"Match":[]},"_StringAllMatchesIterable":{"Iterable":["Match"],"Iterable.E":"Match"},"_StringAllMatchesIterator":{"Iterator":["Match"]},"NativeByteBuffer":{"JavaScriptObject":[],"JSObject":[],"ByteBuffer":[],"TrustedGetRuntimeType":[]},"NativeArrayBuffer":{"NativeByteBuffer":[],"JavaScriptObject":[],"JSObject":[],"ByteBuffer":[],"TrustedGetRuntimeType":[]},"NativeTypedData":{"JavaScriptObject":[],"JSObject":[]},"_UnmodifiableNativeByteBufferView":{"ByteBuffer":[]},"NativeByteData":{"JavaScriptObject":[],"ByteData":[],"JSObject":[],"TrustedGetRuntimeType":[]},"NativeTypedArray":{"JavaScriptIndexingBehavior":["1"],"JavaScriptObject":[],"JSObject":[]},"NativeTypedArrayOfDouble":{"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"]},"NativeTypedArrayOfInt":{"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"]},"NativeFloat32List":{"Float32List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeFloat64List":{"Float64List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeInt16List":{"NativeTypedArrayOfInt":[],"Int16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt32List":{"NativeTypedArrayOfInt":[],"Int32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt8List":{"NativeTypedArrayOfInt":[],"Int8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint16List":{"NativeTypedArrayOfInt":[],"Uint16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint32List":{"NativeTypedArrayOfInt":[],"Uint32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8ClampedList":{"NativeTypedArrayOfInt":[],"Uint8ClampedList":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8List":{"NativeTypedArrayOfInt":[],"Uint8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"_Type":{"Type":[]},"_Error":{"Error":[]},"_TypeError":{"TypeError":[],"Error":[]},"AsyncError":{"Error":[]},"_Future":{"Future":["1"]},"_TimerImpl":{"Timer":[]},"_AsyncAwaitCompleter":{"Completer":["1"]},"_Completer":{"Completer":["1"]},"_AsyncCompleter":{"_Completer":["1"],"Completer":["1"]},"_SyncCompleter":{"_Completer":["1"],"Completer":["1"]},"StreamView":{"Stream":["1"]},"_StreamController":{"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_AsyncStreamController":{"_AsyncStreamControllerDispatch":["1"],"_StreamController":["1"],"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_ControllerStream":{"_StreamImpl":["1"],"Stream":["1"],"Stream.T":"1"},"_ControllerSubscription":{"_BufferingStreamSubscription":["1"],"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamSinkWrapper":{"StreamSink":["1"]},"_StreamControllerAddStreamState":{"_AddStreamState":["1"]},"_BufferingStreamSubscription":{"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamImpl":{"Stream":["1"]},"_DelayedData":{"_DelayedEvent":["1"]},"_DelayedError":{"_DelayedEvent":["@"]},"_DelayedDone":{"_DelayedEvent":["@"]},"_DoneStreamSubscription":{"StreamSubscription":["1"]},"_EmptyStream":{"Stream":["1"],"Stream.T":"1"},"_ForwardingStream":{"Stream":["2"]},"_ForwardingStreamSubscription":{"_BufferingStreamSubscription":["2"],"StreamSubscription":["2"],"_EventSink":["2"],"_EventDispatch":["2"],"_BufferingStreamSubscription.T":"2"},"_MapStream":{"_ForwardingStream":["1","2"],"Stream":["2"],"Stream.T":"2"},"_Zone":{"Zone":[]},"_CustomZone":{"_Zone":[],"Zone":[]},"_RootZone":{"_Zone":[],"Zone":[]},"_ZoneDelegate":{"ZoneDelegate":[]},"_ZoneSpecification":{"ZoneSpecification":[]},"_SplayTreeSetNode":{"_SplayTreeNode":["1","_SplayTreeSetNode<1>"],"_SplayTreeNode.K":"1","_SplayTreeNode.1":"_SplayTreeSetNode<1>"},"_HashMap":{"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_IdentityHashMap":{"_HashMap":["1","2"],"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_CustomHashMap":{"_HashMap":["1","2"],"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashMapKeyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashMapKeyIterator":{"Iterator":["1"]},"_LinkedCustomHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashSet":{"_SetBase":["1"],"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashSetIterator":{"Iterator":["1"]},"_LinkedHashSet":{"_SetBase":["1"],"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_LinkedHashSetIterator":{"Iterator":["1"]},"UnmodifiableListView":{"ListBase":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListBase.E":"1","Iterable.E":"1","UnmodifiableListMixin.E":"1"},"ListBase":{"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"MapBase":{"Map":["1","2"]},"MapView":{"Map":["1","2"]},"UnmodifiableMapView":{"_UnmodifiableMapView_MapView__UnmodifiableMapMixin":["1","2"],"MapView":["1","2"],"_UnmodifiableMapMixin":["1","2"],"Map":["1","2"]},"ListQueue":{"Queue":["1"],"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"_ListQueueIterator":{"Iterator":["1"]},"SetBase":{"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SetBase":{"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SplayTreeIterator":{"Iterator":["3"]},"_SplayTreeKeyIterator":{"_SplayTreeIterator":["1","2","1"],"Iterator":["1"],"_SplayTreeIterator.K":"1","_SplayTreeIterator.T":"1","_SplayTreeIterator.1":"2"},"SplayTreeSet":{"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"_SplayTree":["1","_SplayTreeSetNode<1>"],"Iterable":["1"],"Iterable.E":"1","_SplayTree.1":"_SplayTreeSetNode<1>","_SplayTree.K":"1"},"Encoding":{"Codec":["String","List<int>"]},"_JsonMap":{"MapBase":["String","@"],"Map":["String","@"],"MapBase.K":"String","MapBase.V":"@"},"_JsonMapKeyIterable":{"ListIterable":["String"],"EfficientLengthIterable":["String"],"Iterable":["String"],"ListIterable.E":"String","Iterable.E":"String"},"AsciiCodec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"_UnicodeSubsetEncoder":{"Converter":["String","List<int>"]},"AsciiEncoder":{"Converter":["String","List<int>"]},"_UnicodeSubsetDecoder":{"Converter":["List<int>","String"]},"AsciiDecoder":{"Converter":["List<int>","String"]},"Base64Codec":{"Codec":["List<int>","String"],"Codec.S":"List<int>"},"Base64Encoder":{"Converter":["List<int>","String"]},"Base64Decoder":{"Converter":["String","List<int>"]},"JsonUnsupportedObjectError":{"Error":[]},"JsonCyclicError":{"Error":[]},"JsonCodec":{"Codec":["Object?","String"],"Codec.S":"Object?"},"JsonEncoder":{"Converter":["Object?","String"]},"JsonDecoder":{"Converter":["String","Object?"]},"Latin1Codec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"Latin1Encoder":{"Converter":["String","List<int>"]},"Latin1Decoder":{"Converter":["List<int>","String"]},"Utf8Codec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"Utf8Encoder":{"Converter":["String","List<int>"]},"Utf8Decoder":{"Converter":["List<int>","String"]},"BigInt":{"Comparable":["BigInt"]},"DateTime":{"Comparable":["DateTime"]},"double":{"num":[],"Comparable":["num"]},"Duration":{"Comparable":["Duration"]},"int":{"num":[],"Comparable":["num"]},"List":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"num":{"Comparable":["num"]},"RegExp":{"Pattern":[]},"RegExpMatch":{"Match":[]},"Set":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"String":{"Comparable":["String"],"Pattern":[]},"_BigIntImpl":{"BigInt":[],"Comparable":["BigInt"]},"AssertionError":{"Error":[]},"TypeError":{"Error":[]},"ArgumentError":{"Error":[]},"RangeError":{"Error":[]},"IndexError":{"Error":[]},"UnsupportedError":{"Error":[]},"UnimplementedError":{"Error":[]},"StateError":{"Error":[]},"ConcurrentModificationError":{"Error":[]},"OutOfMemoryError":{"Error":[]},"StackOverflowError":{"Error":[]},"_Exception":{"Exception":[]},"FormatException":{"Exception":[]},"IntegerDivisionByZeroException":{"Exception":[],"Error":[]},"_StringStackTrace":{"StackTrace":[]},"StringBuffer":{"StringSink":[]},"_Uri":{"Uri":[]},"_SimpleUri":{"Uri":[]},"_DataUri":{"Uri":[]},"NullRejectionException":{"Exception":[]},"ErrorResult":{"Result":["0&"]},"ValueResult":{"Result":["1"]},"_NextRequest":{"_EventRequest":["1"]},"_HasNextRequest":{"_EventRequest":["1"]},"BuiltList":{"Iterable":["1"]},"_BuiltList":{"BuiltList":["1"],"Iterable":["1"],"Iterable.E":"1"},"_BuiltListMultimap":{"BuiltListMultimap":["1","2"]},"_BuiltMap":{"BuiltMap":["1","2"]},"BuiltSet":{"Iterable":["1"]},"_BuiltSet":{"BuiltSet":["1"],"Iterable":["1"],"Iterable.E":"1"},"_BuiltSetMultimap":{"BuiltSetMultimap":["1","2"]},"BuiltValueNullFieldError":{"Error":[]},"BoolJsonObject":{"JsonObject":[]},"ListJsonObject":{"JsonObject":[]},"MapJsonObject":{"JsonObject":[]},"NumJsonObject":{"JsonObject":[]},"StringJsonObject":{"JsonObject":[]},"DeserializationError":{"Error":[]},"BigIntSerializer":{"PrimitiveSerializer":["BigInt"],"Serializer":["BigInt"]},"BoolSerializer":{"PrimitiveSerializer":["bool"],"Serializer":["bool"]},"BuiltJsonSerializers":{"Serializers":[]},"BuiltListMultimapSerializer":{"StructuredSerializer":["BuiltListMultimap<@,@>"],"Serializer":["BuiltListMultimap<@,@>"]},"BuiltListSerializer":{"StructuredSerializer":["BuiltList<@>"],"Serializer":["BuiltList<@>"]},"BuiltMapSerializer":{"StructuredSerializer":["BuiltMap<@,@>"],"Serializer":["BuiltMap<@,@>"]},"BuiltSetMultimapSerializer":{"StructuredSerializer":["BuiltSetMultimap<@,@>"],"Serializer":["BuiltSetMultimap<@,@>"]},"BuiltSetSerializer":{"StructuredSerializer":["BuiltSet<@>"],"Serializer":["BuiltSet<@>"]},"DateTimeSerializer":{"PrimitiveSerializer":["DateTime"],"Serializer":["DateTime"]},"DoubleSerializer":{"PrimitiveSerializer":["double"],"Serializer":["double"]},"DurationSerializer":{"PrimitiveSerializer":["Duration"],"Serializer":["Duration"]},"Int32Serializer":{"PrimitiveSerializer":["Int32"],"Serializer":["Int32"]},"Int64Serializer":{"PrimitiveSerializer":["Int64"],"Serializer":["Int64"]},"IntSerializer":{"PrimitiveSerializer":["int"],"Serializer":["int"]},"JsonObjectSerializer":{"PrimitiveSerializer":["JsonObject"],"Serializer":["JsonObject"]},"ListSerializer":{"StructuredSerializer":["List<@>"],"Serializer":["List<@>"]},"MapSerializer":{"StructuredSerializer":["Map<@,@>"],"Serializer":["Map<@,@>"]},"NullSerializer":{"PrimitiveSerializer":["Null"],"Serializer":["Null"]},"NumSerializer":{"PrimitiveSerializer":["num"],"Serializer":["num"]},"RegExpSerializer":{"PrimitiveSerializer":["RegExp"],"Serializer":["RegExp"]},"SetSerializer":{"StructuredSerializer":["Set<@>"],"Serializer":["Set<@>"]},"StringSerializer":{"PrimitiveSerializer":["String"],"Serializer":["String"]},"Uint8ListSerializer":{"PrimitiveSerializer":["Uint8List"],"Serializer":["Uint8List"]},"UriSerializer":{"PrimitiveSerializer":["Uri"],"Serializer":["Uri"]},"CanonicalizedMap":{"Map":["2","3"]},"DefaultEquality":{"Equality":["1"]},"IterableEquality":{"Equality":["Iterable<1>"]},"ListEquality":{"Equality":["List<1>"]},"_UnorderedEquality":{"Equality":["2"]},"SetEquality":{"_UnorderedEquality":["1","Set<1>"],"Equality":["Set<1>"],"_UnorderedEquality.E":"1","_UnorderedEquality.T":"Set<1>"},"MapEquality":{"Equality":["Map<1,2>"]},"DeepCollectionEquality":{"Equality":["@"]},"QueueList":{"ListBase":["1"],"List":["1"],"Queue":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListBase.E":"1","QueueList.E":"1","Iterable.E":"1"},"_CastQueueList":{"QueueList":["2"],"ListBase":["2"],"List":["2"],"Queue":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","QueueList.E":"2","Iterable.E":"2"},"_$DevToolsRequestSerializer":{"StructuredSerializer":["DevToolsRequest"],"Serializer":["DevToolsRequest"]},"_$DevToolsResponseSerializer":{"StructuredSerializer":["DevToolsResponse"],"Serializer":["DevToolsResponse"]},"_$DevToolsRequest":{"DevToolsRequest":[]},"_$DevToolsResponse":{"DevToolsResponse":[]},"PersistentWebSocket":{"StreamChannelMixin":["@"]},"SseSocketClient":{"SocketClient":[]},"WebSocketClient":{"SocketClient":[]},"Int32":{"Comparable":["Object"]},"Int64":{"Comparable":["Object"]},"ByteStream":{"StreamView":["List<int>"],"Stream":["List<int>"],"Stream.T":"List<int>","StreamView.T":"List<int>"},"ClientException":{"Exception":[]},"Request":{"BaseRequest":[]},"StreamedResponseV2":{"StreamedResponse":[]},"CaseInsensitiveMap":{"CanonicalizedMap":["String","String","1"],"Map":["String","1"],"CanonicalizedMap.K":"String","CanonicalizedMap.V":"1","CanonicalizedMap.C":"String"},"Level":{"Comparable":["Level"]},"PathException":{"Exception":[]},"PosixStyle":{"InternalStyle":[]},"UrlStyle":{"InternalStyle":[]},"WindowsStyle":{"InternalStyle":[]},"FileLocation":{"SourceLocation":[],"Comparable":["SourceLocation"]},"_FileSpan":{"SourceSpanWithContext":[],"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceLocation":{"Comparable":["SourceLocation"]},"SourceLocationMixin":{"SourceLocation":[],"Comparable":["SourceLocation"]},"SourceSpan":{"Comparable":["SourceSpan"]},"SourceSpanBase":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanException":{"Exception":[]},"SourceSpanFormatException":{"FormatException":[],"Exception":[]},"SourceSpanMixin":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanWithContext":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SseClient":{"StreamChannelMixin":["String?"]},"StringScannerException":{"FormatException":[],"Exception":[]},"_EventStream":{"Stream":["1"],"Stream.T":"1"},"_EventStreamSubscription":{"StreamSubscription":["1"]},"BrowserWebSocket":{"WebSocket":[]},"TextDataReceived":{"WebSocketEvent":[]},"BinaryDataReceived":{"WebSocketEvent":[]},"CloseReceived":{"WebSocketEvent":[]},"WebSocketException":{"Exception":[]},"WebSocketConnectionClosed":{"Exception":[]},"DdcLibraryBundleRestarter":{"Restarter":[]},"DdcRestarter":{"Restarter":[]},"RequireRestarter":{"Restarter":[]},"HotReloadFailedException":{"Exception":[]},"Int8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8ClampedList":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Float32List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]},"Float64List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]}}'));
-=======
-  A._Universe_addRules(init.typeUniverse, JSON.parse('{"JavaScriptFunction":"LegacyJavaScriptObject","PlainJavaScriptObject":"LegacyJavaScriptObject","UnknownJavaScriptObject":"LegacyJavaScriptObject","NativeSharedArrayBuffer":"NativeByteBuffer","JavaScriptObject":{"JSObject":[]},"JSArray":{"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"Iterable.E":"1"},"JSBool":{"bool":[],"TrustedGetRuntimeType":[]},"JSNull":{"Null":[],"TrustedGetRuntimeType":[]},"LegacyJavaScriptObject":{"JavaScriptObject":[],"JSObject":[]},"JSArraySafeToStringHook":{"SafeToStringHook":[]},"JSUnmodifiableArray":{"JSArray":["1"],"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"Iterable.E":"1"},"ArrayIterator":{"Iterator":["1"]},"JSNumber":{"double":[],"num":[],"Comparable":["num"]},"JSInt":{"double":[],"int":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSNumNotInt":{"double":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSString":{"String":[],"Comparable":["String"],"Pattern":[],"TrustedGetRuntimeType":[]},"CastStream":{"Stream":["2"],"Stream.T":"2"},"CastStreamSubscription":{"StreamSubscription":["2"]},"_CastIterableBase":{"Iterable":["2"]},"CastIterator":{"Iterator":["2"]},"CastIterable":{"_CastIterableBase":["1","2"],"Iterable":["2"],"Iterable.E":"2"},"_EfficientLengthCastIterable":{"CastIterable":["1","2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"_CastListBase":{"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"]},"CastList":{"_CastListBase":["1","2"],"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","Iterable.E":"2"},"CastMap":{"MapBase":["3","4"],"Map":["3","4"],"MapBase.K":"3","MapBase.V":"4"},"LateError":{"Error":[]},"CodeUnits":{"ListBase":["int"],"UnmodifiableListMixin":["int"],"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"],"ListBase.E":"int","Iterable.E":"int","UnmodifiableListMixin.E":"int"},"EfficientLengthIterable":{"Iterable":["1"]},"ListIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"SubListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"ListIterator":{"Iterator":["1"]},"MappedIterable":{"Iterable":["2"],"Iterable.E":"2"},"EfficientLengthMappedIterable":{"MappedIterable":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"MappedIterator":{"Iterator":["2"]},"MappedListIterable":{"ListIterable":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListIterable.E":"2","Iterable.E":"2"},"WhereIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereIterator":{"Iterator":["1"]},"ExpandIterable":{"Iterable":["2"],"Iterable.E":"2"},"ExpandIterator":{"Iterator":["2"]},"TakeIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthTakeIterable":{"TakeIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"TakeIterator":{"Iterator":["1"]},"SkipIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthSkipIterable":{"SkipIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"SkipIterator":{"Iterator":["1"]},"EmptyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"EmptyIterator":{"Iterator":["1"]},"WhereTypeIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereTypeIterator":{"Iterator":["1"]},"UnmodifiableListBase":{"ListBase":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"ReversedListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"_Record_2":{"_Record2":[],"_Record":[]},"ConstantMap":{"Map":["1","2"]},"ConstantStringMap":{"ConstantMap":["1","2"],"Map":["1","2"]},"_KeysOrValues":{"Iterable":["1"],"Iterable.E":"1"},"_KeysOrValuesOrElementsIterator":{"Iterator":["1"]},"Instantiation":{"Closure":[],"Function":[]},"Instantiation1":{"Closure":[],"Function":[]},"NullError":{"TypeError":[],"Error":[]},"JsNoSuchMethodError":{"Error":[]},"UnknownJsTypeError":{"Error":[]},"NullThrownFromJavaScriptException":{"Exception":[]},"_StackTrace":{"StackTrace":[]},"Closure":{"Function":[]},"Closure0Args":{"Closure":[],"Function":[]},"Closure2Args":{"Closure":[],"Function":[]},"TearOffClosure":{"Closure":[],"Function":[]},"StaticClosure":{"Closure":[],"Function":[]},"BoundClosure":{"Closure":[],"Function":[]},"RuntimeError":{"Error":[]},"JsLinkedHashMap":{"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"LinkedHashMapKeysIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapKeyIterator":{"Iterator":["1"]},"LinkedHashMapValuesIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapValueIterator":{"Iterator":["1"]},"LinkedHashMapEntriesIterable":{"EfficientLengthIterable":["MapEntry<1,2>"],"Iterable":["MapEntry<1,2>"],"Iterable.E":"MapEntry<1,2>"},"LinkedHashMapEntryIterator":{"Iterator":["MapEntry<1,2>"]},"JsIdentityLinkedHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_Record2":{"_Record":[]},"JSSyntaxRegExp":{"RegExp":[],"Pattern":[]},"_MatchImplementation":{"RegExpMatch":[],"Match":[]},"_AllMatchesIterable":{"Iterable":["RegExpMatch"],"Iterable.E":"RegExpMatch"},"_AllMatchesIterator":{"Iterator":["RegExpMatch"]},"StringMatch":{"Match":[]},"_StringAllMatchesIterable":{"Iterable":["Match"],"Iterable.E":"Match"},"_StringAllMatchesIterator":{"Iterator":["Match"]},"NativeByteBuffer":{"JavaScriptObject":[],"JSObject":[],"ByteBuffer":[],"TrustedGetRuntimeType":[]},"NativeArrayBuffer":{"NativeByteBuffer":[],"JavaScriptObject":[],"JSObject":[],"ByteBuffer":[],"TrustedGetRuntimeType":[]},"NativeTypedData":{"JavaScriptObject":[],"JSObject":[]},"_UnmodifiableNativeByteBufferView":{"ByteBuffer":[]},"NativeByteData":{"JavaScriptObject":[],"ByteData":[],"JSObject":[],"TrustedGetRuntimeType":[]},"NativeTypedArray":{"JavaScriptIndexingBehavior":["1"],"JavaScriptObject":[],"JSObject":[]},"NativeTypedArrayOfDouble":{"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"]},"NativeTypedArrayOfInt":{"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"]},"NativeFloat32List":{"Float32List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeFloat64List":{"Float64List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeInt16List":{"NativeTypedArrayOfInt":[],"Int16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt32List":{"NativeTypedArrayOfInt":[],"Int32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt8List":{"NativeTypedArrayOfInt":[],"Int8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint16List":{"NativeTypedArrayOfInt":[],"Uint16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint32List":{"NativeTypedArrayOfInt":[],"Uint32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8ClampedList":{"NativeTypedArrayOfInt":[],"Uint8ClampedList":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8List":{"NativeTypedArrayOfInt":[],"Uint8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"_Type":{"Type":[]},"_Error":{"Error":[]},"_TypeError":{"TypeError":[],"Error":[]},"AsyncError":{"Error":[]},"_Future":{"Future":["1"]},"_TimerImpl":{"Timer":[]},"_AsyncAwaitCompleter":{"Completer":["1"]},"_Completer":{"Completer":["1"]},"_AsyncCompleter":{"_Completer":["1"],"Completer":["1"]},"_SyncCompleter":{"_Completer":["1"],"Completer":["1"]},"StreamView":{"Stream":["1"]},"_StreamController":{"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_AsyncStreamController":{"_AsyncStreamControllerDispatch":["1"],"_StreamController":["1"],"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_ControllerStream":{"_StreamImpl":["1"],"Stream":["1"],"Stream.T":"1"},"_ControllerSubscription":{"_BufferingStreamSubscription":["1"],"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamSinkWrapper":{"StreamSink":["1"]},"_StreamControllerAddStreamState":{"_AddStreamState":["1"]},"_BufferingStreamSubscription":{"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamImpl":{"Stream":["1"]},"_DelayedData":{"_DelayedEvent":["1"]},"_DelayedError":{"_DelayedEvent":["@"]},"_DelayedDone":{"_DelayedEvent":["@"]},"_DoneStreamSubscription":{"StreamSubscription":["1"]},"_EmptyStream":{"Stream":["1"],"Stream.T":"1"},"_ForwardingStream":{"Stream":["2"]},"_ForwardingStreamSubscription":{"_BufferingStreamSubscription":["2"],"StreamSubscription":["2"],"_EventSink":["2"],"_EventDispatch":["2"],"_BufferingStreamSubscription.T":"2"},"_MapStream":{"_ForwardingStream":["1","2"],"Stream":["2"],"Stream.T":"2"},"_Zone":{"Zone":[]},"_CustomZone":{"_Zone":[],"Zone":[]},"_RootZone":{"_Zone":[],"Zone":[]},"_ZoneDelegate":{"ZoneDelegate":[]},"_ZoneSpecification":{"ZoneSpecification":[]},"_SplayTreeSetNode":{"_SplayTreeNode":["1","_SplayTreeSetNode<1>"],"_SplayTreeNode.K":"1","_SplayTreeNode.1":"_SplayTreeSetNode<1>"},"_HashMap":{"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_IdentityHashMap":{"_HashMap":["1","2"],"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_CustomHashMap":{"_HashMap":["1","2"],"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashMapKeyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashMapKeyIterator":{"Iterator":["1"]},"_LinkedCustomHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashSet":{"_SetBase":["1"],"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashSetIterator":{"Iterator":["1"]},"_LinkedHashSet":{"_SetBase":["1"],"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_LinkedHashSetIterator":{"Iterator":["1"]},"UnmodifiableListView":{"ListBase":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListBase.E":"1","Iterable.E":"1","UnmodifiableListMixin.E":"1"},"ListBase":{"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"MapBase":{"Map":["1","2"]},"MapView":{"Map":["1","2"]},"UnmodifiableMapView":{"_UnmodifiableMapView_MapView__UnmodifiableMapMixin":["1","2"],"MapView":["1","2"],"_UnmodifiableMapMixin":["1","2"],"Map":["1","2"]},"ListQueue":{"Queue":["1"],"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"_ListQueueIterator":{"Iterator":["1"]},"SetBase":{"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SetBase":{"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SplayTreeIterator":{"Iterator":["3"]},"_SplayTreeKeyIterator":{"_SplayTreeIterator":["1","2","1"],"Iterator":["1"],"_SplayTreeIterator.K":"1","_SplayTreeIterator.T":"1","_SplayTreeIterator.1":"2"},"SplayTreeSet":{"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"_SplayTree":["1","_SplayTreeSetNode<1>"],"Iterable":["1"],"Iterable.E":"1","_SplayTree.1":"_SplayTreeSetNode<1>","_SplayTree.K":"1"},"Encoding":{"Codec":["String","List<int>"]},"_JsonMap":{"MapBase":["String","@"],"Map":["String","@"],"MapBase.K":"String","MapBase.V":"@"},"_JsonMapKeyIterable":{"ListIterable":["String"],"EfficientLengthIterable":["String"],"Iterable":["String"],"ListIterable.E":"String","Iterable.E":"String"},"AsciiCodec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"_UnicodeSubsetEncoder":{"Converter":["String","List<int>"]},"AsciiEncoder":{"Converter":["String","List<int>"]},"_UnicodeSubsetDecoder":{"Converter":["List<int>","String"]},"AsciiDecoder":{"Converter":["List<int>","String"]},"Base64Codec":{"Codec":["List<int>","String"],"Codec.S":"List<int>"},"Base64Encoder":{"Converter":["List<int>","String"]},"Base64Decoder":{"Converter":["String","List<int>"]},"JsonUnsupportedObjectError":{"Error":[]},"JsonCyclicError":{"Error":[]},"JsonCodec":{"Codec":["Object?","String"],"Codec.S":"Object?"},"JsonEncoder":{"Converter":["Object?","String"]},"JsonDecoder":{"Converter":["String","Object?"]},"Latin1Codec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"Latin1Encoder":{"Converter":["String","List<int>"]},"Latin1Decoder":{"Converter":["List<int>","String"]},"Utf8Codec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"Utf8Encoder":{"Converter":["String","List<int>"]},"Utf8Decoder":{"Converter":["List<int>","String"]},"BigInt":{"Comparable":["BigInt"]},"DateTime":{"Comparable":["DateTime"]},"double":{"num":[],"Comparable":["num"]},"Duration":{"Comparable":["Duration"]},"int":{"num":[],"Comparable":["num"]},"List":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"num":{"Comparable":["num"]},"RegExp":{"Pattern":[]},"RegExpMatch":{"Match":[]},"Set":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"String":{"Comparable":["String"],"Pattern":[]},"_BigIntImpl":{"BigInt":[],"Comparable":["BigInt"]},"AssertionError":{"Error":[]},"TypeError":{"Error":[]},"ArgumentError":{"Error":[]},"RangeError":{"Error":[]},"IndexError":{"Error":[]},"UnsupportedError":{"Error":[]},"UnimplementedError":{"Error":[]},"StateError":{"Error":[]},"ConcurrentModificationError":{"Error":[]},"OutOfMemoryError":{"Error":[]},"StackOverflowError":{"Error":[]},"_Exception":{"Exception":[]},"FormatException":{"Exception":[]},"IntegerDivisionByZeroException":{"Exception":[],"Error":[]},"_StringStackTrace":{"StackTrace":[]},"StringBuffer":{"StringSink":[]},"_Uri":{"Uri":[]},"_SimpleUri":{"Uri":[]},"_DataUri":{"Uri":[]},"NullRejectionException":{"Exception":[]},"ErrorResult":{"Result":["0&"]},"ValueResult":{"Result":["1"]},"_NextRequest":{"_EventRequest":["1"]},"_HasNextRequest":{"_EventRequest":["1"]},"BuiltList":{"Iterable":["1"]},"_BuiltList":{"BuiltList":["1"],"Iterable":["1"],"Iterable.E":"1"},"_BuiltListMultimap":{"BuiltListMultimap":["1","2"]},"_BuiltMap":{"BuiltMap":["1","2"]},"BuiltSet":{"Iterable":["1"]},"_BuiltSet":{"BuiltSet":["1"],"Iterable":["1"],"Iterable.E":"1"},"_BuiltSetMultimap":{"BuiltSetMultimap":["1","2"]},"BuiltValueNullFieldError":{"Error":[]},"BuiltValueNestedFieldError":{"Error":[]},"BoolJsonObject":{"JsonObject":[]},"ListJsonObject":{"JsonObject":[]},"MapJsonObject":{"JsonObject":[]},"NumJsonObject":{"JsonObject":[]},"StringJsonObject":{"JsonObject":[]},"DeserializationError":{"Error":[]},"BigIntSerializer":{"PrimitiveSerializer":["BigInt"],"Serializer":["BigInt"]},"BoolSerializer":{"PrimitiveSerializer":["bool"],"Serializer":["bool"]},"BuiltJsonSerializers":{"Serializers":[]},"BuiltListMultimapSerializer":{"StructuredSerializer":["BuiltListMultimap<@,@>"],"Serializer":["BuiltListMultimap<@,@>"]},"BuiltListSerializer":{"StructuredSerializer":["BuiltList<@>"],"Serializer":["BuiltList<@>"]},"BuiltMapSerializer":{"StructuredSerializer":["BuiltMap<@,@>"],"Serializer":["BuiltMap<@,@>"]},"BuiltSetMultimapSerializer":{"StructuredSerializer":["BuiltSetMultimap<@,@>"],"Serializer":["BuiltSetMultimap<@,@>"]},"BuiltSetSerializer":{"StructuredSerializer":["BuiltSet<@>"],"Serializer":["BuiltSet<@>"]},"DateTimeSerializer":{"PrimitiveSerializer":["DateTime"],"Serializer":["DateTime"]},"DoubleSerializer":{"PrimitiveSerializer":["double"],"Serializer":["double"]},"DurationSerializer":{"PrimitiveSerializer":["Duration"],"Serializer":["Duration"]},"Int32Serializer":{"PrimitiveSerializer":["Int32"],"Serializer":["Int32"]},"Int64Serializer":{"PrimitiveSerializer":["Int64"],"Serializer":["Int64"]},"IntSerializer":{"PrimitiveSerializer":["int"],"Serializer":["int"]},"JsonObjectSerializer":{"PrimitiveSerializer":["JsonObject"],"Serializer":["JsonObject"]},"ListSerializer":{"StructuredSerializer":["List<@>"],"Serializer":["List<@>"]},"MapSerializer":{"StructuredSerializer":["Map<@,@>"],"Serializer":["Map<@,@>"]},"NullSerializer":{"PrimitiveSerializer":["Null"],"Serializer":["Null"]},"NumSerializer":{"PrimitiveSerializer":["num"],"Serializer":["num"]},"RegExpSerializer":{"PrimitiveSerializer":["RegExp"],"Serializer":["RegExp"]},"SetSerializer":{"StructuredSerializer":["Set<@>"],"Serializer":["Set<@>"]},"StringSerializer":{"PrimitiveSerializer":["String"],"Serializer":["String"]},"Uint8ListSerializer":{"PrimitiveSerializer":["Uint8List"],"Serializer":["Uint8List"]},"UriSerializer":{"PrimitiveSerializer":["Uri"],"Serializer":["Uri"]},"CanonicalizedMap":{"Map":["2","3"]},"DefaultEquality":{"Equality":["1"]},"IterableEquality":{"Equality":["Iterable<1>"]},"ListEquality":{"Equality":["List<1>"]},"_UnorderedEquality":{"Equality":["2"]},"SetEquality":{"_UnorderedEquality":["1","Set<1>"],"Equality":["Set<1>"],"_UnorderedEquality.E":"1","_UnorderedEquality.T":"Set<1>"},"MapEquality":{"Equality":["Map<1,2>"]},"DeepCollectionEquality":{"Equality":["@"]},"QueueList":{"ListBase":["1"],"List":["1"],"Queue":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListBase.E":"1","QueueList.E":"1","Iterable.E":"1"},"_CastQueueList":{"QueueList":["2"],"ListBase":["2"],"List":["2"],"Queue":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","QueueList.E":"2","Iterable.E":"2"},"_$ExtensionRequestSerializer":{"StructuredSerializer":["ExtensionRequest"],"Serializer":["ExtensionRequest"]},"_$ExtensionResponseSerializer":{"StructuredSerializer":["ExtensionResponse"],"Serializer":["ExtensionResponse"]},"_$ExtensionEventSerializer":{"StructuredSerializer":["ExtensionEvent"],"Serializer":["ExtensionEvent"]},"_$BatchedEventsSerializer":{"StructuredSerializer":["BatchedEvents"],"Serializer":["BatchedEvents"]},"_$ExtensionRequest":{"ExtensionRequest":[]},"_$ExtensionResponse":{"ExtensionResponse":[]},"_$ExtensionEvent":{"ExtensionEvent":[]},"_$BatchedEvents":{"BatchedEvents":[]},"PersistentWebSocket":{"StreamChannelMixin":["@"]},"SseSocketClient":{"SocketClient":[]},"WebSocketClient":{"SocketClient":[]},"Int32":{"Comparable":["Object"]},"Int64":{"Comparable":["Object"]},"ByteStream":{"StreamView":["List<int>"],"Stream":["List<int>"],"Stream.T":"List<int>","StreamView.T":"List<int>"},"ClientException":{"Exception":[]},"Request":{"BaseRequest":[]},"StreamedResponseV2":{"StreamedResponse":[]},"CaseInsensitiveMap":{"CanonicalizedMap":["String","String","1"],"Map":["String","1"],"CanonicalizedMap.K":"String","CanonicalizedMap.V":"1","CanonicalizedMap.C":"String"},"Level":{"Comparable":["Level"]},"PathException":{"Exception":[]},"PosixStyle":{"InternalStyle":[]},"UrlStyle":{"InternalStyle":[]},"WindowsStyle":{"InternalStyle":[]},"FileLocation":{"SourceLocation":[],"Comparable":["SourceLocation"]},"_FileSpan":{"SourceSpanWithContext":[],"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceLocation":{"Comparable":["SourceLocation"]},"SourceLocationMixin":{"SourceLocation":[],"Comparable":["SourceLocation"]},"SourceSpan":{"Comparable":["SourceSpan"]},"SourceSpanBase":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanException":{"Exception":[]},"SourceSpanFormatException":{"FormatException":[],"Exception":[]},"SourceSpanMixin":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanWithContext":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SseClient":{"StreamChannelMixin":["String?"]},"StringScannerException":{"FormatException":[],"Exception":[]},"_EventStream":{"Stream":["1"],"Stream.T":"1"},"_EventStreamSubscription":{"StreamSubscription":["1"]},"BrowserWebSocket":{"WebSocket":[]},"TextDataReceived":{"WebSocketEvent":[]},"BinaryDataReceived":{"WebSocketEvent":[]},"CloseReceived":{"WebSocketEvent":[]},"WebSocketException":{"Exception":[]},"WebSocketConnectionClosed":{"Exception":[]},"DdcLibraryBundleRestarter":{"Restarter":[]},"DdcRestarter":{"Restarter":[]},"RequireRestarter":{"Restarter":[]},"HotReloadFailedException":{"Exception":[]},"Int8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8ClampedList":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Float32List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]},"Float64List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]}}'));
->>>>>>> main
-  A._Universe_addErasedTypes(init.typeUniverse, JSON.parse('{"UnmodifiableListBase":1,"__CastListBase__CastIterableBase_ListMixin":2,"NativeTypedArray":1,"_DelayedEvent":1,"_SplayTreeSet__SplayTree_Iterable":1,"_SplayTreeSet__SplayTree_Iterable_SetMixin":1,"_QueueList_Object_ListMixin":1,"StreamChannelMixin":1}'));
+  A._Universe_addRules(init.typeUniverse, JSON.parse('{"JavaScriptFunction":"LegacyJavaScriptObject","PlainJavaScriptObject":"LegacyJavaScriptObject","UnknownJavaScriptObject":"LegacyJavaScriptObject","NativeSharedArrayBuffer":"NativeByteBuffer","JavaScriptObject":{"JSObject":[]},"JSArray":{"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"Iterable.E":"1"},"JSBool":{"bool":[],"TrustedGetRuntimeType":[]},"JSNull":{"Null":[],"TrustedGetRuntimeType":[]},"LegacyJavaScriptObject":{"JavaScriptObject":[],"JSObject":[]},"JSArraySafeToStringHook":{"SafeToStringHook":[]},"JSUnmodifiableArray":{"JSArray":["1"],"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"Iterable.E":"1"},"ArrayIterator":{"Iterator":["1"]},"JSNumber":{"double":[],"num":[],"Comparable":["num"]},"JSInt":{"double":[],"int":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSNumNotInt":{"double":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSString":{"String":[],"Comparable":["String"],"Pattern":[],"TrustedGetRuntimeType":[]},"CastStream":{"Stream":["2"],"Stream.T":"2"},"CastStreamSubscription":{"StreamSubscription":["2"]},"_CastIterableBase":{"Iterable":["2"]},"CastIterator":{"Iterator":["2"]},"CastIterable":{"_CastIterableBase":["1","2"],"Iterable":["2"],"Iterable.E":"2"},"_EfficientLengthCastIterable":{"CastIterable":["1","2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"_CastListBase":{"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"]},"CastList":{"_CastListBase":["1","2"],"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","Iterable.E":"2"},"CastMap":{"MapBase":["3","4"],"Map":["3","4"],"MapBase.K":"3","MapBase.V":"4"},"LateError":{"Error":[]},"CodeUnits":{"ListBase":["int"],"UnmodifiableListMixin":["int"],"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"],"ListBase.E":"int","Iterable.E":"int","UnmodifiableListMixin.E":"int"},"EfficientLengthIterable":{"Iterable":["1"]},"ListIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"SubListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"ListIterator":{"Iterator":["1"]},"MappedIterable":{"Iterable":["2"],"Iterable.E":"2"},"EfficientLengthMappedIterable":{"MappedIterable":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"MappedIterator":{"Iterator":["2"]},"MappedListIterable":{"ListIterable":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListIterable.E":"2","Iterable.E":"2"},"WhereIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereIterator":{"Iterator":["1"]},"ExpandIterable":{"Iterable":["2"],"Iterable.E":"2"},"ExpandIterator":{"Iterator":["2"]},"TakeIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthTakeIterable":{"TakeIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"TakeIterator":{"Iterator":["1"]},"SkipIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthSkipIterable":{"SkipIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"SkipIterator":{"Iterator":["1"]},"EmptyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"EmptyIterator":{"Iterator":["1"]},"WhereTypeIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereTypeIterator":{"Iterator":["1"]},"UnmodifiableListBase":{"ListBase":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"ReversedListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"_Record_2":{"_Record2":[],"_Record":[]},"ConstantMap":{"Map":["1","2"]},"ConstantStringMap":{"ConstantMap":["1","2"],"Map":["1","2"]},"_KeysOrValues":{"Iterable":["1"],"Iterable.E":"1"},"_KeysOrValuesOrElementsIterator":{"Iterator":["1"]},"Instantiation":{"Closure":[],"Function":[]},"Instantiation1":{"Closure":[],"Function":[]},"NullError":{"TypeError":[],"Error":[]},"JsNoSuchMethodError":{"Error":[]},"UnknownJsTypeError":{"Error":[]},"NullThrownFromJavaScriptException":{"Exception":[]},"_StackTrace":{"StackTrace":[]},"Closure":{"Function":[]},"Closure0Args":{"Closure":[],"Function":[]},"Closure2Args":{"Closure":[],"Function":[]},"TearOffClosure":{"Closure":[],"Function":[]},"StaticClosure":{"Closure":[],"Function":[]},"BoundClosure":{"Closure":[],"Function":[]},"RuntimeError":{"Error":[]},"JsLinkedHashMap":{"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"LinkedHashMapKeysIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapKeyIterator":{"Iterator":["1"]},"LinkedHashMapValuesIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapValueIterator":{"Iterator":["1"]},"LinkedHashMapEntriesIterable":{"EfficientLengthIterable":["MapEntry<1,2>"],"Iterable":["MapEntry<1,2>"],"Iterable.E":"MapEntry<1,2>"},"LinkedHashMapEntryIterator":{"Iterator":["MapEntry<1,2>"]},"JsIdentityLinkedHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_Record2":{"_Record":[]},"JSSyntaxRegExp":{"RegExp":[],"Pattern":[]},"_MatchImplementation":{"RegExpMatch":[],"Match":[]},"_AllMatchesIterable":{"Iterable":["RegExpMatch"],"Iterable.E":"RegExpMatch"},"_AllMatchesIterator":{"Iterator":["RegExpMatch"]},"StringMatch":{"Match":[]},"_StringAllMatchesIterable":{"Iterable":["Match"],"Iterable.E":"Match"},"_StringAllMatchesIterator":{"Iterator":["Match"]},"NativeByteBuffer":{"JavaScriptObject":[],"JSObject":[],"ByteBuffer":[],"TrustedGetRuntimeType":[]},"NativeArrayBuffer":{"NativeByteBuffer":[],"JavaScriptObject":[],"JSObject":[],"ByteBuffer":[],"TrustedGetRuntimeType":[]},"NativeTypedData":{"JavaScriptObject":[],"JSObject":[]},"_UnmodifiableNativeByteBufferView":{"ByteBuffer":[]},"NativeByteData":{"JavaScriptObject":[],"ByteData":[],"JSObject":[],"TrustedGetRuntimeType":[]},"NativeTypedArray":{"JavaScriptIndexingBehavior":["1"],"JavaScriptObject":[],"JSObject":[]},"NativeTypedArrayOfDouble":{"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"]},"NativeTypedArrayOfInt":{"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"]},"NativeFloat32List":{"Float32List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeFloat64List":{"Float64List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeInt16List":{"NativeTypedArrayOfInt":[],"Int16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt32List":{"NativeTypedArrayOfInt":[],"Int32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt8List":{"NativeTypedArrayOfInt":[],"Int8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint16List":{"NativeTypedArrayOfInt":[],"Uint16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint32List":{"NativeTypedArrayOfInt":[],"Uint32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8ClampedList":{"NativeTypedArrayOfInt":[],"Uint8ClampedList":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8List":{"NativeTypedArrayOfInt":[],"Uint8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"_Type":{"Type":[]},"_Error":{"Error":[]},"_TypeError":{"TypeError":[],"Error":[]},"AsyncError":{"Error":[]},"_Future":{"Future":["1"]},"_TimerImpl":{"Timer":[]},"_AsyncAwaitCompleter":{"Completer":["1"]},"_Completer":{"Completer":["1"]},"_AsyncCompleter":{"_Completer":["1"],"Completer":["1"]},"_SyncCompleter":{"_Completer":["1"],"Completer":["1"]},"StreamView":{"Stream":["1"]},"_StreamController":{"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_AsyncStreamController":{"_AsyncStreamControllerDispatch":["1"],"_StreamController":["1"],"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_ControllerStream":{"_StreamImpl":["1"],"Stream":["1"],"Stream.T":"1"},"_ControllerSubscription":{"_BufferingStreamSubscription":["1"],"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamSinkWrapper":{"StreamSink":["1"]},"_StreamControllerAddStreamState":{"_AddStreamState":["1"]},"_BufferingStreamSubscription":{"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamImpl":{"Stream":["1"]},"_DelayedData":{"_DelayedEvent":["1"]},"_DelayedError":{"_DelayedEvent":["@"]},"_DelayedDone":{"_DelayedEvent":["@"]},"_DoneStreamSubscription":{"StreamSubscription":["1"]},"_EmptyStream":{"Stream":["1"],"Stream.T":"1"},"_ForwardingStream":{"Stream":["2"]},"_ForwardingStreamSubscription":{"_BufferingStreamSubscription":["2"],"StreamSubscription":["2"],"_EventSink":["2"],"_EventDispatch":["2"],"_BufferingStreamSubscription.T":"2"},"_MapStream":{"_ForwardingStream":["1","2"],"Stream":["2"],"Stream.T":"2"},"_Zone":{"Zone":[]},"_CustomZone":{"_Zone":[],"Zone":[]},"_RootZone":{"_Zone":[],"Zone":[]},"_ZoneDelegate":{"ZoneDelegate":[]},"_ZoneSpecification":{"ZoneSpecification":[]},"_SplayTreeSetNode":{"_SplayTreeNode":["1","_SplayTreeSetNode<1>"],"_SplayTreeNode.K":"1","_SplayTreeNode.1":"_SplayTreeSetNode<1>"},"_HashMap":{"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_IdentityHashMap":{"_HashMap":["1","2"],"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_CustomHashMap":{"_HashMap":["1","2"],"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashMapKeyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashMapKeyIterator":{"Iterator":["1"]},"_LinkedCustomHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashSet":{"_SetBase":["1"],"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashSetIterator":{"Iterator":["1"]},"_LinkedHashSet":{"_SetBase":["1"],"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_LinkedHashSetIterator":{"Iterator":["1"]},"UnmodifiableListView":{"ListBase":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListBase.E":"1","Iterable.E":"1","UnmodifiableListMixin.E":"1"},"ListBase":{"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"MapBase":{"Map":["1","2"]},"MapView":{"Map":["1","2"]},"UnmodifiableMapView":{"_UnmodifiableMapView_MapView__UnmodifiableMapMixin":["1","2"],"MapView":["1","2"],"_UnmodifiableMapMixin":["1","2"],"Map":["1","2"]},"ListQueue":{"Queue":["1"],"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"_ListQueueIterator":{"Iterator":["1"]},"SetBase":{"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SetBase":{"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SplayTreeIterator":{"Iterator":["3"]},"_SplayTreeKeyIterator":{"_SplayTreeIterator":["1","2","1"],"Iterator":["1"],"_SplayTreeIterator.K":"1","_SplayTreeIterator.T":"1","_SplayTreeIterator.1":"2"},"SplayTreeSet":{"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"_SplayTree":["1","_SplayTreeSetNode<1>"],"Iterable":["1"],"Iterable.E":"1","_SplayTree.1":"_SplayTreeSetNode<1>","_SplayTree.K":"1"},"Encoding":{"Codec":["String","List<int>"]},"_JsonMap":{"MapBase":["String","@"],"Map":["String","@"],"MapBase.K":"String","MapBase.V":"@"},"_JsonMapKeyIterable":{"ListIterable":["String"],"EfficientLengthIterable":["String"],"Iterable":["String"],"ListIterable.E":"String","Iterable.E":"String"},"AsciiCodec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"_UnicodeSubsetEncoder":{"Converter":["String","List<int>"]},"AsciiEncoder":{"Converter":["String","List<int>"]},"_UnicodeSubsetDecoder":{"Converter":["List<int>","String"]},"AsciiDecoder":{"Converter":["List<int>","String"]},"Base64Codec":{"Codec":["List<int>","String"],"Codec.S":"List<int>"},"Base64Encoder":{"Converter":["List<int>","String"]},"Base64Decoder":{"Converter":["String","List<int>"]},"JsonUnsupportedObjectError":{"Error":[]},"JsonCyclicError":{"Error":[]},"JsonCodec":{"Codec":["Object?","String"],"Codec.S":"Object?"},"JsonEncoder":{"Converter":["Object?","String"]},"JsonDecoder":{"Converter":["String","Object?"]},"Latin1Codec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"Latin1Encoder":{"Converter":["String","List<int>"]},"Latin1Decoder":{"Converter":["List<int>","String"]},"Utf8Codec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"Utf8Encoder":{"Converter":["String","List<int>"]},"Utf8Decoder":{"Converter":["List<int>","String"]},"BigInt":{"Comparable":["BigInt"]},"DateTime":{"Comparable":["DateTime"]},"double":{"num":[],"Comparable":["num"]},"Duration":{"Comparable":["Duration"]},"int":{"num":[],"Comparable":["num"]},"List":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"num":{"Comparable":["num"]},"RegExp":{"Pattern":[]},"RegExpMatch":{"Match":[]},"Set":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"String":{"Comparable":["String"],"Pattern":[]},"_BigIntImpl":{"BigInt":[],"Comparable":["BigInt"]},"AssertionError":{"Error":[]},"TypeError":{"Error":[]},"ArgumentError":{"Error":[]},"RangeError":{"Error":[]},"IndexError":{"Error":[]},"UnsupportedError":{"Error":[]},"UnimplementedError":{"Error":[]},"StateError":{"Error":[]},"ConcurrentModificationError":{"Error":[]},"OutOfMemoryError":{"Error":[]},"StackOverflowError":{"Error":[]},"_Exception":{"Exception":[]},"FormatException":{"Exception":[]},"IntegerDivisionByZeroException":{"Exception":[],"Error":[]},"_StringStackTrace":{"StackTrace":[]},"StringBuffer":{"StringSink":[]},"_Uri":{"Uri":[]},"_SimpleUri":{"Uri":[]},"_DataUri":{"Uri":[]},"NullRejectionException":{"Exception":[]},"ErrorResult":{"Result":["0&"]},"ValueResult":{"Result":["1"]},"_NextRequest":{"_EventRequest":["1"]},"_HasNextRequest":{"_EventRequest":["1"]},"BuiltList":{"Iterable":["1"]},"_BuiltList":{"BuiltList":["1"],"Iterable":["1"],"Iterable.E":"1"},"_BuiltListMultimap":{"BuiltListMultimap":["1","2"]},"_BuiltMap":{"BuiltMap":["1","2"]},"BuiltSet":{"Iterable":["1"]},"_BuiltSet":{"BuiltSet":["1"],"Iterable":["1"],"Iterable.E":"1"},"_BuiltSetMultimap":{"BuiltSetMultimap":["1","2"]},"BoolJsonObject":{"JsonObject":[]},"ListJsonObject":{"JsonObject":[]},"MapJsonObject":{"JsonObject":[]},"NumJsonObject":{"JsonObject":[]},"StringJsonObject":{"JsonObject":[]},"DeserializationError":{"Error":[]},"BigIntSerializer":{"PrimitiveSerializer":["BigInt"],"Serializer":["BigInt"]},"BoolSerializer":{"PrimitiveSerializer":["bool"],"Serializer":["bool"]},"BuiltJsonSerializers":{"Serializers":[]},"BuiltListMultimapSerializer":{"StructuredSerializer":["BuiltListMultimap<@,@>"],"Serializer":["BuiltListMultimap<@,@>"]},"BuiltListSerializer":{"StructuredSerializer":["BuiltList<@>"],"Serializer":["BuiltList<@>"]},"BuiltMapSerializer":{"StructuredSerializer":["BuiltMap<@,@>"],"Serializer":["BuiltMap<@,@>"]},"BuiltSetMultimapSerializer":{"StructuredSerializer":["BuiltSetMultimap<@,@>"],"Serializer":["BuiltSetMultimap<@,@>"]},"BuiltSetSerializer":{"StructuredSerializer":["BuiltSet<@>"],"Serializer":["BuiltSet<@>"]},"DateTimeSerializer":{"PrimitiveSerializer":["DateTime"],"Serializer":["DateTime"]},"DoubleSerializer":{"PrimitiveSerializer":["double"],"Serializer":["double"]},"DurationSerializer":{"PrimitiveSerializer":["Duration"],"Serializer":["Duration"]},"Int32Serializer":{"PrimitiveSerializer":["Int32"],"Serializer":["Int32"]},"Int64Serializer":{"PrimitiveSerializer":["Int64"],"Serializer":["Int64"]},"IntSerializer":{"PrimitiveSerializer":["int"],"Serializer":["int"]},"JsonObjectSerializer":{"PrimitiveSerializer":["JsonObject"],"Serializer":["JsonObject"]},"ListSerializer":{"StructuredSerializer":["List<@>"],"Serializer":["List<@>"]},"MapSerializer":{"StructuredSerializer":["Map<@,@>"],"Serializer":["Map<@,@>"]},"NullSerializer":{"PrimitiveSerializer":["Null"],"Serializer":["Null"]},"NumSerializer":{"PrimitiveSerializer":["num"],"Serializer":["num"]},"RegExpSerializer":{"PrimitiveSerializer":["RegExp"],"Serializer":["RegExp"]},"SetSerializer":{"StructuredSerializer":["Set<@>"],"Serializer":["Set<@>"]},"StringSerializer":{"PrimitiveSerializer":["String"],"Serializer":["String"]},"Uint8ListSerializer":{"PrimitiveSerializer":["Uint8List"],"Serializer":["Uint8List"]},"UriSerializer":{"PrimitiveSerializer":["Uri"],"Serializer":["Uri"]},"CanonicalizedMap":{"Map":["2","3"]},"DefaultEquality":{"Equality":["1"]},"IterableEquality":{"Equality":["Iterable<1>"]},"ListEquality":{"Equality":["List<1>"]},"_UnorderedEquality":{"Equality":["2"]},"SetEquality":{"_UnorderedEquality":["1","Set<1>"],"Equality":["Set<1>"],"_UnorderedEquality.E":"1","_UnorderedEquality.T":"Set<1>"},"MapEquality":{"Equality":["Map<1,2>"]},"DeepCollectionEquality":{"Equality":["@"]},"QueueList":{"ListBase":["1"],"List":["1"],"Queue":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListBase.E":"1","QueueList.E":"1","Iterable.E":"1"},"_CastQueueList":{"QueueList":["2"],"ListBase":["2"],"List":["2"],"Queue":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","QueueList.E":"2","Iterable.E":"2"},"PersistentWebSocket":{"StreamChannelMixin":["@"]},"SseSocketClient":{"SocketClient":[]},"WebSocketClient":{"SocketClient":[]},"Int32":{"Comparable":["Object"]},"Int64":{"Comparable":["Object"]},"ByteStream":{"StreamView":["List<int>"],"Stream":["List<int>"],"Stream.T":"List<int>","StreamView.T":"List<int>"},"ClientException":{"Exception":[]},"Request":{"BaseRequest":[]},"StreamedResponseV2":{"StreamedResponse":[]},"CaseInsensitiveMap":{"CanonicalizedMap":["String","String","1"],"Map":["String","1"],"CanonicalizedMap.K":"String","CanonicalizedMap.V":"1","CanonicalizedMap.C":"String"},"Level":{"Comparable":["Level"]},"PathException":{"Exception":[]},"PosixStyle":{"InternalStyle":[]},"UrlStyle":{"InternalStyle":[]},"WindowsStyle":{"InternalStyle":[]},"FileLocation":{"SourceLocation":[],"Comparable":["SourceLocation"]},"_FileSpan":{"SourceSpanWithContext":[],"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceLocation":{"Comparable":["SourceLocation"]},"SourceLocationMixin":{"SourceLocation":[],"Comparable":["SourceLocation"]},"SourceSpan":{"Comparable":["SourceSpan"]},"SourceSpanBase":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanException":{"Exception":[]},"SourceSpanFormatException":{"FormatException":[],"Exception":[]},"SourceSpanMixin":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanWithContext":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SseClient":{"StreamChannelMixin":["String?"]},"StringScannerException":{"FormatException":[],"Exception":[]},"_EventStream":{"Stream":["1"],"Stream.T":"1"},"_EventStreamSubscription":{"StreamSubscription":["1"]},"BrowserWebSocket":{"WebSocket":[]},"TextDataReceived":{"WebSocketEvent":[]},"BinaryDataReceived":{"WebSocketEvent":[]},"CloseReceived":{"WebSocketEvent":[]},"WebSocketException":{"Exception":[]},"WebSocketConnectionClosed":{"Exception":[]},"DdcLibraryBundleRestarter":{"Restarter":[]},"DdcRestarter":{"Restarter":[]},"RequireRestarter":{"Restarter":[]},"HotReloadFailedException":{"Exception":[]},"Int8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8ClampedList":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Float32List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]},"Float64List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]}}'));
+  A._Universe_addErasedTypes(init.typeUniverse, JSON.parse('{"UnmodifiableListBase":1,"__CastListBase__CastIterableBase_ListMixin":2,"NativeTypedArray":1,"_DelayedEvent":1,"_SplayTreeSet__SplayTree_Iterable":1,"_SplayTreeSet__SplayTree_Iterable_SetMixin":1,"Serializer":1,"_QueueList_Object_ListMixin":1,"StreamChannelMixin":1}'));
   var string$ = {
     x00_____: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\u03f6\x00\u0404\u03f4 \u03f4\u03f6\u01f6\u01f6\u03f6\u03fc\u01f4\u03ff\u03ff\u0584\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u05d4\u01f4\x00\u01f4\x00\u0504\u05c4\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u0400\x00\u0400\u0200\u03f7\u0200\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u0200\u0200\u0200\u03f7\x00",
     x20must_: " must not be greater than the number of characters in the file, ",
@@ -28279,7 +27389,6 @@
       JSArray_FullType: findType("JSArray<FullType>"),
       JSArray_Object: findType("JSArray<Object>"),
       JSArray_String: findType("JSArray<String>"),
-      JSArray_Type: findType("JSArray<Type>"),
       JSArray__Highlight: findType("JSArray<_Highlight>"),
       JSArray__Line: findType("JSArray<_Line>"),
       JSArray_dynamic: findType("JSArray<@>"),
@@ -28603,13 +27712,9 @@
     B.C__RootZone = new A._RootZone();
     B.Duration_0 = new A.Duration(0);
     B.Duration_5000000 = new A.Duration(5000000);
-    B.Type_String_AXU = A.typeLiteral("String");
-    B.List_empty1 = makeConstList([], type$.JSArray_FullType);
-    B.FullType_PT1 = new A.FullType(B.Type_String_AXU, B.List_empty1, false);
-    B.Type_bool_wF1 = A.typeLiteral("bool");
-    B.FullType_R6B = new A.FullType(B.Type_bool_wF1, B.List_empty1, false);
     B.Type_BuiltSetMultimap_yT7 = A.typeLiteral("BuiltSetMultimap<@,@>");
     B.Type_Object_A4p = A.typeLiteral("Object");
+    B.List_empty1 = makeConstList([], type$.JSArray_FullType);
     B.FullType_kV7 = new A.FullType(B.Type_Object_A4p, B.List_empty1, false);
     B.List_03P = makeConstList([B.FullType_kV7, B.FullType_kV7], type$.JSArray_FullType);
     B.FullType_SWR = new A.FullType(B.Type_BuiltSetMultimap_yT7, B.List_03P, false);
@@ -28621,8 +27726,6 @@
     B.Type_BuiltMap_TeX = A.typeLiteral("BuiltMap<@,@>");
     B.FullType_mo5 = new A.FullType(B.Type_BuiltMap_TeX, B.List_03P, false);
     B.FullType_null_List_empty_false = new A.FullType(null, B.List_empty1, false);
-    B.Type_int_T7V = A.typeLiteral("int");
-    B.FullType_rTD = new A.FullType(B.Type_int_T7V, B.List_empty1, false);
     B.Type_BuiltSet_oHu = A.typeLiteral("BuiltSet<@>");
     B.FullType_tpw = new A.FullType(B.Type_BuiltSet_oHu, B.List_LtY, false);
     B.JsonDecoder_null = new A.JsonDecoder(null);
@@ -28632,21 +27735,6 @@
     B.Level_INFO_800 = new A.Level("INFO", 800);
     B.Level_SEVERE_1000 = new A.Level("SEVERE", 1000);
     B.Level_WARNING_900 = new A.Level("WARNING", 900);
-<<<<<<< HEAD
-    B.Type_DevToolsRequest_DxE = A.typeLiteral("DevToolsRequest");
-    B.Type__$DevToolsRequest_Rak = A.typeLiteral("_$DevToolsRequest");
-    B.List_G46 = makeConstList([B.Type_DevToolsRequest_DxE, B.Type__$DevToolsRequest_Rak], type$.JSArray_Type);
-    B.Type_DevToolsResponse_gVs = A.typeLiteral("DevToolsResponse");
-    B.Type__$DevToolsResponse_dcs = A.typeLiteral("_$DevToolsResponse");
-    B.List_TEH = makeConstList([B.Type_DevToolsResponse_gVs, B.Type__$DevToolsResponse_dcs], type$.JSArray_Type);
-=======
-    B.Type_ExtensionRequest_9GR = A.typeLiteral("ExtensionRequest");
-    B.Type__$ExtensionRequest_o1C = A.typeLiteral("_$ExtensionRequest");
-    B.List_2dD = makeConstList([B.Type_ExtensionRequest_9GR, B.Type__$ExtensionRequest_o1C], type$.JSArray_Type);
-    B.Type_ExtensionResponse_0Oi = A.typeLiteral("ExtensionResponse");
-    B.Type__$ExtensionResponse_46G = A.typeLiteral("_$ExtensionResponse");
-    B.List_RWp = makeConstList([B.Type_ExtensionResponse_0Oi, B.Type__$ExtensionResponse_46G], type$.JSArray_Type);
->>>>>>> main
     B.List_ZNA = makeConstList([0, 0, 1048576, 531441, 1048576, 390625, 279936, 823543, 262144, 531441, 1000000, 161051, 248832, 371293, 537824, 759375, 1048576, 83521, 104976, 130321, 160000, 194481, 234256, 279841, 331776, 390625, 456976, 531441, 614656, 707281, 810000, 923521, 1048576, 35937, 39304, 42875, 46656], type$.JSArray_int);
     B.BuildStatus_0 = new A.BuildStatus(0, "started");
     B.BuildStatus_1 = new A.BuildStatus(1, "succeeded");
@@ -28683,12 +27771,15 @@
     B.Type_RegExp_w5l = A.typeLiteral("RegExp");
     B.Type_Set_tZi = A.typeLiteral("Set<@>");
     B.Type_StringJsonObject_NL7 = A.typeLiteral("StringJsonObject");
+    B.Type_String_AXU = A.typeLiteral("String");
     B.Type_Uint16List_kmP = A.typeLiteral("Uint16List");
     B.Type_Uint32List_kmP = A.typeLiteral("Uint32List");
     B.Type_Uint8ClampedList_04U = A.typeLiteral("Uint8ClampedList");
     B.Type_Uint8List_8Eb = A.typeLiteral("Uint8List");
     B.Type_Uri_l9i = A.typeLiteral("Uri");
+    B.Type_bool_wF1 = A.typeLiteral("bool");
     B.Type_double_JIQ = A.typeLiteral("double");
+    B.Type_int_T7V = A.typeLiteral("int");
     B.Type_num_LZa = A.typeLiteral("num");
     B.Utf8Decoder_false = new A.Utf8Decoder(false);
     B._StringStackTrace_OdL = new A._StringStackTrace("");
@@ -28736,7 +27827,6 @@
     $._BigIntImpl____lastRem_nsh = A._Cell$named("_lastRem_nsh");
     $.Uri__cachedBaseString = "";
     $.Uri__cachedBaseUri = null;
-    $._indentingBuiltValueToStringHelperIndent = 0;
     $.LogRecord__nextNumber = 0;
     $.Logger__loggers = A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.Logger);
     $._currentUriBase = null;
@@ -28824,32 +27914,11 @@
       return t1;
     });
     _lazyFinal($, "isSoundMode", "$get$isSoundMode", () => !type$.List_int._is(A._setArrayType([], A.findType("JSArray<int?>"))));
-    _lazy($, "newBuiltValueToStringHelper", "$get$newBuiltValueToStringHelper", () => new A.newBuiltValueToStringHelper_closure());
     _lazyFinal($, "_runtimeType", "$get$_runtimeType", () => A.getRuntimeTypeOfDartObject(A.RegExp_RegExp("", true, false)));
-<<<<<<< HEAD
-    _lazy($, "_$devToolsRequestSerializer", "$get$_$devToolsRequestSerializer", () => new A._$DevToolsRequestSerializer());
-    _lazy($, "_$devToolsResponseSerializer", "$get$_$devToolsResponseSerializer", () => new A._$DevToolsResponseSerializer());
-=======
-    _lazy($, "_$extensionRequestSerializer", "$get$_$extensionRequestSerializer", () => new A._$ExtensionRequestSerializer());
-    _lazy($, "_$extensionResponseSerializer", "$get$_$extensionResponseSerializer", () => new A._$ExtensionResponseSerializer());
-    _lazy($, "_$extensionEventSerializer", "$get$_$extensionEventSerializer", () => new A._$ExtensionEventSerializer());
-    _lazy($, "_$batchedEventsSerializer", "$get$_$batchedEventsSerializer", () => new A._$BatchedEventsSerializer());
->>>>>>> main
     _lazyFinal($, "serializers", "$get$serializers", () => $.$get$_$serializers());
     _lazy($, "_$serializers", "$get$_$serializers", () => {
       var t1 = A.Serializers_Serializers();
-      t1 = A.BuiltJsonSerializersBuilder$_(t1._typeToSerializer.toBuilder$0(), t1._wireNameToSerializer.toBuilder$0(), t1._typeNameToSerializer.toBuilder$0(), t1.builderFactories.toBuilder$0(), t1.serializerPlugins.toBuilder$0());
-<<<<<<< HEAD
-      t1.add$1(0, $.$get$_$devToolsRequestSerializer());
-      t1.add$1(0, $.$get$_$devToolsResponseSerializer());
-=======
-      t1.add$1(0, $.$get$_$batchedEventsSerializer());
-      t1.add$1(0, $.$get$_$extensionEventSerializer());
-      t1.add$1(0, $.$get$_$extensionRequestSerializer());
-      t1.add$1(0, $.$get$_$extensionResponseSerializer());
-      t1.addBuilderFactory$2(B.FullType_ahP, new A._$serializers_closure());
->>>>>>> main
-      return t1.build$0();
+      return A.BuiltJsonSerializersBuilder$_(t1._typeToSerializer.toBuilder$0(), t1._wireNameToSerializer.toBuilder$0(), t1._typeNameToSerializer.toBuilder$0(), t1.builderFactories.toBuilder$0(), t1.serializerPlugins.toBuilder$0()).build$0();
     });
     _lazyFinal($, "_logger", "$get$_logger", () => A.Logger_Logger("Utilities"));
     _lazyFinal($, "BaseRequest__tokenRE", "$get$BaseRequest__tokenRE", () => A.RegExp_RegExp("^[\\w!#%&'*+\\-.^`|~]+$", true, false));
