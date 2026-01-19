@@ -1018,12 +1018,6 @@ class DevHandler {
         'Missing tab url in DevTools request for app with id: $appId',
       );
     }
-    if (appId == null) {
-      throw StateError(
-        'Failed to start extension debug service. '
-        'Missing app id in DevTools request',
-      );
-    }
     final connection = _appConnectionByAppId[appId];
     if (connection == null) {
       throw StateError(

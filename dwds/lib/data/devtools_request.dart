@@ -5,10 +5,10 @@
 /// A request to open DevTools.
 class DevToolsRequest {
   /// Identifies a given application, across tabs/windows.
-  final String? appId;
+  final String appId;
 
   /// Identifies a given instance of an application, unique per tab/window.
-  final String? instanceId;
+  final String instanceId;
 
   /// Identifies the context in which evaluations should occur.
   ///
@@ -40,8 +40,8 @@ class DevToolsRequest {
   final String? client;
 
   DevToolsRequest({
-    this.appId,
-    this.instanceId,
+    required this.appId,
+    required this.instanceId,
     this.contextId,
     this.tabUrl,
     this.uriOnly,
@@ -50,8 +50,8 @@ class DevToolsRequest {
 
   factory DevToolsRequest.fromJson(Map<String, dynamic> json) {
     return DevToolsRequest(
-      appId: json['appId'] as String?,
-      instanceId: json['instanceId'] as String?,
+      appId: json['appId'] as String,
+      instanceId: json['instanceId'] as String,
       contextId: json['contextId'] as int?,
       tabUrl: json['tabUrl'] as String?,
       uriOnly: json['uriOnly'] as bool?,
@@ -61,8 +61,8 @@ class DevToolsRequest {
 
   Map<String, dynamic> toJson() {
     return {
-      if (appId != null) 'appId': appId,
-      if (instanceId != null) 'instanceId': instanceId,
+      'appId': appId,
+      'instanceId': instanceId,
       if (contextId != null) 'contextId': contextId,
       if (tabUrl != null) 'tabUrl': tabUrl,
       if (uriOnly != null) 'uriOnly': uriOnly,

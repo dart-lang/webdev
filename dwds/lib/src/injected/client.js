@@ -22614,12 +22614,9 @@
   };
   A.DevToolsRequest.prototype = {
     toJson$0() {
-      var t2,
-        t1 = A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.dynamic);
+      var t1 = A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.dynamic);
       t1.$indexSet(0, "appId", this.appId);
-      t2 = this.instanceId;
-      if (t2 != null)
-        t1.$indexSet(0, "instanceId", t2);
+      t1.$indexSet(0, "instanceId", this.instanceId);
       return t1;
     },
     $eq(_, other) {
@@ -22631,7 +22628,7 @@
       t1 = false;
       if (other instanceof A.DevToolsRequest)
         if (other.appId === this.appId)
-          t1 = other.instanceId == this.instanceId;
+          t1 = other.instanceId === this.instanceId;
       return t1;
     },
     get$hashCode(_) {
@@ -22639,7 +22636,7 @@
       return A.Object_hash(this.appId, this.instanceId, _null, _null, _null, _null);
     },
     toString$0(_) {
-      return "DevToolsRequest { appId: " + this.appId + ", instanceId: " + A.S(this.instanceId) + ", contextId: null, tabUrl: null, uriOnly: null, client: null, }";
+      return "DevToolsRequest { appId: " + this.appId + ", instanceId: " + this.instanceId + ", contextId: null, tabUrl: null, uriOnly: null, client: null, }";
     }
   };
   A.DevToolsResponse.prototype = {
@@ -26678,12 +26675,17 @@
   };
   A.main__closure7.prototype = {
     call$0() {
+      var t1, t2, t3;
       if (!A._isChromium()) {
         A._asJSObject(init.G.window).alert("Dart DevTools is only supported on Chromium based browsers.");
         return;
       }
-      var t1 = init.G;
-      A._trySendEvent(this.client.get$sink(), B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["DevToolsRequest", new A.DevToolsRequest(A._asString(t1.$dartAppId), A._asStringQ(t1.$dartAppInstanceId))], type$.JSArray_Object), null), type$.dynamic);
+      t1 = this.client.get$sink();
+      t2 = init.G;
+      t3 = A._asString(t2.$dartAppId);
+      t2 = A._asStringQ(t2.$dartAppInstanceId);
+      t2.toString;
+      A._trySendEvent(t1, B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["DevToolsRequest", new A.DevToolsRequest(t3, t2)], type$.JSArray_Object), null), type$.dynamic);
     },
     $signature: 1
   };

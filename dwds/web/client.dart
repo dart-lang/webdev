@@ -181,7 +181,7 @@ Future<void>? main() {
           client.sink,
           jsonEncode([
             'DevToolsRequest',
-            DevToolsRequest(appId: dartAppId, instanceId: dartAppInstanceId),
+            DevToolsRequest(appId: dartAppId, instanceId: dartAppInstanceId!),
           ]),
         );
       }.toJS;
