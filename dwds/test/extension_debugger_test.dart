@@ -10,7 +10,6 @@ import 'dart:convert';
 
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
-import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/servers/extension_debugger.dart';
 import 'package:test/test.dart';
 
