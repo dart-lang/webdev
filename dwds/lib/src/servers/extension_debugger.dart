@@ -75,7 +75,8 @@ class ExtensionDebugger implements RemoteDebugger {
   ExtensionDebugger(this.sseConnection) {
     sseConnection.stream.listen(
       (data) {
-        final message = serializers.deserialize(jsonDecode(data));
+        final decoded = jsonDecode(data);
+        final message = _deserialize(decoded);
         if (message is ExtensionResponse) {
           final encodedResult = {
             'result': json.decode(message.result),
@@ -383,5 +384,12 @@ class ExtensionDebugger implements RemoteDebugger {
       );
     }
     return result;
+  }
+
+  static Object? _deserialize(dynamic decoded) {
+    if (decoded case ['DevToolsRequest', final Map<String, dynamic> request]) {
+      return DevToolsRequest.fromJson(request);
+    }
+    return serializers.deserialize(decoded);
   }
 }

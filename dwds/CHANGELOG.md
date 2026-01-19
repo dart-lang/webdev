@@ -1,5 +1,5 @@
 ## 26.2.6-wip
-- Remove `package:built_value` dependency from `IsolateStart`, and `IsolateExit`; switch to standard Dart JSON serialization.
+- Remove `package:built_value` dependency from `IsolateStart`, `IsolateExit`, `DevToolsRequest`, and `DevToolsResponse`; switch to standard Dart JSON serialization.
 
 ## 26.2.5
 - Remove `package:built_value` dependency from `ErrorResponse` and `RegisterEvent`; switch to standard Dart JSON serialization.

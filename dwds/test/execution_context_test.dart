@@ -274,13 +274,12 @@ class TestDebuggerConnection {
 
   void _sendDevToolsRequest({int? contextId}) {
     final devToolsRequest = DevToolsRequest(
-      (b) => b
-        ..contextId = contextId
-        ..appId = 'app'
-        ..instanceId = '0',
+      contextId: contextId,
+      appId: 'app',
+      instanceId: '0',
     );
     connection.controllerIncoming.sink.add(
-      jsonEncode(serializers.serialize(devToolsRequest)),
+      jsonEncode(['DevToolsRequest', devToolsRequest.toJson()]),
     );
   }
 

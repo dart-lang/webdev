@@ -383,13 +383,12 @@ Future<bool> _connectToDwds({
   final tabUrl = await _getTabUrl(dartAppTabId);
   debugSession.sendEvent(
     DevToolsRequest(
-      (b) => b
-        ..appId = debugInfo.appId
-        ..instanceId = debugInfo.appInstanceId
-        ..contextId = dartAppContextId
-        ..tabUrl = tabUrl
-        ..uriOnly = true
-        ..client = trigger?.clientName ?? 'unknown',
+      appId: debugInfo.appId!,
+      instanceId: debugInfo.appInstanceId!,
+      contextId: dartAppContextId,
+      tabUrl: tabUrl,
+      uriOnly: true,
+      client: trigger?.clientName ?? 'unknown',
     ),
   );
   return true;
@@ -826,7 +825,13 @@ class _DebugSession {
 
   void sendEvent<T>(T event) {
     try {
-      _socketClient.sink.add(jsonEncode(serializers.serialize(event)));
+      _socketClient.sink.add(
+        jsonEncode(
+          event is DevToolsRequest
+              ? ['DevToolsRequest', event.toJson()]
+              : serializers.serialize(event),
+        ),
+      );
     } catch (error) {
       debugError('Error sending event $event: $error');
     }
