@@ -179,15 +179,10 @@ Future<void>? main() {
         }
         _trySendEvent(
           client.sink,
-          jsonEncode(
-            serializers.serialize(
-              DevToolsRequest(
-                (b) => b
-                  ..appId = dartAppId
-                  ..instanceId = dartAppInstanceId,
-              ),
-            ),
-          ),
+          jsonEncode([
+            'DevToolsRequest',
+            DevToolsRequest(appId: dartAppId, instanceId: dartAppInstanceId!),
+          ]),
         );
       }.toJS;
 
@@ -336,6 +331,8 @@ Object? _deserializeEvent(dynamic decoded) {
         return ServiceExtensionRequest.fromJson(jsonData);
       case 'BuildResult':
         return BuildResult.fromJson(jsonData);
+      case 'DevToolsResponse':
+        return DevToolsResponse.fromJson(jsonData);
       case 'ErrorResponse':
         return ErrorResponse.fromJson(jsonData);
       default:

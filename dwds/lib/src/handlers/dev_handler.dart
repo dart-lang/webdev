@@ -158,6 +158,7 @@ class DevHandler {
       BuildResult() => ['BuildResult', request.toJson()],
       DebugEvent() => ['DebugEvent', request.toJson()],
       BatchedDebugEvents() => ['BatchedDebugEvents', request.toJson()],
+      DevToolsResponse() => ['DevToolsResponse', request.toJson()],
       IsolateStart() => ['IsolateStart', request.toJson()],
       IsolateExit() => ['IsolateExit', request.toJson()],
       ErrorResponse() => ['ErrorResponse', request.toJson()],
@@ -189,6 +190,8 @@ class DevHandler {
           return BatchedDebugEvents.fromJson(jsonData);
         case 'ServiceExtensionResponse':
           return ServiceExtensionResponse.fromJson(jsonData);
+        case 'DevToolsRequest':
+          return DevToolsRequest.fromJson(jsonData);
         case 'ErrorResponse':
           return ErrorResponse.fromJson(jsonData);
         case 'RegisterEvent':
@@ -532,15 +535,14 @@ class DevHandler {
     if (_devTools == null && !_ddsConfig.serveDevTools) {
       sseConnection.sink.add(
         jsonEncode(
-          serializers.serialize(
+          _serializeMessage(
             DevToolsResponse(
-              (b) => b
-                ..success = false
-                ..promptExtension = false
-                ..error =
-                    'Debugging is not enabled.\n\n'
-                    'If you are using webdev please pass the --debug flag.\n'
-                    'Otherwise check the docs for the tool you are using.',
+              success: false,
+              promptExtension: false,
+              error:
+                  'Debugging is not enabled.\n\n'
+                  'If you are using webdev please pass the --debug flag.\n'
+                  'Otherwise check the docs for the tool you are using.',
             ),
           ),
         ),
@@ -558,23 +560,22 @@ class DevHandler {
           'load in a different Chrome window than was launched by '
           'your development tool.';
       var response = DevToolsResponse(
-        (b) => b
-          ..success = false
-          ..promptExtension = false
-          ..error = error,
+        success: false,
+        promptExtension: false,
+        error: error,
       );
       if (_extensionBackend != null) {
-        response = response.rebuild(
-          (b) => b
-            ..promptExtension = true
-            ..error =
-                '$error\n\n'
-                'Your workflow alternatively supports debugging through the '
-                'Dart Debug Extension.\n\n'
-                'Would you like to install the extension?',
+        response = DevToolsResponse(
+          success: false,
+          promptExtension: true,
+          error:
+              '$error\n\n'
+              'Your workflow alternatively supports debugging through the '
+              'Dart Debug Extension.\n\n'
+              'Would you like to install the extension?',
         );
       }
-      sseConnection.sink.add(jsonEncode(serializers.serialize(response)));
+      sseConnection.sink.add(jsonEncode(_serializeMessage(response)));
       return;
     }
 
@@ -584,14 +585,13 @@ class DevHandler {
         appServices.connectedInstanceId != appConnection.request.instanceId) {
       sseConnection.sink.add(
         jsonEncode(
-          serializers.serialize(
+          _serializeMessage(
             DevToolsResponse(
-              (b) => b
-                ..success = false
-                ..promptExtension = false
-                ..error =
-                    'This app is already being debugged in a different tab. '
-                    'Please close that tab or switch to it.',
+              success: false,
+              promptExtension: false,
+              error:
+                  'This app is already being debugged in a different tab. '
+                  'Please close that tab or switch to it.',
             ),
           ),
         ),
@@ -601,12 +601,8 @@ class DevHandler {
 
     sseConnection.sink.add(
       jsonEncode(
-        serializers.serialize(
-          DevToolsResponse(
-            (b) => b
-              ..success = true
-              ..promptExtension = false,
-          ),
+        _serializeMessage(
+          DevToolsResponse(success: true, promptExtension: false),
         ),
       ),
     );

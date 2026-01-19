@@ -5,14 +5,8 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 
-import 'debug_info.dart';
-import 'devtools_request.dart';
-import 'extension_request.dart';
-import 'isolate_events.dart';
-import 'run_request.dart';
-
 part 'serializers.g.dart';
 
 /// Serializers for all the types used in DWDS communication.
-@SerializersFor([DevToolsRequest, DevToolsResponse])
+@SerializersFor([])
 final Serializers serializers = _$serializers;

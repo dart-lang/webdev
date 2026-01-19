@@ -3,18 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:built_value/serializer.dart';
-import 'package:dwds/data/devtools_request.dart';
 
 import 'data_types.dart';
 
 part 'data_serializers.g.dart';
 
 /// Serializers for all the data types used in the Dart Debug Extension.
-@SerializersFor([
-  ConnectFailure,
-  DebugStateChange,
-  DevToolsOpener,
-  DevToolsUrl,
-  DevToolsRequest,
-])
+@SerializersFor([ConnectFailure, DebugStateChange, DevToolsOpener, DevToolsUrl])
 final Serializers serializers = _$serializers;

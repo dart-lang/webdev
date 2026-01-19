@@ -76,23 +76,7 @@ class ExtensionDebugger implements RemoteDebugger {
     sseConnection.stream.listen(
       (data) {
         final decoded = jsonDecode(data);
-        Object? message;
-        if (decoded
-            case ['ExtensionResponse', final Map<String, dynamic> response]) {
-          message = ExtensionResponse.fromJson(response);
-        } else if (decoded
-            case ['ExtensionEvent', final Map<String, dynamic> event]) {
-          message = ExtensionEvent.fromJson(event);
-        } else if (decoded
-            case ['BatchedEvents', final Map<String, dynamic> events]) {
-          message = BatchedEvents.fromJson(events);
-        } else {
-          try {
-            message = serializers.deserialize(decoded);
-          } catch (_) {
-            // Skip if we can't deserialize the object.
-          }
-        }
+        final message = _deserialize(decoded);
         if (message is ExtensionResponse) {
           final encodedResult = {
             'result': json.decode(message.result),
@@ -393,5 +377,28 @@ class ExtensionDebugger implements RemoteDebugger {
       );
     }
     return result;
+  }
+
+  static Object? _deserialize(dynamic decoded) {
+    if (decoded case [
+      'ExtensionResponse',
+      final Map<String, dynamic> response,
+    ]) {
+      return ExtensionResponse.fromJson(response);
+    }
+    if (decoded case ['ExtensionEvent', final Map<String, dynamic> event]) {
+      return ExtensionEvent.fromJson(event);
+    }
+    if (decoded case ['BatchedEvents', final Map<String, dynamic> events]) {
+      return BatchedEvents.fromJson(events);
+    }
+    if (decoded case ['DevToolsRequest', final Map<String, dynamic> request]) {
+      return DevToolsRequest.fromJson(request);
+    }
+    try {
+      return serializers.deserialize(decoded);
+    } catch (_) {
+      return null;
+    }
   }
 }

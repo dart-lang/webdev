@@ -383,13 +383,12 @@ Future<bool> _connectToDwds({
   final tabUrl = await _getTabUrl(dartAppTabId);
   debugSession.sendEvent(
     DevToolsRequest(
-      (b) => b
-        ..appId = debugInfo.appId
-        ..instanceId = debugInfo.appInstanceId
-        ..contextId = dartAppContextId
-        ..tabUrl = tabUrl
-        ..uriOnly = true
-        ..client = trigger?.clientName ?? 'unknown',
+      appId: debugInfo.appId!,
+      instanceId: debugInfo.appInstanceId!,
+      contextId: dartAppContextId,
+      tabUrl: tabUrl,
+      uriOnly: true,
+      client: trigger?.clientName ?? 'unknown',
     ),
   );
   return true;
@@ -400,8 +399,10 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
   Object? message;
   if (decoded case ['ExtensionRequest', final Map<String, dynamic> request]) {
     message = ExtensionRequest.fromJson(request);
-  } else if (decoded
-      case ['ExtensionEvent', final Map<String, dynamic> event]) {
+  } else if (decoded case [
+    'ExtensionEvent',
+    final Map<String, dynamic> event,
+  ]) {
     message = ExtensionEvent.fromJson(event);
   } else {
     try {
@@ -822,16 +823,20 @@ class _DebugSession {
 
   void sendEvent<T>(T event) {
     try {
-      _socketClient.sink.add(
-        jsonEncode(
-          event is ExtensionEvent
-              ? ['ExtensionEvent', event.toJson()]
-              : serializers.serialize(event),
-        ),
-      );
+      _socketClient.sink.add(jsonEncode(_serialize(event)));
     } catch (error) {
       debugError('Error sending event $event: $error');
     }
+  }
+
+  Object? _serialize(Object? event) {
+    if (event is ExtensionEvent) {
+      return ['ExtensionEvent', event.toJson()];
+    }
+    if (event is DevToolsRequest) {
+      return ['DevToolsRequest', event.toJson()];
+    }
+    return serializers.serialize(event);
   }
 
   void sendBatchedEvent(ExtensionEvent event) {

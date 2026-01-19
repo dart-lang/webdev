@@ -86,13 +86,12 @@ void main() async {
 
     test('a DevToolsRequest', () async {
       final devToolsRequest = DevToolsRequest(
-        (b) => b
-          ..tabUrl = 'pi/calculus'
-          ..appId = '3.14'
-          ..instanceId = '6.28',
+        appId: '3.14',
+        instanceId: '6.28',
+        tabUrl: 'pi/calculus',
       );
       connection.controllerIncoming.sink.add(
-        jsonEncode(serializers.serialize(devToolsRequest)),
+        jsonEncode(['DevToolsRequest', devToolsRequest.toJson()]),
       );
       final request = await extensionDebugger.devToolsRequestStream.first;
       expect(request.tabUrl, 'pi/calculus');
