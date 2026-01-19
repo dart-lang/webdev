@@ -235,12 +235,11 @@ class TestDebuggerConnection {
   /// context in the extension debugger.
   void sendContextsClearedEvent() {
     final extensionEvent = ExtensionEvent(
-      (b) => b
-        ..method = jsonEncode('Runtime.executionContextsCleared')
-        ..params = jsonEncode({}),
+      method: jsonEncode('Runtime.executionContextsCleared'),
+      params: jsonEncode({}),
     );
     connection.controllerIncoming.sink.add(
-      jsonEncode(serializers.serialize(extensionEvent)),
+      jsonEncode(['ExtensionEvent', extensionEvent.toJson()]),
     );
   }
 
@@ -248,27 +247,25 @@ class TestDebuggerConnection {
   /// context in the extension debugger.
   void sendContextCreatedEvent(TestContextId contextId) {
     final extensionEvent = ExtensionEvent(
-      (b) => b
-        ..method = jsonEncode('Runtime.executionContextCreated')
-        ..params = jsonEncode({
-          'context': {'id': '${contextId.id}'},
-        }),
+      method: jsonEncode('Runtime.executionContextCreated'),
+      params: jsonEncode({
+        'context': {'id': '${contextId.id}'},
+      }),
     );
     connection.controllerIncoming.sink.add(
-      jsonEncode(serializers.serialize(extensionEvent)),
+      jsonEncode(['ExtensionEvent', extensionEvent.toJson()]),
     );
   }
 
   void _sendEvaluationResponse(Map<String, dynamic> response) {
     // Respond to the evaluate request.
     final extensionResponse = ExtensionResponse(
-      (b) => b
-        ..result = jsonEncode(response)
-        ..id = _evaluateRequestId++
-        ..success = true,
+      result: jsonEncode(response),
+      id: _evaluateRequestId++,
+      success: true,
     );
     connection.controllerIncoming.sink.add(
-      jsonEncode(serializers.serialize(extensionResponse)),
+      jsonEncode(['ExtensionResponse', extensionResponse.toJson()]),
     );
   }
 

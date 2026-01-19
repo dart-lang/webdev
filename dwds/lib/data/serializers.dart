@@ -14,12 +14,5 @@ import 'run_request.dart';
 part 'serializers.g.dart';
 
 /// Serializers for all the types used in DWDS communication.
-@SerializersFor([
-  BatchedEvents,
-  DevToolsRequest,
-  DevToolsResponse,
-  ExtensionRequest,
-  ExtensionResponse,
-  ExtensionEvent,
-])
+@SerializersFor([DevToolsRequest, DevToolsResponse])
 final Serializers serializers = _$serializers;

@@ -8,19 +8,11 @@ part of 'data_serializers.dart';
 
 Serializers _$serializers =
     (Serializers().toBuilder()
-          ..add(BatchedEvents.serializer)
           ..add(ConnectFailure.serializer)
           ..add(DebugStateChange.serializer)
           ..add(DevToolsOpener.serializer)
           ..add(DevToolsRequest.serializer)
-          ..add(DevToolsUrl.serializer)
-          ..add(ExtensionEvent.serializer)
-          ..add(ExtensionRequest.serializer)
-          ..add(ExtensionResponse.serializer)
-          ..addBuilderFactory(
-            const FullType(BuiltList, const [const FullType(ExtensionEvent)]),
-            () => ListBuilder<ExtensionEvent>(),
-          ))
+          ..add(DevToolsUrl.serializer))
         .build();
 
 // ignore_for_file: deprecated_member_use_from_same_package,type=lint

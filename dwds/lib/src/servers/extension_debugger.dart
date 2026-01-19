@@ -75,7 +75,24 @@ class ExtensionDebugger implements RemoteDebugger {
   ExtensionDebugger(this.sseConnection) {
     sseConnection.stream.listen(
       (data) {
-        final message = serializers.deserialize(jsonDecode(data));
+        final decoded = jsonDecode(data);
+        Object? message;
+        if (decoded
+            case ['ExtensionResponse', final Map<String, dynamic> response]) {
+          message = ExtensionResponse.fromJson(response);
+        } else if (decoded
+            case ['ExtensionEvent', final Map<String, dynamic> event]) {
+          message = ExtensionEvent.fromJson(event);
+        } else if (decoded
+            case ['BatchedEvents', final Map<String, dynamic> events]) {
+          message = BatchedEvents.fromJson(events);
+        } else {
+          try {
+            message = serializers.deserialize(decoded);
+          } catch (_) {
+            // Skip if we can't deserialize the object.
+          }
+        }
         if (message is ExtensionResponse) {
           final encodedResult = {
             'result': json.decode(message.result),
@@ -142,15 +159,10 @@ class ExtensionDebugger implements RemoteDebugger {
 
   void sendEvent(String method, String params) {
     sseConnection.sink.add(
-      jsonEncode(
-        serializers.serialize(
-          ExtensionEvent(
-            (b) => b
-              ..method = method
-              ..params = params,
-          ),
-        ),
-      ),
+      jsonEncode([
+        'ExtensionEvent',
+        ExtensionEvent(method: method, params: params).toJson(),
+      ]),
     );
   }
 
@@ -166,16 +178,14 @@ class ExtensionDebugger implements RemoteDebugger {
     _completers[id] = completer;
     try {
       sseConnection.sink.add(
-        jsonEncode(
-          serializers.serialize(
-            ExtensionRequest(
-              (b) => b
-                ..id = id
-                ..command = command
-                ..commandParams = jsonEncode(params ?? {}),
-            ),
-          ),
-        ),
+        jsonEncode([
+          'ExtensionRequest',
+          ExtensionRequest(
+            id: id,
+            command: command,
+            commandParams: jsonEncode(params ?? {}),
+          ).toJson(),
+        ]),
       );
     } on StateError catch (error, stackTrace) {
       if (error.message.contains('Cannot add event after closing')) {

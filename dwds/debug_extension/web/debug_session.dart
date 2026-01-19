@@ -396,7 +396,20 @@ Future<bool> _connectToDwds({
 }
 
 void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
-  final message = serializers.deserialize(jsonDecode(eventData));
+  final decoded = jsonDecode(eventData);
+  Object? message;
+  if (decoded case ['ExtensionRequest', final Map<String, dynamic> request]) {
+    message = ExtensionRequest.fromJson(request);
+  } else if (decoded
+      case ['ExtensionEvent', final Map<String, dynamic> event]) {
+    message = ExtensionEvent.fromJson(event);
+  } else {
+    try {
+      message = serializers.deserialize(decoded);
+    } catch (_) {
+      // Skip if we can't deserialize the object.
+    }
+  }
   if (message is ExtensionRequest) {
     _forwardDwdsEventToChromeDebugger(message, client, tabId);
   } else if (message is ExtensionEvent) {
@@ -453,29 +466,25 @@ void _forwardDwdsEventToChromeDebugger(
         // No arguments indicate that an error occurred.
         if (e == null) {
           client.sink.add(
-            jsonEncode(
-              serializers.serialize(
-                ExtensionResponse(
-                  (b) => b
-                    ..id = message.id
-                    ..success = false
-                    ..result = JSON.stringify(chrome.runtime.lastError),
-                ),
-              ),
-            ),
+            jsonEncode([
+              'ExtensionResponse',
+              ExtensionResponse(
+                id: message.id,
+                success: false,
+                result: JSON.stringify(chrome.runtime.lastError),
+              ).toJson(),
+            ]),
           );
         } else {
           client.sink.add(
-            jsonEncode(
-              serializers.serialize(
-                ExtensionResponse(
-                  (b) => b
-                    ..id = message.id
-                    ..success = true
-                    ..result = JSON.stringify(e),
-                ),
-              ),
-            ),
+            jsonEncode([
+              'ExtensionResponse',
+              ExtensionResponse(
+                id: message.id,
+                success: true,
+                result: JSON.stringify(e),
+              ).toJson(),
+            ]),
           );
         }
       }),
@@ -738,9 +747,8 @@ DebuggerLocation? _debuggerLocation(int dartAppTabId) {
 /// Construct an [ExtensionEvent] from [method] and [params].
 ExtensionEvent _extensionEventFor(String method, dynamic params) {
   return ExtensionEvent(
-    (b) => b
-      ..params = jsonEncode(json.decode(JSON.stringify(params)))
-      ..method = jsonEncode(method),
+    params: jsonEncode(json.decode(JSON.stringify(params))),
+    method: jsonEncode(method),
   );
 }
 
@@ -789,13 +797,7 @@ class _DebugSession {
     // Collect extension events and send them periodically to the server.
     _batchSubscription = _batchController.stream.listen((events) {
       _socketClient.sink.add(
-        jsonEncode(
-          serializers.serialize(
-            BatchedEvents(
-              (b) => b.events = ListBuilder<ExtensionEvent>(events),
-            ),
-          ),
-        ),
+        jsonEncode(['BatchedEvents', BatchedEvents(events: events).toJson()]),
       );
     });
     // Listen for incoming events:
@@ -813,20 +815,20 @@ class _DebugSession {
     // Collect extension events and send them periodically to the server.
     _batchSubscription = _batchController.stream.listen((events) {
       _socketClient.sink.add(
-        jsonEncode(
-          serializers.serialize(
-            BatchedEvents(
-              (b) => b.events = ListBuilder<ExtensionEvent>(events),
-            ),
-          ),
-        ),
+        jsonEncode(['BatchedEvents', BatchedEvents(events: events).toJson()]),
       );
     });
   }
 
   void sendEvent<T>(T event) {
     try {
-      _socketClient.sink.add(jsonEncode(serializers.serialize(event)));
+      _socketClient.sink.add(
+        jsonEncode(
+          event is ExtensionEvent
+              ? ['ExtensionEvent', event.toJson()]
+              : serializers.serialize(event),
+        ),
+      );
     } catch (error) {
       debugError('Error sending event $event: $error');
     }
