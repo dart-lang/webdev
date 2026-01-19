@@ -2,83 +2,178 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:built_collection/built_collection.dart';
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
-
-part 'extension_request.g.dart';
+import 'package:collection/collection.dart';
 
 const authenticationPath = '\$dwdsExtensionAuthentication';
 
 /// A request to run a command in the Dart Debug Extension.
-abstract class ExtensionRequest
-    implements Built<ExtensionRequest, ExtensionRequestBuilder> {
-  static Serializer<ExtensionRequest> get serializer =>
-      _$extensionRequestSerializer;
-
-  factory ExtensionRequest([Function(ExtensionRequestBuilder) updates]) =
-      _$ExtensionRequest;
-
-  ExtensionRequest._();
-
+class ExtensionRequest {
   /// Used to associate a request with an [ExtensionResponse].
-  int get id;
+  final int id;
 
-  String get command;
+  final String command;
 
   /// Contains JSON-encoded parameters, if available.
-  String? get commandParams;
+  final String? commandParams;
+
+  ExtensionRequest({
+    required this.id,
+    required this.command,
+    this.commandParams,
+  });
+
+  factory ExtensionRequest.fromJson(Map<String, dynamic> json) {
+    return ExtensionRequest(
+      id: json['id'] as int,
+      command: json['command'] as String,
+      commandParams: json['commandParams'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'command': command,
+      if (commandParams != null) 'commandParams': commandParams,
+    };
+  }
+
+  @override
+  String toString() =>
+      'ExtensionRequest { id=$id, command=$command, commandParams=$commandParams }';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ExtensionRequest &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          command == other.command &&
+          commandParams == other.commandParams;
+
+  @override
+  int get hashCode => Object.hash(id, command, commandParams);
 }
 
 /// A response to an [ExtensionRequest].
-abstract class ExtensionResponse
-    implements Built<ExtensionResponse, ExtensionResponseBuilder> {
-  static Serializer<ExtensionResponse> get serializer =>
-      _$extensionResponseSerializer;
-
-  factory ExtensionResponse([Function(ExtensionResponseBuilder) updates]) =
-      _$ExtensionResponse;
-
-  ExtensionResponse._();
-
+class ExtensionResponse {
   /// Used to associate a response with an [ExtensionRequest].
-  int get id;
+  final int id;
 
-  bool get success;
+  final bool success;
 
   /// Contains a JSON-encoded payload.
-  String get result;
+  final String result;
 
   /// Contains an error, if available.
-  String? get error;
+  final String? error;
+
+  ExtensionResponse({
+    required this.id,
+    required this.success,
+    required this.result,
+    this.error,
+  });
+
+  factory ExtensionResponse.fromJson(Map<String, dynamic> json) {
+    return ExtensionResponse(
+      id: json['id'] as int,
+      success: json['success'] as bool,
+      result: json['result'] as String,
+      error: json['error'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'success': success,
+      'result': result,
+      if (error != null) 'error': error,
+    };
+  }
+
+  @override
+  String toString() =>
+      'ExtensionResponse { id=$id, success=$success, result=$result, error=$error }';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ExtensionResponse &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          success == other.success &&
+          result == other.result &&
+          error == other.error;
+
+  @override
+  int get hashCode => Object.hash(id, success, result, error);
 }
 
 /// An event for Dart Debug Extension.
-abstract class ExtensionEvent
-    implements Built<ExtensionEvent, ExtensionEventBuilder> {
-  static Serializer<ExtensionEvent> get serializer =>
-      _$extensionEventSerializer;
-
-  factory ExtensionEvent([Function(ExtensionEventBuilder) updates]) =
-      _$ExtensionEvent;
-
-  ExtensionEvent._();
-
+class ExtensionEvent {
   /// Contains a JSON-encoded payload.
-  String get params;
+  final String params;
 
-  String get method;
+  final String method;
+
+  ExtensionEvent({required this.params, required this.method});
+
+  factory ExtensionEvent.fromJson(Map<String, dynamic> json) {
+    return ExtensionEvent(
+      params: json['params'] as String,
+      method: json['method'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'params': params, 'method': method};
+  }
+
+  @override
+  String toString() => 'ExtensionEvent { params=$params, method=$method }';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ExtensionEvent &&
+          runtimeType == other.runtimeType &&
+          params == other.params &&
+          method == other.method;
+
+  @override
+  int get hashCode => Object.hash(params, method);
 }
 
 /// A batched group of events, currently always Debugger.scriptParsed
-abstract class BatchedEvents
-    implements Built<BatchedEvents, BatchedEventsBuilder> {
-  static Serializer<BatchedEvents> get serializer => _$batchedEventsSerializer;
+class BatchedEvents {
+  final List<ExtensionEvent> events;
 
-  factory BatchedEvents([Function(BatchedEventsBuilder) updates]) =
-      _$BatchedEvents;
+  BatchedEvents({required this.events});
 
-  BatchedEvents._();
+  factory BatchedEvents.fromJson(Map<String, dynamic> json) {
+    return BatchedEvents(
+      events: (json['events'] as List)
+          .map((e) => ExtensionEvent.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
 
-  BuiltList<ExtensionEvent> get events;
+  Map<String, dynamic> toJson() {
+    return {'events': events.map((e) => e.toJson()).toList()};
+  }
+
+  @override
+  String toString() => 'BatchedEvents { events=$events }';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BatchedEvents &&
+          runtimeType == other.runtimeType &&
+          const ListEquality().equals(events, other.events);
+
+  @override
+  int get hashCode => Object.hashAll(events);
 }
