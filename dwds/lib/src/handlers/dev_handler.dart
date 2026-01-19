@@ -158,6 +158,8 @@ class DevHandler {
       BuildResult() => ['BuildResult', request.toJson()],
       DebugEvent() => ['DebugEvent', request.toJson()],
       BatchedDebugEvents() => ['BatchedDebugEvents', request.toJson()],
+      IsolateStart() => ['IsolateStart', request.toJson()],
+      IsolateExit() => ['IsolateExit', request.toJson()],
       ErrorResponse() => ['ErrorResponse', request.toJson()],
       RegisterEvent() => ['RegisterEvent', request.toJson()],
       Map() => request, // Already a raw message (e.g., ping)
@@ -191,6 +193,10 @@ class DevHandler {
           return ErrorResponse.fromJson(jsonData);
         case 'RegisterEvent':
           return RegisterEvent.fromJson(jsonData);
+        case 'IsolateStart':
+          return IsolateStart.fromJson(jsonData);
+        case 'IsolateExit':
+          return IsolateExit.fromJson(jsonData);
         default:
           // Fall through to serializers.deserialize
           break;

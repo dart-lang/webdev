@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:js_interop';
 
 import 'package:dwds/data/isolate_events.dart';
-import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/sockets.dart';
 import 'package:web/web.dart';
 
@@ -117,11 +116,11 @@ class ReloadingManager {
     if (!succeeded) return;
     // Notify package:dwds that the isolate has been created.
     // package:dwds will respond with a [RunRequest].
-    _client.sink.add(jsonEncode(serializers.serialize(IsolateStart())));
+    _client.sink.add(jsonEncode(['IsolateStart', IsolateStart().toJson()]));
   }
 
   void _beforeRestart() {
     // Notify package:dwds that the isolate is about to exit.
-    _client.sink.add(jsonEncode(serializers.serialize(IsolateExit())));
+    _client.sink.add(jsonEncode(['IsolateExit', IsolateExit().toJson()]));
   }
 }
