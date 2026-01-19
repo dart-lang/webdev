@@ -141,11 +141,11 @@ class WebDevServer {
       );
       switch (result.status) {
         case daemon.BuildStatus.started:
-          return BuildResult((b) => b.status = BuildStatus.started);
+          return BuildResult(status: BuildStatus.started);
         case daemon.BuildStatus.failed:
-          return BuildResult((b) => b.status = BuildStatus.failed);
+          return BuildResult(status: BuildStatus.failed);
         case daemon.BuildStatus.succeeded:
-          return BuildResult((b) => b.status = BuildStatus.succeeded);
+          return BuildResult(status: BuildStatus.succeeded);
         default:
           break;
       }
@@ -201,6 +201,7 @@ class WebDevServer {
           buildSettings,
           packageConfigPath: findPackageConfigFilePath(),
           reloadedSourcesUri: Uri.parse('$basePath/$reloadedSourcesFileName'),
+          injectScriptLoad: false,
         ).strategy;
       } else {
         loadStrategy = BuildRunnerRequireStrategyProvider(
