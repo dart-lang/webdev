@@ -18,6 +18,7 @@ import 'package:js/js.dart';
 
 import 'chrome_api.dart';
 import 'data_serializers.dart';
+import 'data_types.dart';
 import 'logger.dart';
 import 'utils.dart';
 
@@ -119,15 +120,31 @@ void interceptMessage<T>({
             as T,
       );
     } else {
-      messageHandler(
-        serializers.deserialize(jsonDecode(decodedMessage.body)) as T,
-      );
+      messageHandler(_deserialize<T>(decodedMessage.body));
     }
   } catch (error) {
     debugError(
       'Error intercepting $expectedType from '
       '$expectedSender to $expectedRecipient: $error',
     );
+  }
+}
+
+T _deserialize<T>(String body) {
+  final decoded = jsonDecode(body);
+  if (decoded case ['ConnectFailure', final Map<String, dynamic> data]) {
+    return ConnectFailure.fromJson(data) as T;
+  } else if (decoded case [
+    'DebugStateChange',
+    final Map<String, dynamic> data,
+  ]) {
+    return DebugStateChange.fromJson(data) as T;
+  } else if (decoded case ['DevToolsOpener', final Map<String, dynamic> data]) {
+    return DevToolsOpener.fromJson(data) as T;
+  } else if (decoded case ['DevToolsUrl', final Map<String, dynamic> data]) {
+    return DevToolsUrl.fromJson(data) as T;
+  } else {
+    return serializers.deserialize(decoded) as T;
   }
 }
 

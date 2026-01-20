@@ -18,6 +18,7 @@ import 'package:js/js.dart';
 
 import 'chrome_api.dart';
 import 'data_serializers.dart';
+import 'data_types.dart';
 import 'logger.dart';
 import 'utils.dart';
 
@@ -48,11 +49,7 @@ Future<bool> setStorageObject<T>({
   void Function()? callback,
 }) {
   final storageKey = _createStorageKey(type, tabId);
-  final json = value is String
-      ? value
-      : value is DebugInfo
-      ? jsonEncode(value)
-      : jsonEncode(serializers.serialize(value));
+  final json = _serialize(value);
   final storageObj = <String, String>{storageKey: json};
   final completer = Completer<bool>();
   final storageArea = _getStorageArea(type.persistence);
@@ -67,6 +64,24 @@ Future<bool> setStorageObject<T>({
     }),
   );
   return completer.future;
+}
+
+String _serialize<T>(T value) {
+  if (value is String) {
+    return value;
+  } else if (value is DebugInfo) {
+    return jsonEncode(value);
+  } else if (value is ConnectFailure) {
+    return jsonEncode(['ConnectFailure', value.toJson()]);
+  } else if (value is DebugStateChange) {
+    return jsonEncode(['DebugStateChange', value.toJson()]);
+  } else if (value is DevToolsOpener) {
+    return jsonEncode(['DevToolsOpener', value.toJson()]);
+  } else if (value is DevToolsUrl) {
+    return jsonEncode(['DevToolsUrl', value.toJson()]);
+  } else {
+    return jsonEncode(serializers.serialize(value));
+  }
 }
 
 Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
@@ -87,20 +102,38 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
         completer.complete(null);
       } else {
         debugLog('Fetched: $json', prefix: storageKey);
-        if (T == String) {
-          completer.complete(json as T);
-        } else if (T == DebugInfo) {
-          final value =
-              DebugInfo.fromJson(jsonDecode(json) as Map<String, dynamic>) as T;
-          completer.complete(value);
-        } else {
-          final value = serializers.deserialize(jsonDecode(json)) as T;
-          completer.complete(value);
-        }
+        completer.complete(_deserialize<T>(json));
       }
     }),
   );
   return completer.future;
+}
+
+T _deserialize<T>(String json) {
+  if (T == String) {
+    return json as T;
+  } else if (T == DebugInfo) {
+    return DebugInfo.fromJson(jsonDecode(json) as Map<String, dynamic>) as T;
+  } else {
+    final decoded = jsonDecode(json);
+    if (decoded case ['ConnectFailure', final Map<String, dynamic> data]) {
+      return ConnectFailure.fromJson(data) as T;
+    } else if (decoded case [
+      'DebugStateChange',
+      final Map<String, dynamic> data,
+    ]) {
+      return DebugStateChange.fromJson(data) as T;
+    } else if (decoded case [
+      'DevToolsOpener',
+      final Map<String, dynamic> data,
+    ]) {
+      return DevToolsOpener.fromJson(data) as T;
+    } else if (decoded case ['DevToolsUrl', final Map<String, dynamic> data]) {
+      return DevToolsUrl.fromJson(data) as T;
+    } else {
+      return serializers.deserialize(decoded) as T;
+    }
+  }
 }
 
 Future<List<T>> fetchAllStorageObjectsOfType<T>({required StorageObject type}) {
@@ -120,15 +153,7 @@ Future<List<T>> fetchAllStorageObjectsOfType<T>({required StorageObject type}) {
       for (final key in storageKeys) {
         final json = getProperty(storageContents, key) as String?;
         if (json != null) {
-          if (T == String) {
-            result.add(json as T);
-          } else if (T == DebugInfo) {
-            result.add(
-              DebugInfo.fromJson(jsonDecode(json) as Map<String, dynamic>) as T,
-            );
-          } else {
-            result.add(serializers.deserialize(jsonDecode(json)) as T);
-          }
+          result.add(_deserialize<T>(json));
         }
       }
       completer.complete(result);
@@ -164,15 +189,7 @@ void interceptStorageChange<T>({
 
     final objProp = getProperty(storageObj, expectedStorageKey);
     final json = getProperty(objProp, 'newValue') as String?;
-    T? decodedObj;
-    if (json == null || T == String) {
-      decodedObj = json as T?;
-    } else if (T == DebugInfo) {
-      decodedObj =
-          DebugInfo.fromJson(jsonDecode(json) as Map<String, dynamic>) as T?;
-    } else {
-      decodedObj = serializers.deserialize(jsonDecode(json)) as T?;
-    }
+    final decodedObj = json != null ? _deserialize<T>(json) : null;
     debugLog('Intercepted $expectedStorageKey change: $json');
     return changeHandler(decodedObj);
   } catch (error) {

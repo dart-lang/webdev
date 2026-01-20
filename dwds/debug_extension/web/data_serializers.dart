@@ -4,10 +4,8 @@
 
 import 'package:built_value/serializer.dart';
 
-import 'data_types.dart';
-
 part 'data_serializers.g.dart';
 
 /// Serializers for all the data types used in the Dart Debug Extension.
-@SerializersFor([ConnectFailure, DebugStateChange, DevToolsOpener, DevToolsUrl])
+@SerializersFor([])
 final Serializers serializers = _$serializers;

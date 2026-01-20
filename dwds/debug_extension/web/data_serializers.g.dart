@@ -6,12 +6,6 @@ part of 'data_serializers.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializers _$serializers =
-    (Serializers().toBuilder()
-          ..add(ConnectFailure.serializer)
-          ..add(DebugStateChange.serializer)
-          ..add(DevToolsOpener.serializer)
-          ..add(DevToolsUrl.serializer))
-        .build();
+Serializers _$serializers = (Serializers().toBuilder()).build();
 
 // ignore_for_file: deprecated_member_use_from_same_package,type=lint

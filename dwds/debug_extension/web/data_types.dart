@@ -2,70 +2,126 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
+class ConnectFailure {
+  final int tabId;
+  final String? reason;
 
-part 'data_types.g.dart';
+  ConnectFailure({required this.tabId, this.reason});
 
-abstract class ConnectFailure
-    implements Built<ConnectFailure, ConnectFailureBuilder> {
-  static Serializer<ConnectFailure> get serializer =>
-      _$connectFailureSerializer;
+  Map<String, dynamic> toJson() => {
+    'tabId': tabId,
+    if (reason != null) 'reason': reason,
+  };
 
-  factory ConnectFailure([void Function(ConnectFailureBuilder) updates]) =
-      _$ConnectFailure;
+  factory ConnectFailure.fromJson(Map<String, dynamic> json) => ConnectFailure(
+    tabId: json['tabId'] as int,
+    reason: json['reason'] as String?,
+  );
 
-  ConnectFailure._();
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ConnectFailure &&
+          runtimeType == other.runtimeType &&
+          tabId == other.tabId &&
+          reason == other.reason;
 
-  int get tabId;
+  @override
+  int get hashCode => Object.hash(tabId, reason);
 
-  String? get reason;
+  @override
+  String toString() => 'ConnectFailure(tabId: $tabId, reason: $reason)';
 }
 
-abstract class DevToolsOpener
-    implements Built<DevToolsOpener, DevToolsOpenerBuilder> {
-  static Serializer<DevToolsOpener> get serializer =>
-      _$devToolsOpenerSerializer;
+class DevToolsOpener {
+  final bool newWindow;
 
-  factory DevToolsOpener([void Function(DevToolsOpenerBuilder) updates]) =
-      _$DevToolsOpener;
+  DevToolsOpener({required this.newWindow});
 
-  DevToolsOpener._();
+  Map<String, dynamic> toJson() => {'newWindow': newWindow};
 
-  bool get newWindow;
+  factory DevToolsOpener.fromJson(Map<String, dynamic> json) =>
+      DevToolsOpener(newWindow: json['newWindow'] as bool);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DevToolsOpener &&
+          runtimeType == other.runtimeType &&
+          newWindow == other.newWindow;
+
+  @override
+  int get hashCode => newWindow.hashCode;
+
+  @override
+  String toString() => 'DevToolsOpener(newWindow: $newWindow)';
 }
 
-abstract class DevToolsUrl implements Built<DevToolsUrl, DevToolsUrlBuilder> {
-  static Serializer<DevToolsUrl> get serializer => _$devToolsUrlSerializer;
+class DevToolsUrl {
+  final int tabId;
+  final String url;
 
-  factory DevToolsUrl([void Function(DevToolsUrlBuilder) updates]) =
-      _$DevToolsUrl;
+  DevToolsUrl({required this.tabId, required this.url});
 
-  DevToolsUrl._();
+  Map<String, dynamic> toJson() => {'tabId': tabId, 'url': url};
 
-  int get tabId;
+  factory DevToolsUrl.fromJson(Map<String, dynamic> json) =>
+      DevToolsUrl(tabId: json['tabId'] as int, url: json['url'] as String);
 
-  String get url;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DevToolsUrl &&
+          runtimeType == other.runtimeType &&
+          tabId == other.tabId &&
+          url == other.url;
+
+  @override
+  int get hashCode => Object.hash(tabId, url);
+
+  @override
+  String toString() => 'DevToolsUrl(tabId: $tabId, url: $url)';
 }
 
-abstract class DebugStateChange
-    implements Built<DebugStateChange, DebugStateChangeBuilder> {
+class DebugStateChange {
   static const startDebugging = 'start-debugging';
   static const stopDebugging = 'stop-debugging';
   static const failedToConnect = 'failed-to-connect';
 
-  static Serializer<DebugStateChange> get serializer =>
-      _$debugStateChangeSerializer;
-
-  factory DebugStateChange([void Function(DebugStateChangeBuilder) updates]) =
-      _$DebugStateChange;
-
-  DebugStateChange._();
-
-  int get tabId;
+  final int tabId;
 
   /// Can only be [startDebugging] or [stopDebugging].
-  String get newState;
+  final String newState;
+  final String? reason;
 
-  String? get reason;
+  DebugStateChange({required this.tabId, required this.newState, this.reason});
+
+  Map<String, dynamic> toJson() => {
+    'tabId': tabId,
+    'newState': newState,
+    if (reason != null) 'reason': reason,
+  };
+
+  factory DebugStateChange.fromJson(Map<String, dynamic> json) =>
+      DebugStateChange(
+        tabId: json['tabId'] as int,
+        newState: json['newState'] as String,
+        reason: json['reason'] as String?,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DebugStateChange &&
+          runtimeType == other.runtimeType &&
+          tabId == other.tabId &&
+          newState == other.newState &&
+          reason == other.reason;
+
+  @override
+  int get hashCode => Object.hash(tabId, newState, reason);
+
+  @override
+  String toString() =>
+      'DebugStateChange(tabId: $tabId, newState: $newState, reason: $reason)';
 }
