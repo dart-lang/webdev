@@ -16,7 +16,6 @@ import 'package:dwds/data/debug_info.dart';
 // ignore: deprecated_member_use
 import 'package:js/js.dart';
 
-import 'data_serializers.dart';
 import 'data_types.dart';
 import 'messaging.dart';
 import 'storage.dart';
@@ -117,15 +116,13 @@ Future<void> _openIssueTracker(Event _) async {
 
 Future<void> _launchDevTools(Event _) async {
   final tabId = await _tabId;
-  final json = jsonEncode(
-    serializers.serialize(
-      DebugStateChange(
-        (b) => b
-          ..tabId = tabId
-          ..newState = DebugStateChange.startDebugging,
-      ),
-    ),
-  );
+  final json = jsonEncode([
+    'DebugStateChange',
+    DebugStateChange(
+      tabId: tabId!,
+      newState: DebugStateChange.startDebugging,
+    ).toJson(),
+  ]);
   await sendRuntimeMessage(
     type: MessageType.debugStateChange,
     body: json,
@@ -156,7 +153,7 @@ Future<void> _saveSettingsToStorage(String? devToolsOpener) async {
   if (devToolsOpener == null) return;
   await setStorageObject<DevToolsOpener>(
     type: StorageObject.devToolsOpener,
-    value: DevToolsOpener((b) => b..newWindow = devToolsOpener == 'window'),
+    value: DevToolsOpener(newWindow: devToolsOpener == 'window'),
   );
 }
 

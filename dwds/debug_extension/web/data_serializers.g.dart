@@ -9,10 +9,6 @@ part of 'data_serializers.dart';
 Serializers _$serializers =
     (Serializers().toBuilder()
           ..add(BatchedEvents.serializer)
-          ..add(ConnectFailure.serializer)
-          ..add(DebugStateChange.serializer)
-          ..add(DevToolsOpener.serializer)
-          ..add(DevToolsUrl.serializer)
           ..add(ExtensionEvent.serializer)
           ..add(ExtensionRequest.serializer)
           ..add(ExtensionResponse.serializer)

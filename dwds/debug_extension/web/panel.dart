@@ -17,7 +17,6 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
-import 'data_serializers.dart';
 import 'data_types.dart';
 import 'debug_session.dart';
 import 'logger.dart';
@@ -273,15 +272,13 @@ void _hideWarningBanner() {
 Future<void> _launchDebugConnection(Event _) async {
   _updateElementVisibility(_launchDebugConnectionButtonId, visible: false);
   _updateElementVisibility(_loadingSpinnerId, visible: true);
-  final json = jsonEncode(
-    serializers.serialize(
-      DebugStateChange(
-        (b) => b
-          ..tabId = _tabId
-          ..newState = DebugStateChange.startDebugging,
-      ),
-    ),
-  );
+  final json = jsonEncode([
+    'DebugStateChange',
+    DebugStateChange(
+      tabId: _tabId,
+      newState: DebugStateChange.startDebugging,
+    ).toJson(),
+  ]);
   await sendRuntimeMessage(
     type: MessageType.debugStateChange,
     body: json,

@@ -601,15 +601,10 @@ Future<bool> _sendConnectFailureMessage(
   ConnectFailureReason reason, {
   required int dartAppTabId,
 }) async {
-  final json = jsonEncode(
-    serializers.serialize(
-      ConnectFailure(
-        (b) => b
-          ..tabId = dartAppTabId
-          ..reason = reason.name,
-      ),
-    ),
-  );
+  final json = jsonEncode([
+    'ConnectFailure',
+    ConnectFailure(tabId: dartAppTabId, reason: reason.name).toJson(),
+  ]);
   return await sendRuntimeMessage(
     type: MessageType.connectFailure,
     body: json,
@@ -622,16 +617,14 @@ Future<bool> _sendStopDebuggingMessage(
   DetachReason reason, {
   required int dartAppTabId,
 }) async {
-  final json = jsonEncode(
-    serializers.serialize(
-      DebugStateChange(
-        (b) => b
-          ..tabId = dartAppTabId
-          ..reason = reason.name
-          ..newState = DebugStateChange.stopDebugging,
-      ),
-    ),
-  );
+  final json = jsonEncode([
+    'DebugStateChange',
+    DebugStateChange(
+      tabId: dartAppTabId,
+      newState: DebugStateChange.stopDebugging,
+      reason: reason.name,
+    ).toJson(),
+  ]);
   return await sendRuntimeMessage(
     type: MessageType.debugStateChange,
     body: json,

@@ -6,17 +6,11 @@ import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 import 'package:dwds/data/extension_request.dart';
 
-import 'data_types.dart';
-
 part 'data_serializers.g.dart';
 
 /// Serializers for all the data types used in the Dart Debug Extension.
 @SerializersFor([
   BatchedEvents,
-  ConnectFailure,
-  DebugStateChange,
-  DevToolsOpener,
-  DevToolsUrl,
   ExtensionEvent,
   ExtensionRequest,
   ExtensionResponse,
