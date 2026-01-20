@@ -1,5 +1,5 @@
 ## 26.2.6-wip
-- Remove `package:built_value` dependency from `ConnectFailure`, `DebugStateChange`, `DevToolsOpener`, `DevToolsUrl`, `IsolateStart`, `IsolateExit`, `DevToolsRequest`, and `DevToolsResponse`; switch to standard Dart JSON serialization.
+- Remove `package:built_value` dependency from `ConnectFailure`, `DebugStateChange`, `DevToolsOpener`, `DevToolsUrl`, `IsolateStart`, `IsolateExit`, `DevToolsRequest`, `DevToolsResponse`, `ExtensionRequest`, `ExtensionResponse`, `ExtensionEvent`, and `BatchedEvents`; switch to standard Dart JSON serialization.
 
 ## 26.2.5
 - Remove `package:built_value` dependency from `ErrorResponse` and `RegisterEvent`; switch to standard Dart JSON serialization.

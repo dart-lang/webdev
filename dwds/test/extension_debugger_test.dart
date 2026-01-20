@@ -8,10 +8,8 @@ library;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
-import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/servers/extension_debugger.dart';
 import 'package:test/test.dart';
 
@@ -35,12 +33,11 @@ void main() async {
   group('can receive', () {
     test('an ExtensionResponse', () async {
       final extensionResponse = ExtensionResponse(
-        (b) => b
-          ..result = jsonEncode({
-            'result': {'value': 3.14},
-          })
-          ..id = 0
-          ..success = true,
+        id: 0,
+        success: true,
+        result: jsonEncode({
+          'result': {'value': 3.14},
+        }),
       );
       final resultCompleter = Completer();
       unawaited(
@@ -49,7 +46,7 @@ void main() async {
             .then(resultCompleter.complete),
       );
       connection.controllerIncoming.sink.add(
-        jsonEncode(serializers.serialize(extensionResponse)),
+        jsonEncode(['ExtensionResponse', extensionResponse.toJson()]),
       );
       final response = await resultCompleter.future;
       expect(response.result['result']['value'], 3.14);
@@ -57,12 +54,11 @@ void main() async {
 
     test('an ExtensionEvent', () async {
       final extensionEvent = ExtensionEvent(
-        (b) => b
-          ..method = jsonEncode('Debugger.paused')
-          ..params = jsonEncode(frames1Json[0]),
+        method: jsonEncode('Debugger.paused'),
+        params: jsonEncode(frames1Json[0]),
       );
       connection.controllerIncoming.sink.add(
-        jsonEncode(serializers.serialize(extensionEvent)),
+        jsonEncode(['ExtensionEvent', extensionEvent.toJson()]),
       );
       final wipEvent = await extensionDebugger.onNotification.first;
       expect(wipEvent.method, 'Debugger.paused');
@@ -71,20 +67,16 @@ void main() async {
 
     test('a BatchedEvents', () async {
       final event1 = ExtensionEvent(
-        (b) => b
-          ..method = jsonEncode('Debugger.scriptParsed')
-          ..params = jsonEncode(scriptParsedParams),
+        method: jsonEncode('Debugger.scriptParsed'),
+        params: jsonEncode(scriptParsedParams),
       );
       final event2 = ExtensionEvent(
-        (b) => b
-          ..method = jsonEncode('Debugger.scriptParsed')
-          ..params = jsonEncode(scriptParsedParams),
+        method: jsonEncode('Debugger.scriptParsed'),
+        params: jsonEncode(scriptParsedParams),
       );
-      final batch = BatchedEvents(
-        (b) => b.events = ListBuilder([event1, event2]),
-      );
+      final batch = BatchedEvents(events: [event1, event2]);
       connection.controllerIncoming.sink.add(
-        jsonEncode(serializers.serialize(batch)),
+        jsonEncode(['BatchedEvents', batch.toJson()]),
       );
       final wipEvent = await extensionDebugger.onNotification.first;
       expect(wipEvent.method, 'Debugger.scriptParsed');
@@ -110,15 +102,15 @@ void main() async {
   group('can send', () {
     test('a request with empty params', () async {
       final extensionRequest = ExtensionRequest(
-        (b) => b
-          ..id = 0
-          ..command = 'Debugger.pause'
-          ..commandParams = jsonEncode({}),
+        id: 0,
+        command: 'Debugger.pause',
+        commandParams: jsonEncode({}),
       );
       unawaited(extensionDebugger.pause());
-      final request = serializers.deserialize(
-        jsonDecode(await connection.controllerOutgoing.stream.first),
+      final decoded = jsonDecode(
+        await connection.controllerOutgoing.stream.first,
       );
+      final request = ExtensionRequest.fromJson(decoded[1]);
       expect(request, extensionRequest);
     });
 
@@ -127,30 +119,29 @@ void main() async {
         'location': {'scriptId': '555', 'lineNumber': 28},
       };
       final extensionRequest = ExtensionRequest(
-        (b) => b
-          ..id = 0
-          ..command = 'Debugger.setBreakpoint'
-          ..commandParams = jsonEncode(params),
+        id: 0,
+        command: 'Debugger.setBreakpoint',
+        commandParams: jsonEncode(params),
       );
       unawaited(
         extensionDebugger.sendCommand('Debugger.setBreakpoint', params: params),
       );
-      final request = serializers.deserialize(
-        jsonDecode(await connection.controllerOutgoing.stream.first),
+      final decoded = jsonDecode(
+        await connection.controllerOutgoing.stream.first,
       );
+      final request = ExtensionRequest.fromJson(decoded[1]);
       expect(request, extensionRequest);
     });
   });
   group('when closed', () {
     test('DebugExtension.detached event closes the connection', () async {
       final extensionEvent = ExtensionEvent(
-        (b) => b
-          ..method = jsonEncode('DebugExtension.detached')
-          ..params = jsonEncode({}),
+        method: jsonEncode('DebugExtension.detached'),
+        params: jsonEncode({}),
       );
 
       connection.controllerIncoming.sink.add(
-        jsonEncode(serializers.serialize(extensionEvent)),
+        jsonEncode(['ExtensionEvent', extensionEvent.toJson()]),
       );
       // Expect the connection to receive a close event:
       expect(await extensionDebugger.onClose.first, isNotNull);
@@ -161,12 +152,11 @@ void main() async {
       () async {
         // Close the connection:
         final extensionEvent = ExtensionEvent(
-          (b) => b
-            ..method = jsonEncode('DebugExtension.detached')
-            ..params = jsonEncode({}),
+          method: jsonEncode('DebugExtension.detached'),
+          params: jsonEncode({}),
         );
         connection.controllerIncoming.sink.add(
-          jsonEncode(serializers.serialize(extensionEvent)),
+          jsonEncode(['ExtensionEvent', extensionEvent.toJson()]),
         );
         // Wait for it to be closed:
         await extensionDebugger.onClose.first;

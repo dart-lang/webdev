@@ -143,15 +143,10 @@ class ExtensionDebugger implements RemoteDebugger {
 
   void sendEvent(String method, String params) {
     sseConnection.sink.add(
-      jsonEncode(
-        serializers.serialize(
-          ExtensionEvent(
-            (b) => b
-              ..method = method
-              ..params = params,
-          ),
-        ),
-      ),
+      jsonEncode([
+        'ExtensionEvent',
+        ExtensionEvent(method: method, params: params).toJson(),
+      ]),
     );
   }
 
@@ -167,16 +162,14 @@ class ExtensionDebugger implements RemoteDebugger {
     _completers[id] = completer;
     try {
       sseConnection.sink.add(
-        jsonEncode(
-          serializers.serialize(
-            ExtensionRequest(
-              (b) => b
-                ..id = id
-                ..command = command
-                ..commandParams = jsonEncode(params ?? {}),
-            ),
-          ),
-        ),
+        jsonEncode([
+          'ExtensionRequest',
+          ExtensionRequest(
+            id: id,
+            command: command,
+            commandParams: jsonEncode(params ?? {}),
+          ).toJson(),
+        ]),
       );
     } on StateError catch (error, stackTrace) {
       if (error.message.contains('Cannot add event after closing')) {
@@ -387,9 +380,25 @@ class ExtensionDebugger implements RemoteDebugger {
   }
 
   static Object? _deserialize(dynamic decoded) {
+    if (decoded case [
+      'ExtensionResponse',
+      final Map<String, dynamic> response,
+    ]) {
+      return ExtensionResponse.fromJson(response);
+    }
+    if (decoded case ['ExtensionEvent', final Map<String, dynamic> event]) {
+      return ExtensionEvent.fromJson(event);
+    }
+    if (decoded case ['BatchedEvents', final Map<String, dynamic> events]) {
+      return BatchedEvents.fromJson(events);
+    }
     if (decoded case ['DevToolsRequest', final Map<String, dynamic> request]) {
       return DevToolsRequest.fromJson(request);
     }
-    return serializers.deserialize(decoded);
+    try {
+      return serializers.deserialize(decoded);
+    } catch (_) {
+      return null;
+    }
   }
 }
