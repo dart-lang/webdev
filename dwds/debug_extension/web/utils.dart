@@ -45,8 +45,12 @@ Future<Tab?> get activeTab {
   final query = QueryInfo(active: true, currentWindow: true);
   chrome.tabs.query(
     query,
-    allowInterop((List<Tab> tabs) {
-      completer.complete(tabs.firstOrNull);
+    allowInterop((List tabs) {
+      if (tabs.isNotEmpty) {
+        completer.complete(tabs.first as Tab);
+      } else {
+        completer.complete(null);
+      }
     }),
   );
   return completer.future;
