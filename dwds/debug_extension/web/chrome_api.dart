@@ -366,9 +366,13 @@ class QueryInfo {
   external factory QueryInfo({bool? active, bool? currentWindow, String? url});
 }
 
+/// chrome.Tab APIs
+/// https://developer.chrome.com/docs/extensions/reference/api/tabs#type-Tab
+
 @JS()
 @anonymous
 class Tab {
+  // TODO(2508): Chrome docs say id and url are optional.
   external int get id;
   external String get url;
 }

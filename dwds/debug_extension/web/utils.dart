@@ -45,8 +45,12 @@ Future<Tab?> get activeTab {
   final query = QueryInfo(active: true, currentWindow: true);
   chrome.tabs.query(
     query,
-    allowInterop((List<Tab> tabs) {
-      completer.complete(tabs.firstOrNull);
+    allowInterop((List tabs) {
+      if (tabs.isNotEmpty) {
+        completer.complete(tabs.first as Tab);
+      } else {
+        completer.complete(null);
+      }
     }),
   );
   return completer.future;
@@ -117,7 +121,7 @@ void setExtensionPopup(PopupDetails details) {
 
 final bool isDevMode = () {
   final extensionManifest = chrome.runtime.getManifest();
-  final extensionName = getProperty<String?>(extensionManifest, 'name') ?? '';
+  final extensionName = getProperty(extensionManifest, 'name') ?? '';
   return extensionName.contains('DEV');
 }();
 
