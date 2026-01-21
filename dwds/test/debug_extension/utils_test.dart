@@ -2,8 +2,12 @@
 @JS()
 library utils_test;
 
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'dart:js_util';
 
+// TODO: https://github.com/dart-lang/webdev/issues/2508
+// ignore: deprecated_member_use
 import 'package:js/js.dart';
 import 'package:test/test.dart';
 
