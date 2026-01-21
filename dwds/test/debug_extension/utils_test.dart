@@ -1,6 +1,6 @@
 @TestOn('browser')
 @JS()
-library utils_test;
+library;
 
 // TODO: https://github.com/dart-lang/webdev/issues/2508
 // ignore: deprecated_member_use

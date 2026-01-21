@@ -121,7 +121,7 @@ void setExtensionPopup(PopupDetails details) {
 
 final bool isDevMode = () {
   final extensionManifest = chrome.runtime.getManifest();
-  final extensionName = getProperty(extensionManifest, 'name') ?? '';
+  final extensionName = getProperty<String?>(extensionManifest, 'name') ?? '';
   return extensionName.contains('DEV');
 }();
 
