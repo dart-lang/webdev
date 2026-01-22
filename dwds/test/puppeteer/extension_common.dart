@@ -19,7 +19,6 @@ import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:test_common/utilities.dart';
 
-import '../../debug_extension/web/data_serializers.dart';
 import '../fixtures/context.dart';
 import '../fixtures/project.dart';
 import '../fixtures/utilities.dart';
@@ -955,7 +954,10 @@ Future<T> _fetchStorageObj<T>(
     return storageObj[storageKey];
   });
   if (T == String) return json as T;
-  return serializers.deserialize(jsonDecode(json)) as T;
+  if (T == DebugInfo) {
+    return DebugInfo.fromJson(jsonDecode(json) as Map<String, dynamic>) as T;
+  }
+  throw StateError('Unsupported type: $T');
 }
 
 String _currentTabIdJs = '''
