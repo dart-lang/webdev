@@ -8,10 +8,7 @@ class ConnectFailure {
 
   ConnectFailure({required this.tabId, this.reason});
 
-  Map<String, dynamic> toJson() => {
-    'tabId': tabId,
-    if (reason != null) 'reason': reason,
-  };
+  Map<String, dynamic> toJson() => {'tabId': tabId, 'reason': ?reason};
 
   factory ConnectFailure.fromJson(Map<String, dynamic> json) => ConnectFailure(
     tabId: json['tabId'] as int,
@@ -99,7 +96,7 @@ class DebugStateChange {
   Map<String, dynamic> toJson() => {
     'tabId': tabId,
     'newState': newState,
-    if (reason != null) 'reason': reason,
+    'reason': ?reason,
   };
 
   factory DebugStateChange.fromJson(Map<String, dynamic> json) =>

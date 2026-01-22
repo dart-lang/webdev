@@ -407,9 +407,6 @@
     set$length$asx(receiver, value) {
       return J.getInterceptor$asx(receiver).set$length(receiver, value);
     },
-    get$first$ax(receiver) {
-      return J.getInterceptor$ax(receiver).get$first(receiver);
-    },
     get$hashCode$(receiver) {
       return J.getInterceptor$(receiver).get$hashCode(receiver);
     },
@@ -471,12 +468,6 @@
     },
     fillRange$3$ax(receiver, a0, a1, a2) {
       return J.getInterceptor$ax(receiver).fillRange$3(receiver, a0, a1, a2);
-    },
-    getRange$2$ax(receiver, a0, a1) {
-      return J.getInterceptor$ax(receiver).getRange$2(receiver, a0, a1);
-    },
-    map$1$ax(receiver, a0) {
-      return J.getInterceptor$ax(receiver).map$1(receiver, a0);
     },
     map$1$1$ax(receiver, a0, $T1) {
       return J.getInterceptor$ax(receiver).map$1$1(receiver, a0, $T1);
@@ -2041,11 +2032,6 @@
     },
     ConstantMap: function ConstantMap() {
     },
-    ConstantMap_map_closure: function ConstantMap_map_closure(t0, t1, t2) {
-      this.$this = t0;
-      this.transform = t1;
-      this.result = t2;
-    },
     ConstantStringMap: function ConstantStringMap(t0, t1, t2) {
       this._jsIndex = t0;
       this._values = t1;
@@ -2124,9 +2110,6 @@
       _._last = _._first = _.__js_helper$_rest = _.__js_helper$_nums = _.__js_helper$_strings = null;
       _._modifications = 0;
       _.$ti = t0;
-    },
-    JsLinkedHashMap_addAll_closure: function JsLinkedHashMap_addAll_closure(t0) {
-      this.$this = t0;
     },
     LinkedHashMapCell: function LinkedHashMapCell(t0, t1) {
       var _ = this;
@@ -2238,7 +2221,7 @@
       return t1.__late_helper$_value = t1;
     },
     _Cell: function _Cell(t0) {
-      this._name = t0;
+      this.__late_helper$_name = t0;
       this.__late_helper$_value = null;
     },
     _checkLength($length) {
@@ -2263,16 +2246,11 @@
     _checkValidRange(start, end, $length) {
       var t1;
       if (!(start >>> 0 !== start))
-        if (end == null)
-          t1 = start > $length;
-        else
-          t1 = end >>> 0 !== end || start > end || end > $length;
+        t1 = end >>> 0 !== end || start > end || end > $length;
       else
         t1 = true;
       if (t1)
         throw A.wrapException(A.diagnoseRangeError(start, end, $length));
-      if (end == null)
-        return $length;
       return end;
     },
     NativeByteBuffer: function NativeByteBuffer() {
@@ -4916,25 +4894,8 @@
       _.print = t11;
       _.fork = t12;
     },
-    HashMap_HashMap(equals, hashCode, isValidKey, $K, $V) {
-      if (isValidKey == null)
-        if (hashCode == null) {
-          if (equals == null)
-            return new A._HashMap($K._eval$1("@<0>")._bind$1($V)._eval$1("_HashMap<1,2>"));
-          hashCode = A.collection___defaultHashCode$closure();
-        } else {
-          if (A.core__identityHashCode$closure() === hashCode && A.core__identical$closure() === equals)
-            return new A._IdentityHashMap($K._eval$1("@<0>")._bind$1($V)._eval$1("_IdentityHashMap<1,2>"));
-          if (equals == null)
-            equals = A.collection___defaultEquals$closure();
-        }
-      else {
-        if (hashCode == null)
-          hashCode = A.collection___defaultHashCode$closure();
-        if (equals == null)
-          equals = A.collection___defaultEquals$closure();
-      }
-      return A._CustomHashMap$(equals, hashCode, isValidKey, $K, $V);
+    HashMap_HashMap(equals, hashCode, $K, $V) {
+      return new A._HashMap($K._eval$1("@<0>")._bind$1($V)._eval$1("_HashMap<1,2>"));
     },
     _HashMap__getTableEntry(table, key) {
       var entry = table[key];
@@ -4951,10 +4912,6 @@
       A._HashMap__setTableEntry(table, "<non-identifier-key>", table);
       delete table["<non-identifier-key>"];
       return table;
-    },
-    _CustomHashMap$(_equals, _hashCode, validKey, $K, $V) {
-      var t1 = validKey != null ? validKey : new A._CustomHashMap_closure($K);
-      return new A._CustomHashMap(_equals, _hashCode, t1, $K._eval$1("@<0>")._bind$1($V)._eval$1("_CustomHashMap<1,2>"));
     },
     LinkedHashMap_LinkedHashMap(equals, hashCode, $K, $V) {
       if (hashCode == null) {
@@ -4987,40 +4944,11 @@
       delete table["<non-identifier-key>"];
       return table;
     },
-    LinkedHashSet_LinkedHashSet($E) {
-      return new A._LinkedHashSet($E._eval$1("_LinkedHashSet<0>"));
-    },
-    LinkedHashSet_LinkedHashSet$_empty($E) {
-      return new A._LinkedHashSet($E._eval$1("_LinkedHashSet<0>"));
-    },
-    _LinkedHashSet__newHashTable() {
-      var table = Object.create(null);
-      table["<non-identifier-key>"] = table;
-      delete table["<non-identifier-key>"];
-      return table;
-    },
-    _LinkedHashSetIterator$(_set, _modifications, $E) {
-      var t1 = new A._LinkedHashSetIterator(_set, _modifications, $E._eval$1("_LinkedHashSetIterator<0>"));
-      t1._collection$_cell = _set._collection$_first;
-      return t1;
-    },
     _defaultEquals0(a, b) {
       return J.$eq$(a, b);
     },
     _defaultHashCode(a) {
       return J.get$hashCode$(a);
-    },
-    LinkedHashMap_LinkedHashMap$from(other, $K, $V) {
-      var result = A.LinkedHashMap_LinkedHashMap(null, null, $K, $V);
-      other.forEach$1(0, new A.LinkedHashMap_LinkedHashMap$from_closure(result, $K, $V));
-      return result;
-    },
-    LinkedHashSet_LinkedHashSet$from(elements, $E) {
-      var t1, _i,
-        result = A.LinkedHashSet_LinkedHashSet($E);
-      for (t1 = elements.length, _i = 0; _i < elements.length; elements.length === t1 || (0, A.throwConcurrentModificationError)(elements), ++_i)
-        result.add$1(0, $E._as(elements[_i]));
-      return result;
     },
     ListBase__compareAny(a, b) {
       var t1 = type$.Comparable_dynamic;
@@ -5052,9 +4980,6 @@
     ListQueue__calculateCapacity(initialCapacity) {
       return 8;
     },
-    SplayTreeSet$(compare, isValidKey, $E) {
-      return new A.SplayTreeSet(compare, isValidKey, $E._eval$1("SplayTreeSet<0>"));
-    },
     _HashMap: function _HashMap(t0) {
       var _ = this;
       _._collection$_length = 0;
@@ -5066,18 +4991,6 @@
       _._collection$_length = 0;
       _._keys = _._collection$_rest = _._nums = _._strings = null;
       _.$ti = t0;
-    },
-    _CustomHashMap: function _CustomHashMap(t0, t1, t2, t3) {
-      var _ = this;
-      _._equals = t0;
-      _._hashCode = t1;
-      _._validKey = t2;
-      _._collection$_length = 0;
-      _._keys = _._collection$_rest = _._nums = _._strings = null;
-      _.$ti = t3;
-    },
-    _CustomHashMap_closure: function _CustomHashMap_closure(t0) {
-      this.K = t0;
     },
     _HashMapKeyIterable: function _HashMapKeyIterable(t0, t1) {
       this._collection$_map = t0;
@@ -5117,33 +5030,6 @@
       _._offset = 0;
       _._collection$_current = null;
       _.$ti = t2;
-    },
-    _LinkedHashSet: function _LinkedHashSet(t0) {
-      var _ = this;
-      _._collection$_length = 0;
-      _._collection$_last = _._collection$_first = _._collection$_rest = _._nums = _._strings = null;
-      _._collection$_modifications = 0;
-      _.$ti = t0;
-    },
-    _LinkedHashSetCell: function _LinkedHashSetCell(t0) {
-      this._element = t0;
-      this._collection$_next = null;
-    },
-    _LinkedHashSetIterator: function _LinkedHashSetIterator(t0, t1, t2) {
-      var _ = this;
-      _._set = t0;
-      _._collection$_modifications = t1;
-      _._collection$_current = _._collection$_cell = null;
-      _.$ti = t2;
-    },
-    UnmodifiableListView: function UnmodifiableListView(t0, t1) {
-      this._collection$_source = t0;
-      this.$ti = t1;
-    },
-    LinkedHashMap_LinkedHashMap$from_closure: function LinkedHashMap_LinkedHashMap$from_closure(t0, t1, t2) {
-      this.result = t0;
-      this.K = t1;
-      this.V = t2;
     },
     ListBase: function ListBase() {
     },
@@ -5200,13 +5086,12 @@
       _._splayCount = t2;
       _.$ti = t3;
     },
-    SplayTreeSet: function SplayTreeSet(t0, t1, t2) {
+    SplayTreeSet: function SplayTreeSet(t0, t1) {
       var _ = this;
       _._root = null;
       _._compare = t0;
-      _._validKey = t1;
       _._splayCount = _._modificationCount = _._count = 0;
-      _.$ti = t2;
+      _.$ti = t1;
     },
     _SplayTreeSet__SplayTree_Iterable: function _SplayTreeSet__SplayTree_Iterable() {
     },
@@ -5278,296 +5163,6 @@
       if (paddingCount > 2)
         throw A.wrapException(A.FormatException$("Invalid base64 padding, more than two '=' characters", source, sourceIndex));
     },
-    _Base64Encoder_encodeChunk(alphabet, bytes, start, end, isLast, output, outputIndex, state) {
-      var t1, t2, t3, i, byteOr, byte, outputIndex0, t4, t5, outputIndex1,
-        bits = state >>> 2,
-        expectedChars = 3 - (state & 3);
-      for (t1 = J.getInterceptor$asx(bytes), t2 = alphabet.length, t3 = output.$flags | 0, i = start, byteOr = 0; i < end; ++i) {
-        byte = t1.$index(bytes, i);
-        byteOr = (byteOr | byte) >>> 0;
-        bits = (bits << 8 | byte) & 16777215;
-        --expectedChars;
-        if (expectedChars === 0) {
-          outputIndex0 = outputIndex + 1;
-          t4 = bits >>> 18 & 63;
-          if (!(t4 < t2))
-            return A.ioore(alphabet, t4);
-          t3 & 2 && A.throwUnsupportedOperation(output);
-          t5 = output.length;
-          if (!(outputIndex < t5))
-            return A.ioore(output, outputIndex);
-          output[outputIndex] = alphabet.charCodeAt(t4);
-          outputIndex = outputIndex0 + 1;
-          t4 = bits >>> 12 & 63;
-          if (!(t4 < t2))
-            return A.ioore(alphabet, t4);
-          if (!(outputIndex0 < t5))
-            return A.ioore(output, outputIndex0);
-          output[outputIndex0] = alphabet.charCodeAt(t4);
-          outputIndex0 = outputIndex + 1;
-          t4 = bits >>> 6 & 63;
-          if (!(t4 < t2))
-            return A.ioore(alphabet, t4);
-          if (!(outputIndex < t5))
-            return A.ioore(output, outputIndex);
-          output[outputIndex] = alphabet.charCodeAt(t4);
-          outputIndex = outputIndex0 + 1;
-          t4 = bits & 63;
-          if (!(t4 < t2))
-            return A.ioore(alphabet, t4);
-          if (!(outputIndex0 < t5))
-            return A.ioore(output, outputIndex0);
-          output[outputIndex0] = alphabet.charCodeAt(t4);
-          bits = 0;
-          expectedChars = 3;
-        }
-      }
-      if (byteOr >= 0 && byteOr <= 255) {
-        if (expectedChars < 3) {
-          outputIndex0 = outputIndex + 1;
-          outputIndex1 = outputIndex0 + 1;
-          if (3 - expectedChars === 1) {
-            t1 = bits >>> 2 & 63;
-            if (!(t1 < t2))
-              return A.ioore(alphabet, t1);
-            t3 & 2 && A.throwUnsupportedOperation(output);
-            t3 = output.length;
-            if (!(outputIndex < t3))
-              return A.ioore(output, outputIndex);
-            output[outputIndex] = alphabet.charCodeAt(t1);
-            t1 = bits << 4 & 63;
-            if (!(t1 < t2))
-              return A.ioore(alphabet, t1);
-            if (!(outputIndex0 < t3))
-              return A.ioore(output, outputIndex0);
-            output[outputIndex0] = alphabet.charCodeAt(t1);
-            outputIndex = outputIndex1 + 1;
-            if (!(outputIndex1 < t3))
-              return A.ioore(output, outputIndex1);
-            output[outputIndex1] = 61;
-            if (!(outputIndex < t3))
-              return A.ioore(output, outputIndex);
-            output[outputIndex] = 61;
-          } else {
-            t1 = bits >>> 10 & 63;
-            if (!(t1 < t2))
-              return A.ioore(alphabet, t1);
-            t3 & 2 && A.throwUnsupportedOperation(output);
-            t3 = output.length;
-            if (!(outputIndex < t3))
-              return A.ioore(output, outputIndex);
-            output[outputIndex] = alphabet.charCodeAt(t1);
-            t1 = bits >>> 4 & 63;
-            if (!(t1 < t2))
-              return A.ioore(alphabet, t1);
-            if (!(outputIndex0 < t3))
-              return A.ioore(output, outputIndex0);
-            output[outputIndex0] = alphabet.charCodeAt(t1);
-            outputIndex = outputIndex1 + 1;
-            t1 = bits << 2 & 63;
-            if (!(t1 < t2))
-              return A.ioore(alphabet, t1);
-            if (!(outputIndex1 < t3))
-              return A.ioore(output, outputIndex1);
-            output[outputIndex1] = alphabet.charCodeAt(t1);
-            if (!(outputIndex < t3))
-              return A.ioore(output, outputIndex);
-            output[outputIndex] = 61;
-          }
-          return 0;
-        }
-        return (bits << 2 | 3 - expectedChars) >>> 0;
-      }
-      for (i = start; i < end;) {
-        byte = t1.$index(bytes, i);
-        if (byte < 0 || byte > 255)
-          break;
-        ++i;
-      }
-      throw A.wrapException(A.ArgumentError$value(bytes, "Not a byte value at index " + i + ": 0x" + B.JSInt_methods.toRadixString$1(t1.$index(bytes, i), 16), null));
-    },
-    _Base64Decoder_decodeChunk(input, start, end, output, outIndex, state) {
-      var t1, t2, t3, i, charOr, char, t4, code, outIndex0, expectedPadding,
-        _s31_ = "Invalid encoding before padding",
-        _s17_ = "Invalid character",
-        bits = B.JSInt_methods._shrOtherPositive$1(state, 2),
-        count = state & 3,
-        inverseAlphabet = $.$get$_Base64Decoder__inverseAlphabet();
-      for (t1 = input.length, t2 = inverseAlphabet.length, t3 = output.$flags | 0, i = start, charOr = 0; i < end; ++i) {
-        if (!(i < t1))
-          return A.ioore(input, i);
-        char = input.charCodeAt(i);
-        charOr |= char;
-        t4 = char & 127;
-        if (!(t4 < t2))
-          return A.ioore(inverseAlphabet, t4);
-        code = inverseAlphabet[t4];
-        if (code >= 0) {
-          bits = (bits << 6 | code) & 16777215;
-          count = count + 1 & 3;
-          if (count === 0) {
-            outIndex0 = outIndex + 1;
-            t3 & 2 && A.throwUnsupportedOperation(output);
-            t4 = output.length;
-            if (!(outIndex < t4))
-              return A.ioore(output, outIndex);
-            output[outIndex] = bits >>> 16 & 255;
-            outIndex = outIndex0 + 1;
-            if (!(outIndex0 < t4))
-              return A.ioore(output, outIndex0);
-            output[outIndex0] = bits >>> 8 & 255;
-            outIndex0 = outIndex + 1;
-            if (!(outIndex < t4))
-              return A.ioore(output, outIndex);
-            output[outIndex] = bits & 255;
-            outIndex = outIndex0;
-            bits = 0;
-          }
-          continue;
-        } else if (code === -1 && count > 1) {
-          if (charOr > 127)
-            break;
-          if (count === 3) {
-            if ((bits & 3) !== 0)
-              throw A.wrapException(A.FormatException$(_s31_, input, i));
-            outIndex0 = outIndex + 1;
-            t3 & 2 && A.throwUnsupportedOperation(output);
-            t1 = output.length;
-            if (!(outIndex < t1))
-              return A.ioore(output, outIndex);
-            output[outIndex] = bits >>> 10;
-            if (!(outIndex0 < t1))
-              return A.ioore(output, outIndex0);
-            output[outIndex0] = bits >>> 2;
-          } else {
-            if ((bits & 15) !== 0)
-              throw A.wrapException(A.FormatException$(_s31_, input, i));
-            t3 & 2 && A.throwUnsupportedOperation(output);
-            if (!(outIndex < output.length))
-              return A.ioore(output, outIndex);
-            output[outIndex] = bits >>> 4;
-          }
-          expectedPadding = (3 - count) * 3;
-          if (char === 37)
-            expectedPadding += 2;
-          return A._Base64Decoder__checkPadding(input, i + 1, end, -expectedPadding - 1);
-        }
-        throw A.wrapException(A.FormatException$(_s17_, input, i));
-      }
-      if (charOr >= 0 && charOr <= 127)
-        return (bits << 2 | count) >>> 0;
-      for (i = start; i < end; ++i) {
-        if (!(i < t1))
-          return A.ioore(input, i);
-        if (input.charCodeAt(i) > 127)
-          break;
-      }
-      throw A.wrapException(A.FormatException$(_s17_, input, i));
-    },
-    _Base64Decoder__allocateBuffer(input, start, end, state) {
-      var paddingStart = A._Base64Decoder__trimPaddingChars(input, start, end),
-        $length = (state & 3) + (paddingStart - start),
-        bufferLength = B.JSInt_methods._shrOtherPositive$1($length, 2) * 3,
-        remainderLength = $length & 3;
-      if (remainderLength !== 0 && paddingStart < end)
-        bufferLength += remainderLength - 1;
-      if (bufferLength > 0)
-        return new Uint8Array(bufferLength);
-      return $.$get$_Base64Decoder__emptyBuffer();
-    },
-    _Base64Decoder__trimPaddingChars(input, start, end) {
-      var char,
-        t1 = input.length,
-        newEnd = end,
-        index = newEnd,
-        padding = 0;
-      for (;;) {
-        if (!(index > start && padding < 2))
-          break;
-        c$0: {
-          --index;
-          if (!(index >= 0 && index < t1))
-            return A.ioore(input, index);
-          char = input.charCodeAt(index);
-          if (char === 61) {
-            ++padding;
-            newEnd = index;
-            break c$0;
-          }
-          if ((char | 32) === 100) {
-            if (index === start)
-              break;
-            --index;
-            if (!(index >= 0 && index < t1))
-              return A.ioore(input, index);
-            char = input.charCodeAt(index);
-          }
-          if (char === 51) {
-            if (index === start)
-              break;
-            --index;
-            if (!(index >= 0 && index < t1))
-              return A.ioore(input, index);
-            char = input.charCodeAt(index);
-          }
-          if (char === 37) {
-            ++padding;
-            newEnd = index;
-            break c$0;
-          }
-          break;
-        }
-      }
-      return newEnd;
-    },
-    _Base64Decoder__checkPadding(input, start, end, state) {
-      var expectedPadding, t1, char;
-      if (start === end)
-        return state;
-      expectedPadding = -state - 1;
-      for (t1 = input.length; expectedPadding > 0;) {
-        if (!(start < t1))
-          return A.ioore(input, start);
-        char = input.charCodeAt(start);
-        if (expectedPadding === 3) {
-          if (char === 61) {
-            expectedPadding -= 3;
-            ++start;
-            break;
-          }
-          if (char === 37) {
-            --expectedPadding;
-            ++start;
-            if (start === end)
-              break;
-            if (!(start < t1))
-              return A.ioore(input, start);
-            char = input.charCodeAt(start);
-          } else
-            break;
-        }
-        if ((expectedPadding > 3 ? expectedPadding - 3 : expectedPadding) === 2) {
-          if (char !== 51)
-            break;
-          ++start;
-          --expectedPadding;
-          if (start === end)
-            break;
-          if (!(start < t1))
-            return A.ioore(input, start);
-          char = input.charCodeAt(start);
-        }
-        if ((char | 32) !== 100)
-          break;
-        ++start;
-        --expectedPadding;
-        if (start === end)
-          break;
-      }
-      if (start !== end)
-        throw A.wrapException(A.FormatException$("Invalid padding character", input, start));
-      return -expectedPadding - 1;
-    },
     Encoding_getByName($name) {
       return $.$get$Encoding__nameToEncoding().$index(0, $name.toLowerCase());
     },
@@ -5637,15 +5232,6 @@
     },
     Base64Encoder: function Base64Encoder() {
     },
-    _Base64Encoder: function _Base64Encoder(t0) {
-      this._convert$_state = 0;
-      this._alphabet = t0;
-    },
-    Base64Decoder: function Base64Decoder() {
-    },
-    _Base64Decoder: function _Base64Decoder() {
-      this._convert$_state = 0;
-    },
     ByteConversionSink: function ByteConversionSink() {
     },
     _ByteCallbackSink: function _ByteCallbackSink(t0, t1) {
@@ -5711,381 +5297,6 @@
       this._convert$_state = 16;
       this._charOrIndex = 0;
     },
-    _BigIntImpl__parseDecimal(source, isNegative) {
-      var part, i,
-        result = $.$get$_BigIntImpl_zero(),
-        t1 = source.length,
-        digitInPartCount = 4 - t1 % 4;
-      if (digitInPartCount === 4)
-        digitInPartCount = 0;
-      for (part = 0, i = 0; i < t1; ++i) {
-        part = part * 10 + source.charCodeAt(i) - 48;
-        ++digitInPartCount;
-        if (digitInPartCount === 4) {
-          result = result.$mul(0, $.$get$_BigIntImpl__bigInt10000()).$add(0, A._BigIntImpl__BigIntImpl$_fromInt(part));
-          part = 0;
-          digitInPartCount = 0;
-        }
-      }
-      if (isNegative)
-        return result.$negate(0);
-      return result;
-    },
-    _BigIntImpl__codeUnitToRadixValue(codeUnit) {
-      if (48 <= codeUnit && codeUnit <= 57)
-        return codeUnit - 48;
-      return (codeUnit | 32) - 97 + 10;
-    },
-    _BigIntImpl__parseHex(source, startPos, isNegative) {
-      var i, chunk, j, i0, digitValue, digitIndex, digitIndex0,
-        t1 = source.length,
-        sourceLength = t1 - startPos,
-        chunkCount = B.JSNumber_methods.ceil$0(sourceLength / 4),
-        digits = new Uint16Array(chunkCount),
-        t2 = chunkCount - 1,
-        lastDigitLength = sourceLength - t2 * 4;
-      for (i = startPos, chunk = 0, j = 0; j < lastDigitLength; ++j, i = i0) {
-        i0 = i + 1;
-        if (!(i < t1))
-          return A.ioore(source, i);
-        digitValue = A._BigIntImpl__codeUnitToRadixValue(source.charCodeAt(i));
-        if (digitValue >= 16)
-          return null;
-        chunk = chunk * 16 + digitValue;
-      }
-      digitIndex = t2 - 1;
-      if (!(t2 >= 0 && t2 < chunkCount))
-        return A.ioore(digits, t2);
-      digits[t2] = chunk;
-      for (; i < t1; digitIndex = digitIndex0) {
-        for (chunk = 0, j = 0; j < 4; ++j, i = i0) {
-          i0 = i + 1;
-          if (!(i >= 0 && i < t1))
-            return A.ioore(source, i);
-          digitValue = A._BigIntImpl__codeUnitToRadixValue(source.charCodeAt(i));
-          if (digitValue >= 16)
-            return null;
-          chunk = chunk * 16 + digitValue;
-        }
-        digitIndex0 = digitIndex - 1;
-        if (!(digitIndex >= 0 && digitIndex < chunkCount))
-          return A.ioore(digits, digitIndex);
-        digits[digitIndex] = chunk;
-      }
-      if (chunkCount === 1) {
-        if (0 >= chunkCount)
-          return A.ioore(digits, 0);
-        t1 = digits[0] === 0;
-      } else
-        t1 = false;
-      if (t1)
-        return $.$get$_BigIntImpl_zero();
-      t1 = A._BigIntImpl__normalize(chunkCount, digits);
-      return new A._BigIntImpl(t1 === 0 ? false : isNegative, digits, t1);
-    },
-    _BigIntImpl__tryParse(source, radix) {
-      var match, t1, t2, isNegative, decimalMatch, hexMatch;
-      if (source === "")
-        return null;
-      match = $.$get$_BigIntImpl__parseRE().firstMatch$1(source);
-      if (match == null)
-        return null;
-      t1 = match._match;
-      t2 = t1.length;
-      if (1 >= t2)
-        return A.ioore(t1, 1);
-      isNegative = t1[1] === "-";
-      if (4 >= t2)
-        return A.ioore(t1, 4);
-      decimalMatch = t1[4];
-      hexMatch = t1[3];
-      if (5 >= t2)
-        return A.ioore(t1, 5);
-      if (decimalMatch != null)
-        return A._BigIntImpl__parseDecimal(decimalMatch, isNegative);
-      if (hexMatch != null)
-        return A._BigIntImpl__parseHex(hexMatch, 2, isNegative);
-      return null;
-    },
-    _BigIntImpl__normalize(used, digits) {
-      var t2,
-        t1 = digits.length;
-      for (;;) {
-        if (used > 0) {
-          t2 = used - 1;
-          if (!(t2 < t1))
-            return A.ioore(digits, t2);
-          t2 = digits[t2] === 0;
-        } else
-          t2 = false;
-        if (!t2)
-          break;
-        --used;
-      }
-      return used;
-    },
-    _BigIntImpl__cloneDigits(digits, from, to, $length) {
-      var t1, i, t2,
-        resultDigits = new Uint16Array($length),
-        n = to - from;
-      for (t1 = digits.length, i = 0; i < n; ++i) {
-        t2 = from + i;
-        if (!(t2 >= 0 && t2 < t1))
-          return A.ioore(digits, t2);
-        t2 = digits[t2];
-        if (!(i < $length))
-          return A.ioore(resultDigits, i);
-        resultDigits[i] = t2;
-      }
-      return resultDigits;
-    },
-    _BigIntImpl__BigIntImpl$_fromInt(value) {
-      var digits, t1, i, i0,
-        isNegative = value < 0;
-      if (isNegative) {
-        if (value === -9223372036854776e3) {
-          digits = new Uint16Array(4);
-          digits[3] = 32768;
-          t1 = A._BigIntImpl__normalize(4, digits);
-          return new A._BigIntImpl(t1 !== 0, digits, t1);
-        }
-        value = -value;
-      }
-      if (value < 65536) {
-        digits = new Uint16Array(1);
-        digits[0] = value;
-        t1 = A._BigIntImpl__normalize(1, digits);
-        return new A._BigIntImpl(t1 === 0 ? false : isNegative, digits, t1);
-      }
-      if (value <= 4294967295) {
-        digits = new Uint16Array(2);
-        digits[0] = value & 65535;
-        digits[1] = B.JSInt_methods._shrOtherPositive$1(value, 16);
-        t1 = A._BigIntImpl__normalize(2, digits);
-        return new A._BigIntImpl(t1 === 0 ? false : isNegative, digits, t1);
-      }
-      t1 = B.JSInt_methods._tdivFast$1(B.JSInt_methods.get$bitLength(value) - 1, 16) + 1;
-      digits = new Uint16Array(t1);
-      for (i = 0; value !== 0; i = i0) {
-        i0 = i + 1;
-        if (!(i < t1))
-          return A.ioore(digits, i);
-        digits[i] = value & 65535;
-        value = B.JSInt_methods._tdivFast$1(value, 65536);
-      }
-      t1 = A._BigIntImpl__normalize(t1, digits);
-      return new A._BigIntImpl(t1 === 0 ? false : isNegative, digits, t1);
-    },
-    _BigIntImpl__dlShiftDigits(xDigits, xUsed, n, resultDigits) {
-      var i, t1, t2, t3, t4;
-      if (xUsed === 0)
-        return 0;
-      if (n === 0 && resultDigits === xDigits)
-        return xUsed;
-      for (i = xUsed - 1, t1 = xDigits.length, t2 = resultDigits.$flags | 0; i >= 0; --i) {
-        t3 = i + n;
-        if (!(i < t1))
-          return A.ioore(xDigits, i);
-        t4 = xDigits[i];
-        t2 & 2 && A.throwUnsupportedOperation(resultDigits);
-        if (!(t3 >= 0 && t3 < resultDigits.length))
-          return A.ioore(resultDigits, t3);
-        resultDigits[t3] = t4;
-      }
-      for (i = n - 1; i >= 0; --i) {
-        t2 & 2 && A.throwUnsupportedOperation(resultDigits);
-        if (!(i < resultDigits.length))
-          return A.ioore(resultDigits, i);
-        resultDigits[i] = 0;
-      }
-      return xUsed + n;
-    },
-    _BigIntImpl__lsh(xDigits, xUsed, n, resultDigits) {
-      var i, t1, t2, carry, digit, t3, t4,
-        digitShift = B.JSInt_methods._tdivFast$1(n, 16),
-        bitShift = B.JSInt_methods.$mod(n, 16),
-        carryBitShift = 16 - bitShift,
-        bitMask = B.JSInt_methods.$shl(1, carryBitShift) - 1;
-      for (i = xUsed - 1, t1 = xDigits.length, t2 = resultDigits.$flags | 0, carry = 0; i >= 0; --i) {
-        if (!(i < t1))
-          return A.ioore(xDigits, i);
-        digit = xDigits[i];
-        t3 = i + digitShift + 1;
-        t4 = B.JSInt_methods.$shr(digit, carryBitShift);
-        t2 & 2 && A.throwUnsupportedOperation(resultDigits);
-        if (!(t3 >= 0 && t3 < resultDigits.length))
-          return A.ioore(resultDigits, t3);
-        resultDigits[t3] = (t4 | carry) >>> 0;
-        carry = B.JSInt_methods.$shl((digit & bitMask) >>> 0, bitShift);
-      }
-      t2 & 2 && A.throwUnsupportedOperation(resultDigits);
-      if (!(digitShift >= 0 && digitShift < resultDigits.length))
-        return A.ioore(resultDigits, digitShift);
-      resultDigits[digitShift] = carry;
-    },
-    _BigIntImpl__lShiftDigits(xDigits, xUsed, n, resultDigits) {
-      var resultUsed, t1, i,
-        digitsShift = B.JSInt_methods._tdivFast$1(n, 16);
-      if (B.JSInt_methods.$mod(n, 16) === 0)
-        return A._BigIntImpl__dlShiftDigits(xDigits, xUsed, digitsShift, resultDigits);
-      resultUsed = xUsed + digitsShift + 1;
-      A._BigIntImpl__lsh(xDigits, xUsed, n, resultDigits);
-      for (t1 = resultDigits.$flags | 0, i = digitsShift; --i, i >= 0;) {
-        t1 & 2 && A.throwUnsupportedOperation(resultDigits);
-        if (!(i < resultDigits.length))
-          return A.ioore(resultDigits, i);
-        resultDigits[i] = 0;
-      }
-      t1 = resultUsed - 1;
-      if (!(t1 >= 0 && t1 < resultDigits.length))
-        return A.ioore(resultDigits, t1);
-      if (resultDigits[t1] === 0)
-        resultUsed = t1;
-      return resultUsed;
-    },
-    _BigIntImpl__rsh(xDigits, xUsed, n, resultDigits) {
-      var carry, last, t2, i, t3, digit,
-        digitsShift = B.JSInt_methods._tdivFast$1(n, 16),
-        bitShift = B.JSInt_methods.$mod(n, 16),
-        carryBitShift = 16 - bitShift,
-        bitMask = B.JSInt_methods.$shl(1, bitShift) - 1,
-        t1 = xDigits.length;
-      if (!(digitsShift >= 0 && digitsShift < t1))
-        return A.ioore(xDigits, digitsShift);
-      carry = B.JSInt_methods.$shr(xDigits[digitsShift], bitShift);
-      last = xUsed - digitsShift - 1;
-      for (t2 = resultDigits.$flags | 0, i = 0; i < last; ++i) {
-        t3 = i + digitsShift + 1;
-        if (!(t3 < t1))
-          return A.ioore(xDigits, t3);
-        digit = xDigits[t3];
-        t3 = B.JSInt_methods.$shl((digit & bitMask) >>> 0, carryBitShift);
-        t2 & 2 && A.throwUnsupportedOperation(resultDigits);
-        if (!(i < resultDigits.length))
-          return A.ioore(resultDigits, i);
-        resultDigits[i] = (t3 | carry) >>> 0;
-        carry = B.JSInt_methods.$shr(digit, bitShift);
-      }
-      t2 & 2 && A.throwUnsupportedOperation(resultDigits);
-      if (!(last >= 0 && last < resultDigits.length))
-        return A.ioore(resultDigits, last);
-      resultDigits[last] = carry;
-    },
-    _BigIntImpl__compareDigits(digits, used, otherDigits, otherUsed) {
-      var i, t1, t2, t3,
-        result = used - otherUsed;
-      if (result === 0)
-        for (i = used - 1, t1 = digits.length, t2 = otherDigits.length; i >= 0; --i) {
-          if (!(i < t1))
-            return A.ioore(digits, i);
-          t3 = digits[i];
-          if (!(i < t2))
-            return A.ioore(otherDigits, i);
-          result = t3 - otherDigits[i];
-          if (result !== 0)
-            return result;
-        }
-      return result;
-    },
-    _BigIntImpl__absAdd(digits, used, otherDigits, otherUsed, resultDigits) {
-      var t1, t2, t3, carry, i, t4;
-      for (t1 = digits.length, t2 = otherDigits.length, t3 = resultDigits.$flags | 0, carry = 0, i = 0; i < otherUsed; ++i) {
-        if (!(i < t1))
-          return A.ioore(digits, i);
-        t4 = digits[i];
-        if (!(i < t2))
-          return A.ioore(otherDigits, i);
-        carry += t4 + otherDigits[i];
-        t3 & 2 && A.throwUnsupportedOperation(resultDigits);
-        if (!(i < resultDigits.length))
-          return A.ioore(resultDigits, i);
-        resultDigits[i] = carry & 65535;
-        carry = B.JSInt_methods._shrOtherPositive$1(carry, 16);
-      }
-      for (i = otherUsed; i < used; ++i) {
-        if (!(i >= 0 && i < t1))
-          return A.ioore(digits, i);
-        carry += digits[i];
-        t3 & 2 && A.throwUnsupportedOperation(resultDigits);
-        if (!(i < resultDigits.length))
-          return A.ioore(resultDigits, i);
-        resultDigits[i] = carry & 65535;
-        carry = B.JSInt_methods._shrOtherPositive$1(carry, 16);
-      }
-      t3 & 2 && A.throwUnsupportedOperation(resultDigits);
-      if (!(used >= 0 && used < resultDigits.length))
-        return A.ioore(resultDigits, used);
-      resultDigits[used] = carry;
-    },
-    _BigIntImpl__absSub(digits, used, otherDigits, otherUsed, resultDigits) {
-      var t1, t2, t3, carry, i, t4;
-      for (t1 = digits.length, t2 = otherDigits.length, t3 = resultDigits.$flags | 0, carry = 0, i = 0; i < otherUsed; ++i) {
-        if (!(i < t1))
-          return A.ioore(digits, i);
-        t4 = digits[i];
-        if (!(i < t2))
-          return A.ioore(otherDigits, i);
-        carry += t4 - otherDigits[i];
-        t3 & 2 && A.throwUnsupportedOperation(resultDigits);
-        if (!(i < resultDigits.length))
-          return A.ioore(resultDigits, i);
-        resultDigits[i] = carry & 65535;
-        carry = 0 - (B.JSInt_methods._shrOtherPositive$1(carry, 16) & 1);
-      }
-      for (i = otherUsed; i < used; ++i) {
-        if (!(i >= 0 && i < t1))
-          return A.ioore(digits, i);
-        carry += digits[i];
-        t3 & 2 && A.throwUnsupportedOperation(resultDigits);
-        if (!(i < resultDigits.length))
-          return A.ioore(resultDigits, i);
-        resultDigits[i] = carry & 65535;
-        carry = 0 - (B.JSInt_methods._shrOtherPositive$1(carry, 16) & 1);
-      }
-    },
-    _BigIntImpl__mulAdd(x, multiplicandDigits, i, accumulatorDigits, j, n) {
-      var t1, t2, t3, c, i0, t4, combined, j0, l;
-      if (x === 0)
-        return;
-      for (t1 = multiplicandDigits.length, t2 = accumulatorDigits.length, t3 = accumulatorDigits.$flags | 0, c = 0; --n, n >= 0; j = j0, i = i0) {
-        i0 = i + 1;
-        if (!(i < t1))
-          return A.ioore(multiplicandDigits, i);
-        t4 = multiplicandDigits[i];
-        if (!(j >= 0 && j < t2))
-          return A.ioore(accumulatorDigits, j);
-        combined = x * t4 + accumulatorDigits[j] + c;
-        j0 = j + 1;
-        t3 & 2 && A.throwUnsupportedOperation(accumulatorDigits);
-        accumulatorDigits[j] = combined & 65535;
-        c = B.JSInt_methods._tdivFast$1(combined, 65536);
-      }
-      for (; c !== 0; j = j0) {
-        if (!(j >= 0 && j < t2))
-          return A.ioore(accumulatorDigits, j);
-        l = accumulatorDigits[j] + c;
-        j0 = j + 1;
-        t3 & 2 && A.throwUnsupportedOperation(accumulatorDigits);
-        accumulatorDigits[j] = l & 65535;
-        c = B.JSInt_methods._tdivFast$1(l, 65536);
-      }
-    },
-    _BigIntImpl__estimateQuotientDigit(topDigitDivisor, digits, i) {
-      var t2, t3, quotientDigit,
-        t1 = digits.length;
-      if (!(i >= 0 && i < t1))
-        return A.ioore(digits, i);
-      t2 = digits[i];
-      if (t2 === topDigitDivisor)
-        return 65535;
-      t3 = i - 1;
-      if (!(t3 >= 0 && t3 < t1))
-        return A.ioore(digits, t3);
-      quotientDigit = B.JSInt_methods.$tdiv((t2 << 16 | digits[t3]) >>> 0, topDigitDivisor);
-      if (quotientDigit > 65535)
-        return 65535;
-      return quotientDigit;
-    },
     identityHashCode(object) {
       return A.objectHashCode(object);
     },
@@ -6115,8 +5326,6 @@
         list = A._setArrayType([], $E._eval$1("JSArray<0>"));
       for (t1 = J.get$iterator$ax(elements); t1.moveNext$0();)
         B.JSArray_methods.add$1(list, $E._as(t1.get$current()));
-      if (growable)
-        return list;
       list.$flags = 1;
       return list;
     },
@@ -6168,8 +5377,8 @@
         return "";
       return A.Primitives_stringFromNativeUint8List(charCodes, start, endOrNull == null || endOrNull > len ? len : endOrNull);
     },
-    RegExp_RegExp(source, caseSensitive, multiLine) {
-      return new A.JSSyntaxRegExp(source, A.JSSyntaxRegExp_makeNative(source, multiLine, caseSensitive, false, false, ""));
+    RegExp_RegExp(source, multiLine) {
+      return new A.JSSyntaxRegExp(source, A.JSSyntaxRegExp_makeNative(source, multiLine, true, false, false, ""));
     },
     identical(a, b) {
       return a == null ? b == null : a === b;
@@ -6248,8 +5457,8 @@
         return "" + n;
       return "0" + n;
     },
-    Duration$(microseconds, milliseconds) {
-      return new A.Duration(microseconds + 1000 * milliseconds);
+    Duration$(milliseconds) {
+      return new A.Duration(1000 * milliseconds);
     },
     Error_safeToString(object) {
       if (typeof object == "number" || A._isBool(object) || object == null)
@@ -7628,15 +6837,6 @@
       }
       return result;
     },
-    _BigIntImpl: function _BigIntImpl(t0, t1, t2) {
-      this._isNegative = t0;
-      this._digits = t1;
-      this._used = t2;
-    },
-    _BigIntImpl_hashCode_combine: function _BigIntImpl_hashCode_combine() {
-    },
-    _BigIntImpl_hashCode_finish: function _BigIntImpl_hashCode_finish() {
-    },
     DateTime: function DateTime(t0, t1, t2) {
       this._value = t0;
       this._microsecond = t1;
@@ -7701,8 +6901,6 @@
       this.message = t0;
       this.source = t1;
       this.offset = t2;
-    },
-    IntegerDivisionByZeroException: function IntegerDivisionByZeroException() {
     },
     Iterable: function Iterable() {
     },
@@ -7980,420 +7178,6 @@
       this._stream_queue$_completer = t0;
       this.$ti = t1;
     },
-    hashObjects(objects) {
-      return A._finish(B.JSArray_methods.fold$1$2(objects, 0, new A.hashObjects_closure(), type$.int));
-    },
-    _combine(hash, value) {
-      hash = hash + value & 536870911;
-      hash = hash + ((hash & 524287) << 10) & 536870911;
-      return hash ^ hash >>> 6;
-    },
-    _finish(hash) {
-      hash = hash + ((hash & 67108863) << 3) & 536870911;
-      hash ^= hash >>> 11;
-      return hash + ((hash & 16383) << 15) & 536870911;
-    },
-    hashObjects_closure: function hashObjects_closure() {
-    },
-    BuiltList_BuiltList$from(iterable, $E) {
-      var t1;
-      if (iterable instanceof A._BuiltList) {
-        t1 = A.createRuntimeType($E);
-        t1 = A.createRuntimeType(iterable.$ti._precomputed1) === t1;
-      } else
-        t1 = false;
-      if (t1)
-        return $E._eval$1("BuiltList<0>")._as(iterable);
-      else {
-        t1 = new A._BuiltList(A.List_List$from(iterable, false, $E), $E._eval$1("_BuiltList<0>"));
-        t1._list$_maybeCheckForNull$0();
-        return t1;
-      }
-    },
-    ListBuilder_ListBuilder(iterable, $E) {
-      var t1 = new A.ListBuilder($E._eval$1("ListBuilder<0>"));
-      t1.replace$1(iterable);
-      return t1;
-    },
-    BuiltList: function BuiltList() {
-    },
-    _BuiltList: function _BuiltList(t0, t1) {
-      this._list = t0;
-      this._list$_hashCode = null;
-      this.$ti = t1;
-    },
-    ListBuilder: function ListBuilder(t0) {
-      this.__ListBuilder__list_A = $;
-      this._listOwner = null;
-      this.$ti = t0;
-    },
-    BuiltListMultimap_BuiltListMultimap($K, $V) {
-      var t1 = A._BuiltListMultimap$copy(B.Map_empty.get$keys(), new A.BuiltListMultimap_BuiltListMultimap_closure(B.Map_empty), $K, $V);
-      return t1;
-    },
-    _BuiltListMultimap$copy(keys, lookup, $K, $V) {
-      var t1 = new A._BuiltListMultimap(A.LinkedHashMap_LinkedHashMap$_empty($K, $V._eval$1("BuiltList<0>")), A.BuiltList_BuiltList$from(B.List_empty0, $V), $K._eval$1("@<0>")._bind$1($V)._eval$1("_BuiltListMultimap<1,2>"));
-      t1._BuiltListMultimap$copy$2(keys, lookup, $K, $V);
-      return t1;
-    },
-    ListMultimapBuilder_ListMultimapBuilder($K, $V) {
-      var t1 = new A.ListMultimapBuilder($K._eval$1("@<0>")._bind$1($V)._eval$1("ListMultimapBuilder<1,2>"));
-      t1.replace$1(B.Map_empty);
-      return t1;
-    },
-    BuiltListMultimap: function BuiltListMultimap() {
-    },
-    BuiltListMultimap_BuiltListMultimap_closure: function BuiltListMultimap_BuiltListMultimap_closure(t0) {
-      this.multimap = t0;
-    },
-    BuiltListMultimap_hashCode_closure: function BuiltListMultimap_hashCode_closure(t0) {
-      this.$this = t0;
-    },
-    _BuiltListMultimap: function _BuiltListMultimap(t0, t1, t2) {
-      var _ = this;
-      _._list_multimap$_map = t0;
-      _._emptyList = t1;
-      _._list_multimap$_keys = _._list_multimap$_hashCode = null;
-      _.$ti = t2;
-    },
-    ListMultimapBuilder: function ListMultimapBuilder(t0) {
-      var _ = this;
-      _.__ListMultimapBuilder__builtMap_A = $;
-      _._list_multimap$_builtMapOwner = null;
-      _.__ListMultimapBuilder__builderMap_A = $;
-      _.$ti = t0;
-    },
-    ListMultimapBuilder_replace_closure: function ListMultimapBuilder_replace_closure(t0) {
-      this.multimap = t0;
-    },
-    BuiltMap_BuiltMap($K, $V) {
-      var t1 = new A._BuiltMap(null, A.LinkedHashMap_LinkedHashMap$_empty($K, $V), $K._eval$1("@<0>")._bind$1($V)._eval$1("_BuiltMap<1,2>"));
-      t1._BuiltMap$copyAndCheckTypes$2(B.Map_empty.get$keys(), new A.BuiltMap_BuiltMap_closure(B.Map_empty), $K, $V);
-      return t1;
-    },
-    MapBuilder_MapBuilder($K, $V) {
-      var t1 = new A.MapBuilder(null, $, null, $K._eval$1("@<0>")._bind$1($V)._eval$1("MapBuilder<1,2>"));
-      t1.replace$1(B.Map_empty);
-      return t1;
-    },
-    BuiltMap: function BuiltMap() {
-    },
-    BuiltMap_BuiltMap_closure: function BuiltMap_BuiltMap_closure(t0) {
-      this.map = t0;
-    },
-    BuiltMap_hashCode_closure: function BuiltMap_hashCode_closure(t0) {
-      this.$this = t0;
-    },
-    _BuiltMap: function _BuiltMap(t0, t1, t2) {
-      var _ = this;
-      _._mapFactory = t0;
-      _._map$_map = t1;
-      _._map$_keys = _._map$_hashCode = null;
-      _.$ti = t2;
-    },
-    MapBuilder: function MapBuilder(t0, t1, t2, t3) {
-      var _ = this;
-      _._mapFactory = t0;
-      _.__MapBuilder__map_A = t1;
-      _._mapOwner = t2;
-      _.$ti = t3;
-    },
-    MapBuilder_replace_closure: function MapBuilder_replace_closure(t0, t1) {
-      this.$this = t0;
-      this.replacement = t1;
-    },
-    BuiltSet_BuiltSet$from(iterable, $E) {
-      var t1 = new A._BuiltSet(null, A.LinkedHashSet_LinkedHashSet$from(iterable, $E), $E._eval$1("_BuiltSet<0>"));
-      t1._maybeCheckForNull$0();
-      return t1;
-    },
-    SetBuilder_SetBuilder($E) {
-      var t1 = new A.SetBuilder(null, $, null, $E._eval$1("SetBuilder<0>"));
-      t1.replace$1(B.List_empty0);
-      return t1;
-    },
-    BuiltSet: function BuiltSet() {
-    },
-    BuiltSet_hashCode_closure: function BuiltSet_hashCode_closure(t0) {
-      this.$this = t0;
-    },
-    _BuiltSet: function _BuiltSet(t0, t1, t2) {
-      var _ = this;
-      _._setFactory = t0;
-      _._set$_set = t1;
-      _._set$_hashCode = null;
-      _.$ti = t2;
-    },
-    SetBuilder: function SetBuilder(t0, t1, t2, t3) {
-      var _ = this;
-      _._setFactory = t0;
-      _.__SetBuilder__set_A = t1;
-      _._setOwner = t2;
-      _.$ti = t3;
-    },
-    SetMultimapBuilder_SetMultimapBuilder($K, $V) {
-      var t1 = new A.SetMultimapBuilder($K._eval$1("@<0>")._bind$1($V)._eval$1("SetMultimapBuilder<1,2>"));
-      t1.replace$1(B.Map_empty);
-      return t1;
-    },
-    BuiltSetMultimap: function BuiltSetMultimap() {
-    },
-    BuiltSetMultimap_hashCode_closure: function BuiltSetMultimap_hashCode_closure(t0) {
-      this.$this = t0;
-    },
-    _BuiltSetMultimap: function _BuiltSetMultimap(t0, t1, t2) {
-      var _ = this;
-      _._set_multimap$_map = t0;
-      _._emptySet = t1;
-      _._set_multimap$_keys = _._set_multimap$_hashCode = null;
-      _.$ti = t2;
-    },
-    SetMultimapBuilder: function SetMultimapBuilder(t0) {
-      var _ = this;
-      _.__SetMultimapBuilder__builtMap_A = $;
-      _._builtMapOwner = null;
-      _.__SetMultimapBuilder__builderMap_A = $;
-      _.$ti = t0;
-    },
-    SetMultimapBuilder_replace_closure: function SetMultimapBuilder_replace_closure(t0) {
-      this.multimap = t0;
-    },
-    JsonObject_JsonObject(value) {
-      if (typeof value == "number")
-        return new A.NumJsonObject(value);
-      else if (typeof value == "string")
-        return new A.StringJsonObject(value);
-      else if (A._isBool(value))
-        return new A.BoolJsonObject(value);
-      else if (type$.List_dynamic._is(value))
-        return new A.ListJsonObject(new A.UnmodifiableListView(value, type$.UnmodifiableListView_nullable_Object));
-      else if (type$.Map_of_String_and_nullable_Object._is(value))
-        return new A.MapJsonObject(new A.UnmodifiableMapView(value, type$.UnmodifiableMapView_of_String_and_nullable_Object));
-      else if (type$.Map_dynamic_dynamic._is(value))
-        return new A.MapJsonObject(new A.UnmodifiableMapView(value.cast$2$0(0, type$.String, type$.nullable_Object), type$.UnmodifiableMapView_of_String_and_nullable_Object));
-      else
-        throw A.wrapException(A.ArgumentError$value(value, "value", "Must be bool, List<Object?>, Map<String?, Object?>, num or String"));
-    },
-    JsonObject: function JsonObject() {
-    },
-    BoolJsonObject: function BoolJsonObject(t0) {
-      this.value = t0;
-    },
-    ListJsonObject: function ListJsonObject(t0) {
-      this.value = t0;
-    },
-    MapJsonObject: function MapJsonObject(t0) {
-      this.value = t0;
-    },
-    NumJsonObject: function NumJsonObject(t0) {
-      this.value = t0;
-    },
-    StringJsonObject: function StringJsonObject(t0) {
-      this.value = t0;
-    },
-    Serializers_Serializers() {
-      var t1 = type$.Type,
-        t2 = type$.Serializer_dynamic,
-        t3 = type$.String;
-      t2 = new A.BuiltJsonSerializersBuilder(A.MapBuilder_MapBuilder(t1, t2), A.MapBuilder_MapBuilder(t3, t2), A.MapBuilder_MapBuilder(t3, t2), A.MapBuilder_MapBuilder(type$.FullType, type$.Function), A.ListBuilder_ListBuilder(B.List_empty0, type$.SerializerPlugin));
-      t2.add$1(0, new A.BigIntSerializer(A.BuiltList_BuiltList$from([B.Type_BigInt_DZK, A.getRuntimeTypeOfDartObject($.$get$_BigIntImpl_zero())], t1)));
-      t2.add$1(0, new A.BoolSerializer(A.BuiltList_BuiltList$from([B.Type_bool_wF1], t1)));
-      t2.add$1(0, new A.ListSerializer(A.BuiltList_BuiltList$from([B.Type_List_hc9, A.createRuntimeType(A._arrayInstanceType(A._setArrayType([], type$.JSArray_Object)))], t1)));
-      t3 = type$.Object;
-      t2.add$1(0, new A.MapSerializer(A.BuiltList_BuiltList$from([B.Type_Map_9Aj, A.getRuntimeTypeOfDartObject(A.LinkedHashMap_LinkedHashMap$_empty(t3, t3))], t1)));
-      t2.add$1(0, new A.SetSerializer(A.BuiltSet_BuiltSet$from([B.Type_Set_tZi, A.getRuntimeTypeOfDartObject(A.LinkedHashSet_LinkedHashSet$_empty(t3))], t1)));
-      t2.add$1(0, new A.BuiltListSerializer(A.BuiltList_BuiltList$from([B.Type_BuiltList_fj6, A.getRuntimeTypeOfDartObject(A.BuiltList_BuiltList$from(B.List_empty0, t3))], t1)));
-      t2.add$1(0, new A.BuiltListMultimapSerializer(A.BuiltList_BuiltList$from([B.Type_BuiltListMultimap_HQW, A.getRuntimeTypeOfDartObject(A.BuiltListMultimap_BuiltListMultimap(t3, t3))], t1)));
-      t2.add$1(0, new A.BuiltMapSerializer(A.BuiltList_BuiltList$from([B.Type_BuiltMap_TeX, A.getRuntimeTypeOfDartObject(A.BuiltMap_BuiltMap(t3, t3))], t1)));
-      t2.add$1(0, new A.BuiltSetSerializer(A.BuiltList_BuiltList$from([B.Type_BuiltSet_oHu, A.getRuntimeTypeOfDartObject(A.BuiltSet_BuiltSet$from(B.List_empty0, t3))], t1)));
-      t2.add$1(0, new A.BuiltSetMultimapSerializer(A.BuiltSet_BuiltSet$from([B.Type_BuiltSetMultimap_yT7], t1)));
-      t2.add$1(0, new A.DateTimeSerializer(A.BuiltList_BuiltList$from([B.Type_DateTime_akv], t1)));
-      t2.add$1(0, new A.DoubleSerializer(A.BuiltList_BuiltList$from([B.Type_double_JIQ], t1)));
-      t2.add$1(0, new A.DurationSerializer(A.BuiltList_BuiltList$from([B.Type_Duration_VAs], t1)));
-      t2.add$1(0, new A.IntSerializer(A.BuiltList_BuiltList$from([B.Type_int_T7V], t1)));
-      t2.add$1(0, new A.Int32Serializer(A.BuiltList_BuiltList$from([B.Type_Int32_291], t1)));
-      t2.add$1(0, new A.Int64Serializer(A.BuiltList_BuiltList$from([B.Type_Int64_LHp], t1)));
-      t2.add$1(0, new A.JsonObjectSerializer(A.BuiltList_BuiltList$from([B.Type_JsonObject_5jQ, B.Type_BoolJsonObject_Zqn, B.Type_ListJsonObject_qcV, B.Type_MapJsonObject_VMr, B.Type_NumJsonObject_hYY, B.Type_StringJsonObject_NL7], t1)));
-      t2.add$1(0, new A.NullSerializer(A.BuiltList_BuiltList$from([B.Type_Null_0Rm], t1)));
-      t2.add$1(0, new A.NumSerializer(A.BuiltList_BuiltList$from([B.Type_num_LZa], t1)));
-      t2.add$1(0, new A.RegExpSerializer(A.BuiltList_BuiltList$from([B.Type_RegExp_w5l, $.$get$_runtimeType()], t1)));
-      t2.add$1(0, new A.StringSerializer(A.BuiltList_BuiltList$from([B.Type_String_AXU], t1)));
-      t2.add$1(0, new A.Uint8ListSerializer());
-      t2.add$1(0, new A.UriSerializer(A.BuiltList_BuiltList$from([B.Type_Uri_l9i, A.getRuntimeTypeOfDartObject(A.Uri_parse("http://example.com")), A.getRuntimeTypeOfDartObject(A.Uri_parse("http://example.com:"))], t1)));
-      t2.addBuilderFactory$2(B.FullType_hm4, new A.Serializers_Serializers_closure());
-      t2.addBuilderFactory$2(B.FullType_WP0, new A.Serializers_Serializers_closure0());
-      t2.addBuilderFactory$2(B.FullType_mo5, new A.Serializers_Serializers_closure1());
-      t2.addBuilderFactory$2(B.FullType_tpw, new A.Serializers_Serializers_closure2());
-      t2.addBuilderFactory$2(B.FullType_SWR, new A.Serializers_Serializers_closure3());
-      return t2.build$0();
-    },
-    FullType__getRawName(type) {
-      var $name = J.toString$0$(type),
-        genericsStart = B.JSString_methods.indexOf$1($name, "<");
-      return genericsStart === -1 ? $name : B.JSString_methods.substring$2($name, 0, genericsStart);
-    },
-    DeserializationError_DeserializationError(json, type, error) {
-      var limitedJson = J.toString$0$(json),
-        t1 = limitedJson.length;
-      if (t1 > 80)
-        B.JSString_methods.replaceRange$3(limitedJson, 77, t1, "...");
-      return new A.DeserializationError(type, error);
-    },
-    Serializers_Serializers_closure: function Serializers_Serializers_closure() {
-    },
-    Serializers_Serializers_closure0: function Serializers_Serializers_closure0() {
-    },
-    Serializers_Serializers_closure1: function Serializers_Serializers_closure1() {
-    },
-    Serializers_Serializers_closure2: function Serializers_Serializers_closure2() {
-    },
-    Serializers_Serializers_closure3: function Serializers_Serializers_closure3() {
-    },
-    FullType: function FullType(t0, t1, t2) {
-      this.root = t0;
-      this.parameters = t1;
-      this.nullable = t2;
-    },
-    DeserializationError: function DeserializationError(t0, t1) {
-      this.type = t0;
-      this.error = t1;
-    },
-    BigIntSerializer: function BigIntSerializer(t0) {
-      this.types = t0;
-    },
-    BoolSerializer: function BoolSerializer(t0) {
-      this.types = t0;
-    },
-    BuiltJsonSerializersBuilder$_(_typeToSerializer, _wireNameToSerializer, _typeNameToSerializer, _builderFactories, _plugins) {
-      return new A.BuiltJsonSerializersBuilder(_typeToSerializer, _wireNameToSerializer, _typeNameToSerializer, _builderFactories, _plugins);
-    },
-    _getRawName(type) {
-      var $name = J.toString$0$(type),
-        genericsStart = B.JSString_methods.indexOf$1($name, "<");
-      return genericsStart === -1 ? $name : B.JSString_methods.substring$2($name, 0, genericsStart);
-    },
-    _noSerializerMessageFor(typeName) {
-      var maybeRecordAdvice = B.JSString_methods.contains$1(typeName, "(") ? " Note that record types are not automatically serializable, please write and install your own `Serializer`." : "";
-      return "No serializer for '" + typeName + "'." + maybeRecordAdvice;
-    },
-    BuiltJsonSerializers: function BuiltJsonSerializers(t0, t1, t2, t3, t4) {
-      var _ = this;
-      _._typeToSerializer = t0;
-      _._wireNameToSerializer = t1;
-      _._typeNameToSerializer = t2;
-      _.builderFactories = t3;
-      _.serializerPlugins = t4;
-    },
-    BuiltJsonSerializersBuilder: function BuiltJsonSerializersBuilder(t0, t1, t2, t3, t4) {
-      var _ = this;
-      _._typeToSerializer = t0;
-      _._wireNameToSerializer = t1;
-      _._typeNameToSerializer = t2;
-      _._builderFactories = t3;
-      _._plugins = t4;
-    },
-    BuiltListMultimapSerializer: function BuiltListMultimapSerializer(t0) {
-      this.types = t0;
-    },
-    BuiltListMultimapSerializer_serialize_closure: function BuiltListMultimapSerializer_serialize_closure(t0, t1) {
-      this.serializers = t0;
-      this.valueType = t1;
-    },
-    BuiltListMultimapSerializer_deserialize_closure: function BuiltListMultimapSerializer_deserialize_closure(t0, t1) {
-      this.serializers = t0;
-      this.valueType = t1;
-    },
-    BuiltListSerializer: function BuiltListSerializer(t0) {
-      this.types = t0;
-    },
-    BuiltListSerializer_serialize_closure: function BuiltListSerializer_serialize_closure(t0, t1) {
-      this.serializers = t0;
-      this.elementType = t1;
-    },
-    BuiltListSerializer_deserialize_closure: function BuiltListSerializer_deserialize_closure(t0, t1) {
-      this.serializers = t0;
-      this.elementType = t1;
-    },
-    BuiltMapSerializer: function BuiltMapSerializer(t0) {
-      this.types = t0;
-    },
-    BuiltSetMultimapSerializer: function BuiltSetMultimapSerializer(t0) {
-      this.types = t0;
-    },
-    BuiltSetMultimapSerializer_serialize_closure: function BuiltSetMultimapSerializer_serialize_closure(t0, t1) {
-      this.serializers = t0;
-      this.valueType = t1;
-    },
-    BuiltSetMultimapSerializer_deserialize_closure: function BuiltSetMultimapSerializer_deserialize_closure(t0, t1) {
-      this.serializers = t0;
-      this.valueType = t1;
-    },
-    BuiltSetSerializer: function BuiltSetSerializer(t0) {
-      this.types = t0;
-    },
-    BuiltSetSerializer_serialize_closure: function BuiltSetSerializer_serialize_closure(t0, t1) {
-      this.serializers = t0;
-      this.elementType = t1;
-    },
-    BuiltSetSerializer_deserialize_closure: function BuiltSetSerializer_deserialize_closure(t0, t1) {
-      this.serializers = t0;
-      this.elementType = t1;
-    },
-    DateTimeSerializer: function DateTimeSerializer(t0) {
-      this.types = t0;
-    },
-    DoubleSerializer: function DoubleSerializer(t0) {
-      this.types = t0;
-    },
-    DurationSerializer: function DurationSerializer(t0) {
-      this.types = t0;
-    },
-    Int32Serializer: function Int32Serializer(t0) {
-      this.types = t0;
-    },
-    Int64Serializer: function Int64Serializer(t0) {
-      this.types = t0;
-    },
-    IntSerializer: function IntSerializer(t0) {
-      this.types = t0;
-    },
-    JsonObjectSerializer: function JsonObjectSerializer(t0) {
-      this.types = t0;
-    },
-    ListSerializer: function ListSerializer(t0) {
-      this.types = t0;
-    },
-    ListSerializer_serialize_closure: function ListSerializer_serialize_closure(t0, t1) {
-      this.serializers = t0;
-      this.elementType = t1;
-    },
-    MapSerializer: function MapSerializer(t0) {
-      this.types = t0;
-    },
-    NullSerializer: function NullSerializer(t0) {
-      this.types = t0;
-    },
-    NumSerializer: function NumSerializer(t0) {
-      this.types = t0;
-    },
-    RegExpSerializer: function RegExpSerializer(t0) {
-      this.types = t0;
-    },
-    SetSerializer: function SetSerializer(t0) {
-      this.types = t0;
-    },
-    SetSerializer_serialize_closure: function SetSerializer_serialize_closure(t0, t1) {
-      this.serializers = t0;
-      this.elementType = t1;
-    },
-    StringSerializer: function StringSerializer(t0) {
-      this.types = t0;
-    },
-    Uint8ListSerializer: function Uint8ListSerializer() {
-    },
-    UriSerializer: function UriSerializer(t0) {
-      this.types = t0;
-    },
     CanonicalizedMap: function CanonicalizedMap() {
     },
     CanonicalizedMap_addAll_closure: function CanonicalizedMap_addAll_closure(t0) {
@@ -8405,42 +7189,6 @@
     },
     CanonicalizedMap_keys_closure: function CanonicalizedMap_keys_closure(t0) {
       this.$this = t0;
-    },
-    CanonicalizedMap_map_closure: function CanonicalizedMap_map_closure(t0, t1, t2, t3) {
-      var _ = this;
-      _.$this = t0;
-      _.transform = t1;
-      _.K2 = t2;
-      _.V2 = t3;
-    },
-    DefaultEquality: function DefaultEquality(t0) {
-      this.$ti = t0;
-    },
-    IterableEquality: function IterableEquality(t0, t1) {
-      this._elementEquality = t0;
-      this.$ti = t1;
-    },
-    ListEquality: function ListEquality(t0, t1) {
-      this._elementEquality = t0;
-      this.$ti = t1;
-    },
-    _UnorderedEquality: function _UnorderedEquality() {
-    },
-    SetEquality: function SetEquality(t0, t1) {
-      this._elementEquality = t0;
-      this.$ti = t1;
-    },
-    _MapEntry: function _MapEntry(t0, t1, t2) {
-      this.equality = t0;
-      this.key = t1;
-      this.value = t2;
-    },
-    MapEquality: function MapEquality(t0, t1, t2) {
-      this._keyEquality = t0;
-      this._valueEquality = t1;
-      this.$ti = t2;
-    },
-    DeepCollectionEquality: function DeepCollectionEquality() {
     },
     QueueList__computeInitialCapacity(initialCapacity) {
       return 8;
@@ -8476,7 +7224,7 @@
     },
     BuildStatus: function BuildStatus(t0, t1) {
       this.index = t0;
-      this._core$_name = t1;
+      this._name = t1;
     },
     BuildStatus_BuildStatus$fromJson_closure: function BuildStatus_BuildStatus$fromJson_closure(t0) {
       this.json = t0;
@@ -8642,109 +7390,12 @@
     },
     safeUnawaited_closure: function safeUnawaited_closure() {
     },
-    Int32: function Int32(t0) {
-      this._i = t0;
-    },
-    Int64__parseRadix(s, radix, throwOnError) {
-      var d0, d1, d2, digit, d00, d10,
-        negative = B.JSString_methods.startsWith$1(s, "-"),
-        i = negative ? 1 : 0,
-        t1 = s.length;
-      if (i >= t1)
-        throw A.wrapException(A.FormatException$("No digits", s, i));
-      for (d0 = 0, d1 = 0, d2 = 0; i < t1; ++i, d1 = d10, d0 = d00) {
-        digit = A.decodeDigit(s.charCodeAt(i));
-        if (digit < radix) {
-          d0 = d0 * radix + digit;
-          d00 = d0 & 4194303;
-          d1 = d1 * radix + B.JSInt_methods._shrOtherPositive$1(d0, 22);
-          d10 = d1 & 4194303;
-          d2 = d2 * radix + (d1 >>> 22) & 1048575;
-        } else
-          throw A.wrapException(A.FormatException$("Not radix digit", s, i));
-      }
-      if (negative)
-        return A.Int64__sub(0, 0, 0, d0, d1, d2);
-      return new A.Int64(d0 & 4194303, d1 & 4194303, d2 & 1048575);
-    },
-    Int64_Int64(value) {
-      var v2, v1, t1, t2, t3,
-        negative = value < 0;
-      if (negative)
-        value = -value;
-      v2 = B.JSInt_methods._tdivFast$1(value, 17592186044416);
-      value -= v2 * 17592186044416;
-      v1 = B.JSInt_methods._tdivFast$1(value, 4194304);
-      t1 = value - v1 * 4194304 & 4194303;
-      t2 = v1 & 4194303;
-      t3 = v2 & 1048575;
-      return negative ? A.Int64__sub(0, 0, 0, t1, t2, t3) : new A.Int64(t1, t2, t3);
-    },
-    Int64__promote(value) {
-      if (value instanceof A.Int64)
-        return value;
-      else if (A._isInt(value))
-        return A.Int64_Int64(value);
-      else if (value instanceof A.Int32)
-        return A.Int64_Int64(value._i);
-      throw A.wrapException(A.ArgumentError$value(value, "other", "not an int, Int32 or Int64"));
-    },
-    Int64__toRadixStringUnsigned(radix, d0, d1, d2, sign) {
-      var d4, d3, fatRadix, chunk1, chunk2, chunk3, q, q0, q1, q2, q3, chunk10, residue;
-      if (d0 === 0 && d1 === 0 && d2 === 0)
-        return "0";
-      d4 = (d2 << 4 | d1 >>> 18) >>> 0;
-      d3 = d1 >>> 8 & 1023;
-      d2 = (d1 << 2 | d0 >>> 20) & 1023;
-      d1 = d0 >>> 10 & 1023;
-      d0 &= 1023;
-      if (!(radix < 37))
-        return A.ioore(B.List_ZNA, radix);
-      fatRadix = B.List_ZNA[radix];
-      chunk1 = "";
-      chunk2 = "";
-      chunk3 = "";
-      for (;;) {
-        if (!!(d4 === 0 && d3 === 0))
-          break;
-        q = B.JSInt_methods.$tdiv(d4, fatRadix);
-        d3 += d4 - q * fatRadix << 10 >>> 0;
-        q0 = B.JSInt_methods.$tdiv(d3, fatRadix);
-        d2 += d3 - q0 * fatRadix << 10 >>> 0;
-        q1 = B.JSInt_methods.$tdiv(d2, fatRadix);
-        d1 += d2 - q1 * fatRadix << 10 >>> 0;
-        q2 = B.JSInt_methods.$tdiv(d1, fatRadix);
-        d0 += d1 - q2 * fatRadix << 10 >>> 0;
-        q3 = B.JSInt_methods.$tdiv(d0, fatRadix);
-        chunk10 = B.JSString_methods.substring$1(B.JSInt_methods.toRadixString$1(fatRadix + (d0 - q3 * fatRadix), radix), 1);
-        chunk3 = chunk2;
-        chunk2 = chunk1;
-        chunk1 = chunk10;
-        d3 = q0;
-        d4 = q;
-        d2 = q1;
-        d1 = q2;
-        d0 = q3;
-      }
-      residue = (d2 << 20 >>> 0) + (d1 << 10 >>> 0) + d0;
-      return sign + (residue === 0 ? "" : B.JSInt_methods.toRadixString$1(residue, radix)) + chunk1 + chunk2 + chunk3;
-    },
-    Int64__sub(a0, a1, a2, b0, b1, b2) {
-      var diff0 = a0 - b0,
-        diff1 = a1 - b1 - (B.JSInt_methods._shrOtherPositive$1(diff0, 22) & 1);
-      return new A.Int64(diff0 & 4194303, diff1 & 4194303, a2 - b2 - (B.JSInt_methods._shrOtherPositive$1(diff1, 22) & 1) & 1048575);
-    },
-    Int64: function Int64(t0, t1, t2) {
-      this._l = t0;
-      this._m = t1;
-      this._h = t2;
-    },
     stronglyConnectedComponents(nodes, edges, $T) {
-      var t2, t3, t4, node, index, t5, state, iterator, index0, lowLink, t6, next, component, _null = null,
+      var t2, t3, t4, node, index, t5, state, iterator, index0, lowLink, t6, next, component, t7, result0, _null = null,
         result = A._setArrayType([], $T._eval$1("JSArray<List<0>>")),
         t1 = type$.int,
-        lowLinks = A.HashMap_HashMap(_null, _null, _null, $T, t1),
-        indexes = A.HashMap_HashMap(_null, _null, _null, $T, t1),
+        lowLinks = A.HashMap_HashMap(_null, _null, $T, t1),
+        indexes = A.HashMap_HashMap(_null, _null, $T, t1),
         onStack = A.HashSet_HashSet(_null, _null, $T),
         lastVisited = A.ListQueue$($T);
       t1 = A._setArrayType([], $T._eval$1("JSArray<_StackState<0>>"));
@@ -8798,10 +7449,24 @@
           if (lowLink === indexes.$index(0, node)) {
             component = A._setArrayType([], t3);
             do {
-              next = lastVisited.removeLast$0(0);
-              onStack.remove$1(0, next);
-              B.JSArray_methods.add$1(component, next);
-            } while (!A._defaultEquals(next, node));
+              t5 = lastVisited._head;
+              t6 = lastVisited._tail;
+              if (t5 === t6)
+                A.throwExpression(A.IterableElementError_noElement());
+              ++lastVisited._modificationCount;
+              t5 = lastVisited._table;
+              t7 = t5.length;
+              t6 = (t6 - 1 & t7 - 1) >>> 0;
+              lastVisited._tail = t6;
+              if (!(t6 >= 0 && t6 < t7))
+                return A.ioore(t5, t6);
+              result0 = t5[t6];
+              if (result0 == null)
+                result0 = t2._as(result0);
+              B.JSArray_methods.$indexSet(t5, t6, _null);
+              onStack.remove$1(0, result0);
+              B.JSArray_methods.add$1(component, result0);
+            } while (!A._defaultEquals(result0, node));
             B.JSArray_methods.add$1(result, component);
           }
         }
@@ -9805,7 +8470,7 @@
             t3 = type$.nullable_Map_dynamic_dynamic._as(jsonData.$index(0, "args"));
             t3 = t3 == null ? null : t3.cast$2$0(0, type$.String, type$.dynamic);
             if (t3 == null)
-              t3 = B.Map_empty0;
+              t3 = B.Map_empty;
             return new A.ServiceExtensionRequest(t1, t2, t3);
           case "BuildResult":
             return new A.BuildResult(A.BuildStatus_BuildStatus$fromJson(A._asString(jsonData.$index(0, "status"))));
@@ -9813,11 +8478,9 @@
             return new A.DevToolsResponse(A._asBool(jsonData.$index(0, "success")), A._asBool(jsonData.$index(0, "promptExtension")), A._asStringQ(jsonData.$index(0, "error")));
           case "ErrorResponse":
             return new A.ErrorResponse(A._asString(jsonData.$index(0, "error")), A._asString(jsonData.$index(0, "stackTrace")));
-          default:
-            break;
         }
       }
-      return $.$get$serializers().deserialize$1(decoded);
+      return null;
     },
     _sendConnectRequest(clientSink) {
       var t1 = init.G,
@@ -9874,13 +8537,20 @@
       return A._asyncStartSync($async$_authenticateUser, $async$completer);
     },
     _sendResponse(clientSink, $constructor, requestId, errorMessage, success, $T) {
-      var encoded,
+      var t1,
         response = $constructor.call$3(requestId, success, errorMessage);
-      if (response instanceof A.HotReloadResponse)
-        encoded = A._setArrayType(["HotReloadResponse", response.toJson$0()], type$.JSArray_Object);
-      else
-        encoded = response instanceof A.HotRestartResponse ? A._setArrayType(["HotRestartResponse", response.toJson$0()], type$.JSArray_Object) : $.$get$serializers().serialize$1(response);
-      A._trySendEvent(clientSink, B.C_JsonCodec.encode$2$toEncodable(encoded, null), type$.dynamic);
+      $label0$0: {
+        if (response instanceof A.HotReloadResponse) {
+          t1 = A._setArrayType(["HotReloadResponse", response.toJson$0()], type$.JSArray_Object);
+          break $label0$0;
+        }
+        if (response instanceof A.HotRestartResponse) {
+          t1 = A._setArrayType(["HotRestartResponse", response.toJson$0()], type$.JSArray_Object);
+          break $label0$0;
+        }
+        t1 = A.throwExpression(A.StateError$("Unknown response type: " + A.S(response)));
+      }
+      A._trySendEvent(clientSink, B.C_JsonCodec.encode$2$toEncodable(t1, null), type$.dynamic);
     },
     _sendHotReloadResponse(clientSink, requestId, errorMessage, success) {
       A._sendResponse(clientSink, new A._sendHotReloadResponse_closure(), requestId, errorMessage, success, type$.HotReloadResponse);
@@ -10262,7 +8932,7 @@
     RequireRestarter_create() {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.RequireRestarter),
-        $async$returnValue, reloader, t1, t2, t3;
+        $async$returnValue, reloader, t1, t2;
       var $async$RequireRestarter_create = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -10270,12 +8940,12 @@
           switch ($async$goto) {
             case 0:
               // Function start
-              t1 = type$.String;
-              t2 = A.HashMap_HashMap(null, null, null, t1, type$.int);
-              t3 = new A._AsyncCompleter(new A._Future($.Zone__current, type$._Future_bool), type$._AsyncCompleter_bool);
-              t3.complete$1(true);
-              reloader = new A.RequireRestarter(t2, t3);
-              reloader.__RequireRestarter__dirtyModules_A = type$.SplayTreeSet_String._as(A.SplayTreeSet$(reloader.get$_moduleTopologicalCompare(), null, t1));
+              t1 = A.HashMap_HashMap(null, null, type$.String, type$.int);
+              t2 = new A._AsyncCompleter(new A._Future($.Zone__current, type$._Future_bool), type$._AsyncCompleter_bool);
+              t2.complete$1(true);
+              reloader = new A.RequireRestarter(t1, t2);
+              t1 = type$.SplayTreeSet_String;
+              reloader.__RequireRestarter__dirtyModules_A = t1._as(new A.SplayTreeSet(reloader.get$_moduleTopologicalCompare(), t1));
               $async$goto = 3;
               return A._asyncAwait(reloader._initialize$0(), $async$RequireRestarter_create);
             case 3:
@@ -10384,17 +9054,6 @@
         J.add$1$ax(t2, element);
       }
       return map;
-    },
-    decodeDigit(c) {
-      var letter,
-        digit = c ^ 48;
-      if (digit < 10)
-        return digit;
-      letter = (c | 32) - 97;
-      if (letter >= 0)
-        return letter + 10;
-      else
-        return 255;
     },
     encodingForContentTypeHeader(contentTypeHeader) {
       var t1,
@@ -10813,9 +9472,6 @@
       var t1 = A._arrayInstanceType(receiver);
       return new A.MappedListIterable(receiver, t1._bind$1($T)._eval$1("1(2)")._as(f), t1._eval$1("@<1>")._bind$1($T)._eval$1("MappedListIterable<1,2>"));
     },
-    map$1(receiver, f) {
-      return this.map$1$1(receiver, f, type$.dynamic);
-    },
     join$1(receiver, separator) {
       var i,
         list = A.List_List$filled(receiver.length, "", false, type$.String);
@@ -10828,18 +9484,6 @@
     },
     skip$1(receiver, n) {
       return A.SubListIterable$(receiver, n, null, A._arrayInstanceType(receiver)._precomputed1);
-    },
-    fold$1$2(receiver, initialValue, combine, $T) {
-      var $length, value, i;
-      $T._as(initialValue);
-      A._arrayInstanceType(receiver)._bind$1($T)._eval$1("1(1,2)")._as(combine);
-      $length = receiver.length;
-      for (value = initialValue, i = 0; i < $length; ++i) {
-        value = combine.call$2(value, receiver[i]);
-        if (receiver.length !== $length)
-          throw A.wrapException(A.ConcurrentModificationError$(receiver));
-      }
-      return value;
     },
     firstWhere$2$orElse(receiver, test, orElse) {
       var end, i, element,
@@ -10861,21 +9505,6 @@
       if (!(index >= 0 && index < receiver.length))
         return A.ioore(receiver, index);
       return receiver[index];
-    },
-    sublist$2(receiver, start, end) {
-      var t1 = receiver.length;
-      if (start > t1)
-        throw A.wrapException(A.RangeError$range(start, 0, t1, "start", null));
-      if (start === t1)
-        return A._setArrayType([], A._arrayInstanceType(receiver));
-      return A._setArrayType(receiver.slice(start, t1), A._arrayInstanceType(receiver));
-    },
-    sublist$1(receiver, start) {
-      return this.sublist$2(receiver, start, null);
-    },
-    getRange$2(receiver, start, end) {
-      A.RangeError_checkValidRange(start, end, receiver.length);
-      return A.SubListIterable$(receiver, start, end, A._arrayInstanceType(receiver)._precomputed1);
     },
     get$first(receiver) {
       if (receiver.length > 0)
@@ -10958,9 +9587,6 @@
       if (undefineds > 0)
         this._replaceSomeNullsWithUndefined$1(receiver, undefineds);
     },
-    sort$0(receiver) {
-      return this.sort$1(receiver, null);
-    },
     _replaceSomeNullsWithUndefined$1(receiver, count) {
       var i0,
         i = receiver.length;
@@ -10972,21 +9598,18 @@
             break;
         }
     },
-    indexOf$2(receiver, element, start) {
+    indexOf$1(receiver, element) {
       var i,
         $length = receiver.length;
-      if (start >= $length)
+      if (0 >= $length)
         return -1;
-      for (i = start; i < $length; ++i) {
+      for (i = 0; i < $length; ++i) {
         if (!(i < receiver.length))
           return A.ioore(receiver, i);
         if (J.$eq$(receiver[i], element))
           return i;
       }
       return -1;
-    },
-    indexOf$1(receiver, element) {
-      return this.indexOf$2(receiver, element, 0);
     },
     contains$1(receiver, other) {
       var i;
@@ -11040,18 +9663,15 @@
         throw A.wrapException(A.diagnoseIndexError(receiver, index));
       receiver[index] = value;
     },
-    indexWhere$2(receiver, test, start) {
+    indexWhere$1(receiver, test) {
       var i;
       A._arrayInstanceType(receiver)._eval$1("bool(1)")._as(test);
-      if (start >= receiver.length)
+      if (0 >= receiver.length)
         return -1;
-      for (i = start; i < receiver.length; ++i)
+      for (i = 0; i < receiver.length; ++i)
         if (test.call$1(receiver[i]))
           return i;
       return -1;
-    },
-    indexWhere$1(receiver, test) {
-      return this.indexWhere$2(receiver, test, 0);
     },
     get$runtimeType(receiver) {
       return A.createRuntimeType(A._arrayInstanceType(receiver));
@@ -11140,20 +9760,6 @@
         return t1 + 0;
       }
       throw A.wrapException(A.UnsupportedError$("" + receiver + ".toInt()"));
-    },
-    ceil$0(receiver) {
-      var truncated, d;
-      if (receiver >= 0) {
-        if (receiver <= 2147483647) {
-          truncated = receiver | 0;
-          return receiver === truncated ? truncated : truncated + 1;
-        }
-      } else if (receiver >= -2147483648)
-        return receiver | 0;
-      d = Math.ceil(receiver);
-      if (isFinite(d))
-        return d;
-      throw A.wrapException(A.UnsupportedError$("" + receiver + ".ceil()"));
     },
     floor$0(receiver) {
       var truncated, d;
@@ -11245,25 +9851,8 @@
         return Math.ceil(quotient);
       throw A.wrapException(A.UnsupportedError$("Result of truncating division is " + A.S(quotient) + ": " + A.S(receiver) + " ~/ " + other));
     },
-    $shl(receiver, other) {
-      if (other < 0)
-        throw A.wrapException(A.argumentErrorValue(other));
-      return other > 31 ? 0 : receiver << other >>> 0;
-    },
     _shlPositive$1(receiver, other) {
       return other > 31 ? 0 : receiver << other >>> 0;
-    },
-    $shr(receiver, other) {
-      var t1;
-      if (other < 0)
-        throw A.wrapException(A.argumentErrorValue(other));
-      if (receiver > 0)
-        t1 = this._shrBothPositive$1(receiver, other);
-      else {
-        t1 = other > 31 ? 31 : other;
-        t1 = receiver >> t1 >>> 0;
-      }
-      return t1;
     },
     _shrOtherPositive$1(receiver, other) {
       var t1;
@@ -11291,16 +9880,6 @@
     $isnum: 1
   };
   J.JSInt.prototype = {
-    get$bitLength(receiver) {
-      var wordBits,
-        t1 = receiver < 0 ? -receiver - 1 : receiver,
-        nonneg = t1;
-      for (wordBits = 32; nonneg >= 4294967296;) {
-        nonneg = this._tdivFast$1(nonneg, 4294967296);
-        wordBits += 32;
-      }
-      return wordBits - Math.clz32(nonneg);
-    },
     get$runtimeType(receiver) {
       return A.createRuntimeType(type$.int);
     },
@@ -11571,9 +10150,6 @@
     elementAt$1(_, index) {
       return A._instanceType(this)._rest[1]._as(J.elementAt$1$ax(this.get$__internal$_source(), index));
     },
-    get$first(_) {
-      return A._instanceType(this)._rest[1]._as(J.get$first$ax(this.get$__internal$_source()));
-    },
     contains$1(_, other) {
       return J.contains$1$asx(this.get$__internal$_source(), other);
     },
@@ -11616,10 +10192,6 @@
       this.$ti._eval$1("int(2,2)?")._as(compare);
       t1 = compare == null ? null : new A._CastListBase_sort_closure(this, compare);
       J.sort$1$ax(this.__internal$_source, t1);
-    },
-    getRange$2(_, start, end) {
-      var t1 = this.$ti;
-      return A.CastIterable_CastIterable(J.getRange$2$ax(this.__internal$_source, start, end), t1._precomputed1, t1._rest[1]);
     },
     fillRange$3(_, start, end, fillValue) {
       J.fillRange$3$ax(this.__internal$_source, start, end, this.$ti._precomputed1._as(fillValue));
@@ -11715,7 +10287,7 @@
     call$0() {
       return A.Future_Future$value(null, type$.void);
     },
-    $signature: 13
+    $signature: 10
   };
   A.SentinelValue.prototype = {};
   A.EfficientLengthIterable.prototype = {};
@@ -11767,15 +10339,9 @@
         return t1.charCodeAt(0) == 0 ? t1 : t1;
       }
     },
-    join$0(_) {
-      return this.join$1(0, "");
-    },
     map$1$1(_, toElement, $T) {
       var t1 = A._instanceType(this);
       return new A.MappedListIterable(this, t1._bind$1($T)._eval$1("1(ListIterable.E)")._as(toElement), t1._eval$1("@<ListIterable.E>")._bind$1($T)._eval$1("MappedListIterable<1,2>"));
-    },
-    map$1(_, toElement) {
-      return this.map$1$1(0, toElement, type$.dynamic);
     },
     reduce$1(_, combine) {
       var $length, value, i, _this = this;
@@ -11796,13 +10362,6 @@
     },
     take$1(_, count) {
       return A.SubListIterable$(this, 0, A.checkNotNullable(count, "count", type$.int), A._instanceType(this)._eval$1("ListIterable.E"));
-    },
-    toList$1$growable(_, growable) {
-      var t1 = A.List_List$_of(this, A._instanceType(this)._eval$1("ListIterable.E"));
-      return t1;
-    },
-    toList$0(_) {
-      return this.toList$1$growable(0, true);
     }
   };
   A.SubListIterable.prototype = {
@@ -11928,9 +10487,6 @@
     get$isEmpty(_) {
       return J.get$isEmpty$asx(this.__internal$_iterable);
     },
-    get$first(_) {
-      return this._f.call$1(J.get$first$ax(this.__internal$_iterable));
-    },
     elementAt$1(_, index) {
       return this._f.call$1(J.elementAt$1$ax(this.__internal$_iterable, index));
     }
@@ -11968,9 +10524,6 @@
     map$1$1(_, toElement, $T) {
       var t1 = this.$ti;
       return new A.MappedIterable(this, t1._bind$1($T)._eval$1("1(2)")._as(toElement), t1._eval$1("@<1>")._bind$1($T)._eval$1("MappedIterable<1,2>"));
-    },
-    map$1(_, toElement) {
-      return this.map$1$1(0, toElement, type$.dynamic);
     }
   };
   A.WhereIterator.prototype = {
@@ -12093,9 +10646,6 @@
     get$length(_) {
       return 0;
     },
-    get$first(_) {
-      throw A.wrapException(A.IterableElementError_noElement());
-    },
     elementAt$1(_, index) {
       throw A.wrapException(A.RangeError$range(index, 0, 0, "index", null));
     },
@@ -12106,9 +10656,6 @@
       this.$ti._bind$1($T)._eval$1("1(2)")._as(toElement);
       return new A.EmptyIterable($T._eval$1("EmptyIterable<0>"));
     },
-    map$1(_, toElement) {
-      return this.map$1$1(0, toElement, type$.dynamic);
-    },
     skip$1(_, count) {
       A.RangeError_checkNotNegative(count, "count");
       return this;
@@ -12118,11 +10665,8 @@
       return this;
     },
     toList$1$growable(_, growable) {
-      var t1 = this.$ti._precomputed1;
-      return growable ? J.JSArray_JSArray$growable(0, t1) : J.JSArray_JSArray$fixed(0, t1);
-    },
-    toList$0(_) {
-      return this.toList$1$growable(0, true);
+      var t1 = J.JSArray_JSArray$fixed(0, this.$ti._precomputed1);
+      return t1;
     }
   };
   A.EmptyIterator.prototype = {
@@ -12214,26 +10758,7 @@
       t1._rest[1]._as(value);
       A.ConstantMap__throwUnmodifiable();
     },
-    map$2$1(_, transform, $K2, $V2) {
-      var result = A.LinkedHashMap_LinkedHashMap$_empty($K2, $V2);
-      this.forEach$1(0, new A.ConstantMap_map_closure(this, A._instanceType(this)._bind$1($K2)._bind$1($V2)._eval$1("MapEntry<1,2>(3,4)")._as(transform), result));
-      return result;
-    },
-    map$1(_, transform) {
-      var t1 = type$.dynamic;
-      return this.map$2$1(0, transform, t1, t1);
-    },
     $isMap: 1
-  };
-  A.ConstantMap_map_closure.prototype = {
-    call$2(key, value) {
-      var t1 = A._instanceType(this.$this),
-        entry = this.transform.call$2(t1._precomputed1._as(key), t1._rest[1]._as(value));
-      this.result.$indexSet(0, entry.key, entry.value);
-    },
-    $signature() {
-      return A._instanceType(this.$this)._eval$1("~(1,2)");
-    }
   };
   A.ConstantStringMap.prototype = {
     get$length(_) {
@@ -12483,9 +11008,6 @@
         return false;
       return this.internalFindBucketIndex$2(rest[this.internalComputeHashCode$1(key)], key) >= 0;
     },
-    addAll$1(_, other) {
-      A._instanceType(this)._eval$1("Map<1,2>")._as(other).forEach$1(0, new A.JsLinkedHashMap_addAll_closure(this));
-    },
     $index(_, key) {
       var strings, cell, t1, nums, _null = null;
       if (typeof key == "string") {
@@ -12563,31 +11085,6 @@
       _this.$indexSet(0, key, value);
       return value;
     },
-    remove$1(_, key) {
-      var _this = this;
-      if (typeof key == "string")
-        return _this._removeHashTableEntry$2(_this.__js_helper$_strings, key);
-      else if (typeof key == "number" && (key & 0x3fffffff) === key)
-        return _this._removeHashTableEntry$2(_this.__js_helper$_nums, key);
-      else
-        return _this.internalRemove$1(key);
-    },
-    internalRemove$1(key) {
-      var hash, bucket, index, cell, _this = this,
-        rest = _this.__js_helper$_rest;
-      if (rest == null)
-        return null;
-      hash = _this.internalComputeHashCode$1(key);
-      bucket = rest[hash];
-      index = _this.internalFindBucketIndex$2(bucket, key);
-      if (index < 0)
-        return null;
-      cell = bucket.splice(index, 1)[0];
-      _this._unlinkCell$1(cell);
-      if (bucket.length === 0)
-        delete rest[hash];
-      return cell.hashMapCellValue;
-    },
     forEach$1(_, action) {
       var cell, modifications, _this = this;
       A._instanceType(_this)._eval$1("~(1,2)")._as(action);
@@ -12611,17 +11108,6 @@
       else
         cell.hashMapCellValue = value;
     },
-    _removeHashTableEntry$2(table, key) {
-      var cell;
-      if (table == null)
-        return null;
-      cell = table[key];
-      if (cell == null)
-        return null;
-      this._unlinkCell$1(cell);
-      delete table[key];
-      return cell.hashMapCellValue;
-    },
     _modified$0() {
       this._modifications = this._modifications + 1 & 1073741823;
     },
@@ -12640,21 +11126,6 @@
       ++_this.__js_helper$_length;
       _this._modified$0();
       return cell;
-    },
-    _unlinkCell$1(cell) {
-      var _this = this,
-        previous = cell._previous,
-        next = cell._next;
-      if (previous == null)
-        _this._first = next;
-      else
-        previous._next = next;
-      if (next == null)
-        _this._last = previous;
-      else
-        next._previous = previous;
-      --_this.__js_helper$_length;
-      _this._modified$0();
     },
     internalComputeHashCode$1(key) {
       return J.get$hashCode$(key) & 1073741823;
@@ -12679,16 +11150,6 @@
       return table;
     },
     $isLinkedHashMap: 1
-  };
-  A.JsLinkedHashMap_addAll_closure.prototype = {
-    call$2(key, value) {
-      var t1 = this.$this,
-        t2 = A._instanceType(t1);
-      t1.$indexSet(0, t2._precomputed1._as(key), t2._rest[1]._as(value));
-    },
-    $signature() {
-      return A._instanceType(this.$this)._eval$1("~(1,2)");
-    }
   };
   A.LinkedHashMapCell.prototype = {};
   A.LinkedHashMapKeysIterable.prototype = {
@@ -12816,19 +11277,19 @@
     call$1(o) {
       return this.getTag(o);
     },
-    $signature: 5
+    $signature: 20
   };
   A.initHooks_closure0.prototype = {
     call$2(o, tag) {
       return this.getUnknownTag(o, tag);
     },
-    $signature: 56
+    $signature: 74
   };
   A.initHooks_closure1.prototype = {
     call$1(tag) {
       return this.prototypeForTag(A._asString(tag));
     },
-    $signature: 38
+    $signature: 90
   };
   A._Record.prototype = {
     get$runtimeType(_) {
@@ -12925,12 +11386,6 @@
         return t1;
       t1 = _this._nativeRegExp;
       return _this._nativeAnchoredRegExp = A.JSSyntaxRegExp_makeNative(_this.pattern, t1.multiline, !t1.ignoreCase, t1.unicode, t1.dotAll, "y");
-    },
-    firstMatch$1(string) {
-      var m = this._nativeRegExp.exec(string);
-      if (m == null)
-        return null;
-      return new A._MatchImplementation(m);
     },
     allMatches$2(_, string, start) {
       var t1 = string.length;
@@ -13056,13 +11511,6 @@
   A._StringAllMatchesIterable.prototype = {
     get$iterator(_) {
       return new A._StringAllMatchesIterator(this._input, this._pattern, this.__js_helper$_index);
-    },
-    get$first(_) {
-      var t1 = this._pattern,
-        index = this._input.indexOf(t1, this.__js_helper$_index);
-      if (index >= 0)
-        return new A.StringMatch(index, t1);
-      throw A.wrapException(A.IterableElementError_noElement());
     }
   };
   A._StringAllMatchesIterator.prototype = {
@@ -13099,13 +11547,7 @@
     _readLocal$0() {
       var t1 = this.__late_helper$_value;
       if (t1 === this)
-        throw A.wrapException(new A.LateError("Local '" + this._name + "' has not been initialized."));
-      return t1;
-    },
-    _readField$0() {
-      var t1 = this.__late_helper$_value;
-      if (t1 === this)
-        throw A.wrapException(A.LateError$fieldNI(this._name));
+        throw A.wrapException(new A.LateError("Local '" + this.__late_helper$_name + "' has not been initialized."));
       return t1;
     }
   };
@@ -13217,24 +11659,12 @@
     get$runtimeType(receiver) {
       return B.Type_Float32List_9Kz;
     },
-    sublist$2(receiver, start, end) {
-      return new Float32Array(receiver.subarray(start, A._checkValidRange(start, end, receiver.length)));
-    },
-    sublist$1(receiver, start) {
-      return this.sublist$2(receiver, start, null);
-    },
     $isTrustedGetRuntimeType: 1,
     $isFloat32List: 1
   };
   A.NativeFloat64List.prototype = {
     get$runtimeType(receiver) {
       return B.Type_Float64List_9Kz;
-    },
-    sublist$2(receiver, start, end) {
-      return new Float64Array(receiver.subarray(start, A._checkValidRange(start, end, receiver.length)));
-    },
-    sublist$1(receiver, start) {
-      return this.sublist$2(receiver, start, null);
     },
     $isTrustedGetRuntimeType: 1,
     $isFloat64List: 1
@@ -13247,12 +11677,6 @@
       A._checkValidIndex(index, receiver, receiver.length);
       return receiver[index];
     },
-    sublist$2(receiver, start, end) {
-      return new Int16Array(receiver.subarray(start, A._checkValidRange(start, end, receiver.length)));
-    },
-    sublist$1(receiver, start) {
-      return this.sublist$2(receiver, start, null);
-    },
     $isTrustedGetRuntimeType: 1,
     $isInt16List: 1
   };
@@ -13263,12 +11687,6 @@
     $index(receiver, index) {
       A._checkValidIndex(index, receiver, receiver.length);
       return receiver[index];
-    },
-    sublist$2(receiver, start, end) {
-      return new Int32Array(receiver.subarray(start, A._checkValidRange(start, end, receiver.length)));
-    },
-    sublist$1(receiver, start) {
-      return this.sublist$2(receiver, start, null);
     },
     $isTrustedGetRuntimeType: 1,
     $isInt32List: 1
@@ -13281,12 +11699,6 @@
       A._checkValidIndex(index, receiver, receiver.length);
       return receiver[index];
     },
-    sublist$2(receiver, start, end) {
-      return new Int8Array(receiver.subarray(start, A._checkValidRange(start, end, receiver.length)));
-    },
-    sublist$1(receiver, start) {
-      return this.sublist$2(receiver, start, null);
-    },
     $isTrustedGetRuntimeType: 1,
     $isInt8List: 1
   };
@@ -13297,12 +11709,6 @@
     $index(receiver, index) {
       A._checkValidIndex(index, receiver, receiver.length);
       return receiver[index];
-    },
-    sublist$2(receiver, start, end) {
-      return new Uint16Array(receiver.subarray(start, A._checkValidRange(start, end, receiver.length)));
-    },
-    sublist$1(receiver, start) {
-      return this.sublist$2(receiver, start, null);
     },
     $isTrustedGetRuntimeType: 1,
     $isUint16List: 1
@@ -13318,9 +11724,6 @@
     sublist$2(receiver, start, end) {
       return new Uint32Array(receiver.subarray(start, A._checkValidRange(start, end, receiver.length)));
     },
-    sublist$1(receiver, start) {
-      return this.sublist$2(receiver, start, null);
-    },
     $isTrustedGetRuntimeType: 1,
     $isUint32List: 1
   };
@@ -13334,12 +11737,6 @@
     $index(receiver, index) {
       A._checkValidIndex(index, receiver, receiver.length);
       return receiver[index];
-    },
-    sublist$2(receiver, start, end) {
-      return new Uint8ClampedArray(receiver.subarray(start, A._checkValidRange(start, end, receiver.length)));
-    },
-    sublist$1(receiver, start) {
-      return this.sublist$2(receiver, start, null);
     },
     $isTrustedGetRuntimeType: 1,
     $isUint8ClampedList: 1
@@ -13357,9 +11754,6 @@
     },
     sublist$2(receiver, start, end) {
       return new Uint8Array(receiver.subarray(start, A._checkValidRange(start, end, receiver.length)));
-    },
-    sublist$1(receiver, start) {
-      return this.sublist$2(receiver, start, null);
     },
     $isTrustedGetRuntimeType: 1,
     $isNativeUint8List: 1,
@@ -13381,8 +11775,7 @@
   A._Type.prototype = {
     toString$0(_) {
       return A._rtiToString(this._rti, null);
-    },
-    $isType: 1
+    }
   };
   A._Error.prototype = {
     toString$0(_) {
@@ -13397,7 +11790,7 @@
       t1.storedCallback = null;
       f.call$0();
     },
-    $signature: 6
+    $signature: 4
   };
   A._AsyncRun__initializeScheduleImmediate_closure.prototype = {
     call$1(callback) {
@@ -13407,7 +11800,7 @@
       t2 = this.span;
       t1.firstChild ? t1.removeChild(t2) : t1.appendChild(t2);
     },
-    $signature: 60
+    $signature: 59
   };
   A._AsyncRun__scheduleImmediateJsOverride_internalCallback.prototype = {
     call$0() {
@@ -13507,19 +11900,19 @@
     call$1(result) {
       return this.bodyFunction.call$2(0, result);
     },
-    $signature: 7
+    $signature: 5
   };
   A._awaitOnObject_closure0.prototype = {
     call$2(error, stackTrace) {
       this.bodyFunction.call$2(1, new A.ExceptionAndStackTrace(error, type$.StackTrace._as(stackTrace)));
     },
-    $signature: 65
+    $signature: 31
   };
   A._wrapJsFunctionForAsync_closure.prototype = {
     call$2(errorCode, result) {
       this.$protected(A._asInt(errorCode), result);
     },
-    $signature: 34
+    $signature: 48
   };
   A._asyncStarHelper_closure.prototype = {
     call$0() {
@@ -13542,7 +11935,7 @@
       var errorCode = this.controller.cancelationFuture != null ? 2 : 0;
       this.bodyFunction.call$2(errorCode, null);
     },
-    $signature: 6
+    $signature: 4
   };
   A._AsyncStarStreamController.prototype = {
     _AsyncStarStreamController$1(body, $T) {
@@ -13593,7 +11986,7 @@
         return t1.cancelationFuture;
       }
     },
-    $signature: 36
+    $signature: 55
   };
   A._AsyncStarStreamController__closure.prototype = {
     call$0() {
@@ -14009,7 +12402,7 @@
     call$1(__wc0_formal) {
       this.joinedResult._completeWithResultOf$1(this.originalSource);
     },
-    $signature: 6
+    $signature: 4
   };
   A._Future__propagateToListeners_handleWhenCompleteCallback_closure0.prototype = {
     call$2(e, s) {
@@ -14017,7 +12410,7 @@
       type$.StackTrace._as(s);
       this.joinedResult._completeErrorObject$1(new A.AsyncError(e, s));
     },
-    $signature: 4
+    $signature: 3
   };
   A._Future__propagateToListeners_handleValueCallback.prototype = {
     call$0() {
@@ -14117,17 +12510,10 @@
         this._future._completeErrorObject$1(new A.AsyncError(e, s));
       }
     },
-    $signature: 4
+    $signature: 3
   };
   A._AsyncCallbackEntry.prototype = {};
   A.Stream.prototype = {
-    map$1$1(_, convert, $S) {
-      var t1 = A._instanceType(this);
-      return new A._MapStream(t1._bind$1($S)._eval$1("1(Stream.T)")._as(convert), this, t1._eval$1("@<Stream.T>")._bind$1($S)._eval$1("_MapStream<1,2>"));
-    },
-    map$1(_, convert) {
-      return this.map$1$1(0, convert, type$.dynamic);
-    },
     get$length(_) {
       var t1 = {},
         future = new A._Future($.Zone__current, type$._Future_int);
@@ -14457,7 +12843,7 @@
       t1._addError$2(A._asObject(e), type$.StackTrace._as(s));
       t1._close$0();
     },
-    $signature: 4
+    $signature: 3
   };
   A._AddStreamState_cancel_closure.prototype = {
     call$0() {
@@ -14724,7 +13110,7 @@
       else
         t1._completeErrorObject$1(new A.AsyncError(error, stackTrace));
     },
-    $signature: 4
+    $signature: 3
   };
   A._BufferingStreamSubscription_asFuture__closure.prototype = {
     call$0() {
@@ -15493,7 +13879,7 @@
           t2._processUncaughtError$3(zone, A._asObject(e), t1._as(s));
       }
     },
-    $signature: 102
+    $signature: 33
   };
   A._ZoneDelegate.prototype = {$isZoneDelegate: 1};
   A._rootHandleError_closure.prototype = {
@@ -15693,41 +14079,6 @@
       return -1;
     }
   };
-  A._CustomHashMap.prototype = {
-    $index(_, key) {
-      if (!this._validKey.call$1(key))
-        return null;
-      return this.super$_HashMap$_get(key);
-    },
-    $indexSet(_, key, value) {
-      var t1 = this.$ti;
-      this.super$_HashMap$_set(t1._precomputed1._as(key), t1._rest[1]._as(value));
-    },
-    containsKey$1(key) {
-      if (!this._validKey.call$1(key))
-        return false;
-      return this.super$_HashMap$_containsKey(key);
-    },
-    _computeHashCode$1(key) {
-      return this._hashCode.call$1(this.$ti._precomputed1._as(key)) & 1073741823;
-    },
-    _findBucketIndex$2(bucket, key) {
-      var $length, t1, t2, i;
-      if (bucket == null)
-        return -1;
-      $length = bucket.length;
-      for (t1 = this.$ti._precomputed1, t2 = this._equals, i = 0; i < $length; i += 2)
-        if (t2.call$2(bucket[i], t1._as(key)))
-          return i;
-      return -1;
-    }
-  };
-  A._CustomHashMap_closure.prototype = {
-    call$1(v) {
-      return this.K._is(v);
-    },
-    $signature: 14
-  };
   A._HashMapKeyIterable.prototype = {
     get$length(_) {
       return this._collection$_map._collection$_length;
@@ -15784,11 +14135,6 @@
         return false;
       return this.super$JsLinkedHashMap$internalContainsKey(key);
     },
-    remove$1(_, key) {
-      if (!this._validKey.call$1(key))
-        return null;
-      return this.super$JsLinkedHashMap$internalRemove(key);
-    },
     internalComputeHashCode$1(key) {
       return this._hashCode.call$1(this.$ti._precomputed1._as(key)) & 1073741823;
     },
@@ -15807,7 +14153,7 @@
     call$1(v) {
       return this.K._is(v);
     },
-    $signature: 14
+    $signature: 41
   };
   A._HashSet.prototype = {
     get$iterator(_) {
@@ -15873,9 +14219,9 @@
     remove$1(_, object) {
       var _this = this;
       if (typeof object == "string" && object !== "__proto__")
-        return _this._collection$_removeHashTableEntry$2(_this._strings, object);
+        return _this._removeHashTableEntry$2(_this._strings, object);
       else if (typeof object == "number" && (object & 1073741823) === object)
-        return _this._collection$_removeHashTableEntry$2(_this._nums, object);
+        return _this._removeHashTableEntry$2(_this._nums, object);
       else
         return _this._remove$1(object);
     },
@@ -15945,7 +14291,7 @@
       this._collection$_elements = null;
       return true;
     },
-    _collection$_removeHashTableEntry$2(table, element) {
+    _removeHashTableEntry$2(table, element) {
       if (table != null && table[element] != null) {
         delete table[element];
         --this._collection$_length;
@@ -15991,150 +14337,6 @@
     },
     $isIterator: 1
   };
-  A._LinkedHashSet.prototype = {
-    get$iterator(_) {
-      var _this = this,
-        t1 = new A._LinkedHashSetIterator(_this, _this._collection$_modifications, A._instanceType(_this)._eval$1("_LinkedHashSetIterator<1>"));
-      t1._collection$_cell = _this._collection$_first;
-      return t1;
-    },
-    get$length(_) {
-      return this._collection$_length;
-    },
-    get$isEmpty(_) {
-      return this._collection$_length === 0;
-    },
-    get$isNotEmpty(_) {
-      return this._collection$_length !== 0;
-    },
-    contains$1(_, object) {
-      var strings, nums;
-      if (typeof object == "string" && object !== "__proto__") {
-        strings = this._strings;
-        if (strings == null)
-          return false;
-        return type$.nullable__LinkedHashSetCell._as(strings[object]) != null;
-      } else if (typeof object == "number" && (object & 1073741823) === object) {
-        nums = this._nums;
-        if (nums == null)
-          return false;
-        return type$.nullable__LinkedHashSetCell._as(nums[object]) != null;
-      } else
-        return this._contains$1(object);
-    },
-    _contains$1(object) {
-      var rest = this._collection$_rest;
-      if (rest == null)
-        return false;
-      return this._findBucketIndex$2(rest[this._computeHashCode$1(object)], object) >= 0;
-    },
-    get$first(_) {
-      var first = this._collection$_first;
-      if (first == null)
-        throw A.wrapException(A.StateError$("No elements"));
-      return A._instanceType(this)._precomputed1._as(first._element);
-    },
-    add$1(_, element) {
-      var strings, nums, _this = this;
-      A._instanceType(_this)._precomputed1._as(element);
-      if (typeof element == "string" && element !== "__proto__") {
-        strings = _this._strings;
-        return _this._collection$_addHashTableEntry$2(strings == null ? _this._strings = A._LinkedHashSet__newHashTable() : strings, element);
-      } else if (typeof element == "number" && (element & 1073741823) === element) {
-        nums = _this._nums;
-        return _this._collection$_addHashTableEntry$2(nums == null ? _this._nums = A._LinkedHashSet__newHashTable() : nums, element);
-      } else
-        return _this._collection$_add$1(element);
-    },
-    _collection$_add$1(element) {
-      var rest, hash, bucket, _this = this;
-      A._instanceType(_this)._precomputed1._as(element);
-      rest = _this._collection$_rest;
-      if (rest == null)
-        rest = _this._collection$_rest = A._LinkedHashSet__newHashTable();
-      hash = _this._computeHashCode$1(element);
-      bucket = rest[hash];
-      if (bucket == null)
-        rest[hash] = [_this._collection$_newLinkedCell$1(element)];
-      else {
-        if (_this._findBucketIndex$2(bucket, element) >= 0)
-          return false;
-        bucket.push(_this._collection$_newLinkedCell$1(element));
-      }
-      return true;
-    },
-    _collection$_addHashTableEntry$2(table, element) {
-      A._instanceType(this)._precomputed1._as(element);
-      if (type$.nullable__LinkedHashSetCell._as(table[element]) != null)
-        return false;
-      table[element] = this._collection$_newLinkedCell$1(element);
-      return true;
-    },
-    _collection$_newLinkedCell$1(element) {
-      var _this = this,
-        cell = new A._LinkedHashSetCell(A._instanceType(_this)._precomputed1._as(element));
-      if (_this._collection$_first == null)
-        _this._collection$_first = _this._collection$_last = cell;
-      else
-        _this._collection$_last = _this._collection$_last._collection$_next = cell;
-      ++_this._collection$_length;
-      _this._collection$_modifications = _this._collection$_modifications + 1 & 1073741823;
-      return cell;
-    },
-    _computeHashCode$1(element) {
-      return J.get$hashCode$(element) & 1073741823;
-    },
-    _findBucketIndex$2(bucket, element) {
-      var $length, i;
-      if (bucket == null)
-        return -1;
-      $length = bucket.length;
-      for (i = 0; i < $length; ++i)
-        if (J.$eq$(bucket[i]._element, element))
-          return i;
-      return -1;
-    }
-  };
-  A._LinkedHashSetCell.prototype = {};
-  A._LinkedHashSetIterator.prototype = {
-    get$current() {
-      var t1 = this._collection$_current;
-      return t1 == null ? this.$ti._precomputed1._as(t1) : t1;
-    },
-    moveNext$0() {
-      var _this = this,
-        cell = _this._collection$_cell,
-        t1 = _this._set;
-      if (_this._collection$_modifications !== t1._collection$_modifications)
-        throw A.wrapException(A.ConcurrentModificationError$(t1));
-      else if (cell == null) {
-        _this._collection$_current = null;
-        return false;
-      } else {
-        _this._collection$_current = _this.$ti._eval$1("1?")._as(cell._element);
-        _this._collection$_cell = cell._collection$_next;
-        return true;
-      }
-    },
-    $isIterator: 1
-  };
-  A.UnmodifiableListView.prototype = {
-    cast$1$0(_, $R) {
-      return new A.UnmodifiableListView(J.cast$1$0$ax(this._collection$_source, $R), $R._eval$1("UnmodifiableListView<0>"));
-    },
-    get$length(_) {
-      return J.get$length$asx(this._collection$_source);
-    },
-    $index(_, index) {
-      return J.elementAt$1$ax(this._collection$_source, index);
-    }
-  };
-  A.LinkedHashMap_LinkedHashMap$from_closure.prototype = {
-    call$2(k, v) {
-      this.result.$indexSet(0, this.K._as(k), this.V._as(v));
-    },
-    $signature: 22
-  };
   A.ListBase.prototype = {
     get$iterator(receiver) {
       return new A.ListIterator(receiver, this.get$length(receiver), A.instanceType(receiver)._eval$1("ListIterator<ListBase.E>"));
@@ -16147,11 +14349,6 @@
     },
     get$isNotEmpty(receiver) {
       return !this.get$isEmpty(receiver);
-    },
-    get$first(receiver) {
-      if (this.get$length(receiver) === 0)
-        throw A.wrapException(A.IterableElementError_noElement());
-      return this.$index(receiver, 0);
     },
     contains$1(receiver, element) {
       var i,
@@ -16167,9 +14364,6 @@
     map$1$1(receiver, f, $T) {
       var t1 = A.instanceType(receiver);
       return new A.MappedListIterable(receiver, t1._bind$1($T)._eval$1("1(ListBase.E)")._as(f), t1._eval$1("@<ListBase.E>")._bind$1($T)._eval$1("MappedListIterable<1,2>"));
-    },
-    map$1(receiver, f) {
-      return this.map$1$1(receiver, f, type$.dynamic);
     },
     skip$1(receiver, count) {
       return A.SubListIterable$(receiver, count, null, A.instanceType(receiver)._eval$1("ListBase.E"));
@@ -16208,20 +14402,6 @@
       t1._eval$1("int(ListBase.E,ListBase.E)?")._as(compare);
       t2 = compare == null ? A.collection_ListBase__compareAny$closure() : compare;
       A.Sort__doSort(receiver, 0, this.get$length(receiver) - 1, t2, t1._eval$1("ListBase.E"));
-    },
-    sublist$2(receiver, start, end) {
-      var t1,
-        listLength = this.get$length(receiver);
-      A.RangeError_checkValidRange(start, listLength, listLength);
-      t1 = A.List_List$_of(this.getRange$2(receiver, start, listLength), A.instanceType(receiver)._eval$1("ListBase.E"));
-      return t1;
-    },
-    sublist$1(receiver, start) {
-      return this.sublist$2(receiver, start, null);
-    },
-    getRange$2(receiver, start, end) {
-      A.RangeError_checkValidRange(start, end, this.get$length(receiver));
-      return A.SubListIterable$(receiver, start, end, A.instanceType(receiver)._eval$1("ListBase.E"));
     },
     fillRange$3(receiver, start, end, fill) {
       var value, i,
@@ -16279,23 +14459,6 @@
         action.call$2(key, t3 == null ? t1._as(t3) : t3);
       }
     },
-    map$2$1(_, transform, $K2, $V2) {
-      var result, t2, key, t3, entry,
-        t1 = A._instanceType(this);
-      t1._bind$1($K2)._bind$1($V2)._eval$1("MapEntry<1,2>(MapBase.K,MapBase.V)")._as(transform);
-      result = A.LinkedHashMap_LinkedHashMap$_empty($K2, $V2);
-      for (t2 = this.get$keys(), t2 = t2.get$iterator(t2), t1 = t1._eval$1("MapBase.V"); t2.moveNext$0();) {
-        key = t2.get$current();
-        t3 = this.$index(0, key);
-        entry = transform.call$2(key, t3 == null ? t1._as(t3) : t3);
-        result.$indexSet(0, entry.key, entry.value);
-      }
-      return result;
-    },
-    map$1(_, transform) {
-      var t1 = type$.dynamic;
-      return this.map$2$1(0, transform, t1, t1);
-    },
     containsKey$1(key) {
       return this.get$keys().contains$1(0, key);
     },
@@ -16329,7 +14492,7 @@
       t2 = A.S(v);
       t1._contents += t2;
     },
-    $signature: 23
+    $signature: 17
   };
   A._UnmodifiableMapMixin.prototype = {
     $indexSet(_, key, value) {
@@ -16374,13 +14537,6 @@
     toString$0(_) {
       return this._collection$_map.toString$0(0);
     },
-    map$2$1(_, transform, $K2, $V2) {
-      return this._collection$_map.map$2$1(0, A._instanceType(this)._bind$1($K2)._bind$1($V2)._eval$1("MapEntry<1,2>(3,4)")._as(transform), $K2, $V2);
-    },
-    map$1(_, transform) {
-      var t1 = type$.dynamic;
-      return this.map$2$1(0, transform, t1, t1);
-    },
     $isMap: 1
   };
   A.UnmodifiableMapView.prototype = {
@@ -16398,17 +14554,6 @@
     },
     get$length(_) {
       return (this._tail - this._head & this._table.length - 1) >>> 0;
-    },
-    get$first(_) {
-      var t2, _this = this,
-        t1 = _this._head;
-      if (t1 === _this._tail)
-        throw A.wrapException(A.IterableElementError_noElement());
-      t2 = _this._table;
-      if (!(t1 < t2.length))
-        return A.ioore(t2, t1);
-      t1 = t2[t1];
-      return t1 == null ? _this.$ti._precomputed1._as(t1) : t1;
     },
     elementAt$1(_, index) {
       var t2, t3, _this = this,
@@ -16440,25 +14585,6 @@
         result = _this.$ti._precomputed1._as(result);
       B.JSArray_methods.$indexSet(t2, t1, null);
       _this._head = (_this._head + 1 & _this._table.length - 1) >>> 0;
-      return result;
-    },
-    removeLast$0(_) {
-      var t3, result, _this = this,
-        t1 = _this._head,
-        t2 = _this._tail;
-      if (t1 === t2)
-        throw A.wrapException(A.IterableElementError_noElement());
-      ++_this._modificationCount;
-      t1 = _this._table;
-      t3 = t1.length;
-      t2 = (t2 - 1 & t3 - 1) >>> 0;
-      _this._tail = t2;
-      if (!(t2 >= 0 && t2 < t3))
-        return A.ioore(t1, t2);
-      result = t1[t2];
-      if (result == null)
-        result = _this.$ti._precomputed1._as(result);
-      B.JSArray_methods.$indexSet(t1, t2, null);
       return result;
     },
     _collection$_add$1(element) {
@@ -16517,27 +14643,9 @@
     get$isNotEmpty(_) {
       return this.get$length(this) !== 0;
     },
-    addAll$1(_, elements) {
-      var t1;
-      A._instanceType(this)._eval$1("Iterable<1>")._as(elements);
-      for (t1 = elements.get$iterator(elements); t1.moveNext$0();)
-        this.add$1(0, t1.get$current());
-    },
-    containsAll$1(other) {
-      var t1, t2, o;
-      for (t1 = other._set$_set, t1 = A._LinkedHashSetIterator$(t1, t1._collection$_modifications, A._instanceType(t1)._precomputed1), t2 = t1.$ti._precomputed1; t1.moveNext$0();) {
-        o = t1._collection$_current;
-        if (!this.contains$1(0, o == null ? t2._as(o) : o))
-          return false;
-      }
-      return true;
-    },
     map$1$1(_, f, $T) {
       var t1 = A._instanceType(this);
       return new A.EfficientLengthMappedIterable(this, t1._bind$1($T)._eval$1("1(2)")._as(f), t1._eval$1("@<1>")._bind$1($T)._eval$1("EfficientLengthMappedIterable<1,2>"));
-    },
-    map$1(_, f) {
-      return this.map$1$1(0, f, type$.dynamic);
     },
     toString$0(_) {
       return A.Iterable_iterableToFullString(this, "{", "}");
@@ -16547,12 +14655,6 @@
     },
     skip$1(_, n) {
       return A.SkipIterable_SkipIterable(this, n, A._instanceType(this)._precomputed1);
-    },
-    get$first(_) {
-      var it = this.get$iterator(this);
-      if (!it.moveNext$0())
-        throw A.wrapException(A.IterableElementError_noElement());
-      return it.get$current();
     },
     elementAt$1(_, index) {
       var iterator, skipCount;
@@ -16566,8 +14668,7 @@
       throw A.wrapException(A.IndexError$withLength(index, index - skipCount, this, null, "index"));
     },
     $isEfficientLengthIterable: 1,
-    $isIterable: 1,
-    $isSet: 1
+    $isIterable: 1
   };
   A._SetBase.prototype = {};
   A._SplayTreeNode.prototype = {
@@ -16774,20 +14875,8 @@
     get$isNotEmpty(_) {
       return this._root != null;
     },
-    get$first(_) {
-      var t1,
-        root = this._root;
-      if (root == null)
-        throw A.wrapException(A.IterableElementError_noElement());
-      t1 = this._splayMin$1(root);
-      this._root = t1;
-      return t1.key;
-    },
     contains$1(_, element) {
       return this._untypedLookup$1(element) != null;
-    },
-    add$1(_, element) {
-      return this._collection$_add$1(this.$ti._precomputed1._as(element));
     },
     _collection$_add$1(element) {
       var compare, root, _this = this,
@@ -16834,15 +14923,15 @@
       return true;
     },
     addAll$1(_, elements) {
-      var t1;
-      for (t1 = J.get$iterator$ax(this.$ti._eval$1("Iterable<1>")._as(elements)); t1.moveNext$0();)
-        this._collection$_add$1(t1.get$current());
+      var t1, _i;
+      this.$ti._eval$1("Iterable<1>")._as(elements);
+      for (t1 = elements.length, _i = 0; _i < elements.length; elements.length === t1 || (0, A.throwConcurrentModificationError)(elements), ++_i)
+        this._collection$_add$1(elements[_i]);
     },
     toString$0(_) {
       return A.Iterable_iterableToFullString(this, "{", "}");
     },
-    $isEfficientLengthIterable: 1,
-    $isSet: 1
+    $isEfficientLengthIterable: 1
   };
   A._SplayTreeSet__SplayTree_Iterable.prototype = {};
   A._SplayTreeSet__SplayTree_Iterable_SetMixin.prototype = {};
@@ -16893,8 +14982,6 @@
     containsKey$1(key) {
       if (this._processed == null)
         return this._convert$_data.containsKey$1(key);
-      if (typeof key != "string")
-        return false;
       return Object.prototype.hasOwnProperty.call(this._original, key);
     },
     forEach$1(_, f) {
@@ -16987,7 +15074,7 @@
       }
       return null;
     },
-    $signature: 24
+    $signature: 18
   };
   A._Utf8Decoder__decoderNonfatal_closure.prototype = {
     call$0() {
@@ -16999,7 +15086,7 @@
       }
       return null;
     },
-    $signature: 24
+    $signature: 18
   };
   A.AsciiCodec.prototype = {
     encode$1(source) {
@@ -17061,9 +15148,6 @@
   };
   A.AsciiDecoder.prototype = {};
   A.Base64Codec.prototype = {
-    get$encoder() {
-      return B.C_Base64Encoder;
-    },
     normalize$3(source, start, end) {
       var inverseAlphabet, t2, i, sliceStart, buffer, firstPadding, firstPaddingSourceIndex, paddingCount, i0, char, i1, digit1, t3, digit2, char0, value, t4, endLength, $length,
         _s64_ = string$.ABCDEF,
@@ -17167,69 +15251,7 @@
       return source;
     }
   };
-  A.Base64Encoder.prototype = {
-    convert$1(input) {
-      var t1;
-      type$.List_int._as(input);
-      t1 = J.getInterceptor$asx(input);
-      if (t1.get$isEmpty(input))
-        return "";
-      t1 = new A._Base64Encoder(string$.ABCDEF).encode$4(input, 0, t1.get$length(input), true);
-      t1.toString;
-      return A.String_String$fromCharCodes(t1, 0, null);
-    }
-  };
-  A._Base64Encoder.prototype = {
-    encode$4(bytes, start, end, isLast) {
-      var t1, byteCount, fullChunks, bufferLength, output;
-      type$.List_int._as(bytes);
-      t1 = this._convert$_state;
-      byteCount = (t1 & 3) + (end - start);
-      fullChunks = B.JSInt_methods._tdivFast$1(byteCount, 3);
-      bufferLength = fullChunks * 4;
-      if (byteCount - fullChunks * 3 > 0)
-        bufferLength += 4;
-      output = new Uint8Array(bufferLength);
-      this._convert$_state = A._Base64Encoder_encodeChunk(this._alphabet, bytes, start, end, true, output, 0, t1);
-      if (bufferLength > 0)
-        return output;
-      return null;
-    }
-  };
-  A.Base64Decoder.prototype = {
-    convert$1(input) {
-      var end, decoder, t1, t2;
-      A._asString(input);
-      end = A.RangeError_checkValidRange(0, null, input.length);
-      if (0 === end)
-        return new Uint8Array(0);
-      decoder = new A._Base64Decoder();
-      t1 = decoder.decode$3(input, 0, end);
-      t1.toString;
-      t2 = decoder._convert$_state;
-      if (t2 < -1)
-        A.throwExpression(A.FormatException$("Missing padding character", input, end));
-      if (t2 > 0)
-        A.throwExpression(A.FormatException$("Invalid length, must be multiple of four", input, end));
-      decoder._convert$_state = -1;
-      return t1;
-    }
-  };
-  A._Base64Decoder.prototype = {
-    decode$3(input, start, end) {
-      var buffer, _this = this,
-        t1 = _this._convert$_state;
-      if (t1 < 0) {
-        _this._convert$_state = A._Base64Decoder__checkPadding(input, start, end, t1);
-        return null;
-      }
-      if (start === end)
-        return new Uint8Array(0);
-      buffer = A._Base64Decoder__allocateBuffer(input, start, end, t1);
-      _this._convert$_state = A._Base64Decoder_decodeChunk(input, start, end, buffer, 0, _this._convert$_state);
-      return buffer;
-    }
-  };
+  A.Base64Encoder.prototype = {};
   A.ByteConversionSink.prototype = {};
   A._ByteCallbackSink.prototype = {
     add$1(_, chunk) {
@@ -17497,7 +15519,7 @@
       B.JSArray_methods.$indexSet(t1, t2.i++, key);
       B.JSArray_methods.$indexSet(t1, t2.i++, value);
     },
-    $signature: 23
+    $signature: 17
   };
   A._JsonStringStringifier.prototype = {
     get$_partialResult() {
@@ -17848,349 +15870,6 @@
       return t1.charCodeAt(0) == 0 ? t1 : t1;
     }
   };
-  A._BigIntImpl.prototype = {
-    $negate(_) {
-      var t2, t3, _this = this,
-        t1 = _this._used;
-      if (t1 === 0)
-        return _this;
-      t2 = !_this._isNegative;
-      t3 = _this._digits;
-      t1 = A._BigIntImpl__normalize(t1, t3);
-      return new A._BigIntImpl(t1 === 0 ? false : t2, t3, t1);
-    },
-    _drShift$1(n) {
-      var resultUsed, digits, resultDigits, t1, i, t2, t3, result, _this = this,
-        used = _this._used;
-      if (used === 0)
-        return $.$get$_BigIntImpl_zero();
-      resultUsed = used - n;
-      if (resultUsed <= 0)
-        return _this._isNegative ? $.$get$_BigIntImpl__minusOne() : $.$get$_BigIntImpl_zero();
-      digits = _this._digits;
-      resultDigits = new Uint16Array(resultUsed);
-      for (t1 = digits.length, i = n; i < used; ++i) {
-        t2 = i - n;
-        if (!(i >= 0 && i < t1))
-          return A.ioore(digits, i);
-        t3 = digits[i];
-        if (!(t2 < resultUsed))
-          return A.ioore(resultDigits, t2);
-        resultDigits[t2] = t3;
-      }
-      t2 = _this._isNegative;
-      t3 = A._BigIntImpl__normalize(resultUsed, resultDigits);
-      result = new A._BigIntImpl(t3 === 0 ? false : t2, resultDigits, t3);
-      if (t2)
-        for (i = 0; i < n; ++i) {
-          if (!(i < t1))
-            return A.ioore(digits, i);
-          if (digits[i] !== 0)
-            return result.$sub(0, $.$get$_BigIntImpl_one());
-        }
-      return result;
-    },
-    $shr(_, shiftAmount) {
-      var t1, digitShift, bitShift, resultUsed, digits, resultDigits, t2, result, i, _this = this;
-      if (shiftAmount < 0)
-        throw A.wrapException(A.ArgumentError$("shift-amount must be posititve " + shiftAmount, null));
-      t1 = _this._used;
-      if (t1 === 0)
-        return _this;
-      digitShift = B.JSInt_methods._tdivFast$1(shiftAmount, 16);
-      bitShift = B.JSInt_methods.$mod(shiftAmount, 16);
-      if (bitShift === 0)
-        return _this._drShift$1(digitShift);
-      resultUsed = t1 - digitShift;
-      if (resultUsed <= 0)
-        return _this._isNegative ? $.$get$_BigIntImpl__minusOne() : $.$get$_BigIntImpl_zero();
-      digits = _this._digits;
-      resultDigits = new Uint16Array(resultUsed);
-      A._BigIntImpl__rsh(digits, t1, shiftAmount, resultDigits);
-      t1 = _this._isNegative;
-      t2 = A._BigIntImpl__normalize(resultUsed, resultDigits);
-      result = new A._BigIntImpl(t2 === 0 ? false : t1, resultDigits, t2);
-      if (t1) {
-        t1 = digits.length;
-        if (!(digitShift >= 0 && digitShift < t1))
-          return A.ioore(digits, digitShift);
-        if ((digits[digitShift] & B.JSInt_methods.$shl(1, bitShift) - 1) >>> 0 !== 0)
-          return result.$sub(0, $.$get$_BigIntImpl_one());
-        for (i = 0; i < digitShift; ++i) {
-          if (!(i < t1))
-            return A.ioore(digits, i);
-          if (digits[i] !== 0)
-            return result.$sub(0, $.$get$_BigIntImpl_one());
-        }
-      }
-      return result;
-    },
-    compareTo$1(_, other) {
-      var t1, result;
-      type$._BigIntImpl._as(other);
-      t1 = this._isNegative;
-      if (t1 === other._isNegative) {
-        result = A._BigIntImpl__compareDigits(this._digits, this._used, other._digits, other._used);
-        return t1 ? 0 - result : result;
-      }
-      return t1 ? -1 : 1;
-    },
-    _absAddSetSign$2(other, isNegative) {
-      var resultUsed, resultDigits, t1, _this = this,
-        used = _this._used,
-        otherUsed = other._used;
-      if (used < otherUsed)
-        return other._absAddSetSign$2(_this, isNegative);
-      if (used === 0)
-        return $.$get$_BigIntImpl_zero();
-      if (otherUsed === 0)
-        return _this._isNegative === isNegative ? _this : _this.$negate(0);
-      resultUsed = used + 1;
-      resultDigits = new Uint16Array(resultUsed);
-      A._BigIntImpl__absAdd(_this._digits, used, other._digits, otherUsed, resultDigits);
-      t1 = A._BigIntImpl__normalize(resultUsed, resultDigits);
-      return new A._BigIntImpl(t1 === 0 ? false : isNegative, resultDigits, t1);
-    },
-    _absSubSetSign$2(other, isNegative) {
-      var otherUsed, resultDigits, t1, _this = this,
-        used = _this._used;
-      if (used === 0)
-        return $.$get$_BigIntImpl_zero();
-      otherUsed = other._used;
-      if (otherUsed === 0)
-        return _this._isNegative === isNegative ? _this : _this.$negate(0);
-      resultDigits = new Uint16Array(used);
-      A._BigIntImpl__absSub(_this._digits, used, other._digits, otherUsed, resultDigits);
-      t1 = A._BigIntImpl__normalize(used, resultDigits);
-      return new A._BigIntImpl(t1 === 0 ? false : isNegative, resultDigits, t1);
-    },
-    $add(_, other) {
-      var t2, isNegative, _this = this,
-        t1 = _this._used;
-      if (t1 === 0)
-        return other;
-      t2 = other._used;
-      if (t2 === 0)
-        return _this;
-      isNegative = _this._isNegative;
-      if (isNegative === other._isNegative)
-        return _this._absAddSetSign$2(other, isNegative);
-      if (A._BigIntImpl__compareDigits(_this._digits, t1, other._digits, t2) >= 0)
-        return _this._absSubSetSign$2(other, isNegative);
-      return other._absSubSetSign$2(_this, !isNegative);
-    },
-    $sub(_, other) {
-      var t2, isNegative, _this = this,
-        t1 = _this._used;
-      if (t1 === 0)
-        return other.$negate(0);
-      t2 = other._used;
-      if (t2 === 0)
-        return _this;
-      isNegative = _this._isNegative;
-      if (isNegative !== other._isNegative)
-        return _this._absAddSetSign$2(other, isNegative);
-      if (A._BigIntImpl__compareDigits(_this._digits, t1, other._digits, t2) >= 0)
-        return _this._absSubSetSign$2(other, isNegative);
-      return other._absSubSetSign$2(_this, !isNegative);
-    },
-    $mul(_, other) {
-      var resultUsed, digits, otherDigits, resultDigits, t1, i, t2,
-        used = this._used,
-        otherUsed = other._used;
-      if (used === 0 || otherUsed === 0)
-        return $.$get$_BigIntImpl_zero();
-      resultUsed = used + otherUsed;
-      digits = this._digits;
-      otherDigits = other._digits;
-      resultDigits = new Uint16Array(resultUsed);
-      for (t1 = otherDigits.length, i = 0; i < otherUsed;) {
-        if (!(i < t1))
-          return A.ioore(otherDigits, i);
-        A._BigIntImpl__mulAdd(otherDigits[i], digits, 0, resultDigits, i, used);
-        ++i;
-      }
-      t1 = this._isNegative !== other._isNegative;
-      t2 = A._BigIntImpl__normalize(resultUsed, resultDigits);
-      return new A._BigIntImpl(t2 === 0 ? false : t1, resultDigits, t2);
-    },
-    _div$1(other) {
-      var lastQuo_used, quo_digits, t1, quo;
-      if (this._used < other._used)
-        return $.$get$_BigIntImpl_zero();
-      this._divRem$1(other);
-      lastQuo_used = $._BigIntImpl____lastQuoRemUsed._readField$0() - $._BigIntImpl____lastRemUsed._readField$0();
-      quo_digits = A._BigIntImpl__cloneDigits($._BigIntImpl____lastQuoRemDigits._readField$0(), $._BigIntImpl____lastRemUsed._readField$0(), $._BigIntImpl____lastQuoRemUsed._readField$0(), lastQuo_used);
-      t1 = A._BigIntImpl__normalize(lastQuo_used, quo_digits);
-      quo = new A._BigIntImpl(false, quo_digits, t1);
-      return this._isNegative !== other._isNegative && t1 > 0 ? quo.$negate(0) : quo;
-    },
-    _rem$1(other) {
-      var remDigits, t1, rem, _this = this;
-      if (_this._used < other._used)
-        return _this;
-      _this._divRem$1(other);
-      remDigits = A._BigIntImpl__cloneDigits($._BigIntImpl____lastQuoRemDigits._readField$0(), 0, $._BigIntImpl____lastRemUsed._readField$0(), $._BigIntImpl____lastRemUsed._readField$0());
-      t1 = A._BigIntImpl__normalize($._BigIntImpl____lastRemUsed._readField$0(), remDigits);
-      rem = new A._BigIntImpl(false, remDigits, t1);
-      if ($._BigIntImpl____lastRem_nsh._readField$0() > 0)
-        rem = rem.$shr(0, $._BigIntImpl____lastRem_nsh._readField$0());
-      return _this._isNegative && rem._used > 0 ? rem.$negate(0) : rem;
-    },
-    _divRem$1(other) {
-      var yDigits, yUsed, t1, nsh, yDigits0, yUsed0, resultDigits, resultUsed0, topDigitDivisor, j, tmpDigits, tmpUsed, resultUsed1, nyDigits, i, estimatedQuotientDigit, _this = this,
-        resultUsed = _this._used;
-      if (resultUsed === $._BigIntImpl__lastDividendUsed && other._used === $._BigIntImpl__lastDivisorUsed && _this._digits === $._BigIntImpl__lastDividendDigits && other._digits === $._BigIntImpl__lastDivisorDigits)
-        return;
-      yDigits = other._digits;
-      yUsed = other._used;
-      t1 = yUsed - 1;
-      if (!(t1 >= 0 && t1 < yDigits.length))
-        return A.ioore(yDigits, t1);
-      nsh = 16 - B.JSInt_methods.get$bitLength(yDigits[t1]);
-      if (nsh > 0) {
-        yDigits0 = new Uint16Array(yUsed + 5);
-        yUsed0 = A._BigIntImpl__lShiftDigits(yDigits, yUsed, nsh, yDigits0);
-        resultDigits = new Uint16Array(resultUsed + 5);
-        resultUsed0 = A._BigIntImpl__lShiftDigits(_this._digits, resultUsed, nsh, resultDigits);
-      } else {
-        resultDigits = A._BigIntImpl__cloneDigits(_this._digits, 0, resultUsed, resultUsed + 2);
-        yUsed0 = yUsed;
-        yDigits0 = yDigits;
-        resultUsed0 = resultUsed;
-      }
-      t1 = yUsed0 - 1;
-      if (!(t1 >= 0 && t1 < yDigits0.length))
-        return A.ioore(yDigits0, t1);
-      topDigitDivisor = yDigits0[t1];
-      j = resultUsed0 - yUsed0;
-      tmpDigits = new Uint16Array(resultUsed0);
-      tmpUsed = A._BigIntImpl__dlShiftDigits(yDigits0, yUsed0, j, tmpDigits);
-      resultUsed1 = resultUsed0 + 1;
-      t1 = resultDigits.$flags | 0;
-      if (A._BigIntImpl__compareDigits(resultDigits, resultUsed0, tmpDigits, tmpUsed) >= 0) {
-        t1 & 2 && A.throwUnsupportedOperation(resultDigits);
-        if (!(resultUsed0 >= 0 && resultUsed0 < resultDigits.length))
-          return A.ioore(resultDigits, resultUsed0);
-        resultDigits[resultUsed0] = 1;
-        A._BigIntImpl__absSub(resultDigits, resultUsed1, tmpDigits, tmpUsed, resultDigits);
-      } else {
-        t1 & 2 && A.throwUnsupportedOperation(resultDigits);
-        if (!(resultUsed0 >= 0 && resultUsed0 < resultDigits.length))
-          return A.ioore(resultDigits, resultUsed0);
-        resultDigits[resultUsed0] = 0;
-      }
-      t1 = yUsed0 + 2;
-      nyDigits = new Uint16Array(t1);
-      if (!(yUsed0 >= 0 && yUsed0 < t1))
-        return A.ioore(nyDigits, yUsed0);
-      nyDigits[yUsed0] = 1;
-      A._BigIntImpl__absSub(nyDigits, yUsed0 + 1, yDigits0, yUsed0, nyDigits);
-      i = resultUsed0 - 1;
-      for (t1 = resultDigits.length; j > 0;) {
-        estimatedQuotientDigit = A._BigIntImpl__estimateQuotientDigit(topDigitDivisor, resultDigits, i);
-        --j;
-        A._BigIntImpl__mulAdd(estimatedQuotientDigit, nyDigits, 0, resultDigits, j, yUsed0);
-        if (!(i >= 0 && i < t1))
-          return A.ioore(resultDigits, i);
-        if (resultDigits[i] < estimatedQuotientDigit) {
-          tmpUsed = A._BigIntImpl__dlShiftDigits(nyDigits, yUsed0, j, tmpDigits);
-          A._BigIntImpl__absSub(resultDigits, resultUsed1, tmpDigits, tmpUsed, resultDigits);
-          while (--estimatedQuotientDigit, resultDigits[i] < estimatedQuotientDigit)
-            A._BigIntImpl__absSub(resultDigits, resultUsed1, tmpDigits, tmpUsed, resultDigits);
-        }
-        --i;
-      }
-      $._BigIntImpl__lastDividendDigits = _this._digits;
-      $._BigIntImpl__lastDividendUsed = resultUsed;
-      $._BigIntImpl__lastDivisorDigits = yDigits;
-      $._BigIntImpl__lastDivisorUsed = yUsed;
-      $._BigIntImpl____lastQuoRemDigits.__late_helper$_value = resultDigits;
-      $._BigIntImpl____lastQuoRemUsed.__late_helper$_value = resultUsed1;
-      $._BigIntImpl____lastRemUsed.__late_helper$_value = yUsed0;
-      $._BigIntImpl____lastRem_nsh.__late_helper$_value = nsh;
-    },
-    get$hashCode(_) {
-      var hash, t2, t3, i,
-        combine = new A._BigIntImpl_hashCode_combine(),
-        t1 = this._used;
-      if (t1 === 0)
-        return 6707;
-      hash = this._isNegative ? 83585 : 429689;
-      for (t2 = this._digits, t3 = t2.length, i = 0; i < t1; ++i) {
-        if (!(i < t3))
-          return A.ioore(t2, i);
-        hash = combine.call$2(hash, t2[i]);
-      }
-      return new A._BigIntImpl_hashCode_finish().call$1(hash);
-    },
-    $eq(_, other) {
-      if (other == null)
-        return false;
-      return other instanceof A._BigIntImpl && this.compareTo$1(0, other) === 0;
-    },
-    toString$0(_) {
-      var decimalDigitChunks, rest, t2, digits4, t3, _this = this,
-        t1 = _this._used;
-      if (t1 === 0)
-        return "0";
-      if (t1 === 1) {
-        if (_this._isNegative) {
-          t1 = _this._digits;
-          if (0 >= t1.length)
-            return A.ioore(t1, 0);
-          return B.JSInt_methods.toString$0(-t1[0]);
-        }
-        t1 = _this._digits;
-        if (0 >= t1.length)
-          return A.ioore(t1, 0);
-        return B.JSInt_methods.toString$0(t1[0]);
-      }
-      decimalDigitChunks = A._setArrayType([], type$.JSArray_String);
-      t1 = _this._isNegative;
-      rest = t1 ? _this.$negate(0) : _this;
-      while (rest._used > 1) {
-        t2 = $.$get$_BigIntImpl__bigInt10000();
-        if (t2._used === 0)
-          A.throwExpression(B.C_IntegerDivisionByZeroException);
-        digits4 = rest._rem$1(t2).toString$0(0);
-        B.JSArray_methods.add$1(decimalDigitChunks, digits4);
-        t3 = digits4.length;
-        if (t3 === 1)
-          B.JSArray_methods.add$1(decimalDigitChunks, "000");
-        if (t3 === 2)
-          B.JSArray_methods.add$1(decimalDigitChunks, "00");
-        if (t3 === 3)
-          B.JSArray_methods.add$1(decimalDigitChunks, "0");
-        rest = rest._div$1(t2);
-      }
-      t2 = rest._digits;
-      if (0 >= t2.length)
-        return A.ioore(t2, 0);
-      B.JSArray_methods.add$1(decimalDigitChunks, B.JSInt_methods.toString$0(t2[0]));
-      if (t1)
-        B.JSArray_methods.add$1(decimalDigitChunks, "-");
-      return new A.ReversedListIterable(decimalDigitChunks, type$.ReversedListIterable_String).join$0(0);
-    },
-    $isBigInt: 1,
-    $isComparable: 1
-  };
-  A._BigIntImpl_hashCode_combine.prototype = {
-    call$2(hash, value) {
-      hash = hash + value & 536870911;
-      hash = hash + ((hash & 524287) << 10) & 536870911;
-      return hash ^ hash >>> 6;
-    },
-    $signature: 42
-  };
-  A._BigIntImpl_hashCode_finish.prototype = {
-    call$1(hash) {
-      hash = hash + ((hash & 67108863) << 3) & 536870911;
-      hash ^= hash >>> 11;
-      return hash + ((hash & 16383) << 15) & 536870911;
-    },
-    $signature: 45
-  };
   A.DateTime.prototype = {
     $eq(_, other) {
       if (other == null)
@@ -18350,8 +16029,7 @@
   };
   A.UnimplementedError.prototype = {
     toString$0(_) {
-      var message = this.message;
-      return message != null ? "UnimplementedError: " + message : "UnimplementedError";
+      return "UnimplementedError: " + this.message;
     }
   };
   A.StateError.prototype = {
@@ -18472,16 +16150,6 @@
       return this.offset;
     }
   };
-  A.IntegerDivisionByZeroException.prototype = {
-    get$stackTrace() {
-      return null;
-    },
-    toString$0(_) {
-      return "IntegerDivisionByZeroException";
-    },
-    $isError: 1,
-    $isException: 1
-  };
   A.Iterable.prototype = {
     cast$1$0(_, $R) {
       return A.CastIterable_CastIterable(this, A.instanceType(this)._eval$1("Iterable.E"), $R);
@@ -18489,9 +16157,6 @@
     map$1$1(_, toElement, $T) {
       var t1 = A.instanceType(this);
       return A.MappedIterable_MappedIterable(this, t1._bind$1($T)._eval$1("1(Iterable.E)")._as(toElement), t1._eval$1("Iterable.E"), $T);
-    },
-    map$1(_, toElement) {
-      return this.map$1$1(0, toElement, type$.dynamic);
     },
     contains$1(_, element) {
       var t1;
@@ -18532,12 +16197,6 @@
     },
     skip$1(_, count) {
       return A.SkipIterable_SkipIterable(this, count, A.instanceType(this)._eval$1("Iterable.E"));
-    },
-    get$first(_) {
-      var it = this.get$iterator(this);
-      if (!it.moveNext$0())
-        throw A.wrapException(A.IterableElementError_noElement());
-      return it.get$current();
     },
     elementAt$1(_, index) {
       var iterator, skipCount;
@@ -18604,7 +16263,7 @@
     call$2(msg, position) {
       throw A.wrapException(A.FormatException$("Illegal IPv6 address, " + msg, this.host, position));
     },
-    $signature: 54
+    $signature: 73
   };
   A._Uri.prototype = {
     get$_text() {
@@ -18904,7 +16563,7 @@
     call$1(s) {
       return A._Uri__uriEncode(64, A._asString(s), B.C_Utf8Codec, false);
     },
-    $signature: 15
+    $signature: 11
   };
   A.UriData.prototype = {
     get$uri() {
@@ -19236,7 +16895,7 @@
       var t1 = type$.JavaScriptFunction;
       this._this.then$1$2$onError(new A.FutureOfJSAnyToJSPromise_get_toJS__closure(t1._as(resolve)), new A.FutureOfJSAnyToJSPromise_get_toJS__closure0(t1._as(reject)), type$.nullable_Object);
     },
-    $signature: 25
+    $signature: 19
   };
   A.FutureOfJSAnyToJSPromise_get_toJS__closure.prototype = {
     call$1(value) {
@@ -19244,7 +16903,7 @@
       t1.call(t1, value);
       return value;
     },
-    $signature: 9
+    $signature: 12
   };
   A.FutureOfJSAnyToJSPromise_get_toJS__closure0.prototype = {
     call$2(error, stackTrace) {
@@ -19262,21 +16921,21 @@
       t1.call(t1, wrapper);
       return wrapper;
     },
-    $signature: 67
+    $signature: 42
   };
   A.FutureOfVoidToJSPromise_get_toJS_closure.prototype = {
     call$2(resolve, reject) {
       var t1 = type$.JavaScriptFunction;
       this._this.then$1$2$onError(new A.FutureOfVoidToJSPromise_get_toJS__closure(t1._as(resolve)), new A.FutureOfVoidToJSPromise_get_toJS__closure0(t1._as(reject)), type$.nullable_Object);
     },
-    $signature: 25
+    $signature: 19
   };
   A.FutureOfVoidToJSPromise_get_toJS__closure.prototype = {
     call$1(__wc0_formal) {
       var t1 = this.resolve;
       return t1.call(t1);
     },
-    $signature: 70
+    $signature: 44
   };
   A.FutureOfVoidToJSPromise_get_toJS__closure0.prototype = {
     call$2(error, stackTrace) {
@@ -19293,7 +16952,7 @@
       t1 = this.reject;
       t1.call(t1, wrapper);
     },
-    $signature: 4
+    $signature: 3
   };
   A.jsify__convert.prototype = {
     call$1(o) {
@@ -19319,13 +16978,13 @@
       } else
         return o;
     },
-    $signature: 9
+    $signature: 12
   };
   A.promiseToFuture_closure.prototype = {
     call$1(r) {
       return this.completer.complete$1(this.T._eval$1("0/?")._as(r));
     },
-    $signature: 7
+    $signature: 5
   };
   A.promiseToFuture_closure0.prototype = {
     call$1(e) {
@@ -19333,7 +16992,7 @@
         return this.completer.completeError$1(new A.NullRejectionException(e === undefined));
       return this.completer.completeError$1(e);
     },
-    $signature: 7
+    $signature: 5
   };
   A.dartify_convert.prototype = {
     call$1(o) {
@@ -19385,7 +17044,7 @@
       }
       return o;
     },
-    $signature: 9
+    $signature: 12
   };
   A._JSRandom.prototype = {
     nextInt$1(max) {
@@ -19530,7 +17189,7 @@
       type$.StackTrace._as(stackTrace);
       this.$this._addResult$1(new A.ErrorResult(error, stackTrace));
     },
-    $signature: 4
+    $signature: 3
   };
   A.StreamQueue__ensureListening_closure0.prototype = {
     call$0() {
@@ -19580,2332 +17239,6 @@
     },
     $is_EventRequest: 1
   };
-  A.hashObjects_closure.prototype = {
-    call$2(h, i) {
-      return A._combine(A._asInt(h), J.get$hashCode$(i));
-    },
-    $signature: 71
-  };
-  A.BuiltList.prototype = {
-    toBuilder$0() {
-      return A.ListBuilder_ListBuilder(this, this.$ti._precomputed1);
-    },
-    get$hashCode(_) {
-      var t1 = this._list$_hashCode;
-      return t1 == null ? this._list$_hashCode = A.hashObjects(this._list) : t1;
-    },
-    $eq(_, other) {
-      var t1, t2, i, t3, t4;
-      if (other == null)
-        return false;
-      if (other === this)
-        return true;
-      if (!(other instanceof A._BuiltList))
-        return false;
-      t1 = other._list;
-      t2 = this._list;
-      if (t1.length !== t2.length)
-        return false;
-      if (other.get$hashCode(0) !== this.get$hashCode(0))
-        return false;
-      for (i = 0; t3 = t2.length, i !== t3; ++i) {
-        if (!(i < t1.length))
-          return A.ioore(t1, i);
-        t4 = t1[i];
-        if (!(i < t3))
-          return A.ioore(t2, i);
-        if (!J.$eq$(t4, t2[i]))
-          return false;
-      }
-      return true;
-    },
-    toString$0(_) {
-      return A.Iterable_iterableToFullString(this._list, "[", "]");
-    },
-    get$length(_) {
-      return this._list.length;
-    },
-    get$iterator(_) {
-      var t1 = this._list;
-      return new J.ArrayIterator(t1, t1.length, A._arrayInstanceType(t1)._eval$1("ArrayIterator<1>"));
-    },
-    map$1$1(_, f, $T) {
-      var t1 = this._list,
-        t2 = A._arrayInstanceType(t1);
-      return new A.MappedListIterable(t1, t2._bind$1($T)._eval$1("1(2)")._as(this.$ti._bind$1($T)._eval$1("1(2)")._as(f)), t2._eval$1("@<1>")._bind$1($T)._eval$1("MappedListIterable<1,2>"));
-    },
-    map$1(_, f) {
-      return this.map$1$1(0, f, type$.dynamic);
-    },
-    contains$1(_, element) {
-      return B.JSArray_methods.contains$1(this._list, element);
-    },
-    get$isEmpty(_) {
-      return this._list.length === 0;
-    },
-    get$isNotEmpty(_) {
-      return this._list.length !== 0;
-    },
-    take$1(_, n) {
-      var t1 = this._list;
-      return A.SubListIterable$(t1, 0, A.checkNotNullable(n, "count", type$.int), A._arrayInstanceType(t1)._precomputed1);
-    },
-    skip$1(_, n) {
-      var t1 = this._list;
-      return A.SubListIterable$(t1, n, null, A._arrayInstanceType(t1)._precomputed1);
-    },
-    get$first(_) {
-      return B.JSArray_methods.get$first(this._list);
-    },
-    elementAt$1(_, index) {
-      var t1 = this._list;
-      if (!(index >= 0 && index < t1.length))
-        return A.ioore(t1, index);
-      return t1[index];
-    },
-    $isIterable: 1
-  };
-  A._BuiltList.prototype = {
-    _list$_maybeCheckForNull$0() {
-      var t1, t2, _i;
-      if (!(!$.$get$isSoundMode() && !this.$ti._precomputed1._is(null)))
-        return;
-      for (t1 = this._list, t2 = t1.length, _i = 0; _i < t2; ++_i)
-        if (t1[_i] == null)
-          throw A.wrapException(A.ArgumentError$("iterable contained invalid element: null", null));
-    }
-  };
-  A.ListBuilder.prototype = {
-    build$0() {
-      var t2, t3, _this = this,
-        t1 = _this._listOwner;
-      if (t1 == null) {
-        t1 = _this.__ListBuilder__list_A;
-        t1 === $ && A.throwLateFieldNI("_list");
-        t2 = _this.$ti;
-        t3 = t2._eval$1("_BuiltList<1>");
-        t3 = t3._as(new A._BuiltList(t1, t3));
-        _this.__ListBuilder__list_A = t2._eval$1("List<1>")._as(t1);
-        _this._listOwner = t3;
-        t1 = t3;
-      }
-      return t1;
-    },
-    replace$1(iterable) {
-      var _this = this,
-        t1 = _this.$ti,
-        t2 = t1._eval$1("_BuiltList<1>"),
-        t3 = t1._eval$1("List<1>");
-      if (t2._is(iterable)) {
-        t2._as(iterable);
-        _this.__ListBuilder__list_A = t3._as(iterable._list);
-        _this._listOwner = iterable;
-      } else {
-        _this.__ListBuilder__list_A = t3._as(A.List_List$from(iterable, true, t1._precomputed1));
-        _this._listOwner = null;
-      }
-    },
-    get$length(_) {
-      var t1 = this.__ListBuilder__list_A;
-      t1 === $ && A.throwLateFieldNI("_list");
-      return t1.length;
-    },
-    map$1(_, f) {
-      var t2, t3, t4, t5, result, _this = this,
-        t1 = _this.$ti;
-      t1._eval$1("1(1)")._as(f);
-      t2 = _this.__ListBuilder__list_A;
-      t2 === $ && A.throwLateFieldNI("_list");
-      t3 = t1._precomputed1;
-      t4 = A._arrayInstanceType(t2);
-      t5 = t4._eval$1("@<1>")._bind$1(t3)._eval$1("MappedListIterable<1,2>");
-      result = A.List_List$_of(new A.MappedListIterable(t2, t4._bind$1(t3)._eval$1("1(2)")._as(f), t5), t5._eval$1("ListIterable.E"));
-      _this._list$_maybeCheckElements$1(result);
-      _this.__ListBuilder__list_A = t1._eval$1("List<1>")._as(result);
-      _this._listOwner = null;
-    },
-    _list$_maybeCheckElements$1(elements) {
-      var t2, _i,
-        t1 = this.$ti;
-      t1._eval$1("Iterable<1>")._as(elements);
-      if (!(!$.$get$isSoundMode() && !t1._precomputed1._is(null)))
-        return;
-      for (t2 = elements.length, t1 = t1._precomputed1, _i = 0; _i < t2; ++_i)
-        if (t1._as(elements[_i]) == null)
-          A.throwExpression(A.ArgumentError$("null element", null));
-    }
-  };
-  A.BuiltListMultimap.prototype = {
-    get$hashCode(_) {
-      var t2, _this = this,
-        t1 = _this._list_multimap$_hashCode;
-      if (t1 == null) {
-        t1 = _this._list_multimap$_map;
-        t2 = A._instanceType(t1)._eval$1("LinkedHashMapKeysIterable<1>");
-        t2 = A.MappedIterable_MappedIterable(new A.LinkedHashMapKeysIterable(t1, t2), t2._eval$1("int(Iterable.E)")._as(new A.BuiltListMultimap_hashCode_closure(_this)), t2._eval$1("Iterable.E"), type$.int);
-        t1 = A.List_List$_of(t2, A._instanceType(t2)._eval$1("Iterable.E"));
-        t1.$flags = 1;
-        t1 = t1;
-        B.JSArray_methods.sort$0(t1);
-        t1 = _this._list_multimap$_hashCode = A.hashObjects(t1);
-      }
-      return t1;
-    },
-    $eq(_, other) {
-      var t1, t2, t3, t4, t5, key, result, t6, _this = this;
-      if (other == null)
-        return false;
-      if (other === _this)
-        return true;
-      if (!(other instanceof A._BuiltListMultimap))
-        return false;
-      t1 = other._list_multimap$_map;
-      t2 = _this._list_multimap$_map;
-      if (t1.__js_helper$_length !== t2.__js_helper$_length)
-        return false;
-      if (other.get$hashCode(0) !== _this.get$hashCode(0))
-        return false;
-      for (t3 = _this.get$keys(), t4 = t3.__js_helper$_map, t3 = new A.LinkedHashMapKeyIterator(t4, t4._modifications, t4._first, t3.$ti._eval$1("LinkedHashMapKeyIterator<1>")), t4 = other._emptyList, t5 = _this._emptyList; t3.moveNext$0();) {
-        key = t3.__js_helper$_current;
-        result = t1.$index(0, key);
-        t6 = result == null ? t4 : result;
-        result = t2.$index(0, key);
-        if (!t6.$eq(0, result == null ? t5 : result))
-          return false;
-      }
-      return true;
-    },
-    toString$0(_) {
-      return A.MapBase_mapToString(this._list_multimap$_map);
-    },
-    get$keys() {
-      var t1 = this._list_multimap$_keys;
-      if (t1 == null) {
-        t1 = this._list_multimap$_map;
-        t1 = this._list_multimap$_keys = new A.LinkedHashMapKeysIterable(t1, A._instanceType(t1)._eval$1("LinkedHashMapKeysIterable<1>"));
-      }
-      return t1;
-    },
-    get$length(_) {
-      return this._list_multimap$_map.__js_helper$_length;
-    }
-  };
-  A.BuiltListMultimap_BuiltListMultimap_closure.prototype = {
-    call$1(k) {
-      return this.multimap.$index(0, k);
-    },
-    $signature: 5
-  };
-  A.BuiltListMultimap_hashCode_closure.prototype = {
-    call$1(key) {
-      var t2,
-        t1 = this.$this;
-      t1.$ti._precomputed1._as(key);
-      t2 = J.get$hashCode$(key);
-      t1 = J.get$hashCode$(t1._list_multimap$_map.$index(0, key));
-      return A._finish(A._combine(A._combine(0, B.JSInt_methods.get$hashCode(t2)), B.JSInt_methods.get$hashCode(t1)));
-    },
-    $signature() {
-      return this.$this.$ti._eval$1("int(1)");
-    }
-  };
-  A._BuiltListMultimap.prototype = {
-    _BuiltListMultimap$copy$2(keys, lookup, $K, $V) {
-      var t1, t2, t3, key;
-      for (t1 = keys.get$iterator(keys), t2 = this._list_multimap$_map, t3 = type$.Iterable_dynamic; t1.moveNext$0();) {
-        key = t1.get$current();
-        if ($K._is(key))
-          t2.$indexSet(0, key, A.BuiltList_BuiltList$from(t3._as(lookup.call$1(key)), $V));
-        else
-          throw A.wrapException(A.ArgumentError$("map contained invalid key: " + A.S(key), null));
-      }
-    }
-  };
-  A.ListMultimapBuilder.prototype = {
-    build$0() {
-      var key, t2, builtList, t3, t4, t5, _this = this,
-        _s9_ = "_builtMap",
-        t1 = _this._list_multimap$_builtMapOwner;
-      if (t1 == null) {
-        t1 = _this.__ListMultimapBuilder__builderMap_A;
-        t1 === $ && A.throwLateFieldNI("_builderMap");
-        t1 = new A.LinkedHashMapKeyIterator(t1, t1._modifications, t1._first, A._instanceType(t1)._eval$1("LinkedHashMapKeyIterator<1>"));
-        while (t1.moveNext$0()) {
-          key = t1.__js_helper$_current;
-          t2 = _this.__ListMultimapBuilder__builderMap_A.$index(0, key);
-          builtList = t2._listOwner;
-          if (builtList == null) {
-            t3 = t2.__ListBuilder__list_A;
-            t3 === $ && A.throwLateFieldNI("_list");
-            t4 = A._instanceType(t2);
-            t5 = t4._eval$1("_BuiltList<1>");
-            builtList = t5._as(new A._BuiltList(t3, t5));
-            t2.__ListBuilder__list_A = t4._eval$1("List<1>")._as(t3);
-            t2._listOwner = builtList;
-          }
-          t2 = builtList._list.length;
-          t3 = _this.__ListMultimapBuilder__builtMap_A;
-          if (t2 === 0) {
-            t3 === $ && A.throwLateFieldNI(_s9_);
-            t3.remove$1(0, key);
-          } else {
-            t3 === $ && A.throwLateFieldNI(_s9_);
-            t3.$indexSet(0, key, builtList);
-          }
-        }
-        t1 = _this.__ListMultimapBuilder__builtMap_A;
-        t1 === $ && A.throwLateFieldNI(_s9_);
-        t2 = _this.$ti;
-        t2 = _this._list_multimap$_builtMapOwner = new A._BuiltListMultimap(t1, A.BuiltList_BuiltList$from(B.List_empty0, t2._rest[1]), t2._eval$1("_BuiltListMultimap<1,2>"));
-        t1 = t2;
-      }
-      return t1;
-    },
-    replace$1(multimap) {
-      this._list_multimap$_setWithCopyAndCheck$2(multimap.get$keys(), new A.ListMultimapBuilder_replace_closure(multimap));
-    },
-    _list_multimap$_getValuesBuilder$1(key) {
-      var t2, result, builtValues, _this = this,
-        t1 = _this.$ti;
-      t1._precomputed1._as(key);
-      t2 = _this.__ListMultimapBuilder__builderMap_A;
-      t2 === $ && A.throwLateFieldNI("_builderMap");
-      result = t2.$index(0, key);
-      if (result == null) {
-        t2 = _this.__ListMultimapBuilder__builtMap_A;
-        t2 === $ && A.throwLateFieldNI("_builtMap");
-        builtValues = t2.$index(0, key);
-        result = builtValues == null ? A.ListBuilder_ListBuilder(B.List_empty0, t1._rest[1]) : A.ListBuilder_ListBuilder(builtValues, builtValues.$ti._precomputed1);
-        _this.__ListMultimapBuilder__builderMap_A.$indexSet(0, key, result);
-      }
-      return result;
-    },
-    _list_multimap$_setWithCopyAndCheck$2(keys, lookup) {
-      var t1, t2, t3, t4, t5, t6, key, t7, value, t8, t9, t10, t11, _this = this;
-      _this._list_multimap$_builtMapOwner = null;
-      t1 = _this.$ti;
-      t2 = t1._precomputed1;
-      t3 = t1._eval$1("BuiltList<2>");
-      t4 = t1._eval$1("Map<1,BuiltList<2>>");
-      _this.__ListMultimapBuilder__builtMap_A = t4._as(A.LinkedHashMap_LinkedHashMap$_empty(t2, t3));
-      _this.__ListMultimapBuilder__builderMap_A = t1._eval$1("Map<1,ListBuilder<2>>")._as(A.LinkedHashMap_LinkedHashMap$_empty(t2, t1._eval$1("ListBuilder<2>")));
-      for (t5 = keys.get$iterator(keys), t6 = type$.Iterable_dynamic, t1 = t1._rest[1]; t5.moveNext$0();) {
-        key = t5.get$current();
-        if (t2._is(key))
-          for (t7 = J.get$iterator$ax(t6._as(lookup.call$1(key))); t7.moveNext$0();) {
-            value = t7.get$current();
-            if (t1._is(value)) {
-              t2._as(key);
-              t1._as(value);
-              if (_this._list_multimap$_builtMapOwner != null) {
-                _this.__ListMultimapBuilder__builtMap_A = t4._as(A.LinkedHashMap_LinkedHashMap$from(_this.__ListMultimapBuilder__builtMap_A, t2, t3));
-                _this._list_multimap$_builtMapOwner = null;
-              }
-              _this._list_multimap$_checkKey$1(key);
-              _this._list_multimap$_checkValue$1(value);
-              t8 = _this._list_multimap$_getValuesBuilder$1(key);
-              t9 = t8.$ti;
-              t10 = t9._precomputed1;
-              t10._as(value);
-              if (!$.$get$isSoundMode() && !t10._is(null))
-                if (value == null)
-                  A.throwExpression(A.ArgumentError$("null element", null));
-              if (t8._listOwner != null) {
-                t11 = t8.__ListBuilder__list_A;
-                t11 === $ && A.throwLateFieldNI("_list");
-                t8.__ListBuilder__list_A = t9._eval$1("List<1>")._as(A.List_List$from(t11, true, t10));
-                t8._listOwner = null;
-              }
-              t8 = t8.__ListBuilder__list_A;
-              t8 === $ && A.throwLateFieldNI("_list");
-              B.JSArray_methods.add$1(t8, value);
-            } else
-              throw A.wrapException(A.ArgumentError$("map contained invalid value: " + A.S(value) + ", for key " + A.S(key), null));
-          }
-        else
-          throw A.wrapException(A.ArgumentError$("map contained invalid key: " + A.S(key), null));
-      }
-    },
-    _list_multimap$_checkKey$1(key) {
-      var t1 = this.$ti._precomputed1;
-      t1._as(key);
-      if ($.$get$isSoundMode())
-        return;
-      if (t1._is(null))
-        return;
-      if (key == null)
-        throw A.wrapException(A.ArgumentError$("null key", null));
-    },
-    _list_multimap$_checkValue$1(value) {
-      var t1 = this.$ti._rest[1];
-      t1._as(value);
-      if ($.$get$isSoundMode())
-        return;
-      if (t1._is(null))
-        return;
-      if (value == null)
-        throw A.wrapException(A.ArgumentError$("null value", null));
-    }
-  };
-  A.ListMultimapBuilder_replace_closure.prototype = {
-    call$1(k) {
-      return this.multimap.$index(0, k);
-    },
-    $signature: 5
-  };
-  A.BuiltMap.prototype = {
-    toBuilder$0() {
-      var t1 = this.$ti;
-      t1._eval$1("_BuiltMap<1,2>")._as(this);
-      return new A.MapBuilder(this._mapFactory, this._map$_map, this, t1._eval$1("MapBuilder<1,2>"));
-    },
-    get$hashCode(_) {
-      var t2, _this = this,
-        t1 = _this._map$_hashCode;
-      if (t1 == null) {
-        t1 = _this._map$_map;
-        t2 = A._instanceType(t1)._eval$1("LinkedHashMapKeysIterable<1>");
-        t2 = A.MappedIterable_MappedIterable(new A.LinkedHashMapKeysIterable(t1, t2), t2._eval$1("int(Iterable.E)")._as(new A.BuiltMap_hashCode_closure(_this)), t2._eval$1("Iterable.E"), type$.int);
-        t1 = A.List_List$_of(t2, A._instanceType(t2)._eval$1("Iterable.E"));
-        t1.$flags = 1;
-        t1 = t1;
-        B.JSArray_methods.sort$0(t1);
-        t1 = _this._map$_hashCode = A.hashObjects(t1);
-      }
-      return t1;
-    },
-    $eq(_, other) {
-      var t1, t2, t3, t4, key, _this = this;
-      if (other == null)
-        return false;
-      if (other === _this)
-        return true;
-      if (!(other instanceof A._BuiltMap))
-        return false;
-      t1 = other._map$_map;
-      t2 = _this._map$_map;
-      if (t1.__js_helper$_length !== t2.__js_helper$_length)
-        return false;
-      if (other.get$hashCode(0) !== _this.get$hashCode(0))
-        return false;
-      for (t3 = _this.get$keys(), t4 = t3.__js_helper$_map, t3 = new A.LinkedHashMapKeyIterator(t4, t4._modifications, t4._first, t3.$ti._eval$1("LinkedHashMapKeyIterator<1>")); t3.moveNext$0();) {
-        key = t3.__js_helper$_current;
-        if (!J.$eq$(t1.$index(0, key), t2.$index(0, key)))
-          return false;
-      }
-      return true;
-    },
-    toString$0(_) {
-      return A.MapBase_mapToString(this._map$_map);
-    },
-    get$keys() {
-      var t1 = this._map$_keys;
-      if (t1 == null) {
-        t1 = this._map$_map;
-        t1 = this._map$_keys = new A.LinkedHashMapKeysIterable(t1, A._instanceType(t1)._eval$1("LinkedHashMapKeysIterable<1>"));
-      }
-      return t1;
-    },
-    get$length(_) {
-      return this._map$_map.__js_helper$_length;
-    },
-    map$1(_, f) {
-      var t1 = type$.dynamic;
-      return new A._BuiltMap(null, this._map$_map.map$2$1(0, this.$ti._eval$1("MapEntry<@,@>(1,2)")._as(f), t1, t1), type$._BuiltMap_dynamic_dynamic);
-    }
-  };
-  A.BuiltMap_BuiltMap_closure.prototype = {
-    call$1(k) {
-      return this.map.$index(0, k);
-    },
-    $signature: 5
-  };
-  A.BuiltMap_hashCode_closure.prototype = {
-    call$1(key) {
-      var t2,
-        t1 = this.$this;
-      t1.$ti._precomputed1._as(key);
-      t2 = J.get$hashCode$(key);
-      t1 = J.get$hashCode$(t1._map$_map.$index(0, key));
-      return A._finish(A._combine(A._combine(0, B.JSInt_methods.get$hashCode(t2)), B.JSInt_methods.get$hashCode(t1)));
-    },
-    $signature() {
-      return this.$this.$ti._eval$1("int(1)");
-    }
-  };
-  A._BuiltMap.prototype = {
-    _BuiltMap$copyAndCheckTypes$2(keys, lookup, $K, $V) {
-      var t1, t2, key, value;
-      for (t1 = keys.get$iterator(keys), t2 = this._map$_map; t1.moveNext$0();) {
-        key = t1.get$current();
-        if ($K._is(key)) {
-          value = lookup.call$1(key);
-          if ($V._is(value))
-            t2.$indexSet(0, key, value);
-          else
-            throw A.wrapException(A.ArgumentError$("map contained invalid value: " + A.S(value), null));
-        } else
-          throw A.wrapException(A.ArgumentError$("map contained invalid key: " + A.S(key), null));
-      }
-    }
-  };
-  A.MapBuilder.prototype = {
-    build$0() {
-      var _this = this,
-        t1 = _this._mapOwner;
-      if (t1 == null) {
-        t1 = _this.__MapBuilder__map_A;
-        t1 === $ && A.throwLateFieldNI("_map");
-        t1 = _this._mapOwner = new A._BuiltMap(_this._mapFactory, t1, _this.$ti._eval$1("_BuiltMap<1,2>"));
-      }
-      return t1;
-    },
-    replace$1(map) {
-      var _this = this,
-        replacement = _this._createMap$0();
-      map.forEach$1(0, new A.MapBuilder_replace_closure(_this, replacement));
-      _this.$ti._eval$1("Map<1,2>")._as(replacement);
-      _this._mapOwner = null;
-      _this.__MapBuilder__map_A = replacement;
-    },
-    $indexSet(_, key, value) {
-      var t2, t3, _this = this,
-        t1 = _this.$ti;
-      t1._precomputed1._as(key);
-      t1._rest[1]._as(value);
-      _this._map$_checkKey$1(key);
-      _this._map$_checkValue$1(value);
-      if (_this._mapOwner != null) {
-        t2 = _this._createMap$0();
-        t3 = _this.__MapBuilder__map_A;
-        t3 === $ && A.throwLateFieldNI("_map");
-        t2.addAll$1(0, t3);
-        _this.__MapBuilder__map_A = t1._eval$1("Map<1,2>")._as(t2);
-        _this._mapOwner = null;
-      }
-      t1 = _this.__MapBuilder__map_A;
-      t1 === $ && A.throwLateFieldNI("_map");
-      t1.$indexSet(0, key, value);
-    },
-    get$length(_) {
-      var t1 = this.__MapBuilder__map_A;
-      t1 === $ && A.throwLateFieldNI("_map");
-      return t1.__js_helper$_length;
-    },
-    get$_safeMap() {
-      var t1, t2, _this = this;
-      if (_this._mapOwner != null) {
-        t1 = _this._createMap$0();
-        t2 = _this.__MapBuilder__map_A;
-        t2 === $ && A.throwLateFieldNI("_map");
-        t1.addAll$1(0, t2);
-        _this.__MapBuilder__map_A = _this.$ti._eval$1("Map<1,2>")._as(t1);
-        _this._mapOwner = null;
-      }
-      t1 = _this.__MapBuilder__map_A;
-      t1 === $ && A.throwLateFieldNI("_map");
-      return t1;
-    },
-    _createMap$0() {
-      var t1 = this.$ti;
-      return A.LinkedHashMap_LinkedHashMap$_empty(t1._precomputed1, t1._rest[1]);
-    },
-    _map$_checkKey$1(key) {
-      var t1 = this.$ti._precomputed1;
-      t1._as(key);
-      if ($.$get$isSoundMode())
-        return;
-      if (t1._is(null))
-        return;
-      if (key == null)
-        throw A.wrapException(A.ArgumentError$("null key", null));
-    },
-    _map$_checkValue$1(value) {
-      var t1 = this.$ti._rest[1];
-      t1._as(value);
-      if ($.$get$isSoundMode())
-        return;
-      if (t1._is(null))
-        return;
-      if (value == null)
-        throw A.wrapException(A.ArgumentError$("null value", null));
-    }
-  };
-  A.MapBuilder_replace_closure.prototype = {
-    call$2(key, value) {
-      var t1 = this.$this.$ti;
-      this.replacement.$indexSet(0, t1._precomputed1._as(key), t1._rest[1]._as(value));
-    },
-    $signature: 22
-  };
-  A.BuiltSet.prototype = {
-    get$hashCode(_) {
-      var t2, t3, _this = this,
-        t1 = _this._set$_hashCode;
-      if (t1 == null) {
-        t1 = _this._set$_set;
-        t2 = A._instanceType(t1);
-        t3 = t2._eval$1("EfficientLengthMappedIterable<1,int>");
-        t1 = A.List_List$_of(new A.EfficientLengthMappedIterable(t1, t2._eval$1("int(1)")._as(new A.BuiltSet_hashCode_closure(_this)), t3), t3._eval$1("Iterable.E"));
-        t1.$flags = 1;
-        t1 = t1;
-        B.JSArray_methods.sort$0(t1);
-        t1 = _this._set$_hashCode = A.hashObjects(t1);
-      }
-      return t1;
-    },
-    $eq(_, other) {
-      var t1;
-      if (other == null)
-        return false;
-      if (other === this)
-        return true;
-      if (!(other instanceof A._BuiltSet))
-        return false;
-      t1 = this._set$_set;
-      if (other._set$_set._collection$_length !== t1._collection$_length)
-        return false;
-      if (other.get$hashCode(0) !== this.get$hashCode(0))
-        return false;
-      return t1.containsAll$1(other);
-    },
-    toString$0(_) {
-      return A.Iterable_iterableToFullString(this._set$_set, "{", "}");
-    },
-    get$length(_) {
-      return this._set$_set._collection$_length;
-    },
-    get$iterator(_) {
-      var t1 = this._set$_set;
-      return A._LinkedHashSetIterator$(t1, t1._collection$_modifications, A._instanceType(t1)._precomputed1);
-    },
-    map$1$1(_, f, $T) {
-      var t1 = this._set$_set,
-        t2 = A._instanceType(t1);
-      return new A.EfficientLengthMappedIterable(t1, t2._bind$1($T)._eval$1("1(2)")._as(this.$ti._bind$1($T)._eval$1("1(2)")._as(f)), t2._eval$1("@<1>")._bind$1($T)._eval$1("EfficientLengthMappedIterable<1,2>"));
-    },
-    map$1(_, f) {
-      return this.map$1$1(0, f, type$.dynamic);
-    },
-    contains$1(_, element) {
-      return this._set$_set.contains$1(0, element);
-    },
-    get$isEmpty(_) {
-      return this._set$_set._collection$_length === 0;
-    },
-    get$isNotEmpty(_) {
-      return this._set$_set._collection$_length !== 0;
-    },
-    take$1(_, n) {
-      var t1 = this._set$_set;
-      return A.TakeIterable_TakeIterable(t1, n, A._instanceType(t1)._precomputed1);
-    },
-    skip$1(_, n) {
-      var t1 = this._set$_set;
-      return A.SkipIterable_SkipIterable(t1, n, A._instanceType(t1)._precomputed1);
-    },
-    get$first(_) {
-      return this._set$_set.get$first(0);
-    },
-    elementAt$1(_, index) {
-      return this._set$_set.elementAt$1(0, index);
-    },
-    $isIterable: 1
-  };
-  A.BuiltSet_hashCode_closure.prototype = {
-    call$1(e) {
-      return J.get$hashCode$(this.$this.$ti._precomputed1._as(e));
-    },
-    $signature() {
-      return this.$this.$ti._eval$1("int(1)");
-    }
-  };
-  A._BuiltSet.prototype = {
-    _maybeCheckForNull$0() {
-      var t1, t2, element;
-      if (!(!$.$get$isSoundMode() && !this.$ti._precomputed1._is(null)))
-        return;
-      for (t1 = this._set$_set, t1 = A._LinkedHashSetIterator$(t1, t1._collection$_modifications, A._instanceType(t1)._precomputed1), t2 = t1.$ti._precomputed1; t1.moveNext$0();) {
-        element = t1._collection$_current;
-        if ((element == null ? t2._as(element) : element) == null)
-          throw A.wrapException(A.ArgumentError$("iterable contained invalid element: null", null));
-      }
-    }
-  };
-  A.SetBuilder.prototype = {
-    build$0() {
-      var _this = this,
-        t1 = _this._setOwner;
-      if (t1 == null) {
-        t1 = _this.__SetBuilder__set_A;
-        t1 === $ && A.throwLateFieldNI("_set");
-        t1 = _this._setOwner = new A._BuiltSet(_this._setFactory, t1, _this.$ti._eval$1("_BuiltSet<1>"));
-      }
-      return t1;
-    },
-    replace$1(iterable) {
-      var t1, t2, t3, element, _this = this,
-        set = _this._createSet$0();
-      for (t1 = J.get$iterator$ax(iterable), t2 = _this.$ti, t3 = t2._precomputed1; t1.moveNext$0();) {
-        element = t1.get$current();
-        if (t3._is(element))
-          set.add$1(0, element);
-        else
-          throw A.wrapException(A.ArgumentError$("iterable contained invalid element: " + A.S(element), null));
-      }
-      t2._eval$1("Set<1>")._as(set);
-      _this._setOwner = null;
-      _this.__SetBuilder__set_A = set;
-    },
-    get$length(_) {
-      var t1 = this.__SetBuilder__set_A;
-      t1 === $ && A.throwLateFieldNI("_set");
-      return t1._collection$_length;
-    },
-    map$1(_, f) {
-      var result, t2, t3, t4, _this = this,
-        t1 = _this.$ti;
-      t1._eval$1("1(1)")._as(f);
-      result = _this._createSet$0();
-      t2 = _this.__SetBuilder__set_A;
-      t2 === $ && A.throwLateFieldNI("_set");
-      t3 = t1._precomputed1;
-      t4 = A._instanceType(t2);
-      result.addAll$1(0, new A.EfficientLengthMappedIterable(t2, t4._bind$1(t3)._eval$1("1(2)")._as(f), t4._eval$1("@<1>")._bind$1(t3)._eval$1("EfficientLengthMappedIterable<1,2>")));
-      _this._maybeCheckElements$1(result);
-      t1._eval$1("Set<1>")._as(result);
-      _this._setOwner = null;
-      _this.__SetBuilder__set_A = result;
-    },
-    get$_safeSet() {
-      var t1, t2, _this = this;
-      if (_this._setOwner != null) {
-        t1 = _this._createSet$0();
-        t2 = _this.__SetBuilder__set_A;
-        t2 === $ && A.throwLateFieldNI("_set");
-        t1.addAll$1(0, t2);
-        _this.__SetBuilder__set_A = _this.$ti._eval$1("Set<1>")._as(t1);
-        _this._setOwner = null;
-      }
-      t1 = _this.__SetBuilder__set_A;
-      t1 === $ && A.throwLateFieldNI("_set");
-      return t1;
-    },
-    _createSet$0() {
-      return A.LinkedHashSet_LinkedHashSet$_empty(this.$ti._precomputed1);
-    },
-    _maybeCheckElements$1(elements) {
-      var t2, t3, element,
-        t1 = this.$ti;
-      t1._eval$1("Iterable<1>")._as(elements);
-      if (!(!$.$get$isSoundMode() && !t1._precomputed1._is(null)))
-        return;
-      for (t2 = A._LinkedHashSetIterator$(elements, elements._collection$_modifications, A._instanceType(elements)._precomputed1), t1 = t1._precomputed1, t3 = t2.$ti._precomputed1; t2.moveNext$0();) {
-        element = t2._collection$_current;
-        if (t1._as(element == null ? t3._as(element) : element) == null)
-          A.throwExpression(A.ArgumentError$("null element", null));
-      }
-    }
-  };
-  A.BuiltSetMultimap.prototype = {
-    get$hashCode(_) {
-      var t2, _this = this,
-        t1 = _this._set_multimap$_hashCode;
-      if (t1 == null) {
-        t1 = _this._set_multimap$_map;
-        t2 = A._instanceType(t1)._eval$1("LinkedHashMapKeysIterable<1>");
-        t2 = A.MappedIterable_MappedIterable(new A.LinkedHashMapKeysIterable(t1, t2), t2._eval$1("int(Iterable.E)")._as(new A.BuiltSetMultimap_hashCode_closure(_this)), t2._eval$1("Iterable.E"), type$.int);
-        t1 = A.List_List$_of(t2, A._instanceType(t2)._eval$1("Iterable.E"));
-        t1.$flags = 1;
-        t1 = t1;
-        B.JSArray_methods.sort$0(t1);
-        t1 = _this._set_multimap$_hashCode = A.hashObjects(t1);
-      }
-      return t1;
-    },
-    $eq(_, other) {
-      var t1, t2, t3, t4, t5, key, result, t6, _this = this;
-      if (other == null)
-        return false;
-      if (other === _this)
-        return true;
-      if (!(other instanceof A._BuiltSetMultimap))
-        return false;
-      t1 = other._set_multimap$_map;
-      t2 = _this._set_multimap$_map;
-      if (t1.__js_helper$_length !== t2.__js_helper$_length)
-        return false;
-      if (other.get$hashCode(0) !== _this.get$hashCode(0))
-        return false;
-      for (t3 = _this.get$keys(), t4 = t3.__js_helper$_map, t3 = new A.LinkedHashMapKeyIterator(t4, t4._modifications, t4._first, t3.$ti._eval$1("LinkedHashMapKeyIterator<1>")), t4 = other._emptySet, t5 = _this._emptySet; t3.moveNext$0();) {
-        key = t3.__js_helper$_current;
-        result = t1.$index(0, key);
-        t6 = result == null ? t4 : result;
-        result = t2.$index(0, key);
-        if (!t6.$eq(0, result == null ? t5 : result))
-          return false;
-      }
-      return true;
-    },
-    toString$0(_) {
-      return A.MapBase_mapToString(this._set_multimap$_map);
-    },
-    get$keys() {
-      var t1 = this._set_multimap$_keys;
-      if (t1 == null) {
-        t1 = this._set_multimap$_map;
-        t1 = this._set_multimap$_keys = new A.LinkedHashMapKeysIterable(t1, A._instanceType(t1)._eval$1("LinkedHashMapKeysIterable<1>"));
-      }
-      return t1;
-    },
-    get$length(_) {
-      return this._set_multimap$_map.__js_helper$_length;
-    }
-  };
-  A.BuiltSetMultimap_hashCode_closure.prototype = {
-    call$1(key) {
-      var t2,
-        t1 = this.$this;
-      t1.$ti._precomputed1._as(key);
-      t2 = J.get$hashCode$(key);
-      t1 = J.get$hashCode$(t1._set_multimap$_map.$index(0, key));
-      return A._finish(A._combine(A._combine(0, B.JSInt_methods.get$hashCode(t2)), B.JSInt_methods.get$hashCode(t1)));
-    },
-    $signature() {
-      return this.$this.$ti._eval$1("int(1)");
-    }
-  };
-  A._BuiltSetMultimap.prototype = {};
-  A.SetMultimapBuilder.prototype = {
-    build$0() {
-      var key, t2, builtSet, t3, t4, _this = this,
-        _s9_ = "_builtMap",
-        t1 = _this._builtMapOwner;
-      if (t1 == null) {
-        t1 = _this.__SetMultimapBuilder__builderMap_A;
-        t1 === $ && A.throwLateFieldNI("_builderMap");
-        t1 = new A.LinkedHashMapKeyIterator(t1, t1._modifications, t1._first, A._instanceType(t1)._eval$1("LinkedHashMapKeyIterator<1>"));
-        while (t1.moveNext$0()) {
-          key = t1.__js_helper$_current;
-          t2 = _this.__SetMultimapBuilder__builderMap_A.$index(0, key);
-          builtSet = t2._setOwner;
-          if (builtSet == null) {
-            t3 = t2._setFactory;
-            t4 = t2.__SetBuilder__set_A;
-            t4 === $ && A.throwLateFieldNI("_set");
-            builtSet = t2._setOwner = new A._BuiltSet(t3, t4, A._instanceType(t2)._eval$1("_BuiltSet<1>"));
-          }
-          t2 = builtSet._set$_set._collection$_length;
-          t3 = _this.__SetMultimapBuilder__builtMap_A;
-          if (t2 === 0) {
-            t3 === $ && A.throwLateFieldNI(_s9_);
-            t3.remove$1(0, key);
-          } else {
-            t3 === $ && A.throwLateFieldNI(_s9_);
-            t3.$indexSet(0, key, builtSet);
-          }
-        }
-        t1 = _this.__SetMultimapBuilder__builtMap_A;
-        t1 === $ && A.throwLateFieldNI(_s9_);
-        t2 = _this.$ti;
-        t2 = _this._builtMapOwner = new A._BuiltSetMultimap(t1, A.BuiltSet_BuiltSet$from(B.List_empty0, t2._rest[1]), t2._eval$1("_BuiltSetMultimap<1,2>"));
-        t1 = t2;
-      }
-      return t1;
-    },
-    replace$1(multimap) {
-      this._setWithCopyAndCheck$2(multimap.get$keys(), new A.SetMultimapBuilder_replace_closure(multimap));
-    },
-    _getValuesBuilder$1(key) {
-      var t2, result, builtValues, _this = this,
-        t1 = _this.$ti;
-      t1._precomputed1._as(key);
-      t2 = _this.__SetMultimapBuilder__builderMap_A;
-      t2 === $ && A.throwLateFieldNI("_builderMap");
-      result = t2.$index(0, key);
-      if (result == null) {
-        t2 = _this.__SetMultimapBuilder__builtMap_A;
-        t2 === $ && A.throwLateFieldNI("_builtMap");
-        builtValues = t2.$index(0, key);
-        if (builtValues == null)
-          result = A.SetBuilder_SetBuilder(t1._rest[1]);
-        else {
-          t1 = builtValues.$ti;
-          t1._eval$1("_BuiltSet<1>")._as(builtValues);
-          result = new A.SetBuilder(builtValues._setFactory, builtValues._set$_set, builtValues, t1._eval$1("SetBuilder<1>"));
-        }
-        _this.__SetMultimapBuilder__builderMap_A.$indexSet(0, key, result);
-      }
-      return result;
-    },
-    _setWithCopyAndCheck$2(keys, lookup) {
-      var t1, t2, t3, t4, t5, t6, key, t7, value, t8, t9, _this = this;
-      _this._builtMapOwner = null;
-      t1 = _this.$ti;
-      t2 = t1._precomputed1;
-      t3 = t1._eval$1("BuiltSet<2>");
-      t4 = t1._eval$1("Map<1,BuiltSet<2>>");
-      _this.__SetMultimapBuilder__builtMap_A = t4._as(A.LinkedHashMap_LinkedHashMap$_empty(t2, t3));
-      _this.__SetMultimapBuilder__builderMap_A = t1._eval$1("Map<1,SetBuilder<2>>")._as(A.LinkedHashMap_LinkedHashMap$_empty(t2, t1._eval$1("SetBuilder<2>")));
-      for (t5 = keys.get$iterator(keys), t6 = type$.Iterable_dynamic, t1 = t1._rest[1]; t5.moveNext$0();) {
-        key = t5.get$current();
-        if (t2._is(key))
-          for (t7 = J.get$iterator$ax(t6._as(lookup.call$1(key))); t7.moveNext$0();) {
-            value = t7.get$current();
-            if (t1._is(value)) {
-              t2._as(key);
-              t1._as(value);
-              if (_this._builtMapOwner != null) {
-                _this.__SetMultimapBuilder__builtMap_A = t4._as(A.LinkedHashMap_LinkedHashMap$from(_this.__SetMultimapBuilder__builtMap_A, t2, t3));
-                _this._builtMapOwner = null;
-              }
-              _this._checkKey$1(key);
-              _this._checkValue$1(value);
-              t8 = _this._getValuesBuilder$1(key);
-              t9 = t8.$ti._precomputed1;
-              t9._as(value);
-              if (!$.$get$isSoundMode() && !t9._is(null))
-                if (value == null)
-                  A.throwExpression(A.ArgumentError$("null element", null));
-              t8.get$_safeSet().add$1(0, value);
-            } else
-              throw A.wrapException(A.ArgumentError$("map contained invalid value: " + A.S(value) + ", for key " + A.S(key), null));
-          }
-        else
-          throw A.wrapException(A.ArgumentError$("map contained invalid key: " + A.S(key), null));
-      }
-    },
-    _checkKey$1(key) {
-      var t1 = this.$ti._precomputed1;
-      t1._as(key);
-      if ($.$get$isSoundMode())
-        return;
-      if (t1._is(null))
-        return;
-      if (key == null)
-        throw A.wrapException(A.ArgumentError$("invalid key: " + A.S(key), null));
-    },
-    _checkValue$1(value) {
-      var t1 = this.$ti._rest[1];
-      t1._as(value);
-      if ($.$get$isSoundMode())
-        return;
-      if (t1._is(null))
-        return;
-      if (value == null)
-        throw A.wrapException(A.ArgumentError$("invalid value: " + A.S(value), null));
-    }
-  };
-  A.SetMultimapBuilder_replace_closure.prototype = {
-    call$1(k) {
-      return this.multimap.$index(0, k);
-    },
-    $signature: 5
-  };
-  A.JsonObject.prototype = {
-    toString$0(_) {
-      return J.toString$0$(this.get$value());
-    }
-  };
-  A.BoolJsonObject.prototype = {
-    $eq(_, other) {
-      if (other == null)
-        return false;
-      if (other === this)
-        return true;
-      if (!(other instanceof A.BoolJsonObject))
-        return false;
-      return this.value === other.value;
-    },
-    get$hashCode(_) {
-      return B.JSBool_methods.get$hashCode(this.value);
-    },
-    get$value() {
-      return this.value;
-    }
-  };
-  A.ListJsonObject.prototype = {
-    $eq(_, other) {
-      if (other == null)
-        return false;
-      if (other === this)
-        return true;
-      if (!(other instanceof A.ListJsonObject))
-        return false;
-      return B.C_DeepCollectionEquality.equals$2(this.value, other.value);
-    },
-    get$hashCode(_) {
-      return B.C_DeepCollectionEquality.hash$1(this.value);
-    },
-    get$value() {
-      return this.value;
-    }
-  };
-  A.MapJsonObject.prototype = {
-    $eq(_, other) {
-      if (other == null)
-        return false;
-      if (other === this)
-        return true;
-      if (!(other instanceof A.MapJsonObject))
-        return false;
-      return B.C_DeepCollectionEquality.equals$2(this.value, other.value);
-    },
-    get$hashCode(_) {
-      return B.C_DeepCollectionEquality.hash$1(this.value);
-    },
-    get$value() {
-      return this.value;
-    }
-  };
-  A.NumJsonObject.prototype = {
-    $eq(_, other) {
-      if (other == null)
-        return false;
-      if (other === this)
-        return true;
-      if (!(other instanceof A.NumJsonObject))
-        return false;
-      return this.value === other.value;
-    },
-    get$hashCode(_) {
-      return B.JSNumber_methods.get$hashCode(this.value);
-    },
-    get$value() {
-      return this.value;
-    }
-  };
-  A.StringJsonObject.prototype = {
-    $eq(_, other) {
-      if (other == null)
-        return false;
-      if (other === this)
-        return true;
-      if (!(other instanceof A.StringJsonObject))
-        return false;
-      return this.value === other.value;
-    },
-    get$hashCode(_) {
-      return B.JSString_methods.get$hashCode(this.value);
-    },
-    get$value() {
-      return this.value;
-    }
-  };
-  A.Serializers_Serializers_closure.prototype = {
-    call$0() {
-      return A.ListBuilder_ListBuilder(B.List_empty0, type$.Object);
-    },
-    $signature: 73
-  };
-  A.Serializers_Serializers_closure0.prototype = {
-    call$0() {
-      var t1 = type$.Object;
-      return A.ListMultimapBuilder_ListMultimapBuilder(t1, t1);
-    },
-    $signature: 79
-  };
-  A.Serializers_Serializers_closure1.prototype = {
-    call$0() {
-      var t1 = type$.Object;
-      return A.MapBuilder_MapBuilder(t1, t1);
-    },
-    $signature: 86
-  };
-  A.Serializers_Serializers_closure2.prototype = {
-    call$0() {
-      return A.SetBuilder_SetBuilder(type$.Object);
-    },
-    $signature: 33
-  };
-  A.Serializers_Serializers_closure3.prototype = {
-    call$0() {
-      var t1 = type$.Object;
-      return A.SetMultimapBuilder_SetMultimapBuilder(t1, t1);
-    },
-    $signature: 35
-  };
-  A.FullType.prototype = {
-    $eq(_, other) {
-      var t1, t2, t3, t4, i, t5, _this = this;
-      if (other == null)
-        return false;
-      if (other === _this)
-        return true;
-      if (!(other instanceof A.FullType))
-        return false;
-      if (_this.root != other.root)
-        return false;
-      if (_this.nullable !== other.nullable)
-        return false;
-      t1 = _this.parameters;
-      t2 = t1.length;
-      t3 = other.parameters;
-      t4 = t3.length;
-      if (t2 !== t4)
-        return false;
-      for (i = 0; i !== t2; ++i) {
-        if (!(i < t2))
-          return A.ioore(t1, i);
-        t5 = t1[i];
-        if (!(i < t4))
-          return A.ioore(t3, i);
-        if (!t5.$eq(0, t3[i]))
-          return false;
-      }
-      return true;
-    },
-    get$hashCode(_) {
-      var t1 = A.hashObjects(this.parameters);
-      t1 = A._finish(A._combine(A._combine(0, J.get$hashCode$(this.root)), B.JSInt_methods.get$hashCode(t1)));
-      return t1 ^ (this.nullable ? 1768878041 : 0);
-    },
-    toString$0(_) {
-      var t2,
-        t1 = this.root;
-      if (t1 == null)
-        t1 = "unspecified";
-      else {
-        t2 = this.parameters;
-        t1 = t2.length === 0 ? A.FullType__getRawName(t1) : A.FullType__getRawName(t1) + "<" + B.JSArray_methods.join$1(t2, ", ") + ">";
-        t1 += this.nullable ? "?" : "";
-      }
-      return t1;
-    }
-  };
-  A.DeserializationError.prototype = {
-    toString$0(_) {
-      return "Deserializing to '" + this.type.toString$0(0) + "' failed due to: " + this.error.toString$0(0);
-    }
-  };
-  A.BigIntSerializer.prototype = {
-    serialize$3$specifiedType(serializers, bigInt, specifiedType) {
-      return type$.BigInt._as(bigInt).toString$0(0);
-    },
-    serialize$2(serializers, bigInt) {
-      return this.serialize$3$specifiedType(serializers, bigInt, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var result;
-      A._asString(serialized);
-      result = A._BigIntImpl__tryParse(serialized, null);
-      if (result == null)
-        A.throwExpression(A.FormatException$("Could not parse BigInt", serialized, null));
-      return result;
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "BigInt";
-    }
-  };
-  A.BoolSerializer.prototype = {
-    serialize$3$specifiedType(serializers, boolean, specifiedType) {
-      return A._asBool(boolean);
-    },
-    serialize$2(serializers, boolean) {
-      return this.serialize$3$specifiedType(serializers, boolean, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      return A._asBool(serialized);
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "bool";
-    }
-  };
-  A.BuiltJsonSerializers.prototype = {
-    serialize$2$specifiedType(object, specifiedType) {
-      var t1, t2, t3, t4, transformedObject, t5, result;
-      for (t1 = this.serializerPlugins._list, t2 = A._arrayInstanceType(t1), t3 = t2._eval$1("ArrayIterator<1>"), t4 = new J.ArrayIterator(t1, t1.length, t3), t2 = t2._precomputed1, transformedObject = object; t4.moveNext$0();) {
-        t5 = t4._current;
-        transformedObject = (t5 == null ? t2._as(t5) : t5).beforeSerialize$2(transformedObject, specifiedType);
-      }
-      result = this._serialize$2(transformedObject, specifiedType);
-      for (t1 = new J.ArrayIterator(t1, t1.length, t3); t1.moveNext$0();) {
-        t3 = t1._current;
-        result = (t3 == null ? t2._as(t3) : t3).afterSerialize$2(result, specifiedType);
-      }
-      return result;
-    },
-    serialize$1(object) {
-      return this.serialize$2$specifiedType(object, B.FullType_null_List_empty_false);
-    },
-    _serialize$2(object, specifiedType) {
-      var serializer, result, _this = this,
-        _s62_ = string$.serial,
-        t1 = specifiedType.root;
-      if (t1 == null) {
-        t1 = J.getInterceptor$(object);
-        serializer = _this.serializerForType$1(t1.get$runtimeType(object));
-        if (serializer == null)
-          throw A.wrapException(A.StateError$(A._noSerializerMessageFor(t1.get$runtimeType(object).toString$0(0))));
-        if (type$.StructuredSerializer_dynamic._is(serializer)) {
-          result = [serializer.get$wireName()];
-          B.JSArray_methods.addAll$1(result, serializer.serialize$2(_this, object));
-          return result;
-        } else if (type$.PrimitiveSerializer_dynamic._is(serializer))
-          return object == null ? [serializer.get$wireName(), null] : A._setArrayType([serializer.get$wireName(), serializer.serialize$2(_this, object)], type$.JSArray_Object);
-        else
-          throw A.wrapException(A.StateError$(_s62_));
-      } else {
-        serializer = _this.serializerForType$1(t1);
-        if (serializer == null)
-          return _this.serialize$1(object);
-        if (type$.StructuredSerializer_dynamic._is(serializer))
-          return object == null ? null : J.toList$0$ax(serializer.serialize$3$specifiedType(_this, object, specifiedType));
-        else if (type$.PrimitiveSerializer_dynamic._is(serializer))
-          return object == null ? null : serializer.serialize$3$specifiedType(_this, object, specifiedType);
-        else
-          throw A.wrapException(A.StateError$(_s62_));
-      }
-    },
-    deserialize$2$specifiedType(object, specifiedType) {
-      var t1, t2, t3, t4, transformedObject, t5, result;
-      for (t1 = this.serializerPlugins._list, t2 = A._arrayInstanceType(t1), t3 = t2._eval$1("ArrayIterator<1>"), t4 = new J.ArrayIterator(t1, t1.length, t3), t2 = t2._precomputed1, transformedObject = object; t4.moveNext$0();) {
-        t5 = t4._current;
-        transformedObject = (t5 == null ? t2._as(t5) : t5).beforeDeserialize$2(transformedObject, specifiedType);
-      }
-      result = this._deserialize$3(object, transformedObject, specifiedType);
-      for (t1 = new J.ArrayIterator(t1, t1.length, t3); t1.moveNext$0();) {
-        t3 = t1._current;
-        result = (t3 == null ? t2._as(t3) : t3).afterDeserialize$2(result, specifiedType);
-      }
-      return result;
-    },
-    deserialize$1(object) {
-      return this.deserialize$2$specifiedType(object, B.FullType_null_List_empty_false);
-    },
-    _deserialize$3(objectBeforePlugins, object, specifiedType) {
-      var serializer, error, primitive, error0, serializer0, error1, error2, wireName, exception, _this = this,
-        _s62_ = string$.serial,
-        t1 = specifiedType.root;
-      if (t1 == null) {
-        type$.List_nullable_Object._as(object);
-        t1 = J.getInterceptor$ax(object);
-        wireName = A._asString(t1.get$first(object));
-        serializer = _this._wireNameToSerializer._map$_map.$index(0, wireName);
-        if (serializer == null)
-          throw A.wrapException(A.StateError$(A._noSerializerMessageFor(wireName)));
-        if (type$.StructuredSerializer_dynamic._is(serializer))
-          try {
-            t1 = serializer.deserialize$2(_this, t1.sublist$1(object, 1));
-            return t1;
-          } catch (exception) {
-            t1 = A.unwrapException(exception);
-            if (type$.Error._is(t1)) {
-              error = t1;
-              throw A.wrapException(A.DeserializationError_DeserializationError(object, specifiedType, error));
-            } else
-              throw exception;
-          }
-        else if (type$.PrimitiveSerializer_dynamic._is(serializer))
-          try {
-            primitive = t1.$index(object, 1);
-            t1 = primitive == null ? null : serializer.deserialize$2(_this, primitive);
-            return t1;
-          } catch (exception) {
-            t1 = A.unwrapException(exception);
-            if (type$.Error._is(t1)) {
-              error0 = t1;
-              throw A.wrapException(A.DeserializationError_DeserializationError(object, specifiedType, error0));
-            } else
-              throw exception;
-          }
-        else
-          throw A.wrapException(A.StateError$(_s62_));
-      } else {
-        serializer0 = _this.serializerForType$1(t1);
-        if (serializer0 == null)
-          if (type$.List_dynamic._is(object) && typeof J.get$first$ax(object) == "string")
-            return _this.deserialize$1(objectBeforePlugins);
-          else
-            throw A.wrapException(A.StateError$(A._noSerializerMessageFor(t1.toString$0(0))));
-        if (type$.StructuredSerializer_dynamic._is(serializer0))
-          try {
-            t1 = object == null ? null : serializer0.deserialize$3$specifiedType(_this, type$.Iterable_nullable_Object._as(object), specifiedType);
-            return t1;
-          } catch (exception) {
-            t1 = A.unwrapException(exception);
-            if (type$.Error._is(t1)) {
-              error1 = t1;
-              throw A.wrapException(A.DeserializationError_DeserializationError(object, specifiedType, error1));
-            } else
-              throw exception;
-          }
-        else if (type$.PrimitiveSerializer_dynamic._is(serializer0))
-          try {
-            t1 = object == null ? null : serializer0.deserialize$3$specifiedType(_this, object, specifiedType);
-            return t1;
-          } catch (exception) {
-            t1 = A.unwrapException(exception);
-            if (type$.Error._is(t1)) {
-              error2 = t1;
-              throw A.wrapException(A.DeserializationError_DeserializationError(object, specifiedType, error2));
-            } else
-              throw exception;
-          }
-        else
-          throw A.wrapException(A.StateError$(_s62_));
-      }
-    },
-    serializerForType$1(type) {
-      var t1 = this._typeToSerializer._map$_map.$index(0, type);
-      return t1 == null ? this._typeNameToSerializer._map$_map.$index(0, A._getRawName(type)) : t1;
-    },
-    newBuilder$1(fullType) {
-      var t1,
-        builderFactory = this.builderFactories._map$_map.$index(0, fullType);
-      if (builderFactory == null)
-        this._throwMissingBuilderFactory$1(fullType);
-      t1 = builderFactory.call$0();
-      return t1 == null ? A._asObject(t1) : t1;
-    },
-    _throwMissingBuilderFactory$1(fullType) {
-      throw A.wrapException(A.StateError$("No builder factory for " + fullType.toString$0(0) + ". Fix by adding one, see SerializersBuilder.addBuilderFactory."));
-    },
-    $isSerializers: 1
-  };
-  A.BuiltJsonSerializersBuilder.prototype = {
-    add$1(_, serializer) {
-      var t1, t2, t3, t4, t5, t6, $name, genericsStart, t7;
-      if (!type$.StructuredSerializer_dynamic._is(serializer) && !type$.PrimitiveSerializer_dynamic._is(serializer))
-        throw A.wrapException(A.ArgumentError$(string$.serial, null));
-      this._wireNameToSerializer.$indexSet(0, serializer.get$wireName(), serializer);
-      for (t1 = serializer.get$types(), t1 = t1.get$iterator(t1), t2 = this._typeToSerializer, t3 = t2.$ti, t4 = t3._precomputed1, t3 = t3._rest[1], t5 = this._typeNameToSerializer; t1.moveNext$0();) {
-        t6 = t1.get$current();
-        t4._as(t6);
-        t3._as(serializer);
-        t2._map$_checkKey$1(t6);
-        t2._map$_checkValue$1(serializer);
-        t2.get$_safeMap().$indexSet(0, t6, serializer);
-        $name = t6.toString$0(0);
-        genericsStart = B.JSString_methods.indexOf$1($name, "<");
-        t6 = genericsStart === -1 ? $name : B.JSString_methods.substring$2($name, 0, genericsStart);
-        t7 = t5.$ti;
-        t7._precomputed1._as(t6);
-        t7._rest[1]._as(serializer);
-        t5._map$_checkKey$1(t6);
-        t5._map$_checkValue$1(serializer);
-        t5.get$_safeMap().$indexSet(0, t6, serializer);
-      }
-    },
-    addBuilderFactory$2(types, $function) {
-      var t2, t3,
-        t1 = this._builderFactories;
-      t1.$indexSet(0, types, $function);
-      t2 = types.root;
-      t3 = types.parameters;
-      t1.$indexSet(0, !types.nullable ? new A.FullType(t2, t3, true) : new A.FullType(t2, t3, false), $function);
-    },
-    build$0() {
-      var _this = this;
-      return new A.BuiltJsonSerializers(_this._typeToSerializer.build$0(), _this._wireNameToSerializer.build$0(), _this._typeNameToSerializer.build$0(), _this._builderFactories.build$0(), _this._plugins.build$0());
-    }
-  };
-  A.BuiltListMultimapSerializer.prototype = {
-    serialize$3$specifiedType(serializers, builtListMultimap, specifiedType) {
-      var t1, t2, t3, keyType, valueType, result, key, result0, t4, t5, t6, t7;
-      type$.BuiltListMultimap_dynamic_dynamic._as(builtListMultimap);
-      if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
-        if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
-          serializers._throwMissingBuilderFactory$1(specifiedType);
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      t3 = t2 === 0;
-      if (t3)
-        keyType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        keyType = t1[0];
-      }
-      if (t3)
-        valueType = B.FullType_null_List_empty_false;
-      else {
-        if (1 >= t2)
-          return A.ioore(t1, 1);
-        valueType = t1[1];
-      }
-      result = [];
-      for (t1 = builtListMultimap.get$keys(), t2 = t1.__js_helper$_map, t1 = new A.LinkedHashMapKeyIterator(t2, t2._modifications, t2._first, t1.$ti._eval$1("LinkedHashMapKeyIterator<1>")), t2 = builtListMultimap._list_multimap$_map, t3 = builtListMultimap._emptyList; t1.moveNext$0();) {
-        key = t1.__js_helper$_current;
-        result.push(serializers.serialize$2$specifiedType(key, keyType));
-        result0 = t2.$index(0, key);
-        t4 = result0 == null ? t3 : result0;
-        t5 = t4._list;
-        t6 = A._arrayInstanceType(t5);
-        t7 = t6._eval$1("MappedListIterable<1,Object?>");
-        t4 = A.List_List$_of(new A.MappedListIterable(t5, t6._eval$1("Object?(1)")._as(t4.$ti._eval$1("Object?(1)")._as(new A.BuiltListMultimapSerializer_serialize_closure(serializers, valueType))), t7), t7._eval$1("ListIterable.E"));
-        result.push(t4);
-      }
-      return result;
-    },
-    serialize$2(serializers, builtListMultimap) {
-      return this.serialize$3$specifiedType(serializers, builtListMultimap, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var isUnderspecified, t2, t3, t4, keyType, valueType, result, t5, t6, t7, i, key, values, t8, value, t9, t10, t11, t12,
-        t1 = type$.Iterable_nullable_Object;
-      t1._as(serialized);
-      isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
-      t2 = specifiedType.parameters;
-      t3 = t2.length;
-      t4 = t3 === 0;
-      if (t4)
-        keyType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t3)
-          return A.ioore(t2, 0);
-        keyType = t2[0];
-      }
-      if (t4)
-        valueType = B.FullType_null_List_empty_false;
-      else {
-        if (1 >= t3)
-          return A.ioore(t2, 1);
-        valueType = t2[1];
-      }
-      if (isUnderspecified) {
-        t2 = type$.Object;
-        result = A.ListMultimapBuilder_ListMultimapBuilder(t2, t2);
-      } else
-        result = type$.ListMultimapBuilder_dynamic_dynamic._as(serializers.newBuilder$1(specifiedType));
-      t2 = J.getInterceptor$asx(serialized);
-      if (B.JSInt_methods.$mod(t2.get$length(serialized), 2) === 1)
-        throw A.wrapException(A.ArgumentError$("odd length", null));
-      for (t3 = result.$ti, t4 = t3._precomputed1, t5 = t3._rest[1], t6 = t3._eval$1("BuiltList<2>"), t3 = t3._eval$1("Map<1,BuiltList<2>>"), t7 = type$.nullable_Object, i = 0; i !== t2.get$length(serialized); i += 2) {
-        key = serializers.deserialize$2$specifiedType(t2.elementAt$1(serialized, i), keyType);
-        values = J.map$1$1$ax(t1._as(t2.elementAt$1(serialized, i + 1)), new A.BuiltListMultimapSerializer_deserialize_closure(serializers, valueType), t7);
-        for (t8 = values.get$iterator(values); t8.moveNext$0();) {
-          value = t8.get$current();
-          t4._as(key);
-          t5._as(value);
-          if (result._list_multimap$_builtMapOwner != null) {
-            t9 = result.__ListMultimapBuilder__builtMap_A;
-            t9 === $ && A.throwLateFieldNI("_builtMap");
-            result.__ListMultimapBuilder__builtMap_A = t3._as(A.LinkedHashMap_LinkedHashMap$from(t9, t4, t6));
-            result._list_multimap$_builtMapOwner = null;
-          }
-          result._list_multimap$_checkKey$1(key);
-          result._list_multimap$_checkValue$1(value);
-          t9 = result._list_multimap$_getValuesBuilder$1(key);
-          t10 = t9.$ti;
-          t11 = t10._precomputed1;
-          t11._as(value);
-          if (!$.$get$isSoundMode() && !t11._is(null))
-            if (value == null)
-              A.throwExpression(A.ArgumentError$("null element", null));
-          if (t9._listOwner != null) {
-            t12 = t9.__ListBuilder__list_A;
-            t12 === $ && A.throwLateFieldNI("_list");
-            t9.__ListBuilder__list_A = t10._eval$1("List<1>")._as(A.List_List$from(t12, true, t11));
-            t9._listOwner = null;
-          }
-          t9 = t9.__ListBuilder__list_A;
-          t9 === $ && A.throwLateFieldNI("_list");
-          B.JSArray_methods.add$1(t9, value);
-        }
-      }
-      return result.build$0();
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isStructuredSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "listMultimap";
-    }
-  };
-  A.BuiltListMultimapSerializer_serialize_closure.prototype = {
-    call$1(value) {
-      return this.serializers.serialize$2$specifiedType(value, this.valueType);
-    },
-    $signature: 3
-  };
-  A.BuiltListMultimapSerializer_deserialize_closure.prototype = {
-    call$1(value) {
-      return this.serializers.deserialize$2$specifiedType(value, this.valueType);
-    },
-    $signature: 9
-  };
-  A.BuiltListSerializer.prototype = {
-    serialize$3$specifiedType(serializers, builtList, specifiedType) {
-      var t1, t2, elementType;
-      type$.BuiltList_dynamic._as(builtList);
-      if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
-        if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
-          serializers._throwMissingBuilderFactory$1(specifiedType);
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      if (t2 === 0)
-        elementType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        elementType = t1[0];
-      }
-      t1 = builtList._list;
-      t2 = A._arrayInstanceType(t1);
-      return new A.MappedListIterable(t1, t2._eval$1("Object?(1)")._as(builtList.$ti._eval$1("Object?(1)")._as(new A.BuiltListSerializer_serialize_closure(serializers, elementType))), t2._eval$1("MappedListIterable<1,Object?>"));
-    },
-    serialize$2(serializers, builtList) {
-      return this.serialize$3$specifiedType(serializers, builtList, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var isUnderspecified, t1, t2, elementType, result;
-      type$.Iterable_dynamic._as(serialized);
-      isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      if (t2 === 0)
-        elementType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        elementType = t1[0];
-      }
-      result = isUnderspecified ? A.ListBuilder_ListBuilder(B.List_empty0, type$.Object) : type$.ListBuilder_dynamic._as(serializers.newBuilder$1(specifiedType));
-      result.replace$1(J.map$1$1$ax(serialized, new A.BuiltListSerializer_deserialize_closure(serializers, elementType), type$.dynamic));
-      return result.build$0();
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isStructuredSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "list";
-    }
-  };
-  A.BuiltListSerializer_serialize_closure.prototype = {
-    call$1(item) {
-      return this.serializers.serialize$2$specifiedType(item, this.elementType);
-    },
-    $signature: 3
-  };
-  A.BuiltListSerializer_deserialize_closure.prototype = {
-    call$1(item) {
-      return this.serializers.deserialize$2$specifiedType(item, this.elementType);
-    },
-    $signature: 3
-  };
-  A.BuiltMapSerializer.prototype = {
-    serialize$3$specifiedType(serializers, builtMap, specifiedType) {
-      var t1, t2, t3, keyType, valueType, result, key;
-      type$.BuiltMap_dynamic_dynamic._as(builtMap);
-      if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
-        if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
-          serializers._throwMissingBuilderFactory$1(specifiedType);
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      t3 = t2 === 0;
-      if (t3)
-        keyType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        keyType = t1[0];
-      }
-      if (t3)
-        valueType = B.FullType_null_List_empty_false;
-      else {
-        if (1 >= t2)
-          return A.ioore(t1, 1);
-        valueType = t1[1];
-      }
-      result = [];
-      for (t1 = builtMap.get$keys(), t2 = t1.__js_helper$_map, t1 = new A.LinkedHashMapKeyIterator(t2, t2._modifications, t2._first, t1.$ti._eval$1("LinkedHashMapKeyIterator<1>")), t2 = builtMap._map$_map; t1.moveNext$0();) {
-        key = t1.__js_helper$_current;
-        result.push(serializers.serialize$2$specifiedType(key, keyType));
-        result.push(serializers.serialize$2$specifiedType(t2.$index(0, key), valueType));
-      }
-      return result;
-    },
-    serialize$2(serializers, builtMap) {
-      return this.serialize$3$specifiedType(serializers, builtMap, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var isUnderspecified, t1, t2, t3, keyType, valueType, result, i, key, value;
-      type$.Iterable_dynamic._as(serialized);
-      isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      t3 = t2 === 0;
-      if (t3)
-        keyType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        keyType = t1[0];
-      }
-      if (t3)
-        valueType = B.FullType_null_List_empty_false;
-      else {
-        if (1 >= t2)
-          return A.ioore(t1, 1);
-        valueType = t1[1];
-      }
-      if (isUnderspecified) {
-        t1 = type$.Object;
-        result = A.MapBuilder_MapBuilder(t1, t1);
-      } else
-        result = type$.MapBuilder_dynamic_dynamic._as(serializers.newBuilder$1(specifiedType));
-      t1 = J.getInterceptor$asx(serialized);
-      if (B.JSInt_methods.$mod(t1.get$length(serialized), 2) === 1)
-        throw A.wrapException(A.ArgumentError$("odd length", null));
-      for (t2 = result.$ti, t3 = t2._precomputed1, t2 = t2._rest[1], i = 0; i !== t1.get$length(serialized); i += 2) {
-        key = serializers.deserialize$2$specifiedType(t1.elementAt$1(serialized, i), keyType);
-        value = serializers.deserialize$2$specifiedType(t1.elementAt$1(serialized, i + 1), valueType);
-        t3._as(key);
-        t2._as(value);
-        result._map$_checkKey$1(key);
-        result._map$_checkValue$1(value);
-        result.get$_safeMap().$indexSet(0, key, value);
-      }
-      return result.build$0();
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isStructuredSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "map";
-    }
-  };
-  A.BuiltSetMultimapSerializer.prototype = {
-    serialize$3$specifiedType(serializers, builtSetMultimap, specifiedType) {
-      var t1, t2, t3, keyType, valueType, result, key, result0, t4, t5, t6, t7;
-      type$.BuiltSetMultimap_dynamic_dynamic._as(builtSetMultimap);
-      if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
-        if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
-          serializers._throwMissingBuilderFactory$1(specifiedType);
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      t3 = t2 === 0;
-      if (t3)
-        keyType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        keyType = t1[0];
-      }
-      if (t3)
-        valueType = B.FullType_null_List_empty_false;
-      else {
-        if (1 >= t2)
-          return A.ioore(t1, 1);
-        valueType = t1[1];
-      }
-      result = [];
-      for (t1 = builtSetMultimap.get$keys(), t2 = t1.__js_helper$_map, t1 = new A.LinkedHashMapKeyIterator(t2, t2._modifications, t2._first, t1.$ti._eval$1("LinkedHashMapKeyIterator<1>")), t2 = builtSetMultimap._set_multimap$_map, t3 = builtSetMultimap._emptySet; t1.moveNext$0();) {
-        key = t1.__js_helper$_current;
-        result.push(serializers.serialize$2$specifiedType(key, keyType));
-        result0 = t2.$index(0, key);
-        t4 = result0 == null ? t3 : result0;
-        t5 = t4._set$_set;
-        t6 = A._instanceType(t5);
-        t7 = t6._eval$1("EfficientLengthMappedIterable<1,Object?>");
-        t4 = A.List_List$_of(new A.EfficientLengthMappedIterable(t5, t6._eval$1("Object?(1)")._as(t4.$ti._eval$1("Object?(1)")._as(new A.BuiltSetMultimapSerializer_serialize_closure(serializers, valueType))), t7), t7._eval$1("Iterable.E"));
-        result.push(t4);
-      }
-      return result;
-    },
-    serialize$2(serializers, builtSetMultimap) {
-      return this.serialize$3$specifiedType(serializers, builtSetMultimap, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var isUnderspecified, t2, t3, t4, keyType, valueType, result, t5, t6, i, key, t7, value, t8, t9,
-        t1 = type$.Iterable_dynamic;
-      t1._as(serialized);
-      isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
-      t2 = specifiedType.parameters;
-      t3 = t2.length;
-      t4 = t3 === 0;
-      if (t4)
-        keyType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t3)
-          return A.ioore(t2, 0);
-        keyType = t2[0];
-      }
-      if (t4)
-        valueType = B.FullType_null_List_empty_false;
-      else {
-        if (1 >= t3)
-          return A.ioore(t2, 1);
-        valueType = t2[1];
-      }
-      if (isUnderspecified) {
-        t2 = type$.Object;
-        result = A.SetMultimapBuilder_SetMultimapBuilder(t2, t2);
-      } else
-        result = type$.SetMultimapBuilder_dynamic_dynamic._as(serializers.newBuilder$1(specifiedType));
-      t2 = J.getInterceptor$asx(serialized);
-      if (B.JSInt_methods.$mod(t2.get$length(serialized), 2) === 1)
-        throw A.wrapException(A.ArgumentError$("odd length", null));
-      for (t3 = result.$ti, t4 = t3._precomputed1, t5 = t3._rest[1], t6 = t3._eval$1("BuiltSet<2>"), t3 = t3._eval$1("Map<1,BuiltSet<2>>"), i = 0; i !== t2.get$length(serialized); i += 2) {
-        key = serializers.deserialize$2$specifiedType(t2.elementAt$1(serialized, i), keyType);
-        for (t7 = t1._as(J.map$1$ax(t2.elementAt$1(serialized, i + 1), new A.BuiltSetMultimapSerializer_deserialize_closure(serializers, valueType))), t7 = t7.get$iterator(t7); t7.moveNext$0();) {
-          value = t7.get$current();
-          t4._as(key);
-          t5._as(value);
-          if (result._builtMapOwner != null) {
-            t8 = result.__SetMultimapBuilder__builtMap_A;
-            t8 === $ && A.throwLateFieldNI("_builtMap");
-            result.__SetMultimapBuilder__builtMap_A = t3._as(A.LinkedHashMap_LinkedHashMap$from(t8, t4, t6));
-            result._builtMapOwner = null;
-          }
-          result._checkKey$1(key);
-          result._checkValue$1(value);
-          t8 = result._getValuesBuilder$1(key);
-          t9 = t8.$ti._precomputed1;
-          t9._as(value);
-          if (!$.$get$isSoundMode() && !t9._is(null))
-            if (value == null)
-              A.throwExpression(A.ArgumentError$("null element", null));
-          t8.get$_safeSet().add$1(0, value);
-        }
-      }
-      return result.build$0();
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isStructuredSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "setMultimap";
-    }
-  };
-  A.BuiltSetMultimapSerializer_serialize_closure.prototype = {
-    call$1(value) {
-      return this.serializers.serialize$2$specifiedType(value, this.valueType);
-    },
-    $signature: 3
-  };
-  A.BuiltSetMultimapSerializer_deserialize_closure.prototype = {
-    call$1(value) {
-      return this.serializers.deserialize$2$specifiedType(value, this.valueType);
-    },
-    $signature: 3
-  };
-  A.BuiltSetSerializer.prototype = {
-    serialize$3$specifiedType(serializers, builtSet, specifiedType) {
-      var t1, t2, elementType;
-      type$.BuiltSet_dynamic._as(builtSet);
-      if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
-        if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
-          serializers._throwMissingBuilderFactory$1(specifiedType);
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      if (t2 === 0)
-        elementType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        elementType = t1[0];
-      }
-      t1 = builtSet._set$_set;
-      t2 = A._instanceType(t1);
-      return new A.EfficientLengthMappedIterable(t1, t2._eval$1("Object?(1)")._as(builtSet.$ti._eval$1("Object?(1)")._as(new A.BuiltSetSerializer_serialize_closure(serializers, elementType))), t2._eval$1("EfficientLengthMappedIterable<1,Object?>"));
-    },
-    serialize$2(serializers, builtSet) {
-      return this.serialize$3$specifiedType(serializers, builtSet, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var isUnderspecified, t1, t2, elementType, result;
-      type$.Iterable_dynamic._as(serialized);
-      isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      if (t2 === 0)
-        elementType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        elementType = t1[0];
-      }
-      result = isUnderspecified ? A.SetBuilder_SetBuilder(type$.Object) : type$.SetBuilder_dynamic._as(serializers.newBuilder$1(specifiedType));
-      result.replace$1(J.map$1$1$ax(serialized, new A.BuiltSetSerializer_deserialize_closure(serializers, elementType), type$.dynamic));
-      return result.build$0();
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isStructuredSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "set";
-    }
-  };
-  A.BuiltSetSerializer_serialize_closure.prototype = {
-    call$1(item) {
-      return this.serializers.serialize$2$specifiedType(item, this.elementType);
-    },
-    $signature: 3
-  };
-  A.BuiltSetSerializer_deserialize_closure.prototype = {
-    call$1(item) {
-      return this.serializers.deserialize$2$specifiedType(item, this.elementType);
-    },
-    $signature: 3
-  };
-  A.DateTimeSerializer.prototype = {
-    serialize$3$specifiedType(serializers, dateTime, specifiedType) {
-      type$.DateTime._as(dateTime);
-      if (!dateTime.isUtc)
-        throw A.wrapException(A.ArgumentError$value(dateTime, "dateTime", "Must be in utc for serialization."));
-      return 1000 * dateTime._value + dateTime._microsecond;
-    },
-    serialize$2(serializers, dateTime) {
-      return this.serialize$3$specifiedType(serializers, dateTime, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1, t2;
-      A._asInt(serialized);
-      t1 = B.JSInt_methods.$mod(serialized, 1000);
-      t2 = B.JSInt_methods._tdivFast$1(serialized - t1, 1000);
-      if (t2 < -864e13 || t2 > 864e13)
-        A.throwExpression(A.RangeError$range(t2, -864e13, 864e13, "millisecondsSinceEpoch", null));
-      if (t2 === 864e13 && t1 !== 0)
-        A.throwExpression(A.ArgumentError$value(t1, "microsecond", "Time including microseconds is outside valid range"));
-      A.checkNotNullable(true, "isUtc", type$.bool);
-      return new A.DateTime(t2, t1, true);
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "DateTime";
-    }
-  };
-  A.DoubleSerializer.prototype = {
-    serialize$3$specifiedType(serializers, aDouble, specifiedType) {
-      A._asDouble(aDouble);
-      if (isNaN(aDouble))
-        return "NaN";
-      else if (aDouble == 1 / 0 || aDouble == -1 / 0)
-        return B.JSNumber_methods.get$isNegative(aDouble) ? "-INF" : "INF";
-      else
-        return aDouble;
-    },
-    serialize$2(serializers, aDouble) {
-      return this.serialize$3$specifiedType(serializers, aDouble, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1 = J.getInterceptor$(serialized);
-      if (t1.$eq(serialized, "NaN"))
-        return 0 / 0;
-      else if (t1.$eq(serialized, "-INF"))
-        return -1 / 0;
-      else if (t1.$eq(serialized, "INF"))
-        return 1 / 0;
-      else
-        return A._asNum(serialized);
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "double";
-    }
-  };
-  A.DurationSerializer.prototype = {
-    serialize$3$specifiedType(serializers, duration, specifiedType) {
-      return type$.Duration._as(duration)._duration;
-    },
-    serialize$2(serializers, duration) {
-      return this.serialize$3$specifiedType(serializers, duration, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      return A.Duration$(A._asInt(serialized), 0);
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "Duration";
-    }
-  };
-  A.Int32Serializer.prototype = {
-    serialize$3$specifiedType(serializers, int32, specifiedType) {
-      return type$.Int32._as(int32)._i;
-    },
-    serialize$2(serializers, int32) {
-      return this.serialize$3$specifiedType(serializers, int32, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      A._asInt(serialized);
-      return new A.Int32((serialized & 2147483647) - ((serialized & 2147483648) >>> 0));
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "Int32";
-    }
-  };
-  A.Int64Serializer.prototype = {
-    serialize$3$specifiedType(serializers, int64, specifiedType) {
-      return type$.Int64._as(int64)._toRadixString$1(10);
-    },
-    serialize$2(serializers, int64) {
-      return this.serialize$3$specifiedType(serializers, int64, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1 = A.Int64__parseRadix(A._asString(serialized), 10, true);
-      t1.toString;
-      return t1;
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "Int64";
-    }
-  };
-  A.IntSerializer.prototype = {
-    serialize$3$specifiedType(serializers, integer, specifiedType) {
-      return A._asInt(integer);
-    },
-    serialize$2(serializers, integer) {
-      return this.serialize$3$specifiedType(serializers, integer, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      return A._asInt(serialized);
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "int";
-    }
-  };
-  A.JsonObjectSerializer.prototype = {
-    serialize$3$specifiedType(serializers, jsonObject, specifiedType) {
-      return type$.JsonObject._as(jsonObject).get$value();
-    },
-    serialize$2(serializers, jsonObject) {
-      return this.serialize$3$specifiedType(serializers, jsonObject, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      return A.JsonObject_JsonObject(serialized);
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "JsonObject";
-    }
-  };
-  A.ListSerializer.prototype = {
-    serialize$3$specifiedType(serializers, list, specifiedType) {
-      var t1, t2, elementType;
-      type$.List_dynamic._as(list);
-      if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
-        if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
-          serializers._throwMissingBuilderFactory$1(specifiedType);
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      if (t2 === 0)
-        elementType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        elementType = t1[0];
-      }
-      return J.map$1$1$ax(list, new A.ListSerializer_serialize_closure(serializers, elementType), type$.nullable_Object);
-    },
-    serialize$2(serializers, list) {
-      return this.serialize$3$specifiedType(serializers, list, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var isUnderspecified, t1, t2, elementType, result;
-      type$.Iterable_dynamic._as(serialized);
-      isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      if (t2 === 0)
-        elementType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        elementType = t1[0];
-      }
-      result = isUnderspecified ? A._setArrayType([], type$.JSArray_Object) : type$.List_dynamic._as(serializers.newBuilder$1(specifiedType));
-      for (t1 = J.get$iterator$ax(serialized), t2 = J.getInterceptor$ax(result); t1.moveNext$0();)
-        t2.add$1(result, serializers.deserialize$2$specifiedType(t1.get$current(), elementType));
-      return result;
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isStructuredSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "List";
-    }
-  };
-  A.ListSerializer_serialize_closure.prototype = {
-    call$1(item) {
-      return this.serializers.serialize$2$specifiedType(item, this.elementType);
-    },
-    $signature: 3
-  };
-  A.MapSerializer.prototype = {
-    serialize$3$specifiedType(serializers, $Map, specifiedType) {
-      var t1, t2, t3, keyType, valueType, result, key;
-      type$.Map_dynamic_dynamic._as($Map);
-      if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
-        if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
-          serializers._throwMissingBuilderFactory$1(specifiedType);
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      t3 = t2 === 0;
-      if (t3)
-        keyType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        keyType = t1[0];
-      }
-      if (t3)
-        valueType = B.FullType_null_List_empty_false;
-      else {
-        if (1 >= t2)
-          return A.ioore(t1, 1);
-        valueType = t1[1];
-      }
-      result = [];
-      for (t1 = $Map.get$keys(), t1 = t1.get$iterator(t1); t1.moveNext$0();) {
-        key = t1.get$current();
-        result.push(serializers.serialize$2$specifiedType(key, keyType));
-        result.push(serializers.serialize$2$specifiedType($Map.$index(0, key), valueType));
-      }
-      return result;
-    },
-    serialize$2(serializers, $Map) {
-      return this.serialize$3$specifiedType(serializers, $Map, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var isUnderspecified, t1, t2, t3, keyType, valueType, result, i;
-      type$.Iterable_dynamic._as(serialized);
-      isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      t3 = t2 === 0;
-      if (t3)
-        keyType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        keyType = t1[0];
-      }
-      if (t3)
-        valueType = B.FullType_null_List_empty_false;
-      else {
-        if (1 >= t2)
-          return A.ioore(t1, 1);
-        valueType = t1[1];
-      }
-      if (isUnderspecified) {
-        t1 = type$.Object;
-        result = A.LinkedHashMap_LinkedHashMap$_empty(t1, t1);
-      } else
-        result = type$.Map_dynamic_dynamic._as(serializers.newBuilder$1(specifiedType));
-      t1 = J.getInterceptor$asx(serialized);
-      if (B.JSInt_methods.$mod(t1.get$length(serialized), 2) === 1)
-        throw A.wrapException(A.ArgumentError$("odd length", null));
-      for (i = 0; i !== t1.get$length(serialized); i += 2)
-        result.$indexSet(0, serializers.deserialize$2$specifiedType(t1.elementAt$1(serialized, i), keyType), serializers.deserialize$2$specifiedType(t1.elementAt$1(serialized, i + 1), valueType));
-      return result;
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isStructuredSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "Map";
-    }
-  };
-  A.NullSerializer.prototype = {
-    serialize$3$specifiedType(serializers, value, specifiedType) {
-      type$.Null._as(value);
-      throw A.wrapException(A.UnimplementedError$(null));
-    },
-    serialize$2(serializers, value) {
-      return this.serialize$3$specifiedType(serializers, value, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      throw A.wrapException(A.UnimplementedError$(null));
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "Null";
-    }
-  };
-  A.NumSerializer.prototype = {
-    serialize$3$specifiedType(serializers, number, specifiedType) {
-      A._asNum(number);
-      if (isNaN(number))
-        return "NaN";
-      else if (number == 1 / 0 || number == -1 / 0)
-        return B.JSNumber_methods.get$isNegative(number) ? "-INF" : "INF";
-      else
-        return number;
-    },
-    serialize$2(serializers, number) {
-      return this.serialize$3$specifiedType(serializers, number, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var t1 = J.getInterceptor$(serialized);
-      if (t1.$eq(serialized, "NaN"))
-        return 0 / 0;
-      else if (t1.$eq(serialized, "-INF"))
-        return -1 / 0;
-      else if (t1.$eq(serialized, "INF"))
-        return 1 / 0;
-      else
-        return A._asNum(serialized);
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "num";
-    }
-  };
-  A.RegExpSerializer.prototype = {
-    serialize$3$specifiedType(serializers, value, specifiedType) {
-      return type$.RegExp._as(value).pattern;
-    },
-    serialize$2(serializers, value) {
-      return this.serialize$3$specifiedType(serializers, value, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      return A.RegExp_RegExp(A._asString(serialized), true, false);
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "RegExp";
-    }
-  };
-  A.SetSerializer.prototype = {
-    serialize$3$specifiedType(serializers, set, specifiedType) {
-      var t1, t2, elementType;
-      type$.Set_dynamic._as(set);
-      if (!(specifiedType.root == null || specifiedType.parameters.length === 0))
-        if (!serializers.builderFactories._map$_map.containsKey$1(specifiedType))
-          serializers._throwMissingBuilderFactory$1(specifiedType);
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      if (t2 === 0)
-        elementType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        elementType = t1[0];
-      }
-      return set.map$1$1(0, new A.SetSerializer_serialize_closure(serializers, elementType), type$.nullable_Object);
-    },
-    serialize$2(serializers, set) {
-      return this.serialize$3$specifiedType(serializers, set, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      var isUnderspecified, t1, t2, elementType, result;
-      type$.Iterable_dynamic._as(serialized);
-      isUnderspecified = specifiedType.root == null || specifiedType.parameters.length === 0;
-      t1 = specifiedType.parameters;
-      t2 = t1.length;
-      if (t2 === 0)
-        elementType = B.FullType_null_List_empty_false;
-      else {
-        if (0 >= t2)
-          return A.ioore(t1, 0);
-        elementType = t1[0];
-      }
-      result = isUnderspecified ? A.LinkedHashSet_LinkedHashSet$_empty(type$.Object) : type$.Set_dynamic._as(serializers.newBuilder$1(specifiedType));
-      for (t1 = J.get$iterator$ax(serialized); t1.moveNext$0();)
-        result.add$1(0, serializers.deserialize$2$specifiedType(t1.get$current(), elementType));
-      return result;
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isStructuredSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "Set";
-    }
-  };
-  A.SetSerializer_serialize_closure.prototype = {
-    call$1(item) {
-      return this.serializers.serialize$2$specifiedType(item, this.elementType);
-    },
-    $signature: 3
-  };
-  A.StringSerializer.prototype = {
-    serialize$3$specifiedType(serializers, string, specifiedType) {
-      return A._asString(string);
-    },
-    serialize$2(serializers, string) {
-      return this.serialize$3$specifiedType(serializers, string, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      return A._asString(serialized);
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "String";
-    }
-  };
-  A.Uint8ListSerializer.prototype = {
-    serialize$3$specifiedType(serializers, uint8list, specifiedType) {
-      uint8list = type$.Base64Codec._eval$1("Codec.S")._as(type$.Uint8List._as(uint8list));
-      return B.C_Base64Codec.get$encoder().convert$1(uint8list);
-    },
-    serialize$2(serializers, uint8list) {
-      return this.serialize$3$specifiedType(serializers, uint8list, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      return B.C_Base64Decoder.convert$1(A._asString(serialized));
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    get$types() {
-      return A.BuiltList_BuiltList$from([B.Type_Uint8List_8Eb], type$.Type);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$wireName() {
-      return "UInt8List";
-    }
-  };
-  A.UriSerializer.prototype = {
-    serialize$3$specifiedType(serializers, uri, specifiedType) {
-      return type$.Uri._as(uri).toString$0(0);
-    },
-    serialize$2(serializers, uri) {
-      return this.serialize$3$specifiedType(serializers, uri, B.FullType_null_List_empty_false);
-    },
-    deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      return A.Uri_parse(A._asString(serialized));
-    },
-    deserialize$2(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
-    },
-    $isSerializer: 1,
-    $isPrimitiveSerializer: 1,
-    get$types() {
-      return this.types;
-    },
-    get$wireName() {
-      return "Uri";
-    }
-  };
   A.CanonicalizedMap.prototype = {
     $index(_, key) {
       var pair, _this = this;
@@ -21953,13 +17286,6 @@
     get$length(_) {
       return this._base.__js_helper$_length;
     },
-    map$2$1(_, transform, $K2, $V2) {
-      return this._base.map$2$1(0, new A.CanonicalizedMap_map_closure(this, this.$ti._bind$1($K2)._bind$1($V2)._eval$1("MapEntry<1,2>(CanonicalizedMap.K,CanonicalizedMap.V)")._as(transform), $K2, $V2), $K2, $V2);
-    },
-    map$1(_, transform) {
-      var t1 = type$.dynamic;
-      return this.map$2$1(0, transform, t1, t1);
-    },
     toString$0(_) {
       return A.MapBase_mapToString(this);
     },
@@ -21999,217 +17325,6 @@
     $signature() {
       return this.$this.$ti._eval$1("CanonicalizedMap.K(MapEntry<CanonicalizedMap.K,CanonicalizedMap.V>)");
     }
-  };
-  A.CanonicalizedMap_map_closure.prototype = {
-    call$2(_, pair) {
-      var t1 = this.$this.$ti;
-      t1._eval$1("CanonicalizedMap.C")._as(_);
-      t1._eval$1("MapEntry<CanonicalizedMap.K,CanonicalizedMap.V>")._as(pair);
-      return this.transform.call$2(pair.key, pair.value);
-    },
-    $signature() {
-      return this.$this.$ti._bind$1(this.K2)._bind$1(this.V2)._eval$1("MapEntry<1,2>(CanonicalizedMap.C,MapEntry<CanonicalizedMap.K,CanonicalizedMap.V>)");
-    }
-  };
-  A.DefaultEquality.prototype = {$isEquality: 1};
-  A.IterableEquality.prototype = {
-    equals$2(elements1, elements2) {
-      var it1, it2, hasNext,
-        t1 = this.$ti._eval$1("Iterable<1>?");
-      t1._as(elements1);
-      t1._as(elements2);
-      if (elements1 === elements2)
-        return true;
-      it1 = J.get$iterator$ax(elements1);
-      it2 = J.get$iterator$ax(elements2);
-      for (t1 = this._elementEquality;;) {
-        hasNext = it1.moveNext$0();
-        if (hasNext !== it2.moveNext$0())
-          return false;
-        if (!hasNext)
-          return true;
-        if (!t1.equals$2(it1.get$current(), it2.get$current()))
-          return false;
-      }
-    },
-    hash$1(elements) {
-      var t1, t2, hash;
-      this.$ti._eval$1("Iterable<1>?")._as(elements);
-      for (t1 = J.get$iterator$ax(elements), t2 = this._elementEquality, hash = 0; t1.moveNext$0();) {
-        hash = hash + t2.hash$1(t1.get$current()) & 2147483647;
-        hash = hash + (hash << 10 >>> 0) & 2147483647;
-        hash ^= hash >>> 6;
-      }
-      hash = hash + (hash << 3 >>> 0) & 2147483647;
-      hash ^= hash >>> 11;
-      return hash + (hash << 15 >>> 0) & 2147483647;
-    },
-    $isEquality: 1
-  };
-  A.ListEquality.prototype = {
-    equals$2(list1, list2) {
-      var $length, t2, t3, i,
-        t1 = this.$ti._eval$1("List<1>?");
-      t1._as(list1);
-      t1._as(list2);
-      if (list1 === list2)
-        return true;
-      t1 = J.getInterceptor$asx(list1);
-      $length = t1.get$length(list1);
-      t2 = J.getInterceptor$asx(list2);
-      if ($length !== t2.get$length(list2))
-        return false;
-      for (t3 = this._elementEquality, i = 0; i < $length; ++i)
-        if (!t3.equals$2(t1.$index(list1, i), t2.$index(list2, i)))
-          return false;
-      return true;
-    },
-    hash$1(list) {
-      var t1, t2, hash, i;
-      this.$ti._eval$1("List<1>?")._as(list);
-      for (t1 = J.getInterceptor$asx(list), t2 = this._elementEquality, hash = 0, i = 0; i < t1.get$length(list); ++i) {
-        hash = hash + t2.hash$1(t1.$index(list, i)) & 2147483647;
-        hash = hash + (hash << 10 >>> 0) & 2147483647;
-        hash ^= hash >>> 6;
-      }
-      hash = hash + (hash << 3 >>> 0) & 2147483647;
-      hash ^= hash >>> 11;
-      return hash + (hash << 15 >>> 0) & 2147483647;
-    },
-    $isEquality: 1
-  };
-  A._UnorderedEquality.prototype = {
-    equals$2(elements1, elements2) {
-      var counts, $length, e, count,
-        t1 = A._instanceType(this),
-        t2 = t1._eval$1("_UnorderedEquality.T?");
-      t2._as(elements1);
-      t2._as(elements2);
-      if (elements1 === elements2)
-        return true;
-      t2 = this._elementEquality;
-      counts = A.HashMap_HashMap(t1._eval$1("bool(_UnorderedEquality.E,_UnorderedEquality.E)")._as(t2.get$equals()), t1._eval$1("int(_UnorderedEquality.E)")._as(t2.get$hash()), t2.get$isValidKey(), t1._eval$1("_UnorderedEquality.E"), type$.int);
-      for (t1 = J.get$iterator$ax(elements1), $length = 0; t1.moveNext$0();) {
-        e = t1.get$current();
-        count = counts.$index(0, e);
-        counts.$indexSet(0, e, (count == null ? 0 : count) + 1);
-        ++$length;
-      }
-      for (t1 = J.get$iterator$ax(elements2); t1.moveNext$0();) {
-        e = t1.get$current();
-        count = counts.$index(0, e);
-        if (count == null || count === 0)
-          return false;
-        counts.$indexSet(0, e, count - 1);
-        --$length;
-      }
-      return $length === 0;
-    },
-    hash$1(elements) {
-      var t1, t2, hash;
-      A._instanceType(this)._eval$1("_UnorderedEquality.T?")._as(elements);
-      for (t1 = J.get$iterator$ax(elements), t2 = this._elementEquality, hash = 0; t1.moveNext$0();)
-        hash = hash + t2.hash$1(t1.get$current()) & 2147483647;
-      hash = hash + (hash << 3 >>> 0) & 2147483647;
-      hash ^= hash >>> 11;
-      return hash + (hash << 15 >>> 0) & 2147483647;
-    },
-    $isEquality: 1
-  };
-  A.SetEquality.prototype = {};
-  A._MapEntry.prototype = {
-    get$hashCode(_) {
-      var t1 = this.equality;
-      return 3 * t1._keyEquality.hash$1(this.key) + 7 * t1._valueEquality.hash$1(this.value) & 2147483647;
-    },
-    $eq(_, other) {
-      var t1;
-      if (other == null)
-        return false;
-      if (other instanceof A._MapEntry) {
-        t1 = this.equality;
-        t1 = t1._keyEquality.equals$2(this.key, other.key) && t1._valueEquality.equals$2(this.value, other.value);
-      } else
-        t1 = false;
-      return t1;
-    }
-  };
-  A.MapEquality.prototype = {
-    equals$2(map1, map2) {
-      var equalElementCounts, key, entry, count,
-        t1 = this.$ti._eval$1("Map<1,2>?");
-      t1._as(map1);
-      t1._as(map2);
-      if (map1 === map2)
-        return true;
-      if (map1.get$length(map1) !== map2.get$length(map2))
-        return false;
-      equalElementCounts = A.HashMap_HashMap(null, null, null, type$._MapEntry, type$.int);
-      for (t1 = map1.get$keys(), t1 = t1.get$iterator(t1); t1.moveNext$0();) {
-        key = t1.get$current();
-        entry = new A._MapEntry(this, key, map1.$index(0, key));
-        count = equalElementCounts.$index(0, entry);
-        equalElementCounts.$indexSet(0, entry, (count == null ? 0 : count) + 1);
-      }
-      for (t1 = map2.get$keys(), t1 = t1.get$iterator(t1); t1.moveNext$0();) {
-        key = t1.get$current();
-        entry = new A._MapEntry(this, key, map2.$index(0, key));
-        count = equalElementCounts.$index(0, entry);
-        if (count == null || count === 0)
-          return false;
-        equalElementCounts.$indexSet(0, entry, count - 1);
-      }
-      return true;
-    },
-    hash$1(map) {
-      var t2, t3, t4, hash, key, keyHash, t5,
-        t1 = this.$ti;
-      t1._eval$1("Map<1,2>?")._as(map);
-      for (t2 = map.get$keys(), t2 = t2.get$iterator(t2), t3 = this._keyEquality, t4 = this._valueEquality, t1 = t1._rest[1], hash = 0; t2.moveNext$0();) {
-        key = t2.get$current();
-        keyHash = t3.hash$1(key);
-        t5 = map.$index(0, key);
-        hash = hash + 3 * keyHash + 7 * t4.hash$1(t5 == null ? t1._as(t5) : t5) & 2147483647;
-      }
-      hash = hash + (hash << 3 >>> 0) & 2147483647;
-      hash ^= hash >>> 11;
-      return hash + (hash << 15 >>> 0) & 2147483647;
-    },
-    $isEquality: 1
-  };
-  A.DeepCollectionEquality.prototype = {
-    equals$2(e1, e2) {
-      var _this = this,
-        t1 = type$.Set_dynamic;
-      if (t1._is(e1))
-        return t1._is(e2) && new A.SetEquality(_this, type$.SetEquality_dynamic).equals$2(e1, e2);
-      t1 = type$.Map_dynamic_dynamic;
-      if (t1._is(e1))
-        return t1._is(e2) && new A.MapEquality(_this, _this, type$.MapEquality_dynamic_dynamic).equals$2(e1, e2);
-      t1 = type$.List_dynamic;
-      if (t1._is(e1))
-        return t1._is(e2) && new A.ListEquality(_this, type$.ListEquality_dynamic).equals$2(e1, e2);
-      t1 = type$.Iterable_dynamic;
-      if (t1._is(e1))
-        return t1._is(e2) && new A.IterableEquality(_this, type$.IterableEquality_dynamic).equals$2(e1, e2);
-      return J.$eq$(e1, e2);
-    },
-    hash$1(o) {
-      var _this = this;
-      if (type$.Set_dynamic._is(o))
-        return new A.SetEquality(_this, type$.SetEquality_dynamic).hash$1(o);
-      if (type$.Map_dynamic_dynamic._is(o))
-        return new A.MapEquality(_this, _this, type$.MapEquality_dynamic_dynamic).hash$1(o);
-      if (type$.List_dynamic._is(o))
-        return new A.ListEquality(_this, type$.ListEquality_dynamic).hash$1(o);
-      if (type$.Iterable_dynamic._is(o))
-        return new A.IterableEquality(_this, type$.IterableEquality_dynamic).hash$1(o);
-      return J.get$hashCode$(o);
-    },
-    isValidKey$1(o) {
-      return true;
-    },
-    $isEquality: 1
   };
   A.QueueList.prototype = {
     add$1(_, element) {
@@ -22335,27 +17450,27 @@
   A._QueueList_Object_ListMixin.prototype = {};
   A.BuildStatus.prototype = {
     _enumToString$0() {
-      return "BuildStatus." + this._core$_name;
+      return "BuildStatus." + this._name;
     },
     toJson$0() {
-      return this._core$_name;
+      return this._name;
     }
   };
   A.BuildStatus_BuildStatus$fromJson_closure.prototype = {
     call$1(e) {
-      return type$.BuildStatus._as(e)._core$_name === this.json;
+      return type$.BuildStatus._as(e)._name === this.json;
     },
-    $signature: 39
+    $signature: 67
   };
   A.BuildStatus_BuildStatus$fromJson_closure0.prototype = {
     call$0() {
       throw A.wrapException(A.ArgumentError$("Unknown BuildStatus: " + this.json, null));
     },
-    $signature: 40
+    $signature: 53
   };
   A.BuildResult.prototype = {
     toJson$0() {
-      return A.LinkedHashMap_LinkedHashMap$_literal(["status", this.status._core$_name], type$.String, type$.dynamic);
+      return A.LinkedHashMap_LinkedHashMap$_literal(["status", this.status._name], type$.String, type$.dynamic);
     },
     $eq(_, other) {
       var t1;
@@ -22427,7 +17542,7 @@
     call$1(e) {
       return type$.DebugEvent._as(e).toJson$0();
     },
-    $signature: 41
+    $signature: 89
   };
   A.DebugInfo.prototype = {
     toJson$0() {
@@ -22671,7 +17786,7 @@
           switch ($async$goto) {
             case 0:
               // Function start
-              duration = A.Duration$(0, $async$self._checkDelayMilliseconds);
+              duration = A.Duration$($async$self._checkDelayMilliseconds);
               t1 = $async$self.$ti;
               buffer = A._setArrayType([], t1._eval$1("JSArray<1>"));
               lastSendTime = Date.now();
@@ -22765,13 +17880,13 @@
     call$0() {
       return true;
     },
-    $signature: 26
+    $signature: 22
   };
   A.BatchedStreamController__hasEventDuring_closure.prototype = {
     call$0() {
       return false;
     },
-    $signature: 26
+    $signature: 22
   };
   A.SocketClient.prototype = {};
   A.SseSocketClient.prototype = {
@@ -22800,7 +17915,7 @@
     call$1(o) {
       return J.toString$0$(o);
     },
-    $signature: 43
+    $signature: 46
   };
   A.PersistentWebSocket.prototype = {
     get$_incomingStreamController() {
@@ -22979,7 +18094,7 @@
       type$.WebSocket._as(socket);
       return new A.PersistentWebSocket(_this.logger, _this.debugName, _this.maxRetryAttempts, new A._AsyncCompleter(new A._Future($.Zone__current, type$._Future_void), type$._AsyncCompleter_void), _this.uri, _this.onReconnect, socket, A.StreamController_StreamController(null, null, null, type$.dynamic));
     },
-    $signature: 44
+    $signature: 32
   };
   A.PersistentWebSocket__listenWithRetry_attemptRetry.prototype = {
     call$1(message) {
@@ -22995,7 +18110,7 @@
               // Function start
               t1 = $async$self._box_0;
               $async$goto = 2;
-              return A._asyncAwait(A.Future_Future$delayed(A.Duration$(0, B.JSInt_methods._shlPositive$1(100, t1.retryCount)), type$.void), $async$call$1);
+              return A._asyncAwait(A.Future_Future$delayed(A.Duration$(B.JSInt_methods._shlPositive$1(100, t1.retryCount)), type$.void), $async$call$1);
             case 2:
               // returning from await.
               ++t1.retryCount;
@@ -23006,7 +18121,7 @@
       });
       return A._asyncStartSync($async$call$1, $async$completer);
     },
-    $signature: 27
+    $signature: 23
   };
   A.PersistentWebSocket__listenWithRetry_closure.prototype = {
     call$1(e) {
@@ -23073,7 +18188,7 @@
       });
       return A._asyncStartSync($async$call$1, $async$completer);
     },
-    $signature: 46
+    $signature: 34
   };
   A._PersistentWebSocket_Object_StreamChannelMixin.prototype = {};
   A.safeUnawaited_closure.prototype = {
@@ -23081,128 +18196,7 @@
       type$.StackTrace._as(stackTrace);
       return $.$get$_logger().log$4(B.Level_WARNING_900, "Error in unawaited Future:", error, stackTrace);
     },
-    $signature: 20
-  };
-  A.Int32.prototype = {
-    _toInt$1(val) {
-      if (val instanceof A.Int32)
-        return val._i;
-      else if (A._isInt(val))
-        return val;
-      throw A.wrapException(A.ArgumentError$value(val, "other", "Not an int, Int32 or Int64"));
-    },
-    $eq(_, other) {
-      if (other == null)
-        return false;
-      if (other instanceof A.Int32)
-        return this._i === other._i;
-      else if (other instanceof A.Int64)
-        return A.Int64_Int64(this._i).$eq(0, other);
-      else if (A._isInt(other))
-        return this._i === other;
-      return false;
-    },
-    compareTo$1(_, other) {
-      if (other instanceof A.Int64)
-        return A.Int64_Int64(this._i)._compareTo$1(other);
-      return B.JSInt_methods.compareTo$1(this._i, this._toInt$1(other));
-    },
-    get$hashCode(_) {
-      return this._i;
-    },
-    toString$0(_) {
-      return B.JSInt_methods.toString$0(this._i);
-    },
-    $isComparable: 1
-  };
-  A.Int64.prototype = {
-    $eq(_, other) {
-      var o, _this = this;
-      if (other == null)
-        return false;
-      if (other instanceof A.Int64)
-        o = other;
-      else if (A._isInt(other)) {
-        if (_this._h === 0 && _this._m === 0)
-          return _this._l === other;
-        if ((other & 4194303) === other)
-          return false;
-        o = A.Int64_Int64(other);
-      } else
-        o = other instanceof A.Int32 ? A.Int64_Int64(other._i) : null;
-      if (o != null)
-        return _this._l === o._l && _this._m === o._m && _this._h === o._h;
-      return false;
-    },
-    compareTo$1(_, other) {
-      return this._compareTo$1(other);
-    },
-    _compareTo$1(other) {
-      var o = A.Int64__promote(other),
-        t1 = this._h,
-        signa = t1 >>> 19,
-        t2 = o._h;
-      if (signa !== t2 >>> 19)
-        return signa === 0 ? 1 : -1;
-      if (t1 > t2)
-        return 1;
-      else if (t1 < t2)
-        return -1;
-      t1 = this._m;
-      t2 = o._m;
-      if (t1 > t2)
-        return 1;
-      else if (t1 < t2)
-        return -1;
-      t1 = this._l;
-      t2 = o._l;
-      if (t1 > t2)
-        return 1;
-      else if (t1 < t2)
-        return -1;
-      return 0;
-    },
-    get$hashCode(_) {
-      var t1 = this._m;
-      return (((t1 & 1023) << 22 | this._l) ^ (this._h << 12 | t1 >>> 10 & 4095)) >>> 0;
-    },
-    toString$0(_) {
-      var d00, d10, sign,
-        d0 = this._l,
-        d1 = this._m,
-        d2 = this._h;
-      if ((d2 & 524288) !== 0) {
-        d0 = 0 - d0;
-        d00 = d0 & 4194303;
-        d1 = 0 - d1 - (B.JSInt_methods._shrOtherPositive$1(d0, 22) & 1);
-        d10 = d1 & 4194303;
-        d2 = 0 - d2 - (B.JSInt_methods._shrOtherPositive$1(d1, 22) & 1) & 1048575;
-        d1 = d10;
-        d0 = d00;
-        sign = "-";
-      } else
-        sign = "";
-      return A.Int64__toRadixStringUnsigned(10, d0, d1, d2, sign);
-    },
-    _toRadixString$1(radix) {
-      var d00, d10, sign,
-        d0 = this._l,
-        d1 = this._m,
-        d2 = this._h;
-      if ((d2 & 524288) !== 0) {
-        d0 = 0 - d0;
-        d00 = d0 & 4194303;
-        d1 = 0 - d1 - (B.JSInt_methods._shrOtherPositive$1(d0, 22) & 1);
-        d10 = d1 & 4194303;
-        d2 = 0 - d2 - (B.JSInt_methods._shrOtherPositive$1(d1, 22) & 1) & 1048575;
-        d1 = d10;
-        d0 = d00;
-        sign = "-";
-      } else
-        sign = "";
-      return A.Int64__toRadixStringUnsigned(radix, d0, d1, d2, sign);
-    },
-    $isComparable: 1
+    $signature: 24
   };
   A._StackState.prototype = {};
   A.BaseClient.prototype = {
@@ -23250,13 +18244,13 @@
     call$2(key1, key2) {
       return A._asString(key1).toLowerCase() === A._asString(key2).toLowerCase();
     },
-    $signature: 47
+    $signature: 35
   };
   A.BaseRequest_closure0.prototype = {
     call$1(key) {
       return B.JSString_methods.get$hashCode(A._asString(key).toLowerCase());
     },
-    $signature: 48
+    $signature: 36
   };
   A.BaseResponse.prototype = {
     BaseResponse$7$contentLength$headers$isRedirect$persistentConnection$reasonPhrase$request(statusCode, contentLength, headers, isRedirect, persistentConnection, reasonPhrase, request) {
@@ -23400,20 +18394,20 @@
     $defaultValues() {
       return [null];
     },
-    $signature: 49
+    $signature: 37
   };
   A._readBody_closure.prototype = {
     call$1(_) {
       return null;
     },
-    $signature: 6
+    $signature: 4
   };
   A._readBody_closure0.prototype = {
     call$1(_) {
       A._asObject(_);
       return this._box_0.isError;
     },
-    $signature: 50
+    $signature: 38
   };
   A.ByteStream.prototype = {
     toBytes$0() {
@@ -23428,7 +18422,7 @@
     call$1(bytes) {
       return this.completer.complete$1(new Uint8Array(A._ensureNativeList(type$.List_int._as(bytes))));
     },
-    $signature: 51
+    $signature: 39
   };
   A.ClientException.prototype = {
     toString$0(_) {
@@ -23516,7 +18510,7 @@
       scanner.expectDone$0();
       return A.MediaType$(t4, t5, parameters);
     },
-    $signature: 52
+    $signature: 40
   };
   A.MediaType_toString_closure.prototype = {
     call$2(attribute, value) {
@@ -23535,13 +18529,13 @@
       } else
         t1._contents = t3 + value;
     },
-    $signature: 53
+    $signature: 30
   };
   A.MediaType_toString__closure.prototype = {
     call$1(match) {
       return "\\" + A.S(match.$index(0, 0));
     },
-    $signature: 28
+    $signature: 25
   };
   A.expectQuotedString_closure.prototype = {
     call$1(match) {
@@ -23549,7 +18543,7 @@
       t1.toString;
       return t1;
     },
-    $signature: 28
+    $signature: 25
   };
   A.Level.prototype = {
     $eq(_, other) {
@@ -23638,7 +18632,7 @@
         $parent._children.$indexSet(0, thisName, t1);
       return t1;
     },
-    $signature: 55
+    $signature: 43
   };
   A.Context.prototype = {
     absolute$15(part1, part2, part3, part4, part5, part6, part7, part8, part9, part10, part11, part12, part13, part14, part15) {
@@ -23872,20 +18866,20 @@
     call$1(part) {
       return A._asString(part) !== "";
     },
-    $signature: 29
+    $signature: 26
   };
   A.Context_split_closure.prototype = {
     call$1(part) {
       return A._asString(part).length !== 0;
     },
-    $signature: 29
+    $signature: 26
   };
   A._validateArgList_closure.prototype = {
     call$1(arg) {
       A._asStringQ(arg);
       return arg == null ? "null" : '"' + arg + '"';
     },
-    $signature: 57
+    $signature: 45
   };
   A.InternalStyle.prototype = {
     getRoot$1(path) {
@@ -24339,7 +19333,7 @@
       var t1 = this.$this;
       t1._onReleaseCompleters.removeFirst$0().complete$1(new A.PoolResource(t1));
     },
-    $signature: 6
+    $signature: 4
   };
   A.Pool__runOnRelease_closure0.prototype = {
     call$2(error, stackTrace) {
@@ -24347,7 +19341,7 @@
       type$.StackTrace._as(stackTrace);
       this.$this._onReleaseCompleters.removeFirst$0().completeError$2(error, stackTrace);
     },
-    $signature: 4
+    $signature: 3
   };
   A.PoolResource.prototype = {};
   A.SourceFile.prototype = {
@@ -24779,7 +19773,7 @@
     call$0() {
       return this.color;
     },
-    $signature: 58
+    $signature: 92
   };
   A.Highlighter$__closure.prototype = {
     call$1(line) {
@@ -24787,34 +19781,34 @@
         t2 = A._arrayInstanceType(t1);
       return new A.WhereIterable(t1, t2._eval$1("bool(1)")._as(new A.Highlighter$___closure()), t2._eval$1("WhereIterable<1>")).get$length(0);
     },
-    $signature: 59
+    $signature: 47
   };
   A.Highlighter$___closure.prototype = {
     call$1(highlight) {
       var t1 = type$._Highlight._as(highlight).span;
       return t1.get$start().get$line() !== t1.get$end().get$line();
     },
-    $signature: 18
+    $signature: 13
   };
   A.Highlighter$__closure0.prototype = {
     call$1(line) {
       return type$._Line._as(line).url;
     },
-    $signature: 61
+    $signature: 49
   };
   A.Highlighter__collateLines_closure.prototype = {
     call$1(highlight) {
       var t1 = type$._Highlight._as(highlight).span.get$sourceUrl();
       return t1 == null ? new A.Object() : t1;
     },
-    $signature: 62
+    $signature: 50
   };
   A.Highlighter__collateLines_closure0.prototype = {
     call$2(highlight1, highlight2) {
       var t1 = type$._Highlight;
       return t1._as(highlight1).span.compareTo$1(0, t1._as(highlight2).span);
     },
-    $signature: 63
+    $signature: 51
   };
   A.Highlighter__collateLines_closure1.prototype = {
     call$1(entry) {
@@ -24857,20 +19851,20 @@
       }
       return lines;
     },
-    $signature: 64
+    $signature: 52
   };
   A.Highlighter__collateLines__closure.prototype = {
     call$1(highlight) {
       return type$._Highlight._as(highlight).span.get$end().get$line() < this.line.number;
     },
-    $signature: 18
+    $signature: 13
   };
   A.Highlighter_highlight_closure.prototype = {
     call$1(highlight) {
       type$._Highlight._as(highlight);
       return true;
     },
-    $signature: 18
+    $signature: 13
   };
   A.Highlighter__writeFileStart_closure.prototype = {
     call$0() {
@@ -24968,7 +19962,7 @@
       t2._contents = t4;
       return t4.length - t3.length;
     },
-    $signature: 30
+    $signature: 21
   };
   A.Highlighter__writeIndicator_closure0.prototype = {
     call$0() {
@@ -24988,7 +19982,7 @@
         t1._writeArrow$3$beginning(_this.line, Math.max(_this.highlight.span.get$end().get$column() - 1, 0), false);
       return t2._contents.length - t3.length;
     },
-    $signature: 30
+    $signature: 21
   };
   A.Highlighter__writeSidebar_closure.prototype = {
     call$0() {
@@ -25024,7 +20018,7 @@
       }
       return A._Highlight__normalizeEndOfLine(A._Highlight__normalizeTrailingNewline(A._Highlight__normalizeNewlines(newSpan)));
     },
-    $signature: 66
+    $signature: 54
   };
   A._Line.prototype = {
     toString$0(_) {
@@ -25392,7 +20386,7 @@
       });
       return A._asyncStartSync($async$call$0, $async$completer);
     },
-    $signature: 69
+    $signature: 57
   };
   A.StreamChannelMixin.prototype = {};
   A.StringScannerException.prototype = {
@@ -25677,7 +20671,7 @@
       A._asJSObject(_);
       this.webSocketConnected.complete$1(this.browserSocket);
     },
-    $signature: 19
+    $signature: 14
   };
   A.BrowserWebSocket_connect_closure0.prototype = {
     call$1(e) {
@@ -25689,7 +20683,7 @@
       else
         this.browserSocket._closed$2(1006, "error");
     },
-    $signature: 19
+    $signature: 14
   };
   A.BrowserWebSocket_connect_closure1.prototype = {
     call$1(e) {
@@ -25719,7 +20713,7 @@
         t1.complete$1(this.browserSocket);
       this.browserSocket._closed$2(A._asInt($event.code), A._asString($event.reason));
     },
-    $signature: 19
+    $signature: 14
   };
   A.WebSocketEvent.prototype = {};
   A.TextDataReceived.prototype = {
@@ -25904,7 +20898,7 @@
       });
       return A._asyncStartSync($async$call$0, $async$completer);
     },
-    $signature: 13
+    $signature: 10
   };
   A.main__closure.prototype = {
     call$0() {
@@ -25912,13 +20906,13 @@
       path.toString;
       return A.FutureOfJSAnyToJSPromise_get_toJS(this.manager._restarter.hotReloadStart$1(path), type$.JSArray_nullable_Object);
     },
-    $signature: 11
+    $signature: 8
   };
   A.main__closure0.prototype = {
     call$0() {
       return A.FutureOfVoidToJSPromise_get_toJS(this.manager.hotReloadEnd$0());
     },
-    $signature: 11
+    $signature: 8
   };
   A.main__closure1.prototype = {
     call$2(runId, pauseIsolatesOnStart) {
@@ -25943,7 +20937,7 @@
     $defaultValues() {
       return [null];
     },
-    $signature: 72
+    $signature: 60
   };
   A.main__closure2.prototype = {
     call$1(runId) {
@@ -25952,7 +20946,7 @@
       t1 = type$.dynamic;
       A._trySendEvent(this.client.get$sink(), B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["HotRestartRequest", A.LinkedHashMap_LinkedHashMap$_literal(["id", runId], type$.String, t1)], type$.JSArray_Object), null), t1);
     },
-    $signature: 31
+    $signature: 15
   };
   A.main__closure3.prototype = {
     call$0() {
@@ -25973,7 +20967,7 @@
       if (A._asBool(init.G.$dartEmitDebugEvents))
         A._trySendEvent(this.client.get$sink(), B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["BatchedDebugEvents", new A.BatchedDebugEvents(events).toJson$0()], type$.JSArray_Object), null), type$.dynamic);
     },
-    $signature: 74
+    $signature: 62
   };
   A.main__closure5.prototype = {
     call$2(kind, eventData) {
@@ -25985,14 +20979,14 @@
         A._trySendEvent(new A._StreamSinkWrapper(t1, A._instanceType(t1)._eval$1("_StreamSinkWrapper<1>")), new A.DebugEvent(kind, eventData, Date.now()), type$.DebugEvent);
       }
     },
-    $signature: 75
+    $signature: 63
   };
   A.main__closure6.prototype = {
     call$1(eventData) {
       A._asString(eventData);
       A._trySendEvent(this.client.get$sink(), B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["RegisterEvent", new A.RegisterEvent(eventData, Date.now()).toJson$0()], type$.JSArray_Object), null), type$.dynamic);
     },
-    $signature: 31
+    $signature: 15
   };
   A.main__closure7.prototype = {
     call$0() {
@@ -26176,12 +21170,12 @@
       });
       return A._asyncStartSync($async$call$1, $async$completer);
     },
-    $signature: 27
+    $signature: 23
   };
   A.main__closure9.prototype = {
     call$1(error) {
     },
-    $signature: 6
+    $signature: 4
   };
   A.main__closure10.prototype = {
     call$1(e) {
@@ -26200,25 +21194,25 @@
       type$.StackTrace._as(stackTrace);
       A.print("Unhandled error detected in the injected client.js script.\n\nYou can disable this script in webdev by passing --no-injected-client if it\nis preventing your app from loading, but note that this will also prevent\nall debugging and hot reload/restart functionality from working.\n\nThe original error is below, please file an issue at\nhttps://github.com/dart-lang/webdev/issues/new and attach this output:\n\n" + A.S(error) + "\n" + stackTrace.toString$0(0) + "\n");
     },
-    $signature: 8
+    $signature: 6
   };
   A._handleAuthRequest_closure.prototype = {
     call$1(isAuthenticated) {
       return A._dispatchEvent("dart-auth-response", "" + A._asBool(isAuthenticated));
     },
-    $signature: 76
+    $signature: 64
   };
   A._sendHotReloadResponse_closure.prototype = {
     call$3(id, success, errorMessage) {
       return new A.HotReloadResponse(id, success, errorMessage);
     },
-    $signature: 77
+    $signature: 91
   };
   A._sendHotRestartResponse_closure.prototype = {
     call$3(id, success, errorMessage) {
       return new A.HotRestartResponse(id, success, errorMessage);
     },
-    $signature: 78
+    $signature: 66
   };
   A.DdcLibraryBundleRestarter.prototype = {
     _runMainWhenReady$2(readyToRunMain, runMain) {
@@ -26325,7 +21319,7 @@
     hotReloadStart$1(reloadedSourcesPath) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.JSArray_nullable_Object),
-        $async$returnValue, $async$self = this, t3, t4, t5, t6, srcModuleLibraryCast, src, libraries, t7, t1, t2, filesToLoad, librariesToReload, srcModuleLibraries;
+        $async$returnValue, $async$self = this, t3, t4, t5, t6, srcModuleLibraryCast, src, libraries, t7, t8, t9, t1, t2, filesToLoad, librariesToReload, srcModuleLibraries;
       var $async$hotReloadStart$1 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -26347,8 +21341,12 @@
                 src = A._asString(srcModuleLibraryCast.$index(0, "src"));
                 libraries = J.cast$1$0$ax(t6._as(srcModuleLibraryCast.$index(0, "libraries")), t4);
                 filesToLoad.push(src);
-                for (t7 = libraries.get$iterator(libraries); t7.moveNext$0();)
-                  librariesToReload.push(t7.get$current());
+                for (t7 = A._instanceType(libraries), t8 = new A.ListIterator(libraries, libraries.get$length(libraries), t7._eval$1("ListIterator<ListBase.E>")), t7 = t7._eval$1("ListBase.E"); t8.moveNext$0();) {
+                  t9 = t8.__internal$_current;
+                  if (t9 == null)
+                    t9 = t7._as(t9);
+                  librariesToReload.push(t9);
+                }
               }
               A._asJSObject(A._asJSObject(t1.dartDevEmbedder).config).capturedHotReloadEndHandler = A._functionToJS1(new A.DdcLibraryBundleRestarter_hotReloadStart_closure($async$self));
               $async$goto = 4;
@@ -26471,13 +21469,13 @@
       A._asJSObject(A._asJSObject(init.G.dartDevEmbedder).config).capturedMainHandler = null;
       A.safeUnawaited(this.$this._runMainWhenReady$2(this.readyToRunMain, runMain));
     },
-    $signature: 32
+    $signature: 27
   };
   A.DdcLibraryBundleRestarter_hotReloadStart_closure.prototype = {
     call$1(hotReloadEndCallback) {
       this.$this._capturedHotReloadEndCallback = type$.JavaScriptFunction._as(hotReloadEndCallback);
     },
-    $signature: 32
+    $signature: 27
   };
   A.DdcRestarter.prototype = {
     restart$3$readyToRunMain$reloadedSourcesPath$runId(readyToRunMain, reloadedSourcesPath, runId) {
@@ -26535,7 +21533,7 @@
       this.sub.cancel$0();
       return value;
     },
-    $signature: 80
+    $signature: 68
   };
   A.ReloadingManager.prototype = {
     hotRestart$3$readyToRunMain$reloadedSourcesPath$runId(readyToRunMain, reloadedSourcesPath, runId) {
@@ -26673,7 +21671,7 @@
               // returning from await.
               newDigests = $async$result;
               modulesToLoad = A._setArrayType([], type$.JSArray_String);
-              for (t3 = newDigests.get$keys(), t3 = t3.get$iterator(t3), t4 = $.RequireRestarter____lastKnownDigests._name; t3.moveNext$0();) {
+              for (t3 = newDigests.get$keys(), t3 = t3.get$iterator(t3), t4 = $.RequireRestarter____lastKnownDigests.__late_helper$_name; t3.moveNext$0();) {
                 t5 = t3.get$current();
                 t6 = $.RequireRestarter____lastKnownDigests.__late_helper$_value;
                 if (t6 === $.RequireRestarter____lastKnownDigests)
@@ -27040,7 +22038,7 @@
     call$1(e) {
       this.completer.completeError$2(new A.HotReloadFailedException(A._asString(type$.JavaScriptObject._as(e).message)), this.stackTrace);
     },
-    $signature: 83
+    $signature: 71
   };
   A._createScript_closure.prototype = {
     call$0() {
@@ -27049,13 +22047,13 @@
         return new A._createScript__closure();
       return new A._createScript__closure0(nonce);
     },
-    $signature: 84
+    $signature: 72
   };
   A._createScript__closure.prototype = {
     call$0() {
       return A._asJSObject(A._asJSObject(init.G.document).createElement("script"));
     },
-    $signature: 11
+    $signature: 8
   };
   A._createScript__closure0.prototype = {
     call$0() {
@@ -27063,7 +22061,7 @@
       scriptElement.setAttribute("nonce", this.nonce);
       return scriptElement;
     },
-    $signature: 11
+    $signature: 8
   };
   A.runMain_closure.prototype = {
     call$0() {
@@ -27086,14 +22084,9 @@
     _.super$JsLinkedHashMap$internalContainsKey = _.internalContainsKey$1;
     _.super$JsLinkedHashMap$internalGet = _.internalGet$1;
     _.super$JsLinkedHashMap$internalSet = _.internalSet$2;
-    _.super$JsLinkedHashMap$internalRemove = _.internalRemove$1;
     _ = A._BufferingStreamSubscription.prototype;
     _.super$_BufferingStreamSubscription$_add = _._add$1;
     _.super$_BufferingStreamSubscription$_addError = _._addError$2;
-    _ = A._HashMap.prototype;
-    _.super$_HashMap$_containsKey = _._containsKey$1;
-    _.super$_HashMap$_get = _._get$1;
-    _.super$_HashMap$_set = _._set$2;
     _ = A.ListBase.prototype;
     _.super$ListBase$setRange = _.setRange$4;
     _ = A.BaseRequest.prototype;
@@ -27112,52 +22105,52 @@
       _instance_2_u = hunkHelpers._instance_2u,
       _instance_0_u = hunkHelpers._instance_0u,
       _instance_1_i = hunkHelpers._instance_1i;
-    _static_2(J, "_interceptors_JSArray__compareAny$closure", "JSArray__compareAny", 21);
-    _instance_1_u(A.CastStreamSubscription.prototype, "get$__internal$_onData", "__internal$_onData$1", 10);
-    _static_1(A, "async__AsyncRun__scheduleImmediateJsOverride$closure", "_AsyncRun__scheduleImmediateJsOverride", 12);
-    _static_1(A, "async__AsyncRun__scheduleImmediateWithSetImmediate$closure", "_AsyncRun__scheduleImmediateWithSetImmediate", 12);
-    _static_1(A, "async__AsyncRun__scheduleImmediateWithTimer$closure", "_AsyncRun__scheduleImmediateWithTimer", 12);
+    _static_2(J, "_interceptors_JSArray__compareAny$closure", "JSArray__compareAny", 28);
+    _instance_1_u(A.CastStreamSubscription.prototype, "get$__internal$_onData", "__internal$_onData$1", 7);
+    _static_1(A, "async__AsyncRun__scheduleImmediateJsOverride$closure", "_AsyncRun__scheduleImmediateJsOverride", 9);
+    _static_1(A, "async__AsyncRun__scheduleImmediateWithSetImmediate$closure", "_AsyncRun__scheduleImmediateWithSetImmediate", 9);
+    _static_1(A, "async__AsyncRun__scheduleImmediateWithTimer$closure", "_AsyncRun__scheduleImmediateWithTimer", 9);
     _static_0(A, "async___startMicrotaskLoop$closure", "_startMicrotaskLoop", 0);
-    _static_1(A, "async___nullDataHandler$closure", "_nullDataHandler", 7);
-    _static_2(A, "async___nullErrorHandler$closure", "_nullErrorHandler", 8);
+    _static_1(A, "async___nullDataHandler$closure", "_nullDataHandler", 5);
+    _static_2(A, "async___nullErrorHandler$closure", "_nullErrorHandler", 6);
     _static_0(A, "async___nullDoneHandler$closure", "_nullDoneHandler", 0);
-    _static(A, "async___rootHandleUncaughtError$closure", 5, null, ["call$5"], ["_rootHandleUncaughtError"], 87, 0);
+    _static(A, "async___rootHandleUncaughtError$closure", 5, null, ["call$5"], ["_rootHandleUncaughtError"], 75, 0);
     _static(A, "async___rootRun$closure", 4, null, ["call$1$4", "call$4"], ["_rootRun", function($self, $parent, zone, f) {
       return A._rootRun($self, $parent, zone, f, type$.dynamic);
-    }], 88, 1);
+    }], 76, 1);
     _static(A, "async___rootRunUnary$closure", 5, null, ["call$2$5", "call$5"], ["_rootRunUnary", function($self, $parent, zone, f, arg) {
       var t1 = type$.dynamic;
       return A._rootRunUnary($self, $parent, zone, f, arg, t1, t1);
-    }], 89, 1);
+    }], 77, 1);
     _static(A, "async___rootRunBinary$closure", 6, null, ["call$3$6", "call$6"], ["_rootRunBinary", function($self, $parent, zone, f, arg1, arg2) {
       var t1 = type$.dynamic;
       return A._rootRunBinary($self, $parent, zone, f, arg1, arg2, t1, t1, t1);
-    }], 90, 1);
+    }], 78, 1);
     _static(A, "async___rootRegisterCallback$closure", 4, null, ["call$1$4", "call$4"], ["_rootRegisterCallback", function($self, $parent, zone, f) {
       return A._rootRegisterCallback($self, $parent, zone, f, type$.dynamic);
-    }], 91, 0);
+    }], 79, 0);
     _static(A, "async___rootRegisterUnaryCallback$closure", 4, null, ["call$2$4", "call$4"], ["_rootRegisterUnaryCallback", function($self, $parent, zone, f) {
       var t1 = type$.dynamic;
       return A._rootRegisterUnaryCallback($self, $parent, zone, f, t1, t1);
-    }], 92, 0);
+    }], 80, 0);
     _static(A, "async___rootRegisterBinaryCallback$closure", 4, null, ["call$3$4", "call$4"], ["_rootRegisterBinaryCallback", function($self, $parent, zone, f) {
       var t1 = type$.dynamic;
       return A._rootRegisterBinaryCallback($self, $parent, zone, f, t1, t1, t1);
-    }], 93, 0);
-    _static(A, "async___rootErrorCallback$closure", 5, null, ["call$5"], ["_rootErrorCallback"], 94, 0);
-    _static(A, "async___rootScheduleMicrotask$closure", 4, null, ["call$4"], ["_rootScheduleMicrotask"], 95, 0);
-    _static(A, "async___rootCreateTimer$closure", 5, null, ["call$5"], ["_rootCreateTimer"], 96, 0);
-    _static(A, "async___rootCreatePeriodicTimer$closure", 5, null, ["call$5"], ["_rootCreatePeriodicTimer"], 97, 0);
-    _static(A, "async___rootPrint$closure", 4, null, ["call$4"], ["_rootPrint"], 98, 0);
-    _static_1(A, "async___printToZone$closure", "_printToZone", 99);
-    _static(A, "async___rootFork$closure", 5, null, ["call$5"], ["_rootFork"], 100, 0);
+    }], 81, 0);
+    _static(A, "async___rootErrorCallback$closure", 5, null, ["call$5"], ["_rootErrorCallback"], 82, 0);
+    _static(A, "async___rootScheduleMicrotask$closure", 4, null, ["call$4"], ["_rootScheduleMicrotask"], 83, 0);
+    _static(A, "async___rootCreateTimer$closure", 5, null, ["call$5"], ["_rootCreateTimer"], 84, 0);
+    _static(A, "async___rootCreatePeriodicTimer$closure", 5, null, ["call$5"], ["_rootCreatePeriodicTimer"], 85, 0);
+    _static(A, "async___rootPrint$closure", 4, null, ["call$4"], ["_rootPrint"], 86, 0);
+    _static_1(A, "async___printToZone$closure", "_printToZone", 87);
+    _static(A, "async___rootFork$closure", 5, null, ["call$5"], ["_rootFork"], 88, 0);
     _instance(A._Completer.prototype, "get$completeError", 0, 1, function() {
       return [null];
-    }, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 37, 0, 0);
-    _instance_2_u(A._Future.prototype, "get$_completeError", "_completeError$2", 8);
+    }, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 58, 0, 0);
+    _instance_2_u(A._Future.prototype, "get$_completeError", "_completeError$2", 6);
     var _;
-    _instance_1_u(_ = A._StreamController.prototype, "get$_add", "_add$1", 10);
-    _instance_2_u(_, "get$_addError", "_addError$2", 8);
+    _instance_1_u(_ = A._StreamController.prototype, "get$_add", "_add$1", 7);
+    _instance_2_u(_, "get$_addError", "_addError$2", 6);
     _instance_0_u(_, "get$_close", "_close$0", 0);
     _instance_0_u(_ = A._ControllerSubscription.prototype, "get$_onPause", "_onPause$0", 0);
     _instance_0_u(_, "get$_onResume", "_onResume$0", 0);
@@ -27166,42 +22159,39 @@
     _instance_0_u(A._DoneStreamSubscription.prototype, "get$_onMicrotask", "_onMicrotask$0", 0);
     _instance_0_u(_ = A._ForwardingStreamSubscription.prototype, "get$_onPause", "_onPause$0", 0);
     _instance_0_u(_, "get$_onResume", "_onResume$0", 0);
-    _instance_1_u(_, "get$_handleData", "_handleData$1", 10);
-    _instance_2_u(_, "get$_handleError", "_handleError$2", 20);
+    _instance_1_u(_, "get$_handleData", "_handleData$1", 7);
+    _instance_2_u(_, "get$_handleError", "_handleError$2", 24);
     _instance_0_u(_, "get$_handleDone", "_handleDone$0", 0);
-    _static_2(A, "collection___defaultEquals$closure", "_defaultEquals0", 16);
-    _static_1(A, "collection___defaultHashCode$closure", "_defaultHashCode", 17);
-    _static_2(A, "collection_ListBase__compareAny$closure", "ListBase__compareAny", 21);
-    _static_1(A, "convert___defaultToEncodable$closure", "_defaultToEncodable", 5);
-    _instance_1_i(_ = A._ByteCallbackSink.prototype, "get$add", "add$1", 10);
+    _static_2(A, "collection___defaultEquals$closure", "_defaultEquals0", 29);
+    _static_1(A, "collection___defaultHashCode$closure", "_defaultHashCode", 16);
+    _static_2(A, "collection_ListBase__compareAny$closure", "ListBase__compareAny", 28);
+    _static_1(A, "convert___defaultToEncodable$closure", "_defaultToEncodable", 20);
+    _instance_1_i(_ = A._ByteCallbackSink.prototype, "get$add", "add$1", 7);
     _instance_0_u(_, "get$close", "close$0", 0);
-    _static_1(A, "core__identityHashCode$closure", "identityHashCode", 17);
-    _static_2(A, "core__identical$closure", "identical", 16);
-    _static_1(A, "core_Uri_decodeComponent$closure", "Uri_decodeComponent", 15);
+    _static_1(A, "core__identityHashCode$closure", "identityHashCode", 16);
+    _static_2(A, "core__identical$closure", "identical", 29);
+    _static_1(A, "core_Uri_decodeComponent$closure", "Uri_decodeComponent", 11);
     _static(A, "math__max$closure", 2, null, ["call$1$2", "call$2"], ["max", function(a, b) {
       return A.max(a, b, type$.num);
-    }], 101, 1);
-    _instance_2_u(_ = A.DeepCollectionEquality.prototype, "get$equals", "equals$2", 16);
-    _instance_1_u(_, "get$hash", "hash$1", 17);
-    _instance_1_u(_, "get$isValidKey", "isValidKey$1", 14);
-    _instance_1_u(_ = A.PersistentWebSocket.prototype, "get$_writeToWebSocket", "_writeToWebSocket$1", 7);
-    _instance_0_u(_, "get$_listenWithRetry", "_listenWithRetry$0", 13);
-    _static_1(A, "case_insensitive_map_CaseInsensitiveMap__canonicalizer$closure", "CaseInsensitiveMap__canonicalizer", 15);
+    }], 65, 1);
+    _instance_1_u(_ = A.PersistentWebSocket.prototype, "get$_writeToWebSocket", "_writeToWebSocket$1", 5);
+    _instance_0_u(_, "get$_listenWithRetry", "_listenWithRetry$0", 10);
+    _static_1(A, "case_insensitive_map_CaseInsensitiveMap__canonicalizer$closure", "CaseInsensitiveMap__canonicalizer", 11);
     _instance_1_u(_ = A.SseClient.prototype, "get$_onIncomingControlMessage", "_onIncomingControlMessage$1", 2);
     _instance_1_u(_, "get$_onIncomingMessage", "_onIncomingMessage$1", 2);
     _instance_0_u(_, "get$_onOutgoingDone", "_onOutgoingDone$0", 0);
-    _instance_1_u(_, "get$_onOutgoingMessage", "_onOutgoingMessage$1", 85);
-    _static_1(A, "client__initializeConnection$closure", "initializeConnection", 68);
+    _instance_1_u(_, "get$_onOutgoingMessage", "_onOutgoingMessage$1", 56);
+    _static_1(A, "client__initializeConnection$closure", "initializeConnection", 61);
     _static_1(A, "client___handleAuthRequest$closure", "_handleAuthRequest", 2);
-    _instance_1_u(_ = A.RequireRestarter.prototype, "get$_moduleParents", "_moduleParents$1", 81);
-    _instance_2_u(_, "get$_moduleTopologicalCompare", "_moduleTopologicalCompare$2", 82);
+    _instance_1_u(_ = A.RequireRestarter.prototype, "get$_moduleParents", "_moduleParents$1", 69);
+    _instance_2_u(_, "get$_moduleTopologicalCompare", "_moduleTopologicalCompare$2", 70);
   })();
   (function inheritance() {
     var _mixin = hunkHelpers.mixin,
       _inherit = hunkHelpers.inherit,
       _inheritMany = hunkHelpers.inheritMany;
     _inherit(A.Object, null);
-    _inheritMany(A.Object, [A.JS_CONST, J.Interceptor, A.SafeToStringHook, J.ArrayIterator, A.Stream, A.CastStreamSubscription, A.Iterable, A.CastIterator, A.Closure, A.MapBase, A.Error, A.ListBase, A.SentinelValue, A.ListIterator, A.MappedIterator, A.WhereIterator, A.ExpandIterator, A.TakeIterator, A.SkipIterator, A.EmptyIterator, A.WhereTypeIterator, A.FixedLengthListMixin, A.UnmodifiableListMixin, A._Record, A.ConstantMap, A._KeysOrValuesOrElementsIterator, A.TypeErrorDecoder, A.NullThrownFromJavaScriptException, A.ExceptionAndStackTrace, A._StackTrace, A.LinkedHashMapCell, A.LinkedHashMapKeyIterator, A.LinkedHashMapValueIterator, A.LinkedHashMapEntryIterator, A.JSSyntaxRegExp, A._MatchImplementation, A._AllMatchesIterator, A.StringMatch, A._StringAllMatchesIterator, A._Cell, A._UnmodifiableNativeByteBufferView, A.Rti, A._FunctionParameters, A._Type, A._TimerImpl, A._AsyncAwaitCompleter, A._AsyncStarStreamController, A._IterationMarker, A.AsyncError, A._Completer, A._FutureListener, A._Future, A._AsyncCallbackEntry, A._StreamController, A._AsyncStreamControllerDispatch, A._BufferingStreamSubscription, A._StreamSinkWrapper, A._AddStreamState, A._DelayedEvent, A._DelayedDone, A._PendingEvents, A._DoneStreamSubscription, A._StreamIterator, A._ZoneFunction, A._Zone, A._ZoneDelegate, A._ZoneSpecification, A._HashMapKeyIterator, A.SetBase, A._HashSetIterator, A._LinkedHashSetCell, A._LinkedHashSetIterator, A._UnmodifiableMapMixin, A.MapView, A._ListQueueIterator, A._SplayTreeNode, A._SplayTree, A._SplayTreeIterator, A.Codec, A.Converter, A._Base64Encoder, A._Base64Decoder, A.ByteConversionSink, A._JsonStringifier, A._Utf8Encoder, A._Utf8Decoder, A._BigIntImpl, A.DateTime, A.Duration, A._Enum, A.OutOfMemoryError, A.StackOverflowError, A._Exception, A.FormatException, A.IntegerDivisionByZeroException, A.MapEntry, A.Null, A._StringStackTrace, A.StringBuffer, A._Uri, A.UriData, A._SimpleUri, A.NullRejectionException, A._JSRandom, A._JSSecureRandom, A.AsyncMemoizer, A.ErrorResult, A.ValueResult, A.StreamQueue, A._NextRequest, A._HasNextRequest, A.BuiltList, A.ListBuilder, A.BuiltListMultimap, A.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, A.BuiltSet, A.SetBuilder, A.BuiltSetMultimap, A.SetMultimapBuilder, A.JsonObject, A.FullType, A.BigIntSerializer, A.BoolSerializer, A.BuiltJsonSerializers, A.BuiltJsonSerializersBuilder, A.BuiltListMultimapSerializer, A.BuiltListSerializer, A.BuiltMapSerializer, A.BuiltSetMultimapSerializer, A.BuiltSetSerializer, A.DateTimeSerializer, A.DoubleSerializer, A.DurationSerializer, A.Int32Serializer, A.Int64Serializer, A.IntSerializer, A.JsonObjectSerializer, A.ListSerializer, A.MapSerializer, A.NullSerializer, A.NumSerializer, A.RegExpSerializer, A.SetSerializer, A.StringSerializer, A.Uint8ListSerializer, A.UriSerializer, A.CanonicalizedMap, A.DefaultEquality, A.IterableEquality, A.ListEquality, A._UnorderedEquality, A._MapEntry, A.MapEquality, A.DeepCollectionEquality, A._QueueList_Object_ListMixin, A.BuildResult, A.ConnectRequest, A.DebugEvent, A.BatchedDebugEvents, A.DebugInfo, A.DevToolsRequest, A.DevToolsResponse, A.ErrorResponse, A.HotReloadRequest, A.HotReloadResponse, A.HotRestartRequest, A.HotRestartResponse, A.RegisterEvent, A.RunRequest, A.ServiceExtensionRequest, A.ServiceExtensionResponse, A.BatchedStreamController, A.SocketClient, A._PersistentWebSocket_Object_StreamChannelMixin, A.Int32, A.Int64, A._StackState, A.BaseClient, A.BaseRequest, A.BaseResponse, A.ClientException, A.MediaType, A.Level, A.LogRecord, A.Logger, A.Context, A.Style, A.ParsedPath, A.PathException, A.Pool, A.PoolResource, A.SourceFile, A.SourceLocationMixin, A.SourceSpanMixin, A.Highlighter, A._Highlight, A._Line, A.SourceLocation, A.SourceSpanException, A.StreamChannelMixin, A.StringScanner, A.RNG, A.UuidV1, A.EventStreamProvider, A._EventStreamSubscription, A.BrowserWebSocket, A.WebSocketEvent, A.WebSocketException, A.DdcLibraryBundleRestarter, A.DdcRestarter, A.ReloadingManager, A.HotReloadFailedException, A.RequireRestarter]);
+    _inheritMany(A.Object, [A.JS_CONST, J.Interceptor, A.SafeToStringHook, J.ArrayIterator, A.Stream, A.CastStreamSubscription, A.Iterable, A.CastIterator, A.Closure, A.MapBase, A.Error, A.ListBase, A.SentinelValue, A.ListIterator, A.MappedIterator, A.WhereIterator, A.ExpandIterator, A.TakeIterator, A.SkipIterator, A.EmptyIterator, A.WhereTypeIterator, A.FixedLengthListMixin, A.UnmodifiableListMixin, A._Record, A.ConstantMap, A._KeysOrValuesOrElementsIterator, A.TypeErrorDecoder, A.NullThrownFromJavaScriptException, A.ExceptionAndStackTrace, A._StackTrace, A.LinkedHashMapCell, A.LinkedHashMapKeyIterator, A.LinkedHashMapValueIterator, A.LinkedHashMapEntryIterator, A.JSSyntaxRegExp, A._MatchImplementation, A._AllMatchesIterator, A.StringMatch, A._StringAllMatchesIterator, A._Cell, A._UnmodifiableNativeByteBufferView, A.Rti, A._FunctionParameters, A._Type, A._TimerImpl, A._AsyncAwaitCompleter, A._AsyncStarStreamController, A._IterationMarker, A.AsyncError, A._Completer, A._FutureListener, A._Future, A._AsyncCallbackEntry, A._StreamController, A._AsyncStreamControllerDispatch, A._BufferingStreamSubscription, A._StreamSinkWrapper, A._AddStreamState, A._DelayedEvent, A._DelayedDone, A._PendingEvents, A._DoneStreamSubscription, A._StreamIterator, A._ZoneFunction, A._Zone, A._ZoneDelegate, A._ZoneSpecification, A._HashMapKeyIterator, A.SetBase, A._HashSetIterator, A._UnmodifiableMapMixin, A.MapView, A._ListQueueIterator, A._SplayTreeNode, A._SplayTree, A._SplayTreeIterator, A.Codec, A.Converter, A.ByteConversionSink, A._JsonStringifier, A._Utf8Encoder, A._Utf8Decoder, A.DateTime, A.Duration, A._Enum, A.OutOfMemoryError, A.StackOverflowError, A._Exception, A.FormatException, A.MapEntry, A.Null, A._StringStackTrace, A.StringBuffer, A._Uri, A.UriData, A._SimpleUri, A.NullRejectionException, A._JSRandom, A._JSSecureRandom, A.AsyncMemoizer, A.ErrorResult, A.ValueResult, A.StreamQueue, A._NextRequest, A._HasNextRequest, A.CanonicalizedMap, A._QueueList_Object_ListMixin, A.BuildResult, A.ConnectRequest, A.DebugEvent, A.BatchedDebugEvents, A.DebugInfo, A.DevToolsRequest, A.DevToolsResponse, A.ErrorResponse, A.HotReloadRequest, A.HotReloadResponse, A.HotRestartRequest, A.HotRestartResponse, A.RegisterEvent, A.RunRequest, A.ServiceExtensionRequest, A.ServiceExtensionResponse, A.BatchedStreamController, A.SocketClient, A._PersistentWebSocket_Object_StreamChannelMixin, A._StackState, A.BaseClient, A.BaseRequest, A.BaseResponse, A.ClientException, A.MediaType, A.Level, A.LogRecord, A.Logger, A.Context, A.Style, A.ParsedPath, A.PathException, A.Pool, A.PoolResource, A.SourceFile, A.SourceLocationMixin, A.SourceSpanMixin, A.Highlighter, A._Highlight, A._Line, A.SourceLocation, A.SourceSpanException, A.StreamChannelMixin, A.StringScanner, A.RNG, A.UuidV1, A.EventStreamProvider, A._EventStreamSubscription, A.BrowserWebSocket, A.WebSocketEvent, A.WebSocketException, A.DdcLibraryBundleRestarter, A.DdcRestarter, A.ReloadingManager, A.HotReloadFailedException, A.RequireRestarter]);
     _inheritMany(J.Interceptor, [J.JSBool, J.JSNull, J.JavaScriptObject, J.JavaScriptBigInt, J.JavaScriptSymbol, J.JSNumber, J.JSString]);
     _inheritMany(J.JavaScriptObject, [J.LegacyJavaScriptObject, J.JSArray, A.NativeByteBuffer, A.NativeTypedData]);
     _inheritMany(J.LegacyJavaScriptObject, [J.PlainJavaScriptObject, J.UnknownJavaScriptObject, J.JavaScriptFunction]);
@@ -27213,14 +22203,14 @@
     _inheritMany(A._CastIterableBase, [A.CastIterable, A.__CastListBase__CastIterableBase_ListMixin]);
     _inherit(A._EfficientLengthCastIterable, A.CastIterable);
     _inherit(A._CastListBase, A.__CastListBase__CastIterableBase_ListMixin);
-    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.Instantiation, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._asyncStarHelper_closure0, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._CustomHashMap_closure, A._LinkedCustomHashMap_closure, A._BigIntImpl_hashCode_finish, A._Uri__makePath_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure, A.FutureOfVoidToJSPromise_get_toJS__closure, A.jsify__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.BuiltListMultimap_BuiltListMultimap_closure, A.BuiltListMultimap_hashCode_closure, A.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.BuiltSet_hashCode_closure, A.BuiltSetMultimap_hashCode_closure, A.SetMultimapBuilder_replace_closure, A.BuiltListMultimapSerializer_serialize_closure, A.BuiltListMultimapSerializer_deserialize_closure, A.BuiltListSerializer_serialize_closure, A.BuiltListSerializer_deserialize_closure, A.BuiltSetMultimapSerializer_serialize_closure, A.BuiltSetMultimapSerializer_deserialize_closure, A.BuiltSetSerializer_serialize_closure, A.BuiltSetSerializer_deserialize_closure, A.ListSerializer_serialize_closure, A.SetSerializer_serialize_closure, A.CanonicalizedMap_keys_closure, A.BuildStatus_BuildStatus$fromJson_closure, A.BatchedDebugEvents_toJson_closure, A.WebSocketClient_stream_closure, A.PersistentWebSocket_connect_closure, A.PersistentWebSocket__listenWithRetry_attemptRetry, A.PersistentWebSocket__listenWithRetry_closure, A.BaseRequest_closure0, A.BrowserClient_send_closure, A._readBody_closure, A._readBody_closure0, A.ByteStream_toBytes_closure, A.MediaType_toString__closure, A.expectQuotedString_closure, A.Context_joinAll_closure, A.Context_split_closure, A._validateArgList_closure, A.Pool__runOnRelease_closure, A.Highlighter$__closure, A.Highlighter$___closure, A.Highlighter$__closure0, A.Highlighter__collateLines_closure, A.Highlighter__collateLines_closure1, A.Highlighter__collateLines__closure, A.Highlighter_highlight_closure, A.SseClient_closure0, A.SseClient_closure1, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.BrowserWebSocket_connect_closure, A.BrowserWebSocket_connect_closure0, A.BrowserWebSocket_connect_closure1, A.BrowserWebSocket_connect_closure2, A.main__closure1, A.main__closure2, A.main__closure4, A.main__closure6, A.main__closure8, A.main__closure9, A.main__closure10, A._handleAuthRequest_closure, A._sendHotReloadResponse_closure, A._sendHotRestartResponse_closure, A.DdcLibraryBundleRestarter_restart_closure, A.DdcLibraryBundleRestarter_hotReloadStart_closure, A.DdcRestarter_restart_closure0, A.DdcRestarter_restart_closure, A.RequireRestarter__reloadModule_closure0, A.JSArrayExtension_toDartIterable_closure]);
-    _inheritMany(A.Closure2Args, [A._CastListBase_sort_closure, A.CastMap_forEach_closure, A.ConstantMap_map_closure, A.JsLinkedHashMap_addAll_closure, A.initHooks_closure0, A._awaitOnObject_closure0, A._wrapJsFunctionForAsync_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure0, A._Future_timeout_closure1, A._AddStreamState_makeErrorHandler_closure, A._BufferingStreamSubscription_asFuture_closure0, A.LinkedHashMap_LinkedHashMap$from_closure, A.MapBase_mapToString_closure, A._JsonStringifier_writeMap_closure, A._BigIntImpl_hashCode_combine, A.Uri_parseIPv6Address_error, A.FutureOfJSAnyToJSPromise_get_toJS_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure0, A.FutureOfVoidToJSPromise_get_toJS_closure, A.FutureOfVoidToJSPromise_get_toJS__closure0, A.StreamQueue__ensureListening_closure1, A.hashObjects_closure, A.MapBuilder_replace_closure, A.CanonicalizedMap_addAll_closure, A.CanonicalizedMap_forEach_closure, A.CanonicalizedMap_map_closure, A.safeUnawaited_closure, A.BaseRequest_closure, A.MediaType_toString_closure, A.Pool__runOnRelease_closure0, A.Highlighter__collateLines_closure0, A.main__closure5, A.main_closure0]);
+    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.Instantiation, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._asyncStarHelper_closure0, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._LinkedCustomHashMap_closure, A._Uri__makePath_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure, A.FutureOfVoidToJSPromise_get_toJS__closure, A.jsify__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.CanonicalizedMap_keys_closure, A.BuildStatus_BuildStatus$fromJson_closure, A.BatchedDebugEvents_toJson_closure, A.WebSocketClient_stream_closure, A.PersistentWebSocket_connect_closure, A.PersistentWebSocket__listenWithRetry_attemptRetry, A.PersistentWebSocket__listenWithRetry_closure, A.BaseRequest_closure0, A.BrowserClient_send_closure, A._readBody_closure, A._readBody_closure0, A.ByteStream_toBytes_closure, A.MediaType_toString__closure, A.expectQuotedString_closure, A.Context_joinAll_closure, A.Context_split_closure, A._validateArgList_closure, A.Pool__runOnRelease_closure, A.Highlighter$__closure, A.Highlighter$___closure, A.Highlighter$__closure0, A.Highlighter__collateLines_closure, A.Highlighter__collateLines_closure1, A.Highlighter__collateLines__closure, A.Highlighter_highlight_closure, A.SseClient_closure0, A.SseClient_closure1, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.BrowserWebSocket_connect_closure, A.BrowserWebSocket_connect_closure0, A.BrowserWebSocket_connect_closure1, A.BrowserWebSocket_connect_closure2, A.main__closure1, A.main__closure2, A.main__closure4, A.main__closure6, A.main__closure8, A.main__closure9, A.main__closure10, A._handleAuthRequest_closure, A._sendHotReloadResponse_closure, A._sendHotRestartResponse_closure, A.DdcLibraryBundleRestarter_restart_closure, A.DdcLibraryBundleRestarter_hotReloadStart_closure, A.DdcRestarter_restart_closure0, A.DdcRestarter_restart_closure, A.RequireRestarter__reloadModule_closure0, A.JSArrayExtension_toDartIterable_closure]);
+    _inheritMany(A.Closure2Args, [A._CastListBase_sort_closure, A.CastMap_forEach_closure, A.initHooks_closure0, A._awaitOnObject_closure0, A._wrapJsFunctionForAsync_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure0, A._Future_timeout_closure1, A._AddStreamState_makeErrorHandler_closure, A._BufferingStreamSubscription_asFuture_closure0, A.MapBase_mapToString_closure, A._JsonStringifier_writeMap_closure, A.Uri_parseIPv6Address_error, A.FutureOfJSAnyToJSPromise_get_toJS_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure0, A.FutureOfVoidToJSPromise_get_toJS_closure, A.FutureOfVoidToJSPromise_get_toJS__closure0, A.StreamQueue__ensureListening_closure1, A.CanonicalizedMap_addAll_closure, A.CanonicalizedMap_forEach_closure, A.safeUnawaited_closure, A.BaseRequest_closure, A.MediaType_toString_closure, A.Pool__runOnRelease_closure0, A.Highlighter__collateLines_closure0, A.main__closure5, A.main_closure0]);
     _inherit(A.CastList, A._CastListBase);
     _inheritMany(A.MapBase, [A.CastMap, A.JsLinkedHashMap, A._HashMap, A._JsonMap]);
-    _inheritMany(A.Error, [A.LateError, A.TypeError, A.JsNoSuchMethodError, A.UnknownJsTypeError, A.RuntimeError, A._Error, A.JsonUnsupportedObjectError, A.AssertionError, A.ArgumentError, A.UnsupportedError, A.UnimplementedError, A.StateError, A.ConcurrentModificationError, A.DeserializationError]);
+    _inheritMany(A.Error, [A.LateError, A.TypeError, A.JsNoSuchMethodError, A.UnknownJsTypeError, A.RuntimeError, A._Error, A.JsonUnsupportedObjectError, A.AssertionError, A.ArgumentError, A.UnsupportedError, A.UnimplementedError, A.StateError, A.ConcurrentModificationError]);
     _inherit(A.UnmodifiableListBase, A.ListBase);
-    _inheritMany(A.UnmodifiableListBase, [A.CodeUnits, A.UnmodifiableListView]);
-    _inheritMany(A.Closure0Args, [A.nullFuture_closure, A._AsyncRun__scheduleImmediateJsOverride_internalCallback, A._AsyncRun__scheduleImmediateWithSetImmediate_internalCallback, A._TimerImpl_internalCallback, A._TimerImpl$periodic_closure, A._asyncStarHelper_closure, A._AsyncStarStreamController__resumeBody, A._AsyncStarStreamController__resumeBody_closure, A._AsyncStarStreamController_closure0, A._AsyncStarStreamController_closure1, A._AsyncStarStreamController_closure, A._AsyncStarStreamController__closure, A.Future_Future$microtask_closure, A.Future_Future$delayed_closure, A._Future__addListener_closure, A._Future__prependListeners_closure, A._Future__chainCoreFuture_closure, A._Future__asyncCompleteWithValue_closure, A._Future__asyncCompleteErrorObject_closure, A._Future__propagateToListeners_handleWhenCompleteCallback, A._Future__propagateToListeners_handleValueCallback, A._Future__propagateToListeners_handleError, A._Future_timeout_closure, A.Stream_length_closure0, A.Stream_first_closure, A._StreamController__subscribe_closure, A._StreamController__recordCancel_complete, A._AddStreamState_cancel_closure, A._BufferingStreamSubscription_asFuture_closure, A._BufferingStreamSubscription_asFuture__closure, A._BufferingStreamSubscription__sendError_sendError, A._BufferingStreamSubscription__sendDone_sendDone, A._PendingEvents_schedule_closure, A._cancelAndValue_closure, A._CustomZone_bindCallback_closure, A._CustomZone_bindCallbackGuarded_closure, A._RootZone_bindCallback_closure, A._RootZone_bindCallbackGuarded_closure, A._rootHandleError_closure, A._Utf8Decoder__decoder_closure, A._Utf8Decoder__decoderNonfatal_closure, A.StreamQueue__ensureListening_closure0, A.Serializers_Serializers_closure, A.Serializers_Serializers_closure0, A.Serializers_Serializers_closure1, A.Serializers_Serializers_closure2, A.Serializers_Serializers_closure3, A.BuildStatus_BuildStatus$fromJson_closure0, A.BatchedStreamController__hasEventOrTimeOut_closure, A.BatchedStreamController__hasEventDuring_closure, A.MediaType_MediaType$parse_closure, A.Logger_Logger_closure, A.Highlighter_closure, A.Highlighter__writeFileStart_closure, A.Highlighter__writeMultilineHighlights_closure, A.Highlighter__writeMultilineHighlights_closure0, A.Highlighter__writeMultilineHighlights_closure1, A.Highlighter__writeMultilineHighlights_closure2, A.Highlighter__writeMultilineHighlights__closure, A.Highlighter__writeMultilineHighlights__closure0, A.Highlighter__writeHighlightedText_closure, A.Highlighter__writeIndicator_closure, A.Highlighter__writeIndicator_closure0, A.Highlighter__writeIndicator_closure1, A.Highlighter__writeSidebar_closure, A._Highlight_closure, A.SseClient_closure, A.SseClient__closure, A.SseClient__onOutgoingMessage_closure, A.main_closure, A.main__closure, A.main__closure0, A.main__closure3, A.main__closure7, A.DdcLibraryBundleRestarter__getSrcModuleLibraries_closure, A.RequireRestarter__reload_closure, A.RequireRestarter__reloadModule_closure, A._createScript_closure, A._createScript__closure, A._createScript__closure0, A.runMain_closure]);
+    _inherit(A.CodeUnits, A.UnmodifiableListBase);
+    _inheritMany(A.Closure0Args, [A.nullFuture_closure, A._AsyncRun__scheduleImmediateJsOverride_internalCallback, A._AsyncRun__scheduleImmediateWithSetImmediate_internalCallback, A._TimerImpl_internalCallback, A._TimerImpl$periodic_closure, A._asyncStarHelper_closure, A._AsyncStarStreamController__resumeBody, A._AsyncStarStreamController__resumeBody_closure, A._AsyncStarStreamController_closure0, A._AsyncStarStreamController_closure1, A._AsyncStarStreamController_closure, A._AsyncStarStreamController__closure, A.Future_Future$microtask_closure, A.Future_Future$delayed_closure, A._Future__addListener_closure, A._Future__prependListeners_closure, A._Future__chainCoreFuture_closure, A._Future__asyncCompleteWithValue_closure, A._Future__asyncCompleteErrorObject_closure, A._Future__propagateToListeners_handleWhenCompleteCallback, A._Future__propagateToListeners_handleValueCallback, A._Future__propagateToListeners_handleError, A._Future_timeout_closure, A.Stream_length_closure0, A.Stream_first_closure, A._StreamController__subscribe_closure, A._StreamController__recordCancel_complete, A._AddStreamState_cancel_closure, A._BufferingStreamSubscription_asFuture_closure, A._BufferingStreamSubscription_asFuture__closure, A._BufferingStreamSubscription__sendError_sendError, A._BufferingStreamSubscription__sendDone_sendDone, A._PendingEvents_schedule_closure, A._cancelAndValue_closure, A._CustomZone_bindCallback_closure, A._CustomZone_bindCallbackGuarded_closure, A._RootZone_bindCallback_closure, A._RootZone_bindCallbackGuarded_closure, A._rootHandleError_closure, A._Utf8Decoder__decoder_closure, A._Utf8Decoder__decoderNonfatal_closure, A.StreamQueue__ensureListening_closure0, A.BuildStatus_BuildStatus$fromJson_closure0, A.BatchedStreamController__hasEventOrTimeOut_closure, A.BatchedStreamController__hasEventDuring_closure, A.MediaType_MediaType$parse_closure, A.Logger_Logger_closure, A.Highlighter_closure, A.Highlighter__writeFileStart_closure, A.Highlighter__writeMultilineHighlights_closure, A.Highlighter__writeMultilineHighlights_closure0, A.Highlighter__writeMultilineHighlights_closure1, A.Highlighter__writeMultilineHighlights_closure2, A.Highlighter__writeMultilineHighlights__closure, A.Highlighter__writeMultilineHighlights__closure0, A.Highlighter__writeHighlightedText_closure, A.Highlighter__writeIndicator_closure, A.Highlighter__writeIndicator_closure0, A.Highlighter__writeIndicator_closure1, A.Highlighter__writeSidebar_closure, A._Highlight_closure, A.SseClient_closure, A.SseClient__closure, A.SseClient__onOutgoingMessage_closure, A.main_closure, A.main__closure, A.main__closure0, A.main__closure3, A.main__closure7, A.DdcLibraryBundleRestarter__getSrcModuleLibraries_closure, A.RequireRestarter__reload_closure, A.RequireRestarter__reloadModule_closure, A._createScript_closure, A._createScript__closure, A._createScript__closure0, A.runMain_closure]);
     _inheritMany(A.EfficientLengthIterable, [A.ListIterable, A.EmptyIterable, A.LinkedHashMapKeysIterable, A.LinkedHashMapValuesIterable, A.LinkedHashMapEntriesIterable, A._HashMapKeyIterable]);
     _inheritMany(A.ListIterable, [A.SubListIterable, A.MappedListIterable, A.ReversedListIterable, A.ListQueue, A._JsonMapKeyIterable]);
     _inherit(A.EfficientLengthMappedIterable, A.MappedIterable);
@@ -27251,9 +22241,9 @@
     _inheritMany(A._DelayedEvent, [A._DelayedData, A._DelayedError]);
     _inherit(A._MapStream, A._ForwardingStream);
     _inheritMany(A._Zone, [A._CustomZone, A._RootZone]);
-    _inheritMany(A._HashMap, [A._IdentityHashMap, A._CustomHashMap]);
+    _inherit(A._IdentityHashMap, A._HashMap);
     _inherit(A._SetBase, A.SetBase);
-    _inheritMany(A._SetBase, [A._HashSet, A._LinkedHashSet]);
+    _inherit(A._HashSet, A._SetBase);
     _inherit(A._UnmodifiableMapView_MapView__UnmodifiableMapMixin, A.MapView);
     _inherit(A.UnmodifiableMapView, A._UnmodifiableMapView_MapView__UnmodifiableMapMixin);
     _inherit(A._SplayTreeSetNode, A._SplayTreeNode);
@@ -27263,7 +22253,7 @@
     _inherit(A.SplayTreeSet, A._SplayTreeSet__SplayTree_Iterable_SetMixin);
     _inheritMany(A.Codec, [A.Encoding, A.Base64Codec, A.JsonCodec]);
     _inheritMany(A.Encoding, [A.AsciiCodec, A.Latin1Codec, A.Utf8Codec]);
-    _inheritMany(A.Converter, [A._UnicodeSubsetEncoder, A._UnicodeSubsetDecoder, A.Base64Encoder, A.Base64Decoder, A.JsonEncoder, A.JsonDecoder, A.Utf8Encoder, A.Utf8Decoder]);
+    _inheritMany(A.Converter, [A._UnicodeSubsetEncoder, A._UnicodeSubsetDecoder, A.Base64Encoder, A.JsonEncoder, A.JsonDecoder, A.Utf8Encoder, A.Utf8Decoder]);
     _inheritMany(A._UnicodeSubsetEncoder, [A.AsciiEncoder, A.Latin1Encoder]);
     _inheritMany(A._UnicodeSubsetDecoder, [A.AsciiDecoder, A.Latin1Decoder]);
     _inherit(A._ByteCallbackSink, A.ByteConversionSink);
@@ -27271,13 +22261,6 @@
     _inherit(A._JsonStringStringifier, A._JsonStringifier);
     _inheritMany(A.ArgumentError, [A.RangeError, A.IndexError]);
     _inherit(A._DataUri, A._Uri);
-    _inherit(A._BuiltList, A.BuiltList);
-    _inherit(A._BuiltListMultimap, A.BuiltListMultimap);
-    _inherit(A._BuiltMap, A.BuiltMap);
-    _inherit(A._BuiltSet, A.BuiltSet);
-    _inherit(A._BuiltSetMultimap, A.BuiltSetMultimap);
-    _inheritMany(A.JsonObject, [A.BoolJsonObject, A.ListJsonObject, A.MapJsonObject, A.NumJsonObject, A.StringJsonObject]);
-    _inherit(A.SetEquality, A._UnorderedEquality);
     _inherit(A.QueueList, A._QueueList_Object_ListMixin);
     _inherit(A._CastQueueList, A.QueueList);
     _inherit(A.BuildStatus, A._Enum);
@@ -27318,7 +22301,7 @@
     typeUniverse: {eC: new Map(), tR: {}, eT: {}, tPV: {}, sEA: []},
     mangledGlobalNames: {int: "int", double: "double", num: "num", String: "String", bool: "bool", Null: "Null", List: "List", Object: "Object", Map: "Map", JSObject: "JSObject"},
     mangledNames: {},
-    types: ["~()", "Null()", "~(JSObject)", "Object?(@)", "Null(Object,StackTrace)", "@(@)", "Null(@)", "~(@)", "~(Object,StackTrace)", "Object?(Object?)", "~(Object?)", "JSObject()", "~(~())", "Future<~>()", "bool(Object?)", "String(String)", "bool(Object?,Object?)", "int(Object?)", "bool(_Highlight)", "Null(JSObject)", "~(@,StackTrace)", "int(@,@)", "~(@,@)", "~(Object?,Object?)", "@()", "Null(JavaScriptFunction,JavaScriptFunction)", "bool()", "Future<~>(String)", "String(Match)", "bool(String)", "int()", "Null(String)", "Null(JavaScriptFunction)", "SetBuilder<Object>()", "~(int,@)", "SetMultimapBuilder<Object,Object>()", "_Future<@>?()", "~(Object[StackTrace?])", "@(String)", "bool(BuildStatus)", "0&()", "Map<String,@>(DebugEvent)", "int(int,int)", "String(@)", "PersistentWebSocket(WebSocket)", "int(int)", "Future<~>(WebSocketEvent)", "bool(String,String)", "int(String)", "Null(String,String[Object?])", "bool(Object)", "~(List<int>)", "MediaType()", "~(String,String)", "0&(String,int?)", "Logger()", "@(@,String)", "String(String?)", "String?()", "int(_Line)", "Null(~())", "Object(_Line)", "Object(_Highlight)", "int(_Highlight,_Highlight)", "List<_Line>(MapEntry<Object,List<_Highlight>>)", "Null(@,StackTrace)", "SourceSpanWithContext()", "JSObject(Object,StackTrace)", "~(StreamSink<@>)", "Future<Null>()", "Object?(~)", "int(int,@)", "JSObject(String[bool?])", "ListBuilder<Object>()", "~(List<DebugEvent>)", "Null(String,String)", "~(bool)", "HotReloadResponse(String,bool,String?)", "HotRestartResponse(String,bool,String?)", "ListMultimapBuilder<Object,Object>()", "bool(bool)", "List<String>(String)", "int(String,String)", "Null(JavaScriptObject)", "JSObject()()", "~(String?)", "MapBuilder<Object,Object>()", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "~(String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "0^(0^,0^)<num>", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)"],
+    types: ["~()", "Null()", "~(JSObject)", "Null(Object,StackTrace)", "Null(@)", "~(@)", "~(Object,StackTrace)", "~(Object?)", "JSObject()", "~(~())", "Future<~>()", "String(String)", "Object?(Object?)", "bool(_Highlight)", "Null(JSObject)", "Null(String)", "int(Object?)", "~(Object?,Object?)", "@()", "Null(JavaScriptFunction,JavaScriptFunction)", "@(@)", "int()", "bool()", "Future<~>(String)", "~(@,StackTrace)", "String(Match)", "bool(String)", "Null(JavaScriptFunction)", "int(@,@)", "bool(Object?,Object?)", "~(String,String)", "Null(@,StackTrace)", "PersistentWebSocket(WebSocket)", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)", "Future<~>(WebSocketEvent)", "bool(String,String)", "int(String)", "Null(String,String[Object?])", "bool(Object)", "~(List<int>)", "MediaType()", "bool(Object?)", "JSObject(Object,StackTrace)", "Logger()", "Object?(~)", "String(String?)", "String(@)", "int(_Line)", "~(int,@)", "Object(_Line)", "Object(_Highlight)", "int(_Highlight,_Highlight)", "List<_Line>(MapEntry<Object,List<_Highlight>>)", "0&()", "SourceSpanWithContext()", "_Future<@>?()", "~(String?)", "Future<Null>()", "~(Object[StackTrace?])", "Null(~())", "JSObject(String[bool?])", "~(StreamSink<@>)", "~(List<DebugEvent>)", "Null(String,String)", "~(bool)", "0^(0^,0^)<num>", "HotRestartResponse(String,bool,String?)", "bool(BuildStatus)", "bool(bool)", "List<String>(String)", "int(String,String)", "Null(JavaScriptObject)", "JSObject()()", "0&(String,int?)", "@(@,String)", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "~(String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "Map<String,@>(DebugEvent)", "@(String)", "HotReloadResponse(String,bool,String?)", "String?()"],
     interceptorsByTag: null,
     leafTags: null,
     arrayRti: Symbol("$ti"),
@@ -27326,8 +22309,8 @@
       "2;": (t1, t2) => o => o instanceof A._Record_2 && t1._is(o._0) && t2._is(o._1)
     }
   };
-  A._Universe_addRules(init.typeUniverse, JSON.parse('{"JavaScriptFunction":"LegacyJavaScriptObject","PlainJavaScriptObject":"LegacyJavaScriptObject","UnknownJavaScriptObject":"LegacyJavaScriptObject","NativeSharedArrayBuffer":"NativeByteBuffer","JavaScriptObject":{"JSObject":[]},"JSArray":{"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"Iterable.E":"1"},"JSBool":{"bool":[],"TrustedGetRuntimeType":[]},"JSNull":{"Null":[],"TrustedGetRuntimeType":[]},"LegacyJavaScriptObject":{"JavaScriptObject":[],"JSObject":[]},"JSArraySafeToStringHook":{"SafeToStringHook":[]},"JSUnmodifiableArray":{"JSArray":["1"],"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"Iterable.E":"1"},"ArrayIterator":{"Iterator":["1"]},"JSNumber":{"double":[],"num":[],"Comparable":["num"]},"JSInt":{"double":[],"int":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSNumNotInt":{"double":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSString":{"String":[],"Comparable":["String"],"Pattern":[],"TrustedGetRuntimeType":[]},"CastStream":{"Stream":["2"],"Stream.T":"2"},"CastStreamSubscription":{"StreamSubscription":["2"]},"_CastIterableBase":{"Iterable":["2"]},"CastIterator":{"Iterator":["2"]},"CastIterable":{"_CastIterableBase":["1","2"],"Iterable":["2"],"Iterable.E":"2"},"_EfficientLengthCastIterable":{"CastIterable":["1","2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"_CastListBase":{"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"]},"CastList":{"_CastListBase":["1","2"],"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","Iterable.E":"2"},"CastMap":{"MapBase":["3","4"],"Map":["3","4"],"MapBase.K":"3","MapBase.V":"4"},"LateError":{"Error":[]},"CodeUnits":{"ListBase":["int"],"UnmodifiableListMixin":["int"],"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"],"ListBase.E":"int","Iterable.E":"int","UnmodifiableListMixin.E":"int"},"EfficientLengthIterable":{"Iterable":["1"]},"ListIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"SubListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"ListIterator":{"Iterator":["1"]},"MappedIterable":{"Iterable":["2"],"Iterable.E":"2"},"EfficientLengthMappedIterable":{"MappedIterable":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"MappedIterator":{"Iterator":["2"]},"MappedListIterable":{"ListIterable":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListIterable.E":"2","Iterable.E":"2"},"WhereIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereIterator":{"Iterator":["1"]},"ExpandIterable":{"Iterable":["2"],"Iterable.E":"2"},"ExpandIterator":{"Iterator":["2"]},"TakeIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthTakeIterable":{"TakeIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"TakeIterator":{"Iterator":["1"]},"SkipIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthSkipIterable":{"SkipIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"SkipIterator":{"Iterator":["1"]},"EmptyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"EmptyIterator":{"Iterator":["1"]},"WhereTypeIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereTypeIterator":{"Iterator":["1"]},"UnmodifiableListBase":{"ListBase":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"ReversedListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"_Record_2":{"_Record2":[],"_Record":[]},"ConstantMap":{"Map":["1","2"]},"ConstantStringMap":{"ConstantMap":["1","2"],"Map":["1","2"]},"_KeysOrValues":{"Iterable":["1"],"Iterable.E":"1"},"_KeysOrValuesOrElementsIterator":{"Iterator":["1"]},"Instantiation":{"Closure":[],"Function":[]},"Instantiation1":{"Closure":[],"Function":[]},"NullError":{"TypeError":[],"Error":[]},"JsNoSuchMethodError":{"Error":[]},"UnknownJsTypeError":{"Error":[]},"NullThrownFromJavaScriptException":{"Exception":[]},"_StackTrace":{"StackTrace":[]},"Closure":{"Function":[]},"Closure0Args":{"Closure":[],"Function":[]},"Closure2Args":{"Closure":[],"Function":[]},"TearOffClosure":{"Closure":[],"Function":[]},"StaticClosure":{"Closure":[],"Function":[]},"BoundClosure":{"Closure":[],"Function":[]},"RuntimeError":{"Error":[]},"JsLinkedHashMap":{"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"LinkedHashMapKeysIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapKeyIterator":{"Iterator":["1"]},"LinkedHashMapValuesIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapValueIterator":{"Iterator":["1"]},"LinkedHashMapEntriesIterable":{"EfficientLengthIterable":["MapEntry<1,2>"],"Iterable":["MapEntry<1,2>"],"Iterable.E":"MapEntry<1,2>"},"LinkedHashMapEntryIterator":{"Iterator":["MapEntry<1,2>"]},"JsIdentityLinkedHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_Record2":{"_Record":[]},"JSSyntaxRegExp":{"RegExp":[],"Pattern":[]},"_MatchImplementation":{"RegExpMatch":[],"Match":[]},"_AllMatchesIterable":{"Iterable":["RegExpMatch"],"Iterable.E":"RegExpMatch"},"_AllMatchesIterator":{"Iterator":["RegExpMatch"]},"StringMatch":{"Match":[]},"_StringAllMatchesIterable":{"Iterable":["Match"],"Iterable.E":"Match"},"_StringAllMatchesIterator":{"Iterator":["Match"]},"NativeByteBuffer":{"JavaScriptObject":[],"JSObject":[],"ByteBuffer":[],"TrustedGetRuntimeType":[]},"NativeArrayBuffer":{"NativeByteBuffer":[],"JavaScriptObject":[],"JSObject":[],"ByteBuffer":[],"TrustedGetRuntimeType":[]},"NativeTypedData":{"JavaScriptObject":[],"JSObject":[]},"_UnmodifiableNativeByteBufferView":{"ByteBuffer":[]},"NativeByteData":{"JavaScriptObject":[],"ByteData":[],"JSObject":[],"TrustedGetRuntimeType":[]},"NativeTypedArray":{"JavaScriptIndexingBehavior":["1"],"JavaScriptObject":[],"JSObject":[]},"NativeTypedArrayOfDouble":{"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"]},"NativeTypedArrayOfInt":{"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"]},"NativeFloat32List":{"Float32List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeFloat64List":{"Float64List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeInt16List":{"NativeTypedArrayOfInt":[],"Int16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt32List":{"NativeTypedArrayOfInt":[],"Int32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt8List":{"NativeTypedArrayOfInt":[],"Int8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint16List":{"NativeTypedArrayOfInt":[],"Uint16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint32List":{"NativeTypedArrayOfInt":[],"Uint32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8ClampedList":{"NativeTypedArrayOfInt":[],"Uint8ClampedList":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8List":{"NativeTypedArrayOfInt":[],"Uint8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"_Type":{"Type":[]},"_Error":{"Error":[]},"_TypeError":{"TypeError":[],"Error":[]},"AsyncError":{"Error":[]},"_Future":{"Future":["1"]},"_TimerImpl":{"Timer":[]},"_AsyncAwaitCompleter":{"Completer":["1"]},"_Completer":{"Completer":["1"]},"_AsyncCompleter":{"_Completer":["1"],"Completer":["1"]},"_SyncCompleter":{"_Completer":["1"],"Completer":["1"]},"StreamView":{"Stream":["1"]},"_StreamController":{"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_AsyncStreamController":{"_AsyncStreamControllerDispatch":["1"],"_StreamController":["1"],"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_ControllerStream":{"_StreamImpl":["1"],"Stream":["1"],"Stream.T":"1"},"_ControllerSubscription":{"_BufferingStreamSubscription":["1"],"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamSinkWrapper":{"StreamSink":["1"]},"_StreamControllerAddStreamState":{"_AddStreamState":["1"]},"_BufferingStreamSubscription":{"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamImpl":{"Stream":["1"]},"_DelayedData":{"_DelayedEvent":["1"]},"_DelayedError":{"_DelayedEvent":["@"]},"_DelayedDone":{"_DelayedEvent":["@"]},"_DoneStreamSubscription":{"StreamSubscription":["1"]},"_EmptyStream":{"Stream":["1"],"Stream.T":"1"},"_ForwardingStream":{"Stream":["2"]},"_ForwardingStreamSubscription":{"_BufferingStreamSubscription":["2"],"StreamSubscription":["2"],"_EventSink":["2"],"_EventDispatch":["2"],"_BufferingStreamSubscription.T":"2"},"_MapStream":{"_ForwardingStream":["1","2"],"Stream":["2"],"Stream.T":"2"},"_Zone":{"Zone":[]},"_CustomZone":{"_Zone":[],"Zone":[]},"_RootZone":{"_Zone":[],"Zone":[]},"_ZoneDelegate":{"ZoneDelegate":[]},"_ZoneSpecification":{"ZoneSpecification":[]},"_SplayTreeSetNode":{"_SplayTreeNode":["1","_SplayTreeSetNode<1>"],"_SplayTreeNode.K":"1","_SplayTreeNode.1":"_SplayTreeSetNode<1>"},"_HashMap":{"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_IdentityHashMap":{"_HashMap":["1","2"],"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_CustomHashMap":{"_HashMap":["1","2"],"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashMapKeyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashMapKeyIterator":{"Iterator":["1"]},"_LinkedCustomHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashSet":{"_SetBase":["1"],"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashSetIterator":{"Iterator":["1"]},"_LinkedHashSet":{"_SetBase":["1"],"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_LinkedHashSetIterator":{"Iterator":["1"]},"UnmodifiableListView":{"ListBase":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListBase.E":"1","Iterable.E":"1","UnmodifiableListMixin.E":"1"},"ListBase":{"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"MapBase":{"Map":["1","2"]},"MapView":{"Map":["1","2"]},"UnmodifiableMapView":{"_UnmodifiableMapView_MapView__UnmodifiableMapMixin":["1","2"],"MapView":["1","2"],"_UnmodifiableMapMixin":["1","2"],"Map":["1","2"]},"ListQueue":{"Queue":["1"],"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"_ListQueueIterator":{"Iterator":["1"]},"SetBase":{"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SetBase":{"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SplayTreeIterator":{"Iterator":["3"]},"_SplayTreeKeyIterator":{"_SplayTreeIterator":["1","2","1"],"Iterator":["1"],"_SplayTreeIterator.K":"1","_SplayTreeIterator.T":"1","_SplayTreeIterator.1":"2"},"SplayTreeSet":{"SetBase":["1"],"Set":["1"],"EfficientLengthIterable":["1"],"_SplayTree":["1","_SplayTreeSetNode<1>"],"Iterable":["1"],"Iterable.E":"1","_SplayTree.1":"_SplayTreeSetNode<1>","_SplayTree.K":"1"},"Encoding":{"Codec":["String","List<int>"]},"_JsonMap":{"MapBase":["String","@"],"Map":["String","@"],"MapBase.K":"String","MapBase.V":"@"},"_JsonMapKeyIterable":{"ListIterable":["String"],"EfficientLengthIterable":["String"],"Iterable":["String"],"ListIterable.E":"String","Iterable.E":"String"},"AsciiCodec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"_UnicodeSubsetEncoder":{"Converter":["String","List<int>"]},"AsciiEncoder":{"Converter":["String","List<int>"]},"_UnicodeSubsetDecoder":{"Converter":["List<int>","String"]},"AsciiDecoder":{"Converter":["List<int>","String"]},"Base64Codec":{"Codec":["List<int>","String"],"Codec.S":"List<int>"},"Base64Encoder":{"Converter":["List<int>","String"]},"Base64Decoder":{"Converter":["String","List<int>"]},"JsonUnsupportedObjectError":{"Error":[]},"JsonCyclicError":{"Error":[]},"JsonCodec":{"Codec":["Object?","String"],"Codec.S":"Object?"},"JsonEncoder":{"Converter":["Object?","String"]},"JsonDecoder":{"Converter":["String","Object?"]},"Latin1Codec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"Latin1Encoder":{"Converter":["String","List<int>"]},"Latin1Decoder":{"Converter":["List<int>","String"]},"Utf8Codec":{"Encoding":[],"Codec":["String","List<int>"],"Codec.S":"String"},"Utf8Encoder":{"Converter":["String","List<int>"]},"Utf8Decoder":{"Converter":["List<int>","String"]},"BigInt":{"Comparable":["BigInt"]},"DateTime":{"Comparable":["DateTime"]},"double":{"num":[],"Comparable":["num"]},"Duration":{"Comparable":["Duration"]},"int":{"num":[],"Comparable":["num"]},"List":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"num":{"Comparable":["num"]},"RegExp":{"Pattern":[]},"RegExpMatch":{"Match":[]},"Set":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"String":{"Comparable":["String"],"Pattern":[]},"_BigIntImpl":{"BigInt":[],"Comparable":["BigInt"]},"AssertionError":{"Error":[]},"TypeError":{"Error":[]},"ArgumentError":{"Error":[]},"RangeError":{"Error":[]},"IndexError":{"Error":[]},"UnsupportedError":{"Error":[]},"UnimplementedError":{"Error":[]},"StateError":{"Error":[]},"ConcurrentModificationError":{"Error":[]},"OutOfMemoryError":{"Error":[]},"StackOverflowError":{"Error":[]},"_Exception":{"Exception":[]},"FormatException":{"Exception":[]},"IntegerDivisionByZeroException":{"Exception":[],"Error":[]},"_StringStackTrace":{"StackTrace":[]},"StringBuffer":{"StringSink":[]},"_Uri":{"Uri":[]},"_SimpleUri":{"Uri":[]},"_DataUri":{"Uri":[]},"NullRejectionException":{"Exception":[]},"ErrorResult":{"Result":["0&"]},"ValueResult":{"Result":["1"]},"_NextRequest":{"_EventRequest":["1"]},"_HasNextRequest":{"_EventRequest":["1"]},"BuiltList":{"Iterable":["1"]},"_BuiltList":{"BuiltList":["1"],"Iterable":["1"],"Iterable.E":"1"},"_BuiltListMultimap":{"BuiltListMultimap":["1","2"]},"_BuiltMap":{"BuiltMap":["1","2"]},"BuiltSet":{"Iterable":["1"]},"_BuiltSet":{"BuiltSet":["1"],"Iterable":["1"],"Iterable.E":"1"},"_BuiltSetMultimap":{"BuiltSetMultimap":["1","2"]},"BoolJsonObject":{"JsonObject":[]},"ListJsonObject":{"JsonObject":[]},"MapJsonObject":{"JsonObject":[]},"NumJsonObject":{"JsonObject":[]},"StringJsonObject":{"JsonObject":[]},"DeserializationError":{"Error":[]},"BigIntSerializer":{"PrimitiveSerializer":["BigInt"],"Serializer":["BigInt"]},"BoolSerializer":{"PrimitiveSerializer":["bool"],"Serializer":["bool"]},"BuiltJsonSerializers":{"Serializers":[]},"BuiltListMultimapSerializer":{"StructuredSerializer":["BuiltListMultimap<@,@>"],"Serializer":["BuiltListMultimap<@,@>"]},"BuiltListSerializer":{"StructuredSerializer":["BuiltList<@>"],"Serializer":["BuiltList<@>"]},"BuiltMapSerializer":{"StructuredSerializer":["BuiltMap<@,@>"],"Serializer":["BuiltMap<@,@>"]},"BuiltSetMultimapSerializer":{"StructuredSerializer":["BuiltSetMultimap<@,@>"],"Serializer":["BuiltSetMultimap<@,@>"]},"BuiltSetSerializer":{"StructuredSerializer":["BuiltSet<@>"],"Serializer":["BuiltSet<@>"]},"DateTimeSerializer":{"PrimitiveSerializer":["DateTime"],"Serializer":["DateTime"]},"DoubleSerializer":{"PrimitiveSerializer":["double"],"Serializer":["double"]},"DurationSerializer":{"PrimitiveSerializer":["Duration"],"Serializer":["Duration"]},"Int32Serializer":{"PrimitiveSerializer":["Int32"],"Serializer":["Int32"]},"Int64Serializer":{"PrimitiveSerializer":["Int64"],"Serializer":["Int64"]},"IntSerializer":{"PrimitiveSerializer":["int"],"Serializer":["int"]},"JsonObjectSerializer":{"PrimitiveSerializer":["JsonObject"],"Serializer":["JsonObject"]},"ListSerializer":{"StructuredSerializer":["List<@>"],"Serializer":["List<@>"]},"MapSerializer":{"StructuredSerializer":["Map<@,@>"],"Serializer":["Map<@,@>"]},"NullSerializer":{"PrimitiveSerializer":["Null"],"Serializer":["Null"]},"NumSerializer":{"PrimitiveSerializer":["num"],"Serializer":["num"]},"RegExpSerializer":{"PrimitiveSerializer":["RegExp"],"Serializer":["RegExp"]},"SetSerializer":{"StructuredSerializer":["Set<@>"],"Serializer":["Set<@>"]},"StringSerializer":{"PrimitiveSerializer":["String"],"Serializer":["String"]},"Uint8ListSerializer":{"PrimitiveSerializer":["Uint8List"],"Serializer":["Uint8List"]},"UriSerializer":{"PrimitiveSerializer":["Uri"],"Serializer":["Uri"]},"CanonicalizedMap":{"Map":["2","3"]},"DefaultEquality":{"Equality":["1"]},"IterableEquality":{"Equality":["Iterable<1>"]},"ListEquality":{"Equality":["List<1>"]},"_UnorderedEquality":{"Equality":["2"]},"SetEquality":{"_UnorderedEquality":["1","Set<1>"],"Equality":["Set<1>"],"_UnorderedEquality.E":"1","_UnorderedEquality.T":"Set<1>"},"MapEquality":{"Equality":["Map<1,2>"]},"DeepCollectionEquality":{"Equality":["@"]},"QueueList":{"ListBase":["1"],"List":["1"],"Queue":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListBase.E":"1","QueueList.E":"1","Iterable.E":"1"},"_CastQueueList":{"QueueList":["2"],"ListBase":["2"],"List":["2"],"Queue":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","QueueList.E":"2","Iterable.E":"2"},"PersistentWebSocket":{"StreamChannelMixin":["@"]},"SseSocketClient":{"SocketClient":[]},"WebSocketClient":{"SocketClient":[]},"Int32":{"Comparable":["Object"]},"Int64":{"Comparable":["Object"]},"ByteStream":{"StreamView":["List<int>"],"Stream":["List<int>"],"Stream.T":"List<int>","StreamView.T":"List<int>"},"ClientException":{"Exception":[]},"Request":{"BaseRequest":[]},"StreamedResponseV2":{"StreamedResponse":[]},"CaseInsensitiveMap":{"CanonicalizedMap":["String","String","1"],"Map":["String","1"],"CanonicalizedMap.K":"String","CanonicalizedMap.V":"1","CanonicalizedMap.C":"String"},"Level":{"Comparable":["Level"]},"PathException":{"Exception":[]},"PosixStyle":{"InternalStyle":[]},"UrlStyle":{"InternalStyle":[]},"WindowsStyle":{"InternalStyle":[]},"FileLocation":{"SourceLocation":[],"Comparable":["SourceLocation"]},"_FileSpan":{"SourceSpanWithContext":[],"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceLocation":{"Comparable":["SourceLocation"]},"SourceLocationMixin":{"SourceLocation":[],"Comparable":["SourceLocation"]},"SourceSpan":{"Comparable":["SourceSpan"]},"SourceSpanBase":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanException":{"Exception":[]},"SourceSpanFormatException":{"FormatException":[],"Exception":[]},"SourceSpanMixin":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanWithContext":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SseClient":{"StreamChannelMixin":["String?"]},"StringScannerException":{"FormatException":[],"Exception":[]},"_EventStream":{"Stream":["1"],"Stream.T":"1"},"_EventStreamSubscription":{"StreamSubscription":["1"]},"BrowserWebSocket":{"WebSocket":[]},"TextDataReceived":{"WebSocketEvent":[]},"BinaryDataReceived":{"WebSocketEvent":[]},"CloseReceived":{"WebSocketEvent":[]},"WebSocketException":{"Exception":[]},"WebSocketConnectionClosed":{"Exception":[]},"DdcLibraryBundleRestarter":{"Restarter":[]},"DdcRestarter":{"Restarter":[]},"RequireRestarter":{"Restarter":[]},"HotReloadFailedException":{"Exception":[]},"Int8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8ClampedList":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Float32List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]},"Float64List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]}}'));
-  A._Universe_addErasedTypes(init.typeUniverse, JSON.parse('{"UnmodifiableListBase":1,"__CastListBase__CastIterableBase_ListMixin":2,"NativeTypedArray":1,"_DelayedEvent":1,"_SplayTreeSet__SplayTree_Iterable":1,"_SplayTreeSet__SplayTree_Iterable_SetMixin":1,"Serializer":1,"_QueueList_Object_ListMixin":1,"StreamChannelMixin":1}'));
+  A._Universe_addRules(init.typeUniverse, JSON.parse('{"JavaScriptFunction":"LegacyJavaScriptObject","PlainJavaScriptObject":"LegacyJavaScriptObject","UnknownJavaScriptObject":"LegacyJavaScriptObject","NativeSharedArrayBuffer":"NativeByteBuffer","JavaScriptObject":{"JSObject":[]},"JSArray":{"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"Iterable.E":"1"},"JSBool":{"bool":[],"TrustedGetRuntimeType":[]},"JSNull":{"Null":[],"TrustedGetRuntimeType":[]},"LegacyJavaScriptObject":{"JavaScriptObject":[],"JSObject":[]},"JSArraySafeToStringHook":{"SafeToStringHook":[]},"JSUnmodifiableArray":{"JSArray":["1"],"List":["1"],"JavaScriptObject":[],"EfficientLengthIterable":["1"],"JSObject":[],"Iterable":["1"],"Iterable.E":"1"},"ArrayIterator":{"Iterator":["1"]},"JSNumber":{"double":[],"num":[],"Comparable":["num"]},"JSInt":{"double":[],"int":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSNumNotInt":{"double":[],"num":[],"Comparable":["num"],"TrustedGetRuntimeType":[]},"JSString":{"String":[],"Comparable":["String"],"Pattern":[],"TrustedGetRuntimeType":[]},"CastStream":{"Stream":["2"],"Stream.T":"2"},"CastStreamSubscription":{"StreamSubscription":["2"]},"_CastIterableBase":{"Iterable":["2"]},"CastIterator":{"Iterator":["2"]},"CastIterable":{"_CastIterableBase":["1","2"],"Iterable":["2"],"Iterable.E":"2"},"_EfficientLengthCastIterable":{"CastIterable":["1","2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"_CastListBase":{"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"]},"CastList":{"_CastListBase":["1","2"],"ListBase":["2"],"List":["2"],"_CastIterableBase":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","Iterable.E":"2"},"CastMap":{"MapBase":["3","4"],"Map":["3","4"],"MapBase.K":"3","MapBase.V":"4"},"LateError":{"Error":[]},"CodeUnits":{"ListBase":["int"],"UnmodifiableListMixin":["int"],"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"],"ListBase.E":"int","Iterable.E":"int","UnmodifiableListMixin.E":"int"},"EfficientLengthIterable":{"Iterable":["1"]},"ListIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"SubListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"ListIterator":{"Iterator":["1"]},"MappedIterable":{"Iterable":["2"],"Iterable.E":"2"},"EfficientLengthMappedIterable":{"MappedIterable":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"MappedIterator":{"Iterator":["2"]},"MappedListIterable":{"ListIterable":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListIterable.E":"2","Iterable.E":"2"},"WhereIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereIterator":{"Iterator":["1"]},"ExpandIterable":{"Iterable":["2"],"Iterable.E":"2"},"ExpandIterator":{"Iterator":["2"]},"TakeIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthTakeIterable":{"TakeIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"TakeIterator":{"Iterator":["1"]},"SkipIterable":{"Iterable":["1"],"Iterable.E":"1"},"EfficientLengthSkipIterable":{"SkipIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"SkipIterator":{"Iterator":["1"]},"EmptyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"EmptyIterator":{"Iterator":["1"]},"WhereTypeIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereTypeIterator":{"Iterator":["1"]},"UnmodifiableListBase":{"ListBase":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"ReversedListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"_Record_2":{"_Record2":[],"_Record":[]},"ConstantMap":{"Map":["1","2"]},"ConstantStringMap":{"ConstantMap":["1","2"],"Map":["1","2"]},"_KeysOrValues":{"Iterable":["1"],"Iterable.E":"1"},"_KeysOrValuesOrElementsIterator":{"Iterator":["1"]},"Instantiation":{"Closure":[],"Function":[]},"Instantiation1":{"Closure":[],"Function":[]},"NullError":{"TypeError":[],"Error":[]},"JsNoSuchMethodError":{"Error":[]},"UnknownJsTypeError":{"Error":[]},"NullThrownFromJavaScriptException":{"Exception":[]},"_StackTrace":{"StackTrace":[]},"Closure":{"Function":[]},"Closure0Args":{"Closure":[],"Function":[]},"Closure2Args":{"Closure":[],"Function":[]},"TearOffClosure":{"Closure":[],"Function":[]},"StaticClosure":{"Closure":[],"Function":[]},"BoundClosure":{"Closure":[],"Function":[]},"RuntimeError":{"Error":[]},"JsLinkedHashMap":{"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"LinkedHashMapKeysIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapKeyIterator":{"Iterator":["1"]},"LinkedHashMapValuesIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapValueIterator":{"Iterator":["1"]},"LinkedHashMapEntriesIterable":{"EfficientLengthIterable":["MapEntry<1,2>"],"Iterable":["MapEntry<1,2>"],"Iterable.E":"MapEntry<1,2>"},"LinkedHashMapEntryIterator":{"Iterator":["MapEntry<1,2>"]},"JsIdentityLinkedHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_Record2":{"_Record":[]},"JSSyntaxRegExp":{"RegExp":[],"Pattern":[]},"_MatchImplementation":{"RegExpMatch":[],"Match":[]},"_AllMatchesIterable":{"Iterable":["RegExpMatch"],"Iterable.E":"RegExpMatch"},"_AllMatchesIterator":{"Iterator":["RegExpMatch"]},"StringMatch":{"Match":[]},"_StringAllMatchesIterable":{"Iterable":["Match"],"Iterable.E":"Match"},"_StringAllMatchesIterator":{"Iterator":["Match"]},"NativeByteBuffer":{"JavaScriptObject":[],"JSObject":[],"ByteBuffer":[],"TrustedGetRuntimeType":[]},"NativeArrayBuffer":{"NativeByteBuffer":[],"JavaScriptObject":[],"JSObject":[],"ByteBuffer":[],"TrustedGetRuntimeType":[]},"NativeTypedData":{"JavaScriptObject":[],"JSObject":[]},"_UnmodifiableNativeByteBufferView":{"ByteBuffer":[]},"NativeByteData":{"JavaScriptObject":[],"ByteData":[],"JSObject":[],"TrustedGetRuntimeType":[]},"NativeTypedArray":{"JavaScriptIndexingBehavior":["1"],"JavaScriptObject":[],"JSObject":[]},"NativeTypedArrayOfDouble":{"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"]},"NativeTypedArrayOfInt":{"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"]},"NativeFloat32List":{"Float32List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeFloat64List":{"Float64List":[],"ListBase":["double"],"NativeTypedArray":["double"],"List":["double"],"JavaScriptIndexingBehavior":["double"],"JavaScriptObject":[],"EfficientLengthIterable":["double"],"JSObject":[],"Iterable":["double"],"FixedLengthListMixin":["double"],"TrustedGetRuntimeType":[],"ListBase.E":"double","Iterable.E":"double","FixedLengthListMixin.E":"double"},"NativeInt16List":{"NativeTypedArrayOfInt":[],"Int16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt32List":{"NativeTypedArrayOfInt":[],"Int32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeInt8List":{"NativeTypedArrayOfInt":[],"Int8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint16List":{"NativeTypedArrayOfInt":[],"Uint16List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint32List":{"NativeTypedArrayOfInt":[],"Uint32List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8ClampedList":{"NativeTypedArrayOfInt":[],"Uint8ClampedList":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"NativeUint8List":{"NativeTypedArrayOfInt":[],"Uint8List":[],"ListBase":["int"],"NativeTypedArray":["int"],"List":["int"],"JavaScriptIndexingBehavior":["int"],"JavaScriptObject":[],"EfficientLengthIterable":["int"],"JSObject":[],"Iterable":["int"],"FixedLengthListMixin":["int"],"TrustedGetRuntimeType":[],"ListBase.E":"int","Iterable.E":"int","FixedLengthListMixin.E":"int"},"_Error":{"Error":[]},"_TypeError":{"TypeError":[],"Error":[]},"AsyncError":{"Error":[]},"_Future":{"Future":["1"]},"_TimerImpl":{"Timer":[]},"_AsyncAwaitCompleter":{"Completer":["1"]},"_Completer":{"Completer":["1"]},"_AsyncCompleter":{"_Completer":["1"],"Completer":["1"]},"_SyncCompleter":{"_Completer":["1"],"Completer":["1"]},"StreamView":{"Stream":["1"]},"_StreamController":{"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_AsyncStreamController":{"_AsyncStreamControllerDispatch":["1"],"_StreamController":["1"],"StreamController":["1"],"StreamSink":["1"],"_StreamControllerLifecycle":["1"],"_EventSink":["1"],"_EventDispatch":["1"]},"_ControllerStream":{"_StreamImpl":["1"],"Stream":["1"],"Stream.T":"1"},"_ControllerSubscription":{"_BufferingStreamSubscription":["1"],"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamSinkWrapper":{"StreamSink":["1"]},"_StreamControllerAddStreamState":{"_AddStreamState":["1"]},"_BufferingStreamSubscription":{"StreamSubscription":["1"],"_EventSink":["1"],"_EventDispatch":["1"],"_BufferingStreamSubscription.T":"1"},"_StreamImpl":{"Stream":["1"]},"_DelayedData":{"_DelayedEvent":["1"]},"_DelayedError":{"_DelayedEvent":["@"]},"_DelayedDone":{"_DelayedEvent":["@"]},"_DoneStreamSubscription":{"StreamSubscription":["1"]},"_EmptyStream":{"Stream":["1"],"Stream.T":"1"},"_ForwardingStream":{"Stream":["2"]},"_ForwardingStreamSubscription":{"_BufferingStreamSubscription":["2"],"StreamSubscription":["2"],"_EventSink":["2"],"_EventDispatch":["2"],"_BufferingStreamSubscription.T":"2"},"_MapStream":{"_ForwardingStream":["1","2"],"Stream":["2"],"Stream.T":"2"},"_Zone":{"Zone":[]},"_CustomZone":{"_Zone":[],"Zone":[]},"_RootZone":{"_Zone":[],"Zone":[]},"_ZoneDelegate":{"ZoneDelegate":[]},"_ZoneSpecification":{"ZoneSpecification":[]},"_SplayTreeSetNode":{"_SplayTreeNode":["1","_SplayTreeSetNode<1>"],"_SplayTreeNode.1":"_SplayTreeSetNode<1>","_SplayTreeNode.K":"1"},"_HashMap":{"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_IdentityHashMap":{"_HashMap":["1","2"],"MapBase":["1","2"],"HashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashMapKeyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashMapKeyIterator":{"Iterator":["1"]},"_LinkedCustomHashMap":{"JsLinkedHashMap":["1","2"],"MapBase":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapBase.K":"1","MapBase.V":"2"},"_HashSet":{"SetBase":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashSetIterator":{"Iterator":["1"]},"ListBase":{"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"MapBase":{"Map":["1","2"]},"MapView":{"Map":["1","2"]},"UnmodifiableMapView":{"_UnmodifiableMapView_MapView__UnmodifiableMapMixin":["1","2"],"MapView":["1","2"],"_UnmodifiableMapMixin":["1","2"],"Map":["1","2"]},"ListQueue":{"Queue":["1"],"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListIterable.E":"1","Iterable.E":"1"},"_ListQueueIterator":{"Iterator":["1"]},"SetBase":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SetBase":{"SetBase":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"_SplayTreeIterator":{"Iterator":["3"]},"_SplayTreeKeyIterator":{"_SplayTreeIterator":["1","2","1"],"Iterator":["1"],"_SplayTreeIterator.K":"1","_SplayTreeIterator.T":"1","_SplayTreeIterator.1":"2"},"SplayTreeSet":{"SetBase":["1"],"EfficientLengthIterable":["1"],"_SplayTree":["1","_SplayTreeSetNode<1>"],"Iterable":["1"],"Iterable.E":"1","_SplayTree.K":"1","_SplayTree.1":"_SplayTreeSetNode<1>"},"Encoding":{"Codec":["String","List<int>"]},"_JsonMap":{"MapBase":["String","@"],"Map":["String","@"],"MapBase.K":"String","MapBase.V":"@"},"_JsonMapKeyIterable":{"ListIterable":["String"],"EfficientLengthIterable":["String"],"Iterable":["String"],"ListIterable.E":"String","Iterable.E":"String"},"AsciiCodec":{"Encoding":[],"Codec":["String","List<int>"]},"_UnicodeSubsetEncoder":{"Converter":["String","List<int>"]},"AsciiEncoder":{"Converter":["String","List<int>"]},"_UnicodeSubsetDecoder":{"Converter":["List<int>","String"]},"AsciiDecoder":{"Converter":["List<int>","String"]},"Base64Codec":{"Codec":["List<int>","String"]},"Base64Encoder":{"Converter":["List<int>","String"]},"JsonUnsupportedObjectError":{"Error":[]},"JsonCyclicError":{"Error":[]},"JsonCodec":{"Codec":["Object?","String"]},"JsonEncoder":{"Converter":["Object?","String"]},"JsonDecoder":{"Converter":["String","Object?"]},"Latin1Codec":{"Encoding":[],"Codec":["String","List<int>"]},"Latin1Encoder":{"Converter":["String","List<int>"]},"Latin1Decoder":{"Converter":["List<int>","String"]},"Utf8Codec":{"Encoding":[],"Codec":["String","List<int>"]},"Utf8Encoder":{"Converter":["String","List<int>"]},"Utf8Decoder":{"Converter":["List<int>","String"]},"DateTime":{"Comparable":["DateTime"]},"double":{"num":[],"Comparable":["num"]},"Duration":{"Comparable":["Duration"]},"int":{"num":[],"Comparable":["num"]},"List":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"num":{"Comparable":["num"]},"RegExpMatch":{"Match":[]},"String":{"Comparable":["String"],"Pattern":[]},"AssertionError":{"Error":[]},"TypeError":{"Error":[]},"ArgumentError":{"Error":[]},"RangeError":{"Error":[]},"IndexError":{"Error":[]},"UnsupportedError":{"Error":[]},"UnimplementedError":{"Error":[]},"StateError":{"Error":[]},"ConcurrentModificationError":{"Error":[]},"OutOfMemoryError":{"Error":[]},"StackOverflowError":{"Error":[]},"_Exception":{"Exception":[]},"FormatException":{"Exception":[]},"_StringStackTrace":{"StackTrace":[]},"StringBuffer":{"StringSink":[]},"_Uri":{"Uri":[]},"_SimpleUri":{"Uri":[]},"_DataUri":{"Uri":[]},"NullRejectionException":{"Exception":[]},"ErrorResult":{"Result":["0&"]},"ValueResult":{"Result":["1"]},"_NextRequest":{"_EventRequest":["1"]},"_HasNextRequest":{"_EventRequest":["1"]},"CanonicalizedMap":{"Map":["2","3"]},"QueueList":{"ListBase":["1"],"List":["1"],"Queue":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"ListBase.E":"1","QueueList.E":"1","Iterable.E":"1"},"_CastQueueList":{"QueueList":["2"],"ListBase":["2"],"List":["2"],"Queue":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"ListBase.E":"2","QueueList.E":"2","Iterable.E":"2"},"PersistentWebSocket":{"StreamChannelMixin":["@"]},"SseSocketClient":{"SocketClient":[]},"WebSocketClient":{"SocketClient":[]},"ByteStream":{"StreamView":["List<int>"],"Stream":["List<int>"],"Stream.T":"List<int>","StreamView.T":"List<int>"},"ClientException":{"Exception":[]},"Request":{"BaseRequest":[]},"StreamedResponseV2":{"StreamedResponse":[]},"CaseInsensitiveMap":{"CanonicalizedMap":["String","String","1"],"Map":["String","1"],"CanonicalizedMap.K":"String","CanonicalizedMap.V":"1","CanonicalizedMap.C":"String"},"Level":{"Comparable":["Level"]},"PathException":{"Exception":[]},"PosixStyle":{"InternalStyle":[]},"UrlStyle":{"InternalStyle":[]},"WindowsStyle":{"InternalStyle":[]},"FileLocation":{"SourceLocation":[],"Comparable":["SourceLocation"]},"_FileSpan":{"SourceSpanWithContext":[],"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceLocation":{"Comparable":["SourceLocation"]},"SourceLocationMixin":{"SourceLocation":[],"Comparable":["SourceLocation"]},"SourceSpan":{"Comparable":["SourceSpan"]},"SourceSpanBase":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanException":{"Exception":[]},"SourceSpanFormatException":{"FormatException":[],"Exception":[]},"SourceSpanMixin":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SourceSpanWithContext":{"SourceSpan":[],"Comparable":["SourceSpan"]},"SseClient":{"StreamChannelMixin":["String?"]},"StringScannerException":{"FormatException":[],"Exception":[]},"_EventStream":{"Stream":["1"],"Stream.T":"1"},"_EventStreamSubscription":{"StreamSubscription":["1"]},"BrowserWebSocket":{"WebSocket":[]},"TextDataReceived":{"WebSocketEvent":[]},"BinaryDataReceived":{"WebSocketEvent":[]},"CloseReceived":{"WebSocketEvent":[]},"WebSocketException":{"Exception":[]},"WebSocketConnectionClosed":{"Exception":[]},"DdcLibraryBundleRestarter":{"Restarter":[]},"DdcRestarter":{"Restarter":[]},"RequireRestarter":{"Restarter":[]},"HotReloadFailedException":{"Exception":[]},"Int8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint8ClampedList":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint16List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Int32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Uint32List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]},"Float32List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]},"Float64List":{"List":["double"],"EfficientLengthIterable":["double"],"Iterable":["double"]}}'));
+  A._Universe_addErasedTypes(init.typeUniverse, JSON.parse('{"UnmodifiableListBase":1,"__CastListBase__CastIterableBase_ListMixin":2,"NativeTypedArray":1,"_DelayedEvent":1,"_SetBase":1,"_SplayTreeSet__SplayTree_Iterable":1,"_SplayTreeSet__SplayTree_Iterable_SetMixin":1,"_QueueList_Object_ListMixin":1,"StreamChannelMixin":1}'));
   var string$ = {
     x00_____: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\u03f6\x00\u0404\u03f4 \u03f4\u03f6\u01f6\u01f6\u03f6\u03fc\u01f4\u03ff\u03ff\u0584\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u05d4\u01f4\x00\u01f4\x00\u0504\u05c4\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u0400\x00\u0400\u0200\u03f7\u0200\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u0200\u0200\u0200\u03f7\x00",
     x20must_: " must not be greater than the number of characters in the file, ",
@@ -27340,23 +22323,15 @@
     Hot_reA: "Hot reload is not supported for the AMD module format.",
     Hot_reD: "Hot reload is not supported for the DDC module format.",
     handle: "handleError callback must take either an Object (the error), or both an Object (the error) and a StackTrace.",
-    max_mu: "max must be in range 0 < max \u2264 2^32, was ",
-    serial: "serializer must be StructuredSerializer or PrimitiveSerializer"
+    max_mu: "max must be in range 0 < max \u2264 2^32, was "
   };
   var type$ = (function rtii() {
     var findType = A.findType;
     return {
       AsyncError: findType("AsyncError"),
-      Base64Codec: findType("Base64Codec"),
       BatchedStreamController_DebugEvent: findType("BatchedStreamController<DebugEvent>"),
-      BigInt: findType("BigInt"),
       BrowserWebSocket: findType("BrowserWebSocket"),
       BuildStatus: findType("BuildStatus"),
-      BuiltListMultimap_dynamic_dynamic: findType("BuiltListMultimap<@,@>"),
-      BuiltList_dynamic: findType("BuiltList<@>"),
-      BuiltMap_dynamic_dynamic: findType("BuiltMap<@,@>"),
-      BuiltSetMultimap_dynamic_dynamic: findType("BuiltSetMultimap<@,@>"),
-      BuiltSet_dynamic: findType("BuiltSet<@>"),
       ByteBuffer: findType("ByteBuffer"),
       ByteData: findType("ByteData"),
       CaseInsensitiveMap_String: findType("CaseInsensitiveMap<String>"),
@@ -27371,22 +22346,16 @@
       Float32List: findType("Float32List"),
       Float64List: findType("Float64List"),
       FormatException: findType("FormatException"),
-      FullType: findType("FullType"),
       Function: findType("Function"),
       Future_void: findType("Future<~>"),
       HotReloadResponse: findType("HotReloadResponse"),
       HotRestartResponse: findType("HotRestartResponse"),
       Int16List: findType("Int16List"),
-      Int32: findType("Int32"),
       Int32List: findType("Int32List"),
-      Int64: findType("Int64"),
       Int8List: findType("Int8List"),
-      IterableEquality_dynamic: findType("IterableEquality<@>"),
       Iterable_String: findType("Iterable<String>"),
       Iterable_dynamic: findType("Iterable<@>"),
       Iterable_int: findType("Iterable<int>"),
-      Iterable_nullable_Object: findType("Iterable<Object?>"),
-      JSArray_FullType: findType("JSArray<FullType>"),
       JSArray_Object: findType("JSArray<Object>"),
       JSArray_String: findType("JSArray<String>"),
       JSArray__Highlight: findType("JSArray<_Highlight>"),
@@ -27400,27 +22369,19 @@
       JavaScriptFunction: findType("JavaScriptFunction"),
       JavaScriptIndexingBehavior_dynamic: findType("JavaScriptIndexingBehavior<@>"),
       JavaScriptObject: findType("JavaScriptObject"),
-      JsonObject: findType("JsonObject"),
       Level: findType("Level"),
-      ListBuilder_dynamic: findType("ListBuilder<@>"),
-      ListEquality_dynamic: findType("ListEquality<@>"),
-      ListMultimapBuilder_dynamic_dynamic: findType("ListMultimapBuilder<@,@>"),
       List_DebugEvent: findType("List<DebugEvent>"),
       List_Map_dynamic_dynamic: findType("List<Map<@,@>>"),
       List_String: findType("List<String>"),
       List_dynamic: findType("List<@>"),
       List_int: findType("List<int>"),
-      List_nullable_Object: findType("List<Object?>"),
       List_nullable__Highlight: findType("List<_Highlight?>"),
       Logger: findType("Logger"),
-      MapBuilder_dynamic_dynamic: findType("MapBuilder<@,@>"),
       MapEntry_String_String: findType("MapEntry<String,String>"),
       MapEntry_of_Object_and_List__Highlight: findType("MapEntry<Object,List<_Highlight>>"),
-      MapEquality_dynamic_dynamic: findType("MapEquality<@,@>"),
       Map_String_String: findType("Map<String,String>"),
       Map_String_dynamic: findType("Map<String,@>"),
       Map_dynamic_dynamic: findType("Map<@,@>"),
-      Map_of_String_and_nullable_Object: findType("Map<String,Object?>"),
       MappedListIterable_String_dynamic: findType("MappedListIterable<String,@>"),
       MediaType: findType("MediaType"),
       NativeArrayBuffer: findType("NativeArrayBuffer"),
@@ -27430,22 +22391,13 @@
       Object: findType("Object"),
       PersistentWebSocket: findType("PersistentWebSocket"),
       PoolResource: findType("PoolResource"),
-      PrimitiveSerializer_dynamic: findType("PrimitiveSerializer<@>"),
       QueueList_Result_DebugEvent: findType("QueueList<Result<DebugEvent>>"),
       Record: findType("Record"),
       Record_0: findType("+()"),
       Record_2_bool_and_nullable_JSArray_nullable_Object: findType("+(bool,JSArray<Object?>?)"),
-      RegExp: findType("RegExp"),
       RegExpMatch: findType("RegExpMatch"),
       RequireRestarter: findType("RequireRestarter"),
       Response: findType("Response"),
-      ReversedListIterable_String: findType("ReversedListIterable<String>"),
-      SerializerPlugin: findType("SerializerPlugin"),
-      Serializer_dynamic: findType("Serializer<@>"),
-      SetBuilder_dynamic: findType("SetBuilder<@>"),
-      SetEquality_dynamic: findType("SetEquality<@>"),
-      SetMultimapBuilder_dynamic_dynamic: findType("SetMultimapBuilder<@,@>"),
-      Set_dynamic: findType("Set<@>"),
       SourceLocation: findType("SourceLocation"),
       SourceSpan: findType("SourceSpan"),
       SourceSpanWithContext: findType("SourceSpanWithContext"),
@@ -27456,19 +22408,15 @@
       StreamedResponse: findType("StreamedResponse"),
       String: findType("String"),
       String_Function_Match: findType("String(Match)"),
-      StructuredSerializer_dynamic: findType("StructuredSerializer<@>"),
       Timer: findType("Timer"),
       TrustedGetRuntimeType: findType("TrustedGetRuntimeType"),
-      Type: findType("Type"),
       TypeError: findType("TypeError"),
       Uint16List: findType("Uint16List"),
       Uint32List: findType("Uint32List"),
       Uint8ClampedList: findType("Uint8ClampedList"),
       Uint8List: findType("Uint8List"),
       UnknownJavaScriptObject: findType("UnknownJavaScriptObject"),
-      UnmodifiableListView_nullable_Object: findType("UnmodifiableListView<Object?>"),
       UnmodifiableMapView_String_String: findType("UnmodifiableMapView<String,String>"),
-      UnmodifiableMapView_of_String_and_nullable_Object: findType("UnmodifiableMapView<String,Object?>"),
       Uri: findType("Uri"),
       WebSocket: findType("WebSocket"),
       WebSocketEvent: findType("WebSocketEvent"),
@@ -27482,8 +22430,6 @@
       _AsyncCompleter_dynamic: findType("_AsyncCompleter<@>"),
       _AsyncCompleter_void: findType("_AsyncCompleter<~>"),
       _AsyncStreamController_List_int: findType("_AsyncStreamController<List<int>>"),
-      _BigIntImpl: findType("_BigIntImpl"),
-      _BuiltMap_dynamic_dynamic: findType("_BuiltMap<@,@>"),
       _EventRequest_dynamic: findType("_EventRequest<@>"),
       _EventStream_JSObject: findType("_EventStream<JSObject>"),
       _Future_BrowserWebSocket: findType("_Future<BrowserWebSocket>"),
@@ -27497,7 +22443,6 @@
       _Highlight: findType("_Highlight"),
       _IdentityHashMap_of_nullable_Object_and_nullable_Object: findType("_IdentityHashMap<Object?,Object?>"),
       _Line: findType("_Line"),
-      _MapEntry: findType("_MapEntry"),
       _StreamControllerAddStreamState_nullable_Object: findType("_StreamControllerAddStreamState<Object?>"),
       _SyncCompleter_PoolResource: findType("_SyncCompleter<PoolResource>"),
       _ZoneFunction_of_void_Function_Zone_ZoneDelegate_Zone_Object_StackTrace: findType("_ZoneFunction<~(Zone,ZoneDelegate,Zone,Object,StackTrace)>"),
@@ -27529,7 +22474,6 @@
       nullable__DelayedEvent_dynamic: findType("_DelayedEvent<@>?"),
       nullable__FutureListener_dynamic_dynamic: findType("_FutureListener<@,@>?"),
       nullable__Highlight: findType("_Highlight?"),
-      nullable__LinkedHashSetCell: findType("_LinkedHashSetCell?"),
       nullable_bool: findType("bool?"),
       nullable_bool_Function_Object: findType("bool(Object)?"),
       nullable_double: findType("double?"),
@@ -27552,7 +22496,6 @@
     var makeConstList = hunkHelpers.makeConstList;
     B.Interceptor_methods = J.Interceptor.prototype;
     B.JSArray_methods = J.JSArray.prototype;
-    B.JSBool_methods = J.JSBool.prototype;
     B.JSInt_methods = J.JSInt.prototype;
     B.JSNumber_methods = J.JSNumber.prototype;
     B.JSString_methods = J.JSString.prototype;
@@ -27571,11 +22514,7 @@
     B.C_AsciiCodec = new A.AsciiCodec();
     B.C_Base64Encoder = new A.Base64Encoder();
     B.C_Base64Codec = new A.Base64Codec();
-    B.C_Base64Decoder = new A.Base64Decoder();
-    B.C_DefaultEquality = new A.DefaultEquality(A.findType("DefaultEquality<0&>"));
-    B.C_DeepCollectionEquality = new A.DeepCollectionEquality();
     B.C_EmptyIterator = new A.EmptyIterator(A.findType("EmptyIterator<0&>"));
-    B.C_IntegerDivisionByZeroException = new A.IntegerDivisionByZeroException();
     B.C_JS_CONST = function getTagFallback(o) {
   var s = Object.prototype.toString.call(o);
   return s.substring(8, s.length - 1);
@@ -27712,22 +22651,6 @@
     B.C__RootZone = new A._RootZone();
     B.Duration_0 = new A.Duration(0);
     B.Duration_5000000 = new A.Duration(5000000);
-    B.Type_BuiltSetMultimap_yT7 = A.typeLiteral("BuiltSetMultimap<@,@>");
-    B.Type_Object_A4p = A.typeLiteral("Object");
-    B.List_empty1 = makeConstList([], type$.JSArray_FullType);
-    B.FullType_kV7 = new A.FullType(B.Type_Object_A4p, B.List_empty1, false);
-    B.List_03P = makeConstList([B.FullType_kV7, B.FullType_kV7], type$.JSArray_FullType);
-    B.FullType_SWR = new A.FullType(B.Type_BuiltSetMultimap_yT7, B.List_03P, false);
-    B.Type_BuiltListMultimap_HQW = A.typeLiteral("BuiltListMultimap<@,@>");
-    B.FullType_WP0 = new A.FullType(B.Type_BuiltListMultimap_HQW, B.List_03P, false);
-    B.Type_BuiltList_fj6 = A.typeLiteral("BuiltList<@>");
-    B.List_LtY = makeConstList([B.FullType_kV7], type$.JSArray_FullType);
-    B.FullType_hm4 = new A.FullType(B.Type_BuiltList_fj6, B.List_LtY, false);
-    B.Type_BuiltMap_TeX = A.typeLiteral("BuiltMap<@,@>");
-    B.FullType_mo5 = new A.FullType(B.Type_BuiltMap_TeX, B.List_03P, false);
-    B.FullType_null_List_empty_false = new A.FullType(null, B.List_empty1, false);
-    B.Type_BuiltSet_oHu = A.typeLiteral("BuiltSet<@>");
-    B.FullType_tpw = new A.FullType(B.Type_BuiltSet_oHu, B.List_LtY, false);
     B.JsonDecoder_null = new A.JsonDecoder(null);
     B.JsonEncoder_null = new A.JsonEncoder(null);
     B.Latin1Decoder_false_255 = new A.Latin1Decoder(false, 255);
@@ -27735,52 +22658,28 @@
     B.Level_INFO_800 = new A.Level("INFO", 800);
     B.Level_SEVERE_1000 = new A.Level("SEVERE", 1000);
     B.Level_WARNING_900 = new A.Level("WARNING", 900);
-    B.List_ZNA = makeConstList([0, 0, 1048576, 531441, 1048576, 390625, 279936, 823543, 262144, 531441, 1000000, 161051, 248832, 371293, 537824, 759375, 1048576, 83521, 104976, 130321, 160000, 194481, 234256, 279841, 331776, 390625, 456976, 531441, 614656, 707281, 810000, 923521, 1048576, 35937, 39304, 42875, 46656], type$.JSArray_int);
     B.BuildStatus_0 = new A.BuildStatus(0, "started");
     B.BuildStatus_1 = new A.BuildStatus(1, "succeeded");
     B.BuildStatus_2 = new A.BuildStatus(2, "failed");
     B.List_crW = makeConstList([B.BuildStatus_0, B.BuildStatus_1, B.BuildStatus_2], A.findType("JSArray<BuildStatus>"));
     B.List_empty = makeConstList([], type$.JSArray_String);
-    B.List_empty0 = makeConstList([], type$.JSArray_dynamic);
     B.List_fAJ = makeConstList(["d", "D", "\u2202", "\xce"], type$.JSArray_String);
     B.Object_empty = {};
-    B.Map_empty1 = new A.ConstantStringMap(B.Object_empty, [], A.findType("ConstantStringMap<String,String>"));
-    B.Map_empty0 = new A.ConstantStringMap(B.Object_empty, [], A.findType("ConstantStringMap<String,@>"));
-    B.Map_empty = new A.ConstantStringMap(B.Object_empty, [], A.findType("ConstantStringMap<@,@>"));
-    B.Type_BigInt_DZK = A.typeLiteral("BigInt");
-    B.Type_BoolJsonObject_Zqn = A.typeLiteral("BoolJsonObject");
+    B.Map_empty0 = new A.ConstantStringMap(B.Object_empty, [], A.findType("ConstantStringMap<String,String>"));
+    B.Map_empty = new A.ConstantStringMap(B.Object_empty, [], A.findType("ConstantStringMap<String,@>"));
     B.Type_ByteBuffer_rqD = A.typeLiteral("ByteBuffer");
     B.Type_ByteData_9dB = A.typeLiteral("ByteData");
-    B.Type_DateTime_akv = A.typeLiteral("DateTime");
-    B.Type_Duration_VAs = A.typeLiteral("Duration");
     B.Type_Float32List_9Kz = A.typeLiteral("Float32List");
     B.Type_Float64List_9Kz = A.typeLiteral("Float64List");
     B.Type_Int16List_s5h = A.typeLiteral("Int16List");
     B.Type_Int32List_O8Z = A.typeLiteral("Int32List");
-    B.Type_Int32_291 = A.typeLiteral("Int32");
-    B.Type_Int64_LHp = A.typeLiteral("Int64");
     B.Type_Int8List_rFV = A.typeLiteral("Int8List");
     B.Type_JSObject_ttY = A.typeLiteral("JSObject");
-    B.Type_JsonObject_5jQ = A.typeLiteral("JsonObject");
-    B.Type_ListJsonObject_qcV = A.typeLiteral("ListJsonObject");
-    B.Type_List_hc9 = A.typeLiteral("List<@>");
-    B.Type_MapJsonObject_VMr = A.typeLiteral("MapJsonObject");
-    B.Type_Map_9Aj = A.typeLiteral("Map<@,@>");
-    B.Type_Null_0Rm = A.typeLiteral("Null");
-    B.Type_NumJsonObject_hYY = A.typeLiteral("NumJsonObject");
-    B.Type_RegExp_w5l = A.typeLiteral("RegExp");
-    B.Type_Set_tZi = A.typeLiteral("Set<@>");
-    B.Type_StringJsonObject_NL7 = A.typeLiteral("StringJsonObject");
-    B.Type_String_AXU = A.typeLiteral("String");
+    B.Type_Object_A4p = A.typeLiteral("Object");
     B.Type_Uint16List_kmP = A.typeLiteral("Uint16List");
     B.Type_Uint32List_kmP = A.typeLiteral("Uint32List");
     B.Type_Uint8ClampedList_04U = A.typeLiteral("Uint8ClampedList");
     B.Type_Uint8List_8Eb = A.typeLiteral("Uint8List");
-    B.Type_Uri_l9i = A.typeLiteral("Uri");
-    B.Type_bool_wF1 = A.typeLiteral("bool");
-    B.Type_double_JIQ = A.typeLiteral("double");
-    B.Type_int_T7V = A.typeLiteral("int");
-    B.Type_num_LZa = A.typeLiteral("num");
     B.Utf8Decoder_false = new A.Utf8Decoder(false);
     B._StringStackTrace_OdL = new A._StringStackTrace("");
     B._ZoneFunction_KjJ = new A._ZoneFunction(B.C__RootZone, A.async___rootHandleUncaughtError$closure(), type$._ZoneFunction_of_void_Function_Zone_ZoneDelegate_Zone_Object_StackTrace);
@@ -27817,14 +22716,6 @@
     $._isInCallbackLoop = false;
     $.Zone__current = B.C__RootZone;
     $._RootZone__rootDelegate = null;
-    $._BigIntImpl__lastDividendDigits = null;
-    $._BigIntImpl__lastDividendUsed = null;
-    $._BigIntImpl__lastDivisorDigits = null;
-    $._BigIntImpl__lastDivisorUsed = null;
-    $._BigIntImpl____lastQuoRemDigits = A._Cell$named("_lastQuoRemDigits");
-    $._BigIntImpl____lastQuoRemUsed = A._Cell$named("_lastQuoRemUsed");
-    $._BigIntImpl____lastRemUsed = A._Cell$named("_lastRemUsed");
-    $._BigIntImpl____lastRem_nsh = A._Cell$named("_lastRem_nsh");
     $.Uri__cachedBaseString = "";
     $.Uri__cachedBaseUri = null;
     $.LogRecord__nextNumber = 0;
@@ -27892,20 +22783,14 @@
     _lazyFinal($, "Future__nullFuture", "$get$Future__nullFuture", () => $.$get$nullFuture());
     _lazyFinal($, "_RootZone__rootMap", "$get$_RootZone__rootMap", () => {
       var t1 = type$.dynamic;
-      return A.HashMap_HashMap(null, null, null, t1, t1);
+      return A.HashMap_HashMap(null, null, t1, t1);
     });
     _lazyFinal($, "_Utf8Decoder__reusableBuffer", "$get$_Utf8Decoder__reusableBuffer", () => A.NativeUint8List_NativeUint8List(4096));
     _lazyFinal($, "_Utf8Decoder__decoder", "$get$_Utf8Decoder__decoder", () => new A._Utf8Decoder__decoder_closure().call$0());
     _lazyFinal($, "_Utf8Decoder__decoderNonfatal", "$get$_Utf8Decoder__decoderNonfatal", () => new A._Utf8Decoder__decoderNonfatal_closure().call$0());
     _lazyFinal($, "_Base64Decoder__inverseAlphabet", "$get$_Base64Decoder__inverseAlphabet", () => A.NativeInt8List__create1(A._ensureNativeList(A._setArrayType([-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -2, -2, -2, -2, -2, 62, -2, 62, -2, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -2, -2, -2, -1, -2, -2, -2, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -2, -2, -2, -2, 63, -2, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -2, -2, -2, -2, -2], type$.JSArray_int))));
-    _lazy($, "_Base64Decoder__emptyBuffer", "$get$_Base64Decoder__emptyBuffer", () => A.NativeUint8List_NativeUint8List(0));
     _lazyFinal($, "Encoding__nameToEncoding", "$get$Encoding__nameToEncoding", () => A.LinkedHashMap_LinkedHashMap$_literal(["iso_8859-1:1987", B.C_Latin1Codec, "iso-ir-100", B.C_Latin1Codec, "iso_8859-1", B.C_Latin1Codec, "iso-8859-1", B.C_Latin1Codec, "latin1", B.C_Latin1Codec, "l1", B.C_Latin1Codec, "ibm819", B.C_Latin1Codec, "cp819", B.C_Latin1Codec, "csisolatin1", B.C_Latin1Codec, "iso-ir-6", B.C_AsciiCodec, "ansi_x3.4-1968", B.C_AsciiCodec, "ansi_x3.4-1986", B.C_AsciiCodec, "iso_646.irv:1991", B.C_AsciiCodec, "iso646-us", B.C_AsciiCodec, "us-ascii", B.C_AsciiCodec, "us", B.C_AsciiCodec, "ibm367", B.C_AsciiCodec, "cp367", B.C_AsciiCodec, "csascii", B.C_AsciiCodec, "ascii", B.C_AsciiCodec, "csutf8", B.C_Utf8Codec, "utf-8", B.C_Utf8Codec], type$.String, A.findType("Encoding")));
-    _lazyFinal($, "_BigIntImpl_zero", "$get$_BigIntImpl_zero", () => A._BigIntImpl__BigIntImpl$_fromInt(0));
-    _lazyFinal($, "_BigIntImpl_one", "$get$_BigIntImpl_one", () => A._BigIntImpl__BigIntImpl$_fromInt(1));
-    _lazyFinal($, "_BigIntImpl__minusOne", "$get$_BigIntImpl__minusOne", () => $.$get$_BigIntImpl_one().$negate(0));
-    _lazyFinal($, "_BigIntImpl__bigInt10000", "$get$_BigIntImpl__bigInt10000", () => A._BigIntImpl__BigIntImpl$_fromInt(10000));
-    _lazy($, "_BigIntImpl__parseRE", "$get$_BigIntImpl__parseRE", () => A.RegExp_RegExp("^\\s*([+-]?)((0x[a-f0-9]+)|(\\d+)|([a-z0-9]+))\\s*$", false, false));
-    _lazyFinal($, "_Uri__needsNoEncoding", "$get$_Uri__needsNoEncoding", () => A.RegExp_RegExp("^[\\-\\.0-9A-Z_a-z~]*$", true, false));
+    _lazyFinal($, "_Uri__needsNoEncoding", "$get$_Uri__needsNoEncoding", () => A.RegExp_RegExp("^[\\-\\.0-9A-Z_a-z~]*$", false));
     _lazyFinal($, "_hashSeed", "$get$_hashSeed", () => A.objectHashCode(B.Type_Object_A4p));
     _lazyFinal($, "_jsBoxedDartObjectProperty", "$get$_jsBoxedDartObjectProperty", () => Symbol("jsBoxedDartObjectProperty"));
     _lazyFinal($, "Random__secureRandom", "$get$Random__secureRandom", () => {
@@ -27913,27 +22798,20 @@
       t1._JSSecureRandom$0();
       return t1;
     });
-    _lazyFinal($, "isSoundMode", "$get$isSoundMode", () => !type$.List_int._is(A._setArrayType([], A.findType("JSArray<int?>"))));
-    _lazyFinal($, "_runtimeType", "$get$_runtimeType", () => A.getRuntimeTypeOfDartObject(A.RegExp_RegExp("", true, false)));
-    _lazyFinal($, "serializers", "$get$serializers", () => $.$get$_$serializers());
-    _lazy($, "_$serializers", "$get$_$serializers", () => {
-      var t1 = A.Serializers_Serializers();
-      return A.BuiltJsonSerializersBuilder$_(t1._typeToSerializer.toBuilder$0(), t1._wireNameToSerializer.toBuilder$0(), t1._typeNameToSerializer.toBuilder$0(), t1.builderFactories.toBuilder$0(), t1.serializerPlugins.toBuilder$0()).build$0();
-    });
     _lazyFinal($, "_logger", "$get$_logger", () => A.Logger_Logger("Utilities"));
-    _lazyFinal($, "BaseRequest__tokenRE", "$get$BaseRequest__tokenRE", () => A.RegExp_RegExp("^[\\w!#%&'*+\\-.^`|~]+$", true, false));
-    _lazyFinal($, "_escapedChar", "$get$_escapedChar", () => A.RegExp_RegExp('["\\x00-\\x1F\\x7F]', true, false));
-    _lazyFinal($, "token", "$get$token", () => A.RegExp_RegExp('[^()<>@,;:"\\\\/[\\]?={} \\t\\x00-\\x1F\\x7F]+', true, false));
-    _lazyFinal($, "_lws", "$get$_lws", () => A.RegExp_RegExp("(?:\\r\\n)?[ \\t]+", true, false));
-    _lazyFinal($, "_quotedString", "$get$_quotedString", () => A.RegExp_RegExp('"(?:[^"\\x00-\\x1F\\x7F\\\\]|\\\\.)*"', true, false));
-    _lazyFinal($, "_quotedPair", "$get$_quotedPair", () => A.RegExp_RegExp("\\\\(.)", true, false));
-    _lazyFinal($, "nonToken", "$get$nonToken", () => A.RegExp_RegExp('[()<>@,;:"\\\\/\\[\\]?={} \\t\\x00-\\x1F\\x7F]', true, false));
-    _lazyFinal($, "whitespace", "$get$whitespace", () => A.RegExp_RegExp("(?:" + $.$get$_lws().pattern + ")*", true, false));
+    _lazyFinal($, "BaseRequest__tokenRE", "$get$BaseRequest__tokenRE", () => A.RegExp_RegExp("^[\\w!#%&'*+\\-.^`|~]+$", false));
+    _lazyFinal($, "_escapedChar", "$get$_escapedChar", () => A.RegExp_RegExp('["\\x00-\\x1F\\x7F]', false));
+    _lazyFinal($, "token", "$get$token", () => A.RegExp_RegExp('[^()<>@,;:"\\\\/[\\]?={} \\t\\x00-\\x1F\\x7F]+', false));
+    _lazyFinal($, "_lws", "$get$_lws", () => A.RegExp_RegExp("(?:\\r\\n)?[ \\t]+", false));
+    _lazyFinal($, "_quotedString", "$get$_quotedString", () => A.RegExp_RegExp('"(?:[^"\\x00-\\x1F\\x7F\\\\]|\\\\.)*"', false));
+    _lazyFinal($, "_quotedPair", "$get$_quotedPair", () => A.RegExp_RegExp("\\\\(.)", false));
+    _lazyFinal($, "nonToken", "$get$nonToken", () => A.RegExp_RegExp('[()<>@,;:"\\\\/\\[\\]?={} \\t\\x00-\\x1F\\x7F]', false));
+    _lazyFinal($, "whitespace", "$get$whitespace", () => A.RegExp_RegExp("(?:" + $.$get$_lws().pattern + ")*", false));
     _lazyFinal($, "Logger_root", "$get$Logger_root", () => A.Logger_Logger(""));
     _lazyFinal($, "context", "$get$context", () => new A.Context($.$get$Style_platform(), null));
-    _lazyFinal($, "Style_posix", "$get$Style_posix", () => new A.PosixStyle(A.RegExp_RegExp("/", true, false), A.RegExp_RegExp("[^/]$", true, false), A.RegExp_RegExp("^/", true, false)));
-    _lazyFinal($, "Style_windows", "$get$Style_windows", () => new A.WindowsStyle(A.RegExp_RegExp("[/\\\\]", true, false), A.RegExp_RegExp("[^/\\\\]$", true, false), A.RegExp_RegExp("^(\\\\\\\\[^\\\\]+\\\\[^\\\\/]+|[a-zA-Z]:[/\\\\])", true, false), A.RegExp_RegExp("^[/\\\\](?![/\\\\])", true, false)));
-    _lazyFinal($, "Style_url", "$get$Style_url", () => new A.UrlStyle(A.RegExp_RegExp("/", true, false), A.RegExp_RegExp("(^[a-zA-Z][-+.a-zA-Z\\d]*://|[^/])$", true, false), A.RegExp_RegExp("[a-zA-Z][-+.a-zA-Z\\d]*://[^/]*", true, false), A.RegExp_RegExp("^/", true, false)));
+    _lazyFinal($, "Style_posix", "$get$Style_posix", () => new A.PosixStyle(A.RegExp_RegExp("/", false), A.RegExp_RegExp("[^/]$", false), A.RegExp_RegExp("^/", false)));
+    _lazyFinal($, "Style_windows", "$get$Style_windows", () => new A.WindowsStyle(A.RegExp_RegExp("[/\\\\]", false), A.RegExp_RegExp("[^/\\\\]$", false), A.RegExp_RegExp("^(\\\\\\\\[^\\\\]+\\\\[^\\\\/]+|[a-zA-Z]:[/\\\\])", false), A.RegExp_RegExp("^[/\\\\](?![/\\\\])", false)));
+    _lazyFinal($, "Style_url", "$get$Style_url", () => new A.UrlStyle(A.RegExp_RegExp("/", false), A.RegExp_RegExp("(^[a-zA-Z][-+.a-zA-Z\\d]*://|[^/])$", false), A.RegExp_RegExp("[a-zA-Z][-+.a-zA-Z\\d]*://[^/]*", false), A.RegExp_RegExp("^/", false)));
     _lazyFinal($, "Style_platform", "$get$Style_platform", () => A.Style__getPlatformStyle());
     _lazyFinal($, "_requestPool", "$get$_requestPool", () => {
       var t4,
@@ -27954,7 +22832,7 @@
       return _list;
     });
     _lazyFinal($, "CryptoRNG__secureRandom", "$get$CryptoRNG__secureRandom", () => $.$get$Random__secureRandom());
-    _lazyFinal($, "_noncePattern", "$get$_noncePattern", () => A.RegExp_RegExp("^[\\w+/_-]+[=]{0,2}$", true, false));
+    _lazyFinal($, "_noncePattern", "$get$_noncePattern", () => A.RegExp_RegExp("^[\\w+/_-]+[=]{0,2}$", false));
     _lazyFinal($, "_createScript", "$get$_createScript", () => new A._createScript_closure().call$0());
   })();
   (function nativeSupport() {

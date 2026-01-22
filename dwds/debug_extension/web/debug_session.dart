@@ -8,7 +8,6 @@ library;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/devtools_request.dart';
@@ -27,7 +26,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'chrome_api.dart';
 import 'cider_connection.dart';
 import 'cross_extension_communication.dart';
-import 'data_serializers.dart';
 import 'data_types.dart';
 import 'logger.dart';
 import 'messaging.dart';
@@ -405,11 +403,7 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
   ]) {
     message = ExtensionEvent.fromJson(event);
   } else {
-    try {
-      message = serializers.deserialize(decoded);
-    } catch (_) {
-      // Skip if we can't deserialize the object.
-    }
+    // Skip if we can't deserialize the object.
   }
   if (message is ExtensionRequest) {
     _forwardDwdsEventToChromeDebugger(message, client, tabId);
@@ -457,7 +451,7 @@ void _forwardDwdsEventToChromeDebugger(
     final messageParams = message.commandParams;
     final params = messageParams == null
         ? <String, Object>{}
-        : BuiltMap<String, Object>(json.decode(messageParams)).toMap();
+        : Map<String, Object>.from(json.decode(messageParams) as Map);
 
     chrome.debugger.sendCommand(
       Debuggee(tabId: tabId),
@@ -829,7 +823,7 @@ class _DebugSession {
     if (event is DevToolsRequest) {
       return ['DevToolsRequest', event.toJson()];
     }
-    return serializers.serialize(event);
+    throw StateError('Unknown event type: $event');
   }
 
   void sendBatchedEvent(ExtensionEvent event) {

@@ -17,7 +17,6 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
-import 'data_serializers.dart';
 import 'data_types.dart';
 import 'logger.dart';
 import 'utils.dart';
@@ -67,21 +66,15 @@ Future<bool> setStorageObject<T>({
 }
 
 String _serialize<T>(T value) {
-  if (value is String) {
-    return value;
-  } else if (value is DebugInfo) {
-    return jsonEncode(value);
-  } else if (value is ConnectFailure) {
-    return jsonEncode(['ConnectFailure', value.toJson()]);
-  } else if (value is DebugStateChange) {
-    return jsonEncode(['DebugStateChange', value.toJson()]);
-  } else if (value is DevToolsOpener) {
-    return jsonEncode(['DevToolsOpener', value.toJson()]);
-  } else if (value is DevToolsUrl) {
-    return jsonEncode(['DevToolsUrl', value.toJson()]);
-  } else {
-    return jsonEncode(serializers.serialize(value));
-  }
+  return switch (value) {
+    final String v => v,
+    final DebugInfo v => jsonEncode(v),
+    final ConnectFailure v => jsonEncode(['ConnectFailure', v.toJson()]),
+    final DebugStateChange v => jsonEncode(['DebugStateChange', v.toJson()]),
+    final DevToolsOpener v => jsonEncode(['DevToolsOpener', v.toJson()]),
+    final DevToolsUrl v => jsonEncode(['DevToolsUrl', v.toJson()]),
+    _ => throw StateError('Unknown type for serialization: $T'),
+  };
 }
 
 Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
@@ -110,30 +103,22 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
 }
 
 T _deserialize<T>(String json) {
-  if (T == String) {
-    return json as T;
-  } else if (T == DebugInfo) {
-    return DebugInfo.fromJson(jsonDecode(json) as Map<String, dynamic>) as T;
-  } else {
-    final decoded = jsonDecode(json);
-    if (decoded case ['ConnectFailure', final Map<String, dynamic> data]) {
-      return ConnectFailure.fromJson(data) as T;
-    } else if (decoded case [
-      'DebugStateChange',
-      final Map<String, dynamic> data,
-    ]) {
-      return DebugStateChange.fromJson(data) as T;
-    } else if (decoded case [
-      'DevToolsOpener',
-      final Map<String, dynamic> data,
-    ]) {
-      return DevToolsOpener.fromJson(data) as T;
-    } else if (decoded case ['DevToolsUrl', final Map<String, dynamic> data]) {
-      return DevToolsUrl.fromJson(data) as T;
-    } else {
-      return serializers.deserialize(decoded) as T;
-    }
+  if (T == String) return json as T;
+  final decoded = jsonDecode(json);
+  if (T == DebugInfo) {
+    return DebugInfo.fromJson(decoded as Map<String, dynamic>) as T;
   }
+  return switch (decoded) {
+    ['ConnectFailure', final Map<String, dynamic> data] =>
+      ConnectFailure.fromJson(data) as T,
+    ['DebugStateChange', final Map<String, dynamic> data] =>
+      DebugStateChange.fromJson(data) as T,
+    ['DevToolsOpener', final Map<String, dynamic> data] =>
+      DevToolsOpener.fromJson(data) as T,
+    ['DevToolsUrl', final Map<String, dynamic> data] =>
+      DevToolsUrl.fromJson(data) as T,
+    _ => throw StateError('Unknown type for deserialization: $T'),
+  };
 }
 
 Future<List<T>> fetchAllStorageObjectsOfType<T>({required StorageObject type}) {
