@@ -823,7 +823,7 @@ class _DebugSession {
     if (event is DevToolsRequest) {
       return ['DevToolsRequest', event.toJson()];
     }
-    throw StateError('Unknown event type: $event');
+    throw UnsupportedError('Unknown event type: $event');
   }
 
   void sendBatchedEvent(ExtensionEvent event) {

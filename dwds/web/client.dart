@@ -432,7 +432,7 @@ void _sendResponse<T>(
   final encoded = switch (response) {
     HotReloadResponse() => ['HotReloadResponse', response.toJson()],
     HotRestartResponse() => ['HotRestartResponse', response.toJson()],
-    _ => throw StateError('Unknown response type: $response'),
+    _ => throw UnsupportedError('Unknown response type: $response'),
   };
 
   _trySendEvent(clientSink, jsonEncode(encoded));

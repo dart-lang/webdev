@@ -8548,7 +8548,7 @@
           t1 = A._setArrayType(["HotRestartResponse", response.toJson$0()], type$.JSArray_Object);
           break $label0$0;
         }
-        t1 = A.throwExpression(A.StateError$("Unknown response type: " + A.S(response)));
+        t1 = A.throwExpression(A.UnsupportedError$("Unknown response type: " + A.S(response)));
       }
       A._trySendEvent(clientSink, B.C_JsonCodec.encode$2$toEncodable(t1, null), type$.dynamic);
     },

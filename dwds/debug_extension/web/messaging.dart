@@ -143,7 +143,7 @@ T _deserialize<T>(String body) {
   } else if (decoded case ['DevToolsUrl', final Map<String, dynamic> data]) {
     return DevToolsUrl.fromJson(data) as T;
   } else {
-    throw StateError('Unknown type for deserialization: $T');
+    throw UnsupportedError('Unknown type for deserialization: $T');
   }
 }
 

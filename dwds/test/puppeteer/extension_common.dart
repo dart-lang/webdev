@@ -957,7 +957,7 @@ Future<T> _fetchStorageObj<T>(
   if (T == DebugInfo) {
     return DebugInfo.fromJson(jsonDecode(json) as Map<String, dynamic>) as T;
   }
-  throw StateError('Unsupported type: $T');
+  throw UnsupportedError('Unsupported type: $T');
 }
 
 String _currentTabIdJs = '''

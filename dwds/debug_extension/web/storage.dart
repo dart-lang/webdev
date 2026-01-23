@@ -73,7 +73,7 @@ String _serialize<T>(T value) {
     final DebugStateChange v => jsonEncode(['DebugStateChange', v.toJson()]),
     final DevToolsOpener v => jsonEncode(['DevToolsOpener', v.toJson()]),
     final DevToolsUrl v => jsonEncode(['DevToolsUrl', v.toJson()]),
-    _ => throw StateError('Unknown type for serialization: $T'),
+    _ => throw UnsupportedError('Unknown type for serialization: $T'),
   };
 }
 
@@ -117,7 +117,7 @@ T _deserialize<T>(String json) {
       DevToolsOpener.fromJson(data) as T,
     ['DevToolsUrl', final Map<String, dynamic> data] =>
       DevToolsUrl.fromJson(data) as T,
-    _ => throw StateError('Unknown type for deserialization: $T'),
+    _ => throw UnsupportedError('Unknown type for deserialization: $T'),
   };
 }
 
