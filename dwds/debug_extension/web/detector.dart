@@ -131,7 +131,7 @@ Future<void> _sendMessageToBackgroundScript({
 
 void _sendAuthRequest(String debugInfoJson) {
   final debugInfo = DebugInfo.fromJson(
-    jsonDecode(debugInfoJson) as Map<String, dynamic>,
+    jsonDecode(debugInfoJson) as List<dynamic>,
   );
   final appOrigin = debugInfo.appOrigin;
   if (appOrigin != null) {

@@ -17547,31 +17547,31 @@
   A.DebugInfo.prototype = {
     toJson$0() {
       var t2, _this = this,
-        t1 = A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.dynamic);
-      t1.$indexSet(0, "appEntrypointPath", _this.appEntrypointPath);
+        t1 = ["DebugInfo"];
+      B.JSArray_methods.addAll$1(t1, ["appEntrypointPath", _this.appEntrypointPath]);
       t2 = _this.appId;
       if (t2 != null)
-        t1.$indexSet(0, "appId", t2);
+        B.JSArray_methods.addAll$1(t1, ["appId", t2]);
       t2 = _this.appInstanceId;
       if (t2 != null)
-        t1.$indexSet(0, "appInstanceId", t2);
-      t1.$indexSet(0, "appOrigin", _this.appOrigin);
-      t1.$indexSet(0, "appUrl", _this.appUrl);
+        B.JSArray_methods.addAll$1(t1, ["appInstanceId", t2]);
+      B.JSArray_methods.addAll$1(t1, ["appOrigin", _this.appOrigin]);
+      B.JSArray_methods.addAll$1(t1, ["appUrl", _this.appUrl]);
       t2 = _this.authUrl;
       if (t2 != null)
-        t1.$indexSet(0, "authUrl", t2);
+        B.JSArray_methods.addAll$1(t1, ["authUrl", t2]);
       t2 = _this.extensionUrl;
       if (t2 != null)
-        t1.$indexSet(0, "extensionUrl", t2);
+        B.JSArray_methods.addAll$1(t1, ["extensionUrl", t2]);
       t2 = _this.isInternalBuild;
       if (t2 != null)
-        t1.$indexSet(0, "isInternalBuild", t2);
+        B.JSArray_methods.addAll$1(t1, ["isInternalBuild", t2]);
       t2 = _this.isFlutterApp;
       if (t2 != null)
-        t1.$indexSet(0, "isFlutterApp", t2);
+        B.JSArray_methods.addAll$1(t1, ["isFlutterApp", t2]);
       t2 = _this.workspaceName;
       if (t2 != null)
-        t1.$indexSet(0, "workspaceName", t2);
+        B.JSArray_methods.addAll$1(t1, ["workspaceName", t2]);
       return t1;
     }
   };

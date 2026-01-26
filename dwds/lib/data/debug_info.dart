@@ -17,7 +17,7 @@ class DebugInfo {
   final String? tabUrl;
   final int? tabId;
 
-  DebugInfo({
+  const DebugInfo({
     this.appEntrypointPath,
     this.appId,
     this.appInstanceId,
@@ -33,37 +33,112 @@ class DebugInfo {
     this.tabId,
   });
 
-  Map<String, dynamic> toJson() => {
-    if (appEntrypointPath != null) 'appEntrypointPath': appEntrypointPath,
-    if (appId != null) 'appId': appId,
-    if (appInstanceId != null) 'appInstanceId': appInstanceId,
-    if (appOrigin != null) 'appOrigin': appOrigin,
-    if (appUrl != null) 'appUrl': appUrl,
-    if (authUrl != null) 'authUrl': authUrl,
-    if (dwdsVersion != null) 'dwdsVersion': dwdsVersion,
-    if (extensionUrl != null) 'extensionUrl': extensionUrl,
-    if (isInternalBuild != null) 'isInternalBuild': isInternalBuild,
-    if (isFlutterApp != null) 'isFlutterApp': isFlutterApp,
-    if (workspaceName != null) 'workspaceName': workspaceName,
-    if (tabUrl != null) 'tabUrl': tabUrl,
-    if (tabId != null) 'tabId': tabId,
-  };
+  /// Mimics built_value serialization for compatibility.
+  ///
+  /// Returns a list in the format:
+  /// ['DebugInfo', 'key1', value1, 'key2', value2, ...]
+  ///
+  /// Null values are omitted from the list.
+  List<Object?> toJson() => [
+    'DebugInfo',
+    if (appEntrypointPath != null) ...['appEntrypointPath', appEntrypointPath],
+    if (appId != null) ...['appId', appId],
+    if (appInstanceId != null) ...['appInstanceId', appInstanceId],
+    if (appOrigin != null) ...['appOrigin', appOrigin],
+    if (appUrl != null) ...['appUrl', appUrl],
+    if (authUrl != null) ...['authUrl', authUrl],
+    if (dwdsVersion != null) ...['dwdsVersion', dwdsVersion],
+    if (extensionUrl != null) ...['extensionUrl', extensionUrl],
+    if (isInternalBuild != null) ...['isInternalBuild', isInternalBuild],
+    if (isFlutterApp != null) ...['isFlutterApp', isFlutterApp],
+    if (workspaceName != null) ...['workspaceName', workspaceName],
+    if (tabUrl != null) ...['tabUrl', tabUrl],
+    if (tabId != null) ...['tabId', tabId],
+  ];
 
-  factory DebugInfo.fromJson(Map<String, dynamic> json) {
+  factory DebugInfo.fromJson(List<dynamic> list) {
+    String? appEntrypointPath;
+    String? appId;
+    String? appInstanceId;
+    String? appOrigin;
+    String? appUrl;
+    String? authUrl;
+    String? dwdsVersion;
+    String? extensionUrl;
+    bool? isInternalBuild;
+    bool? isFlutterApp;
+    String? workspaceName;
+    String? tabUrl;
+    int? tabId;
+
+    var i = 0;
+    // Handle the case where the type name is the first element
+    if (list.isNotEmpty && list[0] is String && list[0] == 'DebugInfo') {
+      i = 1;
+    }
+
+    while (i < list.length - 1) {
+      final key = list[i] as String;
+      final value = list[i + 1];
+      i += 2;
+
+      switch (key) {
+        case 'appEntrypointPath':
+          appEntrypointPath = value as String?;
+          break;
+        case 'appId':
+          appId = value as String?;
+          break;
+        case 'appInstanceId':
+          appInstanceId = value as String?;
+          break;
+        case 'appOrigin':
+          appOrigin = value as String?;
+          break;
+        case 'appUrl':
+          appUrl = value as String?;
+          break;
+        case 'authUrl':
+          authUrl = value as String?;
+          break;
+        case 'dwdsVersion':
+          dwdsVersion = value as String?;
+          break;
+        case 'extensionUrl':
+          extensionUrl = value as String?;
+          break;
+        case 'isInternalBuild':
+          isInternalBuild = value as bool?;
+          break;
+        case 'isFlutterApp':
+          isFlutterApp = value as bool?;
+          break;
+        case 'workspaceName':
+          workspaceName = value as String?;
+          break;
+        case 'tabUrl':
+          tabUrl = value as String?;
+          break;
+        case 'tabId':
+          tabId = value as int?;
+          break;
+      }
+    }
+
     return DebugInfo(
-      appEntrypointPath: json['appEntrypointPath'] as String?,
-      appId: json['appId'] as String?,
-      appInstanceId: json['appInstanceId'] as String?,
-      appOrigin: json['appOrigin'] as String?,
-      appUrl: json['appUrl'] as String?,
-      authUrl: json['authUrl'] as String?,
-      dwdsVersion: json['dwdsVersion'] as String?,
-      extensionUrl: json['extensionUrl'] as String?,
-      isInternalBuild: json['isInternalBuild'] as bool?,
-      isFlutterApp: json['isFlutterApp'] as bool?,
-      workspaceName: json['workspaceName'] as String?,
-      tabUrl: json['tabUrl'] as String?,
-      tabId: json['tabId'] as int?,
+      appEntrypointPath: appEntrypointPath,
+      appId: appId,
+      appInstanceId: appInstanceId,
+      appOrigin: appOrigin,
+      appUrl: appUrl,
+      authUrl: authUrl,
+      dwdsVersion: dwdsVersion,
+      extensionUrl: extensionUrl,
+      isInternalBuild: isInternalBuild,
+      isFlutterApp: isFlutterApp,
+      workspaceName: workspaceName,
+      tabUrl: tabUrl,
+      tabId: tabId,
     );
   }
 }

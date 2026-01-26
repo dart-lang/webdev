@@ -955,7 +955,7 @@ Future<T> _fetchStorageObj<T>(
   });
   if (T == String) return json as T;
   if (T == DebugInfo) {
-    return DebugInfo.fromJson(jsonDecode(json) as Map<String, dynamic>) as T;
+    return DebugInfo.fromJson(jsonDecode(json) as List<dynamic>) as T;
   }
   throw UnsupportedError('Unsupported type: $T');
 }
