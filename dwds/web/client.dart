@@ -19,7 +19,6 @@ import 'package:dwds/data/hot_restart_request.dart';
 import 'package:dwds/data/hot_restart_response.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
-import 'package:dwds/data/serializers.dart';
 import 'package:dwds/data/service_extension_request.dart';
 import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/shared/batched_stream.dart';
@@ -312,8 +311,7 @@ void _trySendEvent<T>(StreamSink<T> sink, T serialized) {
 }
 
 /// Deserializes incoming events from the server.
-/// Handles both wire format ['TypeName', json] for plain Dart types
-/// and built_value serializers for legacy types.
+/// Handles wire format ['TypeName', json] for plain Dart types.
 Object? _deserializeEvent(dynamic decoded) {
   if (decoded is List && decoded.length == 2 && decoded[0] is String) {
     final typeName = decoded[0] as String;
@@ -335,12 +333,9 @@ Object? _deserializeEvent(dynamic decoded) {
         return DevToolsResponse.fromJson(jsonData);
       case 'ErrorResponse':
         return ErrorResponse.fromJson(jsonData);
-      default:
-        // Fall back to built_value serializers
-        break;
     }
   }
-  return serializers.deserialize(decoded);
+  return null;
 }
 
 void _sendConnectRequest(StreamSink clientSink) {
@@ -434,11 +429,11 @@ void _sendResponse<T>(
   String? errorMessage,
 }) {
   final response = constructor(requestId, success, errorMessage);
-  final encoded = response is HotReloadResponse
-      ? ['HotReloadResponse', response.toJson()]
-      : response is HotRestartResponse
-      ? ['HotRestartResponse', response.toJson()]
-      : serializers.serialize(response);
+  final encoded = switch (response) {
+    HotReloadResponse() => ['HotReloadResponse', response.toJson()],
+    HotRestartResponse() => ['HotRestartResponse', response.toJson()],
+    _ => throw UnsupportedError('Unknown response type: $response'),
+  };
 
   _trySendEvent(clientSink, jsonEncode(encoded));
 }

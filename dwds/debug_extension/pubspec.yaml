@@ -8,7 +8,6 @@ environment:
   sdk: ^3.10.0-0.0.dev
 
 dependencies:
-  built_value: ^8.9.0
   collection: ^1.19.0
   js: ^0.6.7
 
@@ -17,8 +16,6 @@ dev_dependencies:
   build: ^2.4.1
   build_runner: ^2.4.12
   build_web_compilers: ^4.4.1
-  built_collection: ^5.1.1
-  built_value_generator: ^8.9.2
   dwds: ^24.1.0
   path: ^1.9.0
   sse: ^4.1.4

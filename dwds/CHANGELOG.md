@@ -1,4 +1,6 @@
 ## 26.2.6-wip
+- Remove `package:built_value`, `package:built_value_generator`, and `package:built_collection` dependencies.
+- Remove `serializers.dart` and `data_serializers.dart`.
 - Remove `package:built_value` dependency from `ConnectFailure`, `DebugStateChange`, `DevToolsOpener`, `DevToolsUrl`, `IsolateStart`, `IsolateExit`, `DevToolsRequest`, `DevToolsResponse`, `ExtensionRequest`, `ExtensionResponse`, `ExtensionEvent`, and `BatchedEvents`; switch to standard Dart JSON serialization.
 
 ## 26.2.5

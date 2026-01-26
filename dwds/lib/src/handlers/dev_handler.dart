@@ -20,7 +20,6 @@ import 'package:dwds/data/hot_restart_response.dart';
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
-import 'package:dwds/data/serializers.dart';
 import 'package:dwds/data/service_extension_request.dart';
 import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
@@ -144,7 +143,7 @@ class DevHandler {
 
   /// Serializes an outgoing request to the injected client.
   /// For plain Dart types (converted away from built_value), emit the
-  /// wire format `[TypeName, json]`. Built_value types use `serializers`.
+  /// wire format `[TypeName, json]`.
   Object? _serializeMessage(Object request) {
     return switch (request) {
       ConnectRequest() => ['ConnectRequest', request.toJson()],
@@ -164,12 +163,11 @@ class DevHandler {
       ErrorResponse() => ['ErrorResponse', request.toJson()],
       RegisterEvent() => ['RegisterEvent', request.toJson()],
       Map() => request, // Already a raw message (e.g., ping)
-      _ => serializers.serialize(request),
+      _ => throw UnsupportedError('Unknown request type: $request'),
     };
   }
 
-  /// Deserializes a message from JSON, handling both built_value serializers
-  /// and custom fromJson() implementations.
+  /// Deserializes a message from JSON, handling custom fromJson() implementations.
   Object? _deserializeMessage(dynamic decoded) {
     if (decoded is List && decoded.length == 2 && decoded[0] is String) {
       final typeName = decoded[0] as String;
@@ -200,12 +198,9 @@ class DevHandler {
           return IsolateStart.fromJson(jsonData);
         case 'IsolateExit':
           return IsolateExit.fromJson(jsonData);
-        default:
-          // Fall through to serializers.deserialize
-          break;
       }
     }
-    return serializers.deserialize(decoded);
+    return null;
   }
 
   /// Sends the provided [request] to all connected injected clients.

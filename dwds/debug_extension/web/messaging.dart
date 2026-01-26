@@ -17,7 +17,6 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
-import 'data_serializers.dart';
 import 'data_types.dart';
 import 'logger.dart';
 import 'utils.dart';
@@ -144,7 +143,7 @@ T _deserialize<T>(String body) {
   } else if (decoded case ['DevToolsUrl', final Map<String, dynamic> data]) {
     return DevToolsUrl.fromJson(data) as T;
   } else {
-    return serializers.deserialize(decoded) as T;
+    throw UnsupportedError('Unknown type for deserialization: $T');
   }
 }
 

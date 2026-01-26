@@ -8,7 +8,6 @@ import 'dart:convert';
 
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
-import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
@@ -395,10 +394,6 @@ class ExtensionDebugger implements RemoteDebugger {
     if (decoded case ['DevToolsRequest', final Map<String, dynamic> request]) {
       return DevToolsRequest.fromJson(request);
     }
-    try {
-      return serializers.deserialize(decoded);
-    } catch (_) {
-      return null;
-    }
+    return null;
   }
 }
