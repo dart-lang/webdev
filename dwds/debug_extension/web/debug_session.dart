@@ -402,9 +402,8 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
     final Map<String, dynamic> event,
   ]) {
     message = ExtensionEvent.fromJson(event);
-  } else {
-    // Skip if we can't deserialize the object.
   }
+
   if (message is ExtensionRequest) {
     _forwardDwdsEventToChromeDebugger(message, client, tabId);
   } else if (message is ExtensionEvent) {
