@@ -2,6 +2,9 @@
 - Remove `package:built_value`, `package:built_value_generator`, and `package:built_collection` dependencies.
 - Remove `serializers.dart` and `data_serializers.dart`.
 - Remove `package:built_value` dependency from `ConnectFailure`, `DebugStateChange`, `DevToolsOpener`, `DevToolsUrl`, `IsolateStart`, `IsolateExit`, `DevToolsRequest`, `DevToolsResponse`, `ExtensionRequest`, `ExtensionResponse`, `ExtensionEvent`, and `BatchedEvents`; switch to standard Dart JSON serialization.
+- Handle out of order disconnects and reconnects.
+  - Update dwds to support ignoring disconnects for the SseHandler
+  - This is useful to prevent incorrect behavior when a disconnect event arrives after a new connection request
 
 ## 26.2.5
 - Remove `package:built_value` dependency from `ErrorResponse` and `RegisterEvent`; switch to standard Dart JSON serialization.
