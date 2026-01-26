@@ -1,5 +1,7 @@
 ## 3.8.1-wip
 
+- Serve Dart DevTools from DDS instead of launching it manually.
+
 ## 3.8.0
 
 - Adding initial DDC library bundler support behind the `canary` flag.

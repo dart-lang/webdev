@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart' as daemon;
-import 'package:dds/devtools_server.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/sdk_configuration.dart';
@@ -227,20 +226,11 @@ class WebDevServer {
       final debugSettings = DebugSettings(
         enableDebugExtension: options.configuration.debugExtension,
         enableDebugging: options.configuration.debug,
-        // ignore: deprecated_member_use
-        spawnDds: !options.configuration.disableDds,
+        ddsConfiguration: DartDevelopmentServiceConfiguration(
+          enable: !options.configuration.disableDds,
+          serveDevTools: shouldServeDevTools,
+        ),
         expressionCompiler: ddcService,
-        // ignore: deprecated_member_use
-        devToolsLauncher: shouldServeDevTools
-            ? (String hostname) async {
-                final server = await DevToolsServer().serveDevTools(
-                  hostname: hostname,
-                  enableStdinCommands: false,
-                  customDevToolsPath: devToolsPath,
-                );
-                return DevTools(server!.address.host, server.port, server);
-              }
-            : null,
       );
 
       final appMetadata = AppMetadata(hostname: options.configuration.hostname);
