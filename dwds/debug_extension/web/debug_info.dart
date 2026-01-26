@@ -36,7 +36,6 @@ String _readDartDebugInfo() {
       extensionUrl: windowContext['\$dartExtensionUri'] as String?,
       isInternalBuild: windowContext['\$isInternalBuild'] as bool?,
       isFlutterApp: windowContext['\$isFlutterApp'] as bool?,
-      workspaceName: windowContext['\$dartWorkspaceName'] as String?,
     ),
   );
 }
