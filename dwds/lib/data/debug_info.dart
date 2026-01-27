@@ -75,6 +75,8 @@ class DebugInfo {
     // Handle the case where the type name is the first element
     if (list.isNotEmpty && list[0] is String && list[0] == 'DebugInfo') {
       i = 1;
+    } else {
+      throw FormatException('Expected "DebugInfo" as first element', list);
     }
 
     while (i < list.length - 1) {
@@ -85,43 +87,30 @@ class DebugInfo {
       switch (key) {
         case 'appEntrypointPath':
           appEntrypointPath = value as String?;
-          break;
         case 'appId':
           appId = value as String?;
-          break;
         case 'appInstanceId':
           appInstanceId = value as String?;
-          break;
         case 'appOrigin':
           appOrigin = value as String?;
-          break;
         case 'appUrl':
           appUrl = value as String?;
-          break;
         case 'authUrl':
           authUrl = value as String?;
-          break;
         case 'dwdsVersion':
           dwdsVersion = value as String?;
-          break;
         case 'extensionUrl':
           extensionUrl = value as String?;
-          break;
         case 'isInternalBuild':
           isInternalBuild = value as bool?;
-          break;
         case 'isFlutterApp':
           isFlutterApp = value as bool?;
-          break;
         case 'workspaceName':
           workspaceName = value as String?;
-          break;
         case 'tabUrl':
           tabUrl = value as String?;
-          break;
         case 'tabId':
           tabId = value as int?;
-          break;
       }
     }
 
