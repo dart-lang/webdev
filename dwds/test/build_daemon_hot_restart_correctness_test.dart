@@ -18,20 +18,41 @@ void main() {
   // Enable verbose logging for debugging.
   const debug = false;
   final canaryFeatures = false;
-  final moduleFormat = ModuleFormat.amd;
   final compilationMode = CompilationMode.buildDaemon;
 
-  final provider = TestSdkConfigurationProvider(
-    verbose: debug,
-    canaryFeatures: canaryFeatures,
-    ddcModuleFormat: moduleFormat,
-  );
+  group('canary: $canaryFeatures |', () {
+    group('AMD module system |', () {
+      final moduleFormat = ModuleFormat.amd;
+      final amdProvider = TestSdkConfigurationProvider(
+        verbose: debug,
+        canaryFeatures: canaryFeatures,
+        ddcModuleFormat: moduleFormat,
+      );
 
-  runTests(
-    provider: provider,
-    moduleFormat: moduleFormat,
-    compilationMode: compilationMode,
-    canaryFeatures: canaryFeatures,
-    debug: debug,
-  );
+      runTests(
+        provider: amdProvider,
+        moduleFormat: moduleFormat,
+        compilationMode: compilationMode,
+        canaryFeatures: canaryFeatures,
+        debug: debug,
+      );
+    });
+
+    group('DDC Library Bundle module system |', () {
+      final moduleFormat = ModuleFormat.ddc;
+      final ddcProvider = TestSdkConfigurationProvider(
+        verbose: debug,
+        canaryFeatures: canaryFeatures,
+        ddcModuleFormat: moduleFormat,
+      );
+
+      runTests(
+        provider: ddcProvider,
+        moduleFormat: moduleFormat,
+        compilationMode: compilationMode,
+        canaryFeatures: canaryFeatures,
+        debug: debug,
+      );
+    });
+  });
 }

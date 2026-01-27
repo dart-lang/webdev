@@ -11,7 +11,7 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
-import 'common/hot_restart_common.dart';
+import 'common/chrome_proxy_service_common.dart';
 import 'fixtures/context.dart';
 
 void main() {
@@ -28,6 +28,7 @@ void main() {
         canaryFeatures: canaryFeatures,
         ddcModuleFormat: moduleFormat,
       );
+      tearDownAll(amdProvider.dispose);
 
       runTests(
         provider: amdProvider,
@@ -45,6 +46,7 @@ void main() {
         canaryFeatures: canaryFeatures,
         ddcModuleFormat: moduleFormat,
       );
+      tearDownAll(ddcProvider.dispose);
 
       runTests(
         provider: ddcProvider,

@@ -269,7 +269,13 @@ abstract base class ProxyService<InspectorT extends AppInspector>
       );
     }
 
-    assert(value == 'true' || value == 'false');
+    if (value != 'true' && value != 'false') {
+      throw vm_service.RPCError(
+        'setFlag',
+        vm_service.RPCErrorKind.kInvalidParams.code,
+        'Cannot set flag "$name" to "$value" (boolean value expected)',
+      );
+    }
     _currentVmServiceFlags[name] = value == 'true';
     return vm_service.Success();
   }
