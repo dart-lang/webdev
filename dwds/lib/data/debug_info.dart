@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/data/utils.dart';
+
 class DebugInfo {
+  static const String type = 'DebugInfo';
+
   final String? appEntrypointPath;
   final String? appId;
   final String? appInstanceId;
@@ -40,7 +44,7 @@ class DebugInfo {
   ///
   /// Null values are omitted from the list.
   List<Object?> toJson() => [
-    'DebugInfo',
+    type,
     if (appEntrypointPath != null) ...['appEntrypointPath', appEntrypointPath],
     if (appId != null) ...['appId', appId],
     if (appInstanceId != null) ...['appInstanceId', appInstanceId],
@@ -57,77 +61,22 @@ class DebugInfo {
   ];
 
   factory DebugInfo.fromJson(List<dynamic> list) {
-    String? appEntrypointPath;
-    String? appId;
-    String? appInstanceId;
-    String? appOrigin;
-    String? appUrl;
-    String? authUrl;
-    String? dwdsVersion;
-    String? extensionUrl;
-    bool? isInternalBuild;
-    bool? isFlutterApp;
-    String? workspaceName;
-    String? tabUrl;
-    int? tabId;
-
-    var i = 0;
-    // Handle the case where the type name is the first element
-    if (list case ['DebugInfo', ...]) {
-      i = 1;
-    } else {
-      throw FormatException('Expected "DebugInfo" as first element', list);
-    }
-
-    while (i < list.length - 1) {
-      final key = list[i] as String;
-      final value = list[i + 1];
-      i += 2;
-
-      switch (key) {
-        case 'appEntrypointPath':
-          appEntrypointPath = value as String?;
-        case 'appId':
-          appId = value as String?;
-        case 'appInstanceId':
-          appInstanceId = value as String?;
-        case 'appOrigin':
-          appOrigin = value as String?;
-        case 'appUrl':
-          appUrl = value as String?;
-        case 'authUrl':
-          authUrl = value as String?;
-        case 'dwdsVersion':
-          dwdsVersion = value as String?;
-        case 'extensionUrl':
-          extensionUrl = value as String?;
-        case 'isInternalBuild':
-          isInternalBuild = value as bool?;
-        case 'isFlutterApp':
-          isFlutterApp = value as bool?;
-        case 'workspaceName':
-          workspaceName = value as String?;
-        case 'tabUrl':
-          tabUrl = value as String?;
-        case 'tabId':
-          tabId = value as int?;
-      }
-    }
+    final map = listToMap(list, type: type);
 
     return DebugInfo(
-      appEntrypointPath: appEntrypointPath,
-      appId: appId,
-      appInstanceId: appInstanceId,
-      appOrigin: appOrigin,
-      appUrl: appUrl,
-      authUrl: authUrl,
-      dwdsVersion: dwdsVersion,
-      extensionUrl: extensionUrl,
-      isInternalBuild: isInternalBuild,
-      isFlutterApp: isFlutterApp,
-      workspaceName: workspaceName,
-      tabUrl: tabUrl,
-      tabId: tabId,
+      appEntrypointPath: map['appEntrypointPath'] as String?,
+      appId: map['appId'] as String?,
+      appInstanceId: map['appInstanceId'] as String?,
+      appOrigin: map['appOrigin'] as String?,
+      appUrl: map['appUrl'] as String?,
+      authUrl: map['authUrl'] as String?,
+      dwdsVersion: map['dwdsVersion'] as String?,
+      extensionUrl: map['extensionUrl'] as String?,
+      isInternalBuild: map['isInternalBuild'] as bool?,
+      isFlutterApp: map['isFlutterApp'] as bool?,
+      workspaceName: map['workspaceName'] as String?,
+      tabUrl: map['tabUrl'] as String?,
+      tabId: map['tabId'] as int?,
     );
   }
 }
