@@ -73,7 +73,7 @@ class DebugInfo {
 
     var i = 0;
     // Handle the case where the type name is the first element
-    if (list.isNotEmpty && list[0] is String && list[0] == 'DebugInfo') {
+    if (list case ['DebugInfo', ...]) {
       i = 1;
     } else {
       throw FormatException('Expected "DebugInfo" as first element', list);
