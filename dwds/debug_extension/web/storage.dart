@@ -106,7 +106,7 @@ T _deserialize<T>(String json) {
   if (T == String) return json as T;
   final decoded = jsonDecode(json);
   if (T == DebugInfo) {
-    return DebugInfo.fromJson(decoded as Map<String, dynamic>) as T;
+    return DebugInfo.fromJson(decoded as List<dynamic>) as T;
   }
   return switch (decoded) {
     ['ConnectFailure', final Map<String, dynamic> data] =>
