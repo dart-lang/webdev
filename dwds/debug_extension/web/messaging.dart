@@ -111,13 +111,6 @@ void interceptMessage<T>({
     }
     if (T == String) {
       messageHandler(decodedMessage.body as T);
-    } else if (T == DebugInfo) {
-      messageHandler(
-        DebugInfo.fromJson(
-              jsonDecode(decodedMessage.body) as Map<String, dynamic>,
-            )
-            as T,
-      );
     } else {
       messageHandler(_deserialize<T>(decodedMessage.body));
     }
@@ -131,20 +124,18 @@ void interceptMessage<T>({
 
 T _deserialize<T>(String body) {
   final decoded = jsonDecode(body);
-  if (decoded case ['ConnectFailure', final Map<String, dynamic> data]) {
-    return ConnectFailure.fromJson(data) as T;
-  } else if (decoded case [
-    'DebugStateChange',
-    final Map<String, dynamic> data,
-  ]) {
-    return DebugStateChange.fromJson(data) as T;
-  } else if (decoded case ['DevToolsOpener', final Map<String, dynamic> data]) {
-    return DevToolsOpener.fromJson(data) as T;
-  } else if (decoded case ['DevToolsUrl', final Map<String, dynamic> data]) {
-    return DevToolsUrl.fromJson(data) as T;
-  } else {
-    throw UnsupportedError('Unknown type for deserialization: $T');
-  }
+  return switch (decoded) {
+    ['ConnectFailure', final Map<String, dynamic> data] =>
+      ConnectFailure.fromJson(data) as T,
+    ['DebugStateChange', final Map<String, dynamic> data] =>
+      DebugStateChange.fromJson(data) as T,
+    ['DevToolsOpener', final Map<String, dynamic> data] =>
+      DevToolsOpener.fromJson(data) as T,
+    ['DevToolsUrl', final Map<String, dynamic> data] =>
+      DevToolsUrl.fromJson(data) as T,
+    ['DebugInfo', ...] => DebugInfo.fromJson(decoded) as T,
+    _ => throw UnsupportedError('Unknown type for deserialization: $T'),
+  };
 }
 
 /// Send a message using the chrome.runtime.sendMessage API.

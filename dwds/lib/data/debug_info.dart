@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/data/utils.dart';
+
 class DebugInfo {
+  static const String type = 'DebugInfo';
+
   final String? appEntrypointPath;
   final String? appId;
   final String? appInstanceId;
@@ -17,7 +21,7 @@ class DebugInfo {
   final String? tabUrl;
   final int? tabId;
 
-  DebugInfo({
+  const DebugInfo({
     this.appEntrypointPath,
     this.appId,
     this.appInstanceId,
@@ -33,37 +37,46 @@ class DebugInfo {
     this.tabId,
   });
 
-  Map<String, dynamic> toJson() => {
-    if (appEntrypointPath != null) 'appEntrypointPath': appEntrypointPath,
-    if (appId != null) 'appId': appId,
-    if (appInstanceId != null) 'appInstanceId': appInstanceId,
-    if (appOrigin != null) 'appOrigin': appOrigin,
-    if (appUrl != null) 'appUrl': appUrl,
-    if (authUrl != null) 'authUrl': authUrl,
-    if (dwdsVersion != null) 'dwdsVersion': dwdsVersion,
-    if (extensionUrl != null) 'extensionUrl': extensionUrl,
-    if (isInternalBuild != null) 'isInternalBuild': isInternalBuild,
-    if (isFlutterApp != null) 'isFlutterApp': isFlutterApp,
-    if (workspaceName != null) 'workspaceName': workspaceName,
-    if (tabUrl != null) 'tabUrl': tabUrl,
-    if (tabId != null) 'tabId': tabId,
-  };
+  /// Mimics built_value serialization for compatibility.
+  ///
+  /// Returns a list in the format:
+  /// ['DebugInfo', 'key1', value1, 'key2', value2, ...]
+  ///
+  /// Null values are omitted from the list.
+  List<Object?> toJson() => [
+    type,
+    if (appEntrypointPath != null) ...['appEntrypointPath', appEntrypointPath],
+    if (appId != null) ...['appId', appId],
+    if (appInstanceId != null) ...['appInstanceId', appInstanceId],
+    if (appOrigin != null) ...['appOrigin', appOrigin],
+    if (appUrl != null) ...['appUrl', appUrl],
+    if (authUrl != null) ...['authUrl', authUrl],
+    if (dwdsVersion != null) ...['dwdsVersion', dwdsVersion],
+    if (extensionUrl != null) ...['extensionUrl', extensionUrl],
+    if (isInternalBuild != null) ...['isInternalBuild', isInternalBuild],
+    if (isFlutterApp != null) ...['isFlutterApp', isFlutterApp],
+    if (workspaceName != null) ...['workspaceName', workspaceName],
+    if (tabUrl != null) ...['tabUrl', tabUrl],
+    if (tabId != null) ...['tabId', tabId],
+  ];
 
-  factory DebugInfo.fromJson(Map<String, dynamic> json) {
+  factory DebugInfo.fromJson(List<dynamic> list) {
+    final map = listToMap(list, type: type);
+
     return DebugInfo(
-      appEntrypointPath: json['appEntrypointPath'] as String?,
-      appId: json['appId'] as String?,
-      appInstanceId: json['appInstanceId'] as String?,
-      appOrigin: json['appOrigin'] as String?,
-      appUrl: json['appUrl'] as String?,
-      authUrl: json['authUrl'] as String?,
-      dwdsVersion: json['dwdsVersion'] as String?,
-      extensionUrl: json['extensionUrl'] as String?,
-      isInternalBuild: json['isInternalBuild'] as bool?,
-      isFlutterApp: json['isFlutterApp'] as bool?,
-      workspaceName: json['workspaceName'] as String?,
-      tabUrl: json['tabUrl'] as String?,
-      tabId: json['tabId'] as int?,
+      appEntrypointPath: map['appEntrypointPath'] as String?,
+      appId: map['appId'] as String?,
+      appInstanceId: map['appInstanceId'] as String?,
+      appOrigin: map['appOrigin'] as String?,
+      appUrl: map['appUrl'] as String?,
+      authUrl: map['authUrl'] as String?,
+      dwdsVersion: map['dwdsVersion'] as String?,
+      extensionUrl: map['extensionUrl'] as String?,
+      isInternalBuild: map['isInternalBuild'] as bool?,
+      isFlutterApp: map['isFlutterApp'] as bool?,
+      workspaceName: map['workspaceName'] as String?,
+      tabUrl: map['tabUrl'] as String?,
+      tabId: map['tabId'] as int?,
     );
   }
 }
