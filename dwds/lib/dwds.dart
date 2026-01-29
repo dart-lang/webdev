@@ -18,8 +18,10 @@ export 'src/debugging/metadata/provider.dart'
 export 'src/events.dart' show DwdsEvent;
 export 'src/handlers/dev_handler.dart' show AppConnectionException;
 export 'src/handlers/socket_connections.dart';
-export 'src/loaders/build_runner_require.dart'
-    show BuildRunnerRequireStrategyProvider;
+export 'src/loaders/build_runner_strategy_provider.dart'
+    show
+        BuildRunnerDdcLibraryBundleStrategyProvider,
+        BuildRunnerRequireStrategyProvider;
 export 'src/loaders/ddc.dart' show DdcStrategy;
 export 'src/loaders/frontend_server_strategy_provider.dart'
     show

@@ -19,7 +19,6 @@ void main() {
   const debug = false;
   final canaryFeatures = true;
   final moduleFormat = ModuleFormat.ddc;
-  final compilationMode = CompilationMode.frontendServer;
 
   final provider = TestSdkConfigurationProvider(
     verbose: debug,
@@ -27,11 +26,29 @@ void main() {
     ddcModuleFormat: moduleFormat,
   );
 
-  runTests(
-    provider: provider,
-    moduleFormat: moduleFormat,
-    compilationMode: compilationMode,
-    canaryFeatures: canaryFeatures,
-    debug: debug,
+  group('canary: $canaryFeatures | Frontend Server |', () {
+    final compilationMode = CompilationMode.frontendServer;
+    runTests(
+      provider: provider,
+      moduleFormat: moduleFormat,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+  });
+
+  group(
+    'canary: $canaryFeatures | Build Daemon |',
+    () {
+      final compilationMode = CompilationMode.buildDaemon;
+      runTests(
+        provider: provider,
+        moduleFormat: moduleFormat,
+        compilationMode: compilationMode,
+        canaryFeatures: canaryFeatures,
+        debug: debug,
+      );
+    },
+    skip: 'https://github.com/dart-lang/webdev/issues/2764',
   );
 }

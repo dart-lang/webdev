@@ -1,4 +1,4 @@
-// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21,12 +21,13 @@ void main() {
   final moduleFormat = ModuleFormat.amd;
   final compilationMode = CompilationMode.buildDaemon;
 
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    canaryFeatures: canaryFeatures,
+    ddcModuleFormat: moduleFormat,
+  );
+
   group('canary: $canaryFeatures |', () {
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: moduleFormat,
-    );
     tearDownAll(provider.dispose);
 
     runTests(

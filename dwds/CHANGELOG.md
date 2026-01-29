@@ -3,6 +3,8 @@
 - Remove `serializers.dart` and `data_serializers.dart`.
 - Remove `package:built_value` dependency from `ConnectFailure`, `DebugStateChange`, `DevToolsOpener`, `DevToolsUrl`, `IsolateStart`, `IsolateExit`, `DevToolsRequest`, `DevToolsResponse`, `ExtensionRequest`, `ExtensionResponse`, `ExtensionEvent`, and `BatchedEvents`; switch to standard Dart JSON serialization.
 - Update `DebugInfo` serialization to mimic `built_value`'s list-based format to resolve compatibility issues with the debug extension.
+- Throw `RPCError` when providing invalid `pause_isolates_on_start` values to the Chrome Proxy Service.
+- Add and export `BuildRunnerDdcLibraryBundleStrategyProvider`.
 
 ## 26.2.5
 - Remove `package:built_value` dependency from `ErrorResponse` and `RegisterEvent`; switch to standard Dart JSON serialization.
