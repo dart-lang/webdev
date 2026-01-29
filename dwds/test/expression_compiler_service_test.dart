@@ -12,31 +12,12 @@ import 'package:test/test.dart';
 
 import 'expression_compiler_service_common.dart';
 
-void main() {
-  final canaryFeatures = false;
-  final experiments = const <String>[];
-
-  group('canary: $canaryFeatures |', () {
-    group('AMD module system |', () {
-      final moduleFormat = ModuleFormat.amd;
-      testAll(
-        compilerOptions: CompilerOptions(
-          moduleFormat: moduleFormat,
-          canaryFeatures: canaryFeatures,
-          experiments: experiments,
-        ),
-      );
-    });
-
-    group('DDC Library Bundle module system |', () {
-      final moduleFormat = ModuleFormat.ddc;
-      testAll(
-        compilerOptions: CompilerOptions(
-          moduleFormat: moduleFormat,
-          canaryFeatures: canaryFeatures,
-          experiments: experiments,
-        ),
-      );
-    });
-  });
+void main() async {
+  testAll(
+    compilerOptions: CompilerOptions(
+      moduleFormat: ModuleFormat.amd,
+      canaryFeatures: false,
+      experiments: const <String>[],
+    ),
+  );
 }

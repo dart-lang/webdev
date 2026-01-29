@@ -1,4 +1,4 @@
-// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,22 +11,24 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
-import 'common/hot_restart_common.dart';
+import 'common/chrome_proxy_service_common.dart';
 import 'fixtures/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
   const debug = false;
-  final canaryFeatures = true;
-  final moduleFormat = ModuleFormat.ddc;
-  final compilationMode = CompilationMode.frontendServer;
+  final canaryFeatures = false;
+  final moduleFormat = ModuleFormat.amd;
+  final compilationMode = CompilationMode.buildDaemon;
+
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    canaryFeatures: canaryFeatures,
+    ddcModuleFormat: moduleFormat,
+  );
 
   group('canary: $canaryFeatures |', () {
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: moduleFormat,
-    );
+    tearDownAll(provider.dispose);
 
     runTests(
       provider: provider,

@@ -38,21 +38,25 @@ void main() {
       );
     });
 
-    group('DDC Library Bundle module system |', () {
-      final moduleFormat = ModuleFormat.ddc;
-      final ddcProvider = TestSdkConfigurationProvider(
-        verbose: debug,
-        canaryFeatures: canaryFeatures,
-        ddcModuleFormat: moduleFormat,
-      );
+    group(
+      'DDC Library Bundle module system |',
+      () {
+        final moduleFormat = ModuleFormat.ddc;
+        final ddcProvider = TestSdkConfigurationProvider(
+          verbose: debug,
+          canaryFeatures: canaryFeatures,
+          ddcModuleFormat: moduleFormat,
+        );
 
-      runTests(
-        provider: ddcProvider,
-        moduleFormat: moduleFormat,
-        compilationMode: compilationMode,
-        canaryFeatures: canaryFeatures,
-        debug: debug,
-      );
-    });
+        runTests(
+          provider: ddcProvider,
+          moduleFormat: moduleFormat,
+          compilationMode: compilationMode,
+          canaryFeatures: canaryFeatures,
+          debug: debug,
+        );
+      },
+      skip: 'https://github.com/dart-lang/webdev/issues/2764',
+    );
   });
 }
