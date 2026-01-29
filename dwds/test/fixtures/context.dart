@@ -333,6 +333,11 @@ class TestContext {
                   assetReader,
                   buildSettings,
                 ).strategy,
+              (ModuleFormat.ddc, false) => throw Exception(
+                'Unsupported DDC configuration: build daemon + canary (false) '
+                '+ DDC module format ${testSettings.moduleFormat.name}.',
+              ),
+
               _ => BuildRunnerRequireStrategyProvider(
                 assetHandler,
                 testSettings.reloadConfiguration,
