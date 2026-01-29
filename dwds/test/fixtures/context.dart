@@ -14,7 +14,7 @@ import 'package:dwds/dart_web_debug_service.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
-import 'package:dwds/src/loaders/build_runner_require.dart';
+import 'package:dwds/src/loaders/build_runner_strategy_provider.dart';
 import 'package:dwds/src/loaders/frontend_server_strategy_provider.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
@@ -264,6 +264,16 @@ class TestContext {
                 '--define',
                 'build_web_compilers|sdk_js=canary=true',
               ],
+              if (testSettings.moduleFormat == ModuleFormat.ddc) ...[
+                '--define',
+                'build_web_compilers|ddc=ddc-library-bundle=true',
+                '--define',
+                'build_web_compilers|sdk_js=ddc-library-bundle=true',
+                '--define',
+                'build_web_compilers|entrypoint=ddc-library-bundle=true',
+                '--define',
+                'build_web_compilers|entrypoint_marker=ddc-library-bundle=true',
+              ],
               '--verbose',
             ];
             _daemonClient = await connectClient(
@@ -312,12 +322,24 @@ class TestContext {
               expressionCompiler = ddcService;
             }
 
-            loadStrategy = BuildRunnerRequireStrategyProvider(
-              assetHandler,
-              testSettings.reloadConfiguration,
-              assetReader,
-              buildSettings,
-            ).strategy;
+            loadStrategy = switch ((
+              testSettings.moduleFormat,
+              buildSettings.canaryFeatures,
+            )) {
+              (ModuleFormat.ddc, true) =>
+                BuildRunnerDdcLibraryBundleStrategyProvider(
+                  assetHandler,
+                  testSettings.reloadConfiguration,
+                  assetReader,
+                  buildSettings,
+                ).strategy,
+              _ => BuildRunnerRequireStrategyProvider(
+                assetHandler,
+                testSettings.reloadConfiguration,
+                assetReader,
+                buildSettings,
+              ).strategy,
+            };
 
             buildResults = daemonClient.buildResults;
           }

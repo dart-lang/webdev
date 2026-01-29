@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
@@ -15,13 +16,19 @@ import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
 /// Provides a [RequireStrategy] suitable for use with `package:build_runner`.
-class BuildRunnerRequireStrategyProvider {
+class BuildRunnerRequireStrategyProvider with BuildRunnerStrategyProviderMixin {
+  @override
   final _logger = Logger('BuildRunnerRequireStrategyProvider');
 
+  @override
   final Handler _assetHandler;
+  @override
   final ReloadConfiguration _configuration;
+  @override
   final AssetReader _assetReader;
+  @override
   final BuildSettings _buildSettings;
+  @override
   final String? _packageConfigPath;
 
   late final RequireStrategy _requireStrategy = RequireStrategy(
@@ -47,6 +54,62 @@ class BuildRunnerRequireStrategyProvider {
   }) : _packageConfigPath = packageConfigPath;
 
   RequireStrategy get strategy => _requireStrategy;
+}
+
+/// Provides a [DdcLibraryBundleStrategy] suitable for use with `package:build_runner`.
+class BuildRunnerDdcLibraryBundleStrategyProvider
+    with BuildRunnerStrategyProviderMixin {
+  @override
+  final _logger = Logger('BuildRunnerDdcLibraryBundleStrategyProvider');
+
+  @override
+  final Handler _assetHandler;
+  @override
+  final ReloadConfiguration _configuration;
+  @override
+  final AssetReader _assetReader;
+  @override
+  final BuildSettings _buildSettings;
+  @override
+  final String? _packageConfigPath;
+
+  late final DdcLibraryBundleStrategy _strategy = DdcLibraryBundleStrategy(
+    _configuration,
+    _moduleProvider,
+    _digestsProvider,
+    _moduleForServerPath,
+    _serverPathForModule,
+    _sourceMapPathForModule,
+    _serverPathForAppUri,
+    _moduleInfoForProvider,
+    _assetReader,
+    _buildSettings,
+    (path) => null, // g3RelativePath
+    packageConfigPath: _packageConfigPath,
+  );
+
+  BuildRunnerDdcLibraryBundleStrategyProvider(
+    this._assetHandler,
+    this._configuration,
+    this._assetReader,
+    this._buildSettings, {
+    String? packageConfigPath,
+  }) : _packageConfigPath = packageConfigPath;
+
+  DdcLibraryBundleStrategy get strategy => _strategy;
+}
+
+mixin BuildRunnerStrategyProviderMixin {
+  Logger get _logger;
+  Handler get _assetHandler;
+  // ignore: unused_element
+  ReloadConfiguration get _configuration;
+  // ignore: unused_element
+  AssetReader get _assetReader;
+  // ignore: unused_element
+  BuildSettings get _buildSettings;
+  // ignore: unused_element
+  String? get _packageConfigPath;
 
   Future<Map<String, String>> _digestsProvider(
     MetadataProvider metadataProvider,

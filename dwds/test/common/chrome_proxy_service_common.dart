@@ -1647,7 +1647,7 @@ void runTests({
         () async {
           await expectLater(service.getStack(isolateId!), throwsRPCError);
         },
-        skip: Platform.isWindows,
+        skip: Platform.isWindows ? true : null,
       ); // Issue: https://github.com/dart-lang/webdev/issues/1749
 
       /// Support function for pausing and returning the stack at a line.

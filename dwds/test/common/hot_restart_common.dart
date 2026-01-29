@@ -167,7 +167,7 @@ void runTests({
       });
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
-    skip: compilationMode != CompilationMode.buildDaemon,
+    skip: compilationMode == CompilationMode.buildDaemon ? null : true,
     timeout: Timeout.factor(2),
   );
 
@@ -564,7 +564,7 @@ void runTests({
       });
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
-    skip: compilationMode != CompilationMode.buildDaemon,
+    skip: compilationMode == CompilationMode.buildDaemon ? null : true,
     timeout: Timeout.factor(2),
   );
 
