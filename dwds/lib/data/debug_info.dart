@@ -79,4 +79,59 @@ class DebugInfo {
       tabId: map['tabId'] as int?,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DebugInfo &&
+          runtimeType == other.runtimeType &&
+          appEntrypointPath == other.appEntrypointPath &&
+          appId == other.appId &&
+          appInstanceId == other.appInstanceId &&
+          appOrigin == other.appOrigin &&
+          appUrl == other.appUrl &&
+          authUrl == other.authUrl &&
+          dwdsVersion == other.dwdsVersion &&
+          extensionUrl == other.extensionUrl &&
+          isInternalBuild == other.isInternalBuild &&
+          isFlutterApp == other.isFlutterApp &&
+          workspaceName == other.workspaceName &&
+          tabUrl == other.tabUrl &&
+          tabId == other.tabId;
+
+  @override
+  int get hashCode => Object.hash(
+    appEntrypointPath,
+    appId,
+    appInstanceId,
+    appOrigin,
+    appUrl,
+    authUrl,
+    dwdsVersion,
+    extensionUrl,
+    isInternalBuild,
+    isFlutterApp,
+    workspaceName,
+    tabUrl,
+    tabId,
+  );
+
+  @override
+  String toString() {
+    return 'DebugInfo { '
+        'appEntrypointPath: $appEntrypointPath, '
+        'appId: $appId, '
+        'appInstanceId: $appInstanceId, '
+        'appOrigin: $appOrigin, '
+        'appUrl: $appUrl, '
+        'authUrl: $authUrl, '
+        'dwdsVersion: $dwdsVersion, '
+        'extensionUrl: $extensionUrl, '
+        'isInternalBuild: $isInternalBuild, '
+        'isFlutterApp: $isFlutterApp, '
+        'workspaceName: $workspaceName, '
+        'tabUrl: $tabUrl, '
+        'tabId: $tabId, '
+        '}';
+  }
 }

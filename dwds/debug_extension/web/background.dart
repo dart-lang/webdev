@@ -5,6 +5,7 @@
 @JS()
 library;
 
+import 'package:dwds/data/data_types.dart';
 import 'package:dwds/data/debug_info.dart';
 // TODO: https://github.com/dart-lang/webdev/issues/2508
 // ignore: deprecated_member_use
@@ -13,7 +14,6 @@ import 'package:js/js.dart';
 import 'chrome_api.dart';
 import 'cider_connection.dart';
 import 'cross_extension_communication.dart';
-import 'data_types.dart';
 import 'debug_session.dart';
 import 'logger.dart';
 import 'messaging.dart';

@@ -157,7 +157,7 @@ class DevHandler {
       BuildResult() => ['BuildResult', request.toJson()],
       DebugEvent() => ['DebugEvent', request.toJson()],
       BatchedDebugEvents() => ['BatchedDebugEvents', request.toJson()],
-      DevToolsResponse() => ['DevToolsResponse', request.toJson()],
+      DevToolsResponse() => request,
       IsolateStart() => ['IsolateStart', request.toJson()],
       IsolateExit() => ['IsolateExit', request.toJson()],
       ErrorResponse() => ['ErrorResponse', request.toJson()],
@@ -169,36 +169,31 @@ class DevHandler {
 
   /// Deserializes a message from JSON, handling custom fromJson() implementations.
   Object? _deserializeMessage(dynamic decoded) {
-    if (decoded is List && decoded.length == 2 && decoded[0] is String) {
-      final typeName = decoded[0] as String;
-      final jsonData = decoded[1] as Map<String, dynamic>;
+    if (decoded case [final String typeName, ...]) {
+      // For Map-based RPC data types, the second element is the JSON map.
+      final jsonData = switch (decoded) {
+        [_, final Map<String, dynamic> map] => map,
+        _ => const <String, dynamic>{},
+      };
 
-      switch (typeName) {
-        case 'ConnectRequest':
-          return ConnectRequest.fromJson(jsonData);
-        case 'RunRequest':
-          return RunRequest.fromJson(jsonData);
-        case 'HotReloadResponse':
-          return HotReloadResponse.fromJson(jsonData);
-        case 'HotRestartResponse':
-          return HotRestartResponse.fromJson(jsonData);
-        case 'DebugEvent':
-          return DebugEvent.fromJson(jsonData);
-        case 'BatchedDebugEvents':
-          return BatchedDebugEvents.fromJson(jsonData);
-        case 'ServiceExtensionResponse':
-          return ServiceExtensionResponse.fromJson(jsonData);
-        case 'DevToolsRequest':
-          return DevToolsRequest.fromJson(jsonData);
-        case 'ErrorResponse':
-          return ErrorResponse.fromJson(jsonData);
-        case 'RegisterEvent':
-          return RegisterEvent.fromJson(jsonData);
-        case 'IsolateStart':
-          return IsolateStart.fromJson(jsonData);
-        case 'IsolateExit':
-          return IsolateExit.fromJson(jsonData);
-      }
+      return switch (typeName) {
+        // List-based RPC data types:
+        'DevToolsRequest' => DevToolsRequest.fromJson(decoded),
+        // Map-based RPC data types:
+        'ConnectRequest' => ConnectRequest.fromJson(jsonData),
+        'RunRequest' => RunRequest.fromJson(jsonData),
+        'HotReloadRequest' => HotReloadRequest.fromJson(jsonData),
+        'HotRestartRequest' => HotRestartRequest.fromJson(jsonData),
+        'ServiceExtensionRequest' => ServiceExtensionRequest.fromJson(jsonData),
+        'BuildResult' => BuildResult.fromJson(jsonData),
+        'ErrorResponse' => ErrorResponse.fromJson(jsonData),
+        'DebugEvent' => DebugEvent.fromJson(jsonData),
+        'BatchedDebugEvents' => BatchedDebugEvents.fromJson(jsonData),
+        'IsolateStart' => IsolateStart.fromJson(jsonData),
+        'IsolateExit' => IsolateExit.fromJson(jsonData),
+        'RegisterEvent' => RegisterEvent.fromJson(jsonData),
+        _ => null,
+      };
     }
     return null;
   }

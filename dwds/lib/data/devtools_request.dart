@@ -2,8 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/data/utils.dart';
+
 /// A request to open DevTools.
 class DevToolsRequest {
+  static const type = 'DevToolsRequest';
+
   /// Identifies a given application, across tabs/windows.
   final String appId;
 
@@ -48,7 +52,8 @@ class DevToolsRequest {
     this.client,
   });
 
-  factory DevToolsRequest.fromJson(Map<String, dynamic> json) {
+  factory DevToolsRequest.fromJson(List<dynamic> jsonList) {
+    final json = listToMap(jsonList, type: type);
     return DevToolsRequest(
       appId: json['appId'] as String,
       instanceId: json['instanceId'] as String,
@@ -59,15 +64,18 @@ class DevToolsRequest {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'appId': appId,
-      'instanceId': instanceId,
-      if (contextId != null) 'contextId': contextId,
-      if (tabUrl != null) 'tabUrl': tabUrl,
-      if (uriOnly != null) 'uriOnly': uriOnly,
-      if (client != null) 'client': client,
-    };
+  List<Object?> toJson() {
+    return [
+      type,
+      'appId',
+      appId,
+      'instanceId',
+      instanceId,
+      if (contextId != null) ...['contextId', contextId],
+      if (tabUrl != null) ...['tabUrl', tabUrl],
+      if (uriOnly != null) ...['uriOnly', uriOnly],
+      if (client != null) ...['client', client],
+    ];
   }
 
   @override
@@ -101,6 +109,7 @@ class DevToolsRequest {
 
 /// A response to a [DevToolsRequest].
 class DevToolsResponse {
+  static const type = 'DevToolsResponse';
   final bool success;
   final bool promptExtension;
   final String? error;
@@ -111,7 +120,8 @@ class DevToolsResponse {
     this.error,
   });
 
-  factory DevToolsResponse.fromJson(Map<String, dynamic> json) {
+  factory DevToolsResponse.fromJson(List<dynamic> jsonList) {
+    final json = listToMap(jsonList, type: type);
     return DevToolsResponse(
       success: json['success'] as bool,
       promptExtension: json['promptExtension'] as bool,
@@ -119,12 +129,15 @@ class DevToolsResponse {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'success': success,
-      'promptExtension': promptExtension,
-      if (error != null) 'error': error,
-    };
+  List<Object?> toJson() {
+    return [
+      type,
+      'success',
+      success,
+      'promptExtension',
+      promptExtension,
+      if (error != null) ...['error', error],
+    ];
   }
 
   @override
