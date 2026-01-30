@@ -809,13 +809,10 @@ class _DebugSession {
   }
 
   Object? _serialize(Object? event) {
-    if (event is ExtensionEvent) {
-      return event;
-    }
-    if (event is DevToolsRequest) {
-      return event;
-    }
-    throw UnsupportedError('Unknown event type: $event');
+    return switch (event) {
+      ExtensionEvent() || DevToolsRequest() => event,
+      _ => throw UnsupportedError('Unknown event type: $event'),
+    };
   }
 
   void sendBatchedEvent(ExtensionEvent event) {
