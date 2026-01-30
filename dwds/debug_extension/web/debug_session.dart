@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:dwds/data/data_types.dart';
 import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
@@ -26,7 +27,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'chrome_api.dart';
 import 'cider_connection.dart';
 import 'cross_extension_communication.dart';
-import 'data_types.dart';
 import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
@@ -395,13 +395,10 @@ Future<bool> _connectToDwds({
 void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
   final decoded = jsonDecode(eventData);
   Object? message;
-  if (decoded case ['ExtensionRequest', final Map<String, dynamic> request]) {
-    message = ExtensionRequest.fromJson(request);
-  } else if (decoded case [
-    'ExtensionEvent',
-    final Map<String, dynamic> event,
-  ]) {
-    message = ExtensionEvent.fromJson(event);
+  if (decoded case ['ExtensionRequest', ...]) {
+    message = ExtensionRequest.fromJson(decoded);
+  } else if (decoded case ['ExtensionEvent', ...]) {
+    message = ExtensionEvent.fromJson(decoded);
   }
 
   if (message is ExtensionRequest) {
@@ -460,25 +457,23 @@ void _forwardDwdsEventToChromeDebugger(
         // No arguments indicate that an error occurred.
         if (e == null) {
           client.sink.add(
-            jsonEncode([
-              'ExtensionResponse',
+            jsonEncode(
               ExtensionResponse(
                 id: message.id,
                 success: false,
                 result: JSON.stringify(chrome.runtime.lastError),
-              ).toJson(),
-            ]),
+              ),
+            ),
           );
         } else {
           client.sink.add(
-            jsonEncode([
-              'ExtensionResponse',
+            jsonEncode(
               ExtensionResponse(
                 id: message.id,
                 success: true,
                 result: JSON.stringify(e),
-              ).toJson(),
-            ]),
+              ),
+            ),
           );
         }
       }),
@@ -605,10 +600,9 @@ Future<bool> _sendConnectFailureMessage(
   ConnectFailureReason reason, {
   required int dartAppTabId,
 }) async {
-  final json = jsonEncode([
-    'ConnectFailure',
-    ConnectFailure(tabId: dartAppTabId, reason: reason.name).toJson(),
-  ]);
+  final json = jsonEncode(
+    ConnectFailure(tabId: dartAppTabId, reason: reason.name),
+  );
   return await sendRuntimeMessage(
     type: MessageType.connectFailure,
     body: json,
@@ -621,14 +615,13 @@ Future<bool> _sendStopDebuggingMessage(
   DetachReason reason, {
   required int dartAppTabId,
 }) async {
-  final json = jsonEncode([
-    'DebugStateChange',
+  final json = jsonEncode(
     DebugStateChange(
       tabId: dartAppTabId,
       newState: DebugStateChange.stopDebugging,
       reason: reason.name,
-    ).toJson(),
-  ]);
+    ),
+  );
   return await sendRuntimeMessage(
     type: MessageType.debugStateChange,
     body: json,
@@ -816,13 +809,10 @@ class _DebugSession {
   }
 
   Object? _serialize(Object? event) {
-    if (event is ExtensionEvent) {
-      return ['ExtensionEvent', event.toJson()];
-    }
-    if (event is DevToolsRequest) {
-      return ['DevToolsRequest', event.toJson()];
-    }
-    throw UnsupportedError('Unknown event type: $event');
+    return switch (event) {
+      ExtensionEvent() || DevToolsRequest() => event,
+      _ => throw UnsupportedError('Unknown event type: $event'),
+    };
   }
 
   void sendBatchedEvent(ExtensionEvent event) {

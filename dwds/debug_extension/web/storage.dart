@@ -11,13 +11,13 @@ import 'dart:convert';
 // ignore: deprecated_member_use
 import 'dart:js_util';
 
+import 'package:dwds/data/data_types.dart';
 import 'package:dwds/data/debug_info.dart';
 // TODO: https://github.com/dart-lang/webdev/issues/2508
 // ignore: deprecated_member_use
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
-import 'data_types.dart';
 import 'logger.dart';
 import 'utils.dart';
 
@@ -69,10 +69,10 @@ String _serialize<T>(T value) {
   return switch (value) {
     final String v => v,
     final DebugInfo v => jsonEncode(v),
-    final ConnectFailure v => jsonEncode(['ConnectFailure', v.toJson()]),
-    final DebugStateChange v => jsonEncode(['DebugStateChange', v.toJson()]),
-    final DevToolsOpener v => jsonEncode(['DevToolsOpener', v.toJson()]),
-    final DevToolsUrl v => jsonEncode(['DevToolsUrl', v.toJson()]),
+    final ConnectFailure v => jsonEncode(v),
+    final DebugStateChange v => jsonEncode(v),
+    final DevToolsOpener v => jsonEncode(v),
+    final DevToolsUrl v => jsonEncode(v),
     _ => throw UnsupportedError('Unknown type for serialization: $T'),
   };
 }
@@ -109,14 +109,10 @@ T _deserialize<T>(String json) {
     return DebugInfo.fromJson(decoded as List<dynamic>) as T;
   }
   return switch (decoded) {
-    ['ConnectFailure', final Map<String, dynamic> data] =>
-      ConnectFailure.fromJson(data) as T,
-    ['DebugStateChange', final Map<String, dynamic> data] =>
-      DebugStateChange.fromJson(data) as T,
-    ['DevToolsOpener', final Map<String, dynamic> data] =>
-      DevToolsOpener.fromJson(data) as T,
-    ['DevToolsUrl', final Map<String, dynamic> data] =>
-      DevToolsUrl.fromJson(data) as T,
+    ['ConnectFailure', ...] => ConnectFailure.fromJson(decoded) as T,
+    ['DebugStateChange', ...] => DebugStateChange.fromJson(decoded) as T,
+    ['DevToolsOpener', ...] => DevToolsOpener.fromJson(decoded) as T,
+    ['DevToolsUrl', ...] => DevToolsUrl.fromJson(decoded) as T,
     _ => throw UnsupportedError('Unknown type for deserialization: $T'),
   };
 }

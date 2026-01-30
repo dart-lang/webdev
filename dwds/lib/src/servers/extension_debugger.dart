@@ -142,10 +142,7 @@ class ExtensionDebugger implements RemoteDebugger {
 
   void sendEvent(String method, String params) {
     sseConnection.sink.add(
-      jsonEncode([
-        'ExtensionEvent',
-        ExtensionEvent(method: method, params: params).toJson(),
-      ]),
+      jsonEncode(ExtensionEvent(method: method, params: params)),
     );
   }
 
@@ -161,14 +158,13 @@ class ExtensionDebugger implements RemoteDebugger {
     _completers[id] = completer;
     try {
       sseConnection.sink.add(
-        jsonEncode([
-          'ExtensionRequest',
+        jsonEncode(
           ExtensionRequest(
             id: id,
             command: command,
             commandParams: jsonEncode(params ?? {}),
-          ).toJson(),
-        ]),
+          ),
+        ),
       );
     } on StateError catch (error, stackTrace) {
       if (error.message.contains('Cannot add event after closing')) {
@@ -379,20 +375,17 @@ class ExtensionDebugger implements RemoteDebugger {
   }
 
   static Object? _deserialize(dynamic decoded) {
-    if (decoded case [
-      'ExtensionResponse',
-      final Map<String, dynamic> response,
-    ]) {
-      return ExtensionResponse.fromJson(response);
+    if (decoded case ['ExtensionResponse', ...]) {
+      return ExtensionResponse.fromJson(decoded);
     }
-    if (decoded case ['ExtensionEvent', final Map<String, dynamic> event]) {
-      return ExtensionEvent.fromJson(event);
+    if (decoded case ['ExtensionEvent', ...]) {
+      return ExtensionEvent.fromJson(decoded);
     }
-    if (decoded case ['BatchedEvents', final Map<String, dynamic> events]) {
-      return BatchedEvents.fromJson(events);
+    if (decoded case ['BatchedEvents', ...]) {
+      return BatchedEvents.fromJson(decoded);
     }
-    if (decoded case ['DevToolsRequest', final Map<String, dynamic> request]) {
-      return DevToolsRequest.fromJson(request);
+    if (decoded case ['DevToolsRequest', ...]) {
+      return DevToolsRequest.fromJson(decoded);
     }
     return null;
   }

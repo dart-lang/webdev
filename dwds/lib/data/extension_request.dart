@@ -3,11 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:collection/collection.dart';
+import 'package:dwds/data/utils.dart';
 
 const authenticationPath = '\$dwdsExtensionAuthentication';
 
 /// A request to run a command in the Dart Debug Extension.
 class ExtensionRequest {
+  static const type = 'ExtensionRequest';
+
   /// Used to associate a request with an [ExtensionResponse].
   final int id;
 
@@ -22,7 +25,8 @@ class ExtensionRequest {
     this.commandParams,
   });
 
-  factory ExtensionRequest.fromJson(Map<String, dynamic> json) {
+  factory ExtensionRequest.fromJson(List<dynamic> jsonList) {
+    final json = listToMap(jsonList, type: type);
     return ExtensionRequest(
       id: json['id'] as int,
       command: json['command'] as String,
@@ -30,12 +34,15 @@ class ExtensionRequest {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'command': command,
-      if (commandParams != null) 'commandParams': commandParams,
-    };
+  List<Object?> toJson() {
+    return [
+      type,
+      'id',
+      id,
+      'command',
+      command,
+      if (commandParams != null) ...['commandParams', commandParams],
+    ];
   }
 
   @override
@@ -57,6 +64,8 @@ class ExtensionRequest {
 
 /// A response to an [ExtensionRequest].
 class ExtensionResponse {
+  static const type = 'ExtensionResponse';
+
   /// Used to associate a response with an [ExtensionRequest].
   final int id;
 
@@ -75,7 +84,8 @@ class ExtensionResponse {
     this.error,
   });
 
-  factory ExtensionResponse.fromJson(Map<String, dynamic> json) {
+  factory ExtensionResponse.fromJson(List<dynamic> jsonList) {
+    final json = listToMap(jsonList, type: type);
     return ExtensionResponse(
       id: json['id'] as int,
       success: json['success'] as bool,
@@ -84,13 +94,17 @@ class ExtensionResponse {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'success': success,
-      'result': result,
-      if (error != null) 'error': error,
-    };
+  List<Object?> toJson() {
+    return [
+      type,
+      'id',
+      id,
+      'success',
+      success,
+      'result',
+      result,
+      if (error != null) ...['error', error],
+    ];
   }
 
   @override
@@ -113,6 +127,8 @@ class ExtensionResponse {
 
 /// An event for Dart Debug Extension.
 class ExtensionEvent {
+  static const type = 'ExtensionEvent';
+
   /// Contains a JSON-encoded payload.
   final String params;
 
@@ -120,15 +136,16 @@ class ExtensionEvent {
 
   ExtensionEvent({required this.params, required this.method});
 
-  factory ExtensionEvent.fromJson(Map<String, dynamic> json) {
+  factory ExtensionEvent.fromJson(List<dynamic> jsonList) {
+    final json = listToMap(jsonList, type: type);
     return ExtensionEvent(
       params: json['params'] as String,
       method: json['method'] as String,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {'params': params, 'method': method};
+  List<Object?> toJson() {
+    return [type, 'params', params, 'method', method];
   }
 
   @override
@@ -148,20 +165,22 @@ class ExtensionEvent {
 
 /// A batched group of events, currently always Debugger.scriptParsed
 class BatchedEvents {
+  static const type = 'BatchedEvents';
   final List<ExtensionEvent> events;
 
   BatchedEvents({required this.events});
 
-  factory BatchedEvents.fromJson(Map<String, dynamic> json) {
+  factory BatchedEvents.fromJson(List<dynamic> jsonList) {
+    final json = listToMap(jsonList, type: type);
     return BatchedEvents(
       events: (json['events'] as List)
-          .map((e) => ExtensionEvent.fromJson(e as Map<String, dynamic>))
+          .map((e) => ExtensionEvent.fromJson(e as List))
           .toList(),
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {'events': events.map((e) => e.toJson()).toList()};
+  List<Object?> toJson() {
+    return [type, 'events', events.map((e) => e.toJson()).toList()];
   }
 
   @override

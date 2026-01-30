@@ -11,12 +11,12 @@ import 'dart:convert';
 // ignore: deprecated_member_use
 import 'dart:html';
 
+import 'package:dwds/data/data_types.dart';
 import 'package:dwds/data/debug_info.dart';
 // TODO: https://github.com/dart-lang/webdev/issues/2508
 // ignore: deprecated_member_use
 import 'package:js/js.dart';
 
-import 'data_types.dart';
 import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';

@@ -2,18 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/data/utils.dart';
+
 class ConnectFailure {
+  static const type = 'ConnectFailure';
   final int tabId;
   final String? reason;
 
   ConnectFailure({required this.tabId, this.reason});
 
-  Map<String, dynamic> toJson() => {'tabId': tabId, 'reason': ?reason};
+  List<Object?> toJson() => [
+    type,
+    'tabId',
+    tabId,
+    if (reason != null) ...['reason', reason],
+  ];
 
-  factory ConnectFailure.fromJson(Map<String, dynamic> json) => ConnectFailure(
-    tabId: json['tabId'] as int,
-    reason: json['reason'] as String?,
-  );
+  factory ConnectFailure.fromJson(List<dynamic> jsonList) {
+    final json = listToMap(jsonList, type: type);
+    return ConnectFailure(
+      tabId: json['tabId'] as int,
+      reason: json['reason'] as String?,
+    );
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -31,14 +42,17 @@ class ConnectFailure {
 }
 
 class DevToolsOpener {
+  static const type = 'DevToolsOpener';
   final bool newWindow;
 
   DevToolsOpener({required this.newWindow});
 
-  Map<String, dynamic> toJson() => {'newWindow': newWindow};
+  List<Object?> toJson() => [type, 'newWindow', newWindow];
 
-  factory DevToolsOpener.fromJson(Map<String, dynamic> json) =>
-      DevToolsOpener(newWindow: json['newWindow'] as bool);
+  factory DevToolsOpener.fromJson(List<dynamic> jsonList) {
+    final json = listToMap(jsonList, type: type);
+    return DevToolsOpener(newWindow: json['newWindow'] as bool);
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -55,15 +69,18 @@ class DevToolsOpener {
 }
 
 class DevToolsUrl {
+  static const type = 'DevToolsUrl';
   final int tabId;
   final String url;
 
   DevToolsUrl({required this.tabId, required this.url});
 
-  Map<String, dynamic> toJson() => {'tabId': tabId, 'url': url};
+  List<Object?> toJson() => [type, 'tabId', tabId, 'url', url];
 
-  factory DevToolsUrl.fromJson(Map<String, dynamic> json) =>
-      DevToolsUrl(tabId: json['tabId'] as int, url: json['url'] as String);
+  factory DevToolsUrl.fromJson(List<dynamic> jsonList) {
+    final json = listToMap(jsonList, type: type);
+    return DevToolsUrl(tabId: json['tabId'] as int, url: json['url'] as String);
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -81,6 +98,7 @@ class DevToolsUrl {
 }
 
 class DebugStateChange {
+  static const type = 'DebugStateChange';
   static const startDebugging = 'start-debugging';
   static const stopDebugging = 'stop-debugging';
   static const failedToConnect = 'failed-to-connect';
@@ -93,18 +111,23 @@ class DebugStateChange {
 
   DebugStateChange({required this.tabId, required this.newState, this.reason});
 
-  Map<String, dynamic> toJson() => {
-    'tabId': tabId,
-    'newState': newState,
-    'reason': ?reason,
-  };
+  List<Object?> toJson() => [
+    type,
+    'tabId',
+    tabId,
+    'newState',
+    newState,
+    if (reason != null) ...['reason', reason],
+  ];
 
-  factory DebugStateChange.fromJson(Map<String, dynamic> json) =>
-      DebugStateChange(
-        tabId: json['tabId'] as int,
-        newState: json['newState'] as String,
-        reason: json['reason'] as String?,
-      );
+  factory DebugStateChange.fromJson(List<dynamic> jsonList) {
+    final json = listToMap(jsonList, type: type);
+    return DebugStateChange(
+      tabId: json['tabId'] as int,
+      newState: json['newState'] as String,
+      reason: json['reason'] as String?,
+    );
+  }
 
   @override
   bool operator ==(Object other) =>

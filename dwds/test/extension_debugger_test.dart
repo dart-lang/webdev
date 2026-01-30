@@ -45,9 +45,7 @@ void main() async {
             .sendCommand('Runtime.evaluate', params: {'expression': '\$pi'})
             .then(resultCompleter.complete),
       );
-      connection.controllerIncoming.sink.add(
-        jsonEncode(['ExtensionResponse', extensionResponse.toJson()]),
-      );
+      connection.controllerIncoming.sink.add(jsonEncode(extensionResponse));
       final response = await resultCompleter.future;
       expect(response.result['result']['value'], 3.14);
     });
@@ -57,9 +55,7 @@ void main() async {
         method: jsonEncode('Debugger.paused'),
         params: jsonEncode(frames1Json[0]),
       );
-      connection.controllerIncoming.sink.add(
-        jsonEncode(['ExtensionEvent', extensionEvent.toJson()]),
-      );
+      connection.controllerIncoming.sink.add(jsonEncode(extensionEvent));
       final wipEvent = await extensionDebugger.onNotification.first;
       expect(wipEvent.method, 'Debugger.paused');
       expect(wipEvent.params, frames1Json[0]);
@@ -75,9 +71,7 @@ void main() async {
         params: jsonEncode(scriptParsedParams),
       );
       final batch = BatchedEvents(events: [event1, event2]);
-      connection.controllerIncoming.sink.add(
-        jsonEncode(['BatchedEvents', batch.toJson()]),
-      );
+      connection.controllerIncoming.sink.add(jsonEncode(batch));
       final wipEvent = await extensionDebugger.onNotification.first;
       expect(wipEvent.method, 'Debugger.scriptParsed');
       expect(wipEvent.params, scriptParsedParams);
@@ -89,9 +83,7 @@ void main() async {
         instanceId: '6.28',
         tabUrl: 'pi/calculus',
       );
-      connection.controllerIncoming.sink.add(
-        jsonEncode(['DevToolsRequest', devToolsRequest.toJson()]),
-      );
+      connection.controllerIncoming.sink.add(jsonEncode(devToolsRequest));
       final request = await extensionDebugger.devToolsRequestStream.first;
       expect(request.tabUrl, 'pi/calculus');
       expect(request.appId, '3.14');
@@ -110,7 +102,7 @@ void main() async {
       final decoded = jsonDecode(
         await connection.controllerOutgoing.stream.first,
       );
-      final request = ExtensionRequest.fromJson(decoded[1]);
+      final request = ExtensionRequest.fromJson(decoded);
       expect(request, extensionRequest);
     });
 
@@ -129,7 +121,7 @@ void main() async {
       final decoded = jsonDecode(
         await connection.controllerOutgoing.stream.first,
       );
-      final request = ExtensionRequest.fromJson(decoded[1]);
+      final request = ExtensionRequest.fromJson(decoded);
       expect(request, extensionRequest);
     });
   });
@@ -140,9 +132,7 @@ void main() async {
         params: jsonEncode({}),
       );
 
-      connection.controllerIncoming.sink.add(
-        jsonEncode(['ExtensionEvent', extensionEvent.toJson()]),
-      );
+      connection.controllerIncoming.sink.add(jsonEncode(extensionEvent));
       // Expect the connection to receive a close event:
       expect(await extensionDebugger.onClose.first, isNotNull);
     });
@@ -155,9 +145,7 @@ void main() async {
           method: jsonEncode('DebugExtension.detached'),
           params: jsonEncode({}),
         );
-        connection.controllerIncoming.sink.add(
-          jsonEncode(['ExtensionEvent', extensionEvent.toJson()]),
-        );
+        connection.controllerIncoming.sink.add(jsonEncode(extensionEvent));
         // Wait for it to be closed:
         await extensionDebugger.onClose.first;
         // Try to send an event:

@@ -237,9 +237,7 @@ class TestDebuggerConnection {
       method: jsonEncode('Runtime.executionContextsCleared'),
       params: jsonEncode({}),
     );
-    connection.controllerIncoming.sink.add(
-      jsonEncode(['ExtensionEvent', extensionEvent.toJson()]),
-    );
+    connection.controllerIncoming.sink.add(jsonEncode(extensionEvent));
   }
 
   /// Send `Runtime.executionContextCreated` event to the execution
@@ -251,9 +249,7 @@ class TestDebuggerConnection {
         'context': {'id': '${contextId.id}'},
       }),
     );
-    connection.controllerIncoming.sink.add(
-      jsonEncode(['ExtensionEvent', extensionEvent.toJson()]),
-    );
+    connection.controllerIncoming.sink.add(jsonEncode(extensionEvent));
   }
 
   void _sendEvaluationResponse(Map<String, dynamic> response) {
@@ -263,9 +259,7 @@ class TestDebuggerConnection {
       id: _evaluateRequestId++,
       success: true,
     );
-    connection.controllerIncoming.sink.add(
-      jsonEncode(['ExtensionResponse', extensionResponse.toJson()]),
-    );
+    connection.controllerIncoming.sink.add(jsonEncode(extensionResponse));
   }
 
   void _sendDevToolsRequest({int? contextId}) {
@@ -274,9 +268,7 @@ class TestDebuggerConnection {
       appId: 'app',
       instanceId: '0',
     );
-    connection.controllerIncoming.sink.add(
-      jsonEncode(['DevToolsRequest', devToolsRequest.toJson()]),
-    );
+    connection.controllerIncoming.sink.add(jsonEncode(devToolsRequest));
   }
 
   Future<void> _executionContext() async {

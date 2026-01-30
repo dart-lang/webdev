@@ -178,10 +178,9 @@ Future<void>? main() {
         }
         _trySendEvent(
           client.sink,
-          jsonEncode([
-            'DevToolsRequest',
+          jsonEncode(
             DevToolsRequest(appId: dartAppId, instanceId: dartAppInstanceId!),
-          ]),
+          ),
         );
       }.toJS;
 
@@ -313,27 +312,26 @@ void _trySendEvent<T>(StreamSink<T> sink, T serialized) {
 /// Deserializes incoming events from the server.
 /// Handles wire format ['TypeName', json] for plain Dart types.
 Object? _deserializeEvent(dynamic decoded) {
-  if (decoded is List && decoded.length == 2 && decoded[0] is String) {
-    final typeName = decoded[0] as String;
-    final jsonData = decoded[1] as Map<String, dynamic>;
-    switch (typeName) {
-      case 'ConnectRequest':
-        return ConnectRequest.fromJson(jsonData);
-      case 'RunRequest':
-        return RunRequest.fromJson(jsonData);
-      case 'HotReloadRequest':
-        return HotReloadRequest.fromJson(jsonData);
-      case 'HotRestartRequest':
-        return HotRestartRequest.fromJson(jsonData);
-      case 'ServiceExtensionRequest':
-        return ServiceExtensionRequest.fromJson(jsonData);
-      case 'BuildResult':
-        return BuildResult.fromJson(jsonData);
-      case 'DevToolsResponse':
-        return DevToolsResponse.fromJson(jsonData);
-      case 'ErrorResponse':
-        return ErrorResponse.fromJson(jsonData);
-    }
+  if (decoded case [final String typeName, ...]) {
+    // For Map-based RPC data types, the second element is the JSON map.
+    final jsonData = switch (decoded) {
+      [_, final Map<String, dynamic> map] => map,
+      _ => const <String, dynamic>{},
+    };
+
+    return switch (typeName) {
+      // List-based RPC data types:
+      'DevToolsResponse' => DevToolsResponse.fromJson(decoded),
+      // Map-based RPC data types:
+      'ConnectRequest' => ConnectRequest.fromJson(jsonData),
+      'RunRequest' => RunRequest.fromJson(jsonData),
+      'HotReloadRequest' => HotReloadRequest.fromJson(jsonData),
+      'HotRestartRequest' => HotRestartRequest.fromJson(jsonData),
+      'ServiceExtensionRequest' => ServiceExtensionRequest.fromJson(jsonData),
+      'BuildResult' => BuildResult.fromJson(jsonData),
+      'ErrorResponse' => ErrorResponse.fromJson(jsonData),
+      _ => null,
+    };
   }
   return null;
 }

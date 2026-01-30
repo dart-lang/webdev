@@ -11,13 +11,13 @@ import 'dart:convert';
 // ignore: deprecated_member_use
 import 'dart:js_util';
 
+import 'package:dwds/data/data_types.dart';
 import 'package:dwds/data/debug_info.dart';
 // TODO: https://github.com/dart-lang/webdev/issues/2508
 // ignore: deprecated_member_use
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
-import 'data_types.dart';
 import 'logger.dart';
 import 'utils.dart';
 
@@ -125,14 +125,10 @@ void interceptMessage<T>({
 T _deserialize<T>(String body) {
   final decoded = jsonDecode(body);
   return switch (decoded) {
-    ['ConnectFailure', final Map<String, dynamic> data] =>
-      ConnectFailure.fromJson(data) as T,
-    ['DebugStateChange', final Map<String, dynamic> data] =>
-      DebugStateChange.fromJson(data) as T,
-    ['DevToolsOpener', final Map<String, dynamic> data] =>
-      DevToolsOpener.fromJson(data) as T,
-    ['DevToolsUrl', final Map<String, dynamic> data] =>
-      DevToolsUrl.fromJson(data) as T,
+    ['ConnectFailure', ...] => ConnectFailure.fromJson(decoded) as T,
+    ['DebugStateChange', ...] => DebugStateChange.fromJson(decoded) as T,
+    ['DevToolsOpener', ...] => DevToolsOpener.fromJson(decoded) as T,
+    ['DevToolsUrl', ...] => DevToolsUrl.fromJson(decoded) as T,
     ['DebugInfo', ...] => DebugInfo.fromJson(decoded) as T,
     _ => throw UnsupportedError('Unknown type for deserialization: $T'),
   };
