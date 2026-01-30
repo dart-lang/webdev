@@ -105,10 +105,8 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
 T _deserialize<T>(String json) {
   if (T == String) return json as T;
   final decoded = jsonDecode(json);
-  if (T == DebugInfo) {
-    return DebugInfo.fromJson(decoded as List<dynamic>) as T;
-  }
   return switch (decoded) {
+    ['DebugInfo', ...] => DebugInfo.fromJson(decoded) as T,
     ['ConnectFailure', ...] => ConnectFailure.fromJson(decoded) as T,
     ['DebugStateChange', ...] => DebugStateChange.fromJson(decoded) as T,
     ['DevToolsOpener', ...] => DevToolsOpener.fromJson(decoded) as T,
