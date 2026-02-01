@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
@@ -14,8 +13,8 @@ import 'package:dwds/src/version.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 
-/// File extension that build_web_compilers will place the
-/// [entrypointExtensionMarker] in.
+import 'package:dwds/src/handlers/injected_client_js.dart';
+
 const bootstrapJsExtension = '.bootstrap.js';
 
 /// Marker placed by build_web_compilers for where to put injected JS code.
@@ -44,16 +43,12 @@ class DwdsInjector {
   Middleware get middleware => (innerHandler) {
     return (Request request) async {
       if (request.url.path.endsWith('$_clientScript.js')) {
-        final uri = await Isolate.resolvePackageUri(
-          Uri.parse('package:$_clientScript.js'),
-        );
-        if (uri == null) {
-          throw StateError('Cannot resolve "package:$_clientScript.js"');
-        }
-        final result = await File(uri.toFilePath()).readAsString();
         return Response.ok(
-          result,
-          headers: {HttpHeaders.contentTypeHeader: 'application/javascript'},
+          injectedClientJs,
+          headers: {
+            HttpHeaders.contentTypeHeader: 'application/javascript',
+            HttpHeaders.cacheControlHeader: 'no-cache',
+          },
         );
       } else if (request.url.path.endsWith(bootstrapJsExtension)) {
         final ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
@@ -74,14 +69,12 @@ class DwdsInjector {
           // uniqueness.
           final requestedUri = request.requestedUri;
           final appId = _base64Md5('$requestedUri');
-          var scheme = request.requestedUri.scheme;
+          var scheme = requestedUri.scheme;
           if (!globalToolConfiguration.debugSettings.useSseForInjectedClient) {
             // Switch http->ws and https->wss.
             scheme = scheme.replaceFirst('http', 'ws');
           }
-          final requestedUriBase =
-              '$scheme'
-              '://${request.requestedUri.authority}';
+          final requestedUriBase = '$scheme://${requestedUri.authority}';
           var devHandlerPath = '\$dwdsSseHandler';
           final subPath = request.url.pathSegments.toList()..removeLast();
           if (subPath.isNotEmpty) {
@@ -106,8 +99,7 @@ class DwdsInjector {
             entrypoint,
           );
           _logger.info(
-            'Injected debugging metadata for '
-            'entrypoint at $requestedUri',
+            'Injected debugging metadata for entrypoint at $requestedUri',
           );
           etag = _base64Md5(body);
           newHeaders[HttpHeaders.etagHeader] = etag;
@@ -160,24 +152,24 @@ Future<String> _injectClientAndHoistMain(
   result +=
       '''
   // Injected by dwds for debugging support.
-  if(!window.\$dwdsInitialized) {
-    window.\$dwdsInitialized = true;
-    window.\$dartMainTearOffs = [$mainFunction];
-    window.\$dartRunMain = function() {
-      window.\$dartMainExecuted = true;
-      window.\$dartMainTearOffs.forEach(function(main){
-         main();
-      });
-    }
-    $injectedClientSnippet
+if (!window.\$dwdsInitialized) {
+  window.\$dwdsInitialized = true;
+  window.\$dartMainTearOffs = [$mainFunction];
+  window.\$dartRunMain = function() {
+    window.\$dartMainExecuted = true;
+    window.\$dartMainTearOffs.forEach(function(main) {
+      main();
+    });
+  };
+  $injectedClientSnippet
+} else {
+  if (window.\$dartMainExecuted) {
+    $mainFunction();
   } else {
-    if(window.\$dartMainExecuted){
-     $mainFunction();
-    }else {
-     window.\$dartMainTearOffs.push($mainFunction);
-    }
+      window.\$dartMainTearOffs.push($mainFunction);
   }
-  ''';
+  }
+''';
   result += bodyLines.sublist(extensionIndex + 2).join('\n');
   return result;
 }
@@ -206,7 +198,7 @@ Future<String> _injectedClientSnippet(
       'window.\$dartEmitDebugEvents = ${debugSettings.emitDebugEvents};\n'
       'window.\$isInternalBuild = ${appMetadata.isInternalBuild};\n'
       'window.\$isFlutterApp = ${buildSettings.isFlutterApp};\n'
-      '${loadStrategy is DdcLibraryBundleStrategy ? 'window.\$reloadedSourcesPath = "${loadStrategy.reloadedSourcesUri.toString()}";\n' : ''}'
+      '${loadStrategy is DdcLibraryBundleStrategy ? 'window.\$reloadedSourcesPath = "${loadStrategy.reloadedSourcesUri}";\n' : ''}'
       '${loadStrategy.loadClientSnippet(_clientScript)}';
 
   if (extensionUri != null) {
