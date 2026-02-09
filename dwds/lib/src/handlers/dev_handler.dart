@@ -185,7 +185,6 @@ class DevHandler {
         'HotReloadResponse' => HotReloadResponse.fromJson(jsonData),
         'HotRestartResponse' => HotRestartResponse.fromJson(jsonData),
         'ServiceExtensionResponse' => ServiceExtensionResponse.fromJson(jsonData),
-        'BuildResult' => BuildResult.fromJson(jsonData),
         'ErrorResponse' => ErrorResponse.fromJson(jsonData),
         'DebugEvent' => DebugEvent.fromJson(jsonData),
         'BatchedDebugEvents' => BatchedDebugEvents.fromJson(jsonData),
