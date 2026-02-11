@@ -182,20 +182,22 @@ class DevHandler {
         // Map-based RPC data types:
         'ConnectRequest' => ConnectRequest.fromJson(jsonData),
         'RunRequest' => RunRequest.fromJson(jsonData),
-        'HotReloadRequest' => HotReloadRequest.fromJson(jsonData),
-        'HotRestartRequest' => HotRestartRequest.fromJson(jsonData),
-        'ServiceExtensionRequest' => ServiceExtensionRequest.fromJson(jsonData),
-        'BuildResult' => BuildResult.fromJson(jsonData),
+        'HotReloadResponse' => HotReloadResponse.fromJson(jsonData),
+        'HotRestartResponse' => HotRestartResponse.fromJson(jsonData),
+        'ServiceExtensionResponse' => ServiceExtensionResponse.fromJson(
+          jsonData,
+        ),
         'ErrorResponse' => ErrorResponse.fromJson(jsonData),
         'DebugEvent' => DebugEvent.fromJson(jsonData),
         'BatchedDebugEvents' => BatchedDebugEvents.fromJson(jsonData),
         'IsolateStart' => IsolateStart.fromJson(jsonData),
         'IsolateExit' => IsolateExit.fromJson(jsonData),
         'RegisterEvent' => RegisterEvent.fromJson(jsonData),
-        _ => null,
+
+        _ => throw FormatException('Unrecognized event type: $typeName'),
       };
     }
-    return null;
+    throw FormatException('Unrecognized event type: $decoded');
   }
 
   /// Sends the provided [request] to all connected injected clients.
