@@ -16,7 +16,7 @@ dev_dependencies:
   build: ^2.4.1
   build_runner: ^2.4.12
   build_web_compilers: ^4.4.1
-  dwds: ^26.2.6
+  dwds: ^24.1.0
   lints: ^6.1.0
   path: ^1.9.0
   sse: ^4.1.4
