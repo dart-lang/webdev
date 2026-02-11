@@ -100,6 +100,7 @@ class DdcLibraryBundleRestarter implements Restarter {
     return (json.decode(responseText) as List).cast<Map>();
   }
 
+  @override
   Future<(bool, JSArray<JSObject>?)> restart({
     String? runId,
     Future? readyToRunMain,

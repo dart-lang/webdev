@@ -742,11 +742,11 @@ class TestContext {
       final fileContents = f.readAsStringSync();
       f.writeAsStringSync(fileContents.replaceAll(originalString, newString));
 
-      // Update the reloaded_sources.json file with changes for the DDC library
-      // bundle module system.
+      // Update the reloaded_sources.json file.
       if (file.endsWith(project.dartEntryFileName)) {
-        final src =
-            '/${p.url.join(p.url.dirname(project.filePathToServe), p.withoutExtension(project.dartEntryFileName))}.ddc.js';
+        final projectDir = p.url.dirname(project.filePathToServe);
+        final fileName = p.withoutExtension(project.dartEntryFileName);
+        final src = '/${p.url.join(projectDir, fileName)}.ddc.js';
         final module = p.withoutExtension(
           project.dartEntryFilePackageUri.path.substring(1),
         );
@@ -760,8 +760,10 @@ class TestContext {
     }
   }
 
-  // Contains contents of the reloaded_sources.json file for the DDC library
-  // bundle module system.
+  /// Contains contents of the reloaded_sources.json manifest file.
+  ///
+  /// Used by the DDC Library Bundle module system to record changed files for
+  /// hot restart/reload.
   final _reloadedSources = <Map<String, dynamic>>[];
 
   void addLibraryFile({required String libFileName, required String contents}) {
@@ -778,8 +780,6 @@ class TestContext {
   /// - serves the reloaded_sources.json file for reloads/restarts.
   /// - serves the application directory and entrypoint from
   ///   `project.directoryToServe`.
-  ///
-  /// [assetServerPort] is the port where the asset server is running.
   Handler _createBuildRunnerDdcLibraryBundleAssetHandler(int assetServerPort) {
     final entrypointProxy = proxyHandler(
       'http://localhost:$assetServerPort/${project.directoryToServe}/',
