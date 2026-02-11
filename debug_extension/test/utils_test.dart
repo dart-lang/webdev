@@ -11,8 +11,8 @@ import 'dart:js_util';
 import 'package:js/js.dart';
 import 'package:test/test.dart';
 
-import '../../debug_extension/web/chrome_api.dart';
-import '../../debug_extension/web/utils.dart';
+import '../web/chrome_api.dart';
+import '../web/utils.dart';
 
 void main() {
   group('activeTab', () {
