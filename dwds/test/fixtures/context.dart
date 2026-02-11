@@ -31,6 +31,7 @@ import 'package:http/io_client.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
@@ -247,7 +248,10 @@ class TestContext {
       var basePath = '';
       var filePathToServe = project.filePathToServe;
 
-      _port = await findUnusedPort();
+      // Start the HTTP server and save its used port.
+      final httpServer = await startHttpServer('localhost');
+      _port = httpServer.port;
+
       switch (testSettings.compilationMode) {
         case CompilationMode.buildDaemon:
           {
@@ -303,19 +307,15 @@ class TestContext {
             final assetServerPort = daemonPort(
               project.absolutePackageDirectory,
             );
-            _assetHandler = proxyHandler(
-              'http://localhost:$assetServerPort/${project.directoryToServe}/',
-              client: client,
-            );
-            assetReader = ProxyServerAssetReader(
+            _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
               assetServerPort,
-              root: project.directoryToServe,
             );
+            assetReader = ProxyServerAssetReader.fromHandler(_assetHandler!);
 
             if (testSettings.enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
                 'localhost',
-                port,
+                _port!,
                 verbose: testSettings.verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
               );
@@ -328,10 +328,12 @@ class TestContext {
             )) {
               (ModuleFormat.ddc, true) =>
                 BuildRunnerDdcLibraryBundleStrategyProvider(
-                  assetHandler,
                   testSettings.reloadConfiguration,
                   assetReader,
                   buildSettings,
+                  reloadedSourcesUri: Uri.parse(
+                    'http://localhost:$_port/${WebDevFS.reloadedSourcesFileName}',
+                  ),
                 ).strategy,
               (ModuleFormat.ddc, false) => throw Exception(
                 'Unsupported DDC configuration: build daemon + canary (false) '
@@ -339,7 +341,6 @@ class TestContext {
               ),
 
               _ => BuildRunnerRequireStrategyProvider(
-                assetHandler,
                 testSettings.reloadConfiguration,
                 assetReader,
                 buildSettings,
@@ -423,7 +424,7 @@ class TestContext {
                         () async => {},
                         buildSettings,
                         reloadedSourcesUri: Uri.parse(
-                          'http://localhost:$port/${WebDevFS.reloadedSourcesFileName}',
+                          'http://localhost:$_port/${WebDevFS.reloadedSourcesFileName}',
                         ),
                       ).strategy
                     : FrontendServerDdcStrategyProvider(
@@ -494,19 +495,15 @@ class TestContext {
             final assetServerPort = daemonPort(
               project.absolutePackageDirectory,
             );
-            _assetHandler = proxyHandler(
-              'http://localhost:$assetServerPort/${project.directoryToServe}/',
-              client: client,
-            );
-            assetReader = ProxyServerAssetReader(
+            _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
               assetServerPort,
-              root: project.directoryToServe,
             );
+            assetReader = ProxyServerAssetReader.fromHandler(_assetHandler!);
 
             if (testSettings.enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
                 'localhost',
-                port,
+                _port!,
                 verbose: testSettings.verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
               );
@@ -531,7 +528,7 @@ class TestContext {
                   buildSettings,
                   injectScriptLoad: false,
                   reloadedSourcesUri: Uri.parse(
-                    'http://localhost:$port/${WebDevFS.reloadedSourcesFileName}',
+                    'http://localhost:$_port/${WebDevFS.reloadedSourcesFileName}',
                   ),
                 ).strategy,
               _ => throw Exception(
@@ -602,6 +599,7 @@ class TestContext {
         target: project.directoryToServe,
         buildResults: buildResults,
         chromeConnection: () async => connection,
+        httpServer: httpServer,
       );
 
       _testServer!.dwds.connectedApps.listen((connection) async {
@@ -733,6 +731,7 @@ class TestContext {
     // TODO(https://github.com/dart-lang/sdk/issues/51937): Remove once this bug
     // is fixed.
     if (Platform.isWindows) await Future.delayed(Duration(seconds: 1));
+    _reloadedSources.clear();
     for (var (:file, :originalString, :newString) in edits) {
       if (file == project.dartEntryFileName) {
         file = project.dartEntryFilePath;
@@ -742,14 +741,58 @@ class TestContext {
       final f = File(project.dartLibFilePath(file));
       final fileContents = f.readAsStringSync();
       f.writeAsStringSync(fileContents.replaceAll(originalString, newString));
+
+      // Update the reloaded_sources.json file with changes for the DDC library
+      // bundle module system.
+      if (file.endsWith(project.dartEntryFileName)) {
+        final src =
+            '/${p.url.join(p.url.dirname(project.filePathToServe), p.withoutExtension(project.dartEntryFileName))}.ddc.js';
+        final module = p.withoutExtension(
+          project.dartEntryFilePackageUri.path.substring(1),
+        );
+        final libUri = project.dartEntryFilePackageUri.toString();
+        _reloadedSources.add({
+          'src': src,
+          'module': module,
+          'libraries': [libUri],
+        });
+      }
     }
   }
+
+  // Contains contents of the reloaded_sources.json file for the DDC library
+  // bundle module system.
+  final _reloadedSources = <Map<String, dynamic>>[];
 
   void addLibraryFile({required String libFileName, required String contents}) {
     final file = File(project.dartLibFilePath(libFileName));
     // Library folder may not exist yet, so create it.
     file.createSync(recursive: true);
     file.writeAsStringSync(contents);
+  }
+
+  /// Returns a handler for build runner + the DDC Library Bundle module
+  /// system.
+  ///
+  /// This handler:
+  /// - serves the reloaded_sources.json file for reloads/restarts.
+  /// - serves the application directory and entrypoint from
+  ///   `project.directoryToServe`.
+  ///
+  /// [assetServerPort] is the port where the asset server is running.
+  Handler _createBuildRunnerDdcLibraryBundleAssetHandler(int assetServerPort) {
+    final entrypointProxy = proxyHandler(
+      'http://localhost:$assetServerPort/${project.directoryToServe}/',
+      client: client,
+    );
+
+    return (request) {
+      final path = request.url.path;
+      if (path.endsWith(WebDevFS.reloadedSourcesFileName)) {
+        return shelf.Response.ok(jsonEncode(_reloadedSources));
+      }
+      return entrypointProxy(request);
+    };
   }
 
   Future<void> recompile({required bool fullRestart}) async {

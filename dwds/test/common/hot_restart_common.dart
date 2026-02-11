@@ -34,19 +34,24 @@ void runTests({
 
   tearDownAll(provider.dispose);
 
-  Future<void> recompile({bool hasEdits = false}) async {
+  Future<void> recompile({
+    bool hasEdits = false,
+    bool propagateToBrowser = true,
+  }) async {
     if (compilationMode == CompilationMode.frontendServer) {
       await context.recompile(fullRestart: true);
     } else {
       assert(compilationMode == CompilationMode.buildDaemon);
       if (hasEdits) {
         // Only gets a new build if there were edits.
-        await context.waitForSuccessfulBuild(propagateToBrowser: true);
+        await context.waitForSuccessfulBuild(
+          propagateToBrowser: propagateToBrowser,
+        );
       }
     }
   }
 
-  Future<void> makeEditAndRecompile() async {
+  Future<void> makeEditAndRecompile({bool propagateToBrowser = true}) async {
     await context.makeEdits([
       (
         file: context.project.dartEntryFileName,
@@ -54,7 +59,7 @@ void runTests({
         newString: newString,
       ),
     ]);
-    await recompile(hasEdits: true);
+    await recompile(hasEdits: true, propagateToBrowser: propagateToBrowser);
   }
 
   // Wait for `expectedStrings` to be printed to the console.
@@ -63,6 +68,7 @@ void runTests({
     final completer = Completer<void>();
     final subscription = context.webkitDebugger.onConsoleAPICalled.listen((e) {
       final value = e.args.first.value;
+      print('Console: $value');
       if (expectations.contains(value)) {
         expectations.remove(value);
         if (expectations.isEmpty) {
@@ -286,7 +292,7 @@ void runTests({
     test('can hot restart via the service extension', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
-      await makeEditAndRecompile();
+      await makeEditAndRecompile(propagateToBrowser: false);
 
       final eventsDone = expectLater(
         client.onIsolateEvent,
@@ -339,7 +345,7 @@ void runTests({
         "registerExtension('ext.foo', $callback)",
       );
 
-      await recompile();
+      await recompile(propagateToBrowser: false);
       // Main is re-invoked which shouldn't clear the state.
       final logFuture = waitForLogs(['$originalString $originalString']);
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');

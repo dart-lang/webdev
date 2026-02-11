@@ -67,6 +67,10 @@ extension on JSArray<JSString> {
 class DdcLibraryBundleRestarter implements Restarter {
   JSFunction? _capturedHotReloadEndCallback;
 
+  // Resolves to the result of the current hot restart, or null if there is no
+  // restart in progress.
+  Future<(bool, JSArray<JSObject>?)>? _currentRestart;
+
   Future<void> _runMainWhenReady(
     Future? readyToRunMain,
     JSFunction runMain,
@@ -96,27 +100,35 @@ class DdcLibraryBundleRestarter implements Restarter {
     return (json.decode(responseText) as List).cast<Map>();
   }
 
-  @override
   Future<(bool, JSArray<JSObject>?)> restart({
     String? runId,
     Future? readyToRunMain,
     String? reloadedSourcesPath,
-  }) async {
-    assert(
-      reloadedSourcesPath != null,
-      "Expected 'reloadedSourcesPath' to not be null in a hot restart.",
-    );
-    await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
-    final mainHandler = (JSFunction runMain) {
-      _dartDevEmbedder.config.capturedMainHandler = null;
-      safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
-    }.toJS;
-    _dartDevEmbedder.config.capturedMainHandler = mainHandler;
-    final srcModuleLibraries = await _getSrcModuleLibraries(
-      reloadedSourcesPath!,
-    );
-    await _dartDevEmbedder.hotRestart().toDart;
-    return (true, srcModuleLibraries.jsify() as JSArray<JSObject>);
+  }) {
+    if (_currentRestart != null) return _currentRestart!;
+    final restartFuture = () async {
+      assert(
+        reloadedSourcesPath != null,
+        "Expected 'reloadedSourcesPath' to not be null in a hot restart.",
+      );
+      await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
+      final mainHandler = (JSFunction runMain) {
+        _dartDevEmbedder.config.capturedMainHandler = null;
+        safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
+      }.toJS;
+      _dartDevEmbedder.config.capturedMainHandler = mainHandler;
+      final srcModuleLibraries = await _getSrcModuleLibraries(
+        reloadedSourcesPath!,
+      );
+      await _dartDevEmbedder.hotRestart().toDart;
+      return (true, srcModuleLibraries.jsify() as JSArray<JSObject>);
+    }();
+
+    _currentRestart = restartFuture.whenComplete(() {
+      _currentRestart = null;
+    });
+
+    return _currentRestart!;
   }
 
   @override

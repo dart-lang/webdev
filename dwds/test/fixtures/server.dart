@@ -60,6 +60,7 @@ class TestServer {
     required Stream<daemon.BuildResults> buildResults,
     required Future<ChromeConnection> Function() chromeConnection,
     int? port,
+    HttpServer? httpServer,
   }) async {
     var pipeline = const Pipeline();
 
@@ -95,7 +96,7 @@ class TestServer {
       toolConfiguration: toolConfiguration,
     );
 
-    final server = await startHttpServer('localhost', port: port);
+    final server = httpServer ?? await startHttpServer('localhost', port: port);
     var cascade = Cascade();
 
     cascade = cascade.add(dwds.handler).add(assetHandler);

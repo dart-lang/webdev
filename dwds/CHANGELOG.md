@@ -5,6 +5,10 @@
 - Update `ConnectFailure`, `DebugStateChange`, `DevToolsOpener`, `DevToolsUrl`, `DevToolsRequest`, `DevToolsResponse`, `ExtensionRequest`, `ExtensionResponse`, `ExtensionEvent`, `BatchedEvents` and `DebugInfo` serialization to mimic `built_value`'s list-based format to resolve compatibility issues with the debug extension.
 - Throw `RPCError` when providing invalid `pause_isolates_on_start` values to the Chrome Proxy Service.
 - Add and export `BuildRunnerDdcLibraryBundleStrategyProvider`.
+- Add support for Build Runner + DDC Module Bundle in test fixtures.
+- Unify `assetHandler` and `assetReader` in `BuildRunnerStrategyProviderMixin`.
+- Resolve test suite flakiness for hot restarts and port discover.
+- Bump `build_web_compilers` to ^4.4.11.
 
 ## 26.2.5
 - Remove `package:built_value` dependency from `ErrorResponse` and `RegisterEvent`; switch to standard Dart JSON serialization.
