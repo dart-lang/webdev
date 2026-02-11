@@ -128,7 +128,6 @@ String generateMainModule({required String entrypoint}) {
 
 // Create the main module loaded below.
 define("main_module.bootstrap", ["$entrypoint", "dart_sdk"], function(app, dart_sdk) {
-  dart_sdk.dart.setStartAsyncSynchronously(true);
   dart_sdk._isolate_helper.startRootIsolate(() => {}, []);
   dart_sdk._debugger.registerDevtoolsFormatter();
   let voidToNull = () => (voidToNull = dart_sdk.dart.constFn(dart_sdk.dart.fnType(dart_sdk.core.Null, [dart_sdk.dart.void])))();
@@ -180,7 +179,7 @@ $_simpleLoaderScript
     prerequisiteLoads.push(forceLoadModule(prerequisiteScripts[i].src));
   }
   Promise.all(prerequisiteLoads).then((_) => afterPrerequisiteLogic());
- 
+
   // Save the current script so we can access it in a closure.
   var _currentScript = document.currentScript;
 
@@ -371,7 +370,6 @@ String generateDDCMainModule({
 
   let dart_sdk = dart_library.import('dart_sdk', appName);
 
-  dart_sdk.dart.setStartAsyncSynchronously(true);
   dart_sdk._debugger.registerDevtoolsFormatter();
   dart_sdk._isolate_helper.startRootIsolate(() => {}, []);
 
