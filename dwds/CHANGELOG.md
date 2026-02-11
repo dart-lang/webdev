@@ -1,4 +1,4 @@
-## 26.2.6-wip
+## 26.2.6
 - Remove `package:built_value`, `package:built_value_generator`, and `package:built_collection` dependencies.
 - Remove `serializers.dart` and `data_serializers.dart`.
 - Remove `package:built_value` dependency from `ConnectFailure`, `DebugStateChange`, `DevToolsOpener`, `DevToolsUrl`, `IsolateStart`, `IsolateExit`, `DevToolsRequest`, `DevToolsResponse`, `ExtensionRequest`, `ExtensionResponse`, `ExtensionEvent`, and `BatchedEvents`; switch to standard Dart JSON serialization.
@@ -6,6 +6,7 @@
 - Throw `RPCError` when providing invalid `pause_isolates_on_start` values to the Chrome Proxy Service.
 - Add and export `BuildRunnerDdcLibraryBundleStrategyProvider`.
 - Fix deserialization of `HotReloadResponse`, `HotRestartResponse`, and `ServiceExtensionResponse` in the `DevHandler`.
+- Move `debug_extension` out of `dwds` and into the `webdev` directory. This includes moving associated Puppeteer and extension integration tests (`debug_extension_test.dart`) to the new `debug_extension/test/` directory.
 
 ## 26.2.5
 - Remove `package:built_value` dependency from `ErrorResponse` and `RegisterEvent`; switch to standard Dart JSON serialization.
