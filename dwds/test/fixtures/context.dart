@@ -307,10 +307,21 @@ class TestContext {
             final assetServerPort = daemonPort(
               project.absolutePackageDirectory,
             );
-            _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
-              assetServerPort,
-            );
-            assetReader = ProxyServerAssetReader.fromHandler(_assetHandler!);
+            if (testSettings.moduleFormat == ModuleFormat.ddc &&
+                buildSettings.canaryFeatures) {
+              _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
+                assetServerPort,
+              );
+              assetReader = ProxyServerAssetReader.fromHandler(_assetHandler!);
+            } else {
+              _assetHandler = _createBuildRunnerAmdAssetHandler(
+                assetServerPort,
+              );
+              assetReader = ProxyServerAssetReader(
+                assetServerPort,
+                root: project.directoryToServe,
+              );
+            }
 
             if (testSettings.enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
@@ -745,9 +756,9 @@ class TestContext {
       // Update the reloaded_sources.json file.
       if (file.endsWith(project.dartEntryFileName)) {
         final projectDir = p.url.dirname(project.filePathToServe);
-        final fileName = p.withoutExtension(project.dartEntryFileName);
+        final fileName = p.url.withoutExtension(project.dartEntryFileName);
         final src = '/${p.url.join(projectDir, fileName)}.ddc.js';
-        final module = p.withoutExtension(
+        final module = p.url.withoutExtension(
           project.dartEntryFilePackageUri.path.substring(1),
         );
         final libUri = project.dartEntryFilePackageUri.toString();
@@ -771,6 +782,14 @@ class TestContext {
     // Library folder may not exist yet, so create it.
     file.createSync(recursive: true);
     file.writeAsStringSync(contents);
+  }
+
+  /// Returns a handler for build runner + DDC AMD module system.
+  Handler _createBuildRunnerAmdAssetHandler(int assetServerPort) {
+    return proxyHandler(
+      'http://localhost:$assetServerPort/${project.directoryToServe}/',
+      client: client,
+    );
   }
 
   /// Returns a handler for build runner + the DDC Library Bundle module
