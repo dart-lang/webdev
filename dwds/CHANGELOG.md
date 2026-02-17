@@ -5,6 +5,7 @@
 - Update `ConnectFailure`, `DebugStateChange`, `DevToolsOpener`, `DevToolsUrl`, `DevToolsRequest`, `DevToolsResponse`, `ExtensionRequest`, `ExtensionResponse`, `ExtensionEvent`, `BatchedEvents` and `DebugInfo` serialization to mimic `built_value`'s list-based format to resolve compatibility issues with the debug extension.
 - Throw `RPCError` when providing invalid `pause_isolates_on_start` values to the Chrome Proxy Service.
 - Add and export `BuildRunnerDdcLibraryBundleStrategyProvider`.
+- Fix deserialization of `HotReloadResponse`, `HotRestartResponse`, and `ServiceExtensionResponse` in the `DevHandler`.
 - Remove `build`, `build_daemon`, `build_runner`, `build_version`, `build_web_compilers`, and `pubspec_parse` dependencies, along with `build.yaml` which originally generated `client.js` using `build_runner`. `client.js` is now compiled via `dart compile js` in a new `tool/build.dart` script.
 
 ## 26.2.5
