@@ -182,6 +182,7 @@ class DevHandler {
         // Map-based RPC data types:
         'ConnectRequest' => ConnectRequest.fromJson(jsonData),
         'RunRequest' => RunRequest.fromJson(jsonData),
+        'HotRestartRequest' => HotRestartRequest.fromJson(jsonData),
         'HotReloadResponse' => HotReloadResponse.fromJson(jsonData),
         'HotRestartResponse' => HotRestartResponse.fromJson(jsonData),
         'ServiceExtensionResponse' => ServiceExtensionResponse.fromJson(
