@@ -450,6 +450,14 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
+      - name: Setup Chrome Wrapper
+        run: |
+          echo '#!/bin/bash' > chrome_wrapper
+          echo 'exec google-chrome --no-sandbox "$@"' >> chrome_wrapper
+          chmod +x chrome_wrapper
+          echo "CHROME_EXECUTABLE=$PWD/chrome_wrapper" >> $GITHUB_ENV
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
       - name: "webdev; dart test -j 1"
         run: dart test -j 1
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
@@ -705,6 +713,14 @@ jobs:
         working-directory: webdev
       - name: "webdev; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+      - name: Setup Chrome Wrapper
+        run: |
+          echo '#!/bin/bash' > chrome_wrapper
+          echo 'exec google-chrome --no-sandbox "$@"' >> chrome_wrapper
+          chmod +x chrome_wrapper
+          echo "CHROME_EXECUTABLE=$PWD/chrome_wrapper" >> $GITHUB_ENV
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
       - name: "webdev; dart test -j 1"
@@ -1163,6 +1179,14 @@ jobs:
         working-directory: webdev
       - name: "webdev; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+      - name: Setup Chrome Wrapper
+        run: |
+          echo '#!/bin/bash' > chrome_wrapper
+          echo 'exec google-chrome --no-sandbox "$@"' >> chrome_wrapper
+          chmod +x chrome_wrapper
+          echo "CHROME_EXECUTABLE=$PWD/chrome_wrapper" >> $GITHUB_ENV
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
       - name: "webdev; dart test -j 1"

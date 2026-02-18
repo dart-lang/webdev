@@ -352,7 +352,6 @@ class TestContext {
               ),
 
               _ => BuildRunnerRequireStrategyProvider(
-                null,
                 testSettings.reloadConfiguration,
                 assetReader,
                 buildSettings,

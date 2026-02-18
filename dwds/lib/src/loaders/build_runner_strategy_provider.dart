@@ -12,16 +12,11 @@ import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-import 'package:shelf/shelf.dart';
 
 /// Provides a [RequireStrategy] suitable for use with `package:build_runner`.
 class BuildRunnerRequireStrategyProvider with BuildRunnerStrategyProviderMixin {
   @override
   final _logger = Logger('BuildRunnerRequireStrategyProvider');
-
-  /// Included for backwards compatibility.
-  // ignore: unused_field
-  final Handler? _assetHandler;
 
   @override
   final ReloadConfiguration _configuration;
@@ -47,7 +42,6 @@ class BuildRunnerRequireStrategyProvider with BuildRunnerStrategyProviderMixin {
   );
 
   BuildRunnerRequireStrategyProvider(
-    this._assetHandler,
     this._configuration,
     this._assetReader,
     this._buildSettings, {
