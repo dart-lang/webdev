@@ -252,6 +252,10 @@ class TestContext {
       final httpServer = await startHttpServer('localhost');
       _port = httpServer.port;
 
+      final reloadedSourcesUri = Uri.parse(
+        'http://localhost:$_port/${WebDevFS.reloadedSourcesFileName}',
+      );
+
       switch (testSettings.compilationMode) {
         case CompilationMode.buildDaemon:
           {
@@ -342,9 +346,7 @@ class TestContext {
                   testSettings.reloadConfiguration,
                   assetReader,
                   buildSettings,
-                  reloadedSourcesUri: Uri.parse(
-                    'http://localhost:$_port/${WebDevFS.reloadedSourcesFileName}',
-                  ),
+                  reloadedSourcesUri: reloadedSourcesUri,
                 ).strategy,
               (ModuleFormat.ddc, false) => throw Exception(
                 'Unsupported DDC configuration: build daemon + canary (false) '
@@ -434,9 +436,7 @@ class TestContext {
                         packageUriMapper,
                         () async => {},
                         buildSettings,
-                        reloadedSourcesUri: Uri.parse(
-                          'http://localhost:$_port/${WebDevFS.reloadedSourcesFileName}',
-                        ),
+                        reloadedSourcesUri: reloadedSourcesUri,
                       ).strategy
                     : FrontendServerDdcStrategyProvider(
                         testSettings.reloadConfiguration,
@@ -538,9 +538,7 @@ class TestContext {
                   () async => {},
                   buildSettings,
                   injectScriptLoad: false,
-                  reloadedSourcesUri: Uri.parse(
-                    'http://localhost:$_port/${WebDevFS.reloadedSourcesFileName}',
-                  ),
+                  reloadedSourcesUri: reloadedSourcesUri,
                 ).strategy,
               _ => throw Exception(
                 'Unsupported DDC module format when compiling with Frontend '
@@ -762,11 +760,13 @@ class TestContext {
           project.dartEntryFilePackageUri.path.substring(1),
         );
         final libUri = project.dartEntryFilePackageUri.toString();
-        _reloadedSources.add({
-          'src': src,
-          'module': module,
-          'libraries': [libUri],
-        });
+        _reloadedSources.add(
+          WebDevFS.createReloadedSourceEntry(
+            src: src,
+            module: module,
+            libraries: [libUri],
+          ),
+        );
       }
     }
   }
@@ -775,7 +775,7 @@ class TestContext {
   ///
   /// Used by the DDC Library Bundle module system to record changed files for
   /// hot restart/reload.
-  final _reloadedSources = <Map<String, dynamic>>[];
+  final _reloadedSources = <Map<String, Object>>[];
 
   void addLibraryFile({required String libFileName, required String contents}) {
     final file = File(project.dartLibFilePath(libFileName));
@@ -838,6 +838,7 @@ class TestContext {
     if (propagateToBrowser) {
       // Allow change to propagate to the browser.
       // Windows, or at least Travis on Windows, seems to need more time.
+      // TODO: Wait for an explicit finish signal instead of adding this delay.
       final delay = Platform.isWindows
           ? const Duration(seconds: 5)
           : const Duration(seconds: 2);
