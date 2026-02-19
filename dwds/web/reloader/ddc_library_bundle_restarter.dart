@@ -105,22 +105,7 @@ class DdcLibraryBundleRestarter implements Restarter {
     String? runId,
     Future? readyToRunMain,
     String? reloadedSourcesPath,
-  }) {
-    // Return the current restart if there is one in progress.
-    if (_currentRestart != null) return _currentRestart!;
-    _currentRestart = _performRestart(reloadedSourcesPath, readyToRunMain)
-        .whenComplete(() {
-          _currentRestart = null;
-        });
-
-    return _currentRestart!;
-  }
-
-  /// Initiates a hot restart and returns its result.
-  Future<(bool, JSArray<JSObject>?)> _performRestart(
-    String? reloadedSourcesPath,
-    Future? readyToRunMain,
-  ) async {
+  }) async {
     assert(
       reloadedSourcesPath != null,
       "Expected 'reloadedSourcesPath' to not be null in a hot restart.",

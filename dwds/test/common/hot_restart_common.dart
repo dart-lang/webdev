@@ -68,7 +68,6 @@ void runTests({
     final completer = Completer<void>();
     final subscription = context.webkitDebugger.onConsoleAPICalled.listen((e) {
       final value = e.args.first.value;
-      print('Console: $value');
       if (expectations.contains(value)) {
         expectations.remove(value);
         if (expectations.isEmpty) {
