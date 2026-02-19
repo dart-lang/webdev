@@ -9,7 +9,7 @@
 - Add support for Build Runner + DDC Module Bundle in test fixtures.
 - Unify `assetHandler` and `assetReader` in `BuildRunnerStrategyProviderMixin`.
 - Resolve test suite flakiness for hot restarts and port discover.
-- Bump `build_web_compilers` to ^4.4.11.
+- Bump `build_web_compilers` to ^4.4.12.
 
 ## 26.2.5
 - Remove `package:built_value` dependency from `ErrorResponse` and `RegisterEvent`; switch to standard Dart JSON serialization.
