@@ -8,7 +8,7 @@
 - Add and export `BuildRunnerDdcLibraryBundleStrategyProvider`.
 - Add support for Build Runner + DDC Module Bundle in test fixtures.
 - Unify `assetHandler` and `assetReader` in `BuildRunnerStrategyProviderMixin`.
-- Resolve test suite flakiness for hot restarts and port discover.
+- Resolve test suite flakiness for port discovery.
 - Bump `build_web_compilers` to ^4.4.12.
 
 ## 26.2.5
