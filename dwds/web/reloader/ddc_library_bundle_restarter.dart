@@ -108,12 +108,10 @@ class DdcLibraryBundleRestarter implements Restarter {
   }) {
     // Return the current restart if there is one in progress.
     if (_currentRestart != null) return _currentRestart!;
-    _currentRestart = _performRestart(
-      reloadedSourcesPath,
-      readyToRunMain,
-    ).whenComplete(() {
-      _currentRestart = null;
-    });
+    _currentRestart = _performRestart(reloadedSourcesPath, readyToRunMain)
+        .whenComplete(() {
+          _currentRestart = null;
+        });
 
     return _currentRestart!;
   }
@@ -123,21 +121,21 @@ class DdcLibraryBundleRestarter implements Restarter {
     String? reloadedSourcesPath,
     Future? readyToRunMain,
   ) async {
-      assert(
-        reloadedSourcesPath != null,
-        "Expected 'reloadedSourcesPath' to not be null in a hot restart.",
-      );
-      await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
-      final mainHandler = (JSFunction runMain) {
-        _dartDevEmbedder.config.capturedMainHandler = null;
-        safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
-      }.toJS;
-      _dartDevEmbedder.config.capturedMainHandler = mainHandler;
-      final srcModuleLibraries = await _getSrcModuleLibraries(
-        reloadedSourcesPath!,
-      );
-      await _dartDevEmbedder.hotRestart().toDart;
-      return (true, srcModuleLibraries.jsify() as JSArray<JSObject>);
+    assert(
+      reloadedSourcesPath != null,
+      "Expected 'reloadedSourcesPath' to not be null in a hot restart.",
+    );
+    await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
+    final mainHandler = (JSFunction runMain) {
+      _dartDevEmbedder.config.capturedMainHandler = null;
+      safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
+    }.toJS;
+    _dartDevEmbedder.config.capturedMainHandler = mainHandler;
+    final srcModuleLibraries = await _getSrcModuleLibraries(
+      reloadedSourcesPath!,
+    );
+    await _dartDevEmbedder.hotRestart().toDart;
+    return (true, srcModuleLibraries.jsify() as JSArray<JSObject>);
   }
 
   @override
