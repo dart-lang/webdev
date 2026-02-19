@@ -67,10 +67,6 @@ extension on JSArray<JSString> {
 class DdcLibraryBundleRestarter implements Restarter {
   JSFunction? _capturedHotReloadEndCallback;
 
-  // Resolves to the result of the current hot restart, or null if there is no
-  // restart in progress.
-  Future<(bool, JSArray<JSObject>?)>? _currentRestart;
-
   Future<void> _runMainWhenReady(
     Future? readyToRunMain,
     JSFunction runMain,
