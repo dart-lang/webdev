@@ -106,8 +106,23 @@ class DdcLibraryBundleRestarter implements Restarter {
     Future? readyToRunMain,
     String? reloadedSourcesPath,
   }) {
+    // Return the current restart if there is one in progress.
     if (_currentRestart != null) return _currentRestart!;
-    final restartFuture = () async {
+    _currentRestart = _performRestart(
+      reloadedSourcesPath,
+      readyToRunMain,
+    ).whenComplete(() {
+      _currentRestart = null;
+    });
+
+    return _currentRestart!;
+  }
+
+  /// Initiates a hot restart and returns its result.
+  Future<(bool, JSArray<JSObject>?)> _performRestart(
+    String? reloadedSourcesPath,
+    Future? readyToRunMain,
+  ) async {
       assert(
         reloadedSourcesPath != null,
         "Expected 'reloadedSourcesPath' to not be null in a hot restart.",
@@ -123,13 +138,6 @@ class DdcLibraryBundleRestarter implements Restarter {
       );
       await _dartDevEmbedder.hotRestart().toDart;
       return (true, srcModuleLibraries.jsify() as JSArray<JSObject>);
-    }();
-
-    _currentRestart = restartFuture.whenComplete(() {
-      _currentRestart = null;
-    });
-
-    return _currentRestart!;
   }
 
   @override
