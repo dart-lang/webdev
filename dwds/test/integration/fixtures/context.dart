@@ -31,6 +31,7 @@ import 'package:http/io_client.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
@@ -247,7 +248,14 @@ class TestContext {
       var basePath = '';
       var filePathToServe = project.filePathToServe;
 
-      _port = await findUnusedPort();
+      // Start the HTTP server and save its used port.
+      final httpServer = await startHttpServer('localhost');
+      _port = httpServer.port;
+
+      final reloadedSourcesUri = Uri.parse(
+        'http://localhost:$_port/${WebDevFS.reloadedSourcesFileName}',
+      );
+
       switch (testSettings.compilationMode) {
         case CompilationMode.buildDaemon:
           {
@@ -303,19 +311,26 @@ class TestContext {
             final assetServerPort = daemonPort(
               project.absolutePackageDirectory,
             );
-            _assetHandler = proxyHandler(
-              'http://localhost:$assetServerPort/${project.directoryToServe}/',
-              client: client,
-            );
-            assetReader = ProxyServerAssetReader(
-              assetServerPort,
-              root: project.directoryToServe,
-            );
+            if (testSettings.moduleFormat == ModuleFormat.ddc &&
+                buildSettings.canaryFeatures) {
+              _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
+                assetServerPort,
+              );
+              assetReader = ProxyServerAssetReader.fromHandler(_assetHandler!);
+            } else {
+              _assetHandler = _createBuildRunnerAmdAssetHandler(
+                assetServerPort,
+              );
+              assetReader = ProxyServerAssetReader(
+                assetServerPort,
+                root: project.directoryToServe,
+              );
+            }
 
             if (testSettings.enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
                 'localhost',
-                port,
+                _port!,
                 verbose: testSettings.verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
               );
@@ -328,10 +343,10 @@ class TestContext {
             )) {
               (ModuleFormat.ddc, true) =>
                 BuildRunnerDdcLibraryBundleStrategyProvider(
-                  assetHandler,
                   testSettings.reloadConfiguration,
                   assetReader,
                   buildSettings,
+                  reloadedSourcesUri: reloadedSourcesUri,
                 ).strategy,
               (ModuleFormat.ddc, false) => throw Exception(
                 'Unsupported DDC configuration: build daemon + canary (false) '
@@ -339,7 +354,6 @@ class TestContext {
               ),
 
               _ => BuildRunnerRequireStrategyProvider(
-                assetHandler,
                 testSettings.reloadConfiguration,
                 assetReader,
                 buildSettings,
@@ -422,9 +436,7 @@ class TestContext {
                         packageUriMapper,
                         () async => {},
                         buildSettings,
-                        reloadedSourcesUri: Uri.parse(
-                          'http://localhost:$port/${WebDevFS.reloadedSourcesFileName}',
-                        ),
+                        reloadedSourcesUri: reloadedSourcesUri,
                       ).strategy
                     : FrontendServerDdcStrategyProvider(
                         testSettings.reloadConfiguration,
@@ -494,19 +506,15 @@ class TestContext {
             final assetServerPort = daemonPort(
               project.absolutePackageDirectory,
             );
-            _assetHandler = proxyHandler(
-              'http://localhost:$assetServerPort/${project.directoryToServe}/',
-              client: client,
-            );
-            assetReader = ProxyServerAssetReader(
+            _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
               assetServerPort,
-              root: project.directoryToServe,
             );
+            assetReader = ProxyServerAssetReader.fromHandler(_assetHandler!);
 
             if (testSettings.enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
                 'localhost',
-                port,
+                _port!,
                 verbose: testSettings.verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
               );
@@ -530,9 +538,7 @@ class TestContext {
                   () async => {},
                   buildSettings,
                   injectScriptLoad: false,
-                  reloadedSourcesUri: Uri.parse(
-                    'http://localhost:$port/${WebDevFS.reloadedSourcesFileName}',
-                  ),
+                  reloadedSourcesUri: reloadedSourcesUri,
                 ).strategy,
               _ => throw Exception(
                 'Unsupported DDC module format when compiling with Frontend '
@@ -602,6 +608,7 @@ class TestContext {
         target: project.directoryToServe,
         buildResults: buildResults,
         chromeConnection: () async => connection,
+        httpServer: httpServer,
       );
 
       _testServer!.dwds.connectedApps.listen((connection) async {
@@ -733,6 +740,7 @@ class TestContext {
     // TODO(https://github.com/dart-lang/sdk/issues/51937): Remove once this bug
     // is fixed.
     if (Platform.isWindows) await Future.delayed(Duration(seconds: 1));
+    _reloadedSources.clear();
     for (var (:file, :originalString, :newString) in edits) {
       if (file == project.dartEntryFileName) {
         file = project.dartEntryFilePath;
@@ -742,14 +750,68 @@ class TestContext {
       final f = File(project.dartLibFilePath(file));
       final fileContents = f.readAsStringSync();
       f.writeAsStringSync(fileContents.replaceAll(originalString, newString));
+
+      // Update the reloaded_sources.json file.
+      if (file.endsWith(project.dartEntryFileName)) {
+        final projectDir = p.url.dirname(project.filePathToServe);
+        final fileName = p.url.withoutExtension(project.dartEntryFileName);
+        final src = '/${p.url.join(projectDir, fileName)}.ddc.js';
+        final module = p.url.withoutExtension(
+          project.dartEntryFilePackageUri.path.substring(1),
+        );
+        final libUri = project.dartEntryFilePackageUri.toString();
+        _reloadedSources.add(
+          WebDevFS.createReloadedSourceEntry(
+            src: src,
+            module: module,
+            libraries: [libUri],
+          ),
+        );
+      }
     }
   }
+
+  /// Contains contents of the reloaded_sources.json manifest file.
+  ///
+  /// Used by the DDC Library Bundle module system to record changed files for
+  /// hot restart/reload.
+  final _reloadedSources = <Map<String, Object>>[];
 
   void addLibraryFile({required String libFileName, required String contents}) {
     final file = File(project.dartLibFilePath(libFileName));
     // Library folder may not exist yet, so create it.
     file.createSync(recursive: true);
     file.writeAsStringSync(contents);
+  }
+
+  /// Returns a handler for build runner + DDC AMD module system.
+  Handler _createBuildRunnerAmdAssetHandler(int assetServerPort) {
+    return proxyHandler(
+      'http://localhost:$assetServerPort/${project.directoryToServe}/',
+      client: client,
+    );
+  }
+
+  /// Returns a handler for build runner + the DDC Library Bundle module
+  /// system.
+  ///
+  /// This handler:
+  /// - serves the reloaded_sources.json file for reloads/restarts.
+  /// - serves the application directory and entrypoint from
+  ///   `project.directoryToServe`.
+  Handler _createBuildRunnerDdcLibraryBundleAssetHandler(int assetServerPort) {
+    final entrypointProxy = proxyHandler(
+      'http://localhost:$assetServerPort/${project.directoryToServe}/',
+      client: client,
+    );
+
+    return (request) {
+      final path = request.url.path;
+      if (path.endsWith(WebDevFS.reloadedSourcesFileName)) {
+        return shelf.Response.ok(jsonEncode(_reloadedSources));
+      }
+      return entrypointProxy(request);
+    };
   }
 
   Future<void> recompile({required bool fullRestart}) async {
@@ -776,6 +838,7 @@ class TestContext {
     if (propagateToBrowser) {
       // Allow change to propagate to the browser.
       // Windows, or at least Travis on Windows, seems to need more time.
+      // TODO: Wait for an explicit finish signal instead of adding this delay.
       final delay = Platform.isWindows
           ? const Duration(seconds: 5)
           : const Duration(seconds: 2);

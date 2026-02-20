@@ -41,7 +41,7 @@ void runTests({
       assert(compilationMode == CompilationMode.buildDaemon);
       if (hasEdits) {
         // Only gets a new build if there were edits.
-        await context.waitForSuccessfulBuild(propagateToBrowser: true);
+        await context.waitForSuccessfulBuild();
       }
     }
   }

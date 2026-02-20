@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/loaders/ddc_library_bundle.dart';
@@ -13,15 +12,12 @@ import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-import 'package:shelf/shelf.dart';
 
 /// Provides a [RequireStrategy] suitable for use with `package:build_runner`.
 class BuildRunnerRequireStrategyProvider with BuildRunnerStrategyProviderMixin {
   @override
   final _logger = Logger('BuildRunnerRequireStrategyProvider');
 
-  @override
-  final Handler _assetHandler;
   @override
   final ReloadConfiguration _configuration;
   @override
@@ -46,7 +42,6 @@ class BuildRunnerRequireStrategyProvider with BuildRunnerStrategyProviderMixin {
   );
 
   BuildRunnerRequireStrategyProvider(
-    this._assetHandler,
     this._configuration,
     this._assetReader,
     this._buildSettings, {
@@ -62,8 +57,6 @@ class BuildRunnerDdcLibraryBundleStrategyProvider
   @override
   final _logger = Logger('BuildRunnerDdcLibraryBundleStrategyProvider');
 
-  @override
-  final Handler _assetHandler;
   @override
   final ReloadConfiguration _configuration;
   @override
@@ -86,22 +79,55 @@ class BuildRunnerDdcLibraryBundleStrategyProvider
     _buildSettings,
     (path) => null, // g3RelativePath
     packageConfigPath: _packageConfigPath,
+    injectScriptLoad: injectScriptLoad,
+    reloadedSourcesUri: _reloadedSourcesUri,
   );
 
+  /// The [Uri] of the file that contains a JSONified list of maps which follows
+  /// the following format:
+  ///
+  /// ```json
+  /// [
+  ///   {
+  ///     "src": "<base_uri>/<file_name>",
+  ///     "module": "<module_name>",
+  ///     "libraries": ["<lib1>", "<lib2>"],
+  ///   },
+  /// ]
+  /// ```
+  ///
+  /// `src`: A string that corresponds to the file path containing a DDC library
+  /// bundle.
+  /// `module`: The name of the library bundle in `src`.
+  /// `libraries`: An array of strings containing the libraries that were
+  /// compiled in `src`.
+  ///
+  /// This is needed for hot reloads and restarts in order to tell the module
+  /// loader what files need to be loaded and what libraries need to be
+  /// reloaded. The contents of the file this [Uri] points to should be updated
+  /// whenever a hot reload or hot restart is executed.
+  final Uri? _reloadedSourcesUri;
+
+  /// When enabled, injects the script loader into the bootstrapper from
+  /// within DWDS. This is used throughout Flutter Web but may be disabled
+  /// for specific workflows where the script loader is managed separately.
+  final bool injectScriptLoad;
+
   BuildRunnerDdcLibraryBundleStrategyProvider(
-    this._assetHandler,
     this._configuration,
     this._assetReader,
     this._buildSettings, {
     String? packageConfigPath,
-  }) : _packageConfigPath = packageConfigPath;
+    Uri? reloadedSourcesUri,
+    this.injectScriptLoad = true,
+  }) : _packageConfigPath = packageConfigPath,
+       _reloadedSourcesUri = reloadedSourcesUri;
 
   DdcLibraryBundleStrategy get strategy => _strategy;
 }
 
 mixin BuildRunnerStrategyProviderMixin {
   Logger get _logger;
-  Handler get _assetHandler;
   // ignore: unused_element
   ReloadConfiguration get _configuration;
   // ignore: unused_element
@@ -120,13 +146,10 @@ mixin BuildRunnerStrategyProviderMixin {
       '.dart.bootstrap.js',
       '.digests',
     );
-    final response = await _assetHandler(
-      Request('GET', Uri.parse('http://foo:0000/$digestsPath')),
-    );
-    if (response.statusCode != HttpStatus.ok) {
+    final body = await _assetReader.metadataContents(digestsPath);
+    if (body == null) {
       throw StateError('Could not read digests at path: $digestsPath');
     }
-    final body = await response.readAsString();
     final digests = json.decode(body) as Map<String, dynamic>;
 
     for (final key in digests.keys) {

@@ -1,12 +1,16 @@
-## 26.2.6-wip
+## 27.0.0
 - Remove `package:built_value`, `package:built_value_generator`, and `package:built_collection` dependencies.
 - Remove `serializers.dart` and `data_serializers.dart`.
 - Remove `package:built_value` dependency from `ConnectFailure`, `DebugStateChange`, `DevToolsOpener`, `DevToolsUrl`, `IsolateStart`, `IsolateExit`, `DevToolsRequest`, `DevToolsResponse`, `ExtensionRequest`, `ExtensionResponse`, `ExtensionEvent`, and `BatchedEvents`; switch to standard Dart JSON serialization.
 - Update `ConnectFailure`, `DebugStateChange`, `DevToolsOpener`, `DevToolsUrl`, `DevToolsRequest`, `DevToolsResponse`, `ExtensionRequest`, `ExtensionResponse`, `ExtensionEvent`, `BatchedEvents` and `DebugInfo` serialization to mimic `built_value`'s list-based format to resolve compatibility issues with the debug extension.
-- Throw `RPCError` when providing invalid `pause_isolates_on_start` values to the Chrome Proxy Service.
-- Add and export `BuildRunnerDdcLibraryBundleStrategyProvider`.
-- Fix deserialization of `HotRestartRequest`, `HotReloadResponse`, `HotRestartResponse`, and `ServiceExtensionResponse` in the `DevHandler`.
 - Remove `build`, `build_daemon`, `build_runner`, `build_version`, `build_web_compilers`, and `pubspec_parse` dependencies, along with `build.yaml` which originally generated `client.js` using `build_runner`. `client.js` is now compiled via `dart compile js` in a new `tool/build.dart` script.
+- Throw `RPCError` when providing invalid `pause_isolates_on_start` values to the Chrome Proxy Service.
+- Fix deserialization of `HotRestartRequest`, `HotReloadResponse`, `HotRestartResponse`, and `ServiceExtensionResponse` in the `DevHandler`.
+- Add and export `BuildRunnerDdcLibraryBundleStrategyProvider`.
+- Add support for Build Runner + DDC Module Bundle in test fixtures.
+- Unify `assetHandler` and `assetReader` in `BuildRunnerStrategyProviderMixin`.
+- Resolve test suite flakiness for port discovery.
+- Bump `build_web_compilers` to ^4.4.12.
 
 ## 26.2.5
 - Remove `package:built_value` dependency from `ErrorResponse` and `RegisterEvent`; switch to standard Dart JSON serialization.

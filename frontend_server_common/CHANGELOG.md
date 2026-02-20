@@ -3,6 +3,7 @@
 - Update Dart SDK constraint to `^3.10.0`.
 - Add bootstrapping code for DDC library bundle format.
 - Added scriptUri to compileExpression*Request
+- Adding `createReloadedSourceEntry` for sharing reloaded_sources.json entry logic.
 
 ## 0.2.2
 
