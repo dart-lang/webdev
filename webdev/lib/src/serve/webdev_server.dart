@@ -204,7 +204,6 @@ class WebDevServer {
         ).strategy;
       } else {
         loadStrategy = BuildRunnerRequireStrategyProvider(
-          assetHandler,
           options.configuration.reload,
           assetReader,
           buildSettings,
