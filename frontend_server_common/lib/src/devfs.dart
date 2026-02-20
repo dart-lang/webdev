@@ -268,17 +268,25 @@ class WebDevFS {
             as Map<String, dynamic>,
       );
       final libraries = metadata.libraries.keys.toList();
-      moduleToLibrary.add(<String, Object>{
-        'src': '$fileServerUri/$module',
-        'module': metadata.name,
-        'libraries': libraries,
-      });
+      moduleToLibrary.add(
+        createReloadedSourceEntry(
+          src: '$fileServerUri/$module',
+          module: metadata.name,
+          libraries: libraries,
+        ),
+      );
     }
     assetServer.writeFile(
       reloadedSourcesFileName,
       json.encode(moduleToLibrary),
     );
   }
+
+  static Map<String, Object> createReloadedSourceEntry({
+    required String src,
+    required String module,
+    required List<String> libraries,
+  }) => {'src': src, 'module': module, 'libraries': libraries};
 
   File get ddcModuleLoaderJS =>
       fileSystem.file(sdkLayout.ddcModuleLoaderJsPath);
