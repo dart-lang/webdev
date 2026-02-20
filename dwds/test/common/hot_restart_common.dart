@@ -34,24 +34,19 @@ void runTests({
 
   tearDownAll(provider.dispose);
 
-  Future<void> recompile({
-    bool hasEdits = false,
-    bool propagateToBrowser = true,
-  }) async {
+  Future<void> recompile({bool hasEdits = false}) async {
     if (compilationMode == CompilationMode.frontendServer) {
       await context.recompile(fullRestart: true);
     } else {
       assert(compilationMode == CompilationMode.buildDaemon);
       if (hasEdits) {
         // Only gets a new build if there were edits.
-        await context.waitForSuccessfulBuild(
-          propagateToBrowser: propagateToBrowser,
-        );
+        await context.waitForSuccessfulBuild();
       }
     }
   }
 
-  Future<void> makeEditAndRecompile({bool propagateToBrowser = true}) async {
+  Future<void> makeEditAndRecompile() async {
     await context.makeEdits([
       (
         file: context.project.dartEntryFileName,
@@ -59,7 +54,7 @@ void runTests({
         newString: newString,
       ),
     ]);
-    await recompile(hasEdits: true, propagateToBrowser: propagateToBrowser);
+    await recompile(hasEdits: true);
   }
 
   // Wait for `expectedStrings` to be printed to the console.
@@ -291,7 +286,7 @@ void runTests({
     test('can hot restart via the service extension', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
-      await makeEditAndRecompile(propagateToBrowser: false);
+      await makeEditAndRecompile();
 
       final eventsDone = expectLater(
         client.onIsolateEvent,
@@ -344,7 +339,7 @@ void runTests({
         "registerExtension('ext.foo', $callback)",
       );
 
-      await recompile(propagateToBrowser: false);
+      await recompile();
       // Main is re-invoked which shouldn't clear the state.
       final logFuture = waitForLogs(['$originalString $originalString']);
       final hotRestart = context.getRegisteredServiceExtension('hotRestart');
