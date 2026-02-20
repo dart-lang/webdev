@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -62,9 +63,13 @@ void runTests({
   Future<List<Instance>> getElements(String instanceId) =>
       testInspector.getElements(isolateId, instanceId);
 
-  final matchTypeObjectFields = {};
+  final matchTypeObjectFields = {
+    if (provider.ddcModuleFormat == ModuleFormat.ddc) '_rti': anything,
+  };
 
-  final matchDisplayedTypeObjectFields = {};
+  final matchDisplayedTypeObjectFields = {
+    if (provider.ddcModuleFormat == ModuleFormat.ddc) '_rti': anything,
+  };
 
   final matchDisplayedTypeObjectGetters = {
     'hashCode': matches('[0-9]*'),
@@ -311,7 +316,6 @@ void runTests({
         final instanceId = instanceRef.id!;
         final instance = await getObject(instanceId);
         expect(instance, matchTypeInstance('_Uri'));
-
         final classId = instanceRef.classRef!.id;
         expect(await getObject(classId), matchTypeClass);
         expect(await getFields(instanceRef, depth: 1), matchTypeObjectFields);
