@@ -6,6 +6,8 @@ analyzer:
     - "lib/data/*"
     # Ignore debug extension builds
     - "debug_extension/compiled/*"
+    # Ignore integration tests
+    - "test/integration/**"
 
 linter:
   rules:

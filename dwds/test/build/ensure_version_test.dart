@@ -9,18 +9,16 @@ import 'dart:io';
 
 import 'package:dwds/src/version.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 void main() {
   test('dwds lib/src/version.dart matches the pubspec version', () {
-    final pubspec = Pubspec.parse(File('pubspec.yaml').readAsStringSync());
+    final pubspec = loadYaml(File('pubspec.yaml').readAsStringSync());
     expect(
       Version.parse(packageVersion),
-      pubspec.version,
-      reason:
-          'Please run `dart run build_runner build '
-          '--build-filter=lib/src/version.dart` to update the version.',
+      Version.parse(pubspec['version'] as String),
+      reason: 'Please run `dart run tool/build.dart` to update the version.',
     );
   });
 }

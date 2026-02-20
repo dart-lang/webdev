@@ -44,19 +44,15 @@ dev_dependencies:
   analysis_config:
     path: ../_analysis_config
   args: ^2.4.2
-  build: ^2.3.1
   build_daemon: ^4.0.0
-  build_runner: ^2.4.1
-  build_version: ^2.1.1
-  build_web_compilers: ^4.4.12
   graphs: ^2.1.0
   frontend_server_common:
     path: ../frontend_server_common
   io: ^1.0.5
   js: ">=0.6.4 <0.8.0"
-  pubspec_parse: ^1.2.0
   puppeteer: ^3.1.1
   test: ^1.21.6
   test_common:
     path: ../test_common
   webdriver: ^3.0.0
+  yaml: ^3.1.3
