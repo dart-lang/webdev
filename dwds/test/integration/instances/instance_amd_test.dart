@@ -16,10 +16,11 @@ import 'common/instance_common.dart';
 void main() {
   // Enable verbose logging for debugging.
   const debug = false;
-  final canaryFeatures = false;
   final moduleFormat = ModuleFormat.amd;
 
-  group('canary: $canaryFeatures |', () {
+  group('canary: false | Build Daemon |', () {
+    final canaryFeatures = false;
+    final compilationMode = CompilationMode.buildDaemon;
     final provider = TestSdkConfigurationProvider(
       canaryFeatures: canaryFeatures,
       verbose: debug,
@@ -27,22 +28,93 @@ void main() {
     );
     tearDownAll(provider.dispose);
 
-    for (final compilationMode in CompilationMode.values.where(
-      (mode) => !mode.usesDdcModulesOnly,
-    )) {
-      runTypeSystemVerificationTests(
-        provider: provider,
-        compilationMode: compilationMode,
-        canaryFeatures: canaryFeatures,
-        debug: debug,
-      );
+    runTypeSystemVerificationTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
 
-      runTests(
-        provider: provider,
-        compilationMode: compilationMode,
-        canaryFeatures: canaryFeatures,
-        debug: debug,
-      );
-    }
+    runTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+  });
+
+  group('canary: true | Build Daemon |', () {
+    final canaryFeatures = true;
+    final compilationMode = CompilationMode.buildDaemon;
+    final provider = TestSdkConfigurationProvider(
+      canaryFeatures: canaryFeatures,
+      verbose: debug,
+      ddcModuleFormat: moduleFormat,
+    );
+    tearDownAll(provider.dispose);
+
+    runTypeSystemVerificationTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+
+    runTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+  });
+
+  group('canary: false | Frontend Server |', () {
+    final canaryFeatures = false;
+    final compilationMode = CompilationMode.frontendServer;
+    final provider = TestSdkConfigurationProvider(
+      canaryFeatures: canaryFeatures,
+      verbose: debug,
+      ddcModuleFormat: moduleFormat,
+    );
+    tearDownAll(provider.dispose);
+
+    runTypeSystemVerificationTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+
+    runTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+  });
+
+  group('canary: true | Frontend Server |', () {
+    final canaryFeatures = true;
+    final compilationMode = CompilationMode.frontendServer;
+    final provider = TestSdkConfigurationProvider(
+      canaryFeatures: canaryFeatures,
+      verbose: debug,
+      ddcModuleFormat: moduleFormat,
+    );
+    tearDownAll(provider.dispose);
+
+    runTypeSystemVerificationTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+
+    runTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
   });
 }

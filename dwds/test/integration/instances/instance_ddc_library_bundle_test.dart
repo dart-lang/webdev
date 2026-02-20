@@ -18,9 +18,26 @@ void main() {
   const debug = false;
   final canaryFeatures = true;
   final moduleFormat = ModuleFormat.ddc;
-  final compilationMode = CompilationMode.frontendServer;
 
-  group('canary: $canaryFeatures |', () {
+  group('canary: true | Frontend Server |', () {
+    final compilationMode = CompilationMode.frontendServer;
+    final provider = TestSdkConfigurationProvider(
+      canaryFeatures: canaryFeatures,
+      verbose: debug,
+      ddcModuleFormat: moduleFormat,
+    );
+    tearDownAll(provider.dispose);
+
+    runTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+  });
+
+  group('canary: true | Build Daemon |', () {
+    final compilationMode = CompilationMode.buildDaemon;
     final provider = TestSdkConfigurationProvider(
       canaryFeatures: canaryFeatures,
       verbose: debug,
