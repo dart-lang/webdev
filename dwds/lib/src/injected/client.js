@@ -1507,7 +1507,7 @@
         case 4:
           return closure.call$4(arg1, arg2, arg3, arg4);
       }
-      throw A.wrapException(A.Exception_Exception("Unsupported number of arguments for wrapped closure"));
+      throw A.wrapException(new A._Exception("Unsupported number of arguments for wrapped closure"));
     },
     convertDartClosureToJS(closure, arity) {
       var $function = closure.$identity;
@@ -2263,7 +2263,7 @@
     NativeTypedData: function NativeTypedData() {
     },
     _UnmodifiableNativeByteBufferView: function _UnmodifiableNativeByteBufferView(t0) {
-      this._data = t0;
+      this.__native_typed_data$_data = t0;
     },
     NativeByteData: function NativeByteData() {
     },
@@ -5209,7 +5209,7 @@
     _JsonMap: function _JsonMap(t0, t1) {
       this._original = t0;
       this._processed = t1;
-      this._convert$_data = null;
+      this._data = null;
     },
     _JsonMapKeyIterable: function _JsonMapKeyIterable(t0) {
       this._parent = t0;
@@ -5534,9 +5534,6 @@
     },
     ConcurrentModificationError$(modifiedObject) {
       return new A.ConcurrentModificationError(modifiedObject);
-    },
-    Exception_Exception(message) {
-      return new A._Exception(message);
     },
     FormatException$(message, source, offset) {
       return new A.FormatException(message, source, offset);
@@ -7484,6 +7481,8 @@
     },
     safeUnawaited_closure: function safeUnawaited_closure() {
     },
+    Uuid: function Uuid() {
+    },
     stronglyConnectedComponents(nodes, edges, $T) {
       var t2, t3, t4, node, index, t5, state, iterator, index0, lowLink, t6, next, component, t7, result0, _null = null,
         result = A._setArrayType([], $T._eval$1("JSArray<List<0>>")),
@@ -8374,13 +8373,6 @@
       _._string_scanner$_position = 0;
       _._lastMatchPosition = _._lastMatch = null;
     },
-    RNG: function RNG() {
-    },
-    CryptoRNG: function CryptoRNG() {
-    },
-    UuidV1: function UuidV1(t0) {
-      this.goptions = t0;
-    },
     _EventStreamSubscription$(_target, _eventType, onData, _useCapture, $T) {
       var t1;
       if (onData == null)
@@ -8762,7 +8754,7 @@
     handleWebSocketHotRestartRequest$body($event, manager, clientSink) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.void),
-        $async$returnValue, $async$handler = 2, $async$errorStack = [], runId, e, t1, rng, t2, exception, requestId, $async$exception;
+        $async$handler = 1, $async$errorStack = [], runId, e, exception, requestId, $async$exception;
       var $async$handleWebSocketHotRestartRequest = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1) {
           $async$errorStack.push($async$result);
@@ -8773,61 +8765,36 @@
             case 0:
               // Function start
               requestId = $event.id;
-              $async$handler = 4;
-              t1 = null;
-              if (null == null)
-                rng = t1;
-              else
-                rng = t1;
-              if (rng == null)
-                rng = $.$get$V4State_random().generate$0();
-              t1 = rng.length;
-              if (6 >= t1) {
-                $async$returnValue = A.ioore(rng, 6);
-                // goto return
-                $async$goto = 1;
-                break;
-              }
-              t2 = rng[6];
-              rng.$flags & 2 && A.throwUnsupportedOperation(rng);
-              rng[6] = t2 & 15 | 64;
-              if (8 >= t1) {
-                $async$returnValue = A.ioore(rng, 8);
-                // goto return
-                $async$goto = 1;
-                break;
-              }
-              rng[8] = rng[8] & 63 | 128;
-              runId = A.UuidParsing_unparse(rng);
-              $async$goto = 7;
+              $async$handler = 3;
+              runId = B.C_Uuid.v4$0();
+              $async$goto = 6;
               return A._asyncAwait(manager.hotRestart$2$reloadedSourcesPath$runId(A._asStringQ(init.G.$reloadedSourcesPath), runId), $async$handleWebSocketHotRestartRequest);
-            case 7:
+            case 6:
               // returning from await.
               A._sendHotRestartResponse(clientSink, requestId, null, true);
-              $async$handler = 2;
+              $async$handler = 1;
               // goto after finally
-              $async$goto = 6;
+              $async$goto = 5;
               break;
-            case 4:
+            case 3:
               // catch
-              $async$handler = 3;
+              $async$handler = 2;
               $async$exception = $async$errorStack.pop();
               e = A.unwrapException($async$exception);
               A._sendHotRestartResponse(clientSink, requestId, J.toString$0$(e), false);
               // goto after finally
-              $async$goto = 6;
+              $async$goto = 5;
               break;
-            case 3:
+            case 2:
               // uncaught
               // goto rethrow
-              $async$goto = 2;
+              $async$goto = 1;
               break;
-            case 6:
+            case 5:
               // after finally
+              // implicit return
+              return A._asyncReturn(null, $async$completer);
             case 1:
-              // return
-              return A._asyncReturn($async$returnValue, $async$completer);
-            case 2:
               // rethrow
               return A._asyncRethrow($async$errorStack.at(-1), $async$completer);
           }
@@ -9371,77 +9338,6 @@
         bits = bits >>> 6;
       }
       return A.String_String$fromCharCodes(chars, 0, null);
-    },
-    UuidParsing_unparse(buffer) {
-      var t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17,
-        t1 = buffer.length;
-      if (t1 < 16)
-        throw A.wrapException(A.RangeError$("buffer too small: need 16: length=" + t1));
-      t1 = $.$get$UuidParsing__byteToHex();
-      t2 = buffer[0];
-      if (!(t2 < 256))
-        return A.ioore(t1, t2);
-      t2 = t1[t2];
-      t3 = buffer[1];
-      if (!(t3 < 256))
-        return A.ioore(t1, t3);
-      t3 = t1[t3];
-      t4 = buffer[2];
-      if (!(t4 < 256))
-        return A.ioore(t1, t4);
-      t4 = t1[t4];
-      t5 = buffer[3];
-      if (!(t5 < 256))
-        return A.ioore(t1, t5);
-      t5 = t1[t5];
-      t6 = buffer[4];
-      if (!(t6 < 256))
-        return A.ioore(t1, t6);
-      t6 = t1[t6];
-      t7 = buffer[5];
-      if (!(t7 < 256))
-        return A.ioore(t1, t7);
-      t7 = t1[t7];
-      t8 = buffer[6];
-      if (!(t8 < 256))
-        return A.ioore(t1, t8);
-      t8 = t1[t8];
-      t9 = buffer[7];
-      if (!(t9 < 256))
-        return A.ioore(t1, t9);
-      t9 = t1[t9];
-      t10 = buffer[8];
-      if (!(t10 < 256))
-        return A.ioore(t1, t10);
-      t10 = t1[t10];
-      t11 = buffer[9];
-      if (!(t11 < 256))
-        return A.ioore(t1, t11);
-      t11 = t1[t11];
-      t12 = buffer[10];
-      if (!(t12 < 256))
-        return A.ioore(t1, t12);
-      t12 = t1[t12];
-      t13 = buffer[11];
-      if (!(t13 < 256))
-        return A.ioore(t1, t13);
-      t13 = t1[t13];
-      t14 = buffer[12];
-      if (!(t14 < 256))
-        return A.ioore(t1, t14);
-      t14 = t1[t14];
-      t15 = buffer[13];
-      if (!(t15 < 256))
-        return A.ioore(t1, t15);
-      t15 = t1[t15];
-      t16 = buffer[14];
-      if (!(t16 < 256))
-        return A.ioore(t1, t16);
-      t16 = t1[t16];
-      t17 = buffer[15];
-      if (!(t17 < 256))
-        return A.ioore(t1, t17);
-      return t2 + t3 + t4 + t5 + "-" + t6 + t7 + "-" + t8 + t9 + "-" + t10 + t11 + "-" + t12 + t13 + t14 + t15 + t16 + t1[t17];
     }
   },
   B = {};
@@ -9902,30 +9798,6 @@
     },
     get$isNegative(receiver) {
       return receiver === 0 ? 1 / receiver < 0 : receiver < 0;
-    },
-    toInt$0(receiver) {
-      var t1;
-      if (receiver >= -2147483648 && receiver <= 2147483647)
-        return receiver | 0;
-      if (isFinite(receiver)) {
-        t1 = receiver < 0 ? Math.ceil(receiver) : Math.floor(receiver);
-        return t1 + 0;
-      }
-      throw A.wrapException(A.UnsupportedError$("" + receiver + ".toInt()"));
-    },
-    floor$0(receiver) {
-      var truncated, d;
-      if (receiver >= 0) {
-        if (receiver <= 2147483647)
-          return receiver | 0;
-      } else if (receiver >= -2147483648) {
-        truncated = receiver | 0;
-        return receiver === truncated ? truncated : truncated - 1;
-      }
-      d = Math.floor(receiver);
-      if (isFinite(d))
-        return d;
-      throw A.wrapException(A.UnsupportedError$("" + receiver + ".floor()"));
     },
     toRadixString$1(receiver, radix) {
       var result, t1, t2, match, exponent;
@@ -11749,7 +11621,7 @@
   };
   A._UnmodifiableNativeByteBufferView.prototype = {
     asUint8List$2(_, offsetInBytes, $length) {
-      var result = A.NativeUint8List_NativeUint8List$view(this._data, offsetInBytes, $length);
+      var result = A.NativeUint8List_NativeUint8List$view(this.__native_typed_data$_data, offsetInBytes, $length);
       result.$flags = 3;
       return result;
     },
@@ -15140,7 +15012,7 @@
       var result,
         t1 = this._processed;
       if (t1 == null)
-        return this._convert$_data.$index(0, key);
+        return this._data.$index(0, key);
       else if (typeof key != "string")
         return null;
       else {
@@ -15149,7 +15021,7 @@
       }
     },
     get$length(_) {
-      return this._processed == null ? this._convert$_data.__js_helper$_length : this._convert$_computeKeys$0().length;
+      return this._processed == null ? this._data.__js_helper$_length : this._convert$_computeKeys$0().length;
     },
     get$isEmpty(_) {
       return this.get$length(0) === 0;
@@ -15159,7 +15031,7 @@
     },
     get$keys() {
       if (this._processed == null) {
-        var t1 = this._convert$_data;
+        var t1 = this._data;
         return new A.LinkedHashMapKeysIterable(t1, A._instanceType(t1)._eval$1("LinkedHashMapKeysIterable<1>"));
       }
       return new A._JsonMapKeyIterable(this);
@@ -15168,7 +15040,7 @@
       var processed, original, _this = this;
       A._asString(key);
       if (_this._processed == null)
-        _this._convert$_data.$indexSet(0, key, value);
+        _this._data.$indexSet(0, key, value);
       else if (_this.containsKey$1(key)) {
         processed = _this._processed;
         processed[key] = value;
@@ -15180,14 +15052,14 @@
     },
     containsKey$1(key) {
       if (this._processed == null)
-        return this._convert$_data.containsKey$1(key);
+        return this._data.containsKey$1(key);
       return Object.prototype.hasOwnProperty.call(this._original, key);
     },
     forEach$1(_, f) {
       var keys, i, key, value, _this = this;
       type$.void_Function_String_dynamic._as(f);
       if (_this._processed == null)
-        return _this._convert$_data.forEach$1(0, f);
+        return _this._data.forEach$1(0, f);
       keys = _this._convert$_computeKeys$0();
       for (i = 0; i < keys.length; ++i) {
         key = keys[i];
@@ -15197,20 +15069,20 @@
           _this._processed[key] = value;
         }
         f.call$2(key, value);
-        if (keys !== _this._convert$_data)
+        if (keys !== _this._data)
           throw A.wrapException(A.ConcurrentModificationError$(_this));
       }
     },
     _convert$_computeKeys$0() {
-      var keys = type$.nullable_List_dynamic._as(this._convert$_data);
+      var keys = type$.nullable_List_dynamic._as(this._data);
       if (keys == null)
-        keys = this._convert$_data = A._setArrayType(Object.keys(this._original), type$.JSArray_String);
+        keys = this._data = A._setArrayType(Object.keys(this._original), type$.JSArray_String);
       return keys;
     },
     _upgrade$0() {
       var result, keys, i, t1, key, _this = this;
       if (_this._processed == null)
-        return _this._convert$_data;
+        return _this._data;
       result = A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.dynamic);
       keys = _this._convert$_computeKeys$0();
       for (i = 0; t1 = keys.length, i < t1; ++i) {
@@ -15222,7 +15094,7 @@
       else
         B.JSArray_methods.clear$0(keys);
       _this._original = _this._processed = null;
-      return _this._convert$_data = result;
+      return _this._data = result;
     },
     _process$1(key) {
       var result;
@@ -17282,7 +17154,7 @@
       t1.setUint32(0, 0, false);
       start = 4 - byteCount;
       randomLimit = A._asInt(Math.pow(256, byteCount));
-      for (t2 = max - 1, t3 = (max & t2) >>> 0 === 0;;) {
+      for (t2 = max - 1, t3 = (max & t2) === 0;;) {
         crypto.getRandomValues(J.asUint8List$2$x(B.NativeByteData_methods.get$buffer(t1), start, byteCount));
         random = t1.getUint32(0, false);
         if (t3)
@@ -18427,6 +18299,26 @@
     },
     $signature: 24
   };
+  A.Uuid.prototype = {
+    v4$0() {
+      var i, t1, t2, t3,
+        bytes = new Uint8Array(16);
+      for (i = 0; i < 16; ++i)
+        bytes[i] = $.$get$Uuid__random().nextInt$1(256);
+      bytes[6] = bytes[6] & 15 | 64;
+      bytes[8] = bytes[8] & 63 | 128;
+      for (i = 0, t1 = ""; i < 16; ++i, t1 = t3) {
+        if (i === 4 || i === 6 || i === 8 || i === 10)
+          t1 += "-";
+        t2 = $.$get$Uuid__hex();
+        t3 = bytes[i];
+        if (!(t3 < 256))
+          return A.ioore(t2, t3);
+        t3 = t1 + t2[t3];
+      }
+      return t1.charCodeAt(0) == 0 ? t1 : t1;
+    }
+  };
   A._StackState.prototype = {};
   A.BaseClient.prototype = {
     _sendUnstreamed$3(method, url, headers) {
@@ -18617,11 +18509,6 @@
     },
     call$2(value, header) {
       return this.call$3(value, header, null);
-    },
-    "call*": "call$3",
-    $requiredArgCount: 2,
-    $defaultValues() {
-      return [null];
     },
     $signature: 37
   };
@@ -20688,124 +20575,6 @@
       this.error$3$length$position("expected " + $name + ".", 0, this._string_scanner$_position);
     }
   };
-  A.RNG.prototype = {
-    generate$0() {
-      var uint8list = this._generateInternal$0();
-      if (uint8list.length !== 16)
-        throw A.wrapException(A.Exception_Exception("The length of the Uint8list returned by the custom RNG must be 16."));
-      else
-        return uint8list;
-    }
-  };
-  A.CryptoRNG.prototype = {
-    _generateInternal$0() {
-      var i, k, t1, t2,
-        b = new Uint8Array(16);
-      for (i = 0; i < 16; i += 4) {
-        k = $.$get$CryptoRNG__secureRandom().nextInt$1(B.JSNumber_methods.toInt$0(Math.pow(2, 32)));
-        if (!(i < 16))
-          return A.ioore(b, i);
-        b[i] = k;
-        t1 = i + 1;
-        t2 = B.JSInt_methods._shrOtherPositive$1(k, 8);
-        if (!(t1 < 16))
-          return A.ioore(b, t1);
-        b[t1] = t2;
-        t2 = i + 2;
-        t1 = B.JSInt_methods._shrOtherPositive$1(k, 16);
-        if (!(t2 < 16))
-          return A.ioore(b, t2);
-        b[t2] = t1;
-        t1 = i + 3;
-        t2 = B.JSInt_methods._shrOtherPositive$1(k, 24);
-        if (!(t1 < 16))
-          return A.ioore(b, t1);
-        b[t1] = t2;
-      }
-      return b;
-    }
-  };
-  A.UuidV1.prototype = {
-    _init$0() {
-      var seedBytes, t1, t2, t3, t4, t5, t6;
-      if ($.V1State_initialized)
-        return;
-      seedBytes = $.$get$V1State_random().generate$0();
-      t1 = seedBytes.length;
-      if (0 >= t1)
-        return A.ioore(seedBytes, 0);
-      t2 = seedBytes[0];
-      if (1 >= t1)
-        return A.ioore(seedBytes, 1);
-      t3 = seedBytes[1];
-      if (2 >= t1)
-        return A.ioore(seedBytes, 2);
-      t4 = seedBytes[2];
-      if (3 >= t1)
-        return A.ioore(seedBytes, 3);
-      t5 = seedBytes[3];
-      if (4 >= t1)
-        return A.ioore(seedBytes, 4);
-      t6 = seedBytes[4];
-      if (5 >= t1)
-        return A.ioore(seedBytes, 5);
-      $.V1State_nodeId = A._setArrayType([t2 | 1, t3, t4, t5, t6, seedBytes[5]], type$.JSArray_int);
-      if (6 >= t1)
-        return A.ioore(seedBytes, 6);
-      t6 = seedBytes[6];
-      if (7 >= t1)
-        return A.ioore(seedBytes, 7);
-      $.V1State_clockSeq = (t6 << 8 | seedBytes[7]) & 262143;
-      $.V1State_initialized = true;
-    },
-    generate$1$options(options) {
-      var buf, clockSeq, mSecs, t1, nSecs, t2, tl, tmh, node, n, t3;
-      this._init$0();
-      buf = new Uint8Array(16);
-      clockSeq = $.V1State_clockSeq;
-      mSecs = Date.now();
-      t1 = $.V1State_nSecs;
-      nSecs = t1 + 1;
-      t2 = $.V1State_mSecs;
-      t1 = mSecs - t2 + (nSecs - t1) / 10000 < 0;
-      if (t1)
-        clockSeq = clockSeq + 1 & 16383;
-      t1 = t1 || mSecs > t2;
-      if (t1)
-        nSecs = 0;
-      if (nSecs >= 10000)
-        throw A.wrapException(A.Exception_Exception("uuid.v1(): Can't create more than 10M uuids/sec"));
-      $.V1State_mSecs = mSecs;
-      $.V1State_nSecs = nSecs;
-      $.V1State_clockSeq = clockSeq;
-      mSecs += 122192928e5;
-      tl = ((mSecs & 268435455) * 10000 + nSecs) % 4294967296;
-      buf[0] = tl >>> 24 & 255;
-      buf[1] = tl >>> 16 & 255;
-      buf[2] = tl >>> 8 & 255;
-      buf[3] = tl & 255;
-      tmh = B.JSNumber_methods.floor$0(mSecs / 4294967296 * 10000) & 268435455;
-      buf[4] = tmh >>> 8 & 255;
-      buf[5] = tmh & 255;
-      buf[6] = tmh >>> 24 & 255;
-      buf[7] = tmh >>> 16 & 255;
-      buf[8] = clockSeq >>> 8 & 63;
-      buf[9] = clockSeq & 255;
-      buf[6] = buf[6] & 15 | 16;
-      buf[8] = buf[8] | 128;
-      node = $.V1State_nodeId;
-      for (t1 = node.length, n = 0; n < 6; ++n) {
-        t2 = 10 + n;
-        if (!(n < t1))
-          return A.ioore(node, n);
-        t3 = node[n];
-        if (!(t2 < 16))
-          return A.ioore(buf, t2);
-        buf[t2] = t3;
-      }
-      return A.UuidParsing_unparse(buf);
-    }
-  };
   A.EventStreamProvider.prototype = {};
   A._EventStream.prototype = {
     listen$4$cancelOnError$onDone$onError(onData, cancelOnError, onDone, onError) {
@@ -21032,7 +20801,7 @@
                 if (storedInstanceId != null)
                   t1.$dartAppInstanceId = storedInstanceId;
                 else {
-                  t1.$dartAppInstanceId = new A.UuidV1(null).generate$1$options(null);
+                  t1.$dartAppInstanceId = B.C_Uuid.v4$0();
                   t2 = A._asJSObject(A._asJSObject(t1.window).sessionStorage);
                   t3 = A._asStringQ(t1.$dartAppInstanceId);
                   t3.toString;
@@ -21160,11 +20929,6 @@
     },
     call$1(runId) {
       return this.call$2(runId, null);
-    },
-    "call*": "call$2",
-    $requiredArgCount: 1,
-    $defaultValues() {
-      return [null];
     },
     $signature: 60
   };
@@ -22346,15 +22110,12 @@
     _static(A, "async___rootHandleUncaughtError$closure", 5, null, ["call$5"], ["_rootHandleUncaughtError"], 75, 0);
     _static(A, "async___rootRun$closure", 4, null, ["call$1$4", "call$4"], ["_rootRun", function($self, $parent, zone, f) {
       return A._rootRun($self, $parent, zone, f, type$.dynamic);
-    }], 76, 1);
+    }], 76, 0);
     _static(A, "async___rootRunUnary$closure", 5, null, ["call$2$5", "call$5"], ["_rootRunUnary", function($self, $parent, zone, f, arg) {
       var t1 = type$.dynamic;
       return A._rootRunUnary($self, $parent, zone, f, arg, t1, t1);
-    }], 77, 1);
-    _static(A, "async___rootRunBinary$closure", 6, null, ["call$3$6", "call$6"], ["_rootRunBinary", function($self, $parent, zone, f, arg1, arg2) {
-      var t1 = type$.dynamic;
-      return A._rootRunBinary($self, $parent, zone, f, arg1, arg2, t1, t1, t1);
-    }], 78, 1);
+    }], 77, 0);
+    _static(A, "async___rootRunBinary$closure", 6, null, ["call$3$6"], ["_rootRunBinary"], 78, 0);
     _static(A, "async___rootRegisterCallback$closure", 4, null, ["call$1$4", "call$4"], ["_rootRegisterCallback", function($self, $parent, zone, f) {
       return A._rootRegisterCallback($self, $parent, zone, f, type$.dynamic);
     }], 79, 0);
@@ -22373,9 +22134,7 @@
     _static(A, "async___rootPrint$closure", 4, null, ["call$4"], ["_rootPrint"], 86, 0);
     _static_1(A, "async___printToZone$closure", "_printToZone", 87);
     _static(A, "async___rootFork$closure", 5, null, ["call$5"], ["_rootFork"], 88, 0);
-    _instance(A._Completer.prototype, "get$completeError", 0, 1, function() {
-      return [null];
-    }, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 58, 0, 0);
+    _instance(A._Completer.prototype, "get$completeError", 0, 1, null, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 58, 0, 0);
     _instance_2_u(A._Future.prototype, "get$_completeError", "_completeError$2", 6);
     var _;
     _instance_1_u(_ = A._StreamController.prototype, "get$_add", "_add$1", 7);
@@ -22402,7 +22161,7 @@
     _static_1(A, "core_Uri_decodeComponent$closure", "Uri_decodeComponent", 11);
     _static(A, "math__max$closure", 2, null, ["call$1$2", "call$2"], ["max", function(a, b) {
       return A.max(a, b, type$.num);
-    }], 65, 1);
+    }], 65, 0);
     _instance_1_u(_ = A.PersistentWebSocket.prototype, "get$_writeToWebSocket", "_writeToWebSocket$1", 5);
     _instance_0_u(_, "get$_listenWithRetry", "_listenWithRetry$0", 10);
     _static_1(A, "case_insensitive_map_CaseInsensitiveMap__canonicalizer$closure", "CaseInsensitiveMap__canonicalizer", 11);
@@ -22420,7 +22179,7 @@
       _inherit = hunkHelpers.inherit,
       _inheritMany = hunkHelpers.inheritMany;
     _inherit(A.Object, null);
-    _inheritMany(A.Object, [A.JS_CONST, J.Interceptor, A.SafeToStringHook, J.ArrayIterator, A.Stream, A.CastStreamSubscription, A.Iterable, A.CastIterator, A.Closure, A.MapBase, A.Error, A.ListBase, A.SentinelValue, A.ListIterator, A.MappedIterator, A.WhereIterator, A.ExpandIterator, A.TakeIterator, A.SkipIterator, A.EmptyIterator, A.WhereTypeIterator, A.FixedLengthListMixin, A.UnmodifiableListMixin, A._Record, A.ConstantMap, A._KeysOrValuesOrElementsIterator, A.TypeErrorDecoder, A.NullThrownFromJavaScriptException, A.ExceptionAndStackTrace, A._StackTrace, A.LinkedHashMapCell, A.LinkedHashMapKeyIterator, A.LinkedHashMapValueIterator, A.LinkedHashMapEntryIterator, A.JSSyntaxRegExp, A._MatchImplementation, A._AllMatchesIterator, A.StringMatch, A._StringAllMatchesIterator, A._Cell, A._UnmodifiableNativeByteBufferView, A.Rti, A._FunctionParameters, A._Type, A._TimerImpl, A._AsyncAwaitCompleter, A._AsyncStarStreamController, A._IterationMarker, A.AsyncError, A._Completer, A._FutureListener, A._Future, A._AsyncCallbackEntry, A._StreamController, A._AsyncStreamControllerDispatch, A._BufferingStreamSubscription, A._StreamSinkWrapper, A._AddStreamState, A._DelayedEvent, A._DelayedDone, A._PendingEvents, A._DoneStreamSubscription, A._StreamIterator, A._ZoneFunction, A._Zone, A._ZoneDelegate, A._ZoneSpecification, A._HashMapKeyIterator, A.SetBase, A._HashSetIterator, A._UnmodifiableMapMixin, A.MapView, A._ListQueueIterator, A._SplayTreeNode, A._SplayTree, A._SplayTreeIterator, A.Codec, A.Converter, A.ByteConversionSink, A._JsonStringifier, A._Utf8Encoder, A._Utf8Decoder, A.DateTime, A.Duration, A._Enum, A.OutOfMemoryError, A.StackOverflowError, A._Exception, A.FormatException, A.MapEntry, A.Null, A._StringStackTrace, A.StringBuffer, A._Uri, A.UriData, A._SimpleUri, A.NullRejectionException, A._JSRandom, A._JSSecureRandom, A.AsyncMemoizer, A.ErrorResult, A.ValueResult, A.StreamQueue, A._NextRequest, A._HasNextRequest, A.CanonicalizedMap, A._QueueList_Object_ListMixin, A.BuildResult, A.ConnectRequest, A.DebugEvent, A.BatchedDebugEvents, A.DebugInfo, A.DevToolsRequest, A.DevToolsResponse, A.ErrorResponse, A.HotReloadRequest, A.HotReloadResponse, A.HotRestartRequest, A.HotRestartResponse, A.RegisterEvent, A.RunRequest, A.ServiceExtensionRequest, A.ServiceExtensionResponse, A.BatchedStreamController, A.SocketClient, A._PersistentWebSocket_Object_StreamChannelMixin, A._StackState, A.BaseClient, A.BaseRequest, A.BaseResponse, A.ClientException, A.MediaType, A.Level, A.LogRecord, A.Logger, A.Context, A.Style, A.ParsedPath, A.PathException, A.Pool, A.PoolResource, A.SourceFile, A.SourceLocationMixin, A.SourceSpanMixin, A.Highlighter, A._Highlight, A._Line, A.SourceLocation, A.SourceSpanException, A.StreamChannelMixin, A.StringScanner, A.RNG, A.UuidV1, A.EventStreamProvider, A._EventStreamSubscription, A.BrowserWebSocket, A.WebSocketEvent, A.WebSocketException, A.DdcLibraryBundleRestarter, A.DdcRestarter, A.ReloadingManager, A.HotReloadFailedException, A.RequireRestarter]);
+    _inheritMany(A.Object, [A.JS_CONST, J.Interceptor, A.SafeToStringHook, J.ArrayIterator, A.Stream, A.CastStreamSubscription, A.Iterable, A.CastIterator, A.Closure, A.MapBase, A.Error, A.ListBase, A.SentinelValue, A.ListIterator, A.MappedIterator, A.WhereIterator, A.ExpandIterator, A.TakeIterator, A.SkipIterator, A.EmptyIterator, A.WhereTypeIterator, A.FixedLengthListMixin, A.UnmodifiableListMixin, A._Record, A.ConstantMap, A._KeysOrValuesOrElementsIterator, A.TypeErrorDecoder, A.NullThrownFromJavaScriptException, A.ExceptionAndStackTrace, A._StackTrace, A.LinkedHashMapCell, A.LinkedHashMapKeyIterator, A.LinkedHashMapValueIterator, A.LinkedHashMapEntryIterator, A.JSSyntaxRegExp, A._MatchImplementation, A._AllMatchesIterator, A.StringMatch, A._StringAllMatchesIterator, A._Cell, A._UnmodifiableNativeByteBufferView, A.Rti, A._FunctionParameters, A._Type, A._TimerImpl, A._AsyncAwaitCompleter, A._AsyncStarStreamController, A._IterationMarker, A.AsyncError, A._Completer, A._FutureListener, A._Future, A._AsyncCallbackEntry, A._StreamController, A._AsyncStreamControllerDispatch, A._BufferingStreamSubscription, A._StreamSinkWrapper, A._AddStreamState, A._DelayedEvent, A._DelayedDone, A._PendingEvents, A._DoneStreamSubscription, A._StreamIterator, A._ZoneFunction, A._Zone, A._ZoneDelegate, A._ZoneSpecification, A._HashMapKeyIterator, A.SetBase, A._HashSetIterator, A._UnmodifiableMapMixin, A.MapView, A._ListQueueIterator, A._SplayTreeNode, A._SplayTree, A._SplayTreeIterator, A.Codec, A.Converter, A.ByteConversionSink, A._JsonStringifier, A._Utf8Encoder, A._Utf8Decoder, A.DateTime, A.Duration, A._Enum, A.OutOfMemoryError, A.StackOverflowError, A._Exception, A.FormatException, A.MapEntry, A.Null, A._StringStackTrace, A.StringBuffer, A._Uri, A.UriData, A._SimpleUri, A.NullRejectionException, A._JSRandom, A._JSSecureRandom, A.AsyncMemoizer, A.ErrorResult, A.ValueResult, A.StreamQueue, A._NextRequest, A._HasNextRequest, A.CanonicalizedMap, A._QueueList_Object_ListMixin, A.BuildResult, A.ConnectRequest, A.DebugEvent, A.BatchedDebugEvents, A.DebugInfo, A.DevToolsRequest, A.DevToolsResponse, A.ErrorResponse, A.HotReloadRequest, A.HotReloadResponse, A.HotRestartRequest, A.HotRestartResponse, A.RegisterEvent, A.RunRequest, A.ServiceExtensionRequest, A.ServiceExtensionResponse, A.BatchedStreamController, A.SocketClient, A._PersistentWebSocket_Object_StreamChannelMixin, A.Uuid, A._StackState, A.BaseClient, A.BaseRequest, A.BaseResponse, A.ClientException, A.MediaType, A.Level, A.LogRecord, A.Logger, A.Context, A.Style, A.ParsedPath, A.PathException, A.Pool, A.PoolResource, A.SourceFile, A.SourceLocationMixin, A.SourceSpanMixin, A.Highlighter, A._Highlight, A._Line, A.SourceLocation, A.SourceSpanException, A.StreamChannelMixin, A.StringScanner, A.EventStreamProvider, A._EventStreamSubscription, A.BrowserWebSocket, A.WebSocketEvent, A.WebSocketException, A.DdcLibraryBundleRestarter, A.DdcRestarter, A.ReloadingManager, A.HotReloadFailedException, A.RequireRestarter]);
     _inheritMany(J.Interceptor, [J.JSBool, J.JSNull, J.JavaScriptObject, J.JavaScriptBigInt, J.JavaScriptSymbol, J.JSNumber, J.JSString]);
     _inheritMany(J.JavaScriptObject, [J.LegacyJavaScriptObject, J.JSArray, A.NativeByteBuffer, A.NativeTypedData]);
     _inheritMany(J.LegacyJavaScriptObject, [J.PlainJavaScriptObject, J.UnknownJavaScriptObject, J.JavaScriptFunction]);
@@ -22509,7 +22268,6 @@
     _inherit(A.SourceSpanWithContext, A.SourceSpanBase);
     _inherit(A.SseClient, A.StreamChannelMixin);
     _inherit(A.StringScannerException, A.SourceSpanFormatException);
-    _inherit(A.CryptoRNG, A.RNG);
     _inheritMany(A.WebSocketEvent, [A.TextDataReceived, A.BinaryDataReceived, A.CloseReceived]);
     _inherit(A.WebSocketConnectionClosed, A.WebSocketException);
     _mixin(A.UnmodifiableListBase, A.UnmodifiableListMixin);
@@ -22874,6 +22632,7 @@
     B.C_SentinelValue = new A.SentinelValue();
     B.C_Utf8Codec = new A.Utf8Codec();
     B.C_Utf8Encoder = new A.Utf8Encoder();
+    B.C_Uuid = new A.Uuid();
     B.C__DelayedDone = new A._DelayedDone();
     B.C__JSRandom = new A._JSRandom();
     B.C__RootZone = new A._RootZone();
@@ -22953,16 +22712,10 @@
     $.Logger__loggers = A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.Logger);
     $._currentUriBase = null;
     $._current = null;
-    $.V1State_nodeId = A._setArrayType([], type$.JSArray_int);
-    $.V1State_clockSeq = 0;
-    $.V1State_mSecs = 0;
-    $.V1State_nSecs = 0;
-    $.V1State_initialized = false;
     $.RequireRestarter____lastKnownDigests = A._Cell$named("_lastKnownDigests");
   })();
   (function lazyInitializers() {
-    var _lazyFinal = hunkHelpers.lazyFinal,
-      _lazy = hunkHelpers.lazy;
+    var _lazyFinal = hunkHelpers.lazyFinal;
     _lazyFinal($, "DART_CLOSURE_PROPERTY_NAME", "$get$DART_CLOSURE_PROPERTY_NAME", () => A.getIsolateAffinityTag("_$dart_dartClosure"));
     _lazyFinal($, "nullFuture", "$get$nullFuture", () => B.C__RootZone.run$1$1(new A.nullFuture_closure(), type$.Future_void));
     _lazyFinal($, "_safeToStringHooks", "$get$_safeToStringHooks", () => A._setArrayType([new J.JSArraySafeToStringHook()], A.findType("JSArray<SafeToStringHook>")));
@@ -23029,6 +22782,14 @@
       return t1;
     });
     _lazyFinal($, "_logger", "$get$_logger", () => A.Logger_Logger("Utilities"));
+    _lazyFinal($, "Uuid__random", "$get$Uuid__random", () => $.$get$Random__secureRandom());
+    _lazyFinal($, "Uuid__hex", "$get$Uuid__hex", () => {
+      var i,
+        _list = J.JSArray_JSArray$allocateGrowable(256, type$.String);
+      for (i = 0; i < 256; ++i)
+        _list[i] = B.JSString_methods.padLeft$2(B.JSInt_methods.toRadixString$1(i, 16), 2, "0");
+      return _list;
+    });
     _lazyFinal($, "BaseRequest__tokenRE", "$get$BaseRequest__tokenRE", () => A.RegExp_RegExp("^[\\w!#%&'*+\\-.^`|~]+$", false));
     _lazyFinal($, "_escapedChar", "$get$_escapedChar", () => A.RegExp_RegExp('["\\x00-\\x1F\\x7F]', false));
     _lazyFinal($, "token", "$get$token", () => A.RegExp_RegExp('[^()<>@,;:"\\\\/[\\]?={} \\t\\x00-\\x1F\\x7F]+', false));
@@ -23052,16 +22813,6 @@
       t4 = A.Completer_Completer(type$.dynamic);
       return new A.Pool(t2, t3, t1, 1000, new A.AsyncMemoizer(t4, A.findType("AsyncMemoizer<@>")));
     });
-    _lazy($, "V1State_random", "$get$V1State_random", () => new A.CryptoRNG());
-    _lazy($, "V4State_random", "$get$V4State_random", () => new A.CryptoRNG());
-    _lazyFinal($, "UuidParsing__byteToHex", "$get$UuidParsing__byteToHex", () => {
-      var i,
-        _list = J.JSArray_JSArray$allocateGrowable(256, type$.String);
-      for (i = 0; i < 256; ++i)
-        _list[i] = B.JSString_methods.padLeft$2(B.JSInt_methods.toRadixString$1(i, 16), 2, "0");
-      return _list;
-    });
-    _lazyFinal($, "CryptoRNG__secureRandom", "$get$CryptoRNG__secureRandom", () => $.$get$Random__secureRandom());
     _lazyFinal($, "_noncePattern", "$get$_noncePattern", () => A.RegExp_RegExp("^[\\w+/_-]+[=]{0,2}$", false));
     _lazyFinal($, "_createScript", "$get$_createScript", () => new A._createScript_closure().call$0());
   })();
