@@ -6,6 +6,7 @@
 - Throw `RPCError` when providing invalid `pause_isolates_on_start` values to the Chrome Proxy Service.
 - Add and export `BuildRunnerDdcLibraryBundleStrategyProvider`.
 - Fix deserialization of `HotRestartRequest`, `HotReloadResponse`, `HotRestartResponse`, and `ServiceExtensionResponse` in the `DevHandler`.
+- Remove `build`, `build_daemon`, `build_runner`, `build_version`, `build_web_compilers`, and `pubspec_parse` dependencies, along with `build.yaml` which originally generated `client.js` using `build_runner`. `client.js` is now compiled via `dart compile js` in a new `tool/build.dart` script.
 
 ## 26.2.5
 - Remove `package:built_value` dependency from `ErrorResponse` and `RegisterEvent`; switch to standard Dart JSON serialization.

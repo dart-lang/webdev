@@ -79,7 +79,7 @@ the example app and connect to DWDS.
 - If DWDS / Webdev was just released, then you will need to update the version
   in the `CHANGELOG`, and the `pubspec.yaml` file as well (eg,
   https://github.com/dart-lang/webdev/pull/1462)
-- For any directories you’ve touched, run `dart run build_runner build` to
+- For any directories you’ve touched, run `dart run tool/build.dart` to
   check in any file that should be built. This will make sure the integration
   tests are run against the built files.
 

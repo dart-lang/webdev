@@ -15,7 +15,9 @@ import 'package:test_common/utilities.dart';
 
 import '../fixtures/project.dart';
 
-final fixturesDir = absolutePath(pathFromDwds: p.join('test', 'fixtures'));
+final fixturesDir = absolutePath(
+  pathFromDwds: p.join('test', 'integration', 'fixtures'),
+);
 
 void main() {
   late FrontendServerAssetReader assetReader;

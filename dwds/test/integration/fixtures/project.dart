@@ -6,8 +6,8 @@ import 'dart:io';
 
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
-import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test_common/utilities.dart';
+import 'package:yaml/yaml.dart';
 
 enum IndexBaseMode { noBase, base }
 
@@ -203,13 +203,14 @@ class TestProject {
     Directory(newPath).createSync();
     copyPathSync(currentPath, newPath);
     copiedPackageDirectories.add(packageDirectory);
-    final pubspec = Pubspec.parse(
+    final pubspec = loadYaml(
       File(p.join(currentPath, 'pubspec.yaml')).readAsStringSync(),
     );
-    for (final dependency in pubspec.dependencies.values) {
-      if (dependency is PathDependency) {
+    final dependencies = pubspec['dependencies'] as Map? ?? {};
+    for (final dependency in dependencies.values) {
+      if (dependency is Map && dependency.containsKey('path')) {
         final dependencyDirectory = Directory(
-          p.normalize(p.join(currentPath, dependency.path)),
+          p.normalize(p.join(currentPath, dependency['path'] as String)),
         );
         // It may be okay to do some more complicated copying here for path
         // dependencies that aren't immediately under `fixtures`, but for now,
