@@ -1,3 +1,6 @@
+## 27.0.1-wip
+- Add DDC Library Bundle tests in `dwds/test/integration/instances`.
+
 ## 27.0.0
 - Remove `package:built_value`, `package:built_value_generator`, and `package:built_collection` dependencies.
 - Remove `serializers.dart` and `data_serializers.dart`.
