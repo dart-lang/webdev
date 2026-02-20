@@ -17,16 +17,17 @@ import 'common/class_inspection_common.dart';
 void main() {
   // Enable verbose logging for debugging.
   const debug = false;
-  final canaryFeatures = true;
-  final provider = TestSdkConfigurationProvider(
-    verbose: debug,
-    canaryFeatures: canaryFeatures,
-    ddcModuleFormat: ModuleFormat.ddc,
-  );
 
-  group('Class | canary: true | Frontend Server |', () {
+  group('canary: true | Frontend Server |', () {
+    final canaryFeatures = true;
     final compilationMode = CompilationMode.frontendServer;
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: ModuleFormat.ddc,
+    );
     tearDownAll(provider.dispose);
+
     runTests(
       provider: provider,
       compilationMode: compilationMode,
@@ -35,9 +36,16 @@ void main() {
     );
   });
 
-  group('Class | canary: true | Build Daemon |', () {
+  group('canary: true | Build Daemon |', () {
+    final canaryFeatures = true;
     final compilationMode = CompilationMode.buildDaemon;
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: ModuleFormat.ddc,
+    );
     tearDownAll(provider.dispose);
+
     runTests(
       provider: provider,
       compilationMode: compilationMode,
