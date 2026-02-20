@@ -16,9 +16,9 @@ import 'package:dwds/src/services/proxy_service.dart';
 import 'package:dwds/src/services/web_socket/web_socket_debug_service.dart';
 import 'package:dwds/src/services/web_socket/web_socket_proxy_service.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
+import 'package:dwds/src/utilities/uuid.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:uuid/uuid.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
@@ -446,7 +446,7 @@ final class ChromeDwdsVmClient
         _waitForResumeEventToRunMain(chromeProxyService);
       }
       // Generate run id to hot restart all apps loaded into the tab.
-      final runId = const Uuid().v4().toString();
+      final runId = const Uuid().v4();
 
       // When using the DDC library bundle format, we determine the sources that
       // were reloaded during a hot restart to then wait until all the sources are
