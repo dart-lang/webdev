@@ -16,10 +16,12 @@ import 'package:shelf_proxy/shelf_proxy.dart';
 class ProxyServerAssetReader implements AssetReader {
   final _logger = Logger('ProxyServerAssetReader');
 
-  late final Handler _handler;
-  late final http.Client _client;
+  final Handler _handler;
+  final http.Client? _client;
 
-  ProxyServerAssetReader(
+  ProxyServerAssetReader._(this._handler, this._client);
+
+  factory ProxyServerAssetReader(
     int assetServerPort, {
     String root = '',
     String host = 'localhost',
@@ -30,13 +32,16 @@ class ProxyServerAssetReader implements AssetReader {
       ..maxConnectionsPerHost = 200
       ..idleTimeout = const Duration(seconds: 30)
       ..connectionTimeout = const Duration(seconds: 30);
-    _client = isHttps
+    final client = isHttps
         ? IOClient(inner..badCertificateCallback = (cert, host, port) => true)
         : IOClient(inner);
     var url = '$scheme$host:$assetServerPort/';
     if (root.isNotEmpty) url += '$root/';
-    _handler = proxyHandler(url, client: _client);
+    final handler = proxyHandler(url, client: client);
+    return ProxyServerAssetReader._(handler, client);
   }
+
+  ProxyServerAssetReader.fromHandler(this._handler) : _client = null;
 
   @override
   String get basePath => '';
@@ -78,5 +83,5 @@ class ProxyServerAssetReader implements AssetReader {
       _readResource(serverPath);
 
   @override
-  Future<void> close() async => _client.close();
+  Future<void> close() async => _client?.close();
 }
