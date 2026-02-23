@@ -7,7 +7,7 @@
 @Timeout(Duration(minutes: 2))
 library;
 
-import 'package:dwds/expression_compiler.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
@@ -17,16 +17,35 @@ import 'common/dot_shorthands_common.dart';
 void main() {
   // Enable verbose logging for debugging.
   const debug = false;
-  const canaryFeatures = true;
-  const compilationMode = CompilationMode.frontendServer;
 
-  group('canary: $canaryFeatures |', () {
+  group('canary: true | Frontend Server |', () {
+    final canaryFeatures = true;
+    final compilationMode = CompilationMode.frontendServer;
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,
       ddcModuleFormat: ModuleFormat.ddc,
     );
     tearDownAll(provider.dispose);
+
+    runTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+  });
+
+  group('canary: true | Build Daemon |', () {
+    final canaryFeatures = true;
+    final compilationMode = CompilationMode.buildDaemon;
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: ModuleFormat.ddc,
+    );
+    tearDownAll(provider.dispose);
+
     runTests(
       provider: provider,
       compilationMode: compilationMode,
