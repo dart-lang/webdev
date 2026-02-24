@@ -17,9 +17,10 @@ import 'common/dot_shorthands_common.dart';
 void main() {
   // Enable verbose logging for debugging.
   const debug = false;
-  const canaryFeatures = false;
 
-  group('canary: $canaryFeatures |', () {
+  group('canary: false | Build Daemon |', () {
+    final canaryFeatures = false;
+    final compilationMode = CompilationMode.buildDaemon;
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,
@@ -27,15 +28,65 @@ void main() {
     );
     tearDownAll(provider.dispose);
 
-    for (final compilationMode in CompilationMode.values.where(
-      (mode) => !mode.usesDdcModulesOnly,
-    )) {
-      runTests(
-        provider: provider,
-        compilationMode: compilationMode,
-        canaryFeatures: canaryFeatures,
-        debug: debug,
-      );
-    }
+    runTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+  });
+
+  group('canary: true | Build Daemon |', () {
+    final canaryFeatures = true;
+    final compilationMode = CompilationMode.buildDaemon;
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: ModuleFormat.amd,
+    );
+    tearDownAll(provider.dispose);
+
+    runTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+  });
+
+  group('canary: false | Frontend Server |', () {
+    final canaryFeatures = false;
+    final compilationMode = CompilationMode.frontendServer;
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: ModuleFormat.amd,
+    );
+    tearDownAll(provider.dispose);
+
+    runTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+  });
+
+  group('canary: true | Frontend Server |', () {
+    final canaryFeatures = true;
+    final compilationMode = CompilationMode.frontendServer;
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: ModuleFormat.amd,
+    );
+    tearDownAll(provider.dispose);
+
+    runTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
   });
 }

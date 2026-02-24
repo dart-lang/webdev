@@ -1,5 +1,6 @@
 ## 27.0.1-wip
 - Replace `package:uuid` dependency with internal `Uuid` class for generating version 4 UUIDs.
+- Add DDC Library Bundle tests in `dwds/test/integration/instances`.
 
 ## 27.0.0
 - Remove `package:built_value`, `package:built_value_generator`, and `package:built_collection` dependencies.
