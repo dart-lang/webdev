@@ -23,9 +23,9 @@ import 'package:dwds/data/service_extension_request.dart';
 import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/shared/batched_stream.dart';
 import 'package:dwds/src/sockets.dart';
+import 'package:dwds/src/utilities/uuid.dart';
 import 'package:http/browser_client.dart';
 import 'package:sse/client/sse_client.dart';
-import 'package:uuid/uuid.dart';
 import 'package:web/web.dart';
 
 import 'reloader/ddc_library_bundle_restarter.dart';
@@ -53,7 +53,7 @@ Future<void>? main() {
         if (storedInstanceId != null) {
           dartAppInstanceId = storedInstanceId;
         } else {
-          dartAppInstanceId = const Uuid().v1();
+          dartAppInstanceId = const Uuid().v4();
           window.sessionStorage.setItem(
             dartAppInstanceIdKey,
             dartAppInstanceId!,
@@ -519,7 +519,7 @@ Future<void> handleWebSocketHotRestartRequest(
 ) async {
   final requestId = event.id;
   try {
-    final runId = const Uuid().v4().toString();
+    final runId = const Uuid().v4();
     await manager.hotRestart(
       runId: runId,
       reloadedSourcesPath: hotRestartReloadedSourcesPath,

@@ -32,7 +32,6 @@ dependencies:
   stack_trace: ^1.10.0
   stream_channel: ^2.1.2
   sse: ^4.1.2
-  uuid: ^4.0.0
   vm_service: ">=14.2.4 <16.0.0"
   vm_service_interface: ^2.0.1
   web_socket_channel: ">=2.2.0 <4.0.0"
