@@ -1,3 +1,8 @@
 dependency_overrides:
   dwds:
     path: ../dwds
+  sse:
+    git:
+      url: https://github.com/dart-lang/tools.git
+      ref: 6af7a9975
+      path: pkgs/sse
