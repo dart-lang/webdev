@@ -31,7 +31,11 @@ dependencies:
   source_maps: ^0.10.10
   stack_trace: ^1.10.0
   stream_channel: ^2.1.2
-  sse: ^4.2.0
+  sse:
+    git:
+      url: https://github.com/dart-lang/tools.git
+      ref: 6af7a9975
+      path: pkgs/sse
   vm_service: ">=14.2.4 <16.0.0"
   vm_service_interface: ^2.0.1
   web_socket_channel: ">=2.2.0 <4.0.0"
