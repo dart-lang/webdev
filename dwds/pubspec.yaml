@@ -60,5 +60,5 @@ dependency_overrides:
   sse:
     git:
       url: https://github.com/dart-lang/tools.git
-      ref: 6af7a9975
+      ref: 06493ded8ca27996d979f9f903d2bc24a1215064
       path: pkgs/sse
