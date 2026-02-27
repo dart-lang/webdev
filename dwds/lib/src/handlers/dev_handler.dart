@@ -90,6 +90,8 @@ class DevHandler {
 
   final bool useWebSocketConnection;
 
+  final Duration? sseIgnoreDisconnect;
+
   DevHandler(
     this._chromeConnection,
     this.buildResults,
@@ -106,6 +108,7 @@ class DevHandler {
     this._ddsConfig,
     this._launchDevToolsInNewWindow, {
     this.useWebSocketConnection = false,
+    this.sseIgnoreDisconnect,
   }) {
     _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
@@ -905,7 +908,11 @@ class DevHandler {
                   // the underlying connection could be lost while the application
                   // is paused. The connection will get re-established after a resume
                   // or cleaned up on a full page refresh.
-                  SseHandler(uri, keepAlive: const Duration(days: 3000)),
+                  SseHandler(
+                    uri,
+                    keepAlive: const Duration(days: 3000),
+                    ignoreDisconnect: sseIgnoreDisconnect,
+                  ),
                 )
               : WebSocketSocketHandler();
           _sseHandlers[uri.path] = handler;
