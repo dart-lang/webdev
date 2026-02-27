@@ -1,6 +1,8 @@
 ## 27.0.1-wip
 - Replace `package:uuid` dependency with internal `Uuid` class for generating version 4 UUIDs.
 - Add DDC Library Bundle tests in `dwds/test/integration/instances`.
+- Fix WebSocket reconnection hang by ensuring Dart isolate recreation when a new browser client reuses an `AppDebugServices`.
+- Don't inject script loads from within DWDS when executing with build_runner + DDC Module Bundles.
 - Fix issue where `DebugConnection` did not complete `onDone` if `WebkitDebugger` fails to reconnect to the debugger after the connection closes.
 
 ## 27.0.0
