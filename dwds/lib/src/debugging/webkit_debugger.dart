@@ -69,13 +69,7 @@ class WebkitDebugger implements RemoteDebugger {
       await sub.cancel();
       if (_closed != null) {
         // The connection closing is expected.
-        _onClosedController.add(connection);
-        await Future.wait([
-          for (final controller in _controllers) controller.close(),
-          for (final MapEntry(value: (:controller, transformer: _))
-              in _eventStreams.entries)
-            controller.close(),
-        ]);
+        await _shutdown(connection);
         return;
       }
       var retry = false;
@@ -94,7 +88,11 @@ class WebkitDebugger implements RemoteDebugger {
           retryCount++;
         }
       } while (retry && retryCount <= maxAttempts);
-      _initialize();
+      if (retryCount > maxAttempts) {
+        await _shutdown(connection);
+      } else {
+        _initialize();
+      }
     });
 
     final runtime = _wipDebugger.connection.runtime;
@@ -123,6 +121,16 @@ class WebkitDebugger implements RemoteDebugger {
               .eventStream(key, transformer)
               .listen(controller.add, onError: controller.addError),
       ]);
+  }
+
+  Future<void> _shutdown(WipConnection connection) async {
+    _onClosedController.add(connection);
+    await Future.wait([
+      for (final controller in _controllers) controller.close(),
+      for (final MapEntry(value: (:controller, transformer: _))
+          in _eventStreams.entries)
+        controller.close(),
+    ]);
   }
 
   @override
