@@ -759,6 +759,13 @@ class DevHandler {
 
       // For WebSocket mode, we need to proactively create and emit a debug connection
       try {
+        if (services != null) {
+          // If we are reconnecting to an existing app but not the same instance,
+          // ensure the isolate is started for the new connection before creating
+          // the debug connection, otherwise it will hang waiting for initialization.
+          await _handleIsolateStart(connection);
+        }
+
         // Initialize the WebSocket service and create debug connection
         final debugConnection = await createDebugConnectionForWebSocket(
           connection,

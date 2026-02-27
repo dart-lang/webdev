@@ -119,7 +119,7 @@ class BuildRunnerDdcLibraryBundleStrategyProvider
     this._buildSettings, {
     String? packageConfigPath,
     Uri? reloadedSourcesUri,
-    this.injectScriptLoad = true,
+    this.injectScriptLoad = false,
   }) : _packageConfigPath = packageConfigPath,
        _reloadedSourcesUri = reloadedSourcesUri;
 
