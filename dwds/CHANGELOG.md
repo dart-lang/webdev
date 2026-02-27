@@ -1,4 +1,4 @@
-## 27.0.1
+## 27.0.1-wip
 - Replace `package:uuid` dependency with internal `Uuid` class for generating version 4 UUIDs.
 - Add DDC Library Bundle tests in `dwds/test/integration/instances`.
 - Don't inject script loads from within DWDS when executing with build_runner + DDC Module Bundles.
