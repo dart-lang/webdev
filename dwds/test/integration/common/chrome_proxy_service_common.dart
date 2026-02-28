@@ -784,7 +784,7 @@ void runTests({
           final result = await http.get(
             Uri.parse('http://localhost:${context.port}/$serverPath'),
           );
-          expect(script.source, result.body);
+          expect(script.source, utf8.decode(result.bodyBytes));
           expect(scriptRef.uri, endsWith('.dart'));
           expect(script.tokenPosTable, isNotEmpty);
         }
