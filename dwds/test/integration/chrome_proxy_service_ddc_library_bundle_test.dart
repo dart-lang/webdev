@@ -39,20 +39,16 @@ void main() {
     );
   });
 
-  group(
-    'canary: $canaryFeatures | Build Daemon |',
-    () {
-      final compilationMode = CompilationMode.buildDaemon;
-      tearDownAll(provider.dispose);
+  group('canary: $canaryFeatures | Build Daemon |', () {
+    final compilationMode = CompilationMode.buildDaemon;
+    tearDownAll(provider.dispose);
 
-      runTests(
-        provider: provider,
-        moduleFormat: moduleFormat,
-        compilationMode: compilationMode,
-        canaryFeatures: canaryFeatures,
-        debug: debug,
-      );
-    },
-    skip: 'https://github.com/dart-lang/webdev/issues/2764',
-  );
+    runTests(
+      provider: provider,
+      moduleFormat: moduleFormat,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+      debug: debug,
+    );
+  });
 }

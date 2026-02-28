@@ -784,12 +784,7 @@ void runTests({
           final result = await http.get(
             Uri.parse('http://localhost:${context.port}/$serverPath'),
           );
-          // TODO: Figure out if we can encode the sript as utf8 and avoid this
-          final body =
-              (moduleFormat == ModuleFormat.ddc && canaryFeatures == true)
-              ? utf8.decode(result.body.codeUnits)
-              : result.body;
-          expect(script.source, body);
+          expect(script.source, result.body);
           expect(scriptRef.uri, endsWith('.dart'));
           expect(script.tokenPosTable, isNotEmpty);
         }
