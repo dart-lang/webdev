@@ -199,7 +199,15 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
     final modulePaths = await _moduleProvider(metadataProvider);
     final scripts = <Map<String, String?>>[];
     modulePaths.forEach((name, path) {
-      scripts.add(<String, String>{'src': '$path.js', 'id': name});
+      var id = name;
+      if (id.startsWith('package:')) {
+        id = id.replaceFirst('package:', 'packages/');
+        // Remove trailing '.dart' from script ids.
+        if (id.endsWith('.dart')) {
+          id = id.substring(0, id.length - '.dart'.length);
+        }
+      }
+      scripts.add(<String, String>{'src': '$path.js', 'id': id});
     });
     // Flutter always depends on the injected loader, but some canary-enabled
     // Frontend Server implementations load scripts via a separate pathway.
