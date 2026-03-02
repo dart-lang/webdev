@@ -796,8 +796,8 @@ class TestContext {
       }
     } else {
       throw StateError(
-        'Unhandled file path in test context's reloaded_sources.json: '
-        ' $absolutePath. Only entrypoints and files in "lib/" are supported.',
+        "Unhandled file path in test context's reloaded_sources.json: "
+        " $absolutePath. Only entrypoints and files in 'lib/' are supported.",
       );
     }
 
