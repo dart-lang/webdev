@@ -336,12 +336,12 @@ void runTests({
         final oldLog = "log('$genLog');";
         final newLog = "log('\$libraryValue');";
         edits.add((file: mainFile, originalString: oldLog, newString: newLog));
-        
+
         // Include library file in edits to ensure it's added to reloaded_sources.json
         edits.add((
-           file: libFile, 
-           originalString: 'String get libraryValue', 
-           newString: 'String get libraryValue'
+          file: libFile,
+          originalString: 'String get libraryValue',
+          newString: 'String get libraryValue',
         ));
 
         await makeEditsAndRecompile(edits);
@@ -400,17 +400,17 @@ void runTests({
       final oldLog = "log('$genLog');";
       final newLog = "log('\$libraryValue$numFiles');";
       edits.add((file: mainFile, originalString: oldLog, newString: newLog));
-        
-        // Include library files in edits to ensure they are added to reloaded_sources.json
-        for (var i = 1; i <= numFiles; i++) {
-          edits.add((
-             file: 'library$i.dart', 
-             originalString: 'String get libraryValue$i', 
-             newString: 'String get libraryValue$i'
-          ));
-        }
 
-        await makeEditsAndRecompile(edits);
+      // Include library files in edits to ensure they are added to reloaded_sources.json
+      for (var i = 1; i <= numFiles; i++) {
+        edits.add((
+          file: 'library$i.dart',
+          originalString: 'String get libraryValue$i',
+          newString: 'String get libraryValue$i',
+        ));
+      }
+
+      await makeEditsAndRecompile(edits);
 
       var breakpointFuture = waitForBreakpoint();
 
