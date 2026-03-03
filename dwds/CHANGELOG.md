@@ -3,6 +3,9 @@
 - Add DDC Library Bundle tests in `dwds/test/integration/instances`.
 - Fix WebSocket reconnection hang by ensuring Dart isolate recreation when a new browser client reuses an `AppDebugServices`.
 - Don't inject script loads from within DWDS when executing with build_runner + DDC Module Bundles.
+- Handle out of order disconnects and reconnects.
+  - Update dwds to support ignoring disconnects for the SseHandler
+  - This is useful to prevent incorrect behavior when a disconnect event arrives after a new connection request
 
 ## 27.0.0
 - Remove `package:built_value`, `package:built_value_generator`, and `package:built_collection` dependencies.
