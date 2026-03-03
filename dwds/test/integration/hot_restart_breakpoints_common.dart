@@ -141,7 +141,8 @@ void runTests({
       final breakpointEvents = expectLater(
         stream,
         emitsInOrder([
-          for (final (:exists, breakpointMarker: _, file: _) in breakpoints) ...[
+          for (final (:exists, breakpointMarker: _, file: _)
+              in breakpoints) ...[
             if (exists) _hasKind(EventKind.kBreakpointRemoved),
           ],
           _hasKind(EventKind.kResume),

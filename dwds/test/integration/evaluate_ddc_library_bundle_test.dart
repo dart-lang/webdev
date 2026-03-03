@@ -83,9 +83,10 @@ void main() async {
 
     group('Build Daemon |', () {
       testAll(
-          provider: provider,
-          compilationMode: CompilationMode.buildDaemon,
-          debug: debug);
+        provider: provider,
+        compilationMode: CompilationMode.buildDaemon,
+        debug: debug,
+      );
     });
 
     group('Frontend Server |', () {
