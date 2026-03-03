@@ -115,7 +115,7 @@ class PackageUriMapper {
 }
 
 String stripLeadingSlashes(String path) {
-  while (path.startsWith('/')) {
+  while (path.startsWith('/') || path.startsWith('\\')) {
     path = path.substring(1);
   }
   return path;
