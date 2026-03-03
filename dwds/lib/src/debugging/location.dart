@@ -399,10 +399,16 @@ class Locations {
     // or they may use URL semantics. To be sure, we split and re-join them.
     // This works on Windows because path treats both / and \ as separators.
     // It will fail if the path has both separators in it.
-    final relativeSegments = p.split(sourceUrls[index]);
-    final path = p.url.normalize(
-      p.url.joinAll([scriptLocation, ...relativeSegments]),
-    );
+    final url = sourceUrls[index];
+    final String path;
+    if (Uri.parse(url).isAbsolute) {
+      path = url;
+    } else {
+      final relativeSegments = p.split(url);
+      path = p.url.normalize(
+        p.url.joinAll([scriptLocation, ...relativeSegments]),
+      );
+    }
 
     try {
       final dartUri = DartUri(path, _root);
