@@ -90,6 +90,7 @@ class DebugSettings {
   final ExpressionCompiler? expressionCompiler;
   final UrlEncoder? urlEncoder;
   final DartDevelopmentServiceConfiguration ddsConfiguration;
+  final Duration? sseIgnoreDisconnect;
 
   const DebugSettings({
     this.enableDebugging = true,
@@ -110,5 +111,6 @@ class DebugSettings {
     this.expressionCompiler,
     this.urlEncoder,
     this.ddsConfiguration = const DartDevelopmentServiceConfiguration(),
+    this.sseIgnoreDisconnect,
   });
 }
