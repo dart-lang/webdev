@@ -20,13 +20,12 @@ void main() {
   final canaryFeatures = true;
   final moduleFormat = ModuleFormat.ddc;
 
-  final provider = TestSdkConfigurationProvider(
-    verbose: debug,
-    canaryFeatures: canaryFeatures,
-    ddcModuleFormat: moduleFormat,
-  );
-
   group('canary: $canaryFeatures | Frontend Server |', () {
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: moduleFormat,
+    );
     final compilationMode = CompilationMode.frontendServer;
     tearDownAll(provider.dispose);
 
@@ -40,6 +39,11 @@ void main() {
   });
 
   group('canary: $canaryFeatures | Build Daemon |', () {
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: moduleFormat,
+    );
     final compilationMode = CompilationMode.buildDaemon;
     tearDownAll(provider.dispose);
 
