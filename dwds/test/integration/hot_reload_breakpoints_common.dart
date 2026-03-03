@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Tags(['daily'])
-@TestOn('vm')
-@Timeout(Duration(minutes: 5))
-library;
-
 import 'dart:async';
 
 import 'package:dwds/expression_compiler.dart';
@@ -19,21 +14,16 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void main() {
-  // Enable verbose logging for debugging.
-  const debug = false;
-  final provider = TestSdkConfigurationProvider(
-    verbose: debug,
-    canaryFeatures: true,
-    ddcModuleFormat: ModuleFormat.ddc,
-  );
+void runTests({
+  required TestSdkConfigurationProvider provider,
+  required CompilationMode compilationMode,
+  required bool debug,
+}) {
   final project = TestProject.testHotReloadBreakpoints;
   final context = TestContext(project, provider);
   final mainFile = project.dartEntryFileName;
   final callLogMarker = 'callLog';
   final capturedStringMarker = 'capturedString';
-
-  tearDownAll(provider.dispose);
 
   Future<void> makeEditsAndRecompile(List<Edit> edits) async {
     await context.makeEdits(edits);
@@ -49,9 +39,9 @@ void main() {
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
-          compilationMode: CompilationMode.frontendServer,
-          moduleFormat: ModuleFormat.ddc,
-          canaryFeatures: true,
+          compilationMode: compilationMode,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
         ),
       );
       client = await context.connectFakeClient();
@@ -533,9 +523,9 @@ void main() {
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
-          compilationMode: CompilationMode.frontendServer,
-          moduleFormat: ModuleFormat.ddc,
-          canaryFeatures: true,
+          compilationMode: compilationMode,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
         ),
       );
       client = await context.connectFakeClient();

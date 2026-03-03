@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Tags(['daily'])
-@TestOn('vm')
-@Timeout(Duration(minutes: 5))
-library;
-
 import 'dart:async';
 
 import 'package:dwds/expression_compiler.dart';
@@ -20,34 +15,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
-
-void main() {
-  // Enable verbose logging for debugging.
-  const debug = false;
-  final provider = TestSdkConfigurationProvider(
-    verbose: debug,
-    canaryFeatures: true,
-    ddcModuleFormat: ModuleFormat.ddc,
-  );
-
-  tearDownAll(provider.dispose);
-
-  group('Frontend Server', () {
-    runTests(
-      provider: provider,
-      compilationMode: CompilationMode.frontendServer,
-      debug: debug,
-    );
-  });
-
-  group('Build Daemon', () {
-    runTests(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemon,
-      debug: debug,
-    );
-  });
-}
 
 void runTests({
   required TestSdkConfigurationProvider provider,
@@ -174,8 +141,7 @@ void runTests({
       final breakpointEvents = expectLater(
         stream,
         emitsInOrder([
-          for (final (:exists, breakpointMarker: _, file: _)
-              in breakpoints) ...[
+          for (final (:exists, breakpointMarker: _, file: _) in breakpoints) ...[
             if (exists) _hasKind(EventKind.kBreakpointRemoved),
           ],
           _hasKind(EventKind.kResume),

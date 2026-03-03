@@ -1,0 +1,43 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@Tags(['daily'])
+@TestOn('vm')
+@Timeout(Duration(minutes: 5))
+library;
+
+import 'package:dwds/expression_compiler.dart';
+import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
+
+import 'hot_restart_breakpoints_common.dart';
+import 'fixtures/context.dart';
+
+void main() {
+  // Enable verbose logging for debugging.
+  const debug = false;
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    canaryFeatures: true,
+    ddcModuleFormat: ModuleFormat.ddc,
+  );
+
+  tearDownAll(provider.dispose);
+
+  group('Frontend Server', () {
+    runTests(
+      provider: provider,
+      compilationMode: CompilationMode.frontendServer,
+      debug: debug,
+    );
+  });
+
+  group('Build Daemon', () {
+    runTests(
+      provider: provider,
+      compilationMode: CompilationMode.buildDaemon,
+      debug: debug,
+    );
+  });
+}
