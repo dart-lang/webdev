@@ -161,7 +161,9 @@ void runTests({
         final remoteObject = await getLibraryPublicFinalRef();
         final count = await inspector.loadField(remoteObject, 'count');
         final ref = await inspector.instanceRefFor(count);
-        expect(ref!.valueAsString, '0');
+        // 'count' is incremented by a periodic timer in the application, so we
+        // can't expect it to be exactly 0.
+        expect(double.tryParse(ref!.valueAsString!), greaterThanOrEqualTo(0));
         expect(ref.kind, InstanceKind.kDouble);
         final classRef = ref.classRef!;
         expect(classRef.name, 'Double');
