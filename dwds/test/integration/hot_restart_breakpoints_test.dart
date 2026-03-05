@@ -29,16 +29,43 @@ void main() {
     canaryFeatures: true,
     ddcModuleFormat: ModuleFormat.ddc,
   );
+
+  tearDownAll(provider.dispose);
+
+  group('Frontend Server', () {
+    runTests(
+      provider: provider,
+      compilationMode: CompilationMode.frontendServer,
+      debug: debug,
+    );
+  });
+
+  group('Build Daemon', () {
+    runTests(
+      provider: provider,
+      compilationMode: CompilationMode.buildDaemon,
+      debug: debug,
+    );
+  });
+}
+
+void runTests({
+  required TestSdkConfigurationProvider provider,
+  required CompilationMode compilationMode,
+  required bool debug,
+}) {
   final project = TestProject.testHotRestartBreakpoints;
   final context = TestContext(project, provider);
   final mainFile = project.dartEntryFileName;
   final callLogMarker = 'callLog';
 
-  tearDownAll(provider.dispose);
-
   Future<void> makeEditsAndRecompile(List<Edit> edits) async {
     await context.makeEdits(edits);
-    await context.recompile(fullRestart: true);
+    if (compilationMode == CompilationMode.frontendServer) {
+      await context.recompile(fullRestart: true);
+    } else {
+      await context.waitForSuccessfulBuild();
+    }
   }
 
   group('when pause_isolates_on_start is true', () {
@@ -54,7 +81,7 @@ void main() {
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
-          compilationMode: CompilationMode.frontendServer,
+          compilationMode: compilationMode,
           moduleFormat: provider.ddcModuleFormat,
           canaryFeatures: provider.canaryFeatures,
         ),
@@ -199,7 +226,9 @@ void main() {
 
       final breakpointFuture = waitForBreakpoint();
 
-      await context.recompile(fullRestart: false);
+      if (compilationMode == CompilationMode.frontendServer) {
+        await context.recompile(fullRestart: false);
+      }
 
       await hotRestartAndHandlePausePost([
         (exists: true, file: mainFile, breakpointMarker: callLogMarker),
@@ -307,6 +336,14 @@ void main() {
         final oldLog = "log('$genLog');";
         final newLog = "log('\$libraryValue');";
         edits.add((file: mainFile, originalString: oldLog, newString: newLog));
+
+        // Include library file in edits to ensure it's added to reloaded_sources.json
+        edits.add((
+          file: libFile,
+          originalString: 'String get libraryValue',
+          newString: 'String get libraryValue',
+        ));
+
         await makeEditsAndRecompile(edits);
 
         var breakpointFuture = waitForBreakpoint();
@@ -363,6 +400,16 @@ void main() {
       final oldLog = "log('$genLog');";
       final newLog = "log('\$libraryValue$numFiles');";
       edits.add((file: mainFile, originalString: oldLog, newString: newLog));
+
+      // Include library files in edits to ensure they are added to reloaded_sources.json
+      for (var i = 1; i <= numFiles; i++) {
+        edits.add((
+          file: 'library$i.dart',
+          originalString: 'String get libraryValue$i',
+          newString: 'String get libraryValue$i',
+        ));
+      }
+
       await makeEditsAndRecompile(edits);
 
       var breakpointFuture = waitForBreakpoint();

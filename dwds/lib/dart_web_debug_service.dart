@@ -158,6 +158,7 @@ class Dwds {
       ),
       debugSettings.launchDevToolsInNewWindow,
       useWebSocketConnection: useDwdsWebSocketConnection,
+      sseIgnoreDisconnect: debugSettings.sseIgnoreDisconnect,
     );
 
     return Dwds._(
