@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
 import 'package:test/test.dart';
