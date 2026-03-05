@@ -764,8 +764,7 @@ class TestContext {
   /// - Entrypoints (served): web/main.dart -> main
   /// - Entrypoints (nested): test/hello_world/main.dart -> hello_world/main
   /// - Library files: lib/path/to/some_file.dart
-  /// ignore: unintended_html_in_doc_comment
-  ///     -> packages/<package>/path/to/some_file
+  ///     -> `packages/<package>/path/to/some_file`
   void _updateReloadedSources(String absolutePath) {
     final relativePath = p.relative(
       absolutePath,
