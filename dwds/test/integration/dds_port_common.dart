@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'dart:io';
 
 import 'package:dwds/dwds.dart';
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
@@ -16,7 +13,9 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void main() {
+void testAll({
+  ModuleFormat moduleFormat = ModuleFormat.amd,
+}) {
   late TestSdkConfigurationProvider provider;
   late TestContext context;
 
@@ -37,6 +36,7 @@ void main() {
     await server.close();
 
     await context.setUp(
+      testSettings: TestSettings(moduleFormat: moduleFormat),
       debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
         ddsPort: expectedPort,
       ),
@@ -52,6 +52,7 @@ void main() {
     await server.close();
 
     await context.setUp(
+      testSettings: TestSettings(moduleFormat: moduleFormat),
       debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
         ddsConfiguration: DartDevelopmentServiceConfiguration(
           port: expectedPort,

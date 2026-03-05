@@ -2,14 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Tests that require a fresh context to run, and can interfere with other
-/// tests.
-@TestOn('vm')
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'dart:async';
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
@@ -18,17 +13,17 @@ import 'package:vm_service_interface/vm_service_interface.dart';
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 
-void main() {
-  final provider = TestSdkConfigurationProvider();
-  tearDownAll(provider.dispose);
-
+void testAll({
+  required TestSdkConfigurationProvider provider,
+  ModuleFormat moduleFormat = ModuleFormat.amd,
+}) {
   final context = TestContext(TestProject.test, provider);
 
   group('fresh context', () {
     late VmServiceInterface service;
     late VM vm;
     setUpAll(() async {
-      await context.setUp();
+      await context.setUp(testSettings: TestSettings(moduleFormat: moduleFormat));
       service = context.service;
       vm = await service.getVM();
     });

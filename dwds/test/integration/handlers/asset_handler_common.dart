@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(minutes: 2))
-library;
-
+import 'package:dwds/expression_compiler.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
@@ -14,7 +12,9 @@ import '../fixtures/context.dart';
 import '../fixtures/project.dart';
 import '../fixtures/utilities.dart';
 
-void main() {
+void testAll({
+  ModuleFormat moduleFormat = ModuleFormat.amd,
+}) {
   group('Asset handler', () {
     final provider = TestSdkConfigurationProvider();
     final context = TestContext(TestProject.test, provider);
@@ -25,6 +25,7 @@ void main() {
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
           verboseCompiler: false,
+          moduleFormat: moduleFormat,
         ),
       );
     });
