@@ -27,9 +27,6 @@ void testBreakpoint({
         testSettings: TestSettings(
           compilationMode: compilationMode,
           verboseCompiler: verboseCompiler,
-          // Use provider's module format if available in context setup?
-          // TestContext uses provider.ddcModuleFormat if passed in TestSettings?
-          // Actually TestSettings has moduleFormat.
           moduleFormat: provider.ddcModuleFormat,
           canaryFeatures: provider.canaryFeatures,
         ),
