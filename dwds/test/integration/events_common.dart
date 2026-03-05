@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/events.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';

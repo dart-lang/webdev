@@ -8,7 +8,6 @@ library;
 
 import 'dart:async';
 
-import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
