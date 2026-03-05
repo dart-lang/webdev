@@ -16,9 +16,7 @@ void testAll({
   final context = TestContext(TestProject.test, provider);
 
   setUpAll(() async {
-    await context.setUp(
-      testSettings: TestSettings(moduleFormat: moduleFormat),
-    );
+    await context.setUp(testSettings: TestSettings(moduleFormat: moduleFormat));
   });
 
   tearDownAll(() async {

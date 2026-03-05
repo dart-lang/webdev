@@ -13,9 +13,7 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void testAll({
-  ModuleFormat moduleFormat = ModuleFormat.amd,
-}) {
+void testAll({ModuleFormat moduleFormat = ModuleFormat.amd}) {
   late TestSdkConfigurationProvider provider;
   late TestContext context;
 

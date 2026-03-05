@@ -23,7 +23,9 @@ void testAll({
     late VmServiceInterface service;
     late VM vm;
     setUpAll(() async {
-      await context.setUp(testSettings: TestSettings(moduleFormat: moduleFormat));
+      await context.setUp(
+        testSettings: TestSettings(moduleFormat: moduleFormat),
+      );
       service = context.service;
       vm = await service.getVM();
     });

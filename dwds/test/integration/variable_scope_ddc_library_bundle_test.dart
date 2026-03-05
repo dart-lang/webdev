@@ -20,9 +20,5 @@ void main() {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  testAll(
-    provider: provider,
-    moduleFormat: ModuleFormat.ddc,
-    debug: debug,
-  );
+  testAll(provider: provider, moduleFormat: ModuleFormat.ddc, debug: debug);
 }

@@ -16,8 +16,5 @@ void main() {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
 
-  testAll(
-    provider: provider,
-    moduleFormat: ModuleFormat.ddc,
-  );
+  testAll(provider: provider, moduleFormat: ModuleFormat.ddc);
 }

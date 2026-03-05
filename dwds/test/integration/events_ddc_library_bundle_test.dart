@@ -15,8 +15,5 @@ void main() {
   final provider = TestSdkConfigurationProvider();
   tearDownAll(provider.dispose);
 
-  testWithDwds(
-    provider: provider,
-    moduleFormat: ModuleFormat.ddc,
-  );
+  testWithDwds(provider: provider, moduleFormat: ModuleFormat.ddc);
 }
