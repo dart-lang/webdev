@@ -25,6 +25,7 @@ void testAll({
           enableExpressionEvaluation: true,
           verboseCompiler: debug,
           moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
         ),
       );
     });

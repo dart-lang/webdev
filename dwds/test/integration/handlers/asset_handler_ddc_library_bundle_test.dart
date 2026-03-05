@@ -14,7 +14,6 @@ import 'asset_handler_common.dart';
 void main() {
   // Enable verbose logging for debugging.
   const debug = false;
-
   final canary = true;
   final provider = TestSdkConfigurationProvider(
     verbose: debug,

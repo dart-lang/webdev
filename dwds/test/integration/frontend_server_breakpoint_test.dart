@@ -38,6 +38,7 @@ void main() {
         testSettings: TestSettings(
           compilationMode: CompilationMode.frontendServer,
           verboseCompiler: verboseCompiler,
+          canaryFeatures: provider.canaryFeatures,
         ),
       );
     });

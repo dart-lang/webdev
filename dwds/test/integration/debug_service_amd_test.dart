@@ -12,7 +12,9 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'debug_service_common.dart';
 
 void main() {
-  final provider = TestSdkConfigurationProvider();
+  // Enable verbose logging for debugging.
+  const debug = false;
+  final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
   testAll(provider: provider);

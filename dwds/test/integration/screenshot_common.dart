@@ -22,6 +22,7 @@ void testAll({
       testSettings: TestSettings(
         verboseCompiler: debug,
         moduleFormat: provider.ddcModuleFormat,
+        canaryFeatures: provider.canaryFeatures,
       ),
     );
   });
