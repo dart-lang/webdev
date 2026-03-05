@@ -12,8 +12,16 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'events_common.dart';
 
 void main() {
-  final provider = TestSdkConfigurationProvider();
+  // Enable verbose logging for debugging.
+  const debug = false;
+
+  final canary = true;
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    canaryFeatures: canary,
+    ddcModuleFormat: ModuleFormat.ddc,
+  );
   tearDownAll(provider.dispose);
 
-  testWithDwds(provider: provider, moduleFormat: ModuleFormat.ddc);
+  testWithDwds(provider: provider, debug: debug);
 }

@@ -6,9 +6,13 @@
 library;
 
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 
 import 'asset_handler_common.dart';
 
 void main() {
-  testAll();
+  final provider = TestSdkConfigurationProvider();
+  tearDownAll(provider.dispose);
+
+  testAll(provider: provider);
 }

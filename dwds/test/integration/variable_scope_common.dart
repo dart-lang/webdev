@@ -18,7 +18,6 @@ import 'fixtures/utilities.dart';
 
 void testAll({
   required TestSdkConfigurationProvider provider,
-  ModuleFormat moduleFormat = ModuleFormat.amd,
   bool debug = false,
 }) {
   final context = TestContext(TestProject.testScopes, provider);
@@ -28,7 +27,7 @@ void testAll({
     await context.setUp(
       testSettings: TestSettings(
         verboseCompiler: debug,
-        moduleFormat: moduleFormat,
+        moduleFormat: provider.ddcModuleFormat,
       ),
     );
   });

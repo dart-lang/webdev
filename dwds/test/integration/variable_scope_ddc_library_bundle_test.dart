@@ -14,11 +14,16 @@ import 'package:test_common/test_sdk_configuration.dart';
 import 'variable_scope_common.dart';
 
 void main() {
-  // set to true for debug logging.
+  // Enable verbose logging for debugging.
   const debug = false;
 
-  final provider = TestSdkConfigurationProvider(verbose: debug);
+  final canary = true;
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    canaryFeatures: canary,
+    ddcModuleFormat: ModuleFormat.ddc,
+  );
   tearDownAll(provider.dispose);
 
-  testAll(provider: provider, moduleFormat: ModuleFormat.ddc, debug: debug);
+  testAll(provider: provider, debug: debug);
 }

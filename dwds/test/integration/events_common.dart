@@ -20,7 +20,6 @@ import 'fixtures/utilities.dart';
 
 void testWithDwds({
   required TestSdkConfigurationProvider provider,
-  ModuleFormat moduleFormat = ModuleFormat.amd,
   bool debug = false,
 }) {
   final context = TestContext(TestProject.test, provider);
@@ -83,7 +82,7 @@ void testWithDwds({
         await context.setUp(
           testSettings: TestSettings(
             enableExpressionEvaluation: true,
-            moduleFormat: moduleFormat,
+            moduleFormat: provider.ddcModuleFormat,
             verboseCompiler: debug,
           ),
           debugSettings: TestDebugSettings.withDevToolsLaunch(context),

@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
@@ -16,7 +17,7 @@ import 'fixtures/utilities.dart';
 
 void testAll({
   required TestSdkConfigurationProvider provider,
-  ModuleFormat moduleFormat = ModuleFormat.amd,
+  bool debug = false,
 }) {
   final context = TestContext(TestProject.test, provider);
 
@@ -24,8 +25,12 @@ void testAll({
     late VmServiceInterface service;
     late VM vm;
     setUpAll(() async {
+      setCurrentLogWriter(debug: debug);
       await context.setUp(
-        testSettings: TestSettings(moduleFormat: moduleFormat),
+        testSettings: TestSettings(
+          verboseCompiler: debug,
+          moduleFormat: provider.ddcModuleFormat,
+        ),
       );
       service = context.service;
       vm = await service.getVM();

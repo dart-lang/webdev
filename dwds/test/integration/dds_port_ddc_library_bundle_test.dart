@@ -8,9 +8,21 @@ library;
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
+import 'package:test_common/test_sdk_configuration.dart';
 
 import 'dds_port_common.dart';
 
 void main() {
-  testAll(moduleFormat: ModuleFormat.ddc);
+  // Enable verbose logging for debugging.
+  const debug = false;
+
+  final canary = true;
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    canaryFeatures: canary,
+    ddcModuleFormat: ModuleFormat.ddc,
+  );
+  tearDownAll(provider.dispose);
+
+  testAll(provider: provider, debug: debug);
 }

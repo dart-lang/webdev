@@ -15,16 +15,13 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void testAll({
-  required TestSdkConfigurationProvider provider,
-  ModuleFormat moduleFormat = ModuleFormat.amd,
-}) {
+void testAll({required TestSdkConfigurationProvider provider}) {
   final context = TestContext(TestProject.test, provider);
 
   setUpAll(() async {
     // Disable DDS as we're testing DWDS behavior.
     await context.setUp(
-      testSettings: TestSettings(moduleFormat: moduleFormat),
+      testSettings: TestSettings(moduleFormat: provider.ddcModuleFormat),
       debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
         spawnDds: false,
         ddsConfiguration: DartDevelopmentServiceConfiguration(enable: false),

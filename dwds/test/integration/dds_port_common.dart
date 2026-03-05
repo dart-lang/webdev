@@ -7,24 +7,26 @@ import 'dart:io';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void testAll({ModuleFormat moduleFormat = ModuleFormat.amd}) {
-  late TestSdkConfigurationProvider provider;
+void testAll({
+  required TestSdkConfigurationProvider provider,
+  bool debug = false,
+}) {
   late TestContext context;
 
   setUp(() {
-    provider = TestSdkConfigurationProvider();
+    setCurrentLogWriter(debug: debug);
     context = TestContext(TestProject.test, provider);
   });
 
   tearDown(() async {
     await context.tearDown();
-    provider.dispose();
   });
 
   test('DWDS starts DDS with a specified port (deprecated)', () async {
@@ -34,7 +36,10 @@ void testAll({ModuleFormat moduleFormat = ModuleFormat.amd}) {
     await server.close();
 
     await context.setUp(
-      testSettings: TestSettings(moduleFormat: moduleFormat),
+      testSettings: TestSettings(
+        verboseCompiler: debug,
+        moduleFormat: provider.ddcModuleFormat,
+      ),
       debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
         ddsPort: expectedPort,
       ),
@@ -50,7 +55,10 @@ void testAll({ModuleFormat moduleFormat = ModuleFormat.amd}) {
     await server.close();
 
     await context.setUp(
-      testSettings: TestSettings(moduleFormat: moduleFormat),
+      testSettings: TestSettings(
+        verboseCompiler: debug,
+        moduleFormat: provider.ddcModuleFormat,
+      ),
       debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
         ddsConfiguration: DartDevelopmentServiceConfiguration(
           port: expectedPort,
