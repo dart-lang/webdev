@@ -52,5 +52,5 @@ class AppConnection {
   /// In this case, there's no need to block main execution until the debugger
   /// resends breakpoints.
   void hotRestart(HotRestartRequest request) =>
-      _connection.sink.add(jsonEncode(request.toJson()));
+      _connection.sink.add(jsonEncode(['HotRestartRequest', request.toJson()]));
 }
