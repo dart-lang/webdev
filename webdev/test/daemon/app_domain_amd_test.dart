@@ -5,11 +5,17 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 
 import '../test_utils.dart';
 import 'app_domain_common.dart';
 
 void main() {
-  appDomainTests(testRunner: TestRunner());
+  appDomainTests(
+    testRunner: TestRunner(
+      canaryFeatures: false,
+      ddcModuleFormat: ModuleFormat.amd,
+    ),
+  );
 }

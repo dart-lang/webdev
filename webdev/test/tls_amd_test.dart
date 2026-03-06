@@ -5,11 +5,17 @@
 @Timeout(Duration(minutes: 5))
 library;
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 
 import 'test_utils.dart';
 import 'tls_common.dart';
 
 void main() {
-  tlsTests(testRunner: TestRunner());
+  tlsTests(
+    testRunner: TestRunner(
+      canaryFeatures: false,
+      ddcModuleFormat: ModuleFormat.amd,
+    ),
+  );
 }

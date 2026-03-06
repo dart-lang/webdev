@@ -5,11 +5,17 @@
 @Timeout(Duration(minutes: 5))
 library;
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 
 import 'e2e_common.dart';
 import 'test_utils.dart';
 
 void main() {
-  e2eTests(testRunner: TestRunner());
+  e2eTests(
+    testRunner: TestRunner(
+      canaryFeatures: false,
+      ddcModuleFormat: ModuleFormat.amd,
+    ),
+  );
 }
