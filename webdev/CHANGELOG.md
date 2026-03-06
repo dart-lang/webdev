@@ -1,4 +1,6 @@
-## 3.8.2-wip
+## 3.9.0
+
+- Add `module-format` flag for selecting DDC Library Bundle or AMD module formats.
 
 ## 3.8.1
 
