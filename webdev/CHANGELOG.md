@@ -1,5 +1,7 @@
 ## 3.8.2-wip
 
+- Splitting tests between DDC's AMD and DDC Library Bundle module systems.
+
 ## 3.8.1
 
 - Serve Dart DevTools from DDS instead of launching it manually.
