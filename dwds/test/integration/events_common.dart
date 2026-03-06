@@ -83,6 +83,7 @@ void testWithDwds({
             enableExpressionEvaluation: true,
             moduleFormat: provider.ddcModuleFormat,
             verboseCompiler: debug,
+            canaryFeatures: provider.canaryFeatures,
           ),
           debugSettings: TestDebugSettings.withDevToolsLaunch(context),
         );
