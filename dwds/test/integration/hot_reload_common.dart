@@ -2,14 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Tags(['daily'])
-@TestOn('vm')
-@Timeout(Duration(minutes: 5))
-library;
-
 import 'dart:async';
 
-import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -22,18 +16,13 @@ import 'fixtures/utilities.dart';
 const originalString = 'Hello World!';
 const newString = 'Bonjour le monde!';
 
-void main() {
-  // Enable verbose logging for debugging.
-  const debug = false;
-  final provider = TestSdkConfigurationProvider(
-    verbose: debug,
-    canaryFeatures: true,
-    ddcModuleFormat: ModuleFormat.ddc,
-  );
+void runTests({
+  required TestSdkConfigurationProvider provider,
+  required CompilationMode compilationMode,
+  required bool debug,
+}) {
   final project = TestProject.testHotReload;
   final context = TestContext(project, provider);
-
-  tearDownAll(provider.dispose);
 
   Future<void> recompile() async {
     await context.recompile(fullRestart: false);
@@ -83,9 +72,9 @@ void main() {
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
-          compilationMode: CompilationMode.frontendServer,
-          moduleFormat: ModuleFormat.ddc,
-          canaryFeatures: true,
+          compilationMode: compilationMode,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
         ),
       );
       fakeClient = await context.connectFakeClient();
