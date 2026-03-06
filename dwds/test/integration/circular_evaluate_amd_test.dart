@@ -9,9 +9,9 @@ library;
 
 import 'dart:io';
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
-import 'package:dwds/expression_compiler.dart';
 
 import 'evaluate_circular_common.dart';
 import 'fixtures/context.dart';

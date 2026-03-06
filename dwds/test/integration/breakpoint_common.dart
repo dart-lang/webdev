@@ -9,8 +9,8 @@ import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/utilities.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 void testBreakpoint({
   required TestSdkConfigurationProvider provider,
@@ -38,7 +38,6 @@ void testBreakpoint({
     });
 
     group('breakpoint', () {
-      late VmServiceInterface service;
       VM vm;
       late Isolate isolate;
       late String isolateId;
@@ -46,6 +45,7 @@ void testBreakpoint({
       late ScriptRef mainScript;
       late String mainScriptUri;
       late Stream<Event> stream;
+      late VmServiceInterface service;
 
       setUp(() async {
         service = context.service;
@@ -65,9 +65,8 @@ void testBreakpoint({
       });
 
       tearDown(() async {
-        try {
-          await service.resume(isolateId);
-        } catch (_) {}
+        // Resume execution to not impact other tests.
+        await service.resume(isolateId);
       });
 
       test('set breakpoint', () async {
@@ -88,6 +87,7 @@ void testBreakpoint({
 
         expect(bp, isNotNull);
 
+        // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolateId, bp.id!);
       });
 
@@ -109,6 +109,7 @@ void testBreakpoint({
 
         expect(bp, isNotNull);
 
+        // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolateId, bp.id!);
       });
 
@@ -139,6 +140,7 @@ void testBreakpoint({
         var currentIsolate = await service.getIsolate(isolateId);
         expect(currentIsolate.breakpoints, containsAll([bp1]));
 
+        // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolateId, bp1.id!);
 
         currentIsolate = await service.getIsolate(isolateId);
@@ -169,6 +171,7 @@ void testBreakpoint({
           var currentIsolate = await service.getIsolate(isolateId);
           expect(currentIsolate.breakpoints, containsAll([breakpoints[0]]));
 
+          // Remove breakpoint so it doesn't impact other tests.
           await service.removeBreakpoint(isolateId, breakpoints[0].id!);
 
           currentIsolate = await service.getIsolate(isolateId);
@@ -195,6 +198,7 @@ void testBreakpoint({
         var currentIsolate = await service.getIsolate(isolateId);
         expect(currentIsolate.breakpoints, containsAll([bp]));
 
+        // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolateId, bp.id!);
         await expectLater(
           service.removeBreakpoint(isolateId, bp.id!),
@@ -232,6 +236,7 @@ void testBreakpoint({
               .having((loc) => loc.column, 'column', greaterThan(column)),
         );
 
+        // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolateId, bp.id!);
       });
     });

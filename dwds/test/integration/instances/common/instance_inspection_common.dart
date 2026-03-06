@@ -83,9 +83,8 @@ void runTests({
 
     setUp(() => setCurrentLogWriter(debug: debug));
     tearDown(() async {
-      try {
-        await service.resume(isolateId);
-      } catch (_) {}
+      // Resume execution to not impact other tests.
+      await service.resume(isolateId);
     });
 
     group('Library |', () {

@@ -9,8 +9,8 @@ import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/utilities.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
 void testCallStack({
   required TestSdkConfigurationProvider provider,

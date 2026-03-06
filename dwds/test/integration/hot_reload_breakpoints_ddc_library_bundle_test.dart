@@ -11,8 +11,8 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
-import 'hot_reload_breakpoints_common.dart';
 import 'fixtures/context.dart';
+import 'hot_reload_breakpoints_common.dart';
 
 void main() {
   // Enable verbose logging for debugging.
