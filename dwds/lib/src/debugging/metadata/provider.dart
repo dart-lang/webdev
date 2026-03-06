@@ -264,12 +264,8 @@ class MetadataProvider {
   }
 
   void _addMetadata(ModuleMetadata metadata) {
-    final modulePath = stripLeadingSlashes(
-      metadata.moduleUri,
-    ).replaceAll('\\', '/');
-    final sourceMapPath = stripLeadingSlashes(
-      metadata.sourceMapUri,
-    ).replaceAll('\\', '/');
+    final modulePath = stripLeadingSlashes(metadata.moduleUri);
+    final sourceMapPath = stripLeadingSlashes(metadata.sourceMapUri);
     final moduleName = metadata.name;
 
     _moduleToSourceMap[moduleName] = sourceMapPath;
