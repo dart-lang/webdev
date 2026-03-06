@@ -9,6 +9,7 @@
     a new connection request.
 - Add sourcemap logic fixes to DDC Library Bundle + build_runner execution scheme.
 - Update pathing logic for Windows and the DDC Library Bundle module system.
+- Fix serialization of `HotRestartRequest` in `AppConnection`.
 - Split additional tests across DDC module systems.
 
 ## 27.0.0
