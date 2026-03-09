@@ -17,10 +17,7 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void testWithDwds({
-  required TestSdkConfigurationProvider provider,
-  bool debug = false,
-}) {
+void testWithDwds({required TestSdkConfigurationProvider provider}) {
   final context = TestContext(TestProject.test, provider);
 
   group(
@@ -68,7 +65,7 @@ void testWithDwds({
       }
 
       setUpAll(() async {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         initialEvents = expectLater(
           pipe(eventStream, timeout: const Timeout.factor(5)),
           emitsThrough(
@@ -82,7 +79,7 @@ void testWithDwds({
           testSettings: TestSettings(
             enableExpressionEvaluation: true,
             moduleFormat: provider.ddcModuleFormat,
-            verboseCompiler: debug,
+            verboseCompiler: provider.verbose,
             canaryFeatures: provider.canaryFeatures,
           ),
           debugSettings: TestDebugSettings.withDevToolsLaunch(context),
@@ -145,7 +142,7 @@ void testWithDwds({
         late String bootstrapId;
 
         setUpAll(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           service = context.service;
           final vm = await service.getVM();
           final isolate = await service.getIsolate(vm.isolates!.first.id!);
@@ -154,7 +151,7 @@ void testWithDwds({
         });
 
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
         });
 
         test('emits EVALUATE events on evaluation success', () async {
@@ -194,7 +191,7 @@ void testWithDwds({
         late ScriptRef mainScript;
 
         setUpAll(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           service = context.service;
           final vm = await service.getVM();
 
@@ -208,7 +205,7 @@ void testWithDwds({
         });
 
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
         });
 
         test('emits EVALUATE_IN_FRAME events on RPC error', () async {
@@ -306,7 +303,7 @@ void testWithDwds({
         late ScriptRef mainScript;
 
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           service = context.service;
           final vm = await service.getVM();
           isolateId = vm.isolates!.first.id!;
@@ -334,7 +331,7 @@ void testWithDwds({
         late String isolateId;
 
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           service = context.service;
           final vm = await service.getVM();
           isolateId = vm.isolates!.first.id!;
@@ -355,7 +352,7 @@ void testWithDwds({
         late String isolateId;
 
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           service = context.service;
           final vm = await service.getVM();
           isolateId = vm.isolates!.first.id!;
@@ -373,7 +370,7 @@ void testWithDwds({
 
       group('getVM', () {
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
         });
 
         test('emits GET_VM events', () async {
@@ -388,7 +385,7 @@ void testWithDwds({
 
       group('hotRestart', () {
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
         });
 
         test('emits HOT_RESTART event', () async {
@@ -410,7 +407,7 @@ void testWithDwds({
         late String isolateId;
 
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           service = context.service;
           final vm = await service.getVM();
           isolateId = vm.isolates!.first.id!;
@@ -455,7 +452,7 @@ void testWithDwds({
 
       group('fullReload', () {
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
         });
 
         test('emits FULL_RELOAD event', () async {

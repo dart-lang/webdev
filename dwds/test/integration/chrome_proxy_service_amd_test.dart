@@ -35,7 +35,6 @@ void main() {
       moduleFormat: moduleFormat,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
   });
 }

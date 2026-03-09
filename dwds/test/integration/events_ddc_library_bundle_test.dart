@@ -22,5 +22,5 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  testWithDwds(provider: provider, debug: debug);
+  testWithDwds(provider: provider);
 }

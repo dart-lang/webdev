@@ -14,17 +14,14 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void testAll({
-  required TestSdkConfigurationProvider provider,
-  bool debug = false,
-}) {
+void testAll({required TestSdkConfigurationProvider provider}) {
   final context = TestContext(TestProject.test, provider);
 
   setUpAll(() async {
     // Disable DDS as we're testing DWDS behavior.
     await context.setUp(
       testSettings: TestSettings(
-        verboseCompiler: debug,
+        verboseCompiler: provider.verbose,
         moduleFormat: provider.ddcModuleFormat,
         canaryFeatures: provider.canaryFeatures,
       ),

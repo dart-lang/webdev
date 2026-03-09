@@ -32,7 +32,6 @@ void main() {
       provider: provider,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
   });
 
@@ -49,7 +48,6 @@ void main() {
       provider: provider,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
   });
 }

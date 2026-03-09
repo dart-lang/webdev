@@ -40,7 +40,6 @@ void main() async {
                 compilationMode: CompilationMode.frontendServer,
                 indexBaseMode: indexBaseMode,
                 useDebuggerModuleNames: useDebuggerModuleNames,
-                debug: debug,
               );
             },
             skip: indexBaseMode == IndexBaseMode.base && Platform.isWindows

@@ -26,5 +26,5 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  testAll(provider: provider, debug: debug);
+  testAll(provider: provider);
 }
