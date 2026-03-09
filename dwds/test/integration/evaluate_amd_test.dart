@@ -47,7 +47,6 @@ void main() async {
                 compilationMode: CompilationMode.frontendServer,
                 indexBaseMode: indexBaseMode,
                 useDebuggerModuleNames: useDebuggerModuleNames,
-                debug: debug,
               );
             },
             // https://github.com/dart-lang/sdk/issues/49277

@@ -18,5 +18,5 @@ void main() {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  testAll(provider: provider, debug: debug);
+  testAll(provider: provider);
 }

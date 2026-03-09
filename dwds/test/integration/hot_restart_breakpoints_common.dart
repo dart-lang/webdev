@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -15,10 +16,32 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
+void main() {
+  // Enable verbose logging for debugging.
+  const debug = false;
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    canaryFeatures: true,
+    ddcModuleFormat: ModuleFormat.ddc,
+  );
+
+  tearDownAll(provider.dispose);
+
+  group('Frontend Server', () {
+    runTests(
+      provider: provider,
+      compilationMode: CompilationMode.frontendServer,
+    );
+  });
+
+  group('Build Daemon', () {
+    runTests(provider: provider, compilationMode: CompilationMode.buildDaemon);
+  });
+}
+
 void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
-  required bool debug,
 }) {
   final project = TestProject.testHotRestartBreakpoints;
   final context = TestContext(project, provider);
@@ -43,7 +66,7 @@ void runTests({
     StreamSubscription<ConsoleAPIEvent>? consoleSubscription;
 
     setUp(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,

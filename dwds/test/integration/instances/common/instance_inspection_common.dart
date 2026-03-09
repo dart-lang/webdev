@@ -16,7 +16,6 @@ void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   required bool canaryFeatures,
-  required bool debug,
 }) {
   final project = TestProject.testPackage();
   final context = TestContext(project, provider);
@@ -54,12 +53,12 @@ void runTests({
 
   group('$compilationMode |', () {
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
           enableExpressionEvaluation: true,
-          verboseCompiler: debug,
+          verboseCompiler: provider.verbose,
           canaryFeatures: canaryFeatures,
           experiments: ['records'],
           moduleFormat: provider.ddcModuleFormat,
@@ -81,7 +80,7 @@ void runTests({
 
     tearDownAll(context.tearDown);
 
-    setUp(() => setCurrentLogWriter(debug: debug));
+    setUp(() => setCurrentLogWriter(debug: provider.verbose));
     tearDown(() async {
       // We must resume execution in case a test left the isolate paused, but
       // error 106 is expected if the isolate is already running.

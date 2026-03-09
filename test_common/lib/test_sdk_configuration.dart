@@ -19,7 +19,7 @@ import 'package:test_common/test_sdk_layout.dart';
 class TestSdkConfigurationProvider extends SdkConfigurationProvider {
   final _logger = Logger('TestSdkConfigurationProvider');
 
-  final bool _verbose;
+  final bool verbose;
   final bool canaryFeatures;
   final ModuleFormat ddcModuleFormat;
   late final Directory _sdkDirectory;
@@ -29,9 +29,9 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
 
   TestSdkConfigurationProvider({
     this.canaryFeatures = false,
-    bool verbose = false,
+    this.verbose = false,
     this.ddcModuleFormat = ModuleFormat.amd,
-  }) : _verbose = verbose {
+  }) {
     _sdkDirectory = Directory.systemTemp.createTempSync('sdk_copy');
     sdkLayout = TestSdkLayout.createDefault(_sdkDirectory.path);
   }
@@ -61,7 +61,7 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
       final assetGenerator = SdkAssetGenerator(
         sdkLayout: sdkLayout,
         canaryFeatures: canaryFeatures,
-        verbose: _verbose,
+        verbose: verbose,
         ddcModuleFormat: ddcModuleFormat,
       );
 

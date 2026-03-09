@@ -16,7 +16,6 @@ void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   required bool canaryFeatures,
-  required bool debug,
 }) {
   final context = TestContext(TestProject.testExperiment, provider);
   final testInspector = TestInspector(context);
@@ -57,12 +56,12 @@ void runTests({
 
   group('$compilationMode |', () {
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
           enableExpressionEvaluation: true,
-          verboseCompiler: debug,
+          verboseCompiler: provider.verbose,
           experiments: ['dot-shorthands'],
           canaryFeatures: canaryFeatures,
           moduleFormat: provider.ddcModuleFormat,
@@ -86,7 +85,7 @@ void runTests({
       await context.tearDown();
     });
 
-    setUp(() => setCurrentLogWriter(debug: debug));
+    setUp(() => setCurrentLogWriter(debug: provider.verbose));
     tearDown(() => service.resume(isolateId));
 
     test('simple record display', () async {
