@@ -28,7 +28,6 @@ void main() {
     testBreakpoint(
       provider: provider,
       compilationMode: CompilationMode.buildDaemon,
-      debug: debug,
     );
   });
 
@@ -36,7 +35,6 @@ void main() {
     testBreakpoint(
       provider: provider,
       compilationMode: CompilationMode.frontendServer,
-      debug: debug,
     );
   });
 }

@@ -30,11 +30,7 @@ void main() async {
     tearDownAll(provider.dispose);
 
     group('Build Daemon |', () {
-      testAll(
-        provider: provider,
-        compilationMode: CompilationMode.buildDaemon,
-        debug: debug,
-      );
+      testAll(provider: provider, compilationMode: CompilationMode.buildDaemon);
     });
 
     group('Frontend Server |', () {
@@ -49,7 +45,6 @@ void main() async {
                   compilationMode: CompilationMode.frontendServer,
                   indexBaseMode: indexBaseMode,
                   useDebuggerModuleNames: useDebuggerModuleNames,
-                  debug: debug,
                 );
               },
               // https://github.com/dart-lang/sdk/issues/49277

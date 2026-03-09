@@ -16,7 +16,6 @@ import 'fixtures/utilities.dart';
 void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
-  required bool debug,
 }) {
   final project = TestProject.testHotReloadBreakpoints;
   final context = TestContext(project, provider);
@@ -34,7 +33,7 @@ void runTests({
     late Stream<Event> stream;
 
     setUp(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
@@ -518,7 +517,7 @@ void runTests({
     late VmService client;
 
     setUp(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,

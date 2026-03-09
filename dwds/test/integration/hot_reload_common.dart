@@ -19,7 +19,6 @@ const newString = 'Bonjour le monde!';
 void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
-  required bool debug,
 }) {
   final project = TestProject.testHotReload;
   final context = TestContext(project, provider);
@@ -68,7 +67,7 @@ void runTests({
     late VmService fakeClient;
 
     setUp(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,

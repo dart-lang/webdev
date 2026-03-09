@@ -29,15 +29,10 @@ void main() {
     runTests(
       provider: provider,
       compilationMode: CompilationMode.frontendServer,
-      debug: debug,
     );
   });
 
   group('Build Daemon', () {
-    runTests(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemon,
-      debug: debug,
-    );
+    runTests(provider: provider, compilationMode: CompilationMode.buildDaemon);
   });
 }

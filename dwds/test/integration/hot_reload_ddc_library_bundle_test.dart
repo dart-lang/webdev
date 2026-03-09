@@ -29,7 +29,6 @@ void main() {
     runTests(
       provider: provider,
       compilationMode: CompilationMode.frontendServer,
-      debug: debug,
     );
   });
 }

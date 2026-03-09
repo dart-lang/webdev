@@ -28,11 +28,7 @@ void main() async {
   tearDownAll(provider.dispose);
 
   group('Build Daemon |', () {
-    testAll(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemon,
-      debug: debug,
-    );
+    testAll(provider: provider, compilationMode: CompilationMode.buildDaemon);
   });
 
   group('Frontend Server |', () {

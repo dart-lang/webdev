@@ -16,13 +16,12 @@ void testBreakpoint({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   bool verboseCompiler = false,
-  bool debug = false,
 }) {
   final context = TestContext(TestProject.testPackage(), provider);
 
   group('shared context', () {
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
@@ -49,7 +48,7 @@ void testBreakpoint({
 
       setUp(() async {
         service = context.service;
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
         isolateId = isolate.id!;

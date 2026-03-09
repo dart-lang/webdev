@@ -16,14 +16,13 @@ void testCallStack({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   bool verboseCompiler = false,
-  bool debug = false,
 }) {
   final project = TestProject.testPackage();
   final context = TestContext(project, provider);
 
   group('shared context |', () {
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
@@ -50,7 +49,7 @@ void testCallStack({
       late Stream<Event> stream;
 
       setUp(() async {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
