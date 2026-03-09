@@ -1,4 +1,4 @@
-// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -23,14 +23,17 @@ void main() async {
 
   final provider = TestSdkConfigurationProvider(
     verbose: debug,
-    ddcModuleFormat: ModuleFormat.ddc,
-    canaryFeatures: true,
+    ddcModuleFormat: ModuleFormat.amd,
   );
   tearDownAll(provider.dispose);
 
-  for (final useDebuggerModuleNames in [false, true]) {
-    group('Debugger module names: $useDebuggerModuleNames |', () {
-      group('DDC module system and canary |', () {
+  group('Build Daemon |', () {
+    testAll(provider: provider, compilationMode: CompilationMode.buildDaemon);
+  });
+
+  group('Frontend Server |', () {
+    for (final useDebuggerModuleNames in [false, true]) {
+      group('Debugger module names: $useDebuggerModuleNames |', () {
         for (final indexBaseMode in IndexBaseMode.values) {
           group(
             'with ${indexBaseMode.name} |',
@@ -42,12 +45,11 @@ void main() async {
                 useDebuggerModuleNames: useDebuggerModuleNames,
               );
             },
-            skip: indexBaseMode == IndexBaseMode.base && Platform.isWindows
-                ? 'Skipped on Windows when indexBaseMode is base. See issue: https://github.com/dart-lang/sdk/issues/49277'
-                : null,
+            // https://github.com/dart-lang/sdk/issues/49277
+            skip: indexBaseMode == IndexBaseMode.base && Platform.isWindows,
           );
         }
       });
-    });
-  }
+    }
+  });
 }

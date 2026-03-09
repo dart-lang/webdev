@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -16,29 +12,22 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void main() {
-  // Enable verbose logging for debugging.
-  const debug = false;
-
-  final provider = TestSdkConfigurationProvider(verbose: debug);
-  tearDownAll(provider.dispose);
-
+void testBreakpoint({
+  required TestSdkConfigurationProvider provider,
+  required CompilationMode compilationMode,
+  bool verboseCompiler = false,
+}) {
   final context = TestContext(TestProject.testPackage(), provider);
 
-  // Change to 'true' to print expression compiler messages to console.
-  //
-  // Note: expression compiler runs in an isolate, so its output is not
-  // currently redirected to a logger. As a result, it will be printed
-  // regardless of the logger settings.
-  final verboseCompiler = false;
   group('shared context', () {
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: CompilationMode.frontendServer,
+          compilationMode: compilationMode,
           verboseCompiler: verboseCompiler,
           canaryFeatures: provider.canaryFeatures,
+          moduleFormat: provider.ddcModuleFormat,
         ),
       );
     });
@@ -48,7 +37,6 @@ void main() {
     });
 
     group('breakpoint', () {
-      late VmServiceInterface service;
       VM vm;
       late Isolate isolate;
       late String isolateId;
@@ -56,10 +44,11 @@ void main() {
       late ScriptRef mainScript;
       late String mainScriptUri;
       late Stream<Event> stream;
+      late VmServiceInterface service;
 
       setUp(() async {
         service = context.service;
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
         isolateId = isolate.id!;
@@ -75,7 +64,13 @@ void main() {
       });
 
       tearDown(() async {
-        await service.resume(isolateId);
+        // We must resume execution in case a test left the isolate paused, but
+        // error 106 is expected if the isolate is already running.
+        try {
+          await service.resume(isolateId);
+        } on RPCError catch (e) {
+          if (e.code != 106) rethrow;
+        }
       });
 
       test('set breakpoint', () async {
@@ -120,6 +115,102 @@ void main() {
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolateId, bp.id!);
+      });
+
+      test('set existing breakpoint succeeds', () async {
+        final line = await context.findBreakpointLine(
+          'printLocal',
+          isolateId,
+          mainScript,
+        );
+        final bp1 = await service.addBreakpointWithScriptUri(
+          isolateId,
+          mainScriptUri,
+          line,
+        );
+        final bp2 = await service.addBreakpointWithScriptUri(
+          isolateId,
+          mainScriptUri,
+          line,
+        );
+
+        expect(bp1, equals(bp2));
+        expect(bp1, isNotNull);
+
+        await stream.firstWhere(
+          (Event event) => event.kind == EventKind.kPauseBreakpoint,
+        );
+
+        var currentIsolate = await service.getIsolate(isolateId);
+        expect(currentIsolate.breakpoints, containsAll([bp1]));
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolateId, bp1.id!);
+
+        currentIsolate = await service.getIsolate(isolateId);
+        expect(currentIsolate.breakpoints, isEmpty);
+      });
+
+      test(
+        'set breakpoints at the same line simultaneously succeeds',
+        () async {
+          final line = await context.findBreakpointLine(
+            'printLocal',
+            isolateId,
+            mainScript,
+          );
+          final futures = [
+            service.addBreakpointWithScriptUri(isolateId, mainScriptUri, line),
+            service.addBreakpointWithScriptUri(isolateId, mainScriptUri, line),
+          ];
+
+          final breakpoints = await Future.wait(futures);
+          expect(breakpoints[0], equals(breakpoints[1]));
+          expect(breakpoints[0], isNotNull);
+
+          await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint,
+          );
+
+          var currentIsolate = await service.getIsolate(isolateId);
+          expect(currentIsolate.breakpoints, containsAll([breakpoints[0]]));
+
+          // Remove breakpoint so it doesn't impact other tests.
+          await service.removeBreakpoint(isolateId, breakpoints[0].id!);
+
+          currentIsolate = await service.getIsolate(isolateId);
+          expect(currentIsolate.breakpoints, isEmpty);
+        },
+      );
+
+      test('remove non-existing breakpoint fails', () async {
+        final line = await context.findBreakpointLine(
+          'printLocal',
+          isolateId,
+          mainScript,
+        );
+        final bp = await service.addBreakpointWithScriptUri(
+          isolateId,
+          mainScriptUri,
+          line,
+        );
+
+        await stream.firstWhere(
+          (Event event) => event.kind == EventKind.kPauseBreakpoint,
+        );
+
+        var currentIsolate = await service.getIsolate(isolateId);
+        expect(currentIsolate.breakpoints, containsAll([bp]));
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolateId, bp.id!);
+        await expectLater(
+          service.removeBreakpoint(isolateId, bp.id!),
+          throwsRPCError,
+        );
+
+        currentIsolate = await service.getIsolate(isolateId);
+        expect(currentIsolate.breakpoints, isEmpty);
       });
 
       test('set breakpoint inside a JavaScript line succeeds', () async {

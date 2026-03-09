@@ -82,9 +82,13 @@ void runTests({
 
     setUp(() => setCurrentLogWriter(debug: provider.verbose));
     tearDown(() async {
+      // We must resume execution in case a test left the isolate paused, but
+      // error 106 is expected if the isolate is already running.
       try {
         await service.resume(isolateId);
-      } catch (_) {}
+      } on RPCError catch (e) {
+        if (e.code != 106) rethrow;
+      }
     });
 
     group('Library |', () {

@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -16,24 +12,24 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void main() {
-  // Enable verbose logging for debugging.
-  const debug = false;
-
-  final provider = TestSdkConfigurationProvider(verbose: debug);
-  tearDownAll(provider.dispose);
+void testCallStack({
+  required TestSdkConfigurationProvider provider,
+  required CompilationMode compilationMode,
+  bool verboseCompiler = false,
+}) {
+  final project = TestProject.testPackage();
+  final context = TestContext(project, provider);
 
   group('shared context |', () {
-    final project = TestProject.testPackage();
-    final context = TestContext(project, provider);
-
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: CompilationMode.frontendServer,
+          compilationMode: compilationMode,
           enableExpressionEvaluation: true,
-          verboseCompiler: debug,
+          verboseCompiler: verboseCompiler,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
         ),
       );
     });
@@ -53,7 +49,7 @@ void main() {
       late Stream<Event> stream;
 
       setUp(() async {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
@@ -74,7 +70,9 @@ void main() {
       });
 
       tearDown(() async {
-        await service.resume(isolateId);
+        try {
+          await service.resume(isolateId);
+        } catch (_) {}
       });
 
       Future<void> onBreakPoint(
