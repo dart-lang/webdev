@@ -2,32 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'dart:io';
 
 import 'package:dwds/dwds.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void main() {
-  late TestSdkConfigurationProvider provider;
+void testAll({
+  required TestSdkConfigurationProvider provider,
+  bool debug = false,
+}) {
   late TestContext context;
 
   setUp(() {
-    provider = TestSdkConfigurationProvider();
+    setCurrentLogWriter(debug: debug);
     context = TestContext(TestProject.test, provider);
   });
 
   tearDown(() async {
     await context.tearDown();
-    provider.dispose();
   });
 
   test('DWDS starts DDS with a specified port (deprecated)', () async {
@@ -37,6 +35,11 @@ void main() {
     await server.close();
 
     await context.setUp(
+      testSettings: TestSettings(
+        verboseCompiler: debug,
+        moduleFormat: provider.ddcModuleFormat,
+        canaryFeatures: provider.canaryFeatures,
+      ),
       debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
         ddsPort: expectedPort,
       ),
@@ -52,6 +55,11 @@ void main() {
     await server.close();
 
     await context.setUp(
+      testSettings: TestSettings(
+        verboseCompiler: debug,
+        moduleFormat: provider.ddcModuleFormat,
+        canaryFeatures: provider.canaryFeatures,
+      ),
       debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
         ddsConfiguration: DartDevelopmentServiceConfiguration(
           port: expectedPort,

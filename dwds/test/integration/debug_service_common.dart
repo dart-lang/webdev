@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'dart:io';
 
 import 'package:dwds/dwds.dart';
@@ -18,15 +14,20 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void main() {
-  final provider = TestSdkConfigurationProvider();
-  tearDownAll(provider.dispose);
-
+void testAll({
+  required TestSdkConfigurationProvider provider,
+  bool debug = false,
+}) {
   final context = TestContext(TestProject.test, provider);
 
   setUpAll(() async {
     // Disable DDS as we're testing DWDS behavior.
     await context.setUp(
+      testSettings: TestSettings(
+        verboseCompiler: debug,
+        moduleFormat: provider.ddcModuleFormat,
+        canaryFeatures: provider.canaryFeatures,
+      ),
       debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
         spawnDds: false,
         ddsConfiguration: DartDevelopmentServiceConfiguration(enable: false),
