@@ -27,8 +27,8 @@ void testBreakpoint({
         testSettings: TestSettings(
           compilationMode: compilationMode,
           verboseCompiler: verboseCompiler,
-          moduleFormat: provider.ddcModuleFormat,
           canaryFeatures: provider.canaryFeatures,
+          moduleFormat: provider.ddcModuleFormat,
         ),
       );
     });

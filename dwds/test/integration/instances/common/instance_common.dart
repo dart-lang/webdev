@@ -33,6 +33,7 @@ void runTypeSystemVerificationTests({
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
+          verboseCompiler: debug,
           canaryFeatures: canaryFeatures,
         ),
       );
@@ -95,6 +96,7 @@ void runTests({
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
+          verboseCompiler: debug,
           canaryFeatures: canaryFeatures,
           moduleFormat: provider.ddcModuleFormat,
         ),

@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
@@ -14,27 +11,30 @@ import '../fixtures/context.dart';
 import '../fixtures/project.dart';
 import '../fixtures/utilities.dart';
 
-void main() {
+void testAll({
+  required TestSdkConfigurationProvider provider,
+  bool debug = false,
+}) {
   group('Asset handler', () {
-    final provider = TestSdkConfigurationProvider();
     final context = TestContext(TestProject.test, provider);
 
     setUpAll(() async {
-      setCurrentLogWriter();
+      setCurrentLogWriter(debug: debug);
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
-          verboseCompiler: false,
+          verboseCompiler: debug,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
         ),
       );
     });
 
     tearDownAll(() async {
       await context.tearDown();
-      provider.dispose();
     });
 
-    setUp(setCurrentLogWriter);
+    setUp(() => setCurrentLogWriter(debug: debug));
 
     Future<void> readAsString(String path) async {
       final request = Request('GET', Uri.parse('http://foo:0000/$path'));
