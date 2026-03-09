@@ -13,14 +13,11 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void testAll({
-  required TestSdkConfigurationProvider provider,
-  bool debug = false,
-}) {
+void testAll({required TestSdkConfigurationProvider provider}) {
   late TestContext context;
 
   setUp(() {
-    setCurrentLogWriter(debug: debug);
+    setCurrentLogWriter(debug: provider.verbose);
     context = TestContext(TestProject.test, provider);
   });
 
@@ -36,7 +33,7 @@ void testAll({
 
     await context.setUp(
       testSettings: TestSettings(
-        verboseCompiler: debug,
+        verboseCompiler: provider.verbose,
         moduleFormat: provider.ddcModuleFormat,
         canaryFeatures: provider.canaryFeatures,
       ),
@@ -56,7 +53,7 @@ void testAll({
 
     await context.setUp(
       testSettings: TestSettings(
-        verboseCompiler: debug,
+        verboseCompiler: provider.verbose,
         moduleFormat: provider.ddcModuleFormat,
         canaryFeatures: provider.canaryFeatures,
       ),

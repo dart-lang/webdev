@@ -20,9 +20,5 @@ void main() async {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  testAll(
-    provider: provider,
-    compilationMode: CompilationMode.buildDaemon,
-    debug: debug,
-  );
+  testAll(provider: provider, compilationMode: CompilationMode.buildDaemon);
 }

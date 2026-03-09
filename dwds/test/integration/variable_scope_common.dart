@@ -15,17 +15,14 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void testAll({
-  required TestSdkConfigurationProvider provider,
-  bool debug = false,
-}) {
+void testAll({required TestSdkConfigurationProvider provider}) {
   final context = TestContext(TestProject.testScopes, provider);
 
   setUpAll(() async {
-    setCurrentLogWriter(debug: debug);
+    setCurrentLogWriter(debug: provider.verbose);
     await context.setUp(
       testSettings: TestSettings(
-        verboseCompiler: debug,
+        verboseCompiler: provider.verbose,
         moduleFormat: provider.ddcModuleFormat,
         canaryFeatures: provider.canaryFeatures,
       ),
@@ -37,7 +34,7 @@ void testAll({
   });
 
   group('temporary variable regular expression', () {
-    setUpAll(() => setCurrentLogWriter(debug: debug));
+    setUpAll(() => setCurrentLogWriter(debug: provider.verbose));
     test('matches correctly for pre-patterns temporary variables', () {
       expect(previousDdcTemporaryVariableRegExp.hasMatch(r't4$'), isTrue);
       expect(previousDdcTemporaryVariableRegExp.hasMatch(r't4$0'), isTrue);
@@ -168,7 +165,7 @@ void testAll({
       };
     }
 
-    setUpAll(() => setCurrentLogWriter(debug: debug));
+    setUpAll(() => setCurrentLogWriter(debug: provider.verbose));
 
     setUp(() async {
       service = context.service;

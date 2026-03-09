@@ -32,7 +32,6 @@ void main() async {
             compilationMode: CompilationMode.frontendServer,
             indexBaseMode: indexBaseMode,
             useDebuggerModuleNames: true,
-            debug: debug,
           );
         },
         skip:
