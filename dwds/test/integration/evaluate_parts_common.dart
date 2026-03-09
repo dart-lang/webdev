@@ -76,6 +76,8 @@ void testAll({
           enableExpressionEvaluation: true,
           useDebuggerModuleNames: useDebuggerModuleNames,
           verboseCompiler: debug,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
         ),
       );
 

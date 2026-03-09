@@ -2,14 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'dart:async';
 import 'dart:io';
 
 import 'package:dwds/src/events.dart';
-import 'package:dwds/src/utilities/server.dart';
 import 'package:test/test.dart';
 import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -21,68 +17,11 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void main() {
-  final provider = TestSdkConfigurationProvider();
-  tearDownAll(provider.dispose);
-
+void testWithDwds({
+  required TestSdkConfigurationProvider provider,
+  bool debug = false,
+}) {
   final context = TestContext(TestProject.test, provider);
-
-  group('serve requests', () {
-    late HttpServer server;
-
-    setUp(() async {
-      setCurrentLogWriter();
-      server = await startHttpServer('localhost', port: 0);
-    });
-
-    tearDown(() async {
-      await server.close();
-    });
-
-    test('emits HTTP_REQUEST_EXCEPTION event', () async {
-      Future<void> throwAsyncException() async {
-        await Future.delayed(const Duration(milliseconds: 100));
-        throw Exception('async error');
-      }
-
-      // The events stream is a broadcast stream so start listening
-      // before the action.
-      final events = expectLater(
-        pipe(eventStream),
-        emitsThrough(
-          matchesEvent(DwdsEventKind.httpRequestException, {
-            'server': 'FakeServer',
-            'exception': startsWith('Exception: async error'),
-          }),
-        ),
-      );
-
-      // Start serving requests with a failing handler in an error zone.
-      serveHttpRequests(
-        server,
-        (request) async {
-          unawaited(throwAsyncException());
-          return Future.error('error');
-        },
-        (e, s) {
-          emitEvent(DwdsEvent.httpRequestException('FakeServer', '$e:$s'));
-        },
-      );
-
-      // Send a request.
-      final client = HttpClient();
-      final request = await client.getUrl(
-        Uri.parse('http://localhost:${server.port}/foo'),
-      );
-
-      // Ignore the response.
-      final response = await request.close();
-      await response.drain();
-
-      // Wait for expected events.
-      await events;
-    });
-  });
 
   group(
     'with dwds',
@@ -129,7 +68,7 @@ void main() {
       }
 
       setUpAll(() async {
-        setCurrentLogWriter();
+        setCurrentLogWriter(debug: debug);
         initialEvents = expectLater(
           pipe(eventStream, timeout: const Timeout.factor(5)),
           emitsThrough(
@@ -140,7 +79,12 @@ void main() {
           ),
         );
         await context.setUp(
-          testSettings: TestSettings(enableExpressionEvaluation: true),
+          testSettings: TestSettings(
+            enableExpressionEvaluation: true,
+            moduleFormat: provider.ddcModuleFormat,
+            verboseCompiler: debug,
+            canaryFeatures: provider.canaryFeatures,
+          ),
           debugSettings: TestDebugSettings.withDevToolsLaunch(context),
         );
         keyboard = context.webDriver.driver.keyboard;
@@ -201,7 +145,7 @@ void main() {
         late String bootstrapId;
 
         setUpAll(() async {
-          setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
           service = context.service;
           final vm = await service.getVM();
           final isolate = await service.getIsolate(vm.isolates!.first.id!);
@@ -210,7 +154,7 @@ void main() {
         });
 
         setUp(() async {
-          setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
         });
 
         test('emits EVALUATE events on evaluation success', () async {
@@ -250,7 +194,7 @@ void main() {
         late ScriptRef mainScript;
 
         setUpAll(() async {
-          setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
           service = context.service;
           final vm = await service.getVM();
 
@@ -264,7 +208,7 @@ void main() {
         });
 
         setUp(() async {
-          setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
         });
 
         test('emits EVALUATE_IN_FRAME events on RPC error', () async {
@@ -362,7 +306,7 @@ void main() {
         late ScriptRef mainScript;
 
         setUp(() async {
-          setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
           service = context.service;
           final vm = await service.getVM();
           isolateId = vm.isolates!.first.id!;
@@ -390,7 +334,7 @@ void main() {
         late String isolateId;
 
         setUp(() async {
-          setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
           service = context.service;
           final vm = await service.getVM();
           isolateId = vm.isolates!.first.id!;
@@ -411,7 +355,7 @@ void main() {
         late String isolateId;
 
         setUp(() async {
-          setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
           service = context.service;
           final vm = await service.getVM();
           isolateId = vm.isolates!.first.id!;
@@ -429,7 +373,7 @@ void main() {
 
       group('getVM', () {
         setUp(() async {
-          setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
         });
 
         test('emits GET_VM events', () async {
@@ -444,7 +388,7 @@ void main() {
 
       group('hotRestart', () {
         setUp(() async {
-          setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
         });
 
         test('emits HOT_RESTART event', () async {
@@ -466,7 +410,7 @@ void main() {
         late String isolateId;
 
         setUp(() async {
-          setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
           service = context.service;
           final vm = await service.getVM();
           isolateId = vm.isolates!.first.id!;
@@ -511,7 +455,7 @@ void main() {
 
       group('fullReload', () {
         setUp(() async {
-          setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
         });
 
         test('emits FULL_RELOAD event', () async {
