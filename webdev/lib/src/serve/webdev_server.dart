@@ -121,8 +121,7 @@ class WebDevServer {
 
     // Only provide relevant build results
     final filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
-      if (options.configuration.canaryFeatures ||
-          options.configuration.moduleFormat == 'ddc') {
+      if (options.configuration.usesDdcLibraryBundle) {
         // Clear reloaded sources for the new build results.
         reloadedSources.clear();
         results.changedAssets?.forEach((uri) {
@@ -259,8 +258,7 @@ class WebDevServer {
       );
       pipeline = pipeline.addMiddleware(dwds.middleware);
       cascade = cascade.add(dwds.handler);
-      if (options.configuration.canaryFeatures ||
-          options.configuration.moduleFormat == 'ddc') {
+      if (options.configuration.usesDdcLibraryBundle) {
         // Add a handler to serve reloaded sources.
         cascade = cascade.add((Request request) {
           if (request.url.path == reloadedSourcesFileName) {

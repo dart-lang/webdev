@@ -1,6 +1,6 @@
-## 3.9.0
+## 3.8.2
 
-- Add `module-format` flag for selecting DDC Library Bundle or AMD module formats.
+- Add `module-format` flag for testing new DDC Library Bundle module format prior to release.
 
 ## 3.8.1
 

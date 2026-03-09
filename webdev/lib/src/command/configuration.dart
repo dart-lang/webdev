@@ -308,6 +308,8 @@ class Configuration {
 
   String get moduleFormat => _moduleFormat ?? 'amd';
 
+  bool get usesDdcLibraryBundle => canaryFeatures || (moduleFormat == 'ddc');
+
   bool get offline => _offline ?? false;
 
   /// Returns a new configuration with values updated from the parsed args.
