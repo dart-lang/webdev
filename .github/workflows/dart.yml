@@ -1,4 +1,4 @@
-# Created with package:mono_repo v6.6.2
+# Created with package:mono_repo v6.6.3
 name: Dart CI
 on:
   push:
@@ -37,7 +37,7 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: mono_repo self validate
-        run: dart pub global activate mono_repo 6.6.2
+        run: dart pub global activate mono_repo 6.6.3
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
@@ -79,16 +79,16 @@ jobs:
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
   job_003:
-    name: "analyzer_and_format; linux; Dart dev; PKGS: example, fixtures/_webdev_smoke, frontend_server_client, frontend_server_common, test_common; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
+    name: "analyzer_and_format; linux; Dart dev; PKGS: example, frontend_server_client, frontend_server_common, test_common, test_common/fixtures/_webdev_smoke; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:example-fixtures/_webdev_smoke-frontend_server_client-frontend_server_common-test_common;commands:format-analyze_0"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:example-frontend_server_client-frontend_server_common-test_common-test_common/fixtures/_webdev_smoke;commands:format-analyze_0"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:example-fixtures/_webdev_smoke-frontend_server_client-frontend_server_common-test_common
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:example-frontend_server_client-frontend_server_common-test_common-test_common/fixtures/_webdev_smoke
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -112,19 +112,6 @@ jobs:
         run: dart analyze --fatal-infos .
         if: "always() && steps.example_pub_upgrade.conclusion == 'success'"
         working-directory: example
-      - id: fixtures__webdev_smoke_pub_upgrade
-        name: fixtures/_webdev_smoke; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: fixtures/_webdev_smoke
-      - name: "fixtures/_webdev_smoke; dart format --output=none --set-exit-if-changed ."
-        run: "dart format --output=none --set-exit-if-changed ."
-        if: "always() && steps.fixtures__webdev_smoke_pub_upgrade.conclusion == 'success'"
-        working-directory: fixtures/_webdev_smoke
-      - name: "fixtures/_webdev_smoke; dart analyze --fatal-infos ."
-        run: dart analyze --fatal-infos .
-        if: "always() && steps.fixtures__webdev_smoke_pub_upgrade.conclusion == 'success'"
-        working-directory: fixtures/_webdev_smoke
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         run: dart pub upgrade
@@ -164,6 +151,19 @@ jobs:
         run: dart analyze --fatal-infos .
         if: "always() && steps.test_common_pub_upgrade.conclusion == 'success'"
         working-directory: test_common
+      - id: test_common_fixtures__webdev_smoke_pub_upgrade
+        name: test_common/fixtures/_webdev_smoke; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: test_common/fixtures/_webdev_smoke
+      - name: "test_common/fixtures/_webdev_smoke; dart format --output=none --set-exit-if-changed ."
+        run: "dart format --output=none --set-exit-if-changed ."
+        if: "always() && steps.test_common_fixtures__webdev_smoke_pub_upgrade.conclusion == 'success'"
+        working-directory: test_common/fixtures/_webdev_smoke
+      - name: "test_common/fixtures/_webdev_smoke; dart analyze --fatal-infos ."
+        run: dart analyze --fatal-infos .
+        if: "always() && steps.test_common_fixtures__webdev_smoke_pub_upgrade.conclusion == 'success'"
+        working-directory: test_common/fixtures/_webdev_smoke
   job_004:
     name: "analyzer_and_format; linux; Dart dev; PKG: webdev; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`, `dart test test/build/ensure_build_test.dart`"
     runs-on: ubuntu-latest
