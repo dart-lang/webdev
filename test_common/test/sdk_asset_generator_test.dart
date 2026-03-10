@@ -140,24 +140,21 @@ void main() {
       },
     );
 
-    test(
-      'Can generate missing SDK assets with canary features enabled for the '
-      'DDC module system',
-      () async {
-        final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
+    test('Can generate missing SDK assets with canary features enabled for the '
+        'DDC module system', () async {
+      final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
 
-        final assetGenerator = SdkAssetGenerator(
-          sdkLayout: sdkLayout,
-          verbose: true,
-          canaryFeatures: true,
-          ddcModuleFormat: ModuleFormat.ddc,
-        );
-        await assetGenerator.generateSdkAssets();
+      final assetGenerator = SdkAssetGenerator(
+        sdkLayout: sdkLayout,
+        verbose: true,
+        canaryFeatures: true,
+        ddcModuleFormat: ModuleFormat.ddc,
+      );
+      await assetGenerator.generateSdkAssets();
 
-        final sdk = File(ddcSdkJsPath).readAsStringSync();
-        expect(sdk, contains('canary'));
-      },
-    );
+      final sdk = File(ddcSdkJsPath).readAsStringSync();
+      expect(sdk, contains('canary'));
+    });
   });
 }
 

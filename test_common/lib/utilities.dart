@@ -10,7 +10,6 @@ const webdevDirName = 'webdev';
 const dwdsDirName = 'dwds';
 const fixturesDirName = 'fixtures';
 
-
 /// The path to the project root directory, e.g. `webdev/` or `pkg/` in the
 /// Dart SDK.
 String get projectRootDir {
