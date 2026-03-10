@@ -57,6 +57,10 @@ class TestRunner {
       fullArgs.add('--canary');
     }
 
+    if (ddcModuleFormat == ModuleFormat.ddc) {
+      fullArgs.addAll(['--module-format', 'ddc']);
+    }
+
     return TestProcess.start(
       sdkLayout.dartPath,
       fullArgs,
