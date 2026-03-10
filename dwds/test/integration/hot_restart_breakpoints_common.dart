@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Tags(['daily'])
-@TestOn('vm')
-@Timeout(Duration(minutes: 5))
-library;
-
 import 'dart:async';
 
 import 'package:dwds/expression_compiler.dart';
@@ -36,23 +31,17 @@ void main() {
     runTests(
       provider: provider,
       compilationMode: CompilationMode.frontendServer,
-      debug: debug,
     );
   });
 
   group('Build Daemon', () {
-    runTests(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemon,
-      debug: debug,
-    );
+    runTests(provider: provider, compilationMode: CompilationMode.buildDaemon);
   });
 }
 
 void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
-  required bool debug,
 }) {
   final project = TestProject.testHotRestartBreakpoints;
   final context = TestContext(project, provider);
@@ -77,7 +66,7 @@ void runTests({
     StreamSubscription<ConsoleAPIEvent>? consoleSubscription;
 
     setUp(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,

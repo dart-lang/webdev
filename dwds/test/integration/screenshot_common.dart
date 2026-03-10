@@ -2,23 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
-void main() {
-  final provider = TestSdkConfigurationProvider();
-  tearDownAll(provider.dispose);
-
+void testAll({required TestSdkConfigurationProvider provider}) {
   final context = TestContext(TestProject.test, provider);
 
   setUpAll(() async {
-    await context.setUp();
+    setCurrentLogWriter(debug: provider.verbose);
+    await context.setUp(
+      testSettings: TestSettings(
+        verboseCompiler: provider.verbose,
+        moduleFormat: provider.ddcModuleFormat,
+        canaryFeatures: provider.canaryFeatures,
+      ),
+    );
   });
 
   tearDownAll(() async {

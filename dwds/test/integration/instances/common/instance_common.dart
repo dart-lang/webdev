@@ -20,7 +20,6 @@ void runTypeSystemVerificationTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   required bool canaryFeatures,
-  required bool debug,
 }) {
   final project = TestProject.testScopes;
 
@@ -29,10 +28,11 @@ void runTypeSystemVerificationTests({
     late ChromeAppInspector inspector;
 
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
+          verboseCompiler: provider.verbose,
           canaryFeatures: canaryFeatures,
         ),
       );
@@ -66,7 +66,7 @@ void runTypeSystemVerificationTests({
           ''';
 
     group('compiler', () {
-      setUp(() => setCurrentLogWriter(debug: debug));
+      setUp(() => setCurrentLogWriter(debug: provider.verbose));
 
       test('uses correct type system', () async {
         final remoteObject = await inspector.jsEvaluate(
@@ -82,7 +82,6 @@ void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   required bool canaryFeatures,
-  required bool debug,
 }) {
   final project = TestProject.testScopes;
   final context = TestContext(project, provider);
@@ -91,10 +90,11 @@ void runTests({
 
   group('$compilationMode |', () {
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
+          verboseCompiler: provider.verbose,
           canaryFeatures: canaryFeatures,
           moduleFormat: provider.ddcModuleFormat,
         ),
@@ -140,7 +140,7 @@ void runTests({
         'constructors at runtime.';
 
     group('instanceRef', () {
-      setUp(() => setCurrentLogWriter(debug: debug));
+      setUp(() => setCurrentLogWriter(debug: provider.verbose));
 
       test('for a null', () async {
         final remoteObject = await getLibraryPublicFinalRef();
@@ -322,7 +322,7 @@ void runTests({
     });
 
     group('instance', () {
-      setUp(() => setCurrentLogWriter(debug: debug));
+      setUp(() => setCurrentLogWriter(debug: provider.verbose));
       test('for an object', () async {
         final remoteObject = await getLibraryPublicFinalRef();
         final instance = await inspector.instanceFor(remoteObject);

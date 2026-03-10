@@ -1,4 +1,4 @@
-// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,22 +6,23 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
 
-import 'evaluate_parts_common.dart';
-import 'fixtures/context.dart';
+import 'dds_port_common.dart';
 
-void main() async {
+void main() {
   // Enable verbose logging for debugging.
   const debug = false;
 
-  final provider = TestSdkConfigurationProvider(verbose: debug);
+  final canary = true;
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    canaryFeatures: canary,
+    ddcModuleFormat: ModuleFormat.ddc,
+  );
   tearDownAll(provider.dispose);
 
-  testAll(
-    provider: provider,
-    compilationMode: CompilationMode.buildDaemon,
-    debug: debug,
-  );
+  testAll(provider: provider);
 }

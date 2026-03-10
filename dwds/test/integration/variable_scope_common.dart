@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
-@Timeout(Duration(minutes: 2))
-library;
+import 'dart:async';
 
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
@@ -17,18 +15,18 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void main() {
-  // set to true for debug logging.
-  const debug = false;
-
-  final provider = TestSdkConfigurationProvider(verbose: debug);
-  tearDownAll(provider.dispose);
-
+void testAll({required TestSdkConfigurationProvider provider}) {
   final context = TestContext(TestProject.testScopes, provider);
 
   setUpAll(() async {
-    setCurrentLogWriter(debug: debug);
-    await context.setUp(testSettings: TestSettings(verboseCompiler: debug));
+    setCurrentLogWriter(debug: provider.verbose);
+    await context.setUp(
+      testSettings: TestSettings(
+        verboseCompiler: provider.verbose,
+        moduleFormat: provider.ddcModuleFormat,
+        canaryFeatures: provider.canaryFeatures,
+      ),
+    );
   });
 
   tearDownAll(() async {
@@ -36,7 +34,7 @@ void main() {
   });
 
   group('temporary variable regular expression', () {
-    setUpAll(() => setCurrentLogWriter(debug: debug));
+    setUpAll(() => setCurrentLogWriter(debug: provider.verbose));
     test('matches correctly for pre-patterns temporary variables', () {
       expect(previousDdcTemporaryVariableRegExp.hasMatch(r't4$'), isTrue);
       expect(previousDdcTemporaryVariableRegExp.hasMatch(r't4$0'), isTrue);
@@ -167,7 +165,7 @@ void main() {
       };
     }
 
-    setUpAll(() => setCurrentLogWriter(debug: debug));
+    setUpAll(() => setCurrentLogWriter(debug: provider.verbose));
 
     setUp(() async {
       service = context.service;

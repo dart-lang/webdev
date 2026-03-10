@@ -29,9 +29,12 @@ void main() {
   group('while debugger is attached', () {
     late VmServiceInterface service;
     setUp(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
-        testSettings: TestSettings(autoRun: false, verboseCompiler: debug),
+        testSettings: TestSettings(
+          autoRun: false,
+          verboseCompiler: provider.verbose,
+        ),
       );
       service = context.service;
     });
@@ -71,7 +74,7 @@ void main() {
 
   group('while debugger is not attached', () {
     setUp(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(autoRun: false, waitToDebug: true),
       );
