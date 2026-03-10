@@ -10,26 +10,56 @@ const webdevDirName = 'webdev';
 const dwdsDirName = 'dwds';
 const fixturesDirName = 'fixtures';
 
-/// The path to the webdev directory in the local machine, e.g.
-/// '/workstation/webdev'.
-String get webdevPath {
-  final pathParts = p.split(p.current);
-  assert(pathParts.contains(webdevDirName));
-  return p.joinAll(
-    pathParts.sublist(0, pathParts.lastIndexOf(webdevDirName) + 1),
-  );
+
+/// The path to the project root directory, e.g. `webdev/` or `pkg/` in the
+/// Dart SDK.
+String get projectRootDir {
+  return p.dirname(_dwdsTestCommonPackageRoot);
 }
 
 /// The path to the DWDS directory in the local machine, e.g.
-/// '/workstation/webdev/dwds'.
+/// 'webdev/dwds' or 'pkg/dwds'.
 String get dwdsPath {
-  return p.join(webdevPath, dwdsDirName);
+  return p.join(projectRootDir, dwdsDirName);
 }
 
 /// The path to the fixtures directory in the local machine, e.g.
-/// '/workstation/webdev/fixtures'.
+/// 'webdev/fixtures' or 'pkg/dwds_test_common/fixtures'.
 String get fixturesPath {
-  return p.join(webdevPath, fixturesDirName);
+  return p.join(_dwdsTestCommonPackageRoot, fixturesDirName);
+}
+
+/// The path to the test_common/dwds_test_common package root in the local machine, e.g.
+/// 'webdev/test_common' or 'pkg/dwds_test_common'.
+String get _dwdsTestCommonPackageRoot {
+  final scriptPath = Platform.script.toFilePath();
+  final isTest = scriptPath.contains('dart_test.kernel');
+  if (isTest) {
+    // When running tests, p.current might be dwds, so we need to check
+    // if we're in dwds_test_common or need to navigate to it
+    var current = p.current;
+    if (p.basename(current) == 'dwds') {
+      // Check if test_common or dwds_test_common exists as a sibling
+      for (final name in ['test_common', 'dwds_test_common']) {
+        final testCommonPath = p.join(p.dirname(current), name);
+        if (Directory(testCommonPath).existsSync()) {
+          return testCommonPath;
+        }
+      }
+    }
+    return current; // p.current is the package root for tests
+  }
+  var current = p.dirname(scriptPath);
+  while (current != p.dirname(current)) {
+    if (File(p.join(current, 'pubspec.yaml')).existsSync()) {
+      return current; // This is the package root
+    }
+    current = p.dirname(current);
+  }
+  throw StateError(
+    'Could not find `test_common` or `dwds_test_common` package root from '
+    '${Platform.script.path}.',
+  );
 }
 
 // Creates a path compatible for web.
@@ -50,7 +80,7 @@ String absolutePath({
 }) {
   if (pathFromWebdev != null) {
     assert(pathFromDwds == null && pathFromFixtures == null);
-    return p.normalize(p.join(webdevPath, pathFromWebdev));
+    return p.normalize(p.join(projectRootDir, pathFromWebdev));
   }
   if (pathFromDwds != null) {
     assert(pathFromFixtures == null);

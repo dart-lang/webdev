@@ -10,9 +10,9 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
-import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 import 'package:test_common/utilities.dart';
+import 'package:yaml/yaml.dart';
 
 void main() {
   for (final package in ['dwds', 'webdev']) {
@@ -20,8 +20,9 @@ void main() {
       final pubspecPath = absolutePath(
         pathFromWebdev: p.join(package, 'pubspec.yaml'),
       );
-      final pubspec = Pubspec.parse(File(pubspecPath).readAsStringSync());
-      final version = pubspec.version!;
+      print('pathfromwebdev: $pubspecPath');
+      final pubspec = loadYaml(File(pubspecPath).readAsStringSync()) as YamlMap;
+      final version = Version.parse(pubspec['version'] as String);
       final isWip = version.toString().contains('wip');
       if (!isWip) {
         final wasReleased = await _versionWasReleased(

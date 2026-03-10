@@ -57,7 +57,8 @@ void main() {
     });
 
     test(
-      'Can generate missing SDK assets and validate SDK configuration for the AMD module system',
+      'Can generate missing SDK assets and validate SDK configuration for the '
+      'AMD module system',
       () async {
         final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
         final configuration = TestSdkLayout.createConfiguration(sdkLayout);
@@ -70,7 +71,8 @@ void main() {
         );
         await assetGenerator.generateSdkAssets();
 
-        // Make sure SDK configuration and asset generator agree on the file paths.
+        // Make sure SDK configuration and asset generator agree on the file
+        // paths.
         expect(configuration.sdkDirectory, equals(sdkDirectory));
         expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
 
@@ -88,7 +90,8 @@ void main() {
     );
 
     test(
-      'Can generate missing SDK assets and validate SDK configuration for the DDC module system',
+      'Can generate missing SDK assets and validate SDK configuration for the '
+      'DDC module system',
       () async {
         final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
         final configuration = TestSdkLayout.createConfiguration(sdkLayout);
@@ -101,7 +104,8 @@ void main() {
         );
         await assetGenerator.generateSdkAssets();
 
-        // Make sure SDK configuration and asset generator agree on the file paths.
+        // Make sure SDK configuration and asset generator agree on the file
+        // paths.
         expect(configuration.sdkDirectory, equals(sdkDirectory));
         expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
 
@@ -137,7 +141,8 @@ void main() {
     );
 
     test(
-      'Can generate missing SDK assets with canary features enabled for the DDC module system',
+      'Can generate missing SDK assets with canary features enabled for the '
+      'DDC module system',
       () async {
         final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
 
