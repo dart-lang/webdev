@@ -23,13 +23,17 @@ void main() async {
 
   final provider = TestSdkConfigurationProvider(
     verbose: debug,
-    ddcModuleFormat: ModuleFormat.ddc,
+    ddcModuleFormat: ModuleFormat.amd,
   );
   tearDownAll(provider.dispose);
 
-  for (final useDebuggerModuleNames in [false, true]) {
-    group('Debugger module names: $useDebuggerModuleNames |', () {
-      group('DDC module system |', () {
+  group('Build Daemon |', () {
+    testAll(provider: provider, compilationMode: CompilationMode.buildDaemon);
+  });
+
+  group('Frontend Server |', () {
+    for (final useDebuggerModuleNames in [false, true]) {
+      group('Debugger module names: $useDebuggerModuleNames |', () {
         for (final indexBaseMode in IndexBaseMode.values) {
           group(
             'with ${indexBaseMode.name} |',
@@ -39,7 +43,6 @@ void main() async {
                 compilationMode: CompilationMode.frontendServer,
                 indexBaseMode: indexBaseMode,
                 useDebuggerModuleNames: useDebuggerModuleNames,
-                debug: debug,
               );
             },
             // https://github.com/dart-lang/sdk/issues/49277
@@ -47,6 +50,6 @@ void main() async {
           );
         }
       });
-    });
-  }
+    }
+  });
 }

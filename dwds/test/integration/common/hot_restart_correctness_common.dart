@@ -31,7 +31,6 @@ void runTests({
   required ModuleFormat moduleFormat,
   required CompilationMode compilationMode,
   required bool canaryFeatures,
-  required bool debug,
 }) {
   tearDownAll(provider.dispose);
 
@@ -77,7 +76,7 @@ void runTests({
     VmService? fakeClient;
 
     setUp(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
@@ -146,7 +145,7 @@ void runTests({
     () {
       group('and with debugging', () {
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           await context.setUp(
             testSettings: TestSettings(
               reloadConfiguration: ReloadConfiguration.hotRestart,
@@ -172,7 +171,7 @@ void runTests({
 
       group('and without debugging', () {
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           await context.setUp(
             testSettings: TestSettings(
               reloadConfiguration: ReloadConfiguration.hotRestart,

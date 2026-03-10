@@ -21,7 +21,6 @@ void testAll({
   CompilationMode compilationMode = CompilationMode.buildDaemon,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
   bool useDebuggerModuleNames = false,
-  bool debug = false,
 }) {
   if (compilationMode == CompilationMode.buildDaemon &&
       indexBaseMode == IndexBaseMode.base) {
@@ -64,13 +63,15 @@ void testAll({
 
   group('shared context with evaluation', () {
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
           enableExpressionEvaluation: true,
           useDebuggerModuleNames: useDebuggerModuleNames,
-          verboseCompiler: debug,
+          verboseCompiler: provider.verbose,
+          canaryFeatures: provider.canaryFeatures,
+          moduleFormat: provider.ddcModuleFormat,
         ),
       );
     });
@@ -79,7 +80,7 @@ void testAll({
       await context.tearDown();
     });
 
-    setUp(() => setCurrentLogWriter(debug: debug));
+    setUp(() => setCurrentLogWriter(debug: provider.verbose));
 
     group('evaluateInFrame', () {
       late VmServiceInterface service;
@@ -92,7 +93,7 @@ void testAll({
       late Stream<Event> stream;
 
       setUp(() async {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);

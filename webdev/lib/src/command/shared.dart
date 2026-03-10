@@ -89,6 +89,13 @@ void addSharedArgs(
       hide: true,
       help: 'Enables DDC canary features.',
     )
+    ..addOption(
+      moduleFormatFlag,
+      defaultsTo: 'amd',
+      allowed: ['amd', 'ddc'],
+      help: 'Sets the module format DDC uses for compilation.',
+      hide: true,
+    )
     ..addFlag(
       verboseFlag,
       abbr: 'v',
@@ -142,6 +149,21 @@ List<String> buildRunnerArgs(Configuration configuration) {
     arguments
       ..add('--define')
       ..add('build_web_compilers|ddc_modules=web-hot-reload=true');
+  }
+
+  if (configuration.moduleFormat == 'ddc') {
+    arguments
+      ..add('--define')
+      ..add('build_web_compilers|ddc=ddc-library-bundle=true');
+    arguments
+      ..add('--define')
+      ..add('build_web_compilers|sdk_js=ddc-library-bundle=true');
+    arguments
+      ..add('--define')
+      ..add('build_web_compilers|entrypoint=ddc-library-bundle=true');
+    arguments
+      ..add('--define')
+      ..add('build_web_compilers|entrypoint_marker=ddc-library-bundle=true');
   }
 
   return arguments;

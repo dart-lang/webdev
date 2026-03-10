@@ -32,14 +32,12 @@ void main() {
       provider: provider,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
 
     runTests(
       provider: provider,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
   });
 
@@ -57,14 +55,12 @@ void main() {
       provider: provider,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
 
     runTests(
       provider: provider,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
   });
 
@@ -82,14 +78,12 @@ void main() {
       provider: provider,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
 
     runTests(
       provider: provider,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
   });
 
@@ -107,14 +101,12 @@ void main() {
       provider: provider,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
 
     runTests(
       provider: provider,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
   });
 }
