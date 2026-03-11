@@ -20,7 +20,6 @@ void main() {
       final pubspecPath = absolutePath(
         pathFromWebdev: p.join(package, 'pubspec.yaml'),
       );
-      print('pathfromwebdev: $pubspecPath');
       final pubspec = loadYaml(File(pubspecPath).readAsStringSync()) as YamlMap;
       final version = Version.parse(pubspec['version'] as String);
       final isWip = version.toString().contains('wip');
