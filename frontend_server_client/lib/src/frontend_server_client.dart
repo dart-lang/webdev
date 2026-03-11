@@ -94,30 +94,34 @@ class FrontendServerClient {
       for (final source in additionalSources) ...['--source', source],
       if (nativeAssets != null) ...['--native-assets', nativeAssets],
     ];
+    final dartExecutable = _dartExecutable(sdkRoot);
+    final aotRuntimePath = _dartAotRuntimePath(sdkRoot);
+    final aotSnapshotPath = _feServerAotSnapshotPath(sdkRoot);
+    final appJitSnapshotPath = _feServerAppJitSnapshotPath(sdkRoot);
     late final Process feServer;
     if (frontendServerPath != null) {
-      feServer = await Process.start(Platform.resolvedExecutable, <String>[
+      feServer = await Process.start(dartExecutable, <String>[
         if (debug) '--observe',
         frontendServerPath,
         ...commonArguments,
       ]);
-    } else if (File(_feServerAotSnapshotPath).existsSync()) {
+    } else if (File(aotSnapshotPath).existsSync()) {
       if (debug) {
         throw ArgumentError(
           'The debug argument cannot be set to true when the '
           'frontendServerPath argument is omitted.',
         );
       }
-      feServer = await Process.start(_dartAotRuntimePath, <String>[
-        _feServerAotSnapshotPath,
+      feServer = await Process.start(aotRuntimePath, <String>[
+        aotSnapshotPath,
         ...commonArguments,
       ]);
     } else {
       // AOT snapshots cannot be generated on IA32, so we need this fallback
       // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      feServer = await Process.start(Platform.resolvedExecutable, <String>[
+      feServer = await Process.start(dartExecutable, <String>[
         if (debug) '--observe',
-        _feServerAppJitSnapshotPath,
+        appJitSnapshotPath,
         ...commonArguments,
       ]);
     }
@@ -439,17 +443,22 @@ enum _CompileState { started, waitingForKey, gettingSourceDiffs, done }
 /// Frontend server interaction states for a `reject` call.
 enum _RejectState { started, waitingForKey, done }
 
-final _dartAotRuntimePath = p.join(sdkDir, 'bin', 'dartaotruntime');
+String _dartExecutable(String? sdkRoot) => sdkRoot != null
+    ? p.join(sdkRoot, 'bin', 'dart')
+    : Platform.resolvedExecutable;
 
-final _feServerAppJitSnapshotPath = p.join(
-  sdkDir,
+String _dartAotRuntimePath(String? sdkRoot) =>
+    p.join(sdkRoot ?? sdkDir, 'bin', 'dartaotruntime');
+
+String _feServerAppJitSnapshotPath(String? sdkRoot) => p.join(
+  sdkRoot ?? sdkDir,
   'bin',
   'snapshots',
   'frontend_server.dart.snapshot',
 );
 
-final _feServerAotSnapshotPath = p.join(
-  sdkDir,
+String _feServerAotSnapshotPath(String? sdkRoot) => p.join(
+  sdkRoot ?? sdkDir,
   'bin',
   'snapshots',
   'frontend_server_aot.dart.snapshot',
