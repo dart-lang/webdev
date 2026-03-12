@@ -14,7 +14,7 @@ import 'app_domain_common.dart';
 void main() {
   appDomainTests(
     testRunner: TestRunner(
-      canaryFeatures: true,
+      canaryFeatures: false,
       ddcModuleFormat: ModuleFormat.ddc,
     ),
   );
