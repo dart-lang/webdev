@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -16,10 +17,21 @@ final _webdevBin = p.absolute(p.join('bin', 'webdev.dart'));
 class TestRunner {
   late TestSdkConfigurationProvider sdkConfigurationProvider;
   late TestSdkLayout sdkLayout;
+  final bool canaryFeatures;
+  final ModuleFormat ddcModuleFormat;
+
+  TestRunner({
+    this.canaryFeatures = false,
+    this.ddcModuleFormat = ModuleFormat.amd,
+  });
 
   Future<void> setUpAll({bool verbose = false}) async {
     // Generate missing SDK assets if needed.
-    sdkConfigurationProvider = TestSdkConfigurationProvider(verbose: verbose);
+    sdkConfigurationProvider = TestSdkConfigurationProvider(
+      verbose: verbose,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: ddcModuleFormat,
+    );
     sdkLayout = sdkConfigurationProvider.sdkLayout;
 
     try {
@@ -41,6 +53,13 @@ class TestRunner {
     String? workingDirectory,
   }) async {
     final fullArgs = [_webdevBin, ...args];
+    if (canaryFeatures) {
+      fullArgs.add('--canary');
+    }
+
+    if (ddcModuleFormat == ModuleFormat.ddc) {
+      fullArgs.addAll(['--module-format', 'ddc']);
+    }
 
     return TestProcess.start(
       sdkLayout.dartPath,
