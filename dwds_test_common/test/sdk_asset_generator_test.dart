@@ -9,10 +9,10 @@ library;
 import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/sdk_asset_generator.dart';
+import 'package:dwds_test_common/test_sdk_layout.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/sdk_asset_generator.dart';
-import 'package:test_common/test_sdk_layout.dart';
 
 void main() {
   group('SDK asset generator', () {

@@ -1,4 +1,4 @@
-name: test_common
+name: dwds_test_common
 publish_to: none
 description: >-
   Common test functionality.

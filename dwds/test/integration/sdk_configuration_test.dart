@@ -9,10 +9,10 @@ library;
 import 'dart:io';
 
 import 'package:dwds/src/utilities/sdk_configuration.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:file/memory.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 
 var _throwsDoesNotExistException = throwsA(
   isA<InvalidSdkConfigurationException>().having(

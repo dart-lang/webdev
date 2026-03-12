@@ -23,27 +23,27 @@ String get dwdsPath {
 }
 
 /// The path to the fixtures directory in the local machine, e.g.
-/// 'webdev/fixtures' or 'pkg/dwds_test_common/fixtures'.
+/// 'webdev/dwds_test_common/fixtures' or 'pkg/dwds_test_common/fixtures'.
 String get fixturesPath {
   return p.join(_dwdsTestCommonPackageRoot, fixturesDirName);
 }
 
-/// The path to the test_common/dwds_test_common package root in the local machine, e.g.
-/// 'webdev/test_common' or 'pkg/dwds_test_common'.
+/// The path to the webdev/dwds_test_common or pkg/dwds_test_common package
+/// root in the local machine, e.g. 'webdev/dwds_test_common' or
+/// 'pkg/dwds_test_common'.
 String get _dwdsTestCommonPackageRoot {
   final scriptPath = Platform.script.toFilePath();
   final isTest = scriptPath.contains('dart_test.kernel');
   if (isTest) {
     // When running tests, p.current might be dwds, so we need to check
-    // if we're in dwds_test_common or need to navigate to it
+    // if we're in webdev/dwds_test_common or pkg/dwds_test_common or need to
+    // navigate to it.
     var current = p.current;
     if (p.basename(current) == 'dwds') {
-      // Check if test_common or dwds_test_common exists as a sibling
-      for (final name in ['test_common', 'dwds_test_common']) {
-        final testCommonPath = p.join(p.dirname(current), name);
-        if (Directory(testCommonPath).existsSync()) {
-          return testCommonPath;
-        }
+      // Check if dwds_test_common exists as a sibling
+      final testCommonPath = p.join(p.dirname(current), 'dwds_test_common');
+      if (Directory(testCommonPath).existsSync()) {
+        return testCommonPath;
       }
     }
     return current; // p.current is the package root for tests
@@ -56,7 +56,7 @@ String get _dwdsTestCommonPackageRoot {
     current = p.dirname(current);
   }
   throw StateError(
-    'Could not find `test_common` or `dwds_test_common` package root from '
+    'Could not find `dwds_test_common` package root from '
     '${Platform.script.path}.',
   );
 }
@@ -68,10 +68,10 @@ String webCompatiblePath(List<String> pathParts) {
   return p.joinAll([...pathParts]).replaceAll('\\', '/');
 }
 
-/// Expects one of [pathFromWebdev], [pathFromDwds] or [pathFromFixtures]  to be
-/// provided. Returns the absolute path in the local machine to that path, e.g.
-///   absolutePath(pathFromFixtures: '_test/example') ->
-///   '/workstation/webdev/fixtures/_test/example'
+/// Expects one of [pathFromWebdev], [pathFromDwds] or [pathFromFixtures] to
+/// be provided. Returns the absolute path in the local machine to that path,
+/// e.g. absolutePath(pathFromFixtures: '_test/example') ->
+/// '/workstation/webdev/dwds_test_common/fixtures/_test/example'
 String absolutePath({
   String? pathFromWebdev,
   String? pathFromDwds,

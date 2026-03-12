@@ -4,9 +4,9 @@
 
 import 'dart:io';
 
+import 'package:dwds_test_common/utilities.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
-import 'package:test_common/utilities.dart';
 import 'package:yaml/yaml.dart';
 
 enum IndexBaseMode { noBase, base }
