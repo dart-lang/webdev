@@ -8,10 +8,10 @@ library;
 import 'dart:io';
 
 import 'package:dwds/src/readers/frontend_server_asset_reader.dart';
+import 'package:dwds_test_common/test_sdk_layout.dart';
+import 'package:dwds_test_common/utilities.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_layout.dart';
-import 'package:test_common/utilities.dart';
 
 import '../fixtures/project.dart';
 

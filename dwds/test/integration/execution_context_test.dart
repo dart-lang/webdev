@@ -12,8 +12,8 @@ import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/servers/extension_debugger.dart';
+import 'package:dwds_test_common/logging.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/fakes.dart';

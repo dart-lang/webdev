@@ -7,9 +7,9 @@
 library;
 
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds_test_common/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
 
 import 'fixtures/fakes.dart';
 import 'fixtures/utilities.dart';

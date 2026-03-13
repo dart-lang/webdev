@@ -6,9 +6,9 @@ import 'dart:async';
 
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
