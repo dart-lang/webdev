@@ -8,8 +8,8 @@
 library;
 
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 
 import '../fixtures/context.dart';
 import 'common/record_inspection_common.dart';
@@ -31,7 +31,6 @@ void main() {
       provider: provider,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
   });
 
@@ -47,7 +46,6 @@ void main() {
       provider: provider,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
   });
 }

@@ -9,10 +9,10 @@ library;
 import 'dart:async';
 
 import 'package:dwds/src/services/expression_evaluator.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
+import 'package:dwds_test_common/utilities.dart' show dartSdkIsAtLeast;
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
-import 'package:test_common/utilities.dart' show dartSdkIsAtLeast;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -25,7 +25,6 @@ void testAll({
   CompilationMode compilationMode = CompilationMode.buildDaemon,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
   bool useDebuggerModuleNames = false,
-  bool debug = false,
 }) {
   if (compilationMode == CompilationMode.buildDaemon &&
       indexBaseMode == IndexBaseMode.base) {
@@ -72,14 +71,14 @@ void testAll({
 
   group('Shared context with evaluation |', () {
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
           moduleFormat: provider.ddcModuleFormat,
           enableExpressionEvaluation: true,
           useDebuggerModuleNames: useDebuggerModuleNames,
-          verboseCompiler: debug,
+          verboseCompiler: provider.verbose,
           canaryFeatures: provider.canaryFeatures,
         ),
       );
@@ -89,7 +88,7 @@ void testAll({
       await context.tearDown();
     });
 
-    setUp(() => setCurrentLogWriter(debug: debug));
+    setUp(() => setCurrentLogWriter(debug: provider.verbose));
 
     group('evaluateInFrame |', () {
       VM vm;
@@ -105,7 +104,7 @@ void testAll({
 
       setUp(() async {
         output = StreamController<String>.broadcast();
-        output.stream.listen(debug ? print : printOnFailure);
+        output.stream.listen(provider.verbose ? print : printOnFailure);
 
         configureLogWriter(
           customLogWriter: (level, message, {error, loggerName, stackTrace}) {
@@ -643,7 +642,7 @@ void testAll({
       late String isolateId;
 
       setUp(() async {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         final service = context.service;
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
@@ -808,13 +807,13 @@ void testAll({
 
   group('shared context with no evaluation |', () {
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
           moduleFormat: provider.ddcModuleFormat,
           enableExpressionEvaluation: false,
-          verboseCompiler: debug,
+          verboseCompiler: provider.verbose,
           canaryFeatures: provider.canaryFeatures,
         ),
       );
@@ -824,7 +823,7 @@ void testAll({
       await context.tearDown();
     });
 
-    setUp(() => setCurrentLogWriter(debug: debug));
+    setUp(() => setCurrentLogWriter(debug: provider.verbose));
 
     group('evaluateInFrame |', () {
       VM vm;

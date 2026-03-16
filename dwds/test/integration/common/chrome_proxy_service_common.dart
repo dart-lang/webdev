@@ -15,11 +15,11 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
@@ -32,14 +32,13 @@ void runTests({
   required ModuleFormat moduleFormat,
   required CompilationMode compilationMode,
   required bool canaryFeatures,
-  required bool debug,
 }) {
   final project = TestProject.test;
   final context = TestContext(project, provider);
 
   group('shared context', () {
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
@@ -64,7 +63,7 @@ void runTests({
       late ScriptRef mainScript;
 
       setUp(() async {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
@@ -223,7 +222,7 @@ void runTests({
       late ChromeProxyService service;
 
       setUp(() {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
       });
 
@@ -318,7 +317,7 @@ void runTests({
       late VmServiceInterface service;
 
       setUp(() {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
       });
 
@@ -365,7 +364,7 @@ void runTests({
       LibraryRef? bootstrap;
 
       setUpAll(() async {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
         final vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
@@ -374,7 +373,7 @@ void runTests({
 
       group('top level methods', () {
         setUp(() {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
         });
 
         test('can return strings', () async {
@@ -466,7 +465,7 @@ void runTests({
 
         group('with provided scope', () {
           setUp(() {
-            setCurrentLogWriter(debug: debug);
+            setCurrentLogWriter(debug: provider.verbose);
           });
 
           Future<InstanceRef> createRemoteObject(String message) async {
@@ -549,7 +548,7 @@ void runTests({
     group('getIsolate', () {
       late VmServiceInterface service;
       setUp(() {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
       });
 
@@ -586,7 +585,7 @@ void runTests({
       Library? rootLibrary;
 
       setUpAll(() async {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
         final vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
@@ -596,7 +595,7 @@ void runTests({
       });
 
       setUp(() {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
       });
 
       test('root Library', () async {
@@ -784,12 +783,7 @@ void runTests({
           final result = await http.get(
             Uri.parse('http://localhost:${context.port}/$serverPath'),
           );
-          // TODO: Figure out if we can encode the sript as utf8 and avoid this
-          final body =
-              (moduleFormat == ModuleFormat.ddc && canaryFeatures == true)
-              ? utf8.decode(result.body.codeUnits)
-              : result.body;
-          expect(script.source, body);
+          expect(script.source, utf8.decode(result.bodyBytes));
           expect(scriptRef.uri, endsWith('.dart'));
           expect(script.tokenPosTable, isNotEmpty);
         }
@@ -1428,7 +1422,7 @@ void runTests({
       late VmServiceInterface service;
 
       setUp(() {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
       });
 
@@ -1494,7 +1488,7 @@ void runTests({
       late ScriptRef mainScript;
 
       setUp(() async {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
         final vm = await service.getVM();
         isolateId = vm.isolates!.first.id;
@@ -1547,7 +1541,7 @@ void runTests({
       ScriptRef mainScript;
 
       setUp(() async {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
         final vm = await service.getVM();
         isolateId = vm.isolates!.first.id;
@@ -1630,7 +1624,7 @@ void runTests({
       late ScriptRef mainScript;
 
       setUp(() async {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
         final vm = await service.getVM();
         isolateId = vm.isolates!.first.id;
@@ -1813,7 +1807,7 @@ void runTests({
       late InstanceRef testInstance;
 
       setUp(() async {
-        setCurrentLogWriter(debug: debug);
+        setCurrentLogWriter(debug: provider.verbose);
         service = context.service;
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
@@ -2356,7 +2350,7 @@ void runTests({
         late Stream<Event> eventStream;
 
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           service = context.service;
           expect(
             await service.streamListen('Debug'),
@@ -2420,7 +2414,7 @@ void runTests({
         late Stream<Event> eventStream;
 
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           service = context.service;
           expect(
             await service.streamListen('Extension'),

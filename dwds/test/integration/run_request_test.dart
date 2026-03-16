@@ -7,9 +7,9 @@ library;
 
 import 'dart:async';
 
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
@@ -29,9 +29,12 @@ void main() {
   group('while debugger is attached', () {
     late VmServiceInterface service;
     setUp(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
-        testSettings: TestSettings(autoRun: false, verboseCompiler: debug),
+        testSettings: TestSettings(
+          autoRun: false,
+          verboseCompiler: provider.verbose,
+        ),
       );
       service = context.service;
     });
@@ -71,7 +74,7 @@ void main() {
 
   group('while debugger is not attached', () {
     setUp(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(autoRun: false, waitToDebug: true),
       );

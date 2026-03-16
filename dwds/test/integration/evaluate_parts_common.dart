@@ -4,9 +4,9 @@
 
 library;
 
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
@@ -19,7 +19,6 @@ void testAll({
   CompilationMode compilationMode = CompilationMode.buildDaemon,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
   bool useDebuggerModuleNames = false,
-  bool debug = false,
 }) {
   if (compilationMode == CompilationMode.buildDaemon &&
       indexBaseMode == IndexBaseMode.base) {
@@ -69,13 +68,15 @@ void testAll({
     late Stream<Event> stream;
 
     setUp(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
           enableExpressionEvaluation: true,
           useDebuggerModuleNames: useDebuggerModuleNames,
-          verboseCompiler: debug,
+          verboseCompiler: provider.verbose,
+          canaryFeatures: provider.canaryFeatures,
+          moduleFormat: provider.ddcModuleFormat,
         ),
       );
 

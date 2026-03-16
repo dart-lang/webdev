@@ -11,9 +11,9 @@ import 'dart:async';
 
 import 'package:dwds/dwds.dart';
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../fixtures/context.dart';
@@ -28,7 +28,6 @@ void runTests({
   required ModuleFormat moduleFormat,
   required CompilationMode compilationMode,
   required bool canaryFeatures,
-  required bool debug,
 }) {
   final context = TestContext(TestProject.testAppendBody, provider);
 
@@ -86,7 +85,7 @@ void runTests({
     () {
       group('and with debugging', () {
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           await context.setUp(
             testSettings: TestSettings(
               reloadConfiguration: ReloadConfiguration.liveReload,
@@ -111,7 +110,7 @@ void runTests({
 
       group('and without debugging', () {
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           await context.setUp(
             testSettings: TestSettings(
               reloadConfiguration: ReloadConfiguration.liveReload,
@@ -139,7 +138,7 @@ void runTests({
 
       group('and without debugging using WebSockets', () {
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           await context.setUp(
             testSettings: TestSettings(
               reloadConfiguration: ReloadConfiguration.liveReload,
@@ -175,7 +174,7 @@ void runTests({
     late VmService fakeClient;
 
     setUp(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
@@ -479,7 +478,7 @@ void runTests({
     () {
       group('and with debugging', () {
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           await context.setUp(
             testSettings: TestSettings(
               reloadConfiguration: ReloadConfiguration.hotRestart,
@@ -532,7 +531,7 @@ void runTests({
 
       group('and without debugging', () {
         setUp(() async {
-          setCurrentLogWriter(debug: debug);
+          setCurrentLogWriter(debug: provider.verbose);
           await context.setUp(
             testSettings: TestSettings(
               reloadConfiguration: ReloadConfiguration.hotRestart,
@@ -573,7 +572,7 @@ void runTests({
     late VmService fakeClient;
 
     setUp(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,

@@ -479,7 +479,7 @@ $_simpleLoaderScript
         if (url == 'dart_sdk.js') {
           return dartDevEmbedder.debugger.getSourceMap('dart_sdk');
         }
-        url = url.replace(".lib.js", "");
+        url = url.replace(".lib.js", "").replace(".ddc.js", "");
         return dartDevEmbedder.debugger.getSourceMap(url);
       });
     }

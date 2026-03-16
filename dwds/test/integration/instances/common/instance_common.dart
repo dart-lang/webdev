@@ -5,9 +5,9 @@
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/debugging/chrome_inspector.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -20,7 +20,6 @@ void runTypeSystemVerificationTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   required bool canaryFeatures,
-  required bool debug,
 }) {
   final project = TestProject.testScopes;
 
@@ -29,10 +28,11 @@ void runTypeSystemVerificationTests({
     late ChromeAppInspector inspector;
 
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
+          verboseCompiler: provider.verbose,
           canaryFeatures: canaryFeatures,
         ),
       );
@@ -66,7 +66,7 @@ void runTypeSystemVerificationTests({
           ''';
 
     group('compiler', () {
-      setUp(() => setCurrentLogWriter(debug: debug));
+      setUp(() => setCurrentLogWriter(debug: provider.verbose));
 
       test('uses correct type system', () async {
         final remoteObject = await inspector.jsEvaluate(
@@ -82,7 +82,6 @@ void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   required bool canaryFeatures,
-  required bool debug,
 }) {
   final project = TestProject.testScopes;
   final context = TestContext(project, provider);
@@ -91,10 +90,11 @@ void runTests({
 
   group('$compilationMode |', () {
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
+          verboseCompiler: provider.verbose,
           canaryFeatures: canaryFeatures,
           moduleFormat: provider.ddcModuleFormat,
         ),
@@ -140,7 +140,7 @@ void runTests({
         'constructors at runtime.';
 
     group('instanceRef', () {
-      setUp(() => setCurrentLogWriter(debug: debug));
+      setUp(() => setCurrentLogWriter(debug: provider.verbose));
 
       test('for a null', () async {
         final remoteObject = await getLibraryPublicFinalRef();
@@ -161,7 +161,9 @@ void runTests({
         final remoteObject = await getLibraryPublicFinalRef();
         final count = await inspector.loadField(remoteObject, 'count');
         final ref = await inspector.instanceRefFor(count);
-        expect(ref!.valueAsString, '0');
+        // 'count' is incremented by a periodic timer in the application, so we
+        // can't expect it to be exactly 0.
+        expect(double.tryParse(ref!.valueAsString!), greaterThanOrEqualTo(0));
         expect(ref.kind, InstanceKind.kDouble);
         final classRef = ref.classRef!;
         expect(classRef.name, 'Double');
@@ -320,7 +322,7 @@ void runTests({
     });
 
     group('instance', () {
-      setUp(() => setCurrentLogWriter(debug: debug));
+      setUp(() => setCurrentLogWriter(debug: provider.verbose));
       test('for an object', () async {
         final remoteObject = await getLibraryPublicFinalRef();
         final instance = await inspector.instanceFor(remoteObject);

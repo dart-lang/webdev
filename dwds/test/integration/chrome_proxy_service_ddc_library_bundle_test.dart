@@ -8,8 +8,8 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 
 import 'common/chrome_proxy_service_common.dart';
 import 'fixtures/context.dart';
@@ -20,13 +20,12 @@ void main() {
   final canaryFeatures = true;
   final moduleFormat = ModuleFormat.ddc;
 
-  final provider = TestSdkConfigurationProvider(
-    verbose: debug,
-    canaryFeatures: canaryFeatures,
-    ddcModuleFormat: moduleFormat,
-  );
-
   group('canary: $canaryFeatures | Frontend Server |', () {
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: moduleFormat,
+    );
     final compilationMode = CompilationMode.frontendServer;
     tearDownAll(provider.dispose);
 
@@ -35,24 +34,23 @@ void main() {
       moduleFormat: moduleFormat,
       compilationMode: compilationMode,
       canaryFeatures: canaryFeatures,
-      debug: debug,
     );
   });
 
-  group(
-    'canary: $canaryFeatures | Build Daemon |',
-    () {
-      final compilationMode = CompilationMode.buildDaemon;
-      tearDownAll(provider.dispose);
+  group('canary: $canaryFeatures | Build Daemon |', () {
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: moduleFormat,
+    );
+    final compilationMode = CompilationMode.buildDaemon;
+    tearDownAll(provider.dispose);
 
-      runTests(
-        provider: provider,
-        moduleFormat: moduleFormat,
-        compilationMode: compilationMode,
-        canaryFeatures: canaryFeatures,
-        debug: debug,
-      );
-    },
-    skip: 'https://github.com/dart-lang/webdev/issues/2764',
-  );
+    runTests(
+      provider: provider,
+      moduleFormat: moduleFormat,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+    );
+  });
 }

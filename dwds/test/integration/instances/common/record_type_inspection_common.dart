@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../../fixtures/context.dart';
@@ -16,7 +16,6 @@ void runTests({
   required TestSdkConfigurationProvider provider,
   required CompilationMode compilationMode,
   required bool canaryFeatures,
-  required bool debug,
 }) {
   final context = TestContext(TestProject.testExperiment, provider);
   final testInspector = TestInspector(context);
@@ -55,12 +54,12 @@ void runTests({
 
   group('$compilationMode |', () {
     setUpAll(() async {
-      setCurrentLogWriter(debug: debug);
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           compilationMode: compilationMode,
           enableExpressionEvaluation: true,
-          verboseCompiler: debug,
+          verboseCompiler: provider.verbose,
           experiments: ['dot-shorthands'],
           canaryFeatures: canaryFeatures,
           moduleFormat: provider.ddcModuleFormat,
@@ -84,7 +83,7 @@ void runTests({
       await context.tearDown();
     });
 
-    setUp(() => setCurrentLogWriter(debug: debug));
+    setUp(() => setCurrentLogWriter(debug: provider.verbose));
     tearDown(() => service.resume(isolateId));
 
     test('simple record type', () async {

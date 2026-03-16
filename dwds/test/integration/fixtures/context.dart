@@ -23,6 +23,9 @@ import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/server.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
+import 'package:dwds_test_common/utilities.dart';
 import 'package:file/local.dart';
 import 'package:frontend_server_common/src/devfs.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
@@ -30,13 +33,10 @@ import 'package:http/http.dart';
 import 'package:http/io_client.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
-import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
-import 'package:test_common/utilities.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 import 'package:webdriver/async_io.dart';
@@ -747,28 +747,67 @@ class TestContext {
       } else {
         file = project.dartLibFilePath(file);
       }
-      final f = File(project.dartLibFilePath(file));
+      final f = File(file);
       final fileContents = f.readAsStringSync();
       f.writeAsStringSync(fileContents.replaceAll(originalString, newString));
 
-      // Update the reloaded_sources.json file.
-      if (file.endsWith(project.dartEntryFileName)) {
-        final projectDir = p.url.dirname(project.filePathToServe);
-        final fileName = p.url.withoutExtension(project.dartEntryFileName);
-        final src = '/${p.url.join(projectDir, fileName)}.ddc.js';
-        final module = p.url.withoutExtension(
-          project.dartEntryFilePackageUri.path.substring(1),
-        );
-        final libUri = project.dartEntryFilePackageUri.toString();
-        _reloadedSources.add(
-          WebDevFS.createReloadedSourceEntry(
-            src: src,
-            module: module,
-            libraries: [libUri],
-          ),
-        );
-      }
+      _updateReloadedSources(file);
     }
+  }
+
+  /// Updates the reloaded_sources.json manifest file for a running test.
+  ///
+  /// This logic essentially replicates the build system's naming conventions
+  /// for DDC's generated code. DWDS itself uses the metadata file, but this
+  /// isn't available for our test fixtures.
+  /// Rules:
+  /// - Entrypoints (served): web/main.dart -> main
+  /// - Entrypoints (nested): test/hello_world/main.dart -> hello_world/main
+  /// - Library files: lib/path/to/some_file.dart
+  ///     -> packages/[package]/path/to/some_file
+  void _updateReloadedSources(String absolutePath) {
+    final relativePath = p.relative(
+      absolutePath,
+      from: project.absolutePackageDirectory,
+    );
+    final relativeUrl = p.toUri(relativePath).path;
+
+    String moduleName;
+    String libUri;
+    String srcPath;
+
+    if (relativeUrl.startsWith('lib/')) {
+      final pathInLib = relativeUrl.substring(4);
+      moduleName =
+          'packages/${project.packageName}/${p.withoutExtension(pathInLib)}';
+      libUri = 'package:${project.packageName}/$pathInLib';
+      srcPath = moduleName;
+    } else if (absolutePath == project.dartEntryFilePath) {
+      moduleName = p.withoutExtension(relativeUrl);
+      libUri = project.dartEntryFilePackageUri.toString();
+
+      final servePath = '${project.directoryToServe}/';
+      if (relativeUrl.startsWith(servePath)) {
+        // e.g. web/main.dart -> main
+        srcPath = p.withoutExtension(relativeUrl.substring(servePath.length));
+      } else {
+        // e.g. example/hello_world/main.dart -> example/hello_world/main
+        srcPath = moduleName;
+      }
+    } else {
+      throw StateError(
+        "Unhandled file path in test context's reloaded_sources.json: "
+        " $absolutePath. Only entrypoints and files in 'lib/' are supported.",
+      );
+    }
+
+    _reloadedSources.add(
+      WebDevFS.createReloadedSourceEntry(
+        src: '/$srcPath.ddc.js',
+        module: moduleName,
+        libraries: [libUri],
+      ),
+    );
   }
 
   /// Contains contents of the reloaded_sources.json manifest file.
@@ -782,6 +821,7 @@ class TestContext {
     // Library folder may not exist yet, so create it.
     file.createSync(recursive: true);
     file.writeAsStringSync(contents);
+    _updateReloadedSources(file.path);
   }
 
   /// Returns a handler for build runner + DDC AMD module system.

@@ -121,7 +121,7 @@ class WebDevServer {
 
     // Only provide relevant build results
     final filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
-      if (options.configuration.canaryFeatures) {
+      if (options.configuration.usesDdcLibraryBundle) {
         // Clear reloaded sources for the new build results.
         reloadedSources.clear();
         results.changedAssets?.forEach((uri) {
@@ -203,12 +203,22 @@ class WebDevServer {
           injectScriptLoad: false,
         ).strategy;
       } else {
-        loadStrategy = BuildRunnerRequireStrategyProvider(
-          options.configuration.reload,
-          assetReader,
-          buildSettings,
-          packageConfigPath: findPackageConfigFilePath(),
-        ).strategy;
+        if (options.configuration.moduleFormat == 'ddc') {
+          loadStrategy = BuildRunnerDdcLibraryBundleStrategyProvider(
+            options.configuration.reload,
+            assetReader,
+            buildSettings,
+            packageConfigPath: findPackageConfigFilePath(),
+            reloadedSourcesUri: Uri.parse('$basePath/$reloadedSourcesFileName'),
+          ).strategy;
+        } else {
+          loadStrategy = BuildRunnerRequireStrategyProvider(
+            options.configuration.reload,
+            assetReader,
+            buildSettings,
+            packageConfigPath: findPackageConfigFilePath(),
+          ).strategy;
+        }
       }
 
       if (options.configuration.enableExpressionEvaluation) {
@@ -248,7 +258,7 @@ class WebDevServer {
       );
       pipeline = pipeline.addMiddleware(dwds.middleware);
       cascade = cascade.add(dwds.handler);
-      if (options.configuration.canaryFeatures) {
+      if (options.configuration.usesDdcLibraryBundle) {
         // Add a handler to serve reloaded sources.
         cascade = cascade.add((Request request) {
           if (request.url.path == reloadedSourcesFileName) {

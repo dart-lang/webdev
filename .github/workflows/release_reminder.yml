@@ -21,4 +21,4 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Run proper release test
         run: dart test test/proper_release_test.dart
-        working-directory: test_common
+        working-directory: dwds_test_common

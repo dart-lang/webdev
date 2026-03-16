@@ -9,8 +9,8 @@ library;
 import 'dart:io';
 
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 // ignore: deprecated_member_use
 import 'package:webdriver/io.dart';
