@@ -121,7 +121,7 @@ you need to:
 1. Create a new PR that updates all the min SDK constraints to the new version,
    eg: https://github.com/dart-lang/webdev/pull/1463.
 1. From each of the subdirectories (`/dwds`, `/frontend_server_client`,
-   `/frontend_server_common`, and `/webdev`) update dependencies with
+   and `/webdev`) update dependencies with
    `dart pub upgrade`
 1. Make sure to update the `CHANGELOG` to include the new version number
 1. Submit your PR. At this point, you technically will be able to submit the PR
