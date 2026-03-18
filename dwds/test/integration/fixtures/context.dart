@@ -27,8 +27,6 @@ import 'package:dwds_test_common/logging.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:dwds_test_common/utilities.dart';
 import 'package:file/local.dart';
-import 'package:frontend_server_common/src/devfs.dart';
-import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
 import 'package:http/io_client.dart';
 import 'package:logging/logging.dart' as logging;
@@ -42,6 +40,8 @@ import 'package:vm_service/vm_service_io.dart';
 import 'package:webdriver/async_io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../../frontend_server_common/devfs.dart';
+import '../../frontend_server_common/resident_runner.dart';
 import 'project.dart';
 import 'server.dart';
 import 'utilities.dart';

@@ -79,16 +79,16 @@ jobs:
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
   job_003:
-    name: "analyzer_and_format; linux; Dart dev; PKGS: dwds_test_common, dwds_test_common/fixtures/_webdev_smoke, example, frontend_server_client, frontend_server_common; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
+    name: "analyzer_and_format; linux; Dart dev; PKGS: dwds_test_common, dwds_test_common/fixtures/_webdev_smoke, example, frontend_server_client; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds_test_common-dwds_test_common/fixtures/_webdev_smoke-example-frontend_server_client-frontend_server_common;commands:format-analyze_0"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds_test_common-dwds_test_common/fixtures/_webdev_smoke-example-frontend_server_client;commands:format-analyze_0"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds_test_common-dwds_test_common/fixtures/_webdev_smoke-example-frontend_server_client-frontend_server_common
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds_test_common-dwds_test_common/fixtures/_webdev_smoke-example-frontend_server_client
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -151,19 +151,6 @@ jobs:
         run: dart analyze --fatal-infos .
         if: "always() && steps.frontend_server_client_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_client
-      - id: frontend_server_common_pub_upgrade
-        name: frontend_server_common; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: frontend_server_common
-      - name: "frontend_server_common; dart format --output=none --set-exit-if-changed ."
-        run: "dart format --output=none --set-exit-if-changed ."
-        if: "always() && steps.frontend_server_common_pub_upgrade.conclusion == 'success'"
-        working-directory: frontend_server_common
-      - name: "frontend_server_common; dart analyze --fatal-infos ."
-        run: dart analyze --fatal-infos .
-        if: "always() && steps.frontend_server_common_pub_upgrade.conclusion == 'success'"
-        working-directory: frontend_server_common
   job_004:
     name: "analyzer_and_format; linux; Dart dev; PKG: webdev; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`, `dart test test/build/ensure_build_test.dart`"
     runs-on: ubuntu-latest
