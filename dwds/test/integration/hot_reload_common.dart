@@ -122,5 +122,5 @@ void runTests({
 
       await callEvaluateAndWaitForLog(newString);
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: const Timeout.factor(2));
 }

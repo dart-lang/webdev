@@ -170,7 +170,8 @@ class DevHandler {
     };
   }
 
-  /// Deserializes a message from JSON, handling custom fromJson() implementations.
+  /// Deserializes a message from JSON, handling custom fromJson()
+  /// implementations.
   Object? _deserializeMessage(dynamic decoded) {
     if (decoded case [final String typeName, ...]) {
       // For Map-based RPC data types, the second element is the JSON map.
@@ -213,10 +214,13 @@ class DevHandler {
       try {
         injectedConnection.sink.add(jsonEncode(_serializeMessage(request)));
         successfulSends++;
+        // ignore: avoid_catching_errors
       } on StateError catch (e) {
-        // The sink has already closed (app is disconnected), or another StateError occurred.
+        // The sink has already closed (app is disconnected), or another
+        // StateError occurred.
         _logger.warning(
-          'Failed to send request to client, connection likely closed. Error: $e',
+          'Failed to send request to client, connection likely closed. '
+          'Error: $e',
         );
       } catch (e, s) {
         // Catch any other potential errors during sending.
@@ -224,7 +228,8 @@ class DevHandler {
       }
     }
     _logger.fine(
-      'Sent request to $successfulSends clients out of ${_injectedConnections.length} total connections',
+      'Sent request to $successfulSends clients out of '
+      '${_injectedConnections.length} total connections',
     );
     return successfulSends;
   }
@@ -269,7 +274,8 @@ class DevHandler {
           'expression': r'window["$dartAppInstanceId"];',
           'contextId': contextId,
         });
-        final evaluatedAppId = result.result?['result']?['value'];
+        final evaluatedAppId =
+            (result.result?['result'] as Map<String, dynamic>?)?['value'];
         if (evaluatedAppId == appInstanceId) {
           appTab = tab;
           executionContext = RemoteDebuggerExecutionContext(
@@ -434,6 +440,7 @@ class DevHandler {
               _serializeMessage(ErrorResponse(error: '$e', stackTrace: '$s')),
             ),
           );
+          // ignore: avoid_catching_errors
         } on StateError catch (_) {
           // The sink has already closed (app is disconnected), swallow the
           // error.
@@ -448,7 +455,8 @@ class DevHandler {
         if (connection != null) {
           final appId = connection.request.appId;
           final services = _servicesByAppId[appId];
-          // WebSocket mode doesn't need this because WebSocketProxyService handles connection tracking and cleanup
+          // WebSocket mode doesn't need this because WebSocketProxyService
+          // handles connection tracking and cleanup
           if (!useWebSocketConnection) {
             _appConnectionByAppId.remove(appId);
           }
@@ -519,7 +527,8 @@ class DevHandler {
           ? 'WebSocket'
           : 'Chrome';
       throw UnsupportedError(
-        'Message type ${message.runtimeType} is not supported in $serviceType mode',
+        'Message type ${message.runtimeType} is not supported in $serviceType '
+        'mode',
       );
     }
   }
@@ -632,7 +641,7 @@ class DevHandler {
       final proxyService = appDebugServices.proxyService;
       if (proxyService is! WebSocketProxyService) {
         throw StateError(
-          'Expected WebSocketProxyService but got ${proxyService.runtimeType}. ',
+          'Expected WebSocketProxyService but got ${proxyService.runtimeType}.',
         );
       }
       await proxyService.isInitialized;
@@ -757,12 +766,14 @@ class DevHandler {
       // New browser window or initial connection: run main() immediately
       readyToRunMainCompleter.complete();
 
-      // For WebSocket mode, we need to proactively create and emit a debug connection
+      // For WebSocket mode, we need to proactively create and emit a debug
+      // connection
       try {
         if (services != null) {
-          // If we are reconnecting to an existing app but not the same instance,
-          // ensure the isolate is started for the new connection before creating
-          // the debug connection, otherwise it will hang waiting for initialization.
+          // If we are reconnecting to an existing app but not the same
+          // instance, ensure the isolate is started for the new connection
+          // before creating the debug connection, otherwise it will hang
+          // waiting for initialization.
           await _handleIsolateStart(connection);
         }
 
@@ -880,7 +891,8 @@ class DevHandler {
     }
   }
 
-  /// Handles isolate start events for both WebSocket and Chrome-based debugging.
+  /// Handles isolate start events for both WebSocket and Chrome-based
+  /// debugging.
   Future<void> _handleIsolateStart(AppConnection appConnection) async {
     final appId = appConnection.request.appId;
 
@@ -904,10 +916,11 @@ class DevHandler {
         if (!_sseHandlers.containsKey(uri.path)) {
           final handler = _useSseForInjectedClient
               ? SseSocketHandler(
-                  // We provide an essentially indefinite keep alive duration because
-                  // the underlying connection could be lost while the application
-                  // is paused. The connection will get re-established after a resume
-                  // or cleaned up on a full page refresh.
+                  // We provide an essentially indefinite keep alive duration
+                  // because the underlying connection could be lost while the
+                  // application is paused. The connection will get
+                  // re-established after a resume or cleaned up on a full
+                  // page refresh.
                   SseHandler(
                     uri,
                     keepAlive: const Duration(days: 3000),

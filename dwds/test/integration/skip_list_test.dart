@@ -113,10 +113,10 @@ void _validateRange(
   int endLine,
   int endColumn,
 ) {
-  final start = range['start'];
+  final start = range['start'] as Map<String, dynamic>;
   expect(start['lineNumber'], startLine);
   expect(start['columnNumber'], startColumn);
-  final end = range['end'];
+  final end = range['end'] as Map<String, dynamic>;
   expect(end['lineNumber'], endLine);
   expect(end['columnNumber'], endColumn);
 }

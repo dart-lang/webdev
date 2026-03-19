@@ -169,7 +169,9 @@ class ChromeClassMetaDataHelper {
 
       final typeName = metadata['typeName'];
       final library = metadata['libraryId'];
-      final runtimeKind = RuntimeObjectKind.parse(metadata['runtimeKind']);
+      final runtimeKind = RuntimeObjectKind.parse(
+        metadata['runtimeKind'] as String,
+      );
       final length = metadata['length'];
 
       final classRef = classRefFor(library, className);

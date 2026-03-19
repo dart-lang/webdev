@@ -31,7 +31,9 @@ class FunctionMetaData {
       },
     );
     handleErrorIfPresent(response, evalContents: evalExpression);
-    final name = response.result?['result']?['value'] as String?;
+    final name =
+        (response.result?['result'] as Map<String, dynamic>?)?['value']
+            as String?;
     if (name == null) return FunctionMetaData('<unknown>');
     if (name.isEmpty) return FunctionMetaData('Closure');
     return FunctionMetaData(name);

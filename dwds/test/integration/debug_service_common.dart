@@ -25,9 +25,11 @@ void testAll({required TestSdkConfigurationProvider provider}) {
         moduleFormat: provider.ddcModuleFormat,
         canaryFeatures: provider.canaryFeatures,
       ),
-      debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+      debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
         spawnDds: false,
-        ddsConfiguration: DartDevelopmentServiceConfiguration(enable: false),
+        ddsConfiguration: const DartDevelopmentServiceConfiguration(
+          enable: false,
+        ),
       ),
     );
   });

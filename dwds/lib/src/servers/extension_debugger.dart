@@ -93,10 +93,11 @@ class ExtensionDebugger implements RemoteDebugger {
             'method': json.decode(message.method),
             'params': json.decode(message.params),
           };
-          // Note: package:sse will try to keep the connection alive, even after
-          // the client has been closed. Therefore the extension sends an event to
-          // notify DWDS that we should close the connection, instead of relying
-          // on the done event sent when the client is closed. See details:
+          // Note: package:sse will try to keep the connection alive, even
+          // after the client has been closed. Therefore the extension sends an
+          // event to notify DWDS that we should close the connection, instead
+          // of relying on the done event sent when the client is closed. See
+          // details:
           // https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
           if (map['method'] == 'DebugExtension.detached') {
             close();
@@ -166,6 +167,7 @@ class ExtensionDebugger implements RemoteDebugger {
           ),
         ),
       );
+      // ignore: avoid_catching_errors
     } on StateError catch (error, stackTrace) {
       if (error.message.contains('Cannot add event after closing')) {
         _logger.severe('Socket connection closed. Shutting down debugger.');
@@ -198,7 +200,8 @@ class ExtensionDebugger implements RemoteDebugger {
 
   void closeWithError(Object? error) {
     _logger.shout(
-      'Closing extension debugger due to error. Restart app for debugging functionality',
+      'Closing extension debugger due to error. Restart app for debugging '
+      'functionality',
       error,
     );
     close();

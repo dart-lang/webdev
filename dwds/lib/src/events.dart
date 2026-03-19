@@ -101,8 +101,7 @@ class DwdsEvent {
 
   DwdsEvent.getVM() : this(DwdsEventKind.getVM, {});
 
-  DwdsEvent.resume(String? step)
-    : this(DwdsEventKind.resume, {if (step != null) 'step': step});
+  DwdsEvent.resume(String? step) : this(DwdsEventKind.resume, {'step': ?step});
 
   DwdsEvent.getSourceReport() : this(DwdsEventKind.getSourceReport, {});
 

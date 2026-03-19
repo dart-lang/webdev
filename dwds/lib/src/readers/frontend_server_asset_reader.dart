@@ -112,10 +112,11 @@ class FrontendServerAssetReader implements AssetReader {
     final sourceInfo =
         jsonDecode(json.readAsStringSync()) as Map<String, dynamic>;
     for (final key in sourceInfo.keys) {
-      final info = sourceInfo[key];
+      final info = sourceInfo[key] as Map<String, dynamic>;
+      final sourcemapOffsets = info['sourcemap'] as List<dynamic>;
       _mapContents[key] = utf8.decode(
         sourceContents
-            .getRange(info['sourcemap'][0] as int, info['sourcemap'][1] as int)
+            .getRange(sourcemapOffsets[0] as int, sourcemapOffsets[1] as int)
             .toList(),
       );
     }

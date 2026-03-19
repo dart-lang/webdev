@@ -355,7 +355,7 @@ class ProjectFileInvalidator {
     if (lastCompiled == null) {
       // Initial load.
       assert(urisToMonitor.isEmpty);
-      return InvalidationResult(uris: <Uri>[]);
+      return const InvalidationResult(uris: <Uri>[]);
     }
 
     final urisToScan = <Uri>[

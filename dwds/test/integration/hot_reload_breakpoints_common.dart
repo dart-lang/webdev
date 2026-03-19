@@ -511,7 +511,7 @@ void runTests({
       // the old string still as the closure has not been reevaluated.
       await callEvaluateAndWaitForLog(oldCapturedString);
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: const Timeout.factor(2));
 
   group('when pause_isolates_on_start is false', () {
     late VmService client;
@@ -578,7 +578,7 @@ void runTests({
       // Program should not be paused, so this should execute.
       await callEvaluateAndWaitForLog(newString);
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: const Timeout.factor(2));
 }
 
 TypeMatcher<Event> _hasKind(String kind) =>

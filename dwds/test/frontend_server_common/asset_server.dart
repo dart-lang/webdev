@@ -173,7 +173,8 @@ class TestAssetServer implements AssetReader {
     _files[filePath] = Uint8List.fromList(utf8.encode(contents));
   }
 
-  /// Update the in-memory asset server with the provided source and manifest files.
+  /// Update the in-memory asset server with the provided source and manifest
+  /// files.
   ///
   /// Returns a list of updated modules.
   List<String> write(

@@ -22,7 +22,7 @@ class MetadataProvider {
   final Map<String, String> _moduleToModulePath = {};
   final Map<String, Set<String>> _moduleToLibraries = {};
   final Map<String, List<String>> _scripts = {};
-  final _metadataMemoizer = AsyncMemoizer();
+  final _metadataMemoizer = AsyncMemoizer<void>();
 
   /// Implicitly imported libraries in any DDC component.
   ///
