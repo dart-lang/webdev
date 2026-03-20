@@ -519,8 +519,8 @@ class ChromeAppInstanceHelper {
       count: namedRangeCount,
     );
     final namedElements =
-        (namedInstance?.elements as List<InstanceRef>?)?.map(
-          (e) => e.valueAsString,
+        (namedInstance?.elements as List<InstanceRef?>?)?.map(
+          (e) => e?.valueAsString,
         ) ??
         [];
 
