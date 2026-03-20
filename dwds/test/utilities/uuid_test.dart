@@ -8,28 +8,29 @@ import 'package:test/test.dart';
 void main() {
   group('Uuid', () {
     test('v4 generates valid UUIDs', () {
-      final uuid = Uuid();
+      final uuid = const Uuid();
       final id = uuid.v4();
       expect(id, hasLength(36));
       expect(
         id,
         matches(
           RegExp(
-            r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+            r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-'
+            r'[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
           ),
         ),
       );
     });
 
     test('v4 generates unique UUIDs', () {
-      final uuid = Uuid();
+      final uuid = const Uuid();
       final id1 = uuid.v4();
       final id2 = uuid.v4();
       expect(id1, isNot(equals(id2)));
     });
 
     test('v4 sets version and variant bits correctly', () {
-      final uuid = Uuid();
+      final uuid = const Uuid();
       final id = uuid.v4();
       // Version 4
       expect(id[14], equals('4'));

@@ -37,7 +37,8 @@ abstract class DebugService<T extends ProxyService> {
     required this.useSse,
   });
 
-  /// The URI pointing to the VM service implementation hosted by the [DebugService].
+  /// The URI pointing to the VM service implementation hosted by the
+  /// [DebugService].
   String get uri => _uri.toString();
 
   Uri get _uri => _cachedUri ??= () {
@@ -163,9 +164,9 @@ abstract class DebugService<T extends ProxyService> {
     void Function(Map<String, Object?>)? onResponse,
   }) {
     return _wrapHandler(
-      webSocketHandler((webSocket, subprotocol) {
+      webSocketHandler((Object webSocket, String? subprotocol) {
         handleConnection(
-          webSocket,
+          webSocket as StreamChannel,
           proxyService,
           serviceExtensionRegistry,
           onRequest: onRequest,
@@ -181,7 +182,7 @@ abstract class DebugService<T extends ProxyService> {
       if (!_acceptNewConnections) {
         return shelf.Response.forbidden(
           'Cannot connect directly to the VM service as a Dart Development '
-          'Service (DDS) instance has taken control and can be found at $_ddsUri.'
+          'Service (DDS) instance has taken control and can be found at '
           '$_ddsUri.',
         );
       }
@@ -210,8 +211,8 @@ abstract class DebugService<T extends ProxyService> {
           // while also being able to determine which client invoked the RPC
           // without some form of client ID.
           //
-          // We can probably do better than this, but it will likely involve some
-          // refactoring.
+          // We can probably do better than this, but it will likely involve
+          // some refactoring.
           if (response case {
             'error': {
               'code': DisconnectNonDartDevelopmentServiceClients.kErrorCode,
@@ -240,7 +241,9 @@ abstract class DebugService<T extends ProxyService> {
           'socket, expected a List<int> or String.',
         );
       }
-      final request = Map<String, Object>.from(jsonDecode(value));
+      final request = Map<String, Object>.from(
+        jsonDecode(value as String) as Map,
+      );
       if (onRequest != null) onRequest(request);
       return request;
     });

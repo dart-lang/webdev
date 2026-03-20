@@ -21,7 +21,7 @@ final class ChromeDebugException extends ExceptionDetails implements Exception {
     this.evalContents,
   }) : super(exceptionDetails) {
     final json = exceptionDetails['stackTrace'];
-    stackTrace = json == null ? null : StackTrace(json);
+    stackTrace = json == null ? null : StackTrace(json as Map<String, dynamic>);
   }
 
   @override

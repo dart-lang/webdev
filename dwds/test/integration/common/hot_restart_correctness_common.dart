@@ -138,7 +138,7 @@ void runTests({
         await logFuture;
       },
     );
-  }, timeout: Timeout.factor(2));
+  }, timeout: const Timeout.factor(2));
 
   group(
     'Injected client with hot restart',
@@ -179,7 +179,7 @@ void runTests({
               moduleFormat: provider.ddcModuleFormat,
               canaryFeatures: provider.canaryFeatures,
             ),
-            debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+            debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
               enableDebugging: false,
             ),
           );
@@ -200,7 +200,7 @@ void runTests({
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
     skip: compilationMode == CompilationMode.buildDaemon ? null : true,
-    timeout: Timeout.factor(2),
+    timeout: const Timeout.factor(2),
   );
 }
 

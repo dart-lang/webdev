@@ -58,7 +58,7 @@ void testAll({
         line,
       );
       final event = await stream.firstWhere(
-        (event) => event.kind == EventKind.kPauseBreakpoint,
+        (Event event) => event.kind == EventKind.kPauseBreakpoint,
       );
       await body(event);
     } finally {
@@ -149,18 +149,28 @@ void testAll({
         } catch (_) {}
       });
 
-      Future<void> onBreakPoint(script, bpId, body) =>
-          onBp(stream, isolateId, script, bpId, body);
+      Future<void> onBreakPoint(
+        ScriptRef script,
+        String bpId,
+        Future<void> Function(Event) body,
+      ) => onBp(stream, isolateId, script, bpId, body);
 
-      Future<Response> evaluateInFrame(frame, expr, {scope}) async =>
-          await context.service.evaluateInFrame(
-            isolateId,
-            frame,
-            expr,
-            scope: scope,
-          );
+      Future<Response> evaluateInFrame(
+        int frame,
+        String expr, {
+        Map<String, String>? scope,
+      }) async => await context.service.evaluateInFrame(
+        isolateId,
+        frame,
+        expr,
+        scope: scope,
+      );
 
-      Future<InstanceRef> getInstanceRef(frame, expr, {scope}) async {
+      Future<InstanceRef> getInstanceRef(
+        int frame,
+        String expr, {
+        Map<String, String>? scope,
+      }) async {
         final result = await evaluateInFrame(frame, expr, scope: scope);
         expect(result, isA<InstanceRef>());
         return result as InstanceRef;
@@ -170,7 +180,7 @@ void testAll({
           await context.service.getObject(isolateId, ref.id!) as Instance;
 
       test('with scope', () async {
-        await onBreakPoint(mainScript, 'printFrame1', (event) async {
+        await onBreakPoint(mainScript, 'printFrame1', (Event event) async {
           final frame = event.topFrame!.index!;
 
           final scope = {
@@ -190,7 +200,7 @@ void testAll({
       });
 
       test('with large scope', () async {
-        await onBreakPoint(mainScript, 'printLocal', (event) async {
+        await onBreakPoint(mainScript, 'printLocal', (Event event) async {
           const N = 20;
           final frame = event.topFrame!.index!;
 
@@ -211,7 +221,7 @@ void testAll({
       });
 
       test('with large code scope', () async {
-        await onBreakPoint(mainScript, 'printLargeScope', (event) async {
+        await onBreakPoint(mainScript, 'printLargeScope', (Event event) async {
           const xN = 2;
           const tN = 20;
           final frame = event.topFrame!.index!;
@@ -239,7 +249,7 @@ void testAll({
       });
 
       test('with scope in caller frame', () async {
-        await onBreakPoint(mainScript, 'printFrame1', (event) async {
+        await onBreakPoint(mainScript, 'printFrame1', (Event event) async {
           final frame = event.topFrame!.index! + 1;
 
           final scope = {
@@ -259,7 +269,9 @@ void testAll({
       });
 
       test('with scope and this', () async {
-        await onBreakPoint(mainScript, 'toStringMainClass', (event) async {
+        await onBreakPoint(mainScript, 'toStringMainClass', (
+          Event event,
+        ) async {
           final frame = event.topFrame!.index!;
 
           final scope = {'x1': (await getInstanceRef(frame, '"cat"')).id!};
@@ -277,7 +289,7 @@ void testAll({
       test(
         'extension method scope variables can be evaluated',
         () async {
-          await onBreakPoint(mainScript, 'extension', (event) async {
+          await onBreakPoint(mainScript, 'extension', (Event event) async {
             final stack = await context.service.getStack(isolateId);
             final scope = _getFrameVariables(stack.frames!.first);
             for (final p in scope.entries) {
@@ -296,7 +308,7 @@ void testAll({
       );
 
       test('does not crash if class metadata cannot be found', () async {
-        await onBreakPoint(mainScript, 'printStream', (event) async {
+        await onBreakPoint(mainScript, 'printStream', (Event event) async {
           final instanceRef = await getInstanceRef(
             event.topFrame!.index!,
             'stream',
@@ -308,7 +320,7 @@ void testAll({
       });
 
       test('local', () async {
-        await onBreakPoint(mainScript, 'printLocal', (event) async {
+        await onBreakPoint(mainScript, 'printLocal', (Event event) async {
           final result = await getInstanceRef(event.topFrame!.index!, 'local');
 
           expect(result, matchInstanceRef('42'));
@@ -316,7 +328,7 @@ void testAll({
       });
 
       test('Type does not show native JavaScript object fields', () async {
-        await onBreakPoint(mainScript, 'printLocal', (event) async {
+        await onBreakPoint(mainScript, 'printLocal', (Event event) async {
           final instanceRef = await getInstanceRef(
             event.topFrame!.index!,
             'Type',
@@ -342,7 +354,7 @@ void testAll({
 
       test('field', () async {
         await onBreakPoint(mainScript, 'printFieldFromLibraryClass', (
-          event,
+          Event event,
         ) async {
           final result = await getInstanceRef(
             event.topFrame!.index!,
@@ -355,7 +367,7 @@ void testAll({
 
       test('private field from another library', () async {
         await onBreakPoint(mainScript, 'printFieldFromLibraryClass', (
-          event,
+          Event event,
         ) async {
           final result = await evaluateInFrame(
             event.topFrame!.index!,
@@ -378,7 +390,7 @@ void testAll({
       });
 
       test('private field from current library', () async {
-        await onBreakPoint(mainScript, 'printFieldMain', (event) async {
+        await onBreakPoint(mainScript, 'printFieldMain', (Event event) async {
           final result = await getInstanceRef(
             event.topFrame!.index!,
             'instance._field',
@@ -390,7 +402,7 @@ void testAll({
 
       test('access instance fields after evaluation', () async {
         await onBreakPoint(mainScript, 'printFieldFromLibraryClass', (
-          event,
+          Event event,
         ) async {
           final instanceRef = await getInstanceRef(
             event.topFrame!.index!,
@@ -407,7 +419,7 @@ void testAll({
       });
 
       test('global', () async {
-        await onBreakPoint(mainScript, 'printGlobal', (event) async {
+        await onBreakPoint(mainScript, 'printGlobal', (Event event) async {
           final result = await getInstanceRef(
             event.topFrame!.index!,
             'testLibraryValue',
@@ -418,7 +430,7 @@ void testAll({
       });
 
       test('call core function', () async {
-        await onBreakPoint(mainScript, 'printLocal', (event) async {
+        await onBreakPoint(mainScript, 'printLocal', (Event event) async {
           final result = await getInstanceRef(
             event.topFrame!.index!,
             'print(local)',
@@ -429,7 +441,7 @@ void testAll({
       });
 
       test('call library function with const param', () async {
-        await onBreakPoint(mainScript, 'printLocal', (event) async {
+        await onBreakPoint(mainScript, 'printLocal', (Event event) async {
           final result = await getInstanceRef(
             event.topFrame!.index!,
             'testLibraryFunction(42)',
@@ -440,7 +452,7 @@ void testAll({
       });
 
       test('call library function with local param', () async {
-        await onBreakPoint(mainScript, 'printLocal', (event) async {
+        await onBreakPoint(mainScript, 'printLocal', (Event event) async {
           final result = await getInstanceRef(
             event.topFrame!.index!,
             'testLibraryFunction(local)',
@@ -451,7 +463,7 @@ void testAll({
       });
 
       test('call library part function with const param', () async {
-        await onBreakPoint(mainScript, 'printLocal', (event) async {
+        await onBreakPoint(mainScript, 'printLocal', (Event event) async {
           final result = await getInstanceRef(
             event.topFrame!.index!,
             'testLibraryPartFunction(42)',
@@ -462,7 +474,7 @@ void testAll({
       });
 
       test('call library part function with local param', () async {
-        await onBreakPoint(mainScript, 'printLocal', (event) async {
+        await onBreakPoint(mainScript, 'printLocal', (Event event) async {
           final result = await getInstanceRef(
             event.topFrame!.index!,
             'testLibraryPartFunction(local)',
@@ -473,7 +485,9 @@ void testAll({
       });
 
       test('loop variable', () async {
-        await onBreakPoint(mainScript, 'printLoopVariable', (event) async {
+        await onBreakPoint(mainScript, 'printLoopVariable', (
+          Event event,
+        ) async {
           final result = await getInstanceRef(event.topFrame!.index!, 'item');
 
           expect(result, matchInstanceRef('1'));
@@ -482,7 +496,7 @@ void testAll({
 
       test('evaluate expression in _test_package/test_library', () async {
         await onBreakPoint(testLibraryScript, 'testLibraryFunction', (
-          event,
+          Event event,
         ) async {
           final result = await getInstanceRef(event.topFrame!.index!, 'formal');
 
@@ -492,7 +506,7 @@ void testAll({
 
       test('evaluate expression in a class constructor in a library', () async {
         await onBreakPoint(testLibraryScript, 'testLibraryClassConstructor', (
-          event,
+          Event event,
         ) async {
           final result = await getInstanceRef(
             event.topFrame!.index!,
@@ -509,7 +523,7 @@ void testAll({
           await onBreakPoint(
             testLibraryPartScript,
             'testLibraryPartClassConstructor',
-            (event) async {
+            (Event event) async {
               final result = await getInstanceRef(
                 event.topFrame!.index!,
                 'this.field',
@@ -523,7 +537,7 @@ void testAll({
 
       test('evaluate expression in caller frame', () async {
         await onBreakPoint(testLibraryScript, 'testLibraryFunction', (
-          event,
+          Event event,
         ) async {
           final result = await getInstanceRef(
             event.topFrame!.index! + 1,
@@ -535,7 +549,7 @@ void testAll({
       });
 
       test('evaluate expression in a library', () async {
-        await onBreakPoint(libraryScript, 'Concatenate', (event) async {
+        await onBreakPoint(libraryScript, 'Concatenate', (Event event) async {
           final result = await getInstanceRef(event.topFrame!.index!, 'a');
 
           expect(result, matchInstanceRef('Hello'));
@@ -543,7 +557,7 @@ void testAll({
       });
 
       test('compilation error', () async {
-        await onBreakPoint(mainScript, 'printLocal', (event) async {
+        await onBreakPoint(mainScript, 'printLocal', (Event event) async {
           final error = await evaluateInFrame(event.topFrame!.index!, 'typo');
 
           expect(
@@ -571,7 +585,7 @@ void testAll({
             } catch (_) {}
 
             final event = stream.firstWhere(
-              (event) => event.kind == EventKind.kPauseInterrupted,
+              (Event event) => event.kind == EventKind.kPauseInterrupted,
             );
             final frame = (await event).topFrame;
             if (frame != null) {
@@ -585,7 +599,8 @@ void testAll({
               attempt,
               lessThan(maxAttempts),
               reason:
-                  'Failed to receive and async frame error in $attempt attempts',
+                  'Failed to receive and async frame error in $attempt '
+                  'attempts',
             );
             await Future<void>.delayed(const Duration(milliseconds: 10));
             attempt++;
@@ -602,14 +617,14 @@ void testAll({
 
         // Verify we don't emit errors or warnings
         // on async frame evaluations.
-        output.stream.listen((event) {
+        output.stream.listen((String event) {
           expect(event, isNot(contains('[WARNING]')));
           expect(event, isNot(contains('[SEVERE]')));
         });
       });
 
       test('module load error', () async {
-        await onBreakPoint(mainScript, 'printLocal', (event) async {
+        await onBreakPoint(mainScript, 'printLocal', (Event event) async {
           final error = await evaluateInFrame(
             event.topFrame!.index!,
             'd.deferredPrintLocal()',
@@ -623,7 +638,7 @@ void testAll({
       }, skip: 'https://github.com/dart-lang/sdk/issues/48587');
 
       test('cannot evaluate in unsupported isolate', () async {
-        await onBreakPoint(mainScript, 'printLocal', (event) async {
+        await onBreakPoint(mainScript, 'printLocal', (Event event) async {
           await expectLater(
             context.service.evaluateInFrame(
               'bad',
@@ -653,11 +668,22 @@ void testAll({
 
       tearDown(() async {});
 
-      Future<Response> evaluate(targetId, expr, {scope}) async => await context
-          .service
-          .evaluate(isolateId, targetId, expr, scope: scope);
+      Future<Response> evaluate(
+        String? targetId,
+        String expr, {
+        Map<String, String>? scope,
+      }) async => await context.service.evaluate(
+        isolateId,
+        targetId!,
+        expr,
+        scope: scope,
+      );
 
-      Future<InstanceRef> getInstanceRef(targetId, expr, {scope}) async {
+      Future<InstanceRef> getInstanceRef(
+        String? targetId,
+        String expr, {
+        Map<String, String>? scope,
+      }) async {
         final result = await evaluate(targetId, expr, scope: scope);
         expect(result, isA<InstanceRef>());
         return result as InstanceRef;
@@ -853,7 +879,9 @@ void testAll({
       });
 
       test('cannot evaluate expression', () async {
-        await onBp(stream, isolateId, mainScript, 'printLocal', (event) async {
+        await onBp(stream, isolateId, mainScript, 'printLocal', (
+          Event event,
+        ) async {
           await expectLater(
             context.service.evaluateInFrame(
               isolateId,
@@ -894,7 +922,8 @@ Future<String> _setBreakpointInInjectedClient(WipDebugger debugger) async {
       'columnNumber': 0,
     },
   );
-  return result.json['result']['breakpointId'];
+  final responseMap = result.json['result'] as Map<String, dynamic>;
+  return responseMap['breakpointId'] as String;
 }
 
 Matcher matchInstanceRefKind(String kind) =>

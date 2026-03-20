@@ -96,17 +96,18 @@ class ChromeAppClassHelper {
     final methodDescriptors = _mapify(classDescriptor['methods']);
     methodDescriptors.forEach((name, descriptor) {
       final methodId = 'methods|$classId|$name';
+      final methodDescriptor = _mapify(descriptor);
       methodRefs.add(
         FuncRef(
           id: methodId,
           name: name,
           owner: classRef,
-          isConst: descriptor['isConst'] as bool? ?? false,
-          isStatic: descriptor['isStatic'] as bool? ?? false,
-          implicit: descriptor['isImplicit'] as bool? ?? false,
-          isAbstract: descriptor['isAbstract'] as bool? ?? false,
-          isGetter: descriptor['isGetter'] as bool? ?? false,
-          isSetter: descriptor['isSetter'] as bool? ?? false,
+          isConst: methodDescriptor['isConst'] as bool? ?? false,
+          isStatic: methodDescriptor['isStatic'] as bool? ?? false,
+          implicit: methodDescriptor['isImplicit'] as bool? ?? false,
+          isAbstract: methodDescriptor['isAbstract'] as bool? ?? false,
+          isGetter: methodDescriptor['isGetter'] as bool? ?? false,
+          isSetter: methodDescriptor['isSetter'] as bool? ?? false,
         ),
       );
     });
@@ -114,11 +115,12 @@ class ChromeAppClassHelper {
 
     final fieldDescriptors = _mapify(classDescriptor['fields']);
     fieldDescriptors.forEach((name, descriptor) {
+      final fieldDescriptor = _mapify(descriptor);
       final classMetaData = ClassMetaData(
         runtimeKind: RuntimeObjectKind.type,
         classRef: classRefFor(
-          descriptor['classLibraryId'],
-          descriptor['className'],
+          fieldDescriptor['classLibraryId'] as String?,
+          fieldDescriptor['className'] as String?,
         ),
       );
 
@@ -132,16 +134,17 @@ class ChromeAppClassHelper {
             kind: classMetaData.kind,
             classRef: classMetaData.classRef,
           ),
-          isConst: descriptor['isConst'] as bool? ?? false,
-          isFinal: descriptor['isFinal'] as bool? ?? false,
-          isStatic: descriptor['isStatic'] as bool? ?? false,
+          isConst: fieldDescriptor['isConst'] as bool? ?? false,
+          isFinal: fieldDescriptor['isFinal'] as bool? ?? false,
+          isStatic: fieldDescriptor['isStatic'] as bool? ?? false,
           id: createId(),
         ),
       );
     });
 
-    final superClassLibraryId = classDescriptor['superClassLibraryId'];
-    final superClassName = classDescriptor['superClassName'];
+    final superClassLibraryId =
+        classDescriptor['superClassLibraryId'] as String?;
+    final superClassName = classDescriptor['superClassName'] as String?;
     final superClassRef = superClassName == null
         ? null
         : classRefFor(superClassLibraryId, superClassName);

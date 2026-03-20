@@ -30,9 +30,9 @@ final class DartDevelopmentServiceConnectedEvent extends Event {
     required super.timestamp,
     required this.uri,
   }) : message =
-           'A Dart Developer Service instance has connected and this direct '
-           'connection to the VM service will now be closed. Please reconnect to '
-           'the Dart Development Service at $uri.',
+           'A Dart Developer Service instance has connected and this '
+           'direct connection to the VM service will now be closed. '
+           'Please reconnect to the Dart Development Service at $uri.',
        super(kind: 'DartDevelopmentServiceConnected');
 
   final String message;

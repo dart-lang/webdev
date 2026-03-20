@@ -243,8 +243,8 @@ void testWithDwds({required TestSdkConfigurationProvider provider}) {
             (event) => event.kind == EventKind.kPauseBreakpoint,
           );
 
-          // Evaluation succeeds and return ErrorRef containing compilation error,
-          // so event is marked as success.
+          // Evaluation succeeds and return ErrorRef containing compilation
+          // error, so event is marked as success.
           final expression = 'some-bad-expression';
           await expectEventDuring(
             matchesEvent(DwdsEventKind.evaluateInFrame, {
@@ -435,8 +435,8 @@ void testWithDwds({required TestSdkConfigurationProvider provider}) {
         });
 
         tearDown(() async {
-          // We must resume execution in case a test left the isolate paused, but
-          // error 106 is expected if the isolate is already running.
+          // We must resume execution in case a test left the isolate paused,
+          // but error 106 is expected if the isolate is already running.
           try {
             await service.resume(isolateId);
           } on RPCError catch (e) {
@@ -476,7 +476,7 @@ void testWithDwds({required TestSdkConfigurationProvider provider}) {
     },
     // TODO(elliette): Re-enable (https://github.com/dart-lang/webdev/issues/1852).
     skip: Platform.isWindows,
-    timeout: Timeout.factor(2),
+    timeout: const Timeout.factor(2),
   );
 }
 

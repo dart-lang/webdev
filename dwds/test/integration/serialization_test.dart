@@ -131,7 +131,7 @@ void main() {
 
   group('DebugInfo', () {
     test('serializes and deserializes', () {
-      final info = DebugInfo(
+      final info = const DebugInfo(
         appEntrypointPath: 'appEntrypointPath',
         appId: 'appId',
         appInstanceId: 'appInstanceId',

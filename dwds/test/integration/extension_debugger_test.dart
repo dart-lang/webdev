@@ -12,6 +12,7 @@ import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/src/servers/extension_debugger.dart';
 import 'package:test/test.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
@@ -39,7 +40,7 @@ void main() async {
           'result': {'value': 3.14},
         }),
       );
-      final resultCompleter = Completer();
+      final resultCompleter = Completer<WipResponse>();
       unawaited(
         extensionDebugger
             .sendCommand('Runtime.evaluate', params: {'expression': '\$pi'})
@@ -47,7 +48,10 @@ void main() async {
       );
       connection.controllerIncoming.sink.add(jsonEncode(extensionResponse));
       final response = await resultCompleter.future;
-      expect(response.result['result']['value'], 3.14);
+      expect(
+        (response.result!['result'] as Map<String, dynamic>)['value'],
+        3.14,
+      );
     });
 
     test('an ExtensionEvent', () async {
@@ -102,7 +106,7 @@ void main() async {
       final decoded = jsonDecode(
         await connection.controllerOutgoing.stream.first,
       );
-      final request = ExtensionRequest.fromJson(decoded);
+      final request = ExtensionRequest.fromJson(decoded as List<dynamic>);
       expect(request, extensionRequest);
     });
 
@@ -121,7 +125,7 @@ void main() async {
       final decoded = jsonDecode(
         await connection.controllerOutgoing.stream.first,
       );
-      final request = ExtensionRequest.fromJson(decoded);
+      final request = ExtensionRequest.fromJson(decoded as List<dynamic>);
       expect(request, extensionRequest);
     });
   });
