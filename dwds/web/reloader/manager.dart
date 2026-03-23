@@ -99,7 +99,8 @@ class ReloadingManager {
     window.location.reload();
   }
 
-  /// Handles service extension requests by delegating to the appropriate restarter
+  /// Handles service extension requests by delegating to the appropriate
+  /// restarter
   Future<Map<String, dynamic>?> handleServiceExtension(
     String method,
     Map<String, dynamic> args,

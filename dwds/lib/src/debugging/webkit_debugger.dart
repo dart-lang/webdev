@@ -83,7 +83,7 @@ class WebkitDebugger implements RemoteDebugger {
           );
           await onReconnect?.call();
         } on Exception {
-          await Future.delayed(Duration(milliseconds: 25 << retryCount));
+          await Future<void>.delayed(Duration(milliseconds: 25 << retryCount));
           retry = true;
           retryCount++;
         }

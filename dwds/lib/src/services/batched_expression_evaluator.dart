@@ -84,7 +84,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
 
       if (libraryUri != request.libraryUri ||
           isolateId != request.isolateId ||
-          !MapEquality().equals(scope, request.scope)) {
+          !const MapEquality<String, String>().equals(scope, request.scope)) {
         _logger.fine('New batch due to');
         if (libraryUri != request.libraryUri) {
           _logger.fine(' - library uri: $libraryUri != ${request.libraryUri}');
@@ -92,7 +92,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
         if (isolateId != request.isolateId) {
           _logger.fine(' - isolateId: $isolateId != ${request.isolateId}');
         }
-        if (!MapEquality().equals(scope, request.scope)) {
+        if (!const MapEquality<String, String>().equals(scope, request.scope)) {
           _logger.fine(' - scope: $scope != ${request.scope}');
         }
 
@@ -158,8 +158,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
               );
               request.completer.complete(result);
             }),
-        onError: (error, stackTrace) =>
-            request.completer.completeError(error, stackTrace),
+        onError: request.completer.completeError,
       );
     }
   }

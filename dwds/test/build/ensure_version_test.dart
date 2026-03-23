@@ -14,7 +14,7 @@ import 'package:yaml/yaml.dart';
 
 void main() {
   test('dwds lib/src/version.dart matches the pubspec version', () {
-    final pubspec = loadYaml(File('pubspec.yaml').readAsStringSync());
+    final pubspec = loadYaml(File('pubspec.yaml').readAsStringSync()) as Map;
     expect(
       Version.parse(packageVersion),
       Version.parse(pubspec['version'] as String),

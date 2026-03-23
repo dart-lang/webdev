@@ -80,9 +80,9 @@ class FakeChromeAppInspector extends FakeInspector
       'Runtime.getProperties',
       params: {'objectId': objectId, 'ownProperties': true},
     );
-    final result = response.result?['result'];
+    final result = response.result?['result'] as List<dynamic>? ?? [];
     return result
-        .map<Property>((each) => Property(each as Map<String, dynamic>))
+        .map<Property>((Object? each) => Property(each as Map<String, dynamic>))
         .toList();
   }
 
@@ -212,9 +212,9 @@ class FakeWebkitDebugger implements WebkitDebugger {
           ReloadConfiguration.none,
           (_) async => {},
           (_) async => {},
-          (_, __) async => null,
-          (MetadataProvider _, String __) async => '',
-          (MetadataProvider _, String __) async => '',
+          (_, _) async => null,
+          (MetadataProvider _, String _) async => '',
+          (MetadataProvider _, String _) async => '',
           (String _) => '',
           (MetadataProvider _) async => <String, ModuleInfo>{},
           FakeAssetReader(),
@@ -234,19 +234,20 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Stream<WipDomain>? get onClosed => null;
 
   @override
-  Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => Stream.empty();
+  Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared =>
+      const Stream.empty();
 
   @override
   late Stream<DebuggerPausedEvent> onPaused;
 
   @override
-  Stream<DebuggerResumedEvent> get onResumed => Stream.empty();
+  Stream<DebuggerResumedEvent> get onResumed => const Stream.empty();
 
   @override
-  Stream<ScriptParsedEvent> get onScriptParsed => Stream.empty();
+  Stream<ScriptParsedEvent> get onScriptParsed => const Stream.empty();
 
   @override
-  Stream<TargetCrashedEvent> get onTargetCrashed => Stream.empty();
+  Stream<TargetCrashedEvent> get onTargetCrashed => const Stream.empty();
 
   @override
   Future<WipResponse> pause() async => fakeWipResponse;
@@ -292,16 +293,16 @@ class FakeWebkitDebugger implements WebkitDebugger {
       fakeWipResponse;
 
   @override
-  Stream<ConsoleAPIEvent> get onConsoleAPICalled => Stream.empty();
+  Stream<ConsoleAPIEvent> get onConsoleAPICalled => const Stream.empty();
 
   @override
-  Stream<ExceptionThrownEvent> get onExceptionThrown => Stream.empty();
+  Stream<ExceptionThrownEvent> get onExceptionThrown => const Stream.empty();
 
   @override
   Future<void> close() async {}
 
   @override
-  Stream<WipConnection> get onClose => Stream.empty();
+  Stream<WipConnection> get onClose => const Stream.empty();
 
   @override
   Future<RemoteObject> evaluate(
@@ -427,7 +428,7 @@ class FakeAssetReader implements AssetReader {
   String? metadata;
   final String? _dartSource;
   final String? _sourceMap;
-  FakeAssetReader({this.metadata, dartSource, sourceMap})
+  FakeAssetReader({this.metadata, String? dartSource, String? sourceMap})
     : _dartSource = dartSource,
       _sourceMap = sourceMap;
 

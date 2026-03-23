@@ -14,7 +14,7 @@ import 'package:vm_service/vm_service.dart';
 /// Protocol.
 class DebugConnection {
   final AppDebugServices _appDebugServices;
-  final _onDoneCompleter = Completer();
+  final _onDoneCompleter = Completer<void>();
 
   /// Null until [close] is called.
   ///

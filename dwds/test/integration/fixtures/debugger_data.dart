@@ -92,10 +92,10 @@ List<Map<String, dynamic>> frames1Json = [
 /// elements of a scope chain.
 ///
 /// It has two variables named 'a' and 'b' in the first scope.
-var variables1 = [
+List<WipResponse> variables1 = [
   WipResponse({
     'id': 1,
-    'result': {'result': []},
+    'result': {'result': <Map<String, dynamic>>[]},
   }),
   WipResponse({
     'id': 2,
@@ -114,7 +114,7 @@ var variables1 = [
   }),
   WipResponse({
     'id': 3,
-    'result': {'result': []},
+    'result': {'result': <Map<String, dynamic>>[]},
   }),
   // Fake that the SDK is loaded.
   WipResponse({
@@ -128,16 +128,16 @@ var variables1 = [
   }),
   WipResponse({
     'id': 5,
-    'result': {'result': []},
+    'result': {'result': <Map<String, dynamic>>[]},
   }),
   WipResponse({
     'id': 6,
-    'result': {'result': []},
+    'result': {'result': <Map<String, dynamic>>[]},
   }),
 ];
 
 /// Sample data for a Debugger.scriptParsed event
-var scriptParsedParams = {
+Map<String, Object> scriptParsedParams = {
   "endColumn": 0,
   "endLine": 53,
   "executionContextAuxData": {

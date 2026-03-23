@@ -21,7 +21,7 @@ void main() {
   for (final useDebuggerModuleNames in [true, false]) {
     group('Package uri mapper with debugger module names: '
         ' $useDebuggerModuleNames |', () {
-      final fileSystem = LocalFileSystem();
+      final fileSystem = const LocalFileSystem();
 
       final packageUri = Uri(
         scheme: 'package',

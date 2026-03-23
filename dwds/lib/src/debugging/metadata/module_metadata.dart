@@ -163,8 +163,11 @@ class ModuleMetadata {
       );
     }
 
-    for (final l in _readRequiredList(json, 'libraries')) {
-      addLibrary(LibraryMetadata.fromJson(l as Map<String, dynamic>));
+    for (final l in _readRequiredList<Map<String, dynamic>>(
+      json,
+      'libraries',
+    )) {
+      addLibrary(LibraryMetadata.fromJson(l));
     }
   }
 

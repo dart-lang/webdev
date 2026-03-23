@@ -54,13 +54,16 @@ const isSentinelException = TypeMatcher<SentinelException>();
 final Matcher throwsRPCError = throwsA(isRPCError);
 final Matcher throwsSentinelException = throwsA(isSentinelException);
 
-Matcher isRPCErrorWithMessage(String message) =>
-    isA<RPCError>().having((e) => e.message, 'message', contains(message));
+Matcher isRPCErrorWithMessage(String message) => isA<RPCError>().having(
+  (RPCError e) => e.message,
+  'message',
+  contains(message),
+);
 Matcher throwsRPCErrorWithMessage(String message) =>
     throwsA(isRPCErrorWithMessage(message));
 
 Matcher isRPCErrorWithCode(int code) =>
-    isA<RPCError>().having((e) => e.code, 'code', equals(code));
+    isA<RPCError>().having((RPCError e) => e.code, 'code', equals(code));
 Matcher throwsRPCErrorWithCode(int code) => throwsA(isRPCErrorWithCode(code));
 
 enum CompilationMode {
@@ -137,8 +140,8 @@ class TestContext {
 
   /// Internal VM service.
   ///
-  /// Prefer using [vmService] instead in tests when possible, to include testing
-  /// of the VmServerConnection (bypassed when using [service]).
+  /// Prefer using [vmService] instead in tests when possible, to include
+  /// testing of the VmServerConnection (bypassed when using [service]).
   ChromeProxyService get service => fetchChromeProxyService(debugConnection);
 
   /// External VM service.
@@ -217,7 +220,7 @@ class TestContext {
         // We therefore wait until ChromeDriver reports that it has started
         // successfully.
 
-        final chromeDriverStartup = Completer();
+        final chromeDriverStartup = Completer<void>();
         stdOutLines.listen((line) {
           if (!chromeDriverStartup.isCompleted &&
               line.contains('was started successfully')) {
@@ -375,7 +378,7 @@ class TestContext {
             final entry = p.toUri(
               p.join(project.webAssetsPath, project.dartEntryFileName),
             );
-            frontendServerFileSystem = LocalFileSystem();
+            frontendServerFileSystem = const LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
               frontendServerFileSystem,
               project.packageConfigFile,
@@ -446,7 +449,8 @@ class TestContext {
                         buildSettings,
                       ).strategy,
               _ => throw Exception(
-                'Unsupported DDC module format ${testSettings.moduleFormat.name}.',
+                'Unsupported DDC module format '
+                '${testSettings.moduleFormat.name}.',
               ),
             };
             buildResults = const Stream<BuildResults>.empty();
@@ -472,7 +476,8 @@ class TestContext {
               '--define',
               'build_web_compilers|entrypoint_marker=web-hot-reload=true',
               '--define',
-              'build_web_compilers|entrypoint_marker=web-assets-path=${project.webAssetsPath}',
+              'build_web_compilers|entrypoint_marker=web-assets-path='
+                  '${project.webAssetsPath}',
               '--define',
               'build_web_compilers|ddc=web-hot-reload=true',
               '--define',
@@ -520,7 +525,7 @@ class TestContext {
               );
               expressionCompiler = ddcService;
             }
-            frontendServerFileSystem = LocalFileSystem();
+            frontendServerFileSystem = const LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
               frontendServerFileSystem,
               project.packageConfigFile,
@@ -588,8 +593,8 @@ class TestContext {
 
       // The debugger tab must be enabled and connected before certain
       // listeners in DWDS or `main` is run.
-      final tabConnectionCompleter = Completer();
-      final appConnectionCompleter = Completer();
+      final tabConnectionCompleter = Completer<void>();
+      final appConnectionCompleter = Completer<void>();
       final connection = ChromeConnection('localhost', debugPort);
 
       // TODO(srujzs): In the case of the frontend server, it doesn't make sense
@@ -739,7 +744,9 @@ class TestContext {
     // timestamp that is guaranteed to be after the previous compile.
     // TODO(https://github.com/dart-lang/sdk/issues/51937): Remove once this bug
     // is fixed.
-    if (Platform.isWindows) await Future.delayed(Duration(seconds: 1));
+    if (Platform.isWindows) {
+      await Future<void>.delayed(const Duration(seconds: 1));
+    }
     _reloadedSources.clear();
     for (var (:file, :originalString, :newString) in edits) {
       if (file == project.dartEntryFileName) {
@@ -764,7 +771,7 @@ class TestContext {
   /// - Entrypoints (served): web/main.dart -> main
   /// - Entrypoints (nested): test/hello_world/main.dart -> hello_world/main
   /// - Library files: lib/path/to/some_file.dart
-  ///     -> packages/[package]/path/to/some_file
+  ///     -> packages/`package`/path/to/some_file
   void _updateReloadedSources(String absolutePath) {
     final relativePath = p.relative(
       absolutePath,
@@ -869,8 +876,8 @@ class TestContext {
     // Wait for the build until the timeout is reached:
     await daemonClient.buildResults
         .firstWhere(
-          (results) => results.results.any(
-            (result) => result.status == BuildStatus.succeeded,
+          (BuildResults results) => results.results.any(
+            (BuildResult result) => result.status == BuildStatus.succeeded,
           ),
         )
         .timeout(timeout ?? const Duration(seconds: 60));
@@ -882,7 +889,7 @@ class TestContext {
       final delay = Platform.isWindows
           ? const Duration(seconds: 5)
           : const Duration(seconds: 2);
-      await Future.delayed(delay);
+      await Future<void>.delayed(delay);
     }
   }
 

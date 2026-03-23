@@ -37,7 +37,7 @@ void testAll({required TestSdkConfigurationProvider provider}) {
         moduleFormat: provider.ddcModuleFormat,
         canaryFeatures: provider.canaryFeatures,
       ),
-      debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+      debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
         ddsPort: expectedPort,
       ),
     );
@@ -57,7 +57,7 @@ void testAll({required TestSdkConfigurationProvider provider}) {
         moduleFormat: provider.ddcModuleFormat,
         canaryFeatures: provider.canaryFeatures,
       ),
-      debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+      debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
         ddsConfiguration: DartDevelopmentServiceConfiguration(
           port: expectedPort,
         ),

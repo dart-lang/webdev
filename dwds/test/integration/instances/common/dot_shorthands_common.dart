@@ -37,7 +37,7 @@ void runTests({
     body,
   );
 
-  Future<InstanceRef> getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(int frame, String expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
   group('$compilationMode | dot shorthands:', () {
@@ -72,7 +72,7 @@ void runTests({
     });
 
     test('expression evaluation', () async {
-      final bp = onBreakpoint('testDotShorthands', (event) async {
+      final bp = onBreakpoint('testDotShorthands', (Event event) async {
         final frame = event.topFrame!.index!;
 
         var instanceRef = await getInstanceRef(frame, '(c = .two).value');
@@ -96,7 +96,7 @@ void runTests({
     });
 
     test('single-stepping', () async {
-      final bp = onBreakpoint('testDotShorthands', (event) async {
+      final bp = onBreakpoint('testDotShorthands', (Event event) async {
         final scriptBasename = basename(mainScript.uri!);
 
         const lineA = 9;

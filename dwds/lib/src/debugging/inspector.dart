@@ -181,7 +181,9 @@ abstract class AppInspector {
         final parts = scripts[uri];
         final scriptRefs = [
           ScriptRef(uri: uri, id: createId()),
-          for (final part in parts ?? []) ScriptRef(uri: part, id: createId()),
+          if (parts != null)
+            for (final String part in parts)
+              ScriptRef(uri: part, id: createId()),
         ];
         final libraryRef = await libraryHelper.libraryRefFor(uri);
         final libraryId = libraryRef?.id;

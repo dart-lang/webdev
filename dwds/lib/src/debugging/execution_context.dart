@@ -52,7 +52,8 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
             'contextId': context,
           },
         );
-        if (result.result?['result']?['value'] != null) {
+        if ((result.result?['result'] as Map<String, dynamic>?)?['value'] !=
+            null) {
           _logger.fine('Found dart execution context: $context');
           return context;
         }
@@ -87,10 +88,11 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
     _remoteDebugger
         .eventStream('Runtime.executionContextCreated', (e) {
           // Parse and add the context ID to the stream.
-          // If we cannot detect or parse the context ID, add `null` to the stream
-          // to indicate an error context - those will be skipped when trying to find
-          // the dart context, with a warning.
-          final id = e.params?['context']?['id']?.toString();
+          // If we cannot detect or parse the context ID, add `null` to the
+          // stream to indicate an error context - those will be skipped when
+          // trying to find the dart context, with a warning.
+          final id = (e.params?['context'] as Map<String, dynamic>?)?['id']
+              ?.toString();
           final parsedId = id == null ? null : int.parse(id);
           if (id == null) {
             _logger.warning('Cannot find execution context id: $e');

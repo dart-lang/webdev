@@ -51,7 +51,8 @@ class BuildRunnerRequireStrategyProvider with BuildRunnerStrategyProviderMixin {
   RequireStrategy get strategy => _requireStrategy;
 }
 
-/// Provides a [DdcLibraryBundleStrategy] suitable for use with `package:build_runner`.
+/// Provides a [DdcLibraryBundleStrategy] suitable for use with
+/// `package:build_runner`.
 class BuildRunnerDdcLibraryBundleStrategyProvider
     with BuildRunnerStrategyProviderMixin {
   @override
