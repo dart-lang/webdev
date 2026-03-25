@@ -8,7 +8,6 @@ import 'dart:typed_data';
 import 'package:logging/logging.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:stream_channel/stream_channel.dart';
-
 import 'package:web_socket/web_socket.dart';
 
 abstract class SocketClient {
