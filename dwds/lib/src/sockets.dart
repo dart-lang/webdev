@@ -3,11 +3,13 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io' show SocketException;
 import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:stream_channel/stream_channel.dart';
+
 import 'package:web_socket/web_socket.dart';
 
 abstract class SocketClient {
@@ -76,7 +78,7 @@ class PersistentWebSocket with StreamChannelMixin<dynamic> {
   /// re-establish a connection.
   ///
   /// No retries are attempted when making the initial web socket connection,
-  /// so callers must be prepared to handle both `SocketException`s and
+  /// so callers must be prepared to handle both [SocketException]s and
   /// [WebSocketException] thrown if the connection to [uri] fails.
   static Future<PersistentWebSocket> connect(
     Uri uri, {
