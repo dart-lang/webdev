@@ -12,6 +12,7 @@ import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/version.dart';
 import 'package:logging/logging.dart';
+import 'package:package_config/package_config.dart';
 import 'package:shelf/shelf.dart';
 
 /// File extension that build_web_compilers will place the
@@ -44,9 +45,33 @@ class DwdsInjector {
   Middleware get middleware => (innerHandler) {
     return (Request request) async {
       if (request.url.path.endsWith('$_clientScript.js')) {
-        final uri = await Isolate.resolvePackageUri(
+        var uri = await Isolate.resolvePackageUri(
           Uri.parse('package:$_clientScript.js'),
         );
+        if (uri == null) {
+          // Fallback for AOT mode: Isolate.resolvePackageUri returns null.
+          // We use package_config to resolve the package path relative to the
+          // snapshot.
+          try {
+            if (Platform.script.scheme == 'file') {
+              final packageConfig = await findPackageConfig(
+                File(Platform.script.toFilePath()).parent,
+              );
+              if (packageConfig != null) {
+                uri = packageConfig.resolve(
+                  Uri.parse('package:$_clientScript.js'),
+                );
+              }
+            }
+          } catch (e, s) {
+            _logger.warning(
+              'Failed to resolve package:$_clientScript.js using'
+              ' package_config',
+              e,
+              s,
+            );
+          }
+        }
         if (uri == null) {
           throw StateError('Cannot resolve "package:$_clientScript.js"');
         }
