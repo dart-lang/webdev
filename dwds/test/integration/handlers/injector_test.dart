@@ -7,6 +7,7 @@ library;
 
 import 'dart:io';
 
+import 'package:dwds/src/handlers/injected_client_js.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:dwds/src/version.dart';
 import 'package:http/http.dart' as http;
@@ -54,6 +55,13 @@ void main() {
 
       tearDown(() async {
         await server.close();
+      });
+
+      test('validates injected_client_js.dart matches client.js', () {
+        final actualClientJs = File(
+          'lib/src/injected/client.js',
+        ).readAsStringSync();
+        expect(injectedClientJs.trim(), equals(actualClientJs.trim()));
       });
 
       test('leaves non-entrypoints untouched', () async {

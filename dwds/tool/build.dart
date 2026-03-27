@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 void main() async {
@@ -22,7 +23,7 @@ const packageVersion = '$version';
 
   // 3. Compile the web client to JavaScript
   print('Compiling client.js...');
-  final result = await Process.run('dart', [
+  final result = await Process.run(Platform.executable, [
     'compile',
     'js',
     '-O1',
@@ -46,4 +47,24 @@ const packageVersion = '$version';
   if (depsFile.existsSync()) {
     depsFile.deleteSync();
   }
+
+  // 5. Generate injected_client_js.dart
+  print('Generating injected_client_js.dart...');
+  // Escape JS payload line-by-line using jsonEncode for multiline readability,
+  // and manually escape the dollar sign ($) to avoid Dart interpolation.
+  final compiledJs = File('lib/src/injected/client.js').readAsStringSync();
+  final safeDartString = compiledJs
+      .split('\n')
+      .map((line) {
+        return jsonEncode('$line\n').replaceAll(r'$', r'\$');
+      })
+      .join('\n');
+  final injectedClientJsFile = File('lib/src/handlers/injected_client_js.dart');
+  injectedClientJsFile.writeAsStringSync('''
+// Generated code. Do not modify.
+// Emits the transpiled client.js directly into a statically embeddable string.
+
+const injectedClientJs = $safeDartString;
+''');
+  print('Successfully packed client.js into injected_client_js.dart');
 }
