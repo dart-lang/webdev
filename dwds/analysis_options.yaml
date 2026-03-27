@@ -4,6 +4,7 @@ analyzer:
   exclude:
     # Ignore generated files
     - "lib/data/*"
+    - "lib/src/handlers/injected_client_js.dart"
 
 linter:
   rules:
