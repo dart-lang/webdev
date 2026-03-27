@@ -50,15 +50,18 @@ const packageVersion = '$version';
 
   // 5. Generate injected_client_js.dart
   print('Generating injected_client_js.dart...');
-  // Escape JS payload line-by-line using jsonEncode for multiline readability,
-  // and manually escape the dollar sign ($) to avoid Dart interpolation.
   final compiledJs = File('lib/src/injected/client.js').readAsStringSync();
-  final safeDartString = compiledJs
-      .split('\n')
-      .map((line) {
-        return jsonEncode('$line\n').replaceAll(r'$', r'\$');
-      })
-      .join('\n');
+  final lines = compiledJs.replaceAll('\r\n', '\n').split('\n');
+
+  // Escape JS payload line-by-line using jsonEncode for multiline readability,
+  // ensure newlines are preserved identically, and manually escape the dollar
+  // sign ($) to avoid Dart interpolation.
+  final safeDartString = [
+    for (var i = 0; i < lines.length; i++)
+      jsonEncode(
+        i == lines.length - 1 ? lines[i] : '${lines[i]}\n',
+      ).replaceAll(r'$', r'\$'),
+  ].join('\n');
   final injectedClientJsFile = File('lib/src/handlers/injected_client_js.dart');
   injectedClientJsFile.writeAsStringSync('''
 // Generated code. Do not modify.

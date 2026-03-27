@@ -60,8 +60,21 @@ void main() {
       test('validates injected_client_js.dart matches client.js', () {
         final actualClientJs = File(
           'lib/src/injected/client.js',
-        ).readAsStringSync();
-        expect(injectedClientJs.trim(), equals(actualClientJs.trim()));
+        ).readAsStringSync().replaceAll('\r\n', '\n');
+
+        // Assert exact length equivalency first to avoid massive diffs
+        expect(
+          injectedClientJs.length,
+          equals(actualClientJs.length),
+          reason: 'Lengths must match exactly without trimming',
+        );
+
+        // Byte-for-byte exact comparison
+        expect(injectedClientJs, equals(actualClientJs));
+      });
+
+      test('injected_client_js.dart has normalized line endings', () {
+        expect(injectedClientJs.contains('\r'), isFalse);
       });
 
       test('leaves non-entrypoints untouched', () async {
