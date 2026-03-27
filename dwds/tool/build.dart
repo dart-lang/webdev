@@ -63,6 +63,7 @@ const packageVersion = '$version';
   injectedClientJsFile.writeAsStringSync('''
 // Generated code. Do not modify.
 // Emits the transpiled client.js directly into a statically embeddable string.
+// dart format off
 
 const injectedClientJs = $safeDartString;
 ''');
