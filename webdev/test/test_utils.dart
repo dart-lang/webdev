@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -68,10 +69,21 @@ class TestRunner {
     );
   }
 
+void _copyDirectory(Directory source, Directory destination) {
+  copyPathSync(source.path, destination.path);
+  final dartTool = Directory(p.join(destination.path, '.dart_tool'));
+  if (dartTool.existsSync()) {
+    dartTool.deleteSync(recursive: true);
+  }
+}
+
   Future<String> prepareWorkspace() async {
-    final exampleDirectory = p.absolute(
+    final originalDirectory = p.absolute(
       p.join(p.current, '..', 'fixtures', '_webdev_smoke'),
     );
+    final tempDir = Directory.systemTemp.createTempSync('webdev_smoke_');
+    final exampleDirectory = tempDir.path;
+    _copyDirectory(Directory(originalDirectory), tempDir);
 
     final process = await TestProcess.start(
       sdkLayout.dartPath,
