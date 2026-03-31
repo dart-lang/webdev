@@ -106,8 +106,12 @@ Future<void>? main() {
               .hotRestart(
                 runId: runId,
                 reloadedSourcesPath: hotRestartReloadedSourcesPath,
-              )
-              .toJS;
+                readyToRunMain: readyToRunMainCompleter?.future,
+              ).then((value) {
+                return value;
+              }, onError: (e) {
+                throw 'RELOAD_ERROR: $e';
+              }).toJS;
         }
       }.toJS;
 
