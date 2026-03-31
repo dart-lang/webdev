@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
-import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_common/test_sdk_configuration.dart';
@@ -69,13 +68,21 @@ class TestRunner {
     );
   }
 
-  /// Copies [source] to [destination] while blowing away previous builds
-  /// (via deleting '.dart_tool').
+  /// Copies [source] to [destination], skipping '.dart_tool' to ignore built
+  /// output from previous runs.
   void _copyCleanDirectory(Directory source, Directory destination) {
-    copyPathSync(source.path, destination.path);
-    final dartTool = Directory(p.join(destination.path, '.dart_tool'));
-    if (dartTool.existsSync()) {
-      dartTool.deleteSync(recursive: true);
+    destination.createSync(recursive: true);
+    for (final entity in source.listSync(recursive: false)) {
+      if (entity is Directory) {
+        if (p.basename(entity.path) == '.dart_tool') continue;
+        final newDirectory = Directory(
+          p.join(destination.absolute.path, p.basename(entity.path)),
+        );
+        newDirectory.createSync(recursive: true);
+        _copyCleanDirectory(entity.absolute, newDirectory);
+      } else if (entity is File) {
+        entity.copySync(p.join(destination.path, p.basename(entity.path)));
+      }
     }
   }
 
