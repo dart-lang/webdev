@@ -8897,10 +8897,6 @@
       this._box_0 = t0;
       this.manager = t1;
     },
-    main___closure: function main___closure() {
-    },
-    main___closure0: function main___closure0() {
-    },
     main__closure2: function main__closure2(t0) {
       this.client = t0;
     },
@@ -17023,7 +17019,7 @@
       t1.call(t1, wrapper);
       return wrapper;
     },
-    $signature: 70
+    $signature: 68
   };
   A.FutureOfVoidToJSPromise_get_toJS_closure.prototype = {
     call$2(resolve, reject) {
@@ -17037,7 +17033,7 @@
       var t1 = this.resolve;
       return t1.call(t1);
     },
-    $signature: 76
+    $signature: 74
   };
   A.FutureOfVoidToJSPromise_get_toJS__closure0.prototype = {
     call$2(error, stackTrace) {
@@ -17562,13 +17558,13 @@
     call$1(e) {
       return type$.BuildStatus._as(e)._name === this.json;
     },
-    $signature: 77
+    $signature: 75
   };
   A.BuildStatus_BuildStatus$fromJson_closure0.prototype = {
     call$0() {
       throw A.wrapException(A.ArgumentError$("Unknown BuildStatus: " + this.json, null));
     },
-    $signature: 92
+    $signature: 90
   };
   A.BuildResult.prototype = {
     toJson$0() {
@@ -17644,7 +17640,7 @@
     call$1(e) {
       return type$.DebugEvent._as(e).toJson$0();
     },
-    $signature: 93
+    $signature: 91
   };
   A.DebugInfo.prototype = {
     toJson$0() {
@@ -20961,34 +20957,18 @@
       A._asBoolQ(pauseIsolatesOnStart);
       t1 = this.manager;
       t2 = init.G;
-      t3 = this._box_0;
+      t3 = type$.nullable_JSArray_nullable_Object;
       if (pauseIsolatesOnStart === true) {
         t4 = new A._Future($.Zone__current, type$._Future_dynamic);
-        t3.readyToRunMainCompleter = new A._AsyncCompleter(t4, type$._AsyncCompleter_dynamic);
-        return A.FutureOfJSAnyToJSPromise_get_toJS(t1.hotRestart$3$readyToRunMain$reloadedSourcesPath$runId(t4, A._asStringQ(t2.$reloadedSourcesPath), runId), type$.nullable_JSArray_nullable_Object);
-      } else {
-        t2 = A._asStringQ(t2.$reloadedSourcesPath);
-        t3 = t3.readyToRunMainCompleter;
-        t4 = type$.nullable_JSArray_nullable_Object;
-        return A.FutureOfJSAnyToJSPromise_get_toJS(t1.hotRestart$3$readyToRunMain$reloadedSourcesPath$runId(t3 == null ? null : t3.future, t2, runId).then$1$2$onError(new A.main___closure(), new A.main___closure0(), t4), t4);
-      }
+        this._box_0.readyToRunMainCompleter = new A._AsyncCompleter(t4, type$._AsyncCompleter_dynamic);
+        return A.FutureOfJSAnyToJSPromise_get_toJS(t1.hotRestart$3$readyToRunMain$reloadedSourcesPath$runId(t4, A._asStringQ(t2.$reloadedSourcesPath), runId), t3);
+      } else
+        return A.FutureOfJSAnyToJSPromise_get_toJS(t1.hotRestart$2$reloadedSourcesPath$runId(A._asStringQ(t2.$reloadedSourcesPath), runId), t3);
     },
     call$1(runId) {
       return this.call$2(runId, null);
     },
-    $signature: 61
-  };
-  A.main___closure.prototype = {
-    call$1(value) {
-      return type$.nullable_JSArray_nullable_Object._as(value);
-    },
-    $signature: 62
-  };
-  A.main___closure0.prototype = {
-    call$1(e) {
-      throw A.wrapException("RELOAD_ERROR: " + A.S(e));
-    },
-    $signature: 95
+    $signature: 93
   };
   A.main__closure2.prototype = {
     call$1(runId) {
@@ -21018,7 +20998,7 @@
       if (A._asBool(init.G.$dartEmitDebugEvents))
         A._trySendEvent(this.client.get$sink(), B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["BatchedDebugEvents", new A.BatchedDebugEvents(events).toJson$0()], type$.JSArray_Object), null), type$.dynamic);
     },
-    $signature: 65
+    $signature: 63
   };
   A.main__closure5.prototype = {
     call$2(kind, eventData) {
@@ -21030,7 +21010,7 @@
         A._trySendEvent(new A._StreamSinkWrapper(t1, A._instanceType(t1)._eval$1("_StreamSinkWrapper<1>")), new A.DebugEvent(kind, eventData, Date.now()), type$.DebugEvent);
       }
     },
-    $signature: 66
+    $signature: 64
   };
   A.main__closure6.prototype = {
     call$1(eventData) {
@@ -21251,19 +21231,19 @@
     call$1(isAuthenticated) {
       return A._dispatchEvent("dart-auth-response", "" + A._asBool(isAuthenticated));
     },
-    $signature: 67
+    $signature: 65
   };
   A._sendHotReloadResponse_closure.prototype = {
     call$3(id, success, errorMessage) {
       return new A.HotReloadResponse(id, success, errorMessage);
     },
-    $signature: 68
+    $signature: 66
   };
   A._sendHotRestartResponse_closure.prototype = {
     call$3(id, success, errorMessage) {
       return new A.HotRestartResponse(id, success, errorMessage);
     },
-    $signature: 69
+    $signature: 67
   };
   A.DdcLibraryBundleRestarter.prototype = {
     _runMainWhenReady$2(readyToRunMain, runMain) {
@@ -21637,7 +21617,7 @@
       this.sub.cancel$0();
       return value;
     },
-    $signature: 71
+    $signature: 69
   };
   A.ReloadingManager.prototype = {
     hotRestart$3$readyToRunMain$reloadedSourcesPath$runId(readyToRunMain, reloadedSourcesPath, runId) {
@@ -22141,7 +22121,7 @@
     call$1(e) {
       this.completer.completeError$2(new A.HotReloadFailedException(A._asString(type$.JavaScriptObject._as(e).message)), this.stackTrace);
     },
-    $signature: 74
+    $signature: 72
   };
   A._createScript_closure.prototype = {
     call$0() {
@@ -22150,7 +22130,7 @@
         return new A._createScript__closure();
       return new A._createScript__closure0(nonce);
     },
-    $signature: 75
+    $signature: 73
   };
   A._createScript__closure.prototype = {
     call$0() {
@@ -22217,34 +22197,34 @@
     _static_1(A, "async___nullDataHandler$closure", "_nullDataHandler", 5);
     _static_2(A, "async___nullErrorHandler$closure", "_nullErrorHandler", 6);
     _static_0(A, "async___nullDoneHandler$closure", "_nullDoneHandler", 0);
-    _static(A, "async___rootHandleUncaughtError$closure", 5, null, ["call$5"], ["_rootHandleUncaughtError"], 78, 0);
+    _static(A, "async___rootHandleUncaughtError$closure", 5, null, ["call$5"], ["_rootHandleUncaughtError"], 76, 0);
     _static(A, "async___rootRun$closure", 4, null, ["call$1$4", "call$4"], ["_rootRun", function($self, $parent, zone, f) {
       return A._rootRun($self, $parent, zone, f, type$.dynamic);
-    }], 79, 0);
+    }], 77, 0);
     _static(A, "async___rootRunUnary$closure", 5, null, ["call$2$5", "call$5"], ["_rootRunUnary", function($self, $parent, zone, f, arg) {
       var t1 = type$.dynamic;
       return A._rootRunUnary($self, $parent, zone, f, arg, t1, t1);
-    }], 80, 0);
-    _static(A, "async___rootRunBinary$closure", 6, null, ["call$3$6"], ["_rootRunBinary"], 81, 0);
+    }], 78, 0);
+    _static(A, "async___rootRunBinary$closure", 6, null, ["call$3$6"], ["_rootRunBinary"], 79, 0);
     _static(A, "async___rootRegisterCallback$closure", 4, null, ["call$1$4", "call$4"], ["_rootRegisterCallback", function($self, $parent, zone, f) {
       return A._rootRegisterCallback($self, $parent, zone, f, type$.dynamic);
-    }], 82, 0);
+    }], 80, 0);
     _static(A, "async___rootRegisterUnaryCallback$closure", 4, null, ["call$2$4", "call$4"], ["_rootRegisterUnaryCallback", function($self, $parent, zone, f) {
       var t1 = type$.dynamic;
       return A._rootRegisterUnaryCallback($self, $parent, zone, f, t1, t1);
-    }], 83, 0);
+    }], 81, 0);
     _static(A, "async___rootRegisterBinaryCallback$closure", 4, null, ["call$3$4", "call$4"], ["_rootRegisterBinaryCallback", function($self, $parent, zone, f) {
       var t1 = type$.dynamic;
       return A._rootRegisterBinaryCallback($self, $parent, zone, f, t1, t1, t1);
-    }], 84, 0);
-    _static(A, "async___rootErrorCallback$closure", 5, null, ["call$5"], ["_rootErrorCallback"], 85, 0);
-    _static(A, "async___rootScheduleMicrotask$closure", 4, null, ["call$4"], ["_rootScheduleMicrotask"], 86, 0);
-    _static(A, "async___rootCreateTimer$closure", 5, null, ["call$5"], ["_rootCreateTimer"], 87, 0);
-    _static(A, "async___rootCreatePeriodicTimer$closure", 5, null, ["call$5"], ["_rootCreatePeriodicTimer"], 88, 0);
-    _static(A, "async___rootPrint$closure", 4, null, ["call$4"], ["_rootPrint"], 89, 0);
-    _static_1(A, "async___printToZone$closure", "_printToZone0", 90);
-    _static(A, "async___rootFork$closure", 5, null, ["call$5"], ["_rootFork"], 91, 0);
-    _instance(A._Completer.prototype, "get$completeError", 0, 1, null, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 64, 0, 0);
+    }], 82, 0);
+    _static(A, "async___rootErrorCallback$closure", 5, null, ["call$5"], ["_rootErrorCallback"], 83, 0);
+    _static(A, "async___rootScheduleMicrotask$closure", 4, null, ["call$4"], ["_rootScheduleMicrotask"], 84, 0);
+    _static(A, "async___rootCreateTimer$closure", 5, null, ["call$5"], ["_rootCreateTimer"], 85, 0);
+    _static(A, "async___rootCreatePeriodicTimer$closure", 5, null, ["call$5"], ["_rootCreatePeriodicTimer"], 86, 0);
+    _static(A, "async___rootPrint$closure", 4, null, ["call$4"], ["_rootPrint"], 87, 0);
+    _static_1(A, "async___printToZone$closure", "_printToZone0", 88);
+    _static(A, "async___rootFork$closure", 5, null, ["call$5"], ["_rootFork"], 89, 0);
+    _instance(A._Completer.prototype, "get$completeError", 0, 1, null, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 62, 0, 0);
     _instance_2_u(A._Future.prototype, "get$_completeError", "_completeError$2", 6);
     var _;
     _instance_1_u(_ = A._StreamController.prototype, "get$_add", "_add$1", 7);
@@ -22271,7 +22251,7 @@
     _static_1(A, "core_Uri_decodeComponent$closure", "Uri_decodeComponent", 10);
     _static(A, "math__max$closure", 2, null, ["call$1$2", "call$2"], ["max", function(a, b) {
       return A.max(a, b, type$.num);
-    }], 94, 0);
+    }], 92, 0);
     _instance_1_u(_ = A.PersistentWebSocket.prototype, "get$_writeToWebSocket", "_writeToWebSocket$1", 5);
     _instance_0_u(_, "get$_listenWithRetry", "_listenWithRetry$0", 9);
     _static_1(A, "case_insensitive_map_CaseInsensitiveMap__canonicalizer$closure", "CaseInsensitiveMap__canonicalizer", 10);
@@ -22279,10 +22259,10 @@
     _instance_1_u(_, "get$_onIncomingMessage", "_onIncomingMessage$1", 2);
     _instance_0_u(_, "get$_onOutgoingDone", "_onOutgoingDone$0", 0);
     _instance_1_u(_, "get$_onOutgoingMessage", "_onOutgoingMessage$1", 57);
-    _static_1(A, "client__initializeConnection$closure", "initializeConnection", 63);
+    _static_1(A, "client__initializeConnection$closure", "initializeConnection", 61);
     _static_1(A, "client___handleAuthRequest$closure", "_handleAuthRequest", 2);
-    _instance_1_u(_ = A.RequireRestarter.prototype, "get$_moduleParents", "_moduleParents$1", 72);
-    _instance_2_u(_, "get$_moduleTopologicalCompare", "_moduleTopologicalCompare$2", 73);
+    _instance_1_u(_ = A.RequireRestarter.prototype, "get$_moduleParents", "_moduleParents$1", 70);
+    _instance_2_u(_, "get$_moduleTopologicalCompare", "_moduleTopologicalCompare$2", 71);
   })();
   (function inheritance() {
     var _mixin = hunkHelpers.mixin,
@@ -22301,7 +22281,7 @@
     _inheritMany(A._CastIterableBase, [A.CastIterable, A.__CastListBase__CastIterableBase_ListMixin]);
     _inherit(A._EfficientLengthCastIterable, A.CastIterable);
     _inherit(A._CastListBase, A.__CastListBase__CastIterableBase_ListMixin);
-    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.Instantiation, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._asyncStarHelper_closure0, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._LinkedCustomHashMap_closure, A._Uri__makePath_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure, A.FutureOfVoidToJSPromise_get_toJS__closure, A.jsify__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.CanonicalizedMap_keys_closure, A.BuildStatus_BuildStatus$fromJson_closure, A.BatchedDebugEvents_toJson_closure, A.WebSocketClient_stream_closure, A.PersistentWebSocket_connect_closure, A.PersistentWebSocket__listenWithRetry_attemptRetry, A.PersistentWebSocket__listenWithRetry_closure, A.BaseRequest_closure0, A.BrowserClient_send_closure, A._readBody_closure, A._readBody_closure0, A.ByteStream_toBytes_closure, A.MediaType_toString__closure, A.expectQuotedString_closure, A.Context_joinAll_closure, A.Context_split_closure, A._validateArgList_closure, A.Pool__runOnRelease_closure, A.Highlighter$__closure, A.Highlighter$___closure, A.Highlighter$__closure0, A.Highlighter__collateLines_closure, A.Highlighter__collateLines_closure1, A.Highlighter__collateLines__closure, A.Highlighter_highlight_closure, A.SseClient_closure0, A.SseClient_closure1, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.BrowserWebSocket_connect_closure, A.BrowserWebSocket_connect_closure0, A.BrowserWebSocket_connect_closure1, A.BrowserWebSocket_connect_closure2, A.main__closure1, A.main___closure, A.main___closure0, A.main__closure2, A.main__closure4, A.main__closure6, A.main__closure8, A.main__closure9, A.main__closure10, A._handleAuthRequest_closure, A._sendHotReloadResponse_closure, A._sendHotRestartResponse_closure, A.DdcLibraryBundleRestarter_restart_closure, A.DdcLibraryBundleRestarter_hotReloadStart_closure, A.DdcRestarter_restart_closure0, A.DdcRestarter_restart_closure, A.RequireRestarter__reloadModule_closure0, A.JSArrayExtension_toDartIterable_closure]);
+    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.Instantiation, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._asyncStarHelper_closure0, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A._Future_timeout_closure0, A.Stream_length_closure, A.Stream_first_closure0, A._CustomZone_bindUnaryCallback_closure, A._CustomZone_bindUnaryCallbackGuarded_closure, A._RootZone_bindUnaryCallback_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A.runZonedGuarded_closure, A._LinkedCustomHashMap_closure, A._Uri__makePath_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure, A.FutureOfVoidToJSPromise_get_toJS__closure, A.jsify__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.dartify_convert, A.StreamQueue__ensureListening_closure, A.CanonicalizedMap_keys_closure, A.BuildStatus_BuildStatus$fromJson_closure, A.BatchedDebugEvents_toJson_closure, A.WebSocketClient_stream_closure, A.PersistentWebSocket_connect_closure, A.PersistentWebSocket__listenWithRetry_attemptRetry, A.PersistentWebSocket__listenWithRetry_closure, A.BaseRequest_closure0, A.BrowserClient_send_closure, A._readBody_closure, A._readBody_closure0, A.ByteStream_toBytes_closure, A.MediaType_toString__closure, A.expectQuotedString_closure, A.Context_joinAll_closure, A.Context_split_closure, A._validateArgList_closure, A.Pool__runOnRelease_closure, A.Highlighter$__closure, A.Highlighter$___closure, A.Highlighter$__closure0, A.Highlighter__collateLines_closure, A.Highlighter__collateLines_closure1, A.Highlighter__collateLines__closure, A.Highlighter_highlight_closure, A.SseClient_closure0, A.SseClient_closure1, A._EventStreamSubscription_closure, A._EventStreamSubscription_onData_closure, A.BrowserWebSocket_connect_closure, A.BrowserWebSocket_connect_closure0, A.BrowserWebSocket_connect_closure1, A.BrowserWebSocket_connect_closure2, A.main__closure1, A.main__closure2, A.main__closure4, A.main__closure6, A.main__closure8, A.main__closure9, A.main__closure10, A._handleAuthRequest_closure, A._sendHotReloadResponse_closure, A._sendHotRestartResponse_closure, A.DdcLibraryBundleRestarter_restart_closure, A.DdcLibraryBundleRestarter_hotReloadStart_closure, A.DdcRestarter_restart_closure0, A.DdcRestarter_restart_closure, A.RequireRestarter__reloadModule_closure0, A.JSArrayExtension_toDartIterable_closure]);
     _inheritMany(A.Closure2Args, [A._CastListBase_sort_closure, A.CastMap_forEach_closure, A.initHooks_closure0, A._awaitOnObject_closure0, A._wrapJsFunctionForAsync_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure0, A._Future_timeout_closure1, A._AddStreamState_makeErrorHandler_closure, A._BufferingStreamSubscription_asFuture_closure0, A.MapBase_mapToString_closure, A._JsonStringifier_writeMap_closure, A.Uri_parseIPv6Address_error, A.FutureOfJSAnyToJSPromise_get_toJS_closure, A.FutureOfJSAnyToJSPromise_get_toJS__closure0, A.FutureOfVoidToJSPromise_get_toJS_closure, A.FutureOfVoidToJSPromise_get_toJS__closure0, A.StreamQueue__ensureListening_closure1, A.CanonicalizedMap_addAll_closure, A.CanonicalizedMap_forEach_closure, A.safeUnawaited_closure, A.BaseRequest_closure, A.MediaType_toString_closure, A.Pool__runOnRelease_closure0, A.Highlighter__collateLines_closure0, A.main__closure5, A.main_closure0]);
     _inherit(A.CastList, A._CastListBase);
     _inheritMany(A.MapBase, [A.CastMap, A.JsLinkedHashMap, A._HashMap, A._JsonMap]);
@@ -22399,7 +22379,7 @@
     typeUniverse: {eC: new Map(), tR: {}, eT: {}, tPV: {}, sEA: []},
     mangledGlobalNames: {int: "int", double: "double", num: "num", String: "String", bool: "bool", Null: "Null", List: "List", Object: "Object", Map: "Map", JSObject: "JSObject"},
     mangledNames: {},
-    types: ["~()", "Null()", "~(JSObject)", "Null(Object,StackTrace)", "Null(@)", "~(@)", "~(Object,StackTrace)", "~(Object?)", "JSObject()", "Future<~>()", "String(String)", "Object?(Object?)", "bool(_Highlight)", "Null(JSObject)", "~(~())", "int(Object?)", "@(@)", "~(Object?,Object?)", "@()", "Null(JavaScriptFunction,JavaScriptFunction)", "bool()", "Future<~>(String)", "String(Match)", "bool(String)", "int()", "Null(String)", "Null(JavaScriptFunction)", "int(@,@)", "bool(Object?,Object?)", "String(@)", "@(String)", "@(@,String)", "PersistentWebSocket(WebSocket)", "~(@,StackTrace)", "Future<~>(WebSocketEvent)", "bool(String,String)", "int(String)", "Null(String,String[Object?])", "bool(Object)", "~(List<int>)", "MediaType()", "~(String,String)", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)", "Logger()", "bool(Object?)", "String(String?)", "Null(~)", "String?()", "int(_Line)", "Null(~())", "Object(_Line)", "Object(_Highlight)", "int(_Highlight,_Highlight)", "List<_Line>(MapEntry<Object,List<_Highlight>>)", "Null(@,StackTrace)", "SourceSpanWithContext()", "0&(String,int?)", "~(String?)", "Future<Null>()", "~(int,@)", "_Future<@>?()", "JSObject(String[bool?])", "JSArray<Object?>?(JSArray<Object?>?)", "~(StreamSink<@>)", "~(Object[StackTrace?])", "~(List<DebugEvent>)", "Null(String,String)", "~(bool)", "HotReloadResponse(String,bool,String?)", "HotRestartResponse(String,bool,String?)", "JSObject(Object,StackTrace)", "bool(bool)", "List<String>(String)", "int(String,String)", "Null(JavaScriptObject)", "JSObject()()", "Object?(~)", "bool(BuildStatus)", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "~(String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "0&()", "Map<String,@>(DebugEvent)", "0^(0^,0^)<num>", "0&(@)"],
+    types: ["~()", "Null()", "~(JSObject)", "Null(Object,StackTrace)", "Null(@)", "~(@)", "~(Object,StackTrace)", "~(Object?)", "JSObject()", "Future<~>()", "String(String)", "Object?(Object?)", "bool(_Highlight)", "Null(JSObject)", "~(~())", "int(Object?)", "@(@)", "~(Object?,Object?)", "@()", "Null(JavaScriptFunction,JavaScriptFunction)", "bool()", "Future<~>(String)", "String(Match)", "bool(String)", "int()", "Null(String)", "Null(JavaScriptFunction)", "int(@,@)", "bool(Object?,Object?)", "String(@)", "@(String)", "@(@,String)", "PersistentWebSocket(WebSocket)", "~(@,StackTrace)", "Future<~>(WebSocketEvent)", "bool(String,String)", "int(String)", "Null(String,String[Object?])", "bool(Object)", "~(List<int>)", "MediaType()", "~(String,String)", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)", "Logger()", "bool(Object?)", "String(String?)", "Null(~)", "String?()", "int(_Line)", "Null(~())", "Object(_Line)", "Object(_Highlight)", "int(_Highlight,_Highlight)", "List<_Line>(MapEntry<Object,List<_Highlight>>)", "Null(@,StackTrace)", "SourceSpanWithContext()", "0&(String,int?)", "~(String?)", "Future<Null>()", "~(int,@)", "_Future<@>?()", "~(StreamSink<@>)", "~(Object[StackTrace?])", "~(List<DebugEvent>)", "Null(String,String)", "~(bool)", "HotReloadResponse(String,bool,String?)", "HotRestartResponse(String,bool,String?)", "JSObject(Object,StackTrace)", "bool(bool)", "List<String>(String)", "int(String,String)", "Null(JavaScriptObject)", "JSObject()()", "Object?(~)", "bool(BuildStatus)", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "~(String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "0&()", "Map<String,@>(DebugEvent)", "0^(0^,0^)<num>", "JSObject(String[bool?])"],
     interceptorsByTag: null,
     leafTags: null,
     arrayRti: Symbol("$ti"),

@@ -90,7 +90,8 @@ class DdcLibraryBundleRestarter implements Restarter {
             completer.complete(xhr.responseText);
           } else {
             completer.completeError(
-              'Failed to fetch reloaded sources at $reloadedSourcesPath. Status: ${xhr.status}',
+              'Failed to fetch reloaded sources at $reloadedSourcesPath. '
+              'Status: ${xhr.status}',
             );
           }
         }
@@ -126,7 +127,8 @@ class DdcLibraryBundleRestarter implements Restarter {
         ? <Map>[]
         : await _getSrcModuleLibraries(reloadedSourcesPath);
 
-    // Unawait hotRestart to allow the response to be sent before the runtime resets.
+    // Unawaited so [DdcLibraryBundleRestarter] can send a response before hot
+    // restart forcibly closes the connection.
     unawaited(_dartDevEmbedder.hotRestart().toDart);
 
     return (true, srcModuleLibraries.jsify() as JSArray<JSObject>?);
