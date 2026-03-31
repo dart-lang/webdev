@@ -69,13 +69,15 @@ class TestRunner {
     );
   }
 
-void _copyDirectory(Directory source, Directory destination) {
-  copyPathSync(source.path, destination.path);
-  final dartTool = Directory(p.join(destination.path, '.dart_tool'));
-  if (dartTool.existsSync()) {
-    dartTool.deleteSync(recursive: true);
+  /// Copies [source] to [destination] while blowing away previous builds
+  /// (via deleting '.dart_tool').
+  void _copyCleanDirectory(Directory source, Directory destination) {
+    copyPathSync(source.path, destination.path);
+    final dartTool = Directory(p.join(destination.path, '.dart_tool'));
+    if (dartTool.existsSync()) {
+      dartTool.deleteSync(recursive: true);
+    }
   }
-}
 
   Future<String> prepareWorkspace() async {
     final originalDirectory = p.absolute(
@@ -83,7 +85,7 @@ void _copyDirectory(Directory source, Directory destination) {
     );
     final tempDir = Directory.systemTemp.createTempSync('webdev_smoke_');
     final exampleDirectory = tempDir.path;
-    _copyDirectory(Directory(originalDirectory), tempDir);
+    _copyCleanDirectory(Directory(originalDirectory), tempDir);
 
     final process = await TestProcess.start(
       sdkLayout.dartPath,
