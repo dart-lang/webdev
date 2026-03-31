@@ -6,7 +6,7 @@ import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-import 'package:test_common/test_sdk_layout.dart';
+import 'test_sdk_layout.dart';
 
 /// Generates sdk.js, sdk.map, files.
 

@@ -29,30 +29,27 @@ dependencies:
   shelf_static: ^1.1.0
   shelf_web_socket: ">=2.0.0 <4.0.0"
   source_maps: ^0.10.10
+  sse: ^4.2.0
   stack_trace: ^1.10.0
   stream_channel: ^2.1.2
-  sse: ^4.2.0
   vm_service: ">=14.2.4 <16.0.0"
   vm_service_interface: ^2.0.1
-  web_socket_channel: ">=2.2.0 <4.0.0"
   web: ^1.1.0
-  webkit_inspection_protocol: ^1.0.1
   web_socket: ^1.0.1
+  web_socket_channel: ">=2.2.0 <4.0.0"
+  webkit_inspection_protocol: ^1.0.1
 
 dev_dependencies:
-  analysis_config:
-    path: ../_analysis_config
   args: ^2.4.2
   build_daemon: ^4.0.0
+  dart_flutter_team_lints: ^3.5.2
+  dwds_test_common:
+    path: ../dwds_test_common
   graphs: ^2.1.0
-  frontend_server_common:
-    path: ../frontend_server_common
   io: ^1.0.5
   js: ">=0.6.4 <0.8.0"
-  puppeteer: ^3.1.1
+  mime: ^1.0.0
   test: ^1.21.6
-  test_common:
-    path: ../test_common
   webdriver: ^3.0.0
   yaml: ^3.1.3
 

@@ -58,6 +58,34 @@ void main() {
       final decoded = BatchedEvents.fromJson(jsonDecode(json) as List);
       expect(decoded, batch);
     });
+
+    test('supports both standard and flat extension event wire formats', () {
+      final jsonList = [
+        'BatchedEvents',
+        'events',
+        [
+          // Standard format with header
+          ['ExtensionEvent', 'params', '{"foo":"bar"}', 'method', 'methodName'],
+          // Flat format without header and params is a Map Object
+          [
+            'params',
+            {'baz': 'qux'},
+            'method',
+            'anotherMethod',
+          ],
+        ],
+      ];
+      final decoded = BatchedEvents.fromJson(jsonList);
+      expect(decoded.events.length, 2);
+      expect(decoded.events[0].method, 'methodName');
+      expect(decoded.events[0].params, '{"foo":"bar"}');
+      expect(decoded.events[1].method, 'anotherMethod');
+      expect(decoded.events[1].params, '{"baz":"qux"}');
+
+      final json = jsonEncode(decoded);
+      final reDecoded = BatchedEvents.fromJson(jsonDecode(json) as List);
+      expect(reDecoded, decoded);
+    });
   });
 
   group('DevToolsRequest', () {
@@ -131,7 +159,7 @@ void main() {
 
   group('DebugInfo', () {
     test('serializes and deserializes', () {
-      final info = DebugInfo(
+      final info = const DebugInfo(
         appEntrypointPath: 'appEntrypointPath',
         appId: 'appId',
         appInstanceId: 'appInstanceId',

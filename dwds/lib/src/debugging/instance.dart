@@ -226,8 +226,8 @@ class ChromeAppInstanceHelper {
     );
   }
 
-  /// Create a plain instance of [classRef] from [remoteObject] and the JS
-  /// properties [properties].
+  /// Create a plain instance of `classRef` from [remoteObject] and the JS
+  /// properties `properties`.
   Future<Instance?> _plainInstanceFor(
     ClassMetaData metaData,
     RemoteObject remoteObject, {
@@ -331,14 +331,14 @@ class ChromeAppInstanceHelper {
     return associations;
   }
 
-  /// Create a Map instance with class [classRef] from [remoteObject].
+  /// Create a Map instance with class `classRef` from [remoteObject].
   ///
   /// Returns an instance containing [count] associations, if available,
   /// starting from the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
   /// If [count] is `null`, return all fields starting from the offset.
-  /// [length] is the expected length of the whole object, read from
+  /// `length` is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _mapInstanceFor(
     ClassMetaData metaData,
@@ -372,14 +372,14 @@ class ChromeAppInstanceHelper {
     );
   }
 
-  /// Create a List instance of [classRef] from [remoteObject].
+  /// Create a List instance of `classRef` from [remoteObject].
   ///
   /// Returns an instance containing [count] elements, if available,
   /// starting from the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
   /// If [count] is `null`, return all fields starting from the offset.
-  /// [length] is the expected length of the whole object, read from
+  /// `length` is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _listInstanceFor(
     ClassMetaData metaData,
@@ -519,7 +519,10 @@ class ChromeAppInstanceHelper {
       count: namedRangeCount,
     );
     final namedElements =
-        namedInstance?.elements?.map((e) => e.valueAsString) ?? [];
+        (namedInstance?.elements as List<InstanceRef?>?)?.map(
+          (e) => e?.valueAsString,
+        ) ??
+        [];
 
     return [...positionalElements, ...namedElements];
   }
@@ -581,14 +584,14 @@ class ChromeAppInstanceHelper {
     return requested < collected ? 0 : requested - collected;
   }
 
-  /// Create a Record instance with class [classRef] from [remoteObject].
+  /// Create a Record instance with class `classRef` from [remoteObject].
   ///
   /// Returns an instance containing [count] fields, if available,
   /// starting from the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
   /// If [count] is `null`, return all fields starting from the offset.
-  /// [length] is the expected length of the whole object, read from
+  /// `length` is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _recordInstanceFor(
     ClassMetaData metaData,
@@ -621,14 +624,14 @@ class ChromeAppInstanceHelper {
     );
   }
 
-  /// Create a RecordType instance with class [classRef] from [remoteObject].
+  /// Create a RecordType instance with class `classRef` from [remoteObject].
   ///
   /// Returns an instance containing [count] fields, if available,
   /// starting from the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
   /// If [count] is `null`, return all fields starting from the offset.
-  /// [length] is the expected length of the whole object, read from
+  /// `length` is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _recordTypeInstanceFor(
     ClassMetaData metaData,
@@ -742,13 +745,13 @@ class ChromeAppInstanceHelper {
     return setInstance;
   }
 
-  /// Create Type instance with class [classRef] from [remoteObject].
+  /// Create Type instance with class `classRef` from [remoteObject].
   ///
   /// Collect information from the internal [remoteObject] and present
   /// it as an instance of [Type] class.
   ///
   /// Returns an instance containing `hashCode` and `runtimeType` fields.
-  /// [length] is the expected length of the whole object, read from
+  /// `length` is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _plainTypeInstanceFor(
     ClassMetaData metaData,

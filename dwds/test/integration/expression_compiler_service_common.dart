@@ -14,10 +14,10 @@ import 'package:dwds/sdk_configuration.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/server.dart';
+import 'package:dwds_test_common/logging.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
 
 ExpressionCompilerService get service => _service!;
 late ExpressionCompilerService? _service;
@@ -75,7 +75,7 @@ void testAll({required CompilerOptions compilerOptions}) {
         'localhost',
         port,
         verbose: false,
-        sdkConfigurationProvider: DefaultSdkConfigurationProvider(),
+        sdkConfigurationProvider: const DefaultSdkConfigurationProvider(),
       );
 
       await service.initialize(compilerOptions);

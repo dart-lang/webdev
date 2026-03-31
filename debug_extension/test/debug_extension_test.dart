@@ -16,7 +16,7 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 // ignore: deprecated_member_use
 import 'package:webdriver/io.dart';
 

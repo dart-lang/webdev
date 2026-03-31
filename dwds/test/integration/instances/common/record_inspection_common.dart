@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../../fixtures/context.dart';
@@ -25,7 +25,10 @@ void runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(
+    String breakPointId,
+    Future<void> Function(Event) body,
+  ) => testInspector.onBreakPoint(
     stream,
     isolateId,
     mainScript,
@@ -33,19 +36,20 @@ void runTests({
     body,
   );
 
-  Future<Instance> getInstance(frame, expression) =>
+  Future<Instance> getInstance(int frame, String expression) =>
       testInspector.getInstance(isolateId, frame, expression);
 
-  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(String instanceId) =>
+      service.getObject(isolateId, instanceId);
 
-  Future<InstanceRef> getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(int frame, String expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
   Future<Map<Object?, Object?>> getFields(
-    instanceRef, {
-    offset,
-    count,
-    depth = -1,
+    InstanceRef instanceRef, {
+    int? offset,
+    int? count,
+    int depth = -1,
   }) => testInspector.getFields(
     isolateId,
     instanceRef,
@@ -89,11 +93,11 @@ void runTests({
     tearDown(() => service.resume(isolateId));
 
     test('simple record display', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
+      await onBreakPoint('printSimpleLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -111,7 +115,7 @@ void runTests({
     });
 
     test('simple records', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
+      await onBreakPoint('printSimpleLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
         final instanceId = instanceRef.id!;
@@ -122,8 +126,11 @@ void runTests({
         expect(await getFields(instanceRef), {1: true, 2: 3});
         expect(await getFields(instanceRef, offset: 0), {1: true, 2: 3});
         expect(await getFields(instanceRef, offset: 1), {2: 3});
-        expect(await getFields(instanceRef, offset: 2), {});
-        expect(await getFields(instanceRef, offset: 0, count: 0), {});
+        expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
+        expect(
+          await getFields(instanceRef, offset: 0, count: 0),
+          <Object?, Object?>{},
+        );
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
@@ -133,12 +140,15 @@ void runTests({
           1: true,
           2: 3,
         });
-        expect(await getFields(instanceRef, offset: 2, count: 5), {});
+        expect(
+          await getFields(instanceRef, offset: 2, count: 5),
+          <Object?, Object?>{},
+        );
       });
     });
 
     test('simple records, field access', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
+      await onBreakPoint('printSimpleLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         expect(
           await getInstance(frame, r'record.$1'),
@@ -153,11 +163,11 @@ void runTests({
     });
 
     test('simple records with named fields display', () async {
-      await onBreakPoint('printSimpleNamedLocalRecord', (event) async {
+      await onBreakPoint('printSimpleNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -175,7 +185,7 @@ void runTests({
     });
 
     test('simple records with named fields', () async {
-      await onBreakPoint('printSimpleNamedLocalRecord', (event) async {
+      await onBreakPoint('printSimpleNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
@@ -189,8 +199,11 @@ void runTests({
           'cat': 'Vasya',
         });
         expect(await getFields(instanceRef, offset: 1), {'cat': 'Vasya'});
-        expect(await getFields(instanceRef, offset: 2), {});
-        expect(await getFields(instanceRef, offset: 0, count: 0), {});
+        expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
+        expect(
+          await getFields(instanceRef, offset: 0, count: 0),
+          <Object?, Object?>{},
+        );
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
@@ -200,12 +213,15 @@ void runTests({
           1: true,
           'cat': 'Vasya',
         });
-        expect(await getFields(instanceRef, offset: 2, count: 5), {});
+        expect(
+          await getFields(instanceRef, offset: 2, count: 5),
+          <Object?, Object?>{},
+        );
       });
     });
 
     test('simple records with named fields, field access', () async {
-      await onBreakPoint('printSimpleNamedLocalRecord', (event) async {
+      await onBreakPoint('printSimpleNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         expect(
           await getInstance(frame, r'record.$1'),
@@ -220,11 +236,11 @@ void runTests({
     });
 
     test('complex records display', () async {
-      await onBreakPoint('printComplexLocalRecord', (event) async {
+      await onBreakPoint('printComplexLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -242,7 +258,7 @@ void runTests({
     });
 
     test('complex records', () async {
-      await onBreakPoint('printComplexLocalRecord', (event) async {
+      await onBreakPoint('printComplexLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
@@ -272,8 +288,11 @@ void runTests({
         expect(await getFields(instanceRef, offset: 2), {
           3: {'a': 1, 'b': 5},
         });
-        expect(await getFields(instanceRef, offset: 3), {});
-        expect(await getFields(instanceRef, offset: 0, count: 0), {});
+        expect(await getFields(instanceRef, offset: 3), <Object?, Object?>{});
+        expect(
+          await getFields(instanceRef, offset: 0, count: 0),
+          <Object?, Object?>{},
+        );
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
@@ -284,12 +303,15 @@ void runTests({
           2: 3,
           3: {'a': 1, 'b': 5},
         });
-        expect(await getFields(instanceRef, offset: 3, count: 5), {});
+        expect(
+          await getFields(instanceRef, offset: 3, count: 5),
+          <Object?, Object?>{},
+        );
       });
     });
 
     test('complex records, field access', () async {
-      await onBreakPoint('printComplexLocalRecord', (event) async {
+      await onBreakPoint('printComplexLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         expect(
           await getInstance(frame, r'record.$1'),
@@ -308,11 +330,11 @@ void runTests({
     });
 
     test('complex records with named fields display', () async {
-      await onBreakPoint('printComplexNamedLocalRecord', (event) async {
+      await onBreakPoint('printComplexNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -330,7 +352,7 @@ void runTests({
     });
 
     test('complex records with named fields', () async {
-      await onBreakPoint('printComplexNamedLocalRecord', (event) async {
+      await onBreakPoint('printComplexNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
@@ -360,8 +382,11 @@ void runTests({
         expect(await getFields(instanceRef, offset: 2), {
           'array': {'a': 1, 'b': 5},
         });
-        expect(await getFields(instanceRef, offset: 3), {});
-        expect(await getFields(instanceRef, offset: 0, count: 0), {});
+        expect(await getFields(instanceRef, offset: 3), <Object?, Object?>{});
+        expect(
+          await getFields(instanceRef, offset: 0, count: 0),
+          <Object?, Object?>{},
+        );
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
@@ -372,12 +397,15 @@ void runTests({
           2: 3,
           'array': {'a': 1, 'b': 5},
         });
-        expect(await getFields(instanceRef, offset: 3, count: 5), {});
+        expect(
+          await getFields(instanceRef, offset: 3, count: 5),
+          <Object?, Object?>{},
+        );
       });
     });
 
     test('complex records with named fields, field access', () async {
-      await onBreakPoint('printComplexNamedLocalRecord', (event) async {
+      await onBreakPoint('printComplexNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         expect(
           await getInstance(frame, r'record.$1'),
@@ -396,11 +424,11 @@ void runTests({
     });
 
     test('nested records display', () async {
-      await onBreakPoint('printNestedLocalRecord', (event) async {
+      await onBreakPoint('printNestedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -418,7 +446,7 @@ void runTests({
     });
 
     test('nested records', () async {
-      await onBreakPoint('printNestedLocalRecord', (event) async {
+      await onBreakPoint('printNestedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
@@ -437,8 +465,11 @@ void runTests({
         expect(await getFields(instanceRef, offset: 1), {
           2: {1: false, 2: 5},
         });
-        expect(await getFields(instanceRef, offset: 2), {});
-        expect(await getFields(instanceRef, offset: 0, count: 0), {});
+        expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
+        expect(
+          await getFields(instanceRef, offset: 0, count: 0),
+          <Object?, Object?>{},
+        );
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
@@ -448,12 +479,15 @@ void runTests({
           1: true,
           2: {1: false, 2: 5},
         });
-        expect(await getFields(instanceRef, offset: 2, count: 5), {});
+        expect(
+          await getFields(instanceRef, offset: 2, count: 5),
+          <Object?, Object?>{},
+        );
       });
     });
 
     test('nested records, field access', () async {
-      await onBreakPoint('printNestedLocalRecord', (event) async {
+      await onBreakPoint('printNestedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, r'record.$2');
 
@@ -467,11 +501,11 @@ void runTests({
     });
 
     test('nested records with named fields display', () async {
-      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+      await onBreakPoint('printNestedNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
 
         final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
 
         expect(await getObject(classId), matchRecordClass);
 
@@ -489,7 +523,7 @@ void runTests({
     });
 
     test('nested records with named fields', () async {
-      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+      await onBreakPoint('printNestedNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record');
 
@@ -514,8 +548,11 @@ void runTests({
         expect(await getFields(instanceRef, offset: 1, count: 2), {
           'inner': {1: false, 2: 5},
         });
-        expect(await getFields(instanceRef, offset: 2), {});
-        expect(await getFields(instanceRef, offset: 0, count: 0), {});
+        expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
+        expect(
+          await getFields(instanceRef, offset: 0, count: 0),
+          <Object?, Object?>{},
+        );
         expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
         expect(await getFields(instanceRef, offset: 0, count: 2), {
           1: true,
@@ -525,12 +562,15 @@ void runTests({
           1: true,
           'inner': {1: false, 2: 5},
         });
-        expect(await getFields(instanceRef, offset: 2, count: 5), {});
+        expect(
+          await getFields(instanceRef, offset: 2, count: 5),
+          <Object?, Object?>{},
+        );
       });
     });
 
     test('nested records with named fields, field access', () async {
-      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+      await onBreakPoint('printNestedNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, r'record.inner');
 

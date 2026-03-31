@@ -6,10 +6,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
+import 'package:dwds_test_common/test_sdk_layout.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
-import 'package:test_common/test_sdk_layout.dart';
 import 'package:test_process/test_process.dart';
 
 final _webdevBin = p.absolute(p.join('bin', 'webdev.dart'));
@@ -88,7 +88,7 @@ class TestRunner {
 
   Future<String> prepareWorkspace() async {
     final originalDirectory = p.absolute(
-      p.join(p.current, '..', 'fixtures', '_webdev_smoke'),
+      p.join(p.current, '..', 'dwds_test_common', 'fixtures', '_webdev_smoke'),
     );
     final tempDir = Directory.systemTemp.createTempSync('webdev_smoke_');
     final exampleDirectory = tempDir.path;

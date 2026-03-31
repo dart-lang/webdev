@@ -9,9 +9,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/test_sdk_layout.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
-import 'package:test_common/test_sdk_layout.dart';
 
 import 'utilities.dart';
 import 'uuid.dart';

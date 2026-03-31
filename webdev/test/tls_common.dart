@@ -28,7 +28,13 @@ void tlsTests({required TestRunner testRunner}) {
       configureLogWriter(debug);
       await runner.setUpAll();
       exampleDirectory = p.absolute(
-        p.join(p.current, '..', 'fixtures', '_webdev_smoke'),
+        p.join(
+          p.current,
+          '..',
+          'dwds_test_common',
+          'fixtures',
+          '_webdev_smoke',
+        ),
       );
 
       final process = await TestProcess.start(

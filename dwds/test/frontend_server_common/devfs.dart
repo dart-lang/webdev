@@ -13,9 +13,9 @@ import 'package:dwds/expression_compiler.dart';
 // ignore: implementation_imports
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/utilities.dart';
+import 'package:dwds_test_common/test_sdk_layout.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
-import 'package:test_common/test_sdk_layout.dart';
 
 import 'asset_server.dart';
 import 'bootstrap.dart';
@@ -355,7 +355,7 @@ class ProjectFileInvalidator {
     if (lastCompiled == null) {
       // Initial load.
       assert(urisToMonitor.isEmpty);
-      return InvalidationResult(uris: <Uri>[]);
+      return const InvalidationResult(uris: <Uri>[]);
     }
 
     final urisToScan = <Uri>[

@@ -5,8 +5,8 @@
 import 'dart:io';
 
 import 'package:dwds/dwds.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 
@@ -25,9 +25,11 @@ void testAll({required TestSdkConfigurationProvider provider}) {
         moduleFormat: provider.ddcModuleFormat,
         canaryFeatures: provider.canaryFeatures,
       ),
-      debugSettings: TestDebugSettings.noDevToolsLaunch().copyWith(
+      debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
         spawnDds: false,
-        ddsConfiguration: DartDevelopmentServiceConfiguration(enable: false),
+        ddsConfiguration: const DartDevelopmentServiceConfiguration(
+          enable: false,
+        ),
       ),
     );
   });

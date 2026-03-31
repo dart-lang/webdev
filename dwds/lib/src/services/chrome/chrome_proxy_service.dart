@@ -31,7 +31,8 @@ import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:vm_service/vm_service.dart' hide vmServiceVersion;
 import 'package:vm_service_interface/vm_service_interface.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
+    hide StackTrace;
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
@@ -370,7 +371,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
 
   /// Should be called when there is a hot restart or full page refresh.
   ///
-  /// Clears out the [_inspector] and all related cached information.
+  /// Clears out the [inspector] and all related cached information.
   @override
   void destroyIsolate() {
     _logger.fine('$hashCode Destroying isolate');
@@ -1252,7 +1253,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
           break;
         case 'dart.developer.log':
           await _handleDeveloperLog(isolateRef, event).catchError(
-            (error, stackTrace) => _logger.warning(
+            (Object error, StackTrace stackTrace) => _logger.warning(
               'Error handling developer log:',
               error,
               stackTrace,
@@ -1269,8 +1270,9 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     IsolateRef isolateRef,
     ConsoleAPIEvent event,
   ) async {
-    final logObject = event.params?['args'][1] as Map?;
-    final objectId = logObject?['objectId'];
+    final logObject =
+        (event.params?['args'] as List<dynamic>?)?[1] as Map<String, dynamic>?;
+    final objectId = logObject?['objectId'] as String?;
     // Always attempt to fetch the full properties instead of relying on
     // `RemoteObject.preview` which only has truncated log messages:
     // https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-RemoteObject
@@ -1307,7 +1309,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
 
   Future<Map<String, RemoteObject>> _fetchFullLogParams(
     String objectId, {
-    required Map? logObject,
+    required Map<String, dynamic>? logObject,
   }) async {
     final logParams = <String, RemoteObject>{};
     for (final property in await inspector.getProperties(objectId)) {
@@ -1326,9 +1328,13 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
     return logParams;
   }
 
-  Map<String, RemoteObject> _fetchAbbreviatedLogParams(Map? logObject) {
+  Map<String, RemoteObject> _fetchAbbreviatedLogParams(
+    Map<String, dynamic>? logObject,
+  ) {
     final logParams = <String, RemoteObject>{};
-    for (final dynamic property in logObject?['preview']?['properties'] ?? []) {
+    final preview = logObject?['preview'] as Map<String, dynamic>?;
+    final properties = preview?['properties'] as List<dynamic>?;
+    for (final dynamic property in properties ?? []) {
       if (property is Map<String, dynamic> && property['name'] != null) {
         logParams[property['name'] as String] = RemoteObject(property);
       }

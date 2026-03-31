@@ -5,9 +5,9 @@
 import 'dart:async';
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -326,7 +326,8 @@ void runTests({
         final newLog = "log('\$libraryValue');";
         edits.add((file: mainFile, originalString: oldLog, newString: newLog));
 
-        // Include library file in edits to ensure it's added to reloaded_sources.json
+        // Include library file in edits to ensure it's added to
+        // reloaded_sources.json
         edits.add((
           file: libFile,
           originalString: 'String get libraryValue',
@@ -390,7 +391,8 @@ void runTests({
       final newLog = "log('\$libraryValue$numFiles');";
       edits.add((file: mainFile, originalString: oldLog, newString: newLog));
 
-      // Include library files in edits to ensure they are added to reloaded_sources.json
+      // Include library files in edits to ensure they are added to
+      // reloaded_sources.json
       for (var i = 1; i <= numFiles; i++) {
         edits.add((
           file: 'library$i.dart',

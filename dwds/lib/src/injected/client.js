@@ -11341,13 +11341,13 @@
     call$2(o, tag) {
       return this.getUnknownTag(o, tag);
     },
-    $signature: 93
+    $signature: 31
   };
   A.initHooks_closure1.prototype = {
     call$1(tag) {
       return this.prototypeForTag(A._asString(tag));
     },
-    $signature: 60
+    $signature: 30
   };
   A._Record.prototype = {
     get$runtimeType(_) {
@@ -11865,7 +11865,7 @@
       t2 = this.span;
       t1.firstChild ? t1.removeChild(t2) : t1.appendChild(t2);
     },
-    $signature: 31
+    $signature: 49
   };
   A._AsyncRun__scheduleImmediateJsOverride_internalCallback.prototype = {
     call$0() {
@@ -11971,13 +11971,13 @@
     call$2(error, stackTrace) {
       this.bodyFunction.call$2(1, new A.ExceptionAndStackTrace(error, type$.StackTrace._as(stackTrace)));
     },
-    $signature: 44
+    $signature: 54
   };
   A._wrapJsFunctionForAsync_closure.prototype = {
     call$2(errorCode, result) {
       this.$protected(A._asInt(errorCode), result);
     },
-    $signature: 49
+    $signature: 59
   };
   A._asyncStarHelper_closure.prototype = {
     call$0() {
@@ -12051,7 +12051,7 @@
         return t1.cancelationFuture;
       }
     },
-    $signature: 56
+    $signature: 60
   };
   A._AsyncStarStreamController__closure.prototype = {
     call$0() {
@@ -13944,7 +13944,7 @@
           t2._processUncaughtError$3(zone, A._asObject(e), t1._as(s));
       }
     },
-    $signature: 33
+    $signature: 42
   };
   A._ZoneDelegate.prototype = {$isZoneDelegate: 1};
   A._rootHandleError_closure.prototype = {
@@ -14218,7 +14218,7 @@
     call$1(v) {
       return this.K._is(v);
     },
-    $signature: 42
+    $signature: 44
   };
   A._HashSet.prototype = {
     get$iterator(_) {
@@ -14562,7 +14562,7 @@
       t2 = A.S(v);
       t1._contents += t2;
     },
-    $signature: 18
+    $signature: 17
   };
   A._UnmodifiableMapMixin.prototype = {
     $indexSet(_, key, value) {
@@ -15170,7 +15170,7 @@
       }
       return null;
     },
-    $signature: 19
+    $signature: 18
   };
   A._Utf8Decoder__decoderNonfatal_closure.prototype = {
     call$0() {
@@ -15182,7 +15182,7 @@
       }
       return null;
     },
-    $signature: 19
+    $signature: 18
   };
   A.AsciiCodec.prototype = {
     encode$1(source) {
@@ -15615,7 +15615,7 @@
       B.JSArray_methods.$indexSet(t1, t2.i++, key);
       B.JSArray_methods.$indexSet(t1, t2.i++, value);
     },
-    $signature: 18
+    $signature: 17
   };
   A._JsonStringStringifier.prototype = {
     get$_partialResult() {
@@ -16365,7 +16365,7 @@
     call$2(msg, position) {
       throw A.wrapException(A.FormatException$("Illegal IPv6 address, " + msg, this.host, position));
     },
-    $signature: 54
+    $signature: 56
   };
   A._Uri.prototype = {
     get$_text() {
@@ -16997,7 +16997,7 @@
       var t1 = type$.JavaScriptFunction;
       this._this.then$1$2$onError(new A.FutureOfJSAnyToJSPromise_get_toJS__closure(t1._as(resolve)), new A.FutureOfJSAnyToJSPromise_get_toJS__closure0(t1._as(reject)), type$.nullable_Object);
     },
-    $signature: 20
+    $signature: 19
   };
   A.FutureOfJSAnyToJSPromise_get_toJS__closure.prototype = {
     call$1(value) {
@@ -17023,21 +17023,21 @@
       t1.call(t1, wrapper);
       return wrapper;
     },
-    $signature: 64
+    $signature: 70
   };
   A.FutureOfVoidToJSPromise_get_toJS_closure.prototype = {
     call$2(resolve, reject) {
       var t1 = type$.JavaScriptFunction;
       this._this.then$1$2$onError(new A.FutureOfVoidToJSPromise_get_toJS__closure(t1._as(resolve)), new A.FutureOfVoidToJSPromise_get_toJS__closure0(t1._as(reject)), type$.nullable_Object);
     },
-    $signature: 20
+    $signature: 19
   };
   A.FutureOfVoidToJSPromise_get_toJS__closure.prototype = {
     call$1(__wc0_formal) {
       var t1 = this.resolve;
       return t1.call(t1);
     },
-    $signature: 70
+    $signature: 76
   };
   A.FutureOfVoidToJSPromise_get_toJS__closure0.prototype = {
     call$2(error, stackTrace) {
@@ -17562,13 +17562,13 @@
     call$1(e) {
       return type$.BuildStatus._as(e)._name === this.json;
     },
-    $signature: 76
+    $signature: 77
   };
   A.BuildStatus_BuildStatus$fromJson_closure0.prototype = {
     call$0() {
       throw A.wrapException(A.ArgumentError$("Unknown BuildStatus: " + this.json, null));
     },
-    $signature: 77
+    $signature: 92
   };
   A.BuildResult.prototype = {
     toJson$0() {
@@ -17644,7 +17644,7 @@
     call$1(e) {
       return type$.DebugEvent._as(e).toJson$0();
     },
-    $signature: 92
+    $signature: 93
   };
   A.DebugInfo.prototype = {
     toJson$0() {
@@ -18006,13 +18006,13 @@
     call$0() {
       return true;
     },
-    $signature: 21
+    $signature: 20
   };
   A.BatchedStreamController__hasEventDuring_closure.prototype = {
     call$0() {
       return false;
     },
-    $signature: 21
+    $signature: 20
   };
   A.SocketClient.prototype = {};
   A.SseSocketClient.prototype = {
@@ -18041,7 +18041,7 @@
     call$1(o) {
       return J.toString$0$(o);
     },
-    $signature: 30
+    $signature: 29
   };
   A.PersistentWebSocket.prototype = {
     get$_incomingStreamController() {
@@ -18247,7 +18247,7 @@
       });
       return A._asyncStartSync($async$call$1, $async$completer);
     },
-    $signature: 22
+    $signature: 21
   };
   A.PersistentWebSocket__listenWithRetry_closure.prototype = {
     call$1(e) {
@@ -18319,10 +18319,11 @@
   A._PersistentWebSocket_Object_StreamChannelMixin.prototype = {};
   A.safeUnawaited_closure.prototype = {
     call$2(error, stackTrace) {
+      A._asObject(error);
       type$.StackTrace._as(stackTrace);
       return $.$get$_logger().log$4(B.Level_WARNING_900, "Error in unawaited Future:", error, stackTrace);
     },
-    $signature: 17
+    $signature: 6
   };
   A.Uuid.prototype = {
     v4$0() {
@@ -18692,7 +18693,7 @@
     call$1(match) {
       return "\\" + A.S(match.$index(0, 0));
     },
-    $signature: 23
+    $signature: 22
   };
   A.expectQuotedString_closure.prototype = {
     call$1(match) {
@@ -18700,7 +18701,7 @@
       t1.toString;
       return t1;
     },
-    $signature: 23
+    $signature: 22
   };
   A.Level.prototype = {
     $eq(_, other) {
@@ -19023,13 +19024,13 @@
     call$1(part) {
       return A._asString(part) !== "";
     },
-    $signature: 24
+    $signature: 23
   };
   A.Context_split_closure.prototype = {
     call$1(part) {
       return A._asString(part).length !== 0;
     },
-    $signature: 24
+    $signature: 23
   };
   A._validateArgList_closure.prototype = {
     call$1(arg) {
@@ -20119,7 +20120,7 @@
       t2._contents = t4;
       return t4.length - t3.length;
     },
-    $signature: 25
+    $signature: 24
   };
   A.Highlighter__writeIndicator_closure0.prototype = {
     call$0() {
@@ -20139,7 +20140,7 @@
         t1._writeArrow$3$beginning(_this.line, Math.max(_this.highlight.span.get$end().get$column() - 1, 0), false);
       return t2._contents.length - t3.length;
     },
-    $signature: 25
+    $signature: 24
   };
   A.Highlighter__writeSidebar_closure.prototype = {
     call$0() {
@@ -20996,7 +20997,7 @@
       t1 = type$.dynamic;
       A._trySendEvent(this.client.get$sink(), B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["HotRestartRequest", A.LinkedHashMap_LinkedHashMap$_literal(["id", runId], type$.String, t1)], type$.JSArray_Object), null), t1);
     },
-    $signature: 26
+    $signature: 25
   };
   A.main__closure3.prototype = {
     call$0() {
@@ -21036,7 +21037,7 @@
       A._asString(eventData);
       A._trySendEvent(this.client.get$sink(), B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["RegisterEvent", new A.RegisterEvent(eventData, Date.now()).toJson$0()], type$.JSArray_Object), null), type$.dynamic);
     },
-    $signature: 26
+    $signature: 25
   };
   A.main__closure7.prototype = {
     call$0() {
@@ -21220,7 +21221,7 @@
       });
       return A._asyncStartSync($async$call$1, $async$completer);
     },
-    $signature: 22
+    $signature: 21
   };
   A.main__closure9.prototype = {
     call$1(error) {
@@ -21572,13 +21573,13 @@
       A._asJSObject(A._asJSObject(init.G.dartDevEmbedder).config).capturedMainHandler = null;
       A.safeUnawaited(this.$this._runMainWhenReady$2(this.readyToRunMain, runMain));
     },
-    $signature: 27
+    $signature: 26
   };
   A.DdcLibraryBundleRestarter_hotReloadStart_closure.prototype = {
     call$1(hotReloadEndCallback) {
       this.$this._capturedHotReloadEndCallback = type$.JavaScriptFunction._as(hotReloadEndCallback);
     },
-    $signature: 27
+    $signature: 26
   };
   A.DdcRestarter.prototype = {
     restart$3$readyToRunMain$reloadedSourcesPath$runId(readyToRunMain, reloadedSourcesPath, runId) {
@@ -22097,8 +22098,8 @@
       return A._asyncStartSync($async$_reload$1, $async$completer);
     },
     _reloadModule$1(moduleId) {
-      var t1 = new A._Future($.Zone__current, type$._Future_dynamic),
-        completer = new A._AsyncCompleter(t1, type$._AsyncCompleter_dynamic),
+      var t1 = new A._Future($.Zone__current, type$._Future_void),
+        completer = new A._AsyncCompleter(t1, type$._AsyncCompleter_void),
         stackTrace = A.StackTrace_current();
       type$.JavaScriptObject._as(init.G.$requireLoader).forceLoadModule(moduleId, A._functionToJS0(new A.RequireRestarter__reloadModule_closure(completer)), A._functionToJS1(new A.RequireRestarter__reloadModule_closure0(completer, stackTrace)));
       return t1;
@@ -22207,7 +22208,7 @@
       _instance_2_u = hunkHelpers._instance_2u,
       _instance_0_u = hunkHelpers._instance_0u,
       _instance_1_i = hunkHelpers._instance_1i;
-    _static_2(J, "_interceptors_JSArray__compareAny$closure", "JSArray__compareAny", 28);
+    _static_2(J, "_interceptors_JSArray__compareAny$closure", "JSArray__compareAny", 27);
     _instance_1_u(A.CastStreamSubscription.prototype, "get$__internal$_onData", "__internal$_onData$1", 7);
     _static_1(A, "async__AsyncRun__scheduleImmediateJsOverride$closure", "_AsyncRun__scheduleImmediateJsOverride", 14);
     _static_1(A, "async__AsyncRun__scheduleImmediateWithSetImmediate$closure", "_AsyncRun__scheduleImmediateWithSetImmediate", 14);
@@ -22243,7 +22244,7 @@
     _static(A, "async___rootPrint$closure", 4, null, ["call$4"], ["_rootPrint"], 89, 0);
     _static_1(A, "async___printToZone$closure", "_printToZone0", 90);
     _static(A, "async___rootFork$closure", 5, null, ["call$5"], ["_rootFork"], 91, 0);
-    _instance(A._Completer.prototype, "get$completeError", 0, 1, null, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 59, 0, 0);
+    _instance(A._Completer.prototype, "get$completeError", 0, 1, null, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 64, 0, 0);
     _instance_2_u(A._Future.prototype, "get$_completeError", "_completeError$2", 6);
     var _;
     _instance_1_u(_ = A._StreamController.prototype, "get$_add", "_add$1", 7);
@@ -22257,16 +22258,16 @@
     _instance_0_u(_ = A._ForwardingStreamSubscription.prototype, "get$_onPause", "_onPause$0", 0);
     _instance_0_u(_, "get$_onResume", "_onResume$0", 0);
     _instance_1_u(_, "get$_handleData", "_handleData$1", 7);
-    _instance_2_u(_, "get$_handleError", "_handleError$2", 17);
+    _instance_2_u(_, "get$_handleError", "_handleError$2", 33);
     _instance_0_u(_, "get$_handleDone", "_handleDone$0", 0);
-    _static_2(A, "collection___defaultEquals$closure", "_defaultEquals0", 29);
+    _static_2(A, "collection___defaultEquals$closure", "_defaultEquals0", 28);
     _static_1(A, "collection___defaultHashCode$closure", "_defaultHashCode", 15);
-    _static_2(A, "collection_ListBase__compareAny$closure", "ListBase__compareAny", 28);
+    _static_2(A, "collection_ListBase__compareAny$closure", "ListBase__compareAny", 27);
     _static_1(A, "convert___defaultToEncodable$closure", "_defaultToEncodable", 16);
     _instance_1_i(_ = A._ByteCallbackSink.prototype, "get$add", "add$1", 7);
     _instance_0_u(_, "get$close", "close$0", 0);
     _static_1(A, "core__identityHashCode$closure", "identityHashCode", 15);
-    _static_2(A, "core__identical$closure", "identical", 29);
+    _static_2(A, "core__identical$closure", "identical", 28);
     _static_1(A, "core_Uri_decodeComponent$closure", "Uri_decodeComponent", 10);
     _static(A, "math__max$closure", 2, null, ["call$1$2", "call$2"], ["max", function(a, b) {
       return A.max(a, b, type$.num);
@@ -22398,7 +22399,7 @@
     typeUniverse: {eC: new Map(), tR: {}, eT: {}, tPV: {}, sEA: []},
     mangledGlobalNames: {int: "int", double: "double", num: "num", String: "String", bool: "bool", Null: "Null", List: "List", Object: "Object", Map: "Map", JSObject: "JSObject"},
     mangledNames: {},
-    types: ["~()", "Null()", "~(JSObject)", "Null(Object,StackTrace)", "Null(@)", "~(@)", "~(Object,StackTrace)", "~(Object?)", "JSObject()", "Future<~>()", "String(String)", "Object?(Object?)", "bool(_Highlight)", "Null(JSObject)", "~(~())", "int(Object?)", "@(@)", "~(@,StackTrace)", "~(Object?,Object?)", "@()", "Null(JavaScriptFunction,JavaScriptFunction)", "bool()", "Future<~>(String)", "String(Match)", "bool(String)", "int()", "Null(String)", "Null(JavaScriptFunction)", "int(@,@)", "bool(Object?,Object?)", "String(@)", "Null(~())", "PersistentWebSocket(WebSocket)", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)", "Future<~>(WebSocketEvent)", "bool(String,String)", "int(String)", "Null(String,String[Object?])", "bool(Object)", "~(List<int>)", "MediaType()", "~(String,String)", "bool(Object?)", "Logger()", "Null(@,StackTrace)", "String(String?)", "Null(~)", "String?()", "int(_Line)", "~(int,@)", "Object(_Line)", "Object(_Highlight)", "int(_Highlight,_Highlight)", "List<_Line>(MapEntry<Object,List<_Highlight>>)", "0&(String,int?)", "SourceSpanWithContext()", "_Future<@>?()", "~(String?)", "Future<Null>()", "~(Object[StackTrace?])", "@(String)", "JSObject(String[bool?])", "JSArray<Object?>?(JSArray<Object?>?)", "~(StreamSink<@>)", "JSObject(Object,StackTrace)", "~(List<DebugEvent>)", "Null(String,String)", "~(bool)", "HotReloadResponse(String,bool,String?)", "HotRestartResponse(String,bool,String?)", "Object?(~)", "bool(bool)", "List<String>(String)", "int(String,String)", "Null(JavaScriptObject)", "JSObject()()", "bool(BuildStatus)", "0&()", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "~(String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "Map<String,@>(DebugEvent)", "@(@,String)", "0^(0^,0^)<num>", "0&(@)"],
+    types: ["~()", "Null()", "~(JSObject)", "Null(Object,StackTrace)", "Null(@)", "~(@)", "~(Object,StackTrace)", "~(Object?)", "JSObject()", "Future<~>()", "String(String)", "Object?(Object?)", "bool(_Highlight)", "Null(JSObject)", "~(~())", "int(Object?)", "@(@)", "~(Object?,Object?)", "@()", "Null(JavaScriptFunction,JavaScriptFunction)", "bool()", "Future<~>(String)", "String(Match)", "bool(String)", "int()", "Null(String)", "Null(JavaScriptFunction)", "int(@,@)", "bool(Object?,Object?)", "String(@)", "@(String)", "@(@,String)", "PersistentWebSocket(WebSocket)", "~(@,StackTrace)", "Future<~>(WebSocketEvent)", "bool(String,String)", "int(String)", "Null(String,String[Object?])", "bool(Object)", "~(List<int>)", "MediaType()", "~(String,String)", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)", "Logger()", "bool(Object?)", "String(String?)", "Null(~)", "String?()", "int(_Line)", "Null(~())", "Object(_Line)", "Object(_Highlight)", "int(_Highlight,_Highlight)", "List<_Line>(MapEntry<Object,List<_Highlight>>)", "Null(@,StackTrace)", "SourceSpanWithContext()", "0&(String,int?)", "~(String?)", "Future<Null>()", "~(int,@)", "_Future<@>?()", "JSObject(String[bool?])", "JSArray<Object?>?(JSArray<Object?>?)", "~(StreamSink<@>)", "~(Object[StackTrace?])", "~(List<DebugEvent>)", "Null(String,String)", "~(bool)", "HotReloadResponse(String,bool,String?)", "HotRestartResponse(String,bool,String?)", "JSObject(Object,StackTrace)", "bool(bool)", "List<String>(String)", "int(String,String)", "Null(JavaScriptObject)", "JSObject()()", "Object?(~)", "bool(BuildStatus)", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "~(String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "0&()", "Map<String,@>(DebugEvent)", "0^(0^,0^)<num>", "0&(@)"],
     interceptorsByTag: null,
     leafTags: null,
     arrayRti: Symbol("$ti"),

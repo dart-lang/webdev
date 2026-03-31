@@ -107,7 +107,7 @@ class _Compiler {
   }
 
   Future<bool> updateDependencies(Map<String, ModuleInfo> modules) async {
-    final updateCompleter = Completer();
+    final updateCompleter = Completer<void>();
     _dependencyUpdate = updateCompleter.future;
 
     _logger.info('Updating dependencies...');
@@ -219,7 +219,7 @@ class _Compiler {
 /// Uses [_address] and [_port] to communicate and to redirect asset
 /// requests to the asset server.
 ///
-/// Configuration created by [_sdkConfigurationProvider] describes the
+/// Configuration created by [sdkConfigurationProvider] describes the
 /// locations of SDK files used in expression compilation (summaries,
 /// libraries spec, compiler worker snapshot).
 ///

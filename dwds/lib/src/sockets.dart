@@ -8,7 +8,6 @@ import 'dart:typed_data';
 import 'package:logging/logging.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:stream_channel/stream_channel.dart';
-
 import 'package:web_socket/web_socket.dart';
 
 abstract class SocketClient {
@@ -61,7 +60,7 @@ class PersistentWebSocket with StreamChannelMixin<dynamic> {
     this.logger,
   });
 
-  /// Creates a [PersistentWebSocket] instance connected to [url].
+  /// Creates a [PersistentWebSocket] instance connected to [uri].
   ///
   /// [debugName] is a string included in logs written by this class to provide
   /// additional information about the purpose of this connection.
@@ -77,8 +76,8 @@ class PersistentWebSocket with StreamChannelMixin<dynamic> {
   /// re-establish a connection.
   ///
   /// No retries are attempted when making the initial web socket connection,
-  /// so callers must be prepared to handle both [SocketException]s and
-  /// [WebSocketException] thrown if the connection to [url] fails.
+  /// so callers must be prepared to handle both `SocketException`s and
+  /// [WebSocketException] thrown if the connection to [uri] fails.
   static Future<PersistentWebSocket> connect(
     Uri uri, {
     String debugName = kDefaultDebugName,

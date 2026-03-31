@@ -37,7 +37,7 @@ class TestInspector {
       );
 
       final event = await stream.firstWhere(
-        (e) => e.kind == EventKind.kPauseBreakpoint,
+        (Event e) => e.kind == EventKind.kPauseBreakpoint,
       );
 
       await body(event);
@@ -240,8 +240,8 @@ class TestInspector {
 
     /// A limit on the number of stops to record.
     ///
-    /// The program will not be resumed after the length of [recordedStops]
-    /// becomes [numStops].
+    /// The program will not be resumed after the length of `recordedStops`
+    /// becomes `numStops`.
     int numStops,
   ) async {
     final completer = Completer<void>();
@@ -272,19 +272,24 @@ class TestInspector {
 Map<String, InstanceRef> _associationsToMap(
   Iterable<MapAssociation> associations,
 ) => Map.fromEntries(
-  associations.map((e) => MapEntry(e.key.valueAsString, e.value)),
+  associations.map(
+    (e) =>
+        MapEntry((e.key as InstanceRef).valueAsString!, e.value as InstanceRef),
+  ),
 );
 
 Map<dynamic, InstanceRef> _boundFieldsToMap(Iterable<BoundField> fields) =>
     Map.fromEntries(
-      fields.where((e) => e.name != null).map((e) => MapEntry(e.name, e.value)),
+      fields
+          .where((e) => e.name != null)
+          .map((e) => MapEntry(e.name, e.value as InstanceRef)),
     );
 
 Map<dynamic, InstanceRef> _elementsToMap(List<dynamic> fields) =>
     Map.fromEntries(
       fields
           .where((e) => e != null)
-          .map((e) => MapEntry(fields.indexOf(e), e!)),
+          .map((e) => MapEntry(fields.indexOf(e), e as InstanceRef)),
     );
 
 Matcher matchRecordInstanceRef({required int length}) => isA<InstanceRef>()
@@ -312,7 +317,7 @@ Matcher matchPrimitiveInstance({
     .having((e) => e.kind, 'kind', kind)
     .having(_getValue, 'value', value);
 
-Matcher matchPlainInstance({required libraryId, required String type}) =>
+Matcher matchPlainInstance({required String libraryId, required String type}) =>
     isA<Instance>()
         .having((e) => e.kind, 'kind', InstanceKind.kPlainInstance)
         .having(
@@ -321,7 +326,7 @@ Matcher matchPlainInstance({required libraryId, required String type}) =>
           matchClassRef(name: type, libraryId: libraryId),
         );
 
-Matcher matchListInstance({required dynamic type}) => isA<Instance>()
+Matcher matchListInstance({required String type}) => isA<Instance>()
     .having((e) => e.kind, 'kind', InstanceKind.kList)
     .having((e) => e.classRef, 'classRef', matchListClassRef(type));
 

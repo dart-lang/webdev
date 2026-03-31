@@ -68,7 +68,7 @@ class Debugger {
     this._streamNotify,
     this._locations,
     this._skipLists,
-    root,
+    String root,
   ) : _breakpoints = _Breakpoints(
         locations: _locations,
         remoteDebugger: _remoteDebugger,
@@ -347,8 +347,10 @@ class Debugger {
   /// If we do not have [Location] data for the embedded JS location, null is
   /// returned.
   Future<Location?> _sourceLocation(DebuggerPausedEvent e) async {
-    final frame = e.params?['callFrames']?[0];
-    final location = frame?['location'];
+    final frame =
+        (e.params?['callFrames'] as List<dynamic>?)?[0]
+            as Map<String, dynamic>?;
+    final location = frame?['location'] as Map<String, dynamic>?;
     if (location == null) return null;
 
     final scriptId = location['scriptId'] as String?;
@@ -369,8 +371,11 @@ class Debugger {
 
   /// Returns script ID for the paused event.
   String? _frameScriptId(DebuggerPausedEvent e) {
-    final frame = e.params?['callFrames']?[0];
-    return frame?['location']?['scriptId'] as String?;
+    final frame =
+        (e.params?['callFrames'] as List<dynamic>?)?[0]
+            as Map<String, dynamic>?;
+    return (frame?['location'] as Map<String, dynamic>?)?['scriptId']
+        as String?;
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
@@ -423,7 +428,8 @@ class Debugger {
   // void _showPausedOverlay() async {
   //   if (_pausedOverlayVisible) return;
   //   handleErrorIfPresent(await _remoteDebugger?.sendCommand('DOM.enable'));
-  //   handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.enable'));
+  //   handleErrorIfPresent(
+  //       await _remoteDebugger?.sendCommand('Overlay.enable'));
   //   handleErrorIfPresent(await _remoteDebugger
   //       ?.sendCommand('Overlay.setPausedInDebuggerMessage', params: {
   //     'message': 'Paused',
@@ -434,7 +440,8 @@ class Debugger {
   // Removes the paused at breakpoint overlay from the application.
   // void _hidePausedOverlay() async {
   //   if (!_pausedOverlayVisible) return;
-  //   handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.disable'));
+  //   handleErrorIfPresent(
+  //       await _remoteDebugger?.sendCommand('Overlay.disable'));
   //   _pausedOverlayVisible = false;
   // }
 
@@ -499,7 +506,8 @@ class Debugger {
   void logAnyFrameErrors({required String frameType}) {
     if (_frameErrorCount > 0) {
       logger.warning(
-        'Error calculating Dart variables for $_frameErrorCount $frameType frames.',
+        'Error calculating Dart variables for $_frameErrorCount $frameType '
+        'frames.',
       );
     }
     _frameErrorCount = 0;
@@ -758,7 +766,7 @@ Future<T> sendCommandAndValidateResult<T>(
       params,
     );
   }
-  return result;
+  return result as T;
 }
 
 /// Returns the breakpoint ID for the provided Dart script ID and Dart line

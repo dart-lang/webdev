@@ -15,7 +15,7 @@ void main() {
   group('wrapInErrorHandlerAsync', () {
     test('returns future success value if callback succeeds', () async {
       Future<bool> successCallback() async {
-        await Future.delayed(Duration(milliseconds: 500));
+        await Future<void>.delayed(const Duration(milliseconds: 500));
         return true;
       }
 
@@ -28,7 +28,7 @@ void main() {
 
     test('throws RPCError if callback throws RPCError', () async {
       Future<bool> rpcErrorCallback() async {
-        await Future.delayed(Duration(milliseconds: 500));
+        await Future<void>.delayed(const Duration(milliseconds: 500));
         throw RPCError(
           'rpcErrorCallback',
           RPCErrorKind.kInvalidRequest.code,
@@ -46,7 +46,7 @@ void main() {
       'throws SentinelException if callback throws SentinelException',
       () async {
         Future<bool> sentinelExceptionCallback() async {
-          await Future.delayed(Duration(milliseconds: 500));
+          await Future<void>.delayed(const Duration(milliseconds: 500));
           throw SentinelException.parse('sentinelExceptionCallback', {
             'message': 'a sentinel exception',
           });
@@ -64,7 +64,7 @@ void main() {
 
     test('throws RPCError if callback throws other error type', () async {
       Future<bool> exceptionCallback() async {
-        await Future.delayed(Duration(milliseconds: 500));
+        await Future<void>.delayed(const Duration(milliseconds: 500));
         throw Exception('An unexpected exception');
       }
 
@@ -75,7 +75,8 @@ void main() {
         expect(
           error,
           isRPCErrorWithMessage(
-            'Unexpected DWDS error for exceptionCallback: Exception: An unexpected exception',
+            'Unexpected DWDS error for exceptionCallback: Exception: An '
+            'unexpected exception',
           ),
         );
       }

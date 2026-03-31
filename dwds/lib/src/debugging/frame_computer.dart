@@ -108,11 +108,11 @@ class FrameComputer {
               columnNumber: callFrame.columnNumber,
             );
 
-            final tempWipFrame = WipCallFrame({
+            final tempWipFrame = WipCallFrame(<String, dynamic>{
               'url': callFrame.url,
               'functionName': callFrame.functionName,
               'location': location.json,
-              'scopeChain': [],
+              'scopeChain': <Map<String, dynamic>>[],
             });
 
             final frame = await debugger.calculateDartFrameFor(

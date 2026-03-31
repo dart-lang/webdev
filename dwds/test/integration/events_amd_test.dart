@@ -10,9 +10,9 @@ import 'dart:io';
 
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/utilities/server.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 
 import 'events_common.dart';
 
@@ -34,7 +34,7 @@ void main() {
 
     test('emits HTTP_REQUEST_EXCEPTION event', () async {
       Future<void> throwAsyncException() async {
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
         throw Exception('async error');
       }
 
@@ -70,7 +70,7 @@ void main() {
 
       // Ignore the response.
       final response = await request.close();
-      await response.drain();
+      await response.drain<void>();
 
       // Wait for expected events.
       await events;

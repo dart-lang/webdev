@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../../fixtures/context.dart';
@@ -27,7 +27,10 @@ void runTests({
 
   final testInspector = TestInspector(context);
 
-  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(
+    String breakPointId,
+    Future<void> Function(Event) body,
+  ) => testInspector.onBreakPoint(
     stream,
     isolateId,
     mainScript,
@@ -35,21 +38,25 @@ void runTests({
     body,
   );
 
-  Future<Instance> getInstance(frame, expression) =>
+  Future<Instance> getInstance(int frame, String expression) =>
       testInspector.getInstance(isolateId, frame, expression);
 
-  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(String instanceId) =>
+      service.getObject(isolateId, instanceId);
 
-  Future<InstanceRef> getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(int frame, String expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  Future<Map<Object?, Object?>> getFields(instanceRef, {offset, count}) =>
-      testInspector.getFields(
-        isolateId,
-        instanceRef,
-        offset: offset,
-        count: count,
-      );
+  Future<Map<Object?, Object?>> getFields(
+    InstanceRef instanceRef, {
+    int? offset,
+    int? count,
+  }) => testInspector.getFields(
+    isolateId,
+    instanceRef,
+    offset: offset,
+    count: count,
+  );
 
   group('$compilationMode |', () {
     setUpAll(() async {
@@ -120,7 +127,7 @@ void runTests({
 
     group('Object |', () {
       test('type and fields', () async {
-        await onBreakPoint('printFieldMain', (event) async {
+        await onBreakPoint('printFieldMain', (Event event) async {
           final frame = event.topFrame!.index!;
           final instanceRef = await getInstanceRef(frame, 'instance');
 
@@ -167,7 +174,7 @@ void runTests({
       });
 
       test('field access', () async {
-        await onBreakPoint('printFieldMain', (event) async {
+        await onBreakPoint('printFieldMain', (Event event) async {
           final frame = event.topFrame!.index!;
           expect(
             await getInstance(frame, r'instance.field'),
@@ -184,7 +191,7 @@ void runTests({
 
     group('List |', () {
       test('type and fields', () async {
-        await onBreakPoint('printList', (event) async {
+        await onBreakPoint('printList', (Event event) async {
           final frame = event.topFrame!.index!;
           final instanceRef = await getInstanceRef(frame, 'list');
 
@@ -192,7 +199,10 @@ void runTests({
           expect(await getObject(instanceId), matchListInstance(type: 'int'));
 
           expect(await getFields(instanceRef), {0: 0.0, 1: 1.0, 2: 2.0});
-          expect(await getFields(instanceRef, offset: 1, count: 0), {});
+          expect(
+            await getFields(instanceRef, offset: 1, count: 0),
+            <Object?, Object?>{},
+          );
           expect(await getFields(instanceRef, offset: 0), {
             0: 0.0,
             1: 1.0,
@@ -205,12 +215,15 @@ void runTests({
             0: 1.0,
             1: 2.0,
           });
-          expect(await getFields(instanceRef, offset: 3, count: 3), {});
+          expect(
+            await getFields(instanceRef, offset: 3, count: 3),
+            <Object?, Object?>{},
+          );
         });
       });
 
       test('Element access', () async {
-        await onBreakPoint('printList', (event) async {
+        await onBreakPoint('printList', (Event event) async {
           final frame = event.topFrame!.index!;
           expect(
             await getInstance(frame, r'list[0]'),
@@ -232,7 +245,7 @@ void runTests({
 
     group('Map |', () {
       test('type and fields', () async {
-        await onBreakPoint('printMap', (event) async {
+        await onBreakPoint('printMap', (Event event) async {
           final frame = event.topFrame!.index!;
           final instanceRef = await getInstanceRef(frame, 'map');
 
@@ -244,7 +257,10 @@ void runTests({
 
           expect(await getFields(instanceRef), {'a': 1, 'b': 2, 'c': 3});
 
-          expect(await getFields(instanceRef, offset: 1, count: 0), {});
+          expect(
+            await getFields(instanceRef, offset: 1, count: 0),
+            <Object?, Object?>{},
+          );
           expect(await getFields(instanceRef, offset: 0), {
             'a': 1,
             'b': 2,
@@ -257,12 +273,15 @@ void runTests({
             'b': 2,
             'c': 3,
           });
-          expect(await getFields(instanceRef, offset: 3, count: 3), {});
+          expect(
+            await getFields(instanceRef, offset: 3, count: 3),
+            <Object?, Object?>{},
+          );
         });
       });
 
       test('Element access', () async {
-        await onBreakPoint('printMap', (event) async {
+        await onBreakPoint('printMap', (Event event) async {
           final frame = event.topFrame!.index!;
           expect(
             await getInstance(frame, r"map['a']"),
@@ -284,7 +303,7 @@ void runTests({
 
     group('Set |', () {
       test('type and fields', () async {
-        await onBreakPoint('printSet', (event) async {
+        await onBreakPoint('printSet', (Event event) async {
           final frame = event.topFrame!.index!;
           final instanceRef = await getInstanceRef(frame, 'mySet');
 
@@ -315,13 +334,19 @@ void runTests({
             0: 5.0,
             1: 7.0,
           });
-          expect(await getFields(instanceRef, offset: 1, count: 0), {});
-          expect(await getFields(instanceRef, offset: 10, count: 2), {});
+          expect(
+            await getFields(instanceRef, offset: 1, count: 0),
+            <Object?, Object?>{},
+          );
+          expect(
+            await getFields(instanceRef, offset: 10, count: 2),
+            <Object?, Object?>{},
+          );
         });
       });
 
       test('Element access', () async {
-        await onBreakPoint('printSet', (event) async {
+        await onBreakPoint('printSet', (Event event) async {
           final frame = event.topFrame!.index!;
           expect(
             await getInstance(frame, r'mySet.first'),

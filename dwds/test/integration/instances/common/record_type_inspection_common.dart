@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../../fixtures/context.dart';
@@ -25,7 +25,10 @@ void runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(
+    String breakPointId,
+    Future<void> Function(Event) body,
+  ) => testInspector.onBreakPoint(
     stream,
     isolateId,
     mainScript,
@@ -33,9 +36,10 @@ void runTests({
     body,
   );
 
-  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(String instanceId) =>
+      service.getObject(isolateId, instanceId);
 
-  Future<InstanceRef> getInstanceRef(frame, expression) =>
+  Future<InstanceRef> getInstanceRef(int frame, String expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
   Future<Map<Object?, String?>> getDisplayedFields(InstanceRef ref) =>
@@ -95,13 +99,13 @@ void runTests({
         expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
         expect(await getObject(instanceId), matchRecordTypeInstance(length: 2));
 
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
         expect(await getObject(classId), matchRecordTypeClass);
       });
     });
 
     test('simple record type elements', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
+      await onBreakPoint('printSimpleLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
         final instanceId = instanceRef.id!;
@@ -115,7 +119,7 @@ void runTests({
     });
 
     test('simple record type getters', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
+      await onBreakPoint('printSimpleLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
 
@@ -127,7 +131,7 @@ void runTests({
     });
 
     test('simple record type display', () async {
-      await onBreakPoint('printSimpleLocalRecord', (event) async {
+      await onBreakPoint('printSimpleLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final typeStringRef = await getInstanceRef(
           frame,
@@ -146,7 +150,7 @@ void runTests({
     });
 
     test('complex record type', () async {
-      await onBreakPoint('printComplexLocalRecord', (event) async {
+      await onBreakPoint('printComplexLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
         final instanceId = instanceRef.id!;
@@ -154,13 +158,13 @@ void runTests({
         expect(instanceRef, matchRecordTypeInstanceRef(length: 3));
         expect(await getObject(instanceId), matchRecordTypeInstance(length: 3));
 
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
         expect(await getObject(classId), matchRecordTypeClass);
       });
     });
 
     test('complex record type elements', () async {
-      await onBreakPoint('printComplexLocalRecord', (event) async {
+      await onBreakPoint('printComplexLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
         final instanceId = instanceRef.id!;
@@ -179,7 +183,7 @@ void runTests({
     });
 
     test('complex record type getters', () async {
-      await onBreakPoint('printComplexLocalRecord', (event) async {
+      await onBreakPoint('printComplexLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
 
@@ -191,7 +195,7 @@ void runTests({
     });
 
     test('complex record type display', () async {
-      await onBreakPoint('printComplexLocalRecord', (event) async {
+      await onBreakPoint('printComplexLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final typeStringRef = await getInstanceRef(
           frame,
@@ -210,7 +214,7 @@ void runTests({
     });
 
     test('complex record type with named fields ', () async {
-      await onBreakPoint('printComplexNamedLocalRecord', (event) async {
+      await onBreakPoint('printComplexNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
         final instanceId = instanceRef.id!;
@@ -218,13 +222,13 @@ void runTests({
         expect(instanceRef, matchRecordTypeInstanceRef(length: 3));
         expect(await getObject(instanceId), matchRecordTypeInstance(length: 3));
 
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
         expect(await getObject(classId), matchRecordTypeClass);
       });
     });
 
     test('complex record type with named fields elements', () async {
-      await onBreakPoint('printComplexNamedLocalRecord', (event) async {
+      await onBreakPoint('printComplexNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
         final instanceId = instanceRef.id!;
@@ -244,7 +248,7 @@ void runTests({
     });
 
     test('complex record type with named fields getters', () async {
-      await onBreakPoint('printComplexNamedLocalRecord', (event) async {
+      await onBreakPoint('printComplexNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
 
@@ -256,7 +260,7 @@ void runTests({
     });
 
     test('complex record type with named fields display', () async {
-      await onBreakPoint('printComplexNamedLocalRecord', (event) async {
+      await onBreakPoint('printComplexNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final typeStringRef = await getInstanceRef(
           frame,
@@ -275,7 +279,7 @@ void runTests({
     });
 
     test('nested record type', () async {
-      await onBreakPoint('printNestedLocalRecord', (event) async {
+      await onBreakPoint('printNestedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
         final instanceId = instanceRef.id!;
@@ -283,13 +287,13 @@ void runTests({
         expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
         expect(await getObject(instanceId), matchRecordTypeInstance(length: 2));
 
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
         expect(await getObject(classId), matchRecordTypeClass);
       });
     });
 
     test('nested record type elements', () async {
-      await onBreakPoint('printNestedLocalRecord', (event) async {
+      await onBreakPoint('printNestedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
         final instanceId = instanceRef.id!;
@@ -312,7 +316,7 @@ void runTests({
     });
 
     test('nested record type getters', () async {
-      await onBreakPoint('printNestedLocalRecord', (event) async {
+      await onBreakPoint('printNestedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
         final elements = await getElements(instanceRef.id!);
@@ -329,7 +333,7 @@ void runTests({
     });
 
     test('nested record type display', () async {
-      await onBreakPoint('printNestedLocalRecord', (event) async {
+      await onBreakPoint('printNestedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final typeStringRef = await getInstanceRef(
           frame,
@@ -348,7 +352,7 @@ void runTests({
     });
 
     test('nested record type with named fields', () async {
-      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+      await onBreakPoint('printNestedNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
         final instanceId = instanceRef.id!;
@@ -357,13 +361,13 @@ void runTests({
         expect(instanceRef, matchRecordTypeInstanceRef(length: 2));
         expect(instance, matchRecordTypeInstance(length: 2));
 
-        final classId = instanceRef.classRef!.id;
+        final classId = instanceRef.classRef!.id!;
         expect(await getObject(classId), matchRecordTypeClass);
       });
     });
 
     test('nested record type with named fields elements', () async {
-      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+      await onBreakPoint('printNestedNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
         final instanceId = instanceRef.id!;
@@ -387,7 +391,7 @@ void runTests({
     });
 
     test('nested record type with named fields getters', () async {
-      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+      await onBreakPoint('printNestedNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
         final elements = await getElements(instanceRef.id!);
@@ -404,11 +408,11 @@ void runTests({
     });
 
     test('nested record type with named fields display', () async {
-      await onBreakPoint('printNestedNamedLocalRecord', (event) async {
+      await onBreakPoint('printNestedNamedLocalRecord', (Event event) async {
         final frame = event.topFrame!.index!;
         final instanceRef = await getInstanceRef(frame, 'record.runtimeType');
         final instance = await getObject(instanceRef.id!);
-        final typeClassId = instance.classRef!.id;
+        final typeClassId = instance.classRef!.id!;
 
         expect(await getObject(typeClassId), matchRecordTypeClass);
 

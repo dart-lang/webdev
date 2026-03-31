@@ -8,9 +8,9 @@ library;
 
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/fakes.dart';
@@ -59,7 +59,7 @@ void main() {
     group('When default build settings defined', () {
       late final strategy = FakeStrategy(
         FakeAssetReader(),
-        buildSettings: TestBuildSettings.dart(),
+        buildSettings: const TestBuildSettings.dart(),
       );
 
       test('uses the default app entrypoint', () {

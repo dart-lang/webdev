@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:dwds/data/utils.dart';
 
@@ -137,9 +139,11 @@ class ExtensionEvent {
   ExtensionEvent({required this.params, required this.method});
 
   factory ExtensionEvent.fromJson(List<dynamic> jsonList) {
-    final json = listToMap(jsonList, type: type);
+    final firstElement = jsonList.isEmpty ? null : jsonList.first;
+    final json = listToMap(jsonList, type: firstElement == type ? type : null);
+    final params = json['params'];
     return ExtensionEvent(
-      params: json['params'] as String,
+      params: params is String ? params : jsonEncode(params),
       method: json['method'] as String,
     );
   }

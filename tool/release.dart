@@ -124,9 +124,8 @@ Future<int> runRelease({
   for (final packagePath in [
     '../dwds',
     '../webdev',
-    '../frontend_server_common',
     '../frontend_server_client',
-    '../test_common',
+    '../dwds_test_common',
   ]) {
     _logInfo('Upgrading pub packages for $packagePath');
     final pubUpgradeProcess = await Process.run('dart', [

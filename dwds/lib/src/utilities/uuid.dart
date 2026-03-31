@@ -7,8 +7,9 @@ import 'dart:typed_data';
 
 /// A UUID generator.
 ///
-/// This is a lightweight replacement for package:uuid, specifically for generating
-/// version 4 (random) UUIDs using a cryptographically secure random number generator.
+/// This is a lightweight replacement for package:uuid, specifically for
+/// generating version 4 (random) UUIDs using a cryptographically secure random
+/// number generator.
 ///
 /// See https://datatracker.ietf.org/doc/html/rfc4122#section-4.4
 /// See also https://github.com/daegalus/dart-uuid/blob/main/lib/v4.dart
@@ -21,7 +22,8 @@ class Uuid {
   ///
   /// The UUID is formatted as a string:
   /// xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-  /// where x is a random hex digit and y is a random hex digit from 8, 9, a, or b.
+  /// where x is a random hex digit and y is a random hex digit from 8, 9, a,
+  /// or b.
   String v4() {
     final bytes = Uint8List(16);
     for (var i = 0; i < 16; i++) {

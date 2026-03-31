@@ -7,11 +7,10 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
-
 import '../../fixtures/context.dart';
 import '../../fixtures/project.dart';
 import '../../fixtures/utilities.dart';
@@ -30,7 +29,10 @@ void runTests({
   late String isolateId;
   late ScriptRef mainScript;
 
-  Future<void> onBreakPoint(breakPointId, body) => testInspector.onBreakPoint(
+  Future<void> onBreakPoint(
+    String breakPointId,
+    Future<void> Function(Event) body,
+  ) => testInspector.onBreakPoint(
     stream,
     isolateId,
     mainScript,
@@ -38,7 +40,8 @@ void runTests({
     body,
   );
 
-  Future<Obj> getObject(instanceId) => service.getObject(isolateId, instanceId);
+  Future<Obj> getObject(String instanceId) =>
+      service.getObject(isolateId, instanceId);
 
   group('$compilationMode |', () {
     setUpAll(() async {
@@ -76,7 +79,7 @@ void runTests({
 
     group('calling getObject for an existent class', () {
       test('returns the correct class representation', () async {
-        await onBreakPoint('testClass1Case1', (event) async {
+        await onBreakPoint('testClass1Case1', (Event event) async {
           // classes|dart:core|Object_Diagnosticable
           final result = await getObject(
             'classes|org-dartlang-app:///web/main.dart|GreeterClass',
@@ -100,7 +103,7 @@ void runTests({
       // should throw an error in this case for the client to catch instead
       // of returning an empty class.
       test('returns an empty class representation', () async {
-        await onBreakPoint('testClass1Case1', (event) async {
+        await onBreakPoint('testClass1Case1', (Event event) async {
           final result = await getObject(
             'classes|dart:core|Object_Diagnosticable',
           );

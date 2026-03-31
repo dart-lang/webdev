@@ -7,9 +7,9 @@
 library;
 
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds_test_common/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
 
 import 'fixtures/fakes.dart';
 import 'fixtures/utilities.dart';
@@ -156,8 +156,8 @@ void main() {
       final logs = <String>[];
 
       void logWriter(
-        level,
-        message, {
+        Object? level,
+        Object? message, {
         String? error,
         String? loggerName,
         String? stackTrace,
@@ -207,7 +207,7 @@ void main() {
     setUpAll(() async {
       final toolConfiguration = TestToolConfiguration.withLoadStrategy(
         loadStrategy: G3TestStrategy(FakeAssetReader()),
-        appMetadata: TestAppMetadata.internalApp(),
+        appMetadata: const TestAppMetadata.internalApp(),
       );
       setGlobalsForTesting(toolConfiguration: toolConfiguration);
       await DartUri.initialize();

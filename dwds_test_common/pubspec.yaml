@@ -1,4 +1,4 @@
-name: test_common
+name: dwds_test_common
 publish_to: none
 description: >-
   Common test functionality.
@@ -14,6 +14,5 @@ dependencies:
   test: ^1.21.1
 
 dev_dependencies:
-  analysis_config:
-    path: ../_analysis_config
-  pubspec_parse: ^1.2.2
+  dart_flutter_team_lints: ^3.5.2
+  yaml: ^3.1.2

@@ -14,12 +14,13 @@ import 'package:yaml/yaml.dart';
 
 void main() {
   test('dwds pubspec has the stable as min SDK constraint', () {
-    final pubspec = loadYaml(File('pubspec.yaml').readAsStringSync());
+    final pubspec = loadYaml(File('pubspec.yaml').readAsStringSync()) as Map;
     var sdkVersion = Version.parse(Platform.version.split(' ')[0]);
     sdkVersion = Version(sdkVersion.major, sdkVersion.minor, 0);
 
     final sdkConstraint = VersionConstraint.compatibleWith(sdkVersion);
-    final pubspecSdkConstraint = pubspec['environment']['sdk'];
+    final environment = pubspec['environment'] as Map? ?? {};
+    final pubspecSdkConstraint = environment['sdk'];
     expect(pubspecSdkConstraint, isNotNull);
     final parsedConstraint = VersionConstraint.parse(
       pubspecSdkConstraint as String,

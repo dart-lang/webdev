@@ -12,8 +12,8 @@ import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/servers/extension_debugger.dart';
+import 'package:dwds_test_common/logging.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/fakes.dart';
@@ -143,7 +143,7 @@ class TestExtensionDebugger extends ExtensionDebugger {
     String command, {
     Map<String, dynamic>? params,
   }) {
-    final id = params?['contextId'];
+    final id = params?['contextId'] as int?;
     final response = super.sendCommand(command, params: params);
 
     /// Mock stale contexts that cause the evaluation to throw.
@@ -186,7 +186,7 @@ class TestDebuggerConnection {
   /// Return the initial context ID from the DevToolsRequest.
   Future<TestContextId> defaultContextId() async {
     // Give the previous events time to propagate.
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     return TestContextId.from(await extensionDebugger.executionContext!.id);
   }
 
@@ -200,7 +200,7 @@ class TestDebuggerConnection {
     final executionContextId = extensionDebugger.executionContext!.id;
 
     // Give it time to send the evaluate request.
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
 
     // Respond to the evaluate request.
     _sendEvaluationResponse({
@@ -220,7 +220,7 @@ class TestDebuggerConnection {
     final executionContextId = extensionDebugger.executionContext!.id;
 
     // Give it time to send the evaluate request.
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
 
     // Respond to the evaluate request.
     _sendEvaluationResponse({
@@ -284,7 +284,7 @@ class TestDebuggerConnection {
 
   Future<ExecutionContext?> _waitForExecutionContext() async {
     while (extensionDebugger.executionContext == null) {
-      await Future.delayed(Duration(milliseconds: 20));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
     }
     return extensionDebugger.executionContext;
   }

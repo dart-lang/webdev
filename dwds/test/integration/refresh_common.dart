@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/test_sdk_configuration.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
@@ -40,7 +40,7 @@ void testAll({required TestSdkConfigurationProvider provider}) {
     test('can add and remove after a refresh', () async {
       final stream = service.onEvent('Isolate');
       // Wait for the page to be fully loaded before refreshing.
-      await Future.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
       // Now wait for the shutdown event.
       final exitEvent = stream.firstWhere(
         (e) => e.kind != EventKind.kIsolateExit,

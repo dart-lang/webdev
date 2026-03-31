@@ -9,10 +9,10 @@ library;
 import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/sdk_asset_generator.dart';
+import 'package:dwds_test_common/test_sdk_layout.dart';
 import 'package:test/test.dart';
-import 'package:test_common/logging.dart';
-import 'package:test_common/sdk_asset_generator.dart';
-import 'package:test_common/test_sdk_layout.dart';
 
 void main() {
   group('SDK asset generator', () {
@@ -57,7 +57,8 @@ void main() {
     });
 
     test(
-      'Can generate missing SDK assets and validate SDK configuration for the AMD module system',
+      'Can generate missing SDK assets and validate SDK configuration for the '
+      'AMD module system',
       () async {
         final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
         final configuration = TestSdkLayout.createConfiguration(sdkLayout);
@@ -70,7 +71,8 @@ void main() {
         );
         await assetGenerator.generateSdkAssets();
 
-        // Make sure SDK configuration and asset generator agree on the file paths.
+        // Make sure SDK configuration and asset generator agree on the file
+        // paths.
         expect(configuration.sdkDirectory, equals(sdkDirectory));
         expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
 
@@ -88,7 +90,8 @@ void main() {
     );
 
     test(
-      'Can generate missing SDK assets and validate SDK configuration for the DDC module system',
+      'Can generate missing SDK assets and validate SDK configuration for the '
+      'DDC module system',
       () async {
         final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
         final configuration = TestSdkLayout.createConfiguration(sdkLayout);
@@ -101,7 +104,8 @@ void main() {
         );
         await assetGenerator.generateSdkAssets();
 
-        // Make sure SDK configuration and asset generator agree on the file paths.
+        // Make sure SDK configuration and asset generator agree on the file
+        // paths.
         expect(configuration.sdkDirectory, equals(sdkDirectory));
         expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
 
@@ -136,23 +140,21 @@ void main() {
       },
     );
 
-    test(
-      'Can generate missing SDK assets with canary features enabled for the DDC module system',
-      () async {
-        final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
+    test('Can generate missing SDK assets with canary features enabled for the '
+        'DDC module system', () async {
+      final sdkLayout = TestSdkLayout.createDefault(sdkDirectory);
 
-        final assetGenerator = SdkAssetGenerator(
-          sdkLayout: sdkLayout,
-          verbose: true,
-          canaryFeatures: true,
-          ddcModuleFormat: ModuleFormat.ddc,
-        );
-        await assetGenerator.generateSdkAssets();
+      final assetGenerator = SdkAssetGenerator(
+        sdkLayout: sdkLayout,
+        verbose: true,
+        canaryFeatures: true,
+        ddcModuleFormat: ModuleFormat.ddc,
+      );
+      await assetGenerator.generateSdkAssets();
 
-        final sdk = File(ddcSdkJsPath).readAsStringSync();
-        expect(sdk, contains('canary'));
-      },
-    );
+      final sdk = File(ddcSdkJsPath).readAsStringSync();
+      expect(sdk, contains('canary'));
+    });
   });
 }
 
