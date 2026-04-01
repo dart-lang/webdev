@@ -213,7 +213,7 @@ window.\$isFlutterApp = ${buildSettings.isFlutterApp};
     final reloadedSourcesUri = loadStrategy.reloadedSourcesUri == null
         ? ''
         : loadStrategy.reloadedSourcesUri.toString();
-    injectedBody += 'window.\$reloadedSourcesUri = "$reloadedSourcesUri";\n';
+    injectedBody += 'window.\$reloadedSourcesPath = "$reloadedSourcesUri";\n';
   }
 
   if (extensionUri != null) {
