@@ -53,7 +53,7 @@ void integrationTests({required TestRunner testRunner}) {
   }
 
   test('non-existent commands create errors', () async {
-    final process = await runner.runWebDev(['monkey']);
+    final process = await runner.runWebDev(['monkey'], raw: true);
 
     await expectLater(
       process.stdout,

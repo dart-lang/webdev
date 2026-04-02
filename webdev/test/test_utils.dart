@@ -48,26 +48,34 @@ class TestRunner {
     sdkConfigurationProvider.dispose();
   }
 
+  /// Runs 'webdev' with [args] in [workingDirectory], injecting additional
+  /// flags if necessary.
+  ///
+  /// Setting [raw] passes [args] without additional processing.
   Future<TestProcess> runWebDev(
     List<String> args, {
     String? workingDirectory,
+    bool raw = false,
   }) async {
     final fullArgs = [_webdevBin, ...args];
-    if (canaryFeatures) {
-      final dashDashIndex = fullArgs.indexOf('--');
-      if (dashDashIndex != -1) {
-        fullArgs.insertAll(dashDashIndex, ['--canary']);
-      } else {
-        fullArgs.add('--canary');
-      }
-    }
 
-    if (ddcModuleFormat == ModuleFormat.ddc) {
-      final dashDashIndex = fullArgs.indexOf('--');
-      if (dashDashIndex != -1) {
-        fullArgs.insertAll(dashDashIndex, ['--module-format', 'ddc']);
-      } else {
-        fullArgs.addAll(['--module-format', 'ddc']);
+    if (!raw) {
+      if (canaryFeatures) {
+        final dashDashIndex = fullArgs.indexOf('--');
+        if (dashDashIndex != -1) {
+          fullArgs.insertAll(dashDashIndex, ['--canary']);
+        } else {
+          fullArgs.add('--canary');
+        }
+      }
+
+      if (ddcModuleFormat == ModuleFormat.ddc) {
+        final dashDashIndex = fullArgs.indexOf('--');
+        if (dashDashIndex != -1) {
+          fullArgs.insertAll(dashDashIndex, ['--module-format', 'ddc']);
+        } else {
+          fullArgs.addAll(['--module-format', 'ddc']);
+        }
       }
     }
 
