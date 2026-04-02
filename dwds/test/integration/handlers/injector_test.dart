@@ -7,6 +7,7 @@ library;
 
 import 'dart:io';
 
+import 'package:dwds/src/handlers/injected_client_js.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:dwds/src/version.dart';
 import 'package:http/http.dart' as http;
@@ -26,6 +27,31 @@ void main() {
 
     group('InjectedHandlerWithoutExtension', () {
       late DwdsInjector injector;
+
+      setUpAll(() async {
+        final result = await Process.run(Platform.executable, [
+          'compile',
+          'js',
+          '-O1',
+          '--no-source-maps',
+          '-o',
+          'lib/src/injected/client.js',
+          'web/client.dart',
+        ]);
+        expect(result.exitCode, 0, reason: result.stderr.toString());
+      });
+
+      tearDownAll(() async {
+        final file = File('lib/src/injected/client.js');
+        if (file.existsSync()) {
+          file.deleteSync();
+        }
+        final depsFile = File('lib/src/injected/client.js.deps');
+        if (depsFile.existsSync()) {
+          depsFile.deleteSync();
+        }
+      });
+
       setUp(() async {
         injector = DwdsInjector();
         final pipeline = const Pipeline().addMiddleware(injector.middleware);
@@ -54,6 +80,26 @@ void main() {
 
       tearDown(() async {
         await server.close();
+      });
+
+      test('validates injected_client_js.dart matches client.js', () {
+        final actualClientJs = File(
+          'lib/src/injected/client.js',
+        ).readAsStringSync().replaceAll('\r\n', '\n');
+
+        // Assert exact length equivalency first to avoid massive diffs
+        expect(
+          injectedClientJs.length,
+          equals(actualClientJs.length),
+          reason: 'Lengths must match exactly without trimming',
+        );
+
+        // Byte-for-byte exact comparison
+        expect(injectedClientJs, equals(actualClientJs));
+      });
+
+      test('injected_client_js.dart has normalized line endings', () {
+        expect(injectedClientJs.contains('\r'), isFalse);
       });
 
       test('leaves non-entrypoints untouched', () async {
