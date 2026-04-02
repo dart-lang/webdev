@@ -27,6 +27,31 @@ void main() {
 
     group('InjectedHandlerWithoutExtension', () {
       late DwdsInjector injector;
+
+      setUpAll(() async {
+        final result = await Process.run(Platform.executable, [
+          'compile',
+          'js',
+          '-O1',
+          '--no-source-maps',
+          '-o',
+          'lib/src/injected/client.js',
+          'web/client.dart',
+        ]);
+        expect(result.exitCode, 0, reason: result.stderr.toString());
+      });
+
+      tearDownAll(() async {
+        final file = File('lib/src/injected/client.js');
+        if (file.existsSync()) {
+          file.deleteSync();
+        }
+        final depsFile = File('lib/src/injected/client.js.deps');
+        if (depsFile.existsSync()) {
+          depsFile.deleteSync();
+        }
+      });
+
       setUp(() async {
         injector = DwdsInjector();
         final pipeline = const Pipeline().addMiddleware(injector.middleware);
