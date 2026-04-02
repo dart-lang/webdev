@@ -79,21 +79,35 @@ class DdcLibraryBundleRestarter implements Restarter {
   }
 
   Future<List<Map>> _getSrcModuleLibraries(String reloadedSourcesPath) async {
-    final completer = Completer<String>();
-    final xhr = _XMLHttpRequest();
-    xhr.withCredentials = true;
-    xhr.onreadystatechange = () {
-      // If the request has completed and OK, or the response has not
-      // changed.
-      if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
-        completer.complete(xhr.responseText);
-      }
-    }.toJS;
-    xhr.get(reloadedSourcesPath, true);
-    xhr.send();
-    final responseText = await completer.future;
+    try {
+      final completer = Completer<String>();
+      final xhr = _XMLHttpRequest();
+      xhr.onreadystatechange = () {
+        // If the request has completed and OK, or the response has not
+        // changed.
+        if (xhr.readyState == 4) {
+          if (xhr.status == 200 || xhr.status == 304) {
+            completer.complete(xhr.responseText);
+          } else {
+            completer.completeError(
+              'Failed to fetch reloaded sources at $reloadedSourcesPath. '
+              'Status: ${xhr.status}',
+            );
+          }
+        }
+      }.toJS;
+      xhr.get(reloadedSourcesPath, true);
+      xhr.send();
+      final responseText = await completer.future;
 
-    return (json.decode(responseText) as List).cast<Map>();
+      final decoded = json.decode(responseText);
+      if (decoded is List) {
+        return decoded.cast<Map>();
+      }
+      return <Map>[];
+    } catch (e) {
+      return <Map>[];
+    }
   }
 
   @override
@@ -102,21 +116,22 @@ class DdcLibraryBundleRestarter implements Restarter {
     Future? readyToRunMain,
     String? reloadedSourcesPath,
   }) async {
-    assert(
-      reloadedSourcesPath != null,
-      "Expected 'reloadedSourcesPath' to not be null in a hot restart.",
-    );
     await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
     final mainHandler = (JSFunction runMain) {
       _dartDevEmbedder.config.capturedMainHandler = null;
       safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
     }.toJS;
     _dartDevEmbedder.config.capturedMainHandler = mainHandler;
-    final srcModuleLibraries = await _getSrcModuleLibraries(
-      reloadedSourcesPath!,
-    );
-    await _dartDevEmbedder.hotRestart().toDart;
-    return (true, srcModuleLibraries.jsify() as JSArray<JSObject>);
+
+    final srcModuleLibraries = reloadedSourcesPath == null
+        ? <Map>[]
+        : await _getSrcModuleLibraries(reloadedSourcesPath);
+
+    // Unawaited so [DdcLibraryBundleRestarter] can send a response before hot
+    // restart forcibly closes the connection.
+    unawaited(_dartDevEmbedder.hotRestart().toDart);
+
+    return (true, srcModuleLibraries.jsify() as JSArray<JSObject>?);
   }
 
   @override
