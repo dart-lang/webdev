@@ -54,11 +54,21 @@ class TestRunner {
   }) async {
     final fullArgs = [_webdevBin, ...args];
     if (canaryFeatures) {
-      fullArgs.add('--canary');
+      final dashDashIndex = fullArgs.indexOf('--');
+      if (dashDashIndex != -1) {
+        fullArgs.insertAll(dashDashIndex, ['--canary']);
+      } else {
+        fullArgs.add('--canary');
+      }
     }
 
     if (ddcModuleFormat == ModuleFormat.ddc) {
-      fullArgs.addAll(['--module-format', 'ddc']);
+      final dashDashIndex = fullArgs.indexOf('--');
+      if (dashDashIndex != -1) {
+        fullArgs.insertAll(dashDashIndex, ['--module-format', 'ddc']);
+      } else {
+        fullArgs.addAll(['--module-format', 'ddc']);
+      }
     }
 
     return TestProcess.start(

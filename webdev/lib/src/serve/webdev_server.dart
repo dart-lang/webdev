@@ -179,7 +179,8 @@ class WebDevServer {
         appEntrypoint: Uri.parse(
           '$multiRootScheme:///${options.target}/main.dart',
         ),
-        canaryFeatures: options.configuration.canaryFeatures,
+        canaryFeatures: options.configuration.canaryFeatures ||
+            (options.configuration.moduleFormat == 'ddc'),
         isFlutterApp: false,
         experiments: options.configuration.experiments,
       );
