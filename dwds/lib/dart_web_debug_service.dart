@@ -156,6 +156,7 @@ class Dwds {
             launchedDevToolsUri ??
             debugSettings.ddsConfiguration.devToolsServerAddress,
         serveDevTools: debugSettings.ddsConfiguration.serveDevTools,
+        appName: debugSettings.ddsConfiguration.appName,
       ),
       debugSettings.launchDevToolsInNewWindow,
       useWebSocketConnection: useDwdsWebSocketConnection,

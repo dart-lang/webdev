@@ -122,6 +122,7 @@ abstract class DebugService<T extends ProxyService> {
     // additional configuration.
     final hostname = _server.address.host;
     _dds = await DartDevelopmentServiceLauncher.start(
+      appName: ddsConfig.appName ?? 'Unknown web app',
       remoteVmServiceUri: Uri(
         scheme: 'http',
         host: hostname,
