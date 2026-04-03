@@ -190,7 +190,7 @@ class AppDomain extends Domain {
     });
     final restartMethod =
         _registeredMethodsForService['hotRestart'] ?? 'hotRestart';
-    
+
     final server = _serversByAppId[appId];
     server?.clearReloadedSources();
 
