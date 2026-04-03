@@ -238,6 +238,8 @@ class WebDevServer {
         ddsConfiguration: DartDevelopmentServiceConfiguration(
           enable: !options.configuration.disableDds,
           serveDevTools: shouldServeDevTools,
+          appName:
+              'Tool: webdev - Device: web - Build Target: ${options.target}',
         ),
         expressionCompiler: ddcService,
       );
@@ -280,9 +282,8 @@ class WebDevServer {
     final tlsCertKey = options.configuration.tlsCertKey ?? '';
 
     HttpServer server;
-    final protocol = (tlsCertChain.isNotEmpty && tlsCertKey.isNotEmpty)
-        ? 'https'
-        : 'http';
+    final protocol =
+        (tlsCertChain.isNotEmpty && tlsCertKey.isNotEmpty) ? 'https' : 'http';
     if (protocol == 'https') {
       final serverContext = SecurityContext()
         ..useCertificateChain(tlsCertChain)
