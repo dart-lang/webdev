@@ -238,8 +238,6 @@ class WebDevServer {
         ddsConfiguration: DartDevelopmentServiceConfiguration(
           enable: !options.configuration.disableDds,
           serveDevTools: shouldServeDevTools,
-          appName:
-              'Tool: webdev - Device: web - Build Target: ${options.target}',
         ),
         expressionCompiler: ddcService,
       );
