@@ -197,7 +197,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
 
     final compilerOptions = CompilerOptions(
       moduleFormat: ModuleFormat.values.byName(moduleFormat),
-      canaryFeatures: canaryFeatures,
+      canaryFeatures: canaryFeatures || (moduleFormat == 'ddc'),
       experiments: experiments,
     );
 
