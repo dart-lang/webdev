@@ -720,6 +720,7 @@ class DevHandler {
         } else {
           // Otherwise, we can run the app's main() method immediately.
           readyToRunMainCompleter.complete();
+          connection.runMain();
         }
 
         await chromeService.createIsolate(connection);

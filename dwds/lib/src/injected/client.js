@@ -21074,6 +21074,7 @@
               return A._asyncAwait($async$self.manager.hotRestart$1$reloadedSourcesPath(A._asStringQ(t1.$reloadedSourcesPath)), $async$call$1);
             case 11:
               // returning from await.
+              $async$self._box_0.mainRun = false;
               // goto join
               $async$goto = 9;
               break;
@@ -21623,7 +21624,7 @@
     hotRestart$3$readyToRunMain$reloadedSourcesPath$runId(readyToRunMain, reloadedSourcesPath, runId) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.nullable_JSArray_nullable_Object),
-        $async$returnValue, $async$self = this, result, t1;
+        $async$returnValue, $async$self = this, t1, result;
       var $async$hotRestart$3$readyToRunMain$reloadedSourcesPath$runId = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -21631,6 +21632,7 @@
           switch ($async$goto) {
             case 0:
               // Function start
+              A.print("ReloadingManager._beforeRestart");
               t1 = $async$self._client.get$sink();
               t1._async$_target.add$1(0, t1.$ti._precomputed1._as(B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["IsolateExit", A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.dynamic)], type$.JSArray_Object), null)));
               $async$goto = 3;
@@ -21719,8 +21721,10 @@
     },
     _afterRestart$1(succeeded) {
       var t1;
+      A.print("ReloadingManager._afterRestart, succeeded: " + succeeded);
       if (!succeeded)
         return;
+      A.print("ReloadingManager sending IsolateStart");
       t1 = this._client.get$sink();
       t1._async$_target.add$1(0, t1.$ti._precomputed1._as(B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["IsolateStart", A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.dynamic)], type$.JSArray_Object), null)));
     }

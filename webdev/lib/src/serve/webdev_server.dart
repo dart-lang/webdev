@@ -53,13 +53,22 @@ class WebDevServer {
 
   final String target;
 
+  /// The list of reloaded sources for DDC's Library Bundle module system,
+  /// corresponding to 'reloaded_sources.json'.
+  ///
+  /// Hot restarts and hot reloads read this file to determine which libraries
+  /// were reloaded.  It must be cleared after each restart/reload to avoid
+  /// serving stale data.
+  final List<Map<String, dynamic>> reloadedSources;
+
   WebDevServer._(
     this.target,
     this._server,
     this._client,
     this._protocol,
     this.buildResults,
-    bool autoRun, {
+    bool autoRun,
+    this.reloadedSources, {
     this.dwds,
     this.ddcService,
   }) {
@@ -69,6 +78,8 @@ class WebDevServer {
       });
     }
   }
+
+  void clearReloadedSources() => reloadedSources.clear();
 
   String get host => _server.address.host;
   int get port => _server.port;
@@ -309,6 +320,7 @@ class WebDevServer {
       protocol,
       filteredBuildResults,
       options.configuration.autoRun,
+      reloadedSources,
       dwds: dwds,
       ddcService: ddcService,
     );
