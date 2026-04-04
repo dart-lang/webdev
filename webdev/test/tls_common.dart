@@ -16,17 +16,17 @@ import 'package:webdev/src/serve/utils.dart';
 
 import 'test_utils.dart';
 
-void main() {
+void tlsTests({required TestRunner testRunner}) {
   group('serve app with TLS options', () {
     // Change to true for debugging.
     const debug = false;
 
-    final testRunner = TestRunner();
+    final runner = testRunner;
     late String exampleDirectory;
 
     setUpAll(() async {
       configureLogWriter(debug);
-      await testRunner.setUpAll();
+      await runner.setUpAll();
       exampleDirectory = p.absolute(
         p.join(
           p.current,
@@ -62,7 +62,7 @@ void main() {
         '--tls-cert-key=localhost+2-key.pem',
       ];
 
-      final process = await testRunner.runWebDev(
+      final process = await runner.runWebDev(
         args,
         workingDirectory: exampleDirectory,
       );
@@ -98,7 +98,7 @@ void main() {
         '--enable-experiment=dot-shorthands',
       ];
 
-      final process = await testRunner.runWebDev(
+      final process = await runner.runWebDev(
         args,
         workingDirectory: exampleDirectory,
       );

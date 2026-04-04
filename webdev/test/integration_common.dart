@@ -19,10 +19,10 @@ enum StreamType { stdout, stderr }
 
 const processTimeout = Duration(minutes: 1);
 
-void main() {
-  final testRunner = TestRunner();
-  setUpAll(testRunner.setUpAll);
-  tearDownAll(testRunner.tearDownAll);
+void integrationTests({required TestRunner testRunner}) {
+  final runner = testRunner;
+  setUpAll(runner.setUpAll);
+  tearDownAll(runner.tearDownAll);
 
   Future<void> expectStdoutAndCleanExit(
     Process process, {
@@ -53,7 +53,7 @@ void main() {
   }
 
   test('non-existent commands create errors', () async {
-    final process = await testRunner.runWebDev(['monkey']);
+    final process = await runner.runWebDev(['monkey'], raw: true);
 
     await expectLater(
       process.stdout,
@@ -64,7 +64,7 @@ void main() {
   });
 
   test('passing extra args to build fails with bad usage', () async {
-    final process = await testRunner.runWebDev(['build', 'extra', 'args']);
+    final process = await runner.runWebDev(['build', 'extra', 'args']);
 
     await expectLater(
       process.stdout,
@@ -89,7 +89,7 @@ void main() {
       await d.dir('.dart_tool', [d.file('package_config.json', '')]).create();
       await d.file('.dart_tool/package_config.json', '').create();
 
-      final process = await testRunner.runWebDev([
+      final process = await runner.runWebDev([
         'serve',
       ], workingDirectory: d.sandbox);
 
@@ -122,7 +122,7 @@ void main() {
           ]).create();
           await d.file('.dart_tool/package_config.json', '').create();
 
-          final process = await testRunner.runWebDev([
+          final process = await runner.runWebDev([
             command,
           ], workingDirectory: d.sandbox);
 
@@ -142,7 +142,7 @@ void main() {
           ]).create();
           await d.file('.dart_tool/package_config.json', '').create();
 
-          final process = await testRunner.runWebDev([
+          final process = await runner.runWebDev([
             'serve',
           ], workingDirectory: d.sandbox);
 
@@ -166,7 +166,7 @@ void main() {
           // Required for webdev to not complain about nothing to serve.
           await d.dir('web').create();
 
-          final process = await testRunner.runWebDev([
+          final process = await runner.runWebDev([
             'serve',
             '--no-build-web-compilers',
           ], workingDirectory: d.sandbox);
@@ -212,7 +212,7 @@ void main() {
               ]).create();
               await d.file('.dart_tool/package_config.json', '').create();
 
-              final process = await testRunner.runWebDev([
+              final process = await runner.runWebDev([
                 'serve',
               ], workingDirectory: d.sandbox);
 
@@ -225,7 +225,7 @@ void main() {
       }
 
       test('no pubspec.yaml', () async {
-        final process = await testRunner.runWebDev([
+        final process = await runner.runWebDev([
           'serve',
         ], workingDirectory: d.sandbox);
 
@@ -236,7 +236,7 @@ void main() {
       test('pubspec.yaml, no pubspec.lock', () async {
         await d.file('pubspec.yaml', _pubspecYaml).create();
 
-        final process = await testRunner.runWebDev([
+        final process = await runner.runWebDev([
           'serve',
         ], workingDirectory: d.sandbox);
 
@@ -259,7 +259,7 @@ dependencies:
   args: ^1.0.0
 ''').create();
 
-        final process = await testRunner.runWebDev([
+        final process = await runner.runWebDev([
           'serve',
         ], workingDirectory: d.sandbox);
 
@@ -283,7 +283,7 @@ dependencies:
 
           final appPath = p.join(d.sandbox, 'temp_app');
 
-          final process = await testRunner.runWebDev([
+          final process = await runner.runWebDev([
             command,
             '--offline',
           ], workingDirectory: appPath);

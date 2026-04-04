@@ -36,15 +36,15 @@ final _testItems = <String, bool?>{
   'main.ddc.js': true,
 };
 
-void main() {
+void e2eTests({required TestRunner testRunner}) {
   // Change to true for debugging.
   const debug = false;
 
-  final testRunner = TestRunner();
+  final runner = testRunner;
   late String exampleDirectory;
   setUpAll(() async {
     configureLogWriter(debug);
-    await testRunner.setUpAll();
+    await runner.setUpAll();
     exampleDirectory = p.absolute(
       p.join(p.current, '..', 'dwds_test_common', 'fixtures', '_webdev_smoke'),
     );
@@ -64,7 +64,7 @@ void main() {
     await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
   });
 
-  tearDownAll(testRunner.tearDownAll);
+  tearDownAll(runner.tearDownAll);
 
   test('smoke test is configured properly', () async {
     final smokeYaml =
@@ -93,7 +93,7 @@ void main() {
 
     final args = ['build', '-o', 'web:${d.sandbox}'];
 
-    final process = await testRunner.runWebDev(
+    final process = await runner.runWebDev(
       args,
       workingDirectory: exampleDirectory,
     );
@@ -126,7 +126,7 @@ void main() {
         '--delete-conflicting-outputs',
       ];
 
-      final process = await testRunner.runWebDev(
+      final process = await runner.runWebDev(
         args,
         workingDirectory: exampleDirectory,
       );
@@ -148,7 +148,7 @@ void main() {
             args.add('--no-release');
           }
 
-          final process = await testRunner.runWebDev(
+          final process = await runner.runWebDev(
             args,
             workingDirectory: exampleDirectory,
           );
@@ -183,7 +183,7 @@ void main() {
           '--null-safety=sound',
         ];
 
-        final process = await testRunner.runWebDev(
+        final process = await runner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -208,7 +208,7 @@ void main() {
           args.add('--no-release');
         }
 
-        final process = await testRunner.runWebDev(
+        final process = await runner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -235,7 +235,7 @@ void main() {
 
         final stdoutDone = Completer<void>();
         final stderrDone = Completer<void>();
-        final process = await testRunner.runWebDev(
+        final process = await runner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -288,7 +288,7 @@ void main() {
             if (command == 'build') '--output=$dir:foo' else dir,
           ];
 
-          final process = await testRunner.runWebDev(
+          final process = await runner.runWebDev(
             args,
             workingDirectory: exampleDirectory,
           );
@@ -325,7 +325,7 @@ void main() {
           '--null-safety=sound',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(
+        final process = await runner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -409,7 +409,7 @@ void main() {
           '--enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(
+        final process = await runner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -484,7 +484,7 @@ void main() {
           '--enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(
+        final process = await runner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -569,7 +569,7 @@ void main() {
           '--no-enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(
+        final process = await runner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -641,7 +641,7 @@ void main() {
           '--no-enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await testRunner.runWebDev(
+        final process = await runner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );

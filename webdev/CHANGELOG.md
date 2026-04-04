@@ -4,6 +4,7 @@
 ## 3.8.2
 
 - Add `module-format` flag for testing new DDC Library Bundle module format prior to release.
+- Splitting tests between DDC's AMD and DDC Library Bundle module systems.
 
 ## 3.8.1
 
