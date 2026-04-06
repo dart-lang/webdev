@@ -96,7 +96,7 @@ class WebDevServer {
     ServerOptions options,
     Stream<daemon.BuildResults> buildResults,
   ) async {
-    final basePath = 'http://localhost:${options.port}';
+    final basePath = '';
     var pipeline = const Pipeline();
 
     if (options.configuration.logRequests) {
