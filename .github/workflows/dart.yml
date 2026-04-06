@@ -41,44 +41,6 @@ jobs:
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
-    name: "analyzer_and_format; linux; Dart dev; PKG: dwds; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`, `dart test test/build/ensure_version_test.dart`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:format-analyze_0-test_0"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
-        with:
-          sdk: dev
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - id: dwds_pub_upgrade
-        name: dwds; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: dwds
-      - name: "dwds; dart format --output=none --set-exit-if-changed ."
-        run: "dart format --output=none --set-exit-if-changed ."
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-      - name: "dwds; dart analyze --fatal-infos ."
-        run: dart analyze --fatal-infos .
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-      - name: dwds; dart test test/build/ensure_version_test.dart
-        run: dart test test/build/ensure_version_test.dart
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-  job_003:
     name: "analyzer_and_format; linux; Dart dev; PKGS: dwds_test_common, dwds_test_common/fixtures/_webdev_smoke, example, frontend_server_client; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
@@ -151,7 +113,7 @@ jobs:
         run: dart analyze --fatal-infos .
         if: "always() && steps.frontend_server_client_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_client
-  job_004:
+  job_003:
     name: "analyzer_and_format; linux; Dart dev; PKG: webdev; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`, `dart test test/build/ensure_build_test.dart`"
     runs-on: ubuntu-latest
     steps:
@@ -189,6 +151,44 @@ jobs:
         run: dart test test/build/ensure_build_test.dart
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
+  job_004:
+    name: "analyzer_and_format; linux; Dart main; PKG: dwds; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`, `dart test test/build/ensure_version_test.dart`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:main;packages:dwds;commands:format-analyze_0-test_0"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:main;packages:dwds
+            os:ubuntu-latest;pub-cache-hosted;sdk:main
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+        with:
+          sdk: main
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - id: dwds_pub_upgrade
+        name: dwds; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds
+      - name: "dwds; dart format --output=none --set-exit-if-changed ."
+        run: "dart format --output=none --set-exit-if-changed ."
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+      - name: "dwds; dart analyze --fatal-infos ."
+        run: dart analyze --fatal-infos .
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+      - name: dwds; dart test test/build/ensure_version_test.dart
+        run: dart test test/build/ensure_version_test.dart
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
   job_005:
     name: "unit_test; linux; Dart dev; PKG: dwds_test_common; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test --exclude-tags=release`"
     runs-on: ubuntu-latest
