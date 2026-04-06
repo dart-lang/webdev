@@ -21074,7 +21074,6 @@
               return A._asyncAwait($async$self.manager.hotRestart$1$reloadedSourcesPath(A._asStringQ(t1.$reloadedSourcesPath)), $async$call$1);
             case 11:
               // returning from await.
-              $async$self._box_0.mainRun = false;
               // goto join
               $async$goto = 9;
               break;
@@ -21275,74 +21274,40 @@
       return A._asyncStartSync($async$_runMainWhenReady$2, $async$completer);
     },
     _getSrcModuleLibraries$1(reloadedSourcesPath) {
-      return this._getSrcModuleLibraries$body$DdcLibraryBundleRestarter(reloadedSourcesPath);
-    },
-    _getSrcModuleLibraries$body$DdcLibraryBundleRestarter(reloadedSourcesPath) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.List_Map_dynamic_dynamic),
-        $async$returnValue, $async$handler = 2, $async$errorStack = [], completer, xhr, responseText, decoded, t1, exception, $async$exception;
+        $async$returnValue, decoded, t1, xhr, $async$temp1;
       var $async$_getSrcModuleLibraries$1 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
-        if ($async$errorCode === 1) {
-          $async$errorStack.push($async$result);
-          $async$goto = $async$handler;
-        }
+        if ($async$errorCode === 1)
+          return A._asyncRethrow($async$result, $async$completer);
         for (;;)
           switch ($async$goto) {
             case 0:
               // Function start
-              $async$handler = 4;
-              completer = new A._AsyncCompleter(new A._Future($.Zone__current, type$._Future_String), type$._AsyncCompleter_String);
+              t1 = new A._Future($.Zone__current, type$._Future_String);
               xhr = A._asJSObject(new init.G.XMLHttpRequest());
-              xhr.onreadystatechange = A._functionToJS0(new A.DdcLibraryBundleRestarter__getSrcModuleLibraries_closure(xhr, completer, reloadedSourcesPath));
+              xhr.onreadystatechange = A._functionToJS0(new A.DdcLibraryBundleRestarter__getSrcModuleLibraries_closure(xhr, new A._AsyncCompleter(t1, type$._AsyncCompleter_String), reloadedSourcesPath));
               xhr.open("GET", reloadedSourcesPath, true);
               xhr.send();
-              $async$goto = 7;
-              return A._asyncAwait(completer.future, $async$_getSrcModuleLibraries$1);
-            case 7:
+              $async$temp1 = B.C_JsonCodec;
+              $async$goto = 3;
+              return A._asyncAwait(t1, $async$_getSrcModuleLibraries$1);
+            case 3:
               // returning from await.
-              responseText = $async$result;
-              decoded = B.C_JsonCodec.decode$1(responseText);
+              decoded = $async$temp1.decode$1($async$result);
               if (type$.List_dynamic._is(decoded)) {
-                t1 = J.cast$1$0$ax(decoded, type$.Map_dynamic_dynamic);
-                $async$returnValue = t1;
+                $async$returnValue = J.cast$1$0$ax(decoded, type$.Map_dynamic_dynamic);
                 // goto return
                 $async$goto = 1;
                 break;
               }
-              t1 = A._setArrayType([], type$.JSArray_Map_dynamic_dynamic);
-              $async$returnValue = t1;
+              $async$returnValue = A._setArrayType([], type$.JSArray_Map_dynamic_dynamic);
               // goto return
               $async$goto = 1;
               break;
-              $async$handler = 2;
-              // goto after finally
-              $async$goto = 6;
-              break;
-            case 4:
-              // catch
-              $async$handler = 3;
-              $async$exception = $async$errorStack.pop();
-              t1 = A._setArrayType([], type$.JSArray_Map_dynamic_dynamic);
-              $async$returnValue = t1;
-              // goto return
-              $async$goto = 1;
-              break;
-              // goto after finally
-              $async$goto = 6;
-              break;
-            case 3:
-              // uncaught
-              // goto rethrow
-              $async$goto = 2;
-              break;
-            case 6:
-              // after finally
             case 1:
               // return
               return A._asyncReturn($async$returnValue, $async$completer);
-            case 2:
-              // rethrow
-              return A._asyncRethrow($async$errorStack.at(-1), $async$completer);
           }
       });
       return A._asyncStartSync($async$_getSrcModuleLibraries$1, $async$completer);
@@ -21624,7 +21589,7 @@
     hotRestart$3$readyToRunMain$reloadedSourcesPath$runId(readyToRunMain, reloadedSourcesPath, runId) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.nullable_JSArray_nullable_Object),
-        $async$returnValue, $async$self = this, t1, result;
+        $async$returnValue, $async$self = this, result, t1;
       var $async$hotRestart$3$readyToRunMain$reloadedSourcesPath$runId = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -21632,7 +21597,6 @@
           switch ($async$goto) {
             case 0:
               // Function start
-              A.print("ReloadingManager._beforeRestart");
               t1 = $async$self._client.get$sink();
               t1._async$_target.add$1(0, t1.$ti._precomputed1._as(B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["IsolateExit", A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.dynamic)], type$.JSArray_Object), null)));
               $async$goto = 3;
@@ -21721,10 +21685,8 @@
     },
     _afterRestart$1(succeeded) {
       var t1;
-      A.print("ReloadingManager._afterRestart, succeeded: " + succeeded);
       if (!succeeded)
         return;
-      A.print("ReloadingManager sending IsolateStart");
       t1 = this._client.get$sink();
       t1._async$_target.add$1(0, t1.$ti._precomputed1._as(B.C_JsonCodec.encode$2$toEncodable(A._setArrayType(["IsolateStart", A.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.dynamic)], type$.JSArray_Object), null)));
     }
