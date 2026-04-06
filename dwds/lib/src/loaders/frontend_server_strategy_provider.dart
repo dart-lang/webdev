@@ -26,9 +26,8 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
     this._packageUriMapper,
     this._digestsProvider,
     this._buildSettings, {
-    String? packageConfigPath,
-  }) : _basePath = _assetReader.basePath,
-       _packageConfigPath = packageConfigPath;
+    this._packageConfigPath,
+  }) : _basePath = _assetReader.basePath;
 
   T get strategy;
 
