@@ -196,6 +196,8 @@ Future<void>? main() {
               await manager.hotRestart(
                 reloadedSourcesPath: hotRestartReloadedSourcesPath,
               );
+              // Allow main to run again after a hot restart.
+              mainRun = false;
             } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
               await manager.hotReloadStart(hotReloadReloadedSourcesPath);
               await manager.hotReloadEnd();
