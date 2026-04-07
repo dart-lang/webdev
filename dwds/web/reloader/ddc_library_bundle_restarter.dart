@@ -82,8 +82,9 @@ class DdcLibraryBundleRestarter implements Restarter {
     final completer = Completer<String>();
     final xhr = _XMLHttpRequest();
     xhr.onreadystatechange = () {
-      // If the request has completed and OK, or the response has not
-      // changed.
+      // If the request has completed and is OK or unchanged, send the response
+      // text. Otherwise, we should report an error reading the reloaded
+      // sources file.
       if (xhr.readyState == 4) {
         if (xhr.status == 200 || xhr.status == 304) {
           completer.complete(xhr.responseText);
