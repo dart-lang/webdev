@@ -107,17 +107,19 @@ class DdcLibraryBundleRestarter implements Restarter {
     Future? readyToRunMain,
     String? reloadedSourcesPath,
   }) async {
+    assert(
+      reloadedSourcesPath != null,
+      "Expected 'reloadedSourcesPath' to not be null in a hot restart.",
+    );
     await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
     final mainHandler = (JSFunction runMain) {
       _dartDevEmbedder.config.capturedMainHandler = null;
       safeUnawaited(_runMainWhenReady(readyToRunMain, runMain));
     }.toJS;
     _dartDevEmbedder.config.capturedMainHandler = mainHandler;
-
-    final srcModuleLibraries = reloadedSourcesPath == null
-        ? <Map>[]
-        : await _getSrcModuleLibraries(reloadedSourcesPath);
-
+    final srcModuleLibraries = await _getSrcModuleLibraries(
+      reloadedSourcesPath!,
+    );
     // Unawaited so [DdcLibraryBundleRestarter] can send a response before hot
     // restart forcibly closes the connection.
     unawaited(_dartDevEmbedder.hotRestart().toDart);
