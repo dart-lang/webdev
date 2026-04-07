@@ -81,7 +81,7 @@ void integrationTests({required TestRunner testRunner}) {
       await d
           .file(
             'pubspec.lock',
-            _pubspecLock(testRunnerVersion: '1.2.8', daemonVersion: '0.4.0'),
+            _pubspecLock(runnerVersion: '1.2.8', daemonVersion: '0.4.0'),
           )
           .create();
 
@@ -113,7 +113,7 @@ void integrationTests({required TestRunner testRunner}) {
           await d.file('pubspec.yaml', _pubspecYaml).create();
 
           await d
-              .file('pubspec.lock', _pubspecLock(testRunnerVersion: null))
+              .file('pubspec.lock', _pubspecLock(runnerVersion: null))
               .create();
 
           await d.dir('.dart_tool', [
@@ -199,7 +199,7 @@ void integrationTests({required TestRunner testRunner}) {
                   .file(
                     'pubspec.lock',
                     _pubspecLock(
-                      testRunnerVersion: buildRunnerVersion,
+                      runnerVersion: buildRunnerVersion,
                       webCompilersVersion: webCompilersVersion,
                       daemonVersion: buildDaemonVersion,
                     ),
@@ -304,7 +304,7 @@ String _pubspecYaml = '''
 ''';
 
 String _pubspecLock({
-  String? testRunnerVersion = _supportedBuildRunnerVersion,
+  String? runnerVersion = _supportedBuildRunnerVersion,
   String? webCompilersVersion = _supportedWebCompilersVersion,
   String? daemonVersion = _supportedBuildDaemonVersion,
   List<String> extraPkgs = const [],
@@ -314,7 +314,7 @@ String _pubspecLock({
 packages:
 ''');
 
-  if (testRunnerVersion != null) {
+  if (runnerVersion != null) {
     buffer.writeln('''
   build_runner:
     dependency: "direct dev"
@@ -322,7 +322,7 @@ packages:
       name: build_runner
       url: "https://pub.dev"
     source: hosted
-    version: "$testRunnerVersion"
+    version: "$runnerVersion"
 ''');
   }
 
