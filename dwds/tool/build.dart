@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
+
 void main() async {
   // 1. Extract the version from pubspec.yaml
   final pubspec = File('pubspec.yaml').readAsStringSync();
@@ -50,6 +52,10 @@ const packageVersion = '$version';
 
   // 5. Generate injected_client_js.dart
   print('Generating injected_client_js.dart...');
+
+  final clientDartBytes = File('web/client.dart').readAsBytesSync();
+  final clientDartHash = sha256.convert(clientDartBytes).toString();
+
   final compiledJs = File('lib/src/injected/client.js').readAsStringSync();
   final lines = compiledJs.replaceAll('\r\n', '\n').split('\n');
 
@@ -62,6 +68,7 @@ const packageVersion = '$version';
         i == lines.length - 1 ? lines[i] : '${lines[i]}\n',
       ).replaceAll(r'$', r'\$'),
   ].join('\n');
+
   final injectedClientJsFile = File('lib/src/handlers/injected_client_js.dart');
   injectedClientJsFile.writeAsStringSync('''
 // Generated code. Do not modify.
@@ -69,6 +76,8 @@ const packageVersion = '$version';
 // dart format off
 
 const injectedClientJs = $safeDartString;
+
+const clientDartHash = '$clientDartHash';
 ''');
   print('Successfully packed client.js into injected_client_js.dart');
 }

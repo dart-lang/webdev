@@ -7,6 +7,7 @@ library;
 
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:dwds/src/handlers/injected_client_js.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:dwds/src/version.dart';
@@ -27,30 +28,6 @@ void main() {
 
     group('InjectedHandlerWithoutExtension', () {
       late DwdsInjector injector;
-
-      setUpAll(() async {
-        final result = await Process.run(Platform.executable, [
-          'compile',
-          'js',
-          '-O1',
-          '--no-source-maps',
-          '-o',
-          'lib/src/injected/client.js',
-          'web/client.dart',
-        ]);
-        expect(result.exitCode, 0, reason: result.stderr.toString());
-      });
-
-      tearDownAll(() async {
-        final file = File('lib/src/injected/client.js');
-        if (file.existsSync()) {
-          file.deleteSync();
-        }
-        final depsFile = File('lib/src/injected/client.js.deps');
-        if (depsFile.existsSync()) {
-          depsFile.deleteSync();
-        }
-      });
 
       setUp(() async {
         injector = DwdsInjector();
@@ -82,20 +59,18 @@ void main() {
         await server.close();
       });
 
-      test('validates injected_client_js.dart matches client.js', () {
-        final actualClientJs = File(
-          'lib/src/injected/client.js',
-        ).readAsStringSync().replaceAll('\r\n', '\n');
+      test('injected_client_js.dart is in sync with web/client.dart', () {
+        final clientDartBytes = File('web/client.dart').readAsBytesSync();
+        final expectedHash = sha256.convert(clientDartBytes).toString();
 
-        // Assert exact length equivalency first to avoid massive diffs
         expect(
-          injectedClientJs.length,
-          equals(actualClientJs.length),
-          reason: 'Lengths must match exactly without trimming',
+          clientDartHash,
+          equals(expectedHash),
+          reason:
+              'The hash of web/client.dart does not match clientDartHash '
+              'in injected_client_js.dart. '
+              'Please run `dart run tool/build.dart` to regenerate the asset.',
         );
-
-        // Byte-for-byte exact comparison
-        expect(injectedClientJs, equals(actualClientJs));
       });
 
       test('injected_client_js.dart has normalized line endings', () {
