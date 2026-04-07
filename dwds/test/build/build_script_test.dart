@@ -13,8 +13,12 @@ import 'package:test/test.dart';
 void main() {
   group('Committed file integrity tests', () {
     test('injected_client_js.dart is in sync with web/client.dart', () {
-      final clientDartBytes = File('web/client.dart').readAsBytesSync();
-      final expectedHash = sha256.convert(clientDartBytes).toString();
+      final clientDartString = File(
+        'web/client.dart',
+      ).readAsStringSync().replaceAll('\r\n', '\n');
+      final expectedHash = sha256
+          .convert(utf8.encode(clientDartString))
+          .toString();
 
       expect(
         clientDartHash,

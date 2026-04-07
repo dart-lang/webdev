@@ -53,8 +53,12 @@ const packageVersion = '$version';
   // 5. Generate injected_client_js.dart
   print('Generating injected_client_js.dart...');
 
-  final clientDartBytes = File('web/client.dart').readAsBytesSync();
-  final clientDartHash = sha256.convert(clientDartBytes).toString();
+  final clientDartString = File(
+    'web/client.dart',
+  ).readAsStringSync().replaceAll('\r\n', '\n');
+  final clientDartHash = sha256
+      .convert(utf8.encode(clientDartString))
+      .toString();
 
   final compiledJs = File('lib/src/injected/client.js').readAsStringSync();
   final lines = compiledJs.replaceAll('\r\n', '\n').split('\n');
