@@ -21276,7 +21276,7 @@
     _getSrcModuleLibraries$1(reloadedSourcesPath) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.List_Map_dynamic_dynamic),
-        $async$returnValue, decoded, t1, xhr, $async$temp1;
+        $async$returnValue, t1, xhr, $async$temp1, $async$temp2, $async$temp3;
       var $async$_getSrcModuleLibraries$1 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -21289,19 +21289,14 @@
               xhr.onreadystatechange = A._functionToJS0(new A.DdcLibraryBundleRestarter__getSrcModuleLibraries_closure(xhr, new A._AsyncCompleter(t1, type$._AsyncCompleter_String), reloadedSourcesPath));
               xhr.open("GET", reloadedSourcesPath, true);
               xhr.send();
-              $async$temp1 = B.C_JsonCodec;
+              $async$temp1 = J;
+              $async$temp2 = type$.List_dynamic;
+              $async$temp3 = B.C_JsonCodec;
               $async$goto = 3;
               return A._asyncAwait(t1, $async$_getSrcModuleLibraries$1);
             case 3:
               // returning from await.
-              decoded = $async$temp1.decode$1($async$result);
-              if (type$.List_dynamic._is(decoded)) {
-                $async$returnValue = J.cast$1$0$ax(decoded, type$.Map_dynamic_dynamic);
-                // goto return
-                $async$goto = 1;
-                break;
-              }
-              $async$returnValue = A._setArrayType([], type$.JSArray_Map_dynamic_dynamic);
+              $async$returnValue = $async$temp1.cast$1$0$ax($async$temp2._as($async$temp3.decode$1($async$result)), type$.Map_dynamic_dynamic);
               // goto return
               $async$goto = 1;
               break;
@@ -21508,7 +21503,7 @@
         if (t2)
           t3.complete$1(A._asString(t1.responseText));
         else
-          t3.completeError$1("Failed to fetch reloaded sources at " + this.reloadedSourcesPath + ". Status: " + A._asInt(t1.status));
+          t3.completeError$1("Failed to fetch reloaded sources at " + this.reloadedSourcesPath + ".");
       }
     },
     $signature: 1
