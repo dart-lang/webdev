@@ -25,6 +25,10 @@ void main() {
     );
   });
 
+  test('injected_client_js.dart has normalized line endings', () {
+    expect(injectedClientJs.contains('\r'), isFalse);
+  });
+
   group('Build script tests', () {
     setUpAll(() async {
       // Use Platform.executable to ensure we use the same Dart SDK

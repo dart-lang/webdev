@@ -7,7 +7,6 @@ library;
 
 import 'dart:io';
 
-import 'package:dwds/src/handlers/injected_client_js.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:dwds/src/version.dart';
 import 'package:http/http.dart' as http;
@@ -27,7 +26,6 @@ void main() {
 
     group('InjectedHandlerWithoutExtension', () {
       late DwdsInjector injector;
-
       setUp(() async {
         injector = DwdsInjector();
         final pipeline = const Pipeline().addMiddleware(injector.middleware);
@@ -56,10 +54,6 @@ void main() {
 
       tearDown(() async {
         await server.close();
-      });
-
-      test('injected_client_js.dart has normalized line endings', () {
-        expect(injectedClientJs.contains('\r'), isFalse);
       });
 
       test('leaves non-entrypoints untouched', () async {
