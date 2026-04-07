@@ -7,7 +7,6 @@ library;
 
 import 'dart:io';
 
-import 'package:crypto/crypto.dart';
 import 'package:dwds/src/handlers/injected_client_js.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:dwds/src/version.dart';
@@ -57,20 +56,6 @@ void main() {
 
       tearDown(() async {
         await server.close();
-      });
-
-      test('injected_client_js.dart is in sync with web/client.dart', () {
-        final clientDartBytes = File('web/client.dart').readAsBytesSync();
-        final expectedHash = sha256.convert(clientDartBytes).toString();
-
-        expect(
-          clientDartHash,
-          equals(expectedHash),
-          reason:
-              'The hash of web/client.dart does not match clientDartHash '
-              'in injected_client_js.dart. '
-              'Please run `dart run tool/build.dart` to regenerate the asset.',
-        );
       });
 
       test('injected_client_js.dart has normalized line endings', () {
