@@ -89,8 +89,7 @@ class DdcLibraryBundleRestarter implements Restarter {
           completer.complete(xhr.responseText);
         } else {
           completer.completeError(
-            'Failed to fetch reloaded sources at $reloadedSourcesPath. '
-            'Status: ${xhr.status}',
+            'Failed to fetch reloaded sources at $reloadedSourcesPath.',
           );
         }
       }
@@ -99,11 +98,7 @@ class DdcLibraryBundleRestarter implements Restarter {
     xhr.send();
     final responseText = await completer.future;
 
-    final decoded = json.decode(responseText);
-    if (decoded is List) {
-      return decoded.cast<Map>();
-    }
-    return <Map>[];
+    return (json.decode(responseText) as List).cast<Map>();
   }
 
   @override
