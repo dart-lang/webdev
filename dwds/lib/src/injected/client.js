@@ -21074,7 +21074,6 @@
               return A._asyncAwait($async$self.manager.hotRestart$1$reloadedSourcesPath(A._asStringQ(t1.$reloadedSourcesPath)), $async$call$1);
             case 11:
               // returning from await.
-              $async$self._box_0.mainRun = false;
               // goto join
               $async$goto = 9;
               break;
