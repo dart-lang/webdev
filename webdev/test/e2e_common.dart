@@ -40,11 +40,10 @@ void e2eTests({required TestRunner testRunner}) {
   // Change to true for debugging.
   const debug = false;
 
-  final runner = testRunner;
   late String exampleDirectory;
   setUpAll(() async {
     configureLogWriter(debug);
-    await runner.setUpAll();
+    await testRunner.setUpAll();
     exampleDirectory = p.absolute(
       p.join(p.current, '..', 'dwds_test_common', 'fixtures', '_webdev_smoke'),
     );
@@ -64,7 +63,7 @@ void e2eTests({required TestRunner testRunner}) {
     await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
   });
 
-  tearDownAll(runner.tearDownAll);
+  tearDownAll(testRunner.tearDownAll);
 
   test('smoke test is configured properly', () async {
     final smokeYaml =
@@ -93,7 +92,7 @@ void e2eTests({required TestRunner testRunner}) {
 
     final args = ['build', '-o', 'web:${d.sandbox}'];
 
-    final process = await runner.runWebDev(
+    final process = await testRunner.runWebDev(
       args,
       workingDirectory: exampleDirectory,
     );
@@ -126,7 +125,7 @@ void e2eTests({required TestRunner testRunner}) {
         '--delete-conflicting-outputs',
       ];
 
-      final process = await runner.runWebDev(
+      final process = await testRunner.runWebDev(
         args,
         workingDirectory: exampleDirectory,
       );
@@ -148,7 +147,7 @@ void e2eTests({required TestRunner testRunner}) {
             args.add('--no-release');
           }
 
-          final process = await runner.runWebDev(
+          final process = await testRunner.runWebDev(
             args,
             workingDirectory: exampleDirectory,
           );
@@ -183,7 +182,7 @@ void e2eTests({required TestRunner testRunner}) {
           '--null-safety=sound',
         ];
 
-        final process = await runner.runWebDev(
+        final process = await testRunner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -208,7 +207,7 @@ void e2eTests({required TestRunner testRunner}) {
           args.add('--no-release');
         }
 
-        final process = await runner.runWebDev(
+        final process = await testRunner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -235,7 +234,7 @@ void e2eTests({required TestRunner testRunner}) {
 
         final stdoutDone = Completer<void>();
         final stderrDone = Completer<void>();
-        final process = await runner.runWebDev(
+        final process = await testRunner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -288,7 +287,7 @@ void e2eTests({required TestRunner testRunner}) {
             if (command == 'build') '--output=$dir:foo' else dir,
           ];
 
-          final process = await runner.runWebDev(
+          final process = await testRunner.runWebDev(
             args,
             workingDirectory: exampleDirectory,
           );
@@ -325,7 +324,7 @@ void e2eTests({required TestRunner testRunner}) {
           '--null-safety=sound',
           '--verbose',
         ];
-        final process = await runner.runWebDev(
+        final process = await testRunner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -409,7 +408,7 @@ void e2eTests({required TestRunner testRunner}) {
           '--enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await runner.runWebDev(
+        final process = await testRunner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -484,7 +483,7 @@ void e2eTests({required TestRunner testRunner}) {
           '--enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await runner.runWebDev(
+        final process = await testRunner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -569,7 +568,7 @@ void e2eTests({required TestRunner testRunner}) {
           '--no-enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await runner.runWebDev(
+        final process = await testRunner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );
@@ -641,7 +640,7 @@ void e2eTests({required TestRunner testRunner}) {
           '--no-enable-expression-evaluation',
           '--verbose',
         ];
-        final process = await runner.runWebDev(
+        final process = await testRunner.runWebDev(
           args,
           workingDirectory: exampleDirectory,
         );

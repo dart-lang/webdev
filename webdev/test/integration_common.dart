@@ -20,9 +20,8 @@ enum StreamType { stdout, stderr }
 const processTimeout = Duration(minutes: 1);
 
 void integrationTests({required TestRunner testRunner}) {
-  final runner = testRunner;
-  setUpAll(runner.setUpAll);
-  tearDownAll(runner.tearDownAll);
+  setUpAll(testRunner.setUpAll);
+  tearDownAll(testRunner.tearDownAll);
 
   Future<void> expectStdoutAndCleanExit(
     Process process, {
@@ -53,7 +52,7 @@ void integrationTests({required TestRunner testRunner}) {
   }
 
   test('non-existent commands create errors', () async {
-    final process = await runner.runWebDev(['monkey'], raw: true);
+    final process = await testRunner.runWebDev(['monkey'], raw: true);
 
     await expectLater(
       process.stdout,
@@ -64,7 +63,7 @@ void integrationTests({required TestRunner testRunner}) {
   });
 
   test('passing extra args to build fails with bad usage', () async {
-    final process = await runner.runWebDev(['build', 'extra', 'args']);
+    final process = await testRunner.runWebDev(['build', 'extra', 'args']);
 
     await expectLater(
       process.stdout,
@@ -82,14 +81,14 @@ void integrationTests({required TestRunner testRunner}) {
       await d
           .file(
             'pubspec.lock',
-            _pubspecLock(runnerVersion: '1.2.8', daemonVersion: '0.4.0'),
+            _pubspecLock(testRunnerVersion: '1.2.8', daemonVersion: '0.4.0'),
           )
           .create();
 
       await d.dir('.dart_tool', [d.file('package_config.json', '')]).create();
       await d.file('.dart_tool/package_config.json', '').create();
 
-      final process = await runner.runWebDev([
+      final process = await testRunner.runWebDev([
         'serve',
       ], workingDirectory: d.sandbox);
 
@@ -114,7 +113,7 @@ void integrationTests({required TestRunner testRunner}) {
           await d.file('pubspec.yaml', _pubspecYaml).create();
 
           await d
-              .file('pubspec.lock', _pubspecLock(runnerVersion: null))
+              .file('pubspec.lock', _pubspecLock(testRunnerVersion: null))
               .create();
 
           await d.dir('.dart_tool', [
@@ -122,7 +121,7 @@ void integrationTests({required TestRunner testRunner}) {
           ]).create();
           await d.file('.dart_tool/package_config.json', '').create();
 
-          final process = await runner.runWebDev([
+          final process = await testRunner.runWebDev([
             command,
           ], workingDirectory: d.sandbox);
 
@@ -142,7 +141,7 @@ void integrationTests({required TestRunner testRunner}) {
           ]).create();
           await d.file('.dart_tool/package_config.json', '').create();
 
-          final process = await runner.runWebDev([
+          final process = await testRunner.runWebDev([
             'serve',
           ], workingDirectory: d.sandbox);
 
@@ -166,7 +165,7 @@ void integrationTests({required TestRunner testRunner}) {
           // Required for webdev to not complain about nothing to serve.
           await d.dir('web').create();
 
-          final process = await runner.runWebDev([
+          final process = await testRunner.runWebDev([
             'serve',
             '--no-build-web-compilers',
           ], workingDirectory: d.sandbox);
@@ -200,7 +199,7 @@ void integrationTests({required TestRunner testRunner}) {
                   .file(
                     'pubspec.lock',
                     _pubspecLock(
-                      runnerVersion: buildRunnerVersion,
+                      testRunnerVersion: buildRunnerVersion,
                       webCompilersVersion: webCompilersVersion,
                       daemonVersion: buildDaemonVersion,
                     ),
@@ -212,7 +211,7 @@ void integrationTests({required TestRunner testRunner}) {
               ]).create();
               await d.file('.dart_tool/package_config.json', '').create();
 
-              final process = await runner.runWebDev([
+              final process = await testRunner.runWebDev([
                 'serve',
               ], workingDirectory: d.sandbox);
 
@@ -225,7 +224,7 @@ void integrationTests({required TestRunner testRunner}) {
       }
 
       test('no pubspec.yaml', () async {
-        final process = await runner.runWebDev([
+        final process = await testRunner.runWebDev([
           'serve',
         ], workingDirectory: d.sandbox);
 
@@ -236,7 +235,7 @@ void integrationTests({required TestRunner testRunner}) {
       test('pubspec.yaml, no pubspec.lock', () async {
         await d.file('pubspec.yaml', _pubspecYaml).create();
 
-        final process = await runner.runWebDev([
+        final process = await testRunner.runWebDev([
           'serve',
         ], workingDirectory: d.sandbox);
 
@@ -259,7 +258,7 @@ dependencies:
   args: ^1.0.0
 ''').create();
 
-        final process = await runner.runWebDev([
+        final process = await testRunner.runWebDev([
           'serve',
         ], workingDirectory: d.sandbox);
 
@@ -283,7 +282,7 @@ dependencies:
 
           final appPath = p.join(d.sandbox, 'temp_app');
 
-          final process = await runner.runWebDev([
+          final process = await testRunner.runWebDev([
             command,
             '--offline',
           ], workingDirectory: appPath);
@@ -305,7 +304,7 @@ String _pubspecYaml = '''
 ''';
 
 String _pubspecLock({
-  String? runnerVersion = _supportedBuildRunnerVersion,
+  String? testRunnerVersion = _supportedBuildRunnerVersion,
   String? webCompilersVersion = _supportedWebCompilersVersion,
   String? daemonVersion = _supportedBuildDaemonVersion,
   List<String> extraPkgs = const [],
@@ -315,7 +314,7 @@ String _pubspecLock({
 packages:
 ''');
 
-  if (runnerVersion != null) {
+  if (testRunnerVersion != null) {
     buffer.writeln('''
   build_runner:
     dependency: "direct dev"
@@ -323,7 +322,7 @@ packages:
       name: build_runner
       url: "https://pub.dev"
     source: hosted
-    version: "$runnerVersion"
+    version: "$testRunnerVersion"
 ''');
   }
 

@@ -13,16 +13,15 @@ import 'utils.dart';
 void launchAppTests({required TestRunner testRunner}) {
   late String exampleDirectory;
 
-  final runner = testRunner;
   setUpAll(() async {
-    await runner.setUpAll();
-    exampleDirectory = await runner.prepareWorkspace();
+    await testRunner.setUpAll();
+    exampleDirectory = await testRunner.prepareWorkspace();
   });
 
-  tearDownAll(runner.tearDownAll);
+  tearDownAll(testRunner.tearDownAll);
 
   test('--launch-app launches the specified app', () async {
-    final webdev = await runner.runWebDev([
+    final webdev = await testRunner.runWebDev([
       'daemon',
       '--launch-app=web/scopes.html',
     ], workingDirectory: exampleDirectory);

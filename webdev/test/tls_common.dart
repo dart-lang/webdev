@@ -21,12 +21,11 @@ void tlsTests({required TestRunner testRunner}) {
     // Change to true for debugging.
     const debug = false;
 
-    final runner = testRunner;
     late String exampleDirectory;
 
     setUpAll(() async {
       configureLogWriter(debug);
-      await runner.setUpAll();
+      await testRunner.setUpAll();
       exampleDirectory = p.absolute(
         p.join(
           p.current,
@@ -62,7 +61,7 @@ void tlsTests({required TestRunner testRunner}) {
         '--tls-cert-key=localhost+2-key.pem',
       ];
 
-      final process = await runner.runWebDev(
+      final process = await testRunner.runWebDev(
         args,
         workingDirectory: exampleDirectory,
       );
@@ -98,7 +97,7 @@ void tlsTests({required TestRunner testRunner}) {
         '--enable-experiment=dot-shorthands',
       ];
 
-      final process = await runner.runWebDev(
+      final process = await testRunner.runWebDev(
         args,
         workingDirectory: exampleDirectory,
       );

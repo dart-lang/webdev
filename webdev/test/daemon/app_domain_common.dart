@@ -16,18 +16,17 @@ import 'utils.dart';
 void appDomainTests({required TestRunner testRunner}) {
   late String exampleDirectory;
 
-  final runner = testRunner;
   setUpAll(() async {
-    await runner.setUpAll();
-    exampleDirectory = await runner.prepareWorkspace();
+    await testRunner.setUpAll();
+    exampleDirectory = await testRunner.prepareWorkspace();
   });
 
-  tearDownAll(runner.tearDownAll);
+  tearDownAll(testRunner.tearDownAll);
 
   group('AppDomain', () {
     group('Events', () {
       test('.start', () async {
-        final webdev = await runner.runWebDev([
+        final webdev = await testRunner.runWebDev([
           'daemon',
         ], workingDirectory: exampleDirectory);
         await expectLater(
@@ -38,7 +37,7 @@ void appDomainTests({required TestRunner testRunner}) {
       });
 
       test('.started', () async {
-        final webdev = await runner.runWebDev([
+        final webdev = await testRunner.runWebDev([
           'daemon',
         ], workingDirectory: exampleDirectory);
         await expectLater(
@@ -49,7 +48,7 @@ void appDomainTests({required TestRunner testRunner}) {
       });
 
       test('.debugPort', () async {
-        final webdev = await runner.runWebDev([
+        final webdev = await testRunner.runWebDev([
           'daemon',
         ], workingDirectory: exampleDirectory);
         await expectLater(
@@ -60,7 +59,7 @@ void appDomainTests({required TestRunner testRunner}) {
       });
 
       test('.log', () async {
-        final webdev = await runner.runWebDev([
+        final webdev = await testRunner.runWebDev([
           'daemon',
         ], workingDirectory: exampleDirectory);
         final appId = await waitForAppId(webdev);
@@ -80,7 +79,7 @@ void appDomainTests({required TestRunner testRunner}) {
 
     group('Methods', () {
       test('.callServiceExtension', () async {
-        final webdev = await runner.runWebDev([
+        final webdev = await testRunner.runWebDev([
           'daemon',
         ], workingDirectory: exampleDirectory);
         final appId = await waitForAppId(webdev);
@@ -107,7 +106,7 @@ void appDomainTests({required TestRunner testRunner}) {
       }, timeout: const Timeout(Duration(minutes: 2)));
 
       test('.reload', () async {
-        final webdev = await runner.runWebDev([
+        final webdev = await testRunner.runWebDev([
           'daemon',
         ], workingDirectory: exampleDirectory);
         final appId = await waitForAppId(webdev);
@@ -127,7 +126,7 @@ void appDomainTests({required TestRunner testRunner}) {
       }, timeout: const Timeout(Duration(minutes: 2)));
 
       test('.restart', () async {
-        final webdev = await runner.runWebDev([
+        final webdev = await testRunner.runWebDev([
           'daemon',
         ], workingDirectory: exampleDirectory);
         final appId = await waitForAppId(webdev);
@@ -157,7 +156,7 @@ void appDomainTests({required TestRunner testRunner}) {
       }, timeout: const Timeout(Duration(minutes: 2)));
 
       test('.stop', () async {
-        final webdev = await runner.runWebDev([
+        final webdev = await testRunner.runWebDev([
           'daemon',
         ], workingDirectory: exampleDirectory);
         final appId = await waitForAppId(webdev);

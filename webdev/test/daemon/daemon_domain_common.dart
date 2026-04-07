@@ -15,18 +15,17 @@ import 'utils.dart';
 void daemonDomainTests({required TestRunner testRunner}) {
   late String exampleDirectory;
 
-  final runner = testRunner;
   setUpAll(() async {
-    await runner.setUpAll();
-    exampleDirectory = await runner.prepareWorkspace();
+    await testRunner.setUpAll();
+    exampleDirectory = await testRunner.prepareWorkspace();
   });
 
-  tearDownAll(runner.tearDownAll);
+  tearDownAll(testRunner.tearDownAll);
 
   group('Daemon', () {
     group('Events', () {
       test('.connected', () async {
-        final webdev = await runner.runWebDev([
+        final webdev = await testRunner.runWebDev([
           'daemon',
         ], workingDirectory: exampleDirectory);
         await expectLater(
@@ -39,7 +38,7 @@ void daemonDomainTests({required TestRunner testRunner}) {
 
     group('Methods', () {
       test('.version', () async {
-        final webdev = await runner.runWebDev([
+        final webdev = await testRunner.runWebDev([
           'daemon',
         ], workingDirectory: exampleDirectory);
         webdev.stdin.add(utf8.encode('[{"method":"daemon.version","id":0}]\n'));
@@ -51,7 +50,7 @@ void daemonDomainTests({required TestRunner testRunner}) {
       });
 
       test('.shutdown', () async {
-        final webdev = await runner.runWebDev([
+        final webdev = await testRunner.runWebDev([
           'daemon',
         ], workingDirectory: exampleDirectory);
         webdev.stdin.add(
