@@ -59,6 +59,14 @@ void main() {
       );
     });
 
+    test('generates injected_client_js.dart', () {
+      final injectedFile = File(
+        p.join('lib', 'src', 'handlers', 'injected_client_js.dart'),
+      );
+      expect(injectedFile.existsSync(), isTrue);
+      expect(injectedFile.lengthSync(), greaterThan(0));
+    });
+
     test('injected_client_js.dart matches client.js content', () {
       final clientJsFile = File(p.join('lib', 'src', 'injected', 'client.js'));
       final actualClientJs = clientJsFile.readAsStringSync().replaceAll(
