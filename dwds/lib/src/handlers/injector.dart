@@ -193,28 +193,26 @@ Future<String> _injectedClientSnippet(
   final buildSettings = loadStrategy.buildSettings;
   final appMetadata = globalToolConfiguration.appMetadata;
   final debugSettings = globalToolConfiguration.debugSettings;
+  final reloadedSourcesPath = loadStrategy is DdcLibraryBundleStrategy
+      ? 'window.\$reloadedSourcesPath = "${loadStrategy.reloadedSourcesUri}";\n'
+      : '';
 
   var injectedBody =
-      '''
-window.\$dartAppId = "$appId";
-window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";
-window.\$dartModuleStrategy = "${loadStrategy.id}";
-window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};
-window.\$dwdsVersion = "$packageVersion";
-window.\$dwdsDevHandlerPath = "$devHandlerPath";
-window.\$dwdsEnableDevToolsLaunch = ${debugSettings.enableDevToolsLaunch};
-window.\$dartEntrypointPath = "$entrypointPath";
-window.\$dartEmitDebugEvents = ${debugSettings.emitDebugEvents};
-window.\$isInternalBuild = ${appMetadata.isInternalBuild};
-window.\$isFlutterApp = ${buildSettings.isFlutterApp};
-''';
-
-  if (loadStrategy is DdcLibraryBundleStrategy) {
-    final reloadedSourcesPath = loadStrategy.reloadedSourcesUri == null
-        ? ''
-        : loadStrategy.reloadedSourcesUri.toString();
-    injectedBody += 'window.\$reloadedSourcesPath = "$reloadedSourcesPath";\n';
-  }
+      'window.\$dartAppId = "$appId";\n'
+      'window.\$dartReloadConfiguration = '
+      '"${loadStrategy.reloadConfiguration}";\n'
+      'window.\$dartModuleStrategy = "${loadStrategy.id}";\n'
+      'window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
+      'window.\$dwdsVersion = "$packageVersion";\n'
+      'window.\$dwdsDevHandlerPath = "$devHandlerPath";\n'
+      'window.\$dwdsEnableDevToolsLaunch = '
+      '${debugSettings.enableDevToolsLaunch};\n'
+      'window.\$dartEntrypointPath = "$entrypointPath";\n'
+      'window.\$dartEmitDebugEvents = ${debugSettings.emitDebugEvents};\n'
+      'window.\$isInternalBuild = ${appMetadata.isInternalBuild};\n'
+      'window.\$isFlutterApp = ${buildSettings.isFlutterApp};\n'
+      '$reloadedSourcesPath'
+      '${loadStrategy.loadClientSnippet(_clientScript)}';
 
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';
@@ -225,7 +223,7 @@ window.\$isFlutterApp = ${buildSettings.isFlutterApp};
     injectedBody += 'window.\$dartWorkspaceName = "$workspaceName";\n';
   }
 
-  return '$injectedBody\n${loadStrategy.loadClientSnippet(_clientScript)};';
+  return injectedBody;
 }
 
 final _utf8FusedConverter = utf8.encoder.fuse(md5);
