@@ -11,22 +11,24 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
-  test('injected_client_js.dart is in sync with web/client.dart', () {
-    final clientDartBytes = File('web/client.dart').readAsBytesSync();
-    final expectedHash = sha256.convert(clientDartBytes).toString();
+  group('Committed file integrity tests', () {
+    test('injected_client_js.dart is in sync with web/client.dart', () {
+      final clientDartBytes = File('web/client.dart').readAsBytesSync();
+      final expectedHash = sha256.convert(clientDartBytes).toString();
 
-    expect(
-      clientDartHash,
-      equals(expectedHash),
-      reason:
-          'The hash of web/client.dart does not match clientDartHash '
-          'in injected_client_js.dart. '
-          'Please run `dart run tool/build.dart` to regenerate the asset.',
-    );
-  });
+      expect(
+        clientDartHash,
+        equals(expectedHash),
+        reason:
+            'The hash of web/client.dart does not match clientDartHash '
+            'in injected_client_js.dart. '
+            'Please run `dart run tool/build.dart` to regenerate the asset.',
+      );
+    });
 
-  test('injected_client_js.dart has normalized line endings', () {
-    expect(injectedClientJs.contains('\r'), isFalse);
+    test('injected_client_js.dart has normalized line endings', () {
+      expect(injectedClientJs.contains('\r'), isFalse);
+    });
   });
 
   group('Build script tests', () {
