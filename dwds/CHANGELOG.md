@@ -1,4 +1,4 @@
-## 27.0.1-wip
+## 27.0.1
 - Replace `package:uuid` dependency with internal `Uuid` class for generating version 4 UUIDs.
 - Add DDC Library Bundle tests in `dwds/test/integration/instances`.
 - Fix WebSocket reconnection hang by ensuring Dart isolate recreation when a new browser client reuses an `AppDebugServices`.
@@ -14,6 +14,7 @@
 - Split additional tests across DDC module systems.
 - Fix issue where `DebugConnection` did not complete `onDone` if `WebkitDebugger` fails to reconnect to the debugger after the connection closes.
 - Fix `FormatException` in `ExtensionDebugger` by making `ExtensionEvent.fromJson` robust to missing headers and Map-typed params.
+- Fix `StateError` in `DwdsInjector` during AOT execution by bundling `client.js` as a statically compiled asset.
 
 ## 27.0.0
 - Remove `package:built_value`, `package:built_value_generator`, and `package:built_collection` dependencies.
