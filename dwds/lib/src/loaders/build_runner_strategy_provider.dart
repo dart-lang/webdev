@@ -45,8 +45,8 @@ class BuildRunnerRequireStrategyProvider with BuildRunnerStrategyProviderMixin {
     this._configuration,
     this._assetReader,
     this._buildSettings, {
-    String? packageConfigPath,
-  }) : _packageConfigPath = packageConfigPath;
+    this._packageConfigPath,
+  });
 
   RequireStrategy get strategy => _requireStrategy;
 }
@@ -118,11 +118,10 @@ class BuildRunnerDdcLibraryBundleStrategyProvider
     this._configuration,
     this._assetReader,
     this._buildSettings, {
-    String? packageConfigPath,
-    Uri? reloadedSourcesUri,
+    this._packageConfigPath,
+    this._reloadedSourcesUri,
     this.injectScriptLoad = false,
-  }) : _packageConfigPath = packageConfigPath,
-       _reloadedSourcesUri = reloadedSourcesUri;
+  });
 
   DdcLibraryBundleStrategy get strategy => _strategy;
 }
