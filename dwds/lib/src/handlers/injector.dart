@@ -5,10 +5,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds/src/handlers/injected_client_js.dart';
 import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/version.dart';
 import 'package:logging/logging.dart';
@@ -44,16 +44,12 @@ class DwdsInjector {
   Middleware get middleware => (innerHandler) {
     return (Request request) async {
       if (request.url.path.endsWith('$_clientScript.js')) {
-        final uri = await Isolate.resolvePackageUri(
-          Uri.parse('package:$_clientScript.js'),
-        );
-        if (uri == null) {
-          throw StateError('Cannot resolve "package:$_clientScript.js"');
-        }
-        final result = await File(uri.toFilePath()).readAsString();
         return Response.ok(
-          result,
-          headers: {HttpHeaders.contentTypeHeader: 'application/javascript'},
+          injectedClientJs,
+          headers: {
+            HttpHeaders.contentTypeHeader: 'application/javascript',
+            HttpHeaders.cacheControlHeader: 'no-cache',
+          },
         );
       } else if (request.url.path.endsWith(bootstrapJsExtension)) {
         final ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
