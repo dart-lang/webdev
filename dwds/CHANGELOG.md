@@ -1,4 +1,9 @@
-## 27.0.1-wip
+## 27.1.0-wip
+
+- Add `appName` to `DartDevelopmentServiceConfiguration`.
+
+## 27.0.1
+
 - Replace `package:uuid` dependency with internal `Uuid` class for generating version 4 UUIDs.
 - Add DDC Library Bundle tests in `dwds/test/integration/instances`.
 - Fix WebSocket reconnection hang by ensuring Dart isolate recreation when a new browser client reuses an `AppDebugServices`.
@@ -14,8 +19,10 @@
 - Split additional tests across DDC module systems.
 - Fix issue where `DebugConnection` did not complete `onDone` if `WebkitDebugger` fails to reconnect to the debugger after the connection closes.
 - Fix `FormatException` in `ExtensionDebugger` by making `ExtensionEvent.fromJson` robust to missing headers and Map-typed params.
+- Fix `StateError` in `DwdsInjector` during AOT execution by bundling `client.js` as a statically compiled asset.
 
 ## 27.0.0
+
 - Remove `package:built_value`, `package:built_value_generator`, and `package:built_collection` dependencies.
 - Remove `serializers.dart` and `data_serializers.dart`.
 - Remove `package:built_value` dependency from `ConnectFailure`, `DebugStateChange`, `DevToolsOpener`, `DevToolsUrl`, `IsolateStart`, `IsolateExit`, `DevToolsRequest`, `DevToolsResponse`, `ExtensionRequest`, `ExtensionResponse`, `ExtensionEvent`, and `BatchedEvents`; switch to standard Dart JSON serialization.
@@ -30,10 +37,12 @@
 - Bump `build_web_compilers` to ^4.4.12.
 
 ## 26.2.5
+
 - Remove `package:built_value` dependency from `ErrorResponse` and `RegisterEvent`; switch to standard Dart JSON serialization.
 - Adding retries to Chrome Proxy Service connections.
 
 ## 26.2.4
+
 - Remove `package:built_value` dependency from `DebugEvent`, `BatchedDebugEvents`, `ConnectRequest`, `RunRequest`, `DebugInfo`, `HotReloadRequest`, `HotReloadResponse`, `HotRestartRequest`, `HotRestartResponse`, `ServiceExtensionRequest`, `ServiceExtensionResponse` and `BuildResult`; switch to standard Dart JSON serialization.
 - Adding guards for dwds-injected library loading for Flutter Web.
 
@@ -572,7 +581,6 @@
 ## 11.5.0
 
 - Support hot restart in a multi-app scenario with legacy modules.
-
   - Rename `$dartHotRestart` in the injected client to `$dartHotRestartDwds`.
   - Make `$dartHotRestartDwds` take a `runId`.
   - No change in behavior for single applications.

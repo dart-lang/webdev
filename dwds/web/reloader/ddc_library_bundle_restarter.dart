@@ -121,9 +121,7 @@ class DdcLibraryBundleRestarter implements Restarter {
     final srcModuleLibraries = await _getSrcModuleLibraries(
       reloadedSourcesPath!,
     );
-    // Unawaited so [DdcLibraryBundleRestarter] can send a response before hot
-    // restart forcibly closes the connection.
-    unawaited(_dartDevEmbedder.hotRestart().toDart);
+    await _dartDevEmbedder.hotRestart().toDart;
 
     return (true, srcModuleLibraries.jsify() as JSArray<JSObject>?);
   }

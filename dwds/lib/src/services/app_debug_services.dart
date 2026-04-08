@@ -28,9 +28,9 @@ class AppDebugServices<
   AppDebugServices({
     required this.debugService,
     required this.dwdsVmClient,
-    required DartDevelopmentServiceLauncher? dds,
+    required this._dds,
     this.dwdsStats,
-  }) : _dds = dds;
+  });
 
   ProxyService get proxyService => debugService.proxyService;
 
