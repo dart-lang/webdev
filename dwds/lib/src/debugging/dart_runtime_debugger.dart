@@ -9,10 +9,9 @@ class DartRuntimeDebugger {
   final bool _useLibraryBundleExpression;
 
   DartRuntimeDebugger({
-    required LoadStrategy loadStrategy,
-    required bool useLibraryBundleExpression,
-  }) : _loadStrategy = loadStrategy,
-       _useLibraryBundleExpression = useLibraryBundleExpression;
+    required this._loadStrategy,
+    required this._useLibraryBundleExpression,
+  });
 
   /// Generates a JS expression based on DDC module format.
   String _generateJsExpression(

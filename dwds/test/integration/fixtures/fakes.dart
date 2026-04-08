@@ -155,12 +155,10 @@ class FakeModules implements Modules {
   final String _path;
 
   FakeModules({
-    String library = 'main.dart',
-    String module = 'main',
-    String path = 'web/main.dart',
-  }) : _library = library,
-       _module = module,
-       _path = path;
+    this._library = 'main.dart',
+    this._module = 'main',
+    this._path = 'web/main.dart',
+  });
 
   @override
   Future<void> initialize(
@@ -202,7 +200,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
   @override
   Future enable() async => null;
 
-  FakeWebkitDebugger({Map<String, WipScript>? scripts}) : _scripts = scripts {
+  FakeWebkitDebugger({this._scripts}) {
     final buildSettings = TestBuildSettings.dart(
       appEntrypoint: Uri.parse('package:fakeapp/main.dart'),
     );
@@ -428,9 +426,7 @@ class FakeAssetReader implements AssetReader {
   String? metadata;
   final String? _dartSource;
   final String? _sourceMap;
-  FakeAssetReader({this.metadata, String? dartSource, String? sourceMap})
-    : _dartSource = dartSource,
-      _sourceMap = sourceMap;
+  FakeAssetReader({this.metadata, this._dartSource, this._sourceMap});
 
   @override
   String get basePath => '';

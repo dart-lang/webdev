@@ -32,7 +32,7 @@ stages:
       sdk:
         - dev
         - main
-      os: 
+      os:
         - linux
         - windows
     # Second test shard:
@@ -41,7 +41,7 @@ stages:
       sdk:
         - dev
         - main
-      os: 
+      os:
         - linux
         - windows
     # Third test shard:
@@ -50,7 +50,7 @@ stages:
       sdk:
         - dev
         - main
-      os: 
+      os:
         - linux
         - windows
   - beta_cron:

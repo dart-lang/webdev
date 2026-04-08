@@ -235,9 +235,9 @@ class ExpressionCompilerService implements ExpressionCompiler {
   ExpressionCompilerService(
     this._address,
     this._port, {
-    bool verbose = false,
+    this._verbose = false,
     required this.sdkConfigurationProvider,
-  }) : _verbose = verbose;
+  });
 
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(

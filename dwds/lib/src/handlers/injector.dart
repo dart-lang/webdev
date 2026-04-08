@@ -34,7 +34,7 @@ class DwdsInjector {
   final _devHandlerPaths = StreamController<String>();
   final _logger = Logger('DwdsInjector');
 
-  DwdsInjector({Future<String>? extensionUri}) : _extensionUri = extensionUri;
+  DwdsInjector({this._extensionUri});
 
   /// Returns the embedded dev handler paths.
   ///

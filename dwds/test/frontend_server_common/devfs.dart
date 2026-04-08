@@ -311,12 +311,10 @@ class UpdateFSReport {
   final int _syncedBytes;
 
   UpdateFSReport({
-    bool success = false,
-    int invalidatedSourcesCount = 0,
-    int syncedBytes = 0,
-  }) : _success = success,
-       _invalidatedSourcesCount = invalidatedSourcesCount,
-       _syncedBytes = syncedBytes;
+    this._success = false,
+    this._invalidatedSourcesCount = 0,
+    this._syncedBytes = 0,
+  });
 
   bool get success => _success;
   int get invalidatedSourcesCount => _invalidatedSourcesCount;
@@ -339,8 +337,7 @@ class InvalidationResult {
 /// The [ProjectFileInvalidator] track the dependencies for a running
 /// application to determine when they are dirty.
 class ProjectFileInvalidator {
-  ProjectFileInvalidator({required FileSystem fileSystem})
-    : _fileSystem = fileSystem;
+  ProjectFileInvalidator({required this._fileSystem});
 
   final FileSystem _fileSystem;
 
