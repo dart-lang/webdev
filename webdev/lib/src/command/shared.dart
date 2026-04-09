@@ -89,6 +89,13 @@ void addSharedArgs(
       hide: true,
       help: 'Enables DDC canary features.',
     )
+    ..addFlag(
+      webHotReloadFlag,
+      defaultsTo: false,
+      negatable: true,
+      hide: true,
+      help: 'Enables hot reload with DDC library bundle.',
+    )
     ..addOption(
       moduleFormatFlag,
       defaultsTo: 'amd',
@@ -133,7 +140,7 @@ List<String> buildRunnerArgs(Configuration configuration) {
     arguments.add('--enable-experiment=$experiment');
   }
 
-  if (configuration.canaryFeatures) {
+  if (configuration.webHotReload) {
     arguments
       ..add('--define')
       ..add('build_web_compilers|sdk_js=web-hot-reload=true');
@@ -149,9 +156,7 @@ List<String> buildRunnerArgs(Configuration configuration) {
     arguments
       ..add('--define')
       ..add('build_web_compilers|ddc_modules=web-hot-reload=true');
-  }
-
-  if (configuration.moduleFormat == 'ddc') {
+  } else if (configuration.canaryFeatures || configuration.moduleFormat == 'ddc') {
     arguments
       ..add('--define')
       ..add('build_web_compilers|ddc=ddc-library-bundle=true');

@@ -14,7 +14,7 @@ import 'test_utils.dart';
 void main() {
   integrationTests(
     testRunner: TestRunner(
-      canaryFeatures: false,
+      webHotReload: false,
       ddcModuleFormat: ModuleFormat.amd,
     ),
   );

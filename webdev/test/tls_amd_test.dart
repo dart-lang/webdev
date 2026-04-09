@@ -14,7 +14,7 @@ import 'tls_common.dart';
 void main() {
   tlsTests(
     testRunner: TestRunner(
-      canaryFeatures: false,
+      webHotReload: false,
       ddcModuleFormat: ModuleFormat.amd,
     ),
   );

@@ -190,15 +190,13 @@ class WebDevServer {
         appEntrypoint: Uri.parse(
           '$multiRootScheme:///${options.target}/main.dart',
         ),
-        canaryFeatures:
-            options.configuration.canaryFeatures ||
-            (options.configuration.moduleFormat == 'ddc'),
+        canaryFeatures: options.configuration.canaryFeatures,
         isFlutterApp: false,
         experiments: options.configuration.experiments,
       );
 
       final LoadStrategy loadStrategy;
-      if (options.configuration.canaryFeatures) {
+      if (options.configuration.webHotReload) {
         final frontendServerFileSystem = LocalFileSystem();
         final packageUriMapper = await PackageUriMapper.create(
           frontendServerFileSystem,

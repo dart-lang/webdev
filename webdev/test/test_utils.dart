@@ -19,10 +19,12 @@ class TestRunner {
   late TestSdkLayout sdkLayout;
   final bool canaryFeatures;
   final ModuleFormat ddcModuleFormat;
+  final bool webHotReload;
 
   TestRunner({
     this.canaryFeatures = false,
     this.ddcModuleFormat = ModuleFormat.amd,
+    this.webHotReload = false,
   });
 
   Future<void> setUpAll({bool verbose = false}) async {
@@ -69,12 +71,25 @@ class TestRunner {
         }
       }
 
-      if (ddcModuleFormat == ModuleFormat.ddc) {
+      if (webHotReload) {
         final dashDashIndex = fullArgs.indexOf('--');
         if (dashDashIndex != -1) {
-          fullArgs.insertAll(dashDashIndex, ['--module-format', 'ddc']);
+          fullArgs.insertAll(dashDashIndex, ['--web-hot-reload']);
         } else {
-          fullArgs.addAll(['--module-format', 'ddc']);
+          fullArgs.add('--web-hot-reload');
+        }
+      }
+
+      if (ddcModuleFormat == ModuleFormat.ddc) {
+        final dashDashIndex = fullArgs.indexOf('--');
+        final extraArgs = ['--module-format', 'ddc'];
+        if (!canaryFeatures) {
+          extraArgs.add('--canary');
+        }
+        if (dashDashIndex != -1) {
+          fullArgs.insertAll(dashDashIndex, extraArgs);
+        } else {
+          fullArgs.addAll(extraArgs);
         }
       }
     }

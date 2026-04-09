@@ -39,6 +39,7 @@ const enableExperimentOption = 'enable-experiment';
 const canaryFeaturesFlag = 'canary';
 const moduleFormatFlag = 'module-format';
 const offlineFlag = 'offline';
+const webHotReloadFlag = 'web-hot-reload';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
   var auto = argResults.options.contains(autoOption)
@@ -114,6 +115,7 @@ class Configuration {
   final bool? _canaryFeatures;
   final String? _moduleFormat;
   final bool? _offline;
+  final bool? _webHotReload;
 
   Configuration({
     bool? autoRun,
@@ -142,6 +144,7 @@ class Configuration {
     bool? canaryFeatures,
     String? moduleFormat,
     bool? offline,
+    bool? webHotReload,
   }) : _autoRun = autoRun,
        _chromeDebugPort = chromeDebugPort,
        _debugExtension = debugExtension,
@@ -165,7 +168,8 @@ class Configuration {
        _experiments = experiments,
        _canaryFeatures = canaryFeatures,
        _moduleFormat = moduleFormat,
-       _offline = offline {
+       _offline = offline,
+       _webHotReload = webHotReload {
     _validateConfiguration();
   }
 
@@ -220,6 +224,22 @@ class Configuration {
         '--$userDataDir can only be used with --$launchInChromeFlag',
       );
     }
+
+    if (webHotReload) {
+      if (!canaryFeatures || moduleFormat != 'ddc') {
+        throw InvalidConfiguration(
+          '--$webHotReloadFlag requires --$canaryFeaturesFlag and --$moduleFormatFlag=ddc.',
+        );
+      }
+    }
+
+    if (moduleFormat == 'ddc') {
+      if (!canaryFeatures) {
+        throw InvalidConfiguration(
+          '--$moduleFormatFlag=ddc requires --$canaryFeaturesFlag.',
+        );
+      }
+    }
   }
 
   /// Creates a new [Configuration] with all non-null fields from
@@ -251,6 +271,7 @@ class Configuration {
     canaryFeatures: other._canaryFeatures ?? _canaryFeatures,
     moduleFormat: other._moduleFormat ?? _moduleFormat,
     offline: other._offline ?? _offline,
+    webHotReload: other._webHotReload ?? _webHotReload,
   );
 
   factory Configuration.noInjectedClientDefaults() =>
@@ -306,9 +327,11 @@ class Configuration {
 
   bool get canaryFeatures => _canaryFeatures ?? false;
 
+  bool get webHotReload => _webHotReload ?? false;
+
   String get moduleFormat => _moduleFormat ?? 'amd';
 
-  bool get usesDdcLibraryBundle => canaryFeatures || (moduleFormat == 'ddc');
+  bool get usesDdcLibraryBundle => canaryFeatures || (moduleFormat == 'ddc') || webHotReload;
 
   bool get offline => _offline ?? false;
 
@@ -438,9 +461,10 @@ class Configuration {
         ? argResults[enableExperimentOption] as List<String>?
         : defaultConfiguration.experiments;
 
-    final canaryFeatures = argResults.options.contains(canaryFeaturesFlag)
+    final canaryFeatures = argResults.options.contains(canaryFeaturesFlag) &&
+            argResults.wasParsed(canaryFeaturesFlag)
         ? argResults[canaryFeaturesFlag] as bool?
-        : defaultConfiguration.canaryFeatures;
+        : defaultConfiguration._canaryFeatures;
 
     final moduleFormat = argResults.options.contains(moduleFormatFlag)
         ? argResults[moduleFormatFlag] as String?
@@ -448,7 +472,12 @@ class Configuration {
 
     final offline = argResults.options.contains(offlineFlag)
         ? argResults[offlineFlag] as bool?
-        : defaultConfiguration.verbose;
+        : defaultConfiguration.offline;
+
+    final webHotReload = argResults.options.contains(webHotReloadFlag) &&
+            argResults.wasParsed(webHotReloadFlag)
+        ? argResults[webHotReloadFlag] as bool?
+        : defaultConfiguration._webHotReload;
 
     return Configuration(
       autoRun: defaultConfiguration.autoRun,
@@ -477,6 +506,7 @@ class Configuration {
       canaryFeatures: canaryFeatures,
       moduleFormat: moduleFormat,
       offline: offline,
+      webHotReload: webHotReload,
     );
   }
 }
