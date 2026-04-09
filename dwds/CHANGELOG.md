@@ -1,4 +1,4 @@
-## 27.1.0-wip
+## 27.1.0
 
 - Add `appName` to `DartDevelopmentServiceConfiguration`.
 - Add `dartExecutable` to `DartDevelopmentServiceConfiguration`.
