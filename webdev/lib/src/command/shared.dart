@@ -156,7 +156,8 @@ List<String> buildRunnerArgs(Configuration configuration) {
     arguments
       ..add('--define')
       ..add('build_web_compilers|ddc_modules=web-hot-reload=true');
-  } else if (configuration.canaryFeatures || configuration.moduleFormat == 'ddc') {
+  } else if (configuration.canaryFeatures ||
+      configuration.moduleFormat == 'ddc') {
     arguments
       ..add('--define')
       ..add('build_web_compilers|ddc=ddc-library-bundle=true');

@@ -331,7 +331,8 @@ class Configuration {
 
   String get moduleFormat => _moduleFormat ?? 'amd';
 
-  bool get usesDdcLibraryBundle => canaryFeatures || (moduleFormat == 'ddc') || webHotReload;
+  bool get usesDdcLibraryBundle =>
+      canaryFeatures || (moduleFormat == 'ddc') || webHotReload;
 
   bool get offline => _offline ?? false;
 
@@ -461,7 +462,8 @@ class Configuration {
         ? argResults[enableExperimentOption] as List<String>?
         : defaultConfiguration.experiments;
 
-    final canaryFeatures = argResults.options.contains(canaryFeaturesFlag) &&
+    final canaryFeatures =
+        argResults.options.contains(canaryFeaturesFlag) &&
             argResults.wasParsed(canaryFeaturesFlag)
         ? argResults[canaryFeaturesFlag] as bool?
         : defaultConfiguration._canaryFeatures;
@@ -474,7 +476,8 @@ class Configuration {
         ? argResults[offlineFlag] as bool?
         : defaultConfiguration.offline;
 
-    final webHotReload = argResults.options.contains(webHotReloadFlag) &&
+    final webHotReload =
+        argResults.options.contains(webHotReloadFlag) &&
             argResults.wasParsed(webHotReloadFlag)
         ? argResults[webHotReloadFlag] as bool?
         : defaultConfiguration._webHotReload;
