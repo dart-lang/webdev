@@ -15,6 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
@@ -29,6 +30,22 @@ Logger _logger = Logger('WebDevServer');
 const reloadedSourcesFileName = 'reloaded_sources.json';
 const jsLibraryBundleExtension = '.ddc.js';
 const multiRootScheme = 'org-dartlang-app';
+
+/// A custom [SdkConfigurationProvider] that resolves the SDK directory
+/// using the `dartPath` from `util.dart`.
+///
+/// [DefaultSdkConfigurationProvider] uses [Platform.resolvedExecutable] to
+/// find the SDK, which points to the AOT binary instead of the Dart SDK when
+/// `webdev` is running in AOT mode.
+class WebdevSdkConfigurationProvider extends SdkConfigurationProvider {
+  const WebdevSdkConfigurationProvider();
+
+  @override
+  Future<SdkConfiguration> get configuration async {
+    final sdkDir = p.dirname(p.dirname(dartPath));
+    return SdkConfiguration.fromSdkLayout(SdkLayout.createDefault(sdkDir));
+  }
+}
 
 class ServerOptions {
   final Configuration configuration;
@@ -226,7 +243,7 @@ class WebDevServer {
           options.configuration.hostname,
           options.port,
           verbose: options.configuration.verbose,
-          sdkConfigurationProvider: const DefaultSdkConfigurationProvider(),
+          sdkConfigurationProvider: const WebdevSdkConfigurationProvider(),
         );
       }
       final shouldServeDevTools =
@@ -238,6 +255,7 @@ class WebDevServer {
         ddsConfiguration: DartDevelopmentServiceConfiguration(
           enable: !options.configuration.disableDds,
           serveDevTools: shouldServeDevTools,
+          dartExecutable: dartPath,
         ),
         expressionCompiler: ddcService,
       );
