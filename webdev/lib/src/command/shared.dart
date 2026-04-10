@@ -89,13 +89,6 @@ void addSharedArgs(
       hide: true,
       help: 'Enables DDC canary features.',
     )
-    ..addFlag(
-      webHotReloadFlag,
-      defaultsTo: false,
-      negatable: true,
-      hide: true,
-      help: 'Enables hot reload with DDC library bundle.',
-    )
     ..addOption(
       moduleFormatFlag,
       defaultsTo: 'amd',
