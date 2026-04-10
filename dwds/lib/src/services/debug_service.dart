@@ -135,6 +135,7 @@ abstract class DebugService<T extends ProxyService> {
       ),
       devToolsServerAddress: ddsConfig.devToolsServerAddress,
       serveDevTools: ddsConfig.serveDevTools,
+      dartExecutable: ddsConfig.dartExecutable,
     );
     return _dds!;
   }

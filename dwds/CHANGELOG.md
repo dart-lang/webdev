@@ -1,3 +1,9 @@
+
+## 27.0.2
+
+- Add `appName` to `DartDevelopmentServiceConfiguration`.
+- Add `dartExecutable` to `DartDevelopmentServiceConfiguration`.
+
 ## 27.0.1
 - Replace `package:uuid` dependency with internal `Uuid` class for generating version 4 UUIDs.
 - Add DDC Library Bundle tests in `dwds/test/integration/instances`.

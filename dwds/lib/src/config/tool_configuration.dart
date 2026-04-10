@@ -57,12 +57,14 @@ class DartDevelopmentServiceConfiguration {
     this.port,
     this.serveDevTools = true,
     this.devToolsServerAddress,
+    this.dartExecutable,
   });
 
   final bool enable;
   final int? port;
   final bool serveDevTools;
   final Uri? devToolsServerAddress;
+  final String? dartExecutable;
 }
 
 /// Debug settings for the connected app.
