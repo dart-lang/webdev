@@ -74,7 +74,9 @@ class TestRunner {
       if (webHotReload) {
         final dashDashIndex = fullArgs.indexOf('--');
         if (dashDashIndex != -1) {
-          fullArgs.insertAll(dashDashIndex, ['--enable-experiment=web-hot-reload']);
+          fullArgs.insertAll(dashDashIndex, [
+            '--enable-experiment=web-hot-reload',
+          ]);
         } else {
           fullArgs.add('--enable-experiment=web-hot-reload');
         }
