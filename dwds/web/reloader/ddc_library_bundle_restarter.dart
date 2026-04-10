@@ -103,7 +103,7 @@ class DdcLibraryBundleRestarter implements Restarter {
   }
 
   @override
-  Future<(bool, JSArray<JSObject>?)> restart({
+  Future<(bool, JSArray<JSObject>)> restart({
     String? runId,
     Future? readyToRunMain,
     String? reloadedSourcesPath,
@@ -123,7 +123,7 @@ class DdcLibraryBundleRestarter implements Restarter {
     );
     await _dartDevEmbedder.hotRestart().toDart;
 
-    return (true, srcModuleLibraries.jsify() as JSArray<JSObject>?);
+    return (true, srcModuleLibraries.jsify() as JSArray<JSObject>);
   }
 
   @override
