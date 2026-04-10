@@ -122,7 +122,6 @@ class DdcLibraryBundleRestarter implements Restarter {
       reloadedSourcesPath!,
     );
     await _dartDevEmbedder.hotRestart().toDart;
-
     return (true, srcModuleLibraries.jsify() as JSArray<JSObject>);
   }
 
