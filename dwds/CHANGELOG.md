@@ -15,6 +15,7 @@
 - Fix issue where `DebugConnection` did not complete `onDone` if `WebkitDebugger` fails to reconnect to the debugger after the connection closes.
 - Fix `FormatException` in `ExtensionDebugger` by making `ExtensionEvent.fromJson` robust to missing headers and Map-typed params.
 - Fix `StateError` in `DwdsInjector` during AOT execution by bundling `client.js` as a statically compiled asset.
+- Report errors when an empty reloaded_sources.json is seen in the DDC Library Bundle module system.
 
 ## 27.0.0
 - Remove `package:built_value`, `package:built_value_generator`, and `package:built_collection` dependencies.

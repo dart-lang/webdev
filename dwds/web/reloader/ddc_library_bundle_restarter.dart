@@ -81,12 +81,18 @@ class DdcLibraryBundleRestarter implements Restarter {
   Future<List<Map>> _getSrcModuleLibraries(String reloadedSourcesPath) async {
     final completer = Completer<String>();
     final xhr = _XMLHttpRequest();
-    xhr.withCredentials = true;
     xhr.onreadystatechange = () {
-      // If the request has completed and OK, or the response has not
-      // changed.
-      if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
-        completer.complete(xhr.responseText);
+      // If the request has completed and is OK or unchanged, send the response
+      // text. Otherwise, we should report an error reading the reloaded
+      // sources file.
+      if (xhr.readyState == 4) {
+        if (xhr.status == 200 || xhr.status == 304) {
+          completer.complete(xhr.responseText);
+        } else {
+          completer.completeError(
+            'Failed to fetch reloaded sources at $reloadedSourcesPath.',
+          );
+        }
       }
     }.toJS;
     xhr.get(reloadedSourcesPath, true);
@@ -97,7 +103,7 @@ class DdcLibraryBundleRestarter implements Restarter {
   }
 
   @override
-  Future<(bool, JSArray<JSObject>?)> restart({
+  Future<(bool, JSArray<JSObject>)> restart({
     String? runId,
     Future? readyToRunMain,
     String? reloadedSourcesPath,
