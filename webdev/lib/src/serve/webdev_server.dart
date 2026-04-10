@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
-import 'package:dwds/sdk_configuration.dart';
 import 'package:file/local.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
@@ -45,7 +44,7 @@ class WebdevSdkConfigurationProvider extends SdkConfigurationProvider {
   Future<SdkConfiguration> get configuration async {
     final sdkDir = p.dirname(p.dirname(dartPath));
     final defaultLayout = SdkLayout.createDefault(sdkDir);
-    
+
     if (!useAotDdc) {
       return SdkConfiguration.fromSdkLayout(defaultLayout);
     }
@@ -260,11 +259,12 @@ class WebDevServer {
 
       // Check that we're running from a compiled binary (like webdev.exe) and not
       // from source or snapshot.
-      final isAotMode = !Platform.script.path.endsWith('.dart') &&
+      final isAotMode =
+          !Platform.script.path.endsWith('.dart') &&
           !Platform.script.path.endsWith('.snapshot') &&
           !Platform.script.path.endsWith('.dill');
 
-      bool useAotDdc = false;
+      var useAotDdc = false;
       if (isAotMode) {
         final sdkDir = p.dirname(p.dirname(dartPath));
         final aotSnapshotPath = p.join(
@@ -289,7 +289,9 @@ class WebDevServer {
             options.configuration.hostname,
             options.port,
             verbose: options.configuration.verbose,
-            sdkConfigurationProvider: WebdevSdkConfigurationProvider(useAotDdc: useAotDdc),
+            sdkConfigurationProvider: WebdevSdkConfigurationProvider(
+              useAotDdc: useAotDdc,
+            ),
           );
         }
       }
