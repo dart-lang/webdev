@@ -16,6 +16,7 @@ import 'package:http/io_client.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
@@ -34,16 +35,35 @@ const multiRootScheme = 'org-dartlang-app';
 /// A custom [SdkConfigurationProvider] that resolves the SDK directory
 /// using the `dartPath` from `util.dart`.
 ///
-/// [DefaultSdkConfigurationProvider] uses [Platform.resolvedExecutable] to
-/// find the SDK, which points to the AOT binary instead of the Dart SDK when
-/// `webdev` is running in AOT mode.
+/// Uses dartdevc's AOT snapshot if running in AOT mode.
 class WebdevSdkConfigurationProvider extends SdkConfigurationProvider {
-  const WebdevSdkConfigurationProvider();
+  final bool useAotDdc;
+
+  const WebdevSdkConfigurationProvider({this.useAotDdc = false});
 
   @override
   Future<SdkConfiguration> get configuration async {
     final sdkDir = p.dirname(p.dirname(dartPath));
-    return SdkConfiguration.fromSdkLayout(SdkLayout.createDefault(sdkDir));
+    final defaultLayout = SdkLayout.createDefault(sdkDir);
+    
+    if (!useAotDdc) {
+      return SdkConfiguration.fromSdkLayout(defaultLayout);
+    }
+
+    final aotSnapshotPath = p.join(
+      sdkDir,
+      'bin',
+      'snapshots',
+      'dartdevc_aot.dart.snapshot',
+    );
+
+    return SdkConfiguration.fromSdkLayout(
+      SdkLayout(
+        sdkDirectory: sdkDir,
+        summaryPath: defaultLayout.summaryPath,
+        dartdevcSnapshotPath: aotSnapshotPath,
+      ),
+    );
   }
 }
 
@@ -238,13 +258,40 @@ class WebDevServer {
         }
       }
 
-      if (options.configuration.enableExpressionEvaluation) {
-        ddcService = ExpressionCompilerService(
-          options.configuration.hostname,
-          options.port,
-          verbose: options.configuration.verbose,
-          sdkConfigurationProvider: const WebdevSdkConfigurationProvider(),
+      // Check that we're running from a compiled binary (like webdev.exe) and not
+      // from source or snapshot.
+      final isAotMode = !Platform.script.path.endsWith('.dart') &&
+          !Platform.script.path.endsWith('.snapshot') &&
+          !Platform.script.path.endsWith('.dill');
+
+      bool useAotDdc = false;
+      if (isAotMode) {
+        final sdkDir = p.dirname(p.dirname(dartPath));
+        final aotSnapshotPath = p.join(
+          sdkDir,
+          'bin',
+          'snapshots',
+          'dartdevc_aot.dart.snapshot',
         );
+        if (await File(aotSnapshotPath).exists()) {
+          useAotDdc = true;
+        }
+      }
+
+      if (options.configuration.enableExpressionEvaluation) {
+        if (isAotMode && !useAotDdc) {
+          _logger.warning(
+            'Expression evaluation will be disabled in AOT mode because '
+            'dartdevc_aot.dart.snapshot was not found in the SDK.',
+          );
+        } else {
+          ddcService = ExpressionCompilerService(
+            options.configuration.hostname,
+            options.port,
+            verbose: options.configuration.verbose,
+            sdkConfigurationProvider: WebdevSdkConfigurationProvider(useAotDdc: useAotDdc),
+          );
+        }
       }
       final shouldServeDevTools =
           options.configuration.debug || options.configuration.debugExtension;
@@ -255,7 +302,6 @@ class WebDevServer {
         ddsConfiguration: DartDevelopmentServiceConfiguration(
           enable: !options.configuration.disableDds,
           serveDevTools: shouldServeDevTools,
-          dartExecutable: dartPath,
         ),
         expressionCompiler: ddcService,
       );
