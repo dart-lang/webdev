@@ -2,7 +2,7 @@
 
 - Fix webdev failing to compile in aot mode due to missing DDS arguments.
 - Bump `dds` to `^5.3.0`.
-- Bump `dwds` to `^27.1.0`.
+- Bump `dwds` to `^27.0.2`.
 
 ## 3.8.2
 
