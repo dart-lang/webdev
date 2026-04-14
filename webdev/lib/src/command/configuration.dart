@@ -115,6 +115,7 @@ class Configuration {
   final bool? _canaryFeatures;
   final String? _moduleFormat;
   final bool? _offline;
+  final bool? _webHotReload;
 
   Configuration({
     bool? autoRun,
@@ -143,6 +144,7 @@ class Configuration {
     bool? canaryFeatures,
     String? moduleFormat,
     bool? offline,
+    bool? webHotReload,
   }) : _autoRun = autoRun,
        _chromeDebugPort = chromeDebugPort,
        _debugExtension = debugExtension,
@@ -166,7 +168,8 @@ class Configuration {
        _experiments = experiments,
        _canaryFeatures = canaryFeatures,
        _moduleFormat = moduleFormat,
-       _offline = offline {
+       _offline = offline,
+       _webHotReload = webHotReload {
     _validateConfiguration();
   }
 
@@ -223,9 +226,9 @@ class Configuration {
     }
 
     if (webHotReload) {
-      if (!canaryFeatures || moduleFormat != 'ddc') {
+      if (moduleFormat != 'ddc') {
         throw InvalidConfiguration(
-          'Experiment "web-hot-reload" requires --$canaryFeaturesFlag and --$moduleFormatFlag=ddc.',
+          'Flag "$webHotReloadFlag" requires --$moduleFormatFlag=ddc.',
         );
       }
     }
@@ -268,6 +271,7 @@ class Configuration {
     canaryFeatures: other._canaryFeatures ?? _canaryFeatures,
     moduleFormat: other._moduleFormat ?? _moduleFormat,
     offline: other._offline ?? _offline,
+    webHotReload: other._webHotReload ?? _webHotReload,
   );
 
   factory Configuration.noInjectedClientDefaults() =>
@@ -323,7 +327,7 @@ class Configuration {
 
   bool get canaryFeatures => _canaryFeatures ?? false;
 
-  bool get webHotReload => experiments.contains('web-hot-reload');
+  bool get webHotReload => _webHotReload ?? false;
 
   String get moduleFormat => _moduleFormat ?? 'amd';
 
@@ -458,6 +462,11 @@ class Configuration {
         ? argResults[enableExperimentOption] as List<String>?
         : defaultConfiguration.experiments;
 
+    final webHotReload = argResults.options.contains(webHotReloadFlag) &&
+            argResults.wasParsed(webHotReloadFlag)
+        ? argResults[webHotReloadFlag] as bool?
+        : defaultConfiguration.webHotReload;
+
     final canaryFeatures =
         argResults.options.contains(canaryFeaturesFlag) &&
             argResults.wasParsed(canaryFeaturesFlag)
@@ -496,6 +505,7 @@ class Configuration {
       verbose: verbose,
       nullSafety: nullSafety,
       experiments: experiments,
+      webHotReload: webHotReload,
       canaryFeatures: canaryFeatures,
       moduleFormat: moduleFormat,
       offline: offline,

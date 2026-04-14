@@ -74,20 +74,15 @@ class TestRunner {
       if (webHotReload) {
         final dashDashIndex = fullArgs.indexOf('--');
         if (dashDashIndex != -1) {
-          fullArgs.insertAll(dashDashIndex, [
-            '--enable-experiment=web-hot-reload',
-          ]);
+          fullArgs.insertAll(dashDashIndex, ['--web-hot-reload']);
         } else {
-          fullArgs.add('--enable-experiment=web-hot-reload');
+          fullArgs.add('--web-hot-reload');
         }
       }
 
       if (ddcModuleFormat == ModuleFormat.ddc) {
         final dashDashIndex = fullArgs.indexOf('--');
         final extraArgs = ['--module-format', 'ddc'];
-        if (!canaryFeatures) {
-          extraArgs.add('--canary');
-        }
         if (dashDashIndex != -1) {
           fullArgs.insertAll(dashDashIndex, extraArgs);
         } else {

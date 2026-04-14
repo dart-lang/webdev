@@ -82,6 +82,13 @@ void addSharedArgs(
       help: 'Enable experiment features in the debugger.',
     )
     ..addFlag(
+      webHotReloadFlag,
+      defaultsTo: false,
+      negatable: true,
+      hide: true,
+      help: 'Enables web hot reload.',
+    )
+    ..addFlag(
       canaryFeaturesFlag,
       abbr: 'c',
       defaultsTo: false,
@@ -149,7 +156,7 @@ List<String> buildRunnerArgs(Configuration configuration) {
     arguments
       ..add('--define')
       ..add('build_web_compilers|ddc_modules=web-hot-reload=true');
-  } else if (configuration.canaryFeatures ||
+  } else if (configuration.webHotReload ||
       configuration.moduleFormat == 'ddc') {
     arguments
       ..add('--define')
