@@ -232,8 +232,6 @@ class Configuration {
         );
       }
     }
-
-
   }
 
   /// Creates a new [Configuration] with all non-null fields from
@@ -456,7 +454,8 @@ class Configuration {
         ? argResults[enableExperimentOption] as List<String>?
         : defaultConfiguration.experiments;
 
-    final webHotReload = argResults.options.contains(webHotReloadFlag) &&
+    final webHotReload =
+        argResults.options.contains(webHotReloadFlag) &&
             argResults.wasParsed(webHotReloadFlag)
         ? argResults[webHotReloadFlag] as bool?
         : defaultConfiguration.webHotReload;
