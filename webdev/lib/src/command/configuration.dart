@@ -233,13 +233,7 @@ class Configuration {
       }
     }
 
-    if (moduleFormat == 'ddc') {
-      if (!canaryFeatures) {
-        throw InvalidConfiguration(
-          '--$moduleFormatFlag=ddc requires --$canaryFeaturesFlag.',
-        );
-      }
-    }
+
   }
 
   /// Creates a new [Configuration] with all non-null fields from

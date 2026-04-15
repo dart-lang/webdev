@@ -14,6 +14,7 @@ import 'launch_app_common.dart';
 void main() {
   launchAppTests(
     testRunner: TestRunner(
+      canaryFeatures: true,
       webHotReload: false,
       ddcModuleFormat: ModuleFormat.ddc,
     ),

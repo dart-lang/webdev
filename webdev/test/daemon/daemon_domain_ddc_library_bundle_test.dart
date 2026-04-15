@@ -14,6 +14,7 @@ import 'daemon_domain_common.dart';
 void main() {
   daemonDomainTests(
     testRunner: TestRunner(
+      canaryFeatures: true,
       webHotReload: false,
       ddcModuleFormat: ModuleFormat.ddc,
     ),
