@@ -25,8 +25,7 @@ class FrameComputer {
   StackTrace? _asyncStackTrace;
   List<CallFrame>? _asyncFramesToProcess;
 
-  FrameComputer(this.debugger, this._callFrames, {StackTrace? asyncStackTrace})
-    : _asyncStackTrace = asyncStackTrace;
+  FrameComputer(this.debugger, this._callFrames, {this._asyncStackTrace});
 
   /// Given a frame index, return the corresponding JS frame.
   WipCallFrame? jsFrameForIndex(int frameIndex) {

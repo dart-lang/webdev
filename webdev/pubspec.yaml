@@ -1,6 +1,6 @@
 name: webdev
 # Every time this changes you need to run `dart run build_runner build`.
-version: 3.8.3-wip
+version: 3.9.0
 # We should not depend on a dev SDK before publishing.
 # publish_to: none
 description: >-
@@ -17,9 +17,9 @@ dependencies:
   browser_launcher: ^1.1.0
   collection: ^1.15.0
   crypto: ^3.0.2
-  dds: ^4.1.0
+  dds: ^5.3.0
   # Pin DWDS to avoid dependency conflicts with vm_service:
-  dwds: ^27.0.0
+  dwds: ^27.0.2
   file: ^7.0.1
   http: ^1.0.0
   http_multi_server: ^3.2.0

@@ -57,6 +57,7 @@ class DartDevelopmentServiceConfiguration {
     this.port,
     this.serveDevTools = true,
     this.devToolsServerAddress,
+    this.appName,
     this.dartExecutable,
   });
 
@@ -64,6 +65,7 @@ class DartDevelopmentServiceConfiguration {
   final int? port;
   final bool serveDevTools;
   final Uri? devToolsServerAddress;
+  final String? appName;
   final String? dartExecutable;
 }
 
