@@ -157,6 +157,7 @@ class Dwds {
             debugSettings.ddsConfiguration.devToolsServerAddress,
         serveDevTools: debugSettings.ddsConfiguration.serveDevTools,
         appName: debugSettings.ddsConfiguration.appName,
+        dartExecutable: debugSettings.ddsConfiguration.dartExecutable,
       ),
       debugSettings.launchDevToolsInNewWindow,
       useWebSocketConnection: useDwdsWebSocketConnection,
