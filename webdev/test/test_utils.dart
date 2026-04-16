@@ -83,9 +83,6 @@ class TestRunner {
       if (ddcModuleFormat == ModuleFormat.ddc) {
         final dashDashIndex = fullArgs.indexOf('--');
         final extraArgs = ['--module-format', 'ddc'];
-        if (canaryFeatures) {
-          extraArgs.add('--canary');
-        }
         if (dashDashIndex != -1) {
           fullArgs.insertAll(dashDashIndex, extraArgs);
         } else {

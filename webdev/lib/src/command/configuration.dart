@@ -166,7 +166,11 @@ class Configuration {
        _verbose = verbose,
        _nullSafety = nullSafety,
        _experiments = experiments,
-       _canaryFeatures = canaryFeatures,
+       _canaryFeatures =
+           ((webHotReload == true || moduleFormat == 'ddc') &&
+               canaryFeatures == null)
+           ? true
+           : canaryFeatures,
        _moduleFormat = moduleFormat,
        _offline = offline,
        _webHotReload = webHotReload {
@@ -231,6 +235,17 @@ class Configuration {
           'Flag "$webHotReloadFlag" requires --$moduleFormatFlag=ddc.',
         );
       }
+      if (!canaryFeatures) {
+        throw InvalidConfiguration(
+          'Flag "$webHotReloadFlag" requires --$canaryFeaturesFlag.',
+        );
+      }
+    }
+
+    if (moduleFormat == 'ddc' && !canaryFeatures) {
+      throw InvalidConfiguration(
+        'Flag "--$moduleFormatFlag=ddc" requires --$canaryFeaturesFlag.',
+      );
     }
   }
 
@@ -473,6 +488,22 @@ class Configuration {
     final offline = argResults.options.contains(offlineFlag)
         ? argResults[offlineFlag] as bool?
         : defaultConfiguration.offline;
+
+    final canaryParsed =
+        argResults.options.contains(canaryFeaturesFlag) &&
+        argResults.wasParsed(canaryFeaturesFlag);
+
+    if ((webHotReload == true || moduleFormat == 'ddc') &&
+        !canaryParsed &&
+        canaryFeatures == null) {
+      final canaryTrigger = webHotReload == true
+          ? '--$webHotReloadFlag'
+          : '--$moduleFormatFlag=ddc';
+      logWriter(
+        Level.INFO,
+        'Coercing --$canaryFeaturesFlag to true because $canaryTrigger is set.',
+      );
+    }
 
     return Configuration(
       autoRun: defaultConfiguration.autoRun,

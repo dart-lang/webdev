@@ -135,4 +135,42 @@ void main() {
       throwsA(isA<InvalidConfiguration>()),
     );
   });
+
+  test('webHotReload coerces canaryFeatures to true if not set', () {
+    final configuration = Configuration(
+      webHotReload: true,
+      moduleFormat: 'ddc',
+    );
+    expect(configuration.canaryFeatures, isTrue);
+  });
+
+  test('webHotReload + canaryFeatures false throws', () {
+    expect(
+      () => Configuration(
+        webHotReload: true,
+        canaryFeatures: false,
+        moduleFormat: 'ddc',
+      ),
+      throwsA(isA<InvalidConfiguration>()),
+    );
+  });
+
+  test('webHotReload + non-ddc module format throws', () {
+    expect(
+      () => Configuration(webHotReload: true, moduleFormat: 'amd'),
+      throwsA(isA<InvalidConfiguration>()),
+    );
+  });
+
+  test('moduleFormat ddc + canaryFeatures false throws', () {
+    expect(
+      () => Configuration(moduleFormat: 'ddc', canaryFeatures: false),
+      throwsA(isA<InvalidConfiguration>()),
+    );
+  });
+
+  test('moduleFormat ddc coerces canaryFeatures to true if not set', () {
+    final configuration = Configuration(moduleFormat: 'ddc');
+    expect(configuration.canaryFeatures, isTrue);
+  });
 }
