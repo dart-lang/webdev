@@ -1,6 +1,13 @@
 ## 27.1.0
 
 - Add `appName` to `DartDevelopmentServiceConfiguration`.
+
+## 27.0.3
+
+- Fix `dartExecutable` not being correctly passed to the DebugService.
+
+## 27.0.2
+
 - Add `dartExecutable` to `DartDevelopmentServiceConfiguration`.
 
 ## 27.0.1
