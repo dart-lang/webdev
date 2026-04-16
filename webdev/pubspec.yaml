@@ -53,3 +53,6 @@ dev_dependencies:
   test_descriptor: ^2.0.0
   test_process: ^2.0.2
   webdriver: ^3.0.0
+
+executables:
+  webdev:
