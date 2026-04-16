@@ -166,12 +166,12 @@ class Configuration {
        _verbose = verbose,
        _nullSafety = nullSafety,
        _experiments = experiments,
-       _canaryFeatures =
-           ((webHotReload == true || moduleFormat == 'ddc') &&
-               canaryFeatures == null)
+       _canaryFeatures = (webHotReload == true && canaryFeatures == null)
            ? true
            : canaryFeatures,
-       _moduleFormat = moduleFormat,
+       _moduleFormat = (webHotReload == true && moduleFormat == null)
+           ? 'ddc'
+           : moduleFormat,
        _offline = offline,
        _webHotReload = webHotReload {
     _validateConfiguration();
@@ -481,9 +481,20 @@ class Configuration {
         ? argResults[canaryFeaturesFlag] as bool?
         : defaultConfiguration._canaryFeatures;
 
-    final moduleFormat = argResults.options.contains(moduleFormatFlag)
+    final moduleFormatParsed =
+        argResults.options.contains(moduleFormatFlag) &&
+        argResults.wasParsed(moduleFormatFlag);
+
+    final moduleFormat = moduleFormatParsed
         ? argResults[moduleFormatFlag] as String?
-        : defaultConfiguration.moduleFormat;
+        : (webHotReload == true ? 'ddc' : defaultConfiguration.moduleFormat);
+
+    if (webHotReload == true && !moduleFormatParsed) {
+      logWriter(
+        Level.INFO,
+        'Coercing --$moduleFormatFlag to ddc because --$webHotReloadFlag is set.',
+      );
+    }
 
     final offline = argResults.options.contains(offlineFlag)
         ? argResults[offlineFlag] as bool?
@@ -493,15 +504,10 @@ class Configuration {
         argResults.options.contains(canaryFeaturesFlag) &&
         argResults.wasParsed(canaryFeaturesFlag);
 
-    if ((webHotReload == true || moduleFormat == 'ddc') &&
-        !canaryParsed &&
-        canaryFeatures == null) {
-      final canaryTrigger = webHotReload == true
-          ? '--$webHotReloadFlag'
-          : '--$moduleFormatFlag=ddc';
+    if (webHotReload == true && !canaryParsed && canaryFeatures == null) {
       logWriter(
         Level.INFO,
-        'Coercing --$canaryFeaturesFlag to true because $canaryTrigger is set.',
+        'Coercing --$canaryFeaturesFlag to true because --$webHotReloadFlag is set.',
       );
     }
 
