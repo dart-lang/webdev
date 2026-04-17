@@ -167,7 +167,7 @@ class DevHandler {
       ErrorResponse() => ['ErrorResponse', request.toJson()],
       RegisterEvent() => ['RegisterEvent', request.toJson()],
       PingRequest() => ['PingRequest', request.toJson()],
-      Map() => request, // Already a raw message (e.g., ping)
+      Map() => request,
       _ => throw UnsupportedError('Unknown request type: $request'),
     };
   }
