@@ -9,6 +9,7 @@ import 'package:dwds/data/hot_reload_request.dart';
 import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/hot_restart_request.dart';
 import 'package:dwds/data/hot_restart_response.dart';
+import 'package:dwds/data/ping_request.dart';
 import 'package:dwds/data/service_extension_request.dart';
 import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/src/connections/app_connection.dart';
@@ -310,7 +311,7 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
       if (_activeConnectionCount <= 0) {
         // Double-check by asking the sendClientRequest callback how many
         // clients are available
-        final actualClientCount = sendClientRequest({'type': 'ping'});
+        final actualClientCount = sendClientRequest(PingRequest());
         _logger.fine(
           'Actual client count from sendClientRequest: $actualClientCount',
         );
@@ -324,7 +325,7 @@ final class WebSocketProxyService extends ProxyService<WebSocketAppInspector> {
           // race condition
           Timer(_isolateDestructionGracePeriod, () {
             // Double-check client count again before destroying
-            final finalClientCount = sendClientRequest({'type': 'ping'});
+            final finalClientCount = sendClientRequest(PingRequest());
             if (finalClientCount == 0) {
               _logger.fine(
                 'Final check confirmed no clients, destroying isolate',
