@@ -25,6 +25,10 @@ class AppDomain extends Domain {
 
   final _appStates = <String, _AppState>{};
 
+  /// Mapping from app ID to [WebDevServer] instances.
+  /// Used to clear server state after hot restart.
+  final _serversByAppId = <String, WebDevServer>{};
+
   // Mapping from service name to service method.
   final Map<String, String> _registeredMethodsForService = <String, String>{};
 
@@ -65,6 +69,7 @@ class AppDomain extends Domain {
     // The connection is established right before `main()` is called.
     await for (final appConnection in dwds.connectedApps) {
       final appId = appConnection.request.appId;
+      _serversByAppId[appId] = server;
 
       // Check if we already have an active app state for this appId
       if (_appStates.containsKey(appId)) {
@@ -185,6 +190,10 @@ class AppDomain extends Domain {
     });
     final restartMethod =
         _registeredMethodsForService['hotRestart'] ?? 'hotRestart';
+
+    final server = _serversByAppId[appId];
+    server?.clearReloadedSources();
+
     final response = await appState.vmService!.callServiceExtension(
       restartMethod,
     );

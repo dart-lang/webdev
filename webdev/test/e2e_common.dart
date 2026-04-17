@@ -36,11 +36,10 @@ final _testItems = <String, bool?>{
   'main.ddc.js': true,
 };
 
-void main() {
+void e2eTests({required TestRunner testRunner}) {
   // Change to true for debugging.
   const debug = false;
 
-  final testRunner = TestRunner();
   late String exampleDirectory;
   setUpAll(() async {
     configureLogWriter(debug);

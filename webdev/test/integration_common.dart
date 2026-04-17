@@ -19,8 +19,7 @@ enum StreamType { stdout, stderr }
 
 const processTimeout = Duration(minutes: 1);
 
-void main() {
-  final testRunner = TestRunner();
+void integrationTests({required TestRunner testRunner}) {
   setUpAll(testRunner.setUpAll);
   tearDownAll(testRunner.tearDownAll);
 
@@ -53,7 +52,7 @@ void main() {
   }
 
   test('non-existent commands create errors', () async {
-    final process = await testRunner.runWebDev(['monkey']);
+    final process = await testRunner.runWebDev(['monkey'], raw: true);
 
     await expectLater(
       process.stdout,

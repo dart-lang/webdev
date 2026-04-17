@@ -10,10 +10,9 @@ import 'package:test/test.dart';
 import '../test_utils.dart';
 import 'utils.dart';
 
-void main() {
+void launchAppTests({required TestRunner testRunner}) {
   late String exampleDirectory;
 
-  final testRunner = TestRunner();
   setUpAll(() async {
     await testRunner.setUpAll();
     exampleDirectory = await testRunner.prepareWorkspace();
