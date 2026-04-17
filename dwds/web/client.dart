@@ -17,6 +17,7 @@ import 'package:dwds/data/hot_reload_request.dart';
 import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/hot_restart_request.dart';
 import 'package:dwds/data/hot_restart_response.dart';
+import 'package:dwds/data/ping_request.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/service_extension_request.dart';
@@ -331,6 +332,7 @@ Object? _deserializeEvent(dynamic decoded) {
       'ServiceExtensionRequest' => ServiceExtensionRequest.fromJson(jsonData),
       'BuildResult' => BuildResult.fromJson(jsonData),
       'ErrorResponse' => ErrorResponse.fromJson(jsonData),
+      'PingRequest' => PingRequest.fromJson(jsonData),
       _ => null,
     };
   }

@@ -18,6 +18,7 @@ import 'package:dwds/data/hot_reload_response.dart';
 import 'package:dwds/data/hot_restart_request.dart';
 import 'package:dwds/data/hot_restart_response.dart';
 import 'package:dwds/data/isolate_events.dart';
+import 'package:dwds/data/ping_request.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/service_extension_request.dart';
@@ -165,6 +166,7 @@ class DevHandler {
       IsolateExit() => ['IsolateExit', request.toJson()],
       ErrorResponse() => ['ErrorResponse', request.toJson()],
       RegisterEvent() => ['RegisterEvent', request.toJson()],
+      PingRequest() => ['PingRequest', request.toJson()],
       Map() => request, // Already a raw message (e.g., ping)
       _ => throw UnsupportedError('Unknown request type: $request'),
     };

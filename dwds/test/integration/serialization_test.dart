@@ -11,6 +11,7 @@ import 'package:dwds/data/data_types.dart';
 import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
+import 'package:dwds/data/ping_request.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -177,6 +178,17 @@ void main() {
       final json = jsonEncode(info);
       final decoded = DebugInfo.fromJson(jsonDecode(json) as List);
       expect(decoded, info);
+    });
+  });
+
+  group('PingRequest', () {
+    test('serializes and deserializes', () {
+      final request = PingRequest();
+      final json = jsonEncode(request);
+      final decoded = PingRequest.fromJson(
+        jsonDecode(json) as Map<String, dynamic>,
+      );
+      expect(decoded, request);
     });
   });
 }
