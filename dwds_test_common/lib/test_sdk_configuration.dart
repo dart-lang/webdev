@@ -4,10 +4,10 @@
 
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/sdk_configuration.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 
 import 'sdk_asset_generator.dart';
 import 'test_sdk_layout.dart';
