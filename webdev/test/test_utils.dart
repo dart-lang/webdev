@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:dwds_test_common/test_sdk_layout.dart';
 import 'package:path/path.dart' as p;
@@ -16,10 +17,23 @@ final _webdevBin = p.absolute(p.join('bin', 'webdev.dart'));
 class TestRunner {
   late TestSdkConfigurationProvider sdkConfigurationProvider;
   late TestSdkLayout sdkLayout;
+  final bool canaryFeatures;
+  final ModuleFormat ddcModuleFormat;
+  final bool webHotReload;
+
+  TestRunner({
+    this.canaryFeatures = false,
+    this.ddcModuleFormat = ModuleFormat.amd,
+    this.webHotReload = false,
+  });
 
   Future<void> setUpAll({bool verbose = false}) async {
     // Generate missing SDK assets if needed.
-    sdkConfigurationProvider = TestSdkConfigurationProvider(verbose: verbose);
+    sdkConfigurationProvider = TestSdkConfigurationProvider(
+      verbose: verbose,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: ddcModuleFormat,
+    );
     sdkLayout = sdkConfigurationProvider.sdkLayout;
 
     try {
@@ -36,11 +50,46 @@ class TestRunner {
     sdkConfigurationProvider.dispose();
   }
 
+  /// Runs 'webdev' with [args] in [workingDirectory], injecting additional
+  /// flags if necessary.
+  ///
+  /// Setting [raw] passes [args] without additional processing.
   Future<TestProcess> runWebDev(
     List<String> args, {
     String? workingDirectory,
+    bool raw = false,
   }) async {
     final fullArgs = [_webdevBin, ...args];
+
+    if (!raw) {
+      if (canaryFeatures) {
+        final dashDashIndex = fullArgs.indexOf('--');
+        if (dashDashIndex != -1) {
+          fullArgs.insertAll(dashDashIndex, ['--canary']);
+        } else {
+          fullArgs.add('--canary');
+        }
+      }
+
+      if (webHotReload) {
+        final dashDashIndex = fullArgs.indexOf('--');
+        if (dashDashIndex != -1) {
+          fullArgs.insertAll(dashDashIndex, ['--web-hot-reload']);
+        } else {
+          fullArgs.add('--web-hot-reload');
+        }
+      }
+
+      if (ddcModuleFormat == ModuleFormat.ddc) {
+        final dashDashIndex = fullArgs.indexOf('--');
+        final extraArgs = ['--module-format', 'ddc'];
+        if (dashDashIndex != -1) {
+          fullArgs.insertAll(dashDashIndex, extraArgs);
+        } else {
+          fullArgs.addAll(extraArgs);
+        }
+      }
+    }
 
     return TestProcess.start(
       sdkLayout.dartPath,
@@ -49,10 +98,31 @@ class TestRunner {
     );
   }
 
+  /// Copies [source] to [destination], skipping '.dart_tool' to ignore built
+  /// output from previous runs.
+  void _copyCleanDirectory(Directory source, Directory destination) {
+    destination.createSync(recursive: true);
+    for (final entity in source.listSync(recursive: false)) {
+      if (entity is Directory) {
+        if (p.basename(entity.path) == '.dart_tool') continue;
+        final newDirectory = Directory(
+          p.join(destination.absolute.path, p.basename(entity.path)),
+        );
+        newDirectory.createSync(recursive: true);
+        _copyCleanDirectory(entity.absolute, newDirectory);
+      } else if (entity is File) {
+        entity.copySync(p.join(destination.path, p.basename(entity.path)));
+      }
+    }
+  }
+
   Future<String> prepareWorkspace() async {
-    final exampleDirectory = p.absolute(
+    final originalDirectory = p.absolute(
       p.join(p.current, '..', 'dwds_test_common', 'fixtures', '_webdev_smoke'),
     );
+    final tempDir = Directory.systemTemp.createTempSync('webdev_smoke_');
+    final exampleDirectory = tempDir.path;
+    _copyCleanDirectory(Directory(originalDirectory), tempDir);
 
     final process = await TestProcess.start(
       sdkLayout.dartPath,

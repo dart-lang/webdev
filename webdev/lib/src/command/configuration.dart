@@ -39,6 +39,7 @@ const enableExperimentOption = 'enable-experiment';
 const canaryFeaturesFlag = 'canary';
 const moduleFormatFlag = 'module-format';
 const offlineFlag = 'offline';
+const webHotReloadFlag = 'web-hot-reload';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
   var auto = argResults.options.contains(autoOption)
@@ -114,6 +115,7 @@ class Configuration {
   final bool? _canaryFeatures;
   final String? _moduleFormat;
   final bool? _offline;
+  final bool? _webHotReload;
 
   Configuration({
     bool? autoRun,
@@ -142,6 +144,7 @@ class Configuration {
     bool? canaryFeatures,
     String? moduleFormat,
     bool? offline,
+    bool? webHotReload,
   }) : _autoRun = autoRun,
        _chromeDebugPort = chromeDebugPort,
        _debugExtension = debugExtension,
@@ -163,9 +166,14 @@ class Configuration {
        _verbose = verbose,
        _nullSafety = nullSafety,
        _experiments = experiments,
-       _canaryFeatures = canaryFeatures,
-       _moduleFormat = moduleFormat,
-       _offline = offline {
+       _canaryFeatures = (webHotReload == true && canaryFeatures == null)
+           ? true
+           : canaryFeatures,
+       _moduleFormat = (webHotReload == true && moduleFormat == null)
+           ? 'ddc'
+           : moduleFormat,
+       _offline = offline,
+       _webHotReload = webHotReload {
     _validateConfiguration();
   }
 
@@ -220,6 +228,25 @@ class Configuration {
         '--$userDataDir can only be used with --$launchInChromeFlag',
       );
     }
+
+    if (webHotReload) {
+      if (moduleFormat != 'ddc') {
+        throw InvalidConfiguration(
+          'Flag "$webHotReloadFlag" requires --$moduleFormatFlag=ddc.',
+        );
+      }
+      if (!canaryFeatures) {
+        throw InvalidConfiguration(
+          'Flag "$webHotReloadFlag" requires --$canaryFeaturesFlag.',
+        );
+      }
+    }
+
+    if (moduleFormat == 'ddc' && !canaryFeatures) {
+      throw InvalidConfiguration(
+        'Flag "--$moduleFormatFlag=ddc" requires --$canaryFeaturesFlag.',
+      );
+    }
   }
 
   /// Creates a new [Configuration] with all non-null fields from
@@ -251,6 +278,7 @@ class Configuration {
     canaryFeatures: other._canaryFeatures ?? _canaryFeatures,
     moduleFormat: other._moduleFormat ?? _moduleFormat,
     offline: other._offline ?? _offline,
+    webHotReload: other._webHotReload ?? _webHotReload,
   );
 
   factory Configuration.noInjectedClientDefaults() =>
@@ -306,9 +334,12 @@ class Configuration {
 
   bool get canaryFeatures => _canaryFeatures ?? false;
 
+  bool get webHotReload => _webHotReload ?? false;
+
   String get moduleFormat => _moduleFormat ?? 'amd';
 
-  bool get usesDdcLibraryBundle => canaryFeatures || (moduleFormat == 'ddc');
+  bool get usesDdcLibraryBundle =>
+      canaryFeatures || (moduleFormat == 'ddc') || webHotReload;
 
   bool get offline => _offline ?? false;
 
@@ -438,17 +469,47 @@ class Configuration {
         ? argResults[enableExperimentOption] as List<String>?
         : defaultConfiguration.experiments;
 
-    final canaryFeatures = argResults.options.contains(canaryFeaturesFlag)
-        ? argResults[canaryFeaturesFlag] as bool?
-        : defaultConfiguration.canaryFeatures;
+    final webHotReload =
+        argResults.options.contains(webHotReloadFlag) &&
+            argResults.wasParsed(webHotReloadFlag)
+        ? argResults[webHotReloadFlag] as bool?
+        : defaultConfiguration.webHotReload;
 
-    final moduleFormat = argResults.options.contains(moduleFormatFlag)
+    final canaryFeatures =
+        argResults.options.contains(canaryFeaturesFlag) &&
+            argResults.wasParsed(canaryFeaturesFlag)
+        ? argResults[canaryFeaturesFlag] as bool?
+        : defaultConfiguration._canaryFeatures;
+
+    final moduleFormatParsed =
+        argResults.options.contains(moduleFormatFlag) &&
+        argResults.wasParsed(moduleFormatFlag);
+
+    final moduleFormat = moduleFormatParsed
         ? argResults[moduleFormatFlag] as String?
-        : defaultConfiguration.moduleFormat;
+        : (webHotReload == true ? 'ddc' : defaultConfiguration.moduleFormat);
+
+    if (webHotReload == true && !moduleFormatParsed) {
+      logWriter(
+        Level.INFO,
+        'Coercing --$moduleFormatFlag to ddc because --$webHotReloadFlag is set.',
+      );
+    }
 
     final offline = argResults.options.contains(offlineFlag)
         ? argResults[offlineFlag] as bool?
-        : defaultConfiguration.verbose;
+        : defaultConfiguration.offline;
+
+    final canaryParsed =
+        argResults.options.contains(canaryFeaturesFlag) &&
+        argResults.wasParsed(canaryFeaturesFlag);
+
+    if (webHotReload == true && !canaryParsed && canaryFeatures == null) {
+      logWriter(
+        Level.INFO,
+        'Coercing --$canaryFeaturesFlag to true because --$webHotReloadFlag is set.',
+      );
+    }
 
     return Configuration(
       autoRun: defaultConfiguration.autoRun,
@@ -474,6 +535,7 @@ class Configuration {
       verbose: verbose,
       nullSafety: nullSafety,
       experiments: experiments,
+      webHotReload: webHotReload,
       canaryFeatures: canaryFeatures,
       moduleFormat: moduleFormat,
       offline: offline,

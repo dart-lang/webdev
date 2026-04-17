@@ -1,8 +1,10 @@
-## 3.9.0
+## 3.9.0-wip
 
 - Fix webdev failing to compile in aot mode due to missing DDS arguments.
 - Bump `dds` to `^5.3.0`.
-- Bump `dwds` to `^27.0.2`.
+- Bump `dwds` to `^27.0.3`.
+- Fix issue where hot restarts/reloads without local file changes would sometimes cause DDC to hang.
+- Add 'web-hot-reload' experimental feature flag.
 
 ## 3.8.2
 

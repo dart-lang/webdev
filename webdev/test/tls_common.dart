@@ -16,12 +16,11 @@ import 'package:webdev/src/serve/utils.dart';
 
 import 'test_utils.dart';
 
-void main() {
+void tlsTests({required TestRunner testRunner}) {
   group('serve app with TLS options', () {
     // Change to true for debugging.
     const debug = false;
 
-    final testRunner = TestRunner();
     late String exampleDirectory;
 
     setUpAll(() async {
