@@ -32,6 +32,13 @@ void main() async {
     testAll(provider: provider, compilationMode: CompilationMode.buildDaemon);
   });
 
+  group('Build Daemon and Frontend Server |', () {
+    testAll(
+      provider: provider,
+      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
+    );
+  });
+
   group('Frontend Server |', () {
     group('Context with circular dependencies |', () {
       for (final indexBaseMode in IndexBaseMode.values) {

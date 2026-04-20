@@ -50,4 +50,20 @@ void main() {
       canaryFeatures: canaryFeatures,
     );
   });
+
+  group('canary: true | Build Daemon and Frontend Server |', () {
+    final compilationMode = CompilationMode.buildDaemonAndFrontendServer;
+    final provider = TestSdkConfigurationProvider(
+      canaryFeatures: canaryFeatures,
+      verbose: debug,
+      ddcModuleFormat: moduleFormat,
+    );
+    tearDownAll(provider.dispose);
+
+    runTests(
+      provider: provider,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+    );
+  });
 }
