@@ -38,7 +38,9 @@ void main() {
 
   group('Build script tests', () {
     setUpAll(() async {
-      // Use Platform.executable to ensure we use the same Dart SDK
+      // Use Platform.executable to ensure the same Dart SDK is used. Only
+      // resolve the absolute path if it's a local/relative path. Global
+      // system commands (no path separators) are passed as-is.
       final executable = Platform.executable;
       final resolvedExecutable = executable.contains(p.separator)
           ? File(executable).absolute.path
