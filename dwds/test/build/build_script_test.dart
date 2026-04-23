@@ -7,9 +7,10 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:dwds/src/handlers/injected_client_js.dart';
-import 'package:dwds/src/utilities/test_path_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+
+import 'test_path_utils.dart';
 
 void main() {
   group('Committed file integrity tests', () {

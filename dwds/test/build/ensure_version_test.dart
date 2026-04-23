@@ -7,11 +7,12 @@ library;
 
 import 'dart:io';
 
-import 'package:dwds/src/utilities/test_path_utils.dart';
 import 'package:dwds/src/version.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
+
+import 'test_path_utils.dart';
 
 void main() {
   test('dwds lib/src/version.dart matches the pubspec version', () async {
