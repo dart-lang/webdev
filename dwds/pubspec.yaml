@@ -1,5 +1,5 @@
 name: dwds
-# Every time this changes you need to run `dart run build_runner build`.
+# Every time this changes you need to run `dart run tool/build.dart`.
 version: 27.1.1-wip
 
 description: >-
