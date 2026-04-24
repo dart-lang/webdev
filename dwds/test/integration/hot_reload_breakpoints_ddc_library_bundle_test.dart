@@ -31,4 +31,11 @@ void main() {
       compilationMode: CompilationMode.frontendServer,
     );
   });
+
+  group('Build Daemon and Frontend Server', () {
+    runTests(
+      provider: provider,
+      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
+    );
+  });
 }

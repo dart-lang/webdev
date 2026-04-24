@@ -12,11 +12,23 @@ import '../test_utils.dart';
 import 'daemon_domain_common.dart';
 
 void main() {
-  daemonDomainTests(
-    testRunner: TestRunner(
-      canaryFeatures: true,
-      webHotReload: false,
-      ddcModuleFormat: ModuleFormat.ddc,
-    ),
-  );
+  group('Build Daemon', () {
+    daemonDomainTests(
+      testRunner: TestRunner(
+        canaryFeatures: true,
+        webHotReload: false,
+        ddcModuleFormat: ModuleFormat.ddc,
+      ),
+    );
+  });
+
+  group('Build Daemon and Frontend Server', () {
+    daemonDomainTests(
+      testRunner: TestRunner(
+        canaryFeatures: true,
+        webHotReload: true,
+        ddcModuleFormat: ModuleFormat.ddc,
+      ),
+    );
+  });
 }

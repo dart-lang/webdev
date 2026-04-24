@@ -12,11 +12,23 @@ import 'e2e_common.dart';
 import 'test_utils.dart';
 
 void main() {
-  e2eTests(
-    testRunner: TestRunner(
-      canaryFeatures: true,
-      webHotReload: false,
-      ddcModuleFormat: ModuleFormat.ddc,
-    ),
-  );
+  group('Build Daemon', () {
+    e2eTests(
+      testRunner: TestRunner(
+        canaryFeatures: true,
+        webHotReload: false,
+        ddcModuleFormat: ModuleFormat.ddc,
+      ),
+    );
+  });
+
+  group('Build Daemon and Frontend Server', () {
+    e2eTests(
+      testRunner: TestRunner(
+        canaryFeatures: true,
+        webHotReload: true,
+        ddcModuleFormat: ModuleFormat.ddc,
+      ),
+    );
+  });
 }
