@@ -90,6 +90,12 @@ Future<void>? main() {
         return manager.hotReloadEnd().toJS;
       }.toJS;
 
+      hotRestartBeginJs = () {
+        return manager.hotRestartBegin(hotReloadReloadedSourcesPath).toJS;
+      }.toJS;
+
+      hotRestartEndJs = manager.hotRestartEnd.toJS;
+
       Completer? readyToRunMainCompleter;
 
       hotRestartJs = (String runId, [bool? pauseIsolatesOnStart]) {
@@ -523,10 +529,17 @@ Future<void> handleWebSocketHotRestartRequest(
   final requestId = event.id;
   try {
     final runId = const Uuid().v4();
-    await manager.hotRestart(
-      runId: runId,
-      reloadedSourcesPath: hotRestartReloadedSourcesPath,
-    );
+    if (manager.supportsTwoPhaseHotRestart) {
+      await manager.hotRestartBegin(hotRestartReloadedSourcesPath!);
+      manager.hotRestartEnd();
+    } else {
+      // TODO(nshahan): Remove after migrating to hotRestartBegin/hotRestartEnd.
+      // https://github.com/dart-lang/webdev/issues/2826
+      await manager.hotRestart(
+        runId: runId,
+        reloadedSourcesPath: hotRestartReloadedSourcesPath,
+      );
+    }
     _sendHotRestartResponse(clientSink, requestId, success: true);
   } catch (e) {
     _sendHotRestartResponse(
@@ -597,6 +610,12 @@ external set hotReloadStartJs(JSFunction cb);
 @JS(r'$dartHotReloadEndDwds')
 external set hotReloadEndJs(JSFunction cb);
 
+@JS(r'$dartHotRestartBeginDwds')
+external set hotRestartBeginJs(JSFunction cb);
+
+@JS(r'$dartHotRestartEndDwds')
+external set hotRestartEndJs(JSFunction cb);
+
 @JS(r'$reloadedSourcesPath')
 external String? get _reloadedSourcesPath;
 
@@ -612,6 +631,8 @@ String get hotReloadReloadedSourcesPath {
 }
 
 /// Debugger-initiated hot restart.
+// TODO(nshahan): Remove after migrating to hotRestartBegin/hotRestartEnd.
+// https://github.com/dart-lang/webdev/issues/2826
 @JS(r'$dartHotRestartDwds')
 external set hotRestartJs(JSFunction cb);
 
