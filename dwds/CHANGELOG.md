@@ -1,6 +1,8 @@
-## 27.1.1-wip
+## 27.1.1
 
-- Replace raw map for client ping checks with a proper `PingRequest` class and update client deserialization handling.
+- Fix deserialization errors appearing in the chrome console.
+  Replace raw map for client ping checks with a proper `PingRequest` class and
+  update client deserialization handling.
 
 ## 27.1.0
 
