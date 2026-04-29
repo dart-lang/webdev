@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'dart:async';
 
 import 'package:dwds_test_common/logging.dart';
@@ -17,13 +14,7 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void main() {
-  // Enable verbose logging for debugging.
-  const debug = false;
-
-  final provider = TestSdkConfigurationProvider(verbose: debug);
-  tearDownAll(provider.dispose);
-
+void testAll({required TestSdkConfigurationProvider provider}) {
   final context = TestContext(TestProject.test, provider);
 
   group('while debugger is attached', () {
@@ -34,6 +25,8 @@ void main() {
         testSettings: TestSettings(
           autoRun: false,
           verboseCompiler: provider.verbose,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
         ),
       );
       service = context.service;
@@ -76,7 +69,12 @@ void main() {
     setUp(() async {
       setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
-        testSettings: const TestSettings(autoRun: false, waitToDebug: true),
+        testSettings: TestSettings(
+          autoRun: false,
+          waitToDebug: true,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
+        ),
       );
     });
 

@@ -6,22 +6,26 @@
 library;
 
 import 'dart:io';
+
+import 'package:dwds/expression_compiler.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_process/test_process.dart';
+
 import 'test_utils.dart';
 
 void main() {
-  final testRunner = TestRunner();
+  // Initialize a base runner to retrieve the SDK path.
+  final baseRunner = TestRunner();
   late String webdevAotPath;
 
   setUpAll(() async {
-    await testRunner.setUpAll();
+    await baseRunner.setUpAll();
 
     final webdevScriptPath = p.join(p.current, 'bin', 'webdev.dart');
     webdevAotPath = p.join(p.current, 'test', 'webdev.exe');
 
-    final process = await Process.run(testRunner.sdkLayout.dartPath, [
+    final process = await Process.run(baseRunner.sdkLayout.dartPath, [
       'compile',
       'exe',
       webdevScriptPath,
@@ -35,29 +39,53 @@ void main() {
   });
 
   tearDownAll(() async {
-    testRunner.tearDownAll();
+    baseRunner.tearDownAll();
     final webdevAotFile = File(webdevAotPath);
     if (await webdevAotFile.exists()) {
       await webdevAotFile.delete();
     }
   });
 
-  test('webdev serve can run in AOT mode', () async {
-    final exampleDirectory = await testRunner.prepareWorkspace();
+  for (final moduleFormat in [ModuleFormat.amd, ModuleFormat.ddc]) {
+    group('Module Format ${moduleFormat.name} |', () {
+      late TestRunner testRunner;
 
-    final process = await TestProcess.start(webdevAotPath, [
-      'serve',
-      '--debug',
-      '--no-launch-in-chrome',
-      '--chrome-debug-port=9222',
-    ], workingDirectory: exampleDirectory);
+      setUpAll(() async {
+        testRunner = TestRunner(
+          ddcModuleFormat: moduleFormat,
+          canaryFeatures: moduleFormat == ModuleFormat.ddc,
+        );
+        await testRunner.setUpAll();
+      });
 
-    await expectLater(
-      process.stdout,
-      emitsThrough(contains('Serving `web` on')),
-    );
+      tearDownAll(() async {
+        testRunner.tearDownAll();
+      });
 
-    await process.kill();
-    await process.shouldExit();
-  });
+      test('webdev serve can run in AOT mode', () async {
+        final exampleDirectory = await testRunner.prepareWorkspace();
+
+        final process = await TestProcess.start(webdevAotPath, [
+          'serve',
+          '--debug',
+          '--no-launch-in-chrome',
+          '--chrome-debug-port=9222',
+          if (moduleFormat == ModuleFormat.ddc) ...[
+            '--module-format',
+            'ddc',
+            '--canary',
+          ],
+          'web:0',
+        ], workingDirectory: exampleDirectory);
+
+        await expectLater(
+          process.stdout,
+          emitsThrough(contains('Serving `web` on')),
+        );
+
+        await process.kill();
+        await process.shouldExit();
+      });
+    });
+  }
 }

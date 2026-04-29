@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(minutes: 5))
-@TestOn('vm')
-library;
-
 import 'dart:io';
 
 import 'package:dwds/src/config/tool_configuration.dart';
@@ -29,10 +25,10 @@ Future<void> _waitForPageReady(TestContext context) async {
   throw StateError('Page never initialized');
 }
 
-void main() {
-  final provider = TestSdkConfigurationProvider();
-  tearDownAll(provider.dispose);
+TypeMatcher<Event> _hasKind(String kind) =>
+    isA<Event>().having((Event e) => e.kind, 'kind', kind);
 
+void testAll({required TestSdkConfigurationProvider provider}) {
   final context = TestContext(TestProject.test, provider);
 
   for (final serveFromDds in [true, false]) {
@@ -43,6 +39,10 @@ void main() {
           debugSettings: TestDebugSettings.withDevToolsLaunch(
             context,
             serveFromDds: serveFromDds,
+          ),
+          testSettings: TestSettings(
+            moduleFormat: provider.ddcModuleFormat,
+            canaryFeatures: provider.canaryFeatures,
           ),
         );
         await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
@@ -120,10 +120,6 @@ void main() {
       test(
         'destroys and recreates the isolate during a page refresh',
         () async {
-          // This test is the same as one in reload_test, but runs here when
-          // there is a connected client (DevTools) since it can behave
-          // differently.
-          // https://github.com/dart-lang/webdev/pull/901#issuecomment-586438132
           final client = context.debugConnection.vmService;
           await client.streamListen('Isolate');
           await context.makeEdits([
@@ -164,6 +160,10 @@ void main() {
             serveDevTools: false,
           ),
         ),
+        testSettings: TestSettings(
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
+        ),
       );
     });
 
@@ -190,6 +190,10 @@ void main() {
           debugSettings: const TestDebugSettings.noDevToolsLaunch().copyWith(
             enableDebugExtension: true,
           ),
+          testSettings: TestSettings(
+            moduleFormat: provider.ddcModuleFormat,
+            canaryFeatures: provider.canaryFeatures,
+          ),
         );
       });
 
@@ -210,14 +214,9 @@ void main() {
         expect(await alert.text, contains('--debug'));
         await alert.accept();
       });
-      // TODO(https://github.com/dart-lang/webdev/issues/1724): Re-enable debug
-      // extension tests on Windows.
     },
     tags: ['extension'],
     skip: 'https://github.com/dart-lang/webdev/issues/2114',
     timeout: const Timeout.factor(2),
   );
 }
-
-TypeMatcher<Event> _hasKind(String kind) =>
-    isA<Event>().having((Event e) => e.kind, 'kind', kind);

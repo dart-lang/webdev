@@ -9,10 +9,14 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
-import 'screenshot_common.dart';
+import 'run_request_common.dart';
 
 void main() {
+  // Enable verbose logging for debugging.
+  const debug = false;
+
   final provider = TestSdkConfigurationProvider(
+    verbose: debug,
     ddcModuleFormat: ModuleFormat.amd,
   );
   tearDownAll(provider.dispose);

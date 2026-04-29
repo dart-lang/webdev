@@ -15,6 +15,8 @@ import 'package:test/test.dart';
 import 'test_utils.dart';
 
 void main() {
+  // This test only checks help output, which is static and does not depend
+  // on the module format.
   final testRunner = TestRunner();
   setUpAll(testRunner.setUpAll);
   tearDownAll(testRunner.tearDownAll);
