@@ -775,6 +775,14 @@ void runTests({
         final scripts = await service.getScripts(isolate.id!);
         assert(scripts.scripts!.isNotEmpty);
         for (final scriptRef in scripts.scripts!) {
+          final uri = scriptRef.uri!;
+          // Only check files that are in this test's [webAssetsPath].
+          // For example, if webAssetsPath is 'web':
+          //   skip: 'org-dartlang-app:///example/hello_world/main.dart'
+          //   keep: 'org-dartlang-app:///web/main.dart'
+          if (uri.startsWith('org-dartlang-app:///')) {
+            if (!uri.contains(context.project.webAssetsPath)) continue;
+          }
           final script =
               await service.getObject(isolate.id!, scriptRef.id!) as Script;
           final serverPath = DartUri(script.uri!, '').serverPath;

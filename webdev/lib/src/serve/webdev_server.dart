@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
@@ -85,7 +86,7 @@ class WebDevServer {
   /// Can be null if client.js injection is disabled.
   final Dwds? dwds;
 
-  final ExpressionCompilerService? ddcService;
+  final ExpressionCompiler? ddcService;
 
   final String target;
 
@@ -123,7 +124,10 @@ class WebDevServer {
 
   Future<void> stop() async {
     await dwds?.stop();
-    await ddcService?.stop();
+    final service = ddcService;
+    if (service is ExpressionCompilerService) {
+      await service.stop();
+    }
     await _server.close(force: true);
     _client.close();
   }
@@ -131,6 +135,7 @@ class WebDevServer {
   static Future<WebDevServer> start(
     ServerOptions options,
     Stream<daemon.BuildResults> buildResults,
+    BuildDaemonClient daemonClient,
   ) async {
     final basePath = '';
     var pipeline = const Pipeline();
@@ -211,7 +216,7 @@ class WebDevServer {
     );
 
     Dwds? dwds;
-    ExpressionCompilerService? ddcService;
+    ExpressionCompiler? ddcService;
     if (options.configuration.enableInjectedClient) {
       final assetReader = ProxyServerAssetReader(
         options.daemonPort,
@@ -239,7 +244,7 @@ class WebDevServer {
           findPackageConfigUri()!,
           useDebuggerModuleNames: false,
         );
-        loadStrategy = FrontendServerDdcLibraryBundleStrategyProvider(
+        loadStrategy = FrontendServerBuildDaemonStrategyProvider(
           options.configuration.reload,
           assetReader,
           packageUriMapper,
@@ -290,7 +295,13 @@ class WebDevServer {
       }
 
       if (options.configuration.enableExpressionEvaluation) {
-        if (isAotMode && !useAotDdc) {
+        if (options.configuration.webHotReload) {
+          // Use the daemon expression compiler when web hot reload is enabled
+          // to reuse the Frontend Server's in-memory state.
+          ddcService = DaemonExpressionCompiler((request) async {
+            return await daemonClient.sendRequest(request);
+          });
+        } else if (isAotMode && !useAotDdc) {
           _logger.warning(
             'Expression evaluation will be disabled in AOT mode because '
             'dartdevc_aot.dart.snapshot was not found in the SDK.',

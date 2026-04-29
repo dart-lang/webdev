@@ -25,6 +25,7 @@ export 'src/loaders/build_runner_strategy_provider.dart'
 export 'src/loaders/ddc.dart' show DdcStrategy;
 export 'src/loaders/frontend_server_strategy_provider.dart'
     show
+        FrontendServerBuildDaemonStrategyProvider,
         FrontendServerDdcLibraryBundleStrategyProvider,
         FrontendServerDdcStrategyProvider,
         FrontendServerRequireStrategyProvider;
@@ -42,6 +43,8 @@ export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/servers/devtools.dart';
 export 'src/services/chrome/chrome_debug_exception.dart'
     show ChromeDebugException;
+export 'src/services/daemon_expression_compiler.dart'
+    show DaemonExpressionCompiler;
 export 'src/services/expression_compiler.dart'
     show
         CompilerOptions,

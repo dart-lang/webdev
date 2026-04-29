@@ -106,10 +106,7 @@ Future<ServerManager> _startServerManager(
     );
   }
   logWriter(logging.Level.INFO, 'Starting resource servers...');
-  final serverManager = await ServerManager.start(
-    serverOptions,
-    client.buildResults,
-  );
+  final serverManager = await ServerManager.start(serverOptions, client);
 
   for (final server in serverManager.servers) {
     logWriter(
@@ -210,7 +207,10 @@ class DevWorkflow {
     Map<String, int> targetPorts,
   ) async {
     final workingDirectory = Directory.current.path;
-    final client = await _startBuildDaemon(workingDirectory, buildOptions);
+    final client = await _startBuildDaemon(workingDirectory, [
+      ...buildOptions,
+      if (configuration.webHotReload) '--web-hot-reload',
+    ]);
     logWriter(logging.Level.INFO, 'Registering build targets...');
     _registerBuildTargets(client, configuration, targetPorts);
     logWriter(logging.Level.INFO, 'Starting initial build...');

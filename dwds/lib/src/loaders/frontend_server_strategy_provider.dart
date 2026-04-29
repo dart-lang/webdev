@@ -11,6 +11,8 @@ import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:path/path.dart' as p;
 
+const _defaultWebDirs = ['web', 'test', 'example', 'benchmark'];
+
 abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
@@ -135,9 +137,8 @@ class FrontendServerDdcStrategyProvider
   DdcStrategy get strategy => _ddcStrategy;
 }
 
-/// Provides a [DdcLibraryBundleStrategy] suitable for use with the Frontend
-/// Server.
-// ignore: prefer-correct-type-name
+/// Provides a [DdcLibraryBundleStrategy] for the Frontend Server-only
+/// configuration.
 class FrontendServerDdcLibraryBundleStrategyProvider
     extends FrontendServerStrategyProvider<DdcLibraryBundleStrategy> {
   late final DdcLibraryBundleStrategy _libraryBundleStrategy;
@@ -161,6 +162,110 @@ class FrontendServerDdcLibraryBundleStrategyProvider
       _sourceMapPathForModule,
       _serverPathForAppUri,
       _moduleInfoForProvider,
+      _assetReader,
+      _buildSettings,
+      (String _) => null,
+      packageConfigPath: _packageConfigPath,
+      reloadedSourcesUri: reloadedSourcesUri,
+      injectScriptLoad: injectScriptLoad,
+    );
+  }
+
+  @override
+  DdcLibraryBundleStrategy get strategy => _libraryBundleStrategy;
+}
+
+/// Provides a [DdcLibraryBundleStrategy] for the Frontend Server + Build
+/// Daemon configuration, which supports hot reload.
+class FrontendServerBuildDaemonStrategyProvider
+    extends FrontendServerStrategyProvider<DdcLibraryBundleStrategy> {
+  late final DdcLibraryBundleStrategy _libraryBundleStrategy;
+
+  FrontendServerBuildDaemonStrategyProvider(
+    super._configuration,
+    super._assetReader,
+    super._packageUriMapper,
+    super._digestsProvider,
+    super._buildSettings, {
+    super.packageConfigPath,
+    Uri? reloadedSourcesUri,
+    bool injectScriptLoad = true,
+  }) {
+    String stripPrefix(String path) {
+      if (path.startsWith('packages')) return path;
+      final parts = path.split('/');
+      
+      final appUri = _buildSettings.appEntrypoint;
+      final validPrefixes = [
+        if (appUri != null && appUri.pathSegments.isNotEmpty)
+          appUri.pathSegments.first,
+        ..._defaultWebDirs,
+      ];
+
+      if (parts.length > 1 && validPrefixes.contains(parts[0])) {
+        return parts.skip(1).join('/');
+      }
+      return path;
+    }
+
+    _libraryBundleStrategy = DdcLibraryBundleStrategy(
+      _configuration,
+      _moduleProvider,
+      (_) => _digestsProvider(),
+      /// Looks up the module name for a given server path.
+      (metadataProvider, sourcePath) async {
+        var module = await _moduleForServerPath(metadataProvider, sourcePath);
+        if (module != null) return module;
+
+        final remappedPath = sourcePath.replaceAll('.ddc', '.dart.lib');
+        module = await _moduleForServerPath(metadataProvider, remappedPath);
+        if (module != null) return module;
+
+        final modulePathToModule = await metadataProvider.modulePathToModule;
+        for (final entry in modulePathToModule.entries) {
+          final key = entry.key;
+          final strippedKey = stripPrefix(key);
+          if (strippedKey == sourcePath || strippedKey == remappedPath) {
+            return entry.value;
+          }
+        }
+        return null;
+      },
+      (metadataProvider, module) async {
+        final path = await _serverPathForModule(metadataProvider, module);
+        final stripped = stripPrefix(path);
+        return stripped.replaceAll('.dart.lib', '.ddc');
+      },
+      (metadataProvider, module) async {
+        final path = await _sourceMapPathForModule(metadataProvider, module);
+        final stripped = stripPrefix(path);
+        return stripped.replaceAll('.dart.lib', '.ddc');
+      },
+      (appUrl) {
+        final appUri = Uri.parse(appUrl);
+        if (appUri.isScheme('org-dartlang-app')) {
+          final segments = appUri.pathSegments;
+          if (segments.length > 2 &&
+              segments[0] == segments[1] &&
+              (segments[0] == 'web' || segments[0] == 'test')) {
+            return segments.skip(2).join('/');
+          }
+          return segments.skip(1).join('/');
+        }
+        return _serverPathForAppUri(appUrl);
+      },
+      (metadataProvider) async {
+        final moduleInfo = await _moduleInfoForProvider(metadataProvider);
+        return moduleInfo.map((module, info) {
+          return MapEntry(
+            module,
+            ModuleInfo(
+              info.fullDillPath.replaceAll('.dart.lib', '.ddc'),
+              info.summaryPath.replaceAll('.dart.lib', '.ddc'),
+            ),
+          );
+        });
+      },
       _assetReader,
       _buildSettings,
       (String _) => null,

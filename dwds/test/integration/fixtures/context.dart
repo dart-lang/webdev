@@ -21,6 +21,7 @@ import 'package:dwds/src/loaders/frontend_server_strategy_provider.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
+import 'package:dwds/src/services/daemon_expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -518,13 +519,9 @@ class TestContext {
             );
 
             if (testSettings.enableExpressionEvaluation) {
-              ddcService = ExpressionCompilerService(
-                'localhost',
-                _port!,
-                verbose: testSettings.verboseCompiler,
-                sdkConfigurationProvider: sdkConfigurationProvider,
-              );
-              expressionCompiler = ddcService;
+              expressionCompiler = DaemonExpressionCompiler((request) async {
+                return await _daemonClient!.sendRequest(request);
+              });
             }
             frontendServerFileSystem = const LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
@@ -537,7 +534,7 @@ class TestContext {
               buildSettings.canaryFeatures,
             )) {
               (ModuleFormat.ddc, true) =>
-                FrontendServerDdcLibraryBundleStrategyProvider(
+                FrontendServerBuildDaemonStrategyProvider(
                   testSettings.reloadConfiguration,
                   assetReader,
                   packageUriMapper,
@@ -848,6 +845,48 @@ class TestContext {
         return shelf.Response.ok(jsonEncode(_reloadedSources));
       }
       return proxy(request);
+    };
+  }
+
+  /// Returns a handler for build runner + the DDC Library Bundle module
+  /// system.
+  ///
+  /// This handler:
+  /// - serves the reloaded_sources.json file for reloads/restarts.
+  /// - serves the application directory and entrypoint from
+  ///   `project.directoryToServe`.
+  Handler _createBuildRunnerDdcLibraryBundleAssetHandler(int assetServerPort) {
+    final rootProxy = proxyHandler(
+      'http://localhost:$assetServerPort/',
+      client: client,
+    );
+    final entrypointProxy = proxyHandler(
+      'http://localhost:$assetServerPort/${project.directoryToServe}/',
+      client: client,
+    );
+
+    return (request) async {
+      final path = request.url.path;
+      if (path.endsWith(WebDevFS.reloadedSourcesFileName)) {
+        return shelf.Response.ok(jsonEncode(_reloadedSources));
+      }
+
+      // Swap between [rootProxy] and [entrypointProxy] to handle path serving
+      // differences for entrypoints vs library files.
+      //
+      // Use [rootProxy] for paths that already include the directory to serve
+      // (e.g., 'web/main.dart', 'packages/...', 'example/...').
+      //
+      // Use [entrypointProxy] for files requested at the root (e.g. 'main.dart'
+      // or 'index.html'), These implicitly prepend [directoryToServe].
+      final prefix = '${project.directoryToServe}/';
+      final response =
+          await (path.startsWith(prefix) ||
+                  path.startsWith('packages/') ||
+                  path.startsWith('example/')
+              ? rootProxy(request)
+              : entrypointProxy(request));
+      return response;
     };
   }
 

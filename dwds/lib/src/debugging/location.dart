@@ -345,7 +345,13 @@ class Locations {
         '/${stripLeadingSlashes(modulePath)}',
       );
 
-      if (sourceMapContents == null) return result;
+      if (sourceMapContents == null) {
+        _logger.warning(
+          'Failed to load source map for module $module at path '
+          '$sourceMapPath',
+        );
+        return result;
+      }
 
       final runtimeScriptId = await _modules.getRuntimeScriptIdForModule(
         _entrypoint,
