@@ -2,6 +2,9 @@
 
 1. In the root directory of `webdev`, run
    `pub global activate --source path webdev`
+1. [OPTIONAL] If you are developing `webdev` against local changes in `dwds`, add a dependency override in `webdev/pubspec.yaml` pointing to your local `dwds` directory (e.g., in the SDK or a separate checkout), then run `dart run build_runner build` from the `webdev/webdev` directory.
+   - *Note: You will have to comment and build, and then uncomment and build,
+     each time you need to pick up new changes*
 1. From `/webdev/example`, run `webdev serve --debug --verbose` (Note: all
    options can be found by running `webdev help serve`)
 1. Type opt/alt-d in the browser. This is required to start the VM.
