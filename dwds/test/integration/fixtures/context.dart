@@ -254,11 +254,11 @@ class TestContext {
       var filePathToServe = project.filePathToServe;
 
       // Start the HTTP server and save its used port.
-      final httpServer = await startHttpServer('localhost');
+      final httpServer = await startHttpServer('127.0.0.1');
       _port = httpServer.port;
 
       final reloadedSourcesUri = Uri.parse(
-        'http://localhost:$_port/${WebDevFS.reloadedSourcesFileName}',
+        'http://127.0.0.1:$_port/${WebDevFS.reloadedSourcesFileName}',
       );
 
       switch (testSettings.compilationMode) {
@@ -334,7 +334,7 @@ class TestContext {
 
             if (testSettings.enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
-                'localhost',
+                '127.0.0.1',
                 _port!,
                 verbose: testSettings.verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
@@ -520,7 +520,7 @@ class TestContext {
 
             if (testSettings.enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
-                'localhost',
+                '127.0.0.1',
                 _port!,
                 verbose: testSettings.verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
@@ -597,7 +597,7 @@ class TestContext {
       // listeners in DWDS or `main` is run.
       final tabConnectionCompleter = Completer<void>();
       final appConnectionCompleter = Completer<void>();
-      final connection = ChromeConnection('localhost', debugPort);
+      final connection = ChromeConnection('127.0.0.1', debugPort);
 
       // TODO(srujzs): In the case of the frontend server, it doesn't make sense
       // that we initialize a new HTTP server instead of reusing the one in
@@ -634,8 +634,8 @@ class TestContext {
       });
 
       _appUrl = basePath.isEmpty
-          ? 'http://localhost:$port/$filePathToServe'
-          : 'http://localhost:$port/$basePath/$filePathToServe';
+          ? 'http://127.0.0.1:$port/$filePathToServe'
+          : 'http://127.0.0.1:$port/$basePath/$filePathToServe';
 
       if (testSettings.launchChrome) {
         await _webDriver?.get(appUrl);
@@ -836,7 +836,7 @@ class TestContext {
   /// Returns a handler for build runner + DDC AMD module system.
   Handler _createBuildRunnerAmdAssetHandler(int assetServerPort) {
     return proxyHandler(
-      'http://localhost:$assetServerPort/${project.directoryToServe}/',
+      'http://127.0.0.1:$assetServerPort/${project.directoryToServe}/',
       client: client,
     );
   }
@@ -850,7 +850,7 @@ class TestContext {
   ///   `project.directoryToServe`.
   Handler _createBuildRunnerDdcLibraryBundleAssetHandler(int assetServerPort) {
     final entrypointProxy = proxyHandler(
-      'http://localhost:$assetServerPort/${project.directoryToServe}/',
+      'http://127.0.0.1:$assetServerPort/${project.directoryToServe}/',
       client: client,
     );
 

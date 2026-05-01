@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/sdk_configuration.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 
 import 'sdk_asset_generator.dart';
 import 'test_sdk_layout.dart';
@@ -58,6 +59,29 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
     }
 
     try {
+      final cacheDirName =
+          'dwds_sdk_cache_${ddcModuleFormat.name}_$canaryFeatures';
+      final cacheDir = Directory(
+        p.join(Directory.systemTemp.path, cacheDirName),
+      );
+      final cacheJsFile = File(p.join(cacheDir.path, 'dart_sdk.js'));
+      final cacheJsMapFile = File(p.join(cacheDir.path, 'dart_sdk.js.map'));
+
+      final targetJsPath = ddcModuleFormat == ModuleFormat.amd
+          ? sdkLayout.amdJsPath
+          : sdkLayout.ddcJsPath;
+      final targetJsMapPath = ddcModuleFormat == ModuleFormat.amd
+          ? sdkLayout.amdJsMapPath
+          : sdkLayout.ddcJsMapPath;
+
+      if (cacheJsFile.existsSync() && cacheJsMapFile.existsSync()) {
+        _logger.info('Found cached SDK assets in ${cacheDir.path}');
+        await File(targetJsPath).create(recursive: true);
+        await File(targetJsMapPath).create(recursive: true);
+        await cacheJsFile.copy(targetJsPath);
+        await cacheJsMapFile.copy(targetJsMapPath);
+      }
+
       final assetGenerator = SdkAssetGenerator(
         sdkLayout: sdkLayout,
         canaryFeatures: canaryFeatures,
@@ -66,6 +90,20 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
       );
 
       await assetGenerator.generateSdkAssets();
+
+      if (!cacheJsFile.existsSync() || !cacheJsMapFile.existsSync()) {
+        _logger.info('Caching SDK assets in ${cacheDir.path}');
+        await cacheDir.create(recursive: true);
+        final tempJs = File(p.join(cacheDir.path, 'dart_sdk.js.tmp'));
+        final tempJsMap = File(p.join(cacheDir.path, 'dart_sdk.js.map.tmp'));
+
+        await File(targetJsPath).copy(tempJs.path);
+        await File(targetJsMapPath).copy(tempJsMap.path);
+
+        await _safeRename(tempJs, cacheJsFile.path);
+        await _safeRename(tempJsMap, cacheJsMapFile.path);
+      }
+
       return TestSdkLayout.createConfiguration(sdkLayout);
     } catch (e, s) {
       _logger.severe('Failed generate missing assets', e, s);
@@ -84,6 +122,14 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
       if (retry) {
         dispose(retry: false);
       }
+    }
+  }
+
+  Future<void> _safeRename(File from, String to) async {
+    try {
+      await from.rename(to);
+    } on FileSystemException {
+      // Ignore if rename fails (e.g. file exists or busy on Windows).
     }
   }
 }
