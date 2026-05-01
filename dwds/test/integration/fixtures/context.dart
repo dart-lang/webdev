@@ -318,14 +318,16 @@ class TestContext {
             );
             if (testSettings.moduleFormat == ModuleFormat.ddc &&
                 buildSettings.canaryFeatures) {
-              _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
-                assetServerPort,
+              _assetHandler = _handleReloadedSources(
+                _createBuildRunnerProxyHandler(assetServerPort),
               );
-              assetReader = ProxyServerAssetReader.fromHandler(_assetHandler!);
+              assetReader = ProxyServerAssetReader(
+                assetServerPort,
+                root: project.directoryToServe,
+                wrapHandler: _handleReloadedSources,
+              );
             } else {
-              _assetHandler = _createBuildRunnerAmdAssetHandler(
-                assetServerPort,
-              );
+              _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
               assetReader = ProxyServerAssetReader(
                 assetServerPort,
                 root: project.directoryToServe,
@@ -513,10 +515,14 @@ class TestContext {
             final assetServerPort = daemonPort(
               project.absolutePackageDirectory,
             );
-            _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
-              assetServerPort,
+            _assetHandler = _handleReloadedSources(
+              _createBuildRunnerProxyHandler(assetServerPort),
             );
-            assetReader = ProxyServerAssetReader.fromHandler(_assetHandler!);
+            assetReader = ProxyServerAssetReader(
+              assetServerPort,
+              root: project.directoryToServe,
+              wrapHandler: _handleReloadedSources,
+            );
 
             if (testSettings.enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
@@ -833,33 +839,22 @@ class TestContext {
     _updateReloadedSources(file.path);
   }
 
-  /// Returns a handler for build runner + DDC AMD module system.
-  Handler _createBuildRunnerAmdAssetHandler(int assetServerPort) {
+  Handler _createBuildRunnerProxyHandler(int assetServerPort) {
     return proxyHandler(
       'http://localhost:$assetServerPort/${project.directoryToServe}/',
       client: client,
     );
   }
 
-  /// Returns a handler for build runner + the DDC Library Bundle module
-  /// system.
-  ///
-  /// This handler:
-  /// - serves the reloaded_sources.json file for reloads/restarts.
-  /// - serves the application directory and entrypoint from
-  ///   `project.directoryToServe`.
-  Handler _createBuildRunnerDdcLibraryBundleAssetHandler(int assetServerPort) {
-    final entrypointProxy = proxyHandler(
-      'http://localhost:$assetServerPort/${project.directoryToServe}/',
-      client: client,
-    );
-
+  /// Wraps a handler to serve the reloaded_sources.json file for
+  /// reloads/restarts in the DDC Library Bundle module system.
+  Handler _handleReloadedSources(Handler proxy) {
     return (request) {
       final path = request.url.path;
       if (path.endsWith(WebDevFS.reloadedSourcesFileName)) {
         return shelf.Response.ok(jsonEncode(_reloadedSources));
       }
-      return entrypointProxy(request);
+      return proxy(request);
     };
   }
 

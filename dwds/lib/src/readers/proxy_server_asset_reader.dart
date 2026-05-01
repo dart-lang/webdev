@@ -26,6 +26,7 @@ class ProxyServerAssetReader implements AssetReader {
     String root = '',
     String host = 'localhost',
     bool isHttps = false,
+    Handler Function(Handler)? wrapHandler,
   }) {
     final scheme = isHttps ? 'https://' : 'http://';
     final inner = HttpClient()
@@ -37,11 +38,14 @@ class ProxyServerAssetReader implements AssetReader {
         : IOClient(inner);
     var url = '$scheme$host:$assetServerPort/';
     if (root.isNotEmpty) url += '$root/';
-    final handler = proxyHandler(url, client: client);
+    var handler = proxyHandler(url, client: client);
+    if (wrapHandler != null) {
+      handler = wrapHandler(handler);
+    }
     return ProxyServerAssetReader._(handler, client);
   }
 
-  ProxyServerAssetReader.fromHandler(this._handler) : _client = null;
+  ProxyServerAssetReader.fromHandler(this._handler, {this._client});
 
   @override
   String get basePath => '';
