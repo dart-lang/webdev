@@ -5,7 +5,7 @@
 1. [OPTIONAL] If you are developing `webdev` against local changes in `dwds`, 
    add a dependency override in `webdev/webdev/pubspec.yaml` pointing to your 
    local `dwds` directory (e.g., in the SDK or a separate checkout), then 
-   run `dart run build_runner build` from the `webdev/webdev` directory
+   run `dart run build_runner build` from `/webdev/webdev` directory
    - *Note: You will have to comment and build, and then uncomment and build,
      each time you need to pick up new changes*
 1. From `/webdev/example`, run `webdev serve --debug --verbose` (Note: all
