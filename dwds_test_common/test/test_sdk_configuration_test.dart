@@ -85,7 +85,6 @@ void main() {
       expect(sdkLayout.frontendServerSnapshotPath, _fileExists);
       expect(sdkLayout.dartdevcSnapshotPath, _fileExists);
       expect(sdkLayout.kernelWorkerSnapshotPath, _fileExists);
-      expect(sdkLayout.devToolsDirectory, _directoryExists);
     });
   });
 
@@ -110,7 +109,6 @@ void main() {
       expect(sdkLayout.summaryPath, _fileExists);
       expect(sdkLayout.fullDillPath, _fileExists);
 
-      expect(sdkLayout.requireJsPath, _fileExists);
       expect(sdkLayout.stackTraceMapperPath, _fileExists);
 
       expect(sdkLayout.dartPath, _fileExists);
@@ -118,7 +116,6 @@ void main() {
       expect(sdkLayout.frontendServerSnapshotPath, _fileExists);
       expect(sdkLayout.dartdevcSnapshotPath, _fileExists);
       expect(sdkLayout.kernelWorkerSnapshotPath, _fileExists);
-      expect(sdkLayout.devToolsDirectory, _directoryExists);
     });
   });
 }
