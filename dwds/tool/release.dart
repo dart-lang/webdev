@@ -1,4 +1,4 @@
-// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,15 +13,15 @@ const _skipStableCheckFlag = 'skipStableCheck';
 
 /// Note: Must be run from the /tool directory.
 ///
-/// To prepare WebDev for release:
-///  `dart run release.dart -p webdev`
+/// To prepare DWDS for release:
+///  `dart run release.dart -p dwds`
 ///
-/// To reset WebDev after a release:
-///   `dart run release.dart --reset -p webdev -v [[wip version]]`
+/// To reset DWDS after a release:
+///  `dart run release.dart --reset -p dwds -v [[wip version]]`
 
 void main(List<String> arguments) async {
   final parser = ArgParser()
-    ..addOption(_packageOption, abbr: 'p', allowed: ['webdev'])
+    ..addOption(_packageOption, abbr: 'p', allowed: ['dwds'])
     ..addOption(_versionOption, abbr: 'v')
     ..addFlag(_resetFlag, abbr: 'r')
     ..addFlag(_skipStableCheckFlag, abbr: 's');
@@ -29,7 +29,7 @@ void main(List<String> arguments) async {
   final argResults = parser.parse(arguments);
   final package = argResults[_packageOption] as String?;
   if (package == null) {
-    _logWarning('Please specify package with --p=webdev');
+    _logWarning('Please specify package with --p=dwds');
     return;
   }
 
@@ -39,10 +39,9 @@ void main(List<String> arguments) async {
 
   int exitCode;
   if (isReset == true) {
-    exitCode = await runReset(package: package, newVersion: newVersion);
+    exitCode = await runReset(newVersion: newVersion);
   } else {
     exitCode = await runRelease(
-      package: package,
       newVersion: newVersion,
       skipStableCheck: skipStableCheck,
     );
@@ -52,38 +51,33 @@ void main(List<String> arguments) async {
   }
 }
 
-Future<int> runReset({required String package, String? newVersion}) {
+Future<int> runReset({String? newVersion}) {
   // Check that a new wip version has been provided.
-  final currentVersion = _readVersionFile(package);
+  final currentVersion = _readVersionFile();
   if (newVersion == null || !newVersion.contains('wip')) {
     _logInfo('''
-      Please provide the next wip version for $package, e.g. -v 3.0.1-wip
+      Please provide the next wip version for dwds, e.g. -v 3.0.1-wip
       Current version is $currentVersion.
     ''');
     return Future.value(1);
   }
 
   // Reset the dependency overrides for the package:
-  _updateOverrides(package, includeOverrides: true);
+  _updateOverrides(includeOverrides: true);
 
   // Update the version strings in CHANGELOG and pubspec.yaml.
   _updateVersionStrings(
-    package,
     currentVersion: currentVersion,
     nextVersion: newVersion,
     isReset: true,
   );
 
   // Build the package.
-  final exitCode = _buildPackage(package);
+  final exitCode = _buildPackage();
   return exitCode;
 }
 
-Future<int> runRelease({
-  required String package,
-  String? newVersion,
-  bool? skipStableCheck,
-}) async {
+Future<int> runRelease({String? newVersion, bool? skipStableCheck}) async {
   // Check that we are on a stable version of Dart.
   if (skipStableCheck != true) {
     final checkVersionProcess = await Process.run('dart', ['--version']);
@@ -98,60 +92,41 @@ Future<int> runRelease({
     }
   }
 
-  // Update the pinned version of DWDS for webdev releases.
-  if (package == 'webdev') {
-    final newVersion = await _updateDwdsPin('webdev');
-    _logInfo('Add pinned DWDS info to CHANGELOG.');
-    final changelog = File('../webdev/CHANGELOG.md');
-    _addNewLine(
-      changelog,
-      newLine: '- Update `dwds` constraint to `${newVersion ?? 'TODO'}`.',
-      insertAt: 2,
-    );
-  }
-
   // Remove any dependency overrides for the package:
-  _logInfo('Removing dependency overrides for $package.');
-  _updateOverrides(package, includeOverrides: false);
+  _logInfo('Removing dependency overrides for dwds.');
+  _updateOverrides(includeOverrides: false);
 
   // Run dart pub upgrade.
-  for (final packagePath in [
-    '../webdev',
-    '../frontend_server_client',
-  ]) {
-    _logInfo('Upgrading pub packages for $packagePath');
-    final pubUpgradeProcess = await Process.run('dart', [
-      'pub',
-      'upgrade',
-    ], workingDirectory: packagePath);
-    final upgradeErrors = pubUpgradeProcess.stderr as String;
-    if (upgradeErrors.isNotEmpty) {
-      _logWarning(upgradeErrors);
-      return pubUpgradeProcess.exitCode;
-    }
+  _logInfo('Upgrading pub packages for dwds');
+  final pubUpgradeProcess = await Process.run('dart', [
+    'pub',
+    'upgrade',
+  ], workingDirectory: '..');
+  final upgradeErrors = pubUpgradeProcess.stderr as String;
+  if (upgradeErrors.isNotEmpty) {
+    _logWarning(upgradeErrors);
+    return pubUpgradeProcess.exitCode;
   }
 
   // Update the version strings in CHANGELOG and pubspec.yaml.
-  final currentVersion = _readVersionFile(package);
+  final currentVersion = _readVersionFile();
   final nextVersion = newVersion ?? _removeWip(currentVersion);
   _updateVersionStrings(
-    package,
     currentVersion: currentVersion,
     nextVersion: nextVersion,
   );
 
   // Build the package.
-  final exitCode = _buildPackage(package);
+  final exitCode = _buildPackage();
   return exitCode;
 }
 
-Future<int> _buildPackage(String package) async {
-  _logInfo('Building $package');
+Future<int> _buildPackage() async {
+  _logInfo('Building dwds');
   final buildProcess = await Process.run('dart', [
     'run',
-    'build_runner',
-    'build',
-  ], workingDirectory: '../$package');
+    'tool/build.dart',
+  ], workingDirectory: '..');
 
   final buildErrors = buildProcess.stderr as String;
   if (buildErrors.isNotEmpty) {
@@ -160,9 +135,9 @@ Future<int> _buildPackage(String package) async {
   return buildProcess.exitCode;
 }
 
-void _updateOverrides(String package, {required bool includeOverrides}) {
-  final overridesFilePath = '../$package/pubspec_overrides.yaml';
-  final noOverridesFilePath = '../$package/ignore_pubspec_overrides.yaml';
+void _updateOverrides({required bool includeOverrides}) {
+  final overridesFilePath = '../pubspec_overrides.yaml';
+  final noOverridesFilePath = '../ignore_pubspec_overrides.yaml';
   if (includeOverrides) {
     _renameFile(currentName: noOverridesFilePath, newName: overridesFilePath);
   } else {
@@ -179,15 +154,14 @@ void _renameFile({required String currentName, required String newName}) {
   currentFile.rename(newName);
 }
 
-void _updateVersionStrings(
-  String package, {
+void _updateVersionStrings({
   required String nextVersion,
   required String currentVersion,
   bool isReset = false,
 }) {
-  _logInfo('Updating $package from $currentVersion to $nextVersion');
-  final pubspec = File('../$package/pubspec.yaml');
-  final changelog = File('../$package/CHANGELOG.md');
+  _logInfo('Updating dwds from $currentVersion to $nextVersion');
+  final pubspec = File('../pubspec.yaml');
+  final changelog = File('../CHANGELOG.md');
   if (isReset) {
     _addNewLine(changelog, newLine: '## $nextVersion');
     _replaceInFile(pubspec, query: currentVersion, replaceWith: nextVersion);
@@ -227,8 +201,8 @@ bool _replaceInFile(
   return replaced;
 }
 
-String _readVersionFile(String package) {
-  final versionFile = File('../$package/lib/src/version.dart');
+String _readVersionFile() {
+  final versionFile = File('../lib/src/version.dart');
   final lines = versionFile.readAsLinesSync();
   for (final line in lines) {
     if (line.startsWith('const packageVersion =')) {
@@ -241,7 +215,7 @@ String _readVersionFile(String package) {
       return version.trim();
     }
   }
-  throw Exception('Could not read version in $package/lib/src/version.dart');
+  throw Exception('Could not read version in dwds/lib/src/version.dart');
 }
 
 String _removeWip(String wipVersion) {
@@ -249,44 +223,6 @@ String _removeWip(String wipVersion) {
     throw Exception('$wipVersion is not a wip version.');
   }
   return wipVersion.split('-wip').first;
-}
-
-/// Returns the new pinned DWDS version on success.
-Future<String?> _updateDwdsPin(String package) async {
-  final pubOutdatedProcess = await Process.run('dart', [
-    'pub',
-    'outdated',
-    '--no-dependency-overrides',
-  ], workingDirectory: '../$package');
-  final lines = pubOutdatedProcess.stdout.split('\n') as List<String>;
-  String? nextDwdsVersion;
-  String? currentDwdsVersion;
-  for (final line in lines) {
-    if (line.trim().startsWith('dwds')) {
-      final segments = line
-          .trim()
-          .split(' ')
-          .where((segment) => segment != ' ');
-      nextDwdsVersion = segments.last;
-      currentDwdsVersion = segments
-          .lastWhere((segment) => segment.startsWith('*'))
-          .substring(1);
-      break;
-    }
-  }
-  final next = nextDwdsVersion ?? '';
-  final current = currentDwdsVersion ?? '';
-  if (next.isNotEmpty && current.isNotEmpty) {
-    _logInfo('Changing DWDS pin from $current to $next');
-    _replaceInFile(
-      File('../$package/pubspec.yaml'),
-      query: current,
-      replaceWith: next,
-    );
-    return nextDwdsVersion;
-  }
-  _logWarning('Unable to determine DWDS version to pin.');
-  return null;
 }
 
 void _logInfo(String message) {
