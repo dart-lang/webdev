@@ -56,3 +56,10 @@ dev_dependencies:
 
 executables:
   webdev:
+
+dependency_overrides:
+  dwds_test_common:
+    git:
+      url: https://github.com/dart-lang/sdk.git
+      ref: cc67fadefe24678e7f020fe42cbb41fed2cd6f0c
+      path: pkg/dwds_test_common
