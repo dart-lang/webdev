@@ -298,8 +298,98 @@ class WebDevServer {
         if (options.configuration.webHotReload) {
           // Use the daemon expression compiler when web hot reload is enabled
           // to reuse the Frontend Server's in-memory state.
+          int? cachedFesPort;
+
+          Future<Map<String, dynamic>> sendRequestToFes(
+            int port,
+            Map<String, dynamic> request,
+          ) async {
+            final socket = await Socket.connect(
+              InternetAddress.loopbackIPv4,
+              port,
+            );
+            try {
+              socket.writeln(jsonEncode(request));
+              final responseStr = await socket
+                  .cast<List<int>>()
+                  .transform(utf8.decoder)
+                  .transform(const LineSplitter())
+                  .first;
+              final compileResult = jsonDecode(responseStr);
+
+              if (compileResult is Map) {
+                if (compileResult.containsKey('error')) {
+                  return {
+                    'result': compileResult['error'] as String,
+                    'isError': true,
+                  };
+                }
+                final errorCount = compileResult['errorCount'] as int?;
+                final expressionData =
+                    compileResult['expressionData'] as String?;
+
+                if (errorCount != null && errorCount > 0) {
+                  return {
+                    'result':
+                        compileResult['errorMessage'] as String? ??
+                        'Unknown error',
+                    'isError': true,
+                  };
+                }
+
+                if (expressionData != null) {
+                  final decodedResult = utf8.decode(
+                    base64.decode(expressionData),
+                  );
+                  return {'result': decodedResult, 'isError': false};
+                }
+              }
+
+              return {
+                'result': 'Failed to read evaluation result',
+                'isError': true,
+              };
+            } finally {
+              await socket.close();
+            }
+          }
+
           ddcService = DaemonExpressionCompiler((request) async {
-            return await daemonClient.sendRequest(request);
+            if (cachedFesPort != null) {
+              try {
+                return await sendRequestToFes(cachedFesPort!, request);
+              } catch (e) {
+                _logger.warning(
+                  'Failed to connect to FES at $cachedFesPort, falling back to daemon',
+                  e,
+                );
+                cachedFesPort = null;
+              }
+            }
+
+            try {
+              final file = File(
+                p.join('.dart_tool', 'build', 'fes_worker_port'),
+              );
+              if (await file.exists()) {
+                final content = await file.readAsString();
+                final port = int.tryParse(content.trim());
+                if (port != null) {
+                  cachedFesPort = port;
+                  return await sendRequestToFes(port, request);
+                }
+              }
+            } catch (e) {
+              _logger.warning(
+                'Failed to read FES port from .dart_tool/build/fes_worker_port',
+                e,
+              );
+            }
+            return {
+              'result':
+                  'InternalError: Failed to connect to Frontend Server worker.',
+              'isError': true,
+            };
           });
         } else if (isAotMode && !useAotDdc) {
           _logger.warning(

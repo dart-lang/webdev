@@ -520,7 +520,71 @@ class TestContext {
 
             if (testSettings.enableExpressionEvaluation) {
               expressionCompiler = DaemonExpressionCompiler((request) async {
-                return await _daemonClient!.sendRequest(request);
+                final file = File(
+                  p.join(
+                    project.absolutePackageDirectory,
+                    '.dart_tool',
+                    'build',
+                    'fes_worker_port',
+                  ),
+                );
+                if (await file.exists()) {
+                  final content = await file.readAsString();
+                  final port = int.tryParse(content.trim());
+                  if (port != null) {
+                    final socket = await Socket.connect(
+                      InternetAddress.loopbackIPv4,
+                      port,
+                    );
+                    try {
+                      socket.writeln(jsonEncode(request));
+                      final responseStr = await socket
+                          .cast<List<int>>()
+                          .transform(utf8.decoder)
+                          .transform(const LineSplitter())
+                          .first;
+                      final compileResult = jsonDecode(responseStr);
+
+                      if (compileResult is Map) {
+                        if (compileResult.containsKey('error')) {
+                          return {
+                            'result': compileResult['error'] as String,
+                            'isError': true,
+                          };
+                        }
+                        final errorCount = compileResult['errorCount'] as int?;
+                        final expressionData =
+                            compileResult['expressionData'] as String?;
+
+                        if (errorCount != null && errorCount > 0) {
+                          return {
+                            'result':
+                                compileResult['errorMessage'] as String? ??
+                                'Unknown error',
+                            'isError': true,
+                          };
+                        }
+
+                        if (expressionData != null) {
+                          final decodedResult = utf8.decode(
+                            base64.decode(expressionData),
+                          );
+                          return {'result': decodedResult, 'isError': false};
+                        }
+                      }
+
+                      return {
+                        'result': 'Failed to read evaluation result',
+                        'isError': true,
+                      };
+                    } finally {
+                      await socket.close();
+                    }
+                  }
+                }
+                throw StateError(
+                  'FES port not found in .dart_tool/build/fes_worker_port',
+                );
               });
             }
             frontendServerFileSystem = const LocalFileSystem();

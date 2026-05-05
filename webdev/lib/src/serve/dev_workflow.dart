@@ -209,7 +209,6 @@ class DevWorkflow {
     final workingDirectory = Directory.current.path;
     final client = await _startBuildDaemon(workingDirectory, [
       ...buildOptions,
-      if (configuration.webHotReload) '--web-hot-reload',
     ]);
     logWriter(logging.Level.INFO, 'Registering build targets...');
     _registerBuildTargets(client, configuration, targetPorts);
