@@ -2088,25 +2088,21 @@ void runTests({
       },
     );
 
-    test(
-      'lookupResolvedPackageUris translates dart uris',
-      () async {
-        final service = context.service;
-        final vm = await service.getVM();
-        final isolateId = vm.isolates!.first.id!;
+    test('lookupResolvedPackageUris translates dart uris', () async {
+      final service = context.service;
+      final vm = await service.getVM();
+      final isolateId = vm.isolates!.first.id!;
 
-        final resolvedUris = await service.lookupResolvedPackageUris(
-          isolateId,
-          ['dart:html', 'dart:async'],
-        );
+      final resolvedUris = await service.lookupResolvedPackageUris(isolateId, [
+        'dart:html',
+        'dart:async',
+      ]);
 
-        expect(resolvedUris.uris, [
-          'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
-          'org-dartlang-sdk:///sdk/lib/async/async.dart',
-        ]);
-      },
-      skip: 'https://github.com/dart-lang/webdev/issues/1584',
-    );
+      expect(resolvedUris.uris, [
+        'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
+        'org-dartlang-sdk:///sdk/lib/async/async.dart',
+      ]);
+    }, skip: 'https://github.com/dart-lang/webdev/issues/1584');
 
     test(
       'lookupPackageUris finds package and org-dartlang-app paths',
@@ -2196,22 +2192,18 @@ void runTests({
       expect(resolvedUris.uris, [null, null, null]);
     });
 
-    test(
-      'lookupPackageUris translates dart uris',
-      () async {
-        final service = context.service;
-        final vm = await service.getVM();
-        final isolateId = vm.isolates!.first.id!;
+    test('lookupPackageUris translates dart uris', () async {
+      final service = context.service;
+      final vm = await service.getVM();
+      final isolateId = vm.isolates!.first.id!;
 
-        final resolvedUris = await service.lookupPackageUris(isolateId, [
-          'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
-          'org-dartlang-sdk:///sdk/lib/async/async.dart',
-        ]);
+      final resolvedUris = await service.lookupPackageUris(isolateId, [
+        'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
+        'org-dartlang-sdk:///sdk/lib/async/async.dart',
+      ]);
 
-        expect(resolvedUris.uris, ['dart:html', 'dart:async']);
-      },
-      skip: 'https://github.com/dart-lang/webdev/issues/1584',
-    );
+      expect(resolvedUris.uris, ['dart:html', 'dart:async']);
+    }, skip: 'https://github.com/dart-lang/webdev/issues/1584');
 
     test('registerService', () async {
       final service = context.service;
