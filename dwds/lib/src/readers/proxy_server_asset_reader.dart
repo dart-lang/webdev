@@ -21,8 +21,6 @@ class ProxyServerAssetReader implements AssetReader {
 
   ProxyServerAssetReader._(this._handler, this._client);
 
-  /// Creates a [ProxyServerAssetReader] that reads resources from a proxy
-  /// server.
   factory ProxyServerAssetReader(
     int assetServerPort, {
     String root = '',
