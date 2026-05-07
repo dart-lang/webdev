@@ -11,6 +11,8 @@ const _versionOption = 'version';
 const _resetFlag = 'reset';
 const _skipStableCheckFlag = 'skipStableCheck';
 
+final _repoRootDir = File.fromUri(Platform.script).parent.parent.path;
+
 /// Note: Must be run from the /tool directory.
 ///
 /// To prepare WebDev for release:
@@ -21,7 +23,12 @@ const _skipStableCheckFlag = 'skipStableCheck';
 
 void main(List<String> arguments) async {
   final parser = ArgParser()
-    ..addOption(_packageOption, abbr: 'p', allowed: ['webdev'])
+    ..addOption(
+      _packageOption,
+      abbr: 'p',
+      allowed: ['webdev'],
+      defaultsTo: 'webdev',
+    )
     ..addOption(_versionOption, abbr: 'v')
     ..addFlag(_resetFlag, abbr: 'r')
     ..addFlag(_skipStableCheckFlag, abbr: 's');
@@ -29,7 +36,7 @@ void main(List<String> arguments) async {
   final argResults = parser.parse(arguments);
   final package = argResults[_packageOption] as String?;
   if (package == null) {
-    _logWarning('Please specify package with --p=webdev');
+    _logWarning('Please specify package with -p webdev or --package=webdev');
     return;
   }
 
@@ -102,7 +109,7 @@ Future<int> runRelease({
   if (package == 'webdev') {
     final newVersion = await _updateDwdsPin('webdev');
     _logInfo('Add pinned DWDS info to CHANGELOG.');
-    final changelog = File('../webdev/CHANGELOG.md');
+    final changelog = File('$_repoRootDir/webdev/CHANGELOG.md');
     _addNewLine(
       changelog,
       newLine: '- Update `dwds` constraint to `${newVersion ?? 'TODO'}`.',
@@ -116,8 +123,8 @@ Future<int> runRelease({
 
   // Run dart pub upgrade.
   for (final packagePath in [
-    '../webdev',
-    '../frontend_server_client',
+    '$_repoRootDir/webdev',
+    '$_repoRootDir/frontend_server_client',
   ]) {
     _logInfo('Upgrading pub packages for $packagePath');
     final pubUpgradeProcess = await Process.run('dart', [
@@ -151,7 +158,7 @@ Future<int> _buildPackage(String package) async {
     'run',
     'build_runner',
     'build',
-  ], workingDirectory: '../$package');
+  ], workingDirectory: '$_repoRootDir/$package');
 
   final buildErrors = buildProcess.stderr as String;
   if (buildErrors.isNotEmpty) {
@@ -161,8 +168,9 @@ Future<int> _buildPackage(String package) async {
 }
 
 void _updateOverrides(String package, {required bool includeOverrides}) {
-  final overridesFilePath = '../$package/pubspec_overrides.yaml';
-  final noOverridesFilePath = '../$package/ignore_pubspec_overrides.yaml';
+  final overridesFilePath = '$_repoRootDir/$package/pubspec_overrides.yaml';
+  final noOverridesFilePath =
+      '$_repoRootDir/$package/ignore_pubspec_overrides.yaml';
   if (includeOverrides) {
     _renameFile(currentName: noOverridesFilePath, newName: overridesFilePath);
   } else {
@@ -186,8 +194,8 @@ void _updateVersionStrings(
   bool isReset = false,
 }) {
   _logInfo('Updating $package from $currentVersion to $nextVersion');
-  final pubspec = File('../$package/pubspec.yaml');
-  final changelog = File('../$package/CHANGELOG.md');
+  final pubspec = File('$_repoRootDir/$package/pubspec.yaml');
+  final changelog = File('$_repoRootDir/$package/CHANGELOG.md');
   if (isReset) {
     _addNewLine(changelog, newLine: '## $nextVersion');
     _replaceInFile(pubspec, query: currentVersion, replaceWith: nextVersion);
@@ -228,7 +236,7 @@ bool _replaceInFile(
 }
 
 String _readVersionFile(String package) {
-  final versionFile = File('../$package/lib/src/version.dart');
+  final versionFile = File('$_repoRootDir/$package/lib/src/version.dart');
   final lines = versionFile.readAsLinesSync();
   for (final line in lines) {
     if (line.startsWith('const packageVersion =')) {
@@ -257,7 +265,7 @@ Future<String?> _updateDwdsPin(String package) async {
     'pub',
     'outdated',
     '--no-dependency-overrides',
-  ], workingDirectory: '../$package');
+  ], workingDirectory: '$_repoRootDir/$package');
   final lines = pubOutdatedProcess.stdout.split('\n') as List<String>;
   String? nextDwdsVersion;
   String? currentDwdsVersion;
@@ -279,7 +287,7 @@ Future<String?> _updateDwdsPin(String package) async {
   if (next.isNotEmpty && current.isNotEmpty) {
     _logInfo('Changing DWDS pin from $current to $next');
     _replaceInFile(
-      File('../$package/pubspec.yaml'),
+      File('$_repoRootDir/$package/pubspec.yaml'),
       query: current,
       replaceWith: next,
     );

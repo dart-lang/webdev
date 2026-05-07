@@ -11,6 +11,8 @@ const _versionOption = 'version';
 const _resetFlag = 'reset';
 const _skipStableCheckFlag = 'skipStableCheck';
 
+final _packageDir = File.fromUri(Platform.script).parent.parent.path;
+
 /// Note: Must be run from the /tool directory.
 ///
 /// To prepare DWDS for release:
@@ -21,7 +23,12 @@ const _skipStableCheckFlag = 'skipStableCheck';
 
 void main(List<String> arguments) async {
   final parser = ArgParser()
-    ..addOption(_packageOption, abbr: 'p', allowed: ['dwds'])
+    ..addOption(
+      _packageOption,
+      abbr: 'p',
+      allowed: ['dwds'],
+      defaultsTo: 'dwds',
+    )
     ..addOption(_versionOption, abbr: 'v')
     ..addFlag(_resetFlag, abbr: 'r')
     ..addFlag(_skipStableCheckFlag, abbr: 's');
@@ -29,7 +36,7 @@ void main(List<String> arguments) async {
   final argResults = parser.parse(arguments);
   final package = argResults[_packageOption] as String?;
   if (package == null) {
-    _logWarning('Please specify package with --p=dwds');
+    _logWarning('Please specify package with -p dwds or --package=dwds');
     return;
   }
 
@@ -101,7 +108,7 @@ Future<int> runRelease({String? newVersion, bool? skipStableCheck}) async {
   final pubUpgradeProcess = await Process.run('dart', [
     'pub',
     'upgrade',
-  ], workingDirectory: '..');
+  ], workingDirectory: _packageDir);
   final upgradeErrors = pubUpgradeProcess.stderr as String;
   if (upgradeErrors.isNotEmpty) {
     _logWarning(upgradeErrors);
@@ -126,7 +133,7 @@ Future<int> _buildPackage() async {
   final buildProcess = await Process.run('dart', [
     'run',
     'tool/build.dart',
-  ], workingDirectory: '..');
+  ], workingDirectory: _packageDir);
 
   final buildErrors = buildProcess.stderr as String;
   if (buildErrors.isNotEmpty) {
@@ -136,8 +143,8 @@ Future<int> _buildPackage() async {
 }
 
 void _updateOverrides({required bool includeOverrides}) {
-  final overridesFilePath = '../pubspec_overrides.yaml';
-  final noOverridesFilePath = '../ignore_pubspec_overrides.yaml';
+  final overridesFilePath = '$_packageDir/pubspec_overrides.yaml';
+  final noOverridesFilePath = '$_packageDir/ignore_pubspec_overrides.yaml';
   if (includeOverrides) {
     _renameFile(currentName: noOverridesFilePath, newName: overridesFilePath);
   } else {
@@ -160,8 +167,8 @@ void _updateVersionStrings({
   bool isReset = false,
 }) {
   _logInfo('Updating dwds from $currentVersion to $nextVersion');
-  final pubspec = File('../pubspec.yaml');
-  final changelog = File('../CHANGELOG.md');
+  final pubspec = File('$_packageDir/pubspec.yaml');
+  final changelog = File('$_packageDir/CHANGELOG.md');
   if (isReset) {
     _addNewLine(changelog, newLine: '## $nextVersion');
     _replaceInFile(pubspec, query: currentVersion, replaceWith: nextVersion);
@@ -202,7 +209,7 @@ bool _replaceInFile(
 }
 
 String _readVersionFile() {
-  final versionFile = File('../lib/src/version.dart');
+  final versionFile = File('$_packageDir/lib/src/version.dart');
   final lines = versionFile.readAsLinesSync();
   for (final line in lines) {
     if (line.startsWith('const packageVersion =')) {

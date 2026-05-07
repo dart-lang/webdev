@@ -37,6 +37,7 @@ dependencies:
   webkit_inspection_protocol: ^1.0.1
 
 dev_dependencies:
+  args: ^2.7.0
   build_daemon: ^4.0.0
   dart_flutter_team_lints: ^3.5.2
   dwds_test_common:
