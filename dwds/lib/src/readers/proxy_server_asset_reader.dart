@@ -21,12 +21,13 @@ class ProxyServerAssetReader implements AssetReader {
 
   ProxyServerAssetReader._(this._handler, this._client);
 
+  /// Creates a [ProxyServerAssetReader] that reads resources from a proxy
+  /// server.
   factory ProxyServerAssetReader(
     int assetServerPort, {
     String root = '',
     String host = 'localhost',
     bool isHttps = false,
-    Handler Function(Handler)? wrapHandler,
   }) {
     final scheme = isHttps ? 'https://' : 'http://';
     final inner = HttpClient()
@@ -38,10 +39,7 @@ class ProxyServerAssetReader implements AssetReader {
         : IOClient(inner);
     var url = '$scheme$host:$assetServerPort/';
     if (root.isNotEmpty) url += '$root/';
-    var handler = proxyHandler(url, client: client);
-    if (wrapHandler != null) {
-      handler = wrapHandler(handler);
-    }
+    final handler = proxyHandler(url, client: client);
     return ProxyServerAssetReader._(handler, client);
   }
 

@@ -324,7 +324,6 @@ class TestContext {
               assetReader = ProxyServerAssetReader(
                 assetServerPort,
                 root: project.directoryToServe,
-                wrapHandler: _handleReloadedSources,
               );
             } else {
               _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
@@ -521,7 +520,6 @@ class TestContext {
             assetReader = ProxyServerAssetReader(
               assetServerPort,
               root: project.directoryToServe,
-              wrapHandler: _handleReloadedSources,
             );
 
             if (testSettings.enableExpressionEvaluation) {
