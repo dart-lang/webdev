@@ -1,5 +1,10 @@
 ## 27.1.2-wip
 
+- Remove the `badCertificateCallback` override in `ProxyServerAssetReader` that
+  unconditionally accepted any TLS certificate when `isHttps: true` was set.
+  Callers that need to trust a private CA should configure a `SecurityContext`
+  on the `HttpClient` themselves. (CWE-295)
+
 ## 27.1.1
 
 - Fix deserialization errors appearing in the chrome console.
