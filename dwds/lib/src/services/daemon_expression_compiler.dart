@@ -29,7 +29,7 @@ class DaemonExpressionCompiler implements ExpressionCompiler {
     String expression,
   ) async {
     final requestJson = {
-      'type': 'EvaluateExpressionRequest',
+      'instruction': 'COMPILE_EXPRESSION_JS',
       'isolateId': isolateId,
       'libraryUri': libraryUri,
       'scriptUri': scriptUri,

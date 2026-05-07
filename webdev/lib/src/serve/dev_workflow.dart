@@ -15,6 +15,7 @@ import 'package:path/path.dart' as p;
 import '../command/configuration.dart';
 import '../daemon_client.dart';
 import '../logging.dart';
+import '../util.dart';
 import 'chrome.dart';
 import 'server_manager.dart';
 import 'webdev_server.dart';
@@ -174,13 +175,19 @@ class DevWorkflow {
   final _doneCompleter = Completer();
   final BuildDaemonClient _client;
   final Chrome? _chrome;
+  final Process? _fesProcess;
 
   final ServerManager serverManager;
   StreamSubscription? _resultsSub;
 
   final _wrapWidth = stdout.hasTerminal ? stdout.terminalColumns - 8 : 72;
 
-  DevWorkflow._(this._client, this._chrome, this.serverManager) {
+  DevWorkflow._(
+    this._client,
+    this._chrome,
+    this.serverManager,
+    this._fesProcess,
+  ) {
     _resultsSub = _client.buildResults.listen((data) {
       if (data.results.any(
         (result) =>
@@ -201,15 +208,54 @@ class DevWorkflow {
 
   Future<void> get done => _doneCompleter.future;
 
+  static Future<Process> _startFesManager(String workingDirectory) async {
+    final sdkDir = p.dirname(p.dirname(dartPath));
+    final tempDir = Directory.systemTemp.createTempSync('webdev_fes_');
+    final packagesFile = p.join(
+      workingDirectory,
+      '.dart_tool',
+      'package_config.json',
+    );
+
+    final args = [
+      'run',
+      'build_frontend_server:fes_manager',
+      sdkDir,
+      tempDir.uri.toString(),
+      p.toUri(packagesFile).toString(),
+    ];
+
+    return await Process.start(
+      dartPath,
+      args,
+      workingDirectory: workingDirectory,
+    );
+  }
+
+  static Future<void> _waitForFile(File file) async {
+    while (!await file.exists()) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+  }
+
   static Future<DevWorkflow> start(
     Configuration configuration,
     List<String> buildOptions,
     Map<String, int> targetPorts,
   ) async {
     final workingDirectory = Directory.current.path;
-    final client = await _startBuildDaemon(workingDirectory, [
-      ...buildOptions,
-    ]);
+
+    Process? fesProcess;
+    if (configuration.webHotReload) {
+      logWriter(logging.Level.INFO, 'Starting Frontend Server Manager...');
+      fesProcess = await _startFesManager(workingDirectory);
+      final portFile = File(
+        p.join(workingDirectory, '.dart_tool', 'build', 'fes_worker_port'),
+      );
+      await _waitForFile(portFile);
+    }
+
+    final client = await _startBuildDaemon(workingDirectory, [...buildOptions]);
     logWriter(logging.Level.INFO, 'Registering build targets...');
     _registerBuildTargets(client, configuration, targetPorts);
     logWriter(logging.Level.INFO, 'Starting initial build...');
@@ -221,7 +267,7 @@ class DevWorkflow {
       client,
     );
     final chrome = await _startChrome(configuration, serverManager, client);
-    return DevWorkflow._(client, chrome, serverManager);
+    return DevWorkflow._(client, chrome, serverManager, fesProcess);
   }
 
   Future<void> shutDown() async {
@@ -229,6 +275,7 @@ class DevWorkflow {
     await _chrome?.close();
     await _client.close();
     await serverManager.stop();
+    _fesProcess?.kill();
     if (!_doneCompleter.isCompleted) _doneCompleter.complete();
   }
 }

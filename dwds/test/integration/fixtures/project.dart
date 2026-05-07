@@ -229,6 +229,8 @@ class TestProject {
       }
     }
 
+    await Process.run('dart', ['pub', 'get'], workingDirectory: newPath);
+
     // Clean up the project.
     // Called when we need to rebuild sdk and the app from previous test
     // configurations.

@@ -111,6 +111,7 @@ class TestContext {
 
   Process get chromeDriver => _chromeDriver!;
   Process? _chromeDriver;
+  Process? _fesProcess;
 
   WebkitDebugger get webkitDebugger => _webkitDebugger!;
   late WebkitDebugger? _webkitDebugger;
@@ -481,6 +482,60 @@ class TestContext {
               'build_web_compilers|ddc_modules=web-hot-reload=true',
               '--verbose',
             ];
+
+            if (testSettings.enableExpressionEvaluation) {
+              _logger.info('Starting Frontend Server Manager');
+              final sdkDir = p.dirname(p.dirname(sdkLayout.dartPath));
+              final packagesFile = p.join(
+                project.absolutePackageDirectory,
+                '.dart_tool',
+                'package_config.json',
+              );
+
+              // Create a dedicated scratch space for Frontend Server tests
+              // with expression evaluation. We spin up the Frontend Server
+              // and build_runner separately, so we need to ensure both use the
+              // same scratch space.
+              final testScratchSpaceDir = Directory(
+                p.join(
+                  project.absolutePackageDirectory,
+                  '.dart_tool',
+                  'build',
+                  'test_scratch_space',
+                ),
+              );
+              testScratchSpaceDir.createSync(recursive: true);
+              options.add(
+                '--define=build_web_compilers:ddc=scratch-space-dir='
+                '${testScratchSpaceDir.path}',
+              );
+              final args = [
+                'run',
+                'build_frontend_server:fes_manager',
+                sdkDir,
+                p.toUri(testScratchSpaceDir.path).toString(),
+                p.toUri(packagesFile).toString(),
+              ];
+              _fesProcess = await Process.start(
+                sdkLayout.dartPath,
+                args,
+                workingDirectory: project.absolutePackageDirectory,
+              );
+
+              final portFile = File(
+                p.join(
+                  project.absolutePackageDirectory,
+                  '.dart_tool',
+                  'build',
+                  'fes_worker_port',
+                ),
+              );
+              // Wait for `fes_manager` to create the port file.
+              while (!await portFile.exists()) {
+                await Future<void>.delayed(const Duration(milliseconds: 100));
+              }
+            }
+
             _daemonClient = await connectClient(
               sdkLayout.dartPath,
               project.absolutePackageDirectory,
@@ -530,7 +585,9 @@ class TestContext {
                 );
                 if (await file.exists()) {
                   final content = await file.readAsString();
-                  final port = int.tryParse(content.trim());
+                  int? port;
+                  final json = jsonDecode(content) as Map;
+                  port = json['port'] as int?;
                   if (port != null) {
                     final socket = await Socket.connect(
                       InternetAddress.loopbackIPv4,
@@ -778,6 +835,7 @@ class TestContext {
     await ddcService?.stop();
     await _testServer?.stop();
     _client?.close();
+    _fesProcess?.kill();
     await _outputDir?.delete(recursive: true);
     stopLogWriter();
     await project.tearDown();
