@@ -77,28 +77,24 @@ void main() {
       expect(chrome!.debugPort, isNot(equals(0)));
     });
 
-    test(
-      'has correct profile path',
-      () async {
-        await launchChrome();
-        await openTab(_chromeVersionUrl);
+    test('has correct profile path', () async {
+      await launchChrome();
+      await openTab(_chromeVersionUrl);
 
-        final wipConnection = await connectToTab(_chromeVersionUrl);
-        final result = await _evaluateExpression(
-          wipConnection.page,
-          "document.getElementById('profile_path').textContent",
-        );
+      final wipConnection = await connectToTab(_chromeVersionUrl);
+      final result = await _evaluateExpression(
+        wipConnection.page,
+        "document.getElementById('profile_path').textContent",
+      );
 
-        if (Platform.isWindows) {
-          // --user-data-dir is not supported on Windows yet
-          // Issue: https://github.com/dart-lang/webdev/issues/1545
-          expect(result, isNot(contains('chrome_user_data')));
-        } else {
-          expect(result, contains('chrome_user_data'));
-        }
-      },
-      skip: 'https://github.com/dart-lang/webdev/issues/2030',
-    );
+      if (Platform.isWindows) {
+        // --user-data-dir is not supported on Windows yet
+        // Issue: https://github.com/dart-lang/webdev/issues/1545
+        expect(result, isNot(contains('chrome_user_data')));
+      } else {
+        expect(result, contains('chrome_user_data'));
+      }
+    }, skip: 'https://github.com/dart-lang/webdev/issues/2030');
   });
 
   group('chrome with user data dir', () {
@@ -173,28 +169,24 @@ void main() {
       );
     });
 
-    test(
-      'has correct profile path',
-      () async {
-        await launchChrome(userDataDir: dataDir.path);
-        await openTab(_chromeVersionUrl);
+    test('has correct profile path', () async {
+      await launchChrome(userDataDir: dataDir.path);
+      await openTab(_chromeVersionUrl);
 
-        final wipConnection = await connectToTab(_chromeVersionUrl);
-        final result = await _evaluateExpression(
-          wipConnection.page,
-          "document.getElementById('profile_path').textContent",
-        );
+      final wipConnection = await connectToTab(_chromeVersionUrl);
+      final result = await _evaluateExpression(
+        wipConnection.page,
+        "document.getElementById('profile_path').textContent",
+      );
 
-        if (Platform.isWindows) {
-          // --user-data-dir is not supported on Windows yet
-          // Issue: https://github.com/dart-lang/webdev/issues/1545
-          expect(result, isNot(contains('chrome_user_data_copy')));
-        } else {
-          expect(result, contains('chrome_user_data_copy'));
-        }
-      },
-      skip: 'https://github.com/dart-lang/webdev/issues/2030',
-    );
+      if (Platform.isWindows) {
+        // --user-data-dir is not supported on Windows yet
+        // Issue: https://github.com/dart-lang/webdev/issues/1545
+        expect(result, isNot(contains('chrome_user_data_copy')));
+      } else {
+        expect(result, contains('chrome_user_data_copy'));
+      }
+    }, skip: 'https://github.com/dart-lang/webdev/issues/2030');
 
     test(
       'can auto detect default chrome directory',
