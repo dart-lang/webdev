@@ -1,7 +1,6 @@
-## 27.2.0-wip
+## 27.1.2
 
-- Create a dedicated IO Client for each of the asset reader and asset handler in the DDC Library Bundle module system.
-- Add `_client` to `ProxyServerAssetReader.fromHandler`.
+- Fix failures arising from overloaded asset reader/handler clients.
 
 ## 27.1.1
 

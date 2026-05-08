@@ -41,7 +41,7 @@ class ProxyServerAssetReader implements AssetReader {
     return ProxyServerAssetReader._(handler, client);
   }
 
-  ProxyServerAssetReader.fromHandler(this._handler, {this._client});
+  ProxyServerAssetReader.fromHandler(this._handler) : _client = null;
 
   @override
   String get basePath => '';
