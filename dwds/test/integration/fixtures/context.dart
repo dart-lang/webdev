@@ -316,22 +316,15 @@ class TestContext {
             final assetServerPort = daemonPort(
               project.absolutePackageDirectory,
             );
+            _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
             if (testSettings.moduleFormat == ModuleFormat.ddc &&
                 buildSettings.canaryFeatures) {
-              _assetHandler = _handleReloadedSources(
-                _createBuildRunnerProxyHandler(assetServerPort),
-              );
-              assetReader = ProxyServerAssetReader(
-                assetServerPort,
-                root: project.directoryToServe,
-              );
-            } else {
-              _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
-              assetReader = ProxyServerAssetReader(
-                assetServerPort,
-                root: project.directoryToServe,
-              );
+              _assetHandler = _handleReloadedSources(_assetHandler);
             }
+            assetReader = ProxyServerAssetReader(
+              assetServerPort,
+              root: project.directoryToServe,
+            );
 
             if (testSettings.enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
@@ -514,9 +507,11 @@ class TestContext {
             final assetServerPort = daemonPort(
               project.absolutePackageDirectory,
             );
-            _assetHandler = _handleReloadedSources(
-              _createBuildRunnerProxyHandler(assetServerPort),
-            );
+            _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
+            if (testSettings.moduleFormat == ModuleFormat.ddc &&
+                buildSettings.canaryFeatures) {
+              _assetHandler = _handleReloadedSources(_assetHandler);
+            }
             assetReader = ProxyServerAssetReader(
               assetServerPort,
               root: project.directoryToServe,
@@ -889,9 +884,11 @@ class TestContext {
   }
 
   Future<void> _buildDebugExtension() async {
-    final process = await Process.run('tool/build_extension.sh', [
-      'prod',
-    ], workingDirectory: absolutePath(pathFromDwds: 'debug_extension'));
+    final process = await Process.run(
+      'tool/build_extension.sh',
+      ['prod'],
+      workingDirectory: absolutePath(pathFromDwds: 'debug_extension'),
+    );
     print(process.stdout);
   }
 
