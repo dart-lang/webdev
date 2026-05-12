@@ -1,7 +1,5 @@
 ## 27.1.2-wip
 
-- Fix failures arising from overloaded asset reader/handler clients.
-
 ## 27.1.1
 
 - Fix deserialization errors appearing in the chrome console.
