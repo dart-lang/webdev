@@ -896,11 +896,9 @@ class TestContext {
   }
 
   Future<void> _buildDebugExtension() async {
-    final process = await Process.run(
-      'tool/build_extension.sh',
-      ['prod'],
-      workingDirectory: absolutePath(pathFromDwds: 'debug_extension'),
-    );
+    final process = await Process.run('tool/build_extension.sh', [
+      'prod',
+    ], workingDirectory: absolutePath(pathFromDwds: 'debug_extension'));
     print(process.stdout);
   }
 
@@ -933,9 +931,10 @@ class TestContext {
     String isolateId,
     ScriptRef scriptRef,
   ) async {
-    final script =
-        await debugConnection.vmService.getObject(isolateId, scriptRef.id!)
-            as Script;
+    final script = await debugConnection.vmService.getObject(
+      isolateId,
+      scriptRef.id!,
+    ) as Script;
     final lines = LineSplitter.split(script.source!).toList();
     final lineNumber = lines.indexWhere(
       (l) => l.endsWith('// Breakpoint: $breakpointId'),
