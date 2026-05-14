@@ -194,7 +194,7 @@ class FrontendServerBuildDaemonStrategyProvider
     String stripPrefix(String path) {
       if (path.startsWith('packages')) return path;
       final parts = path.split('/');
-      
+
       final appUri = _buildSettings.appEntrypoint;
       final validPrefixes = [
         if (appUri != null && appUri.pathSegments.isNotEmpty)
@@ -212,6 +212,7 @@ class FrontendServerBuildDaemonStrategyProvider
       _configuration,
       _moduleProvider,
       (_) => _digestsProvider(),
+
       /// Looks up the module name for a given server path.
       (metadataProvider, sourcePath) async {
         var module = await _moduleForServerPath(metadataProvider, sourcePath);

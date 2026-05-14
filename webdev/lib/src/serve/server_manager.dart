@@ -20,7 +20,9 @@ class ServerManager {
   ) async {
     final servers = <WebDevServer>{};
     for (final options in serverOptions) {
-      servers.add(await WebDevServer.start(options, client.buildResults, client));
+      servers.add(
+        await WebDevServer.start(options, client.buildResults, client),
+      );
     }
     return ServerManager._(servers);
   }
