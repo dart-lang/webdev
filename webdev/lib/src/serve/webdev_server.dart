@@ -369,11 +369,12 @@ class WebDevServer {
 
             try {
               final file = File(
-                p.join('.dart_tool', 'build', 'fes_worker_port'),
+                p.join('.dart_tool', 'build', 'fes_manager_config'),
               );
               if (await file.exists()) {
                 final content = await file.readAsString();
-                final port = int.tryParse(content.trim());
+                final json = jsonDecode(content) as Map<String, dynamic>;
+                final port = json['port'] as int?;
                 if (port != null) {
                   cachedFesPort = port;
                   return await sendRequestToFes(port, request);
@@ -381,7 +382,7 @@ class WebDevServer {
               }
             } catch (e) {
               _logger.warning(
-                'Failed to read FES port from .dart_tool/build/fes_worker_port',
+                'Failed to read FES config from .dart_tool/build/fes_manager_config',
                 e,
               );
             }

@@ -321,7 +321,11 @@ class TestContext {
             _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
             if (testSettings.moduleFormat == ModuleFormat.ddc &&
                 buildSettings.canaryFeatures) {
-              _assetHandler = _handleReloadedSources(_assetHandler!);
+              _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
+                assetServerPort,
+              );
+            } else {
+              _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
             }
             assetReader = ProxyServerAssetReader(
               assetServerPort,
@@ -522,16 +526,16 @@ class TestContext {
                 workingDirectory: project.absolutePackageDirectory,
               );
 
-              final portFile = File(
+              final configFile = File(
                 p.join(
                   project.absolutePackageDirectory,
                   '.dart_tool',
                   'build',
-                  'fes_worker_port',
+                  'fes_manager_config',
                 ),
               );
-              // Wait for `fes_manager` to create the port file.
-              while (!await portFile.exists()) {
+              // Wait for `fes_manager` to create the config file.
+              while (!await configFile.exists()) {
                 await Future<void>.delayed(const Duration(milliseconds: 100));
               }
             }
@@ -566,7 +570,11 @@ class TestContext {
             _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
             if (testSettings.moduleFormat == ModuleFormat.ddc &&
                 buildSettings.canaryFeatures) {
-              _assetHandler = _handleReloadedSources(_assetHandler!);
+              _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
+                assetServerPort,
+              );
+            } else {
+              _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
             }
             assetReader = ProxyServerAssetReader(
               assetServerPort,
@@ -580,7 +588,7 @@ class TestContext {
                     project.absolutePackageDirectory,
                     '.dart_tool',
                     'build',
-                    'fes_worker_port',
+                    'fes_manager_config',
                   ),
                 );
                 if (await file.exists()) {
@@ -640,7 +648,7 @@ class TestContext {
                   }
                 }
                 throw StateError(
-                  'FES port not found in .dart_tool/build/fes_worker_port',
+                  'FES port not found in .dart_tool/build/fes_manager_config',
                 );
               });
             }

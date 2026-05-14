@@ -249,10 +249,10 @@ class DevWorkflow {
     if (configuration.webHotReload) {
       logWriter(logging.Level.INFO, 'Starting Frontend Server Manager...');
       fesProcess = await _startFesManager(workingDirectory);
-      final portFile = File(
-        p.join(workingDirectory, '.dart_tool', 'build', 'fes_worker_port'),
+      final configFile = File(
+        p.join(workingDirectory, '.dart_tool', 'build', 'fes_manager_config'),
       );
-      await _waitForFile(portFile);
+      await _waitForFile(configFile);
     }
 
     final client = await _startBuildDaemon(workingDirectory, [...buildOptions]);
