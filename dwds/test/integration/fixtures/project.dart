@@ -229,7 +229,26 @@ class TestProject {
       }
     }
 
-    await Process.run('dart', ['pub', 'get'], workingDirectory: newPath);
+    // Dynamically add pubspec overrides for test fixtures.
+    final overridesFile = File(p.join(newPath, 'pubspec_overrides.yaml'));
+    final buildRepoDir = p.join(p.dirname(projectRootDir), 'build');
+    await overridesFile.writeAsString('''
+dependency_overrides:
+  build_web_compilers:
+    path: ${p.join(buildRepoDir, 'builder_pkgs', 'build_web_compilers')}
+  scratch_space:
+    path: ${p.join(buildRepoDir, 'builder_pkgs', 'scratch_space')}
+''');
+
+    final pubGetResult = await Process.run('dart', [
+      'pub',
+      'get',
+    ], workingDirectory: newPath);
+    if (pubGetResult.exitCode != 0) {
+      print('"dart pub get" failed in $newPath:');
+      print(pubGetResult.stdout);
+      print(pubGetResult.stderr);
+    }
 
     // Clean up the project.
     // Called when we need to rebuild sdk and the app from previous test

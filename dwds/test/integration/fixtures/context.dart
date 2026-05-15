@@ -243,10 +243,17 @@ class TestContext {
         );
       }
 
-      await Process.run(sdkLayout.dartPath, [
+      final pubUpgradeResult = await Process.run(sdkLayout.dartPath, [
         'pub',
         'upgrade',
       ], workingDirectory: project.absolutePackageDirectory);
+      if (pubUpgradeResult.exitCode != 0) {
+        _logger.severe(
+          '"dart pub upgrade" failed in ${project.absolutePackageDirectory}:',
+        );
+        _logger.severe(pubUpgradeResult.stdout);
+        _logger.severe(pubUpgradeResult.stderr);
+      }
 
       ExpressionCompiler? expressionCompiler;
       AssetReader assetReader;
@@ -515,7 +522,7 @@ class TestContext {
               );
               final args = [
                 'run',
-                'build_frontend_server:fes_manager',
+                'build_web_compilers:fes_manager',
                 sdkDir,
                 p.toUri(testScratchSpaceDir.path).toString(),
                 p.toUri(packagesFile).toString(),
@@ -525,6 +532,18 @@ class TestContext {
                 args,
                 workingDirectory: project.absolutePackageDirectory,
               );
+
+              // Record the FES manager's output for debugging test issues.
+              _fesProcess!.stdout
+                  .transform(utf8.decoder)
+                  .transform(const LineSplitter())
+                  .listen((line) => _logger.info('FES Manager stdout: $line'));
+              _fesProcess!.stderr
+                  .transform(utf8.decoder)
+                  .transform(const LineSplitter())
+                  .listen(
+                    (line) => _logger.warning('FES Manager stderr: $line'),
+                  );
 
               final configFile = File(
                 p.join(
@@ -1053,9 +1072,11 @@ class TestContext {
   }
 
   Future<void> _buildDebugExtension() async {
-    final process = await Process.run('tool/build_extension.sh', [
-      'prod',
-    ], workingDirectory: absolutePath(pathFromDwds: 'debug_extension'));
+    final process = await Process.run(
+      'tool/build_extension.sh',
+      ['prod'],
+      workingDirectory: absolutePath(pathFromDwds: 'debug_extension'),
+    );
     print(process.stdout);
   }
 
