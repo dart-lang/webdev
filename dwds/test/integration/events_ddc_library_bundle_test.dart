@@ -30,15 +30,10 @@ void main() {
     );
   });
 
-  group(
-    'Build Daemon',
-    () {
-      testWithDwds(
-        provider: provider,
-        compilationMode: CompilationMode.buildDaemon,
-      );
-    },
-    // https://github.com/dart-lang/build/issues/4928
-    skip: true,
-  );
+  group('Build Daemon', () {
+    testWithDwds(
+      provider: provider,
+      compilationMode: CompilationMode.buildDaemon,
+    );
+  });
 }

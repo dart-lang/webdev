@@ -386,24 +386,29 @@ void testWithDwds({
         });
       });
 
-      group('hotRestart', () {
-        setUp(() async {
-          setCurrentLogWriter(debug: provider.verbose);
-        });
+      group(
+        'hotRestart',
+        () {
+          setUp(() async {
+            setCurrentLogWriter(debug: provider.verbose);
+          });
 
-        test('emits HOT_RESTART event', () async {
-          final hotRestart = context.getRegisteredServiceExtension(
-            'hotRestart',
-          );
-          await context.recompile(fullRestart: true);
-          await expectEventDuring(
-            matchesEvent(DwdsEventKind.hotRestart, {
-              'elapsedMilliseconds': isNotNull,
-            }),
-            () => fakeClient.callServiceExtension(hotRestart!),
-          );
-        });
-      });
+          test('emits HOT_RESTART event', () async {
+            final hotRestart = context.getRegisteredServiceExtension(
+              'hotRestart',
+            );
+            await context.recompile(fullRestart: true);
+            await expectEventDuring(
+              matchesEvent(DwdsEventKind.hotRestart, {
+                'elapsedMilliseconds': isNotNull,
+              }),
+              () => fakeClient.callServiceExtension(hotRestart!),
+            );
+          });
+        },
+        // https://github.com/dart-lang/build/issues/4928
+        skip: compilationMode == CompilationMode.buildDaemon,
+      );
 
       group('resume', () {
         late VmServiceInterface service;
