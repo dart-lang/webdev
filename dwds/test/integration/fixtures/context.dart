@@ -1072,11 +1072,9 @@ class TestContext {
   }
 
   Future<void> _buildDebugExtension() async {
-    final process = await Process.run(
-      'tool/build_extension.sh',
-      ['prod'],
-      workingDirectory: absolutePath(pathFromDwds: 'debug_extension'),
-    );
+    final process = await Process.run('tool/build_extension.sh', [
+      'prod',
+    ], workingDirectory: absolutePath(pathFromDwds: 'debug_extension'));
     print(process.stdout);
   }
 
