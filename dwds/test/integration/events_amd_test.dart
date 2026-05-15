@@ -15,6 +15,7 @@ import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
 import 'events_common.dart';
+import 'fixtures/context.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider();
@@ -77,5 +78,8 @@ void main() {
     });
   });
 
-  testWithDwds(provider: provider);
+  testWithDwds(
+    provider: provider,
+    compilationMode: CompilationMode.buildDaemon,
+  );
 }
