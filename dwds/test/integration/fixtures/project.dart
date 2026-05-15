@@ -103,7 +103,7 @@ class TestProject {
   static final test = TestProject._(
     packageName: '_test',
     packageDirectory: '_test',
-    webAssetsPath: 'example/hello_world',
+    webAssetsPath: webCompatiblePath(['example', 'hello_world']),
     dartEntryFileName: 'main.dart',
     htmlEntryFileName: 'index.html',
   );

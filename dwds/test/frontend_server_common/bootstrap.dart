@@ -494,50 +494,46 @@ $_simpleLoaderScript
     let reloadedSources = _currentDirectory + '/reloaded_sources.json';
 
     if (!window.\$dartReloadModifiedModules) {
-      window.\$dartReloadModifiedModules = (function(appName, callback) {
-        var xhttp = new XMLHttpRequest();
-        xhttp.withCredentials = true;
-        xhttp.onreadystatechange = function() {
-          // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/readyState
-          if (this.readyState == 4 && this.status == 200 || this.status == 304) {
-            var scripts = JSON.parse(this.responseText);
-            var numToLoad = 0;
-            var numLoaded = 0;
-            for (var i = 0; i < scripts.length; i++) {
-              var script = scripts[i];
-              var module = script.module;
-              if (module == null) continue;
-              var src = script.src;
-              var oldSrc = window.\$dartLoader.moduleIdToUrl.get(module);
-
-              // We might actually load from a different uri, delete the old one
-              // just to be sure.
-              window.\$dartLoader.urlToModuleId.delete(oldSrc);
-
-              window.\$dartLoader.moduleIdToUrl.set(module, src);
-              window.\$dartLoader.urlToModuleId.set(src, module);
-
-              numToLoad++;
-
-              var el = document.getElementById(module);
-              if (el) el.remove();
-              el = window.\$dartCreateScript();
-              el.src = policy.createScriptURL(src);
-              el.async = false;
-              el.defer = true;
-              el.id = module;
-              el.onload = function() {
-                numLoaded++;
-                if (numToLoad == numLoaded) callback();
-              };
-              document.head.appendChild(el);
-            }
-            // Call `callback` right away if we found no updated scripts.
-            if (numToLoad == 0) callback();
+      window.\$dartReloadModifiedModules = (function(filesToReload, appName) {
+        return new Promise(function(resolve) {
+          let requestedScripts = [];
+          function callback() {
+            resolve(filesToReload);
           }
-        };
-        xhttp.open("GET", reloadedSources, true);
-        xhttp.send();
+          let numToLoad = 0;
+          let numLoaded = 0;
+          for (let i = 0; i < filesToReload.length; i++) {
+            const file = filesToReload[i];
+            const module = file.module;
+            if (module == null) continue;
+            const src = file.src;
+            const oldSrc = window.\$dartLoader.moduleIdToUrl.get(module);
+
+            // We might actually load from a different uri, delete the old one
+            // just to be sure.
+            window.\$dartLoader.urlToModuleId.delete(oldSrc);
+
+            window.\$dartLoader.moduleIdToUrl.set(module, src);
+            window.\$dartLoader.urlToModuleId.set(src, module);
+
+            numToLoad++;
+
+            let el = document.getElementById(module);
+            if (el) el.remove();
+            el = window.\$dartCreateScript();
+            el.src = policy.createScriptURL(src);
+            el.async = false;
+            el.defer = true;
+            el.id = module;
+            el.onload = function() {
+              numLoaded++;
+              if (numToLoad == numLoaded) callback();
+            };
+            document.head.appendChild(el);
+          }
+          // Call `callback` right away if we found no updated scripts.
+          if (numToLoad == 0) callback();
+        });
       });
     }
   };

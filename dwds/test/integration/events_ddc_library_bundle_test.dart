@@ -10,6 +10,7 @@ import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
 import 'events_common.dart';
+import 'fixtures/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -22,5 +23,22 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  testWithDwds(provider: provider);
+  group('Frontend Server', () {
+    testWithDwds(
+      provider: provider,
+      compilationMode: CompilationMode.frontendServer,
+    );
+  });
+
+  group(
+    'Build Daemon',
+    () {
+      testWithDwds(
+        provider: provider,
+        compilationMode: CompilationMode.buildDaemon,
+      );
+    },
+    // https://github.com/dart-lang/build/issues/4928
+    skip: true,
+  );
 }

@@ -32,7 +32,15 @@ void main() {
     );
   });
 
-  group('Build Daemon', () {
-    runTests(provider: provider, compilationMode: CompilationMode.buildDaemon);
-  });
+  group(
+    'Build Daemon',
+    () {
+      runTests(
+        provider: provider,
+        compilationMode: CompilationMode.buildDaemon,
+      );
+    },
+    // https://github.com/dart-lang/build/issues/4928
+    skip: true,
+  );
 }
