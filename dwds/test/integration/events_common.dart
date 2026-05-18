@@ -406,8 +406,14 @@ void testWithDwds({
             );
           });
         },
-        // https://github.com/dart-lang/build/issues/4928
-        skip: compilationMode == CompilationMode.buildDaemon,
+
+        skip:
+            // Windows is only here to ensure the skip on the outer group gets
+            // applied.
+            // https://github.com/dart-lang/webdev/issues/1852
+            Platform.isWindows ||
+            // https://github.com/dart-lang/build/issues/4928
+            compilationMode == CompilationMode.buildDaemon,
       );
 
       group('resume', () {
