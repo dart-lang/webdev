@@ -45,10 +45,9 @@ void runTests({
         newString: newString,
       ),
     ]);
-    if (compilationMode == CompilationMode.frontendServer) {
+    if (compilationMode.usesFrontendServer) {
       await context.recompile(fullRestart: true);
     } else {
-      assert(compilationMode == CompilationMode.buildDaemon);
       await context.waitForSuccessfulBuild(propagateToBrowser: true);
     }
   }
@@ -199,7 +198,7 @@ void runTests({
       });
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
-    skip: compilationMode == CompilationMode.buildDaemon ? null : true,
+    skip: compilationMode.usesBuildDaemon ? null : true,
     timeout: const Timeout.factor(2),
   );
 }

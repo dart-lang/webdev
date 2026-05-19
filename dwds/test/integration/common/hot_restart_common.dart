@@ -34,10 +34,9 @@ void runTests({
   tearDownAll(provider.dispose);
 
   Future<void> recompile({bool hasEdits = false}) async {
-    if (compilationMode == CompilationMode.frontendServer) {
+    if (compilationMode.usesFrontendServer) {
       await context.recompile(fullRestart: true);
     } else {
-      assert(compilationMode == CompilationMode.buildDaemon);
       if (hasEdits) {
         // Only gets a new build if there were edits.
         await context.waitForSuccessfulBuild();
@@ -166,7 +165,7 @@ void runTests({
       });
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
-    skip: compilationMode == CompilationMode.buildDaemon ? null : true,
+    skip: compilationMode.usesBuildDaemon ? null : true,
     timeout: const Timeout.factor(2),
   );
 
@@ -563,7 +562,7 @@ void runTests({
       });
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
-    skip: compilationMode == CompilationMode.buildDaemon ? null : true,
+    skip: compilationMode.usesBuildDaemon ? null : true,
     timeout: const Timeout.factor(2),
   );
 
