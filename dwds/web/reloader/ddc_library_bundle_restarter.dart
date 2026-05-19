@@ -21,7 +21,7 @@ extension type _DartDevEmbedder._(JSObject _) implements JSObject {
   external JSPromise<JSArray<JSObject>> hotRestartBegin([
     JSArray<JSObject>? reloadedSources,
   ]);
-  external JSAny? hotRestartEnd();
+  external void hotRestartEnd();
 
   external JSPromise<JSAny?> hotReload(
     JSArray<JSString> filesToLoad,

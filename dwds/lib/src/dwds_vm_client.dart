@@ -484,7 +484,7 @@ final class ChromeDwdsVmClient
                 }
               });
             });
-        logger.info('Issuing \$dartHotRestartBeginDwds request');
+        logger.info('Issuing \$dartHotRestartBeginDwds request.');
         final remoteObject = await chromeProxyService.inspector.jsEvaluate(
           '\$dartHotRestartBeginDwds(\'$runId\', $pauseIsolatesOnStart);',
           awaitPromise: true,

@@ -5,6 +5,13 @@
 import 'dart:js_interop';
 
 /// A Restarter that supports a hot restart over two phases.
+///
+/// The APIs here should be used in place of [Restarter.restart].
+///
+/// This is a temporary interface that is only useful while there are
+/// `Restarter`s that don't use the two phase restart.
+// TODO(nshahan): Move these members into `Restarter` when all have been
+// migrated to the two phase restart.
 abstract class TwoPhaseRestarter implements Restarter {
   /// Starts a hot restart operation.
   ///
