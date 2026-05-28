@@ -103,6 +103,19 @@ class TestAssetServer implements AssetReader {
 
     final headers = <String, String>{};
 
+    var lookupPath = requestPath;
+    if (lookupPath.startsWith('packages/')) {
+      final parts = lookupPath.split('/');
+      if (parts.length > 2) {
+        final candidate = 'lib/${parts.sublist(2).join('/')}';
+        if (_files.containsKey(candidate) ||
+            _sourceMaps.containsKey('$candidate.map') ||
+            _metadata.containsKey('$candidate.metadata')) {
+          lookupPath = candidate;
+        }
+      }
+    }
+
     if (request.url.path.endsWith('.html')) {
       final indexFile = _fileSystem.file(_projectDirectory.resolve(index));
       if (indexFile.existsSync()) {
@@ -117,24 +130,24 @@ class TestAssetServer implements AssetReader {
 
     // If this is a JavaScript file, it must be in the in-memory cache.
     // Attempt to look up the file by URI.
-    if (hasFile(requestPath)) {
-      final List<int> bytes = getFile(requestPath);
+    if (hasFile(lookupPath)) {
+      final List<int> bytes = getFile(lookupPath);
       headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
       headers[HttpHeaders.contentTypeHeader] = 'application/javascript';
       return shelf.Response.ok(bytes, headers: headers);
     }
     // If this is a sourcemap file, then it might be in the in-memory cache.
     // Attempt to lookup the file by URI.
-    if (hasSourceMap(requestPath)) {
-      final List<int> bytes = getSourceMap(requestPath);
+    if (hasSourceMap(lookupPath)) {
+      final List<int> bytes = getSourceMap(lookupPath);
       headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
       headers[HttpHeaders.contentTypeHeader] = 'application/json';
       return shelf.Response.ok(bytes, headers: headers);
     }
     // If this is a metadata file, then it might be in the in-memory cache.
     // Attempt to lookup the file by URI.
-    if (hasMetadata(requestPath)) {
-      final List<int> bytes = getMetadata(requestPath);
+    if (hasMetadata(lookupPath)) {
+      final List<int> bytes = getMetadata(lookupPath);
       headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
       headers[HttpHeaders.contentTypeHeader] = 'application/json';
       return shelf.Response.ok(bytes, headers: headers);

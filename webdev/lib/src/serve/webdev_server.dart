@@ -360,7 +360,7 @@ class WebDevServer {
                 return await sendRequestToFes(cachedFesPort!, request);
               } catch (e) {
                 _logger.warning(
-                  'Failed to connect to FES at $cachedFesPort, falling back to daemon',
+                  'Failed to connect to FES at $cachedFesPort, re-reading config file',
                   e,
                 );
                 cachedFesPort = null;

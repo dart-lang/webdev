@@ -114,14 +114,21 @@ void appDomainTests({required TestRunner testRunner}) {
             '[{"method":"app.restart","id":0,'
             '"params" : { "appId" : "$appId", "fullRestart" : false}}]';
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
-        await expectLater(
-          webdev.stdout,
-          emitsThrough(
-            startsWith(
-              '[{"id":0,"result":{"code":1,"message":"hot reload not yet supported',
-            ),
-          ),
-        );
+
+        var success = false;
+        while (await webdev.stdout.hasNext) {
+          final line = await webdev.stdout.next;
+          if (line.startsWith('[{"id":0,')) {
+            final unwrapped = line.substring(1, line.length - 1);
+            final response = json.decode(unwrapped) as Map<String, dynamic>;
+            final result = response['result'] as Map<String, dynamic>;
+            expect(result['code'], equals(0));
+            expect(result['message'], equals('Hot reload successful'));
+            success = true;
+            break;
+          }
+        }
+        expect(success, isTrue);
         await exitWebdev(webdev);
       }, timeout: const Timeout(Duration(minutes: 2)));
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dwds_test_common/utilities.dart';
@@ -263,15 +263,6 @@ dependency_overrides:
       print(pubGetResult.stdout);
       print(pubGetResult.stderr);
     }
-
-    // Clean up the project.
-    // Called when we need to rebuild sdk and the app from previous test
-    // configurations.
-    await Process.run('dart', [
-      'run',
-      'build_runner',
-      'clean',
-    ], workingDirectory: newPath);
   }
 
   Future<void> setUp() async {

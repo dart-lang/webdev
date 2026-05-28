@@ -45,14 +45,13 @@ void runTests({
         newString: newString,
       ),
     ]);
-    if (compilationMode.usesFrontendServer) {
-      await context.recompile(fullRestart: true);
-    } else {
+    if (compilationMode.usesBuildDaemon) {
       await context.waitForSuccessfulBuild(propagateToBrowser: true);
+    } else if (compilationMode.usesFrontendServer) {
+      await context.recompile(fullRestart: true);
     }
   }
 
-  // Wait for `expectedString` to be printed to the console.
   Future<void> waitForLog(String expectedString) async {
     final completer = Completer<void>();
     final subscription = context.webkitDebugger.onConsoleAPICalled.listen((e) {

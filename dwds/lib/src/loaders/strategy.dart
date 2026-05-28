@@ -217,7 +217,19 @@ abstract class LoadStrategy {
     String entrypoint,
     Map<String, List> reloadedModulesToLibraries,
   ) {
-    final provider = _providers[entrypoint]!;
+    var provider = _providers[entrypoint];
+    if (provider == null) {
+      final normalized = entrypoint.startsWith('/')
+          ? entrypoint.substring(1)
+          : '/$entrypoint';
+      provider = _providers[normalized] ?? _providers.values.firstOrNull;
+      if (provider == null) {
+        throw StateError(
+          'No metadata provider found for entrypoint $entrypoint. '
+          'Available providers: ${_providers.keys.toList()}',
+        );
+      }
+    }
     return provider.reinitializeAfterHotReload(reloadedModulesToLibraries);
   }
 }

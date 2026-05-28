@@ -122,5 +122,42 @@ void runTests({
 
       await callEvaluateAndWaitForLog(newString);
     });
+
+    test('can reject hot reload and recover with hot restart', () async {
+      final client = context.debugConnection.vmService;
+
+      await context.makeEdits([
+        (
+          file: 'library1.dart',
+          originalString: newString,
+          newString:
+              '''
+$newString
+class Bar {}
+class Baz {}
+class Foo extends Bar {}
+''',
+        ),
+      ]);
+      await recompile();
+      final vm = await client.getVM();
+      final isolate = await client.getIsolate(vm.isolates!.first.id!);
+      var report = await fakeClient.reloadSources(isolate.id!);
+      expect(report.success, true);
+
+      // Make an illegal edit.
+      await context.makeEdits([
+        (
+          file: 'library1.dart',
+          originalString: 'class Foo extends Bar',
+          newString: 'class Foo extends Baz',
+        ),
+      ]);
+      await recompile();
+      report = await fakeClient.reloadSources(isolate.id!);
+
+      expect(report.success, false);
+      await context.recompile(fullRestart: true);
+    });
   }, timeout: const Timeout.factor(2));
 }
