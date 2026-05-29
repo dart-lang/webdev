@@ -19,6 +19,7 @@ void main() {
   test('default configuration is correctly applied', () {
     final configuration = Configuration.fromArgs(null);
     expect(configuration.hostname, equals('localhost'));
+    expect(configuration.moduleFormat, equals('ddc'));
   });
 
   test('arg configuration takes precedence to default configuration', () {
@@ -159,20 +160,6 @@ void main() {
   test('webHotReload + non-ddc module format throws', () {
     expect(
       () => Configuration(webHotReload: true, moduleFormat: 'amd'),
-      throwsA(isA<InvalidConfiguration>()),
-    );
-  });
-
-  test('moduleFormat ddc + canaryFeatures false throws', () {
-    expect(
-      () => Configuration(moduleFormat: 'ddc', canaryFeatures: false),
-      throwsA(isA<InvalidConfiguration>()),
-    );
-  });
-
-  test('moduleFormat ddc throws if canaryFeatures not set', () {
-    expect(
-      () => Configuration(moduleFormat: 'ddc'),
       throwsA(isA<InvalidConfiguration>()),
     );
   });

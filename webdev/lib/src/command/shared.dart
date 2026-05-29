@@ -98,7 +98,7 @@ void addSharedArgs(
     )
     ..addOption(
       moduleFormatFlag,
-      defaultsTo: 'amd',
+      defaultsTo: 'ddc',
       allowed: ['amd', 'ddc'],
       help: 'Sets the module format DDC uses for compilation.',
       hide: true,
