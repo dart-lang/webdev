@@ -1,3 +1,8 @@
+## 3.10.0
+- Use the DDC Library Bundle module format to by default (instead of AMD).
+  - Note: opt out by passing `--module-format amd`
+- Remove the requirement for the `--canary` flag when selecting the `--module-format=ddc` option.
+
 ## 3.9.0-wip
 
 - Fix webdev failing to compile in aot mode due to missing DDS arguments.

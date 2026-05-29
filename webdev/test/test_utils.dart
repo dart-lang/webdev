@@ -61,7 +61,11 @@ class TestRunner {
   }) async {
     final fullArgs = [_webdevBin, ...args];
 
-    if (!raw) {
+    // 'help' doesn't accept additional args.
+    final isHelp =
+        args.contains('help') || args.contains('--help') || args.contains('-h');
+
+    if (!raw && !isHelp) {
       if (canaryFeatures) {
         final dashDashIndex = fullArgs.indexOf('--');
         if (dashDashIndex != -1) {
