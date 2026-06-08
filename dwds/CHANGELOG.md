@@ -1,5 +1,7 @@
 ## 27.1.2-wip
 
+- Allow package_config `3.x.x`.
+
 ## 27.1.1
 
 - Fix deserialization errors appearing in the chrome console.
