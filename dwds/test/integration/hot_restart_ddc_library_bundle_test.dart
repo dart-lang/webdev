@@ -54,6 +54,6 @@ void main() {
       );
     },
     // https://github.com/dart-lang/build/issues/4928
-    skip: true,
+    skip: false,
   );
 }

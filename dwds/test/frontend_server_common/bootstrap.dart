@@ -484,15 +484,6 @@ $_simpleLoaderScript
       });
     }
 
-    let currentUri = _currentScript.src;
-    // We should have written a file containing all the scripts that need to be
-    // reloaded into the page. This is then read when a hot restart is triggered
-    // in DDC via the `\$dartReloadModifiedModules` callback.
-    // TODO(srujzs): We should avoid using a callback here in the bootstrap once
-    // the embedder supports passing a list of files/libraries to `hotRestart`
-    // instead. Currently, we're forced to read this file twice.
-    let reloadedSources = _currentDirectory + '/reloaded_sources.json';
-
     if (!window.\$dartReloadModifiedModules) {
       window.\$dartReloadModifiedModules = (function(filesToReload, appName) {
         return new Promise(function(resolve) {

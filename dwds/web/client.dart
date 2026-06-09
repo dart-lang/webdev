@@ -200,9 +200,14 @@ Future<void>? main() {
               manager.reloadPage();
             } else if (reloadConfiguration ==
                 'ReloadConfiguration.hotRestart') {
-              await manager.hotRestart(
-                reloadedSourcesPath: hotRestartReloadedSourcesPath,
-              );
+              if (dartModuleStrategy == 'ddc-library-bundle') {
+                await manager.hotRestartBegin(hotRestartReloadedSourcesPath!);
+                manager.hotRestartEnd();
+              } else {
+                await manager.hotRestart(
+                  reloadedSourcesPath: hotRestartReloadedSourcesPath,
+                );
+              }
             } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
               await manager.hotReloadStart(hotReloadReloadedSourcesPath);
               await manager.hotReloadEnd();
