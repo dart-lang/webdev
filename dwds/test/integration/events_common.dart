@@ -386,35 +386,23 @@ void testWithDwds({
         });
       });
 
-      group(
-        'hotRestart',
-        () {
-          setUp(() async {
-            setCurrentLogWriter(debug: provider.verbose);
-          });
+      group('hotRestart', () {
+        setUp(() async {
+          setCurrentLogWriter(debug: provider.verbose);
+        });
 
-          test('emits HOT_RESTART event', () async {
-            final hotRestart = context.getRegisteredServiceExtension(
-              'hotRestart',
-            );
-            await context.recompile(fullRestart: true);
-            await expectEventDuring(
-              matchesEvent(DwdsEventKind.hotRestart, {
-                'elapsedMilliseconds': isNotNull,
-              }),
-              () => fakeClient.callServiceExtension(hotRestart!),
-            );
-          });
-        },
-
-        skip:
-            // Windows is only here to ensure the skip on the outer group gets
-            // applied.
-            // https://github.com/dart-lang/webdev/issues/1852
-            Platform.isWindows ||
-            // https://github.com/dart-lang/build/issues/4928
-            compilationMode == CompilationMode.buildDaemon,
-      );
+        test('emits HOT_RESTART event', () async {
+          final hotRestart = context.getRegisteredServiceExtension(
+            'hotRestart',
+          );
+          await expectEventDuring(
+            matchesEvent(DwdsEventKind.hotRestart, {
+              'elapsedMilliseconds': isNotNull,
+            }),
+            () => fakeClient.callServiceExtension(hotRestart!),
+          );
+        });
+      });
 
       group('resume', () {
         late VmServiceInterface service;

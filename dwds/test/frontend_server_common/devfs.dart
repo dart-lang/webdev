@@ -173,6 +173,9 @@ class WebDevFS {
       }
 
       assetServer.writeFile('main_module.digests', '{}');
+      // Write an empty array of scripts to reload to handle the case where
+      // a test triggers a hot restart before any other action.
+      assetServer.writeFile('reloaded_sources.json', '[]');
 
       final sdk = dartSdk;
       final sdkSourceMap = dartSdkSourcemap;
