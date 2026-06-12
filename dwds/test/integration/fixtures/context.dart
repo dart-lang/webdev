@@ -144,10 +144,6 @@ class TestContext {
   late String _hostname;
   late TestSettings _testSettings;
 
-  bool get _isFesWithExpressionEvaluation =>
-      _testSettings.compilationMode.usesFrontendServer &&
-      _testSettings.enableExpressionEvaluation;
-
   /// Internal VM service.
   ///
   /// Prefer using [vmService] instead in tests when possible, to include
@@ -191,7 +187,7 @@ class TestContext {
       _logger.info('Packages: ${project.packageConfigFile}');
       _logger.info('Entry: ${project.dartEntryFilePath}');
 
-      configureLogWriter();
+      setCurrentLogWriter(debug: true);
 
       _client = IOClient(
         HttpClient()
@@ -322,7 +318,7 @@ class TestContext {
             daemonClient.registerBuildTarget(
               DefaultBuildTarget(
                 (b) => b
-                  ..target = project.directoryToServe
+                  ..target = project.webAssetsPath
                   ..reportChangedAssets = true,
               ),
             );
@@ -527,16 +523,6 @@ class TestContext {
             if (testSettings.enableExpressionEvaluation) {
               _logger.info('Starting Frontend Server Manager');
               final sdkDir = p.dirname(p.dirname(sdkLayout.dartPath));
-              final packagesFile = p.join(
-                project.absolutePackageDirectory,
-                '.dart_tool',
-                'package_config.json',
-              );
-
-              // Create a dedicated scratch space for Frontend Server tests
-              // with expression evaluation. We spin up the Frontend Server
-              // and build_runner separately, so we need to ensure both use the
-              // same scratch space.
               final buildDir = Directory(
                 p.join(project.absolutePackageDirectory, '.dart_tool', 'build'),
               );
@@ -552,6 +538,41 @@ class TestContext {
                 ),
               );
               testScratchSpaceDir.createSync(recursive: true);
+              
+              final sourcePackagesFile = File(p.join(
+                project.absolutePackageDirectory,
+                '.dart_tool',
+                'package_config.json',
+              ));
+              final packagesFile = File(p.join(
+                testScratchSpaceDir.path,
+                '.dart_tool',
+                'package_config.json',
+              ));
+              packagesFile.parent.createSync(recursive: true);
+
+              // Make all relative rootUris absolute based on the original packagesFile location
+              // so they don't break when the file is moved to the test scratch space.
+              // Also map rootUri and packageUri to match ScratchSpace's hoisting layout.
+              final originalJson = jsonDecode(sourcePackagesFile.readAsStringSync()) as Map<String, dynamic>;
+              final packagesList = originalJson['packages'] as List<dynamic>;
+              final rootPackage = '_test_package';
+              for (final package in packagesList) {
+                final packageMap = package as Map<String, dynamic>;
+                final name = packageMap['name'] as String;
+                if (name == rootPackage) {
+                  packageMap['rootUri'] = 'org-dartlang-app:///';
+                  packageMap['packageUri'] = 'packages/$rootPackage/';
+                } else {
+                  var rootUri = Uri.parse(packageMap['rootUri'] as String);
+                  if (!rootUri.isAbsolute) {
+                    rootUri = sourcePackagesFile.parent.uri.resolveUri(rootUri);
+                  }
+                  packageMap['rootUri'] = rootUri.toString();
+                }
+              }
+              packagesFile.writeAsStringSync(jsonEncode(originalJson));
+
               options.add(
                 '--define=build_web_compilers:ddc=scratch-space-dir='
                 '${testScratchSpaceDir.path}',
@@ -581,7 +602,7 @@ class TestContext {
                 fesSnapshot,
                 sdkDir,
                 p.toUri(testScratchSpaceDir.path).toString(),
-                p.toUri(packagesFile).toString(),
+                p.toUri(packagesFile.path).toString(),
               ];
               _fesProcess = await Process.start(
                 sdkLayout.dartPath,
@@ -589,15 +610,20 @@ class TestContext {
                 workingDirectory: project.absolutePackageDirectory,
               );
 
-              // Record the FES manager's output for debugging test issues.
+              final debugLog = File('/tmp/fes_manager_debug.log');
+              if (debugLog.existsSync()) debugLog.deleteSync();
               _fesProcess!.stdout
                   .transform(utf8.decoder)
                   .transform(const LineSplitter())
-                  .listen((line) => print('FES Manager stdout: $line'));
+                  .listen((line) {
+                    debugLog.writeAsStringSync('STDOUT: $line\n', mode: FileMode.append);
+                  });
               _fesProcess!.stderr
                   .transform(utf8.decoder)
                   .transform(const LineSplitter())
-                  .listen((line) => print('FES Manager stderr: $line'));
+                  .listen((line) {
+                    debugLog.writeAsStringSync('STDERR: $line\n', mode: FileMode.append);
+                  });
 
               final configFile = File(
                 p.join(
@@ -620,9 +646,12 @@ class TestContext {
                 options,
                 (log) {
                   final record = log.toLogRecord();
-                  final name = record.loggerName == ''
-                      ? ''
-                      : '${record.loggerName}: ';
+                  _logger.log(
+                    record.level,
+                    record.message,
+                    record.error,
+                    record.stackTrace,
+                  );
                 },
               );
             } catch (e) {
@@ -649,7 +678,7 @@ class TestContext {
             daemonClient.registerBuildTarget(
               DefaultBuildTarget(
                 (b) => b
-                  ..target = project.directoryToServe
+                  ..target = project.webAssetsPath
                   ..outputLocation = OutputLocation(
                     (o) => o
                       ..output = outputDir.path
