@@ -36,24 +36,19 @@ void main() {
     );
   });
 
-  group(
-    'canary: $canaryFeatures | Build Daemon |',
-    () {
-      final compilationMode = CompilationMode.buildDaemon;
-      final provider = TestSdkConfigurationProvider(
-        verbose: debug,
-        canaryFeatures: canaryFeatures,
-        ddcModuleFormat: moduleFormat,
-      );
+  group('canary: $canaryFeatures | Build Daemon |', () {
+    final compilationMode = CompilationMode.buildDaemon;
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: moduleFormat,
+    );
 
-      runTests(
-        provider: provider,
-        moduleFormat: moduleFormat,
-        compilationMode: compilationMode,
-        canaryFeatures: canaryFeatures,
-      );
-    },
-    // https://github.com/dart-lang/build/issues/4928
-    // skip: true,
-  );
+    runTests(
+      provider: provider,
+      moduleFormat: moduleFormat,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+    );
+  });
 }
