@@ -10,7 +10,6 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
-import 'package:file/local.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:http_multi_server/http_multi_server.dart';
@@ -238,16 +237,9 @@ class WebDevServer {
 
       final LoadStrategy loadStrategy;
       if (options.configuration.webHotReload) {
-        final frontendServerFileSystem = LocalFileSystem();
-        final packageUriMapper = await PackageUriMapper.create(
-          frontendServerFileSystem,
-          findPackageConfigUri()!,
-          useDebuggerModuleNames: false,
-        );
         loadStrategy = FrontendServerBuildDaemonStrategyProvider(
           options.configuration.reload,
           assetReader,
-          packageUriMapper,
           () async => {},
           buildSettings,
           packageConfigPath: findPackageConfigFilePath(),

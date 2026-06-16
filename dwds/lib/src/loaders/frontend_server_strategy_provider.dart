@@ -180,75 +180,15 @@ class FrontendServerBuildDaemonStrategyProvider
     Uri? reloadedSourcesUri,
     bool injectScriptLoad = true,
   }) {
-    String stripPrefix(String path) {
-      if (path.startsWith('packages')) return path;
-      final parts = path.split('/');
-
-      final appUri = _buildSettings.appEntrypoint;
-      final validPrefixes = [
-        if (appUri != null && appUri.pathSegments.isNotEmpty)
-          appUri.pathSegments.first,
-        ..._defaultWebDirs,
-      ];
-
-      if (parts.length > 1 && validPrefixes.contains(parts[0])) {
-        return parts.skip(1).join('/');
-      }
-      return path;
-    }
-
     _libraryBundleStrategy = DdcLibraryBundleStrategy(
       _configuration,
       _moduleProvider,
       (_) => _digestsProvider(),
-
-      /// Looks up the module name for a given server path.
-      (metadataProvider, sourcePath) async {
-        var module = await _moduleForServerPath(metadataProvider, sourcePath);
-        if (module != null) return module;
-
-        final remappedPath = sourcePath.replaceAll('.ddc', '.dart.lib');
-        module = await _moduleForServerPath(metadataProvider, remappedPath);
-        if (module != null) return module;
-
-        final modulePathToModule = await metadataProvider.modulePathToModule;
-        for (final entry in modulePathToModule.entries) {
-          final key = entry.key;
-          final strippedKey = stripPrefix(key);
-          if (strippedKey == sourcePath || strippedKey == remappedPath) {
-            return entry.value;
-          }
-        }
-        return null;
-      },
-      (metadataProvider, module) async {
-        final path = await _serverPathForModule(metadataProvider, module);
-        final stripped = stripPrefix(path);
-        return stripped.replaceAll('.dart.lib', '.ddc');
-      },
-      (metadataProvider, module) async {
-        final path = await _sourceMapPathForModule(metadataProvider, module);
-        final stripped = stripPrefix(path);
-        return stripped.replaceAll('.dart.lib', '.ddc');
-      },
-      (appUrl) =>
-          DdcUriTranslator.translateAppUriToServerPath(
-            appUrl,
-            layout: AppUriLayout.buildRunner,
-          ) ??
-          _serverPathForAppUri(appUrl),
-      (metadataProvider) async {
-        final moduleInfo = await _moduleInfoForProvider(metadataProvider);
-        return moduleInfo.map((module, info) {
-          return MapEntry(
-            module,
-            ModuleInfo(
-              info.fullDillPath.replaceAll('.dart.lib', '.ddc'),
-              info.summaryPath.replaceAll('.dart.lib', '.ddc'),
-            ),
-          );
-        });
-      },
+      _moduleForServerPath,
+      _serverPathForModule,
+      _sourceMapPathForModule,
+      _serverPathForAppUri,
+      _moduleInfoForProvider,
       _assetReader,
       _buildSettings,
       (String _) => null,
@@ -260,6 +200,109 @@ class FrontendServerBuildDaemonStrategyProvider
 
   @override
   DdcLibraryBundleStrategy get strategy => _libraryBundleStrategy;
+
+  /// Strips the top-level web/entrypoint directory from a path.
+  ///
+  /// For example:
+  /// - `web/main.dart` -> `main.dart`
+  /// - `example/append_body/main.dart` -> `append_body/main.dart`
+  /// - `packages/path/path.dart` -> `packages/path/path.dart`
+  String _stripPrefix(String path) {
+    if (path.startsWith('packages')) return path;
+    final parts = path.split('/');
+
+    final appUri = _buildSettings.appEntrypoint;
+    final validPrefixes = [
+      if (appUri != null && appUri.pathSegments.isNotEmpty)
+        appUri.pathSegments.first,
+      ..._defaultWebDirs,
+    ];
+
+    if (parts.length > 1 && validPrefixes.contains(parts[0])) {
+      return parts.skip(1).join('/');
+    }
+    return path;
+  }
+
+  /// Looks up the DDC module name for a served source file path while remapping
+  /// browser-requested DDC paths (containing '.ddc') to Frontend Server-served
+  /// paths (containing '.dart.lib').
+  ///
+  /// Requested paths can originate from different contexts at runtime, so we
+  /// perform several runtime lookups:
+  /// 1) Frontend Server uses '.dart.lib.js' and is referenced by expression
+  ///    evaluation requests, metadata files, stack traces, and sourcemaps.
+  /// 2) Build daemon serves with '.ddc.js' and is referenced by Chrome file
+  ///    requests and Chrome DevTools protocol script URLs.
+  @override
+  Future<String?> _moduleForServerPath(
+    MetadataProvider metadataProvider,
+    String serverPath,
+  ) async {
+    final remappedPath = serverPath.replaceAll('.ddc', '.dart.lib');
+    final module = await super._moduleForServerPath(
+      metadataProvider,
+      remappedPath,
+    );
+    if (module != null) return module;
+
+    // Strip the top-level served directory prefix (e.g. 'web/') from root
+    // modules to match the served path. Package dependencies ('packages/')
+    // are not modified.
+    final modulePathToModule = await metadataProvider.modulePathToModule;
+    for (final entry in modulePathToModule.entries) {
+      final strippedKey = _stripPrefix(entry.key);
+      if (strippedKey == serverPath || strippedKey == remappedPath) {
+        return entry.value;
+      }
+    }
+    return null;
+  }
+
+  @override
+  Future<String> _serverPathForModule(
+    MetadataProvider metadataProvider,
+    String module,
+  ) async {
+    final path = await super._serverPathForModule(metadataProvider, module);
+    final stripped = _stripPrefix(path);
+    return DdcUriTranslator.translateFesToBuildRunnerPath(stripped);
+  }
+
+  @override
+  Future<String> _sourceMapPathForModule(
+    MetadataProvider metadataProvider,
+    String module,
+  ) async {
+    final path = await super._sourceMapPathForModule(metadataProvider, module);
+    final stripped = _stripPrefix(path);
+    return DdcUriTranslator.translateFesToBuildRunnerPath(stripped);
+  }
+
+  @override
+  String? _serverPathForAppUri(String appUrl) {
+    return DdcUriTranslator.translateAppUriToServerPath(
+          appUrl,
+          layout: AppUriLayout.buildRunner,
+        ) ??
+        super._serverPathForAppUri(appUrl);
+  }
+
+  @override
+  Future<Map<String, ModuleInfo>> _moduleInfoForProvider(
+    MetadataProvider metadataProvider,
+  ) async {
+    final moduleInfo = await super._moduleInfoForProvider(metadataProvider);
+    return moduleInfo.map((module, info) {
+      return MapEntry(
+        module,
+        ModuleInfo(
+          DdcUriTranslator.translateFesToBuildRunnerPath(info.fullDillPath),
+          DdcUriTranslator.translateFesToBuildRunnerPath(info.summaryPath),
+        ),
+      );
+    });
+  }
 }
 
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.

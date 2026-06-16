@@ -93,4 +93,9 @@ class DdcUriTranslator {
     }
     return uri;
   }
+
+  /// Maps '.dart.lib' (FES suffix) to '.ddc' (package:build suffix).
+  static String translateFesToBuildRunnerPath(String path) {
+    return path.replaceAll('.dart.lib', '.ddc');
+  }
 }
