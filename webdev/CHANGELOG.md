@@ -1,8 +1,3 @@
-# 3.10.0
-- Use the DDC Library Bundle module format by default.
-  - If your use case depends on internal details of the old (AMD) module format, you can restore it by passing`--module-format amd`. The old module format will be removed in a future release, so please let us know.
-- Remove the requirement for the `--canary` flag when selecting the `--module-format=ddc` option.
-
 ## 3.9.0
 
 - Fix webdev failing to compile in aot mode due to missing DDS arguments.
@@ -10,6 +5,9 @@
 - Bump `dwds` to `^27.0.3`.
 - Fix issue where hot restarts/reloads without local file changes would sometimes cause DDC to hang.
 - Add 'web-hot-reload' experimental feature flag.
+- Use the DDC Library Bundle module format by default.
+  - If your use case depends on internal details of the old (AMD) module format, you can restore it by passing`--module-format amd`. The old module format will be removed in a future release, so please let us know.
+- Remove the requirement for the `--canary` flag when selecting the `--module-format=ddc` option.
 
 ## 3.8.2
 
