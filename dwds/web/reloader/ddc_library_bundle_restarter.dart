@@ -169,7 +169,18 @@ class DdcLibraryBundleRestarter implements Restarter, TwoPhaseRestarter {
         (JSFunction hotReloadEndCallback) {
           _capturedHotReloadEndCallback = hotReloadEndCallback;
         }.toJS;
-    await _dartDevEmbedder.hotReload(filesToLoad, librariesToReload).toDart;
+    final result = await _dartDevEmbedder
+        .hotReload(filesToLoad, librariesToReload)
+        .toDart;
+    _dartDevEmbedder.debugger.invokeExtension(
+      'ext.dwds.sendEvent',
+      '{"type": "hotReloadResult", "result": "$result"}',
+    );
+    if (result != null &&
+        result.typeofEquals('boolean') &&
+        !(result as JSBoolean).toDart) {
+      throw Exception('Hot reload rejected by DDC');
+    }
     return srcModuleLibraries.jsify() as JSArray<JSObject>;
   }
 
