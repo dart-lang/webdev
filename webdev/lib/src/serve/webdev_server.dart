@@ -23,7 +23,7 @@ import '../command/configuration.dart';
 import '../util.dart';
 import 'chrome.dart';
 import 'handlers/favicon_handler.dart';
-import 'utils.dart' show findPackageConfigFilePath, findPackageConfigUri;
+import 'utils.dart' show findPackageConfigFilePath;
 
 Logger _logger = Logger('WebDevServer');
 

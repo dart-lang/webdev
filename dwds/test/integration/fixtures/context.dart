@@ -26,6 +26,7 @@ import 'package:dwds/src/services/daemon_expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/ddc_uri_translator.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds_test_common/logging.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
@@ -443,7 +444,6 @@ class TestContext {
               (ModuleFormat.amd, _) => FrontendServerRequireStrategyProvider(
                 testSettings.reloadConfiguration,
                 assetReader,
-                packageUriMapper,
                 () async => {},
                 buildSettings,
               ).strategy,
@@ -451,7 +451,6 @@ class TestContext {
                 FrontendServerDdcLibraryBundleStrategyProvider(
                   testSettings.reloadConfiguration,
                   assetReader,
-                  packageUriMapper,
                   () async => {},
                   buildSettings,
                   reloadedSourcesUri: reloadedSourcesUri,
@@ -459,7 +458,6 @@ class TestContext {
               (ModuleFormat.ddc, false) => FrontendServerDdcStrategyProvider(
                 testSettings.reloadConfiguration,
                 assetReader,
-                packageUriMapper,
                 () async => {},
                 buildSettings,
               ).strategy,
@@ -538,38 +536,41 @@ class TestContext {
                 ),
               );
               testScratchSpaceDir.createSync(recursive: true);
-              
-              final sourcePackagesFile = File(p.join(
-                project.absolutePackageDirectory,
-                '.dart_tool',
-                'package_config.json',
-              ));
-              final packagesFile = File(p.join(
-                testScratchSpaceDir.path,
-                '.dart_tool',
-                'package_config.json',
-              ));
+
+              // Build daemon requires a package config inside its scratch
+              // space directory to resolve package paths during compilation.
+              // We read the original package config from [sourcePackagesFile],
+              // make all relative package paths absolute, then write the
+              // resolved config to [packagesFile] inside [testScratchSpaceDir].
+              final sourcePackagesFile = File(
+                p.join(
+                  project.absolutePackageDirectory,
+                  '.dart_tool',
+                  'package_config.json',
+                ),
+              );
+              final packagesFile = File(
+                p.join(
+                  testScratchSpaceDir.path,
+                  '.dart_tool',
+                  'package_config.json',
+                ),
+              );
               packagesFile.parent.createSync(recursive: true);
 
               // Make all relative rootUris absolute based on the original packagesFile location
               // so they don't break when the file is moved to the test scratch space.
-              // Also map rootUri and packageUri to match ScratchSpace's hoisting layout.
-              final originalJson = jsonDecode(sourcePackagesFile.readAsStringSync()) as Map<String, dynamic>;
+              final originalJson = jsonDecode(
+                sourcePackagesFile.readAsStringSync(),
+              ) as Map<String, dynamic>;
               final packagesList = originalJson['packages'] as List<dynamic>;
-              final rootPackage = '_test_package';
               for (final package in packagesList) {
                 final packageMap = package as Map<String, dynamic>;
-                final name = packageMap['name'] as String;
-                if (name == rootPackage) {
-                  packageMap['rootUri'] = 'org-dartlang-app:///';
-                  packageMap['packageUri'] = 'packages/$rootPackage/';
-                } else {
-                  var rootUri = Uri.parse(packageMap['rootUri'] as String);
-                  if (!rootUri.isAbsolute) {
-                    rootUri = sourcePackagesFile.parent.uri.resolveUri(rootUri);
-                  }
-                  packageMap['rootUri'] = rootUri.toString();
+                var rootUri = Uri.parse(packageMap['rootUri'] as String);
+                if (!rootUri.isAbsolute) {
+                  rootUri = sourcePackagesFile.parent.uri.resolveUri(rootUri);
                 }
+                packageMap['rootUri'] = rootUri.toString();
               }
               packagesFile.writeAsStringSync(jsonEncode(originalJson));
 
@@ -590,13 +591,21 @@ class TestContext {
                 'bin',
                 'fes_manager.dart',
               );
-              await Process.run(sdkLayout.dartPath, [
+              final compileResult = await Process.run(sdkLayout.dartPath, [
                 'compile',
                 'kernel',
                 '-o',
                 fesSnapshot,
                 fesManagerPath,
               ]);
+              if (compileResult.exitCode != 0) {
+                _logger.severe(
+                  'Failed to compile Frontend Server Manager:\n'
+                  'Exit code: ${compileResult.exitCode}\n'
+                  'Stdout: ${compileResult.stdout}\n'
+                  'Stderr: ${compileResult.stderr}',
+                );
+              }
 
               final args = [
                 fesSnapshot,
@@ -616,13 +625,19 @@ class TestContext {
                   .transform(utf8.decoder)
                   .transform(const LineSplitter())
                   .listen((line) {
-                    debugLog.writeAsStringSync('STDOUT: $line\n', mode: FileMode.append);
+                    debugLog.writeAsStringSync(
+                      'STDOUT: $line\n',
+                      mode: FileMode.append,
+                    );
                   });
               _fesProcess!.stderr
                   .transform(utf8.decoder)
                   .transform(const LineSplitter())
                   .listen((line) {
-                    debugLog.writeAsStringSync('STDERR: $line\n', mode: FileMode.append);
+                    debugLog.writeAsStringSync(
+                      'STDERR: $line\n',
+                      mode: FileMode.append,
+                    );
                   });
 
               final configFile = File(
@@ -665,12 +680,12 @@ class TestContext {
                 ),
               );
               if (daemonLogFile.existsSync()) {
-                print(
-                  'DAEMON STARTUP LOG CONTENT:\n${daemonLogFile.readAsStringSync()}',
+                _logger.warning(
+                  'Daemon startup log content:\n${daemonLogFile.readAsStringSync()}',
                 );
               } else {
-                print(
-                  'DAEMON STARTUP LOG FILE DOES NOT EXIST at: ${daemonLogFile.path}',
+                _logger.warning(
+                  'Daemon startup log file does not exist at: ${daemonLogFile.path}',
                 );
               }
               rethrow;
@@ -793,7 +808,6 @@ class TestContext {
                 FrontendServerBuildDaemonStrategyProvider(
                   testSettings.reloadConfiguration,
                   assetReader,
-                  packageUriMapper,
                   () async => {},
                   buildSettings,
                   injectScriptLoad: false,
@@ -877,7 +891,11 @@ class TestContext {
         assetHandler: assetHandler,
         assetReader: assetReader,
         strategy: loadStrategy,
-        target: project.directoryToServe,
+        // Build daemon serves assets relative to the web root (e.g. 'web/'),
+        // but standalone FES serves assets relative to the target directory.
+        target: testSettings.compilationMode.usesBuildDaemon
+            ? project.webAssetsPath
+            : project.directoryToServe,
         buildResults: buildResults,
         chromeConnection: () async => connection,
         httpServer: httpServer,
@@ -1197,10 +1215,17 @@ class TestContext {
   /// Returns a handler for build runner + the DDC Library Bundle module
   /// system.
   ///
-  /// This handler:
-  /// - serves the reloaded_sources.json file for reloads/restarts.
-  /// - serves the application directory and entrypoint from
-  ///   `project.directoryToServe`.
+  /// This handler intercepts specific asset requests to coordinate Frontend
+  /// Server outputs with the Build Daemon asset server:
+  ///
+  /// 1. Remaps the FES-suffixed request path ('.dart.lib') to a Build Daemon
+  ///    suffixed path ('.ddc') if necessary.
+  /// 2. Serves reloaded source logs (`reloaded_sources.json`) for hot
+  ///    restart/reload.
+  /// 3. Resolves compiled files (.js, .js.map, .metadata, .dill) from either
+  ///    the local scratch space or the build cache.
+  /// 4. Proxies asset requests (entrypoints, source maps, merged metadata)
+  ///    to the build daemon.
   Handler _createBuildRunnerDdcLibraryBundleAssetHandler(int assetServerPort) {
     final rootProxy = proxyHandler(
       'http://localhost:$assetServerPort/',
@@ -1213,11 +1238,104 @@ class TestContext {
 
     return (request) async {
       final path = request.url.path;
-      if (path.endsWith(WebDevFS.reloadedSourcesFileName)) {
+      var newPath = path;
+
+      // Translate FES paths to package:build paths.
+      newPath = DdcUriTranslator.translateFesToBuildRunnerPath(newPath);
+      var requestToProxy = request;
+      if (newPath != path) {
+        requestToProxy = shelf.Request(
+          request.method,
+          request.requestedUri.replace(path: newPath),
+          headers: request.headers,
+          body: request.read(),
+          context: request.context,
+        );
+      }
+
+      // Serve reloaded_sources.json.
+      if (newPath.endsWith(WebDevFS.reloadedSourcesFileName)) {
         return shelf.Response.ok(jsonEncode(_reloadedSources));
       }
 
-      if (path.endsWith('.ddc_merged_metadata')) {
+      // Resolve compiled files (.js, .js.map, .metadata, .dill, .full.dill)
+      // from either the test scratch space or the build cache.
+      final isDill =
+          newPath.endsWith('.dill') || newPath.endsWith('.full.dill');
+      final isMetadata = newPath.endsWith('.metadata');
+      final isPackage = newPath.startsWith('packages/');
+      final isJsOrMap = newPath.endsWith('.js') || newPath.endsWith('.js.map');
+
+      if (isDill || isMetadata || (isPackage && isJsOrMap)) {
+        String relativePath;
+        if (isPackage) {
+          final parts = newPath.split('/');
+          relativePath = parts.length > 2
+              ? parts.sublist(2).join('/')
+              : newPath;
+        } else {
+          final prefix = '${project.directoryToServe}/';
+          relativePath = newPath.startsWith(prefix)
+              ? newPath.substring(prefix.length)
+              : newPath;
+        }
+
+        final subDir = isPackage ? 'lib' : project.directoryToServe;
+
+        final scratchFile = File(
+          p.join(
+            project.absolutePackageDirectory,
+            '.dart_tool',
+            'build',
+            'test_scratch_space',
+            subDir,
+            relativePath,
+          ),
+        );
+
+        final generatedFile = File(
+          p.join(
+            project.absolutePackageDirectory,
+            '.dart_tool',
+            'build',
+            'generated',
+            project.packageName,
+            subDir,
+            relativePath,
+          ),
+        );
+
+        Uint8List? fileBytes;
+        if (scratchFile.existsSync()) {
+          fileBytes = scratchFile.readAsBytesSync();
+        } else if (generatedFile.existsSync()) {
+          fileBytes = generatedFile.readAsBytesSync();
+        }
+
+        if (fileBytes != null) {
+          final String mimeType;
+          if (newPath.endsWith('.js')) {
+            mimeType = 'application/javascript';
+          } else if (newPath.endsWith('.json') ||
+              newPath.endsWith('.map') ||
+              newPath.endsWith('.metadata')) {
+            mimeType = 'application/json';
+          } else {
+            mimeType = 'application/octet-stream';
+          }
+
+          return shelf.Response.ok(
+            fileBytes,
+            headers: {
+              HttpHeaders.contentTypeHeader: mimeType,
+              HttpHeaders.contentLengthHeader: fileBytes.length.toString(),
+            },
+          );
+        }
+      }
+
+      // Serve the DDC merged metadata. Merging is done by the FES manager.
+      if (newPath.endsWith('.ddc_merged_metadata')) {
         String? mergedContent;
         final configFile = File(
           p.join(
@@ -1251,7 +1369,10 @@ class TestContext {
                 await socket.close();
               }
             }
-          } catch (_) {}
+          } catch (_) {
+            // Ignore socket or parsing errors, letting the request fail
+            // gracefully or fall through.
+          }
         }
 
         if (mergedContent != null) {
@@ -1266,73 +1387,6 @@ class TestContext {
         }
       }
 
-      // Remap and serve separate root package JIT assets directly from FES Manager's
-      // scratch space or in-memory JIT cache to bridge background daemon compilations.
-      final isMetadata = path.endsWith('.metadata');
-      final isPackage = path.startsWith('packages/');
-      if (isMetadata ||
-          (isPackage && (path.endsWith('.js') || path.endsWith('.js.map')))) {
-        final isEntrypointMetadata = isMetadata && !isPackage;
-        String relativePath;
-        if (isPackage) {
-          final parts = path.split('/');
-          if (parts.length > 2) {
-            relativePath = parts.sublist(2).join('/');
-          } else {
-            relativePath = path;
-          }
-        } else {
-          relativePath = path;
-        }
-
-        final scratchFile = File(
-          p.join(
-            project.absolutePackageDirectory,
-            '.dart_tool',
-            'build',
-            'test_scratch_space',
-            isPackage
-                ? 'lib'
-                : (isEntrypointMetadata ? project.directoryToServe : ''),
-            relativePath,
-          ),
-        );
-
-        final generatedFile = File(
-          p.join(
-            project.absolutePackageDirectory,
-            '.dart_tool',
-            'build',
-            'generated',
-            project.packageName,
-            isPackage
-                ? 'lib'
-                : (isEntrypointMetadata ? project.directoryToServe : ''),
-            relativePath,
-          ),
-        );
-
-        Uint8List? fileBytes;
-        if (scratchFile.existsSync()) {
-          fileBytes = scratchFile.readAsBytesSync();
-        } else if (generatedFile.existsSync()) {
-          fileBytes = generatedFile.readAsBytesSync();
-        }
-
-        if (fileBytes != null) {
-          final mimeType = path.endsWith('.js')
-              ? 'application/javascript'
-              : 'application/json';
-          return shelf.Response.ok(
-            fileBytes,
-            headers: {
-              HttpHeaders.contentTypeHeader: mimeType,
-              HttpHeaders.contentLengthHeader: fileBytes.length.toString(),
-            },
-          );
-        }
-      }
-
       // Swap between [rootProxy] and [entrypointProxy] to handle path serving
       // differences for entrypoints vs library files.
       //
@@ -1342,13 +1396,19 @@ class TestContext {
       // Use [entrypointProxy] for files requested at the root (e.g. 'main.dart'
       // or 'index.html'), These implicitly prepend [directoryToServe].
       final prefix = '${project.directoryToServe}/';
-      final response =
-          await (path.startsWith(prefix) ||
-                  path.startsWith('packages/') ||
-                  path.startsWith('example/')
-              ? rootProxy(request)
-              : entrypointProxy(request));
+      var requestToProxyFinal = requestToProxy;
+      if (newPath.startsWith(prefix)) {
+        requestToProxyFinal = requestToProxy.change(
+          path: project.directoryToServe,
+        );
+      }
 
+      final response =
+          await (newPath.startsWith(prefix) ||
+                  newPath.startsWith('packages/') ||
+                  newPath.startsWith('example/')
+              ? rootProxy(requestToProxyFinal)
+              : entrypointProxy(requestToProxyFinal));
       return response;
     };
   }
@@ -1448,7 +1508,7 @@ class TestContext {
     final process = await Process.run('tool/build_extension.sh', [
       'prod',
     ], workingDirectory: absolutePath(pathFromDwds: 'debug_extension'));
-    print(process.stdout);
+    _logger.info(process.stdout);
   }
 
   Future<ChromeTab> _fetchDartDebugExtensionTab(

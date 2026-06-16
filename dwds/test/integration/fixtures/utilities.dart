@@ -4,6 +4,8 @@
 
 // @skip_package_deps_validation
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:build_daemon/client.dart';
@@ -24,13 +26,67 @@ Future<BuildDaemonClient> connectClient(
   String workingDirectory,
   List<String> options,
   void Function(ServerLog) logHandler,
-) => BuildDaemonClient.connect(workingDirectory, [
-  dartPath,
-  'run',
-  'build_runner',
-  'daemon',
-  ...options,
-], logHandler: logHandler);
+) async {
+  final process = await Process.start(dartPath, [
+    'run',
+    'build_runner',
+    'daemon',
+    ...options,
+  ], workingDirectory: workingDirectory);
+
+  final stdoutBuffer = <String>[];
+  final stderrBuffer = <String>[];
+  final daemonStartup = Completer<String>();
+
+  process.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen(
+    (line) {
+      stdoutBuffer.add(line);
+      if (line == readyToConnectLog ||
+          line == versionSkew ||
+          line == optionsSkew) {
+        if (!daemonStartup.isCompleted) {
+          daemonStartup.complete(line);
+        }
+      }
+    },
+  );
+
+  process.stderr
+      .transform(utf8.decoder)
+      .transform(const LineSplitter())
+      .listen((line) => stderrBuffer.add(line));
+
+  final result = await Future.any([
+    daemonStartup.future,
+    Future.delayed(
+      const Duration(seconds: 45),
+      () => 'Timed out waiting for daemon to start up.',
+    ),
+  ]);
+
+  if (result == readyToConnectLog) {
+    return BuildDaemonClient.connectUnchecked(
+      workingDirectory,
+      logHandler: logHandler,
+    );
+  }
+
+  process.kill();
+  final exitCode = await process.exitCode.timeout(
+    const Duration(seconds: 5),
+    onTimeout: () => -1,
+  );
+
+  final details = [
+    'Command: dart run build_runner daemon ${options.join(' ')}',
+    'Working Directory: $workingDirectory',
+    'Exit Code: $exitCode',
+    if (stdoutBuffer.isNotEmpty) 'Stdout:\n${stdoutBuffer.join('\n')}',
+    if (stderrBuffer.isNotEmpty) 'Stderr:\n${stderrBuffer.join('\n')}',
+  ].join('\n');
+
+  throw StateError('Failed to start build daemon (result: $result).\n$details');
+}
 
 /// Returns the port of the daemon asset server.
 int daemonPort(String workingDirectory) {
@@ -43,64 +99,6 @@ int daemonPort(String workingDirectory) {
 
 String _assetServerPortFilePath(String workingDirectory) =>
     '${daemonWorkspace(workingDirectory)}/.asset_server_port';
-
-/// Retries a callback function with a delay until the result is the
-/// [expectedResult] (if provided) or is not null.
-Future<T> retryFn<T>(
-  T Function() callback, {
-  int retryCount = 3,
-  int delayInMs = 1000,
-  String failureMessage = 'Function did not succeed after retries.',
-  T? expectedResult,
-}) async {
-  if (retryCount == 0) {
-    throw Exception(failureMessage);
-  }
-
-  await Future<void>.delayed(Duration(milliseconds: delayInMs));
-  try {
-    final result = callback();
-    if (expectedResult != null && result == expectedResult) return result;
-    if (expectedResult == null && result != null) return result;
-  } catch (_) {
-    // Ignore any exceptions.
-  }
-
-  return retryFn<T>(
-    callback,
-    retryCount: retryCount - 1,
-    delayInMs: delayInMs,
-    failureMessage: failureMessage,
-  );
-}
-
-/// Retries an asynchronous callback function with a delay until the result is
-/// non-null.
-Future<T> retryFnAsync<T>(
-  Future<T> Function() callback, {
-  int retryCount = 3,
-  int delayInMs = 1000,
-  String failureMessage = 'Function did not succeed after retries.',
-}) async {
-  if (retryCount == 0) {
-    throw Exception(failureMessage);
-  }
-
-  await Future<void>.delayed(Duration(milliseconds: delayInMs));
-  try {
-    final result = await callback();
-    if (result != null) return result;
-  } catch (_) {
-    // Ignore any exceptions.
-  }
-
-  return retryFnAsync<T>(
-    callback,
-    retryCount: retryCount - 1,
-    delayInMs: delayInMs,
-    failureMessage: failureMessage,
-  );
-}
 
 class TestDebugSettings extends DebugSettings {
   TestDebugSettings.withDevToolsLaunch(
