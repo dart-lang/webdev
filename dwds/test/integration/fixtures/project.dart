@@ -229,15 +229,14 @@ class TestProject {
       }
     }
 
-    final pubGetResult = await Process.run('dart', [
-      'pub',
-      'get',
+    // Clean up the project.
+    // Called when we need to rebuild sdk and the app from previous test
+    // configurations.
+    await Process.run('dart', [
+      'run',
+      'build_runner',
+      'clean',
     ], workingDirectory: newPath);
-    if (pubGetResult.exitCode != 0) {
-      print('"dart pub get" failed in $newPath:');
-      print(pubGetResult.stdout);
-      print(pubGetResult.stderr);
-    }
   }
 
   Future<void> setUp() async {
