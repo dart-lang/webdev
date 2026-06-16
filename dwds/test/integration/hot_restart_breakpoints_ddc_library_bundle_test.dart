@@ -35,4 +35,11 @@ void main() {
   group('Build Daemon', () {
     runTests(provider: provider, compilationMode: CompilationMode.buildDaemon);
   });
+
+  group('Build Daemon and Frontend Server', () {
+    runTests(
+      provider: provider,
+      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
+    );
+  });
 }

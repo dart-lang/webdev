@@ -59,4 +59,12 @@ void main() async {
       }
     });
   });
+
+  group('Build Daemon and Frontend Server |', () {
+    tearDownAll(provider.dispose);
+    testAll(
+      provider: provider,
+      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
+    );
+  });
 }
