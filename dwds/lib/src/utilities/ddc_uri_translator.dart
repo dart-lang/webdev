@@ -32,36 +32,35 @@ class DdcUriTranslator {
     required AppUriLayout layout,
   }) {
     final appUri = Uri.parse(appUrl);
-
     if (appUri.isScheme('package')) {
       final pathSegments = appUri.pathSegments;
       if (pathSegments.isEmpty) {
         throw FormatException('Invalid package URI with empty path: $appUrl');
       }
+      final buildRunnerPath = 'packages/${appUri.path}';
       return switch (layout) {
-        AppUriLayout.frontendServerOnly =>
-          'packages/${pathSegments.first}/lib/${pathSegments.skip(1).join('/')}',
-        AppUriLayout.buildRunner => 'packages/${appUri.path}',
+        AppUriLayout.frontendServerOnly => addLibSegment(buildRunnerPath),
+        AppUriLayout.buildRunner => buildRunnerPath,
       };
     }
 
     if (appUri.isScheme('org-dartlang-app')) {
       final segments = appUri.pathSegments;
       if (segments.isEmpty) {
-        throw FormatException(
-          'Invalid org-dartlang-app URI with empty path: $appUrl',
-        );
+        throw FormatException('Invalid org-dartlang-app URI: $appUrl');
       }
       switch (layout) {
         case AppUriLayout.frontendServerOnly:
-          return appUri.path.substring(1);
+          return addLibSegment(appUri.path.substring(1));
         case AppUriLayout.buildRunner:
           final first = segments.first;
           if (first == 'packages') {
-            assert(segments.length >= 3, 'Invalid packages/ URI: $appUrl');
+            if (segments.length < 3) {
+              throw FormatException('Invalid packages URI: $appUrl');
+            }
             return segments.join('/');
           }
-
+          // Dedupe 'web/'web or 'test/test' paths.
           final isDuplicated =
               segments.length > 2 &&
               first == segments[1] &&
@@ -71,6 +70,41 @@ class DdcUriTranslator {
     }
 
     return null;
+  }
+
+  /// Adds 'lib' to a package server path.
+  ///
+  /// Example: packages/foo/bar.dart -> packages/foo/lib/bar.dart
+  static String addLibSegment(String serverPath) {
+    if (!serverPath.startsWith('packages/')) return serverPath;
+    final segments = serverPath.split('/');
+    if (segments.length > 2 && segments[2] != 'lib') {
+      return 'packages/${segments[1]}/lib/${segments.skip(2).join('/')}';
+    }
+    return serverPath;
+  }
+
+  /// Removes 'lib' from a package server path.
+  ///
+  /// Example: packages/foo/lib/bar.dart packages/foo/bar.dart
+  static String removeLibSegment(String serverPath) {
+    if (!serverPath.startsWith('packages/')) return serverPath;
+    final segments = serverPath.split('/');
+    if (segments.length > 2 && segments[2] == 'lib') {
+      return 'packages/${segments[1]}/${segments.skip(3).join('/')}';
+    }
+    return serverPath;
+  }
+
+  /// Translates a served `packages/` path back to a `package:` URI path.
+  ///
+  /// Examples:
+  /// - `packages/foo/lib/bar.dart` -> `package:foo/bar.dart`
+  /// - `packages/foo/bar.dart` -> `package:foo/bar.dart`
+  static String translatePackagesPathToPackageUri(String serverPath) {
+    if (!serverPath.startsWith('packages/')) return serverPath;
+    final pathWithoutLib = removeLibSegment(serverPath);
+    return pathWithoutLib.replaceFirst('packages/', 'package:');
   }
 
   /// Translates a 'lib/' path to a package path.
@@ -89,7 +123,7 @@ class DdcUriTranslator {
           'Cannot translate lib/ path without a root package name. URI: $uri',
         );
       }
-      return 'packages/$rootPackageName/${uri.substring(4)}';
+      return 'packages/$rootPackageName/${uri.substring('lib/'.length)}';
     }
     return uri;
   }

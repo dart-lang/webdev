@@ -4,6 +4,7 @@
 
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/utilities/ddc_uri_translator.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
@@ -39,23 +40,27 @@ class DartUri {
     if (uri.startsWith('file:')) {
       return DartUri._fromFileUri(uri, root: root);
     }
-    if (uri.startsWith('packages/') || uri.startsWith('/packages/')) {
-      return DartUri._fromRelativePath(uri, root: root);
+    if (uri.endsWith('.dart') &&
+        (uri.startsWith('packages/') || uri.startsWith('/packages/'))) {
+      final path = stripLeadingSlashes(uri);
+      final packageUri = DdcUriTranslator.translatePackagesPathToPackageUri(
+        path,
+      );
+      return DartUri._fromPackageUri(packageUri, root: root);
     }
     if (uri.startsWith('/')) {
-      return DartUri._fromRelativePath(uri);
+      return DartUri._fromRelativePath(uri, root: root);
     }
     if (uri.startsWith('http:') || uri.startsWith('https:')) {
-      return DartUri(Uri.parse(uri).path);
+      return DartUri(Uri.parse(uri).path, root);
     }
-
-    throw FormatException('Unsupported URI form: $uri');
+    return DartUri._fromRelativePath(uri, root: root);
   }
 
   @override
   String toString() => 'DartUri: $serverPath';
 
-  /// Construct from a package: URI
+  /// Construct from an app URI
   factory DartUri._fromDartLangUri(String uri) {
     var serverPath = globalToolConfiguration.loadStrategy.serverPathForAppUri(
       uri,
@@ -88,18 +93,32 @@ class DartUri {
   }
 
   /// Construct from a path, relative to the directory being served.
+  ///
+  /// [root] is the directory the app is served from (such as 'web') and is used
+  /// to translate served URI paths to their on-disk paths.
   factory DartUri._fromRelativePath(String uri, {String? root}) {
-    uri = uri[0] == '.' ? uri.substring(1) : uri;
-    uri = uri[0] == '/' ? uri.substring(1) : uri;
-
-    if (root != null) {
-      return DartUri._fromRelativePath(p.url.join(root, uri));
+    if (uri.startsWith('.')) uri = uri.substring(1);
+    if (uri.startsWith('/')) uri = uri.substring(1);
+    // Strip the [root] if provided. For example, with '/abc' as root:
+    // abc/packages/foo/bar.dart -> DartUri('packages/foo/bar.dart', '/abc')
+    if (root != null && root.isNotEmpty) {
+      final cleanRoot = stripLeadingSlashes(root);
+      if (cleanRoot.isNotEmpty) {
+        final rootPrefix = cleanRoot.endsWith('/') ? cleanRoot : '$cleanRoot/';
+        if (uri.startsWith(rootPrefix)) {
+          final stripped = uri.substring(rootPrefix.length);
+          return DartUri(stripped, root);
+        }
+      }
     }
 
     uri = DdcUriTranslator.translateLibPathToPackagePath(
       uri,
       globalToolConfiguration.appMetadata.workspaceName,
     );
+    if (root != null) {
+      uri = p.url.join(root, uri);
+    }
     return DartUri._(uri);
   }
 

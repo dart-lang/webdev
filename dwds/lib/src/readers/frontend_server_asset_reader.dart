@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/readers/asset_reader.dart';
+import 'package:dwds/src/utilities/ddc_uri_translator.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
@@ -61,13 +62,15 @@ class FrontendServerAssetReader implements AssetReader {
   Future<String?> dartSourceContents(String serverPath) async {
     if (serverPath.endsWith('.dart')) {
       final packageConfig = await _packageConfig;
-
+      var strippedPath = _stripBasePath(serverPath);
       Uri? fileUri;
-      if (serverPath.startsWith('packages/')) {
-        final packagePath = serverPath.replaceFirst('packages/', 'package:');
+      if (strippedPath.startsWith('packages/')) {
+        final packagePath = DdcUriTranslator.translatePackagesPathToPackageUri(
+          strippedPath,
+        );
         fileUri = packageConfig.resolve(Uri.parse(packagePath));
       } else {
-        fileUri = p.toUri(p.join(_packageRoot, serverPath));
+        fileUri = p.toUri(p.join(_packageRoot, strippedPath));
       }
       if (fileUri != null) {
         final source = File(fileUri.toFilePath());
@@ -81,11 +84,12 @@ class FrontendServerAssetReader implements AssetReader {
   @override
   Future<String?> sourceMapContents(String serverPath) async {
     if (serverPath.endsWith('lib.js.map')) {
-      if (!serverPath.startsWith('/')) serverPath = '/$serverPath';
+      var strippedPath = _stripBasePath(serverPath);
+      if (!strippedPath.startsWith('/')) strippedPath = '/$strippedPath';
       // Strip the .map, sources are looked up by their js path.
-      serverPath = p.withoutExtension(serverPath);
-      if (_mapContents.containsKey(serverPath)) {
-        return _mapContents[serverPath];
+      strippedPath = p.withoutExtension(strippedPath);
+      if (_mapContents.containsKey(strippedPath)) {
+        return _mapContents[strippedPath];
       }
     }
     _logger.severe('Cannot find source map contents for $serverPath');
@@ -126,6 +130,22 @@ class FrontendServerAssetReader implements AssetReader {
   Future<String> metadataContents(String serverPath) {
     // TODO(grouma) - Implement the merged metadata reader.
     throw UnimplementedError();
+  }
+
+  /// Strips the [_basePath] prefix from the [serverPath].
+  ///
+  /// Example (if [_basePath] is 'foo/bar'):
+  /// - 'foo/bar/packages/path/src/utils.dart' -> 'packages/path/src/utils.dart'
+  String _stripBasePath(String serverPath) {
+    var strippedPath = stripLeadingSlashes(serverPath);
+    final strippedBasePath = stripLeadingSlashes(_basePath);
+    if (strippedBasePath.isNotEmpty &&
+        strippedPath.startsWith(strippedBasePath)) {
+      strippedPath = stripLeadingSlashes(
+        strippedPath.substring(strippedBasePath.length),
+      );
+    }
+    return strippedPath;
   }
 
   @override

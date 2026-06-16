@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:collection/collection.dart';
+import 'package:dwds/src/utilities/ddc_uri_translator.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
+export 'package:dwds/src/utilities/shared.dart' show stripLeadingSlashes;
 
 /// A reader for Dart sources and related source maps.
 abstract class AssetReader {
@@ -90,35 +93,27 @@ class PackageUriMapper {
     return null;
   }
 
-  /// Compute resolved file uri for a server path.
+  /// Compute resolved file URI for a server path.
+  ///
+  /// Frontend Server serves package URIs with 'lib' intact, representing their
+  /// on-disk structure. For example, 'package:foo/bar.dart' would be served at
+  /// 'packages/foo/lib/bar.dart'.
+  ///
+  /// Build runner serves package URIs from a flattened 'packages' directory.
+  /// For example, 'package:foo/bar.dart' would be served at
+  /// 'packages/foo/bar.dart'.
   Uri? serverPathToResolvedUri(String serverPath) {
     serverPath = stripLeadingSlashes(serverPath);
     final segments = serverPath.split('/');
     if (segments.first == 'packages') {
-      if (!useDebuggerModuleNames) {
-        return packageConfig.resolve(
-          Uri(scheme: 'package', pathSegments: segments.skip(1)),
-        );
-      }
-      final relativeRoot = segments.skip(1).first;
-      final relativeUrl = segments.skip(2).join('/');
-      final package = packageConfig.packages.firstWhere(
-        (Package p) => _getRelativeRoot(p.root) == relativeRoot,
+      final packagePath = DdcUriTranslator.translatePackagesPathToPackageUri(
+        serverPath,
       );
-      final resolvedUri = package.root.resolve(relativeUrl);
-
-      return resolvedUri;
+      return packageConfig.resolve(Uri.parse(packagePath));
     }
     _logger.severe('Expected "packages/" path, but found $serverPath');
     return null;
   }
-}
-
-String stripLeadingSlashes(String path) {
-  while (path.startsWith('/') || path.startsWith('\\')) {
-    path = path.substring(1);
-  }
-  return path;
 }
 
 String? _getRelativeRoot(Uri root) =>
