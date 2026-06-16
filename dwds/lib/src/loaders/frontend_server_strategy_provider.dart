@@ -9,6 +9,7 @@ import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/utilities/ddc_uri_translator.dart';
 import 'package:path/path.dart' as p;
 
 const _defaultWebDirs = ['web', 'test', 'example', 'benchmark'];
@@ -16,7 +17,6 @@ const _defaultWebDirs = ['web', 'test', 'example', 'benchmark'];
 abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
-  final PackageUriMapper _packageUriMapper;
   final Future<Map<String, String>> Function() _digestsProvider;
   final String _basePath;
   final BuildSettings _buildSettings;
@@ -25,7 +25,6 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
   FrontendServerStrategyProvider(
     this._configuration,
     this._assetReader,
-    this._packageUriMapper,
     this._digestsProvider,
     this._buildSettings, {
     this._packageConfigPath,
@@ -75,17 +74,10 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
       _addBasePath((await metadataProvider.moduleToSourceMap)[module] ?? '');
 
   String? _serverPathForAppUri(String appUrl) {
-    final appUri = Uri.parse(appUrl);
-    if (appUri.isScheme('org-dartlang-app')) {
-      return _addBasePath(appUri.path);
-    }
-    if (appUri.isScheme('package')) {
-      final resolved = _packageUriMapper.packageUriToServerPath(appUri);
-      if (resolved != null) {
-        return resolved;
-      }
-    }
-    return null;
+    return DdcUriTranslator.translateAppUriToServerPath(
+      appUrl,
+      layout: AppUriLayout.frontendServerOnly,
+    );
   }
 
   Future<Map<String, ModuleInfo>> _moduleInfoForProvider(
@@ -127,7 +119,6 @@ class FrontendServerDdcStrategyProvider
   FrontendServerDdcStrategyProvider(
     super._configuration,
     super._assetReader,
-    super._packageUriMapper,
     super._digestsProvider,
     super._buildSettings, {
     super.packageConfigPath,
@@ -146,7 +137,6 @@ class FrontendServerDdcLibraryBundleStrategyProvider
   FrontendServerDdcLibraryBundleStrategyProvider(
     super._configuration,
     super._assetReader,
-    super._packageUriMapper,
     super._digestsProvider,
     super._buildSettings, {
     super.packageConfigPath,
@@ -184,7 +174,6 @@ class FrontendServerBuildDaemonStrategyProvider
   FrontendServerBuildDaemonStrategyProvider(
     super._configuration,
     super._assetReader,
-    super._packageUriMapper,
     super._digestsProvider,
     super._buildSettings, {
     super.packageConfigPath,
@@ -242,19 +231,12 @@ class FrontendServerBuildDaemonStrategyProvider
         final stripped = stripPrefix(path);
         return stripped.replaceAll('.dart.lib', '.ddc');
       },
-      (appUrl) {
-        final appUri = Uri.parse(appUrl);
-        if (appUri.isScheme('org-dartlang-app')) {
-          final segments = appUri.pathSegments;
-          if (segments.length > 2 &&
-              segments[0] == segments[1] &&
-              (segments[0] == 'web' || segments[0] == 'test')) {
-            return segments.skip(2).join('/');
-          }
-          return segments.skip(1).join('/');
-        }
-        return _serverPathForAppUri(appUrl);
-      },
+      (appUrl) =>
+          DdcUriTranslator.translateAppUriToServerPath(
+            appUrl,
+            layout: AppUriLayout.buildRunner,
+          ) ??
+          _serverPathForAppUri(appUrl),
       (metadataProvider) async {
         final moduleInfo = await _moduleInfoForProvider(metadataProvider);
         return moduleInfo.map((module, info) {
@@ -300,7 +282,6 @@ class FrontendServerRequireStrategyProvider
   FrontendServerRequireStrategyProvider(
     super._configuration,
     super._assetReader,
-    super._packageUriMapper,
     super._digestsProvider,
     super._buildSettings, {
     super.packageConfigPath,

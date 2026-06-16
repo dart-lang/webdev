@@ -10,6 +10,7 @@ import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/utilities/ddc_uri_translator.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
@@ -203,15 +204,10 @@ mixin BuildRunnerStrategyProviderMixin {
   }
 
   String? _serverPathForAppUri(String appUrl) {
-    final appUri = Uri.parse(appUrl);
-    if (appUri.isScheme('org-dartlang-app')) {
-      // We skip the root from which we are serving.
-      return appUri.pathSegments.skip(1).join('/');
-    }
-    if (appUri.isScheme('package')) {
-      return '/packages/${appUri.path}';
-    }
-    return null;
+    return DdcUriTranslator.translateAppUriToServerPath(
+      appUrl,
+      layout: AppUriLayout.buildRunner,
+    );
   }
 
   Future<Map<String, ModuleInfo>> _moduleInfoForProvider(

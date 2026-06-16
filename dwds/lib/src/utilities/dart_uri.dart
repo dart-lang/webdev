@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds/src/utilities/ddc_uri_translator.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
@@ -94,6 +95,11 @@ class DartUri {
     if (root != null) {
       return DartUri._fromRelativePath(p.url.join(root, uri));
     }
+
+    uri = DdcUriTranslator.translateLibPathToPackagePath(
+      uri,
+      globalToolConfiguration.appMetadata.workspaceName,
+    );
     return DartUri._(uri);
   }
 
