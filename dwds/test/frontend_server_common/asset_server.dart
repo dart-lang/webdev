@@ -272,6 +272,17 @@ class TestAssetServer implements AssetReader {
 
   // Attempt to resolve `path` to a dart file.
   File _resolveDartFile(String path) {
+    // Expression evaluation and debugger requests may reference sources
+    // using `package:` URIs. Resolve them to files using the packageConfig.
+    if (path.startsWith('package:')) {
+      final resolved = _packageUriMapper.packageConfig.resolve(Uri.parse(path));
+      if (resolved != null) {
+        final packageFile = _fileSystem.file(resolved);
+        if (packageFile.existsSync()) {
+          return packageFile;
+        }
+      }
+    }
     // If this is a dart file, it must be on the local file system and is
     // likely coming from a source map request. The tool doesn't currently
     // consider the case of Dart files as assets.
@@ -357,6 +368,9 @@ class TestAssetServer implements AssetReader {
 
   String? _stripBasePath(String path, String basePath) {
     path = stripLeadingSlashes(path);
+    // Requests starting with 'packages/' are top-level and served relative
+    // to the root directory, so they don't contain the app's base path.
+    if (path.startsWith('packages/')) return path;
     if (path.startsWith(basePath)) {
       path = path.substring(basePath.length);
     } else {

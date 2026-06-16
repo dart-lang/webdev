@@ -446,8 +446,12 @@ class ResidentCompiler {
 
     unawaited(
       server.exitCode.then((int code) {
-        if (code != 0) {
-          throw Exception('the Dart compiler exited unexpectedly.');
+        // Ignore exit codes that signal expected process termination:
+        // -9 (SIGKILL), -15 (SIGTERM), and 255 (process killed).
+        if (code != 0 && code != -9 && code != -15 && code != 255) {
+          throw Exception(
+            'the Dart compiler exited unexpectedly with exit code: $code.',
+          );
         }
       }),
     );

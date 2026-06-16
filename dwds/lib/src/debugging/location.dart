@@ -194,6 +194,8 @@ class Locations {
     return _sourceToLocation[serverPath] ?? {};
   }
 
+  Iterable<String> keys() => _sourceToLocation.keys;
+
   /// Returns all [Location] data for a provided JS server path.
   Future<Set<Location>> locationsForUrl(String url) async {
     if (url.isEmpty) return {};
@@ -379,12 +381,8 @@ class Locations {
         }
       }
       for (final location in result) {
-        _sourceToLocation
-            .putIfAbsent(
-              location.dartLocation.uri.serverPath,
-              () => <Location>{},
-            )
-            .add(location);
+        final sp = location.dartLocation.uri.serverPath;
+        _sourceToLocation.putIfAbsent(sp, () => <Location>{}).add(location);
       }
       return _moduleToLocations[module] = result;
     });
@@ -401,15 +399,43 @@ class Locations {
   }) {
     final index = entry.sourceUrlId;
     if (index == null) return null;
-    // Source map URLS are relative to the script. They may have platform
-    // separators or they may use URL semantics. To be sure, we split and
-    // re-join them.
-    // This works on Windows because path treats both / and \ as separators.
-    // It will fail if the path has both separators in it.
-    final relativeSegments = p.split(sourceUrls[index]);
-    final path = p.url.normalize(
-      p.url.joinAll([scriptLocation, ...relativeSegments]),
-    );
+    final sourceUrl = sourceUrls[index];
+    String path;
+    if (Uri.tryParse(sourceUrl)?.isAbsolute == true) {
+      path = sourceUrl;
+    } else {
+      // Source map URLS are relative to the script. They may have platform
+      // separators or they may use URL semantics. To be sure, we split and
+      // re-join them.
+      // This works on Windows because path treats both / and \ as separators.
+      // It will fail if the path has both separators in it.
+      final relativeSegments = p.split(sourceUrl);
+      path = p.url.normalize(
+        p.url.joinAll([scriptLocation, ...relativeSegments]),
+      );
+
+      // Frontend Server emits source maps paths relative relative to the
+      // generated JS. If this is for a 'package:build' source, it may be in
+      // `.dart_tool/build/generated`, and relative path resolution might
+      // traverse beyond the package directory. We detect this and reconstruct
+      // the correct `org-dartlang-app:///` URI.
+      //
+      // For example:
+      // scriptLocation: `/packages/my_package/subdir/main.ddc.js`
+      // relativePath in source map: `../../../lib/src/library.dart`
+      //
+      // Joined path:
+      // BEFORE: `/lib/src/library.dart` (loses the package namespace `my_package`)
+      // AFTER:  `org-dartlang-app:///packages/my_package/src/library.dart`
+      if (scriptLocation.startsWith('/packages/') &&
+          !path.startsWith('/packages/')) {
+        final packageDir = scriptLocation.split('/').take(3).join('/');
+        final relativePath = path.startsWith('/lib/')
+            ? path.substring('/lib/'.length)
+            : path.substring('/'.length);
+        path = 'org-dartlang-app://$packageDir/$relativePath';
+      }
+    }
 
     try {
       final dartUri = DartUri(path, _root);
