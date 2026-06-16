@@ -471,25 +471,6 @@ class TestContext {
           break;
         case CompilationMode.buildDaemonAndFrontendServer:
           {
-            // Symmetrically terminate any leftover background Build Daemon processes
-            // from previous crashed runs to ensure the new daemon connects to the correct CWD.
-            try {
-              final result = Process.runSync('ps', ['aux']);
-              final lines = result.stdout.toString().split('\n');
-              for (final line in lines) {
-                if (line.contains('build.dart.aot') ||
-                    line.contains('build_runner')) {
-                  final parts = line.trim().split(RegExp(r'\s+'));
-                  if (parts.length > 1) {
-                    final targetPid = int.tryParse(parts[1]);
-                    if (targetPid != null && targetPid != pid) {
-                      Process.runSync('kill', ['-9', '$targetPid']);
-                    }
-                  }
-                }
-              }
-            } catch (_) {}
-
             final options = [
               if (testSettings.enableExpressionEvaluation) ...[
                 '--define',
@@ -1023,39 +1004,12 @@ class TestContext {
       unawaited(dir.delete(recursive: true));
     }
 
-    if (_testSettings.compilationMode.usesBuildDaemon) {
-      // Cleanly terminate any leftover background compiler processes
-      // spawned during this test case to prevent Dill cache locks.
-      try {
-        final result = Process.runSync('ps', ['aux']);
-        final lines = result.stdout.toString().split('\n');
-        for (final line in lines) {
-          final isBuildDaemon =
-              line.contains('build.dart.aot') || line.contains('build_runner');
-          final isStaleCompiler =
-              !isBuildDaemon &&
-              (line.contains('frontend_server') ||
-                  (line.contains('dartaotruntime') &&
-                      line.contains('/folders/')));
-
-          if (isStaleCompiler) {
-            final parts = line.trim().split(RegExp(r'\s+'));
-            if (parts.length > 1) {
-              final targetPid = int.tryParse(parts[1]);
-              if (targetPid != null && targetPid != pid) {
-                Process.runSync('kill', ['-9', '$targetPid']);
-              }
-            }
-          }
-        }
-      } catch (_) {}
-    }
-
-    // Wait for the build daemon process of this specific test case to fully exit naturally
-    // and release its global registry locks before allowing the next case to start.
+    // Wait for the build daemon process to fully exit before starting the next
+    // test case.
     if (_testSettings.compilationMode.usesBuildDaemon) {
       final targetPath = project.absolutePackageDirectory;
-      for (var i = 0; i < 50; i++) {
+      final retries = 50;
+      for (var i = 0; i < retries; i++) {
         final result = Process.runSync('ps', ['aux']);
         final lines = result.stdout.toString().split('\n');
         final isStillRunning = lines.any(
@@ -1094,7 +1048,6 @@ class TestContext {
     // timestamp that is guaranteed to be after the previous compile.
     // TODO(https://github.com/dart-lang/sdk/issues/51937): Remove once this bug
     // is fixed.
-    await Future<void>.delayed(const Duration(seconds: 1));
     _invalidatedUris.clear();
     for (var (:file, :originalString, :newString) in edits) {
       if (file == project.dartEntryFileName) {
@@ -1112,7 +1065,7 @@ class TestContext {
       );
       final relativeUrl = p.toUri(relativePath).path;
       if (relativeUrl.startsWith('lib/')) {
-        final pathInLib = relativeUrl.substring(4);
+        final pathInLib = relativeUrl.substring('lib/'.length);
         _invalidatedUris.add('package:${project.packageName}/$pathInLib');
       } else if (f.path == project.dartEntryFilePath) {
         _invalidatedUris.add(project.dartEntryFilePackageUri.toString());
@@ -1144,13 +1097,13 @@ class TestContext {
     String srcPath;
 
     if (relativeUrl.startsWith('lib/')) {
-      final pathInLib = relativeUrl.substring(4);
+      final pathInLib = relativeUrl.substring('lib/'.length);
       final pathWithoutExtension = p.withoutExtension(pathInLib);
-      final isFesJitOnly =
+      final fesOnly =
           _testSettings.compilationMode.usesFrontendServer &&
           !_testSettings.compilationMode.usesBuildDaemon;
       moduleName =
-          'packages/${project.packageName}/${isFesJitOnly ? pathInLib : pathWithoutExtension}';
+          'packages/${project.packageName}/${fesOnly ? pathInLib : pathWithoutExtension}';
       libUri = 'package:${project.packageName}/$pathInLib';
       srcPath = 'packages/${project.packageName}/$pathWithoutExtension';
     } else if (absolutePath == project.dartEntryFilePath) {
@@ -1438,9 +1391,16 @@ class TestContext {
     bool propagateToBrowser = false,
     bool cleanStart = false,
   }) async {
-    // Wait for the build until the timeout is reached using a double-completer
-    // pattern to avoid matching the replay-cached startup build success event,
-    // unless cleanStart is true to confirm any initial success.
+    // When a client connects or registers a target, build daemon broadcasts the
+    // current build state over the socket. If the initial build is already done,
+    // it immediately fires a cached `BuildStatus.succeeded` event.
+    //
+    // To ensure the test waits for a *new* compile cycle instead of instantly returning
+    // on the cached event:
+    // 1. Wait for `BuildStatus.started` (confirming a new build has begun)
+    // 2. Wait for `BuildStatus.succeeded` (but only if we've already seen `started`)
+    //
+    // Unless `cleanStart` is specified - then we want to accept the cached success event.
     final started = Completer<void>();
     final succeeded = Completer<void>();
     final subscription = daemonClient.buildResults.listen((results) {
@@ -1482,7 +1442,6 @@ class TestContext {
           await started.future.timeout(const Duration(seconds: 5));
         } catch (e) {
           if (e.runtimeType.toString().contains('TimeoutException')) {
-            // No build started (empty reload), return immediately.
             return;
           }
           rethrow;

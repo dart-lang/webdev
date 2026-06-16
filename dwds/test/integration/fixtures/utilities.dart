@@ -78,7 +78,7 @@ Future<BuildDaemonClient> connectClient(
   );
 
   final details = [
-    'Command: dart run build_runner daemon ${options.join(' ')}',
+    'Command: $dartPath run build_runner daemon ${options.join(' ')}',
     'Working Directory: $workingDirectory',
     'Exit Code: $exitCode',
     if (stdoutBuffer.isNotEmpty) 'Stdout:\n${stdoutBuffer.join('\n')}',

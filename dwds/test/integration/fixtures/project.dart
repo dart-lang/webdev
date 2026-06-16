@@ -229,31 +229,6 @@ class TestProject {
       }
     }
 
-    // Dynamically add pubspec overrides for test fixtures.
-    final overridesFile = File(p.join(newPath, 'pubspec_overrides.yaml'));
-    final buildRepoDir = p.join(p.dirname(projectRootDir), 'build');
-    final buildWebCompilersPath = p.join(
-      buildRepoDir,
-      'builder_pkgs',
-      'build_web_compilers',
-    );
-    final scratchSpacePath = p.join(
-      buildRepoDir,
-      'builder_pkgs',
-      'scratch_space',
-    );
-
-    if (Directory(buildWebCompilersPath).existsSync() &&
-        Directory(scratchSpacePath).existsSync()) {
-      await overridesFile.writeAsString('''
-dependency_overrides:
-  build_web_compilers:
-    path: $buildWebCompilersPath
-  scratch_space:
-    path: $scratchSpacePath
-''');
-    }
-
     final pubGetResult = await Process.run('dart', [
       'pub',
       'get',
