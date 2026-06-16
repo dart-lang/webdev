@@ -564,17 +564,41 @@ class TestContext {
                 '.dart_tool',
                 'fes_manager.snapshot',
               );
-              final buildRepoDir = p.join(p.dirname(projectRootDir), 'build');
-              final fesManagerPath = p.join(
-                buildRepoDir,
-                'builder_pkgs',
-                'build_web_compilers',
-                'bin',
-                'fes_manager.dart',
-              );
+              // Resolve the path to `fes_manager.dart`.
+              // Consult the test project's package config to resolve
+              // build_web_compilers, but fall back to a checkout of
+              // package:build.
+              final buildWebCompilers = packagesList.firstWhere(
+                (pkg) => (pkg as Map)['name'] == 'build_web_compilers',
+                orElse: () => null,
+              ) as Map<String, dynamic>?;
+              String fesManagerPath;
+              if (buildWebCompilers != null) {
+                final pkgRootUri = Uri.parse(
+                  buildWebCompilers['rootUri'] as String,
+                );
+                fesManagerPath = p.join(
+                  pkgRootUri.toFilePath(),
+                  'bin',
+                  'fes_manager.dart',
+                );
+              } else {
+                final localBuildRepoDir = p.join(
+                  p.dirname(projectRootDir),
+                  'build',
+                );
+                fesManagerPath = p.join(
+                  localBuildRepoDir,
+                  'builder_pkgs',
+                  'build_web_compilers',
+                  'bin',
+                  'fes_manager.dart',
+                );
+              }
               final compileResult = await Process.run(sdkLayout.dartPath, [
                 'compile',
                 'kernel',
+                '--packages=${sourcePackagesFile.path}',
                 '-o',
                 fesSnapshot,
                 fesManagerPath,
