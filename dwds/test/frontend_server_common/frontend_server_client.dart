@@ -411,6 +411,7 @@ class ResidentCompiler {
       for (final experiment in compilerOptions.experiments)
         '--enable-experiment=$experiment',
       if (compilerOptions.canaryFeatures) '--dartdevc-canary',
+      '--no-js-strongly-connected-components',
       if (verbose) '--verbose',
       if (compilerOptions.moduleFormat == ModuleFormat.ddc)
         '--dartdevc-module-format=ddc',

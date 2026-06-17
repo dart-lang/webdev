@@ -186,6 +186,11 @@ class TestAssetServer implements AssetReader {
     _files[filePath] = Uint8List.fromList(utf8.encode(contents));
   }
 
+  /// Delete a single file from the in-memory cache.
+  void deleteFile(String filePath) {
+    _files.remove(filePath);
+  }
+
   /// Update the in-memory asset server with the provided source and manifest
   /// files.
   ///

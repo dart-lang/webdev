@@ -114,6 +114,7 @@ class TestContext {
   Process get chromeDriver => _chromeDriver!;
   Process? _chromeDriver;
   Process? _fesProcess;
+  bool _lastBuildFailed = false;
 
   WebkitDebugger get webkitDebugger => _webkitDebugger!;
   late WebkitDebugger? _webkitDebugger;
@@ -1177,18 +1178,6 @@ class TestContext {
     );
   }
 
-  /// Wraps a handler to serve the reloaded_sources.json file for
-  /// reloads/restarts in the DDC Library Bundle module system.
-  Handler _handleReloadedSources(Handler proxy) {
-    return (request) {
-      final path = request.url.path;
-      if (path.endsWith(WebDevFS.reloadedSourcesFileName)) {
-        return shelf.Response.ok(jsonEncode(_reloadedSources));
-      }
-      return proxy(request);
-    };
-  }
-
   /// Returns a handler for build runner + the DDC Library Bundle module
   /// system.
   ///
@@ -1232,6 +1221,11 @@ class TestContext {
 
       // Serve reloaded_sources.json.
       if (newPath.endsWith(WebDevFS.reloadedSourcesFileName)) {
+        if (_lastBuildFailed) {
+          return shelf.Response.internalServerError(
+            body: 'Last build failed, no reloaded sources.',
+          );
+        }
         return shelf.Response.ok(jsonEncode(_reloadedSources));
       }
 
@@ -1390,7 +1384,10 @@ class TestContext {
     };
   }
 
-  Future<void> recompile({required bool fullRestart}) async {
+  Future<void> recompile({
+    required bool fullRestart,
+    bool allowFailure = false,
+  }) async {
     final runner = _webRunner;
     if (runner != null) {
       await runner.rerun(
@@ -1405,7 +1402,7 @@ class TestContext {
     // In Build Daemon + Frontend Server mode, the Build Daemon already compiles
     // edited files automatically. We must await the successful build completion.
     if (_testSettings.compilationMode.usesBuildDaemon) {
-      await waitForSuccessfulBuild();
+      await waitForSuccessfulBuild(allowFailure: allowFailure);
       return;
     }
   }
@@ -1414,6 +1411,7 @@ class TestContext {
     Duration? timeout,
     bool propagateToBrowser = false,
     bool cleanStart = false,
+    bool allowFailure = false,
   }) async {
     // When a client connects or registers a target, build daemon broadcasts the
     // current build state over the socket. If the initial build is already done,
@@ -1441,16 +1439,24 @@ class TestContext {
       if (isStarted) {
         if (!started.isCompleted) started.complete();
       }
+      if (isSucceeded) {
+        _lastBuildFailed = false;
+      }
       if (isFailed) {
+        _lastBuildFailed = true;
         if (!succeeded.isCompleted) {
           final failedResult = results.results.firstWhere(
             (r) => r.status == BuildStatus.failed,
           );
           final daemonError =
               failedResult.error ?? 'Unknown daemon compilation error';
-          succeeded.completeError(
-            StateError('Build daemon build failed.\nError: $daemonError'),
-          );
+          if (allowFailure) {
+            succeeded.complete();
+          } else {
+            succeeded.completeError(
+              StateError('Build daemon build failed.\nError: $daemonError'),
+            );
+          }
         }
       }
       if (cleanStart && isSucceeded) {

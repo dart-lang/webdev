@@ -15,6 +15,7 @@ import 'fixtures/utilities.dart';
 
 const originalString = 'Hello World!';
 const newString = 'Bonjour le monde!';
+const anotherString = 'Hola Mundo!';
 
 void runTests({
   required TestSdkConfigurationProvider provider,
@@ -71,6 +72,7 @@ void runTests({
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
+          verboseCompiler: true,
           compilationMode: compilationMode,
           moduleFormat: provider.ddcModuleFormat,
           canaryFeatures: provider.canaryFeatures,
@@ -89,10 +91,21 @@ void runTests({
       await makeEditAndRecompile();
       final vm = await client.getVM();
       final isolate = await client.getIsolate(vm.isolates!.first.id!);
-      final report = await fakeClient.reloadSources(isolate.id!);
+      var report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
-      await callEvaluateAndWaitForLog(newString);
+      await context.makeEdits([
+        (
+          file: 'library1.dart',
+          originalString: newString,
+          newString: anotherString,
+        ),
+      ]);
+      await recompile();
+      report = await fakeClient.reloadSources(isolate.id!);
+      expect(report.success, true);
+
+      await callEvaluateAndWaitForLog(anotherString);
     });
 
     test('can hot reload with no changes, hot reload with changes, and '
@@ -129,10 +142,10 @@ void runTests({
       await context.makeEdits([
         (
           file: 'library1.dart',
-          originalString: newString,
+          originalString: "String get reloadValue => '$originalString';",
           newString:
               '''
-$newString
+String get reloadValue => '$newString';
 class Bar {}
 class Baz {}
 class Foo extends Bar {}
@@ -150,14 +163,16 @@ class Foo extends Bar {}
         (
           file: 'library1.dart',
           originalString: 'class Foo extends Bar',
-          newString: 'class Foo extends Baz',
+          newString: 'class Foo<T> extends Bar',
         ),
       ]);
-      await recompile();
+      await context.recompile(fullRestart: false, allowFailure: true);
       report = await fakeClient.reloadSources(isolate.id!);
-
       expect(report.success, false);
+
+      // Successfully recover with hot restart.
       await context.recompile(fullRestart: true);
+      await callEvaluateAndWaitForLog(newString);
     });
   }, timeout: const Timeout.factor(2));
 }
