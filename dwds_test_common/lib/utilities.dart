@@ -51,7 +51,9 @@ String? _findTestCommon(String startPath) {
   var current = p.absolute(startPath);
   while (current != p.dirname(current)) {
     if (p.basename(current) == 'dwds_test_common') {
-      return current;
+      if (Directory(current).existsSync()) {
+        return current;
+      }
     }
     final sibling = p.join(current, 'dwds_test_common');
     if (Directory(sibling).existsSync()) {
