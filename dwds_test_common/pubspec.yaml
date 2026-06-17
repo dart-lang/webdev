@@ -3,7 +3,7 @@ publish_to: none
 description: >-
   Common test functionality.
 environment:
-  sdk: ^3.10.0-0.0.dev
+  sdk: ^3.12.0-0
 
 dependencies:
   dwds: any
@@ -15,4 +15,3 @@ dependencies:
 
 dev_dependencies:
   dart_flutter_team_lints: ^3.5.2
-  yaml: ^3.1.2
