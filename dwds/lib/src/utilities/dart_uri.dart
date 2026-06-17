@@ -31,7 +31,11 @@ class DartUri {
   factory DartUri(String uri, [String? root]) {
     // TODO(annagrin): Support creating DartUris from `dart:` uris.
     // Issue: https://github.com/dart-lang/webdev/issues/1584
-    if (uri.startsWith('org-dartlang-app:') || uri.startsWith('google3:')) {
+    if (uri.startsWith('org-dartlang-app:')) {
+      return DartUri._fromDartLangUri(uri, root: root);
+    }
+    if (uri.startsWith('google3:')) {
+      // TODO(markzipan): Determine if google3 needs [root] to be passed.
       return DartUri._fromDartLangUri(uri);
     }
     if (uri.startsWith('package:')) {
@@ -61,7 +65,7 @@ class DartUri {
   String toString() => 'DartUri: $serverPath';
 
   /// Construct from an app URI
-  factory DartUri._fromDartLangUri(String uri) {
+  factory DartUri._fromDartLangUri(String uri, {String? root}) {
     var serverPath = globalToolConfiguration.loadStrategy.serverPathForAppUri(
       uri,
     );
@@ -69,7 +73,7 @@ class DartUri {
       _logger.severe('Cannot find server path for $uri');
       serverPath = uri;
     }
-    return DartUri._(serverPath);
+    return DartUri._fromRelativePath(serverPath, root: root);
   }
 
   /// Construct from a package: URI
