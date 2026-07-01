@@ -247,11 +247,13 @@ class BuildSettings {
   final bool canaryFeatures;
   final bool isFlutterApp;
   final List<String> experiments;
+  final bool useDebuggerModuleNames;
 
   const BuildSettings({
     this.appEntrypoint,
     this.canaryFeatures = false,
     this.isFlutterApp = true,
     this.experiments = const <String>[],
+    this.useDebuggerModuleNames = true,
   });
 }

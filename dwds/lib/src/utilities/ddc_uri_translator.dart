@@ -30,6 +30,7 @@ class DdcUriTranslator {
   static String? translateAppUriToServerPath(
     String appUrl, {
     required AppUriLayout layout,
+    bool useDebuggerModuleNames = true,
   }) {
     final appUri = Uri.parse(appUrl);
     if (appUri.isScheme('package')) {
@@ -39,7 +40,9 @@ class DdcUriTranslator {
       }
       final buildRunnerPath = 'packages/${appUri.path}';
       return switch (layout) {
-        AppUriLayout.frontendServerOnly => addLibSegment(buildRunnerPath),
+        AppUriLayout.frontendServerOnly => useDebuggerModuleNames
+            ? addLibSegment(buildRunnerPath)
+            : buildRunnerPath,
         AppUriLayout.buildRunner => buildRunnerPath,
       };
     }
@@ -51,7 +54,9 @@ class DdcUriTranslator {
       }
       switch (layout) {
         case AppUriLayout.frontendServerOnly:
-          return addLibSegment(appUri.path.substring(1));
+          return useDebuggerModuleNames
+              ? addLibSegment(appUri.path.substring(1))
+              : removeLibSegment(appUri.path.substring(1));
         case AppUriLayout.buildRunner:
           final first = segments.first;
           if (first == 'packages') {

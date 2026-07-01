@@ -287,6 +287,7 @@ class TestBuildSettings extends BuildSettings {
     super.canaryFeatures,
     super.isFlutterApp,
     super.experiments,
+    super.useDebuggerModuleNames,
   });
 
   const TestBuildSettings.dart({Uri? appEntrypoint})
@@ -300,11 +301,14 @@ class TestBuildSettings extends BuildSettings {
     bool? canaryFeatures,
     bool? isFlutterApp,
     List<String>? experiments,
+    bool? useDebuggerModuleNames,
   }) => TestBuildSettings(
     appEntrypoint: appEntrypoint ?? this.appEntrypoint,
     canaryFeatures: canaryFeatures ?? this.canaryFeatures,
     isFlutterApp: isFlutterApp ?? this.isFlutterApp,
     experiments: experiments ?? this.experiments,
+    useDebuggerModuleNames:
+        useDebuggerModuleNames ?? this.useDebuggerModuleNames,
   );
 }
 

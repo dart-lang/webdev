@@ -414,7 +414,9 @@ class ResidentCompiler {
       '--no-js-strongly-connected-components',
       if (verbose) '--verbose',
       if (compilerOptions.moduleFormat == ModuleFormat.ddc)
-        '--dartdevc-module-format=ddc',
+        '--dartdevc-module-format=ddc'
+      else if (compilerOptions.moduleFormat == ModuleFormat.amd)
+        '--dartdevc-module-format=amd',
     ];
     _logger.info(args.join(' '));
     final workingDirectory = projectDirectory.toFilePath();

@@ -77,6 +77,7 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
     return DdcUriTranslator.translateAppUriToServerPath(
       appUrl,
       layout: AppUriLayout.frontendServerOnly,
+      useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
     );
   }
 

@@ -172,6 +172,7 @@ class TestContext {
         canaryFeatures: testSettings.canaryFeatures,
         isFlutterApp: testSettings.isFlutterApp,
         experiments: testSettings.experiments,
+        useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
       );
 
       // Make sure configuration was created correctly.
