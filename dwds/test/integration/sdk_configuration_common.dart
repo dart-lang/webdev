@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'dart:io';
 
 import 'package:dwds/src/utilities/sdk_configuration.dart';
@@ -22,7 +18,7 @@ var _throwsDoesNotExistException = throwsA(
   ),
 );
 
-void main() {
+void runIndependentTests() {
   group('Basic configuration', () {
     test('Can validate default configuration layout', () async {
       final defaultConfiguration =
@@ -117,11 +113,10 @@ void main() {
       sdkConfiguration.validate(fileSystem: fs);
     });
   });
+}
 
+void runDependentTests({required TestSdkConfigurationProvider provider}) {
   group('Test configuration', () {
-    final provider = TestSdkConfigurationProvider();
-    tearDownAll(provider.dispose);
-
     test('Can validate configuration layout with generated assets', () async {
       final sdkConfiguration = await provider.configuration;
       sdkConfiguration.validateSdkDir();

@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'package:dwds/dwds.dart';
-import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
@@ -17,17 +13,24 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/project.dart';
+import 'fixtures/utilities.dart';
 
-void main() {
-  final provider = TestSdkConfigurationProvider();
-  tearDownAll(provider.dispose);
-
+void runTests({
+  required TestSdkConfigurationProvider provider,
+  required CompilationMode compilationMode,
+}) {
   final context = TestContext(TestProject.testScopes, provider);
 
   late ChromeAppInspector inspector;
 
   setUpAll(() async {
-    await context.setUp();
+    await context.setUp(
+      testSettings: TestSettings(
+        compilationMode: compilationMode,
+        moduleFormat: provider.ddcModuleFormat,
+        canaryFeatures: provider.canaryFeatures,
+      ),
+    );
     final service = context.service;
     inspector = service.inspector;
   });
@@ -38,15 +41,11 @@ void main() {
 
   final url = 'org-dartlang-app:///example/scopes/main.dart';
 
-  /// A convenient way to get a library variable without boilerplate.
-  String libraryVariableExpression(String variable) =>
-      '${globalToolConfiguration.loadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("example/scopes/main")["$url"]["$variable"];';
-
   Future<RemoteObject> libraryPublicFinal() =>
-      inspector.jsEvaluate(libraryVariableExpression('libraryPublicFinal'));
+      inspector.invoke(url, 'getLibraryPublicFinal');
 
   Future<RemoteObject> libraryPrivate() =>
-      inspector.jsEvaluate(libraryVariableExpression('_libraryPrivate'));
+      inspector.invoke(url, 'getLibraryPrivate');
 
   group('jsEvaluate', () {
     test('no error', () async {
@@ -103,26 +102,32 @@ void main() {
   });
 
   group('mapExceptionStackTrace', () {
+    final skipFrontendServerAmd =
+        compilationMode == CompilationMode.frontendServer &&
+            provider.ddcModuleFormat == ModuleFormat.amd
+        ? 'Stack trace mapping not supported in this configuration'
+        : null;
+
     test('multi-line exception with a stack trace', () async {
       final result = await inspector.mapExceptionStackTrace(
         jsMultiLineExceptionWithStackTrace,
       );
       expect(result, equals(formattedMultiLineExceptionWithStackTrace));
-    });
+    }, skip: skipFrontendServerAmd);
 
     test('multi-line exception without a stack trace', () async {
       final result = await inspector.mapExceptionStackTrace(
         jsMultiLineExceptionNoStackTrace,
       );
       expect(result, equals(formattedMultiLineExceptionNoStackTrace));
-    });
+    }, skip: skipFrontendServerAmd);
 
     test('single-line exception with a stack trace', () async {
       final result = await inspector.mapExceptionStackTrace(
         jsSingleLineExceptionWithStackTrace,
       );
       expect(result, equals(formattedSingleLineExceptionWithStackTrace));
-    });
+    }, skip: skipFrontendServerAmd);
   });
 
   test('send toString', () async {
@@ -166,10 +171,10 @@ void main() {
   test('properties', () async {
     final remoteObject = await libraryPublicFinal();
     final properties = await inspector.getProperties(remoteObject.objectId!);
-    final names = properties
-        .map((p) => p.name)
-        .where((x) => x != '__proto__')
-        .toList();
+    final names =
+        properties.map((p) => p.name).where((x) => x != '__proto__').toList()
+          ..removeWhere((name) => name == r'$ti');
+    names.sort();
     final expected = [
       '_privateField',
       'abstractField',
@@ -181,7 +186,6 @@ void main() {
       'tornOff',
       'unchangedCount',
     ];
-    names.sort();
     expect(names, expected);
   });
 

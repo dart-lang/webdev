@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
-@Timeout(Duration(minutes: 1))
-library;
-
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
@@ -17,17 +13,8 @@ import 'fixtures/fakes.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void main() {
-  group('Load Strategy', () {
-    final project = TestProject.test;
-    final provider = TestSdkConfigurationProvider();
-    tearDownAll(provider.dispose);
-
-    final context = TestContext(project, provider);
-
-    setUpAll(context.setUp);
-    tearDownAll(context.tearDown);
-
+void runIndependentTests() {
+  group('Fake Strategy', () {
     group(
       'When the packageConfigLocator does not specify a package config path',
       () {
@@ -111,62 +98,72 @@ void main() {
         expect(strategy.buildSettings.experiments, experiments);
       });
     });
+  });
+}
 
-    group('Global load strategy with default build settings', () {
-      test('provides build settings', () {
-        final loadStrategy = globalToolConfiguration.loadStrategy;
-        expect(
-          loadStrategy.buildSettings.appEntrypoint,
-          project.dartEntryFilePackageUri,
-        );
-        expect(loadStrategy.buildSettings.canaryFeatures, isFalse);
-        expect(loadStrategy.buildSettings.isFlutterApp, isFalse);
-        expect(loadStrategy.buildSettings.experiments, isEmpty);
-      });
+void runDependentTests({
+  required TestSdkConfigurationProvider provider,
+  required CompilationMode compilationMode,
+}) {
+  final project = TestProject.test;
+  final context = TestContext(project, provider);
+
+  group('Global load Strategy with default build settings', () {
+    setUpAll(() async {
+      await context.setUp(
+        testSettings: TestSettings(
+          compilationMode: compilationMode,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
+        ),
+      );
+    });
+
+    tearDownAll(context.tearDown);
+
+    test('provides build settings', () {
+      final loadStrategy = globalToolConfiguration.loadStrategy;
+      expect(
+        loadStrategy.buildSettings.appEntrypoint,
+        project.dartEntryFilePackageUri,
+      );
+      expect(
+        loadStrategy.buildSettings.canaryFeatures,
+        provider.canaryFeatures,
+      );
+      expect(loadStrategy.buildSettings.isFlutterApp, isFalse);
+      expect(loadStrategy.buildSettings.experiments, isEmpty);
     });
   });
 
   group('Global load Strategy with custom build settings ', () {
-    final canaryFeatures = true;
+    final canaryFeatures = provider.canaryFeatures;
     final isFlutterApp = true;
     final experiments = ['records'];
 
-    final project = TestProject.test;
-    final provider = TestSdkConfigurationProvider(
-      canaryFeatures: canaryFeatures,
-    );
-    tearDownAll(provider.dispose);
+    setUpAll(() async {
+      await context.setUp(
+        testSettings: TestSettings(
+          compilationMode: compilationMode,
+          canaryFeatures: canaryFeatures,
+          isFlutterApp: isFlutterApp,
+          experiments: experiments,
+          moduleFormat: provider.ddcModuleFormat,
+        ),
+      );
+    });
 
-    final context = TestContext(project, provider);
+    tearDownAll(context.tearDown);
 
-    for (final compilationMode in CompilationMode.values.where(
-      (mode) => !mode.usesDdcModulesOnly,
-    )) {
-      group('compiled with ${compilationMode.name}', () {
-        setUpAll(() async {
-          await context.setUp(
-            testSettings: TestSettings(
-              compilationMode: compilationMode,
-              canaryFeatures: canaryFeatures,
-              isFlutterApp: isFlutterApp,
-              experiments: experiments,
-            ),
-          );
-        });
-
-        tearDownAll(context.tearDown);
-
-        test('provides custom build settings', () {
-          final loadStrategy = globalToolConfiguration.loadStrategy;
-          expect(
-            loadStrategy.buildSettings.appEntrypoint,
-            project.dartEntryFilePackageUri,
-          );
-          expect(loadStrategy.buildSettings.canaryFeatures, canaryFeatures);
-          expect(loadStrategy.buildSettings.isFlutterApp, isFlutterApp);
-          expect(loadStrategy.buildSettings.experiments, experiments);
-        });
-      });
-    }
+    test('provides custom build settings', () {
+      final loadStrategy = globalToolConfiguration.loadStrategy;
+      expect(
+        loadStrategy.buildSettings.appEntrypoint,
+        project.dartEntryFilePackageUri,
+      );
+      expect(loadStrategy.buildSettings.canaryFeatures, canaryFeatures);
+      expect(loadStrategy.buildSettings.isFlutterApp, isFlutterApp);
+      expect(loadStrategy.buildSettings.experiments, experiments);
+    });
   });
 }
