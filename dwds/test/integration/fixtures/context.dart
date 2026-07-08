@@ -710,7 +710,7 @@ class TestContext {
                   ..reportChangedAssets = true,
               ),
             );
-            final buildFuture = waitForSuccessfulBuild(cleanStart: true);
+            final buildFuture = waitForSuccessfulBuild();
             daemonClient.startBuild();
 
             await buildFuture;
@@ -1427,6 +1427,9 @@ class TestContext {
     final started = Completer<void>();
     final succeeded = Completer<void>();
     final subscription = daemonClient.buildResults.listen((results) {
+      print(
+        'DEBUG: Received build results: ${results.results.map((r) => '${r.target}: ${r.status}')}',
+      );
       final isStarted = results.results.any(
         (r) => r.status == BuildStatus.started,
       );

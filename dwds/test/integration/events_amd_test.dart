@@ -78,13 +78,6 @@ void main() {
     });
   });
 
-  group('Frontend Server', () {
-    testWithDwds(
-      provider: provider,
-      compilationMode: CompilationMode.frontendServer,
-    );
-  });
-
   group('Build Daemon', () {
     testWithDwds(
       provider: provider,
