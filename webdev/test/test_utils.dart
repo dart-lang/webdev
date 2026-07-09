@@ -61,7 +61,11 @@ class TestRunner {
   }) async {
     final fullArgs = [_webdevBin, ...args];
 
-    if (!raw) {
+    // 'help' doesn't accept additional args.
+    final isHelp =
+        args.contains('help') || args.contains('--help') || args.contains('-h');
+
+    if (!raw && !isHelp) {
       if (canaryFeatures) {
         final dashDashIndex = fullArgs.indexOf('--');
         if (dashDashIndex != -1) {
@@ -80,14 +84,15 @@ class TestRunner {
         }
       }
 
-      if (ddcModuleFormat == ModuleFormat.ddc) {
-        final dashDashIndex = fullArgs.indexOf('--');
-        final extraArgs = ['--module-format', 'ddc'];
-        if (dashDashIndex != -1) {
-          fullArgs.insertAll(dashDashIndex, extraArgs);
-        } else {
-          fullArgs.addAll(extraArgs);
-        }
+      final moduleFormatStr = ddcModuleFormat == ModuleFormat.ddc
+          ? 'ddc'
+          : 'amd';
+      final dashDashIndex = fullArgs.indexOf('--');
+      final extraArgs = ['--module-format', moduleFormatStr];
+      if (dashDashIndex != -1) {
+        fullArgs.insertAll(dashDashIndex, extraArgs);
+      } else {
+        fullArgs.addAll(extraArgs);
       }
     }
 
