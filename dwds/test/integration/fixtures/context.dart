@@ -638,16 +638,8 @@ class TestContext {
 
       if (testSettings.launchChrome) {
         await _webDriver?.get(appUrl);
-        final tab = await connection.getTab((t) => t.url == appUrl);
-        if (tab != null) {
-          _tabConnection = await tab.connect();
-          await tabConnection.runtime.enable();
-          await tabConnection.debugger.enable().then(
-            (_) => tabConnectionCompleter.complete(),
-          );
-        } else {
-          throw StateError('Unable to connect to tab.');
-        }
+        _tabConnection = await _getTabConnection(connection, appUrl);
+        tabConnectionCompleter.complete();
 
         if (debugSettings.enableDebugExtension) {
           final extensionTab = await _fetchDartDebugExtensionTab(connection);
@@ -888,6 +880,25 @@ class TestContext {
       'prod',
     ], workingDirectory: absolutePath(pathFromDwds: 'debug_extension'));
     print(process.stdout);
+  }
+
+  Future<WipConnection> _getTabConnection(
+    ChromeConnection connection,
+    String appUrl,
+  ) async {
+    final tab = await connection.getTab(
+      (t) => t.url == appUrl,
+      retryFor: const Duration(seconds: 5),
+    );
+    if (tab == null) {
+      throw StateError(
+        'Unable to connect to tab after retrying for 5 seconds.',
+      );
+    }
+    final tabConnection = await tab.connect();
+    await tabConnection.runtime.enable();
+    await tabConnection.debugger.enable();
+    return tabConnection;
   }
 
   Future<ChromeTab> _fetchDartDebugExtensionTab(
