@@ -904,16 +904,22 @@ class TestContext {
   Future<ChromeTab> _fetchDartDebugExtensionTab(
     ChromeConnection connection,
   ) async {
-    final extensionTabs = (await connection.getTabs()).where((tab) {
-      return tab.isChromeExtension;
-    });
-    for (final tab in extensionTabs) {
-      final tabConnection = await tab.connect();
-      final response = await tabConnection.runtime.evaluate(
-        'window.isDartDebugExtension',
-      );
-      if (response.value == true) {
-        return tab;
+    const retries = 5;
+    for (var i = 0; i < retries; i++) {
+      if (i > 0) {
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      }
+      final extensionTabs = (await connection.getTabs()).where((tab) {
+        return tab.isChromeExtension;
+      });
+      for (final tab in extensionTabs) {
+        final tabConnection = await tab.connect();
+        final response = await tabConnection.runtime.evaluate(
+          'window.isDartDebugExtension',
+        );
+        if (response.value == true) {
+          return tab;
+        }
       }
     }
     throw StateError('No extension installed.');
