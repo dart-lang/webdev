@@ -40,9 +40,10 @@ class DdcUriTranslator {
       }
       final buildRunnerPath = 'packages/${appUri.path}';
       return switch (layout) {
-        AppUriLayout.frontendServerOnly => useDebuggerModuleNames
-            ? addLibSegment(buildRunnerPath)
-            : buildRunnerPath,
+        AppUriLayout.frontendServerOnly =>
+          useDebuggerModuleNames
+              ? addLibSegment(buildRunnerPath)
+              : buildRunnerPath,
         AppUriLayout.buildRunner => buildRunnerPath,
       };
     }
