@@ -241,12 +241,6 @@ class Configuration {
         );
       }
     }
-
-    if (moduleFormat == 'ddc' && !canaryFeatures) {
-      throw InvalidConfiguration(
-        'Flag "--$moduleFormatFlag=ddc" requires --$canaryFeaturesFlag.',
-      );
-    }
   }
 
   /// Creates a new [Configuration] with all non-null fields from
@@ -336,7 +330,7 @@ class Configuration {
 
   bool get webHotReload => _webHotReload ?? false;
 
-  String get moduleFormat => _moduleFormat ?? 'amd';
+  String get moduleFormat => _moduleFormat ?? 'ddc';
 
   bool get usesDdcLibraryBundle =>
       canaryFeatures || (moduleFormat == 'ddc') || webHotReload;
