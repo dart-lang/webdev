@@ -32,20 +32,6 @@ void addSharedArgs(
           'A value of "NONE" indicates that no "--output" value should be '
           'passed to `build_runner`.',
     )
-    ..addOption(
-      nullSafetyFlag,
-      abbr: 'n',
-      defaultsTo: nullSafetyAuto,
-      allowed: [nullSafetySound, nullSafetyUnsound, nullSafetyAuto],
-      help:
-          'DEPRECATED: If "sound", `package:build_web_compilers` will be run '
-          'with sound null safety support. '
-          'If "unsound", `package:build_web_compilers` will be run without '
-          'sound null safety support. '
-          'If "auto", the default `package:build_web_compilers` '
-          'behavior is used.',
-      hide: true,
-    )
     ..addFlag(
       releaseFlag,
       abbr: 'r',
