@@ -210,7 +210,6 @@ class DevWorkflow {
 
   static Future<Process> _startFesManager(String workingDirectory) async {
     final sdkDir = p.dirname(p.dirname(dartPath));
-    final tempDir = Directory.systemTemp.createTempSync('webdev_fes_');
     final packagesFile = p.join(
       workingDirectory,
       '.dart_tool',
@@ -219,9 +218,9 @@ class DevWorkflow {
 
     final args = [
       'run',
-      'build_frontend_server:fes_manager',
+      'build_web_compilers:fes_manager',
       sdkDir,
-      tempDir.uri.toString(),
+      p.toUri(workingDirectory).toString(),
       p.toUri(packagesFile).toString(),
     ];
 
@@ -248,10 +247,13 @@ class DevWorkflow {
     Process? fesProcess;
     if (configuration.webHotReload) {
       logWriter(logging.Level.INFO, 'Starting Frontend Server Manager...');
-      fesProcess = await _startFesManager(workingDirectory);
       final configFile = File(
         p.join(workingDirectory, '.dart_tool', 'build', 'fes_manager_config'),
       );
+      if (await configFile.exists()) {
+        await configFile.delete();
+      }
+      fesProcess = await _startFesManager(workingDirectory);
       await _waitForFile(configFile);
     }
 

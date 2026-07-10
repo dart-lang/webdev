@@ -23,7 +23,7 @@ void runIndependentTests() {
         test('defaults to "./dart_tool/package_config.json"', () {
           expect(
             p.split(strategy.packageConfigPath).join('/'),
-            endsWith('_test/.dart_tool/package_config.json'),
+            endsWith('.dart_tool/package_config.json'),
           );
         });
       },

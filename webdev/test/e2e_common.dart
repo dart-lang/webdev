@@ -44,23 +44,20 @@ void e2eTests({required TestRunner testRunner}) {
   setUpAll(() async {
     configureLogWriter(debug);
     await testRunner.setUpAll();
-    exampleDirectory = p.absolute(
-      p.join(p.current, '..', 'dwds_test_common', 'fixtures', '_webdev_smoke'),
-    );
-
-    final process = await TestProcess.start(
-      dartPath,
-      ['pub', 'upgrade'],
-      workingDirectory: exampleDirectory,
-      environment: getPubEnvironment(),
-    );
-
-    await process.shouldExit(0);
-
-    await d
-        .file('.dart_tool/package_config.json', isNotEmpty)
-        .validate(exampleDirectory);
-    await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
+    exampleDirectory = await testRunner.prepareWorkspace();
+    // Delete files other than main.dart and index.html to ensure a single
+    // entrypoint exists.
+    final webDir = Directory(p.join(exampleDirectory, 'web'));
+    if (await webDir.exists()) {
+      await for (final entity in webDir.list()) {
+        if (entity is File) {
+          final name = p.basename(entity.path);
+          if (name != 'main.dart' && name != 'index.html') {
+            await entity.delete();
+          }
+        }
+      }
+    }
   });
 
   tearDownAll(testRunner.tearDownAll);
@@ -406,6 +403,7 @@ void e2eTests({required TestRunner testRunner}) {
           'daemon',
           'web:$openPort',
           '--enable-expression-evaluation',
+          '--null-safety=sound',
           '--verbose',
         ];
         final process = await testRunner.runWebDev(
@@ -481,6 +479,7 @@ void e2eTests({required TestRunner testRunner}) {
           'daemon',
           'web:$openPort',
           '--enable-expression-evaluation',
+          '--null-safety=sound',
           '--verbose',
         ];
         final process = await testRunner.runWebDev(
