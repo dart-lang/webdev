@@ -1,4 +1,4 @@
-## 4.0.0-wip
+## 4.0.0
 
 - Add `module-format` flag for testing new DDC Library Bundle module format prior to release.
 - Fix webdev failing to compile in aot mode due to missing DDS arguments.
