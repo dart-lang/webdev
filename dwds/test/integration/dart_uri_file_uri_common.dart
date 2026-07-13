@@ -26,17 +26,17 @@ void runTests({
 
   for (final useDebuggerModuleNames in [false, true]) {
     group('Debugger module names: $useDebuggerModuleNames |', () {
-      final appServerPath = compilationMode.usesFrontendServer
+      final appServerPath = compilationMode == CompilationMode.frontendServer
           ? 'web/main.dart'
           : 'main.dart';
 
       final serverPath =
-          compilationMode.usesFrontendServer && useDebuggerModuleNames
+          compilationMode == CompilationMode.frontendServer && useDebuggerModuleNames
           ? 'packages/${testPackageProject.packageDirectory}/lib/test_library.dart'
           : 'packages/${testPackageProject.packageName}/test_library.dart';
 
       final anotherServerPath =
-          compilationMode.usesFrontendServer && useDebuggerModuleNames
+          compilationMode == CompilationMode.frontendServer && useDebuggerModuleNames
           ? 'packages/${testProject.packageDirectory}/lib/library.dart'
           : 'packages/${testProject.packageName}/library.dart';
 
@@ -45,6 +45,8 @@ void runTests({
           testSettings: TestSettings(
             compilationMode: compilationMode,
             useDebuggerModuleNames: useDebuggerModuleNames,
+            moduleFormat: provider.ddcModuleFormat,
+            canaryFeatures: provider.canaryFeatures,
           ),
         );
       });
