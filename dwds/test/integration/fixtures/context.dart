@@ -156,13 +156,13 @@ class TestContext {
   VmService get vmService => debugConnection.vmService;
 
   File get _fesManagerConfigFile => File(
-        p.join(
-          project.absolutePackageDirectory,
-          '.dart_tool',
-          'build',
-          'fes_manager_config',
-        ),
-      );
+    p.join(
+      project.absolutePackageDirectory,
+      '.dart_tool',
+      'build',
+      'fes_manager_config',
+    ),
+  );
 
   TestContext(this.project, this.sdkConfigurationProvider);
 
@@ -346,9 +346,7 @@ class TestContext {
               buildSettings.canaryFeatures,
             )) {
               (ModuleFormat.ddc, true) =>
-                _createBuildRunnerDdcLibraryBundleAssetHandler(
-                  assetServerPort,
-                ),
+                _createBuildRunnerDdcLibraryBundleAssetHandler(assetServerPort),
               _ => _createBuildRunnerProxyHandler(assetServerPort),
             };
             assetReader = ProxyServerAssetReader(
@@ -640,19 +638,13 @@ class TestContext {
                   .transform(utf8.decoder)
                   .transform(const LineSplitter())
                   .listen((line) {
-                    debugLog.writeAsStringSync(
-                      'STDOUT: $line\n',
-                      mode: FileMode.append,
-                    );
+                    _logger.info('FES Manager STDOUT: $line');
                   });
               _fesProcess!.stderr
                   .transform(utf8.decoder)
                   .transform(const LineSplitter())
                   .listen((line) {
-                    debugLog.writeAsStringSync(
-                      'STDERR: $line\n',
-                      mode: FileMode.append,
-                    );
+                    _logger.warning('FES Manager STDERR: $line');
                   });
 
               final configFile = _fesManagerConfigFile;
@@ -724,15 +716,15 @@ class TestContext {
               buildSettings.canaryFeatures,
             )) {
               (ModuleFormat.ddc, true) =>
-                _createBuildRunnerDdcLibraryBundleAssetHandler(
-                  assetServerPort,
-                ),
+                _createBuildRunnerDdcLibraryBundleAssetHandler(assetServerPort),
               _ => _createBuildRunnerProxyHandler(assetServerPort),
             };
             assetReader = ProxyServerAssetReader.fromHandler(_assetHandler!);
 
             if (testSettings.enableExpressionEvaluation) {
-              expressionCompiler = DaemonExpressionCompiler(_compileExpressionWithDaemon);
+              expressionCompiler = DaemonExpressionCompiler(
+                _compileExpressionWithDaemon,
+              );
             }
             frontendServerFileSystem = const LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
@@ -1008,10 +1000,7 @@ class TestContext {
       }
 
       if (compileResult.containsKey('error')) {
-        return {
-          'result': compileResult['error'] as String,
-          'isError': true,
-        };
+        return {'result': compileResult['error'] as String, 'isError': true};
       }
 
       final errorCount = compileResult['errorCount'] as int?;
@@ -1293,7 +1282,8 @@ class TestContext {
         final configFile = _fesManagerConfigFile;
         if (await configFile.exists()) {
           try {
-            final configJson = jsonDecode(await configFile.readAsString()) as Map;
+            final configJson =
+                jsonDecode(await configFile.readAsString()) as Map;
             final port = configJson['port'] as int?;
             if (port != null) {
               final socket = await Socket.connect(
@@ -1433,7 +1423,8 @@ class TestContext {
         }
       }
       if (buildStartCompleter.isCompleted && isSucceededEvent) {
-        if (!buildSuccessCompleter.isCompleted) buildSuccessCompleter.complete();
+        if (!buildSuccessCompleter.isCompleted)
+          buildSuccessCompleter.complete();
       }
     });
 

@@ -381,8 +381,10 @@ class Locations {
         }
       }
       for (final location in result) {
-        final sp = location.dartLocation.uri.serverPath;
-        _sourceToLocation.putIfAbsent(sp, () => <Location>{}).add(location);
+        final serverPath = location.dartLocation.uri.serverPath;
+        _sourceToLocation
+            .putIfAbsent(serverPath, () => <Location>{})
+            .add(location);
       }
       return _moduleToLocations[module] = result;
     });
@@ -425,8 +427,8 @@ class Locations {
       // relativePath in source map: `../../../lib/src/library.dart`
       //
       // Joined path:
-      // BEFORE: `/lib/src/library.dart` (loses the package namespace `my_package`)
-      // AFTER:  `org-dartlang-app:///packages/my_package/src/library.dart`
+      // Before: `/lib/src/library.dart` (loses `my_package`)
+      // After:  `org-dartlang-app:///packages/my_package/src/library.dart`
       if (scriptLocation.startsWith('/packages/') &&
           !path.startsWith('/packages/')) {
         final packageDir = scriptLocation.split('/').take(3).join('/');

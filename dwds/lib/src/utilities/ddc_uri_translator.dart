@@ -25,7 +25,8 @@ class DdcUriTranslator {
   /// Build Runner Layout:
   /// `package:foo/bar.dart` -> `packages/foo/bar.dart`
   /// `org-dartlang-app:///packages/foo/bar.dart` -> `packages/foo/bar.dart`
-  /// `org-dartlang-app:///web/web/main.dart` ->`web/main.dart`
+  /// `org-dartlang-app:///web/web/main.dart` -> `main.dart` (deduped)
+  /// `org-dartlang-app:///web/main.dart` -> `main.dart`
   /// `org-dartlang-app:///foo/bar.dart` -> `bar.dart`
   static String? translateAppUriToServerPath(
     String appUrl, {
@@ -78,29 +79,32 @@ class DdcUriTranslator {
     return null;
   }
 
-  /// Adds 'lib' to a package server path.
-  ///
-  /// Example: packages/foo/bar.dart -> packages/foo/lib/bar.dart
-  static String addLibSegment(String serverPath) {
+  static String _modifyLibSegment(String serverPath, {required bool add}) {
     if (!serverPath.startsWith('packages/')) return serverPath;
     final segments = serverPath.split('/');
-    if (segments.length > 2 && segments[2] != 'lib') {
-      return 'packages/${segments[1]}/lib/${segments.skip(2).join('/')}';
+    if (segments.length > 2) {
+      final isLib = segments[2] == 'lib';
+      if (add && !isLib) {
+        return 'packages/${segments[1]}/lib/${segments.skip(2).join('/')}';
+      }
+      if (!add && isLib) {
+        return 'packages/${segments[1]}/${segments.skip(3).join('/')}';
+      }
     }
     return serverPath;
   }
 
+  /// Adds 'lib' to a package server path.
+  ///
+  /// Example: packages/foo/bar.dart -> packages/foo/lib/bar.dart
+  static String addLibSegment(String serverPath) =>
+      _modifyLibSegment(serverPath, add: true);
+
   /// Removes 'lib' from a package server path.
   ///
   /// Example: packages/foo/lib/bar.dart packages/foo/bar.dart
-  static String removeLibSegment(String serverPath) {
-    if (!serverPath.startsWith('packages/')) return serverPath;
-    final segments = serverPath.split('/');
-    if (segments.length > 2 && segments[2] == 'lib') {
-      return 'packages/${segments[1]}/${segments.skip(3).join('/')}';
-    }
-    return serverPath;
-  }
+  static String removeLibSegment(String serverPath) =>
+      _modifyLibSegment(serverPath, add: false);
 
   /// Translates a served `packages/` path back to a `package:` URI path.
   ///
