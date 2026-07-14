@@ -160,8 +160,11 @@ void runTests({
 
     test('for num', () async {
       final remoteObject = await libraryPublicFinal();
-      final count = await inspector.loadField(remoteObject, 'count');
-      expect(count.value, 0);
+      final unchangedCount = await inspector.loadField(
+        remoteObject,
+        'unchangedCount',
+      );
+      expect(unchangedCount.value, 42);
     });
   });
 
@@ -181,6 +184,7 @@ void runTests({
       'myselfField',
       'notFinal',
       'tornOff',
+      'unchangedCount',
     ];
     expect(names, expected);
   });

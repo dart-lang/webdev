@@ -12,13 +12,13 @@ void main() {
     argParser = ArgParser()
       ..addFlag('release')
       ..addFlag(launchInChromeFlag, defaultsTo: false)
-      ..addOption(nullSafetyFlag, defaultsTo: nullSafetyAuto)
       ..addOption(userDataDirFlag, defaultsTo: null);
   });
 
   test('default configuration is correctly applied', () {
     final configuration = Configuration.fromArgs(null);
     expect(configuration.hostname, equals('localhost'));
+    expect(configuration.moduleFormat, equals('ddc'));
   });
 
   test('arg configuration takes precedence to default configuration', () {
@@ -83,12 +83,6 @@ void main() {
       () => Configuration(launchInChrome: false, userDataDir: 'temp'),
       throwsA(isA<InvalidConfiguration>()),
     );
-  });
-
-  test('nullSafety defaults to auto', () {
-    final argResults = argParser.parse(['']);
-    final defaultConfiguration = Configuration.fromArgs(argResults);
-    expect(defaultConfiguration.nullSafety, equals(nullSafetyAuto));
   });
 
   test('must not provide debug related configuration when enableInjectedClient '
@@ -159,20 +153,6 @@ void main() {
   test('webHotReload + non-ddc module format throws', () {
     expect(
       () => Configuration(webHotReload: true, moduleFormat: 'amd'),
-      throwsA(isA<InvalidConfiguration>()),
-    );
-  });
-
-  test('moduleFormat ddc + canaryFeatures false throws', () {
-    expect(
-      () => Configuration(moduleFormat: 'ddc', canaryFeatures: false),
-      throwsA(isA<InvalidConfiguration>()),
-    );
-  });
-
-  test('moduleFormat ddc throws if canaryFeatures not set', () {
-    expect(
-      () => Configuration(moduleFormat: 'ddc'),
       throwsA(isA<InvalidConfiguration>()),
     );
   });

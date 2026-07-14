@@ -30,10 +30,6 @@ const releaseFlag = 'release';
 const requireBuildWebCompilersFlag = 'build-web-compilers';
 const enableExpressionEvaluationFlag = 'enable-expression-evaluation';
 const verboseFlag = 'verbose';
-const nullSafetyFlag = 'null-safety';
-const nullSafetySound = 'sound';
-const nullSafetyUnsound = 'unsound';
-const nullSafetyAuto = 'auto';
 const disableDdsFlag = 'disable-dds';
 const enableExperimentOption = 'enable-experiment';
 const canaryFeaturesFlag = 'canary';
@@ -110,7 +106,6 @@ class Configuration {
   final bool? _enableExpressionEvaluation;
   final bool? _verbose;
   final bool? _disableDds;
-  final String? _nullSafety;
   final List<String>? _experiments;
   final bool? _canaryFeatures;
   final String? _moduleFormat;
@@ -139,7 +134,6 @@ class Configuration {
     bool? enableExpressionEvaluation,
     bool? verbose,
     bool? disableDds,
-    String? nullSafety,
     List<String>? experiments,
     bool? canaryFeatures,
     String? moduleFormat,
@@ -164,7 +158,6 @@ class Configuration {
        _disableDds = disableDds,
        _enableExpressionEvaluation = enableExpressionEvaluation,
        _verbose = verbose,
-       _nullSafety = nullSafety,
        _experiments = experiments,
        _canaryFeatures = (webHotReload == true && canaryFeatures == null)
            ? true
@@ -241,12 +234,6 @@ class Configuration {
         );
       }
     }
-
-    if (moduleFormat == 'ddc' && !canaryFeatures) {
-      throw InvalidConfiguration(
-        'Flag "--$moduleFormatFlag=ddc" requires --$canaryFeaturesFlag.',
-      );
-    }
   }
 
   /// Creates a new [Configuration] with all non-null fields from
@@ -273,7 +260,6 @@ class Configuration {
     enableExpressionEvaluation:
         other._enableExpressionEvaluation ?? _enableExpressionEvaluation,
     verbose: other._verbose ?? _verbose,
-    nullSafety: other._nullSafety ?? _nullSafety,
     experiments: other._experiments ?? _experiments,
     canaryFeatures: other._canaryFeatures ?? _canaryFeatures,
     moduleFormat: other._moduleFormat ?? _moduleFormat,
@@ -323,20 +309,13 @@ class Configuration {
 
   bool get verbose => _verbose ?? false;
 
-  /// Null safety mode:
-  ///
-  /// 'sound', 'unsound', or 'auto'.
-  /// 'auto' indicates that the default `package:build_web_compilers`
-  /// behavior should be used.
-  String get nullSafety => _nullSafety ?? 'auto';
-
   List<String> get experiments => _experiments ?? [];
 
   bool get canaryFeatures => _canaryFeatures ?? false;
 
   bool get webHotReload => _webHotReload ?? false;
 
-  String get moduleFormat => _moduleFormat ?? 'amd';
+  String get moduleFormat => _moduleFormat ?? 'ddc';
 
   bool get usesDdcLibraryBundle =>
       canaryFeatures || (moduleFormat == 'ddc') || webHotReload;
@@ -455,10 +434,6 @@ class Configuration {
         ? argResults[verboseFlag] as bool?
         : defaultConfiguration.verbose;
 
-    final nullSafety = argResults.options.contains(nullSafetyFlag)
-        ? argResults[nullSafetyFlag] as String?
-        : defaultConfiguration.nullSafety;
-
     final disableDds = argResults.options.contains(disableDdsFlag)
         ? argResults[disableDdsFlag] as bool?
         : defaultConfiguration.disableDds;
@@ -533,7 +508,6 @@ class Configuration {
       disableDds: disableDds,
       enableExpressionEvaluation: enableExpressionEvaluation,
       verbose: verbose,
-      nullSafety: nullSafety,
       experiments: experiments,
       webHotReload: webHotReload,
       canaryFeatures: canaryFeatures,
