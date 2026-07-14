@@ -296,7 +296,7 @@ dependencies:
 }
 
 const _supportedBuildRunnerVersion = '2.4.0';
-const _supportedWebCompilersVersion = '4.8.4';
+const _supportedWebCompilersVersion = '4.8.7';
 const _supportedBuildDaemonVersion = '4.0.0';
 
 String _pubspecYaml = '''
