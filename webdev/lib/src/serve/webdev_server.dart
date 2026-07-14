@@ -336,7 +336,7 @@ class WebDevServer {
             try {
               final socket = await Socket.connect(
                 InternetAddress.loopbackIPv4,
-                cachedFesPort!,
+                cachedFesPort,
               );
               socket.writeln(
                 jsonEncode({

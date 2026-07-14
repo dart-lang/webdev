@@ -31,12 +31,15 @@ void runTests({
           : 'main.dart';
 
       final serverPath =
-          compilationMode == CompilationMode.frontendServer && useDebuggerModuleNames
-          ? 'packages/${testPackageProject.packageDirectory}/lib/test_library.dart'
+          compilationMode == CompilationMode.frontendServer &&
+              useDebuggerModuleNames
+          ? 'packages/${testPackageProject.packageDirectory}'
+                '/lib/test_library.dart'
           : 'packages/${testPackageProject.packageName}/test_library.dart';
 
       final anotherServerPath =
-          compilationMode == CompilationMode.frontendServer && useDebuggerModuleNames
+          compilationMode == CompilationMode.frontendServer &&
+              useDebuggerModuleNames
           ? 'packages/${testProject.packageDirectory}/lib/library.dart'
           : 'packages/${testProject.packageName}/library.dart';
 
