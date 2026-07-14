@@ -1,7 +1,6 @@
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'dart:async';
 import 'dart:io';
 
 import 'package:dwds_test_common/utilities.dart';
@@ -203,20 +202,6 @@ class TestProject {
     Directory(newPath).createSync();
     copyPathSync(currentPath, newPath);
     copiedPackageDirectories.add(packageDirectory);
-    final buildRepoDir = p.join(p.dirname(projectRootDir), 'build');
-    final buildWebCompilersPath = p.join(
-      buildRepoDir,
-      'builder_pkgs',
-      'build_web_compilers',
-    );
-    if (Directory(buildWebCompilersPath).existsSync()) {
-      final overridesFile = File(p.join(newPath, 'pubspec_overrides.yaml'));
-      overridesFile.writeAsStringSync('''
-dependency_overrides:
-  build_web_compilers:
-    path: $buildWebCompilersPath
-''');
-    }
     final pubspec = loadYaml(
       File(p.join(currentPath, 'pubspec.yaml')).readAsStringSync(),
     ) as Map;
@@ -242,9 +227,6 @@ dependency_overrides:
         );
       }
     }
-
-    // Run pub get to regenerate package_config.json using the overrides file.
-    await Process.run('dart', ['pub', 'get'], workingDirectory: newPath);
 
     // Clean up the project.
     // Called when we need to rebuild sdk and the app from previous test
