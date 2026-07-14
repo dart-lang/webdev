@@ -44,13 +44,8 @@ class DartUri {
     if (uri.startsWith('file:')) {
       return DartUri._fromFileUri(uri, root: root);
     }
-    if (uri.endsWith('.dart') &&
-        (uri.startsWith('packages/') || uri.startsWith('/packages/'))) {
-      final path = stripLeadingSlashes(uri);
-      final packageUri = DdcUriTranslator.translatePackagesPathToPackageUri(
-        path,
-      );
-      return DartUri._fromPackageUri(packageUri, root: root);
+    if (uri.startsWith('packages/') || uri.startsWith('/packages/')) {
+      return DartUri._fromRelativePath(uri, root: root);
     }
     if (uri.startsWith('/')) {
       return DartUri._fromRelativePath(uri, root: root);

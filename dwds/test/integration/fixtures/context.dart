@@ -1430,16 +1430,31 @@ class TestContext {
 
     var isWaitingForSuccess = false;
     try {
-      // Give the build daemon a few seconds to start the build.
-      await buildStartCompleter.future.timeout(const Duration(seconds: 5));
+      var timedOutWaitingForStart = false;
+      await buildStartCompleter.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          timedOutWaitingForStart = true;
+        },
+      );
+
+      if (timedOutWaitingForStart) {
+        return;
+      }
+
       isWaitingForSuccess = true;
       await buildSuccessCompleter.future.timeout(
         timeout ?? const Duration(seconds: 60),
       );
-    } on TimeoutException {
-      // Return if an edit did not trigger a rebuild/recompile.
-      if (!isWaitingForSuccess) return;
-      // If the build started but never finished, the test has likely hung.
+    } catch (e, s) {
+      if (e is TimeoutException) {
+        // Return if an edit did not trigger a rebuild/recompile.
+        if (!isWaitingForSuccess) {
+          return;
+        }
+        // If the build started but never finished, the test has likely hung.
+        rethrow;
+      }
       rethrow;
     } finally {
       await subscription.cancel();

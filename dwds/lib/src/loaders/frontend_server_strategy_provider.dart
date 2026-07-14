@@ -74,11 +74,12 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
       _addBasePath((await metadataProvider.moduleToSourceMap)[module] ?? '');
 
   String? _serverPathForAppUri(String appUrl) {
-    return DdcUriTranslator.translateAppUriToServerPath(
+    final translated = DdcUriTranslator.translateAppUriToServerPath(
       appUrl,
       layout: AppUriLayout.frontendServerOnly,
       useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
     );
+    return translated != null ? _addBasePath(translated) : null;
   }
 
   Future<Map<String, ModuleInfo>> _moduleInfoForProvider(
