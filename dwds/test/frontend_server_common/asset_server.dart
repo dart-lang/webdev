@@ -104,6 +104,9 @@ class TestAssetServer implements AssetReader {
     final headers = <String, String>{};
 
     var lookupPath = requestPath;
+    // Frontend Server tests may cache files under their 'lib/' path instead
+    // of their fully qualified served path.
+    // E.g., "packages/foo/bar.dart" and "lib/bar.dart".
     if (lookupPath.startsWith('packages/')) {
       final parts = lookupPath.split('/');
       if (parts.length > 2) {

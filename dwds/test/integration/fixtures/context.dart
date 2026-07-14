@@ -155,6 +155,15 @@ class TestContext {
   /// External VM service.
   VmService get vmService => debugConnection.vmService;
 
+  File get _fesManagerConfigFile => File(
+        p.join(
+          project.absolutePackageDirectory,
+          '.dart_tool',
+          'build',
+          'fes_manager_config',
+        ),
+      );
+
   TestContext(this.project, this.sdkConfigurationProvider);
 
   Future<void> setUp({
@@ -332,15 +341,16 @@ class TestContext {
             final assetServerPort = daemonPort(
               project.absolutePackageDirectory,
             );
-            _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
-            if (testSettings.moduleFormat == ModuleFormat.ddc &&
-                buildSettings.canaryFeatures) {
-              _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
-                assetServerPort,
-              );
-            } else {
-              _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
-            }
+            _assetHandler = switch ((
+              testSettings.moduleFormat,
+              buildSettings.canaryFeatures,
+            )) {
+              (ModuleFormat.ddc, true) =>
+                _createBuildRunnerDdcLibraryBundleAssetHandler(
+                  assetServerPort,
+                ),
+              _ => _createBuildRunnerProxyHandler(assetServerPort),
+            };
             assetReader = ProxyServerAssetReader(
               assetServerPort,
               root: project.directoryToServe,
@@ -626,8 +636,6 @@ class TestContext {
                 workingDirectory: project.absolutePackageDirectory,
               );
 
-              final debugLog = File('/tmp/fes_manager_debug.log');
-              if (debugLog.existsSync()) debugLog.deleteSync();
               _fesProcess!.stdout
                   .transform(utf8.decoder)
                   .transform(const LineSplitter())
@@ -647,14 +655,7 @@ class TestContext {
                     );
                   });
 
-              final configFile = File(
-                p.join(
-                  project.absolutePackageDirectory,
-                  '.dart_tool',
-                  'build',
-                  'fes_manager_config',
-                ),
-              );
+              final configFile = _fesManagerConfigFile;
               // Wait for `fes_manager` to create the config file.
               while (!await configFile.exists()) {
                 await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -718,87 +719,20 @@ class TestContext {
             final assetServerPort = daemonPort(
               project.absolutePackageDirectory,
             );
-            _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
-            if (testSettings.moduleFormat == ModuleFormat.ddc &&
-                buildSettings.canaryFeatures) {
-              _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
-                assetServerPort,
-              );
-            } else {
-              _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
-            }
+            _assetHandler = switch ((
+              testSettings.moduleFormat,
+              buildSettings.canaryFeatures,
+            )) {
+              (ModuleFormat.ddc, true) =>
+                _createBuildRunnerDdcLibraryBundleAssetHandler(
+                  assetServerPort,
+                ),
+              _ => _createBuildRunnerProxyHandler(assetServerPort),
+            };
             assetReader = ProxyServerAssetReader.fromHandler(_assetHandler!);
 
             if (testSettings.enableExpressionEvaluation) {
-              expressionCompiler = DaemonExpressionCompiler((request) async {
-                final file = File(
-                  p.join(
-                    project.absolutePackageDirectory,
-                    '.dart_tool',
-                    'build',
-                    'fes_manager_config',
-                  ),
-                );
-                if (await file.exists()) {
-                  final content = await file.readAsString();
-                  int? port;
-                  final json = jsonDecode(content) as Map;
-                  port = json['port'] as int?;
-                  if (port != null) {
-                    final socket = await Socket.connect(
-                      InternetAddress.loopbackIPv4,
-                      port,
-                    );
-                    try {
-                      socket.writeln(jsonEncode(request));
-                      final responseStr = await socket
-                          .cast<List<int>>()
-                          .transform(utf8.decoder)
-                          .transform(const LineSplitter())
-                          .first;
-                      final compileResult = jsonDecode(responseStr);
-
-                      if (compileResult is Map) {
-                        if (compileResult.containsKey('error')) {
-                          return {
-                            'result': compileResult['error'] as String,
-                            'isError': true,
-                          };
-                        }
-                        final errorCount = compileResult['errorCount'] as int?;
-                        final expressionData =
-                            compileResult['expressionData'] as String?;
-
-                        if (errorCount != null && errorCount > 0) {
-                          return {
-                            'result':
-                                compileResult['errorMessage'] as String? ??
-                                'Unknown error',
-                            'isError': true,
-                          };
-                        }
-
-                        if (expressionData != null) {
-                          final decodedResult = utf8.decode(
-                            base64.decode(expressionData),
-                          );
-                          return {'result': decodedResult, 'isError': false};
-                        }
-                      }
-
-                      return {
-                        'result': 'Failed to read evaluation result',
-                        'isError': true,
-                      };
-                    } finally {
-                      await socket.close();
-                    }
-                  }
-                }
-                throw StateError(
-                  'FES port not found in .dart_tool/build/fes_manager_config',
-                );
-              });
+              expressionCompiler = DaemonExpressionCompiler(_compileExpressionWithDaemon);
             }
             frontendServerFileSystem = const LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
@@ -992,25 +926,14 @@ class TestContext {
   }
 
   Future<void> tearDown() async {
-    try {
-      await _webRunner?.stop().timeout(const Duration(seconds: 5));
-    } catch (_) {}
-    try {
-      await _webDriver
-          ?.quit(closeSession: true)
-          .timeout(const Duration(seconds: 5));
-    } catch (_) {}
+    await _safeAwait(_webRunner?.stop());
+    await _safeAwait(_webDriver?.quit(closeSession: true));
     _chromeDriver?.kill();
     DartUri.currentDirectory = p.current;
-    try {
-      await _daemonClient?.close().timeout(const Duration(seconds: 5));
-    } catch (_) {}
-    try {
-      await ddcService?.stop().timeout(const Duration(seconds: 5));
-    } catch (_) {}
-    try {
-      await _testServer?.stop().timeout(const Duration(seconds: 5));
-    } catch (_) {}
+    await _safeAwait(_daemonClient?.close());
+    await _safeAwait(ddcService?.stop());
+    await _safeAwait(_testServer?.stop());
+
     try {
       _client?.close();
     } catch (_) {}
@@ -1051,6 +974,72 @@ class TestContext {
     _testServer = null;
     _client = null;
     _outputDir = null;
+  }
+
+  /// Forwards expression compilation requests to the persistent Frontend Server
+  /// process via socket.
+  Future<Map<String, dynamic>> _compileExpressionWithDaemon(
+    Map<String, dynamic> request,
+  ) async {
+    final file = _fesManagerConfigFile;
+    if (!await file.exists()) {
+      throw StateError('FES port not found in ${file.path}');
+    }
+
+    final content = await file.readAsString();
+    final json = jsonDecode(content) as Map;
+    final port = json['port'] as int?;
+    if (port == null) {
+      throw StateError('FES port not found in ${file.path}');
+    }
+
+    final socket = await Socket.connect(InternetAddress.loopbackIPv4, port);
+    try {
+      socket.writeln(jsonEncode(request));
+      final responseStr = await socket
+          .cast<List<int>>()
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .first;
+      final compileResult = jsonDecode(responseStr);
+
+      if (compileResult is! Map) {
+        return {'result': 'Failed to read evaluation result', 'isError': true};
+      }
+
+      if (compileResult.containsKey('error')) {
+        return {
+          'result': compileResult['error'] as String,
+          'isError': true,
+        };
+      }
+
+      final errorCount = compileResult['errorCount'] as int?;
+      if (errorCount != null && errorCount > 0) {
+        return {
+          'result': compileResult['errorMessage'] as String? ?? 'Unknown error',
+          'isError': true,
+        };
+      }
+
+      final expressionData = compileResult['expressionData'] as String?;
+      if (expressionData != null) {
+        final decodedResult = utf8.decode(base64.decode(expressionData));
+        return {'result': decodedResult, 'isError': false};
+      }
+
+      return {'result': 'Failed to read evaluation result', 'isError': true};
+    } finally {
+      await socket.close();
+    }
+  }
+
+  /// Awaits [future] with a timeout, swallowing errors to avoid test failures.
+  Future<void> _safeAwait(Future<dynamic>? future) async {
+    if (future == null) return;
+    try {
+      await future.timeout(const Duration(seconds: 5));
+    } catch (_) {}
   }
 
   /// Given a list of edits, use file IO to write them to the file system.
@@ -1301,17 +1290,10 @@ class TestContext {
       // Serve the DDC merged metadata. Merging is done by the FES manager.
       if (newPath.endsWith('.ddc_merged_metadata')) {
         String? mergedContent;
-        final configFile = File(
-          p.join(
-            project.absolutePackageDirectory,
-            '.dart_tool',
-            'build',
-            'fes_manager_config',
-          ),
-        );
-        if (configFile.existsSync()) {
+        final configFile = _fesManagerConfigFile;
+        if (await configFile.exists()) {
           try {
-            final configJson = jsonDecode(configFile.readAsStringSync()) as Map;
+            final configJson = jsonDecode(await configFile.readAsString()) as Map;
             final port = configJson['port'] as int?;
             if (port != null) {
               final socket = await Socket.connect(
@@ -1400,80 +1382,74 @@ class TestContext {
     }
   }
 
+  /// Waits for a build to complete.
+  ///
+  /// If `allowFailure` is true, the test will continue even if the build
+  /// fails.
   Future<void> waitForSuccessfulBuild({
     Duration? timeout,
     bool propagateToBrowser = false,
-    bool cleanStart = false,
     bool allowFailure = false,
   }) async {
-    // When a client connects or registers a target, build daemon broadcasts the
-    // current build state over the socket. If the initial build is already done,
-    // it immediately fires a cached `BuildStatus.succeeded` event.
-    //
-    // To ensure the test waits for a *new* compile cycle instead of instantly returning
-    // on the cached event:
+    // Build daemon immediately sends a cached `BuildStatus.succeeded` event if
+    // its initial build is already done. To ensure test waits for a new compile
+    // cycle (instead of instantly finishing), we:
     // 1. Wait for `BuildStatus.started` (confirming a new build has begun)
-    // 2. Wait for `BuildStatus.succeeded` (but only if we've already seen `started`)
-    //
-    // Unless `cleanStart` is specified - then we want to accept the cached success event.
-    final started = Completer<void>();
-    final succeeded = Completer<void>();
+    // 2. Wait for `BuildStatus.succeeded` (only if we've already seen `started`)
+    final buildStartCompleter = Completer<void>();
+    final buildSuccessCompleter = Completer<void>();
     final subscription = daemonClient.buildResults.listen((results) {
-      print(
-        'DEBUG: Received build results: ${results.results.map((r) => '${r.target}: ${r.status}')}',
-      );
-      final isStarted = results.results.any(
+      final isStartedEvent = results.results.any(
         (r) => r.status == BuildStatus.started,
       );
-      final isSucceeded = results.results.any(
+      final isSucceededEvent = results.results.any(
         (r) => r.status == BuildStatus.succeeded,
       );
-      final isFailed = results.results.any(
+      final isFailedEvent = results.results.any(
         (r) => r.status == BuildStatus.failed,
       );
 
-      if (isStarted) {
-        if (!started.isCompleted) started.complete();
+      if (isStartedEvent) {
+        if (!buildStartCompleter.isCompleted) buildStartCompleter.complete();
       }
-      if (isSucceeded) {
+      if (isSucceededEvent) {
         _lastBuildFailed = false;
       }
-      if (isFailed) {
+      if (isFailedEvent) {
         _lastBuildFailed = true;
-        if (!succeeded.isCompleted) {
+        if (!buildSuccessCompleter.isCompleted) {
           final failedResult = results.results.firstWhere(
             (r) => r.status == BuildStatus.failed,
           );
           final daemonError =
               failedResult.error ?? 'Unknown daemon compilation error';
           if (allowFailure) {
-            succeeded.complete();
+            buildSuccessCompleter.complete();
           } else {
-            succeeded.completeError(
+            buildSuccessCompleter.completeError(
               StateError('Build daemon build failed.\nError: $daemonError'),
             );
           }
         }
       }
-      if (cleanStart && isSucceeded) {
-        if (!succeeded.isCompleted) succeeded.complete();
-      } else if (started.isCompleted && isSucceeded) {
-        if (!succeeded.isCompleted) succeeded.complete();
+      if (buildStartCompleter.isCompleted && isSucceededEvent) {
+        if (!buildSuccessCompleter.isCompleted) buildSuccessCompleter.complete();
       }
     });
 
+    var isWaitingForSuccess = false;
     try {
-      if (!cleanStart) {
-        try {
-          await started.future.timeout(const Duration(seconds: 5));
-        } catch (e) {
-          if (e.runtimeType.toString().contains('TimeoutException')) {
-            return;
-          }
-          rethrow;
-        }
-      }
-      await succeeded.future.timeout(timeout ?? const Duration(minutes: 5));
+      // Give the build daemon a few seconds to start the build.
+      await buildStartCompleter.future.timeout(const Duration(seconds: 5));
+      isWaitingForSuccess = true;
+      await buildSuccessCompleter.future.timeout(
+        timeout ?? const Duration(seconds: 60),
+      );
+    } on TimeoutException {
+      // Return if an edit did not trigger a rebuild/recompile.
+      if (!isWaitingForSuccess) return;
+      // If the build started but never finished, the test has likely hung.
+      rethrow;
     } finally {
       await subscription.cancel();
     }
