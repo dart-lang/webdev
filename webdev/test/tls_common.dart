@@ -9,7 +9,6 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
-import 'package:test_process/test_process.dart';
 
 import 'package:webdev/src/logging.dart';
 import 'package:webdev/src/serve/utils.dart';
