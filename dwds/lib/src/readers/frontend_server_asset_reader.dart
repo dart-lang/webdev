@@ -67,6 +67,7 @@ class FrontendServerAssetReader implements AssetReader {
       if (strippedPath.startsWith('packages/')) {
         final packagePath = DdcUriTranslator.translatePackagesPathToPackageUri(
           strippedPath,
+          layout: AppUriLayout.frontendServerOnly,
         );
         fileUri = packageConfig.resolve(Uri.parse(packagePath));
       } else {

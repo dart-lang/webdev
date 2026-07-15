@@ -241,7 +241,11 @@ class FrontendServerBuildDaemonStrategyProvider
     MetadataProvider metadataProvider,
     String serverPath,
   ) async {
-    final remappedPath = serverPath.replaceAll('.ddc', '.dart.lib');
+    final remappedPath = DdcUriTranslator.translateModuleExtension(
+      serverPath,
+      from: AppUriLayout.buildRunner,
+      to: AppUriLayout.frontendServerOnly,
+    );
     final module = await super._moduleForServerPath(
       metadataProvider,
       remappedPath,

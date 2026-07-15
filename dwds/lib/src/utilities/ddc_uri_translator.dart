@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// The path format of the DDC application's served files.
 enum AppUriLayout {
   /// Used when compiling and serving directly with Frontend Server.
   /// Preserves 'lib/' segments for package paths (e.g. packages/foo/lib/bar.dart).
@@ -111,9 +110,16 @@ class DdcUriTranslator {
   /// Examples:
   /// - `packages/foo/lib/bar.dart` -> `package:foo/bar.dart`
   /// - `packages/foo/bar.dart` -> `package:foo/bar.dart`
-  static String translatePackagesPathToPackageUri(String serverPath) {
+  static String translatePackagesPathToPackageUri(
+    String serverPath, {
+    AppUriLayout? layout,
+  }) {
     if (!serverPath.startsWith('packages/')) return serverPath;
-    final pathWithoutLib = removeLibSegment(serverPath);
+    // If layout is not provided, we assume it might have 'lib/'.
+    final pathWithoutLib =
+        layout == null || layout == AppUriLayout.frontendServerOnly
+            ? removeLibSegment(serverPath)
+            : serverPath;
     return pathWithoutLib.replaceFirst('packages/', 'package:');
   }
 
@@ -138,8 +144,35 @@ class DdcUriTranslator {
     return uri;
   }
 
+  /// Maps module extensions between layouts.
+  ///
+  /// For example, from [AppUriLayout.frontendServerOnly] to
+  /// [AppUriLayout.buildRunner]:
+  ///   `main.dart.lib` -> `main.ddc`
+  ///   `main.dart.lib.js` -> `main.ddc.js`
+  static String translateModuleExtension(
+    String path, {
+    required AppUriLayout from,
+    required AppUriLayout to,
+  }) {
+    if (from == to) return path;
+    if (from == AppUriLayout.frontendServerOnly &&
+        to == AppUriLayout.buildRunner) {
+      return path.replaceAll('.dart.lib', '.ddc');
+    }
+    if (from == AppUriLayout.buildRunner &&
+        to == AppUriLayout.frontendServerOnly) {
+      return path.replaceAll('.ddc', '.dart.lib');
+    }
+    return path;
+  }
+
   /// Maps '.dart.lib' (FES suffix) to '.ddc' (package:build suffix).
   static String translateFesToBuildRunnerPath(String path) {
-    return path.replaceAll('.dart.lib', '.ddc');
+    return translateModuleExtension(
+      path,
+      from: AppUriLayout.frontendServerOnly,
+      to: AppUriLayout.buildRunner,
+    );
   }
 }
