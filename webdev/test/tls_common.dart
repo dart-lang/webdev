@@ -26,24 +26,14 @@ void tlsTests({required TestRunner testRunner}) {
     setUpAll(() async {
       configureLogWriter(debug);
       await testRunner.setUpAll();
-      exampleDirectory = p.absolute(
-        p.join(
-          p.current,
-          '..',
-          'dwds_test_common',
-          'fixtures',
-          '_webdev_smoke',
-        ),
-      );
+      exampleDirectory = await testRunner.prepareWorkspace();
 
-      final process = await TestProcess.start(
-        'dart',
-        ['pub', 'upgrade'],
-        workingDirectory: exampleDirectory,
-        environment: getPubEnvironment(),
-      );
-
-      await process.shouldExit(0);
+      // Delete 'scopes_main.dart' to ensure only one entrypoint exists.
+      final scopesMainDart =
+          File(p.join(exampleDirectory, 'web', 'scopes_main.dart'));
+      if (scopesMainDart.existsSync()) {
+        scopesMainDart.deleteSync();
+      }
 
       await d
           .file('.dart_tool/package_config.json', isNotEmpty)

@@ -374,7 +374,6 @@ void e2eTests({required TestRunner testRunner}) {
           'daemon',
           'web:$openPort',
           '--enable-expression-evaluation',
-          '--null-safety=sound',
           '--verbose',
         ];
         final process = await testRunner.runWebDev(
@@ -450,7 +449,6 @@ void e2eTests({required TestRunner testRunner}) {
           'daemon',
           'web:$openPort',
           '--enable-expression-evaluation',
-          '--null-safety=sound',
           '--verbose',
         ];
         final process = await testRunner.runWebDev(
