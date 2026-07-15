@@ -118,8 +118,8 @@ class DdcUriTranslator {
     // If layout is not provided, we assume it might have 'lib/'.
     final pathWithoutLib =
         layout == null || layout == AppUriLayout.frontendServerOnly
-            ? removeLibSegment(serverPath)
-            : serverPath;
+        ? removeLibSegment(serverPath)
+        : serverPath;
     return pathWithoutLib.replaceFirst('packages/', 'package:');
   }
 
