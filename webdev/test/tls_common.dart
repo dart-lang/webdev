@@ -29,8 +29,9 @@ void tlsTests({required TestRunner testRunner}) {
       exampleDirectory = await testRunner.prepareWorkspace();
 
       // Delete 'scopes_main.dart' to ensure only one entrypoint exists.
-      final scopesMainDart =
-          File(p.join(exampleDirectory, 'web', 'scopes_main.dart'));
+      final scopesMainDart = File(
+        p.join(exampleDirectory, 'web', 'scopes_main.dart'),
+      );
       if (scopesMainDart.existsSync()) {
         scopesMainDart.deleteSync();
       }
@@ -55,9 +56,10 @@ void tlsTests({required TestRunner testRunner}) {
         args,
         workingDirectory: exampleDirectory,
       );
+      // Wait for the server to be ready for connections.
       await expectLater(
         process.stdout,
-        emitsThrough(contains('Built with build_runner')),
+        emitsThrough(contains('Serving `web` on')),
       );
 
       final client = HttpClient()
@@ -91,9 +93,10 @@ void tlsTests({required TestRunner testRunner}) {
         args,
         workingDirectory: exampleDirectory,
       );
+      // Wait for the server to be ready for connections.
       await expectLater(
         process.stdout,
-        emitsThrough(contains('Built with build_runner')),
+        emitsThrough(contains('Serving `web` on')),
       );
 
       final interfaces = await NetworkInterface.list(

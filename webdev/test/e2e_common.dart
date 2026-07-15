@@ -212,10 +212,10 @@ void e2eTests({required TestRunner testRunner}) {
 
         final hostUrl = 'http://localhost:$openPort';
 
-        // Wait for the initial build to finish.
+        // Wait for the server to be ready for connections.
         await expectLater(
           process.stdout,
-          emitsThrough(contains('Built with build_runner')),
+          emitsThrough(contains('Serving `web` on')),
         );
 
         final client = HttpClient();
