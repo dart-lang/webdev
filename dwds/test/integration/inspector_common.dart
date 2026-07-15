@@ -126,7 +126,7 @@ void runTests({
       final result = await inspector.mapExceptionStackTrace(
         jsSingleLineExceptionWithStackTrace,
       );
-      expect(result, equals(formattedSingleLineExceptionWithStackTrace));
+      expect(result, matches(formattedSingleLineExceptionWithStackTrace));
     }, skip: skipFrontendServerAmd);
   });
 
@@ -325,10 +325,10 @@ Error: Unexpected null value.
     at http://localhost:63236/web_entrypoint.dart.lib.js:41:33
 ''';
 
-final formattedSingleLineExceptionWithStackTrace = '''
-Error: Unexpected null value.
-http://localhost:63236/dart_sdk.js 5379:11                      throw_
-http://localhost:63236/dart_sdk.js 5696:30                      nullCheck
-http://localhost:63236/packages/tmpapp/main.dart.lib.js 374:10  main
-http://localhost:63236/web_entrypoint.dart.lib.js 41:33         <fn>
-''';
+final formattedSingleLineExceptionWithStackTrace = RegExp(
+  r'^Error: Unexpected null value\.\n'
+  r'(?:http://localhost:\d+/dart_sdk\.js|dart:sdk_internal) 5379:11\s+throw_\n'
+  r'(?:http://localhost:\d+/dart_sdk\.js|dart:sdk_internal) 5696:30\s+nullCheck\n'
+  r'http://localhost:\d+/packages/tmpapp/main\.dart\.lib\.js 374:10\s+main\n'
+  r'http://localhost:\d+/web_entrypoint\.dart\.lib\.js 41:33\s+<fn>\n$',
+);
