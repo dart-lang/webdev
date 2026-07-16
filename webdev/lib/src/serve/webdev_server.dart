@@ -172,9 +172,9 @@ class WebDevServer {
 
     // Only provide relevant build results
     final filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
+      // Clear reloaded sources for the new build results.
+      reloadedSources.clear();
       if (options.configuration.usesDdcLibraryBundle) {
-        // Clear reloaded sources for the new build results.
-        reloadedSources.clear();
         results.changedAssets?.forEach((uri) {
           if (uri.path.endsWith(jsLibraryBundleExtension)) {
             final reloadedSource = {
