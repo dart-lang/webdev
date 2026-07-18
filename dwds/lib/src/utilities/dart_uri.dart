@@ -96,11 +96,13 @@ class DartUri {
   /// [root] is the directory the app is served from (such as 'web') and is used
   /// to translate served URI paths to their on-disk paths.
   factory DartUri._fromRelativePath(String uri, {String? root}) {
+    uri = uri.replaceAll('\\', '/');
     if (uri.startsWith('.')) uri = uri.substring(1);
     if (uri.startsWith('/')) uri = uri.substring(1);
     // Strip the [root] if provided. For example, with '/abc' as root:
     // abc/packages/foo/bar.dart -> DartUri('packages/foo/bar.dart', '/abc')
     if (root != null && root.isNotEmpty) {
+      root = root.replaceAll('\\', '/');
       final cleanRoot = stripLeadingSlashes(root);
       if (cleanRoot.isNotEmpty) {
         final rootPrefix = cleanRoot.endsWith('/') ? cleanRoot : '$cleanRoot/';
