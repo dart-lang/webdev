@@ -1,3 +1,8 @@
+## 4.1.0
+
+- Enable hot reload support in Frontend Server + Build Daemon mode.
+- Bump `build_web_compilers` constraint to `^4.8.8`.
+
 ## 4.0.0
 
 - Add `module-format` flag for testing new DDC Library Bundle module format prior to release.

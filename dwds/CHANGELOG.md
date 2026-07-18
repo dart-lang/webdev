@@ -1,3 +1,8 @@
+## 27.2.0
+
+- Add support for Frontend Server + Build Daemon configuration with hot reload via `FrontendServerBuildDaemonStrategyProvider`.
+- Expose `DaemonExpressionCompiler` for handling expression compile directly via `build_daemon`.
+
 ## 27.1.2
 
 - Bump the min sdk to 3.13.0-107.0.dev.
