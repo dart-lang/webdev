@@ -60,6 +60,7 @@ class FrontendServerAssetReader implements AssetReader {
 
   @override
   Future<String?> dartSourceContents(String serverPath) async {
+    serverPath = serverPath.replaceAll('\\', '/');
     if (serverPath.endsWith('.dart')) {
       final packageConfig = await _packageConfig;
       var strippedPath = _stripBasePath(serverPath);
@@ -84,6 +85,7 @@ class FrontendServerAssetReader implements AssetReader {
 
   @override
   Future<String?> sourceMapContents(String serverPath) async {
+    serverPath = serverPath.replaceAll('\\', '/');
     if (serverPath.endsWith('lib.js.map')) {
       var strippedPath = _stripBasePath(serverPath);
       if (!strippedPath.startsWith('/')) strippedPath = '/$strippedPath';

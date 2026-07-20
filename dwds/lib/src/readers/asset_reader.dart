@@ -103,7 +103,7 @@ class PackageUriMapper {
   /// For example, 'package:foo/bar.dart' would be served at
   /// 'packages/foo/bar.dart'.
   Uri? serverPathToResolvedUri(String serverPath) {
-    serverPath = stripLeadingSlashes(serverPath);
+    serverPath = stripLeadingSlashes(serverPath).replaceAll('\\', '/');
     final segments = serverPath.split('/');
     if (segments.first == 'packages') {
       final packagePath = DdcUriTranslator.translatePackagesPathToPackageUri(
