@@ -177,4 +177,38 @@ class DdcUriTranslator {
       to: AppUriLayout.buildRunner,
     );
   }
+
+  static const defaultWebDirs = ['web', 'test', 'example', 'benchmark'];
+
+  /// Reconstructs the `org-dartlang-app:///` scheme for paths.
+  ///
+  /// This is required for relative sourcemaps emitted by the Frontend Server,
+  /// which lack a scheme (such as `/web/main.dart`).
+  static String reconstructAppScheme(String path, String scriptLocation) {
+    if (path.startsWith('org-dartlang-app:')) return path;
+    final normalizedPath = path.startsWith('/') ? path : '/$path';
+    final isWebDir = defaultWebDirs.any(
+      (dir) => normalizedPath.startsWith('/$dir/'),
+    );
+    if (isWebDir) {
+      // Example:
+      //   scriptLocation: `/`
+      //   path:  `/web/main.dart`
+      //   after: `org-dartlang-app:///web/main.dart`
+      return 'org-dartlang-app://$normalizedPath';
+    }
+    if (scriptLocation.startsWith('/packages/') &&
+        !path.startsWith('/packages/')) {
+      // Example:
+      //   scriptLocation: `/packages/my_package/subdir/main.ddc.js`
+      //   path:  `/lib/src/library.dart`
+      //   after: `org-dartlang-app:///packages/my_package/src/library.dart`
+      final packageDir = scriptLocation.split('/').take(3).join('/');
+      final relativePath = path.startsWith('/lib/')
+          ? path.substring('/lib/'.length)
+          : path.substring(1);
+      return 'org-dartlang-app://$packageDir/$relativePath';
+    }
+    return path;
+  }
 }
