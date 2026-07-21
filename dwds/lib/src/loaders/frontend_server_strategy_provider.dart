@@ -164,6 +164,23 @@ class FrontendServerDdcLibraryBundleStrategyProvider
   }
 
   @override
+  String? _serverPathForAppUri(String appUrl) {
+    // Use [AppUriLayout.buildRunner] to strip 'lib/' from package paths
+    // (e.g., 'packages/test/main.dart'), which is expected by Flutter's asset
+    // server.
+    if (appUrl.startsWith('package:')) {
+      final translated = DdcUriTranslator.translateAppUriToServerPath(
+        appUrl,
+        layout: AppUriLayout.buildRunner,
+      );
+      if (translated != null) {
+        return _addBasePath(translated);
+      }
+    }
+    return super._serverPathForAppUri(appUrl);
+  }
+
+  @override
   DdcLibraryBundleStrategy get strategy => _libraryBundleStrategy;
 }
 
@@ -336,6 +353,23 @@ class FrontendServerRequireStrategyProvider
     super._buildSettings, {
     super.packageConfigPath,
   });
+
+  @override
+  String? _serverPathForAppUri(String appUrl) {
+    // Use [AppUriLayout.buildRunner] to strip 'lib/' from package paths
+    // (e.g., 'packages/test/main.dart'), which is expected by Flutter's asset
+    // server.
+    if (appUrl.startsWith('package:')) {
+      final translated = DdcUriTranslator.translateAppUriToServerPath(
+        appUrl,
+        layout: AppUriLayout.buildRunner,
+      );
+      if (translated != null) {
+        return _addBasePath(translated);
+      }
+    }
+    return super._serverPathForAppUri(appUrl);
+  }
 
   @override
   RequireStrategy get strategy => _requireStrategy;
