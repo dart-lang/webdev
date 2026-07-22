@@ -165,10 +165,9 @@ class FrontendServerDdcLibraryBundleStrategyProvider
 
   @override
   String? _serverPathForAppUri(String appUrl) {
-    // Use [AppUriLayout.buildRunner] to strip 'lib/' from package paths
-    // (e.g., 'packages/test/main.dart'), which is expected by Flutter's asset
-    // server.
-    if (appUrl.startsWith('package:')) {
+    // Flutter's asset server expects package paths without the 'lib/' segment
+    // (e.g., 'packages/test/main.dart'), so we use AppUriLayout.buildRunner.
+    if (_buildSettings.isFlutterApp && appUrl.startsWith('package:')) {
       final translated = DdcUriTranslator.translateAppUriToServerPath(
         appUrl,
         layout: AppUriLayout.buildRunner,
@@ -356,10 +355,9 @@ class FrontendServerRequireStrategyProvider
 
   @override
   String? _serverPathForAppUri(String appUrl) {
-    // Use [AppUriLayout.buildRunner] to strip 'lib/' from package paths
-    // (e.g., 'packages/test/main.dart'), which is expected by Flutter's asset
-    // server.
-    if (appUrl.startsWith('package:')) {
+    // Flutter's asset server expects package paths without the 'lib/' segment
+    // (e.g., 'packages/test/main.dart'), so we use AppUriLayout.buildRunner.
+    if (_buildSettings.isFlutterApp && appUrl.startsWith('package:')) {
       final translated = DdcUriTranslator.translateAppUriToServerPath(
         appUrl,
         layout: AppUriLayout.buildRunner,
