@@ -57,6 +57,16 @@ executables:
   webdev:
 
 dependency_overrides:
+  build_daemon:
+    git:
+      url: https://github.com/dart-lang/build.git
+      ref: 5eefe503ab3a21b00f5be42ddc9accf19bf0b369
+      path: build_daemon
+  build_runner:
+    git:
+      url: https://github.com/dart-lang/build.git
+      ref: 5eefe503ab3a21b00f5be42ddc9accf19bf0b369
+      path: build_runner
   dwds_test_common:
     git:
       url: https://github.com/dart-lang/sdk.git
