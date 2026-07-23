@@ -133,10 +133,14 @@ class DdcLibraryBundleRestarter implements Restarter, TwoPhaseRestarter {
   }
 
   @override
-  Future<JSArray<JSObject>> hotRestartBegin(String reloadedSourcesPath) async {
+  Future<JSArray<JSObject>> hotRestartBegin(String? reloadedSourcesPath) async {
+    assert(
+      reloadedSourcesPath != null,
+      "Expected 'reloadedSourcesPath' to not be null in a hot restart.",
+    );
     await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
     final srcModuleLibraries = await _getSrcModuleLibraries(
-      reloadedSourcesPath,
+      reloadedSourcesPath!,
     );
     final jsFilesToRequest = srcModuleLibraries.jsify() as JSArray<JSObject>;
     final requestedJsFiles = await _dartDevEmbedder
@@ -149,11 +153,15 @@ class DdcLibraryBundleRestarter implements Restarter, TwoPhaseRestarter {
   void hotRestartEnd() => _dartDevEmbedder.hotRestartEnd();
 
   @override
-  Future<JSArray<JSObject>> hotReloadStart(String reloadedSourcesPath) async {
+  Future<JSArray<JSObject>> hotReloadStart(String? reloadedSourcesPath) async {
+    assert(
+      reloadedSourcesPath != null,
+      "Expected 'reloadedSourcesPath' to not be null in a hot reload.",
+    );
     final filesToLoad = JSArray<JSString>();
     final librariesToReload = JSArray<JSString>();
     final srcModuleLibraries = await _getSrcModuleLibraries(
-      reloadedSourcesPath,
+      reloadedSourcesPath!,
     );
     for (final srcModuleLibrary in srcModuleLibraries) {
       final srcModuleLibraryCast = srcModuleLibrary.cast<String, Object>();

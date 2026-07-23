@@ -175,8 +175,8 @@ class RequireRestarter implements Restarter {
   }
 
   @override
-  Future<JSArray<JSObject>> hotReloadStart(String reloadedSourcesPath) async {
-    if (reloadedSourcesPath.isEmpty) {
+  Future<JSArray<JSObject>> hotReloadStart(String? reloadedSourcesPath) async {
+    if (reloadedSourcesPath == null || reloadedSourcesPath.isEmpty) {
       return JSArray<JSObject>();
     }
     throw UnimplementedError(

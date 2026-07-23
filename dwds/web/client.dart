@@ -201,7 +201,7 @@ Future<void>? main() {
             } else if (reloadConfiguration ==
                 'ReloadConfiguration.hotRestart') {
               if (dartModuleStrategy == 'ddc-library-bundle') {
-                await manager.hotRestartBegin(hotRestartReloadedSourcesPath!);
+                await manager.hotRestartBegin(hotRestartReloadedSourcesPath);
                 manager.hotRestartEnd();
               } else {
                 await manager.hotRestart(
@@ -535,7 +535,7 @@ Future<void> handleWebSocketHotRestartRequest(
   try {
     final runId = const Uuid().v4();
     if (manager.supportsTwoPhaseHotRestart) {
-      await manager.hotRestartBegin(hotRestartReloadedSourcesPath!);
+      await manager.hotRestartBegin(hotRestartReloadedSourcesPath);
       manager.hotRestartEnd();
     } else {
       // TODO(nshahan): Remove after migrating to hotRestartBegin/hotRestartEnd.
@@ -626,14 +626,7 @@ external String? get _reloadedSourcesPath;
 
 String? get hotRestartReloadedSourcesPath => _reloadedSourcesPath;
 
-String get hotReloadReloadedSourcesPath {
-  final path = _reloadedSourcesPath;
-  assert(
-    path != null,
-    "Expected 'reloadedSourcesPath' to not be null in a hot reload.",
-  );
-  return path!;
-}
+String? get hotReloadReloadedSourcesPath => _reloadedSourcesPath;
 
 /// Debugger-initiated hot restart.
 // TODO(nshahan): Remove after migrating to hotRestartBegin/hotRestartEnd.

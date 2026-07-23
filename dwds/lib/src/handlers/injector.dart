@@ -189,8 +189,8 @@ Future<String> _injectedClientSnippet(
   final buildSettings = loadStrategy.buildSettings;
   final appMetadata = globalToolConfiguration.appMetadata;
   final debugSettings = globalToolConfiguration.debugSettings;
-  final reloadedSourcesUri = loadStrategy is ReloadableLoadStrategy
-      ? loadStrategy.reloadedSourcesUri
+  final reloadedSourcesPath = loadStrategy is ReloadableLoadStrategy
+      ? 'window.\$reloadedSourcesPath = "${loadStrategy.reloadedSourcesUri}";\n'
       : '';
 
   var injectedBody =
@@ -207,7 +207,7 @@ Future<String> _injectedClientSnippet(
       'window.\$dartEmitDebugEvents = ${debugSettings.emitDebugEvents};\n'
       'window.\$isInternalBuild = ${appMetadata.isInternalBuild};\n'
       'window.\$isFlutterApp = ${buildSettings.isFlutterApp};\n'
-      'window.\$reloadedSourcesPath = "$reloadedSourcesUri";\n'
+      '$reloadedSourcesPath'
       '${loadStrategy.loadClientSnippet(_clientScript)}';
 
   if (extensionUri != null) {

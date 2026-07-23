@@ -66,7 +66,7 @@ class ReloadingManager {
 
   bool get supportsTwoPhaseHotRestart => _restarter is TwoPhaseRestarter;
 
-  Future<JSArray<JSObject>> hotRestartBegin(String reloadedSourcesPath) async {
+  Future<JSArray<JSObject>> hotRestartBegin(String? reloadedSourcesPath) async {
     final requestedSources = await (_restarter as TwoPhaseRestarter)
         .hotRestartBegin(reloadedSourcesPath);
     // Notify package:dwds that the isolate is exiting and a new isolate will
@@ -107,7 +107,7 @@ class ReloadingManager {
   /// `module`: The name of the library bundle in `src`.
   /// `libraries`: An array of strings containing the libraries that were
   /// compiled in `src`.
-  Future<JSArray<JSObject>> hotReloadStart(String reloadedSourcesPath) =>
+  Future<JSArray<JSObject>> hotReloadStart(String? reloadedSourcesPath) =>
       _restarter.hotReloadStart(reloadedSourcesPath);
 
   /// Does a hard reload of the application.
