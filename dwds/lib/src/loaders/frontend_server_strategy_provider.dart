@@ -165,18 +165,17 @@ class FrontendServerDdcLibraryBundleStrategyProvider
 
   @override
   String? _serverPathForAppUri(String appUrl) {
-    // Flutter's asset server expects package paths without the 'lib/' segment
-    // (e.g., 'packages/test/main.dart'), so we use AppUriLayout.flutter.
-    if (_buildSettings.isFlutterApp && appUrl.startsWith('package:')) {
-      final translated = DdcUriTranslator.translateAppUriToServerPath(
-        appUrl,
-        layout: AppUriLayout.flutter,
-      );
-      if (translated != null) {
-        return _addBasePath(translated);
-      }
-    }
-    return super._serverPathForAppUri(appUrl);
+    final isFlutterPackage =
+        _buildSettings.isFlutterApp && appUrl.startsWith('package:');
+    final layout = isFlutterPackage
+        ? AppUriLayout.flutter
+        : AppUriLayout.frontendServerOnly;
+    final translated = DdcUriTranslator.translateAppUriToServerPath(
+      appUrl,
+      layout: layout,
+      useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
+    );
+    return translated != null ? _addBasePath(translated) : null;
   }
 
   @override
@@ -303,13 +302,11 @@ class FrontendServerBuildDaemonStrategyProvider
   }
 
   @override
-  String? _serverPathForAppUri(String appUrl) {
-    return DdcUriTranslator.translateAppUriToServerPath(
-          appUrl,
-          layout: AppUriLayout.buildRunner,
-        ) ??
-        super._serverPathForAppUri(appUrl);
-  }
+  String? _serverPathForAppUri(String appUrl) =>
+      DdcUriTranslator.translateAppUriToServerPath(
+        appUrl,
+        layout: AppUriLayout.buildRunner,
+      );
 
   @override
   Future<Map<String, ModuleInfo>> _moduleInfoForProvider(
@@ -355,18 +352,17 @@ class FrontendServerRequireStrategyProvider
 
   @override
   String? _serverPathForAppUri(String appUrl) {
-    // Flutter's asset server expects package paths without the 'lib/' segment
-    // (e.g., 'packages/test/main.dart'), so we use AppUriLayout.flutter.
-    if (_buildSettings.isFlutterApp && appUrl.startsWith('package:')) {
-      final translated = DdcUriTranslator.translateAppUriToServerPath(
-        appUrl,
-        layout: AppUriLayout.flutter,
-      );
-      if (translated != null) {
-        return _addBasePath(translated);
-      }
-    }
-    return super._serverPathForAppUri(appUrl);
+    final isFlutterPackage =
+        _buildSettings.isFlutterApp && appUrl.startsWith('package:');
+    final layout = isFlutterPackage
+        ? AppUriLayout.flutter
+        : AppUriLayout.frontendServerOnly;
+    final translated = DdcUriTranslator.translateAppUriToServerPath(
+      appUrl,
+      layout: layout,
+      useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
+    );
+    return translated != null ? _addBasePath(translated) : null;
   }
 
   @override
