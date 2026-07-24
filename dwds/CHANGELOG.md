@@ -1,5 +1,6 @@
-## 27.2.0
+## 28.0.0
 
+- **Breaking Change**: Removed `PackageUriMapper` from the constructors of `FrontendServerStrategyProvider` and its subclasses (`FrontendServerBuildDaemonStrategyProvider`, `FrontendServerDdcStrategyProvider`, `FrontendServerRequireStrategyProvider`).
 - Add support for Frontend Server + Build Daemon configuration with hot reload via `FrontendServerBuildDaemonStrategyProvider`.
 - Expose `DaemonExpressionCompiler` for handling expression compile directly via `build_daemon`.
 
