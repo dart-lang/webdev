@@ -12,8 +12,6 @@ import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/ddc_uri_translator.dart';
 import 'package:path/path.dart' as p;
 
-const _defaultWebDirs = ['web', 'test', 'example', 'benchmark'];
-
 abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
@@ -233,7 +231,7 @@ class FrontendServerBuildDaemonStrategyProvider
     final validPrefixes = [
       if (appUri != null && appUri.pathSegments.isNotEmpty)
         appUri.pathSegments.first,
-      ..._defaultWebDirs,
+      ...DdcUriTranslator.defaultWebDirs,
     ];
 
     if (parts.length > 1 && validPrefixes.contains(parts[0])) {
