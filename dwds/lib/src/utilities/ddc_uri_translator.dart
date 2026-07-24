@@ -10,6 +10,10 @@ enum AppUriLayout {
   /// Used when compiling/serving with package:build.
   /// Omits 'lib/' segments (e.g. packages/foo/bar.dart).
   buildRunner,
+
+  /// Used when serving Flutter apps.
+  /// Omits 'lib/' segments for package paths (e.g. packages/foo/bar.dart).
+  flutter,
 }
 
 /// Translates paths across DDC, Frontend Server, DWDS, and package:build.
@@ -45,7 +49,7 @@ class DdcUriTranslator {
           useDebuggerModuleNames
               ? addLibSegment(buildRunnerPath)
               : buildRunnerPath,
-        AppUriLayout.buildRunner => buildRunnerPath,
+        AppUriLayout.buildRunner || AppUriLayout.flutter => buildRunnerPath,
       };
     }
 
@@ -60,6 +64,7 @@ class DdcUriTranslator {
               ? addLibSegment(appUri.path.substring(1))
               : removeLibSegment(appUri.path.substring(1));
         case AppUriLayout.buildRunner:
+        case AppUriLayout.flutter:
           final first = segments.first;
           if (first == 'packages') {
             if (segments.length < 3) {
@@ -198,15 +203,15 @@ class DdcUriTranslator {
       return 'org-dartlang-app://$normalizedPath';
     }
     if (scriptLocation.startsWith('/packages/') &&
-        !path.startsWith('/packages/')) {
+        !normalizedPath.startsWith('/packages/')) {
       // Example:
       //   scriptLocation: `/packages/my_package/subdir/main.ddc.js`
       //   path:  `/lib/src/library.dart`
       //   after: `org-dartlang-app:///packages/my_package/src/library.dart`
       final packageDir = scriptLocation.split('/').take(3).join('/');
-      final relativePath = path.startsWith('/lib/')
-          ? path.substring('/lib/'.length)
-          : path.substring(1);
+      final relativePath = normalizedPath.startsWith('/lib/')
+          ? normalizedPath.substring('/lib/'.length)
+          : normalizedPath.substring(1);
       return 'org-dartlang-app://$packageDir/$relativePath';
     }
     return path;

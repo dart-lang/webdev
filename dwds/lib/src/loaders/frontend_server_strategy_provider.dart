@@ -166,11 +166,11 @@ class FrontendServerDdcLibraryBundleStrategyProvider
   @override
   String? _serverPathForAppUri(String appUrl) {
     // Flutter's asset server expects package paths without the 'lib/' segment
-    // (e.g., 'packages/test/main.dart'), so we use AppUriLayout.buildRunner.
+    // (e.g., 'packages/test/main.dart'), so we use AppUriLayout.flutter.
     if (_buildSettings.isFlutterApp && appUrl.startsWith('package:')) {
       final translated = DdcUriTranslator.translateAppUriToServerPath(
         appUrl,
-        layout: AppUriLayout.buildRunner,
+        layout: AppUriLayout.flutter,
       );
       if (translated != null) {
         return _addBasePath(translated);
@@ -356,11 +356,11 @@ class FrontendServerRequireStrategyProvider
   @override
   String? _serverPathForAppUri(String appUrl) {
     // Flutter's asset server expects package paths without the 'lib/' segment
-    // (e.g., 'packages/test/main.dart'), so we use AppUriLayout.buildRunner.
+    // (e.g., 'packages/test/main.dart'), so we use AppUriLayout.flutter.
     if (_buildSettings.isFlutterApp && appUrl.startsWith('package:')) {
       final translated = DdcUriTranslator.translateAppUriToServerPath(
         appUrl,
-        layout: AppUriLayout.buildRunner,
+        layout: AppUriLayout.flutter,
       );
       if (translated != null) {
         return _addBasePath(translated);
