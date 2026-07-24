@@ -89,17 +89,6 @@ void main() {
           );
         });
 
-        test('buildRunner layout dedupes entrypoint prefix', () {
-          // Checks: org-dartlang-app:///web/web/main.dart -> main.dart
-          expect(
-            DdcUriTranslator.translateAppUriToServerPath(
-              'org-dartlang-app:///web/web/main.dart',
-              layout: AppUriLayout.buildRunner,
-            ),
-            'main.dart',
-          );
-        });
-
         test('buildRunner layout preserves packages path', () {
           // Checks: org-dartlang-app:///packages/foo/bar.dart -> packages/foo/bar.dart
           expect(

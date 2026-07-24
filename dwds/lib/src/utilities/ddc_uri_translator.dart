@@ -72,12 +72,7 @@ class DdcUriTranslator {
             }
             return segments.join('/');
           }
-          // Dedupe 'web/'web or 'test/test' paths.
-          final isDuplicated =
-              segments.length > 2 &&
-              first == segments[1] &&
-              (first == 'web' || first == 'test');
-          return segments.skip(isDuplicated ? 2 : 1).join('/');
+          return segments.skip(1).join('/');
       }
     }
 
