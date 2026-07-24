@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:dwds/src/utilities/ddc_uri_translator.dart';
+import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
@@ -66,7 +66,7 @@ class FrontendServerAssetReader implements AssetReader {
       var strippedPath = _stripBasePath(serverPath);
       Uri? fileUri;
       if (strippedPath.startsWith('packages/')) {
-        final packagePath = DdcUriTranslator.translatePackagesPathToPackageUri(
+        final packagePath = WebPathTranslator.translatePackagesPathToPackageUri(
           strippedPath,
           layout: AppUriLayout.frontendServerOnly,
         );

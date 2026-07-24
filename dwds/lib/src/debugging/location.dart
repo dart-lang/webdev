@@ -8,7 +8,7 @@ import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/ddc_uri_translator.dart';
+import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/parser.dart';
@@ -417,7 +417,7 @@ class Locations {
         p.url.joinAll([scriptLocation, ...relativeSegments]),
       );
 
-      path = DdcUriTranslator.reconstructAppScheme(path, scriptLocation);
+      path = WebPathTranslator.reconstructAppScheme(path, scriptLocation);
     }
 
     try {

@@ -17,7 +17,7 @@ enum AppUriLayout {
 }
 
 /// Translates paths across DDC, Frontend Server, DWDS, and package:build.
-class DdcUriTranslator {
+class WebPathTranslator {
   /// Translates a DDC app URI (any referenceable dart file) into a path
   /// expected by its [layout]'s asset server.
   ///

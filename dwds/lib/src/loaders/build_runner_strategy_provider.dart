@@ -10,7 +10,7 @@ import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/utilities/ddc_uri_translator.dart';
+import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
@@ -204,7 +204,7 @@ mixin BuildRunnerStrategyProviderMixin {
   }
 
   String? _serverPathForAppUri(String appUrl) {
-    return DdcUriTranslator.translateAppUriToServerPath(
+    return WebPathTranslator.translateAppUriToServerPath(
       appUrl,
       layout: AppUriLayout.buildRunner,
     );

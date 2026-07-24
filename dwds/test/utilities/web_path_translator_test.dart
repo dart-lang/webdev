@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/utilities/ddc_uri_translator.dart';
+import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('DdcUriTranslator', () {
+  group('WebPathTranslator', () {
     group('translateAppUriToServerPath', () {
       group('package: URIs', () {
         test('frontendServerOnly layout adds lib/ segment', () {
           // Checks: package:foo/bar.dart -> packages/foo/lib/bar.dart
           expect(
-            DdcUriTranslator.translateAppUriToServerPath(
+            WebPathTranslator.translateAppUriToServerPath(
               'package:foo/bar.dart',
               layout: AppUriLayout.frontendServerOnly,
             ),
@@ -23,7 +23,7 @@ void main() {
         test('frontendServerOnly layout omits lib/ segment if useDebuggerModuleNames is false', () {
           // Checks: package:foo/bar.dart -> packages/foo/bar.dart
           expect(
-            DdcUriTranslator.translateAppUriToServerPath(
+            WebPathTranslator.translateAppUriToServerPath(
               'package:foo/bar.dart',
               layout: AppUriLayout.frontendServerOnly,
               useDebuggerModuleNames: false,
@@ -35,7 +35,7 @@ void main() {
         test('buildRunner layout omits lib/ segment', () {
           // Checks: package:foo/bar.dart -> packages/foo/bar.dart
           expect(
-            DdcUriTranslator.translateAppUriToServerPath(
+            WebPathTranslator.translateAppUriToServerPath(
               'package:foo/bar.dart',
               layout: AppUriLayout.buildRunner,
             ),
@@ -46,7 +46,7 @@ void main() {
         test('flutter layout omits lib/ segment', () {
           // Checks: package:foo/bar.dart -> packages/foo/bar.dart
           expect(
-            DdcUriTranslator.translateAppUriToServerPath(
+            WebPathTranslator.translateAppUriToServerPath(
               'package:foo/bar.dart',
               layout: AppUriLayout.flutter,
             ),
@@ -59,7 +59,7 @@ void main() {
         test('frontendServerOnly layout preserves path', () {
           // Checks: org-dartlang-app:///web/main.dart -> web/main.dart
           expect(
-            DdcUriTranslator.translateAppUriToServerPath(
+            WebPathTranslator.translateAppUriToServerPath(
               'org-dartlang-app:///web/main.dart',
               layout: AppUriLayout.frontendServerOnly,
             ),
@@ -70,7 +70,7 @@ void main() {
         test('frontendServerOnly layout adds lib/ to packages path', () {
           // Checks: org-dartlang-app:///packages/foo/bar.dart -> packages/foo/lib/bar.dart
           expect(
-            DdcUriTranslator.translateAppUriToServerPath(
+            WebPathTranslator.translateAppUriToServerPath(
               'org-dartlang-app:///packages/foo/bar.dart',
               layout: AppUriLayout.frontendServerOnly,
             ),
@@ -81,7 +81,7 @@ void main() {
         test('buildRunner layout strips entrypoint prefix', () {
           // Checks: org-dartlang-app:///web/main.dart -> main.dart
           expect(
-            DdcUriTranslator.translateAppUriToServerPath(
+            WebPathTranslator.translateAppUriToServerPath(
               'org-dartlang-app:///web/main.dart',
               layout: AppUriLayout.buildRunner,
             ),
@@ -92,7 +92,7 @@ void main() {
         test('buildRunner layout preserves packages path', () {
           // Checks: org-dartlang-app:///packages/foo/bar.dart -> packages/foo/bar.dart
           expect(
-            DdcUriTranslator.translateAppUriToServerPath(
+            WebPathTranslator.translateAppUriToServerPath(
               'org-dartlang-app:///packages/foo/bar.dart',
               layout: AppUriLayout.buildRunner,
             ),
@@ -103,7 +103,7 @@ void main() {
         test('flutter layout behaves like buildRunner for entrypoints', () {
           // Checks: org-dartlang-app:///web/main.dart -> main.dart
           expect(
-            DdcUriTranslator.translateAppUriToServerPath(
+            WebPathTranslator.translateAppUriToServerPath(
               'org-dartlang-app:///web/main.dart',
               layout: AppUriLayout.flutter,
             ),
@@ -114,7 +114,7 @@ void main() {
         test('flutter layout behaves like buildRunner for packages path', () {
           // Checks: org-dartlang-app:///packages/foo/bar.dart -> packages/foo/bar.dart
           expect(
-            DdcUriTranslator.translateAppUriToServerPath(
+            WebPathTranslator.translateAppUriToServerPath(
               'org-dartlang-app:///packages/foo/bar.dart',
               layout: AppUriLayout.flutter,
             ),
@@ -128,7 +128,7 @@ void main() {
       test('adds lib/ to packages paths', () {
         // Checks: packages/foo/bar.dart -> packages/foo/lib/bar.dart
         expect(
-          DdcUriTranslator.addLibSegment('packages/foo/bar.dart'),
+          WebPathTranslator.addLibSegment('packages/foo/bar.dart'),
           'packages/foo/lib/bar.dart',
         );
       });
@@ -136,7 +136,7 @@ void main() {
       test('is no-op if lib/ is already present', () {
         // Checks: packages/foo/lib/bar.dart -> packages/foo/lib/bar.dart
         expect(
-          DdcUriTranslator.addLibSegment('packages/foo/lib/bar.dart'),
+          WebPathTranslator.addLibSegment('packages/foo/lib/bar.dart'),
           'packages/foo/lib/bar.dart',
         );
       });
@@ -144,7 +144,7 @@ void main() {
       test('is no-op for non-packages paths', () {
         // Checks: web/main.dart -> web/main.dart
         expect(
-          DdcUriTranslator.addLibSegment('web/main.dart'),
+          WebPathTranslator.addLibSegment('web/main.dart'),
           'web/main.dart',
         );
       });
@@ -154,7 +154,7 @@ void main() {
       test('removes lib/ from packages paths', () {
         // Checks: packages/foo/lib/bar.dart -> packages/foo/bar.dart
         expect(
-          DdcUriTranslator.removeLibSegment('packages/foo/lib/bar.dart'),
+          WebPathTranslator.removeLibSegment('packages/foo/lib/bar.dart'),
           'packages/foo/bar.dart',
         );
       });
@@ -162,7 +162,7 @@ void main() {
       test('is no-op if lib/ is not present', () {
         // Checks: packages/foo/bar.dart -> packages/foo/bar.dart
         expect(
-          DdcUriTranslator.removeLibSegment('packages/foo/bar.dart'),
+          WebPathTranslator.removeLibSegment('packages/foo/bar.dart'),
           'packages/foo/bar.dart',
         );
       });
@@ -170,7 +170,7 @@ void main() {
       test('is no-op for non-packages paths', () {
         // Checks: web/main.dart -> web/main.dart
         expect(
-          DdcUriTranslator.removeLibSegment('web/main.dart'),
+          WebPathTranslator.removeLibSegment('web/main.dart'),
           'web/main.dart',
         );
       });
@@ -180,7 +180,7 @@ void main() {
       test('translates packages/ paths with lib/ (frontendServerOnly)', () {
         // Checks: packages/foo/lib/bar.dart -> package:foo/bar.dart
         expect(
-          DdcUriTranslator.translatePackagesPathToPackageUri(
+          WebPathTranslator.translatePackagesPathToPackageUri(
             'packages/foo/lib/bar.dart',
             layout: AppUriLayout.frontendServerOnly,
           ),
@@ -191,7 +191,7 @@ void main() {
       test('translates packages/ paths without lib/ (buildRunner)', () {
         // Checks: packages/foo/bar.dart -> package:foo/bar.dart
         expect(
-          DdcUriTranslator.translatePackagesPathToPackageUri(
+          WebPathTranslator.translatePackagesPathToPackageUri(
             'packages/foo/bar.dart',
             layout: AppUriLayout.buildRunner,
           ),
@@ -205,7 +205,7 @@ void main() {
         // However, this tests that a file in a nested 'lib/' directory (e.g.,
         // 'lib/lib/bar.dart') is reconstructed properly.
         expect(
-          DdcUriTranslator.translatePackagesPathToPackageUri(
+          WebPathTranslator.translatePackagesPathToPackageUri(
             'packages/foo/lib/bar.dart',
             layout: AppUriLayout.buildRunner,
           ),
@@ -216,7 +216,7 @@ void main() {
       test('is no-op for non-packages paths', () {
         // Checks: web/main.dart -> web/main.dart
         expect(
-          DdcUriTranslator.translatePackagesPathToPackageUri('web/main.dart'),
+          WebPathTranslator.translatePackagesPathToPackageUri('web/main.dart'),
           'web/main.dart',
         );
       });
@@ -226,7 +226,7 @@ void main() {
       test('translates lib/ paths to packages/ paths', () {
         // Checks: lib/foo.dart -> packages/my_package/foo.dart
         expect(
-          DdcUriTranslator.translateLibPathToPackagePath(
+          WebPathTranslator.translateLibPathToPackagePath(
             'lib/foo.dart',
             'my_package',
           ),
@@ -237,7 +237,7 @@ void main() {
       test('translates lib/src/ paths to packages/ paths', () {
         // Checks: lib/src/foo.dart -> packages/my_package/src/foo.dart
         expect(
-          DdcUriTranslator.translateLibPathToPackagePath(
+          WebPathTranslator.translateLibPathToPackagePath(
             'lib/src/foo.dart',
             'my_package',
           ),
@@ -248,7 +248,7 @@ void main() {
       test('is no-op for non-lib paths', () {
         // Checks: web/main.dart -> web/main.dart
         expect(
-          DdcUriTranslator.translateLibPathToPackagePath(
+          WebPathTranslator.translateLibPathToPackagePath(
             'web/main.dart',
             'my_package',
           ),
@@ -261,7 +261,7 @@ void main() {
         () {
           // Checks: lib/foo.dart (with null package) -> StateError
           expect(
-            () => DdcUriTranslator.translateLibPathToPackagePath(
+            () => WebPathTranslator.translateLibPathToPackagePath(
               'lib/foo.dart',
               null,
             ),
@@ -269,7 +269,7 @@ void main() {
           );
           // Checks: lib/foo.dart (with empty package) -> StateError
           expect(
-            () => DdcUriTranslator.translateLibPathToPackagePath(
+            () => WebPathTranslator.translateLibPathToPackagePath(
               'lib/foo.dart',
               '',
             ),
@@ -285,7 +285,7 @@ void main() {
         () {
           // Checks: main.dart.lib -> main.ddc
           expect(
-            DdcUriTranslator.translateModuleExtension(
+            WebPathTranslator.translateModuleExtension(
               'main.dart.lib',
               from: AppUriLayout.frontendServerOnly,
               to: AppUriLayout.buildRunner,
@@ -294,7 +294,7 @@ void main() {
           );
           // Checks: main.dart.lib.js -> main.ddc.js
           expect(
-            DdcUriTranslator.translateModuleExtension(
+            WebPathTranslator.translateModuleExtension(
               'main.dart.lib.js',
               from: AppUriLayout.frontendServerOnly,
               to: AppUriLayout.buildRunner,
@@ -309,7 +309,7 @@ void main() {
         () {
           // Checks: main.ddc -> main.dart.lib
           expect(
-            DdcUriTranslator.translateModuleExtension(
+            WebPathTranslator.translateModuleExtension(
               'main.ddc',
               from: AppUriLayout.buildRunner,
               to: AppUriLayout.frontendServerOnly,
@@ -318,7 +318,7 @@ void main() {
           );
           // Checks: main.ddc.js -> main.dart.lib.js
           expect(
-            DdcUriTranslator.translateModuleExtension(
+            WebPathTranslator.translateModuleExtension(
               'main.ddc.js',
               from: AppUriLayout.buildRunner,
               to: AppUriLayout.frontendServerOnly,
@@ -331,7 +331,7 @@ void main() {
       test('is no-op if from and to are the same', () {
         // Checks: main.dart.lib -> main.dart.lib
         expect(
-          DdcUriTranslator.translateModuleExtension(
+          WebPathTranslator.translateModuleExtension(
             'main.dart.lib',
             from: AppUriLayout.frontendServerOnly,
             to: AppUriLayout.frontendServerOnly,
@@ -345,12 +345,12 @@ void main() {
       test('translates .dart.lib to .ddc', () {
         // Checks: main.dart.lib -> main.ddc
         expect(
-          DdcUriTranslator.translateFesToBuildRunnerPath('main.dart.lib'),
+          WebPathTranslator.translateFesToBuildRunnerPath('main.dart.lib'),
           'main.ddc',
         );
         // Checks: main.dart.lib.js -> main.ddc.js
         expect(
-          DdcUriTranslator.translateFesToBuildRunnerPath('main.dart.lib.js'),
+          WebPathTranslator.translateFesToBuildRunnerPath('main.dart.lib.js'),
           'main.ddc.js',
         );
       });
@@ -360,7 +360,7 @@ void main() {
       test('is no-op if org-dartlang-app scheme is already present', () {
         // Checks: org-dartlang-app:///web/main.dart -> org-dartlang-app:///web/main.dart
         expect(
-          DdcUriTranslator.reconstructAppScheme(
+          WebPathTranslator.reconstructAppScheme(
             'org-dartlang-app:///web/main.dart',
             '/',
           ),
@@ -371,12 +371,12 @@ void main() {
       test('reconstructs scheme for default web dirs', () {
         // Checks: web/main.dart -> org-dartlang-app:///web/main.dart
         expect(
-          DdcUriTranslator.reconstructAppScheme('web/main.dart', '/'),
+          WebPathTranslator.reconstructAppScheme('web/main.dart', '/'),
           'org-dartlang-app:///web/main.dart',
         );
         // Checks: /test/foo_test.dart -> org-dartlang-app:///test/foo_test.dart
         expect(
-          DdcUriTranslator.reconstructAppScheme('/test/foo_test.dart', '/'),
+          WebPathTranslator.reconstructAppScheme('/test/foo_test.dart', '/'),
           'org-dartlang-app:///test/foo_test.dart',
         );
       });
@@ -384,7 +384,7 @@ void main() {
       test('reconstructs scheme for package paths', () {
         // Checks: /lib/src/library.dart -> org-dartlang-app:///packages/my_package/src/library.dart
         expect(
-          DdcUriTranslator.reconstructAppScheme(
+          WebPathTranslator.reconstructAppScheme(
             '/lib/src/library.dart',
             '/packages/my_package/subdir/main.ddc.js',
           ),
@@ -395,7 +395,7 @@ void main() {
       test('handles package paths without leading slash', () {
         // Checks: lib/src/library.dart -> org-dartlang-app:///packages/my_package/src/library.dart
         expect(
-          DdcUriTranslator.reconstructAppScheme(
+          WebPathTranslator.reconstructAppScheme(
             'lib/src/library.dart',
             '/packages/my_package/subdir/main.ddc.js',
           ),

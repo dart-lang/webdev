@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:collection/collection.dart';
-import 'package:dwds/src/utilities/ddc_uri_translator.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
@@ -106,7 +106,7 @@ class PackageUriMapper {
     serverPath = stripLeadingSlashes(serverPath).replaceAll('\\', '/');
     final segments = serverPath.split('/');
     if (segments.first == 'packages') {
-      final packagePath = DdcUriTranslator.translatePackagesPathToPackageUri(
+      final packagePath = WebPathTranslator.translatePackagesPathToPackageUri(
         serverPath,
       );
       return packageConfig.resolve(Uri.parse(packagePath));

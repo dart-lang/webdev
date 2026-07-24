@@ -26,7 +26,7 @@ import 'package:dwds/src/services/daemon_expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/ddc_uri_translator.dart';
+import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds_test_common/logging.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
@@ -1178,7 +1178,7 @@ class TestContext {
       var newPath = path;
 
       // Translate FES paths to package:build paths.
-      newPath = DdcUriTranslator.translateFesToBuildRunnerPath(newPath);
+      newPath = WebPathTranslator.translateFesToBuildRunnerPath(newPath);
       var requestToProxy = request;
       if (newPath != path) {
         requestToProxy = shelf.Request(

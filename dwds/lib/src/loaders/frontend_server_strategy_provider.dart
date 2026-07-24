@@ -9,7 +9,7 @@ import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/utilities/ddc_uri_translator.dart';
+import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:path/path.dart' as p;
 
 abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
@@ -72,7 +72,7 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
       _addBasePath((await metadataProvider.moduleToSourceMap)[module] ?? '');
 
   String? _serverPathForAppUri(String appUrl) {
-    final translated = DdcUriTranslator.translateAppUriToServerPath(
+    final translated = WebPathTranslator.translateAppUriToServerPath(
       appUrl,
       layout: AppUriLayout.frontendServerOnly,
       useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
@@ -168,7 +168,7 @@ class FrontendServerDdcLibraryBundleStrategyProvider
     final layout = isFlutterPackage
         ? AppUriLayout.flutter
         : AppUriLayout.frontendServerOnly;
-    final translated = DdcUriTranslator.translateAppUriToServerPath(
+    final translated = WebPathTranslator.translateAppUriToServerPath(
       appUrl,
       layout: layout,
       useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
@@ -231,7 +231,7 @@ class FrontendServerBuildDaemonStrategyProvider
     final validPrefixes = [
       if (appUri != null && appUri.pathSegments.isNotEmpty)
         appUri.pathSegments.first,
-      ...DdcUriTranslator.defaultWebDirs,
+      ...WebPathTranslator.defaultWebDirs,
     ];
 
     if (parts.length > 1 && validPrefixes.contains(parts[0])) {
@@ -255,7 +255,7 @@ class FrontendServerBuildDaemonStrategyProvider
     MetadataProvider metadataProvider,
     String serverPath,
   ) async {
-    final remappedPath = DdcUriTranslator.translateModuleExtension(
+    final remappedPath = WebPathTranslator.translateModuleExtension(
       serverPath,
       from: AppUriLayout.buildRunner,
       to: AppUriLayout.frontendServerOnly,
@@ -286,7 +286,7 @@ class FrontendServerBuildDaemonStrategyProvider
   ) async {
     final path = await super._serverPathForModule(metadataProvider, module);
     final stripped = _stripPrefix(path);
-    return DdcUriTranslator.translateFesToBuildRunnerPath(stripped);
+    return WebPathTranslator.translateFesToBuildRunnerPath(stripped);
   }
 
   @override
@@ -296,12 +296,12 @@ class FrontendServerBuildDaemonStrategyProvider
   ) async {
     final path = await super._sourceMapPathForModule(metadataProvider, module);
     final stripped = _stripPrefix(path);
-    return DdcUriTranslator.translateFesToBuildRunnerPath(stripped);
+    return WebPathTranslator.translateFesToBuildRunnerPath(stripped);
   }
 
   @override
   String? _serverPathForAppUri(String appUrl) =>
-      DdcUriTranslator.translateAppUriToServerPath(
+      WebPathTranslator.translateAppUriToServerPath(
         appUrl,
         layout: AppUriLayout.buildRunner,
       );
@@ -315,8 +315,8 @@ class FrontendServerBuildDaemonStrategyProvider
       return MapEntry(
         module,
         ModuleInfo(
-          DdcUriTranslator.translateFesToBuildRunnerPath(info.fullDillPath),
-          DdcUriTranslator.translateFesToBuildRunnerPath(info.summaryPath),
+          WebPathTranslator.translateFesToBuildRunnerPath(info.fullDillPath),
+          WebPathTranslator.translateFesToBuildRunnerPath(info.summaryPath),
         ),
       );
     });
@@ -355,7 +355,7 @@ class FrontendServerRequireStrategyProvider
     final layout = isFlutterPackage
         ? AppUriLayout.flutter
         : AppUriLayout.frontendServerOnly;
-    final translated = DdcUriTranslator.translateAppUriToServerPath(
+    final translated = WebPathTranslator.translateAppUriToServerPath(
       appUrl,
       layout: layout,
       useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
