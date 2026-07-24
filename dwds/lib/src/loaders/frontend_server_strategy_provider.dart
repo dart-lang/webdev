@@ -221,7 +221,7 @@ class FrontendServerBuildDaemonStrategyProvider
   /// For example:
   /// - `web/main.dart` -> `main.dart`
   /// - `example/append_body/main.dart` -> `append_body/main.dart`
-  /// - `packages/path/path.dart` -> `packages/path/path.dart`
+  /// - `packages/path/path.dart` -> `packages/path/path.dart` (unchanged)
   String _stripPrefix(String path) {
     path = path.replaceAll('\\', '/');
     if (path.startsWith('packages')) return path;

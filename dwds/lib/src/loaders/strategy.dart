@@ -191,11 +191,12 @@ abstract class LoadStrategy {
   /// Returns the [MetadataProvider] for the application located at the provided
   /// [entrypoint].
   MetadataProvider metadataProviderFor(String entrypoint) {
-    if (_providers.containsKey(entrypoint)) {
-      return _providers[entrypoint]!;
-    } else {
-      throw StateError('No metadata provider for $entrypoint');
-    }
+    final provider = _providers[entrypoint];
+    if (provider != null) return provider;
+    throw StateError(
+      'No metadata provider for $entrypoint. '
+      'Available providers: ${_providers.keys.toList()}',
+    );
   }
 
   /// Creates and returns a [MetadataProvider] with the given [entrypoint] and
@@ -217,19 +218,7 @@ abstract class LoadStrategy {
     String entrypoint,
     Map<String, List> reloadedModulesToLibraries,
   ) {
-    var provider = _providers[entrypoint];
-    if (provider == null) {
-      final normalized = entrypoint.startsWith('/')
-          ? entrypoint.substring(1)
-          : '/$entrypoint';
-      provider = _providers[normalized] ?? _providers.values.firstOrNull;
-      if (provider == null) {
-        throw StateError(
-          'No metadata provider found for entrypoint $entrypoint. '
-          'Available providers: ${_providers.keys.toList()}',
-        );
-      }
-    }
+    final provider = metadataProviderFor(entrypoint);
     return provider.reinitializeAfterHotReload(reloadedModulesToLibraries);
   }
 }
