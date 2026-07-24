@@ -264,10 +264,8 @@ class MetadataProvider {
   }
 
   void _addMetadata(ModuleMetadata metadata) {
-    final modulePath = stripLeadingSlashes(metadata.moduleUri)
-        .replaceAll('\\', '/');
-    final sourceMapPath = stripLeadingSlashes(metadata.sourceMapUri)
-        .replaceAll('\\', '/');
+    final modulePath = stripLeadingSlashes(metadata.moduleUri);
+    final sourceMapPath = stripLeadingSlashes(metadata.sourceMapUri);
     final moduleName = metadata.name;
 
     _moduleToSourceMap[moduleName] = sourceMapPath;
@@ -276,7 +274,7 @@ class MetadataProvider {
 
     final moduleLibraries = <String>{};
     for (final library in metadata.libraries.values) {
-      final importUri = library.importUri.replaceAll('\\', '/');
+      final importUri = library.importUri;
       if (importUri.startsWith('file:/')) {
         throw AbsoluteImportUriException(importUri);
       }
@@ -286,9 +284,8 @@ class MetadataProvider {
 
       _scriptToModule[importUri] = moduleName;
       for (final path in library.partUris) {
-        final normalizedPath = path.replaceAll('\\', '/');
         // Parts in metadata are relative to the library Uri directory.
-        final partPath = p.url.join(p.url.dirname(importUri), normalizedPath);
+        final partPath = p.url.join(p.url.dirname(importUri), path);
         _scripts[importUri]!.add(partPath);
         _scriptToModule[partPath] = moduleName;
       }

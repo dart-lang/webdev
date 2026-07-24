@@ -36,7 +36,6 @@ class DdcUriTranslator {
     required AppUriLayout layout,
     bool useDebuggerModuleNames = true,
   }) {
-    appUrl = appUrl.replaceAll('\\', '/');
     final appUri = Uri.parse(appUrl);
     if (appUri.isScheme('package')) {
       final pathSegments = appUri.pathSegments;
