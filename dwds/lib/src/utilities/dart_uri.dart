@@ -21,8 +21,8 @@ class DartUri {
   ///  - package:packageName/pathUnderLib/file.dart
   ///  - org-dartlang-app:///prefix/path/file.dart, where prefix is ignored.
   ///    e.g. org-dartlang-app:example/hello_world/main.dart,
-  ///  - /packages/packageName/foo.dart, the web server form of a package URI,
-  ///    e.g. /packages/path/src/utils.dart
+  ///  - /packages/packageName/foo.dart, the web server package path of a
+  ///   package URI, e.g. /packages/path/src/utils.dart
   ///  - /path/foo.dart or path/foo.dart, e.g. /hello_world/web/main.dart, where
   ///    path is a web server path and so relative to the directory being
   ///    served, not to the package.

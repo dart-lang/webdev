@@ -68,7 +68,7 @@ class DdcUriTranslator {
           final first = segments.first;
           if (first == 'packages') {
             if (segments.length < 3) {
-              throw FormatException('Invalid packages URI: $appUrl');
+              throw FormatException('Invalid package path in app URI: $appUrl');
             }
             return segments.join('/');
           }
@@ -95,19 +95,19 @@ class DdcUriTranslator {
     return serverPath;
   }
 
-  /// Adds 'lib' to a package server path.
+  /// Adds 'lib' to a package path.
   ///
   /// Example: packages/foo/bar.dart -> packages/foo/lib/bar.dart
   static String addLibSegment(String serverPath) =>
       _modifyLibSegment(serverPath, add: true);
 
-  /// Removes 'lib' from a package server path.
+  /// Removes 'lib' from a package path.
   ///
   /// Example: packages/foo/lib/bar.dart packages/foo/bar.dart
   static String removeLibSegment(String serverPath) =>
       _modifyLibSegment(serverPath, add: false);
 
-  /// Translates a served `packages/` path back to a `package:` URI path.
+  /// Translates a served `packages/` path back to a `package:` URI.
   ///
   /// Examples:
   /// - `packages/foo/lib/bar.dart` -> `package:foo/bar.dart`
@@ -129,7 +129,7 @@ class DdcUriTranslator {
   ///
   /// DDC generates source maps with relative paths from the generated output.
   /// Files in the root package can resolve to 'lib/' references, so we prepend
-  /// `packages/[rootPackageName]/` to resolve them to a package URI. Example:
+  /// `packages/[rootPackageName]/` to resolve them to a package path. Example:
   /// `lib/foo.dart` -> `packages/root_package/foo.dart`
   static String translateLibPathToPackagePath(
     String uri,
