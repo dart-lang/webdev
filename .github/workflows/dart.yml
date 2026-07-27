@@ -1,4 +1,4 @@
-# Created with package:mono_repo v6.6.3
+# Created with package:mono_repo v6.7.1
 name: Dart CI
 on:
   push:
@@ -36,8 +36,10 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - name: mono_repo self validate
-        run: dart pub global activate mono_repo 6.6.3
+        run: dart pub global activate mono_repo 6.7.1
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
@@ -61,6 +63,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -99,6 +103,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_test_common_pub_upgrade
         name: dwds_test_common; dart pub upgrade
         run: dart pub upgrade
@@ -172,6 +178,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -210,6 +218,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -249,6 +259,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -284,6 +296,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -319,6 +333,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -354,6 +370,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_test_common_pub_upgrade
         name: dwds_test_common; dart pub upgrade
         run: dart pub upgrade
@@ -393,6 +411,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         run: dart pub upgrade
@@ -428,6 +448,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -467,6 +489,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -506,6 +530,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -541,6 +567,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -576,6 +604,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -611,6 +641,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_test_common_pub_upgrade
         name: dwds_test_common; dart pub upgrade
         run: dart pub upgrade
@@ -650,6 +682,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         run: dart pub upgrade
@@ -685,6 +719,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -714,6 +750,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -739,6 +777,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -764,6 +804,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -789,6 +831,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -814,6 +858,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_test_common_pub_upgrade
         name: dwds_test_common; dart pub upgrade
         run: dart pub upgrade
@@ -839,6 +885,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         run: dart pub upgrade
@@ -864,6 +912,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -889,6 +939,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -914,6 +966,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -939,6 +993,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -964,6 +1020,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -989,6 +1047,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_test_common_pub_upgrade
         name: dwds_test_common; dart pub upgrade
         run: dart pub upgrade
@@ -1014,6 +1074,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         run: dart pub upgrade
@@ -1039,6 +1101,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -1075,6 +1139,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -1143,6 +1209,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -1211,6 +1279,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -1275,6 +1345,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -1329,6 +1401,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -1383,6 +1457,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
