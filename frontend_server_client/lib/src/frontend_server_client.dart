@@ -94,30 +94,51 @@ class FrontendServerClient {
       for (final source in additionalSources) ...['--source', source],
       if (nativeAssets != null) ...['--native-assets', nativeAssets],
     ];
+
+    final sdk = sdkRoot ?? sdkDir;
+    final dartExecutable = p.join(
+      sdk,
+      'bin',
+      Platform.isWindows ? 'dart.exe' : 'dart',
+    );
+    final dartAotRuntimePath = p.join(sdk, 'bin', 'dartaotruntime');
+    final feServerAppJitSnapshotPath = p.join(
+      sdk,
+      'bin',
+      'snapshots',
+      'frontend_server.dart.snapshot',
+    );
+    final feServerAotSnapshotPath = p.join(
+      sdk,
+      'bin',
+      'snapshots',
+      'frontend_server_aot.dart.snapshot',
+    );
+
     late final Process feServer;
     if (frontendServerPath != null) {
-      feServer = await Process.start(Platform.resolvedExecutable, <String>[
+      feServer = await Process.start(dartExecutable, <String>[
         if (debug) '--observe',
         frontendServerPath,
         ...commonArguments,
       ]);
-    } else if (File(_feServerAotSnapshotPath).existsSync()) {
+    } else if (File(feServerAotSnapshotPath).existsSync()) {
       if (debug) {
         throw ArgumentError(
           'The debug argument cannot be set to true when the '
           'frontendServerPath argument is omitted.',
         );
       }
-      feServer = await Process.start(_dartAotRuntimePath, <String>[
-        _feServerAotSnapshotPath,
+      feServer = await Process.start(dartAotRuntimePath, <String>[
+        feServerAotSnapshotPath,
         ...commonArguments,
       ]);
     } else {
       // AOT snapshots cannot be generated on IA32, so we need this fallback
       // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      feServer = await Process.start(Platform.resolvedExecutable, <String>[
+      feServer = await Process.start(dartExecutable, <String>[
         if (debug) '--observe',
-        _feServerAppJitSnapshotPath,
+        feServerAppJitSnapshotPath,
         ...commonArguments,
       ]);
     }
@@ -438,19 +459,3 @@ enum _CompileState { started, waitingForKey, gettingSourceDiffs, done }
 
 /// Frontend server interaction states for a `reject` call.
 enum _RejectState { started, waitingForKey, done }
-
-final _dartAotRuntimePath = p.join(sdkDir, 'bin', 'dartaotruntime');
-
-final _feServerAppJitSnapshotPath = p.join(
-  sdkDir,
-  'bin',
-  'snapshots',
-  'frontend_server.dart.snapshot',
-);
-
-final _feServerAotSnapshotPath = p.join(
-  sdkDir,
-  'bin',
-  'snapshots',
-  'frontend_server_aot.dart.snapshot',
-);

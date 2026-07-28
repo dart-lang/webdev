@@ -2,6 +2,7 @@
 
 - Update Dart SDK constraint to `^3.10.0`.
 - Allow package_config `3.x.x`.
+- Use `sdkRoot` to resolve Dart executable and frontend server snapshot locations when provided.
 
 ## 4.0.0
 
