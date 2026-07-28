@@ -5,12 +5,12 @@
 import 'dart:convert';
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
@@ -39,6 +39,7 @@ class BuildRunnerRequireStrategyProvider with BuildRunnerStrategyProviderMixin {
     _moduleInfoForProvider,
     _assetReader,
     _buildSettings,
+    BuildRunnerAssetScheme(),
     packageConfigPath: _packageConfigPath,
   );
 
@@ -80,6 +81,7 @@ class BuildRunnerDdcLibraryBundleStrategyProvider
     _assetReader,
     _buildSettings,
     (path) => null, // g3RelativePath
+    BuildRunnerAssetScheme(),
     packageConfigPath: _packageConfigPath,
     injectScriptLoad: injectScriptLoad,
     reloadedSourcesUri: _reloadedSourcesUri,
@@ -204,10 +206,9 @@ mixin BuildRunnerStrategyProviderMixin {
   }
 
   String? _serverPathForAppUri(String appUrl) {
-    return WebPathTranslator.translateAppUriToServerPath(
-      appUrl,
-      layout: AppUriLayout.buildRunner,
-    );
+    return BuildRunnerPathResolver(
+      useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
+    ).appUriToServerPath(appUrl);
   }
 
   Future<Map<String, ModuleInfo>> _moduleInfoForProvider(

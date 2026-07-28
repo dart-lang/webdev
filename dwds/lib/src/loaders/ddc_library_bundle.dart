@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/loaders/ddc.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
@@ -124,8 +125,10 @@ class DdcLibraryBundleStrategy extends LoadStrategy
     this._moduleInfoForProvider,
     AssetReader assetReader,
     this._buildSettings,
-    this._g3RelativePath, {
+    this._g3RelativePath,
+    this.assetScheme, {
     super.packageConfigPath,
+    super.metadataLoader,
     this.reloadedSourcesUri,
     this.injectScriptLoad = true,
   }) : super(assetReader);
@@ -145,6 +148,9 @@ class DdcLibraryBundleStrategy extends LoadStrategy
   // bundle format, so we just pass 'ddc' here.
   @override
   String get moduleFormat => 'ddc';
+
+  @override
+  final AssetScheme assetScheme;
 
   @override
   String get loadLibrariesModule => 'ddc_module_loader.ddk.js';

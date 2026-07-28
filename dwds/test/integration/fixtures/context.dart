@@ -403,7 +403,7 @@ class TestContext {
               p.join(project.webAssetsPath, project.dartEntryFileName),
             );
             frontendServerFileSystem = const LocalFileSystem();
-            final packageUriMapper = await PackageUriMapper.create(
+            final packageUriMapper = await PathResolver.create(
               frontendServerFileSystem,
               project.packageConfigFile,
               useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
@@ -454,6 +454,7 @@ class TestContext {
               (ModuleFormat.amd, _) => FrontendServerRequireStrategyProvider(
                 testSettings.reloadConfiguration,
                 assetReader,
+                packageUriMapper,
                 () async => {},
                 buildSettings,
               ).strategy,
@@ -461,6 +462,7 @@ class TestContext {
                 FrontendServerDdcLibraryBundleStrategyProvider(
                   testSettings.reloadConfiguration,
                   assetReader,
+                  packageUriMapper,
                   () async => {},
                   buildSettings,
                   reloadedSourcesUri: reloadedSourcesUri,
@@ -468,6 +470,7 @@ class TestContext {
               (ModuleFormat.ddc, false) => FrontendServerDdcStrategyProvider(
                 testSettings.reloadConfiguration,
                 assetReader,
+                packageUriMapper,
                 () async => {},
                 buildSettings,
               ).strategy,
@@ -727,7 +730,7 @@ class TestContext {
               );
             }
             frontendServerFileSystem = const LocalFileSystem();
-            final packageUriMapper = await PackageUriMapper.create(
+            final packageUriMapper = await PathResolver.create(
               frontendServerFileSystem,
               project.packageConfigFile,
               useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
@@ -741,6 +744,7 @@ class TestContext {
                 FrontendServerBuildDaemonStrategyProvider(
                   testSettings.reloadConfiguration,
                   assetReader,
+                  packageUriMapper,
                   () async => {},
                   buildSettings,
                   injectScriptLoad: false,

@@ -10,12 +10,12 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
+import 'package:file/local.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
@@ -23,7 +23,7 @@ import '../command/configuration.dart';
 import '../util.dart';
 import 'chrome.dart';
 import 'handlers/favicon_handler.dart';
-import 'utils.dart' show findPackageConfigFilePath;
+import 'utils.dart' show findPackageConfigFilePath, findPackageConfigUri;
 
 Logger _logger = Logger('WebDevServer');
 
@@ -252,14 +252,22 @@ class WebDevServer {
         canaryFeatures: options.configuration.canaryFeatures,
         isFlutterApp: false,
         experiments: options.configuration.experiments,
+        useDebuggerModuleNames: false,
       );
 
       final LoadStrategy loadStrategy;
       if (options.configuration.webHotReload &&
           !options.configuration.release) {
+        final frontendServerFileSystem = const LocalFileSystem();
+        final packageUriMapper = await PathResolver.create(
+          frontendServerFileSystem,
+          findPackageConfigUri()!,
+          useDebuggerModuleNames: false,
+        );
         loadStrategy = FrontendServerBuildDaemonStrategyProvider(
           options.configuration.reload,
           assetReader,
+          packageUriMapper,
           () async => {},
           buildSettings,
           packageConfigPath: findPackageConfigFilePath(),

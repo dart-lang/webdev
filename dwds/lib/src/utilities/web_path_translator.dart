@@ -1,83 +1,10 @@
 // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-enum AppUriLayout {
-  /// Used when compiling and serving directly with Frontend Server.
-  /// Preserves 'lib/' segments for package paths (e.g. packages/foo/lib/bar.dart).
-  frontendServerOnly,
-
-  /// Used when compiling/serving with package:build.
-  /// Omits 'lib/' segments (e.g. packages/foo/bar.dart).
-  buildRunner,
-
-  /// Used when serving Flutter apps.
-  /// Omits 'lib/' segments for package paths (e.g. packages/foo/bar.dart).
-  flutter,
-}
+import 'package:dwds/src/loaders/asset_scheme.dart';
 
 /// Translates paths across DDC, Frontend Server, DWDS, and package:build.
 class WebPathTranslator {
-  /// Translates a DDC app URI (any referenceable dart file) into a path
-  /// expected by its [layout]'s asset server.
-  ///
-  /// FES Only Layout:
-  /// `package:foo/bar.dart` -> `packages/foo/lib/bar.dart`
-  /// `org-dartlang-app:///foo/bar.dart` -> `foo/bar.dart`
-  ///
-  /// Build Runner Layout:
-  /// `package:foo/bar.dart` -> `packages/foo/bar.dart`
-  /// `org-dartlang-app:///packages/foo/bar.dart` -> `packages/foo/bar.dart`
-  /// `org-dartlang-app:///web/web/main.dart` -> `main.dart` (deduped)
-  /// `org-dartlang-app:///web/main.dart` -> `main.dart`
-  /// `org-dartlang-app:///foo/bar.dart` -> `bar.dart`
-  static String? translateAppUriToServerPath(
-    String appUrl, {
-    required AppUriLayout layout,
-    bool useDebuggerModuleNames = true,
-  }) {
-    final appUri = Uri.parse(appUrl);
-    if (appUri.isScheme('package')) {
-      final pathSegments = appUri.pathSegments;
-      if (pathSegments.isEmpty) {
-        throw FormatException('Invalid package URI with empty path: $appUrl');
-      }
-      final buildRunnerPath = 'packages/${appUri.path}';
-      return switch (layout) {
-        AppUriLayout.frontendServerOnly =>
-          useDebuggerModuleNames
-              ? addLibSegment(buildRunnerPath)
-              : buildRunnerPath,
-        AppUriLayout.buildRunner || AppUriLayout.flutter => buildRunnerPath,
-      };
-    }
-
-    if (appUri.isScheme('org-dartlang-app')) {
-      final segments = appUri.pathSegments;
-      if (segments.isEmpty) {
-        throw FormatException('Invalid org-dartlang-app URI: $appUrl');
-      }
-      switch (layout) {
-        case AppUriLayout.frontendServerOnly:
-          return useDebuggerModuleNames
-              ? addLibSegment(appUri.path.substring(1))
-              : removeLibSegment(appUri.path.substring(1));
-        case AppUriLayout.buildRunner:
-        case AppUriLayout.flutter:
-          final first = segments.first;
-          if (first == 'packages') {
-            if (segments.length < 3) {
-              throw FormatException('Invalid package path in app URI: $appUrl');
-            }
-            return segments.join('/');
-          }
-          return segments.skip(1).join('/');
-      }
-    }
-
-    return null;
-  }
-
   static String _modifyLibSegment(String serverPath, {required bool add}) {
     serverPath = serverPath.replaceAll('\\', '/');
     if (!serverPath.startsWith('packages/')) return serverPath;
@@ -102,27 +29,9 @@ class WebPathTranslator {
 
   /// Removes 'lib' from a package path.
   ///
-  /// Example: packages/foo/lib/bar.dart packages/foo/bar.dart
+  /// Example: packages/foo/lib/bar.dart -> packages/foo/bar.dart
   static String removeLibSegment(String serverPath) =>
       _modifyLibSegment(serverPath, add: false);
-
-  /// Translates a served `packages/` path back to a `package:` URI.
-  ///
-  /// Examples:
-  /// - `packages/foo/lib/bar.dart` -> `package:foo/bar.dart`
-  /// - `packages/foo/bar.dart` -> `package:foo/bar.dart`
-  static String translatePackagesPathToPackageUri(
-    String serverPath, {
-    AppUriLayout? layout,
-  }) {
-    if (!serverPath.startsWith('packages/')) return serverPath;
-    // If layout is not provided, we assume it might have 'lib/'.
-    final pathWithoutLib =
-        layout == null || layout == AppUriLayout.frontendServerOnly
-        ? removeLibSegment(serverPath)
-        : serverPath;
-    return pathWithoutLib.replaceFirst('packages/', 'package:');
-  }
 
   /// Translates a 'lib/' path to a package path.
   ///
@@ -147,33 +56,25 @@ class WebPathTranslator {
 
   /// Maps module extensions between layouts.
   ///
-  /// For example, from [AppUriLayout.frontendServerOnly] to
-  /// [AppUriLayout.buildRunner]:
+  /// For example, from [FrontendServerAssetScheme] to
+  /// [BuildRunnerAssetScheme]:
   ///   `main.dart.lib` -> `main.ddc`
   ///   `main.dart.lib.js` -> `main.ddc.js`
   static String translateModuleExtension(
     String path, {
-    required AppUriLayout from,
-    required AppUriLayout to,
+    required AssetScheme from,
+    required AssetScheme to,
   }) {
-    if (from == to) return path;
-    if (from == AppUriLayout.frontendServerOnly &&
-        to == AppUriLayout.buildRunner) {
-      return path.replaceAll('.dart.lib', '.ddc');
-    }
-    if (from == AppUriLayout.buildRunner &&
-        to == AppUriLayout.frontendServerOnly) {
-      return path.replaceAll('.ddc', '.dart.lib');
-    }
-    return path;
+    if (from.descriptorSuffix == to.descriptorSuffix) return path;
+    return path.replaceAll(from.descriptorSuffix, to.descriptorSuffix);
   }
 
   /// Maps '.dart.lib' (FES suffix) to '.ddc' (package:build suffix).
   static String translateFesToBuildRunnerPath(String path) {
     return translateModuleExtension(
       path,
-      from: AppUriLayout.frontendServerOnly,
-      to: AppUriLayout.buildRunner,
+      from: FrontendServerAssetScheme(),
+      to: BuildRunnerAssetScheme(),
     );
   }
 

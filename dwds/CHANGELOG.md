@@ -1,8 +1,11 @@
 ## 28.0.0
-
-- **Breaking Change**: Removed `PackageUriMapper` from the constructors of `FrontendServerStrategyProvider` and its subclasses (`FrontendServerBuildDaemonStrategyProvider`, `FrontendServerDdcStrategyProvider`, `FrontendServerRequireStrategyProvider`).
-- Add support for Frontend Server + Build Daemon configuration with hot reload via `FrontendServerBuildDaemonStrategyProvider`.
-- Expose `DaemonExpressionCompiler` for handling expression compile directly via `build_daemon`.
+- **Breaking Change**: Removed `PackageUriMapper` in favor of **`PathResolver`**.
+- **Breaking Change**: **`LoadStrategy`** implementors must now implement the **`assetScheme`** getter to define asset naming conventions.
+- Introduce **`MetadataLoader`** and **`AssetScheme`** to generalize metadata loading and asset naming schemes.
+- Export **`MetadataLoader`**, **`MergedMetadataLoader`**, **`ModuleMetadata`**, and **`LibraryMetadata`** to enable custom metadata loading implementations.
+- Add support for Frontend Server + Build Daemon configuration with hot reload via **`FrontendServerBuildDaemonStrategyProvider`**.
+- Expose **`DaemonExpressionCompiler`** for handling expression compilation directly via `build_daemon`.
+- **`BuildSettings`** now supports **`useDebuggerModuleNames`** to distinguish between debugger-friendly paths and raw server paths.
 
 ## 27.1.2
 

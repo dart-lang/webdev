@@ -6,7 +6,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
+import 'package:dwds/src/debugging/metadata/loader.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -46,9 +48,15 @@ abstract class LoadStrategy {
   final AssetReader _assetReader;
   final String? _packageConfigPath;
   final _providers = <String, MetadataProvider>{};
+  final MetadataLoader? _metadataLoader;
 
-  LoadStrategy(this._assetReader, {String? packageConfigPath})
-    : _packageConfigPath = packageConfigPath ?? _findPackageConfigFilePath();
+  LoadStrategy(
+    this._assetReader, {
+    String? packageConfigPath,
+    MetadataLoader? metadataLoader,
+    // ignore: prefer_initializing_formals
+  }) : _metadataLoader = metadataLoader,
+       _packageConfigPath = packageConfigPath ?? _findPackageConfigFilePath();
 
   /// The ID for this strategy.
   ///
@@ -65,6 +73,17 @@ abstract class LoadStrategy {
   ///
   /// Used for preventing stepping into the library loading code.
   String get loadLibrariesModule;
+
+  /// Asset scheme, which determines file extensions for this strategy.
+  AssetScheme get assetScheme;
+
+  /// Loader used to fetch and parse debug metadata for this strategy.
+  MetadataLoader get metadataLoader =>
+      _metadataLoader ?? _defaultMetadataLoader;
+
+  /// The default metadata loader if none is provided.
+  MetadataLoader get _defaultMetadataLoader =>
+      MergedMetadataLoader(_assetReader);
 
   /// Returns a snippet of JS code that can be used to load a JS module.
   ///
@@ -202,7 +221,7 @@ abstract class LoadStrategy {
   /// Creates and returns a [MetadataProvider] with the given [entrypoint] and
   /// [reader].
   MetadataProvider createProvider(String entrypoint, AssetReader reader) =>
-      MetadataProvider(entrypoint, reader);
+      MetadataProvider(entrypoint, metadataLoader);
 
   /// Initializes a [MetadataProvider] for the application located at the
   /// provided [entrypoint].

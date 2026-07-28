@@ -33,7 +33,7 @@ class TestAssetServer implements AssetReader {
   final Map<String, Uint8List> _sourceMaps = {};
   final Map<String, Uint8List> _metadata = {};
   late String _mergedMetadata;
-  final PackageUriMapper _packageUriMapper;
+  final PathResolver _packageUriMapper;
   final InternetAddress internetAddress;
   final TestSdkLayout _sdkLayout;
 
@@ -73,7 +73,7 @@ class TestAssetServer implements AssetReader {
     String hostname,
     int port,
     UrlEncoder? urlTunneler,
-    PackageUriMapper packageUriMapper,
+    PathResolver packageUriMapper,
   ) async {
     final address = (await InternetAddress.lookup(hostname)).first;
     final httpServer = await HttpServer.bind(address, port);
@@ -283,11 +283,14 @@ class TestAssetServer implements AssetReader {
     // Expression evaluation and debugger requests may reference sources
     // using `package:` URIs. Resolve them to files using the packageConfig.
     if (path.startsWith('package:')) {
-      final resolved = _packageUriMapper.packageConfig.resolve(Uri.parse(path));
-      if (resolved != null) {
-        final packageFile = _fileSystem.file(resolved);
-        if (packageFile.existsSync()) {
-          return packageFile;
+      final serverPath = _packageUriMapper.appUriToServerPath(path);
+      if (serverPath != null) {
+        final resolved = _packageUriMapper.serverPathToResolvedUri(serverPath);
+        if (resolved != null) {
+          final packageFile = _fileSystem.file(resolved);
+          if (packageFile.existsSync()) {
+            return packageFile;
+          }
         }
       }
     }

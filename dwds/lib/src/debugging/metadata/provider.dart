@@ -2,18 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:async/async.dart';
+import 'package:dwds/src/debugging/metadata/loader.dart';
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 /// A provider of metadata in which data is collected through DDC outputs.
 class MetadataProvider {
-  final AssetReader _assetReader;
-  final _logger = Logger('MetadataProvider');
+  final MetadataLoader _metadataLoader;
   final String entrypoint;
   final Set<String> _libraries = {};
   final Map<String, String> _scriptToModule = {};
@@ -65,7 +62,7 @@ class MetadataProvider {
     'dart:ui',
   ];
 
-  MetadataProvider(this.entrypoint, this._assetReader);
+  MetadataProvider(this.entrypoint, this._metadataLoader);
 
   /// A list of all libraries in the Dart application.
   ///
@@ -164,38 +161,7 @@ class MetadataProvider {
   /// Compute metadata information after reading the metadata contents and
   /// return a map from module names to their [ModuleMetadata].
   Future<Map<String, ModuleMetadata>> _processMetadata() async {
-    final modules = <String, ModuleMetadata>{};
-    // The merged metadata resides next to the entrypoint.
-    // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
-    if (entrypoint.endsWith('.bootstrap.js')) {
-      _logger.info('Loading debug metadata...');
-      final serverPath = entrypoint.replaceAll(
-        '.bootstrap.js',
-        '.ddc_merged_metadata',
-      );
-      final merged = await _assetReader.metadataContents(serverPath);
-      if (merged != null) {
-        for (final contents in merged.split('\n')) {
-          try {
-            if (contents.isEmpty ||
-                contents.startsWith('// intentionally empty:')) {
-              continue;
-            }
-            final moduleJson = json.decode(contents);
-            final metadata = ModuleMetadata.fromJson(
-              moduleJson as Map<String, dynamic>,
-            );
-            final moduleName = metadata.name;
-            modules[moduleName] = metadata;
-            _logger.fine('Loaded debug metadata for module: $moduleName');
-          } catch (e) {
-            _logger.warning('Failed to read metadata: $e');
-            rethrow;
-          }
-        }
-      }
-    }
-    return modules;
+    return _metadataLoader.loadMetadata(entrypoint);
   }
 
   /// Process all metadata, including SDK metadata, and compute caches once.

@@ -13,11 +13,17 @@ export 'src/config/tool_configuration.dart'
         UrlEncoder;
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
+export 'src/debugging/metadata/loader.dart'
+    show MergedMetadataLoader, MetadataLoader;
+export 'src/debugging/metadata/module_metadata.dart'
+    show LibraryMetadata, ModuleMetadata;
 export 'src/debugging/metadata/provider.dart'
     show AbsoluteImportUriException, MetadataProvider;
 export 'src/events.dart' show DwdsEvent;
 export 'src/handlers/dev_handler.dart' show AppConnectionException;
 export 'src/handlers/socket_connections.dart';
+export 'src/loaders/asset_scheme.dart'
+    show AssetScheme, BuildRunnerAssetScheme, FrontendServerAssetScheme;
 export 'src/loaders/build_runner_strategy_provider.dart'
     show
         BuildRunnerDdcLibraryBundleStrategyProvider,
@@ -36,7 +42,7 @@ export 'src/loaders/strategy.dart'
         LoadStrategy,
         ReloadConfiguration,
         ReloadableLoadStrategy;
-export 'src/readers/asset_reader.dart' show AssetReader, PackageUriMapper;
+export 'src/readers/asset_reader.dart' show AssetReader, PathResolver;
 export 'src/readers/frontend_server_asset_reader.dart'
     show FrontendServerAssetReader;
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;

@@ -39,7 +39,7 @@ class WebDevFS {
   final String hostname;
   final int port;
   final Uri projectDirectory;
-  final PackageUriMapper packageUriMapper;
+  final PathResolver packageUriMapper;
   final String index;
   final UrlEncoder? urlTunneler;
   List<Uri> sources = <Uri>[];
@@ -188,7 +188,7 @@ class WebDevFS {
       Uri.parse('org-dartlang-app:///$mainUri'),
       invalidatedFiles,
       outputPath: p.join(dillOutputPath, 'app.dill'),
-      packageConfig: packageUriMapper.packageConfig,
+      packageConfig: packageUriMapper.packageConfig!,
       recompileRestart: fullRestart,
     );
     if (compilerOutput == null || compilerOutput.errorCount > 0) {

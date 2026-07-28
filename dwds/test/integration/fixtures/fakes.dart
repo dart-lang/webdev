@@ -15,6 +15,7 @@ import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
+import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
@@ -217,6 +218,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
           (MetadataProvider _) async => <String, ModuleInfo>{},
           FakeAssetReader(),
           buildSettings,
+          BuildRunnerAssetScheme(),
         ),
       ),
     );
@@ -354,6 +356,9 @@ class FakeStrategy extends LoadStrategy {
            TestBuildSettings.dart(
              appEntrypoint: Uri.parse('package:myapp/main.dart'),
            );
+
+  @override
+  AssetScheme get assetScheme => BuildRunnerAssetScheme();
 
   @override
   Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';

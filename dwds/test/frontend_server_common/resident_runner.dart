@@ -54,7 +54,7 @@ class ResidentWebRunner {
   final Uri mainUri;
   final Uri projectDirectory;
   final Uri packageConfigFile;
-  final PackageUriMapper packageUriMapper;
+  final PathResolver packageUriMapper;
   final String outputPath;
   final List<Uri> fileSystemRoots;
   final String fileSystemScheme;

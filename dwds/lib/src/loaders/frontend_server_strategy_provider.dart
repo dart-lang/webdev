@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/loaders/ddc.dart';
 import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/loaders/require.dart';
@@ -15,18 +16,23 @@ import 'package:path/path.dart' as p;
 abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
+  final PathResolver _pathResolver;
   final Future<Map<String, String>> Function() _digestsProvider;
   final String _basePath;
   final BuildSettings _buildSettings;
   final String? _packageConfigPath;
 
+  AssetScheme get assetScheme;
+
   FrontendServerStrategyProvider(
     this._configuration,
     this._assetReader,
+    PathResolver? pathResolver,
     this._digestsProvider,
     this._buildSettings, {
     this._packageConfigPath,
-  }) : _basePath = _assetReader.basePath;
+  }) : _basePath = _assetReader.basePath,
+       _pathResolver = pathResolver ?? FrontendServerPathResolver();
 
   T get strategy;
 
@@ -72,9 +78,8 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
       _addBasePath((await metadataProvider.moduleToSourceMap)[module] ?? '');
 
   String? _serverPathForAppUri(String appUrl) {
-    final translated = WebPathTranslator.translateAppUriToServerPath(
+    final translated = _pathResolver.appUriToServerPath(
       appUrl,
-      layout: AppUriLayout.frontendServerOnly,
       useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
     );
     return translated != null ? _addBasePath(translated) : null;
@@ -113,16 +118,21 @@ class FrontendServerDdcStrategyProvider
     _assetReader,
     _buildSettings,
     (String _) => null,
+    assetScheme,
     packageConfigPath: _packageConfigPath,
   );
 
   FrontendServerDdcStrategyProvider(
     super._configuration,
     super._assetReader,
+    super._pathResolver,
     super._digestsProvider,
     super._buildSettings, {
     super.packageConfigPath,
   });
+
+  @override
+  AssetScheme get assetScheme => FrontendServerAssetScheme();
 
   @override
   DdcStrategy get strategy => _ddcStrategy;
@@ -135,14 +145,24 @@ class FrontendServerDdcLibraryBundleStrategyProvider
   late final DdcLibraryBundleStrategy _libraryBundleStrategy;
 
   FrontendServerDdcLibraryBundleStrategyProvider(
-    super._configuration,
-    super._assetReader,
-    super._digestsProvider,
-    super._buildSettings, {
+    ReloadConfiguration configuration,
+    AssetReader assetReader,
+    PathResolver? pathResolver,
+    Future<Map<String, String>> Function() digestsProvider,
+    BuildSettings buildSettings, {
     super.packageConfigPath,
     Uri? reloadedSourcesUri,
     bool injectScriptLoad = true,
-  }) {
+  }) : super(
+         configuration,
+         assetReader,
+         pathResolver ??
+             (buildSettings.isFlutterApp
+                 ? FlutterPathResolver()
+                 : FrontendServerPathResolver()),
+         digestsProvider,
+         buildSettings,
+       ) {
     _libraryBundleStrategy = DdcLibraryBundleStrategy(
       _configuration,
       _moduleProvider,
@@ -155,6 +175,7 @@ class FrontendServerDdcLibraryBundleStrategyProvider
       _assetReader,
       _buildSettings,
       (String _) => null,
+      assetScheme,
       packageConfigPath: _packageConfigPath,
       reloadedSourcesUri: reloadedSourcesUri,
       injectScriptLoad: injectScriptLoad,
@@ -162,19 +183,7 @@ class FrontendServerDdcLibraryBundleStrategyProvider
   }
 
   @override
-  String? _serverPathForAppUri(String appUrl) {
-    final isFlutterPackage =
-        _buildSettings.isFlutterApp && appUrl.startsWith('package:');
-    final layout = isFlutterPackage
-        ? AppUriLayout.flutter
-        : AppUriLayout.frontendServerOnly;
-    final translated = WebPathTranslator.translateAppUriToServerPath(
-      appUrl,
-      layout: layout,
-      useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
-    );
-    return translated != null ? _addBasePath(translated) : null;
-  }
+  AssetScheme get assetScheme => FrontendServerAssetScheme();
 
   @override
   DdcLibraryBundleStrategy get strategy => _libraryBundleStrategy;
@@ -187,14 +196,21 @@ class FrontendServerBuildDaemonStrategyProvider
   late final DdcLibraryBundleStrategy _libraryBundleStrategy;
 
   FrontendServerBuildDaemonStrategyProvider(
-    super._configuration,
-    super._assetReader,
-    super._digestsProvider,
-    super._buildSettings, {
+    ReloadConfiguration configuration,
+    AssetReader assetReader,
+    PathResolver? pathResolver,
+    Future<Map<String, String>> Function() digestsProvider,
+    BuildSettings buildSettings, {
     super.packageConfigPath,
     Uri? reloadedSourcesUri,
     bool injectScriptLoad = true,
-  }) {
+  }) : super(
+         configuration,
+         assetReader,
+         pathResolver ?? BuildRunnerPathResolver(),
+         digestsProvider,
+         buildSettings,
+       ) {
     _libraryBundleStrategy = DdcLibraryBundleStrategy(
       _configuration,
       _moduleProvider,
@@ -207,11 +223,15 @@ class FrontendServerBuildDaemonStrategyProvider
       _assetReader,
       _buildSettings,
       (String _) => null,
+      assetScheme,
       packageConfigPath: _packageConfigPath,
       reloadedSourcesUri: reloadedSourcesUri,
       injectScriptLoad: injectScriptLoad,
     );
   }
+
+  @override
+  AssetScheme get assetScheme => BuildRunnerAssetScheme();
 
   @override
   DdcLibraryBundleStrategy get strategy => _libraryBundleStrategy;
@@ -257,8 +277,8 @@ class FrontendServerBuildDaemonStrategyProvider
   ) async {
     final remappedPath = WebPathTranslator.translateModuleExtension(
       serverPath,
-      from: AppUriLayout.buildRunner,
-      to: AppUriLayout.frontendServerOnly,
+      from: BuildRunnerAssetScheme(),
+      to: FrontendServerAssetScheme(),
     );
     final module = await super._moduleForServerPath(
       metadataProvider,
@@ -301,9 +321,9 @@ class FrontendServerBuildDaemonStrategyProvider
 
   @override
   String? _serverPathForAppUri(String appUrl) =>
-      WebPathTranslator.translateAppUriToServerPath(
+      _pathResolver.appUriToServerPath(
         appUrl,
-        layout: AppUriLayout.buildRunner,
+        useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
       );
 
   @override
@@ -337,31 +357,30 @@ class FrontendServerRequireStrategyProvider
     _moduleInfoForProvider,
     _assetReader,
     _buildSettings,
+    assetScheme,
     packageConfigPath: _packageConfigPath,
   );
 
   FrontendServerRequireStrategyProvider(
-    super._configuration,
-    super._assetReader,
-    super._digestsProvider,
-    super._buildSettings, {
+    ReloadConfiguration configuration,
+    AssetReader assetReader,
+    PathResolver? pathResolver,
+    Future<Map<String, String>> Function() digestsProvider,
+    BuildSettings buildSettings, {
     super.packageConfigPath,
-  });
+  }) : super(
+         configuration,
+         assetReader,
+         pathResolver ??
+             (buildSettings.isFlutterApp
+                 ? FlutterPathResolver()
+                 : FrontendServerPathResolver()),
+         digestsProvider,
+         buildSettings,
+       );
 
   @override
-  String? _serverPathForAppUri(String appUrl) {
-    final isFlutterPackage =
-        _buildSettings.isFlutterApp && appUrl.startsWith('package:');
-    final layout = isFlutterPackage
-        ? AppUriLayout.flutter
-        : AppUriLayout.frontendServerOnly;
-    final translated = WebPathTranslator.translateAppUriToServerPath(
-      appUrl,
-      layout: layout,
-      useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
-    );
-    return translated != null ? _addBasePath(translated) : null;
-  }
+  AssetScheme get assetScheme => FrontendServerAssetScheme();
 
   @override
   RequireStrategy get strategy => _requireStrategy;

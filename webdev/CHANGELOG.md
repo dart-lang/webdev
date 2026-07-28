@@ -1,7 +1,8 @@
 ## 4.1.0
-
 - Enable hot reload support in Frontend Server + Build Daemon mode.
+- Support expression evaluation in Frontend Server + Build Daemon mode via DaemonExpressionCompiler.
 - Bump `build_web_compilers` constraint to `^4.8.8`.
+- Bump `dwds` constraint to `^28.0.0`.
 
 ## 4.0.0
 
