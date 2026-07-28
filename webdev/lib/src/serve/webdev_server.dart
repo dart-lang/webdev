@@ -259,7 +259,7 @@ class WebDevServer {
       if (options.configuration.webHotReload &&
           !options.configuration.release) {
         final frontendServerFileSystem = const LocalFileSystem();
-        final packageUriMapper = await PathResolver.create(
+        final packageUriMapper = await BuildRunnerPathResolver.create(
           frontendServerFileSystem,
           findPackageConfigUri()!,
           useDebuggerModuleNames: false,

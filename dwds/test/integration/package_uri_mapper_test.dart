@@ -30,7 +30,7 @@ void main() {
 
       final serverPath = useDebuggerModuleNames
           ? 'packages/${project.packageDirectory}/lib/test_library.dart'
-          : 'packages/${project.packageName}/test_library.dart';
+          : '/packages/${project.packageName}/test_library.dart';
 
       final resolvedPath = '${project.packageDirectory}/lib/test_library.dart';
 
@@ -52,11 +52,17 @@ void main() {
           ),
         );
 
-        packageUriMapper = await PathResolver.create(
-          fileSystem,
-          packageConfigFile,
-          useDebuggerModuleNames: useDebuggerModuleNames,
-        );
+        packageUriMapper = useDebuggerModuleNames
+            ? await FrontendServerPathResolver.create(
+                fileSystem,
+                packageConfigFile,
+                useDebuggerModuleNames: useDebuggerModuleNames,
+              )
+            : await BuildRunnerPathResolver.create(
+                fileSystem,
+                packageConfigFile,
+                useDebuggerModuleNames: useDebuggerModuleNames,
+              );
       });
 
       tearDownAll(project.tearDown);

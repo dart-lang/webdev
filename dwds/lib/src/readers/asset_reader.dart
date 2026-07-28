@@ -41,20 +41,6 @@ abstract class AssetReader {
 }
 
 abstract class PathResolver {
-  static Future<PathResolver> create(
-    FileSystem fileSystem,
-    Uri packageConfigFile, {
-    bool useDebuggerModuleNames = false,
-  }) async {
-    final packageConfig = await loadPackageConfig(
-      fileSystem.file(packageConfigFile),
-    );
-    return BuildRunnerPathResolver(
-      packageConfig: packageConfig,
-      useDebuggerModuleNames: useDebuggerModuleNames,
-    );
-  }
-
   /// Computes the server path for a given application URL.
   String? appUriToServerPath(String appUrl, {bool? useDebuggerModuleNames});
 
@@ -76,6 +62,20 @@ class FrontendServerPathResolver implements PathResolver {
   @override
   final bool useDebuggerModuleNames;
   final String? packageRoot;
+
+  static Future<FrontendServerPathResolver> create(
+    FileSystem fileSystem,
+    Uri packageConfigFile, {
+    bool useDebuggerModuleNames = false,
+  }) async {
+    final packageConfig = await loadPackageConfig(
+      fileSystem.file(packageConfigFile),
+    );
+    return FrontendServerPathResolver(
+      packageConfig: packageConfig,
+      useDebuggerModuleNames: useDebuggerModuleNames,
+    );
+  }
 
   FrontendServerPathResolver({
     this.packageConfig,
@@ -158,6 +158,20 @@ class BuildRunnerPathResolver implements PathResolver {
   @override
   final bool useDebuggerModuleNames;
   final String? packageRoot;
+
+  static Future<BuildRunnerPathResolver> create(
+    FileSystem fileSystem,
+    Uri packageConfigFile, {
+    bool useDebuggerModuleNames = false,
+  }) async {
+    final packageConfig = await loadPackageConfig(
+      fileSystem.file(packageConfigFile),
+    );
+    return BuildRunnerPathResolver(
+      packageConfig: packageConfig,
+      useDebuggerModuleNames: useDebuggerModuleNames,
+    );
+  }
 
   BuildRunnerPathResolver({
     this.packageConfig,

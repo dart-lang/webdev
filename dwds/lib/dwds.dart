@@ -42,7 +42,13 @@ export 'src/loaders/strategy.dart'
         LoadStrategy,
         ReloadConfiguration,
         ReloadableLoadStrategy;
-export 'src/readers/asset_reader.dart' show AssetReader, PathResolver;
+export 'src/readers/asset_reader.dart'
+    show
+        AssetReader,
+        BuildRunnerPathResolver,
+        FlutterPathResolver,
+        FrontendServerPathResolver,
+        PathResolver;
 export 'src/readers/frontend_server_asset_reader.dart'
     show FrontendServerAssetReader;
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;

@@ -403,7 +403,7 @@ class TestContext {
               p.join(project.webAssetsPath, project.dartEntryFileName),
             );
             frontendServerFileSystem = const LocalFileSystem();
-            final packageUriMapper = await PathResolver.create(
+            final packageUriMapper = await FrontendServerPathResolver.create(
               frontendServerFileSystem,
               project.packageConfigFile,
               useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
@@ -730,7 +730,7 @@ class TestContext {
               );
             }
             frontendServerFileSystem = const LocalFileSystem();
-            final packageUriMapper = await PathResolver.create(
+            final packageUriMapper = await BuildRunnerPathResolver.create(
               frontendServerFileSystem,
               project.packageConfigFile,
               useDebuggerModuleNames: testSettings.useDebuggerModuleNames,

@@ -1,5 +1,5 @@
 ## 28.0.0
-- **Breaking Change**: Removed `PackageUriMapper` in favor of **`PathResolver`**.
+- **Breaking Change**: Removed `PackageUriMapper` in favor of **`PathResolver`** - with `BuildRunnerPathResolver`, `FrontendServerPathResolver`, and `FlutterPathResolver` impls.
 - **Breaking Change**: **`LoadStrategy`** implementors must now implement the **`assetScheme`** getter to define asset naming conventions.
 - Introduce **`MetadataLoader`** and **`AssetScheme`** to generalize metadata loading and asset naming schemes.
 - Export **`MetadataLoader`**, **`MergedMetadataLoader`**, **`ModuleMetadata`**, and **`LibraryMetadata`** to enable custom metadata loading implementations.
