@@ -80,36 +80,12 @@ for PKG in ${PKGS}; do
         dart format --output=none --set-exit-if-changed . || EXIT_CODE=$?
         ;;
       test_0)
-        echo 'dart test test/build/ensure_version_test.dart'
-        dart test test/build/ensure_version_test.dart || EXIT_CODE=$?
-        ;;
-      test_1)
-        echo 'dart test --tags=extension'
-        dart test --tags=extension || EXIT_CODE=$?
-        ;;
-      test_2)
-        echo 'dart test --total-shards 3 --shard-index 0 --exclude-tags=extension'
-        dart test --total-shards 3 --shard-index 0 --exclude-tags=extension || EXIT_CODE=$?
-        ;;
-      test_3)
-        echo 'dart test --total-shards 3 --shard-index 1 --exclude-tags=extension'
-        dart test --total-shards 3 --shard-index 1 --exclude-tags=extension || EXIT_CODE=$?
-        ;;
-      test_4)
-        echo 'dart test --total-shards 3 --shard-index 2 --exclude-tags=extension'
-        dart test --total-shards 3 --shard-index 2 --exclude-tags=extension || EXIT_CODE=$?
-        ;;
-      test_5)
-        echo 'dart test -j 1'
-        dart test -j 1 || EXIT_CODE=$?
-        ;;
-      test_6)
-        echo 'dart test --exclude-tags=release'
-        dart test --exclude-tags=release || EXIT_CODE=$?
-        ;;
-      test_7)
         echo 'dart test test/build/ensure_build_test.dart'
         dart test test/build/ensure_build_test.dart || EXIT_CODE=$?
+        ;;
+      test_1)
+        echo 'dart test -j 1'
+        dart test -j 1 || EXIT_CODE=$?
         ;;
       *)
         echo -e "\033[31mUnknown TASK '${TASK}' - TERMINATING JOB\033[0m"

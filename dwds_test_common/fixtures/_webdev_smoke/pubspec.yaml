@@ -13,11 +13,11 @@ dev_dependencies:
 dependency_overrides:
   build_daemon:
     git:
-      url: https://github.com/dart-lang/build.git
-      ref: e14fc6c4ecd5c03716836909d23055fd1a413706
+      url: https://github.com/davidmorgan/build.git
+      ref: repro-delay
       path: build_daemon
   build_runner:
     git:
-      url: https://github.com/dart-lang/build.git
-      ref: e14fc6c4ecd5c03716836909d23055fd1a413706
+      url: https://github.com/davidmorgan/build.git
+      ref: repro-delay
       path: build_runner
