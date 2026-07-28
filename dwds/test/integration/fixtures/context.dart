@@ -700,7 +700,7 @@ class TestContext {
                   ..outputLocation = OutputLocation(
                     (o) => o
                       ..output = outputDir.path
-                      ..useSymlinks = true
+                      ..useSymlinks = false
                       ..hoist = true,
                   ).toBuilder()
                   ..reportChangedAssets = true,
