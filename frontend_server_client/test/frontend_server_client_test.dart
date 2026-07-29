@@ -342,14 +342,14 @@ void main() {
     final defaultLibrariesJson = File(p.join(sdkDir, 'lib', 'libraries.json'));
     final libraries =
         jsonDecode(defaultLibrariesJson.readAsStringSync())
-            as Map<String, dynamic>;
+            as Map<String, Object?>;
 
     // Create the custom library file
     final customLibFile = File(p.join(packageRoot, 'bin', 'custom_lib.dart'));
     await customLibFile.writeAsString('void hello() => print("custom!");');
 
     if (libraries['vm_common'] case {
-      'libraries': final Map<String, dynamic> libs,
+      'libraries': final Map<String, Object?> libs,
     }) {
       libs['custom_lib'] = {'uri': customLibFile.absolute.uri.toString()};
     }
