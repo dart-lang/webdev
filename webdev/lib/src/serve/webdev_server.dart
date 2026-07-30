@@ -175,16 +175,19 @@ class WebDevServer {
       // Clear reloaded sources for the new build results.
       reloadedSources.clear();
       if (options.configuration.usesDdcLibraryBundle) {
-        results.changedAssets?.forEach((uri) {
-          if (uri.path.endsWith(jsLibraryBundleExtension)) {
-            final reloadedSource = {
-              'src': ddcUriToSourceUrl(basePath, options.target, uri),
-              'module': ddcUriToLibraryId(uri),
-              'libraries': [ddcUriToLibraryId(uri)],
-            };
-            reloadedSources.add(reloadedSource);
+        final changedAssets = results.changedAssets;
+        if (changedAssets != null) {
+          for (final uri in changedAssets) {
+            if (uri.path.endsWith(jsLibraryBundleExtension)) {
+              final reloadedSource = {
+                'src': ddcUriToSourceUrl(basePath, options.target, uri),
+                'module': ddcUriToLibraryId(uri),
+                'libraries': [ddcUriToLibraryId(uri)],
+              };
+              reloadedSources.add(reloadedSource);
+            }
           }
-        });
+        }
       }
       final result = results.results.firstWhere(
         (result) => result.target == options.target,
@@ -274,23 +277,21 @@ class WebDevServer {
           reloadedSourcesUri: Uri.parse('$basePath/$reloadedSourcesFileName'),
           injectScriptLoad: false,
         ).strategy;
+      } else if (options.configuration.moduleFormat == 'ddc') {
+        loadStrategy = BuildRunnerDdcLibraryBundleStrategyProvider(
+          options.configuration.reload,
+          assetReader,
+          buildSettings,
+          packageConfigPath: findPackageConfigFilePath(),
+          reloadedSourcesUri: Uri.parse('$basePath/$reloadedSourcesFileName'),
+        ).strategy;
       } else {
-        if (options.configuration.moduleFormat == 'ddc') {
-          loadStrategy = BuildRunnerDdcLibraryBundleStrategyProvider(
-            options.configuration.reload,
-            assetReader,
-            buildSettings,
-            packageConfigPath: findPackageConfigFilePath(),
-            reloadedSourcesUri: Uri.parse('$basePath/$reloadedSourcesFileName'),
-          ).strategy;
-        } else {
-          loadStrategy = BuildRunnerRequireStrategyProvider(
-            options.configuration.reload,
-            assetReader,
-            buildSettings,
-            packageConfigPath: findPackageConfigFilePath(),
-          ).strategy;
-        }
+        loadStrategy = BuildRunnerRequireStrategyProvider(
+          options.configuration.reload,
+          assetReader,
+          buildSettings,
+          packageConfigPath: findPackageConfigFilePath(),
+        ).strategy;
       }
 
       // Check that we're running from a compiled binary (like webdev.exe) and not
@@ -319,30 +320,32 @@ class WebDevServer {
             !options.configuration.release) {
           // Use the daemon expression compiler when web hot reload is enabled
           // to reuse the Frontend Server's in-memory state.
-          int? cachedFesPort;
-
-          // Try to read port from config file early.
-          try {
-            final file = File(
-              p.join('.dart_tool', 'build', 'fes_manager_config'),
-            );
-            if (await file.exists()) {
-              final content = await file.readAsString();
-              final json = jsonDecode(content) as Map<String, dynamic>;
-              cachedFesPort = json['port'] as int?;
+          Future<int?> readFesPort() async {
+            try {
+              final file = File(
+                p.join('.dart_tool', 'build', 'fes_manager_config'),
+              );
+              if (await file.exists()) {
+                final content = await file.readAsString();
+                final json = jsonDecode(content) as Map<String, dynamic>;
+                return json['port'] as int?;
+              }
+            } catch (e) {
+              _logger.warning('Failed to read FES config', e);
             }
-          } catch (e) {
-            _logger.warning('Failed to read FES config', e);
+            return null;
           }
 
+          var cachedFesPort = await readFesPort();
           // Pre-initialize the Frontend Server if a port and canonical URI
           // are found. Required for cached builds.
           if (cachedFesPort != null && canonicalUri != null) {
             _logger.info(
               'Early initializing Frontend Server with $canonicalUri',
             );
+            Socket? socket;
             try {
-              final socket = await Socket.connect(
+              socket = await Socket.connect(
                 InternetAddress.loopbackIPv4,
                 cachedFesPort,
               );
@@ -359,9 +362,10 @@ class WebDevServer {
                   .transform(const LineSplitter())
                   .first;
               _logger.fine('Early initialization response: $responseStr');
-              await socket.close();
             } catch (e) {
               _logger.warning('Failed to early initialize FES', e);
+            } finally {
+              await socket?.close();
             }
           }
 
@@ -382,38 +386,36 @@ class WebDevServer {
                   .first;
               final compileResult = jsonDecode(responseStr);
 
-              if (compileResult is Map) {
-                if (compileResult.containsKey('error')) {
-                  return {
-                    'result': compileResult['error'] as String,
-                    'isError': true,
-                  };
-                }
-                final errorCount = compileResult['errorCount'] as int?;
-                final expressionData =
-                    compileResult['expressionData'] as String?;
-
-                if (errorCount != null && errorCount > 0) {
-                  return {
-                    'result':
-                        compileResult['errorMessage'] as String? ??
-                        'Unknown error',
-                    'isError': true,
-                  };
-                }
-
-                if (expressionData != null) {
-                  final decodedResult = utf8.decode(
-                    base64.decode(expressionData),
-                  );
-                  return {'result': decodedResult, 'isError': false};
-                }
+              if (compileResult is! Map) {
+                return {
+                  'result':
+                      'Unexpected response format from FES. '
+                      'Expected a Map but got: $compileResult',
+                  'isError': true,
+                };
               }
 
-              return {
-                'result': 'Failed to read evaluation result',
-                'isError': true,
-              };
+              final error = compileResult['error'] as String?;
+              final errorCount = compileResult['errorCount'] as int?;
+              final errorMessage = compileResult['errorMessage'] as String?;
+              if (error != null || (errorCount != null && errorCount > 0)) {
+                return {
+                  'result':
+                      'FES error: ${error ?? errorMessage ?? 'Unknown error'}',
+                  'isError': true,
+                };
+              }
+
+              final expressionData = compileResult['expressionData'] as String?;
+              if (expressionData == null) {
+                return {
+                  'result': 'Missing expressionData in FES compile result',
+                  'isError': true,
+                };
+              }
+
+              final decodedResult = utf8.decode(base64.decode(expressionData));
+              return {'result': decodedResult, 'isError': false};
             } finally {
               await socket.close();
             }
@@ -432,24 +434,10 @@ class WebDevServer {
               }
             }
 
-            try {
-              final file = File(
-                p.join('.dart_tool', 'build', 'fes_manager_config'),
-              );
-              if (await file.exists()) {
-                final content = await file.readAsString();
-                final json = jsonDecode(content) as Map<String, dynamic>;
-                final port = json['port'] as int?;
-                if (port != null) {
-                  cachedFesPort = port;
-                  return await sendRequestToFes(port, request);
-                }
-              }
-            } catch (e) {
-              _logger.warning(
-                'Failed to read FES config from .dart_tool/build/fes_manager_config',
-                e,
-              );
+            final port = await readFesPort();
+            if (port != null) {
+              cachedFesPort = port;
+              return await sendRequestToFes(port, request);
             }
             return {
               'result':
