@@ -1,10 +1,12 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:convert';
 
 import 'package:async/async.dart';
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 /// A provider of metadata in which data is collected through DDC outputs.
@@ -160,7 +162,39 @@ class MetadataProvider {
   /// Compute metadata information after reading the metadata contents and
   /// return a map from module names to their [ModuleMetadata].
   Future<Map<String, ModuleMetadata>> _processMetadata() async {
-    return _assetReader.loadMetadata(entrypoint);
+    final modules = <String, ModuleMetadata>{};
+    final logger = Logger('MetadataProvider');
+    final assetScheme = _assetReader.assetScheme;
+    final bootstrapSuffix = assetScheme.bootstrapSuffix;
+
+    if (entrypoint.endsWith(bootstrapSuffix)) {
+      logger.info('Loading debug metadata...');
+      final serverPath = entrypoint.replaceAll(
+        bootstrapSuffix,
+        assetScheme.mergedMetadataSuffix,
+      );
+      final merged = await _assetReader.metadataContents(serverPath);
+      if (merged != null) {
+        for (final contents in merged.split('\n')) {
+          try {
+            if (contents.isEmpty ||
+                contents.startsWith('// intentionally empty:')) {
+              continue;
+            }
+            final moduleJson = json.decode(contents);
+            final metadata = ModuleMetadata.fromJson(
+              moduleJson as Map<String, dynamic>,
+            );
+            final moduleName = metadata.name;
+            modules[moduleName] = metadata;
+            logger.fine('Loaded debug metadata for module: $moduleName');
+          } catch (e) {
+            logger.warning('Failed to parse metadata: $e');
+          }
+        }
+      }
+    }
+    return modules;
   }
 
   /// Process all metadata, including SDK metadata, and compute caches once.

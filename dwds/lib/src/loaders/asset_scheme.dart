@@ -51,7 +51,7 @@ class BuildRunnerAssetScheme implements AssetScheme {
   String get summaryDillSuffix => '.ddc.dill';
 
   @override
-  String get bootstrapSuffix => '.dart.bootstrap.js';
+  String get bootstrapSuffix => '.bootstrap.js';
 
   @override
   String get mergedMetadataSuffix => '.ddc_merged_metadata';
