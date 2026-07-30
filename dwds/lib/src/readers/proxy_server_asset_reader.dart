@@ -44,13 +44,13 @@ class ProxyServerAssetReader extends AssetReader {
     return ProxyServerAssetReader._(
       handler,
       client,
-      assetScheme ?? BuildRunnerAssetScheme(),
+      assetScheme ?? const BuildRunnerAssetScheme(),
     );
   }
 
   ProxyServerAssetReader.fromHandler(this._handler, {AssetScheme? assetScheme})
     : _client = null,
-      _assetScheme = assetScheme ?? BuildRunnerAssetScheme();
+      _assetScheme = assetScheme ?? const BuildRunnerAssetScheme();
 
   @override
   String get basePath => '';

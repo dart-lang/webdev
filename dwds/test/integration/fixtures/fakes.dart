@@ -218,7 +218,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
           (MetadataProvider _) async => <String, ModuleInfo>{},
           FakeAssetReader(),
           buildSettings,
-          BuildRunnerAssetScheme(),
+          const BuildRunnerAssetScheme(),
         ),
       ),
     );
@@ -358,7 +358,7 @@ class FakeStrategy extends LoadStrategy {
            );
 
   @override
-  AssetScheme get assetScheme => BuildRunnerAssetScheme();
+  AssetScheme get assetScheme => const BuildRunnerAssetScheme();
 
   @override
   Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
@@ -438,7 +438,7 @@ class FakeAssetReader extends AssetReader {
     this.dartSource,
     this.sourceMap,
     AssetScheme? assetScheme,
-  }) : _assetScheme = assetScheme ?? FrontendServerAssetScheme();
+  }) : _assetScheme = assetScheme ?? const FrontendServerAssetScheme();
 
   @override
   String get basePath => '';

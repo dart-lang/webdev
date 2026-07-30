@@ -49,7 +49,7 @@ class FrontendServerAssetReader extends AssetReader {
     PathResolver? pathResolver,
   }) : _packageRoot = packageRoot,
        _basePath = basePath ?? '',
-       _assetScheme = assetScheme ?? FrontendServerAssetScheme(),
+       _assetScheme = assetScheme ?? const FrontendServerAssetScheme(),
        _pathResolver = pathResolver ?? FrontendServerPathResolver(),
        _mapOriginal = File('$outputPath.map'),
        _mapIncremental = File('$outputPath.incremental.map'),

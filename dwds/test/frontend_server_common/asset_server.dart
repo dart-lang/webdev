@@ -48,7 +48,7 @@ class TestAssetServer extends AssetReader {
     this._fileSystem,
     this._sdkLayout, {
     AssetScheme? assetScheme,
-  }) : _assetScheme = assetScheme ?? FrontendServerAssetScheme() {
+  }) : _assetScheme = assetScheme ?? const FrontendServerAssetScheme() {
     _basePath = _parseBasePathFromIndexHtml(index);
   }
 
