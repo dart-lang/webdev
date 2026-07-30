@@ -59,14 +59,45 @@ abstract class PathResolver {
   bool get useDebuggerModuleNames;
 }
 
-class FrontendServerPathResolver implements PathResolver {
-  final _logger = Logger('FrontendServerPathResolver');
+abstract class PathResolverBase implements PathResolver {
+  final Logger _logger;
   @override
   final PackageConfig? packageConfig;
   @override
   final bool useDebuggerModuleNames;
   final String? packageRoot;
 
+  PathResolverBase({
+    this.packageConfig,
+    this.useDebuggerModuleNames = false,
+    this.packageRoot,
+    required String loggerName,
+  }) : _logger = Logger(loggerName);
+
+  @override
+  Uri? serverPathToResolvedUri(String serverPath) {
+    serverPath = stripLeadingSlashes(serverPath).replaceAll('\\', '/');
+    final segments = serverPath.split('/');
+    if (segments.first == 'packages') {
+      final config = packageConfig;
+      if (config == null) {
+        _logger.severe('Cannot resolve packages without packageConfig');
+        return null;
+      }
+      final packagePath = serverPathToAppUri(serverPath);
+      if (packagePath == null) return null;
+      return config.resolve(Uri.parse(packagePath));
+    } else if (packageRoot != null) {
+      return Uri.file(p.join(packageRoot!, serverPath));
+    }
+    _logger.severe(
+      'Cannot resolve path without packages/ prefix or packageRoot: $serverPath',
+    );
+    return null;
+  }
+}
+
+class FrontendServerPathResolver extends PathResolverBase {
   static Future<FrontendServerPathResolver> create(
     FileSystem fileSystem,
     Uri packageConfigFile, {
@@ -82,10 +113,10 @@ class FrontendServerPathResolver implements PathResolver {
   }
 
   FrontendServerPathResolver({
-    this.packageConfig,
-    this.useDebuggerModuleNames = false,
-    this.packageRoot,
-  });
+    super.packageConfig,
+    super.useDebuggerModuleNames = false,
+    super.packageRoot,
+  }) : super(loggerName: 'FrontendServerPathResolver');
 
   @override
   String? appUriToServerPath(String appUrl, {bool? useDebuggerModuleNames}) {
@@ -128,41 +159,11 @@ class FrontendServerPathResolver implements PathResolver {
     // web/main.dart -> web/main.dart
     serverPath = stripLeadingSlashes(serverPath).replaceAll('\\', '/');
     if (!serverPath.startsWith('packages/')) return serverPath;
-    final pathWithoutLib = WebPathTranslator.removeLibSegment(serverPath);
-    return pathWithoutLib.replaceFirst('packages/', 'package:');
-  }
-
-  @override
-  Uri? serverPathToResolvedUri(String serverPath) {
-    serverPath = stripLeadingSlashes(serverPath).replaceAll('\\', '/');
-    final segments = serverPath.split('/');
-    if (segments.first == 'packages') {
-      final config = packageConfig;
-      if (config == null) {
-        _logger.severe('Cannot resolve packages without packageConfig');
-        return null;
-      }
-      final packagePath = serverPathToAppUri(serverPath);
-      if (packagePath == null) return null;
-      return config.resolve(Uri.parse(packagePath));
-    } else if (packageRoot != null) {
-      return Uri.file(p.join(packageRoot!, serverPath));
-    }
-    _logger.severe(
-      'Cannot resolve path without packages/ prefix or packageRoot: $serverPath',
-    );
-    return null;
+    return WebPathTranslator.packagePathToPackageUri(serverPath);
   }
 }
 
-class BuildRunnerPathResolver implements PathResolver {
-  final _logger = Logger('BuildRunnerPathResolver');
-  @override
-  final PackageConfig? packageConfig;
-  @override
-  final bool useDebuggerModuleNames;
-  final String? packageRoot;
-
+class BuildRunnerPathResolver extends PathResolverBase {
   static Future<BuildRunnerPathResolver> create(
     FileSystem fileSystem,
     Uri packageConfigFile, {
@@ -178,10 +179,10 @@ class BuildRunnerPathResolver implements PathResolver {
   }
 
   BuildRunnerPathResolver({
-    this.packageConfig,
-    this.useDebuggerModuleNames = false,
-    this.packageRoot,
-  });
+    super.packageConfig,
+    super.useDebuggerModuleNames = false,
+    super.packageRoot,
+  }) : super(loggerName: 'BuildRunnerPathResolver');
 
   @override
   String? appUriToServerPath(String appUrl, {bool? useDebuggerModuleNames}) {
@@ -230,43 +231,14 @@ class BuildRunnerPathResolver implements PathResolver {
     if (!serverPath.startsWith('packages/')) return serverPath;
     return serverPath.replaceFirst('packages/', 'package:');
   }
-
-  @override
-  Uri? serverPathToResolvedUri(String serverPath) {
-    serverPath = stripLeadingSlashes(serverPath).replaceAll('\\', '/');
-    final segments = serverPath.split('/');
-    if (segments.first == 'packages') {
-      final config = packageConfig;
-      if (config == null) {
-        _logger.severe('Cannot resolve packages without packageConfig');
-        return null;
-      }
-      final packagePath = serverPathToAppUri(serverPath);
-      if (packagePath == null) return null;
-      return config.resolve(Uri.parse(packagePath));
-    } else if (packageRoot != null) {
-      return Uri.file(p.join(packageRoot!, serverPath));
-    }
-    _logger.severe(
-      'Cannot resolve path without packages/ prefix or packageRoot: $serverPath',
-    );
-    return null;
-  }
 }
 
-class FlutterPathResolver implements PathResolver {
-  final _logger = Logger('FlutterPathResolver');
-  @override
-  final PackageConfig? packageConfig;
-  @override
-  final bool useDebuggerModuleNames;
-  final String? packageRoot;
-
+class FlutterPathResolver extends PathResolverBase {
   FlutterPathResolver({
-    this.packageConfig,
-    this.useDebuggerModuleNames = false,
-    this.packageRoot,
-  });
+    super.packageConfig,
+    super.useDebuggerModuleNames = false,
+    super.packageRoot,
+  }) : super(loggerName: 'FlutterPathResolver');
 
   @override
   String? appUriToServerPath(String appUrl, {bool? useDebuggerModuleNames}) {
@@ -304,29 +276,6 @@ class FlutterPathResolver implements PathResolver {
     // web/main.dart -> web/main.dart
     serverPath = stripLeadingSlashes(serverPath).replaceAll('\\', '/');
     if (!serverPath.startsWith('packages/')) return serverPath;
-    final pathWithoutLib = WebPathTranslator.removeLibSegment(serverPath);
-    return pathWithoutLib.replaceFirst('packages/', 'package:');
-  }
-
-  @override
-  Uri? serverPathToResolvedUri(String serverPath) {
-    serverPath = stripLeadingSlashes(serverPath).replaceAll('\\', '/');
-    final segments = serverPath.split('/');
-    if (segments.first == 'packages') {
-      final config = packageConfig;
-      if (config == null) {
-        _logger.severe('Cannot resolve packages without packageConfig');
-        return null;
-      }
-      final packagePath = serverPathToAppUri(serverPath);
-      if (packagePath == null) return null;
-      return config.resolve(Uri.parse(packagePath));
-    } else if (packageRoot != null) {
-      return Uri.file(p.join(packageRoot!, serverPath));
-    }
-    _logger.severe(
-      'Cannot resolve path without packages/ prefix or packageRoot: $serverPath',
-    );
-    return null;
+    return WebPathTranslator.packagePathToPackageUri(serverPath);
   }
 }

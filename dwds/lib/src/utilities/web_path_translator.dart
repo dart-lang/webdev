@@ -2,9 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'package:dwds/src/loaders/asset_scheme.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 
 /// Translates paths across DDC, Frontend Server, DWDS, and package:build.
 class WebPathTranslator {
+  static const _fesScheme = FrontendServerAssetScheme();
+  static const _buildRunnerScheme = BuildRunnerAssetScheme();
+
   static String _modifyLibSegment(String serverPath, {required bool add}) {
     serverPath = serverPath.replaceAll('\\', '/');
     if (!serverPath.startsWith('packages/')) return serverPath;
@@ -23,13 +27,13 @@ class WebPathTranslator {
 
   /// Adds 'lib' to a package path.
   ///
-  /// Example: packages/foo/bar.dart -> packages/foo/lib/bar.dart
+  /// Example: `packages/foo/bar.dart` -> `packages/foo/lib/bar.dart`
   static String addLibSegment(String serverPath) =>
       _modifyLibSegment(serverPath, add: true);
 
   /// Removes 'lib' from a package path.
   ///
-  /// Example: packages/foo/lib/bar.dart -> packages/foo/bar.dart
+  /// Example: `packages/foo/lib/bar.dart` -> `packages/foo/bar.dart`
   static String removeLibSegment(String serverPath) =>
       _modifyLibSegment(serverPath, add: false);
 
@@ -54,10 +58,63 @@ class WebPathTranslator {
     return uri;
   }
 
-  /// Maps module extensions between layouts.
+  /// Converts a `packages/` server path to a `package:` URI string.
   ///
-  /// For example, from [FrontendServerAssetScheme] to
-  /// [BuildRunnerAssetScheme]:
+  /// Examples:
+  ///   `packages/foo/lib/bar.dart` -> `package:foo/bar.dart`
+  ///   `packages/foo/bar.dart` -> `package:foo/bar.dart`
+  static String? packagePathToPackageUri(String path) {
+    if (!path.startsWith('packages/')) return null;
+    final pathWithoutLib = removeLibSegment(path);
+    return 'package:${pathWithoutLib.substring('packages/'.length)}';
+  }
+
+  /// Canonicalizes a `packages/` server path using the provided [LoadStrategy].
+  ///
+  /// Converts `packages/foo/lib/bar.dart` or `packages/foo/bar.dart` to the
+  /// load strategy's canonical server path. Otherwise returns [path].
+  static String canonicalizePackagePath(
+    String path,
+    LoadStrategy loadStrategy,
+  ) {
+    if (!path.startsWith('packages/')) return path;
+    final packageUri = packagePathToPackageUri(path);
+    if (packageUri != null) {
+      final canonicalPath = loadStrategy.serverPathForAppUri(packageUri);
+      if (canonicalPath != null) {
+        var result = canonicalPath;
+        while (result.startsWith('/')) {
+          result = result.substring(1);
+        }
+        return result;
+      }
+    }
+    return path;
+  }
+
+  /// Translates package paths between layouts based on asset schemes.
+  ///
+  /// For example, from [FrontendServerAssetScheme] to [BuildRunnerAssetScheme]:
+  ///   `packages/foo/lib/bar.dart` -> `packages/foo/bar.dart`
+  /// From [BuildRunnerAssetScheme] to [FrontendServerAssetScheme]:
+  ///   `packages/foo/bar.dart` -> `packages/foo/lib/bar.dart`
+  static String translatePackagePath(
+    String path, {
+    required AssetScheme from,
+    required AssetScheme to,
+  }) {
+    if (from is FrontendServerAssetScheme && to is BuildRunnerAssetScheme) {
+      return removeLibSegment(path);
+    }
+    if (from is BuildRunnerAssetScheme && to is FrontendServerAssetScheme) {
+      return addLibSegment(path);
+    }
+    return path;
+  }
+
+  /// Maps module extensions between layouts based on asset schemes.
+  ///
+  /// For example, from [FrontendServerAssetScheme] to [BuildRunnerAssetScheme]:
   ///   `main.dart.lib` -> `main.ddc`
   ///   `main.dart.lib.js` -> `main.ddc.js`
   static String translateModuleExtension(
@@ -69,12 +126,35 @@ class WebPathTranslator {
     return path.replaceAll(from.descriptorSuffix, to.descriptorSuffix);
   }
 
-  /// Maps '.dart.lib' (FES suffix) to '.ddc' (package:build suffix).
+  /// Maps a Frontend Server suffix ('.dart.lib') to a package:build ('.ddc')
+  /// suffix.
   static String translateFesToBuildRunnerPath(String path) {
-    return translateModuleExtension(
+    final withoutLib = translatePackagePath(
       path,
-      from: FrontendServerAssetScheme(),
-      to: BuildRunnerAssetScheme(),
+      from: _fesScheme,
+      to: _buildRunnerScheme,
+    );
+    return translateModuleExtension(
+      withoutLib,
+      from: _fesScheme,
+      to: _buildRunnerScheme,
+    );
+  }
+
+  /// Maps a package:build (build_runner) path to a Frontend Server path.
+  ///
+  /// Adds 'lib/' to package paths and replaces Build Runner suffixes with
+  /// Frontend Server suffixes (e.g. '.ddc' -> '.dart.lib').
+  static String translateBuildRunnerToFesPath(String path) {
+    final withLib = translatePackagePath(
+      path,
+      from: _buildRunnerScheme,
+      to: _fesScheme,
+    );
+    return translateModuleExtension(
+      withLib,
+      from: _buildRunnerScheme,
+      to: _fesScheme,
     );
   }
 

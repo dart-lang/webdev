@@ -320,111 +320,28 @@ class WebDevServer {
             !options.configuration.release) {
           // Use the daemon expression compiler when web hot reload is enabled
           // to reuse the Frontend Server's in-memory state.
-          Future<int?> readFesPort() async {
-            try {
-              final file = File(
-                p.join('.dart_tool', 'build', 'fes_manager_config'),
-              );
-              if (await file.exists()) {
-                final content = await file.readAsString();
-                final json = jsonDecode(content) as Map<String, dynamic>;
-                return json['port'] as int?;
-              }
-            } catch (e) {
-              _logger.warning('Failed to read FES config', e);
-            }
-            return null;
-          }
-
-          var cachedFesPort = await readFesPort();
+          var cachedFesPort = await _readFesPort();
           // Pre-initialize the Frontend Server if a port and canonical URI
           // are found. Required for cached builds.
           if (cachedFesPort != null && canonicalUri != null) {
             _logger.info(
               'Early initializing Frontend Server with $canonicalUri',
             );
-            Socket? socket;
             try {
-              socket = await Socket.connect(
-                InternetAddress.loopbackIPv4,
-                cachedFesPort,
-              );
-              socket.writeln(
-                jsonEncode({
-                  'instruction': 'COMPILE',
-                  'entrypoint': canonicalUri,
-                }),
-              );
-              await socket.flush();
-              final responseStr = await socket
-                  .cast<List<int>>()
-                  .transform(utf8.decoder)
-                  .transform(const LineSplitter())
-                  .first;
+              final responseStr = await _sendFesRawRequest(cachedFesPort, {
+                'instruction': 'COMPILE',
+                'entrypoint': canonicalUri,
+              });
               _logger.fine('Early initialization response: $responseStr');
             } catch (e) {
               _logger.warning('Failed to early initialize FES', e);
-            } finally {
-              await socket?.close();
-            }
-          }
-
-          Future<Map<String, dynamic>> sendRequestToFes(
-            int port,
-            Map<String, dynamic> request,
-          ) async {
-            final socket = await Socket.connect(
-              InternetAddress.loopbackIPv4,
-              port,
-            );
-            try {
-              socket.writeln(jsonEncode(request));
-              final responseStr = await socket
-                  .cast<List<int>>()
-                  .transform(utf8.decoder)
-                  .transform(const LineSplitter())
-                  .first;
-              final compileResult = jsonDecode(responseStr);
-
-              if (compileResult is! Map) {
-                return {
-                  'result':
-                      'Unexpected response format from FES. '
-                      'Expected a Map but got: $compileResult',
-                  'isError': true,
-                };
-              }
-
-              final error = compileResult['error'] as String?;
-              final errorCount = compileResult['errorCount'] as int?;
-              final errorMessage = compileResult['errorMessage'] as String?;
-              if (error != null || (errorCount != null && errorCount > 0)) {
-                return {
-                  'result':
-                      'FES error: ${error ?? errorMessage ?? 'Unknown error'}',
-                  'isError': true,
-                };
-              }
-
-              final expressionData = compileResult['expressionData'] as String?;
-              if (expressionData == null) {
-                return {
-                  'result': 'Missing expressionData in FES compile result',
-                  'isError': true,
-                };
-              }
-
-              final decodedResult = utf8.decode(base64.decode(expressionData));
-              return {'result': decodedResult, 'isError': false};
-            } finally {
-              await socket.close();
             }
           }
 
           ddcService = DaemonExpressionCompiler((request) async {
             if (cachedFesPort != null) {
               try {
-                return await sendRequestToFes(cachedFesPort!, request);
+                return await _sendRequestToFes(cachedFesPort!, request);
               } catch (e) {
                 _logger.warning(
                   'Failed to connect to FES at $cachedFesPort, re-reading config file',
@@ -434,10 +351,10 @@ class WebDevServer {
               }
             }
 
-            final port = await readFesPort();
+            final port = await _readFesPort();
             if (port != null) {
               cachedFesPort = port;
-              return await sendRequestToFes(port, request);
+              return await _sendRequestToFes(port, request);
             }
             return {
               'result':
@@ -599,4 +516,73 @@ String ddcUriToLibraryId(Uri uri) {
     jsPath.length - jsLibraryBundleExtension.length,
   );
   return '$prefix.dart';
+}
+
+Future<int?> _readFesPort() async {
+  try {
+    final file = File(p.join('.dart_tool', 'build', 'fes_manager_config'));
+    if (await file.exists()) {
+      final content = await file.readAsString();
+      final json = jsonDecode(content) as Map<String, dynamic>;
+      return json['port'] as int?;
+    }
+  } catch (e) {
+    _logger.warning('Failed to read FES config', e);
+  }
+  return null;
+}
+
+Future<dynamic> _sendFesRawRequest(
+  int port,
+  Map<String, dynamic> request,
+) async {
+  final socket = await Socket.connect(InternetAddress.loopbackIPv4, port);
+  try {
+    socket.writeln(jsonEncode(request));
+    await socket.flush();
+    final responseStr = await socket
+        .cast<List<int>>()
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .first;
+    return jsonDecode(responseStr);
+  } finally {
+    await socket.close();
+  }
+}
+
+Future<Map<String, dynamic>> _sendRequestToFes(
+  int port,
+  Map<String, dynamic> request,
+) async {
+  final compileResult = await _sendFesRawRequest(port, request);
+  if (compileResult is! Map) {
+    return {
+      'result':
+          'Unexpected response format from FES. '
+          'Expected a Map but got: $compileResult',
+      'isError': true,
+    };
+  }
+
+  final error = compileResult['error'] as String?;
+  final errorCount = compileResult['errorCount'] as int?;
+  final errorMessage = compileResult['errorMessage'] as String?;
+  if (error != null || (errorCount != null && errorCount > 0)) {
+    return {
+      'result': 'FES error: ${error ?? errorMessage ?? 'Unknown error'}',
+      'isError': true,
+    };
+  }
+
+  final expressionData = compileResult['expressionData'] as String?;
+  if (expressionData == null) {
+    return {
+      'result': 'Missing expressionData in FES compile result',
+      'isError': true,
+    };
+  }
+
+  final decodedResult = utf8.decode(base64.decode(expressionData));
+  return {'result': decodedResult, 'isError': false};
 }

@@ -96,31 +96,86 @@ class DartUri {
   /// [root] is the directory the app is served from (such as 'web') and is used
   /// to translate served URI paths to their on-disk paths.
   factory DartUri._fromRelativePath(String uri, {String? root}) {
+    uri = _normalizeUri(uri);
+    // Strip the root from [uri].
+    final basePath = _stripRoot(uri, root);
+    // Normalize package paths.
+    final normalizedPath = _normalizePackagePath(basePath);
+    // Re-attach root if needed.
+    final finalPath = _ensureRoot(normalizedPath, root);
+    return DartUri._(finalPath);
+  }
+
+  /// Normalizes [uri] by converting backslashes and stripping leading
+  /// dots/slashes.
+  ///
+  /// Examples:
+  /// - `web\main.dart` -> `web/main.dart`
+  /// - `./web/main.dart` -> `web/main.dart`
+  /// - `/web/main.dart` -> `web/main.dart`
+  static String _normalizeUri(String uri) {
     uri = uri.replaceAll('\\', '/');
     if (uri.startsWith('.')) uri = uri.substring(1);
     if (uri.startsWith('/')) uri = uri.substring(1);
-    // Strip the [root] if provided. For example, with '/abc' as root:
-    // abc/packages/foo/bar.dart -> DartUri('packages/foo/bar.dart', '/abc')
-    if (root != null && root.isNotEmpty) {
-      root = root.replaceAll('\\', '/');
-      final cleanRoot = stripLeadingSlashes(root);
-      if (cleanRoot.isNotEmpty) {
-        final rootPrefix = cleanRoot.endsWith('/') ? cleanRoot : '$cleanRoot/';
-        if (uri.startsWith(rootPrefix)) {
-          final stripped = uri.substring(rootPrefix.length);
-          return DartUri(stripped, root);
-        }
-      }
-    }
+    return uri;
+  }
 
+  /// Strips the [root] prefix from the URI if it is present.
+  ///
+  /// Examples:
+  /// - `web/packages/foo.dart` (root: `web`) -> `packages/foo.dart`
+  /// - `packages/foo.dart` (root: `web`) -> `packages/foo.dart`
+  /// - `web/packages/foo.dart` (root: `/web`) -> `packages/foo.dart`
+  static String _stripRoot(String uri, String? root) {
+    if (root == null || root.isEmpty) return uri;
+    final cleanRoot = _getCleanRootPrefix(root);
+    if (cleanRoot.isEmpty) return uri;
+    return uri.startsWith(cleanRoot) ? uri.substring(cleanRoot.length) : uri;
+  }
+
+  /// Ensures the URI starts with [root] if provided.
+  ///
+  /// Examples:
+  /// - `packages/foo.dart` (root: `web`) -> `web/packages/foo.dart`
+  /// - `web/packages/foo.dart` (root: `web`) -> `web/packages/foo.dart`
+  /// - `packages/foo.dart` (root: `/web`) -> `/web/packages/foo.dart`
+  static String _ensureRoot(String uri, String? root) {
+    if (root == null || root.isEmpty) return uri;
+    final cleanRoot = _getCleanRootPrefix(root);
+    if (cleanRoot.isEmpty || !uri.startsWith(cleanRoot)) {
+      return p.url.join(root, uri);
+    }
+    return uri;
+  }
+
+  /// Cleans up and formats [root].
+  ///
+  /// Examples:
+  /// - `web` -> `web/`
+  /// - `/web` -> `web/`
+  /// - `web/` -> `web/`
+  /// - `/` -> ``
+  static String _getCleanRootPrefix(String root) {
+    final cleanRoot = stripLeadingSlashes(root.replaceAll('\\', '/'));
+    if (cleanRoot.isEmpty) return '';
+    return cleanRoot.endsWith('/') ? cleanRoot : '$cleanRoot/';
+  }
+
+  /// Normalizes package paths, considering project names and 'lib' segments.
+  ///
+  /// Examples:
+  /// - `lib/main.dart` -> `packages/my_app/main.dart`
+  /// - `packages/foo/bar.dart` -> `packages/foo/lib/bar.dart` (FrontendServer)
+  /// - `packages/foo/lib/bar.dart` -> `packages/foo/bar.dart` (BuildRunner)
+  static String _normalizePackagePath(String uri) {
     uri = WebPathTranslator.translateLibPathToPackagePath(
       uri,
       globalToolConfiguration.appMetadata.workspaceName,
     );
-    if (root != null) {
-      uri = p.url.join(root, uri);
-    }
-    return DartUri._(uri);
+    return WebPathTranslator.canonicalizePackagePath(
+      uri,
+      globalToolConfiguration.loadStrategy,
+    );
   }
 
   /// The canonical web server path part of the URI.

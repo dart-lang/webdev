@@ -35,6 +35,8 @@ abstract class AssetScheme {
 
 /// Asset scheme for package:build assets.
 class BuildRunnerAssetScheme implements AssetScheme {
+  const BuildRunnerAssetScheme();
+
   @override
   String get jsSuffix => '.ddc.js';
 
@@ -59,6 +61,8 @@ class BuildRunnerAssetScheme implements AssetScheme {
 
 /// Asset scheme for Frontend Server assets.
 class FrontendServerAssetScheme implements AssetScheme {
+  const FrontendServerAssetScheme();
+
   @override
   String get jsSuffix => '.dart.lib.js';
 

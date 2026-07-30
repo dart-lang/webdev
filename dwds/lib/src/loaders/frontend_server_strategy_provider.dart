@@ -132,7 +132,7 @@ class FrontendServerDdcStrategyProvider
   });
 
   @override
-  AssetScheme get assetScheme => FrontendServerAssetScheme();
+  AssetScheme get assetScheme => const FrontendServerAssetScheme();
 
   @override
   DdcStrategy get strategy => _ddcStrategy;
@@ -183,7 +183,7 @@ class FrontendServerDdcLibraryBundleStrategyProvider
   }
 
   @override
-  AssetScheme get assetScheme => FrontendServerAssetScheme();
+  AssetScheme get assetScheme => const FrontendServerAssetScheme();
 
   @override
   DdcLibraryBundleStrategy get strategy => _libraryBundleStrategy;
@@ -231,7 +231,7 @@ class FrontendServerBuildDaemonStrategyProvider
   }
 
   @override
-  AssetScheme get assetScheme => BuildRunnerAssetScheme();
+  AssetScheme get assetScheme => const BuildRunnerAssetScheme();
 
   @override
   DdcLibraryBundleStrategy get strategy => _libraryBundleStrategy;
@@ -275,26 +275,29 @@ class FrontendServerBuildDaemonStrategyProvider
     MetadataProvider metadataProvider,
     String serverPath,
   ) async {
-    final remappedPath = WebPathTranslator.translateModuleExtension(
+    // Try looking up with the build runner path.
+    var module = await super._moduleForServerPath(metadataProvider, serverPath);
+    if (module != null) return module;
+    final remappedPath = WebPathTranslator.translateBuildRunnerToFesPath(
       serverPath,
-      from: BuildRunnerAssetScheme(),
-      to: FrontendServerAssetScheme(),
     );
-    final module = await super._moduleForServerPath(
-      metadataProvider,
-      remappedPath,
-    );
+    module = await super._moduleForServerPath(metadataProvider, remappedPath);
     if (module != null) return module;
 
-    // Strip the top-level served directory prefix (e.g. 'web/') from root
-    // modules to match the served path. Package dependencies ('packages/')
-    // are not modified.
+    // Look up root modules with directory prefixes (e.g. 'web/' or 'example/').
+    // Package dependencies ('packages/') are matched above.
     final modulePathToModule = await metadataProvider.modulePathToModule;
-    for (final entry in modulePathToModule.entries) {
-      final strippedKey = _stripPrefix(entry.key);
-      if (strippedKey == serverPath || strippedKey == remappedPath) {
-        return entry.value;
-      }
+    final appUri = _buildSettings.appEntrypoint;
+    final validPrefixes = [
+      if (appUri != null && appUri.pathSegments.isNotEmpty)
+        appUri.pathSegments.first,
+      ...WebPathTranslator.defaultWebDirs,
+    ];
+    for (final prefix in validPrefixes) {
+      final match =
+          modulePathToModule['$prefix/$remappedPath'] ??
+          modulePathToModule['$prefix/$serverPath'];
+      if (match != null) return match;
     }
     return null;
   }
@@ -380,7 +383,7 @@ class FrontendServerRequireStrategyProvider
        );
 
   @override
-  AssetScheme get assetScheme => FrontendServerAssetScheme();
+  AssetScheme get assetScheme => const FrontendServerAssetScheme();
 
   @override
   RequireStrategy get strategy => _requireStrategy;

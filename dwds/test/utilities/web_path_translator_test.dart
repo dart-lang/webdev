@@ -6,6 +6,9 @@ import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:test/test.dart';
 
+const fesAssetScheme = FrontendServerAssetScheme();
+const buildAssetScheme = BuildRunnerAssetScheme();
+
 void main() {
   group('WebPathTranslator', () {
     group('addLibSegment', () {
@@ -56,6 +59,31 @@ void main() {
         expect(
           WebPathTranslator.removeLibSegment('web/main.dart'),
           'web/main.dart',
+        );
+      });
+    });
+
+    group('packagePathToPackageUri', () {
+      test('converts packages/ paths with lib to package: URIs', () {
+        expect(
+          WebPathTranslator.packagePathToPackageUri(
+            'packages/foo/lib/bar.dart',
+          ),
+          'package:foo/bar.dart',
+        );
+      });
+
+      test('converts packages/ paths without lib to package: URIs', () {
+        expect(
+          WebPathTranslator.packagePathToPackageUri('packages/foo/bar.dart'),
+          'package:foo/bar.dart',
+        );
+      });
+
+      test('returns null for non-package paths', () {
+        expect(
+          WebPathTranslator.packagePathToPackageUri('web/main.dart'),
+          isNull,
         );
       });
     });
@@ -117,6 +145,41 @@ void main() {
       );
     });
 
+    group('translatePackagePath', () {
+      test('removes lib/ segment when translating FES to BuildRunner', () {
+        expect(
+          WebPathTranslator.translatePackagePath(
+            'packages/foo/lib/bar.dart',
+            from: fesAssetScheme,
+            to: buildAssetScheme,
+          ),
+          'packages/foo/bar.dart',
+        );
+      });
+
+      test('adds lib/ segment when translating BuildRunner to FES', () {
+        expect(
+          WebPathTranslator.translatePackagePath(
+            'packages/foo/bar.dart',
+            from: buildAssetScheme,
+            to: fesAssetScheme,
+          ),
+          'packages/foo/lib/bar.dart',
+        );
+      });
+
+      test('is no-op when schemes are identical', () {
+        expect(
+          WebPathTranslator.translatePackagePath(
+            'packages/foo/lib/bar.dart',
+            from: fesAssetScheme,
+            to: fesAssetScheme,
+          ),
+          'packages/foo/lib/bar.dart',
+        );
+      });
+    });
+
     group('translateModuleExtension', () {
       test(
         'translates .dart.lib to .ddc (frontendServerOnly to buildRunner)',
@@ -125,8 +188,8 @@ void main() {
           expect(
             WebPathTranslator.translateModuleExtension(
               'main.dart.lib',
-              from: FrontendServerAssetScheme(),
-              to: BuildRunnerAssetScheme(),
+              from: fesAssetScheme,
+              to: buildAssetScheme,
             ),
             'main.ddc',
           );
@@ -134,8 +197,8 @@ void main() {
           expect(
             WebPathTranslator.translateModuleExtension(
               'main.dart.lib.js',
-              from: FrontendServerAssetScheme(),
-              to: BuildRunnerAssetScheme(),
+              from: fesAssetScheme,
+              to: buildAssetScheme,
             ),
             'main.ddc.js',
           );
@@ -149,8 +212,8 @@ void main() {
           expect(
             WebPathTranslator.translateModuleExtension(
               'main.ddc',
-              from: BuildRunnerAssetScheme(),
-              to: FrontendServerAssetScheme(),
+              from: buildAssetScheme,
+              to: fesAssetScheme,
             ),
             'main.dart.lib',
           );
@@ -158,8 +221,8 @@ void main() {
           expect(
             WebPathTranslator.translateModuleExtension(
               'main.ddc.js',
-              from: BuildRunnerAssetScheme(),
-              to: FrontendServerAssetScheme(),
+              from: buildAssetScheme,
+              to: fesAssetScheme,
             ),
             'main.dart.lib.js',
           );
@@ -171,8 +234,8 @@ void main() {
         expect(
           WebPathTranslator.translateModuleExtension(
             'main.dart.lib',
-            from: FrontendServerAssetScheme(),
-            to: FrontendServerAssetScheme(),
+            from: fesAssetScheme,
+            to: fesAssetScheme,
           ),
           'main.dart.lib',
         );
