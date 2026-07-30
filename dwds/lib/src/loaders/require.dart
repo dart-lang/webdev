@@ -142,7 +142,6 @@ class RequireStrategy extends LoadStrategy {
     this._buildSettings,
     this.assetScheme, {
     super.packageConfigPath,
-    super.metadataLoader,
   }) : super(assetReader);
 
   @override

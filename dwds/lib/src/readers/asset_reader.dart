@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
+import 'package:dwds/src/debugging/metadata/module_metadata.dart';
+import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:file/file.dart';
@@ -24,20 +28,58 @@ abstract class AssetReader {
   /// ```
   String get basePath;
 
-  /// Returns the contents for a source map at the provided server path, or
-  /// null if the resource does not exist.
-  Future<String?> sourceMapContents(String serverPath);
+  /// The asset scheme used by this reader.
+  AssetScheme get assetScheme;
 
-  /// Returns the contents for a dart source at the provided server path, or
-  /// null if the resource does not exist.
+  /// Returns the contents of a Dart source file.
   Future<String?> dartSourceContents(String serverPath);
 
-  /// Returns the contents for the merged metadata output at the provided path,
-  /// or null if the resource does not exist.
+  /// Returns the contents of a source map file.
+  Future<String?> sourceMapContents(String serverPath);
+
+  /// Returns the contents of a metadata file.
   Future<String?> metadataContents(String serverPath);
 
   /// Closes connections
   Future<void> close();
+
+  /// Loads debug metadata associated with the application [entrypoint].
+  ///
+  /// Returns a map of module names to their corresponding [ModuleMetadata].
+  Future<Map<String, ModuleMetadata>> loadMetadata(String entrypoint) async {
+    final modules = <String, ModuleMetadata>{};
+    final logger = Logger('AssetReader');
+    // The merged metadata resides next to the entrypoint.
+    final bootstrapSuffix = assetScheme.bootstrapSuffix;
+    if (entrypoint.endsWith(bootstrapSuffix)) {
+      logger.info('Loading debug metadata...');
+      final serverPath = entrypoint.replaceAll(
+        bootstrapSuffix,
+        assetScheme.mergedMetadataSuffix,
+      );
+      final merged = await metadataContents(serverPath);
+      if (merged != null) {
+        for (final contents in merged.split('\n')) {
+          try {
+            if (contents.isEmpty ||
+                contents.startsWith('// intentionally empty:')) {
+              continue;
+            }
+            final moduleJson = json.decode(contents);
+            final metadata = ModuleMetadata.fromJson(
+              moduleJson as Map<String, dynamic>,
+            );
+            final moduleName = metadata.name;
+            modules[moduleName] = metadata;
+            logger.fine('Loaded debug metadata for module: $moduleName');
+          } catch (e) {
+            logger.warning('Failed to parse metadata: $e');
+          }
+        }
+      }
+    }
+    return modules;
+  }
 }
 
 abstract class PathResolver {

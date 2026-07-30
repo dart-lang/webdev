@@ -23,6 +23,14 @@ abstract class AssetScheme {
   /// File extension for summary dill files.
   /// (e.g., '.ddc.dill' or '.dart.lib.dill').
   String get summaryDillSuffix;
+
+  /// File extension for bootstrap files.
+  /// (e.g., '.bootstrap.js' or '.dart.bootstrap.js').
+  String get bootstrapSuffix;
+
+  /// File extension for merged metadata.
+  /// (e.g., '.ddc_merged_metadata').
+  String get mergedMetadataSuffix;
 }
 
 /// Asset scheme for package:build assets.
@@ -41,6 +49,12 @@ class BuildRunnerAssetScheme implements AssetScheme {
 
   @override
   String get summaryDillSuffix => '.ddc.dill';
+
+  @override
+  String get bootstrapSuffix => '.dart.bootstrap.js';
+
+  @override
+  String get mergedMetadataSuffix => '.ddc_merged_metadata';
 }
 
 /// Asset scheme for Frontend Server assets.
@@ -59,4 +73,10 @@ class FrontendServerAssetScheme implements AssetScheme {
 
   @override
   String get summaryDillSuffix => '.dart.lib.dill';
+
+  @override
+  String get bootstrapSuffix => '.bootstrap.js';
+
+  @override
+  String get mergedMetadataSuffix => '.ddc_merged_metadata';
 }

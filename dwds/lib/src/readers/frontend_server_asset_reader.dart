@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
@@ -12,7 +13,7 @@ import 'package:path/path.dart' as p;
 
 /// A reader for Dart sources and related source maps provided by the Frontend
 /// Server.
-class FrontendServerAssetReader implements AssetReader {
+class FrontendServerAssetReader extends AssetReader {
   final _logger = Logger('FrontendServerAssetReader');
   final File _mapOriginal;
   final File _mapIncremental;
@@ -21,6 +22,8 @@ class FrontendServerAssetReader implements AssetReader {
   final String _packageRoot;
   final Future<PackageConfig> _packageConfig;
   final String _basePath;
+  final AssetScheme _assetScheme;
+  final PathResolver _pathResolver;
 
   /// Map of Dart module server path to source map contents.
   final _mapContents = <String, String>{};
@@ -42,8 +45,12 @@ class FrontendServerAssetReader implements AssetReader {
     required String outputPath,
     required String packageRoot,
     String? basePath,
+    AssetScheme? assetScheme,
+    PathResolver? pathResolver,
   }) : _packageRoot = packageRoot,
        _basePath = basePath ?? '',
+       _assetScheme = assetScheme ?? FrontendServerAssetScheme(),
+       _pathResolver = pathResolver ?? FrontendServerPathResolver(),
        _mapOriginal = File('$outputPath.map'),
        _mapIncremental = File('$outputPath.incremental.map'),
        _jsonOriginal = File('$outputPath.json'),
@@ -58,26 +65,25 @@ class FrontendServerAssetReader implements AssetReader {
   String get basePath => _basePath;
 
   @override
+  AssetScheme get assetScheme => _assetScheme;
+
+  @override
   Future<String?> dartSourceContents(String serverPath) async {
     serverPath = serverPath.replaceAll('\\', '/');
-    if (serverPath.endsWith('.dart')) {
-      final packageConfig = await _packageConfig;
-      var strippedPath = _stripBasePath(serverPath);
-      Uri? fileUri;
-      if (strippedPath.startsWith('packages/')) {
-        final packagePath = FrontendServerPathResolver().serverPathToAppUri(
-          strippedPath,
-        );
-        if (packagePath != null) {
-          fileUri = packageConfig.resolve(Uri.parse(packagePath));
-        }
-      } else {
-        fileUri = p.toUri(p.join(_packageRoot, strippedPath));
+    final packageConfig = await _packageConfig;
+    var strippedPath = _stripBasePath(serverPath);
+    Uri? fileUri;
+    if (strippedPath.startsWith('packages/')) {
+      final packagePath = _pathResolver.serverPathToAppUri(strippedPath);
+      if (packagePath != null) {
+        fileUri = packageConfig.resolve(Uri.parse(packagePath));
       }
-      if (fileUri != null) {
-        final source = File(fileUri.toFilePath());
-        if (source.existsSync()) return source.readAsString();
-      }
+    } else {
+      fileUri = p.toUri(p.join(_packageRoot, strippedPath));
+    }
+    if (fileUri != null) {
+      final source = File(fileUri.toFilePath());
+      if (source.existsSync()) return source.readAsString();
     }
     _logger.severe('Cannot find source contents for $serverPath');
     return null;
@@ -86,17 +92,21 @@ class FrontendServerAssetReader implements AssetReader {
   @override
   Future<String?> sourceMapContents(String serverPath) async {
     serverPath = serverPath.replaceAll('\\', '/');
-    if (serverPath.endsWith('lib.js.map')) {
-      var strippedPath = _stripBasePath(serverPath);
-      if (!strippedPath.startsWith('/')) strippedPath = '/$strippedPath';
-      // Strip the .map, sources are looked up by their js path.
-      strippedPath = p.withoutExtension(strippedPath);
-      if (_mapContents.containsKey(strippedPath)) {
-        return _mapContents[strippedPath];
-      }
+    var strippedPath = _stripBasePath(serverPath);
+    if (!strippedPath.startsWith('/')) strippedPath = '/$strippedPath';
+    // Strip the .map, sources are looked up by their js path.
+    strippedPath = p.withoutExtension(strippedPath);
+    if (_mapContents.containsKey(strippedPath)) {
+      return _mapContents[strippedPath];
     }
     _logger.severe('Cannot find source map contents for $serverPath');
     return null;
+  }
+
+  @override
+  Future<String> metadataContents(String serverPath) {
+    // TODO(grouma) - Implement the merged metadata reader.
+    throw UnimplementedError();
   }
 
   /// Updates the internal caches by reading the Frontend Server output files.
@@ -127,12 +137,6 @@ class FrontendServerAssetReader implements AssetReader {
             .toList(),
       );
     }
-  }
-
-  @override
-  Future<String> metadataContents(String serverPath) {
-    // TODO(grouma) - Implement the merged metadata reader.
-    throw UnimplementedError();
   }
 
   /// Strips the [_basePath] prefix from the [serverPath].

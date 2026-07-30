@@ -515,20 +515,16 @@ class TestContext {
             if (testSettings.enableExpressionEvaluation) {
               _logger.info('Starting Frontend Server Manager');
               final sdkDir = p.dirname(p.dirname(sdkLayout.dartPath));
-              final buildDir = Directory(
-                p.join(project.absolutePackageDirectory, '.dart_tool', 'build'),
-              );
-              if (buildDir.existsSync()) {
-                buildDir.deleteSync(recursive: true);
-              }
               final testScratchSpaceDir = Directory(
                 p.join(
                   project.absolutePackageDirectory,
                   '.dart_tool',
-                  'build',
                   'test_scratch_space',
                 ),
               );
+              if (testScratchSpaceDir.existsSync()) {
+                testScratchSpaceDir.deleteSync(recursive: true);
+              }
               testScratchSpaceDir.createSync(recursive: true);
 
               // Build daemon requires a package config inside its scratch
@@ -568,10 +564,11 @@ class TestContext {
               }
               packagesFile.writeAsStringSync(jsonEncode(originalJson));
 
-              options.add(
-                '--define=build_web_compilers:ddc=scratch-space-dir='
-                '${testScratchSpaceDir.path}',
-              );
+              options.addAll([
+                '--define',
+                'build_web_compilers|ddc=scratch-space-dir='
+                    '${testScratchSpaceDir.path}',
+              ]);
               final fesSnapshot = p.join(
                 project.absolutePackageDirectory,
                 '.dart_tool',
@@ -951,7 +948,8 @@ class TestContext {
         final lines = result.stdout.toString().split('\n');
         final isStillRunning = lines.any(
           (line) =>
-              line.contains('build.dart.aot') && line.contains(targetPath),
+              (line.contains('build_runner') || line.contains('build.dart')) &&
+              line.contains(targetPath),
         );
         if (!isStillRunning) break;
         await Future<void>.delayed(const Duration(milliseconds: 100));

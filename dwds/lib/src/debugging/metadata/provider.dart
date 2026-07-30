@@ -3,14 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async/async.dart';
-import 'package:dwds/src/debugging/metadata/loader.dart';
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:path/path.dart' as p;
 
 /// A provider of metadata in which data is collected through DDC outputs.
 class MetadataProvider {
-  final MetadataLoader _metadataLoader;
+  final AssetReader _assetReader;
   final String entrypoint;
   final Set<String> _libraries = {};
   final Map<String, String> _scriptToModule = {};
@@ -62,7 +61,7 @@ class MetadataProvider {
     'dart:ui',
   ];
 
-  MetadataProvider(this.entrypoint, this._metadataLoader);
+  MetadataProvider(this.entrypoint, this._assetReader);
 
   /// A list of all libraries in the Dart application.
   ///
@@ -161,7 +160,7 @@ class MetadataProvider {
   /// Compute metadata information after reading the metadata contents and
   /// return a map from module names to their [ModuleMetadata].
   Future<Map<String, ModuleMetadata>> _processMetadata() async {
-    return _metadataLoader.loadMetadata(entrypoint);
+    return _assetReader.loadMetadata(entrypoint);
   }
 
   /// Process all metadata, including SDK metadata, and compute caches once.

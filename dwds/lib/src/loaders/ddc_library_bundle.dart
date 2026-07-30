@@ -128,7 +128,6 @@ class DdcLibraryBundleStrategy extends LoadStrategy
     this._g3RelativePath,
     this.assetScheme, {
     super.packageConfigPath,
-    super.metadataLoader,
     this.reloadedSourcesUri,
     this.injectScriptLoad = true,
   }) : super(assetReader);

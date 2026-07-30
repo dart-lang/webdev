@@ -149,7 +149,6 @@ class DdcStrategy extends LoadStrategy {
     this._g3RelativePath,
     this.assetScheme, {
     super.packageConfigPath,
-    super.metadataLoader,
   }) : super(assetReader);
 
   @override

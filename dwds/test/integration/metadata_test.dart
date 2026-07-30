@@ -7,7 +7,6 @@ library;
 
 import 'dart:convert';
 
-import 'package:dwds/src/debugging/metadata/loader.dart';
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:test/test.dart';
@@ -41,7 +40,7 @@ void main() {
   test('can parse metadata with empty sources', () async {
     final provider = MetadataProvider(
       'foo.bootstrap.js',
-      MergedMetadataLoader(FakeAssetReader(metadata: _emptySourceMetadata)),
+      FakeAssetReader(metadata: _emptySourceMetadata),
     );
     expect(
       await provider.libraries,
@@ -52,7 +51,7 @@ void main() {
   test('throws on metadata with absolute import uris', () async {
     final provider = MetadataProvider(
       'foo.bootstrap.js',
-      MergedMetadataLoader(FakeAssetReader(metadata: _fileUriMetadata)),
+      FakeAssetReader(metadata: _fileUriMetadata),
     );
     await expectLater(
       provider.libraries,
@@ -65,7 +64,7 @@ void main() {
     () async {
       final provider = MetadataProvider(
         'foo.bootstrap.js',
-        MergedMetadataLoader(FakeAssetReader(metadata: _emptySourceMetadata)),
+        FakeAssetReader(metadata: _emptySourceMetadata),
       );
       final modulePath = 'foo/web/main.ddc.js';
       final moduleName = 'web/main';
@@ -211,10 +210,7 @@ void main() {
     final assetReader = FakeAssetReader(
       metadata: createMetadataContents(moduleToLibraries, libraryToParts),
     );
-    final provider = MetadataProvider(
-      'foo.bootstrap.js',
-      MergedMetadataLoader(assetReader),
-    );
+    final provider = MetadataProvider('foo.bootstrap.js', assetReader);
     await validateProvider(provider, moduleToLibraries, libraryToParts);
 
     const newModuleToLibraries = <String, List<String>>{

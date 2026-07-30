@@ -13,8 +13,6 @@ export 'src/config/tool_configuration.dart'
         UrlEncoder;
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
-export 'src/debugging/metadata/loader.dart'
-    show MergedMetadataLoader, MetadataLoader;
 export 'src/debugging/metadata/module_metadata.dart'
     show LibraryMetadata, ModuleMetadata;
 export 'src/debugging/metadata/provider.dart'

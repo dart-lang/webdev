@@ -11,13 +11,14 @@ import 'dart:typed_data';
 
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/config.dart';
+import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds_test_common/test_sdk_layout.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:shelf/shelf.dart' as shelf;
 
-class TestAssetServer implements AssetReader {
+class TestAssetServer extends AssetReader {
   late final String _basePath;
   final String index;
 
@@ -36,6 +37,7 @@ class TestAssetServer implements AssetReader {
   final PathResolver _packageUriMapper;
   final InternetAddress internetAddress;
   final TestSdkLayout _sdkLayout;
+  final AssetScheme _assetScheme;
 
   TestAssetServer(
     this.index,
@@ -44,13 +46,17 @@ class TestAssetServer implements AssetReader {
     this.internetAddress,
     this._projectDirectory,
     this._fileSystem,
-    this._sdkLayout,
-  ) {
+    this._sdkLayout, {
+    AssetScheme? assetScheme,
+  }) : _assetScheme = assetScheme ?? FrontendServerAssetScheme() {
     _basePath = _parseBasePathFromIndexHtml(index);
   }
 
   @override
   String get basePath => _basePath;
+
+  @override
+  AssetScheme get assetScheme => _assetScheme;
 
   bool hasFile(String path) => _files.containsKey(path);
   Uint8List getFile(String path) => _files[path]!;
@@ -329,11 +335,10 @@ class TestAssetServer implements AssetReader {
   @override
   Future<String?> dartSourceContents(String serverPath) async {
     final stripped = _stripBasePath(serverPath, basePath);
-    if (stripped != null) {
-      final result = _resolveDartFile(stripped);
-      if (result.existsSync()) {
-        return result.readAsString();
-      }
+    if (stripped == null) return null;
+    final result = _resolveDartFile(stripped);
+    if (result.existsSync()) {
+      return result.readAsString();
     }
     _logger.severe('Source not found: $serverPath');
     return null;
@@ -342,10 +347,9 @@ class TestAssetServer implements AssetReader {
   @override
   Future<String?> sourceMapContents(String serverPath) async {
     final stripped = _stripBasePath(serverPath, basePath);
-    if (stripped != null) {
-      if (hasSourceMap(stripped)) {
-        return utf8.decode(getSourceMap(stripped));
-      }
+    if (stripped == null) return null;
+    if (hasSourceMap(stripped)) {
+      return utf8.decode(getSourceMap(stripped));
     }
     _logger.severe('Source map not found: $serverPath');
     return null;
@@ -354,15 +358,13 @@ class TestAssetServer implements AssetReader {
   @override
   Future<String?> metadataContents(String serverPath) async {
     final stripped = _stripBasePath(serverPath, basePath);
-    if (stripped != null) {
-      if (stripped.endsWith('.ddc_merged_metadata')) {
-        return _mergedMetadata;
-      }
-      if (hasMetadata(stripped)) {
-        return utf8.decode(getMetadata(stripped));
-      }
+    if (stripped == null) return null;
+    if (stripped.endsWith('.ddc_merged_metadata')) {
+      return _mergedMetadata;
     }
-    _logger.severe('Metadata not found: $serverPath');
+    if (hasMetadata(stripped)) {
+      return utf8.decode(getMetadata(stripped));
+    }
     return null;
   }
 
