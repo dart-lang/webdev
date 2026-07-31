@@ -407,6 +407,8 @@ class Locations {
     if (Uri.tryParse(sourceUrl)?.isAbsolute == true) {
       path = sourceUrl;
     } else {
+      // TODO(markzipan): Check if platform-specific separators can be handled
+      //  upstream in the SDK.
       // Source map URLS are relative to the script. They may have platform
       // separators or they may use URL semantics. To be sure, we split and
       // re-join them.
