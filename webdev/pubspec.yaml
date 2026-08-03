@@ -1,6 +1,6 @@
 name: webdev
 # Every time this changes you need to run `dart run build_runner build`.
-version: 4.0.0
+version: 4.0.1
 # We should not depend on a dev SDK before publishing.
 # publish_to: none
 description: >-
@@ -13,7 +13,7 @@ environment:
 dependencies:
   args: ^2.3.1
   async: ^2.9.0
-  build_daemon: ^4.0.0
+  build_daemon: ^4.1.4
   browser_launcher: ^1.1.0
   collection: ^1.15.0
   crypto: ^3.0.2

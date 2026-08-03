@@ -134,6 +134,15 @@ class BuildCommand extends Command<int> {
         'before starting a new instance with these options.\n\n',
       );
       return 1;
+    } on VersionSkew catch (_) {
+      logWriter(
+        logging.Level.SEVERE,
+        'Incompatible build_daemon version detected.\n\nYour project\'s '
+        'build_daemon version is incompatible with this version of webdev.\n'
+        'Please run `dart pub upgrade build_daemon` '
+        'in your project to resolve this.\n\n',
+      );
+      return 1;
     }
   }
 }
