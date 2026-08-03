@@ -18,7 +18,7 @@ import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:shelf/shelf.dart' as shelf;
 
-class TestAssetServer extends AssetReader {
+class TestAssetServer implements AssetReader {
   late final String _basePath;
   final String index;
 

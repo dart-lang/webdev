@@ -13,7 +13,7 @@ import 'package:path/path.dart' as p;
 
 /// A reader for Dart sources and related source maps provided by the Frontend
 /// Server.
-class FrontendServerAssetReader extends AssetReader {
+class FrontendServerAssetReader implements AssetReader {
   final _logger = Logger('FrontendServerAssetReader');
   final File _mapOriginal;
   final File _mapIncremental;
@@ -103,12 +103,6 @@ class FrontendServerAssetReader extends AssetReader {
     return null;
   }
 
-  @override
-  Future<String> metadataContents(String serverPath) {
-    // TODO(grouma) - Implement the merged metadata reader.
-    throw UnimplementedError();
-  }
-
   /// Updates the internal caches by reading the Frontend Server output files.
   ///
   /// Will only read the incremental files on additional calls.
@@ -137,6 +131,12 @@ class FrontendServerAssetReader extends AssetReader {
             .toList(),
       );
     }
+  }
+
+  @override
+  Future<String> metadataContents(String serverPath) {
+    // TODO(grouma) - Implement the merged metadata reader.
+    throw UnimplementedError();
   }
 
   /// Strips the [_basePath] prefix from the [serverPath].
