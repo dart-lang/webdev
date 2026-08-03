@@ -45,36 +45,31 @@ abstract class AssetReader {
 }
 
 abstract class PathResolver {
-  /// Computes the server path for a given application URL.
-  String? appUriToServerPath(String appUrl, {bool? useDebuggerModuleNames});
-
-  /// Computes the application URI (e.g., package: URI) for a given server path.
-  String? serverPathToAppUri(String serverPath);
-
-  /// Computes the resolved file URI for a server path.
-  Uri? serverPathToResolvedUri(String serverPath);
-
-  PackageConfig? get packageConfig;
-
-  bool get useDebuggerModuleNames;
-}
-
-abstract class PathResolverBase implements PathResolver {
   final Logger _logger;
-  @override
   final PackageConfig? packageConfig;
-  @override
   final bool useDebuggerModuleNames;
   final String? packageRoot;
 
-  PathResolverBase({
+  PathResolver({
     this.packageConfig,
     this.useDebuggerModuleNames = false,
     this.packageRoot,
     required String loggerName,
   }) : _logger = Logger(loggerName);
 
-  @override
+  /// Computes the server path for a given application URL.
+  ///
+  /// Returns `null` if [appUrl] is not supported by the resolver.
+  String? appUriToServerPath(String appUrl, {bool? useDebuggerModuleNames});
+
+  /// Computes the application URI (e.g., package: URI) for a given server path.
+  ///
+  /// Returns `null` if the path cannot be translated to a validapp  URI.
+  String? serverPathToAppUri(String serverPath);
+
+  /// Computes the resolved file URI for a given server path.
+  ///
+  /// Returns `null` if a URI cannot be resolved.
   Uri? serverPathToResolvedUri(String serverPath) {
     serverPath = stripLeadingSlashes(serverPath).replaceAll('\\', '/');
     final segments = serverPath.split('/');
@@ -97,7 +92,7 @@ abstract class PathResolverBase implements PathResolver {
   }
 }
 
-class FrontendServerPathResolver extends PathResolverBase {
+final class FrontendServerPathResolver extends PathResolver {
   static Future<FrontendServerPathResolver> create(
     FileSystem fileSystem,
     Uri packageConfigFile, {
@@ -163,7 +158,7 @@ class FrontendServerPathResolver extends PathResolverBase {
   }
 }
 
-class BuildRunnerPathResolver extends PathResolverBase {
+final class BuildRunnerPathResolver extends PathResolver {
   static Future<BuildRunnerPathResolver> create(
     FileSystem fileSystem,
     Uri packageConfigFile, {
@@ -233,7 +228,7 @@ class BuildRunnerPathResolver extends PathResolverBase {
   }
 }
 
-class FlutterPathResolver extends PathResolverBase {
+final class FlutterPathResolver extends PathResolver {
   FlutterPathResolver({
     super.packageConfig,
     super.useDebuggerModuleNames = false,

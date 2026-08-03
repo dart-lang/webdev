@@ -34,7 +34,7 @@ abstract class AssetScheme {
 }
 
 /// Asset scheme for package:build assets.
-class BuildRunnerAssetScheme implements AssetScheme {
+final class BuildRunnerAssetScheme implements AssetScheme {
   const BuildRunnerAssetScheme();
 
   @override
@@ -60,7 +60,7 @@ class BuildRunnerAssetScheme implements AssetScheme {
 }
 
 /// Asset scheme for Frontend Server assets.
-class FrontendServerAssetScheme implements AssetScheme {
+final class FrontendServerAssetScheme implements AssetScheme {
   const FrontendServerAssetScheme();
 
   @override

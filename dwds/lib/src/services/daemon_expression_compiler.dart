@@ -10,7 +10,7 @@ import 'package:dwds/src/services/expression_compiler.dart';
 /// build daemon.
 ///
 /// We assume the build daemon already has a Frontend Server intialized.
-class DaemonExpressionCompiler implements ExpressionCompiler {
+final class DaemonExpressionCompiler implements ExpressionCompiler {
   final Future<Map<String, dynamic>> Function(Map<String, dynamic> request)
   _sendRequest;
 
