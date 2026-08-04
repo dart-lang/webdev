@@ -42,12 +42,7 @@ Future<BuildDaemonClient> _startBuildDaemon(
       'before starting a new instance with these options.',
     );
   } on VersionSkew {
-    throw StateError(
-      'Incompatible build_daemon version detected.\n\nYour project\'s '
-      'build_daemon version is incompatible with this version of webdev.\n'
-      'Please run `dart pub upgrade build_daemon` '
-      'in your project to resolve this.\n\n',
-    );
+    throw StateError(versionSkewMessage);
   }
 }
 
