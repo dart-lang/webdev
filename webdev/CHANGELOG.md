@@ -4,6 +4,10 @@
 - Bump `build_web_compilers` constraint to `^4.8.8`.
 - Bump `dwds` constraint to `^28.0.0`.
 
+## 4.0.1
+
+- Catch and report version skew errors when incompatible versions of `build_daemon` are used.
+
 ## 4.0.0
 
 - Add `module-format` flag for testing new DDC Library Bundle module format prior to release.

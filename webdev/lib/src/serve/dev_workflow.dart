@@ -42,6 +42,8 @@ Future<BuildDaemonClient> _startBuildDaemon(
       'Please stop other WebDev instances running in this directory '
       'before starting a new instance with these options.',
     );
+  } on VersionSkew {
+    throw StateError(versionSkewMessage);
   }
 }
 

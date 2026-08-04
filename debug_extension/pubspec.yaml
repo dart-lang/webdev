@@ -14,7 +14,7 @@ dependencies:
 dev_dependencies:
   args: ^2.5.0
   build: ^4.0.8
-  build_runner: ^2.15.2
+  build_runner: ^2.16.0
   build_web_compilers: ^4.4.1
   dwds: ^24.1.0
   lints: ^6.1.0
