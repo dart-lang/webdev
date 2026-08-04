@@ -39,6 +39,9 @@ class FrontendServerClient {
   /// The [entrypoint] and [packagesJson] may be a relative path or any uri
   /// supported by the frontend server.
   ///
+  /// The [librariesSpec] argument can be provided to specify a custom libraries
+  /// specification file.
+  ///
   /// The [outputDillPath] determines where the primary output should be, and
   /// some targets may output additional files based on that file name (by
   /// adding file extensions for instance).
@@ -63,6 +66,7 @@ class FrontendServerClient {
     String fileSystemScheme =
         'org-dartlang-root', // Custom scheme for virtual `fileSystemRoots`.
     String? frontendServerPath, // Defaults to the snapshot in the sdk.
+    String? librariesSpec,
     String packagesJson = '.dart_tool/package_config.json',
     String? sdkRoot, // Defaults to the current SDK root.
     String target = 'vm', // The kernel target type.
@@ -84,6 +88,7 @@ class FrontendServerClient {
       '--output-dill',
       outputDillPath,
       '--packages=$packagesJson',
+      if (librariesSpec != null) ...['--libraries-spec', librariesSpec],
       if (enableHttpUris) '--enable-http-uris',
       '--incremental',
       if (verbose) '--verbose',
