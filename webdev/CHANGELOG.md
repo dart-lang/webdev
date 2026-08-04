@@ -1,3 +1,7 @@
+## 4.0.1
+
+- Catch and report version skew errors when incompatible versions of `build_daemon` are used.
+
 ## 4.0.0
 
 - Add `module-format` flag for testing new DDC Library Bundle module format prior to release.

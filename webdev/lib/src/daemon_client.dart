@@ -11,6 +11,14 @@ import 'package:build_daemon/data/server_log.dart';
 
 import 'util.dart';
 
+const versionSkewMessage =
+    'Incompatible build_daemon version detected.\n\n'
+    'Try upgrading `build_daemon` in your project:\n\n'
+    '  dart pub upgrade build_daemon\n\n'
+    'If the issue persists, another dependency might be constraining '
+    '`build_daemon` to an older version. Try running:\n\n'
+    '  dart pub upgrade\n\n';
+
 /// Connects to the `build_runner` daemon.
 Future<BuildDaemonClient> connectClient(
   String workingDirectory,
