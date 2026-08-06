@@ -7,11 +7,10 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/integration/inspector.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-
-import 'fixtures/context.dart';
-import 'inspector_common.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -23,17 +22,6 @@ void main() {
     canaryFeatures: true,
   );
   tearDownAll(provider.dispose);
-
-  group('Build Daemon |', () {
-    runTests(provider: provider, compilationMode: CompilationMode.buildDaemon);
-  });
-
-  group('Build Daemon and Frontend Server |', () {
-    runTests(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
-    );
-  });
 
   group('Frontend Server |', () {
     runTests(

@@ -8,16 +8,13 @@ library;
 import 'dart:io';
 
 import 'package:dwds/src/readers/frontend_server_asset_reader.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
 import 'package:dwds_test_common/test_sdk_layout.dart';
 import 'package:dwds_test_common/utilities.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import '../fixtures/project.dart';
-
-final fixturesDir = absolutePath(
-  pathFromDwds: p.join('test', 'integration', 'fixtures'),
-);
+final fixturesDir = absolutePath(pathFromFixtures: '');
 
 void main() {
   late FrontendServerAssetReader assetReader;

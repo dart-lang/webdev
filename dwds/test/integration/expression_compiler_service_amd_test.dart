@@ -8,9 +8,8 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/integration/expression_compiler_service.dart';
 import 'package:test/test.dart';
-
-import 'expression_compiler_service_common.dart';
 
 void main() async {
   testAll(

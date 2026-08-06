@@ -10,12 +10,11 @@ import 'dart:io';
 
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/utilities/server.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/integration/events.dart';
 import 'package:dwds_test_common/logging.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-
-import 'events_common.dart';
-import 'fixtures/context.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider();

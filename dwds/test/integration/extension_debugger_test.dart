@@ -11,11 +11,10 @@ import 'dart:convert';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/src/servers/extension_debugger.dart';
+import 'package:dwds_test_common/fixtures/debugger_data.dart';
+import 'package:dwds_test_common/fixtures/fakes.dart';
 import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'fixtures/debugger_data.dart';
-import 'fixtures/fakes.dart';
 
 late FakeSseConnection connection;
 late ExtensionDebugger extensionDebugger;
