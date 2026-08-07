@@ -14,7 +14,7 @@ import 'package:dwds_test_common/utilities.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-final fixturesDir = absolutePath(pathFromFixtures: '');
+final fixturesDir = absolutePath(pathFromDwds: 'test/integration/fixtures');
 
 void main() {
   late FrontendServerAssetReader assetReader;
