@@ -105,7 +105,7 @@ class TestDebugSettings extends DebugSettings {
     TestContext context, {
     bool serveFromDds = false,
   }) : super(
-         // ignore: deprecated_member_use_from_same_package
+         // ignore: deprecated_member_use
          devToolsLauncher: serveFromDds
              ? null
              : (hostname) async {
@@ -136,11 +136,14 @@ class TestDebugSettings extends DebugSettings {
     required super.useSseForDebugBackend,
     required super.useSseForDebugProxy,
     required super.useSseForInjectedClient,
+    // ignore: deprecated_member_use
     required super.spawnDds,
+    // ignore: deprecated_member_use
     required super.ddsPort,
     required super.enableDevToolsLaunch,
     required super.launchDevToolsInNewWindow,
     required super.emitDebugEvents,
+    // ignore: deprecated_member_use
     required super.devToolsLauncher,
     required super.expressionCompiler,
     required super.urlEncoder,
@@ -167,15 +170,15 @@ class TestDebugSettings extends DebugSettings {
       useSseForDebugProxy: useSse ?? useSseForDebugProxy,
       useSseForDebugBackend: useSse ?? useSseForDebugBackend,
       useSseForInjectedClient: useSse ?? useSseForInjectedClient,
-      // ignore: deprecated_member_use_from_same_package
+      // ignore: deprecated_member_use
       spawnDds: spawnDds ?? this.spawnDds,
-      // ignore: deprecated_member_use_from_same_package
+      // ignore: deprecated_member_use
       ddsPort: ddsPort ?? this.ddsPort,
       enableDevToolsLaunch: enableDevToolsLaunch ?? this.enableDevToolsLaunch,
       launchDevToolsInNewWindow:
           launchDevToolsInNewWindow ?? this.launchDevToolsInNewWindow,
       emitDebugEvents: emitDebugEvents ?? this.emitDebugEvents,
-      // ignore: deprecated_member_use_from_same_package
+      // ignore: deprecated_member_use
       devToolsLauncher: devToolsLauncher ?? this.devToolsLauncher,
       expressionCompiler: expressionCompiler ?? this.expressionCompiler,
       urlEncoder: urlEncoder ?? this.urlEncoder,
