@@ -44,7 +44,7 @@ class FrontendServerTestContext extends TestContext {
       p.join(project.webAssetsPath, project.dartEntryFileName),
     );
     frontendServerFileSystem = const LocalFileSystem();
-    final packageUriMapper = await PackageUriMapper.create(
+    final packageUriMapper = await FrontendServerPathResolver.create(
       frontendServerFileSystem,
       project.packageConfigFile,
       useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
@@ -88,31 +88,33 @@ class FrontendServerTestContext extends TestContext {
     basePath = webRunner.devFS!.assetServer.basePath;
     assetReader = webRunner.devFS!.assetServer;
     assetHandler = webRunner.devFS!.assetServer.handleRequest;
-    loadStrategy = switch (testSettings.moduleFormat) {
-      ModuleFormat.amd => FrontendServerRequireStrategyProvider(
+    loadStrategy = switch ((
+      testSettings.moduleFormat,
+      buildSettings.canaryFeatures,
+    )) {
+      (ModuleFormat.amd, _) => FrontendServerRequireStrategyProvider(
         testSettings.reloadConfiguration,
         assetReader,
         packageUriMapper,
         () async => {},
         buildSettings,
       ).strategy,
-      ModuleFormat.ddc =>
-        buildSettings.canaryFeatures
-            ? FrontendServerDdcLibraryBundleStrategyProvider(
-                testSettings.reloadConfiguration,
-                assetReader,
-                packageUriMapper,
-                () async => {},
-                buildSettings,
-                reloadedSourcesUri: reloadedSourcesUri,
-              ).strategy
-            : FrontendServerDdcStrategyProvider(
-                testSettings.reloadConfiguration,
-                assetReader,
-                packageUriMapper,
-                () async => {},
-                buildSettings,
-              ).strategy,
+      (ModuleFormat.ddc, true) =>
+        FrontendServerDdcLibraryBundleStrategyProvider(
+          testSettings.reloadConfiguration,
+          assetReader,
+          packageUriMapper,
+          () async => {},
+          buildSettings,
+          reloadedSourcesUri: reloadedSourcesUri,
+        ).strategy,
+      (ModuleFormat.ddc, false) => FrontendServerDdcStrategyProvider(
+        testSettings.reloadConfiguration,
+        assetReader,
+        packageUriMapper,
+        () async => {},
+        buildSettings,
+      ).strategy,
       _ => throw Exception(
         'Unsupported DDC module format '
         '${testSettings.moduleFormat.name}.',

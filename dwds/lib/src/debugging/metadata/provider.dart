@@ -1,7 +1,6 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 import 'dart:convert';
 
 import 'package:async/async.dart';
@@ -13,7 +12,6 @@ import 'package:path/path.dart' as p;
 /// A provider of metadata in which data is collected through DDC outputs.
 class MetadataProvider {
   final AssetReader _assetReader;
-  final _logger = Logger('MetadataProvider');
   final String entrypoint;
   final Set<String> _libraries = {};
   final Map<String, String> _scriptToModule = {};
@@ -165,13 +163,15 @@ class MetadataProvider {
   /// return a map from module names to their [ModuleMetadata].
   Future<Map<String, ModuleMetadata>> _processMetadata() async {
     final modules = <String, ModuleMetadata>{};
-    // The merged metadata resides next to the entrypoint.
-    // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
-    if (entrypoint.endsWith('.bootstrap.js')) {
-      _logger.info('Loading debug metadata...');
+    final logger = Logger('MetadataProvider');
+    final assetScheme = _assetReader.assetScheme;
+    final bootstrapSuffix = assetScheme.bootstrapSuffix;
+
+    if (entrypoint.endsWith(bootstrapSuffix)) {
+      logger.info('Loading debug metadata...');
       final serverPath = entrypoint.replaceAll(
-        '.bootstrap.js',
-        '.ddc_merged_metadata',
+        bootstrapSuffix,
+        assetScheme.mergedMetadataSuffix,
       );
       final merged = await _assetReader.metadataContents(serverPath);
       if (merged != null) {
@@ -187,10 +187,9 @@ class MetadataProvider {
             );
             final moduleName = metadata.name;
             modules[moduleName] = metadata;
-            _logger.fine('Loaded debug metadata for module: $moduleName');
+            logger.fine('Loaded debug metadata for module: $moduleName');
           } catch (e) {
-            _logger.warning('Failed to read metadata: $e');
-            rethrow;
+            logger.warning('Failed to parse metadata: $e');
           }
         }
       }
@@ -274,18 +273,19 @@ class MetadataProvider {
 
     final moduleLibraries = <String>{};
     for (final library in metadata.libraries.values) {
-      if (library.importUri.startsWith('file:/')) {
-        throw AbsoluteImportUriException(library.importUri);
+      final importUri = library.importUri;
+      if (importUri.startsWith('file:/')) {
+        throw AbsoluteImportUriException(importUri);
       }
-      moduleLibraries.add(library.importUri);
-      _libraries.add(library.importUri);
-      _scripts[library.importUri] = [];
+      moduleLibraries.add(importUri);
+      _libraries.add(importUri);
+      _scripts[importUri] = [];
 
-      _scriptToModule[library.importUri] = moduleName;
+      _scriptToModule[importUri] = moduleName;
       for (final path in library.partUris) {
         // Parts in metadata are relative to the library Uri directory.
-        final partPath = p.url.join(p.dirname(library.importUri), path);
-        _scripts[library.importUri]!.add(partPath);
+        final partPath = p.url.join(p.url.dirname(importUri), path);
+        _scripts[importUri]!.add(partPath);
         _scriptToModule[partPath] = moduleName;
       }
     }

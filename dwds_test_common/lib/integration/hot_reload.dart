@@ -14,6 +14,7 @@ import 'package:vm_service/vm_service.dart';
 
 const originalString = 'Hello World!';
 const newString = 'Bonjour le monde!';
+const anotherString = 'Hola Mundo!';
 
 void runTests({
   required TestSdkConfigurationProvider provider,
@@ -70,6 +71,7 @@ void runTests({
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
+          verboseCompiler: true,
           moduleFormat: provider.ddcModuleFormat,
           canaryFeatures: provider.canaryFeatures,
         ),
@@ -87,10 +89,21 @@ void runTests({
       await makeEditAndRecompile();
       final vm = await client.getVM();
       final isolate = await client.getIsolate(vm.isolates!.first.id!);
-      final report = await fakeClient.reloadSources(isolate.id!);
+      var report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
-      await callEvaluateAndWaitForLog(newString);
+      await context.makeEdits([
+        (
+          file: 'library1.dart',
+          originalString: newString,
+          newString: anotherString,
+        ),
+      ]);
+      await recompile();
+      report = await fakeClient.reloadSources(isolate.id!);
+      expect(report.success, true);
+
+      await callEvaluateAndWaitForLog(anotherString);
     });
 
     test('can hot reload with no changes, hot reload with changes, and '
@@ -118,6 +131,45 @@ void runTests({
       report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
+      await callEvaluateAndWaitForLog(newString);
+    });
+
+    test('can reject hot reload and recover with hot restart', () async {
+      final client = context.debugConnection.vmService;
+
+      await context.makeEdits([
+        (
+          file: 'library1.dart',
+          originalString: "String get reloadValue => '$originalString';",
+          newString:
+              '''
+String get reloadValue => '$newString';
+class Bar {}
+class Baz {}
+class Foo extends Bar {}
+''',
+        ),
+      ]);
+      await recompile();
+      final vm = await client.getVM();
+      final isolate = await client.getIsolate(vm.isolates!.first.id!);
+      var report = await fakeClient.reloadSources(isolate.id!);
+      expect(report.success, true);
+
+      // Make an illegal edit.
+      await context.makeEdits([
+        (
+          file: 'library1.dart',
+          originalString: 'class Foo extends Bar',
+          newString: 'class Foo<T> extends Bar',
+        ),
+      ]);
+      await context.recompile(fullRestart: false, allowFailure: true);
+      report = await fakeClient.reloadSources(isolate.id!);
+      expect(report.success, false);
+
+      // Successfully recover with hot restart.
+      await context.recompile(fullRestart: true);
       await callEvaluateAndWaitForLog(newString);
     });
   }, timeout: const Timeout.factor(2));

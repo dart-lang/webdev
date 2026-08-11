@@ -33,14 +33,13 @@ void runTests({
   tearDownAll(provider.dispose);
 
   Future<void> recompile({bool hasEdits = false}) async {
-    if (context.usesFrontendServer) {
-      await context.recompile(fullRestart: true);
-    } else {
-      assert(context.usesBuildDaemon);
+    if (context.usesBuildDaemon) {
       if (hasEdits) {
         // Only gets a new build if there were edits.
         await context.waitForSuccessfulBuild();
       }
+    } else if (context.usesFrontendServer) {
+      await context.recompile(fullRestart: true);
     }
   }
 
@@ -162,7 +161,11 @@ void runTests({
       });
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
+<<<<<<< HEAD
     skip: context.usesBuildDaemon ? null : true,
+=======
+    skip: compilationMode.usesBuildDaemon ? null : true,
+>>>>>>> 216e5b64 (DWDS Feature: Daemon Expression Compiler & FES Support)
     timeout: const Timeout.factor(2),
   );
 
@@ -556,7 +559,11 @@ void runTests({
       });
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
+<<<<<<< HEAD
     skip: context.usesBuildDaemon ? null : true,
+=======
+    skip: compilationMode.usesBuildDaemon ? null : true,
+>>>>>>> 216e5b64 (DWDS Feature: Daemon Expression Compiler & FES Support)
     timeout: const Timeout.factor(2),
   );
 

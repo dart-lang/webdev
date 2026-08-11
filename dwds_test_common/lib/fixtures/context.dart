@@ -113,6 +113,8 @@ abstract class TestContext {
 
   Process get chromeDriver => _chromeDriver!;
   Process? _chromeDriver;
+  Process? fesProcess;
+  bool lastBuildFailed = false;
 
   WebkitDebugger get webkitDebugger => _webkitDebugger!;
   late WebkitDebugger? _webkitDebugger;
@@ -458,7 +460,7 @@ abstract class TestContext {
     if (Platform.isWindows) {
       await Future<void>.delayed(const Duration(seconds: 1));
     }
-    _reloadedSources.clear();
+    reloadedSources.clear();
     for (var (:file, :originalString, :newString) in edits) {
       if (file == project.dartEntryFileName) {
         file = project.dartEntryFilePath;
@@ -519,7 +521,7 @@ abstract class TestContext {
       );
     }
 
-    _reloadedSources.add(
+    reloadedSources.add(
       WebDevFS.createReloadedSourceEntry(
         src: '/$srcPath.ddc.js',
         module: moduleName,
@@ -532,7 +534,7 @@ abstract class TestContext {
   ///
   /// Used by the DDC Library Bundle module system to record changed files for
   /// hot restart/reload.
-  final _reloadedSources = <Map<String, Object>>[];
+  final reloadedSources = <Map<String, Object>>[];
 
   void addLibraryFile({required String libFileName, required String contents}) {
     final file = File(project.dartLibFilePath(libFileName));
@@ -555,7 +557,7 @@ abstract class TestContext {
     return (request) {
       final path = request.url.path;
       if (path.endsWith(WebDevFS.reloadedSourcesFileName)) {
-        return shelf.Response.ok(jsonEncode(_reloadedSources));
+        return shelf.Response.ok(jsonEncode(reloadedSources));
       }
       return proxy(request);
     };

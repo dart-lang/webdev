@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -47,8 +48,11 @@ abstract class LoadStrategy {
   final String? _packageConfigPath;
   final _providers = <String, MetadataProvider>{};
 
-  LoadStrategy(this._assetReader, {String? packageConfigPath})
-    : _packageConfigPath = packageConfigPath ?? _findPackageConfigFilePath();
+  LoadStrategy(
+    this._assetReader, {
+    String? packageConfigPath,
+    // ignore: prefer_initializing_formals
+  }) : _packageConfigPath = packageConfigPath ?? _findPackageConfigFilePath();
 
   /// The ID for this strategy.
   ///
@@ -65,6 +69,9 @@ abstract class LoadStrategy {
   ///
   /// Used for preventing stepping into the library loading code.
   String get loadLibrariesModule;
+
+  /// Asset scheme, which determines file extensions for this strategy.
+  AssetScheme get assetScheme;
 
   /// Returns a snippet of JS code that can be used to load a JS module.
   ///
@@ -191,11 +198,12 @@ abstract class LoadStrategy {
   /// Returns the [MetadataProvider] for the application located at the provided
   /// [entrypoint].
   MetadataProvider metadataProviderFor(String entrypoint) {
-    if (_providers.containsKey(entrypoint)) {
-      return _providers[entrypoint]!;
-    } else {
-      throw StateError('No metadata provider for $entrypoint');
-    }
+    final provider = _providers[entrypoint];
+    if (provider != null) return provider;
+    throw StateError(
+      'No metadata provider for $entrypoint. '
+      'Available providers: ${_providers.keys.toList()}',
+    );
   }
 
   /// Creates and returns a [MetadataProvider] with the given [entrypoint] and
@@ -217,7 +225,7 @@ abstract class LoadStrategy {
     String entrypoint,
     Map<String, List> reloadedModulesToLibraries,
   ) {
-    final provider = _providers[entrypoint]!;
+    final provider = metadataProviderFor(entrypoint);
     return provider.reinitializeAfterHotReload(reloadedModulesToLibraries);
   }
 }
@@ -235,11 +243,13 @@ class BuildSettings {
   final bool canaryFeatures;
   final bool isFlutterApp;
   final List<String> experiments;
+  final bool useDebuggerModuleNames;
 
   const BuildSettings({
     this.appEntrypoint,
     this.canaryFeatures = false,
     this.isFlutterApp = true,
     this.experiments = const <String>[],
+    this.useDebuggerModuleNames = true,
   });
 }

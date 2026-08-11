@@ -1,3 +1,9 @@
+## 28.0.0
+
+- Support expression evaluation in Frontend Server + Build Daemon mode via `DaemonExpressionCompiler`.
+- Add `WebPathTranslator` to support path translation between Frontend Server and Build Daemon.
+- Replace `PackageUriMapper` with `PathResolver` strategy.
+
 ## 27.1.3-wip
 
 - Internal test infrastructure refactoring: Move common test files to `dwds_test_common`.

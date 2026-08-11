@@ -57,3 +57,5 @@ executables:
   webdev:
 
 dependency_overrides:
+  dwds:
+    path: ../dwds

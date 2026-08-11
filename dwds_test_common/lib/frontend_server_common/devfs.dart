@@ -10,13 +10,12 @@ import 'dart:io';
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/config.dart';
 import 'package:dwds/expression_compiler.dart';
-// ignore: implementation_imports
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/utilities.dart';
-import 'package:dwds_test_common/test_sdk_layout.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 
+import '../test_sdk_layout.dart';
 import 'asset_server.dart';
 import 'bootstrap.dart';
 import 'frontend_server_client.dart';
@@ -39,7 +38,7 @@ class WebDevFS {
   final String hostname;
   final int port;
   final Uri projectDirectory;
-  final PackageUriMapper packageUriMapper;
+  final PathResolver packageUriMapper;
   final String index;
   final UrlEncoder? urlTunneler;
   List<Uri> sources = <Uri>[];
@@ -188,10 +187,11 @@ class WebDevFS {
       Uri.parse('org-dartlang-app:///$mainUri'),
       invalidatedFiles,
       outputPath: p.join(dillOutputPath, 'app.dill'),
-      packageConfig: packageUriMapper.packageConfig,
+      packageConfig: packageUriMapper.packageConfig!,
       recompileRestart: fullRestart,
     );
     if (compilerOutput == null || compilerOutput.errorCount > 0) {
+      assetServer.deleteFile('reloaded_sources.json');
       return UpdateFSReport(success: false);
     }
     sources = compilerOutput.sources;
