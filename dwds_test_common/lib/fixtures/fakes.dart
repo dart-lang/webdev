@@ -15,6 +15,7 @@ import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
+import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
@@ -217,6 +218,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
           (MetadataProvider _) async => <String, ModuleInfo>{},
           FakeAssetReader(),
           buildSettings,
+          const BuildRunnerAssetScheme(),
         ),
       ),
     );
@@ -356,6 +358,9 @@ class FakeStrategy extends LoadStrategy {
            );
 
   @override
+  AssetScheme get assetScheme => const BuildRunnerAssetScheme();
+
+  @override
   Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
 
   @override
@@ -424,26 +429,36 @@ class FakeStrategy extends LoadStrategy {
 
 class FakeAssetReader implements AssetReader {
   String? metadata;
-  final String? _dartSource;
-  final String? _sourceMap;
-  FakeAssetReader({this.metadata, this._dartSource, this._sourceMap});
+  final String? dartSource;
+  final String? sourceMap;
+  final AssetScheme _assetScheme;
+
+  FakeAssetReader({
+    this.metadata,
+    this.dartSource,
+    this.sourceMap,
+    AssetScheme? assetScheme,
+  }) : _assetScheme = assetScheme ?? const FrontendServerAssetScheme();
 
   @override
   String get basePath => '';
 
   @override
-  Future<String> dartSourceContents(String serverPath) {
-    return _throwUnimplementedOrReturnContents(_dartSource);
+  AssetScheme get assetScheme => _assetScheme;
+
+  @override
+  Future<String?> dartSourceContents(String serverPath) async {
+    return _throwUnimplementedOrReturnContents(dartSource);
   }
 
   @override
-  Future<String> metadataContents(String serverPath) {
+  Future<String?> sourceMapContents(String serverPath) async {
+    return _throwUnimplementedOrReturnContents(sourceMap);
+  }
+
+  @override
+  Future<String?> metadataContents(String serverPath) async {
     return _throwUnimplementedOrReturnContents(metadata);
-  }
-
-  @override
-  Future<String> sourceMapContents(String serverPath) {
-    return _throwUnimplementedOrReturnContents(_sourceMap);
   }
 
   @override

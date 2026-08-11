@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
+import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
@@ -38,6 +39,7 @@ class BuildRunnerRequireStrategyProvider with BuildRunnerStrategyProviderMixin {
     _moduleInfoForProvider,
     _assetReader,
     _buildSettings,
+    const BuildRunnerAssetScheme(),
     packageConfigPath: _packageConfigPath,
   );
 
@@ -79,6 +81,7 @@ class BuildRunnerDdcLibraryBundleStrategyProvider
     _assetReader,
     _buildSettings,
     (path) => null, // g3RelativePath
+    const BuildRunnerAssetScheme(),
     packageConfigPath: _packageConfigPath,
     injectScriptLoad: injectScriptLoad,
     reloadedSourcesUri: _reloadedSourcesUri,
@@ -203,15 +206,9 @@ mixin BuildRunnerStrategyProviderMixin {
   }
 
   String? _serverPathForAppUri(String appUrl) {
-    final appUri = Uri.parse(appUrl);
-    if (appUri.isScheme('org-dartlang-app')) {
-      // We skip the root from which we are serving.
-      return appUri.pathSegments.skip(1).join('/');
-    }
-    if (appUri.isScheme('package')) {
-      return '/packages/${appUri.path}';
-    }
-    return null;
+    return BuildRunnerPathResolver(
+      useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
+    ).appUriToServerPath(appUrl);
   }
 
   Future<Map<String, ModuleInfo>> _moduleInfoForProvider(

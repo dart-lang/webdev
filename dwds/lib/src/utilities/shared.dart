@@ -45,3 +45,10 @@ Future<T> wrapInErrorHandlerAsync<T>(
     );
   }, test: (e) => e is! RPCError && e is! SentinelException);
 }
+
+String stripLeadingSlashes(String path) {
+  while (path.startsWith('/') || path.startsWith('\\')) {
+    path = path.substring(1);
+  }
+  return path;
+}

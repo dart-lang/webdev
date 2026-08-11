@@ -44,14 +44,14 @@ void testAll({
     });
 
     test('can read source maps', () async {
-      final result = await assetReader.dartSourceContents(
+      final result = await assetReader.sourceMapContents(
         'hello_world/main.ddc.js.map',
       );
       expect(result, isNotNull);
     });
 
     test('returns null if the source map path does not exist', () async {
-      final result = await assetReader.dartSourceContents(
+      final result = await assetReader.sourceMapContents(
         'hello_world/foo.ddc.js.map',
       );
       expect(result, isNull);

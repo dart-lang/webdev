@@ -33,7 +33,7 @@ void main() {
 
       final resolvedPath = '${project.packageDirectory}/lib/test_library.dart';
 
-      late final PackageUriMapper packageUriMapper;
+      late final BuildRunnerPathResolver pathResolver;
       setUpAll(() async {
         await project.setUp();
         // Note: Run `dart pub upgrade` before the test cases to fix
@@ -51,7 +51,7 @@ void main() {
           ),
         );
 
-        packageUriMapper = await PackageUriMapper.create(
+        pathResolver = await BuildRunnerPathResolver.create(
           fileSystem,
           packageConfigFile,
           useDebuggerModuleNames: useDebuggerModuleNames,
@@ -61,12 +61,15 @@ void main() {
       tearDownAll(project.tearDown);
 
       test('Can convert package urls to server paths', () {
-        expect(packageUriMapper.packageUriToServerPath(packageUri), serverPath);
+        expect(
+          pathResolver.appUriToServerPath(packageUri.toString()),
+          serverPath,
+        );
       });
 
       test('Can convert server paths to file paths', () {
         expect(
-          packageUriMapper.serverPathToResolvedUri(serverPath),
+          pathResolver.serverPathToResolvedUri(serverPath),
           isA<Uri>()
               .having((uri) => uri.scheme, 'scheme', 'file')
               .having((uri) => uri.path, 'path', endsWith(resolvedPath)),

@@ -11,11 +11,13 @@ import 'dart:typed_data';
 
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/config.dart';
-import 'package:dwds_test_common/test_sdk_layout.dart';
+import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:shelf/shelf.dart' as shelf;
+
+import '../test_sdk_layout.dart';
 
 class TestAssetServer implements AssetReader {
   late final String _basePath;
@@ -33,9 +35,10 @@ class TestAssetServer implements AssetReader {
   final Map<String, Uint8List> _sourceMaps = {};
   final Map<String, Uint8List> _metadata = {};
   late String _mergedMetadata;
-  final PackageUriMapper _packageUriMapper;
+  final PathResolver _packageUriMapper;
   final InternetAddress internetAddress;
   final TestSdkLayout _sdkLayout;
+  final AssetScheme _assetScheme;
 
   TestAssetServer(
     this.index,
@@ -44,13 +47,17 @@ class TestAssetServer implements AssetReader {
     this.internetAddress,
     this._projectDirectory,
     this._fileSystem,
-    this._sdkLayout,
-  ) {
+    this._sdkLayout, {
+    AssetScheme? assetScheme,
+  }) : _assetScheme = assetScheme ?? const FrontendServerAssetScheme() {
     _basePath = _parseBasePathFromIndexHtml(index);
   }
 
   @override
   String get basePath => _basePath;
+
+  @override
+  AssetScheme get assetScheme => _assetScheme;
 
   bool hasFile(String path) => _files.containsKey(path);
   Uint8List getFile(String path) => _files[path]!;
@@ -73,7 +80,7 @@ class TestAssetServer implements AssetReader {
     String hostname,
     int port,
     UrlEncoder? urlTunneler,
-    PackageUriMapper packageUriMapper,
+    PathResolver packageUriMapper,
   ) async {
     final address = (await InternetAddress.lookup(hostname)).first;
     final httpServer = await HttpServer.bind(address, port);
@@ -103,6 +110,22 @@ class TestAssetServer implements AssetReader {
 
     final headers = <String, String>{};
 
+    var lookupPath = requestPath;
+    // Frontend Server tests may cache files under their 'lib/' path instead
+    // of their fully qualified served path.
+    // E.g., "packages/foo/bar.dart" and "lib/bar.dart".
+    if (lookupPath.startsWith('packages/')) {
+      final parts = lookupPath.split('/');
+      if (parts.length > 2) {
+        final candidate = 'lib/${parts.sublist(2).join('/')}';
+        if (_files.containsKey(candidate) ||
+            _sourceMaps.containsKey('$candidate.map') ||
+            _metadata.containsKey('$candidate.metadata')) {
+          lookupPath = candidate;
+        }
+      }
+    }
+
     if (request.url.path.endsWith('.html')) {
       final indexFile = _fileSystem.file(_projectDirectory.resolve(index));
       if (indexFile.existsSync()) {
@@ -117,24 +140,24 @@ class TestAssetServer implements AssetReader {
 
     // If this is a JavaScript file, it must be in the in-memory cache.
     // Attempt to look up the file by URI.
-    if (hasFile(requestPath)) {
-      final List<int> bytes = getFile(requestPath);
+    if (hasFile(lookupPath)) {
+      final List<int> bytes = getFile(lookupPath);
       headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
       headers[HttpHeaders.contentTypeHeader] = 'application/javascript';
       return shelf.Response.ok(bytes, headers: headers);
     }
     // If this is a sourcemap file, then it might be in the in-memory cache.
     // Attempt to lookup the file by URI.
-    if (hasSourceMap(requestPath)) {
-      final List<int> bytes = getSourceMap(requestPath);
+    if (hasSourceMap(lookupPath)) {
+      final List<int> bytes = getSourceMap(lookupPath);
       headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
       headers[HttpHeaders.contentTypeHeader] = 'application/json';
       return shelf.Response.ok(bytes, headers: headers);
     }
     // If this is a metadata file, then it might be in the in-memory cache.
     // Attempt to lookup the file by URI.
-    if (hasMetadata(requestPath)) {
-      final List<int> bytes = getMetadata(requestPath);
+    if (hasMetadata(lookupPath)) {
+      final List<int> bytes = getMetadata(lookupPath);
       headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
       headers[HttpHeaders.contentTypeHeader] = 'application/json';
       return shelf.Response.ok(bytes, headers: headers);
@@ -171,6 +194,11 @@ class TestAssetServer implements AssetReader {
   /// Write a single file into the in-memory cache.
   void writeFile(String filePath, String contents) {
     _files[filePath] = Uint8List.fromList(utf8.encode(contents));
+  }
+
+  /// Delete a single file from the in-memory cache.
+  void deleteFile(String filePath) {
+    _files.remove(filePath);
   }
 
   /// Update the in-memory asset server with the provided source and manifest
@@ -259,6 +287,20 @@ class TestAssetServer implements AssetReader {
 
   // Attempt to resolve `path` to a dart file.
   File _resolveDartFile(String path) {
+    // Expression evaluation and debugger requests may reference sources
+    // using `package:` URIs. Resolve them to files using the packageConfig.
+    if (path.startsWith('package:')) {
+      final serverPath = _packageUriMapper.appUriToServerPath(path);
+      if (serverPath != null) {
+        final resolved = _packageUriMapper.serverPathToResolvedUri(serverPath);
+        if (resolved != null) {
+          final packageFile = _fileSystem.file(resolved);
+          if (packageFile.existsSync()) {
+            return packageFile;
+          }
+        }
+      }
+    }
     // If this is a dart file, it must be on the local file system and is
     // likely coming from a source map request. The tool doesn't currently
     // consider the case of Dart files as assets.
@@ -294,11 +336,10 @@ class TestAssetServer implements AssetReader {
   @override
   Future<String?> dartSourceContents(String serverPath) async {
     final stripped = _stripBasePath(serverPath, basePath);
-    if (stripped != null) {
-      final result = _resolveDartFile(stripped);
-      if (result.existsSync()) {
-        return result.readAsString();
-      }
+    if (stripped == null) return null;
+    final result = _resolveDartFile(stripped);
+    if (result.existsSync()) {
+      return result.readAsString();
     }
     _logger.severe('Source not found: $serverPath');
     return null;
@@ -307,10 +348,9 @@ class TestAssetServer implements AssetReader {
   @override
   Future<String?> sourceMapContents(String serverPath) async {
     final stripped = _stripBasePath(serverPath, basePath);
-    if (stripped != null) {
-      if (hasSourceMap(stripped)) {
-        return utf8.decode(getSourceMap(stripped));
-      }
+    if (stripped == null) return null;
+    if (hasSourceMap(stripped)) {
+      return utf8.decode(getSourceMap(stripped));
     }
     _logger.severe('Source map not found: $serverPath');
     return null;
@@ -319,15 +359,13 @@ class TestAssetServer implements AssetReader {
   @override
   Future<String?> metadataContents(String serverPath) async {
     final stripped = _stripBasePath(serverPath, basePath);
-    if (stripped != null) {
-      if (stripped.endsWith('.ddc_merged_metadata')) {
-        return _mergedMetadata;
-      }
-      if (hasMetadata(stripped)) {
-        return utf8.decode(getMetadata(stripped));
-      }
+    if (stripped == null) return null;
+    if (stripped.endsWith('.ddc_merged_metadata')) {
+      return _mergedMetadata;
     }
-    _logger.severe('Metadata not found: $serverPath');
+    if (hasMetadata(stripped)) {
+      return utf8.decode(getMetadata(stripped));
+    }
     return null;
   }
 
@@ -344,6 +382,9 @@ class TestAssetServer implements AssetReader {
 
   String? _stripBasePath(String path, String basePath) {
     path = stripLeadingSlashes(path);
+    // Requests starting with 'packages/' are top-level and served relative
+    // to the root directory, so they don't contain the app's base path.
+    if (path.startsWith('packages/')) return path;
     if (path.startsWith(basePath)) {
       path = path.substring(basePath.length);
     } else {

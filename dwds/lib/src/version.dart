@@ -1,2 +1,2 @@
 // Generated code. Do not modify.
-const packageVersion = '27.1.3-wip';
+const packageVersion = '28.0.0';

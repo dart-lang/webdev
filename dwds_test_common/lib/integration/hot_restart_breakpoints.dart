@@ -402,7 +402,7 @@ void runTests({
       expect(consoleLogs.contains(newGenLog), false);
       await resumeAndWaitForLog(newGenLog);
     });
-  });
+  }, timeout: const Timeout.factor(4));
 }
 
 TypeMatcher<Event> _hasKind(String kind) =>

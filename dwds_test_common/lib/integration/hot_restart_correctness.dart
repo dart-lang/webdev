@@ -44,15 +44,13 @@ void runTests({
         newString: newString,
       ),
     ]);
-    if (context.usesFrontendServer) {
-      await context.recompile(fullRestart: true);
-    } else {
-      assert(context.usesBuildDaemon);
+    if (context.usesBuildDaemon) {
       await context.waitForSuccessfulBuild(propagateToBrowser: true);
+    } else if (context.usesFrontendServer) {
+      await context.recompile(fullRestart: true);
     }
   }
 
-  // Wait for `expectedString` to be printed to the console.
   Future<void> waitForLog(String expectedString) async {
     final completer = Completer<void>();
     final subscription = context.webkitDebugger.onConsoleAPICalled.listen((e) {
@@ -195,7 +193,11 @@ void runTests({
       });
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
+<<<<<<< HEAD
     skip: context.usesBuildDaemon ? null : true,
+=======
+    skip: compilationMode.usesBuildDaemon ? null : true,
+>>>>>>> 216e5b64 (DWDS Feature: Daemon Expression Compiler & FES Support)
     timeout: const Timeout.factor(2),
   );
 }

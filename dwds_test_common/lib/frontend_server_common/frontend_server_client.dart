@@ -9,10 +9,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds_test_common/test_sdk_layout.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 
+import '../test_sdk_layout.dart';
 import 'utilities.dart';
 import 'uuid.dart';
 
@@ -411,7 +411,9 @@ class ResidentCompiler {
       if (compilerOptions.canaryFeatures) '--dartdevc-canary',
       if (verbose) '--verbose',
       if (compilerOptions.moduleFormat == ModuleFormat.ddc)
-        '--dartdevc-module-format=ddc',
+        '--dartdevc-module-format=ddc'
+      else if (compilerOptions.moduleFormat == ModuleFormat.amd)
+        '--dartdevc-module-format=amd',
     ];
     _logger.info(args.join(' '));
     final workingDirectory = projectDirectory.toFilePath();
@@ -444,8 +446,12 @@ class ResidentCompiler {
 
     unawaited(
       server.exitCode.then((int code) {
-        if (code != 0) {
-          throw Exception('the Dart compiler exited unexpectedly.');
+        // Ignore exit codes that signal expected process termination:
+        // -9 (SIGKILL), -15 (SIGTERM), and 255 (process killed).
+        if (code != 0 && code != -9 && code != -15 && code != 255) {
+          throw Exception(
+            'the Dart compiler exited unexpectedly with exit code: $code.',
+          );
         }
       }),
     );
