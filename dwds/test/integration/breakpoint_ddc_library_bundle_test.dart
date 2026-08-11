@@ -32,6 +32,13 @@ void main() {
     );
   });
 
+  group('Build Daemon and Frontend Server |', () {
+    testBreakpoint(
+      provider: provider,
+      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
+    );
+  });
+
   group('Frontend Server |', () {
     testBreakpoint(
       provider: provider,

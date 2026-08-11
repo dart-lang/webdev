@@ -33,4 +33,11 @@ void main() {
   group('Build Daemon', () {
     runTests(provider: provider, contextFactory: BuildDaemonTestContext.new);
   });
+
+  group('Build Daemon and Frontend Server', () {
+    runTests(
+      provider: provider,
+      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
+    );
+  });
 }

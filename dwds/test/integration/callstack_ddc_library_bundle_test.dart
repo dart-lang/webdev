@@ -32,6 +32,13 @@ void main() {
     );
   });
 
+  group('Build Daemon and Frontend Server |', () {
+    testCallStack(
+      provider: provider,
+      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
+    );
+  });
+
   group('Frontend Server |', () {
     testCallStack(
       provider: provider,

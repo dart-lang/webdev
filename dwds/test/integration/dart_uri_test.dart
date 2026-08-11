@@ -60,12 +60,12 @@ void main() {
 
     test('parses org-dartlang-app paths', () {
       final uri = DartUri('org-dartlang-app:///blah/main.dart');
-      expect(uri.serverPath, '/blah/main.dart');
+      expect(uri.serverPath, 'blah/main.dart');
     });
 
     test('parses google3 paths', () {
       final uri = DartUri('google3:///blah/main.dart');
-      expect(uri.serverPath, '/blah/main.dart');
+      expect(uri.serverPath, 'blah/main.dart');
     });
 
     test('parses packages paths', () {

@@ -49,4 +49,19 @@ void main() {
       canaryFeatures: canaryFeatures,
     );
   });
+
+  group('canary: $canaryFeatures | Build Daemon and Frontend Server |', () {
+    final compilationMode = CompilationMode.buildDaemonAndFrontendServer;
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: moduleFormat,
+    );
+    runTests(
+      provider: provider,
+      moduleFormat: moduleFormat,
+      compilationMode: compilationMode,
+      canaryFeatures: canaryFeatures,
+    );
+  });
 }
