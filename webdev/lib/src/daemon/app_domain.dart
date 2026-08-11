@@ -176,7 +176,23 @@ class AppDomain extends Domain {
     }
     final fullRestart = getBoolArg(args, 'fullRestart') ?? false;
     if (!fullRestart) {
-      return {'code': 1, 'message': 'hot reload not yet supported by webdev'};
+      try {
+        final vm = await appState.vmService!.getVM();
+        final isolateId = vm.isolates!.first.id!;
+        final report = await appState.vmService!.reloadSources(isolateId);
+
+        if (report.success!) {
+          return {'code': 0, 'message': 'Hot reload successful'};
+        } else {
+          return {
+            'code': 1,
+            'message': 'Hot reload failed',
+            'notices': report.toJson()['notices'],
+          };
+        }
+      } catch (e) {
+        return {'code': 1, 'message': 'Hot reload failed: $e'};
+      }
     }
     // TODO(grouma) - Support pauseAfterRestart.
     // var pauseAfterRestart = getBoolArg(args, 'pause') ?? false;
