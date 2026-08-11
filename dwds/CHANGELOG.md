@@ -1,8 +1,10 @@
 ## 28.0.0
-
-- Support expression evaluation in Frontend Server + Build Daemon mode via `DaemonExpressionCompiler`.
-- Add `WebPathTranslator` to support path translation between Frontend Server and Build Daemon.
-- Replace `PackageUriMapper` with `PathResolver` strategy.
+- **Breaking Change**: Removed `PackageUriMapper` in favor of **`PathResolver`** - with `BuildRunnerPathResolver`, `FrontendServerPathResolver`, and `FlutterPathResolver` impls.
+- **Breaking Change**: **`LoadStrategy`** implementors must now implement the **`assetScheme`** getter.
+- Introduce **`AssetScheme`** to generalize asset naming schemes.
+- Add support for Frontend Server + Build Daemon configuration with hot reload via **`FrontendServerBuildDaemonStrategyProvider`**.
+- Expose **`DaemonExpressionCompiler`** for handling expression compilation directly via `build_daemon`.
+- **`BuildSettings`** now supports **`useDebuggerModuleNames`** to distinguish between debugger-friendly paths and raw server paths.
 
 ## 27.1.3-wip
 
