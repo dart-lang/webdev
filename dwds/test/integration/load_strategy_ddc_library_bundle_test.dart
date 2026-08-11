@@ -7,11 +7,10 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/integration/load_strategy.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-
-import 'fixtures/context.dart';
-import 'load_strategy_common.dart';
 
 void main() {
   // Run independent tests once.

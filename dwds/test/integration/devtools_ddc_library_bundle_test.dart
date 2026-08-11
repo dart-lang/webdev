@@ -7,10 +7,9 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/integration/devtools.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-
-import 'devtools_common.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider(

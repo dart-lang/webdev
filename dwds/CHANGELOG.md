@@ -1,3 +1,7 @@
+## Unreleased
+
+- Internal test infrastructure refactoring: Move common test files to `dwds_test_common`.
+
 ## 27.1.2
 
 - Bump the min sdk to 3.13.0-107.0.dev.

@@ -10,12 +10,11 @@ library;
 import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/integration/evaluate_parts.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-
-import 'evaluate_parts_common.dart';
-import 'fixtures/context.dart';
-import 'fixtures/project.dart';
 
 void main() async {
   // Enable verbose logging for debugging.

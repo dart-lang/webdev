@@ -8,11 +8,10 @@
 library;
 
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/integration/dot_shorthands.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-
-import '../fixtures/context.dart';
-import 'common/dot_shorthands_common.dart';
 
 void main() {
   // Enable verbose logging for debugging.

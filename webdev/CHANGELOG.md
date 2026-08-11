@@ -1,3 +1,7 @@
+## 4.1.0-wip
+
+- Internal test infrastructure refactoring: Move common test files to `dwds_test_common`.
+
 ## 4.0.1
 
 - Catch and report version skew errors when incompatible versions of `build_daemon` are used.
