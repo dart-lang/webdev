@@ -29,17 +29,6 @@ void main() async {
   );
   tearDownAll(provider.dispose);
 
-  group('Build Daemon |', () {
-    testAll(provider: provider, contextFactory: (project, provider) => BuildDaemonTestContext(project, provider));
-  });
-
-  group('Build Daemon and Frontend Server |', () {
-    testAll(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
-    );
-  });
-
   group('Frontend Server |', () {
     group('Context with parts |', () {
       for (final indexBaseMode in IndexBaseMode.values) {

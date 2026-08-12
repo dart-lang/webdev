@@ -25,17 +25,6 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  group('Build Daemon |', () {
-    runTests(provider: provider, contextFactory: (project, provider) => BuildDaemonTestContext(project, provider));
-  });
-
-  group('Build Daemon and Frontend Server |', () {
-    runTests(
-      provider: provider,
-      contextFactory: (project, provider) => BuildDaemonAndFrontendServerTestContext(project, provider),
-    );
-  });
-
   group('Frontend Server |', () {
     runTests(
       provider: provider,

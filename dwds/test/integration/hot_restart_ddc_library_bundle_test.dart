@@ -32,38 +32,7 @@ void main() {
     runTests(
       provider: provider,
       moduleFormat: moduleFormat,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: $canaryFeatures | Build Daemon |', () {
-    
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: moduleFormat,
-    );
-
-    runTests(
-      provider: provider,
-      moduleFormat: moduleFormat,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: $canaryFeatures | Build Daemon and Frontend Server |', () {
-    final compilationMode = CompilationMode.buildDaemonAndFrontendServer;
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: moduleFormat,
-    );
-    runTests(
-      provider: provider,
-      moduleFormat: moduleFormat,
-      compilationMode: compilationMode,
+      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
   });

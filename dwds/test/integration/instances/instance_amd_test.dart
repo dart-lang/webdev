@@ -19,52 +19,6 @@ void main() {
   const debug = false;
   final moduleFormat = ModuleFormat.amd;
 
-  group('canary: false | Build Daemon |', () {
-    final canaryFeatures = false;
-    
-    final provider = TestSdkConfigurationProvider(
-      canaryFeatures: canaryFeatures,
-      verbose: debug,
-      ddcModuleFormat: moduleFormat,
-    );
-    tearDownAll(provider.dispose);
-
-    runTypeSystemVerificationTests(
-      provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
-      canaryFeatures: canaryFeatures,
-    );
-
-    runTests(
-      provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: true | Build Daemon |', () {
-    final canaryFeatures = true;
-    
-    final provider = TestSdkConfigurationProvider(
-      canaryFeatures: canaryFeatures,
-      verbose: debug,
-      ddcModuleFormat: moduleFormat,
-    );
-    tearDownAll(provider.dispose);
-
-    runTypeSystemVerificationTests(
-      provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
-      canaryFeatures: canaryFeatures,
-    );
-
-    runTests(
-      provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
   group('canary: false | Frontend Server |', () {
     final canaryFeatures = false;
     
@@ -77,13 +31,13 @@ void main() {
 
     runTypeSystemVerificationTests(
       provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
+      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
 
     runTests(
       provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
+      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
   });
@@ -100,13 +54,13 @@ void main() {
 
     runTypeSystemVerificationTests(
       provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
+      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
 
     runTests(
       provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
+      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
   });

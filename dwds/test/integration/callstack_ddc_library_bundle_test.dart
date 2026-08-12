@@ -25,20 +25,6 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  group('Build Daemon |', () {
-    testCallStack(
-      provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
-    );
-  });
-
-  group('Build Daemon and Frontend Server |', () {
-    testCallStack(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
-    );
-  });
-
   group('Frontend Server |', () {
     testCallStack(
       provider: provider,

@@ -30,11 +30,4 @@ void main() {
       contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
     );
   });
-
-  group('Build Daemon', () {
-    testWithDwds(
-      provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
-    );
-  });
 }

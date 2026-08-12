@@ -18,5 +18,5 @@ void main() {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  testAll(provider: provider, contextFactory: (project, provider) => BuildDaemonTestContext(project, provider));
+  testAll(provider: provider, contextFactory: (project, provider) => FrontendServerTestContext(project, provider));
 }

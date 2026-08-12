@@ -21,7 +21,7 @@ void main() async {
       canaryFeatures: false,
       experiments: const <String>[],
     ),
-    contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
+    contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
   );
 
 }

@@ -32,11 +32,4 @@ void main() {
       contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
     );
   });
-
-  group('Build Daemon and Frontend Server', () {
-    runTests(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
-    );
-  });
 }

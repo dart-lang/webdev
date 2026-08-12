@@ -28,20 +28,6 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  group('Build Daemon |', () {
-    runDependentTests(
-      provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
-    );
-  });
-
-  group('Build Daemon and Frontend Server |', () {
-    runDependentTests(
-      provider: provider,
-      contextFactory: (project, provider) => BuildDaemonAndFrontendServerTestContext(project, provider),
-    );
-  });
-
   group('Frontend Server |', () {
     runDependentTests(
       provider: provider,

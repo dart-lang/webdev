@@ -31,39 +31,7 @@ void main() {
 
     runTests(
       provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: true | Build Daemon |', () {
-    
-    final provider = TestSdkConfigurationProvider(
-      canaryFeatures: canaryFeatures,
-      verbose: debug,
-      ddcModuleFormat: moduleFormat,
-    );
-    tearDownAll(provider.dispose);
-
-    runTests(
-      provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: true | Build Daemon and Frontend Server |', () {
-    final compilationMode = CompilationMode.buildDaemonAndFrontendServer;
-    final provider = TestSdkConfigurationProvider(
-      canaryFeatures: canaryFeatures,
-      verbose: debug,
-      ddcModuleFormat: moduleFormat,
-    );
-    tearDownAll(provider.dispose);
-
-    runTests(
-      provider: provider,
-      compilationMode: compilationMode,
+      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
   });

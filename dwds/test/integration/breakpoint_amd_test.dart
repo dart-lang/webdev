@@ -24,13 +24,6 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  group('Build Daemon |', () {
-    testBreakpoint(
-      provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
-    );
-  });
-
   group('Frontend Server |', () {
     testBreakpoint(
       provider: provider,
