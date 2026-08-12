@@ -7,12 +7,9 @@
 @Timeout(Duration(minutes: 5))
 library;
 
-import 'dart:io';
-
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/fixtures/context.dart';
 import 'helpers/context.dart';
-import 'package:dwds_test_common/fixtures/project.dart';
 import 'package:dwds_test_common/integration/evaluate.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
