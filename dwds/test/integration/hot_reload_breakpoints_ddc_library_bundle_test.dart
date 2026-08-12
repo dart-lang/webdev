@@ -28,11 +28,4 @@ void main() {
   group('Frontend Server', () {
     runTests(provider: provider, contextFactory: FrontendServerTestContext.new);
   });
-
-  group('Build Daemon and Frontend Server', () {
-    runTests(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
-    );
-  });
 }

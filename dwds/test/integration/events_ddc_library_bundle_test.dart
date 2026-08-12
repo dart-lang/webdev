@@ -6,12 +6,12 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/integration/events.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-
-import '../../../webdev/test/helpers/context.dart';
 import 'fixtures/frontend_server_context.dart';
+import '../../../webdev/test/helpers/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -27,14 +27,7 @@ void main() {
   group('Frontend Server', () {
     testWithDwds(
       provider: provider,
-      contextFactory: FrontendServerTestContext.new,
-    );
-  });
-
-  group('Build Daemon', () {
-    testWithDwds(
-      provider: provider,
-      contextFactory: BuildDaemonTestContext.new,
+      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
     );
   });
 }

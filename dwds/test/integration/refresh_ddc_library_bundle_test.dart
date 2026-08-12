@@ -12,7 +12,7 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/integration/refresh.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-
+import 'fixtures/frontend_server_context.dart';
 import '../../../webdev/test/helpers/context.dart';
 
 void main() {
@@ -27,5 +27,5 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  testAll(provider: provider, contextFactory: BuildDaemonTestContext.new);
+  testAll(provider: provider, contextFactory: (project, provider) => FrontendServerTestContext(project, provider));
 }

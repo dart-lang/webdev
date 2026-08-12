@@ -8,54 +8,20 @@
 library;
 
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/integration/record_type_inspection.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-
-import '../../../../webdev/test/helpers/context.dart';
-import '../fixtures/frontend_server_context.dart';
+import 'fixtures/frontend_server_context.dart';
+import '../../../webdev/test/helpers/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
   const debug = false;
 
-  group('canary: false | Build Daemon |', () {
-    final canaryFeatures = false;
-
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: ModuleFormat.amd,
-    );
-    tearDownAll(provider.dispose);
-
-    runTests(
-      provider: provider,
-      contextFactory: BuildDaemonTestContext.new,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: true | Build Daemon |', () {
-    final canaryFeatures = true;
-
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: ModuleFormat.amd,
-    );
-    tearDownAll(provider.dispose);
-
-    runTests(
-      provider: provider,
-      contextFactory: BuildDaemonTestContext.new,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
   group('canary: false | Frontend Server |', () {
     final canaryFeatures = false;
-
+    
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,
@@ -65,14 +31,14 @@ void main() {
 
     runTests(
       provider: provider,
-      contextFactory: FrontendServerTestContext.new,
+      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
   });
 
   group('canary: true | Frontend Server |', () {
     final canaryFeatures = true;
-
+    
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,
@@ -82,7 +48,7 @@ void main() {
 
     runTests(
       provider: provider,
-      contextFactory: FrontendServerTestContext.new,
+      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
   });

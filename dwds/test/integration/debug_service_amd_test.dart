@@ -9,7 +9,7 @@ library;
 import 'package:dwds_test_common/integration/debug_service.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-
+import 'fixtures/frontend_server_context.dart';
 import '../../../webdev/test/helpers/context.dart';
 
 void main() {
@@ -18,5 +18,5 @@ void main() {
   final provider = TestSdkConfigurationProvider(verbose: debug);
   tearDownAll(provider.dispose);
 
-  testAll(provider: provider, contextFactory: BuildDaemonTestContext.new);
+  testAll(provider: provider, contextFactory: (project, provider) => FrontendServerTestContext(project, provider));
 }

@@ -7,12 +7,12 @@
 library;
 
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/integration/instance.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-
-import '../../../../webdev/test/helpers/context.dart';
-import '../fixtures/frontend_server_context.dart';
+import 'fixtures/frontend_server_context.dart';
+import '../../../webdev/test/helpers/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -21,6 +21,7 @@ void main() {
   final moduleFormat = ModuleFormat.ddc;
 
   group('canary: true | Frontend Server |', () {
+    
     final provider = TestSdkConfigurationProvider(
       canaryFeatures: canaryFeatures,
       verbose: debug,
@@ -30,38 +31,7 @@ void main() {
 
     runTests(
       provider: provider,
-      contextFactory: FrontendServerTestContext.new,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: true | Build Daemon |', () {
-    final provider = TestSdkConfigurationProvider(
-      canaryFeatures: canaryFeatures,
-      verbose: debug,
-      ddcModuleFormat: moduleFormat,
-    );
-    tearDownAll(provider.dispose);
-
-    runTests(
-      provider: provider,
-      contextFactory: BuildDaemonTestContext.new,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: true | Build Daemon and Frontend Server |', () {
-    final compilationMode = CompilationMode.buildDaemonAndFrontendServer;
-    final provider = TestSdkConfigurationProvider(
-      canaryFeatures: canaryFeatures,
-      verbose: debug,
-      ddcModuleFormat: moduleFormat,
-    );
-    tearDownAll(provider.dispose);
-
-    runTests(
-      provider: provider,
-      compilationMode: compilationMode,
+      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
   });

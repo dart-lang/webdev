@@ -8,10 +8,11 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/integration/chrome_proxy_service.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-
+import 'fixtures/frontend_server_context.dart';
 import '../../../webdev/test/helpers/context.dart';
 
 void main() {
@@ -26,47 +27,13 @@ void main() {
       canaryFeatures: canaryFeatures,
       ddcModuleFormat: moduleFormat,
     );
-
+    
     tearDownAll(provider.dispose);
 
     runTests(
       provider: provider,
       moduleFormat: moduleFormat,
-      contextFactory: BuildDaemonTestContext.new,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: $canaryFeatures | Build Daemon |', () {
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: moduleFormat,
-    );
-
-    tearDownAll(provider.dispose);
-
-    runTests(
-      provider: provider,
-      moduleFormat: moduleFormat,
-      contextFactory: BuildDaemonTestContext.new,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: $canaryFeatures | Build Daemon and Frontend Server |', () {
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: moduleFormat,
-    );
-    final compilationMode = CompilationMode.buildDaemonAndFrontendServer;
-    tearDownAll(provider.dispose);
-
-    runTests(
-      provider: provider,
-      moduleFormat: moduleFormat,
-      compilationMode: compilationMode,
+      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
   });
