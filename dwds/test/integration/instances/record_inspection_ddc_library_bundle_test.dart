@@ -32,34 +32,4 @@ void main() {
       canaryFeatures: canaryFeatures,
     );
   });
-
-  group('canary: true | Build Daemon |', () {
-    final compilationMode = CompilationMode.buildDaemon;
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: ModuleFormat.ddc,
-    );
-    tearDownAll(provider.dispose);
-    runTests(
-      provider: provider,
-      compilationMode: compilationMode,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: true | Build Daemon and Frontend Server |', () {
-    final compilationMode = CompilationMode.buildDaemonAndFrontendServer;
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: ModuleFormat.ddc,
-    );
-    tearDownAll(provider.dispose);
-    runTests(
-      provider: provider,
-      compilationMode: compilationMode,
-      canaryFeatures: canaryFeatures,
-    );
-  });
 }

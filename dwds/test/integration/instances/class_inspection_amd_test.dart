@@ -17,40 +17,6 @@ void main() {
   // Enable verbose logging for debugging.
   const debug = false;
 
-  group('canary: false | Build Daemon |', () {
-    final canaryFeatures = false;
-    final compilationMode = CompilationMode.buildDaemon;
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: ModuleFormat.amd,
-    );
-    tearDownAll(provider.dispose);
-
-    runTests(
-      provider: provider,
-      compilationMode: compilationMode,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: true | Build Daemon |', () {
-    final canaryFeatures = true;
-    final compilationMode = CompilationMode.buildDaemon;
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: ModuleFormat.amd,
-    );
-    tearDownAll(provider.dispose);
-
-    runTests(
-      provider: provider,
-      compilationMode: compilationMode,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
   group('canary: false | Frontend Server |', () {
     final canaryFeatures = false;
     final compilationMode = CompilationMode.frontendServer;

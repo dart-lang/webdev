@@ -23,20 +23,6 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  group('Build Daemon |', () {
-    testCallStack(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemon,
-    );
-  });
-
-  group('Build Daemon and Frontend Server |', () {
-    testCallStack(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
-    );
-  });
-
   group('Frontend Server |', () {
     testCallStack(
       provider: provider,

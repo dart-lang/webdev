@@ -22,10 +22,6 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  group('Build Daemon |', () {
-    runTests(provider: provider, compilationMode: CompilationMode.buildDaemon);
-  });
-
   group('Frontend Server |', () {
     runTests(
       provider: provider,

@@ -22,13 +22,6 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  group('Build Daemon |', () {
-    testBreakpoint(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemon,
-    );
-  });
-
   group('Frontend Server |', () {
     testBreakpoint(
       provider: provider,

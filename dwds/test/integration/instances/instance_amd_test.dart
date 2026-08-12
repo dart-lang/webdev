@@ -17,52 +17,6 @@ void main() {
   const debug = false;
   final moduleFormat = ModuleFormat.amd;
 
-  group('canary: false | Build Daemon |', () {
-    final canaryFeatures = false;
-    final compilationMode = CompilationMode.buildDaemon;
-    final provider = TestSdkConfigurationProvider(
-      canaryFeatures: canaryFeatures,
-      verbose: debug,
-      ddcModuleFormat: moduleFormat,
-    );
-    tearDownAll(provider.dispose);
-
-    runTypeSystemVerificationTests(
-      provider: provider,
-      compilationMode: compilationMode,
-      canaryFeatures: canaryFeatures,
-    );
-
-    runTests(
-      provider: provider,
-      compilationMode: compilationMode,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: true | Build Daemon |', () {
-    final canaryFeatures = true;
-    final compilationMode = CompilationMode.buildDaemon;
-    final provider = TestSdkConfigurationProvider(
-      canaryFeatures: canaryFeatures,
-      verbose: debug,
-      ddcModuleFormat: moduleFormat,
-    );
-    tearDownAll(provider.dispose);
-
-    runTypeSystemVerificationTests(
-      provider: provider,
-      compilationMode: compilationMode,
-      canaryFeatures: canaryFeatures,
-    );
-
-    runTests(
-      provider: provider,
-      compilationMode: compilationMode,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
   group('canary: false | Frontend Server |', () {
     final canaryFeatures = false;
     final compilationMode = CompilationMode.frontendServer;

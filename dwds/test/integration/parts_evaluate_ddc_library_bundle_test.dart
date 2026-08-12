@@ -27,17 +27,6 @@ void main() async {
   );
   tearDownAll(provider.dispose);
 
-  group('Build Daemon |', () {
-    testAll(provider: provider, compilationMode: CompilationMode.buildDaemon);
-  });
-
-  group('Build Daemon and Frontend Server |', () {
-    testAll(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
-    );
-  });
-
   group('Frontend Server |', () {
     group('Context with parts |', () {
       for (final indexBaseMode in IndexBaseMode.values) {
@@ -57,13 +46,5 @@ void main() async {
         );
       }
     });
-  });
-
-  group('Build Daemon and Frontend Server |', () {
-    tearDownAll(provider.dispose);
-    testAll(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
-    );
   });
 }

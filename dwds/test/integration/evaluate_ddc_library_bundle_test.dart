@@ -28,17 +28,6 @@ void main() async {
     );
     tearDownAll(provider.dispose);
 
-    group('Build Daemon |', () {
-      testAll(provider: provider, compilationMode: CompilationMode.buildDaemon);
-    });
-
-    group('Build Daemon and Frontend Server |', () {
-      testAll(
-        provider: provider,
-        compilationMode: CompilationMode.buildDaemonAndFrontendServer,
-      );
-    });
-
     group('Frontend Server |', () {
       for (final useDebuggerModuleNames in [false, true]) {
         group('Debugger module names: $useDebuggerModuleNames |', () {

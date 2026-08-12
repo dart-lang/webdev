@@ -23,17 +23,6 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  group('Build Daemon |', () {
-    runTests(provider: provider, compilationMode: CompilationMode.buildDaemon);
-  });
-
-  group('Build Daemon and Frontend Server |', () {
-    runTests(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
-    );
-  });
-
   group('Frontend Server |', () {
     runTests(
       provider: provider,

@@ -22,13 +22,6 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  group('Build Daemon |', () {
-    testCallStack(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemon,
-    );
-  });
-
   group('Frontend Server |', () {
     testCallStack(
       provider: provider,

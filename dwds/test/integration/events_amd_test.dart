@@ -76,11 +76,4 @@ void main() {
       await events;
     });
   });
-
-  group('Build Daemon', () {
-    testWithDwds(
-      provider: provider,
-      compilationMode: CompilationMode.buildDaemon,
-    );
-  });
 }
