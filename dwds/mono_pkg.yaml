@@ -7,38 +7,23 @@ stages:
       - test: test/build/ensure_version_test.dart
       sdk: dev
   - unit_test:
-    # Linux extension tests:
-    # Note: `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &` must be
-    # run first for Linux.
-    - group:
-      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - test: --tags=extension
-      sdk: dev
-      os:
-        - linux
-     # Windows extension tests:
-    - group:
-      - test: --tags=extension
-      sdk: dev
-      os:
-        - windows
     # First test shard:
     - group:
-      - test: --total-shards 3 --shard-index 0 --exclude-tags=extension
+      - test: --total-shards 3 --shard-index 0
       sdk: dev
       os:
         - linux
         - windows
     # Second test shard:
     - group:
-      - test: --total-shards 3 --shard-index 1 --exclude-tags=extension
+      - test: --total-shards 3 --shard-index 1
       sdk: dev
       os:
         - linux
         - windows
     # Third test shard:
     - group:
-      - test: --total-shards 3 --shard-index 2 --exclude-tags=extension
+      - test: --total-shards 3 --shard-index 2
       sdk: dev
       os:
         - linux
