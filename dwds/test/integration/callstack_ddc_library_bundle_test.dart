@@ -11,6 +11,8 @@ import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/integration/callstack.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
+import 'fixtures/frontend_server_context.dart';
+import '../../../webdev/test/helpers/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -26,14 +28,14 @@ void main() {
   group('Build Daemon |', () {
     testCallStack(
       provider: provider,
-      compilationMode: CompilationMode.buildDaemon,
+      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
     );
   });
 
   group('Frontend Server |', () {
     testCallStack(
       provider: provider,
-      compilationMode: CompilationMode.frontendServer,
+      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
     );
   });
 }

@@ -16,16 +16,16 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 void runTests({
   required TestSdkConfigurationProvider provider,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
 }) {
   final project = TestProject.testHotRestartBreakpoints;
-  final context = TestContext(project, provider);
+  final context = contextFactory(project, provider);
   final mainFile = project.dartEntryFileName;
   final callLogMarker = 'callLog';
 
   Future<void> makeEditsAndRecompile(List<Edit> edits) async {
     await context.makeEdits(edits);
-    if (compilationMode == CompilationMode.frontendServer) {
+    if (context.usesFrontendServer) {
       await context.recompile(fullRestart: true);
     } else {
       await context.waitForSuccessfulBuild();
@@ -45,7 +45,6 @@ void runTests({
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
-          compilationMode: compilationMode,
           moduleFormat: provider.ddcModuleFormat,
           canaryFeatures: provider.canaryFeatures,
         ),
@@ -190,7 +189,7 @@ void runTests({
 
       final breakpointFuture = waitForBreakpoint();
 
-      if (compilationMode == CompilationMode.frontendServer) {
+      if (context.usesFrontendServer) {
         await context.recompile(fullRestart: false);
       }
 

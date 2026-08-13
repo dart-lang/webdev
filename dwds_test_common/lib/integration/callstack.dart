@@ -13,18 +13,17 @@ import 'package:vm_service_interface/vm_service_interface.dart';
 
 void testCallStack({
   required TestSdkConfigurationProvider provider,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
   bool verboseCompiler = false,
 }) {
   final project = TestProject.testPackage();
-  final context = TestContext(project, provider);
+  final context = contextFactory(project, provider);
 
   group('shared context |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           enableExpressionEvaluation: true,
           verboseCompiler: verboseCompiler,
           moduleFormat: provider.ddcModuleFormat,

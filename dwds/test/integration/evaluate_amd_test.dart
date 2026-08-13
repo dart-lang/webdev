@@ -14,6 +14,10 @@ import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/fixtures/project.dart';
 import 'package:dwds_test_common/integration/evaluate.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
+
+import '../../../webdev/test/helpers/context.dart';
+import 'fixtures/frontend_server_context.dart';
+
 import 'package:test/test.dart';
 
 void main() async {
@@ -27,7 +31,7 @@ void main() async {
   tearDownAll(provider.dispose);
 
   group('Build Daemon |', () {
-    testAll(provider: provider, compilationMode: CompilationMode.buildDaemon);
+    testAll(provider: provider, contextFactory: (project, provider) => BuildDaemonTestContext(project, provider));
   });
 
   group('Frontend Server |', () {
@@ -39,7 +43,7 @@ void main() async {
             () {
               testAll(
                 provider: provider,
-                compilationMode: CompilationMode.frontendServer,
+                contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
                 indexBaseMode: indexBaseMode,
                 useDebuggerModuleNames: useDebuggerModuleNames,
               );

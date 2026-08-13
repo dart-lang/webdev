@@ -10,9 +10,12 @@ import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
-void testAll({required TestSdkConfigurationProvider provider}) {
+void testAll({
+  required TestSdkConfigurationProvider provider,
+  required TestContextFactory contextFactory,
+}) {
   group('Asset handler', () {
-    final context = TestContext(TestProject.test, provider);
+    final context = contextFactory(TestProject.test, provider);
 
     setUpAll(() async {
       setCurrentLogWriter(debug: provider.verbose);

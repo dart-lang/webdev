@@ -9,6 +9,7 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/integration/asset_handler.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
+import 'helpers/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -21,5 +22,5 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  testAll(provider: provider);
+  testAll(provider: provider, contextFactory: (project, provider) => BuildDaemonTestContext(project, provider));
 }

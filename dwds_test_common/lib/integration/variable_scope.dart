@@ -14,8 +14,11 @@ import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-void testAll({required TestSdkConfigurationProvider provider}) {
-  final context = TestContext(TestProject.testScopes, provider);
+void testAll({
+  required TestSdkConfigurationProvider provider,
+  required TestContextFactory contextFactory,
+}) {
+  final context = contextFactory(TestProject.testScopes, provider);
 
   setUpAll(() async {
     setCurrentLogWriter(debug: provider.verbose);

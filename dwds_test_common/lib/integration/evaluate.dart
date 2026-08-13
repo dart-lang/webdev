@@ -21,21 +21,21 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 void testAll({
   required TestSdkConfigurationProvider provider,
-  CompilationMode compilationMode = CompilationMode.buildDaemon,
+  required TestContextFactory contextFactory,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
   bool useDebuggerModuleNames = false,
 }) {
-  if (compilationMode == CompilationMode.buildDaemon &&
+  final testProject = TestProject.test;
+  final testPackageProject = TestProject.testPackage(baseMode: indexBaseMode);
+  final context = contextFactory(testPackageProject, provider);
+
+  if (context.usesBuildDaemon &&
       indexBaseMode == IndexBaseMode.base) {
     throw StateError(
       'build daemon scenario does not support non-empty base in index file',
     );
   }
 
-  final testProject = TestProject.test;
-  final testPackageProject = TestProject.testPackage(baseMode: indexBaseMode);
-
-  final context = TestContext(testPackageProject, provider);
 
   Future<void> onBp(
     Stream<Event> stream,
@@ -73,7 +73,6 @@ void testAll({
       setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           moduleFormat: provider.ddcModuleFormat,
           enableExpressionEvaluation: true,
           useDebuggerModuleNames: useDebuggerModuleNames,
@@ -824,7 +823,6 @@ void testAll({
       setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           moduleFormat: provider.ddcModuleFormat,
           enableExpressionEvaluation: false,
           verboseCompiler: provider.verbose,

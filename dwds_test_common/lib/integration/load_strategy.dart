@@ -102,16 +102,15 @@ void runIndependentTests() {
 
 void runDependentTests({
   required TestSdkConfigurationProvider provider,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
 }) {
   final project = TestProject.test;
-  final context = TestContext(project, provider);
+  final context = contextFactory(project, provider);
 
   group('Global load Strategy with default build settings', () {
     setUpAll(() async {
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           moduleFormat: provider.ddcModuleFormat,
           canaryFeatures: provider.canaryFeatures,
         ),
@@ -143,7 +142,6 @@ void runDependentTests({
     setUpAll(() async {
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           canaryFeatures: canaryFeatures,
           isFlutterApp: isFlutterApp,
           experiments: experiments,

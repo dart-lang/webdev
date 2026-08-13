@@ -10,14 +10,13 @@ import 'package:test/test.dart';
 
 void runTests({
   required TestSdkConfigurationProvider provider,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
 }) {
-  final context = TestContext(TestProject.test, provider);
+  final context = contextFactory(TestProject.test, provider);
 
   setUpAll(() async {
     await context.setUp(
       testSettings: TestSettings(
-        compilationMode: compilationMode,
         moduleFormat: provider.ddcModuleFormat,
         canaryFeatures: provider.canaryFeatures,
       ),

@@ -17,21 +17,21 @@ import 'package:vm_service_interface/vm_service_interface.dart';
 
 void testAll({
   required TestSdkConfigurationProvider provider,
-  CompilationMode compilationMode = CompilationMode.buildDaemon,
+  required TestContextFactory contextFactory,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
   bool useDebuggerModuleNames = false,
 }) {
-  if (compilationMode == CompilationMode.buildDaemon &&
+  final testCircular1 = TestProject.testCircular1;
+  final testCircular2 = TestProject.testCircular2(baseMode: indexBaseMode);
+  final context = contextFactory(testCircular2, provider);
+
+  if (context.usesBuildDaemon &&
       indexBaseMode == IndexBaseMode.base) {
     throw StateError(
       'build daemon scenario does not support non-empty base in index file',
     );
   }
 
-  final testCircular1 = TestProject.testCircular1;
-  final testCircular2 = TestProject.testCircular2(baseMode: indexBaseMode);
-
-  final context = TestContext(testCircular2, provider);
 
   Future<void> onBreakPoint(
     String isolate,
@@ -65,7 +65,6 @@ void testAll({
       setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           enableExpressionEvaluation: true,
           useDebuggerModuleNames: useDebuggerModuleNames,
           verboseCompiler: provider.verbose,

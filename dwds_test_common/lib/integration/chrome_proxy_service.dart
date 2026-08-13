@@ -29,11 +29,11 @@ import 'package:vm_service_interface/vm_service_interface.dart';
 void runTests({
   required TestSdkConfigurationProvider provider,
   required ModuleFormat moduleFormat,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
   required bool canaryFeatures,
 }) {
   final project = TestProject.test;
-  final context = TestContext(project, provider);
+  final context = contextFactory(project, provider);
 
   group('shared context', () {
     setUpAll(() async {
@@ -44,8 +44,7 @@ void runTests({
           verboseCompiler: false,
           moduleFormat: provider.ddcModuleFormat,
           canaryFeatures: canaryFeatures,
-          compilationMode: compilationMode,
-        ),
+          ),
       );
     });
 

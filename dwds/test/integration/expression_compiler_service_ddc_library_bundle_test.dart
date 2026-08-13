@@ -11,6 +11,9 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/integration/expression_compiler_service.dart';
 import 'package:test/test.dart';
 
+import '../../../webdev/test/helpers/context.dart';
+import 'fixtures/frontend_server_context.dart';
+
 void main() async {
   testAll(
     compilerOptions: CompilerOptions(
@@ -18,5 +21,7 @@ void main() async {
       canaryFeatures: true,
       experiments: const <String>[],
     ),
+    contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
   );
+
 }

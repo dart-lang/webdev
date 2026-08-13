@@ -13,10 +13,10 @@ import 'package:vm_service/vm_service.dart';
 
 void runTests({
   required TestSdkConfigurationProvider provider,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
   required bool canaryFeatures,
 }) {
-  final context = TestContext(TestProject.testExperiment, provider);
+  final context = contextFactory(TestProject.testExperiment, provider);
   final testInspector = TestInspector(context);
 
   late VmService service;
@@ -57,12 +57,11 @@ void runTests({
     depth: depth,
   );
 
-  group('$compilationMode |', () {
+  group('${context.usesFrontendServer ? "frontendServer" : "buildDaemon"} |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           enableExpressionEvaluation: true,
           verboseCompiler: provider.verbose,
           experiments: ['dot-shorthands'],

@@ -27,8 +27,11 @@ Future<void> _waitForPageReady(TestContext context) async {
 TypeMatcher<Event> _hasKind(String kind) =>
     isA<Event>().having((Event e) => e.kind, 'kind', kind);
 
-void testAll({required TestSdkConfigurationProvider provider}) {
-  final context = TestContext(TestProject.test, provider);
+void testAll({
+  required TestSdkConfigurationProvider provider,
+  required TestContextFactory contextFactory,
+}) {
+  final context = contextFactory(TestProject.test, provider);
 
   for (final serveFromDds in [true, false]) {
     group('Injected client with DevTools served from '

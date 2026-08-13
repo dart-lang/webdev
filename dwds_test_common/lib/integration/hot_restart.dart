@@ -25,18 +25,18 @@ const newString = 'Bonjour le monde!';
 void runTests({
   required TestSdkConfigurationProvider provider,
   required ModuleFormat moduleFormat,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
   required bool canaryFeatures,
 }) {
-  final context = TestContext(TestProject.testAppendBody, provider);
+  final context = contextFactory(TestProject.testAppendBody, provider);
 
   tearDownAll(provider.dispose);
 
   Future<void> recompile({bool hasEdits = false}) async {
-    if (compilationMode == CompilationMode.frontendServer) {
+    if (context.usesFrontendServer) {
       await context.recompile(fullRestart: true);
     } else {
-      assert(compilationMode == CompilationMode.buildDaemon);
+      assert(context.usesBuildDaemon);
       if (hasEdits) {
         // Only gets a new build if there were edits.
         await context.waitForSuccessfulBuild();
@@ -88,7 +88,6 @@ void runTests({
           await context.setUp(
             testSettings: TestSettings(
               reloadConfiguration: ReloadConfiguration.liveReload,
-              compilationMode: compilationMode,
               moduleFormat: provider.ddcModuleFormat,
               canaryFeatures: provider.canaryFeatures,
             ),
@@ -113,7 +112,6 @@ void runTests({
           await context.setUp(
             testSettings: TestSettings(
               reloadConfiguration: ReloadConfiguration.liveReload,
-              compilationMode: compilationMode,
               moduleFormat: provider.ddcModuleFormat,
               canaryFeatures: provider.canaryFeatures,
             ),
@@ -141,7 +139,6 @@ void runTests({
           await context.setUp(
             testSettings: TestSettings(
               reloadConfiguration: ReloadConfiguration.liveReload,
-              compilationMode: compilationMode,
               moduleFormat: provider.ddcModuleFormat,
               canaryFeatures: provider.canaryFeatures,
             ),
@@ -165,7 +162,7 @@ void runTests({
       });
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
-    skip: compilationMode == CompilationMode.buildDaemon ? null : true,
+    skip: context.usesBuildDaemon ? null : true,
     timeout: const Timeout.factor(2),
   );
 
@@ -177,7 +174,6 @@ void runTests({
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
-          compilationMode: compilationMode,
           moduleFormat: provider.ddcModuleFormat,
           canaryFeatures: provider.canaryFeatures,
         ),
@@ -481,7 +477,6 @@ void runTests({
           await context.setUp(
             testSettings: TestSettings(
               reloadConfiguration: ReloadConfiguration.hotRestart,
-              compilationMode: compilationMode,
               moduleFormat: provider.ddcModuleFormat,
               canaryFeatures: provider.canaryFeatures,
             ),
@@ -534,7 +529,6 @@ void runTests({
           await context.setUp(
             testSettings: TestSettings(
               reloadConfiguration: ReloadConfiguration.hotRestart,
-              compilationMode: compilationMode,
               moduleFormat: provider.ddcModuleFormat,
               canaryFeatures: provider.canaryFeatures,
             ),
@@ -562,7 +556,7 @@ void runTests({
       });
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
-    skip: compilationMode == CompilationMode.buildDaemon ? null : true,
+    skip: context.usesBuildDaemon ? null : true,
     timeout: const Timeout.factor(2),
   );
 
@@ -575,7 +569,6 @@ void runTests({
       await context.setUp(
         testSettings: TestSettings(
           enableExpressionEvaluation: true,
-          compilationMode: compilationMode,
           moduleFormat: provider.ddcModuleFormat,
           canaryFeatures: provider.canaryFeatures,
         ),

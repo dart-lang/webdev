@@ -16,16 +16,15 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 void runTests({
   required TestSdkConfigurationProvider provider,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
 }) {
-  final context = TestContext(TestProject.testScopes, provider);
+  final context = contextFactory(TestProject.testScopes, provider);
 
   late ChromeAppInspector inspector;
 
   setUpAll(() async {
     await context.setUp(
       testSettings: TestSettings(
-        compilationMode: compilationMode,
         moduleFormat: provider.ddcModuleFormat,
         canaryFeatures: provider.canaryFeatures,
       ),
@@ -102,7 +101,7 @@ void runTests({
 
   group('mapExceptionStackTrace', () {
     final skipFrontendServerAmd =
-        compilationMode == CompilationMode.frontendServer &&
+        context.usesFrontendServer &&
             provider.ddcModuleFormat == ModuleFormat.amd
         ? 'Stack trace mapping not supported in this configuration'
         : null;

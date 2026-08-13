@@ -16,33 +16,33 @@ import 'package:test/test.dart';
 // look up packages.
 void runTests({
   required TestSdkConfigurationProvider provider,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
 }) {
   final testProject = TestProject.test;
   final testPackageProject = TestProject.testPackage();
 
-  final context = TestContext(testPackageProject, provider);
+  final context = contextFactory(testPackageProject, provider);
 
   for (final useDebuggerModuleNames in [false, true]) {
     group('Debugger module names: $useDebuggerModuleNames |', () {
-      final appServerPath = compilationMode.usesFrontendServer
+      final appServerPath = context.usesFrontendServer
           ? 'web/main.dart'
           : 'main.dart';
 
       final serverPath =
-          compilationMode.usesFrontendServer && useDebuggerModuleNames
+          context.usesFrontendServer && useDebuggerModuleNames
           ? 'packages/${testPackageProject.packageDirectory}/lib/test_library.dart'
           : 'packages/${testPackageProject.packageName}/test_library.dart';
 
       final anotherServerPath =
-          compilationMode.usesFrontendServer && useDebuggerModuleNames
+          context.usesFrontendServer && useDebuggerModuleNames
           ? 'packages/${testProject.packageDirectory}/lib/library.dart'
           : 'packages/${testProject.packageName}/library.dart';
+
 
       setUpAll(() async {
         await context.setUp(
           testSettings: TestSettings(
-            compilationMode: compilationMode,
             useDebuggerModuleNames: useDebuggerModuleNames,
             moduleFormat: provider.ddcModuleFormat,
             canaryFeatures: provider.canaryFeatures,

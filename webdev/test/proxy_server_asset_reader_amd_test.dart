@@ -9,6 +9,7 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/integration/readers/proxy_server_asset_reader.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
+import 'helpers/context.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider(
@@ -16,5 +17,5 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  testAll(provider: provider);
+  testAll(provider: provider, contextFactory: (project, provider) => BuildDaemonTestContext(project, provider));
 }

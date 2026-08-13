@@ -10,16 +10,17 @@ import 'dart:io';
 
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
-import 'package:build_daemon/data/build_target.dart';
+
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/dart_web_debug_service.dart';
+import 'package:dwds/data/build_result.dart' as dwds_data;
+
+
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
-import 'package:dwds/src/loaders/build_runner_strategy_provider.dart';
-import 'package:dwds/src/loaders/frontend_server_strategy_provider.dart';
 import 'package:dwds/src/loaders/strategy.dart';
-import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
+
 import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
@@ -68,25 +69,27 @@ Matcher isRPCErrorWithCode(int code) =>
     isA<RPCError>().having((RPCError e) => e.code, 'code', equals(code));
 Matcher throwsRPCErrorWithCode(int code) => throwsA(isRPCErrorWithCode(code));
 
-enum CompilationMode {
-  buildDaemon(false, true, false),
-  frontendServer(true, false, false),
-  buildDaemonAndFrontendServer(true, true, true);
+typedef TestContextFactory = TestContext Function(
+  TestProject project,
+  TestSdkConfigurationProvider sdkConfigurationProvider,
+);
 
-  final bool usesFrontendServer;
-  final bool usesBuildDaemon;
-  final bool usesDdcModulesOnly;
 
-  const CompilationMode(
-    this.usesFrontendServer,
-    this.usesBuildDaemon,
-    this.usesDdcModulesOnly,
-  );
-}
 
-class TestContext {
+abstract class TestContext {
   final TestProject project;
   final TestSdkConfigurationProvider sdkConfigurationProvider;
+
+  bool get usesFrontendServer;
+  bool get usesBuildDaemon;
+  bool get usesDdcModulesOnly;
+
+  late AssetReader assetReader;
+  late Stream<dwds_data.BuildResult> buildResults;
+  late LoadStrategy loadStrategy;
+  String basePath = '';
+  late String filePathToServe;
+  ExpressionCompiler? expressionCompiler;
 
   String get appUrl => _appUrl!;
   late String? _appUrl;
@@ -99,11 +102,13 @@ class TestContext {
 
   Dwds? get dwds => _testServer?.dwds;
 
-  BuildDaemonClient get daemonClient => _daemonClient!;
   BuildDaemonClient? _daemonClient;
+  BuildDaemonClient get daemonClient => _daemonClient!;
+  set daemonClient(BuildDaemonClient? value) => _daemonClient = value;
 
-  ResidentWebRunner get webRunner => _webRunner!;
   ResidentWebRunner? _webRunner;
+  ResidentWebRunner get webRunner => _webRunner!;
+  set webRunner(ResidentWebRunner? value) => _webRunner = value;
 
   WebDriver get webDriver => _webDriver!;
   WebDriver? _webDriver;
@@ -114,11 +119,21 @@ class TestContext {
   WebkitDebugger get webkitDebugger => _webkitDebugger!;
   late WebkitDebugger? _webkitDebugger;
 
+  Handler? _assetHandler;
   Handler get assetHandler => _assetHandler!;
-  late Handler? _assetHandler;
+  set assetHandler(Handler? value) => _assetHandler = value;
 
   Client get client => _client!;
   Client? _client;
+
+  Future<void> modeSetUp({
+    required TestSettings testSettings,
+    required TestAppMetadata appMetadata,
+    required TestDebugSettings debugSettings,
+    required TestBuildSettings buildSettings,
+    required Uri reloadedSourcesUri,
+  });
+
 
   ExpressionCompilerService? ddcService;
 
@@ -138,7 +153,7 @@ class TestContext {
 
   late LocalFileSystem frontendServerFileSystem;
 
-  late String _hostname;
+
 
   /// Internal VM service.
   ///
@@ -246,12 +261,7 @@ class TestContext {
         'upgrade',
       ], workingDirectory: project.absolutePackageDirectory);
 
-      ExpressionCompiler? expressionCompiler;
-      AssetReader assetReader;
-      Stream<BuildResults> buildResults;
-      LoadStrategy loadStrategy;
-      var basePath = '';
-      var filePathToServe = project.filePathToServe;
+      filePathToServe = project.filePathToServe;
 
       // Start the HTTP server and save its used port.
       final httpServer = await startHttpServer('localhost');
@@ -261,300 +271,14 @@ class TestContext {
         'http://localhost:$_port/${WebDevFS.reloadedSourcesFileName}',
       );
 
-      switch (testSettings.compilationMode) {
-        case CompilationMode.buildDaemon:
-          {
-            final options = [
-              if (testSettings.enableExpressionEvaluation) ...[
-                '--define',
-                'build_web_compilers|ddc=generate-full-dill=true',
-              ],
-              for (final experiment in buildSettings.experiments)
-                '--enable-experiment=$experiment',
-              if (buildSettings.canaryFeatures) ...[
-                '--define',
-                'build_web_compilers|ddc=canary=true',
-                '--define',
-                'build_web_compilers|sdk_js=canary=true',
-              ],
-              if (testSettings.moduleFormat == ModuleFormat.ddc) ...[
-                '--define',
-                'build_web_compilers|ddc=ddc-library-bundle=true',
-                '--define',
-                'build_web_compilers|sdk_js=ddc-library-bundle=true',
-                '--define',
-                'build_web_compilers|entrypoint=ddc-library-bundle=true',
-                '--define',
-                'build_web_compilers|entrypoint_marker=ddc-library-bundle=true',
-              ],
-              '--verbose',
-            ];
-            _daemonClient = await connectClient(
-              sdkLayout.dartPath,
-              project.absolutePackageDirectory,
-              options,
-              (log) {
-                final record = log.toLogRecord();
-                final name = record.loggerName == ''
-                    ? ''
-                    : '${record.loggerName}: ';
-                _logger.log(
-                  record.level,
-                  '$name${record.message}',
-                  record.error,
-                  record.stackTrace,
-                );
-              },
-            );
-            daemonClient.registerBuildTarget(
-              DefaultBuildTarget((b) => b..target = project.directoryToServe),
-            );
-            daemonClient.startBuild();
+      await modeSetUp(
+        testSettings: testSettings,
+        appMetadata: appMetadata,
+        debugSettings: debugSettings,
+        buildSettings: buildSettings,
+        reloadedSourcesUri: reloadedSourcesUri,
+      );
 
-            await waitForSuccessfulBuild();
-
-            final assetServerPort = daemonPort(
-              project.absolutePackageDirectory,
-            );
-            _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
-            if (testSettings.moduleFormat == ModuleFormat.ddc &&
-                buildSettings.canaryFeatures) {
-              _assetHandler = _handleReloadedSources(_assetHandler!);
-            }
-            assetReader = ProxyServerAssetReader(
-              assetServerPort,
-              root: project.directoryToServe,
-            );
-
-            if (testSettings.enableExpressionEvaluation) {
-              ddcService = ExpressionCompilerService(
-                'localhost',
-                _port!,
-                verbose: testSettings.verboseCompiler,
-                sdkConfigurationProvider: sdkConfigurationProvider,
-              );
-              expressionCompiler = ddcService;
-            }
-
-            loadStrategy = switch ((
-              testSettings.moduleFormat,
-              buildSettings.canaryFeatures,
-            )) {
-              (ModuleFormat.ddc, true) =>
-                BuildRunnerDdcLibraryBundleStrategyProvider(
-                  testSettings.reloadConfiguration,
-                  assetReader,
-                  buildSettings,
-                  reloadedSourcesUri: reloadedSourcesUri,
-                ).strategy,
-              (ModuleFormat.ddc, false) => throw Exception(
-                'Unsupported DDC configuration: build daemon + canary (false) '
-                '+ DDC module format ${testSettings.moduleFormat.name}.',
-              ),
-
-              _ => BuildRunnerRequireStrategyProvider(
-                testSettings.reloadConfiguration,
-                assetReader,
-                buildSettings,
-              ).strategy,
-            };
-
-            buildResults = daemonClient.buildResults;
-          }
-          break;
-        case CompilationMode.frontendServer:
-          {
-            filePathToServe = webCompatiblePath([
-              project.directoryToServe,
-              project.filePathToServe,
-            ]);
-
-            _logger.info('Serving: $filePathToServe');
-
-            final entry = p.toUri(
-              p.join(project.webAssetsPath, project.dartEntryFileName),
-            );
-            frontendServerFileSystem = const LocalFileSystem();
-            final packageUriMapper = await PackageUriMapper.create(
-              frontendServerFileSystem,
-              project.packageConfigFile,
-              useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
-            );
-
-            final compilerOptions = TestCompilerOptions(
-              experiments: buildSettings.experiments,
-              canaryFeatures: buildSettings.canaryFeatures,
-              moduleFormat: testSettings.moduleFormat,
-            );
-
-            _webRunner = ResidentWebRunner(
-              mainUri: entry,
-              urlTunneler: debugSettings.urlEncoder,
-              projectDirectory: Directory(project.absolutePackageDirectory).uri,
-              packageConfigFile: project.packageConfigFile,
-              packageUriMapper: packageUriMapper,
-              fileSystemRoots: [
-                Directory(project.absolutePackageDirectory).uri,
-              ],
-              fileSystemScheme: 'org-dartlang-app',
-              outputPath: outputDir.path,
-              compilerOptions: compilerOptions,
-              sdkLayout: sdkLayout,
-              verbose: testSettings.verboseCompiler,
-            );
-
-            final assetServerPort = await findUnusedPort();
-            _hostname = appMetadata.hostname;
-            await webRunner.run(
-              frontendServerFileSystem,
-              hostname: _hostname,
-              port: assetServerPort,
-              index: filePathToServe,
-            );
-
-            if (testSettings.enableExpressionEvaluation) {
-              expressionCompiler = webRunner.expressionCompiler;
-            }
-
-            basePath = webRunner.devFS!.assetServer.basePath;
-            assetReader = webRunner.devFS!.assetServer;
-            _assetHandler = webRunner.devFS!.assetServer.handleRequest;
-            loadStrategy = switch (testSettings.moduleFormat) {
-              ModuleFormat.amd => FrontendServerRequireStrategyProvider(
-                testSettings.reloadConfiguration,
-                assetReader,
-                packageUriMapper,
-                () async => {},
-                buildSettings,
-              ).strategy,
-              ModuleFormat.ddc =>
-                buildSettings.canaryFeatures
-                    ? FrontendServerDdcLibraryBundleStrategyProvider(
-                        testSettings.reloadConfiguration,
-                        assetReader,
-                        packageUriMapper,
-                        () async => {},
-                        buildSettings,
-                        reloadedSourcesUri: reloadedSourcesUri,
-                      ).strategy
-                    : FrontendServerDdcStrategyProvider(
-                        testSettings.reloadConfiguration,
-                        assetReader,
-                        packageUriMapper,
-                        () async => {},
-                        buildSettings,
-                      ).strategy,
-              _ => throw Exception(
-                'Unsupported DDC module format '
-                '${testSettings.moduleFormat.name}.',
-              ),
-            };
-            buildResults = const Stream<BuildResults>.empty();
-          }
-          break;
-        case CompilationMode.buildDaemonAndFrontendServer:
-          {
-            final options = [
-              if (testSettings.enableExpressionEvaluation) ...[
-                '--define',
-                'build_web_compilers|ddc=generate-full-dill=true',
-              ],
-              for (final experiment in buildSettings.experiments)
-                '--enable-experiment=$experiment',
-              '--define',
-              'build_web_compilers|ddc=canary=true',
-              '--define',
-              'build_web_compilers|sdk_js=canary=true',
-              '--define',
-              'build_web_compilers|sdk_js=web-hot-reload=true',
-              '--define',
-              'build_web_compilers|entrypoint=web-hot-reload=true',
-              '--define',
-              'build_web_compilers|entrypoint_marker=web-hot-reload=true',
-              '--define',
-              'build_web_compilers|entrypoint_marker=web-assets-path='
-                  '${project.webAssetsPath}',
-              '--define',
-              'build_web_compilers|ddc=web-hot-reload=true',
-              '--define',
-              'build_web_compilers|ddc_modules=web-hot-reload=true',
-              '--verbose',
-            ];
-            _daemonClient = await connectClient(
-              sdkLayout.dartPath,
-              project.absolutePackageDirectory,
-              options,
-              (log) {
-                final record = log.toLogRecord();
-                final name = record.loggerName == ''
-                    ? ''
-                    : '${record.loggerName}: ';
-                _logger.log(
-                  record.level,
-                  '$name${record.message}',
-                  record.error,
-                  record.stackTrace,
-                );
-              },
-            );
-            daemonClient.registerBuildTarget(
-              DefaultBuildTarget((b) => b..target = project.directoryToServe),
-            );
-            daemonClient.startBuild();
-
-            await waitForSuccessfulBuild();
-
-            final assetServerPort = daemonPort(
-              project.absolutePackageDirectory,
-            );
-            _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
-            if (testSettings.moduleFormat == ModuleFormat.ddc &&
-                buildSettings.canaryFeatures) {
-              _assetHandler = _handleReloadedSources(_assetHandler!);
-            }
-            assetReader = ProxyServerAssetReader(
-              assetServerPort,
-              root: project.directoryToServe,
-            );
-
-            if (testSettings.enableExpressionEvaluation) {
-              ddcService = ExpressionCompilerService(
-                'localhost',
-                _port!,
-                verbose: testSettings.verboseCompiler,
-                sdkConfigurationProvider: sdkConfigurationProvider,
-              );
-              expressionCompiler = ddcService;
-            }
-            frontendServerFileSystem = const LocalFileSystem();
-            final packageUriMapper = await PackageUriMapper.create(
-              frontendServerFileSystem,
-              project.packageConfigFile,
-              useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
-            );
-            loadStrategy = switch ((
-              testSettings.moduleFormat,
-              buildSettings.canaryFeatures,
-            )) {
-              (ModuleFormat.ddc, true) =>
-                FrontendServerDdcLibraryBundleStrategyProvider(
-                  testSettings.reloadConfiguration,
-                  assetReader,
-                  packageUriMapper,
-                  () async => {},
-                  buildSettings,
-                  injectScriptLoad: false,
-                  reloadedSourcesUri: reloadedSourcesUri,
-                ).strategy,
-              _ => throw Exception(
-                'Unsupported DDC module format when compiling with Frontend '
-                'Server + build_runner ${testSettings.moduleFormat.name}.',
-              ),
-            };
-            buildResults = const Stream<BuildResults>.empty();
-          }
-          break;
-      }
 
       final debugPort = await findUnusedPort();
       if (testSettings.launchChrome) {
@@ -611,7 +335,7 @@ class TestContext {
         assetHandler: assetHandler,
         assetReader: assetReader,
         strategy: loadStrategy,
-        target: project.directoryToServe,
+
         buildResults: buildResults,
         chromeConnection: () async => connection,
         httpServer: httpServer,
@@ -824,7 +548,7 @@ class TestContext {
     _updateReloadedSources(file.path);
   }
 
-  Handler _createBuildRunnerProxyHandler(int assetServerPort) {
+  Handler createBuildRunnerProxyHandler(int assetServerPort) {
     return proxyHandler(
       'http://localhost:$assetServerPort/${project.directoryToServe}/',
       client: client,
@@ -833,7 +557,7 @@ class TestContext {
 
   /// Wraps a handler to serve the reloaded_sources.json file for
   /// reloads/restarts in the DDC Library Bundle module system.
-  Handler _handleReloadedSources(Handler proxy) {
+  Handler handleReloadedSources(Handler proxy) {
     return (request) {
       final path = request.url.path;
       if (path.endsWith(WebDevFS.reloadedSourcesFileName)) {
@@ -842,6 +566,7 @@ class TestContext {
       return proxy(request);
     };
   }
+
 
   Future<void> recompile({required bool fullRestart}) async {
     await webRunner.rerun(

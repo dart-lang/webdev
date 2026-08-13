@@ -9,9 +9,12 @@ import 'package:dwds_test_common/fixtures/utilities.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
-void testAll({required TestSdkConfigurationProvider provider}) {
+void testAll({
+  required TestSdkConfigurationProvider provider,
+  required TestContextFactory contextFactory,
+}) {
   group('ProxyServerAssetReader', () {
-    final context = TestContext(TestProject.test, provider);
+    final context = contextFactory(TestProject.test, provider);
 
     late ProxyServerAssetReader assetReader;
     setUpAll(() async {

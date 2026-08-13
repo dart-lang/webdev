@@ -11,6 +11,8 @@ import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/integration/instance.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
+import 'fixtures/frontend_server_context.dart';
+import '../../../webdev/test/helpers/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -19,7 +21,7 @@ void main() {
 
   group('canary: false | Build Daemon |', () {
     final canaryFeatures = false;
-    final compilationMode = CompilationMode.buildDaemon;
+    
     final provider = TestSdkConfigurationProvider(
       canaryFeatures: canaryFeatures,
       verbose: debug,
@@ -29,20 +31,20 @@ void main() {
 
     runTypeSystemVerificationTests(
       provider: provider,
-      compilationMode: compilationMode,
+      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
 
     runTests(
       provider: provider,
-      compilationMode: compilationMode,
+      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
   });
 
   group('canary: true | Build Daemon |', () {
     final canaryFeatures = true;
-    final compilationMode = CompilationMode.buildDaemon;
+    
     final provider = TestSdkConfigurationProvider(
       canaryFeatures: canaryFeatures,
       verbose: debug,
@@ -52,20 +54,20 @@ void main() {
 
     runTypeSystemVerificationTests(
       provider: provider,
-      compilationMode: compilationMode,
+      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
 
     runTests(
       provider: provider,
-      compilationMode: compilationMode,
+      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
   });
 
   group('canary: false | Frontend Server |', () {
     final canaryFeatures = false;
-    final compilationMode = CompilationMode.frontendServer;
+    
     final provider = TestSdkConfigurationProvider(
       canaryFeatures: canaryFeatures,
       verbose: debug,
@@ -75,20 +77,20 @@ void main() {
 
     runTypeSystemVerificationTests(
       provider: provider,
-      compilationMode: compilationMode,
+      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
 
     runTests(
       provider: provider,
-      compilationMode: compilationMode,
+      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
   });
 
   group('canary: true | Frontend Server |', () {
     final canaryFeatures = true;
-    final compilationMode = CompilationMode.frontendServer;
+    
     final provider = TestSdkConfigurationProvider(
       canaryFeatures: canaryFeatures,
       verbose: debug,
@@ -98,13 +100,13 @@ void main() {
 
     runTypeSystemVerificationTests(
       provider: provider,
-      compilationMode: compilationMode,
+      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
 
     runTests(
       provider: provider,
-      compilationMode: compilationMode,
+      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
       canaryFeatures: canaryFeatures,
     );
   });
