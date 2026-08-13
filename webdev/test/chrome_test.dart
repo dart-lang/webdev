@@ -31,6 +31,26 @@ void main() {
   Future<void> closeTab(ChromeTab tab) =>
       chrome!.chromeConnection.getUrl(_closeTabUrl(tab.id));
 
+  Future<void> safeCloseChromeAndTabs() async {
+    try {
+      final tabs = await chrome?.chromeConnection.getTabs();
+      if (tabs != null) {
+        for (final tab in tabs) {
+          await closeTab(tab);
+        }
+      }
+    } catch (e) {
+      print('Error closing tabs: $e');
+    } finally {
+      try {
+        await chrome?.close();
+      } catch (e) {
+        print('Error closing chrome: $e');
+      }
+      chrome = null;
+    }
+  }
+
   Future<WipConnection> connectToTab(String url) async {
     final tab = await chrome!.chromeConnection.getTab(
       (t) => t.url.contains(url),
@@ -42,14 +62,7 @@ void main() {
 
   group('chrome with temp data dir', () {
     tearDown(() async {
-      final tabs = await chrome?.chromeConnection.getTabs();
-      if (tabs != null) {
-        for (final tab in tabs) {
-          await closeTab(tab);
-        }
-      }
-      await chrome?.close();
-      chrome = null;
+      await safeCloseChromeAndTabs();
     });
 
     test('can launch chrome', () async {
@@ -123,14 +136,7 @@ void main() {
     });
 
     tearDown(() async {
-      final tabs = await chrome?.chromeConnection.getTabs();
-      if (tabs != null) {
-        for (final tab in tabs) {
-          await closeTab(tab);
-        }
-      }
-      await chrome?.close();
-      chrome = null;
+      await safeCloseChromeAndTabs();
 
       // Issue: https://github.com/dart-lang/webdev/issues/1545
       if (!Platform.isWindows) {
