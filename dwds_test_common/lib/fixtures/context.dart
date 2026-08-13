@@ -449,6 +449,7 @@ abstract class TestContext {
     _testServer = null;
     _client = null;
     _outputDir = null;
+    lastBuildFailed = false;
   }
 
   /// Given a list of edits, use file IO to write them to the file system.
@@ -564,6 +565,9 @@ abstract class TestContext {
     return (request) {
       final path = request.url.path;
       if (path.endsWith(WebDevFS.reloadedSourcesFileName)) {
+        if (lastBuildFailed) {
+          return shelf.Response.notFound('Build failed');
+        }
         return shelf.Response.ok(jsonEncode(reloadedSources));
       }
       return proxy(request);
@@ -571,9 +575,9 @@ abstract class TestContext {
   }
 
 
-  Future<void> recompile({required bool fullRestart}) async {
+  Future<void> recompile({required bool fullRestart, bool allowFailure = false}) async {
     if (usesBuildDaemon) {
-      await waitForSuccessfulBuild();
+      await waitForSuccessfulBuild(allowFailure: allowFailure);
     } else {
       await webRunner.rerun(
         fullRestart: fullRestart,
@@ -586,15 +590,23 @@ abstract class TestContext {
   Future<void> waitForSuccessfulBuild({
     Duration? timeout,
     bool propagateToBrowser = false,
+    bool allowFailure = false,
   }) async {
+    lastBuildFailed = false;
     // Wait for the build until the timeout is reached:
-    await daemonClient.buildResults
+    final results = await daemonClient.buildResults
         .firstWhere(
           (BuildResults results) => results.results.any(
-            (BuildResult result) => result.status == BuildStatus.succeeded,
+            (BuildResult result) =>
+                result.status == BuildStatus.succeeded ||
+                (allowFailure && result.status == BuildStatus.failed),
           ),
         )
         .timeout(timeout ?? const Duration(seconds: 60));
+
+    lastBuildFailed = results.results.any(
+      (BuildResult result) => result.status == BuildStatus.failed,
+    );
 
     if (propagateToBrowser) {
       // Allow change to propagate to the browser.
