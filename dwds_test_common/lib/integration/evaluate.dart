@@ -9,34 +9,33 @@ library;
 import 'dart:async';
 
 import 'package:dwds/src/services/expression_evaluator.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
+import 'package:dwds_test_common/utilities.dart' show dartSdkIsAtLeast;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
-import '../logging.dart';
-import '../test_sdk_configuration.dart';
-import '../utilities.dart' show dartSdkIsAtLeast;
-
 void testAll({
   required TestSdkConfigurationProvider provider,
-  CompilationMode compilationMode = CompilationMode.buildDaemon,
+  required TestContextFactory contextFactory,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
   bool useDebuggerModuleNames = false,
 }) {
-  if (compilationMode == CompilationMode.buildDaemon &&
+  final testProject = TestProject.test;
+  final testPackageProject = TestProject.testPackage(baseMode: indexBaseMode);
+  final context = contextFactory(testPackageProject, provider);
+
+  if (context.usesBuildDaemon &&
       indexBaseMode == IndexBaseMode.base) {
     throw StateError(
       'build daemon scenario does not support non-empty base in index file',
     );
   }
 
-  final testProject = TestProject.test;
-  final testPackageProject = TestProject.testPackage(baseMode: indexBaseMode);
-
-  final context = TestContext(testPackageProject, provider);
 
   Future<void> onBp(
     Stream<Event> stream,
@@ -74,7 +73,6 @@ void testAll({
       setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           moduleFormat: provider.ddcModuleFormat,
           enableExpressionEvaluation: true,
           useDebuggerModuleNames: useDebuggerModuleNames,
@@ -825,7 +823,6 @@ void testAll({
       setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           moduleFormat: provider.ddcModuleFormat,
           enableExpressionEvaluation: false,
           verboseCompiler: provider.verbose,

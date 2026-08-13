@@ -15,6 +15,8 @@ import 'package:dwds_test_common/fixtures/project.dart';
 import 'package:dwds_test_common/integration/evaluate_circular.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
+import 'fixtures/frontend_server_context.dart';
+import '../../../webdev/test/helpers/context.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
@@ -34,7 +36,7 @@ void main() async {
           () {
             testAll(
               provider: provider,
-              compilationMode: CompilationMode.frontendServer,
+              contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
               indexBaseMode: indexBaseMode,
               useDebuggerModuleNames: true,
             );

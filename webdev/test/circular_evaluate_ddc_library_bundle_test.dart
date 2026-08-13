@@ -9,6 +9,7 @@ library;
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/fixtures/context.dart';
+import 'helpers/context.dart';
 import 'package:dwds_test_common/integration/evaluate_circular.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
@@ -25,13 +26,13 @@ void main() async {
   tearDownAll(provider.dispose);
 
   group('Build Daemon |', () {
-    testAll(provider: provider, compilationMode: CompilationMode.buildDaemon);
+    testAll(provider: provider, contextFactory: (project, provider) => BuildDaemonTestContext(project, provider));
   });
 
   group('Build Daemon and Frontend Server |', () {
     testAll(
       provider: provider,
-      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
+      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider)AndFrontendServer,
     );
   });
 }

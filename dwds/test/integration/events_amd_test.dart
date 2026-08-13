@@ -14,6 +14,8 @@ import 'package:dwds_test_common/integration/events.dart';
 import 'package:dwds_test_common/logging.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
+import 'fixtures/frontend_server_context.dart';
+import '../../../webdev/test/helpers/context.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider();

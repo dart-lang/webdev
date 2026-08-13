@@ -9,6 +9,7 @@ library;
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/fixtures/context.dart';
+import 'helpers/context.dart';
 import 'package:dwds_test_common/integration/hot_restart.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
@@ -20,7 +21,7 @@ void main() {
   final moduleFormat = ModuleFormat.ddc;
 
   group('canary: $canaryFeatures | Build Daemon |', () {
-    final compilationMode = CompilationMode.buildDaemon;
+    final contextFactory = (project, provider) => BuildDaemonTestContext(project, provider);
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,
@@ -30,13 +31,13 @@ void main() {
     runTests(
       provider: provider,
       moduleFormat: moduleFormat,
-      compilationMode: compilationMode,
+      contextFactory: contextFactory,
       canaryFeatures: canaryFeatures,
     );
   });
 
   group('canary: $canaryFeatures | Build Daemon and Frontend Server |', () {
-    final compilationMode = CompilationMode.buildDaemonAndFrontendServer;
+    final contextFactory = (project, provider) => BuildDaemonAndFrontendServerTestContext(project, provider);
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,
@@ -45,7 +46,7 @@ void main() {
     runTests(
       provider: provider,
       moduleFormat: moduleFormat,
-      compilationMode: compilationMode,
+      contextFactory: contextFactory,
       canaryFeatures: canaryFeatures,
     );
   });

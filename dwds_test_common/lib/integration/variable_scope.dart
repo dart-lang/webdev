@@ -6,17 +6,19 @@ import 'dart:async';
 
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
-import '../logging.dart';
-import '../test_sdk_configuration.dart';
-
-void testAll({required TestSdkConfigurationProvider provider}) {
-  final context = TestContext(TestProject.testScopes, provider);
+void testAll({
+  required TestSdkConfigurationProvider provider,
+  required TestContextFactory contextFactory,
+}) {
+  final context = contextFactory(TestProject.testScopes, provider);
 
   setUpAll(() async {
     setCurrentLogWriter(debug: provider.verbose);

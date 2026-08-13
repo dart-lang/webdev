@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
-import '../test_sdk_configuration.dart';
 
 // This tests converting file Uris into our internal paths.
 //
@@ -17,36 +16,33 @@ import '../test_sdk_configuration.dart';
 // look up packages.
 void runTests({
   required TestSdkConfigurationProvider provider,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
 }) {
   final testProject = TestProject.test;
   final testPackageProject = TestProject.testPackage();
 
-  final context = TestContext(testPackageProject, provider);
+  final context = contextFactory(testPackageProject, provider);
 
   for (final useDebuggerModuleNames in [false, true]) {
     group('Debugger module names: $useDebuggerModuleNames |', () {
-      final appServerPath = compilationMode == CompilationMode.frontendServer
+      final appServerPath = context.usesFrontendServer
           ? 'web/main.dart'
           : 'main.dart';
 
       final serverPath =
-          compilationMode == CompilationMode.frontendServer &&
-              useDebuggerModuleNames
-          ? 'packages/${testPackageProject.packageDirectory}'
-                '/lib/test_library.dart'
+          context.usesFrontendServer && useDebuggerModuleNames
+          ? 'packages/${testPackageProject.packageDirectory}/lib/test_library.dart'
           : 'packages/${testPackageProject.packageName}/test_library.dart';
 
       final anotherServerPath =
-          compilationMode == CompilationMode.frontendServer &&
-              useDebuggerModuleNames
+          context.usesFrontendServer && useDebuggerModuleNames
           ? 'packages/${testProject.packageDirectory}/lib/library.dart'
           : 'packages/${testProject.packageName}/library.dart';
+
 
       setUpAll(() async {
         await context.setUp(
           testSettings: TestSettings(
-            compilationMode: compilationMode,
             useDebuggerModuleNames: useDebuggerModuleNames,
             moduleFormat: provider.ddcModuleFormat,
             canaryFeatures: provider.canaryFeatures,

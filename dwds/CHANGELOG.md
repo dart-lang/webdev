@@ -6,6 +6,10 @@
 - Expose **`DaemonExpressionCompiler`** for handling expression compilation directly via `build_daemon`.
 - **`BuildSettings`** now supports **`useDebuggerModuleNames`** to distinguish between debugger-friendly paths and raw server paths.
 
+## 27.1.3-wip
+
+- Internal test infrastructure refactoring: Move common test files to `dwds_test_common`.
+
 ## 27.1.2
 
 - Bump the min sdk to 3.13.0-107.0.dev.

@@ -7,20 +7,30 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
-import 'package:build_daemon/data/build_target.dart';
-import 'package:dwds/dwds.dart';
-import 'package:dwds/expression_compiler.dart';
-import 'package:dwds/src/connections/debug_connection.dart'
-    show fetchChromeProxyService;
+
+import 'package:dwds/asset_reader.dart';
+import 'package:dwds/dart_web_debug_service.dart';
+import 'package:dwds/data/build_result.dart' as dwds_data;
+
+
+import 'package:dwds/src/connections/app_connection.dart';
+import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+
 import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/server.dart';
-import 'package:dwds/src/utilities/web_path_translator.dart';
+import 'package:dwds_test_common/frontend_server_common/devfs.dart';
+import 'package:dwds_test_common/frontend_server_common/resident_runner.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
+import 'package:dwds_test_common/utilities.dart';
 import 'package:file/local.dart';
 import 'package:http/http.dart';
 import 'package:http/io_client.dart';
@@ -35,11 +45,6 @@ import 'package:vm_service/vm_service_io.dart';
 import 'package:webdriver/async_io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../frontend_server_common/devfs.dart';
-import '../frontend_server_common/resident_runner.dart';
-import '../logging.dart';
-import '../test_sdk_configuration.dart';
-import '../utilities.dart';
 import 'project.dart';
 import 'server.dart';
 import 'utilities.dart';
@@ -64,25 +69,27 @@ Matcher isRPCErrorWithCode(int code) =>
     isA<RPCError>().having((RPCError e) => e.code, 'code', equals(code));
 Matcher throwsRPCErrorWithCode(int code) => throwsA(isRPCErrorWithCode(code));
 
-enum CompilationMode {
-  buildDaemon(false, true, false),
-  frontendServer(true, false, false),
-  buildDaemonAndFrontendServer(true, true, true);
+typedef TestContextFactory = TestContext Function(
+  TestProject project,
+  TestSdkConfigurationProvider sdkConfigurationProvider,
+);
 
-  final bool usesFrontendServer;
-  final bool usesBuildDaemon;
-  final bool usesDdcModulesOnly;
 
-  const CompilationMode(
-    this.usesFrontendServer,
-    this.usesBuildDaemon,
-    this.usesDdcModulesOnly,
-  );
-}
 
-class TestContext {
+abstract class TestContext {
   final TestProject project;
   final TestSdkConfigurationProvider sdkConfigurationProvider;
+
+  bool get usesFrontendServer;
+  bool get usesBuildDaemon;
+  bool get usesDdcModulesOnly;
+
+  late AssetReader assetReader;
+  late Stream<dwds_data.BuildResult> buildResults;
+  late LoadStrategy loadStrategy;
+  String basePath = '';
+  late String filePathToServe;
+  ExpressionCompiler? expressionCompiler;
 
   String get appUrl => _appUrl!;
   late String? _appUrl;
@@ -95,28 +102,40 @@ class TestContext {
 
   Dwds? get dwds => _testServer?.dwds;
 
-  BuildDaemonClient get daemonClient => _daemonClient!;
   BuildDaemonClient? _daemonClient;
+  BuildDaemonClient get daemonClient => _daemonClient!;
+  set daemonClient(BuildDaemonClient? value) => _daemonClient = value;
 
-  ResidentWebRunner get webRunner => _webRunner!;
   ResidentWebRunner? _webRunner;
+  ResidentWebRunner get webRunner => _webRunner!;
+  set webRunner(ResidentWebRunner? value) => _webRunner = value;
 
   WebDriver get webDriver => _webDriver!;
   WebDriver? _webDriver;
 
   Process get chromeDriver => _chromeDriver!;
   Process? _chromeDriver;
-  Process? _fesProcess;
-  bool _lastBuildFailed = false;
+  Process? fesProcess;
+  bool lastBuildFailed = false;
 
   WebkitDebugger get webkitDebugger => _webkitDebugger!;
   late WebkitDebugger? _webkitDebugger;
 
+  Handler? _assetHandler;
   Handler get assetHandler => _assetHandler!;
-  late Handler? _assetHandler;
+  set assetHandler(Handler? value) => _assetHandler = value;
 
   Client get client => _client!;
   Client? _client;
+
+  Future<void> modeSetUp({
+    required TestSettings testSettings,
+    required TestAppMetadata appMetadata,
+    required TestDebugSettings debugSettings,
+    required TestBuildSettings buildSettings,
+    required Uri reloadedSourcesUri,
+  });
+
 
   ExpressionCompilerService? ddcService;
 
@@ -136,8 +155,7 @@ class TestContext {
 
   late LocalFileSystem frontendServerFileSystem;
 
-  late String _hostname;
-  late TestSettings _testSettings;
+
 
   /// Internal VM service.
   ///
@@ -148,15 +166,6 @@ class TestContext {
   /// External VM service.
   VmService get vmService => debugConnection.vmService;
 
-  File get _fesManagerConfigFile => File(
-    p.join(
-      project.absolutePackageDirectory,
-      '.dart_tool',
-      'build',
-      'fes_manager_config',
-    ),
-  );
-
   TestContext(this.project, this.sdkConfigurationProvider);
 
   Future<void> setUp({
@@ -165,8 +174,6 @@ class TestContext {
     TestDebugSettings debugSettings =
         const TestDebugSettings.noDevToolsLaunch(),
   }) async {
-    _testSettings = testSettings;
-    _reloadedSources.clear();
     try {
       // Build settings to return from load strategy.
       final buildSettings = TestBuildSettings(
@@ -174,7 +181,6 @@ class TestContext {
         canaryFeatures: testSettings.canaryFeatures,
         isFlutterApp: testSettings.isFlutterApp,
         experiments: testSettings.experiments,
-        useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
       );
 
       // Make sure configuration was created correctly.
@@ -192,7 +198,7 @@ class TestContext {
       _logger.info('Packages: ${project.packageConfigFile}');
       _logger.info('Entry: ${project.dartEntryFilePath}');
 
-      setCurrentLogWriter(debug: true);
+      configureLogWriter();
 
       _client = IOClient(
         HttpClient()
@@ -252,24 +258,12 @@ class TestContext {
         );
       }
 
-      final pubUpgradeResult = await Process.run(sdkLayout.dartPath, [
+      await Process.run(sdkLayout.dartPath, [
         'pub',
         'upgrade',
       ], workingDirectory: project.absolutePackageDirectory);
-      if (pubUpgradeResult.exitCode != 0) {
-        _logger.severe(
-          '"dart pub upgrade" failed in ${project.absolutePackageDirectory}:',
-        );
-        _logger.severe(pubUpgradeResult.stdout);
-        _logger.severe(pubUpgradeResult.stderr);
-      }
 
-      ExpressionCompiler? expressionCompiler;
-      AssetReader assetReader;
-      Stream<BuildResults> buildResults;
-      LoadStrategy loadStrategy;
-      var basePath = '';
-      var filePathToServe = project.filePathToServe;
+      filePathToServe = project.filePathToServe;
 
       // Start the HTTP server and save its used port.
       final httpServer = await startHttpServer('localhost');
@@ -279,494 +273,14 @@ class TestContext {
         'http://localhost:$_port/${WebDevFS.reloadedSourcesFileName}',
       );
 
-      switch (testSettings.compilationMode) {
-        case CompilationMode.buildDaemon:
-          {
-            final options = [
-              if (testSettings.enableExpressionEvaluation) ...[
-                '--define',
-                'build_web_compilers|ddc=generate-full-dill=true',
-              ],
-              for (final experiment in buildSettings.experiments)
-                '--enable-experiment=$experiment',
-              if (buildSettings.canaryFeatures) ...[
-                '--define',
-                'build_web_compilers|ddc=canary=true',
-                '--define',
-                'build_web_compilers|sdk_js=canary=true',
-              ],
-              if (testSettings.moduleFormat == ModuleFormat.ddc) ...[
-                '--define',
-                'build_web_compilers|ddc=ddc-library-bundle=true',
-                '--define',
-                'build_web_compilers|sdk_js=ddc-library-bundle=true',
-                '--define',
-                'build_web_compilers|entrypoint=ddc-library-bundle=true',
-                '--define',
-                'build_web_compilers|entrypoint_marker=ddc-library-bundle=true',
-              ],
-              '--verbose',
-              '--build-filter=${project.directoryToServe}/**',
-            ];
-            _daemonClient = await connectClient(
-              sdkLayout.dartPath,
-              project.absolutePackageDirectory,
-              options,
-              (log) {
-                final record = log.toLogRecord();
-                final name = record.loggerName == ''
-                    ? ''
-                    : '${record.loggerName}: ';
-                print('${record.level.name}: $name${record.message}');
-              },
-            );
-            daemonClient.registerBuildTarget(
-              DefaultBuildTarget(
-                (b) => b
-                  ..target = project.webAssetsPath
-                  ..reportChangedAssets = true,
-              ),
-            );
-            daemonClient.startBuild();
+      await modeSetUp(
+        testSettings: testSettings,
+        appMetadata: appMetadata,
+        debugSettings: debugSettings,
+        buildSettings: buildSettings,
+        reloadedSourcesUri: reloadedSourcesUri,
+      );
 
-            await waitForSuccessfulBuild();
-
-            final assetServerPort = daemonPort(
-              project.absolutePackageDirectory,
-            );
-            _assetHandler = switch ((
-              testSettings.moduleFormat,
-              buildSettings.canaryFeatures,
-            )) {
-              (ModuleFormat.ddc, true) =>
-                _createBuildRunnerDdcLibraryBundleAssetHandler(assetServerPort),
-              _ => _createBuildRunnerProxyHandler(assetServerPort),
-            };
-            assetReader = ProxyServerAssetReader(
-              assetServerPort,
-              root: project.directoryToServe,
-            );
-
-            if (testSettings.enableExpressionEvaluation) {
-              ddcService = ExpressionCompilerService(
-                'localhost',
-                _port!,
-                verbose: testSettings.verboseCompiler,
-                sdkConfigurationProvider: sdkConfigurationProvider,
-              );
-              expressionCompiler = ddcService;
-            }
-
-            loadStrategy = switch ((
-              testSettings.moduleFormat,
-              buildSettings.canaryFeatures,
-            )) {
-              (ModuleFormat.ddc, true) =>
-                BuildRunnerDdcLibraryBundleStrategyProvider(
-                  testSettings.reloadConfiguration,
-                  assetReader,
-                  buildSettings,
-                  reloadedSourcesUri: reloadedSourcesUri,
-                ).strategy,
-              (ModuleFormat.ddc, false) => throw Exception(
-                'Unsupported DDC configuration: build daemon + canary (false) '
-                '+ DDC module format ${testSettings.moduleFormat.name}.',
-              ),
-
-              _ => BuildRunnerRequireStrategyProvider(
-                testSettings.reloadConfiguration,
-                assetReader,
-                buildSettings,
-              ).strategy,
-            };
-
-            buildResults = daemonClient.buildResults;
-          }
-          break;
-        case CompilationMode.frontendServer:
-          {
-            filePathToServe = webCompatiblePath([
-              project.directoryToServe,
-              project.filePathToServe,
-            ]);
-
-            _logger.info('Serving: $filePathToServe');
-
-            final entry = p.toUri(
-              p.join(project.webAssetsPath, project.dartEntryFileName),
-            );
-            frontendServerFileSystem = const LocalFileSystem();
-            final packageUriMapper = await FrontendServerPathResolver.create(
-              frontendServerFileSystem,
-              project.packageConfigFile,
-              useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
-            );
-
-            final compilerOptions = TestCompilerOptions(
-              experiments: buildSettings.experiments,
-              canaryFeatures: buildSettings.canaryFeatures,
-              moduleFormat: testSettings.moduleFormat,
-            );
-
-            _webRunner = ResidentWebRunner(
-              mainUri: entry,
-              urlTunneler: debugSettings.urlEncoder,
-              projectDirectory: Directory(project.absolutePackageDirectory).uri,
-              packageConfigFile: project.packageConfigFile,
-              packageUriMapper: packageUriMapper,
-              fileSystemRoots: [
-                Directory(project.absolutePackageDirectory).uri,
-              ],
-              fileSystemScheme: 'org-dartlang-app',
-              outputPath: outputDir.path,
-              compilerOptions: compilerOptions,
-              sdkLayout: sdkLayout,
-              verbose: testSettings.verboseCompiler,
-            );
-
-            final assetServerPort = await findUnusedPort();
-            _hostname = appMetadata.hostname;
-            await webRunner.run(
-              frontendServerFileSystem,
-              hostname: _hostname,
-              port: assetServerPort,
-              index: filePathToServe,
-            );
-
-            if (testSettings.enableExpressionEvaluation) {
-              expressionCompiler = webRunner.expressionCompiler;
-            }
-
-            basePath = webRunner.devFS!.assetServer.basePath;
-            assetReader = webRunner.devFS!.assetServer;
-            _assetHandler = webRunner.devFS!.assetServer.handleRequest;
-            loadStrategy = switch ((
-              testSettings.moduleFormat,
-              buildSettings.canaryFeatures,
-            )) {
-              (ModuleFormat.amd, _) => FrontendServerRequireStrategyProvider(
-                testSettings.reloadConfiguration,
-                assetReader,
-                packageUriMapper,
-                () async => {},
-                buildSettings,
-              ).strategy,
-              (ModuleFormat.ddc, true) =>
-                FrontendServerDdcLibraryBundleStrategyProvider(
-                  testSettings.reloadConfiguration,
-                  assetReader,
-                  packageUriMapper,
-                  () async => {},
-                  buildSettings,
-                  reloadedSourcesUri: reloadedSourcesUri,
-                ).strategy,
-              (ModuleFormat.ddc, false) => FrontendServerDdcStrategyProvider(
-                testSettings.reloadConfiguration,
-                assetReader,
-                packageUriMapper,
-                () async => {},
-                buildSettings,
-              ).strategy,
-              _ => throw Exception(
-                'Unsupported DDC module format '
-                '${testSettings.moduleFormat.name}.',
-              ),
-            };
-            buildResults = const Stream<BuildResults>.empty();
-          }
-          break;
-        case CompilationMode.buildDaemonAndFrontendServer:
-          {
-            final options = [
-              if (testSettings.enableExpressionEvaluation) ...[
-                '--define',
-                'build_web_compilers|ddc=generate-full-dill=true',
-              ],
-              for (final experiment in buildSettings.experiments)
-                '--enable-experiment=$experiment',
-              '--define',
-              'build_web_compilers|ddc=canary=true',
-              '--define',
-              'build_web_compilers|sdk_js=canary=true',
-              '--define',
-              'build_web_compilers|sdk_js=web-hot-reload=true',
-              '--define',
-              'build_web_compilers|entrypoint=web-hot-reload=true',
-              '--define',
-              'build_web_compilers|entrypoint_marker=web-hot-reload=true',
-              '--define',
-              'build_web_compilers|entrypoint_marker=web-assets-path='
-                  '${project.webAssetsPath}',
-              '--define',
-              'build_web_compilers|ddc=web-hot-reload=true',
-              '--define',
-              'build_web_compilers|ddc_modules=web-hot-reload=true',
-              '--verbose',
-              '--build-filter=${project.directoryToServe}/**',
-            ];
-
-            if (testSettings.enableExpressionEvaluation) {
-              _logger.info('Starting Frontend Server Manager');
-              final sdkDir = p.dirname(p.dirname(sdkLayout.dartPath));
-              final testScratchSpaceDir = Directory(
-                p.join(
-                  project.absolutePackageDirectory,
-                  '.dart_tool',
-                  'test_scratch_space',
-                ),
-              );
-              if (testScratchSpaceDir.existsSync()) {
-                testScratchSpaceDir.deleteSync(recursive: true);
-              }
-              testScratchSpaceDir.createSync(recursive: true);
-
-              // Build daemon requires a package config inside its scratch
-              // space directory to resolve package paths during compilation.
-              // We read the original package config from [sourcePackagesFile],
-              // make all relative package paths absolute, then write the
-              // resolved config to [packagesFile] inside [testScratchSpaceDir].
-              final sourcePackagesFile = File(
-                p.join(
-                  project.absolutePackageDirectory,
-                  '.dart_tool',
-                  'package_config.json',
-                ),
-              );
-              final packagesFile = File(
-                p.join(
-                  testScratchSpaceDir.path,
-                  '.dart_tool',
-                  'package_config.json',
-                ),
-              );
-              packagesFile.parent.createSync(recursive: true);
-
-              // Make all relative rootUris absolute based on the original
-              // packagesFile location so they don't break when the file is
-              // moved to the test scratch space.
-              final originalJson =
-                  jsonDecode(sourcePackagesFile.readAsStringSync())
-                      as Map<String, dynamic>;
-              final packagesList = originalJson['packages'] as List<dynamic>;
-              for (final package in packagesList) {
-                final packageMap = package as Map<String, dynamic>;
-                var rootUri = Uri.parse(packageMap['rootUri'] as String);
-                if (!rootUri.isAbsolute) {
-                  rootUri = sourcePackagesFile.parent.uri.resolveUri(rootUri);
-                }
-                packageMap['rootUri'] = rootUri.toString();
-              }
-              packagesFile.writeAsStringSync(jsonEncode(originalJson));
-
-              options.addAll([
-                '--define',
-                'build_web_compilers|ddc=scratch-space-dir='
-                    '${testScratchSpaceDir.path}',
-              ]);
-              final fesSnapshot = p.join(
-                project.absolutePackageDirectory,
-                '.dart_tool',
-                'fes_manager.snapshot',
-              );
-              // Resolve the path to `fes_manager.dart`.
-              // Consult the test project's package config to resolve
-              // build_web_compilers, but fall back to a checkout of
-              // package:build.
-              final buildWebCompilers =
-                  packagesList.firstWhere(
-                        (pkg) => (pkg as Map)['name'] == 'build_web_compilers',
-                        orElse: () => null,
-                      )
-                      as Map<String, dynamic>?;
-              String fesManagerPath;
-              if (buildWebCompilers != null) {
-                final pkgRootUri = Uri.parse(
-                  buildWebCompilers['rootUri'] as String,
-                );
-                fesManagerPath = p.join(
-                  pkgRootUri.toFilePath(),
-                  'bin',
-                  'fes_manager.dart',
-                );
-              } else {
-                final localBuildRepoDir = p.join(
-                  p.dirname(projectRootDir),
-                  'build',
-                );
-                fesManagerPath = p.join(
-                  localBuildRepoDir,
-                  'builder_pkgs',
-                  'build_web_compilers',
-                  'bin',
-                  'fes_manager.dart',
-                );
-              }
-              final compileResult = await Process.run(sdkLayout.dartPath, [
-                'compile',
-                'kernel',
-                '--packages=${sourcePackagesFile.path}',
-                '-o',
-                fesSnapshot,
-                fesManagerPath,
-              ]);
-              if (compileResult.exitCode != 0) {
-                _logger.severe(
-                  'Failed to compile Frontend Server Manager:\n'
-                  'Exit code: ${compileResult.exitCode}\n'
-                  'Stdout: ${compileResult.stdout}\n'
-                  'Stderr: ${compileResult.stderr}',
-                );
-              }
-
-              final args = [
-                fesSnapshot,
-                sdkDir,
-                p.toUri(testScratchSpaceDir.path).toString(),
-                p.toUri(packagesFile.path).toString(),
-              ];
-              _fesProcess = await Process.start(
-                sdkLayout.dartPath,
-                args,
-                workingDirectory: project.absolutePackageDirectory,
-              );
-
-              _fesProcess!.stdout
-                  .transform(utf8.decoder)
-                  .transform(const LineSplitter())
-                  .listen((line) {
-                    _logger.info('FES Manager STDOUT: $line');
-                  });
-              _fesProcess!.stderr
-                  .transform(utf8.decoder)
-                  .transform(const LineSplitter())
-                  .listen((line) {
-                    _logger.warning('FES Manager STDERR: $line');
-                  });
-
-              final configFile = _fesManagerConfigFile;
-              // Wait for `fes_manager` to create the config file.
-              while (!await configFile.exists()) {
-                await Future<void>.delayed(const Duration(milliseconds: 100));
-              }
-            }
-
-            try {
-              _daemonClient = await connectClient(
-                sdkLayout.dartPath,
-                project.absolutePackageDirectory,
-                options,
-                (log) {
-                  final record = log.toLogRecord();
-                  _logger.log(
-                    record.level,
-                    record.message,
-                    record.error,
-                    record.stackTrace,
-                  );
-                },
-              );
-            } catch (e) {
-              final daemonLogFile = File(
-                p.join(
-                  project.absolutePackageDirectory,
-                  '.dart_tool',
-                  'build',
-                  'daemon',
-                  'log',
-                ),
-              );
-              if (daemonLogFile.existsSync()) {
-                _logger.warning(
-                  'Daemon startup log content:\n'
-                  '${daemonLogFile.readAsStringSync()}',
-                );
-              } else {
-                _logger.warning(
-                  'Daemon startup log file does not exist at: '
-                  '${daemonLogFile.path}',
-                );
-              }
-              rethrow;
-            }
-            daemonClient.registerBuildTarget(
-              DefaultBuildTarget(
-                (b) => b
-                  ..target = project.webAssetsPath
-                  ..outputLocation = OutputLocation(
-                    (o) => o
-                      ..output = outputDir.path
-                      ..useSymlinks = false
-                      ..hoist = true,
-                  ).toBuilder()
-                  ..reportChangedAssets = true,
-              ),
-            );
-            final buildFuture = waitForSuccessfulBuild();
-            daemonClient.startBuild();
-
-            await buildFuture;
-
-            final assetServerPort = daemonPort(
-              project.absolutePackageDirectory,
-            );
-            _assetHandler = switch ((
-              testSettings.moduleFormat,
-              buildSettings.canaryFeatures,
-            )) {
-              (ModuleFormat.ddc, true) =>
-                _createBuildRunnerDdcLibraryBundleAssetHandler(assetServerPort),
-              _ => _createBuildRunnerProxyHandler(assetServerPort),
-            };
-            assetReader = ProxyServerAssetReader.fromHandler(_assetHandler!);
-
-            if (testSettings.enableExpressionEvaluation) {
-              expressionCompiler = DaemonExpressionCompiler(
-                _compileExpressionWithDaemon,
-              );
-            }
-            frontendServerFileSystem = const LocalFileSystem();
-            final packageUriMapper = await BuildRunnerPathResolver.create(
-              frontendServerFileSystem,
-              project.packageConfigFile,
-              useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
-            );
-            loadStrategy = switch ((
-              testSettings.moduleFormat,
-              buildSettings.canaryFeatures,
-              testSettings.enableExpressionEvaluation,
-            )) {
-              (ModuleFormat.ddc, true, true) =>
-                FrontendServerBuildDaemonStrategyProvider(
-                  testSettings.reloadConfiguration,
-                  assetReader,
-                  packageUriMapper,
-                  () async => {},
-                  buildSettings,
-                  injectScriptLoad: false,
-                  reloadedSourcesUri: reloadedSourcesUri,
-                ).strategy,
-              (ModuleFormat.ddc, true, false) =>
-                BuildRunnerDdcLibraryBundleStrategyProvider(
-                  testSettings.reloadConfiguration,
-                  assetReader,
-                  buildSettings,
-                  reloadedSourcesUri: reloadedSourcesUri,
-                ).strategy,
-              _ => throw Exception(
-                'Unsupported DDC module format when compiling with Frontend '
-                'Server + build_runner ${testSettings.moduleFormat.name}.',
-              ),
-            };
-            // If expression evaluation is disabled, the build daemon is
-            // responsible for triggering hot reloads/restarts via its
-            // buildResults stream. We must listen to it to prevent browser
-            // reload events from hanging.
-            buildResults = testSettings.enableExpressionEvaluation
-                ? const Stream<BuildResults>.empty()
-                : daemonClient.buildResults;
-          }
-          break;
-      }
 
       final debugPort = await findUnusedPort();
       if (testSettings.launchChrome) {
@@ -823,11 +337,7 @@ class TestContext {
         assetHandler: assetHandler,
         assetReader: assetReader,
         strategy: loadStrategy,
-        // Build daemon serves assets relative to the web root (e.g. 'web/'),
-        // but standalone FES serves assets relative to the target directory.
-        target: testSettings.compilationMode.usesBuildDaemon
-            ? project.webAssetsPath
-            : project.directoryToServe,
+
         buildResults: buildResults,
         chromeConnection: () async => connection,
         httpServer: httpServer,
@@ -917,43 +427,15 @@ class TestContext {
   }
 
   Future<void> tearDown() async {
-    await _safeAwait(_webRunner?.stop());
-    await _safeAwait(_webDriver?.quit(closeSession: true));
+    await _webRunner?.stop();
+    await _webDriver?.quit(closeSession: true);
     _chromeDriver?.kill();
     DartUri.currentDirectory = p.current;
-    await _safeAwait(_daemonClient?.close());
-    await _safeAwait(ddcService?.stop());
-    await _safeAwait(_testServer?.stop());
-
-    try {
-      _client?.close();
-    } catch (_) {}
-    try {
-      _fesProcess?.kill();
-    } catch (_) {}
-    final dir = _outputDir;
-    if (dir != null && dir.existsSync()) {
-      unawaited(dir.delete(recursive: true));
-    }
-
-    // Wait for the build daemon process to fully exit before starting the next
-    // test case.
-    if (_testSettings.compilationMode.usesBuildDaemon) {
-      final targetPath = project.absolutePackageDirectory;
-      final retries = 50;
-      for (var i = 0; i < retries; i++) {
-        final result = Process.runSync('ps', ['aux']);
-        final lines = result.stdout.toString().split('\n');
-        final isStillRunning = lines.any(
-          (line) =>
-              (line.contains('build_runner') || line.contains('build.dart')) &&
-              line.contains(targetPath),
-        );
-        if (!isStillRunning) break;
-        await Future<void>.delayed(const Duration(milliseconds: 100));
-      }
-    }
-
+    await _daemonClient?.close();
+    await ddcService?.stop();
+    await _testServer?.stop();
+    _client?.close();
+    await _outputDir?.delete(recursive: true);
     stopLogWriter();
     await project.tearDown();
 
@@ -966,69 +448,6 @@ class TestContext {
     _testServer = null;
     _client = null;
     _outputDir = null;
-  }
-
-  /// Forwards expression compilation requests to the persistent Frontend Server
-  /// process via socket.
-  Future<Map<String, dynamic>> _compileExpressionWithDaemon(
-    Map<String, dynamic> request,
-  ) async {
-    final file = _fesManagerConfigFile;
-    if (!await file.exists()) {
-      throw StateError('FES port not found in ${file.path}');
-    }
-
-    final content = await file.readAsString();
-    final json = jsonDecode(content) as Map;
-    final port = json['port'] as int?;
-    if (port == null) {
-      throw StateError('FES port not found in ${file.path}');
-    }
-
-    final socket = await Socket.connect(InternetAddress.loopbackIPv4, port);
-    try {
-      socket.writeln(jsonEncode(request));
-      final responseStr = await socket
-          .cast<List<int>>()
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .first;
-      final compileResult = jsonDecode(responseStr);
-
-      if (compileResult is! Map) {
-        return {'result': 'Failed to read evaluation result', 'isError': true};
-      }
-
-      if (compileResult.containsKey('error')) {
-        return {'result': compileResult['error'] as String, 'isError': true};
-      }
-
-      final errorCount = compileResult['errorCount'] as int?;
-      if (errorCount != null && errorCount > 0) {
-        return {
-          'result': compileResult['errorMessage'] as String? ?? 'Unknown error',
-          'isError': true,
-        };
-      }
-
-      final expressionData = compileResult['expressionData'] as String?;
-      if (expressionData != null) {
-        final decodedResult = utf8.decode(base64.decode(expressionData));
-        return {'result': decodedResult, 'isError': false};
-      }
-
-      return {'result': 'Failed to read evaluation result', 'isError': true};
-    } finally {
-      await socket.close();
-    }
-  }
-
-  /// Awaits [future] with a timeout, swallowing errors to avoid test failures.
-  Future<void> _safeAwait(Future<dynamic>? future) async {
-    if (future == null) return;
-    try {
-      await future.timeout(const Duration(seconds: 5));
-    } catch (_) {}
   }
 
   /// Given a list of edits, use file IO to write them to the file system.
@@ -1044,7 +463,10 @@ class TestContext {
     // timestamp that is guaranteed to be after the previous compile.
     // TODO(https://github.com/dart-lang/sdk/issues/51937): Remove once this bug
     // is fixed.
-    _invalidatedUris.clear();
+    if (Platform.isWindows) {
+      await Future<void>.delayed(const Duration(seconds: 1));
+    }
+    reloadedSources.clear();
     for (var (:file, :originalString, :newString) in edits) {
       if (file == project.dartEntryFileName) {
         file = project.dartEntryFilePath;
@@ -1054,18 +476,6 @@ class TestContext {
       final f = File(file);
       final fileContents = f.readAsStringSync();
       f.writeAsStringSync(fileContents.replaceAll(originalString, newString));
-
-      final relativePath = p.relative(
-        f.path,
-        from: project.absolutePackageDirectory,
-      );
-      final relativeUrl = p.toUri(relativePath).path;
-      if (relativeUrl.startsWith('lib/')) {
-        final pathInLib = relativeUrl.substring('lib/'.length);
-        _invalidatedUris.add('package:${project.packageName}/$pathInLib');
-      } else if (f.path == project.dartEntryFilePath) {
-        _invalidatedUris.add(project.dartEntryFilePackageUri.toString());
-      }
 
       _updateReloadedSources(file);
     }
@@ -1093,15 +503,11 @@ class TestContext {
     String srcPath;
 
     if (relativeUrl.startsWith('lib/')) {
-      final pathInLib = relativeUrl.substring('lib/'.length);
-      final pathWithoutExtension = p.withoutExtension(pathInLib);
-      final fesOnly =
-          _testSettings.compilationMode.usesFrontendServer &&
-          !_testSettings.compilationMode.usesBuildDaemon;
+      final pathInLib = relativeUrl.substring(4);
       moduleName =
-          'packages/${project.packageName}/${fesOnly ? pathInLib : pathWithoutExtension}';
+          'packages/${project.packageName}/${p.withoutExtension(pathInLib)}';
       libUri = 'package:${project.packageName}/$pathInLib';
-      srcPath = 'packages/${project.packageName}/$pathWithoutExtension';
+      srcPath = moduleName;
     } else if (absolutePath == project.dartEntryFilePath) {
       moduleName = p.withoutExtension(relativeUrl);
       libUri = project.dartEntryFilePackageUri.toString();
@@ -1121,7 +527,7 @@ class TestContext {
       );
     }
 
-    _reloadedSources.add(
+    reloadedSources.add(
       WebDevFS.createReloadedSourceEntry(
         src: '/$srcPath.ddc.js',
         module: moduleName,
@@ -1130,8 +536,11 @@ class TestContext {
     );
   }
 
-  final _reloadedSources = <Map<String, Object>>[];
-  final _invalidatedUris = <String>[];
+  /// Contains contents of the reloaded_sources.json manifest file.
+  ///
+  /// Used by the DDC Library Bundle module system to record changed files for
+  /// hot restart/reload.
+  final reloadedSources = <Map<String, Object>>[];
 
   void addLibraryFile({required String libFileName, required String contents}) {
     final file = File(project.dartLibFilePath(libFileName));
@@ -1139,327 +548,48 @@ class TestContext {
     file.createSync(recursive: true);
     file.writeAsStringSync(contents);
     _updateReloadedSources(file.path);
-    _invalidatedUris.add('package:${project.packageName}/$libFileName');
   }
 
-  Handler _createBuildRunnerProxyHandler(int assetServerPort) {
+  Handler createBuildRunnerProxyHandler(int assetServerPort) {
     return proxyHandler(
       'http://localhost:$assetServerPort/${project.directoryToServe}/',
       client: client,
     );
   }
 
-  /// Returns a handler for build runner + the DDC Library Bundle module
-  /// system.
-  ///
-  /// This handler intercepts specific asset requests to coordinate Frontend
-  /// Server outputs with the Build Daemon asset server:
-  ///
-  /// 1. Remaps the FES-suffixed request path ('.dart.lib') to a Build Daemon
-  ///    suffixed path ('.ddc') if necessary.
-  /// 2. Serves reloaded source logs (`reloaded_sources.json`) for hot
-  ///    restart/reload.
-  /// 3. Resolves compiled files (.js, .js.map, .metadata, .dill) from either
-  ///    the local scratch space or the build cache.
-  /// 4. Proxies asset requests (entrypoints, source maps, merged metadata)
-  ///    to the build daemon.
-  Handler _createBuildRunnerDdcLibraryBundleAssetHandler(int assetServerPort) {
-    final rootProxy = proxyHandler(
-      'http://localhost:$assetServerPort/',
-      client: client,
-    );
-    final entrypointProxy = proxyHandler(
-      'http://localhost:$assetServerPort/${project.directoryToServe}/',
-      client: client,
-    );
-
-    return (request) async {
+  /// Wraps a handler to serve the reloaded_sources.json file for
+  /// reloads/restarts in the DDC Library Bundle module system.
+  Handler handleReloadedSources(Handler proxy) {
+    return (request) {
       final path = request.url.path;
-      var newPath = path;
-
-      // Translate FES paths to package:build paths.
-      newPath = WebPathTranslator.translateFesToBuildRunnerPath(newPath);
-      var requestToProxy = request;
-      if (newPath != path) {
-        requestToProxy = shelf.Request(
-          request.method,
-          request.requestedUri.replace(path: newPath),
-          headers: request.headers,
-          body: request.read(),
-          context: request.context,
-        );
+      if (path.endsWith(WebDevFS.reloadedSourcesFileName)) {
+        return shelf.Response.ok(jsonEncode(reloadedSources));
       }
-
-      // Serve reloaded_sources.json.
-      if (newPath.endsWith(WebDevFS.reloadedSourcesFileName)) {
-        if (_lastBuildFailed) {
-          return shelf.Response.internalServerError(
-            body: 'Last build failed, no reloaded sources.',
-          );
-        }
-        return shelf.Response.ok(jsonEncode(_reloadedSources));
-      }
-
-      // Resolve compiled files (.js, .js.map, .metadata, .dill, .full.dill)
-      // from either the test scratch space or the build cache.
-      final isDill =
-          newPath.endsWith('.dill') || newPath.endsWith('.full.dill');
-      final isMetadata = newPath.endsWith('.metadata');
-      final isPackage = newPath.startsWith('packages/');
-      final isJsOrMap = newPath.endsWith('.js') || newPath.endsWith('.js.map');
-
-      if (isDill || isMetadata || (isPackage && isJsOrMap)) {
-        String relativePath;
-        if (isPackage) {
-          final parts = newPath.split('/');
-          relativePath = parts.length > 2
-              ? parts.sublist(2).join('/')
-              : newPath;
-        } else {
-          final prefix = '${project.directoryToServe}/';
-          relativePath = newPath.startsWith(prefix)
-              ? newPath.substring(prefix.length)
-              : newPath;
-        }
-
-        final subDir = isPackage ? 'lib' : project.directoryToServe;
-
-        final scratchFile = File(
-          p.join(
-            project.absolutePackageDirectory,
-            '.dart_tool',
-            'build',
-            'test_scratch_space',
-            subDir,
-            relativePath,
-          ),
-        );
-
-        final generatedFile = File(
-          p.join(
-            project.absolutePackageDirectory,
-            '.dart_tool',
-            'build',
-            'generated',
-            project.packageName,
-            subDir,
-            relativePath,
-          ),
-        );
-
-        Uint8List? fileBytes;
-        if (scratchFile.existsSync()) {
-          fileBytes = scratchFile.readAsBytesSync();
-        } else if (generatedFile.existsSync()) {
-          fileBytes = generatedFile.readAsBytesSync();
-        }
-
-        if (fileBytes != null) {
-          final String mimeType;
-          if (newPath.endsWith('.js')) {
-            mimeType = 'application/javascript';
-          } else if (newPath.endsWith('.json') ||
-              newPath.endsWith('.map') ||
-              newPath.endsWith('.metadata')) {
-            mimeType = 'application/json';
-          } else {
-            mimeType = 'application/octet-stream';
-          }
-
-          return shelf.Response.ok(
-            fileBytes,
-            headers: {
-              HttpHeaders.contentTypeHeader: mimeType,
-              HttpHeaders.contentLengthHeader: fileBytes.length.toString(),
-            },
-          );
-        }
-      }
-
-      // Serve the DDC merged metadata. Merging is done by the FES manager.
-      if (newPath.endsWith('.ddc_merged_metadata')) {
-        String? mergedContent;
-        final configFile = _fesManagerConfigFile;
-        if (await configFile.exists()) {
-          try {
-            final configJson =
-                jsonDecode(await configFile.readAsString()) as Map;
-            final port = configJson['port'] as int?;
-            if (port != null) {
-              final socket = await Socket.connect(
-                InternetAddress.loopbackIPv4,
-                port,
-              );
-              try {
-                socket.writeln(
-                  jsonEncode({'instruction': 'MERGE_ALL_METADATA'}),
-                );
-                final responseStr = await socket
-                    .cast<List<int>>()
-                    .transform(utf8.decoder)
-                    .transform(const LineSplitter())
-                    .first;
-                final response = jsonDecode(responseStr) as Map;
-                mergedContent = response['content'] as String?;
-              } finally {
-                await socket.close();
-              }
-            }
-          } catch (_) {
-            // Ignore socket or parsing errors, letting the request fail
-            // gracefully or fall through.
-          }
-        }
-
-        if (mergedContent != null) {
-          final bytes = Uint8List.fromList(utf8.encode(mergedContent));
-          return shelf.Response.ok(
-            bytes,
-            headers: {
-              HttpHeaders.contentTypeHeader: 'application/json',
-              HttpHeaders.contentLengthHeader: bytes.length.toString(),
-            },
-          );
-        }
-      }
-
-      // Swap between [rootProxy] and [entrypointProxy] to handle path serving
-      // differences for entrypoints vs library files.
-      //
-      // Use [rootProxy] for paths that already include the directory to serve
-      // (e.g., 'web/main.dart', 'packages/...', 'example/...').
-      //
-      // Use [entrypointProxy] for files requested at the root (e.g. 'main.dart'
-      // or 'index.html'), These implicitly prepend [directoryToServe].
-      final prefix = '${project.directoryToServe}/';
-      var requestToProxyFinal = requestToProxy;
-      if (newPath.startsWith(prefix)) {
-        requestToProxyFinal = requestToProxy.change(
-          path: project.directoryToServe,
-        );
-      }
-
-      final response =
-          await (newPath.startsWith(prefix) ||
-                  newPath.startsWith('packages/') ||
-                  newPath.startsWith('example/')
-              ? rootProxy(requestToProxyFinal)
-              : entrypointProxy(requestToProxyFinal));
-      return response;
+      return proxy(request);
     };
   }
 
-  Future<void> recompile({
-    required bool fullRestart,
-    bool allowFailure = false,
-  }) async {
-    final runner = _webRunner;
-    if (runner != null) {
-      await runner.rerun(
-        fullRestart: fullRestart,
-        fileServerUri: Uri.parse(
-          'http://${testServer.host}:${testServer.port}',
-        ),
-      );
-      return;
-    }
 
-    // In Build Daemon + Frontend Server mode, the Build Daemon already compiles
-    // edited files automatically. We must await successful build completion.
-    if (_testSettings.compilationMode.usesBuildDaemon) {
-      await waitForSuccessfulBuild(allowFailure: allowFailure);
-      return;
-    }
+  Future<void> recompile({required bool fullRestart}) async {
+    await webRunner.rerun(
+      fullRestart: fullRestart,
+      fileServerUri: Uri.parse('http://${testServer.host}:${testServer.port}'),
+    );
+    return;
   }
 
-  /// Waits for a build to complete.
-  ///
-  /// If `allowFailure` is true, the test will continue even if the build
-  /// fails.
   Future<void> waitForSuccessfulBuild({
     Duration? timeout,
     bool propagateToBrowser = false,
-    bool allowFailure = false,
   }) async {
-    // Build daemon immediately sends a cached `BuildStatus.succeeded` event if
-    // its initial build is already done. To ensure test waits for a new compile
-    // cycle (instead of instantly finishing), we:
-    // 1. Wait for `BuildStatus.started` (confirming a new build has begun)
-    // 2. Wait for `BuildStatus.succeeded` (if we've already seen `started`)
-    final buildStartCompleter = Completer<void>();
-    final buildSuccessCompleter = Completer<void>();
-    final subscription = daemonClient.buildResults.listen((results) {
-      final isStartedEvent = results.results.any(
-        (r) => r.status == BuildStatus.started,
-      );
-      final isSucceededEvent = results.results.any(
-        (r) => r.status == BuildStatus.succeeded,
-      );
-      final isFailedEvent = results.results.any(
-        (r) => r.status == BuildStatus.failed,
-      );
-
-      if (isStartedEvent) {
-        if (!buildStartCompleter.isCompleted) buildStartCompleter.complete();
-      }
-      if (isSucceededEvent) {
-        _lastBuildFailed = false;
-      }
-      if (isFailedEvent) {
-        _lastBuildFailed = true;
-        if (!buildSuccessCompleter.isCompleted) {
-          final failedResult = results.results.firstWhere(
-            (r) => r.status == BuildStatus.failed,
-          );
-          final daemonError =
-              failedResult.error ?? 'Unknown daemon compilation error';
-          if (allowFailure) {
-            buildSuccessCompleter.complete();
-          } else {
-            buildSuccessCompleter.completeError(
-              StateError('Build daemon build failed.\nError: $daemonError'),
-            );
-          }
-        }
-      }
-      if (buildStartCompleter.isCompleted && isSucceededEvent) {
-        if (!buildSuccessCompleter.isCompleted) {
-          buildSuccessCompleter.complete();
-        }
-      }
-    });
-
-    var isWaitingForSuccess = false;
-    try {
-      var timedOutWaitingForStart = false;
-      await buildStartCompleter.future.timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          timedOutWaitingForStart = true;
-        },
-      );
-
-      if (timedOutWaitingForStart) {
-        return;
-      }
-
-      isWaitingForSuccess = true;
-      await buildSuccessCompleter.future.timeout(
-        timeout ?? const Duration(seconds: 60),
-      );
-    } catch (e) {
-      if (e is TimeoutException) {
-        // Return if an edit did not trigger a rebuild/recompile.
-        if (!isWaitingForSuccess) {
-          return;
-        }
-        // If the build started but never finished, the test has likely hung.
-        rethrow;
-      }
-      rethrow;
-    } finally {
-      await subscription.cancel();
-    }
+    // Wait for the build until the timeout is reached:
+    await daemonClient.buildResults
+        .firstWhere(
+          (BuildResults results) => results.results.any(
+            (BuildResult result) => result.status == BuildStatus.succeeded,
+          ),
+        )
+        .timeout(timeout ?? const Duration(seconds: 60));
 
     if (propagateToBrowser) {
       // Allow change to propagate to the browser.
@@ -1476,7 +606,7 @@ class TestContext {
     final process = await Process.run('tool/build_extension.sh', [
       'prod',
     ], workingDirectory: absolutePath(pathFromDwds: 'debug_extension'));
-    _logger.info(process.stdout);
+    print(process.stdout);
   }
 
   Future<WipConnection> _getTabConnection(

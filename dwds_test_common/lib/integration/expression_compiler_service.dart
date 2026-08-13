@@ -14,11 +14,12 @@ import 'package:dwds/sdk_configuration.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/server.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/logging.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
-import '../logging.dart';
 
 ExpressionCompilerService get service => _service!;
 late ExpressionCompilerService? _service;
@@ -29,7 +30,10 @@ late HttpServer? _server;
 StreamController<String> get output => _output!;
 late StreamController<String>? _output;
 
-void testAll({required CompilerOptions compilerOptions}) {
+void testAll({
+  required CompilerOptions compilerOptions,
+  required TestContextFactory contextFactory,
+}) {
   group('expression compiler service with fake asset server', () {
     final logger = Logger('ExpressionCompilerServiceTest');
     late Directory outputDir;

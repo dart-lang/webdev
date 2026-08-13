@@ -2,23 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
+import 'package:dwds_test_common/integration/test_inspector.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:path/path.dart' show basename;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
-import '../logging.dart';
-import '../test_sdk_configuration.dart';
-import 'test_inspector.dart';
-
 void runTests({
   required TestSdkConfigurationProvider provider,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
   required bool canaryFeatures,
 }) {
-  final context = TestContext(TestProject.testDotShorthands, provider);
+  final context = contextFactory(TestProject.testDotShorthands, provider);
   final testInspector = TestInspector(context);
 
   late VmService service;
@@ -40,12 +39,11 @@ void runTests({
   Future<InstanceRef> getInstanceRef(int frame, String expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  group('$compilationMode | dot shorthands:', () {
+  group('${context.usesFrontendServer ? "frontendServer" : "buildDaemon"} | dot shorthands:', () {
     setUp(() async {
       setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           enableExpressionEvaluation: true,
           verboseCompiler: provider.verbose,
           experiments: ['dot-shorthands'],

@@ -10,11 +10,16 @@ import 'package:dwds_test_common/integration/asset_handler.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
+import 'helpers/context.dart';
 void main() {
   final provider = TestSdkConfigurationProvider(
     ddcModuleFormat: ModuleFormat.amd,
   );
   tearDownAll(provider.dispose);
 
-  testAll(provider: provider);
+  testAll(
+    provider: provider,
+    contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
+  );
 }
+

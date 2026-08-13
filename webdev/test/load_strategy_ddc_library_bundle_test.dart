@@ -8,14 +8,12 @@ library;
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/fixtures/context.dart';
+import 'helpers/context.dart';
 import 'package:dwds_test_common/integration/load_strategy.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
 void main() {
-  // Run independent tests once.
-  runIndependentTests();
-
   // Enable verbose logging for debugging.
   const debug = false;
 
@@ -29,14 +27,14 @@ void main() {
   group('Build Daemon |', () {
     runDependentTests(
       provider: provider,
-      compilationMode: CompilationMode.buildDaemon,
+      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
     );
   });
 
   group('Build Daemon and Frontend Server |', () {
     runDependentTests(
       provider: provider,
-      compilationMode: CompilationMode.buildDaemonAndFrontendServer,
+      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider)AndFrontendServer,
     );
   });
 }

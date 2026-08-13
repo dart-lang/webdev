@@ -2,30 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
-import '../logging.dart';
-import '../test_sdk_configuration.dart';
-
 void testCallStack({
   required TestSdkConfigurationProvider provider,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
   bool verboseCompiler = false,
 }) {
   final project = TestProject.testPackage();
-  final context = TestContext(project, provider);
+  final context = contextFactory(project, provider);
 
   group('shared context |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           enableExpressionEvaluation: true,
           verboseCompiler: verboseCompiler,
           moduleFormat: provider.ddcModuleFormat,

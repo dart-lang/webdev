@@ -6,33 +6,32 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
-import '../logging.dart';
-import '../test_sdk_configuration.dart';
-
 void testAll({
   required TestSdkConfigurationProvider provider,
-  CompilationMode compilationMode = CompilationMode.buildDaemon,
+  required TestContextFactory contextFactory,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
   bool useDebuggerModuleNames = false,
 }) {
-  if (compilationMode == CompilationMode.buildDaemon &&
+  final testCircular1 = TestProject.testCircular1;
+  final testCircular2 = TestProject.testCircular2(baseMode: indexBaseMode);
+  final context = contextFactory(testCircular2, provider);
+
+  if (context.usesBuildDaemon &&
       indexBaseMode == IndexBaseMode.base) {
     throw StateError(
       'build daemon scenario does not support non-empty base in index file',
     );
   }
 
-  final testCircular1 = TestProject.testCircular1;
-  final testCircular2 = TestProject.testCircular2(baseMode: indexBaseMode);
-
-  final context = TestContext(testCircular2, provider);
 
   Future<void> onBreakPoint(
     String isolate,
@@ -66,7 +65,6 @@ void testAll({
       setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           enableExpressionEvaluation: true,
           useDebuggerModuleNames: useDebuggerModuleNames,
           verboseCompiler: provider.verbose,

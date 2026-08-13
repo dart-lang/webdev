@@ -9,6 +9,7 @@ library;
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/fixtures/context.dart';
+import 'helpers/context.dart';
 import 'package:dwds_test_common/integration/chrome_proxy_service.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
@@ -25,13 +26,13 @@ void main() {
       canaryFeatures: canaryFeatures,
       ddcModuleFormat: moduleFormat,
     );
-    final compilationMode = CompilationMode.buildDaemon;
+    final contextFactory = (project, provider) => BuildDaemonTestContext(project, provider);
     tearDownAll(provider.dispose);
 
     runTests(
       provider: provider,
       moduleFormat: moduleFormat,
-      compilationMode: compilationMode,
+      contextFactory: contextFactory,
       canaryFeatures: canaryFeatures,
     );
   });
@@ -42,13 +43,13 @@ void main() {
       canaryFeatures: canaryFeatures,
       ddcModuleFormat: moduleFormat,
     );
-    final compilationMode = CompilationMode.buildDaemonAndFrontendServer;
+    final contextFactory = (project, provider) => BuildDaemonAndFrontendServerTestContext(project, provider);
     tearDownAll(provider.dispose);
 
     runTests(
       provider: provider,
       moduleFormat: moduleFormat,
-      compilationMode: compilationMode,
+      contextFactory: contextFactory,
       canaryFeatures: canaryFeatures,
     );
   });

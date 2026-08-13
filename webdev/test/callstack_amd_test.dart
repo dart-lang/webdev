@@ -8,6 +8,7 @@ library;
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/fixtures/context.dart';
+import 'helpers/context.dart';
 import 'package:dwds_test_common/integration/callstack.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
@@ -25,7 +26,7 @@ void main() {
   group('Build Daemon |', () {
     testCallStack(
       provider: provider,
-      compilationMode: CompilationMode.buildDaemon,
+      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
     );
   });
 }

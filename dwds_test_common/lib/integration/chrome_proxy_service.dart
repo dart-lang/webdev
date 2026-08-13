@@ -15,26 +15,25 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
-import '../logging.dart';
-import '../test_sdk_configuration.dart';
-
 void runTests({
   required TestSdkConfigurationProvider provider,
   required ModuleFormat moduleFormat,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
   required bool canaryFeatures,
 }) {
   final project = TestProject.test;
-  final context = TestContext(project, provider);
+  final context = contextFactory(project, provider);
 
   group('shared context', () {
     setUpAll(() async {
@@ -45,8 +44,7 @@ void runTests({
           verboseCompiler: false,
           moduleFormat: provider.ddcModuleFormat,
           canaryFeatures: canaryFeatures,
-          compilationMode: compilationMode,
-        ),
+          ),
       );
     });
 
@@ -777,14 +775,6 @@ void runTests({
         final scripts = await service.getScripts(isolate.id!);
         assert(scripts.scripts!.isNotEmpty);
         for (final scriptRef in scripts.scripts!) {
-          final uri = scriptRef.uri!;
-          // Only check files that are in this test's [webAssetsPath].
-          // For example, if webAssetsPath is 'web':
-          //   skip: 'org-dartlang-app:///example/hello_world/main.dart'
-          //   keep: 'org-dartlang-app:///web/main.dart'
-          if (uri.startsWith('org-dartlang-app:///')) {
-            if (!uri.contains(context.project.webAssetsPath)) continue;
-          }
           final script =
               await service.getObject(isolate.id!, scriptRef.id!) as Script;
           final serverPath = DartUri(script.uri!, '').serverPath;

@@ -6,7 +6,6 @@
 
 import 'dart:io';
 
-import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/dart_web_debug_service.dart';
 import 'package:dwds/data/build_result.dart';
@@ -31,18 +30,11 @@ Handler _interceptFavicon(Handler handler) {
 
 class TestServer {
   final HttpServer _server;
-  final String target;
   final Dwds dwds;
   final Stream<BuildResult> buildResults;
   final AssetReader assetReader;
 
-  TestServer._(
-    this.target,
-    this._server,
-    this.dwds,
-    this.buildResults,
-    this.assetReader,
-  );
+  TestServer._(this._server, this.dwds, this.buildResults, this.assetReader);
 
   String get host => _server.address.host;
   int get port => _server.port;
@@ -58,8 +50,7 @@ class TestServer {
     required Handler assetHandler,
     required AssetReader assetReader,
     required LoadStrategy strategy,
-    required String target,
-    required Stream<daemon.BuildResults> buildResults,
+    required Stream<BuildResult> buildResults,
     required Future<ChromeConnection> Function() chromeConnection,
     int? port,
     HttpServer? httpServer,
@@ -67,23 +58,6 @@ class TestServer {
     var pipeline = const Pipeline();
 
     pipeline = pipeline.addMiddleware(_interceptFavicon);
-
-    final filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
-      final result = results.results.firstWhere(
-        (result) => result.target == target,
-      );
-      switch (result.status) {
-        case daemon.BuildStatus.started:
-          return BuildResult(status: BuildStatus.started);
-        case daemon.BuildStatus.failed:
-          return BuildResult(status: BuildStatus.failed);
-        case daemon.BuildStatus.succeeded:
-          return BuildResult(status: BuildStatus.succeeded);
-        default:
-          break;
-      }
-      throw StateError('Unexpected Daemon build result: $result');
-    });
 
     final toolConfiguration = ToolConfiguration(
       loadStrategy: strategy,
@@ -93,7 +67,7 @@ class TestServer {
 
     final dwds = await Dwds.start(
       assetReader: assetReader,
-      buildResults: filteredBuildResults,
+      buildResults: buildResults,
       chromeConnection: chromeConnection,
       toolConfiguration: toolConfiguration,
     );
@@ -114,13 +88,7 @@ class TestServer {
       },
     );
 
-    return TestServer._(
-      target,
-      server,
-      dwds,
-      filteredBuildResults,
-      assetReader,
-    );
+    return TestServer._(server, dwds, buildResults, assetReader);
   }
 
   /// [Middleware] that logs all requests, inspired by [logRequests].

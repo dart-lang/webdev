@@ -6,27 +6,25 @@ import 'package:dwds/dwds.dart';
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/debugging/chrome_inspector.dart';
 import 'package:dwds/src/utilities/conversions.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
-import '../test_sdk_configuration.dart';
-
 void runTests({
   required TestSdkConfigurationProvider provider,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
 }) {
-  final context = TestContext(TestProject.testScopes, provider);
+  final context = contextFactory(TestProject.testScopes, provider);
 
   late ChromeAppInspector inspector;
 
   setUpAll(() async {
     await context.setUp(
       testSettings: TestSettings(
-        compilationMode: compilationMode,
         moduleFormat: provider.ddcModuleFormat,
         canaryFeatures: provider.canaryFeatures,
       ),
@@ -103,7 +101,7 @@ void runTests({
 
   group('mapExceptionStackTrace', () {
     final skipFrontendServerAmd =
-        compilationMode == CompilationMode.frontendServer &&
+        context.usesFrontendServer &&
             provider.ddcModuleFormat == ModuleFormat.amd
         ? 'Stack trace mapping not supported in this configuration'
         : null;

@@ -9,6 +9,7 @@ library;
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/fixtures/context.dart';
+import 'helpers/context.dart';
 import 'package:dwds_test_common/integration/record_type_inspection.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
@@ -16,34 +17,37 @@ import 'package:test/test.dart';
 void main() {
   // Enable verbose logging for debugging.
   const debug = false;
-  final canaryFeatures = true;
 
   group('canary: true | Build Daemon |', () {
-    final compilationMode = CompilationMode.buildDaemon;
+    final canaryFeatures = true;
+    final contextFactory = (project, provider) => BuildDaemonTestContext(project, provider);
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,
       ddcModuleFormat: ModuleFormat.ddc,
     );
     tearDownAll(provider.dispose);
+
     runTests(
       provider: provider,
-      compilationMode: compilationMode,
+      contextFactory: contextFactory,
       canaryFeatures: canaryFeatures,
     );
   });
 
   group('canary: true | Build Daemon and Frontend Server |', () {
-    final compilationMode = CompilationMode.buildDaemonAndFrontendServer;
+    final canaryFeatures = true;
+    final contextFactory = (project, provider) => BuildDaemonAndFrontendServerTestContext(project, provider);
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,
       ddcModuleFormat: ModuleFormat.ddc,
     );
     tearDownAll(provider.dispose);
+
     runTests(
       provider: provider,
-      compilationMode: compilationMode,
+      contextFactory: contextFactory,
       canaryFeatures: canaryFeatures,
     );
   });

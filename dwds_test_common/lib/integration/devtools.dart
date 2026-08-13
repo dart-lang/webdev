@@ -5,15 +5,14 @@
 import 'dart:io';
 
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 // ignore: deprecated_member_use
 import 'package:webdriver/io.dart';
-
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
-import '../test_sdk_configuration.dart';
 
 Future<void> _waitForPageReady(TestContext context) async {
   var attempt = 100;
@@ -28,8 +27,11 @@ Future<void> _waitForPageReady(TestContext context) async {
 TypeMatcher<Event> _hasKind(String kind) =>
     isA<Event>().having((Event e) => e.kind, 'kind', kind);
 
-void testAll({required TestSdkConfigurationProvider provider}) {
-  final context = TestContext(TestProject.test, provider);
+void testAll({
+  required TestSdkConfigurationProvider provider,
+  required TestContextFactory contextFactory,
+}) {
+  final context = contextFactory(TestProject.test, provider);
 
   for (final serveFromDds in [true, false]) {
     group('Injected client with DevTools served from '

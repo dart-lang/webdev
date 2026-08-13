@@ -4,11 +4,10 @@
 
 import 'dart:async' show Completer, StreamSubscription;
 
+import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:path/path.dart' show basename;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
-
-import '../fixtures/context.dart';
 
 class TestInspector {
   TestInspector(this.context);

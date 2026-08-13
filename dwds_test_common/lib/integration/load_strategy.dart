@@ -4,14 +4,13 @@
 
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/fixtures/fakes.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-
-import '../fixtures/context.dart';
-import '../fixtures/fakes.dart';
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
-import '../test_sdk_configuration.dart';
 
 void runIndependentTests() {
   group('Fake Strategy', () {
@@ -103,16 +102,15 @@ void runIndependentTests() {
 
 void runDependentTests({
   required TestSdkConfigurationProvider provider,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
 }) {
   final project = TestProject.test;
-  final context = TestContext(project, provider);
+  final context = contextFactory(project, provider);
 
   group('Global load Strategy with default build settings', () {
     setUpAll(() async {
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           moduleFormat: provider.ddcModuleFormat,
           canaryFeatures: provider.canaryFeatures,
         ),
@@ -144,7 +142,6 @@ void runDependentTests({
     setUpAll(() async {
       await context.setUp(
         testSettings: TestSettings(
-          compilationMode: compilationMode,
           canaryFeatures: canaryFeatures,
           isFlutterApp: isFlutterApp,
           experiments: experiments,

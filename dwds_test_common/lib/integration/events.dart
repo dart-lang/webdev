@@ -6,22 +6,21 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dwds/src/events.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
+import 'package:dwds_test_common/logging.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 import 'package:webdriver/async_core.dart';
 
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
-import '../logging.dart';
-import '../test_sdk_configuration.dart';
-
 void testWithDwds({
   required TestSdkConfigurationProvider provider,
-  required CompilationMode compilationMode,
+  required TestContextFactory contextFactory,
 }) {
-  final context = TestContext(TestProject.test, provider);
+  final context = contextFactory(TestProject.test, provider);
 
   group(
     'with dwds',
@@ -73,7 +72,7 @@ void testWithDwds({
           pipe(eventStream, timeout: const Timeout.factor(5)),
           emitsThrough(
             matchesEvent(DwdsEventKind.compilerUpdateDependencies, {
-              if (compilationMode == CompilationMode.frontendServer)
+              if (context.usesFrontendServer)
                 'entrypoint': 'example/hello_world/main_module.bootstrap.js'
               else
                 'entrypoint': 'hello_world/main.dart.bootstrap.js',
@@ -83,7 +82,6 @@ void testWithDwds({
         );
         await context.setUp(
           testSettings: TestSettings(
-            compilationMode: compilationMode,
             enableExpressionEvaluation: true,
             moduleFormat: provider.ddcModuleFormat,
             verboseCompiler: provider.verbose,
