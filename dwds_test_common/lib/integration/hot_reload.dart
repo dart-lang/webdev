@@ -24,8 +24,14 @@ void runTests({
   final context = contextFactory(project, provider);
 
 
-  Future<void> recompile() async {
-    await context.recompile(fullRestart: false);
+  Future<void> recompile({bool fullRestart = false, bool hasEdits = false}) async {
+    if (context.usesBuildDaemon) {
+      if (hasEdits) {
+        await context.waitForSuccessfulBuild();
+      }
+    } else {
+      await context.recompile(fullRestart: fullRestart);
+    }
   }
 
   Future<void> makeEditAndRecompile() async {
@@ -36,7 +42,7 @@ void runTests({
         newString: newString,
       ),
     ]);
-    await recompile();
+    await recompile(hasEdits: true);
   }
 
   // Call the method `evaluate` in the program and wait for `expectedString` to
@@ -100,7 +106,7 @@ void runTests({
           newString: anotherString,
         ),
       ]);
-      await recompile();
+      await recompile(hasEdits: true);
       report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, true);
 
@@ -151,7 +157,7 @@ class Foo extends Bar {}
 ''',
         ),
       ]);
-      await recompile();
+      await recompile(hasEdits: true);
       final vm = await client.getVM();
       final isolate = await client.getIsolate(vm.isolates!.first.id!);
       var report = await fakeClient.reloadSources(isolate.id!);
@@ -165,12 +171,12 @@ class Foo extends Bar {}
           newString: 'class Foo<T> extends Bar',
         ),
       ]);
-      await context.recompile(fullRestart: false, allowFailure: true);
+      await recompile(hasEdits: true);
       report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, false);
 
       // Successfully recover with hot restart.
-      await context.recompile(fullRestart: true);
+      await recompile(fullRestart: true, hasEdits: false);
       await callEvaluateAndWaitForLog(newString);
     });
   }, timeout: const Timeout.factor(2));

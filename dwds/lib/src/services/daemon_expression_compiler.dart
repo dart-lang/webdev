@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:dwds/src/services/expression_compiler.dart';
 
@@ -41,8 +42,20 @@ final class DaemonExpressionCompiler implements ExpressionCompiler {
       'expression': expression,
     };
     final responseJson = await _sendRequest(requestJson);
-    final result = responseJson['result'] as String;
-    final isError = responseJson['isError'] as bool;
+    final expressionDataString = responseJson['expressionData'] as String?;
+    final errorMessage = responseJson['errorMessage'] as String?;
+    final errorCount = responseJson['errorCount'] as int? ?? 0;
+
+    final isError = errorCount > 0 || expressionDataString == null;
+
+    String result;
+    if (isError) {
+      result = errorMessage ?? 'Unknown compilation error';
+    } else {
+      final bytes = base64.decode(expressionDataString);
+      result = utf8.decode(bytes);
+    }
+
     return ExpressionCompilationResult(result, isError);
   }
 

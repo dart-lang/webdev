@@ -444,6 +444,7 @@ abstract class TestContext {
     _chromeDriver = null;
     _daemonClient = null;
     ddcService = null;
+    expressionCompiler = null;
     _webRunner = null;
     _testServer = null;
     _client = null;
@@ -571,10 +572,14 @@ abstract class TestContext {
 
 
   Future<void> recompile({required bool fullRestart}) async {
-    await webRunner.rerun(
-      fullRestart: fullRestart,
-      fileServerUri: Uri.parse('http://${testServer.host}:${testServer.port}'),
-    );
+    if (usesBuildDaemon) {
+      await waitForSuccessfulBuild();
+    } else {
+      await webRunner.rerun(
+        fullRestart: fullRestart,
+        fileServerUri: Uri.parse('http://${testServer.host}:${testServer.port}'),
+      );
+    }
     return;
   }
 
