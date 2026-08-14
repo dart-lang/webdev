@@ -577,7 +577,6 @@ abstract class TestContext {
     return;
   }
 
-
   Future<void> waitForSuccessfulBuild({
     Duration? timeout,
     bool propagateToBrowser = false,
@@ -603,7 +602,6 @@ abstract class TestContext {
     } catch (e) {
       if (!allowFailure) rethrow;
     }
-
 
     if (propagateToBrowser) {
       // Allow change to propagate to the browser.
