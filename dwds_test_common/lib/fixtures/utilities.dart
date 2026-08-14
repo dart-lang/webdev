@@ -4,11 +4,6 @@
 
 // @skip_package_deps_validation
 
-import 'dart:io';
-
-import 'package:build_daemon/client.dart';
-import 'package:build_daemon/constants.dart';
-import 'package:build_daemon/data/server_log.dart';
 import 'package:dds/devtools_server.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/loaders/strategy.dart';
@@ -17,32 +12,6 @@ import 'package:dwds/src/services/expression_compiler.dart';
 
 import 'context.dart';
 import 'fakes.dart';
-
-/// Connects to the `build_runner` daemon.
-Future<BuildDaemonClient> connectClient(
-  String dartPath,
-  String workingDirectory,
-  List<String> options,
-  void Function(ServerLog) logHandler,
-) => BuildDaemonClient.connect(workingDirectory, [
-  dartPath,
-  'run',
-  'build_runner',
-  'daemon',
-  ...options,
-], logHandler: logHandler);
-
-/// Returns the port of the daemon asset server.
-int daemonPort(String workingDirectory) {
-  final portFile = File(_assetServerPortFilePath(workingDirectory));
-  if (!portFile.existsSync()) {
-    throw Exception('Unable to read daemon asset port file.');
-  }
-  return int.parse(portFile.readAsStringSync());
-}
-
-String _assetServerPortFilePath(String workingDirectory) =>
-    '${daemonWorkspace(workingDirectory)}/.asset_server_port';
 
 /// Retries a callback function with a delay until the result is the
 /// [expectedResult] (if provided) or is not null.

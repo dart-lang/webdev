@@ -15,7 +15,6 @@ import '../../dwds/test/integration/fixtures/frontend_server_context.dart';
 import 'helpers/context.dart';
 
 void main() {
-
   // Enable verbose logging for debugging.
   const debug = false;
 
@@ -27,10 +26,7 @@ void main() {
   tearDownAll(provider.dispose);
 
   group('Build Daemon |', () {
-    testAll(
-      provider: provider,
-      contextFactory: BuildDaemonTestContext.new,
-    );
+    testAll(provider: provider, contextFactory: BuildDaemonTestContext.new);
   });
 
   group('Build Daemon and Frontend Server |', () {
@@ -41,9 +37,6 @@ void main() {
   });
 
   group('Frontend Server |', () {
-    testAll(
-      provider: provider,
-      contextFactory: FrontendServerTestContext.new,
-    );
+    testAll(provider: provider, contextFactory: FrontendServerTestContext.new);
   });
 }

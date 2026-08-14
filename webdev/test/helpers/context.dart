@@ -1,10 +1,13 @@
 // Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:io';
 
 import 'package:build_daemon/client.dart';
+import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:build_daemon/data/build_target.dart';
+import 'package:build_daemon/data/server_log.dart';
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/data/build_result.dart' as dwds;
 import 'package:dwds/expression_compiler.dart';
@@ -36,7 +39,7 @@ class BuildDaemonTestContext extends TestContext {
   final _logger = logging.Logger('BuildDaemonTestContext');
 
   BuildDaemonTestContext(super.project, super.sdkConfigurationProvider)
-      : super.protected();
+    : super.protected();
 
   late AssetReader _assetReader;
   late Handler _assetHandler;
@@ -359,3 +362,29 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
     await daemonClient.close();
   }
 }
+
+/// Connects to the `build_runner` daemon.
+Future<BuildDaemonClient> connectClient(
+  String dartPath,
+  String workingDirectory,
+  List<String> options,
+  void Function(ServerLog) logHandler,
+) => BuildDaemonClient.connect(workingDirectory, [
+  dartPath,
+  'run',
+  'build_runner',
+  'daemon',
+  ...options,
+], logHandler: logHandler);
+
+/// Returns the port of the daemon asset server.
+int daemonPort(String workingDirectory) {
+  final portFile = File(_assetServerPortFilePath(workingDirectory));
+  if (!portFile.existsSync()) {
+    throw Exception('Unable to read daemon asset port file.');
+  }
+  return int.parse(portFile.readAsStringSync());
+}
+
+String _assetServerPortFilePath(String workingDirectory) =>
+    '${daemonWorkspace(workingDirectory)}/.asset_server_port';
