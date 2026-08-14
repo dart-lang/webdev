@@ -39,113 +39,111 @@ void runTests({
   Future<InstanceRef> getInstanceRef(int frame, String expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  group(
-    '${context.usesFrontendServer ? "frontendServer" : "buildDaemon"} | dot shorthands:',
-    () {
-      setUp(() async {
-        setCurrentLogWriter(debug: provider.verbose);
-        await context.setUp(
-          testSettings: TestSettings(
-            enableExpressionEvaluation: true,
-            verboseCompiler: provider.verbose,
-            experiments: ['dot-shorthands'],
-            canaryFeatures: canaryFeatures,
-            moduleFormat: provider.ddcModuleFormat,
-          ),
-        );
-        service = context.debugConnection.vmService;
+  group('${context.usesFrontendServer ? "frontendServer" : "buildDaemon"} | '
+      'dot shorthands:', () {
+    setUp(() async {
+      setCurrentLogWriter(debug: provider.verbose);
+      await context.setUp(
+        testSettings: TestSettings(
+          enableExpressionEvaluation: true,
+          verboseCompiler: provider.verbose,
+          experiments: ['dot-shorthands'],
+          canaryFeatures: canaryFeatures,
+          moduleFormat: provider.ddcModuleFormat,
+        ),
+      );
+      service = context.debugConnection.vmService;
 
-        final vm = await service.getVM();
-        isolateId = vm.isolates!.first.id!;
-        final scripts = await service.getScripts(isolateId);
+      final vm = await service.getVM();
+      isolateId = vm.isolates!.first.id!;
+      final scripts = await service.getScripts(isolateId);
 
-        await service.streamListen(EventStreams.kDebug);
-        stream = service.onDebugEvent;
+      await service.streamListen(EventStreams.kDebug);
+      stream = service.onDebugEvent;
 
-        mainScript = scripts.scripts!.firstWhere(
-          (each) => each.uri!.contains('main.dart'),
-        );
+      mainScript = scripts.scripts!.firstWhere(
+        (each) => each.uri!.contains('main.dart'),
+      );
+    });
+
+    tearDown(() async {
+      await context.tearDown();
+    });
+
+    test('expression evaluation', () async {
+      final bp = onBreakpoint('testDotShorthands', (Event event) async {
+        final frame = event.topFrame!.index!;
+
+        var instanceRef = await getInstanceRef(frame, '(c = .two).value');
+        expect(instanceRef.valueAsString, '2');
+
+        instanceRef = await getInstanceRef(frame, '(c = .three).value');
+        expect(instanceRef.valueAsString, '3');
+
+        instanceRef = await getInstanceRef(frame, '(c = .four()).value');
+        expect(instanceRef.valueAsString, '4');
+
+        await service.resume(isolateId);
       });
+      final isolate = await service.getIsolate(isolateId);
+      await service.evaluate(
+        isolateId,
+        isolate.rootLib!.id!,
+        'testDotShorthands()',
+      );
+      await bp;
+    });
 
-      tearDown(() async {
-        await context.tearDown();
-      });
+    test('single-stepping', () async {
+      final bp = onBreakpoint('testDotShorthands', (Event event) async {
+        final scriptBasename = basename(mainScript.uri!);
 
-      test('expression evaluation', () async {
-        final bp = onBreakpoint('testDotShorthands', (Event event) async {
-          final frame = event.topFrame!.index!;
+        const lineA = 9;
+        const lineB = 11;
+        const lineC = 12;
+        const lineD = 13;
+        const lineE = 20;
+        const lineF = 22;
+        const lineG = 24;
+        const lineH = 25;
 
-          var instanceRef = await getInstanceRef(frame, '(c = .two).value');
-          expect(instanceRef.valueAsString, '2');
+        final expected = [
+          '$scriptBasename:$lineE:3', // on 'c'
+          '$scriptBasename:$lineB:15', // on 'C'
+          '$scriptBasename:$lineA:10', // on 'v' of 'value'
+          '$scriptBasename:$lineA:16', // on ';'
+          '$scriptBasename:$lineB:20', // on '2'
+          '$scriptBasename:$lineF:3', // on 'c'
+          '$scriptBasename:$lineC:25', // on 'C'
+          '$scriptBasename:$lineA:10', // on 'v' of 'value'
+          '$scriptBasename:$lineA:16', // on ';'
+          '$scriptBasename:$lineC:27', // on '3'
+          '$scriptBasename:$lineG:3', // on 'c'
+          '$scriptBasename:$lineD:22', // on 'C'
+          '$scriptBasename:$lineA:10', // on 'v' of 'value'
+          '$scriptBasename:$lineA:16', // on ';'
+          '$scriptBasename:$lineD:24', // on '4'
+          '$scriptBasename:$lineH:3', // on 'p' of 'print'
+        ];
 
-          instanceRef = await getInstanceRef(frame, '(c = .three).value');
-          expect(instanceRef.valueAsString, '3');
-
-          instanceRef = await getInstanceRef(frame, '(c = .four()).value');
-          expect(instanceRef.valueAsString, '4');
-
-          await service.resume(isolateId);
-        });
-        final isolate = await service.getIsolate(isolateId);
-        await service.evaluate(
+        final stops = <String>[];
+        await testInspector.runStepIntoThroughProgramRecordingStops(
           isolateId,
-          isolate.rootLib!.id!,
-          'testDotShorthands()',
+          stops,
+          expected.length,
         );
-        await bp;
+
+        expect(stops, expected);
+
+        await service.resume(isolateId);
       });
-
-      test('single-stepping', () async {
-        final bp = onBreakpoint('testDotShorthands', (Event event) async {
-          final scriptBasename = basename(mainScript.uri!);
-
-          const lineA = 9;
-          const lineB = 11;
-          const lineC = 12;
-          const lineD = 13;
-          const lineE = 20;
-          const lineF = 22;
-          const lineG = 24;
-          const lineH = 25;
-
-          final expected = [
-            '$scriptBasename:$lineE:3', // on 'c'
-            '$scriptBasename:$lineB:15', // on 'C'
-            '$scriptBasename:$lineA:10', // on 'v' of 'value'
-            '$scriptBasename:$lineA:16', // on ';'
-            '$scriptBasename:$lineB:20', // on '2'
-            '$scriptBasename:$lineF:3', // on 'c'
-            '$scriptBasename:$lineC:25', // on 'C'
-            '$scriptBasename:$lineA:10', // on 'v' of 'value'
-            '$scriptBasename:$lineA:16', // on ';'
-            '$scriptBasename:$lineC:27', // on '3'
-            '$scriptBasename:$lineG:3', // on 'c'
-            '$scriptBasename:$lineD:22', // on 'C'
-            '$scriptBasename:$lineA:10', // on 'v' of 'value'
-            '$scriptBasename:$lineA:16', // on ';'
-            '$scriptBasename:$lineD:24', // on '4'
-            '$scriptBasename:$lineH:3', // on 'p' of 'print'
-          ];
-
-          final stops = <String>[];
-          await testInspector.runStepIntoThroughProgramRecordingStops(
-            isolateId,
-            stops,
-            expected.length,
-          );
-
-          expect(stops, expected);
-
-          await service.resume(isolateId);
-        });
-        final isolate = await service.getIsolate(isolateId);
-        await service.evaluate(
-          isolateId,
-          isolate.rootLib!.id!,
-          'testDotShorthands()',
-        );
-        await bp;
-      });
-    },
-  );
+      final isolate = await service.getIsolate(isolateId);
+      await service.evaluate(
+        isolateId,
+        isolate.rootLib!.id!,
+        'testDotShorthands()',
+      );
+      await bp;
+    });
+  });
 }
