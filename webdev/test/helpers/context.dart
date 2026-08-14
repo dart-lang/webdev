@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/asset_reader.dart';
@@ -17,8 +16,8 @@ import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/fixtures/utilities.dart';
-import 'package:dwds_test_common/utilities.dart';
 import 'package:dwds_test_common/frontend_server_common/devfs.dart';
+import 'package:dwds_test_common/utilities.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
@@ -26,9 +25,8 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
-class BuildDaemonTestContext extends TestContext {
-  final _logger = logging.Logger('BuildDaemonTestContext');
 
+class BuildDaemonTestContext extends TestContext {
   BuildDaemonTestContext(super.project, super.sdkConfigurationProvider);
 
   @override

@@ -563,7 +563,13 @@ abstract class TestContext {
     };
   }
 
-  Future<void> recompile({required bool fullRestart}) async {
+  Future<void> recompile({
+    required bool fullRestart,
+    bool allowFailure = false,
+  }) async {
+    if (usesBuildDaemon) {
+      await waitForSuccessfulBuild(allowFailure: allowFailure);
+    }
     await webRunner.rerun(
       fullRestart: fullRestart,
       fileServerUri: Uri.parse('http://${testServer.host}:${testServer.port}'),
@@ -571,18 +577,33 @@ abstract class TestContext {
     return;
   }
 
+
   Future<void> waitForSuccessfulBuild({
     Duration? timeout,
     bool propagateToBrowser = false,
+    bool allowFailure = false,
   }) async {
+    lastBuildFailed = false;
     // Wait for the build until the timeout is reached:
-    await daemonClient.buildResults
-        .firstWhere(
-          (BuildResults results) => results.results.any(
-            (BuildResult result) => result.status == BuildStatus.succeeded,
-          ),
-        )
-        .timeout(timeout ?? const Duration(seconds: 60));
+    try {
+      await daemonClient.buildResults
+          .firstWhere((BuildResults results) {
+            final hasSucceeded = results.results.any(
+              (BuildResult result) => result.status == BuildStatus.succeeded,
+            );
+            final hasFailed = results.results.any(
+              (BuildResult result) => result.status == BuildStatus.failed,
+            );
+            if (hasFailed) {
+              lastBuildFailed = true;
+            }
+            return hasSucceeded || (allowFailure && hasFailed);
+          })
+          .timeout(timeout ?? const Duration(seconds: 60));
+    } catch (e) {
+      if (!allowFailure) rethrow;
+    }
+
 
     if (propagateToBrowser) {
       // Allow change to propagate to the browser.

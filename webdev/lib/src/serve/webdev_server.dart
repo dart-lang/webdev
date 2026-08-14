@@ -234,7 +234,7 @@ class WebDevServer {
       final LoadStrategy loadStrategy;
       if (options.configuration.webHotReload) {
         final frontendServerFileSystem = LocalFileSystem();
-        final packageUriMapper = await PackageUriMapper.create(
+        final packageUriMapper = await BuildRunnerPathResolver.create(
           frontendServerFileSystem,
           findPackageConfigUri()!,
           useDebuggerModuleNames: false,
