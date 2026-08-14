@@ -253,7 +253,7 @@ jobs:
       - job_003
       - job_004
   job_006:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome`, `dart test --tags=extension`"
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV`, `dart test --tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -284,8 +284,8 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
-        run: "mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
+      - name: "dwds; echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
+        run: "echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --tags=extension"
@@ -298,7 +298,7 @@ jobs:
       - job_003
       - job_004
   job_007:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome`, `dart test --total-shards 3 --shard-index 0 --exclude-tags=extension`"
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV`, `dart test --total-shards 3 --shard-index 0 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -329,8 +329,8 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
-        run: "mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
+      - name: "dwds; echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
+        run: "echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
@@ -343,7 +343,7 @@ jobs:
       - job_003
       - job_004
   job_008:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome`, `dart test --total-shards 3 --shard-index 1 --exclude-tags=extension`"
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV`, `dart test --total-shards 3 --shard-index 1 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -374,8 +374,8 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
-        run: "mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
+      - name: "dwds; echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
+        run: "echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
@@ -388,7 +388,7 @@ jobs:
       - job_003
       - job_004
   job_009:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome`, `dart test --total-shards 3 --shard-index 2 --exclude-tags=extension`"
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV`, `dart test --total-shards 3 --shard-index 2 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -419,8 +419,8 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
-        run: "mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
+      - name: "dwds; echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
+        run: "echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
@@ -433,7 +433,7 @@ jobs:
       - job_003
       - job_004
   job_010:
-    name: "unit_test; linux; Dart dev; PKG: dwds_test_common; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome`, `dart test --exclude-tags=release`"
+    name: "unit_test; linux; Dart dev; PKG: dwds_test_common; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV`, `dart test --exclude-tags=release`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -464,8 +464,8 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.dwds_test_common_pub_upgrade.conclusion == 'success'"
         working-directory: dwds_test_common
-      - name: "dwds_test_common; mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
-        run: "mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
+      - name: "dwds_test_common; echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
+        run: "echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
         if: "always() && steps.dwds_test_common_pub_upgrade.conclusion == 'success'"
         working-directory: dwds_test_common
       - name: "dwds_test_common; dart test --exclude-tags=release"
@@ -515,7 +515,7 @@ jobs:
       - job_003
       - job_004
   job_012:
-    name: "unit_test; linux; Dart dev; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome`, `dart test -j 1`"
+    name: "unit_test; linux; Dart dev; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV`, `dart test -j 1`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -546,8 +546,8 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
-      - name: "webdev; mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
-        run: "mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
+      - name: "webdev; echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
+        run: "echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
       - name: "webdev; dart test -j 1"
@@ -776,7 +776,7 @@ jobs:
       - job_003
       - job_004
   job_021:
-    name: "beta_cron; linux; Dart beta; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome`, `dart test -j 1`"
+    name: "beta_cron; linux; Dart beta; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV`, `dart test -j 1`"
     runs-on: ubuntu-latest
     if: "github.event_name == 'schedule'"
     steps:
@@ -808,8 +808,8 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
-        run: "mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
+      - name: "dwds; echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
+        run: "echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test -j 1"
@@ -838,7 +838,7 @@ jobs:
       - job_019
       - job_020
   job_022:
-    name: "beta_cron; linux; Dart beta; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome`, `dart test -j 1`"
+    name: "beta_cron; linux; Dart beta; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV`, `dart test -j 1`"
     runs-on: ubuntu-latest
     if: "github.event_name == 'schedule'"
     steps:
@@ -870,8 +870,8 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
-      - name: "webdev; mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
-        run: "mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome"
+      - name: "webdev; echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
+        run: "echo \"CHROME_EXECUTABLE=$(which google-chrome)\" >> $GITHUB_ENV"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
       - name: "webdev; dart test -j 1"
