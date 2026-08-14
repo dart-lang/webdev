@@ -426,14 +426,6 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
       assetServerPort,
     );
 
-    // Using standard constructor if fromHandler is not available or if it's simpler.
-    // In "theirs" they used ProxyServerAssetReader.fromHandler(_assetHandler!);
-    // Let's check if ProxyServerAssetReader has fromHandler in this branch.
-    // I can try using it, and if it fails to compile I will revert.
-    // Wait, I should verify if it exists.
-    // I grepped for ProxyServerAssetReader earlier but didn't check its constructors.
-    // Let's use standard constructor for now to be safe, or try fromHandler if I want to be faithful to branch 1.
-    // Let's try fromHandler as it was in branch 1.
     assetReader = ProxyServerAssetReader.fromHandler(assetHandler);
 
     if (testSettings.enableExpressionEvaluation) {
@@ -477,7 +469,6 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
       ),
     };
 
-    // Map build results.
     buildResults = testSettings.enableExpressionEvaluation
         ? const Stream<dwds.BuildResult>.empty()
         : daemonClient.buildResults.map((results) {
