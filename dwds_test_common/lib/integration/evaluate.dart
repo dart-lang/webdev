@@ -27,6 +27,7 @@ void testAll({
 }) {
   final testProject = TestProject.test;
   final testPackageProject = TestProject.testPackage(baseMode: indexBaseMode);
+
   final context = contextFactory(testPackageProject, provider);
 
   if (context.usesBuildDaemon && indexBaseMode == IndexBaseMode.base) {

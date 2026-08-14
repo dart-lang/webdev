@@ -23,6 +23,7 @@ void testAll({
 }) {
   final testCircular1 = TestProject.testCircular1;
   final testCircular2 = TestProject.testCircular2(baseMode: indexBaseMode);
+
   final context = contextFactory(testCircular2, provider);
 
   if (context.usesBuildDaemon && indexBaseMode == IndexBaseMode.base) {

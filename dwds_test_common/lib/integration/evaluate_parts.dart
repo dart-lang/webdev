@@ -18,6 +18,7 @@ void testAll({
   bool useDebuggerModuleNames = false,
 }) {
   final testParts = TestProject.testParts(baseMode: indexBaseMode);
+
   final context = contextFactory(testParts, provider);
 
   if (context.usesBuildDaemon && indexBaseMode == IndexBaseMode.base) {
