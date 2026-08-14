@@ -229,14 +229,12 @@ class TestProject {
       }
     }
 
-    // Clean up the project.
-    // Called when we need to rebuild sdk and the app from previous test
-    // configurations.
-    await Process.run('dart', [
-      'run',
-      'build_runner',
-      'clean',
-    ], workingDirectory: newPath);
+    final buildDir = Directory(p.join(newPath, '.dart_tool', 'build'));
+    if (buildDir.existsSync()) {
+      try {
+        buildDir.deleteSync(recursive: true);
+      } catch (_) {}
+    }
   }
 
   Future<void> setUp() async {
