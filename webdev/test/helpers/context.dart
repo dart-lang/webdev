@@ -8,8 +8,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:build_daemon/client.dart';
+import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:build_daemon/data/build_target.dart';
+import 'package:build_daemon/data/server_log.dart';
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/data/build_result.dart' as dwds;
 import 'package:dwds/expression_compiler.dart';
@@ -871,3 +873,83 @@ Handler _createBuildRunnerDdcLibraryBundleAssetHandler(
     return response;
   };
 }
+
+/// Connects to the `build_runner` daemon.
+Future<BuildDaemonClient> connectClient(
+  String dartPath,
+  String workingDirectory,
+  List<String> options,
+  void Function(ServerLog) logHandler,
+) async {
+  final process = await Process.start(dartPath, [
+    'run',
+    'build_runner',
+    'daemon',
+    ...options,
+  ], workingDirectory: workingDirectory);
+
+  final stdoutBuffer = <String>[];
+  final stderrBuffer = <String>[];
+  final daemonStartup = Completer<String>();
+
+  process.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen(
+    (line) {
+      stdoutBuffer.add(line);
+      if (line == readyToConnectLog ||
+          line == versionSkew ||
+          line == optionsSkew) {
+        if (!daemonStartup.isCompleted) {
+          daemonStartup.complete(line);
+        }
+      }
+    },
+  );
+
+  process.stderr
+      .transform(utf8.decoder)
+      .transform(const LineSplitter())
+      .listen(stderrBuffer.add);
+
+  final result = await Future.any([
+    daemonStartup.future,
+    Future.delayed(
+      const Duration(seconds: 45),
+      () => 'Timed out waiting for daemon to start up.',
+    ),
+  ]);
+
+  if (result == readyToConnectLog) {
+    return BuildDaemonClient.connectUnchecked(
+      workingDirectory,
+      logHandler: logHandler,
+    );
+  }
+
+  process.kill();
+  final exitCode = await process.exitCode.timeout(
+    const Duration(seconds: 5),
+    onTimeout: () => -1,
+  );
+
+  final details = [
+    'Command: $dartPath run build_runner daemon ${options.join(' ')}',
+    'Working Directory: $workingDirectory',
+    'Exit Code: $exitCode',
+    if (stdoutBuffer.isNotEmpty) 'Stdout:\n${stdoutBuffer.join('\n')}',
+    if (stderrBuffer.isNotEmpty) 'Stderr:\n${stderrBuffer.join('\n')}',
+  ].join('\n');
+
+  throw StateError('Failed to start build daemon (result: $result).\n$details');
+}
+
+/// Returns the port of the daemon asset server.
+int daemonPort(String workingDirectory) {
+  final portFile = File(_assetServerPortFilePath(workingDirectory));
+  if (!portFile.existsSync()) {
+    throw Exception('Unable to read daemon asset port file.');
+  }
+  return int.parse(portFile.readAsStringSync());
+}
+
+String _assetServerPortFilePath(String workingDirectory) =>
+    '${daemonWorkspace(workingDirectory)}/.asset_server_port';
