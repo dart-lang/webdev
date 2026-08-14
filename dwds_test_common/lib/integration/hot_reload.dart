@@ -164,7 +164,7 @@ class Foo extends Bar {}
           newString: 'class Foo<T> extends Bar',
         ),
       ]);
-      await context.recompile(fullRestart: false, allowFailure: true);
+      await context.recompile(fullRestart: false);
       report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, false);
 

@@ -1,8 +1,13 @@
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/asset_reader.dart';
@@ -10,6 +15,7 @@ import 'package:dwds/data/build_result.dart' as dwds;
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/loaders/build_runner_strategy_provider.dart';
 import 'package:dwds/src/loaders/frontend_server_strategy_provider.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:dwds/src/services/daemon_expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
@@ -19,14 +25,48 @@ import 'package:dwds_test_common/fixtures/utilities.dart';
 import 'package:dwds_test_common/frontend_server_common/devfs.dart';
 import 'package:dwds_test_common/utilities.dart';
 import 'package:file/local.dart';
+import 'package:http/http.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
+Handler createBuildRunnerProxyHandler({
+  required String directoryToServe,
+  required Client client,
+  required int assetServerPort,
+}) {
+  return proxyHandler(
+    'http://localhost:$assetServerPort/$directoryToServe/',
+    client: client,
+  );
+}
+
 class BuildDaemonTestContext extends TestContext {
-  BuildDaemonTestContext(super.project, super.sdkConfigurationProvider);
+
+  BuildDaemonTestContext(super.project, super.sdkConfigurationProvider)
+      : super.protected();
+
+  late AssetReader _assetReader;
+  late Handler _assetHandler;
+  late LoadStrategy _loadStrategy;
+  late Stream<dwds.BuildResult> _buildResults;
+  ExpressionCompiler? _expressionCompiler;
+
+  late BuildDaemonClient daemonClient;
+  ExpressionCompilerService? ddcService;
+
+  @override
+  AssetReader get assetReader => _assetReader;
+  @override
+  Handler get assetHandler => _assetHandler;
+  @override
+  LoadStrategy get loadStrategy => _loadStrategy;
+  @override
+  Stream<dwds.BuildResult> get buildResults => _buildResults;
+  @override
+  ExpressionCompiler? get expressionCompiler => _expressionCompiler;
 
   @override
   bool get usesFrontendServer => false;
@@ -36,14 +76,22 @@ class BuildDaemonTestContext extends TestContext {
   bool get usesDdcModulesOnly => false;
 
   @override
-  Future<void> modeSetUp({
-    required TestSettings testSettings,
-    required TestAppMetadata appMetadata,
-    required TestDebugSettings debugSettings,
-    required TestBuildSettings buildSettings,
-    required Uri reloadedSourcesUri,
-  }) async {
+  String get appUrlPath => project.filePathToServe;
+
+  @override
+  Future<void> modeSetUp(
+    TestSettings testSettings,
+    TestDebugSettings debugSettings,
+    TestAppMetadata appMetadata,
+    Uri reloadedSourcesUri,
+  ) async {
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
+    final buildSettings = TestBuildSettings(
+      appEntrypoint: project.dartEntryFilePackageUri,
+      canaryFeatures: testSettings.canaryFeatures,
+      isFlutterApp: testSettings.isFlutterApp,
+      experiments: testSettings.experiments,
+    );
 
     final options = [
       if (testSettings.enableExpressionEvaluation) ...[
@@ -93,15 +141,19 @@ class BuildDaemonTestContext extends TestContext {
     await waitForSuccessfulBuild();
 
     final assetServerPort = daemonPort(project.absolutePackageDirectory);
-    assetHandler = switch ((
+    _assetHandler = switch ((
       testSettings.moduleFormat,
       buildSettings.canaryFeatures,
     )) {
       (ModuleFormat.ddc, true) =>
         _createBuildRunnerDdcLibraryBundleAssetHandler(this, assetServerPort),
-      _ => createBuildRunnerProxyHandler(assetServerPort),
+      _ => createBuildRunnerProxyHandler(
+        directoryToServe: project.directoryToServe,
+        client: client,
+        assetServerPort: assetServerPort,
+      ),
     };
-    assetReader = ProxyServerAssetReader(
+    _assetReader = ProxyServerAssetReader(
       assetServerPort,
       root: project.directoryToServe,
     );
@@ -113,16 +165,16 @@ class BuildDaemonTestContext extends TestContext {
         verbose: testSettings.verboseCompiler,
         sdkConfigurationProvider: sdkConfigurationProvider,
       );
-      expressionCompiler = ddcService;
+      _expressionCompiler = ddcService;
     }
 
-    loadStrategy = switch ((
+    _loadStrategy = switch ((
       testSettings.moduleFormat,
       buildSettings.canaryFeatures,
     )) {
       (ModuleFormat.ddc, true) => BuildRunnerDdcLibraryBundleStrategyProvider(
         testSettings.reloadConfiguration,
-        assetReader,
+        _assetReader,
         buildSettings,
         reloadedSourcesUri: reloadedSourcesUri,
       ).strategy,
@@ -132,12 +184,12 @@ class BuildDaemonTestContext extends TestContext {
       ),
       _ => BuildRunnerRequireStrategyProvider(
         testSettings.reloadConfiguration,
-        assetReader,
+        _assetReader,
         buildSettings,
       ).strategy,
     };
 
-    buildResults = daemonClient.buildResults.map((results) {
+    _buildResults = daemonClient.buildResults.map((results) {
       final result = results.results.firstWhere(
         (result) => result.target == project.webAssetsPath,
       );
@@ -152,6 +204,12 @@ class BuildDaemonTestContext extends TestContext {
       throw StateError('Unexpected Daemon build result: $result');
     });
   }
+
+  @override
+  Future<void> modeTearDown() async {
+    await ddcService?.stop();
+    await daemonClient.close();
+  }
 }
 
 class BuildDaemonAndFrontendServerTestContext extends TestContext {
@@ -160,7 +218,28 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
   BuildDaemonAndFrontendServerTestContext(
     super.project,
     super.sdkConfigurationProvider,
-  );
+  ) : super.protected();
+
+  late AssetReader _assetReader;
+  late Handler _assetHandler;
+  late LoadStrategy _loadStrategy;
+  late Stream<dwds.BuildResult> _buildResults;
+  ExpressionCompiler? _expressionCompiler;
+
+  late BuildDaemonClient daemonClient;
+  ExpressionCompilerService? ddcService;
+  late LocalFileSystem frontendServerFileSystem;
+
+  @override
+  AssetReader get assetReader => _assetReader;
+  @override
+  Handler get assetHandler => _assetHandler;
+  @override
+  LoadStrategy get loadStrategy => _loadStrategy;
+  @override
+  Stream<dwds.BuildResult> get buildResults => _buildResults;
+  @override
+  ExpressionCompiler? get expressionCompiler => _expressionCompiler;
 
   @override
   bool get usesFrontendServer => true;
@@ -201,14 +280,22 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
   }
 
   @override
-  Future<void> modeSetUp({
-    required TestSettings testSettings,
-    required TestAppMetadata appMetadata,
-    required TestDebugSettings debugSettings,
-    required TestBuildSettings buildSettings,
-    required Uri reloadedSourcesUri,
-  }) async {
+  String get appUrlPath => project.filePathToServe;
+
+  @override
+  Future<void> modeSetUp(
+    TestSettings testSettings,
+    TestDebugSettings debugSettings,
+    TestAppMetadata appMetadata,
+    Uri reloadedSourcesUri,
+  ) async {
     final sdkLayout = sdkConfigurationProvider.sdkLayout;
+    final buildSettings = TestBuildSettings(
+      appEntrypoint: project.dartEntryFilePackageUri,
+      canaryFeatures: testSettings.canaryFeatures,
+      isFlutterApp: testSettings.isFlutterApp,
+      experiments: testSettings.experiments,
+    );
 
     final options = [
       if (testSettings.enableExpressionEvaluation) ...[
@@ -237,6 +324,42 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
       '--verbose',
       '--build-filter=${project.directoryToServe}/**',
     ];
+    daemonClient = await connectClient(
+      sdkLayout.dartPath,
+      project.absolutePackageDirectory,
+      options,
+      (log) {
+        final record = log.toLogRecord();
+        final name = record.loggerName == '' ? '' : '${record.loggerName}: ';
+        _logger.log(
+          record.level,
+          '$name${record.message}',
+          record.error,
+          record.stackTrace,
+        );
+      },
+    );
+    daemonClient.registerBuildTarget(
+      DefaultBuildTarget((b) => b..target = project.directoryToServe),
+    );
+    daemonClient.startBuild();
+
+    await waitForSuccessfulBuild();
+
+    final assetServerPort = daemonPort(project.absolutePackageDirectory);
+    _assetHandler = createBuildRunnerProxyHandler(
+      directoryToServe: project.directoryToServe,
+      client: client,
+      assetServerPort: assetServerPort,
+    );
+    if (testSettings.moduleFormat == ModuleFormat.ddc &&
+        buildSettings.canaryFeatures) {
+      _assetHandler = handleReloadedSources(_assetHandler);
+    }
+    _assetReader = ProxyServerAssetReader(
+      assetServerPort,
+      root: project.directoryToServe,
+    );
 
     if (testSettings.enableExpressionEvaluation) {
       _logger.info('Starting Frontend Server Manager');
@@ -418,16 +541,15 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
 
     await buildFuture;
 
-    final assetServerPort = daemonPort(project.absolutePackageDirectory);
-    assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
+    _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
       this,
       assetServerPort,
     );
 
-    assetReader = ProxyServerAssetReader.fromHandler(assetHandler);
+    _assetReader = ProxyServerAssetReader.fromHandler(_assetHandler);
 
     if (testSettings.enableExpressionEvaluation) {
-      expressionCompiler = DaemonExpressionCompiler(
+      _expressionCompiler = DaemonExpressionCompiler(
         _compileExpressionWithDaemon,
       );
     }
@@ -437,7 +559,7 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
       project.packageConfigFile,
       useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
     );
-    loadStrategy = switch ((
+    _loadStrategy = switch ((
       testSettings.moduleFormat,
       buildSettings.canaryFeatures,
       testSettings.enableExpressionEvaluation,
@@ -445,7 +567,7 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
       (ModuleFormat.ddc, true, true) =>
         FrontendServerBuildDaemonStrategyProvider(
           testSettings.reloadConfiguration,
-          assetReader,
+          _assetReader,
           packageUriMapper,
           () async => {},
           buildSettings,
@@ -455,7 +577,7 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
       (ModuleFormat.ddc, true, false) =>
         BuildRunnerDdcLibraryBundleStrategyProvider(
           testSettings.reloadConfiguration,
-          assetReader,
+          _assetReader,
           buildSettings,
           reloadedSourcesUri: reloadedSourcesUri,
         ).strategy,
@@ -464,9 +586,8 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
         'Server + build_runner ${testSettings.moduleFormat.name}.',
       ),
     };
-
     // Map build results.
-    buildResults = testSettings.enableExpressionEvaluation
+    _buildResults = testSettings.enableExpressionEvaluation
         ? const Stream<dwds.BuildResult>.empty()
         : daemonClient.buildResults.map((results) {
             final result = results.results.firstWhere(
@@ -482,6 +603,12 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
             }
             throw StateError('Unexpected Daemon build result: $result');
           });
+  }
+
+  @override
+  Future<void> modeTearDown() async {
+    await ddcService?.stop();
+    await daemonClient.close();
   }
 }
 

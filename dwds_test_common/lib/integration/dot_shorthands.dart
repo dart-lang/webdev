@@ -39,8 +39,7 @@ void runTests({
   Future<InstanceRef> getInstanceRef(int frame, String expression) =>
       testInspector.getInstanceRef(isolateId, frame, expression);
 
-  group('${context.usesFrontendServer ? "frontendServer" : "buildDaemon"} |'
-      ' dot shorthands:', () {
+  group('${context.runtimeType} | dot shorthands:', () {
     setUp(() async {
       setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(

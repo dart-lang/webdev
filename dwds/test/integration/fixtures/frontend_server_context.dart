@@ -1,39 +1,82 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dwds/asset_reader.dart';
-import 'package:dwds/data/build_result.dart' as dwds;
+import 'package:dwds/data/build_result.dart';
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/loaders/frontend_server_strategy_provider.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/fixtures/utilities.dart';
+import 'package:dwds_test_common/frontend_server_common/asset_server.dart';
 import 'package:dwds_test_common/frontend_server_common/resident_runner.dart';
 import 'package:dwds_test_common/utilities.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
+import 'package:shelf/shelf.dart';
 
 class FrontendServerTestContext extends TestContext {
-  final _logger = logging.Logger('FrontendServerTestContext');
+  ResidentWebRunner? _webRunner;
+  TestAssetServer? _assetReader;
+  LoadStrategy? _loadStrategy;
+  ExpressionCompiler? _expressionCompiler;
 
-  FrontendServerTestContext(super.project, super.sdkConfigurationProvider);
+  late LocalFileSystem frontendServerFileSystem;
+
+  final _logger = logging.Logger('FrontendServerContext');
+
+  FrontendServerTestContext(super.project, super.sdkConfigurationProvider)
+    : super.protected();
+
+  @override
+  String get appUrlPath =>
+      webCompatiblePath([project.directoryToServe, project.filePathToServe]);
+
+  @override
+  String get basePath => assetReader.basePath;
 
   @override
   bool get usesFrontendServer => true;
-  @override
-  bool get usesBuildDaemon => false;
-  @override
-  bool get usesDdcModulesOnly => false;
+
+  ResidentWebRunner get webRunner => _webRunner!;
 
   @override
-  Future<void> modeSetUp({
-    required TestSettings testSettings,
-    required TestAppMetadata appMetadata,
-    required TestDebugSettings debugSettings,
-    required TestBuildSettings buildSettings,
-    required Uri reloadedSourcesUri,
-  }) async {
-    filePathToServe = webCompatiblePath([
+  TestAssetServer get assetReader => _assetReader!;
+
+  @override
+  Handler get assetHandler => assetReader.handleRequest;
+
+  @override
+  LoadStrategy get loadStrategy => _loadStrategy!;
+
+  @override
+  ExpressionCompiler? get expressionCompiler => _expressionCompiler;
+
+  @override
+  Stream<BuildResult> get buildResults => const Stream<BuildResult>.empty();
+
+  @override
+  Future<void> modeSetUp(
+    TestSettings testSettings,
+    TestDebugSettings debugSettings,
+    TestAppMetadata appMetadata,
+    Uri reloadedSourcesUri,
+  ) async {
+    final sdkLayout = sdkConfigurationProvider.sdkLayout;
+    final buildSettings = TestBuildSettings(
+      appEntrypoint: project.dartEntryFilePackageUri,
+      canaryFeatures: testSettings.canaryFeatures,
+      isFlutterApp: testSettings.isFlutterApp,
+      experiments: testSettings.experiments,
+    );
+
+    final filePathToServe = webCompatiblePath([
       project.directoryToServe,
       project.filePathToServe,
     ]);
@@ -56,9 +99,7 @@ class FrontendServerTestContext extends TestContext {
       moduleFormat: testSettings.moduleFormat,
     );
 
-    final sdkLayout = sdkConfigurationProvider.sdkLayout;
-
-    webRunner = ResidentWebRunner(
+    _webRunner = ResidentWebRunner(
       mainUri: entry,
       urlTunneler: debugSettings.urlEncoder,
       projectDirectory: Directory(project.absolutePackageDirectory).uri,
@@ -73,28 +114,28 @@ class FrontendServerTestContext extends TestContext {
     );
 
     final assetServerPort = await findUnusedPort();
-    final hostname = appMetadata.hostname;
     await webRunner.run(
       frontendServerFileSystem,
-      hostname: hostname,
+      hostname: appMetadata.hostname,
       port: assetServerPort,
       index: filePathToServe,
     );
 
     if (testSettings.enableExpressionEvaluation) {
-      expressionCompiler = webRunner.expressionCompiler;
+      _expressionCompiler = webRunner.expressionCompiler;
+    } else {
+      _expressionCompiler = null;
     }
 
-    basePath = webRunner.devFS!.assetServer.basePath;
-    assetReader = webRunner.devFS!.assetServer;
-    assetHandler = webRunner.devFS!.assetServer.handleRequest;
-    loadStrategy = switch ((
+    _assetReader = webRunner.devFS!.assetServer;
+
+    _loadStrategy = switch ((
       testSettings.moduleFormat,
       buildSettings.canaryFeatures,
     )) {
       (ModuleFormat.amd, _) => FrontendServerRequireStrategyProvider(
         testSettings.reloadConfiguration,
-        assetReader,
+        _assetReader!,
         packageUriMapper,
         () async => {},
         buildSettings,
@@ -102,7 +143,7 @@ class FrontendServerTestContext extends TestContext {
       (ModuleFormat.ddc, true) =>
         FrontendServerDdcLibraryBundleStrategyProvider(
           testSettings.reloadConfiguration,
-          assetReader,
+          _assetReader!,
           packageUriMapper,
           () async => {},
           buildSettings,
@@ -110,7 +151,7 @@ class FrontendServerTestContext extends TestContext {
         ).strategy,
       (ModuleFormat.ddc, false) => FrontendServerDdcStrategyProvider(
         testSettings.reloadConfiguration,
-        assetReader,
+        _assetReader!,
         packageUriMapper,
         () async => {},
         buildSettings,
@@ -120,6 +161,22 @@ class FrontendServerTestContext extends TestContext {
         '${testSettings.moduleFormat.name}.',
       ),
     };
-    buildResults = const Stream<dwds.BuildResult>.empty();
+  }
+
+  @override
+  Future<void> modeTearDown() async {
+    await _webRunner?.stop();
+    _webRunner = null;
+    _assetReader = null;
+    _loadStrategy = null;
+    _expressionCompiler = null;
+  }
+
+  @override
+  Future<void> recompile({required bool fullRestart}) async {
+    await webRunner.rerun(
+      fullRestart: fullRestart,
+      fileServerUri: Uri.parse('http://${testServer.host}:${testServer.port}'),
+    );
   }
 }
