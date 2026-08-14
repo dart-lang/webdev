@@ -26,11 +26,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
 class BuildDaemonTestContext extends TestContext {
-  BuildDaemonTestContext(
-    super.project,
-    super.sdkConfigurationProvider,
-  );
-
+  BuildDaemonTestContext(super.project, super.sdkConfigurationProvider);
 
   @override
   bool get usesFrontendServer => false;
@@ -96,9 +92,7 @@ class BuildDaemonTestContext extends TestContext {
 
     await waitForSuccessfulBuild();
 
-    final assetServerPort = daemonPort(
-      project.absolutePackageDirectory,
-    );
+    final assetServerPort = daemonPort(project.absolutePackageDirectory);
     assetHandler = switch ((
       testSettings.moduleFormat,
       buildSettings.canaryFeatures,
@@ -129,20 +123,20 @@ class BuildDaemonTestContext extends TestContext {
       buildSettings.canaryFeatures,
     )) {
       (ModuleFormat.ddc, true) => BuildRunnerDdcLibraryBundleStrategyProvider(
-          testSettings.reloadConfiguration,
-          assetReader,
-          buildSettings,
-          reloadedSourcesUri: reloadedSourcesUri,
-        ).strategy,
+        testSettings.reloadConfiguration,
+        assetReader,
+        buildSettings,
+        reloadedSourcesUri: reloadedSourcesUri,
+      ).strategy,
       (ModuleFormat.ddc, false) => throw Exception(
-          'Unsupported DDC configuration: build daemon + canary (false) '
-          '+ DDC module format ${testSettings.moduleFormat.name}.',
-        ),
+        'Unsupported DDC configuration: build daemon + canary (false) '
+        '+ DDC module format ${testSettings.moduleFormat.name}.',
+      ),
       _ => BuildRunnerRequireStrategyProvider(
-          testSettings.reloadConfiguration,
-          assetReader,
-          buildSettings,
-        ).strategy,
+        testSettings.reloadConfiguration,
+        assetReader,
+        buildSettings,
+      ).strategy,
     };
 
     buildResults = daemonClient.buildResults.map((results) {
@@ -176,6 +170,7 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
   bool get usesBuildDaemon => true;
   @override
   bool get usesDdcModulesOnly => true;
+
   /// Forwards expression compilation requests to the persistent Frontend Server
   /// process via socket.
   Future<Map<String, dynamic>> _compileExpressionWithDaemon(
@@ -206,6 +201,7 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
       await socket.close();
     }
   }
+
   @override
   Future<void> modeSetUp({
     required TestSettings testSettings,
@@ -267,16 +263,13 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
         ),
       );
       final packagesFile = File(
-        p.join(
-          testScratchSpaceDir.path,
-          '.dart_tool',
-          'package_config.json',
-        ),
+        p.join(testScratchSpaceDir.path, '.dart_tool', 'package_config.json'),
       );
       packagesFile.parent.createSync(recursive: true);
 
-      final originalJson = jsonDecode(sourcePackagesFile.readAsStringSync())
-          as Map<String, dynamic>;
+      final originalJson =
+          jsonDecode(sourcePackagesFile.readAsStringSync())
+              as Map<String, dynamic>;
       final packagesList = originalJson['packages'] as List<dynamic>;
       for (final package in packagesList) {
         final packageMap = package as Map<String, dynamic>;
@@ -298,26 +291,23 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
         '.dart_tool',
         'fes_manager.snapshot',
       );
-      
-      final buildWebCompilers = packagesList.firstWhere(
-            (pkg) => (pkg as Map)['name'] == 'build_web_compilers',
-            orElse: () => null,
-          ) as Map<String, dynamic>?;
+
+      final buildWebCompilers =
+          packagesList.firstWhere(
+                (pkg) => (pkg as Map)['name'] == 'build_web_compilers',
+                orElse: () => null,
+              )
+              as Map<String, dynamic>?;
       String fesManagerPath;
       if (buildWebCompilers != null) {
-        final pkgRootUri = Uri.parse(
-          buildWebCompilers['rootUri'] as String,
-        );
+        final pkgRootUri = Uri.parse(buildWebCompilers['rootUri'] as String);
         fesManagerPath = p.join(
           pkgRootUri.toFilePath(),
           'bin',
           'fes_manager.dart',
         );
       } else {
-        final localBuildRepoDir = p.join(
-          p.dirname(projectRootDir),
-          'build',
-        );
+        final localBuildRepoDir = p.join(p.dirname(projectRootDir), 'build');
         fesManagerPath = p.join(
           localBuildRepoDir,
           'builder_pkgs',
@@ -359,14 +349,14 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((line) {
-        _logger.info('FES Manager STDOUT: $line');
-      });
+            _logger.info('FES Manager STDOUT: $line');
+          });
       fesProcess!.stderr
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((line) {
-        _logger.warning('FES Manager STDERR: $line');
-      });
+            _logger.warning('FES Manager STDERR: $line');
+          });
 
       final configFile = _fesManagerConfigFile(this);
       while (!await configFile.exists()) {
@@ -430,11 +420,12 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
 
     await buildFuture;
 
-    final assetServerPort = daemonPort(
-      project.absolutePackageDirectory,
+    final assetServerPort = daemonPort(project.absolutePackageDirectory);
+    assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
+      this,
+      assetServerPort,
     );
-    assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(this, assetServerPort);
-    
+
     // Using standard constructor if fromHandler is not available or if it's simpler.
     // In "theirs" they used ProxyServerAssetReader.fromHandler(_assetHandler!);
     // Let's check if ProxyServerAssetReader has fromHandler in this branch.
@@ -481,11 +472,11 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
           reloadedSourcesUri: reloadedSourcesUri,
         ).strategy,
       _ => throw Exception(
-          'Unsupported DDC module format when compiling with Frontend '
-          'Server + build_runner ${testSettings.moduleFormat.name}.',
-        ),
+        'Unsupported DDC module format when compiling with Frontend '
+        'Server + build_runner ${testSettings.moduleFormat.name}.',
+      ),
     };
-    
+
     // Map build results.
     buildResults = testSettings.enableExpressionEvaluation
         ? const Stream<dwds.BuildResult>.empty()
@@ -507,13 +498,13 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
 }
 
 File _fesManagerConfigFile(TestContext context) => File(
-      p.join(
-        context.project.absolutePackageDirectory,
-        '.dart_tool',
-        'build',
-        'fes_manager_config',
-      ),
-    );
+  p.join(
+    context.project.absolutePackageDirectory,
+    '.dart_tool',
+    'build',
+    'fes_manager_config',
+  ),
+);
 
 Handler _createBuildRunnerDdcLibraryBundleAssetHandler(
   TestContext context,
@@ -634,8 +625,7 @@ Handler _createBuildRunnerDdcLibraryBundleAssetHandler(
       final configFile = _fesManagerConfigFile(context);
       if (await configFile.exists()) {
         try {
-          final configJson =
-              jsonDecode(await configFile.readAsString()) as Map;
+          final configJson = jsonDecode(await configFile.readAsString()) as Map;
           final port = configJson['port'] as int?;
           if (port != null) {
             final socket = await Socket.connect(
@@ -643,9 +633,7 @@ Handler _createBuildRunnerDdcLibraryBundleAssetHandler(
               port,
             );
             try {
-              socket.writeln(
-                jsonEncode({'instruction': 'MERGE_ALL_METADATA'}),
-              );
+              socket.writeln(jsonEncode({'instruction': 'MERGE_ALL_METADATA'}));
               final responseStr = await socket
                   .cast<List<int>>()
                   .transform(utf8.decoder)
