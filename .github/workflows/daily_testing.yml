@@ -10,6 +10,8 @@ jobs:
   daily_testing:
     name: Daily Testing
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
@@ -18,6 +20,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
