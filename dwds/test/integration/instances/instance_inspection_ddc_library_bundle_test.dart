@@ -8,6 +8,7 @@
 library;
 
 import 'package:dwds/src/services/expression_compiler.dart';
+
 import 'package:dwds_test_common/integration/instance_inspection.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';

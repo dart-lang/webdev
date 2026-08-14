@@ -8,11 +8,11 @@
 library;
 
 import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds_test_common/fixtures/context.dart';
-import 'helpers/context.dart';
 import 'package:dwds_test_common/integration/record_inspection.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
+
+import 'helpers/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -20,7 +20,7 @@ void main() {
   final canaryFeatures = true;
 
   group('canary: true | Build Daemon |', () {
-    final contextFactory = (project, provider) => BuildDaemonTestContext(project, provider);
+    final contextFactory = BuildDaemonTestContext.new;
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,
@@ -35,7 +35,7 @@ void main() {
   });
 
   group('canary: true | Build Daemon and Frontend Server |', () {
-    final contextFactory = (project, provider) => BuildDaemonAndFrontendServerTestContext(project, provider);
+    final contextFactory = BuildDaemonAndFrontendServerTestContext.new;
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,

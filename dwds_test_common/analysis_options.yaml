@@ -6,3 +6,4 @@ analyzer:
     prefer_relative_imports: ignore
   exclude:
     - fixtures/**
+

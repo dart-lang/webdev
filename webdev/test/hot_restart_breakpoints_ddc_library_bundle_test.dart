@@ -8,11 +8,11 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds_test_common/fixtures/context.dart';
-import 'helpers/context.dart';
 import 'package:dwds_test_common/integration/hot_restart_breakpoints.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
+
+import 'helpers/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -26,13 +26,13 @@ void main() {
   tearDownAll(provider.dispose);
 
   group('Build Daemon', () {
-    runTests(provider: provider, contextFactory: (project, provider) => BuildDaemonTestContext(project, provider));
+    runTests(provider: provider, contextFactory: BuildDaemonTestContext.new);
   });
 
   group('Build Daemon and Frontend Server', () {
     runTests(
       provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider)AndFrontendServer,
+      contextFactory: BuildDaemonAndFrontendServerTestContext.new,
     );
   });
 }

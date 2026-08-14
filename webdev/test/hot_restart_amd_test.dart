@@ -8,11 +8,12 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
+
 import 'package:dwds_test_common/integration/hot_restart.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
-import '../../../webdev/test/helpers/context.dart';
+import 'helpers/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.

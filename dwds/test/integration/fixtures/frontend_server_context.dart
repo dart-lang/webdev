@@ -81,9 +81,9 @@ class FrontendServerTestContext extends TestContext {
       index: filePathToServe,
     );
 
-    if (testSettings.enableExpressionEvaluation) {
-      expressionCompiler = webRunner.expressionCompiler;
-    }
+    expressionCompiler = testSettings.enableExpressionEvaluation
+        ? webRunner.expressionCompiler
+        : null;
 
     basePath = webRunner.devFS!.assetServer.basePath;
     assetReader = webRunner.devFS!.assetServer;

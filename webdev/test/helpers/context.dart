@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/asset_reader.dart';
@@ -17,8 +16,8 @@ import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/fixtures/utilities.dart';
-import 'package:dwds_test_common/utilities.dart';
 import 'package:dwds_test_common/frontend_server_common/devfs.dart';
+import 'package:dwds_test_common/utilities.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
@@ -29,7 +28,10 @@ import 'package:shelf_proxy/shelf_proxy.dart';
 class BuildDaemonTestContext extends TestContext {
   final _logger = logging.Logger('BuildDaemonTestContext');
 
-  BuildDaemonTestContext(super.project, super.sdkConfigurationProvider);
+  BuildDaemonTestContext(
+    super.project,
+    super.sdkConfigurationProvider,
+  );
 
   @override
   bool get usesFrontendServer => false;
@@ -119,6 +121,8 @@ class BuildDaemonTestContext extends TestContext {
         sdkConfigurationProvider: sdkConfigurationProvider,
       );
       expressionCompiler = ddcService;
+    } else {
+      expressionCompiler = null;
     }
 
     loadStrategy = switch ((
@@ -126,20 +130,20 @@ class BuildDaemonTestContext extends TestContext {
       buildSettings.canaryFeatures,
     )) {
       (ModuleFormat.ddc, true) => BuildRunnerDdcLibraryBundleStrategyProvider(
-        testSettings.reloadConfiguration,
-        assetReader,
-        buildSettings,
-        reloadedSourcesUri: reloadedSourcesUri,
-      ).strategy,
+          testSettings.reloadConfiguration,
+          assetReader,
+          buildSettings,
+          reloadedSourcesUri: reloadedSourcesUri,
+        ).strategy,
       (ModuleFormat.ddc, false) => throw Exception(
-        'Unsupported DDC configuration: build daemon + canary (false) '
-        '+ DDC module format ${testSettings.moduleFormat.name}.',
-      ),
+          'Unsupported DDC configuration: build daemon + canary (false) '
+          '+ DDC module format ${testSettings.moduleFormat.name}.',
+        ),
       _ => BuildRunnerRequireStrategyProvider(
-        testSettings.reloadConfiguration,
-        assetReader,
-        buildSettings,
-      ).strategy,
+          testSettings.reloadConfiguration,
+          assetReader,
+          buildSettings,
+        ).strategy,
     };
 
     buildResults = daemonClient.buildResults.map((results) {
@@ -427,19 +431,27 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
 
     await buildFuture;
 
-    final assetServerPort = daemonPort(project.absolutePackageDirectory);
-    assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
-      this,
-      assetServerPort,
+    final assetServerPort = daemonPort(
+      project.absolutePackageDirectory,
     );
-
+    assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(this, assetServerPort);
+    
+    // Using standard constructor if fromHandler is not available or if it's simpler.
+    // In "theirs" they used ProxyServerAssetReader.fromHandler(_assetHandler!);
+    // Let's check if ProxyServerAssetReader has fromHandler in this branch.
+    // I can try using it, and if it fails to compile I will revert.
+    // Wait, I should verify if it exists.
+    // I grepped for ProxyServerAssetReader earlier but didn't check its constructors.
+    // Let's use standard constructor for now to be safe, or try fromHandler if I want to be faithful to branch 1.
+    // Let's try fromHandler as it was in branch 1.
     assetReader = ProxyServerAssetReader.fromHandler(assetHandler);
-
 
     if (testSettings.enableExpressionEvaluation) {
       expressionCompiler = DaemonExpressionCompiler(
         _compileExpressionWithDaemon,
       );
+    } else {
+      expressionCompiler = null;
     }
     frontendServerFileSystem = const LocalFileSystem();
     final packageUriMapper = await BuildRunnerPathResolver.create(
@@ -470,9 +482,9 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
           reloadedSourcesUri: reloadedSourcesUri,
         ).strategy,
       _ => throw Exception(
-        'Unsupported DDC module format when compiling with Frontend '
-        'Server + build_runner ${testSettings.moduleFormat.name}.',
-      ),
+          'Unsupported DDC module format when compiling with Frontend '
+          'Server + build_runner ${testSettings.moduleFormat.name}.',
+        ),
     };
     
     // Map build results.

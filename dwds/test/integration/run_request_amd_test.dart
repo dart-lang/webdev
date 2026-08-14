@@ -9,8 +9,8 @@ import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/integration/run_request.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
+
 import 'fixtures/frontend_server_context.dart';
-import '../../../webdev/test/helpers/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -22,5 +22,5 @@ void main() {
   );
   tearDownAll(provider.dispose);
 
-  testAll(provider: provider, contextFactory: (project, provider) => FrontendServerTestContext(project, provider));
+  testAll(provider: provider, contextFactory: FrontendServerTestContext.new);
 }

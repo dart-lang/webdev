@@ -22,9 +22,22 @@ void runTests({
   final callLogMarker = 'callLog';
   final capturedStringMarker = 'capturedString';
 
+  Future<void> recompile({
+    bool fullRestart = false,
+    bool hasEdits = false,
+  }) async {
+    if (context.usesBuildDaemon) {
+      if (hasEdits) {
+        await context.waitForSuccessfulBuild();
+      }
+    } else {
+      await context.recompile(fullRestart: fullRestart);
+    }
+  }
+
   Future<void> makeEditsAndRecompile(List<Edit> edits) async {
     await context.makeEdits(edits);
-    await context.recompile(fullRestart: true);
+    await recompile(fullRestart: true, hasEdits: true);
   }
 
   group('when pause_isolates_on_start is true', () {
@@ -220,7 +233,7 @@ void runTests({
       await breakpointFuture;
       await resumeAndWaitForLog(genString);
 
-      await context.recompile(fullRestart: false);
+      await recompile(fullRestart: false, hasEdits: false);
 
       await hotReloadAndHandlePausePost([
         (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
@@ -356,13 +369,6 @@ void runTests({
         final libFile = 'library.dart';
         final libGenLog = 'library gen0';
         final libValueMarker = 'libValue';
-        context.addLibraryFile(
-          libFileName: libFile,
-          contents:
-              '''String get libraryValue {
-            return '$libGenLog'; // Breakpoint: $libValueMarker
-          }''',
-        );
         final oldImports = "import 'dart:js_interop';";
         final newImports =
             '$oldImports\n'
@@ -373,7 +379,18 @@ void runTests({
         final oldLog = "log('\$mainValue');";
         final newLog = "log('\$libraryValue');";
         edits.add((file: mainFile, originalString: oldLog, newString: newLog));
-        await makeEditsAndRecompile(edits);
+
+        await context.makeEdits(edits);
+
+        context.addLibraryFile(
+          libFileName: libFile,
+          contents:
+              '''String get libraryValue {
+            return '$libGenLog'; // Breakpoint: $libValueMarker
+          }''',
+        );
+
+        await recompile(fullRestart: true, hasEdits: true);
 
         await hotReloadAndHandlePausePost([
           (file: mainFile, breakpointMarker: callLogMarker, bp: bp),
@@ -420,13 +437,6 @@ void runTests({
       final edits = <Edit>[];
       for (var i = 1; i <= numFiles; i++) {
         final libFile = 'library$i.dart';
-        context.addLibraryFile(
-          libFileName: libFile,
-          contents:
-              '''String get libraryValue$i {
-            return 'library$i gen1'; // Breakpoint: libValue$i
-          }''',
-        );
         final oldImports = "import 'dart:js_interop';";
         final newImports =
             '$oldImports\n'
@@ -440,7 +450,21 @@ void runTests({
       final oldLog = "log('\$mainValue');";
       final newLog = "log('\$libraryValue$numFiles');";
       edits.add((file: mainFile, originalString: oldLog, newString: newLog));
-      await makeEditsAndRecompile(edits);
+
+      await context.makeEdits(edits);
+
+      for (var i = 1; i <= numFiles; i++) {
+        final libFile = 'library$i.dart';
+        context.addLibraryFile(
+          libFileName: libFile,
+          contents:
+              '''String get libraryValue$i {
+            return 'library$i gen1'; // Breakpoint: libValue$i
+          }''',
+        );
+      }
+
+      await recompile(fullRestart: true, hasEdits: true);
 
       await hotReloadAndHandlePausePost([
         (file: mainFile, breakpointMarker: callLogMarker, bp: bp),

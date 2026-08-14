@@ -7,12 +7,12 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds_test_common/fixtures/context.dart';
+
 import 'package:dwds_test_common/integration/load_strategy.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
+
 import 'fixtures/frontend_server_context.dart';
-import '../../../webdev/test/helpers/context.dart';
 
 void main() {
   // Run independent tests once.
@@ -31,7 +31,7 @@ void main() {
   group('Frontend Server |', () {
     runDependentTests(
       provider: provider,
-      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
+      contextFactory: FrontendServerTestContext.new,
     );
   });
 }
