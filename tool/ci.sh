@@ -71,9 +71,13 @@ for PKG in ${PKGS}; do
         echo 'dart analyze .'
         dart analyze . || EXIT_CODE=$?
         ;;
-      command)
+      command_0)
         echo 'Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &'
         Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 & || EXIT_CODE=$?
+        ;;
+      command_1)
+        echo 'mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome'
+        mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome || EXIT_CODE=$?
         ;;
       format)
         echo 'dart format --output=none --set-exit-if-changed .'

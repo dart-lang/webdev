@@ -219,7 +219,7 @@ jobs:
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:debug_extension;commands:command-test_0"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:debug_extension;commands:command_0-test_0"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:debug_extension
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -253,55 +253,14 @@ jobs:
       - job_003
       - job_004
   job_006:
-    name: "unit_test; linux; Dart dev; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome`, `dart test --tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:command-test_0"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
-        with:
-          sdk: dev
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-        with:
-          persist-credentials: false
-      - id: webdev_pub_upgrade
-        name: webdev; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: webdev
-      - name: "webdev; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-      - name: "webdev; dart test -j 1"
-        run: dart test -j 1
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-  job_007:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test --tags=extension`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command-test_2"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command_0-command_1-test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -323,6 +282,10 @@ jobs:
         working-directory: dwds
       - name: "dwds; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+      - name: "dwds; mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
+        run: "mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --tags=extension"
@@ -334,15 +297,15 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_008:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test --total-shards 3 --shard-index 0 --exclude-tags=extension`"
+  job_007:
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome`, `dart test --total-shards 3 --shard-index 0 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command-test_3"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command_0-command_1-test_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -364,6 +327,10 @@ jobs:
         working-directory: dwds
       - name: "dwds; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+      - name: "dwds; mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
+        run: "mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
@@ -375,15 +342,15 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_009:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test --total-shards 3 --shard-index 1 --exclude-tags=extension`"
+  job_008:
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome`, `dart test --total-shards 3 --shard-index 1 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command-test_4"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command_0-command_1-test_4"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -405,6 +372,10 @@ jobs:
         working-directory: dwds
       - name: "dwds; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+      - name: "dwds; mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
+        run: "mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
@@ -416,15 +387,15 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_010:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test --total-shards 3 --shard-index 2 --exclude-tags=extension`"
+  job_009:
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome`, `dart test --total-shards 3 --shard-index 2 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command-test_5"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command_0-command_1-test_5"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -448,6 +419,10 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
+      - name: "dwds; mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
+        run: "mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
         run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
@@ -457,15 +432,15 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_011:
-    name: "unit_test; linux; Dart dev; PKG: dwds_test_common; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test --exclude-tags=release`"
+  job_010:
+    name: "unit_test; linux; Dart dev; PKG: dwds_test_common; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome`, `dart test --exclude-tags=release`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds_test_common;commands:command-test_6"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds_test_common;commands:command_0-command_1-test_6"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds_test_common
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -489,6 +464,10 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.dwds_test_common_pub_upgrade.conclusion == 'success'"
         working-directory: dwds_test_common
+      - name: "dwds_test_common; mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
+        run: "mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
+        if: "always() && steps.dwds_test_common_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds_test_common
       - name: "dwds_test_common; dart test --exclude-tags=release"
         run: "dart test --exclude-tags=release"
         if: "always() && steps.dwds_test_common_pub_upgrade.conclusion == 'success'"
@@ -498,7 +477,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_012:
+  job_011:
     name: "unit_test; linux; Dart dev; PKG: frontend_server_client; `dart test -j 1`"
     runs-on: ubuntu-latest
     steps:
@@ -530,6 +509,51 @@ jobs:
         run: dart test -j 1
         if: "always() && steps.frontend_server_client_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_client
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+  job_012:
+    name: "unit_test; linux; Dart dev; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome`, `dart test -j 1`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:command_0-command_1-test_0"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+        with:
+          sdk: dev
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - id: webdev_pub_upgrade
+        name: webdev; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: webdev
+      - name: "webdev; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+      - name: "webdev; mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
+        run: "mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+      - name: "webdev; dart test -j 1"
+        run: dart test -j 1
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
     needs:
       - job_001
       - job_002
@@ -752,7 +776,7 @@ jobs:
       - job_003
       - job_004
   job_021:
-    name: "beta_cron; linux; Dart beta; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
+    name: "beta_cron; linux; Dart beta; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome`, `dart test -j 1`"
     runs-on: ubuntu-latest
     if: "github.event_name == 'schedule'"
     steps:
@@ -760,7 +784,7 @@ jobs:
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds;commands:command-test_0"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds;commands:command_0-command_1-test_0"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
@@ -782,6 +806,10 @@ jobs:
         working-directory: dwds
       - name: "dwds; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+      - name: "dwds; mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
+        run: "mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test -j 1"
@@ -810,7 +838,7 @@ jobs:
       - job_019
       - job_020
   job_022:
-    name: "beta_cron; linux; Dart beta; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
+    name: "beta_cron; linux; Dart beta; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome`, `dart test -j 1`"
     runs-on: ubuntu-latest
     if: "github.event_name == 'schedule'"
     steps:
@@ -818,7 +846,7 @@ jobs:
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev;commands:command-test_0"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev;commands:command_0-command_1-test_0"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
@@ -840,6 +868,10 @@ jobs:
         working-directory: webdev
       - name: "webdev; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+      - name: "webdev; mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
+        run: "mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
       - name: "webdev; dart test -j 1"
