@@ -26,12 +26,11 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
 class BuildDaemonTestContext extends TestContext {
-  final _logger = logging.Logger('BuildDaemonTestContext');
-
   BuildDaemonTestContext(
     super.project,
     super.sdkConfigurationProvider,
   );
+
 
   @override
   bool get usesFrontendServer => false;
