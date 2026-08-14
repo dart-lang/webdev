@@ -15,7 +15,6 @@ import 'package:dwds/asset_reader.dart';
 import 'package:dwds/dart_web_debug_service.dart';
 import 'package:dwds/data/build_result.dart' as dwds_data;
 
-
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
@@ -69,12 +68,11 @@ Matcher isRPCErrorWithCode(int code) =>
     isA<RPCError>().having((RPCError e) => e.code, 'code', equals(code));
 Matcher throwsRPCErrorWithCode(int code) => throwsA(isRPCErrorWithCode(code));
 
-typedef TestContextFactory = TestContext Function(
-  TestProject project,
-  TestSdkConfigurationProvider sdkConfigurationProvider,
-);
-
-
+typedef TestContextFactory =
+    TestContext Function(
+      TestProject project,
+      TestSdkConfigurationProvider sdkConfigurationProvider,
+    );
 
 abstract class TestContext {
   final TestProject project;
@@ -134,7 +132,6 @@ abstract class TestContext {
     required Uri reloadedSourcesUri,
   });
 
-
   ExpressionCompilerService? ddcService;
 
   int get port => _port!;
@@ -152,8 +149,6 @@ abstract class TestContext {
   final _serviceNameToMethod = <String, String?>{};
 
   late LocalFileSystem frontendServerFileSystem;
-
-
 
   /// Internal VM service.
   ///
@@ -278,7 +273,6 @@ abstract class TestContext {
         buildSettings: buildSettings,
         reloadedSourcesUri: reloadedSourcesUri,
       );
-
 
       final debugPort = await findUnusedPort();
       if (testSettings.launchChrome) {
@@ -566,7 +560,6 @@ abstract class TestContext {
       return proxy(request);
     };
   }
-
 
   Future<void> recompile({required bool fullRestart}) async {
     await webRunner.rerun(

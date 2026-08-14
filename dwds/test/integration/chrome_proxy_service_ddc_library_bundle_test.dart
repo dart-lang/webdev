@@ -26,7 +26,7 @@ void main() {
       canaryFeatures: canaryFeatures,
       ddcModuleFormat: moduleFormat,
     );
-    
+
     tearDownAll(provider.dispose);
 
     runTests(
@@ -43,7 +43,7 @@ void main() {
       canaryFeatures: canaryFeatures,
       ddcModuleFormat: moduleFormat,
     );
-    
+
     tearDownAll(provider.dispose);
 
     runTests(

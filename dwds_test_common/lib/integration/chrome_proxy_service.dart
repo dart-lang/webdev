@@ -44,7 +44,7 @@ void runTests({
           verboseCompiler: false,
           moduleFormat: provider.ddcModuleFormat,
           canaryFeatures: canaryFeatures,
-          ),
+        ),
       );
     });
 

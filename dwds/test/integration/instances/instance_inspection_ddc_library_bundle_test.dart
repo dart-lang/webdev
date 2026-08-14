@@ -20,7 +20,7 @@ void main() {
 
   group('canary: true | Frontend Server |', () {
     final canaryFeatures = true;
-    
+
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,

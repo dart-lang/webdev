@@ -29,13 +29,11 @@ void testAll({
   final testPackageProject = TestProject.testPackage(baseMode: indexBaseMode);
   final context = contextFactory(testPackageProject, provider);
 
-  if (context.usesBuildDaemon &&
-      indexBaseMode == IndexBaseMode.base) {
+  if (context.usesBuildDaemon && indexBaseMode == IndexBaseMode.base) {
     throw StateError(
       'build daemon scenario does not support non-empty base in index file',
     );
   }
-
 
   Future<void> onBp(
     Stream<Event> stream,

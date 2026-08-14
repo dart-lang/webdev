@@ -15,10 +15,7 @@ import 'package:logging/logging.dart' as logging;
 class BuildDaemonTestContext extends TestContext {
   final _logger = logging.Logger('BuildDaemonTestContext');
 
-  BuildDaemonTestContext(
-    super.project,
-    super.sdkConfigurationProvider,
-  );
+  BuildDaemonTestContext(super.project, super.sdkConfigurationProvider);
 
   @override
   bool get usesFrontendServer => false;
@@ -84,9 +81,7 @@ class BuildDaemonTestContext extends TestContext {
 
     await waitForSuccessfulBuild();
 
-    final assetServerPort = daemonPort(
-      project.absolutePackageDirectory,
-    );
+    final assetServerPort = daemonPort(project.absolutePackageDirectory);
     assetHandler = createBuildRunnerProxyHandler(assetServerPort);
     if (testSettings.moduleFormat == ModuleFormat.ddc &&
         buildSettings.canaryFeatures) {
@@ -112,20 +107,20 @@ class BuildDaemonTestContext extends TestContext {
       buildSettings.canaryFeatures,
     )) {
       (ModuleFormat.ddc, true) => BuildRunnerDdcLibraryBundleStrategyProvider(
-          testSettings.reloadConfiguration,
-          assetReader,
-          buildSettings,
-          reloadedSourcesUri: reloadedSourcesUri,
-        ).strategy,
+        testSettings.reloadConfiguration,
+        assetReader,
+        buildSettings,
+        reloadedSourcesUri: reloadedSourcesUri,
+      ).strategy,
       (ModuleFormat.ddc, false) => throw Exception(
-          'Unsupported DDC configuration: build daemon + canary (false) '
-          '+ DDC module format ${testSettings.moduleFormat.name}.',
-        ),
+        'Unsupported DDC configuration: build daemon + canary (false) '
+        '+ DDC module format ${testSettings.moduleFormat.name}.',
+      ),
       _ => BuildRunnerRequireStrategyProvider(
-          testSettings.reloadConfiguration,
-          assetReader,
-          buildSettings,
-        ).strategy,
+        testSettings.reloadConfiguration,
+        assetReader,
+        buildSettings,
+      ).strategy,
     };
 
     buildResults = daemonClient.buildResults.map((results) {
@@ -218,9 +213,7 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
 
     await waitForSuccessfulBuild();
 
-    final assetServerPort = daemonPort(
-      project.absolutePackageDirectory,
-    );
+    final assetServerPort = daemonPort(project.absolutePackageDirectory);
     assetHandler = createBuildRunnerProxyHandler(assetServerPort);
     if (testSettings.moduleFormat == ModuleFormat.ddc &&
         buildSettings.canaryFeatures) {
@@ -261,9 +254,9 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
           reloadedSourcesUri: reloadedSourcesUri,
         ).strategy,
       _ => throw Exception(
-          'Unsupported DDC module format when compiling with Frontend '
-          'Server + build_runner ${testSettings.moduleFormat.name}.',
-        ),
+        'Unsupported DDC module format when compiling with Frontend '
+        'Server + build_runner ${testSettings.moduleFormat.name}.',
+      ),
     };
     buildResults = const Stream<dwds.BuildResult>.empty();
   }

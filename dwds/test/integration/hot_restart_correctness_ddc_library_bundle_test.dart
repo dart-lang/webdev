@@ -26,7 +26,7 @@ void main() {
       canaryFeatures: canaryFeatures,
       ddcModuleFormat: moduleFormat,
     );
-    
+
     runTests(
       provider: provider,
       moduleFormat: moduleFormat,
@@ -41,7 +41,7 @@ void main() {
       canaryFeatures: canaryFeatures,
       ddcModuleFormat: moduleFormat,
     );
-    
+
     runTests(
       provider: provider,
       moduleFormat: moduleFormat,

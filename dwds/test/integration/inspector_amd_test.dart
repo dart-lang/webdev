@@ -24,9 +24,6 @@ void main() {
   tearDownAll(provider.dispose);
 
   group('Frontend Server |', () {
-    runTests(
-      provider: provider,
-      contextFactory: FrontendServerTestContext.new,
-    );
+    runTests(provider: provider, contextFactory: FrontendServerTestContext.new);
   });
 }

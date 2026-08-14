@@ -37,9 +37,6 @@ void main() {
   });
 
   group('Frontend Server |', () {
-    runTests(
-      provider: provider,
-      contextFactory: FrontendServerTestContext.new,
-    );
+    runTests(provider: provider, contextFactory: FrontendServerTestContext.new);
   });
 }

@@ -19,7 +19,6 @@ void main() {
   const debug = false;
   final canaryFeatures = false;
   final moduleFormat = ModuleFormat.amd;
-  
 
   final provider = TestSdkConfigurationProvider(
     verbose: debug,

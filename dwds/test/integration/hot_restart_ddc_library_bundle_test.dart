@@ -21,7 +21,6 @@ void main() {
   final moduleFormat = ModuleFormat.ddc;
 
   group('canary: $canaryFeatures | Frontend Server |', () {
-    
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,
@@ -37,7 +36,6 @@ void main() {
   });
 
   group('canary: $canaryFeatures | Build Daemon |', () {
-    
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,

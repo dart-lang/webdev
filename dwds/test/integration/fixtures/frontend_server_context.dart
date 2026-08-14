@@ -16,10 +16,7 @@ import 'package:path/path.dart' as p;
 class FrontendServerTestContext extends TestContext {
   final _logger = logging.Logger('FrontendServerTestContext');
 
-  FrontendServerTestContext(
-    super.project,
-    super.sdkConfigurationProvider,
-  );
+  FrontendServerTestContext(super.project, super.sdkConfigurationProvider);
 
   @override
   bool get usesFrontendServer => true;
@@ -67,9 +64,7 @@ class FrontendServerTestContext extends TestContext {
       projectDirectory: Directory(project.absolutePackageDirectory).uri,
       packageConfigFile: project.packageConfigFile,
       packageUriMapper: packageUriMapper,
-      fileSystemRoots: [
-        Directory(project.absolutePackageDirectory).uri,
-      ],
+      fileSystemRoots: [Directory(project.absolutePackageDirectory).uri],
       fileSystemScheme: 'org-dartlang-app',
       outputPath: outputDir.path,
       compilerOptions: compilerOptions,

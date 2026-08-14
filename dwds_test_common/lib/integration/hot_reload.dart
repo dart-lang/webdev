@@ -22,7 +22,6 @@ void runTests({
   final project = TestProject.testHotReload;
   final context = contextFactory(project, provider);
 
-
   Future<void> recompile() async {
     await context.recompile(fullRestart: false);
   }

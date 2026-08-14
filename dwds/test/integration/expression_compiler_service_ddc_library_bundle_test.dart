@@ -22,5 +22,4 @@ void main() async {
     ),
     contextFactory: BuildDaemonTestContext.new,
   );
-
 }
