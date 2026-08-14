@@ -229,14 +229,14 @@ jobs:
       - job_003
       - job_004
   job_006:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 0 --exclude-tags=extension`"
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test --total-shards 3 --shard-index 0 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:test_2"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command-test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -253,6 +253,10 @@ jobs:
         name: dwds; dart pub upgrade
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds
+      - name: "dwds; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
         run: "dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
@@ -264,14 +268,14 @@ jobs:
       - job_003
       - job_004
   job_007:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 1 --exclude-tags=extension`"
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test --total-shards 3 --shard-index 1 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:test_3"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command-test_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -288,6 +292,10 @@ jobs:
         name: dwds; dart pub upgrade
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds
+      - name: "dwds; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
         run: "dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
@@ -299,14 +307,14 @@ jobs:
       - job_003
       - job_004
   job_008:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 2 --exclude-tags=extension`"
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test --total-shards 3 --shard-index 2 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:test_4"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command-test_4"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -323,6 +331,10 @@ jobs:
         name: dwds; dart pub upgrade
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds
+      - name: "dwds; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
       - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
         run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
