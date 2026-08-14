@@ -2,16 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Tags(['daily'])
-@TestOn('vm')
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/integration/expression_compiler_service.dart';
-import 'package:test/test.dart';
-
-import 'fixtures/frontend_server_context.dart';
 
 void main() async {
   testAll(
@@ -20,6 +12,5 @@ void main() async {
       canaryFeatures: true,
       experiments: const <String>[],
     ),
-    contextFactory: FrontendServerTestContext.new,
   );
 }

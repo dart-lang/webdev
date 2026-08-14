@@ -7,11 +7,15 @@
 @Timeout(Duration(minutes: 5))
 library;
 
+import 'dart:io';
+
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
 import 'package:dwds_test_common/integration/evaluate_parts.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
+import '../../dwds/test/integration/fixtures/frontend_server_context.dart';
 import 'helpers/context.dart';
 
 void main() async {
@@ -26,5 +30,26 @@ void main() async {
 
   group('Build Daemon |', () {
     testAll(provider: provider, contextFactory: BuildDaemonTestContext.new);
+  });
+
+  group('Frontend Server |', () {
+    group('Context with parts |', () {
+      for (final indexBaseMode in IndexBaseMode.values) {
+        group(
+          'with ${indexBaseMode.name} |',
+          () {
+            testAll(
+              provider: provider,
+              contextFactory: FrontendServerTestContext.new,
+              indexBaseMode: indexBaseMode,
+              useDebuggerModuleNames: true,
+            );
+          },
+          skip:
+              // https://github.com/dart-lang/sdk/issues/49277
+              indexBaseMode == IndexBaseMode.base && Platform.isWindows,
+        );
+      }
+    });
   });
 }

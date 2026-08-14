@@ -12,6 +12,7 @@ import 'package:dwds_test_common/integration/patterns_inspection.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
+import '../../dwds/test/integration/fixtures/frontend_server_context.dart';
 import 'helpers/context.dart';
 
 void main() {
@@ -20,7 +21,7 @@ void main() {
 
   group('canary: false | Build Daemon |', () {
     final canaryFeatures = false;
-    final contextFactory = BuildDaemonTestContext.new;
+
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,
@@ -30,14 +31,14 @@ void main() {
 
     runTests(
       provider: provider,
-      contextFactory: contextFactory,
+      contextFactory: BuildDaemonTestContext.new,
       canaryFeatures: canaryFeatures,
     );
   });
 
   group('canary: true | Build Daemon |', () {
     final canaryFeatures = true;
-    final contextFactory = BuildDaemonTestContext.new;
+
     final provider = TestSdkConfigurationProvider(
       verbose: debug,
       canaryFeatures: canaryFeatures,
@@ -47,7 +48,41 @@ void main() {
 
     runTests(
       provider: provider,
-      contextFactory: contextFactory,
+      contextFactory: BuildDaemonTestContext.new,
+      canaryFeatures: canaryFeatures,
+    );
+  });
+
+  group('canary: false | Frontend Server |', () {
+    final canaryFeatures = false;
+
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: ModuleFormat.amd,
+    );
+    tearDownAll(provider.dispose);
+
+    runTests(
+      provider: provider,
+      contextFactory: FrontendServerTestContext.new,
+      canaryFeatures: canaryFeatures,
+    );
+  });
+
+  group('canary: true | Frontend Server |', () {
+    final canaryFeatures = true;
+
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      canaryFeatures: canaryFeatures,
+      ddcModuleFormat: ModuleFormat.amd,
+    );
+    tearDownAll(provider.dispose);
+
+    runTests(
+      provider: provider,
+      contextFactory: FrontendServerTestContext.new,
       canaryFeatures: canaryFeatures,
     );
   });

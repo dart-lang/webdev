@@ -11,6 +11,7 @@ import 'package:dwds_test_common/integration/load_strategy.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
+import '../../dwds/test/integration/fixtures/frontend_server_context.dart';
 import 'helpers/context.dart';
 
 void main() {
@@ -24,9 +25,10 @@ void main() {
   tearDownAll(provider.dispose);
 
   group('Build Daemon |', () {
-    runDependentTests(
-      provider: provider,
-      contextFactory: BuildDaemonTestContext.new,
-    );
+    testAll(provider: provider, contextFactory: BuildDaemonTestContext.new);
+  });
+
+  group('Frontend Server |', () {
+    testAll(provider: provider, contextFactory: FrontendServerTestContext.new);
   });
 }

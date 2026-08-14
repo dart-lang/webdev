@@ -2,53 +2,40 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @skip_package_deps_validation
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:build_daemon/client.dart';
-import 'package:build_daemon/data/build_status.dart';
+import 'dart:isolate' as isolate show Isolate;
 
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/dart_web_debug_service.dart';
-import 'package:dwds/data/build_result.dart' as dwds_data;
-
+import 'package:dwds/data/build_result.dart';
 import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/strategy.dart';
-
 import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/server.dart';
-import 'package:dwds_test_common/frontend_server_common/devfs.dart';
-import 'package:dwds_test_common/frontend_server_common/resident_runner.dart';
-import 'package:dwds_test_common/logging.dart';
-import 'package:dwds_test_common/test_sdk_configuration.dart';
-import 'package:dwds_test_common/utilities.dart';
-import 'package:file/local.dart';
 import 'package:http/http.dart';
 import 'package:http/io_client.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart';
-import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 import 'package:webdriver/async_io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../logging.dart';
+import '../test_sdk_configuration.dart';
+import '../utilities.dart';
 import 'project.dart';
 import 'server.dart';
 import 'utilities.dart';
-
-final _exeExt = Platform.isWindows ? '.exe' : '';
 
 const isRPCError = TypeMatcher<RPCError>();
 const isSentinelException = TypeMatcher<SentinelException>();
@@ -69,25 +56,13 @@ Matcher isRPCErrorWithCode(int code) =>
 Matcher throwsRPCErrorWithCode(int code) => throwsA(isRPCErrorWithCode(code));
 
 typedef TestContextFactory =
-    TestContext Function(
-      TestProject project,
-      TestSdkConfigurationProvider sdkConfigurationProvider,
-    );
+    TestContext Function(TestProject, TestSdkConfigurationProvider);
 
 abstract class TestContext {
+  static const reloadedSourcesFileName = 'reloaded_sources.json';
+
   final TestProject project;
   final TestSdkConfigurationProvider sdkConfigurationProvider;
-
-  bool get usesFrontendServer;
-  bool get usesBuildDaemon;
-  bool get usesDdcModulesOnly;
-
-  late AssetReader assetReader;
-  late Stream<dwds_data.BuildResult> buildResults;
-  late LoadStrategy loadStrategy;
-  String basePath = '';
-  late String filePathToServe;
-  ExpressionCompiler? expressionCompiler;
 
   String get appUrl => _appUrl!;
   late String? _appUrl;
@@ -100,14 +75,6 @@ abstract class TestContext {
 
   Dwds? get dwds => _testServer?.dwds;
 
-  BuildDaemonClient? _daemonClient;
-  BuildDaemonClient get daemonClient => _daemonClient!;
-  set daemonClient(BuildDaemonClient? value) => _daemonClient = value;
-
-  ResidentWebRunner? _webRunner;
-  ResidentWebRunner get webRunner => _webRunner!;
-  set webRunner(ResidentWebRunner? value) => _webRunner = value;
-
   WebDriver get webDriver => _webDriver!;
   WebDriver? _webDriver;
 
@@ -119,22 +86,8 @@ abstract class TestContext {
   WebkitDebugger get webkitDebugger => _webkitDebugger!;
   late WebkitDebugger? _webkitDebugger;
 
-  Handler? _assetHandler;
-  Handler get assetHandler => _assetHandler!;
-  set assetHandler(Handler? value) => _assetHandler = value;
-
   Client get client => _client!;
   Client? _client;
-
-  Future<void> modeSetUp({
-    required TestSettings testSettings,
-    required TestAppMetadata appMetadata,
-    required TestDebugSettings debugSettings,
-    required TestBuildSettings buildSettings,
-    required Uri reloadedSourcesUri,
-  });
-
-  ExpressionCompilerService? ddcService;
 
   int get port => _port!;
   late int? _port;
@@ -150,8 +103,6 @@ abstract class TestContext {
 
   final _serviceNameToMethod = <String, String?>{};
 
-  late LocalFileSystem frontendServerFileSystem;
-
   /// Internal VM service.
   ///
   /// Prefer using [vmService] instead in tests when possible, to include
@@ -161,7 +112,33 @@ abstract class TestContext {
   /// External VM service.
   VmService get vmService => debugConnection.vmService;
 
-  TestContext(this.project, this.sdkConfigurationProvider);
+  TestContext.protected(this.project, this.sdkConfigurationProvider);
+
+  bool get usesFrontendServer => false;
+  bool get usesBuildDaemon => false;
+  bool get usesDdcModulesOnly => false;
+
+  // Abstract members:
+  AssetReader get assetReader;
+  Handler get assetHandler;
+  LoadStrategy get loadStrategy;
+  Stream<BuildResult> get buildResults;
+  ExpressionCompiler? get expressionCompiler;
+
+  String get appUrlPath;
+  String get basePath => '';
+
+  Future<void> modeSetUp(
+    TestSettings testSettings,
+    TestDebugSettings debugSettings,
+    TestAppMetadata appMetadata,
+    Uri reloadedSourcesUri,
+  );
+
+  Future<void> modeTearDown();
+
+  String get chromeDriverExecutable => _resolveChromeDriverExecutable();
+  String get chromeExecutable => _resolveChromeExecutable();
 
   Future<void> setUp({
     TestSettings testSettings = const TestSettings(),
@@ -170,15 +147,6 @@ abstract class TestContext {
         const TestDebugSettings.noDevToolsLaunch(),
   }) async {
     try {
-      // Build settings to return from load strategy.
-      final buildSettings = TestBuildSettings(
-        appEntrypoint: project.dartEntryFilePackageUri,
-        canaryFeatures: testSettings.canaryFeatures,
-        isFlutterApp: testSettings.isFlutterApp,
-        experiments: testSettings.experiments,
-        useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
-      );
-
       // Make sure configuration was created correctly.
       final sdkLayout = sdkConfigurationProvider.sdkLayout;
       final configuration = await sdkConfigurationProvider.configuration;
@@ -206,75 +174,75 @@ abstract class TestContext {
       final systemTempDir = Directory.systemTemp;
       _outputDir = systemTempDir.createTempSync('foo bar');
 
-      final chromeDriverPort = await findUnusedPort();
+      final sharedChromeDriverPort =
+          Platform.environment['DWDS_CHROMEDRIVER_PORT'];
+      final chromeDriverPort = sharedChromeDriverPort != null
+          ? int.parse(sharedChromeDriverPort)
+          : await findUnusedPort();
       final chromeDriverUrlBase = 'wd/hub';
-      try {
-        _chromeDriver = await Process.start('chromedriver$_exeExt', [
-          '--port=$chromeDriverPort',
-          '--url-base=$chromeDriverUrlBase',
-        ]);
-        final stdOutLines = chromeDriver.stdout
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .asBroadcastStream();
+      if (sharedChromeDriverPort == null) {
+        try {
+          _chromeDriver = await Process.start(chromeDriverExecutable, [
+            '--port=$chromeDriverPort',
+            '--url-base=$chromeDriverUrlBase',
+          ]);
+          final stdOutLines = chromeDriver.stdout
+              .transform(utf8.decoder)
+              .transform(const LineSplitter())
+              .asBroadcastStream();
 
-        final stdErrLines = chromeDriver.stderr
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .asBroadcastStream();
+          final stdErrLines = chromeDriver.stderr
+              .transform(utf8.decoder)
+              .transform(const LineSplitter())
+              .asBroadcastStream();
 
-        // Sometimes ChromeDriver can be slow to startup.
-        // This was seen on a github actions run:
-        // > 11:22:59.924700: ChromeDriver stdout: Starting ChromeDriver
-        // >                  139.0.7258.154 ([...]) on port 38107
-        // > [...]
-        // > 11:23:00.237350: ChromeDriver stdout: ChromeDriver was started
-        // >                  successfully on port 38107.
-        // Where in the 300+ ms it took before it was actually ready to accept
-        // a connection we had tried - and failed - to connect.
-        // We therefore wait until ChromeDriver reports that it has started
-        // successfully.
+          final chromeDriverStartup = Completer<void>();
+          stdOutLines.listen((line) {
+            if (!chromeDriverStartup.isCompleted &&
+                line.contains('was started successfully')) {
+              chromeDriverStartup.complete();
+            }
+            _logger.finest('ChromeDriver stdout: $line');
+          });
+          stdErrLines.listen(
+            (line) => _logger.warning('ChromeDriver stderr: $line'),
+          );
 
-        final chromeDriverStartup = Completer<void>();
-        stdOutLines.listen((line) {
-          if (!chromeDriverStartup.isCompleted &&
-              line.contains('was started successfully')) {
-            chromeDriverStartup.complete();
-          }
-          _logger.finest('ChromeDriver stdout: $line');
-        });
-        stdErrLines.listen(
-          (line) => _logger.warning('ChromeDriver stderr: $line'),
-        );
-
-        await chromeDriverStartup.future;
-      } catch (e) {
-        throw StateError(
-          'Could not start ChromeDriver. Is it installed?\nError: $e',
-        );
+          await chromeDriverStartup.future;
+        } catch (e) {
+          throw StateError(
+            'Could not start ChromeDriver. Is it installed?\nError: $e',
+          );
+        }
       }
 
-      await Process.run(sdkLayout.dartPath, [
-        'pub',
-        'upgrade',
-      ], workingDirectory: project.absolutePackageDirectory);
-
-      filePathToServe = project.filePathToServe;
+      final packageConfig = File(
+        p.join(
+          project.absolutePackageDirectory,
+          '.dart_tool',
+          'package_config.json',
+        ),
+      );
+      if (!packageConfig.existsSync()) {
+        await Process.run(sdkLayout.dartPath, [
+          'pub',
+          'upgrade',
+        ], workingDirectory: project.absolutePackageDirectory);
+      }
 
       // Start the HTTP server and save its used port.
       final httpServer = await startHttpServer('localhost');
       _port = httpServer.port;
 
       final reloadedSourcesUri = Uri.parse(
-        'http://localhost:$_port/${WebDevFS.reloadedSourcesFileName}',
+        'http://localhost:$_port/$reloadedSourcesFileName',
       );
 
       await modeSetUp(
-        testSettings: testSettings,
-        appMetadata: appMetadata,
-        debugSettings: debugSettings,
-        buildSettings: buildSettings,
-        reloadedSourcesUri: reloadedSourcesUri,
+        testSettings,
+        debugSettings,
+        appMetadata,
+        reloadedSourcesUri,
       );
 
       final debugPort = await findUnusedPort();
@@ -290,7 +258,7 @@ abstract class TestContext {
         if (enableDebugExtension) {
           await _buildDebugExtension();
         }
-        final capabilities = Capabilities.chrome
+        final capabilities = {...Capabilities.chrome}
           ..addAll({
             Capabilities.chromeOptions: {
               'args': [
@@ -301,12 +269,40 @@ abstract class TestContext {
                 if (enableDebugExtension)
                   '--load-extension=debug_extension/prod_build',
                 if (headless) '--headless',
+                // When the DevTools has focus we don't want to slow down the
+                // application.
+                '--disable-background-timer-throttling',
+                '--disable-blink-features=TimerThrottlingForBackgroundTabs',
+                '--disable-features=IntensiveWakeUpThrottling',
+                // Since we are using a temp profile, disable features that slow
+                // the Chrome launch.
+                '--disable-extensions',
+                '--disable-popup-blocking',
+                '--bwsi',
+                '--no-first-run',
+                '--no-default-browser-check',
+                '--disable-default-apps',
+                '--disable-translate',
+                '--start-maximized',
+                // When running on MacOS, Chrome may open system dialogs
+                // requesting credentials. This uses a mock keychain to avoid
+                // that dialog from blocking.
+                '--use-mock-keychain',
+                // Prevent warnings for using flags that are not recommended for
+                // general browsing but are applicable for use in dev-focused
+                // workflows.
+                '--test-type',
+                // Dev runs of the browser should be considered independent of
+                // one another, don't announce when the previous session
+                // crashed.
+                '--disable-session-crashed-bubble',
+                '--no-sandbox',
               ],
+              'binary': chromeExecutable,
             },
           });
-        _webDriver = await createDriver(
-          spec: WebDriverSpec.JsonWire,
-          desired: capabilities,
+        _webDriver = await _createDriverWithRetry(
+          capabilities: capabilities,
           uri: Uri.parse(
             'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/',
           ),
@@ -319,10 +315,6 @@ abstract class TestContext {
       final appConnectionCompleter = Completer<void>();
       final connection = ChromeConnection('localhost', debugPort);
 
-      // TODO(srujzs): In the case of the frontend server, it doesn't make sense
-      // that we initialize a new HTTP server instead of reusing the one in
-      // `TestAssetServer`. We should instead use that one to align with Flutter
-      // tools.
       _testServer = await TestServer.start(
         debugSettings: debugSettings.copyWith(
           expressionCompiler: expressionCompiler,
@@ -332,7 +324,6 @@ abstract class TestContext {
         assetHandler: assetHandler,
         assetReader: assetReader,
         strategy: loadStrategy,
-
         buildResults: buildResults,
         chromeConnection: () async => connection,
         httpServer: httpServer,
@@ -354,12 +345,15 @@ abstract class TestContext {
       });
 
       _appUrl = basePath.isEmpty
-          ? 'http://localhost:$port/$filePathToServe'
-          : 'http://localhost:$port/$basePath/$filePathToServe';
+          ? 'http://localhost:$port/$appUrlPath'
+          : 'http://localhost:$port/$basePath/$appUrlPath';
 
       if (testSettings.launchChrome) {
-        await _webDriver?.get(appUrl);
-        _tabConnection = await _getTabConnection(connection, appUrl);
+        await _webDriver?.get(appUrl).timeout(const Duration(seconds: 30));
+        _tabConnection = await _getTabConnection(
+          connection,
+          appUrl,
+        ).timeout(const Duration(seconds: 30));
         tabConnectionCompleter.complete();
 
         if (debugSettings.enableDebugExtension) {
@@ -422,12 +416,10 @@ abstract class TestContext {
   }
 
   Future<void> tearDown() async {
-    await _webRunner?.stop();
+    await modeTearDown();
     await _webDriver?.quit(closeSession: true);
     _chromeDriver?.kill();
     DartUri.currentDirectory = p.current;
-    await _daemonClient?.close();
-    await ddcService?.stop();
     await _testServer?.stop();
     _client?.close();
     await _outputDir?.delete(recursive: true);
@@ -437,10 +429,7 @@ abstract class TestContext {
     // clear the state for next setup
     _webDriver = null;
     _chromeDriver = null;
-    _daemonClient = null;
-    ddcService = null;
-    expressionCompiler = null;
-    _webRunner = null;
+
     _testServer = null;
     _client = null;
     _outputDir = null;
@@ -524,13 +513,11 @@ abstract class TestContext {
       );
     }
 
-    reloadedSources.add(
-      WebDevFS.createReloadedSourceEntry(
-        src: '/$srcPath.ddc.js',
-        module: moduleName,
-        libraries: [libUri],
-      ),
-    );
+    reloadedSources.add({
+      'src': '/$srcPath.ddc.js',
+      'module': moduleName,
+      'libraries': [libUri],
+    });
   }
 
   /// Contains contents of the reloaded_sources.json manifest file.
@@ -547,19 +534,12 @@ abstract class TestContext {
     _updateReloadedSources(file.path);
   }
 
-  Handler createBuildRunnerProxyHandler(int assetServerPort) {
-    return proxyHandler(
-      'http://localhost:$assetServerPort/${project.directoryToServe}/',
-      client: client,
-    );
-  }
-
   /// Wraps a handler to serve the reloaded_sources.json file for
   /// reloads/restarts in the DDC Library Bundle module system.
   Handler handleReloadedSources(Handler proxy) {
     return (request) {
       final path = request.url.path;
-      if (path.endsWith(WebDevFS.reloadedSourcesFileName)) {
+      if (path.endsWith(reloadedSourcesFileName)) {
         if (lastBuildFailed) {
           return shelf.Response.notFound('Build failed');
         }
@@ -569,54 +549,17 @@ abstract class TestContext {
     };
   }
 
-  Future<void> recompile({
-    required bool fullRestart,
-    bool allowFailure = false,
-  }) async {
-    if (usesBuildDaemon) {
-      await waitForSuccessfulBuild(allowFailure: allowFailure);
-    } else {
-      await webRunner.rerun(
-        fullRestart: fullRestart,
-        fileServerUri: Uri.parse(
-          'http://${testServer.host}:${testServer.port}',
-        ),
-      );
-    }
-    return;
-  }
+  Future<void> recompile({required bool fullRestart}) => throw UnsupportedError(
+    'recompile is only supported in Frontend Server mode',
+  );
 
   Future<void> waitForSuccessfulBuild({
     Duration? timeout,
     bool propagateToBrowser = false,
     bool allowFailure = false,
-  }) async {
-    lastBuildFailed = false;
-    // Wait for the build until the timeout is reached:
-    final results = await daemonClient.buildResults
-        .firstWhere(
-          (BuildResults results) => results.results.any(
-            (BuildResult result) =>
-                result.status == BuildStatus.succeeded ||
-                (allowFailure && result.status == BuildStatus.failed),
-          ),
-        )
-        .timeout(timeout ?? const Duration(seconds: 60));
-
-    lastBuildFailed = results.results.any(
-      (BuildResult result) => result.status == BuildStatus.failed,
-    );
-
-    if (propagateToBrowser) {
-      // Allow change to propagate to the browser.
-      // Windows, or at least Travis on Windows, seems to need more time.
-      // TODO: Wait for an explicit finish signal instead of adding this delay.
-      final delay = Platform.isWindows
-          ? const Duration(seconds: 5)
-          : const Duration(seconds: 2);
-      await Future<void>.delayed(delay);
-    }
-  }
+  }) => throw UnsupportedError(
+    'waitForSuccessfulBuild is only supported in Build Daemon mode',
+  );
 
   Future<void> _buildDebugExtension() async {
     final process = await Process.run('tool/build_extension.sh', [
@@ -638,7 +581,9 @@ abstract class TestContext {
         'Unable to connect to tab after retrying for 5 seconds.',
       );
     }
-    final tabConnection = await tab.connect();
+    final tabConnection = await tab.connect().timeout(
+      const Duration(seconds: 30),
+    );
     await tabConnection.runtime.enable();
     await tabConnection.debugger.enable();
     return tabConnection;
@@ -697,3 +642,65 @@ abstract class TestContext {
 }
 
 typedef Edit = ({String file, String originalString, String newString});
+
+Future<WebDriver> _createDriverWithRetry({
+  required Map<String, dynamic> capabilities,
+  required Uri uri,
+  int maxAttempts = 3,
+  Duration timeout = const Duration(seconds: 30),
+}) async {
+  for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await createDriver(
+        spec: WebDriverSpec.JsonWire,
+        desired: capabilities,
+        uri: uri,
+      ).timeout(timeout);
+    } catch (e) {
+      if (attempt == maxAttempts) rethrow;
+      await Future<void>.delayed(Duration(seconds: attempt));
+    }
+  }
+  throw StateError('Unreachable');
+}
+
+final _sdkRoot = isolate.Isolate.resolvePackageUriSync(
+  Uri.parse('package:dwds_test_common/fixtures/context.dart'),
+)!.resolve('../../../../');
+
+final _chromeDriverName = Platform.isWindows
+    ? 'chromedriver.exe'
+    : 'chromedriver';
+
+final _chromeExecutableName = Platform.isWindows
+    ? 'Application\\chrome.exe'
+    : 'google-chrome';
+
+String _resolveExecutable({
+  required List<String> environmentKeys,
+  required String sdkRelativePath,
+  required String fallbackName,
+}) {
+  for (final env in environmentKeys) {
+    if (Platform.environment.containsKey(env)) {
+      return Platform.environment[env]!;
+    }
+  }
+  final sdkPath = _sdkRoot.resolve(sdkRelativePath).toFilePath();
+  if (File(sdkPath).existsSync()) {
+    return sdkPath;
+  }
+  return fallbackName;
+}
+
+String _resolveChromeDriverExecutable() => _resolveExecutable(
+  environmentKeys: const ['CHROMEDRIVER_PATH'],
+  sdkRelativePath: 'third_party/webdriver/chrome/$_chromeDriverName',
+  fallbackName: _chromeDriverName,
+);
+
+String _resolveChromeExecutable() => _resolveExecutable(
+  environmentKeys: const ['CHROME_EXECUTABLE', 'CHROME_PATH'],
+  sdkRelativePath: 'third_party/browsers/chrome/chrome/$_chromeExecutableName',
+  fallbackName: _chromeExecutableName,
+);

@@ -33,10 +33,7 @@ void runTests({
         await context.waitForSuccessfulBuild(allowFailure: allowFailure);
       }
     } else {
-      await context.recompile(
-        fullRestart: fullRestart,
-        allowFailure: allowFailure,
-      );
+      await context.recompile(fullRestart: fullRestart);
     }
   }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,12 +8,31 @@ import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/fixtures/fakes.dart';
 import 'package:dwds_test_common/fixtures/project.dart';
 import 'package:dwds_test_common/fixtures/utilities.dart';
+import 'package:dwds_test_common/logging.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-void runIndependentTests() {
-  group('Fake Strategy', () {
+void testAll({
+  required TestSdkConfigurationProvider provider,
+  required TestContextFactory contextFactory,
+}) {
+  group('Load Strategy', () {
+    final project = TestProject.test;
+    final context = contextFactory(project, provider);
+
+    setUpAll(() async {
+      setCurrentLogWriter(debug: provider.verbose);
+      await context.setUp(
+        testSettings: TestSettings(
+          verboseCompiler: provider.verbose,
+          moduleFormat: provider.ddcModuleFormat,
+          canaryFeatures: provider.canaryFeatures,
+        ),
+      );
+    });
+    tearDownAll(context.tearDown);
+
     group(
       'When the packageConfigLocator does not specify a package config path',
       () {
@@ -22,7 +41,7 @@ void runIndependentTests() {
         test('defaults to "./dart_tool/package_config.json"', () {
           expect(
             p.split(strategy.packageConfigPath).join('/'),
-            endsWith('.dart_tool/package_config.json'),
+            endsWith('_test/.dart_tool/package_config.json'),
           );
         });
       },
@@ -97,54 +116,40 @@ void runIndependentTests() {
         expect(strategy.buildSettings.experiments, experiments);
       });
     });
-  });
-}
 
-void runDependentTests({
-  required TestSdkConfigurationProvider provider,
-  required TestContextFactory contextFactory,
-}) {
-  final project = TestProject.test;
-  final context = contextFactory(project, provider);
-
-  group('Global load Strategy with default build settings', () {
-    setUpAll(() async {
-      await context.setUp(
-        testSettings: TestSettings(
-          moduleFormat: provider.ddcModuleFormat,
-          canaryFeatures: provider.canaryFeatures,
-        ),
-      );
-    });
-
-    tearDownAll(context.tearDown);
-
-    test('provides build settings', () {
-      final loadStrategy = globalToolConfiguration.loadStrategy;
-      expect(
-        loadStrategy.buildSettings.appEntrypoint,
-        project.dartEntryFilePackageUri,
-      );
-      expect(
-        loadStrategy.buildSettings.canaryFeatures,
-        provider.canaryFeatures,
-      );
-      expect(loadStrategy.buildSettings.isFlutterApp, isFalse);
-      expect(loadStrategy.buildSettings.experiments, isEmpty);
+    group('Global load strategy with default build settings', () {
+      test('provides build settings', () {
+        final loadStrategy = globalToolConfiguration.loadStrategy;
+        expect(
+          loadStrategy.buildSettings.appEntrypoint,
+          project.dartEntryFilePackageUri,
+        );
+        expect(
+          loadStrategy.buildSettings.canaryFeatures,
+          provider.canaryFeatures,
+        );
+        expect(loadStrategy.buildSettings.isFlutterApp, isFalse);
+        expect(loadStrategy.buildSettings.experiments, isEmpty);
+      });
     });
   });
 
-  group('Global load Strategy with custom build settings ', () {
-    final canaryFeatures = provider.canaryFeatures;
+  group('Global load strategy with custom build settings', () {
+    final canaryFeatures = true;
     final isFlutterApp = true;
     final experiments = ['records'];
 
+    final project = TestProject.test;
+    final context = contextFactory(project, provider);
+
     setUpAll(() async {
+      setCurrentLogWriter(debug: provider.verbose);
       await context.setUp(
         testSettings: TestSettings(
           canaryFeatures: canaryFeatures,
           isFlutterApp: isFlutterApp,
           experiments: experiments,
+          verboseCompiler: provider.verbose,
           moduleFormat: provider.ddcModuleFormat,
         ),
       );
