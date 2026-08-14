@@ -5,11 +5,11 @@
 @Timeout(Duration(minutes: 2))
 library;
 
-import 'package:dwds_test_common/fixtures/context.dart';
-import 'helpers/context.dart';
 import 'package:dwds_test_common/integration/events.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
+
+import 'helpers/context.dart';
 
 void main() {
   final provider = TestSdkConfigurationProvider();
@@ -18,7 +18,7 @@ void main() {
   group('Build Daemon', () {
     testWithDwds(
       provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
+      contextFactory: BuildDaemonTestContext.new,
     );
   });
 }

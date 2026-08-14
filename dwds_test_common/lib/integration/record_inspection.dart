@@ -57,528 +57,531 @@ void runTests({
     depth: depth,
   );
 
-  group('${context.usesFrontendServer ? "frontendServer" : "buildDaemon"} |', () {
-    setUpAll(() async {
-      setCurrentLogWriter(debug: provider.verbose);
-      await context.setUp(
-        testSettings: TestSettings(
-          enableExpressionEvaluation: true,
-          verboseCompiler: provider.verbose,
-          experiments: ['dot-shorthands'],
-          canaryFeatures: canaryFeatures,
-          moduleFormat: provider.ddcModuleFormat,
-        ),
-      );
-      service = context.debugConnection.vmService;
-
-      final vm = await service.getVM();
-      isolateId = vm.isolates!.first.id!;
-      final scripts = await service.getScripts(isolateId);
-
-      await service.streamListen('Debug');
-      stream = service.onEvent('Debug');
-
-      mainScript = scripts.scripts!.firstWhere(
-        (each) => each.uri!.contains('main.dart'),
-      );
-    });
-
-    tearDownAll(() async {
-      await context.tearDown();
-    });
-
-    setUp(() => setCurrentLogWriter(debug: provider.verbose));
-    tearDown(() => service.resume(isolateId));
-
-    test('simple record display', () async {
-      await onBreakPoint('printSimpleLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
-
-        final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id!;
-
-        expect(await getObject(classId), matchRecordClass);
-
-        final stringRef = await getInstanceRef(frame, 'record.toString()');
-        final stringRefId = stringRef.id!;
-
-        expect(
-          await getObject(stringRefId),
-          matchPrimitiveInstance(
-            kind: InstanceKind.kString,
-            value: '(true, 3)',
+  group(
+    '${context.usesFrontendServer ? "frontendServer" : "buildDaemon"} |',
+    () {
+      setUpAll(() async {
+        setCurrentLogWriter(debug: provider.verbose);
+        await context.setUp(
+          testSettings: TestSettings(
+            enableExpressionEvaluation: true,
+            verboseCompiler: provider.verbose,
+            experiments: ['dot-shorthands'],
+            canaryFeatures: canaryFeatures,
+            moduleFormat: provider.ddcModuleFormat,
           ),
         );
-      });
-    });
+        service = context.debugConnection.vmService;
 
-    test('simple records', () async {
-      await onBreakPoint('printSimpleLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record');
-        final instanceId = instanceRef.id!;
+        final vm = await service.getVM();
+        isolateId = vm.isolates!.first.id!;
+        final scripts = await service.getScripts(isolateId);
 
-        expect(instanceRef, matchRecordInstanceRef(length: 2));
-        expect(await getObject(instanceId), matchRecordInstance(length: 2));
+        await service.streamListen('Debug');
+        stream = service.onEvent('Debug');
 
-        expect(await getFields(instanceRef), {1: true, 2: 3});
-        expect(await getFields(instanceRef, offset: 0), {1: true, 2: 3});
-        expect(await getFields(instanceRef, offset: 1), {2: 3});
-        expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
-        expect(
-          await getFields(instanceRef, offset: 0, count: 0),
-          <Object?, Object?>{},
-        );
-        expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
-        expect(await getFields(instanceRef, offset: 0, count: 2), {
-          1: true,
-          2: 3,
-        });
-        expect(await getFields(instanceRef, offset: 0, count: 5), {
-          1: true,
-          2: 3,
-        });
-        expect(
-          await getFields(instanceRef, offset: 2, count: 5),
-          <Object?, Object?>{},
+        mainScript = scripts.scripts!.firstWhere(
+          (each) => each.uri!.contains('main.dart'),
         );
       });
-    });
 
-    test('simple records, field access', () async {
-      await onBreakPoint('printSimpleLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
-        expect(
-          await getInstance(frame, r'record.$1'),
-          matchPrimitiveInstance(kind: InstanceKind.kBool, value: true),
-        );
-
-        expect(
-          await getInstance(frame, r'record.$2'),
-          matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3),
-        );
+      tearDownAll(() async {
+        await context.tearDown();
       });
-    });
 
-    test('simple records with named fields display', () async {
-      await onBreakPoint('printSimpleNamedLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
+      setUp(() => setCurrentLogWriter(debug: provider.verbose));
+      tearDown(() => service.resume(isolateId));
 
-        final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id!;
+      test('simple record display', () async {
+        await onBreakPoint('printSimpleLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
 
-        expect(await getObject(classId), matchRecordClass);
+          final instanceRef = await getInstanceRef(frame, 'record');
+          final classId = instanceRef.classRef!.id!;
 
-        final stringRef = await getInstanceRef(frame, 'record.toString()');
-        final stringId = stringRef.id!;
+          expect(await getObject(classId), matchRecordClass);
 
-        expect(
-          await getObject(stringId),
-          matchPrimitiveInstance(
-            kind: InstanceKind.kString,
-            value: '(true, cat: Vasya)',
-          ),
-        );
+          final stringRef = await getInstanceRef(frame, 'record.toString()');
+          final stringRefId = stringRef.id!;
+
+          expect(
+            await getObject(stringRefId),
+            matchPrimitiveInstance(
+              kind: InstanceKind.kString,
+              value: '(true, 3)',
+            ),
+          );
+        });
       });
-    });
 
-    test('simple records with named fields', () async {
-      await onBreakPoint('printSimpleNamedLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record');
+      test('simple records', () async {
+        await onBreakPoint('printSimpleLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record');
+          final instanceId = instanceRef.id!;
 
-        final instanceId = instanceRef.id!;
-        expect(instanceRef, matchRecordInstanceRef(length: 2));
-        expect(await getObject(instanceId), matchRecordInstance(length: 2));
+          expect(instanceRef, matchRecordInstanceRef(length: 2));
+          expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
-        expect(await getFields(instanceRef), {1: true, 'cat': 'Vasya'});
-        expect(await getFields(instanceRef, offset: 0), {
-          1: true,
-          'cat': 'Vasya',
+          expect(await getFields(instanceRef), {1: true, 2: 3});
+          expect(await getFields(instanceRef, offset: 0), {1: true, 2: 3});
+          expect(await getFields(instanceRef, offset: 1), {2: 3});
+          expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
+          expect(
+            await getFields(instanceRef, offset: 0, count: 0),
+            <Object?, Object?>{},
+          );
+          expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
+          expect(await getFields(instanceRef, offset: 0, count: 2), {
+            1: true,
+            2: 3,
+          });
+          expect(await getFields(instanceRef, offset: 0, count: 5), {
+            1: true,
+            2: 3,
+          });
+          expect(
+            await getFields(instanceRef, offset: 2, count: 5),
+            <Object?, Object?>{},
+          );
         });
-        expect(await getFields(instanceRef, offset: 1), {'cat': 'Vasya'});
-        expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
-        expect(
-          await getFields(instanceRef, offset: 0, count: 0),
-          <Object?, Object?>{},
-        );
-        expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
-        expect(await getFields(instanceRef, offset: 0, count: 2), {
-          1: true,
-          'cat': 'Vasya',
-        });
-        expect(await getFields(instanceRef, offset: 0, count: 5), {
-          1: true,
-          'cat': 'Vasya',
-        });
-        expect(
-          await getFields(instanceRef, offset: 2, count: 5),
-          <Object?, Object?>{},
-        );
       });
-    });
 
-    test('simple records with named fields, field access', () async {
-      await onBreakPoint('printSimpleNamedLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
-        expect(
-          await getInstance(frame, r'record.$1'),
-          matchPrimitiveInstance(kind: InstanceKind.kBool, value: true),
-        );
+      test('simple records, field access', () async {
+        await onBreakPoint('printSimpleLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
+          expect(
+            await getInstance(frame, r'record.$1'),
+            matchPrimitiveInstance(kind: InstanceKind.kBool, value: true),
+          );
 
-        expect(
-          await getInstance(frame, r'record.cat'),
-          matchPrimitiveInstance(kind: InstanceKind.kString, value: 'Vasya'),
-        );
+          expect(
+            await getInstance(frame, r'record.$2'),
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3),
+          );
+        });
       });
-    });
 
-    test('complex records display', () async {
-      await onBreakPoint('printComplexLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
+      test('simple records with named fields display', () async {
+        await onBreakPoint('printSimpleNamedLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
 
-        final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id!;
+          final instanceRef = await getInstanceRef(frame, 'record');
+          final classId = instanceRef.classRef!.id!;
 
-        expect(await getObject(classId), matchRecordClass);
+          expect(await getObject(classId), matchRecordClass);
 
-        final stringRef = await getInstanceRef(frame, 'record.toString()');
-        final stringId = stringRef.id!;
+          final stringRef = await getInstanceRef(frame, 'record.toString()');
+          final stringId = stringRef.id!;
 
-        expect(
-          await getObject(stringId),
-          matchPrimitiveInstance(
-            kind: InstanceKind.kString,
-            value: '(true, 3, {a: 1, b: 5})',
-          ),
-        );
+          expect(
+            await getObject(stringId),
+            matchPrimitiveInstance(
+              kind: InstanceKind.kString,
+              value: '(true, cat: Vasya)',
+            ),
+          );
+        });
       });
-    });
 
-    test('complex records', () async {
-      await onBreakPoint('printComplexLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record');
+      test('simple records with named fields', () async {
+        await onBreakPoint('printSimpleNamedLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record');
 
-        final instanceId = instanceRef.id!;
-        expect(instanceRef, matchRecordInstanceRef(length: 3));
-        expect(await getObject(instanceId), matchRecordInstance(length: 3));
+          final instanceId = instanceRef.id!;
+          expect(instanceRef, matchRecordInstanceRef(length: 2));
+          expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
-        expect(await getFields(instanceRef), {
-          1: true,
-          2: 3,
-          3: {'a': 1, 'b': 5},
+          expect(await getFields(instanceRef), {1: true, 'cat': 'Vasya'});
+          expect(await getFields(instanceRef, offset: 0), {
+            1: true,
+            'cat': 'Vasya',
+          });
+          expect(await getFields(instanceRef, offset: 1), {'cat': 'Vasya'});
+          expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
+          expect(
+            await getFields(instanceRef, offset: 0, count: 0),
+            <Object?, Object?>{},
+          );
+          expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
+          expect(await getFields(instanceRef, offset: 0, count: 2), {
+            1: true,
+            'cat': 'Vasya',
+          });
+          expect(await getFields(instanceRef, offset: 0, count: 5), {
+            1: true,
+            'cat': 'Vasya',
+          });
+          expect(
+            await getFields(instanceRef, offset: 2, count: 5),
+            <Object?, Object?>{},
+          );
         });
-        expect(await getFields(instanceRef, offset: 0), {
-          1: true,
-          2: 3,
-          3: {'a': 1, 'b': 5},
-        });
-        expect(await getFields(instanceRef, offset: 1), {
-          2: 3,
-          3: {'a': 1, 'b': 5},
-        });
-        expect(await getFields(instanceRef, offset: 1, count: 1), {2: 3});
-        expect(await getFields(instanceRef, offset: 1, count: 2), {
-          2: 3,
-          3: {'a': 1, 'b': 5},
-        });
-        expect(await getFields(instanceRef, offset: 2), {
-          3: {'a': 1, 'b': 5},
-        });
-        expect(await getFields(instanceRef, offset: 3), <Object?, Object?>{});
-        expect(
-          await getFields(instanceRef, offset: 0, count: 0),
-          <Object?, Object?>{},
-        );
-        expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
-        expect(await getFields(instanceRef, offset: 0, count: 2), {
-          1: true,
-          2: 3,
-        });
-        expect(await getFields(instanceRef, offset: 0, count: 5), {
-          1: true,
-          2: 3,
-          3: {'a': 1, 'b': 5},
-        });
-        expect(
-          await getFields(instanceRef, offset: 3, count: 5),
-          <Object?, Object?>{},
-        );
       });
-    });
 
-    test('complex records, field access', () async {
-      await onBreakPoint('printComplexLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
-        expect(
-          await getInstance(frame, r'record.$1'),
-          matchPrimitiveInstance(kind: InstanceKind.kBool, value: true),
-        );
+      test('simple records with named fields, field access', () async {
+        await onBreakPoint('printSimpleNamedLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
+          expect(
+            await getInstance(frame, r'record.$1'),
+            matchPrimitiveInstance(kind: InstanceKind.kBool, value: true),
+          );
 
-        expect(
-          await getInstance(frame, r'record.$2'),
-          matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3),
-        );
-
-        final third = await getInstanceRef(frame, r'record.$3');
-        expect(third.kind, InstanceKind.kMap);
-        expect(await getFields(third), {'a': 1, 'b': 5});
+          expect(
+            await getInstance(frame, r'record.cat'),
+            matchPrimitiveInstance(kind: InstanceKind.kString, value: 'Vasya'),
+          );
+        });
       });
-    });
 
-    test('complex records with named fields display', () async {
-      await onBreakPoint('printComplexNamedLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
+      test('complex records display', () async {
+        await onBreakPoint('printComplexLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
 
-        final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id!;
+          final instanceRef = await getInstanceRef(frame, 'record');
+          final classId = instanceRef.classRef!.id!;
 
-        expect(await getObject(classId), matchRecordClass);
+          expect(await getObject(classId), matchRecordClass);
 
-        final stringRef = await getInstanceRef(frame, 'record.toString()');
-        final stringId = stringRef.id!;
+          final stringRef = await getInstanceRef(frame, 'record.toString()');
+          final stringId = stringRef.id!;
 
-        expect(
-          await getObject(stringId),
-          matchPrimitiveInstance(
-            kind: InstanceKind.kString,
-            value: '(true, 3, array: {a: 1, b: 5})',
-          ),
-        );
+          expect(
+            await getObject(stringId),
+            matchPrimitiveInstance(
+              kind: InstanceKind.kString,
+              value: '(true, 3, {a: 1, b: 5})',
+            ),
+          );
+        });
       });
-    });
 
-    test('complex records with named fields', () async {
-      await onBreakPoint('printComplexNamedLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record');
+      test('complex records', () async {
+        await onBreakPoint('printComplexLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record');
 
-        final instanceId = instanceRef.id!;
-        expect(instanceRef, matchRecordInstanceRef(length: 3));
-        expect(await getObject(instanceId), matchRecordInstance(length: 3));
+          final instanceId = instanceRef.id!;
+          expect(instanceRef, matchRecordInstanceRef(length: 3));
+          expect(await getObject(instanceId), matchRecordInstance(length: 3));
 
-        expect(await getFields(instanceRef), {
-          1: true,
-          2: 3,
-          'array': {'a': 1, 'b': 5},
+          expect(await getFields(instanceRef), {
+            1: true,
+            2: 3,
+            3: {'a': 1, 'b': 5},
+          });
+          expect(await getFields(instanceRef, offset: 0), {
+            1: true,
+            2: 3,
+            3: {'a': 1, 'b': 5},
+          });
+          expect(await getFields(instanceRef, offset: 1), {
+            2: 3,
+            3: {'a': 1, 'b': 5},
+          });
+          expect(await getFields(instanceRef, offset: 1, count: 1), {2: 3});
+          expect(await getFields(instanceRef, offset: 1, count: 2), {
+            2: 3,
+            3: {'a': 1, 'b': 5},
+          });
+          expect(await getFields(instanceRef, offset: 2), {
+            3: {'a': 1, 'b': 5},
+          });
+          expect(await getFields(instanceRef, offset: 3), <Object?, Object?>{});
+          expect(
+            await getFields(instanceRef, offset: 0, count: 0),
+            <Object?, Object?>{},
+          );
+          expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
+          expect(await getFields(instanceRef, offset: 0, count: 2), {
+            1: true,
+            2: 3,
+          });
+          expect(await getFields(instanceRef, offset: 0, count: 5), {
+            1: true,
+            2: 3,
+            3: {'a': 1, 'b': 5},
+          });
+          expect(
+            await getFields(instanceRef, offset: 3, count: 5),
+            <Object?, Object?>{},
+          );
         });
-        expect(await getFields(instanceRef, offset: 0), {
-          1: true,
-          2: 3,
-          'array': {'a': 1, 'b': 5},
-        });
-        expect(await getFields(instanceRef, offset: 1), {
-          2: 3,
-          'array': {'a': 1, 'b': 5},
-        });
-        expect(await getFields(instanceRef, offset: 1, count: 1), {2: 3});
-        expect(await getFields(instanceRef, offset: 1, count: 2), {
-          2: 3,
-          'array': {'a': 1, 'b': 5},
-        });
-        expect(await getFields(instanceRef, offset: 2), {
-          'array': {'a': 1, 'b': 5},
-        });
-        expect(await getFields(instanceRef, offset: 3), <Object?, Object?>{});
-        expect(
-          await getFields(instanceRef, offset: 0, count: 0),
-          <Object?, Object?>{},
-        );
-        expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
-        expect(await getFields(instanceRef, offset: 0, count: 2), {
-          1: true,
-          2: 3,
-        });
-        expect(await getFields(instanceRef, offset: 0, count: 5), {
-          1: true,
-          2: 3,
-          'array': {'a': 1, 'b': 5},
-        });
-        expect(
-          await getFields(instanceRef, offset: 3, count: 5),
-          <Object?, Object?>{},
-        );
       });
-    });
 
-    test('complex records with named fields, field access', () async {
-      await onBreakPoint('printComplexNamedLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
-        expect(
-          await getInstance(frame, r'record.$1'),
-          matchPrimitiveInstance(kind: InstanceKind.kBool, value: true),
-        );
+      test('complex records, field access', () async {
+        await onBreakPoint('printComplexLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
+          expect(
+            await getInstance(frame, r'record.$1'),
+            matchPrimitiveInstance(kind: InstanceKind.kBool, value: true),
+          );
 
-        expect(
-          await getInstance(frame, r'record.$2'),
-          matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3),
-        );
+          expect(
+            await getInstance(frame, r'record.$2'),
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3),
+          );
 
-        final third = await getInstanceRef(frame, r'record.array');
-        expect(third.kind, InstanceKind.kMap);
-        expect(await getFields(third), {'a': 1, 'b': 5});
+          final third = await getInstanceRef(frame, r'record.$3');
+          expect(third.kind, InstanceKind.kMap);
+          expect(await getFields(third), {'a': 1, 'b': 5});
+        });
       });
-    });
 
-    test('nested records display', () async {
-      await onBreakPoint('printNestedLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
+      test('complex records with named fields display', () async {
+        await onBreakPoint('printComplexNamedLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
 
-        final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id!;
+          final instanceRef = await getInstanceRef(frame, 'record');
+          final classId = instanceRef.classRef!.id!;
 
-        expect(await getObject(classId), matchRecordClass);
+          expect(await getObject(classId), matchRecordClass);
 
-        final stringRef = await getInstanceRef(frame, 'record.toString()');
-        final stringId = stringRef.id!;
+          final stringRef = await getInstanceRef(frame, 'record.toString()');
+          final stringId = stringRef.id!;
 
-        expect(
-          await getObject(stringId),
-          matchPrimitiveInstance(
-            kind: InstanceKind.kString,
-            value: '(true, (false, 5))',
-          ),
-        );
+          expect(
+            await getObject(stringId),
+            matchPrimitiveInstance(
+              kind: InstanceKind.kString,
+              value: '(true, 3, array: {a: 1, b: 5})',
+            ),
+          );
+        });
       });
-    });
 
-    test('nested records', () async {
-      await onBreakPoint('printNestedLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record');
+      test('complex records with named fields', () async {
+        await onBreakPoint('printComplexNamedLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record');
 
-        final instanceId = instanceRef.id!;
-        expect(instanceRef, matchRecordInstanceRef(length: 2));
-        expect(await getObject(instanceId), matchRecordInstance(length: 2));
+          final instanceId = instanceRef.id!;
+          expect(instanceRef, matchRecordInstanceRef(length: 3));
+          expect(await getObject(instanceId), matchRecordInstance(length: 3));
 
-        expect(await getFields(instanceRef), {
-          1: true,
-          2: {1: false, 2: 5},
+          expect(await getFields(instanceRef), {
+            1: true,
+            2: 3,
+            'array': {'a': 1, 'b': 5},
+          });
+          expect(await getFields(instanceRef, offset: 0), {
+            1: true,
+            2: 3,
+            'array': {'a': 1, 'b': 5},
+          });
+          expect(await getFields(instanceRef, offset: 1), {
+            2: 3,
+            'array': {'a': 1, 'b': 5},
+          });
+          expect(await getFields(instanceRef, offset: 1, count: 1), {2: 3});
+          expect(await getFields(instanceRef, offset: 1, count: 2), {
+            2: 3,
+            'array': {'a': 1, 'b': 5},
+          });
+          expect(await getFields(instanceRef, offset: 2), {
+            'array': {'a': 1, 'b': 5},
+          });
+          expect(await getFields(instanceRef, offset: 3), <Object?, Object?>{});
+          expect(
+            await getFields(instanceRef, offset: 0, count: 0),
+            <Object?, Object?>{},
+          );
+          expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
+          expect(await getFields(instanceRef, offset: 0, count: 2), {
+            1: true,
+            2: 3,
+          });
+          expect(await getFields(instanceRef, offset: 0, count: 5), {
+            1: true,
+            2: 3,
+            'array': {'a': 1, 'b': 5},
+          });
+          expect(
+            await getFields(instanceRef, offset: 3, count: 5),
+            <Object?, Object?>{},
+          );
         });
-        expect(await getFields(instanceRef, offset: 0), {
-          1: true,
-          2: {1: false, 2: 5},
-        });
-        expect(await getFields(instanceRef, offset: 1), {
-          2: {1: false, 2: 5},
-        });
-        expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
-        expect(
-          await getFields(instanceRef, offset: 0, count: 0),
-          <Object?, Object?>{},
-        );
-        expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
-        expect(await getFields(instanceRef, offset: 0, count: 2), {
-          1: true,
-          2: {1: false, 2: 5},
-        });
-        expect(await getFields(instanceRef, offset: 0, count: 5), {
-          1: true,
-          2: {1: false, 2: 5},
-        });
-        expect(
-          await getFields(instanceRef, offset: 2, count: 5),
-          <Object?, Object?>{},
-        );
       });
-    });
 
-    test('nested records, field access', () async {
-      await onBreakPoint('printNestedLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, r'record.$2');
+      test('complex records with named fields, field access', () async {
+        await onBreakPoint('printComplexNamedLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
+          expect(
+            await getInstance(frame, r'record.$1'),
+            matchPrimitiveInstance(kind: InstanceKind.kBool, value: true),
+          );
 
-        final instanceId = instanceRef.id!;
-        expect(instanceRef, matchRecordInstanceRef(length: 2));
-        expect(await getObject(instanceId), matchRecordInstance(length: 2));
+          expect(
+            await getInstance(frame, r'record.$2'),
+            matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 3),
+          );
 
-        expect(await getFields(instanceRef), {1: false, 2: 5});
-        expect(await getFields(instanceRef, offset: 0), {1: false, 2: 5});
+          final third = await getInstanceRef(frame, r'record.array');
+          expect(third.kind, InstanceKind.kMap);
+          expect(await getFields(third), {'a': 1, 'b': 5});
+        });
       });
-    });
 
-    test('nested records with named fields display', () async {
-      await onBreakPoint('printNestedNamedLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
+      test('nested records display', () async {
+        await onBreakPoint('printNestedLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
 
-        final instanceRef = await getInstanceRef(frame, 'record');
-        final classId = instanceRef.classRef!.id!;
+          final instanceRef = await getInstanceRef(frame, 'record');
+          final classId = instanceRef.classRef!.id!;
 
-        expect(await getObject(classId), matchRecordClass);
+          expect(await getObject(classId), matchRecordClass);
 
-        final stringRef = await getInstanceRef(frame, 'record.toString()');
-        final stringId = stringRef.id!;
+          final stringRef = await getInstanceRef(frame, 'record.toString()');
+          final stringId = stringRef.id!;
 
-        expect(
-          await getObject(stringId),
-          matchPrimitiveInstance(
-            kind: InstanceKind.kString,
-            value: '(true, inner: (false, 5))',
-          ),
-        );
+          expect(
+            await getObject(stringId),
+            matchPrimitiveInstance(
+              kind: InstanceKind.kString,
+              value: '(true, (false, 5))',
+            ),
+          );
+        });
       });
-    });
 
-    test('nested records with named fields', () async {
-      await onBreakPoint('printNestedNamedLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, 'record');
+      test('nested records', () async {
+        await onBreakPoint('printNestedLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record');
 
-        final instanceId = instanceRef.id!;
-        expect(instanceRef, matchRecordInstanceRef(length: 2));
-        expect(await getObject(instanceId), matchRecordInstance(length: 2));
+          final instanceId = instanceRef.id!;
+          expect(instanceRef, matchRecordInstanceRef(length: 2));
+          expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
-        expect(await getFields(instanceRef), {
-          1: true,
-          'inner': {1: false, 2: 5},
+          expect(await getFields(instanceRef), {
+            1: true,
+            2: {1: false, 2: 5},
+          });
+          expect(await getFields(instanceRef, offset: 0), {
+            1: true,
+            2: {1: false, 2: 5},
+          });
+          expect(await getFields(instanceRef, offset: 1), {
+            2: {1: false, 2: 5},
+          });
+          expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
+          expect(
+            await getFields(instanceRef, offset: 0, count: 0),
+            <Object?, Object?>{},
+          );
+          expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
+          expect(await getFields(instanceRef, offset: 0, count: 2), {
+            1: true,
+            2: {1: false, 2: 5},
+          });
+          expect(await getFields(instanceRef, offset: 0, count: 5), {
+            1: true,
+            2: {1: false, 2: 5},
+          });
+          expect(
+            await getFields(instanceRef, offset: 2, count: 5),
+            <Object?, Object?>{},
+          );
         });
-        expect(await getFields(instanceRef, offset: 0), {
-          1: true,
-          'inner': {1: false, 2: 5},
-        });
-        expect(await getFields(instanceRef, offset: 1), {
-          'inner': {1: false, 2: 5},
-        });
-        expect(await getFields(instanceRef, offset: 1, count: 1), {
-          'inner': {1: false, 2: 5},
-        });
-        expect(await getFields(instanceRef, offset: 1, count: 2), {
-          'inner': {1: false, 2: 5},
-        });
-        expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
-        expect(
-          await getFields(instanceRef, offset: 0, count: 0),
-          <Object?, Object?>{},
-        );
-        expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
-        expect(await getFields(instanceRef, offset: 0, count: 2), {
-          1: true,
-          'inner': {1: false, 2: 5},
-        });
-        expect(await getFields(instanceRef, offset: 0, count: 5), {
-          1: true,
-          'inner': {1: false, 2: 5},
-        });
-        expect(
-          await getFields(instanceRef, offset: 2, count: 5),
-          <Object?, Object?>{},
-        );
       });
-    });
 
-    test('nested records with named fields, field access', () async {
-      await onBreakPoint('printNestedNamedLocalRecord', (Event event) async {
-        final frame = event.topFrame!.index!;
-        final instanceRef = await getInstanceRef(frame, r'record.inner');
+      test('nested records, field access', () async {
+        await onBreakPoint('printNestedLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, r'record.$2');
 
-        final instanceId = instanceRef.id!;
-        expect(instanceRef, matchRecordInstanceRef(length: 2));
-        expect(await getObject(instanceId), matchRecordInstance(length: 2));
+          final instanceId = instanceRef.id!;
+          expect(instanceRef, matchRecordInstanceRef(length: 2));
+          expect(await getObject(instanceId), matchRecordInstance(length: 2));
 
-        expect(await getFields(instanceRef), {1: false, 2: 5});
-        expect(await getFields(instanceRef, offset: 0), {1: false, 2: 5});
+          expect(await getFields(instanceRef), {1: false, 2: 5});
+          expect(await getFields(instanceRef, offset: 0), {1: false, 2: 5});
+        });
       });
-    });
-  });
+
+      test('nested records with named fields display', () async {
+        await onBreakPoint('printNestedNamedLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
+
+          final instanceRef = await getInstanceRef(frame, 'record');
+          final classId = instanceRef.classRef!.id!;
+
+          expect(await getObject(classId), matchRecordClass);
+
+          final stringRef = await getInstanceRef(frame, 'record.toString()');
+          final stringId = stringRef.id!;
+
+          expect(
+            await getObject(stringId),
+            matchPrimitiveInstance(
+              kind: InstanceKind.kString,
+              value: '(true, inner: (false, 5))',
+            ),
+          );
+        });
+      });
+
+      test('nested records with named fields', () async {
+        await onBreakPoint('printNestedNamedLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, 'record');
+
+          final instanceId = instanceRef.id!;
+          expect(instanceRef, matchRecordInstanceRef(length: 2));
+          expect(await getObject(instanceId), matchRecordInstance(length: 2));
+
+          expect(await getFields(instanceRef), {
+            1: true,
+            'inner': {1: false, 2: 5},
+          });
+          expect(await getFields(instanceRef, offset: 0), {
+            1: true,
+            'inner': {1: false, 2: 5},
+          });
+          expect(await getFields(instanceRef, offset: 1), {
+            'inner': {1: false, 2: 5},
+          });
+          expect(await getFields(instanceRef, offset: 1, count: 1), {
+            'inner': {1: false, 2: 5},
+          });
+          expect(await getFields(instanceRef, offset: 1, count: 2), {
+            'inner': {1: false, 2: 5},
+          });
+          expect(await getFields(instanceRef, offset: 2), <Object?, Object?>{});
+          expect(
+            await getFields(instanceRef, offset: 0, count: 0),
+            <Object?, Object?>{},
+          );
+          expect(await getFields(instanceRef, offset: 0, count: 1), {1: true});
+          expect(await getFields(instanceRef, offset: 0, count: 2), {
+            1: true,
+            'inner': {1: false, 2: 5},
+          });
+          expect(await getFields(instanceRef, offset: 0, count: 5), {
+            1: true,
+            'inner': {1: false, 2: 5},
+          });
+          expect(
+            await getFields(instanceRef, offset: 2, count: 5),
+            <Object?, Object?>{},
+          );
+        });
+      });
+
+      test('nested records with named fields, field access', () async {
+        await onBreakPoint('printNestedNamedLocalRecord', (Event event) async {
+          final frame = event.topFrame!.index!;
+          final instanceRef = await getInstanceRef(frame, r'record.inner');
+
+          final instanceId = instanceRef.id!;
+          expect(instanceRef, matchRecordInstanceRef(length: 2));
+          expect(await getObject(instanceId), matchRecordInstance(length: 2));
+
+          expect(await getFields(instanceRef), {1: false, 2: 5});
+          expect(await getFields(instanceRef, offset: 0), {1: false, 2: 5});
+        });
+      });
+    },
+  );
 }

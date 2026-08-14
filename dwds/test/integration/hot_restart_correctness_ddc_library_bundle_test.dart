@@ -8,12 +8,12 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds_test_common/fixtures/context.dart';
+
 import 'package:dwds_test_common/integration/hot_restart_correctness.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
+
 import 'fixtures/frontend_server_context.dart';
-import '../../../webdev/test/helpers/context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -27,11 +27,11 @@ void main() {
       canaryFeatures: canaryFeatures,
       ddcModuleFormat: moduleFormat,
     );
-    
+
     runTests(
       provider: provider,
       moduleFormat: moduleFormat,
-      contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
+      contextFactory: FrontendServerTestContext.new,
       canaryFeatures: canaryFeatures,
     );
   });

@@ -558,31 +558,21 @@ Future<Map<String, dynamic>> _sendRequestToFes(
   final compileResult = await _sendFesRawRequest(port, request);
   if (compileResult is! Map) {
     return {
-      'result':
+      'errorMessage':
           'Unexpected response format from FES. '
           'Expected a Map but got: $compileResult',
-      'isError': true,
+      'errorCount': 1,
     };
   }
 
-  final error = compileResult['error'] as String?;
-  final errorCount = compileResult['errorCount'] as int?;
-  final errorMessage = compileResult['errorMessage'] as String?;
-  if (error != null || (errorCount != null && errorCount > 0)) {
-    return {
-      'result': 'FES error: ${error ?? errorMessage ?? 'Unknown error'}',
-      'isError': true,
-    };
+  final compileResultMap = compileResult as Map<String, dynamic>;
+
+  // Ensure 'errorMessage' is populated if 'error' is present,
+  // to satisfy DaemonExpressionCompiler.
+  final error = compileResultMap['error'] as String?;
+  if (error != null && compileResultMap['errorMessage'] == null) {
+    compileResultMap['errorMessage'] = error;
   }
 
-  final expressionData = compileResult['expressionData'] as String?;
-  if (expressionData == null) {
-    return {
-      'result': 'Missing expressionData in FES compile result',
-      'isError': true,
-    };
-  }
-
-  final decodedResult = utf8.decode(base64.decode(expressionData));
-  return {'result': decodedResult, 'isError': false};
+  return compileResultMap;
 }

@@ -29,8 +29,7 @@ void runTests({
           ? 'web/main.dart'
           : 'main.dart';
 
-      final serverPath =
-          context.usesFrontendServer && useDebuggerModuleNames
+      final serverPath = context.usesFrontendServer && useDebuggerModuleNames
           ? 'packages/${testPackageProject.packageDirectory}/lib/test_library.dart'
           : 'packages/${testPackageProject.packageName}/test_library.dart';
 
@@ -38,7 +37,6 @@ void runTests({
           context.usesFrontendServer && useDebuggerModuleNames
           ? 'packages/${testProject.packageDirectory}/lib/library.dart'
           : 'packages/${testProject.packageName}/library.dart';
-
 
       setUpAll(() async {
         await context.setUp(

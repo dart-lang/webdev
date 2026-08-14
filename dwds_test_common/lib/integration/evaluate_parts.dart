@@ -20,13 +20,11 @@ void testAll({
   final testParts = TestProject.testParts(baseMode: indexBaseMode);
   final context = contextFactory(testParts, provider);
 
-  if (context.usesBuildDaemon &&
-      indexBaseMode == IndexBaseMode.base) {
+  if (context.usesBuildDaemon && indexBaseMode == IndexBaseMode.base) {
     throw StateError(
       'build daemon scenario does not support non-empty base in index file',
     );
   }
-
 
   Future<void> onBreakPoint(
     String isolate,

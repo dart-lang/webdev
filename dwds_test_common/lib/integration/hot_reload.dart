@@ -23,14 +23,20 @@ void runTests({
   final project = TestProject.testHotReload;
   final context = contextFactory(project, provider);
 
-
-  Future<void> recompile({bool fullRestart = false, bool hasEdits = false}) async {
+  Future<void> recompile({
+    bool fullRestart = false,
+    bool hasEdits = false,
+    bool allowFailure = false,
+  }) async {
     if (context.usesBuildDaemon) {
       if (hasEdits) {
-        await context.waitForSuccessfulBuild();
+        await context.waitForSuccessfulBuild(allowFailure: allowFailure);
       }
     } else {
-      await context.recompile(fullRestart: fullRestart);
+      await context.recompile(
+        fullRestart: fullRestart,
+        allowFailure: allowFailure,
+      );
     }
   }
 
@@ -171,7 +177,7 @@ class Foo extends Bar {}
           newString: 'class Foo<T> extends Bar',
         ),
       ]);
-      await recompile(hasEdits: true);
+      await recompile(hasEdits: true, allowFailure: true);
       report = await fakeClient.reloadSources(isolate.id!);
       expect(report.success, false);
 

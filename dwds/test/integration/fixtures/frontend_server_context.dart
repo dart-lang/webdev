@@ -1,19 +1,13 @@
 import 'dart:io';
 
-import 'package:dwds/data/build_result.dart' as dwds;
 import 'package:dwds/asset_reader.dart';
+import 'package:dwds/data/build_result.dart' as dwds;
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/loaders/frontend_server_strategy_provider.dart';
-
-
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:dwds_test_common/fixtures/context.dart';
-import 'package:dwds_test_common/fixtures/project.dart';
 import 'package:dwds_test_common/fixtures/utilities.dart';
-import 'package:dwds_test_common/frontend_server_common/devfs.dart';
 import 'package:dwds_test_common/frontend_server_common/resident_runner.dart';
-import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:dwds_test_common/utilities.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart' as logging;
@@ -22,10 +16,7 @@ import 'package:path/path.dart' as p;
 class FrontendServerTestContext extends TestContext {
   final _logger = logging.Logger('FrontendServerTestContext');
 
-  FrontendServerTestContext(
-    super.project,
-    super.sdkConfigurationProvider,
-  );
+  FrontendServerTestContext(super.project, super.sdkConfigurationProvider);
 
   @override
   bool get usesFrontendServer => true;
@@ -73,9 +64,7 @@ class FrontendServerTestContext extends TestContext {
       projectDirectory: Directory(project.absolutePackageDirectory).uri,
       packageConfigFile: project.packageConfigFile,
       packageUriMapper: packageUriMapper,
-      fileSystemRoots: [
-        Directory(project.absolutePackageDirectory).uri,
-      ],
+      fileSystemRoots: [Directory(project.absolutePackageDirectory).uri],
       fileSystemScheme: 'org-dartlang-app',
       outputPath: outputDir.path,
       compilerOptions: compilerOptions,
@@ -92,9 +81,9 @@ class FrontendServerTestContext extends TestContext {
       index: filePathToServe,
     );
 
-    if (testSettings.enableExpressionEvaluation) {
-      expressionCompiler = webRunner.expressionCompiler;
-    }
+    expressionCompiler = testSettings.enableExpressionEvaluation
+        ? webRunner.expressionCompiler
+        : null;
 
     basePath = webRunner.devFS!.assetServer.basePath;
     assetReader = webRunner.devFS!.assetServer;

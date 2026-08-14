@@ -43,75 +43,78 @@ void runTests({
   Future<Obj> getObject(String instanceId) =>
       service.getObject(isolateId, instanceId);
 
-  group('${context.usesFrontendServer ? "frontendServer" : "buildDaemon"} |', () {
-    setUpAll(() async {
-      setCurrentLogWriter(debug: provider.verbose);
-      await context.setUp(
-        testSettings: TestSettings(
-          enableExpressionEvaluation: true,
-          verboseCompiler: provider.verbose,
-          experiments: ['dot-shorthands'],
-          canaryFeatures: canaryFeatures,
-          moduleFormat: provider.ddcModuleFormat,
-        ),
-      );
-      service = context.debugConnection.vmService;
+  group(
+    '${context.usesFrontendServer ? "frontendServer" : "buildDaemon"} |',
+    () {
+      setUpAll(() async {
+        setCurrentLogWriter(debug: provider.verbose);
+        await context.setUp(
+          testSettings: TestSettings(
+            enableExpressionEvaluation: true,
+            verboseCompiler: provider.verbose,
+            experiments: ['dot-shorthands'],
+            canaryFeatures: canaryFeatures,
+            moduleFormat: provider.ddcModuleFormat,
+          ),
+        );
+        service = context.debugConnection.vmService;
 
-      final vm = await service.getVM();
-      isolateId = vm.isolates!.first.id!;
-      final scripts = await service.getScripts(isolateId);
+        final vm = await service.getVM();
+        isolateId = vm.isolates!.first.id!;
+        final scripts = await service.getScripts(isolateId);
 
-      await service.streamListen('Debug');
-      stream = service.onEvent('Debug');
+        await service.streamListen('Debug');
+        stream = service.onEvent('Debug');
 
-      mainScript = scripts.scripts!.firstWhere(
-        (each) => each.uri!.contains('main.dart'),
-      );
-    });
+        mainScript = scripts.scripts!.firstWhere(
+          (each) => each.uri!.contains('main.dart'),
+        );
+      });
 
-    tearDownAll(() async {
-      await context.tearDown();
-    });
+      tearDownAll(() async {
+        await context.tearDown();
+      });
 
-    setUp(() => setCurrentLogWriter(debug: provider.verbose));
-    tearDown(() => service.resume(isolateId));
+      setUp(() => setCurrentLogWriter(debug: provider.verbose));
+      tearDown(() => service.resume(isolateId));
 
-    group('calling getObject for an existent class', () {
-      test('returns the correct class representation', () async {
-        await onBreakPoint('testClass1Case1', (Event event) async {
-          // classes|dart:core|Object_Diagnosticable
-          final result = await getObject(
-            'classes|org-dartlang-app:///web/main.dart|GreeterClass',
-          );
-          final clazz = result as Class?;
-          expect(clazz!.name, equals('GreeterClass'));
-          expect(
-            clazz.fields!.map((field) => field.name),
-            unorderedEquals(['greeteeName', 'useFrench']),
-          );
-          expect(
-            clazz.functions!.map((fn) => fn.name),
-            containsAll(['sayHello', 'greetInEnglish', 'greetInFrench']),
-          );
+      group('calling getObject for an existent class', () {
+        test('returns the correct class representation', () async {
+          await onBreakPoint('testClass1Case1', (Event event) async {
+            // classes|dart:core|Object_Diagnosticable
+            final result = await getObject(
+              'classes|org-dartlang-app:///web/main.dart|GreeterClass',
+            );
+            final clazz = result as Class?;
+            expect(clazz!.name, equals('GreeterClass'));
+            expect(
+              clazz.fields!.map((field) => field.name),
+              unorderedEquals(['greeteeName', 'useFrench']),
+            );
+            expect(
+              clazz.functions!.map((fn) => fn.name),
+              containsAll(['sayHello', 'greetInEnglish', 'greetInFrench']),
+            );
+          });
         });
       });
-    });
 
-    group('calling getObject for a non-existent class', () {
-      // TODO(https://github.com/dart-lang/webdev/issues/2297): Ideally we
-      // should throw an error in this case for the client to catch instead
-      // of returning an empty class.
-      test('returns an empty class representation', () async {
-        await onBreakPoint('testClass1Case1', (Event event) async {
-          final result = await getObject(
-            'classes|dart:core|Object_Diagnosticable',
-          );
-          final clazz = result as Class?;
-          expect(clazz!.name, equals('Object_Diagnosticable'));
-          expect(clazz.fields, isEmpty);
-          expect(clazz.functions, isEmpty);
+      group('calling getObject for a non-existent class', () {
+        // TODO(https://github.com/dart-lang/webdev/issues/2297): Ideally we
+        // should throw an error in this case for the client to catch instead
+        // of returning an empty class.
+        test('returns an empty class representation', () async {
+          await onBreakPoint('testClass1Case1', (Event event) async {
+            final result = await getObject(
+              'classes|dart:core|Object_Diagnosticable',
+            );
+            final clazz = result as Class?;
+            expect(clazz!.name, equals('Object_Diagnosticable'));
+            expect(clazz.fields, isEmpty);
+            expect(clazz.functions, isEmpty);
+          });
         });
       });
-    });
-  });
+    },
+  );
 }

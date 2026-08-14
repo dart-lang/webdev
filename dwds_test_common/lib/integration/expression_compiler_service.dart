@@ -20,7 +20,6 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
-
 ExpressionCompilerService get service => _service!;
 late ExpressionCompilerService? _service;
 

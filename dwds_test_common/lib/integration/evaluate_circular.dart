@@ -25,13 +25,11 @@ void testAll({
   final testCircular2 = TestProject.testCircular2(baseMode: indexBaseMode);
   final context = contextFactory(testCircular2, provider);
 
-  if (context.usesBuildDaemon &&
-      indexBaseMode == IndexBaseMode.base) {
+  if (context.usesBuildDaemon && indexBaseMode == IndexBaseMode.base) {
     throw StateError(
       'build daemon scenario does not support non-empty base in index file',
     );
   }
-
 
   Future<void> onBreakPoint(
     String isolate,

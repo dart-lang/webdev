@@ -8,11 +8,11 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds_test_common/fixtures/context.dart';
-import 'helpers/context.dart';
 import 'package:dwds_test_common/integration/evaluate_circular.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
+
+import 'helpers/context.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
@@ -26,13 +26,13 @@ void main() async {
   tearDownAll(provider.dispose);
 
   group('Build Daemon |', () {
-    testAll(provider: provider, contextFactory: (project, provider) => BuildDaemonTestContext(project, provider));
+    testAll(provider: provider, contextFactory: BuildDaemonTestContext.new);
   });
 
   group('Build Daemon and Frontend Server |', () {
     testAll(
       provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider)AndFrontendServer,
+      contextFactory: BuildDaemonAndFrontendServerTestContext.new,
     );
   });
 }

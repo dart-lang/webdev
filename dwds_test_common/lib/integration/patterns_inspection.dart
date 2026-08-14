@@ -52,128 +52,137 @@ void runTests({
   Future<Map<String?, Instance?>> getFrameVariables(Frame frame) =>
       testInspector.getFrameVariables(isolateId, frame);
 
-  group('${context.usesFrontendServer ? "frontendServer" : "buildDaemon"} |', () {
-    setUpAll(() async {
-      setCurrentLogWriter(debug: provider.verbose);
-      await context.setUp(
-        testSettings: TestSettings(
-          enableExpressionEvaluation: true,
-          verboseCompiler: provider.verbose,
-          experiments: ['dot-shorthands'],
-          canaryFeatures: canaryFeatures,
-          moduleFormat: provider.ddcModuleFormat,
-        ),
-      );
-      service = context.debugConnection.vmService;
-
-      final vm = await service.getVM();
-      isolateId = vm.isolates!.first.id!;
-      final scripts = await service.getScripts(isolateId);
-
-      await service.streamListen('Debug');
-      stream = service.onEvent('Debug');
-
-      mainScript = scripts.scripts!.firstWhere(
-        (each) => each.uri!.contains('main.dart'),
-      );
-    });
-
-    tearDownAll(() async {
-      await context.tearDown();
-    });
-
-    setUp(() => setCurrentLogWriter(debug: provider.verbose));
-    tearDown(() => service.resume(isolateId));
-
-    test('pattern match case 1', () async {
-      await onBreakPoint('testPatternCase1', (event) async {
-        final frame = event.topFrame!;
-
-        expect(await getFrameVariables(frame), {
-          'obj': matchListInstance(type: 'Object'),
-          'a': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'a'),
-          'n': matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
-        });
-      });
-    });
-
-    test('pattern match case 2', () async {
-      await onBreakPoint('testPatternCase2', (event) async {
-        final frame = event.topFrame!;
-
-        expect(await getFrameVariables(frame), {
-          'obj': matchListInstance(type: 'Object'),
-          // Renamed to avoid shadowing variables from previous case.
-          'a\$': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'b'),
-          'n\$': matchPrimitiveInstance(
-            kind: InstanceKind.kDouble,
-            value: 3.14,
+  group(
+    '${context.usesFrontendServer ? "frontendServer" : "buildDaemon"} |',
+    () {
+      setUpAll(() async {
+        setCurrentLogWriter(debug: provider.verbose);
+        await context.setUp(
+          testSettings: TestSettings(
+            enableExpressionEvaluation: true,
+            verboseCompiler: provider.verbose,
+            experiments: ['dot-shorthands'],
+            canaryFeatures: canaryFeatures,
+            moduleFormat: provider.ddcModuleFormat,
           ),
+        );
+        service = context.debugConnection.vmService;
+
+        final vm = await service.getVM();
+        isolateId = vm.isolates!.first.id!;
+        final scripts = await service.getScripts(isolateId);
+
+        await service.streamListen('Debug');
+        stream = service.onEvent('Debug');
+
+        mainScript = scripts.scripts!.firstWhere(
+          (each) => each.uri!.contains('main.dart'),
+        );
+      });
+
+      tearDownAll(() async {
+        await context.tearDown();
+      });
+
+      setUp(() => setCurrentLogWriter(debug: provider.verbose));
+      tearDown(() => service.resume(isolateId));
+
+      test('pattern match case 1', () async {
+        await onBreakPoint('testPatternCase1', (event) async {
+          final frame = event.topFrame!;
+
+          expect(await getFrameVariables(frame), {
+            'obj': matchListInstance(type: 'Object'),
+            'a': matchPrimitiveInstance(kind: InstanceKind.kString, value: 'a'),
+            'n': matchPrimitiveInstance(kind: InstanceKind.kDouble, value: 1),
+          });
         });
       });
-    });
 
-    test('pattern match default case', () async {
-      await onBreakPoint('testPatternDefault', (event) async {
-        final frame = event.topFrame!;
-        final frameIndex = frame.index!;
-        final instanceRef = await getInstanceRef(frameIndex, 'obj');
-        expect(await getFields(instanceRef), {0: 0.0, 1: 1.0});
+      test('pattern match case 2', () async {
+        await onBreakPoint('testPatternCase2', (event) async {
+          final frame = event.topFrame!;
 
-        expect(await getFrameVariables(frame), {
-          'obj': matchListInstance(type: 'int'),
+          expect(await getFrameVariables(frame), {
+            'obj': matchListInstance(type: 'Object'),
+            // Renamed to avoid shadowing variables from previous case.
+            'a\$': matchPrimitiveInstance(
+              kind: InstanceKind.kString,
+              value: 'b',
+            ),
+            'n\$': matchPrimitiveInstance(
+              kind: InstanceKind.kDouble,
+              value: 3.14,
+            ),
+          });
         });
       });
-    });
 
-    test('stepping through pattern match', () async {
-      await onBreakPoint('callTestPattern1', (Event event) async {
-        var previousLocation = event.topFrame!.location;
-        for (final step in [
-          // Make sure we step into the callee.
-          for (var i = 0; i < 4; i++) 'Into',
-          // Make a few steps inside the callee.
-          for (var i = 0; i < 4; i++) 'Over',
-        ]) {
-          await service.resume(isolateId, step: step);
+      test('pattern match default case', () async {
+        await onBreakPoint('testPatternDefault', (event) async {
+          final frame = event.topFrame!;
+          final frameIndex = frame.index!;
+          final instanceRef = await getInstanceRef(frameIndex, 'obj');
+          expect(await getFields(instanceRef), {0: 0.0, 1: 1.0});
 
-          event = await stream.firstWhere(
-            (e) => e.kind == EventKind.kPauseInterrupted,
-          );
+          expect(await getFrameVariables(frame), {
+            'obj': matchListInstance(type: 'int'),
+          });
+        });
+      });
 
-          if (step == 'Over') {
-            expect(event.topFrame!.code!.name, 'testPattern');
+      test('stepping through pattern match', () async {
+        await onBreakPoint('callTestPattern1', (Event event) async {
+          var previousLocation = event.topFrame!.location;
+          for (final step in [
+            // Make sure we step into the callee.
+            for (var i = 0; i < 4; i++) 'Into',
+            // Make a few steps inside the callee.
+            for (var i = 0; i < 4; i++) 'Over',
+          ]) {
+            await service.resume(isolateId, step: step);
+
+            event = await stream.firstWhere(
+              (e) => e.kind == EventKind.kPauseInterrupted,
+            );
+
+            if (step == 'Over') {
+              expect(event.topFrame!.code!.name, 'testPattern');
+            }
+
+            final location = event.topFrame!.location;
+            expect(location, isNot(equals(previousLocation)));
+            previousLocation = location;
           }
-
-          final location = event.topFrame!.location;
-          expect(location, isNot(equals(previousLocation)));
-          previousLocation = location;
-        }
-      });
-    });
-
-    test('before instantiation of pattern-matching variables', () async {
-      await onBreakPoint('testPattern2Case1', (event) async {
-        final frame = event.topFrame!;
-
-        expect(await getFrameVariables(frame), {
-          'dog': matchPrimitiveInstance(kind: 'String', value: 'Prismo'),
         });
       });
-    });
 
-    test('after instantiation of pattern-matching variables', () async {
-      await onBreakPoint('testPattern2Case2', (event) async {
-        final frame = event.topFrame!;
+      test('before instantiation of pattern-matching variables', () async {
+        await onBreakPoint('testPattern2Case1', (event) async {
+          final frame = event.topFrame!;
 
-        final vars = await getFrameVariables(frame);
-        expect(vars, {
-          'dog': matchPrimitiveInstance(kind: 'String', value: 'Prismo'),
-          'cats': matchListInstance(type: 'String'),
-          'firstCat': matchPrimitiveInstance(kind: 'String', value: 'Garfield'),
-          'secondCat': matchPrimitiveInstance(kind: 'String', value: 'Tom'),
+          expect(await getFrameVariables(frame), {
+            'dog': matchPrimitiveInstance(kind: 'String', value: 'Prismo'),
+          });
         });
       });
-    });
-  });
+
+      test('after instantiation of pattern-matching variables', () async {
+        await onBreakPoint('testPattern2Case2', (event) async {
+          final frame = event.topFrame!;
+
+          final vars = await getFrameVariables(frame);
+          expect(vars, {
+            'dog': matchPrimitiveInstance(kind: 'String', value: 'Prismo'),
+            'cats': matchListInstance(type: 'String'),
+            'firstCat': matchPrimitiveInstance(
+              kind: 'String',
+              value: 'Garfield',
+            ),
+            'secondCat': matchPrimitiveInstance(kind: 'String', value: 'Tom'),
+          });
+        });
+      });
+    },
+  );
 }
