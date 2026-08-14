@@ -193,11 +193,7 @@ void runTests({
       });
     },
     // `BuildResult`s are only ever emitted when using the build daemon.
-<<<<<<< HEAD
     skip: context.usesBuildDaemon ? null : true,
-=======
-    skip: compilationMode.usesBuildDaemon ? null : true,
->>>>>>> 216e5b64 (DWDS Feature: Daemon Expression Compiler & FES Support)
     timeout: const Timeout.factor(2),
   );
 }
