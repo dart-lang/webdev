@@ -11,7 +11,7 @@ stages:
       # run first for Linux.
       - group:
           - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-          - command: mkdir -p ../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../third_party/browsers/chrome/chrome/google-chrome
+          - command: mkdir -p ../../third_party/browsers/chrome/chrome && ln -s /usr/bin/google-chrome ../../third_party/browsers/chrome/chrome/google-chrome
           - test: --exclude-tags=release
         sdk: dev
         os:
