@@ -7,26 +7,59 @@ stages:
       - test: test/build/ensure_version_test.dart
       sdk: dev
   - unit_test:
-    # First test shard:
+    # Linux extension tests:
+    # Note: `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &` must be
+    # run first for Linux.
     - group:
-      - test: --total-shards 3 --shard-index 0
+      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - test: --tags=extension
       sdk: dev
       os:
         - linux
+     # Windows extension tests:
+    - group:
+      - test: --tags=extension
+      sdk: dev
+      os:
         - windows
-    # Second test shard:
+    # First test shard (Linux):
     - group:
-      - test: --total-shards 3 --shard-index 1
+      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - test: --total-shards 3 --shard-index 0 --exclude-tags=extension
       sdk: dev
       os:
         - linux
+    # First test shard (Windows):
+    - group:
+      - test: --total-shards 3 --shard-index 0 --exclude-tags=extension
+      sdk: dev
+      os:
         - windows
-    # Third test shard:
+    # Second test shard (Linux):
     - group:
-      - test: --total-shards 3 --shard-index 2
+      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - test: --total-shards 3 --shard-index 1 --exclude-tags=extension
       sdk: dev
       os:
         - linux
+    # Second test shard (Windows):
+    - group:
+      - test: --total-shards 3 --shard-index 1 --exclude-tags=extension
+      sdk: dev
+      os:
+        - windows
+    # Third test shard (Linux):
+    - group:
+      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - test: --total-shards 3 --shard-index 2 --exclude-tags=extension
+      sdk: dev
+      os:
+        - linux
+    # Third test shard (Windows):
+    - group:
+      - test: --total-shards 3 --shard-index 2 --exclude-tags=extension
+      sdk: dev
+      os:
         - windows
   - beta_cron:
     - analyze: .
