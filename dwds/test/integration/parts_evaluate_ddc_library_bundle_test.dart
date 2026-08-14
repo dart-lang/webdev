@@ -10,13 +10,13 @@ library;
 import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/fixtures/project.dart';
 import 'package:dwds_test_common/integration/evaluate_parts.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'fixtures/frontend_server_context.dart';
+
 import '../../../webdev/test/helpers/context.dart';
+import 'fixtures/frontend_server_context.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
@@ -30,7 +30,7 @@ void main() async {
   tearDownAll(provider.dispose);
 
   group('Build Daemon |', () {
-    testAll(provider: provider, contextFactory: (project, provider) => BuildDaemonTestContext(project, provider));
+    testAll(provider: provider, contextFactory: BuildDaemonTestContext.new);
   });
 
   group('Frontend Server |', () {
@@ -41,7 +41,7 @@ void main() async {
           () {
             testAll(
               provider: provider,
-              contextFactory: (project, provider) => FrontendServerTestContext(project, provider),
+              contextFactory: FrontendServerTestContext.new,
               indexBaseMode: indexBaseMode,
               useDebuggerModuleNames: true,
             );

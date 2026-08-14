@@ -10,12 +10,11 @@ import 'dart:io';
 
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/utilities/server.dart';
-import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/integration/events.dart';
 import 'package:dwds_test_common/logging.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'fixtures/frontend_server_context.dart';
+
 import '../../../webdev/test/helpers/context.dart';
 
 void main() {
@@ -82,7 +81,7 @@ void main() {
   group('Build Daemon', () {
     testWithDwds(
       provider: provider,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
+      contextFactory: BuildDaemonTestContext.new,
     );
   });
 }

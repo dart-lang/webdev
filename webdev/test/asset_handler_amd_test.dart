@@ -20,7 +20,7 @@ void main() {
 
   testAll(
     provider: provider,
-    contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
+    contextFactory: BuildDaemonTestContext.new,
   );
 }
 

@@ -8,11 +8,10 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/integration/hot_restart_correctness.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
-import 'fixtures/frontend_server_context.dart';
+
 import '../../../webdev/test/helpers/context.dart';
 
 void main() {
@@ -31,7 +30,7 @@ void main() {
     runTests(
       provider: provider,
       moduleFormat: moduleFormat,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
+      contextFactory: BuildDaemonTestContext.new,
       canaryFeatures: canaryFeatures,
     );
   });
@@ -46,7 +45,7 @@ void main() {
     runTests(
       provider: provider,
       moduleFormat: moduleFormat,
-      contextFactory: (project, provider) => BuildDaemonTestContext(project, provider),
+      contextFactory: BuildDaemonTestContext.new,
       canaryFeatures: canaryFeatures,
     );
   });

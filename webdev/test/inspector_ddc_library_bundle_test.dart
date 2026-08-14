@@ -25,13 +25,13 @@ void main() {
   tearDownAll(provider.dispose);
 
   group('Build Daemon |', () {
-    runTests(provider: provider, contextFactory: (project, provider) => BuildDaemonTestContext(project, provider));
+    runTests(provider: provider, contextFactory: BuildDaemonTestContext.new);
   });
 
   group('Build Daemon and Frontend Server |', () {
     runTests(
       provider: provider,
-      contextFactory: (project, provider) => BuildDaemonAndFrontendServerTestContext(project, provider),
+      contextFactory: BuildDaemonAndFrontendServerTestContext.new,
     );
   });
 }
