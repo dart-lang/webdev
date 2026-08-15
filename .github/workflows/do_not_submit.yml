@@ -11,6 +11,7 @@ jobs:
     if: ${{ contains(github.event.*.labels.*.name, 'do-not-submit') }}
     name: Prevent submission
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Check for do-not-submit label
         run: |

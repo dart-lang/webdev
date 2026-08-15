@@ -1,3 +1,15 @@
+## 28.0.0
+- **Breaking Change**: Removed `PackageUriMapper` in favor of **`PathResolver`** - with `BuildRunnerPathResolver`, `FrontendServerPathResolver`, and `FlutterPathResolver` impls.
+- **Breaking Change**: **`LoadStrategy`** implementors must now implement the **`assetScheme`** getter.
+- Introduce **`AssetScheme`** to generalize asset naming schemes.
+- Add support for Frontend Server + Build Daemon configuration with hot reload via **`FrontendServerBuildDaemonStrategyProvider`**.
+- Expose **`DaemonExpressionCompiler`** for handling expression compilation directly via `build_daemon`.
+- **`BuildSettings`** now supports **`useDebuggerModuleNames`** to distinguish between debugger-friendly paths and raw server paths.
+
+## 27.1.3-wip
+
+- Internal test infrastructure refactoring: Move common test files to `dwds_test_common`.
+
 ## 27.1.2
 
 - Bump the min sdk to 3.13.0-107.0.dev.

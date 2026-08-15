@@ -12,6 +12,8 @@ jobs:
   dcm:
     name: Dart Code Metrics
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Install DCM
         run: |
@@ -29,6 +31,7 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
+          persist-credentials: false
           ref: "${{ github.event.pull_request.head.sha }}"
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade

@@ -1,6 +1,6 @@
 name: webdev
 # Every time this changes you need to run `dart run build_runner build`.
-version: 4.0.1
+version: 4.1.0
 # We should not depend on a dev SDK before publishing.
 # publish_to: none
 description: >-
@@ -18,7 +18,7 @@ dependencies:
   collection: ^1.15.0
   crypto: ^3.0.2
   dds: ^5.3.0
-  dwds: ^27.1.2
+  dwds: '>=27.1.2 <29.0.0'
   file: ^7.0.1
   http: ^1.0.0
   http_multi_server: ^3.2.0
@@ -57,8 +57,5 @@ executables:
   webdev:
 
 dependency_overrides:
-  dwds_test_common:
-    git:
-      url: https://github.com/dart-lang/sdk.git
-      ref: cc67fadefe24678e7f020fe42cbb41fed2cd6f0c
-      path: pkg/dwds_test_common
+  dwds:
+    path: ../dwds

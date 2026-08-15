@@ -7,12 +7,11 @@
 library;
 
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds_test_common/fixtures/fakes.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
 import 'package:dwds_test_common/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-
-import 'fixtures/fakes.dart';
-import 'fixtures/utilities.dart';
 
 class TestStrategy extends FakeStrategy {
   TestStrategy(super.assetReader);
@@ -61,12 +60,12 @@ void main() {
 
     test('parses org-dartlang-app paths', () {
       final uri = DartUri('org-dartlang-app:///blah/main.dart');
-      expect(uri.serverPath, '/blah/main.dart');
+      expect(uri.serverPath, 'blah/main.dart');
     });
 
     test('parses google3 paths', () {
       final uri = DartUri('google3:///blah/main.dart');
-      expect(uri.serverPath, '/blah/main.dart');
+      expect(uri.serverPath, 'blah/main.dart');
     });
 
     test('parses packages paths', () {

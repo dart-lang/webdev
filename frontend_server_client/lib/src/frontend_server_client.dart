@@ -75,9 +75,10 @@ class FrontendServerClient {
     List<String> additionalSources = const [],
     String? nativeAssets,
   }) async {
+    final sdk = sdkRoot ?? sdkDir;
     final commonArguments = <String>[
       '--sdk-root',
-      sdkRoot ?? sdkDir,
+      sdk,
       '--platform=$platformKernel',
       '--target=$target',
       if (target == 'dartdevc')
@@ -100,7 +101,6 @@ class FrontendServerClient {
       if (nativeAssets != null) ...['--native-assets', nativeAssets],
     ];
 
-    final sdk = sdkRoot ?? sdkDir;
     final dartExecutable = p.join(
       sdk,
       'bin',

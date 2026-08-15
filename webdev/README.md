@@ -12,7 +12,7 @@ similar to:
 ---
 dev_dependencies:
   build_runner: ^2.4.0
-  build_web_compilers: ^4.4.12
+  build_web_compilers: ^4.8.9
 ```
 
 ## Installation

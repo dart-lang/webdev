@@ -1,0 +1,55 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@Tags(['daily'])
+@TestOn('vm')
+@Timeout(Duration(minutes: 5))
+library;
+
+import 'dart:io';
+
+import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/integration/evaluate_circular.dart';
+import 'package:dwds_test_common/test_sdk_configuration.dart';
+import 'package:test/test.dart';
+
+import '../../dwds/test/integration/fixtures/frontend_server_context.dart';
+import 'helpers/context.dart';
+
+void main() async {
+  // Enable verbose logging for debugging.
+  const debug = false;
+
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    ddcModuleFormat: ModuleFormat.amd,
+  );
+  tearDownAll(provider.dispose);
+
+  group('Build Daemon |', () {
+    testAll(provider: provider, contextFactory: BuildDaemonTestContext.new);
+  });
+
+  group('Frontend Server |', () {
+    group('Context with circular dependencies |', () {
+      for (final indexBaseMode in IndexBaseMode.values) {
+        group(
+          'with ${indexBaseMode.name} |',
+          () {
+            testAll(
+              provider: provider,
+              contextFactory: FrontendServerTestContext.new,
+              indexBaseMode: indexBaseMode,
+              useDebuggerModuleNames: true,
+            );
+          },
+          skip:
+              // https://github.com/dart-lang/sdk/issues/49277
+              indexBaseMode == IndexBaseMode.base && Platform.isWindows,
+        );
+      }
+    });
+  });
+}
