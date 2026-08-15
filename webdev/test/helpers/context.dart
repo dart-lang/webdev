@@ -361,7 +361,6 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
       '--build-filter=${project.directoryToServe}/**',
     ];
 
-
     if (testSettings.enableExpressionEvaluation) {
       _logger.info('Starting Frontend Server Manager');
       final sdkDir = p.dirname(p.dirname(sdkLayout.dartPath));
