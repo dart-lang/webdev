@@ -266,8 +266,9 @@ class WebDevFS {
     for (final module in modules) {
       final metadata = ModuleMetadata.fromJson(
         json.decode(
-          utf8.decode(assetServer.getMetadata('$module.metadata').toList()),
-        ) as Map<String, dynamic>,
+              utf8.decode(assetServer.getMetadata('$module.metadata').toList()),
+            )
+            as Map<String, dynamic>,
       );
       final libraries = metadata.libraries.keys.toList();
       moduleToLibrary.add(
