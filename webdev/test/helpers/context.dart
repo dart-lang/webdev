@@ -361,7 +361,6 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
       '--build-filter=${project.directoryToServe}/**',
     ];
 
-
     if (testSettings.enableExpressionEvaluation) {
       _logger.info('Starting Frontend Server Manager');
       final sdkDir = p.dirname(p.dirname(sdkLayout.dartPath));
@@ -389,9 +388,9 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
       );
       packagesFile.parent.createSync(recursive: true);
 
-      final originalJson =
-          jsonDecode(sourcePackagesFile.readAsStringSync())
-              as Map<String, dynamic>;
+      final originalJson = jsonDecode(
+        sourcePackagesFile.readAsStringSync(),
+      ) as Map<String, dynamic>;
       final packagesList = originalJson['packages'] as List<dynamic>;
       for (final package in packagesList) {
         final packageMap = package as Map<String, dynamic>;
@@ -414,12 +413,10 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
         'fes_manager.snapshot',
       );
 
-      final buildWebCompilers =
-          packagesList.firstWhere(
-                (pkg) => (pkg as Map)['name'] == 'build_web_compilers',
-                orElse: () => null,
-              )
-              as Map<String, dynamic>?;
+      final buildWebCompilers = packagesList.firstWhere(
+        (pkg) => (pkg as Map)['name'] == 'build_web_compilers',
+        orElse: () => null,
+      ) as Map<String, dynamic>?;
       String fesManagerPath;
       if (buildWebCompilers != null) {
         final pkgRootUri = Uri.parse(buildWebCompilers['rootUri'] as String);

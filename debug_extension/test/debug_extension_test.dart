@@ -62,9 +62,8 @@ void main() async {
       group('Without encoding', () {
         setUp(() async {
           await context.setUp(
-            debugSettings: TestDebugSettings.withDevToolsLaunch(
-              context,
-            ).copyWith(enableDebugExtension: true, useSse: useSse),
+            debugSettings: TestDebugSettings.withDevToolsLaunch(context)
+                .copyWith(enableDebugExtension: true, useSse: useSse),
           );
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
             'expression': 'fakeClick()',
@@ -125,9 +124,8 @@ void main() async {
       group('With a sharded Dart app', () {
         setUp(() async {
           await context.setUp(
-            debugSettings: TestDebugSettings.withDevToolsLaunch(
-              context,
-            ).copyWith(enableDebugExtension: true, useSse: useSse),
+            debugSettings: TestDebugSettings.withDevToolsLaunch(context)
+                .copyWith(enableDebugExtension: true, useSse: useSse),
           );
           final htmlTag = await context.webDriver.findElement(
             const By.tagName('html'),
@@ -161,9 +159,8 @@ void main() async {
       group('With an internal Dart app', () {
         setUp(() async {
           await context.setUp(
-            debugSettings: TestDebugSettings.withDevToolsLaunch(
-              context,
-            ).copyWith(enableDebugExtension: true, useSse: false),
+            debugSettings: TestDebugSettings.withDevToolsLaunch(context)
+                .copyWith(enableDebugExtension: true, useSse: false),
           );
           final htmlTag = await context.webDriver.findElement(
             const By.tagName('html'),
