@@ -699,8 +699,44 @@ String _resolveChromeDriverExecutable() => _resolveExecutable(
   fallbackName: _chromeDriverName,
 );
 
-String _resolveChromeExecutable() => _resolveExecutable(
-  environmentKeys: const ['CHROME_EXECUTABLE', 'CHROME_PATH'],
-  sdkRelativePath: 'third_party/browsers/chrome/chrome/$_chromeExecutableName',
-  fallbackName: _chromeExecutableName,
-);
+String _resolveChromeExecutable() {
+  for (final env in const ['CHROME_EXECUTABLE', 'CHROME_PATH']) {
+    if (Platform.environment.containsKey(env)) {
+      return Platform.environment[env]!;
+    }
+  }
+  final sdkPath = _sdkRoot
+      .resolve('third_party/browsers/chrome/chrome/$_chromeExecutableName')
+      .toFilePath();
+  if (File(sdkPath).existsSync()) {
+    return sdkPath;
+  }
+  if (Platform.isWindows) {
+    final defaultWindowsPaths = [
+      if (Platform.environment.containsKey('PROGRAMFILES'))
+        p.join(
+          Platform.environment['PROGRAMFILES']!,
+          r'Google\Chrome\Application\chrome.exe',
+        ),
+      if (Platform.environment.containsKey('PROGRAMFILES(X86)'))
+        p.join(
+          Platform.environment['PROGRAMFILES(X86)']!,
+          r'Google\Chrome\Application\chrome.exe',
+        ),
+      if (Platform.environment.containsKey('LOCALAPPDATA'))
+        p.join(
+          Platform.environment['LOCALAPPDATA']!,
+          r'Google\Chrome\Application\chrome.exe',
+        ),
+      r'C:\Program Files\Google\Chrome\Application\chrome.exe',
+      r'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe',
+    ];
+    for (final path in defaultWindowsPaths) {
+      if (File(path).existsSync()) {
+        return path;
+      }
+    }
+    return 'chrome.exe';
+  }
+  return _chromeExecutableName;
+}
