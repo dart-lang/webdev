@@ -92,6 +92,7 @@ class BuildDaemonTestContext extends TestContext {
       canaryFeatures: testSettings.canaryFeatures,
       isFlutterApp: testSettings.isFlutterApp,
       experiments: testSettings.experiments,
+      useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
     );
 
     final options = [
@@ -329,6 +330,7 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
       canaryFeatures: testSettings.canaryFeatures,
       isFlutterApp: testSettings.isFlutterApp,
       experiments: testSettings.experiments,
+      useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
     );
 
     final options = [
