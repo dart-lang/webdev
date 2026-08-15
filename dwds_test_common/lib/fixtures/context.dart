@@ -55,10 +55,8 @@ Matcher isRPCErrorWithCode(int code) =>
     isA<RPCError>().having((RPCError e) => e.code, 'code', equals(code));
 Matcher throwsRPCErrorWithCode(int code) => throwsA(isRPCErrorWithCode(code));
 
-typedef TestContextFactory = TestContext Function(
-  TestProject,
-  TestSdkConfigurationProvider,
-);
+typedef TestContextFactory =
+    TestContext Function(TestProject, TestSdkConfigurationProvider);
 
 abstract class TestContext {
   static const reloadedSourcesFileName = 'reloaded_sources.json';
@@ -618,10 +616,9 @@ abstract class TestContext {
     String isolateId,
     ScriptRef scriptRef,
   ) async {
-    final script = await debugConnection.vmService.getObject(
-      isolateId,
-      scriptRef.id!,
-    ) as Script;
+    final script =
+        await debugConnection.vmService.getObject(isolateId, scriptRef.id!)
+            as Script;
     final lines = LineSplitter.split(script.source!).toList();
     final lineNumber = lines.indexWhere(
       (l) => l.endsWith('// Breakpoint: $breakpointId'),
