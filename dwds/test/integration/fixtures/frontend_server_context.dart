@@ -75,6 +75,7 @@ class FrontendServerTestContext extends TestContext {
       canaryFeatures: testSettings.canaryFeatures,
       isFlutterApp: testSettings.isFlutterApp,
       experiments: testSettings.experiments,
+      useDebuggerModuleNames: testSettings.useDebuggerModuleNames,
     );
 
     final filePathToServe = webCompatiblePath([
