@@ -19,18 +19,26 @@ Future<void> exitWebdev(TestProcess webdev) async {
 }
 
 Future<String> waitForAppId(TestProcess webdev) async {
-  var appId = '';
+  final stdoutLines = <String>[];
   while (await webdev.stdout.hasNext) {
     var line = await webdev.stdout.next;
+    stdoutLines.add(line);
     if (line.startsWith('[{"event":"app.started"')) {
       line = line.substring(1, line.length - 1);
       final message = json.decode(line) as Map<String, dynamic>;
-      appId = message['params']['appId'] as String;
-      break;
+      final appId = message['params']['appId'] as String;
+      if (appId.isNotEmpty) return appId;
     }
   }
-  assert(appId.isNotEmpty);
-  return appId;
+  final stderrLines = <String>[];
+  while (await webdev.stderr.hasNext) {
+    stderrLines.add(await webdev.stderr.next);
+  }
+  throw StateError(
+    'Failed to receive "app.started" event before process stdout closed.\n'
+    'Captured stdout:\n${stdoutLines.join('\n')}\n'
+    'Captured stderr:\n${stderrLines.join('\n')}',
+  );
 }
 
 String? getDebugServiceUri(String line) {
