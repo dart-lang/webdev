@@ -46,9 +46,8 @@ Future<Browser> setUpExtensionTest(
       workspaceName: workspaceName,
     ),
     debugSettings: serveDevTools
-        ? TestDebugSettings.withDevToolsLaunch(
-            context,
-          ).copyWith(enableDebugExtension: true, useSse: useSse)
+        ? TestDebugSettings.withDevToolsLaunch(context)
+              .copyWith(enableDebugExtension: true, useSse: useSse)
         : TestDebugSettings.noDevToolsLaunch().copyWith(
             enableDebugExtension: true,
             useSse: useSse,
@@ -181,9 +180,8 @@ Future<Page> navigateToPage(
 
 String getExtensionOrigin(Browser browser) {
   final chromeExtension = 'chrome-extension:';
-  final extensionUrl = _getUrlsInBrowser(
-    browser,
-  ).firstWhere((url) => url.contains(chromeExtension));
+  final extensionUrl = _getUrlsInBrowser(browser)
+      .firstWhere((url) => url.contains(chromeExtension));
   final urlSegments = p.split(extensionUrl);
   final extensionId = urlSegments[urlSegments.indexOf(chromeExtension) + 1];
   return '$chromeExtension//$extensionId';
