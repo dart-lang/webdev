@@ -91,9 +91,13 @@ class PubspecLock {
       dir = next;
     }
 
-    final pubspecLock = loadYaml(
-      await File(p.relative(p.join(dir, 'pubspec.lock'))).readAsString(),
-    ) as YamlMap;
+    final pubspecLock =
+        loadYaml(
+              await File(
+                p.relative(p.join(dir, 'pubspec.lock')),
+              ).readAsString(),
+            )
+            as YamlMap;
 
     final packages = pubspecLock['packages'] as YamlMap?;
     return PubspecLock(packages);

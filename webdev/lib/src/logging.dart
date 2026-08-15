@@ -8,13 +8,14 @@ import 'dart:io';
 import 'package:io/ansi.dart';
 import 'package:logging/logging.dart';
 
-typedef LogWriter = void Function(
-  Level level,
-  String message, {
-  String? error,
-  String? loggerName,
-  String? stackTrace,
-});
+typedef LogWriter =
+    void Function(
+      Level level,
+      String message, {
+      String? error,
+      String? loggerName,
+      String? stackTrace,
+    });
 
 var _verbose = false;
 StreamSubscription<LogRecord>? _subscription;
