@@ -168,6 +168,8 @@ class BuildDaemonTestContext extends TestContext {
         sdkConfigurationProvider: sdkConfigurationProvider,
       );
       _expressionCompiler = ddcService;
+    } else {
+      _expressionCompiler = null;
     }
 
     _loadStrategy = switch ((
@@ -210,6 +212,8 @@ class BuildDaemonTestContext extends TestContext {
   @override
   Future<void> modeTearDown() async {
     await ddcService?.stop();
+    ddcService = null;
+    _expressionCompiler = null;
     await daemonClient.close();
   }
 
