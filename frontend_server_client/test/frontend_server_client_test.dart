@@ -340,9 +340,9 @@ void main() {
 
   test('can support custom librariesSpec', () async {
     final defaultLibrariesJson = File(p.join(sdkDir, 'lib', 'libraries.json'));
-    final libraries =
-        jsonDecode(defaultLibrariesJson.readAsStringSync())
-            as Map<String, Object?>;
+    final libraries = jsonDecode(
+      defaultLibrariesJson.readAsStringSync(),
+    ) as Map<String, Object?>;
 
     // Create the custom library file
     final customLibFile = File(p.join(packageRoot, 'bin', 'custom_lib.dart'));
