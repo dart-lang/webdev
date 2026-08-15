@@ -360,42 +360,7 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
       '--verbose',
       '--build-filter=${project.directoryToServe}/**',
     ];
-    daemonClient = await connectClient(
-      sdkLayout.dartPath,
-      project.absolutePackageDirectory,
-      options,
-      (log) {
-        final record = log.toLogRecord();
-        final name = record.loggerName == '' ? '' : '${record.loggerName}: ';
-        _logger.log(
-          record.level,
-          '$name${record.message}',
-          record.error,
-          record.stackTrace,
-        );
-      },
-    );
-    daemonClient.registerBuildTarget(
-      DefaultBuildTarget((b) => b..target = project.directoryToServe),
-    );
-    daemonClient.startBuild();
 
-    await waitForSuccessfulBuild();
-
-    final assetServerPort = daemonPort(project.absolutePackageDirectory);
-    _assetHandler = createBuildRunnerProxyHandler(
-      directoryToServe: project.directoryToServe,
-      client: client,
-      assetServerPort: assetServerPort,
-    );
-    if (testSettings.moduleFormat == ModuleFormat.ddc &&
-        buildSettings.canaryFeatures) {
-      _assetHandler = handleReloadedSources(_assetHandler);
-    }
-    _assetReader = ProxyServerAssetReader(
-      assetServerPort,
-      root: project.directoryToServe,
-    );
 
     if (testSettings.enableExpressionEvaluation) {
       _logger.info('Starting Frontend Server Manager');
@@ -576,6 +541,7 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
     daemonClient.startBuild();
 
     await buildFuture;
+    final assetServerPort = daemonPort(project.absolutePackageDirectory);
 
     _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
       this,
