@@ -1,5 +1,9 @@
 ## 4.0.1
 
+- **Internal**: Resolve Chrome test flakes.
+
+## 4.0.1
+
 - Catch and report version skew errors when incompatible versions of `build_daemon` are used.
 
 ## 4.0.0
