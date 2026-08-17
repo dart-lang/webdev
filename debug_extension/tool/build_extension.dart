@@ -49,8 +49,9 @@ Future<int> run({required bool isProd}) async {
   }
   _logInfo('Copying manifest.json to /compiled directory');
   try {
-    File(p.join('web', 'manifest.json'))
-        .copySync(p.join('compiled', 'manifest.json'));
+    File(
+      p.join('web', 'manifest.json'),
+    ).copySync(p.join('compiled', 'manifest.json'));
   } catch (error) {
     _logWarning('Copying manifest file failed: $error');
     // Return non-zero exit code to indicate failure:
