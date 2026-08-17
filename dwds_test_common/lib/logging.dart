@@ -7,14 +7,13 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
-typedef LogWriter =
-    void Function(
-      Level level,
-      String message, {
-      String? error,
-      String? loggerName,
-      String? stackTrace,
-    });
+typedef LogWriter = void Function(
+  Level level,
+  String message, {
+  String? error,
+  String? loggerName,
+  String? stackTrace,
+});
 
 StreamSubscription<LogRecord>? _loggerSub;
 

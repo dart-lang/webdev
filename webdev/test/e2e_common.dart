@@ -61,9 +61,9 @@ void e2eTests({required TestRunner testRunner}) {
   tearDownAll(testRunner.tearDownAll);
 
   test('smoke test is configured properly', () async {
-    final smokeYaml =
-        loadYaml(await File('$exampleDirectory/pubspec.yaml').readAsString())
-            as YamlMap;
+    final smokeYaml = loadYaml(
+      await File('$exampleDirectory/pubspec.yaml').readAsString(),
+    ) as YamlMap;
     final webdevYaml =
         loadYaml(await File('pubspec.yaml').readAsString()) as YamlMap;
     expect(

@@ -468,11 +468,10 @@ void runTests({
 
           Future<InstanceRef> createRemoteObject(String message) async {
             return await service.evaluate(
-                  isolate.id!,
-                  bootstrap!.id!,
-                  'createObject("$message")',
-                )
-                as InstanceRef;
+              isolate.id!,
+              bootstrap!.id!,
+              'createObject("$message")',
+            ) as InstanceRef;
           }
 
           test('single scope object', () async {
@@ -636,12 +635,10 @@ void runTests({
       });
 
       test('Classes', () async {
-        final testClass =
-            await service.getObject(
-                  isolate.id!,
-                  rootLibrary!.classes!.first.id!,
-                )
-                as Class;
+        final testClass = await service.getObject(
+          isolate.id!,
+          rootLibrary!.classes!.first.id!,
+        ) as Class;
         expect(
           testClass.functions,
           unorderedEquals([
@@ -683,42 +680,41 @@ void runTests({
       });
 
       test('Runtime classes', () async {
-        final testClass =
-            await service.getObject(isolate.id!, 'classes|dart:_runtime|_Type')
-                as Class;
+        final testClass = await service.getObject(
+          isolate.id!,
+          'classes|dart:_runtime|_Type',
+        ) as Class;
         expect(testClass.name, '_Type');
       });
 
       test('String', () async {
-        final worldRef =
-            await service.evaluate(
-                  isolate.id!,
-                  bootstrap!.id!,
-                  "helloString('world')",
-                )
-                as InstanceRef;
+        final worldRef = await service.evaluate(
+          isolate.id!,
+          bootstrap!.id!,
+          "helloString('world')",
+        ) as InstanceRef;
         final world =
             await service.getObject(isolate.id!, worldRef.id!) as Instance;
         expect(world.valueAsString, 'world');
       });
 
       test('Large strings not truncated', () async {
-        final largeString =
-            await service.evaluate(
-                  isolate.id!,
-                  bootstrap!.id!,
-                  "helloString('${'abcde' * 250}')",
-                )
-                as InstanceRef;
+        final largeString = await service.evaluate(
+          isolate.id!,
+          bootstrap!.id!,
+          "helloString('${'abcde' * 250}')",
+        ) as InstanceRef;
         expect(largeString.valueAsStringIsTruncated, isNot(isTrue));
         expect(largeString.valueAsString!.length, largeString.length);
         expect(largeString.length, 5 * 250);
       });
 
       test('Lists', () async {
-        final list =
-            await service.evaluate(isolate.id!, bootstrap!.id!, 'topLevelList')
-                as InstanceRef;
+        final list = await service.evaluate(
+          isolate.id!,
+          bootstrap!.id!,
+          'topLevelList',
+        ) as InstanceRef;
         final inst = await service.getObject(isolate.id!, list.id!) as Instance;
         expect(inst.length, 1001);
         expect(inst.offset, null);
@@ -731,9 +727,11 @@ void runTests({
       });
 
       test('Maps', () async {
-        final map =
-            await service.evaluate(isolate.id!, bootstrap!.id!, 'topLevelMap')
-                as InstanceRef;
+        final map = await service.evaluate(
+          isolate.id!,
+          bootstrap!.id!,
+          'topLevelMap',
+        ) as InstanceRef;
         final inst = await service.getObject(isolate.id!, map.id!) as Instance;
         expect(inst.length, 1001);
         expect(inst.offset, null);
@@ -748,13 +746,11 @@ void runTests({
       });
 
       test('bool', () async {
-        final ref =
-            await service.evaluate(
-                  isolate.id!,
-                  bootstrap!.id!,
-                  'helloBool(true)',
-                )
-                as InstanceRef;
+        final ref = await service.evaluate(
+          isolate.id!,
+          bootstrap!.id!,
+          'helloBool(true)',
+        ) as InstanceRef;
         final obj = await service.getObject(isolate.id!, ref.id!) as Instance;
         expect(obj.kind, InstanceKind.kBool);
         expect(obj.classRef!.name, 'Bool');
@@ -762,9 +758,11 @@ void runTests({
       });
 
       test('num', () async {
-        final ref =
-            await service.evaluate(isolate.id!, bootstrap!.id!, 'helloNum(42)')
-                as InstanceRef;
+        final ref = await service.evaluate(
+          isolate.id!,
+          bootstrap!.id!,
+          'helloNum(42)',
+        ) as InstanceRef;
         final obj = await service.getObject(isolate.id!, ref.id!) as Instance;
         expect(obj.kind, InstanceKind.kDouble);
         expect(obj.classRef!.name, 'Double');
@@ -789,21 +787,17 @@ void runTests({
 
       group('getObject called with offset/count parameters', () {
         test('Lists with null offset and count are not truncated', () async {
-          final list =
-              await service.evaluate(
-                    isolate.id!,
-                    bootstrap!.id!,
-                    'topLevelList',
-                  )
-                  as InstanceRef;
-          final inst =
-              await service.getObject(
-                    isolate.id!,
-                    list.id!,
-                    count: null,
-                    offset: null,
-                  )
-                  as Instance;
+          final list = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelList',
+          ) as InstanceRef;
+          final inst = await service.getObject(
+            isolate.id!,
+            list.id!,
+            count: null,
+            offset: null,
+          ) as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, null);
           expect(inst.count, null);
@@ -815,21 +809,17 @@ void runTests({
         });
 
         test('Lists with null count are not truncated', () async {
-          final list =
-              await service.evaluate(
-                    isolate.id!,
-                    bootstrap!.id!,
-                    'topLevelList',
-                  )
-                  as InstanceRef;
-          final inst =
-              await service.getObject(
-                    isolate.id!,
-                    list.id!,
-                    count: null,
-                    offset: 0,
-                  )
-                  as Instance;
+          final list = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelList',
+          ) as InstanceRef;
+          final inst = await service.getObject(
+            isolate.id!,
+            list.id!,
+            count: null,
+            offset: 0,
+          ) as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, 0);
           expect(inst.count, null);
@@ -842,21 +832,17 @@ void runTests({
 
         test('Lists with null count and offset greater than 0 are '
             'truncated from offset to end of list', () async {
-          final list =
-              await service.evaluate(
-                    isolate.id!,
-                    bootstrap!.id!,
-                    'topLevelList',
-                  )
-                  as InstanceRef;
-          final inst =
-              await service.getObject(
-                    isolate.id!,
-                    list.id!,
-                    count: null,
-                    offset: 1000,
-                  )
-                  as Instance;
+          final list = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelList',
+          ) as InstanceRef;
+          final inst = await service.getObject(
+            isolate.id!,
+            list.id!,
+            count: null,
+            offset: 1000,
+          ) as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, 1000);
           expect(inst.count, null);
@@ -866,21 +852,17 @@ void runTests({
         });
 
         test('Lists with offset/count are truncated', () async {
-          final list =
-              await service.evaluate(
-                    isolate.id!,
-                    bootstrap!.id!,
-                    'topLevelList',
-                  )
-                  as InstanceRef;
-          final inst =
-              await service.getObject(
-                    isolate.id!,
-                    list.id!,
-                    count: 7,
-                    offset: 4,
-                  )
-                  as Instance;
+          final list = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelList',
+          ) as InstanceRef;
+          final inst = await service.getObject(
+            isolate.id!,
+            list.id!,
+            count: 7,
+            offset: 4,
+          ) as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, 4);
           expect(inst.count, 7);
@@ -894,21 +876,17 @@ void runTests({
         test(
           'Lists are truncated to the end if offset/count runs off the end',
           () async {
-            final list =
-                await service.evaluate(
-                      isolate.id!,
-                      bootstrap!.id!,
-                      'topLevelList',
-                    )
-                    as InstanceRef;
-            final inst =
-                await service.getObject(
-                      isolate.id!,
-                      list.id!,
-                      count: 5,
-                      offset: 1000,
-                    )
-                    as Instance;
+            final list = await service.evaluate(
+              isolate.id!,
+              bootstrap!.id!,
+              'topLevelList',
+            ) as InstanceRef;
+            final inst = await service.getObject(
+              isolate.id!,
+              list.id!,
+              count: 5,
+              offset: 1000,
+            ) as Instance;
             expect(inst.length, 1001);
             expect(inst.offset, 1000);
             expect(inst.count, 1);
@@ -921,21 +899,17 @@ void runTests({
         test(
           'Lists are truncated to empty if offset runs off the end',
           () async {
-            final list =
-                await service.evaluate(
-                      isolate.id!,
-                      bootstrap!.id!,
-                      'topLevelList',
-                    )
-                    as InstanceRef;
-            final inst =
-                await service.getObject(
-                      isolate.id!,
-                      list.id!,
-                      count: 5,
-                      offset: 1002,
-                    )
-                    as Instance;
+            final list = await service.evaluate(
+              isolate.id!,
+              bootstrap!.id!,
+              'topLevelList',
+            ) as InstanceRef;
+            final inst = await service.getObject(
+              isolate.id!,
+              list.id!,
+              count: 5,
+              offset: 1002,
+            ) as Instance;
             expect(inst.elements!.length, 0);
             expect(inst.length, 1001);
             expect(inst.offset, 1002);
@@ -947,21 +921,17 @@ void runTests({
         test(
           'Lists are truncated to empty with 0 count and null offset',
           () async {
-            final list =
-                await service.evaluate(
-                      isolate.id!,
-                      bootstrap!.id!,
-                      'topLevelList',
-                    )
-                    as InstanceRef;
-            final inst =
-                await service.getObject(
-                      isolate.id!,
-                      list.id!,
-                      count: 0,
-                      offset: null,
-                    )
-                    as Instance;
+            final list = await service.evaluate(
+              isolate.id!,
+              bootstrap!.id!,
+              'topLevelList',
+            ) as InstanceRef;
+            final inst = await service.getObject(
+              isolate.id!,
+              list.id!,
+              count: 0,
+              offset: null,
+            ) as Instance;
             expect(inst.elements!.length, 0);
             expect(inst.length, 1001);
             expect(inst.offset, null);
@@ -971,17 +941,17 @@ void runTests({
         );
 
         test('Maps with null offset/count are not truncated', () async {
-          final map =
-              await service.evaluate(isolate.id!, bootstrap!.id!, 'topLevelMap')
-                  as InstanceRef;
-          final inst =
-              await service.getObject(
-                    isolate.id!,
-                    map.id!,
-                    count: null,
-                    offset: null,
-                  )
-                  as Instance;
+          final map = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelMap',
+          ) as InstanceRef;
+          final inst = await service.getObject(
+            isolate.id!,
+            map.id!,
+            count: null,
+            offset: null,
+          ) as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, null);
           expect(inst.count, null);
@@ -996,17 +966,17 @@ void runTests({
 
         test('Maps with null count and offset greater than 0 are '
             'truncated from offset to end of map', () async {
-          final map =
-              await service.evaluate(isolate.id!, bootstrap!.id!, 'topLevelMap')
-                  as InstanceRef;
-          final inst =
-              await service.getObject(
-                    isolate.id!,
-                    map.id!,
-                    count: null,
-                    offset: 1000,
-                  )
-                  as Instance;
+          final map = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelMap',
+          ) as InstanceRef;
+          final inst = await service.getObject(
+            isolate.id!,
+            map.id!,
+            count: null,
+            offset: 1000,
+          ) as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, 1000);
           expect(inst.count, null);
@@ -1017,17 +987,17 @@ void runTests({
         });
 
         test('Maps with null count are not truncated', () async {
-          final map =
-              await service.evaluate(isolate.id!, bootstrap!.id!, 'topLevelMap')
-                  as InstanceRef;
-          final inst =
-              await service.getObject(
-                    isolate.id!,
-                    map.id!,
-                    count: null,
-                    offset: 0,
-                  )
-                  as Instance;
+          final map = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelMap',
+          ) as InstanceRef;
+          final inst = await service.getObject(
+            isolate.id!,
+            map.id!,
+            count: null,
+            offset: 0,
+          ) as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, 0);
           expect(inst.count, null);
@@ -1041,12 +1011,17 @@ void runTests({
         });
 
         test('Maps with offset/count are truncated', () async {
-          final map =
-              await service.evaluate(isolate.id!, bootstrap!.id!, 'topLevelMap')
-                  as InstanceRef;
-          final inst =
-              await service.getObject(isolate.id!, map.id!, count: 7, offset: 4)
-                  as Instance;
+          final map = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'topLevelMap',
+          ) as InstanceRef;
+          final inst = await service.getObject(
+            isolate.id!,
+            map.id!,
+            count: 7,
+            offset: 4,
+          ) as Instance;
           expect(inst.length, 1001);
           expect(inst.offset, 4);
           expect(inst.count, 7);
@@ -1062,21 +1037,17 @@ void runTests({
         test(
           'Maps are truncated to the end if offset/count runs off the end',
           () async {
-            final map =
-                await service.evaluate(
-                      isolate.id!,
-                      bootstrap!.id!,
-                      'topLevelMap',
-                    )
-                    as InstanceRef;
-            final inst =
-                await service.getObject(
-                      isolate.id!,
-                      map.id!,
-                      count: 5,
-                      offset: 1000,
-                    )
-                    as Instance;
+            final map = await service.evaluate(
+              isolate.id!,
+              bootstrap!.id!,
+              'topLevelMap',
+            ) as InstanceRef;
+            final inst = await service.getObject(
+              isolate.id!,
+              map.id!,
+              count: 5,
+              offset: 1000,
+            ) as Instance;
             expect(inst.length, 1001);
             expect(inst.offset, 1000);
             expect(inst.count, 1);
@@ -1090,21 +1061,17 @@ void runTests({
         test(
           'Maps are truncated to empty if offset runs off the end',
           () async {
-            final map =
-                await service.evaluate(
-                      isolate.id!,
-                      bootstrap!.id!,
-                      'topLevelMap',
-                    )
-                    as InstanceRef;
-            final inst =
-                await service.getObject(
-                      isolate.id!,
-                      map.id!,
-                      count: 5,
-                      offset: 1002,
-                    )
-                    as Instance;
+            final map = await service.evaluate(
+              isolate.id!,
+              bootstrap!.id!,
+              'topLevelMap',
+            ) as InstanceRef;
+            final inst = await service.getObject(
+              isolate.id!,
+              map.id!,
+              count: 5,
+              offset: 1002,
+            ) as Instance;
             expect(inst.associations!.length, 0);
             expect(inst.length, 1001);
             expect(inst.offset, 1002);
@@ -1114,21 +1081,17 @@ void runTests({
         );
 
         test('Strings with offset/count are truncated', () async {
-          final worldRef =
-              await service.evaluate(
-                    isolate.id!,
-                    bootstrap!.id!,
-                    "helloString('world')",
-                  )
-                  as InstanceRef;
-          final world =
-              await service.getObject(
-                    isolate.id!,
-                    worldRef.id!,
-                    count: 2,
-                    offset: 1,
-                  )
-                  as Instance;
+          final worldRef = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            "helloString('world')",
+          ) as InstanceRef;
+          final world = await service.getObject(
+            isolate.id!,
+            worldRef.id!,
+            count: 2,
+            offset: 1,
+          ) as Instance;
           expect(world.valueAsString, 'or');
           expect(world.count, 2);
           expect(world.length, 5);
@@ -1138,21 +1101,17 @@ void runTests({
         test(
           'Maps are truncated to empty if offset runs off the end',
           () async {
-            final map =
-                await service.evaluate(
-                      isolate.id!,
-                      bootstrap!.id!,
-                      'topLevelMap',
-                    )
-                    as InstanceRef;
-            final inst =
-                await service.getObject(
-                      isolate.id!,
-                      map.id!,
-                      count: 5,
-                      offset: 1002,
-                    )
-                    as Instance;
+            final map = await service.evaluate(
+              isolate.id!,
+              bootstrap!.id!,
+              'topLevelMap',
+            ) as InstanceRef;
+            final inst = await service.getObject(
+              isolate.id!,
+              map.id!,
+              count: 5,
+              offset: 1002,
+            ) as Instance;
             expect(inst.associations!.length, 0);
             expect(inst.length, 1001);
             expect(inst.offset, 1002);
@@ -1164,21 +1123,17 @@ void runTests({
         test(
           'Maps are truncated to empty with 0 count and null offset',
           () async {
-            final map =
-                await service.evaluate(
-                      isolate.id!,
-                      bootstrap!.id!,
-                      'topLevelMap',
-                    )
-                    as InstanceRef;
-            final inst =
-                await service.getObject(
-                      isolate.id!,
-                      map.id!,
-                      count: 0,
-                      offset: null,
-                    )
-                    as Instance;
+            final map = await service.evaluate(
+              isolate.id!,
+              bootstrap!.id!,
+              'topLevelMap',
+            ) as InstanceRef;
+            final inst = await service.getObject(
+              isolate.id!,
+              map.id!,
+              count: 0,
+              offset: null,
+            ) as Instance;
             expect(inst.associations!.length, 0);
             expect(inst.length, 1001);
             expect(inst.offset, null);
@@ -1190,21 +1145,17 @@ void runTests({
         test(
           'Strings are truncated to the end if offset/count runs off the end',
           () async {
-            final worldRef =
-                await service.evaluate(
-                      isolate.id!,
-                      bootstrap!.id!,
-                      "helloString('world')",
-                    )
-                    as InstanceRef;
-            final world =
-                await service.getObject(
-                      isolate.id!,
-                      worldRef.id!,
-                      count: 5,
-                      offset: 3,
-                    )
-                    as Instance;
+            final worldRef = await service.evaluate(
+              isolate.id!,
+              bootstrap!.id!,
+              "helloString('world')",
+            ) as InstanceRef;
+            final world = await service.getObject(
+              isolate.id!,
+              worldRef.id!,
+              count: 5,
+              offset: 3,
+            ) as Instance;
             expect(world.valueAsString, 'ld');
             expect(world.count, 2);
             expect(world.length, 5);
@@ -1215,14 +1166,12 @@ void runTests({
         test(
           'offset/count parameters greater than zero are ignored for Classes',
           () async {
-            final testClass =
-                await service.getObject(
-                      isolate.id!,
-                      rootLibrary!.classes!.first.id!,
-                      offset: 100,
-                      count: 100,
-                    )
-                    as Class;
+            final testClass = await service.getObject(
+              isolate.id!,
+              rootLibrary!.classes!.first.id!,
+              offset: 100,
+              count: 100,
+            ) as Class;
             expect(
               testClass.functions,
               unorderedEquals([
@@ -1271,14 +1220,12 @@ void runTests({
         test(
           'offset/count parameters equal to zero are ignored for Classes',
           () async {
-            final testClass =
-                await service.getObject(
-                      isolate.id!,
-                      rootLibrary!.classes!.first.id!,
-                      offset: 0,
-                      count: 0,
-                    )
-                    as Class;
+            final testClass = await service.getObject(
+              isolate.id!,
+              rootLibrary!.classes!.first.id!,
+              offset: 0,
+              count: 0,
+            ) as Class;
             expect(
               testClass.functions,
               unorderedEquals([
@@ -1325,63 +1272,51 @@ void runTests({
         );
 
         test('offset/count parameters are ignored for bools', () async {
-          final ref =
-              await service.evaluate(
-                    isolate.id!,
-                    bootstrap!.id!,
-                    'helloBool(true)',
-                  )
-                  as InstanceRef;
-          final obj =
-              await service.getObject(
-                    isolate.id!,
-                    ref.id!,
-                    offset: 100,
-                    count: 100,
-                  )
-                  as Instance;
+          final ref = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'helloBool(true)',
+          ) as InstanceRef;
+          final obj = await service.getObject(
+            isolate.id!,
+            ref.id!,
+            offset: 100,
+            count: 100,
+          ) as Instance;
           expect(obj.kind, InstanceKind.kBool);
           expect(obj.classRef!.name, 'Bool');
           expect(obj.valueAsString, 'true');
         });
 
         test('offset/count parameters are ignored for nums', () async {
-          final ref =
-              await service.evaluate(
-                    isolate.id!,
-                    bootstrap!.id!,
-                    'helloNum(42)',
-                  )
-                  as InstanceRef;
-          final obj =
-              await service.getObject(
-                    isolate.id!,
-                    ref.id!,
-                    offset: 100,
-                    count: 100,
-                  )
-                  as Instance;
+          final ref = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'helloNum(42)',
+          ) as InstanceRef;
+          final obj = await service.getObject(
+            isolate.id!,
+            ref.id!,
+            offset: 100,
+            count: 100,
+          ) as Instance;
           expect(obj.kind, InstanceKind.kDouble);
           expect(obj.classRef!.name, 'Double');
           expect(obj.valueAsString, '42');
         });
 
         test('offset/count parameters are ignored for null', () async {
-          final ref =
-              await service.evaluate(
-                    isolate.id!,
-                    bootstrap!.id!,
-                    'helloNum(null)',
-                  )
-                  as InstanceRef;
-          final obj =
-              await service.getObject(
-                    isolate.id!,
-                    ref.id!,
-                    offset: 100,
-                    count: 100,
-                  )
-                  as Instance;
+          final ref = await service.evaluate(
+            isolate.id!,
+            bootstrap!.id!,
+            'helloNum(null)',
+          ) as InstanceRef;
+          final obj = await service.getObject(
+            isolate.id!,
+            ref.id!,
+            offset: 100,
+            count: 100,
+          ) as Instance;
           expect(obj.kind, InstanceKind.kNull);
           expect(obj.classRef!.name, 'Null');
           expect(obj.valueAsString, 'null');
@@ -1741,9 +1676,8 @@ void runTests({
       });
 
       test('break on exceptions with setIsolatePauseMode', () async {
-        final oldPauseMode = (await service.getIsolate(
-          isolateId!,
-        )).exceptionPauseMode;
+        final oldPauseMode = (await service.getIsolate(isolateId!))
+            .exceptionPauseMode;
         await service.setIsolatePauseMode(
           isolateId!,
           exceptionPauseMode: ExceptionPauseMode.kAll,
@@ -1811,9 +1745,11 @@ void runTests({
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates!.first.id!);
         bootstrap = isolate.rootLib;
-        testInstance =
-            await service.evaluate(isolate.id!, bootstrap!.id!, 'myInstance')
-                as InstanceRef;
+        testInstance = await service.evaluate(
+          isolate.id!,
+          bootstrap!.id!,
+          'myInstance',
+        ) as InstanceRef;
       });
 
       test('rootLib', () async {
@@ -2076,12 +2012,14 @@ void runTests({
         final vm = await service.getVM();
         final isolateId = vm.isolates!.first.id!;
 
-        final resolvedUris = await service
-            .lookupResolvedPackageUris(isolateId, [
-              'package:does/not/exist.dart',
-              'dart:does_not_exist',
-              'file:///does_not_exist.dart',
-            ]);
+        final resolvedUris = await service.lookupResolvedPackageUris(
+          isolateId,
+          [
+            'package:does/not/exist.dart',
+            'dart:does_not_exist',
+            'file:///does_not_exist.dart',
+          ],
+        );
         expect(resolvedUris.uris, [null, null, null]);
       },
     );
@@ -2577,9 +2515,8 @@ void runTests({
             predicate(
               (Event event) =>
                   event.kind == EventKind.kWriteEvent &&
-                  String.fromCharCodes(
-                    base64.decode(event.bytes!),
-                  ).contains('hello'),
+                  String.fromCharCodes(base64.decode(event.bytes!))
+                      .contains('hello'),
             ),
           ),
         );
@@ -2595,9 +2532,8 @@ void runTests({
             predicate(
               (Event event) =>
                   event.kind == EventKind.kWriteEvent &&
-                  String.fromCharCodes(
-                    base64.decode(event.bytes!),
-                  ).contains('Error'),
+                  String.fromCharCodes(base64.decode(event.bytes!))
+                      .contains('Error'),
             ),
           ),
         );
@@ -2613,9 +2549,8 @@ void runTests({
             predicate(
               (Event event) =>
                   event.kind == EventKind.kWriteEvent &&
-                  String.fromCharCodes(
-                    base64.decode(event.bytes!),
-                  ).contains('main.dart'),
+                  String.fromCharCodes(base64.decode(event.bytes!))
+                      .contains('main.dart'),
             ),
           ),
         );

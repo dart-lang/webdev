@@ -130,14 +130,11 @@ void main() {
     );
   });
 
-  test(
-    'webHotReload coerces canaryFeatures to true and moduleFormat to ddc if not set',
-    () {
-      final configuration = Configuration(webHotReload: true);
-      expect(configuration.canaryFeatures, isTrue);
-      expect(configuration.moduleFormat, equals('ddc'));
-    },
-  );
+  test('webHotReload coerces canaryFeatures to true and moduleFormat to ddc if not set', () {
+    final configuration = Configuration(webHotReload: true);
+    expect(configuration.canaryFeatures, isTrue);
+    expect(configuration.moduleFormat, equals('ddc'));
+  });
 
   test('webHotReload + canaryFeatures false throws', () {
     expect(
