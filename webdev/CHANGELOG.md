@@ -1,4 +1,4 @@
-## 4.0.1
+## 4.0.2
 
 - **Internal**: Resolve Chrome test flakes.
 
