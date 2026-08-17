@@ -120,9 +120,9 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     if (result.dillOutput == null) {
       return;
     }
-    final manifest = jsonDecode(
-      File(result.jsManifestOutput!).readAsStringSync(),
-    ) as Map<String, dynamic>;
+    final manifest =
+        jsonDecode(File(result.jsManifestOutput!).readAsStringSync())
+            as Map<String, dynamic>;
     final sourceBytes = File(result.jsSourcesOutput!).readAsBytesSync();
     final sourceMapBytes = File(result.jsSourceMapsOutput!).readAsBytesSync();
 

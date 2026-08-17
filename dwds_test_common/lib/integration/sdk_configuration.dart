@@ -64,8 +64,9 @@ void runIndependentTests() {
       final workerDir = p.dirname(compilerWorkerPath);
 
       Directory(workerDir).createSync(recursive: true);
-      File(defaultSdkConfiguration.compilerWorkerPath!)
-          .copySync(compilerWorkerPath);
+      File(
+        defaultSdkConfiguration.compilerWorkerPath!,
+      ).copySync(compilerWorkerPath);
 
       expect(sdkConfiguration.sdkDirectory, equals(sdkDirectory));
       expect(sdkConfiguration.sdkSummaryPath, equals(sdkSummaryPath));
