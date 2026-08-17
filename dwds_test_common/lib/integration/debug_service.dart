@@ -49,8 +49,9 @@ void testAll({
 
   test('Accepts connections with the auth token', () async {
     expect(
-      vmServiceConnectUri('${context.debugConnection.uri}/ws')
-          .then((client) => client.dispose()),
+      vmServiceConnectUri(
+        '${context.debugConnection.uri}/ws',
+      ).then((client) => client.dispose()),
       completes,
     );
   });
@@ -74,8 +75,9 @@ void testAll({
     // However, once DDS is disconnected, additional clients can connect again.
     await fakeDds.dispose();
     expect(
-      vmServiceConnectUri('${context.debugConnection.uri}/ws')
-          .then((client) => client.dispose()),
+      vmServiceConnectUri(
+        '${context.debugConnection.uri}/ws',
+      ).then((client) => client.dispose()),
       completes,
     );
   });
