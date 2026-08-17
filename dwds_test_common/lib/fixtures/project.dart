@@ -203,9 +203,9 @@ class TestProject {
     Directory(newPath).createSync();
     copyPathSync(currentPath, newPath);
     copiedPackageDirectories.add(packageDirectory);
-    final pubspec = loadYaml(
-      File(p.join(currentPath, 'pubspec.yaml')).readAsStringSync(),
-    ) as Map;
+    final pubspec =
+        loadYaml(File(p.join(currentPath, 'pubspec.yaml')).readAsStringSync())
+            as Map;
     final dependencies = pubspec['dependencies'] as Map? ?? {};
     for (final dependency in dependencies.values) {
       if (dependency is Map && dependency.containsKey('path')) {
