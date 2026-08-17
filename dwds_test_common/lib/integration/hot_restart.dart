@@ -314,9 +314,8 @@ void runTests({
       final eventsDone = expectLater(
         client.onIsolateEvent,
         emitsThrough(
-          _hasKind(
-            EventKind.kServiceExtensionAdded,
-          ).having((e) => e.extensionRPC, 'service', 'ext.bar'),
+          _hasKind(EventKind.kServiceExtensionAdded)
+              .having((e) => e.extensionRPC, 'service', 'ext.bar'),
         ),
       );
 
