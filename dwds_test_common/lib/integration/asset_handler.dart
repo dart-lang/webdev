@@ -65,7 +65,7 @@ void testAll({
     });
 
     test('can read large number of resources simultaneously', () async {
-      final n = 100;
+      final n = 1000;
       final futures = [
         for (var i = 0; i < n; i++) readAsString('hello_world/main.ddc.js.map'),
         for (var i = 0; i < n; i++) readAsString('hello_world/main.ddc.js'),
