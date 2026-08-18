@@ -218,7 +218,12 @@ class BuildDaemonTestContext extends TestContext with BuildDaemonContextMixin {
       (log) {
         final record = log.toLogRecord();
         final name = record.loggerName == '' ? '' : '${record.loggerName}: ';
-        print('${record.level.name}: $name${record.message}');
+        _logger.log(
+          record.level,
+          '$name${record.message}',
+          record.error,
+          record.stackTrace,
+        );
       },
     );
     daemonClient.registerBuildTarget(
