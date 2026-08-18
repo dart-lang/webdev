@@ -1,7 +1,6 @@
 // Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -45,7 +44,97 @@ Handler createBuildRunnerProxyHandler({
   );
 }
 
-class BuildDaemonTestContext extends TestContext {
+mixin BuildDaemonContextMixin on TestContext {
+  BuildDaemonClient get daemonClient;
+
+  @override
+  Future<void> waitForSuccessfulBuild({
+    Duration? timeout,
+    bool propagateToBrowser = false,
+    bool allowFailure = false,
+  }) async {
+    final buildStartCompleter = Completer<void>();
+    final buildSuccessCompleter = Completer<void>();
+    final subscription = daemonClient.buildResults.listen((results) {
+      final isStartedEvent = results.results.any(
+        (r) => r.status == daemon.BuildStatus.started,
+      );
+      final isSucceededEvent = results.results.any(
+        (r) => r.status == daemon.BuildStatus.succeeded,
+      );
+      final isFailedEvent = results.results.any(
+        (r) => r.status == daemon.BuildStatus.failed,
+      );
+
+      if (isStartedEvent) {
+        if (!buildStartCompleter.isCompleted) buildStartCompleter.complete();
+      }
+      if (isFailedEvent) {
+        if (!buildSuccessCompleter.isCompleted) {
+          final failedResult = results.results.firstWhere(
+            (r) => r.status == daemon.BuildStatus.failed,
+          );
+          final daemonError =
+              failedResult.error ?? 'Unknown daemon compilation error';
+          if (allowFailure) {
+            buildSuccessCompleter.complete();
+          } else {
+            buildSuccessCompleter.completeError(
+              StateError('Build daemon build failed.\nError: $daemonError'),
+            );
+          }
+        }
+      }
+      if (buildStartCompleter.isCompleted && isSucceededEvent) {
+        if (!buildSuccessCompleter.isCompleted) {
+          buildSuccessCompleter.complete();
+        }
+      }
+    });
+
+    var isWaitingForSuccess = false;
+    try {
+      var timedOutWaitingForStart = false;
+      await buildStartCompleter.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          timedOutWaitingForStart = true;
+        },
+      );
+
+      if (timedOutWaitingForStart) {
+        return;
+      }
+
+      isWaitingForSuccess = true;
+      await buildSuccessCompleter.future.timeout(
+        timeout ?? const Duration(seconds: 60),
+      );
+    } catch (e) {
+      if (e is TimeoutException) {
+        // Return if an edit did not trigger a rebuild/recompile.
+        if (!isWaitingForSuccess) {
+          return;
+        }
+        // If the build started but never finished, the test has likely hung.
+        rethrow;
+      }
+      rethrow;
+    } finally {
+      await subscription.cancel();
+    }
+
+    if (propagateToBrowser) {
+      final delay = Platform.isWindows
+          ? const Duration(seconds: 5)
+          : const Duration(seconds: 2);
+      await Future<void>.delayed(delay);
+    }
+  }
+}
+
+class BuildDaemonTestContext extends TestContext with BuildDaemonContextMixin {
+  final _logger = logging.Logger('BuildDaemonTestContext');
   BuildDaemonTestContext(super.project, super.sdkConfigurationProvider)
     : super.protected();
 
@@ -55,6 +144,7 @@ class BuildDaemonTestContext extends TestContext {
   late Stream<dwds.BuildResult> _buildResults;
   ExpressionCompiler? _expressionCompiler;
 
+  @override
   late BuildDaemonClient daemonClient;
   ExpressionCompilerService? ddcService;
 
@@ -128,7 +218,12 @@ class BuildDaemonTestContext extends TestContext {
       (log) {
         final record = log.toLogRecord();
         final name = record.loggerName == '' ? '' : '${record.loggerName}: ';
-        print('${record.level.name}: $name${record.message}');
+        _logger.log(
+          record.level,
+          '$name${record.message}',
+          record.error,
+          record.stackTrace,
+        );
       },
     );
     daemonClient.registerBuildTarget(
@@ -216,42 +311,10 @@ class BuildDaemonTestContext extends TestContext {
     _expressionCompiler = null;
     await daemonClient.close();
   }
-
-  @override
-  Future<void> waitForSuccessfulBuild({
-    Duration? timeout,
-    bool propagateToBrowser = false,
-    bool allowFailure = false,
-  }) async {
-    lastBuildFailed = false;
-    // Wait for the build until the timeout is reached:
-    final results = await daemonClient.buildResults
-        .firstWhere(
-          (daemon.BuildResults results) => results.results.any(
-            (daemon.BuildResult result) =>
-                result.status == daemon.BuildStatus.succeeded ||
-                (allowFailure && result.status == daemon.BuildStatus.failed),
-          ),
-        )
-        .timeout(timeout ?? const Duration(seconds: 60));
-
-    lastBuildFailed = results.results.any(
-      (daemon.BuildResult result) => result.status == daemon.BuildStatus.failed,
-    );
-
-    if (propagateToBrowser) {
-      // Allow change to propagate to the browser.
-      // Windows, or at least Travis on Windows, seems to need more time.
-      // TODO: Wait for an explicit finish signal instead of adding this delay.
-      final delay = Platform.isWindows
-          ? const Duration(seconds: 5)
-          : const Duration(seconds: 2);
-      await Future<void>.delayed(delay);
-    }
-  }
 }
 
-class BuildDaemonAndFrontendServerTestContext extends TestContext {
+class BuildDaemonAndFrontendServerTestContext extends TestContext
+    with BuildDaemonContextMixin {
   final _logger = logging.Logger('BuildDaemonAndFrontendServerTestContext');
 
   BuildDaemonAndFrontendServerTestContext(
@@ -265,6 +328,7 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext {
   late Stream<dwds.BuildResult> _buildResults;
   ExpressionCompiler? _expressionCompiler;
 
+  @override
   late BuildDaemonClient daemonClient;
   ExpressionCompilerService? ddcService;
   late LocalFileSystem frontendServerFileSystem;
