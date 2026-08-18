@@ -309,7 +309,9 @@ class BuildDaemonTestContext extends TestContext with BuildDaemonContextMixin {
     await ddcService?.stop();
     ddcService = null;
     _expressionCompiler = null;
-    await daemonClient.close();
+    try {
+      await daemonClient.close();
+    } catch (_) {}
   }
 }
 
@@ -677,7 +679,9 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
   @override
   Future<void> modeTearDown() async {
     await ddcService?.stop();
-    await daemonClient.close();
+    try {
+      await daemonClient.close();
+    } catch (_) {}
   }
 }
 
