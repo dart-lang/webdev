@@ -20,6 +20,7 @@ import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:http/http.dart';
 import 'package:http/io_client.dart';
+import 'package:http/retry.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart' as shelf;
@@ -162,11 +163,14 @@ abstract class TestContext {
 
       configureLogWriter();
 
-      _client = IOClient(
-        HttpClient()
-          ..maxConnectionsPerHost = 200
-          ..idleTimeout = const Duration(seconds: 30)
-          ..connectionTimeout = const Duration(seconds: 30),
+      _client = RetryClient(
+        IOClient(
+          HttpClient()
+            ..maxConnectionsPerHost = 200
+            ..idleTimeout = const Duration(seconds: 30)
+            ..connectionTimeout = const Duration(seconds: 30),
+        ),
+        whenError: (error, stackTrace) => true,
       );
 
       final systemTempDir = Directory.systemTemp;
