@@ -22,9 +22,9 @@ void testAll({
   group('Debugger module names: true |', () {
     const useDebuggerModuleNames = true;
 
-    final appServerPath = context.usesBuildDaemon
-        ? 'main.dart'
-        : 'web/main.dart';
+    final appServerPath = context.usesFrontendServer
+        ? 'web/main.dart'
+        : 'main.dart';
     final serverPath =
         'packages/${testPackageProject.packageDirectory}/lib/test_library.dart';
     final anotherServerPath =
