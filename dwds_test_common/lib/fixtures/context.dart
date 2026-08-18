@@ -549,6 +549,7 @@ abstract class TestContext {
   Future<void> waitForSuccessfulBuild({
     Duration? timeout,
     bool propagateToBrowser = false,
+    bool allowFailure = false,
   }) => throw UnsupportedError(
     'waitForSuccessfulBuild is only supported in Build Daemon mode',
   );
