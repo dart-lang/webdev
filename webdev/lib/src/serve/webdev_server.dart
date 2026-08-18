@@ -437,7 +437,7 @@ String ddcUriToSourceUrl(String basePath, String target, Uri uri) {
 /// returns package:some_package/src/sub_dir/file.dart
 String ddcUriToLibraryId(Uri uri) {
   final jsPath = uri.isScheme('package')
-      ? 'package:${uri.path}'
+      ? 'packages/${uri.path}'
       : '$multiRootScheme:///${uri.path}';
   final prefix = jsPath.substring(
     0,

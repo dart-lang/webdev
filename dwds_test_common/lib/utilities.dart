@@ -32,33 +32,36 @@ String get fixturesPath {
 /// root in the local machine, e.g. 'webdev/dwds_test_common' or
 /// 'pkg/dwds_test_common'.
 String get _dwdsTestCommonPackageRoot {
-  final scriptPath = Platform.script.toFilePath();
-  final isTest = scriptPath.contains('dart_test.kernel');
-  if (isTest) {
-    // When running tests, p.current might be dwds, so we need to check
-    // if we're in webdev/dwds_test_common or pkg/dwds_test_common or need to
-    // navigate to it.
-    var current = p.current;
-    if (p.basename(current) == 'dwds') {
-      // Check if dwds_test_common exists as a sibling
-      final testCommonPath = p.join(p.dirname(current), 'dwds_test_common');
-      if (Directory(testCommonPath).existsSync()) {
-        return testCommonPath;
+  // Walk up from Platform.script first
+  try {
+    final scriptPath = Platform.script.toFilePath();
+    final path = _findTestCommon(scriptPath);
+    if (path != null) return path;
+  } catch (_) {}
+  // Fallback to walking up from p.current
+  final path = _findTestCommon(p.current);
+  if (path != null) return path;
+  throw StateError(
+    'Could not find `dwds_test_common` package root from '
+    '${Platform.script.path} or ${p.current}.',
+  );
+}
+
+String? _findTestCommon(String startPath) {
+  var current = p.absolute(startPath);
+  while (current != p.dirname(current)) {
+    if (p.basename(current) == 'dwds_test_common') {
+      if (Directory(current).existsSync()) {
+        return current;
       }
     }
-    return current; // p.current is the package root for tests
-  }
-  var current = p.dirname(scriptPath);
-  while (current != p.dirname(current)) {
-    if (File(p.join(current, 'pubspec.yaml')).existsSync()) {
-      return current; // This is the package root
+    final sibling = p.join(current, 'dwds_test_common');
+    if (Directory(sibling).existsSync()) {
+      return sibling;
     }
     current = p.dirname(current);
   }
-  throw StateError(
-    'Could not find `dwds_test_common` package root from '
-    '${Platform.script.path}.',
-  );
+  return null;
 }
 
 // Creates a path compatible for web.

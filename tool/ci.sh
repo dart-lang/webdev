@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with package:mono_repo v6.6.3
+# Created with package:mono_repo v6.7.2
 
 # Support built in commands on windows out of the box.
 
@@ -71,9 +71,13 @@ for PKG in ${PKGS}; do
         echo 'dart analyze .'
         dart analyze . || EXIT_CODE=$?
         ;;
-      command)
+      command_0)
         echo 'Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &'
         Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 & || EXIT_CODE=$?
+        ;;
+      command_1)
+        echo 'echo "CHROME_EXECUTABLE=$(which google-chrome)" >> $GITHUB_ENV'
+        echo "CHROME_EXECUTABLE=$(which google-chrome)" >> $GITHUB_ENV || EXIT_CODE=$?
         ;;
       format)
         echo 'dart format --output=none --set-exit-if-changed .'

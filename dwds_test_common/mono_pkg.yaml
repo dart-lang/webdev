@@ -11,6 +11,7 @@ stages:
       # run first for Linux.
       - group:
           - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          - command: echo "CHROME_EXECUTABLE=$(which google-chrome)" >> $GITHUB_ENV
           - test: --exclude-tags=release
         sdk: dev
         os:

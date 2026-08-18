@@ -9,11 +9,10 @@ library;
 import 'dart:io';
 
 import 'package:dwds/dwds.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
 import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-
-import 'fixtures/project.dart';
 
 void main() {
   final project = TestProject.testPackage();

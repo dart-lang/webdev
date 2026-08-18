@@ -1,3 +1,7 @@
+## 4.1.0-wip
+
+- Internal test infrastructure refactoring: Move common test files to `dwds_test_common`.
+
 ## 4.0.2
 
 - **Internal**: Resolve Chrome test flakes.
