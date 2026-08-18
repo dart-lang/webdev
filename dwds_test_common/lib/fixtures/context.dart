@@ -172,7 +172,10 @@ abstract class TestContext {
             ..idleTimeout = const Duration(seconds: 30)
             ..connectionTimeout = const Duration(seconds: 30),
         ),
-        whenError: (error, stackTrace) => true,
+        whenError: (error, stackTrace) {
+          _logger.warning('Retrying request due to network error: $error');
+          return true;
+        },
       );
 
       final systemTempDir = Directory.systemTemp;
