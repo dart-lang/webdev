@@ -1,0 +1,5 @@
+dependency_overrides:
+  dwds:
+    path: /Users/markzipan/Projects/dart-sdk/sdk/pkg/dwds
+  dwds_test_common:
+    path: /Users/markzipan/Projects/dart-sdk/sdk/pkg/dwds_test_common

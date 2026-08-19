@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
@@ -32,36 +33,45 @@ String get fixturesPath {
 /// root in the local machine, e.g. 'webdev/dwds_test_common' or
 /// 'pkg/dwds_test_common'.
 String get _dwdsTestCommonPackageRoot {
-  // Walk up from Platform.script first
-  try {
-    final scriptPath = Platform.script.toFilePath();
-    final path = _findTestCommon(scriptPath);
-    if (path != null) return path;
-  } catch (_) {}
-  // Fallback to walking up from p.current
-  final path = _findTestCommon(p.current);
-  if (path != null) return path;
-  throw StateError(
-    'Could not find `dwds_test_common` package root from '
-    '${Platform.script.path} or ${p.current}.',
+  final packageUri = Isolate.resolvePackageUriSync(
+    Uri.parse('package:dwds_test_common/utilities.dart'),
   );
-}
-
-String? _findTestCommon(String startPath) {
-  var current = p.absolute(startPath);
-  while (current != p.dirname(current)) {
-    if (p.basename(current) == 'dwds_test_common') {
-      if (Directory(current).existsSync()) {
-        return current;
+  if (packageUri != null) {
+    return p.dirname(p.dirname(packageUri.toFilePath()));
+  }
+  final scriptPath = Platform.script.toFilePath();
+  final isTest = scriptPath.contains('dart_test.kernel');
+  if (isTest) {
+    // When running tests, p.current might be dwds, so we need to check
+    // if we're in webdev/dwds_test_common or pkg/dwds_test_common or need to
+    // navigate to it.
+    var current = p.current;
+    if (p.basename(current) == 'dwds') {
+      // Check if dwds_test_common exists as a sibling
+      final testCommonPath = p.join(p.dirname(current), 'dwds_test_common');
+      if (Directory(testCommonPath).existsSync()) {
+        return testCommonPath;
       }
     }
-    final sibling = p.join(current, 'dwds_test_common');
-    if (Directory(sibling).existsSync()) {
-      return sibling;
+    return current; // p.current is the package root for tests
+  }
+  var current = p.dirname(scriptPath);
+  while (current != p.dirname(current)) {
+    if (File(p.join(current, 'pubspec.yaml')).existsSync()) {
+      if (p.basename(current) == 'dwds') {
+        final testCommonPath = p.join(p.dirname(current), 'dwds_test_common');
+        if (Directory(testCommonPath).existsSync()) {
+          return testCommonPath;
+        }
+      }
+      return current; // This is the package root
     }
     current = p.dirname(current);
   }
-  return null;
+  throw StateError(
+    'Could not find `dwds_test_common` package root from '
+    '${Platform.script.path}.',
+  );
 }
 
 // Creates a path compatible for web.
@@ -70,25 +80,25 @@ String webCompatiblePath(List<String> pathParts) {
   return context.joinAll([...pathParts]);
 }
 
-/// Expects one of [pathFromWebdev], [pathFromDwds] or [pathFromFixtures] to
-/// be provided. Returns the absolute path in the local machine to that path,
+/// Expects one of [pathFromProjectRoot], [pathFromDwds] or [pathFromFixtures]
+/// to be provided. Returns the absolute path in the local machine to that path,
 /// e.g. absolutePath(pathFromFixtures: '_test/example') ->
-/// '/workstation/webdev/dwds_test_common/fixtures/_test/example'
+/// '/workstation/pkg/dwds_test_common/fixtures/_test/example'
 String absolutePath({
-  String? pathFromWebdev,
+  String? pathFromProjectRoot,
   String? pathFromDwds,
   String? pathFromFixtures,
 }) {
-  if (pathFromWebdev != null) {
+  if (pathFromProjectRoot != null) {
     assert(pathFromDwds == null && pathFromFixtures == null);
-    return p.normalize(p.join(projectRootDir, pathFromWebdev));
+    return p.normalize(p.join(projectRootDir, pathFromProjectRoot));
   }
   if (pathFromDwds != null) {
     assert(pathFromFixtures == null);
     return p.normalize(p.join(dwdsPath, pathFromDwds));
   }
   if (pathFromFixtures != null) {
-    assert(pathFromDwds == null && pathFromWebdev == null);
+    assert(pathFromDwds == null && pathFromProjectRoot == null);
     return p.normalize(p.join(fixturesPath, pathFromFixtures));
   }
   throw Exception('Expected a path parameter.');

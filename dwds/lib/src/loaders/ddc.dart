@@ -146,8 +146,8 @@ class DdcStrategy extends LoadStrategy {
     this._moduleInfoForProvider,
     AssetReader assetReader,
     this._buildSettings,
-    this._g3RelativePath,
-    this.assetScheme, {
+    this._g3RelativePath, {
+    this.assetScheme = const FrontendServerAssetScheme(),
     super.packageConfigPath,
   }) : super(assetReader);
 

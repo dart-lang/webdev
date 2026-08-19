@@ -218,7 +218,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
           (MetadataProvider _) async => <String, ModuleInfo>{},
           FakeAssetReader(),
           buildSettings,
-          const BuildRunnerAssetScheme(),
+          assetScheme: const BuildRunnerAssetScheme(),
         ),
       ),
     );

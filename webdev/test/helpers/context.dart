@@ -623,6 +623,8 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
       _expressionCompiler = DaemonExpressionCompiler(
         _compileExpressionWithDaemon,
       );
+    } else {
+      _expressionCompiler = null;
     }
     frontendServerFileSystem = const LocalFileSystem();
     final packageUriMapper = await BuildRunnerPathResolver.create(
@@ -657,6 +659,7 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
         'Server + build_runner ${testSettings.moduleFormat.name}.',
       ),
     };
+
     // Map build results.
     _buildResults = testSettings.enableExpressionEvaluation
         ? const Stream<dwds.BuildResult>.empty()
@@ -682,6 +685,39 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
     try {
       await daemonClient.close();
     } catch (_) {}
+  }
+
+  @override
+  Future<void> waitForSuccessfulBuild({
+    Duration? timeout,
+    bool propagateToBrowser = false,
+    bool allowFailure = false,
+  }) async {
+    lastBuildFailed = false;
+    // Wait for the build until the timeout is reached:
+    final results = await daemonClient.buildResults
+        .firstWhere(
+          (daemon.BuildResults results) => results.results.any(
+            (daemon.BuildResult result) =>
+                result.status == daemon.BuildStatus.succeeded ||
+                (allowFailure && result.status == daemon.BuildStatus.failed),
+          ),
+        )
+        .timeout(timeout ?? const Duration(seconds: 60));
+
+    lastBuildFailed = results.results.any(
+      (daemon.BuildResult result) => result.status == daemon.BuildStatus.failed,
+    );
+
+    if (propagateToBrowser) {
+      // Allow change to propagate to the browser.
+      // Windows, or at least Travis on Windows, seems to need more time.
+      // TODO: Wait for an explicit finish signal instead of adding this delay.
+      final delay = Platform.isWindows
+          ? const Duration(seconds: 5)
+          : const Duration(seconds: 2);
+      await Future<void>.delayed(delay);
+    }
   }
 }
 

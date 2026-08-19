@@ -23,13 +23,22 @@ void runTests({
   final mainFile = project.dartEntryFileName;
   final callLogMarker = 'callLog';
 
+  Future<void> recompile({
+    bool fullRestart = false,
+    bool hasEdits = false,
+  }) async {
+    if (context.usesBuildDaemon) {
+      if (hasEdits) {
+        await context.waitForSuccessfulBuild();
+      }
+    } else if (context.usesFrontendServer) {
+      await context.recompile(fullRestart: fullRestart);
+    }
+  }
+
   Future<void> makeEditsAndRecompile(List<Edit> edits) async {
     await context.makeEdits(edits);
-    if (context.usesFrontendServer) {
-      await context.recompile(fullRestart: true);
-    } else {
-      await context.waitForSuccessfulBuild();
-    }
+    await recompile(fullRestart: true, hasEdits: true);
   }
 
   group('when pause_isolates_on_start is true', () {
@@ -189,9 +198,7 @@ void runTests({
 
       final breakpointFuture = waitForBreakpoint();
 
-      if (context.usesFrontendServer) {
-        await context.recompile(fullRestart: false);
-      }
+      await recompile(fullRestart: false, hasEdits: false);
 
       await hotRestartAndHandlePausePost([
         (exists: true, file: mainFile, breakpointMarker: callLogMarker),

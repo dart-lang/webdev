@@ -26,7 +26,7 @@ abstract class AssetReader {
   String get basePath;
 
   /// The asset scheme used by this reader.
-  AssetScheme get assetScheme;
+  AssetScheme get assetScheme => const FrontendServerAssetScheme();
 
   /// Returns the contents for a dart source at the provided server path, or
   /// null if the resource does not exist.

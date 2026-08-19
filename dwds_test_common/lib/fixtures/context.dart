@@ -436,9 +436,11 @@ abstract class TestContext {
     // clear the state for next setup
     _webDriver = null;
     _chromeDriver = null;
+
     _testServer = null;
     _client = null;
     _outputDir = null;
+    lastBuildFailed = false;
   }
 
   /// Given a list of edits, use file IO to write them to the file system.
@@ -545,6 +547,9 @@ abstract class TestContext {
     return (request) {
       final path = request.url.path;
       if (path.endsWith(reloadedSourcesFileName)) {
+        if (lastBuildFailed) {
+          return shelf.Response.notFound('Build failed');
+        }
         return shelf.Response.ok(jsonEncode(reloadedSources));
       }
       return proxy(request);
@@ -741,10 +746,14 @@ String _resolveChromeExecutable() {
     return 'chrome.exe';
   }
   if (Platform.isMacOS) {
-    const defaultMacPath =
-        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-    if (File(defaultMacPath).existsSync()) {
-      return defaultMacPath;
+    const defaultMacPaths = [
+      '/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    ];
+    for (final path in defaultMacPaths) {
+      if (File(path).existsSync()) {
+        return path;
+      }
     }
   }
   return _chromeExecutableName;

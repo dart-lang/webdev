@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:build_daemon/data/build_status.dart';
+import 'package:build_daemon/client.dart';
 
 import 'webdev_server.dart';
 
@@ -16,11 +16,13 @@ class ServerManager {
 
   static Future<ServerManager> start(
     Set<ServerOptions> serverOptions,
-    Stream<BuildResults> buildResults,
+    BuildDaemonClient client,
   ) async {
     final servers = <WebDevServer>{};
     for (final options in serverOptions) {
-      servers.add(await WebDevServer.start(options, buildResults));
+      servers.add(
+        await WebDevServer.start(options, client.buildResults, client),
+      );
     }
     return ServerManager._(servers);
   }

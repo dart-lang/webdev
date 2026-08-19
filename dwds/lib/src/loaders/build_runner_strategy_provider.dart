@@ -39,7 +39,7 @@ class BuildRunnerRequireStrategyProvider with BuildRunnerStrategyProviderMixin {
     _moduleInfoForProvider,
     _assetReader,
     _buildSettings,
-    const BuildRunnerAssetScheme(),
+    assetScheme: const BuildRunnerAssetScheme(),
     packageConfigPath: _packageConfigPath,
   );
 
@@ -81,7 +81,7 @@ class BuildRunnerDdcLibraryBundleStrategyProvider
     _assetReader,
     _buildSettings,
     (path) => null, // g3RelativePath
-    const BuildRunnerAssetScheme(),
+    assetScheme: const BuildRunnerAssetScheme(),
     packageConfigPath: _packageConfigPath,
     injectScriptLoad: injectScriptLoad,
     reloadedSourcesUri: _reloadedSourcesUri,

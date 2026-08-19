@@ -71,7 +71,7 @@ abstract class LoadStrategy {
   String get loadLibrariesModule;
 
   /// Asset scheme, which determines file extensions for this strategy.
-  AssetScheme get assetScheme;
+  AssetScheme get assetScheme => const FrontendServerAssetScheme();
 
   /// Returns a snippet of JS code that can be used to load a JS module.
   ///

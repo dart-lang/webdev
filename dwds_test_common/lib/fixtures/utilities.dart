@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @skip_package_deps_validation
+// ignore_for_file: deprecated_member_use
 
 import 'package:dds/devtools_server.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
@@ -76,7 +76,6 @@ class TestDebugSettings extends DebugSettings {
     TestContext context, {
     bool serveFromDds = false,
   }) : super(
-         // ignore: deprecated_member_use
          devToolsLauncher: serveFromDds
              ? null
              : (hostname) async {
@@ -107,14 +106,11 @@ class TestDebugSettings extends DebugSettings {
     required super.useSseForDebugBackend,
     required super.useSseForDebugProxy,
     required super.useSseForInjectedClient,
-    // ignore: deprecated_member_use
     required super.spawnDds,
-    // ignore: deprecated_member_use
     required super.ddsPort,
     required super.enableDevToolsLaunch,
     required super.launchDevToolsInNewWindow,
     required super.emitDebugEvents,
-    // ignore: deprecated_member_use
     required super.devToolsLauncher,
     required super.expressionCompiler,
     required super.urlEncoder,
@@ -141,15 +137,12 @@ class TestDebugSettings extends DebugSettings {
       useSseForDebugProxy: useSse ?? useSseForDebugProxy,
       useSseForDebugBackend: useSse ?? useSseForDebugBackend,
       useSseForInjectedClient: useSse ?? useSseForInjectedClient,
-      // ignore: deprecated_member_use
       spawnDds: spawnDds ?? this.spawnDds,
-      // ignore: deprecated_member_use
       ddsPort: ddsPort ?? this.ddsPort,
       enableDevToolsLaunch: enableDevToolsLaunch ?? this.enableDevToolsLaunch,
       launchDevToolsInNewWindow:
           launchDevToolsInNewWindow ?? this.launchDevToolsInNewWindow,
       emitDebugEvents: emitDebugEvents ?? this.emitDebugEvents,
-      // ignore: deprecated_member_use
       devToolsLauncher: devToolsLauncher ?? this.devToolsLauncher,
       expressionCompiler: expressionCompiler ?? this.expressionCompiler,
       urlEncoder: urlEncoder ?? this.urlEncoder,
@@ -231,7 +224,6 @@ class TestSettings {
   final bool launchChrome;
 
   // Build settings.
-
   final ModuleFormat moduleFormat;
   final bool canaryFeatures;
   final bool isFlutterApp;
@@ -245,7 +237,6 @@ class TestSettings {
     this.enableExpressionEvaluation = false,
     this.verboseCompiler = false,
     this.launchChrome = true,
-
     this.moduleFormat = ModuleFormat.amd,
     this.canaryFeatures = false,
     this.isFlutterApp = false,
