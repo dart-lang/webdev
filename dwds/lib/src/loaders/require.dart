@@ -139,8 +139,8 @@ class RequireStrategy extends LoadStrategy {
     this._serverPathForAppUri,
     this._moduleInfoForProvider,
     AssetReader assetReader,
-    this._buildSettings,
-    this.assetScheme, {
+    this._buildSettings, {
+    this.assetScheme = const FrontendServerAssetScheme(),
     super.packageConfigPath,
   }) : super(assetReader);
 

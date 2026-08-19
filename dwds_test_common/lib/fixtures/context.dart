@@ -746,10 +746,14 @@ String _resolveChromeExecutable() {
     return 'chrome.exe';
   }
   if (Platform.isMacOS) {
-    const defaultMacPath =
-        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-    if (File(defaultMacPath).existsSync()) {
-      return defaultMacPath;
+    const defaultMacPaths = [
+      '/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    ];
+    for (final path in defaultMacPaths) {
+      if (File(path).existsSync()) {
+        return path;
+      }
     }
   }
   return _chromeExecutableName;

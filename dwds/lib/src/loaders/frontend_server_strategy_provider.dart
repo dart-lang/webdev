@@ -118,7 +118,7 @@ class FrontendServerDdcStrategyProvider
     _assetReader,
     _buildSettings,
     (String _) => null,
-    assetScheme,
+    assetScheme: assetScheme,
     packageConfigPath: _packageConfigPath,
   );
 
@@ -175,7 +175,7 @@ class FrontendServerDdcLibraryBundleStrategyProvider
       _assetReader,
       _buildSettings,
       (String _) => null,
-      assetScheme,
+      assetScheme: assetScheme,
       packageConfigPath: _packageConfigPath,
       reloadedSourcesUri: reloadedSourcesUri,
       injectScriptLoad: injectScriptLoad,
@@ -223,7 +223,7 @@ class FrontendServerBuildDaemonStrategyProvider
       _assetReader,
       _buildSettings,
       (String _) => null,
-      assetScheme,
+      assetScheme: assetScheme,
       packageConfigPath: _packageConfigPath,
       reloadedSourcesUri: reloadedSourcesUri,
       injectScriptLoad: injectScriptLoad,
@@ -360,7 +360,7 @@ class FrontendServerRequireStrategyProvider
     _moduleInfoForProvider,
     _assetReader,
     _buildSettings,
-    assetScheme,
+    assetScheme: assetScheme,
     packageConfigPath: _packageConfigPath,
   );
 
