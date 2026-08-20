@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/loaders/asset_scheme.dart';
+import 'package:dwds/src/readers/frontend_server_asset_reader.dart';
+import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:file/file.dart';
@@ -49,7 +51,8 @@ abstract interface class HasAssetScheme {
 extension AssetReaderSchemeExtension on AssetReader {
   AssetScheme get assetScheme {
     final reader = this;
-    if (reader is HasAssetScheme) return reader.assetScheme;
+    if (reader is FrontendServerAssetReader) return reader.assetScheme;
+    if (reader is ProxyServerAssetReader) return reader.assetScheme;
     // Return `FrontendServerAssetScheme` by default.
     return const FrontendServerAssetScheme();
   }
