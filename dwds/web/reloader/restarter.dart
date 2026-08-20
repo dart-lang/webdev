@@ -17,7 +17,7 @@ abstract class TwoPhaseRestarter implements Restarter {
   ///
   /// Passes the [reloadedSourcesPath] through to the `DartDevEmbedder` and
   /// bubbles up the returned array of scripts that were actually requested.
-  Future<JSArray<JSObject>> hotRestartBegin(String? reloadedSourcesPath);
+  Future<JSArray<JSObject>> hotRestartBegin(String reloadedSourcesPath);
 
   /// Finishes the hot restart operation that must have been previously started
   /// by [hotRestartBegin].
@@ -83,5 +83,5 @@ abstract class Restarter {
   /// `module`: The name of the library bundle in `src`.
   /// `libraries`: An array of strings containing the libraries that were
   /// compiled in `src`.
-  Future<JSArray<JSObject>> hotReloadStart(String? reloadedSourcesPath);
+  Future<JSArray<JSObject>> hotReloadStart(String reloadedSourcesPath);
 }

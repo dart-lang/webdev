@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
@@ -140,7 +139,6 @@ class RequireStrategy extends LoadStrategy {
     this._moduleInfoForProvider,
     AssetReader assetReader,
     this._buildSettings, {
-    this.assetScheme = const FrontendServerAssetScheme(),
     super.packageConfigPath,
   }) : super(assetReader);
 
@@ -163,9 +161,6 @@ class RequireStrategy extends LoadStrategy {
 
   @override
   String get moduleFormat => 'amd';
-
-  @override
-  final AssetScheme assetScheme;
 
   @override
   String get loadLibrariesModule => 'require.js';

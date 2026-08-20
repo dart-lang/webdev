@@ -3,16 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:collection/collection.dart';
-import 'package:dwds/src/loaders/asset_scheme.dart';
-import 'package:dwds/src/readers/frontend_server_asset_reader.dart';
-import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
-import 'package:dwds/src/utilities/shared.dart';
-import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
-import 'package:path/path.dart' as p;
-export 'package:dwds/src/utilities/shared.dart' show stripLeadingSlashes;
 
 /// A reader for Dart sources and related source maps.
 abstract class AssetReader {
@@ -28,13 +21,13 @@ abstract class AssetReader {
   /// ```
   String get basePath;
 
-  /// Returns the contents for a dart source at the provided server path, or
-  /// null if the resource does not exist.
-  Future<String?> dartSourceContents(String serverPath);
-
   /// Returns the contents for a source map at the provided server path, or
   /// null if the resource does not exist.
   Future<String?> sourceMapContents(String serverPath);
+
+  /// Returns the contents for a dart source at the provided server path, or
+  /// null if the resource does not exist.
+  Future<String?> dartSourceContents(String serverPath);
 
   /// Returns the contents for the merged metadata output at the provided path,
   /// or null if the resource does not exist.
@@ -44,253 +37,6 @@ abstract class AssetReader {
   Future<void> close();
 }
 
-/// Interface for readers that provide a custom [AssetScheme].
-abstract interface class HasAssetScheme {
-  AssetScheme get assetScheme;
-}
-
-extension AssetReaderSchemeExtension on AssetReader {
-  AssetScheme get assetScheme {
-    final reader = this;
-    if (reader is FrontendServerAssetReader) return reader.assetScheme;
-    if (reader is ProxyServerAssetReader) return reader.assetScheme;
-    // Return `FrontendServerAssetScheme` by default.
-    return const FrontendServerAssetScheme();
-  }
-}
-
-abstract class PathResolver {
-  final Logger _logger;
-  final PackageConfig? packageConfig;
-  final bool useDebuggerModuleNames;
-  final String? packageRoot;
-
-  PathResolver({
-    this.packageConfig,
-    this.useDebuggerModuleNames = false,
-    this.packageRoot,
-    required String loggerName,
-  }) : _logger = Logger(loggerName);
-
-  /// Computes the server path for a given application URL.
-  ///
-  /// Returns `null` if [appUrl] is not supported by the resolver.
-  String? appUriToServerPath(String appUrl, {bool? useDebuggerModuleNames});
-
-  /// Computes the application URI (e.g., package: URI) for a given server path.
-  ///
-  /// Returns `null` if the path cannot be translated to a validapp  URI.
-  String? serverPathToAppUri(String serverPath);
-
-  /// Computes the resolved file URI for a given server path.
-  ///
-  /// Returns `null` if a URI cannot be resolved.
-  Uri? serverPathToResolvedUri(String serverPath) {
-    serverPath = stripLeadingSlashes(serverPath).replaceAll('\\', '/');
-    final segments = serverPath.split('/');
-    if (segments.first == 'packages') {
-      final config = packageConfig;
-      if (config == null) {
-        _logger.severe('Cannot resolve packages without packageConfig');
-        return null;
-      }
-      final packagePath = serverPathToAppUri(serverPath);
-      if (packagePath == null) return null;
-      return config.resolve(Uri.parse(packagePath));
-    } else if (packageRoot != null) {
-      return Uri.file(p.join(packageRoot!, serverPath));
-    }
-    _logger.severe(
-      'Cannot resolve path without packages/ prefix or packageRoot: $serverPath',
-    );
-    return null;
-  }
-}
-
-final class FrontendServerPathResolver extends PathResolver {
-  static Future<FrontendServerPathResolver> create(
-    FileSystem fileSystem,
-    Uri packageConfigFile, {
-    bool useDebuggerModuleNames = false,
-  }) async {
-    final packageConfig = await loadPackageConfig(
-      fileSystem.file(packageConfigFile),
-    );
-    return FrontendServerPathResolver(
-      packageConfig: packageConfig,
-      useDebuggerModuleNames: useDebuggerModuleNames,
-    );
-  }
-
-  FrontendServerPathResolver({
-    super.packageConfig,
-    super.useDebuggerModuleNames = false,
-    super.packageRoot,
-  }) : super(loggerName: 'FrontendServerPathResolver');
-
-  @override
-  String? appUriToServerPath(String appUrl, {bool? useDebuggerModuleNames}) {
-    final useDebugger = useDebuggerModuleNames ?? this.useDebuggerModuleNames;
-    final appUri = Uri.parse(appUrl);
-    // Note: must match `urlForComponentUri` in javascript_bundle.dart in SDK.
-    if (appUri.isScheme('package')) {
-      // package:foo/bar.dart -> packages/foo/lib/bar.dart (useDebugger)
-      // package:foo/bar.dart -> packages/foo/bar.dart (!useDebugger)
-      final pathSegments = appUri.pathSegments;
-      if (pathSegments.isEmpty) {
-        throw FormatException('Invalid package URI with empty path: $appUrl');
-      }
-      final buildRunnerPath = 'packages/${appUri.path}';
-      final path = useDebugger
-          ? WebPathTranslator.addLibSegment(buildRunnerPath)
-          : buildRunnerPath;
-      return path;
-    }
-    if (appUri.isScheme('org-dartlang-app')) {
-      // org-dartlang-app:///web/main.dart -> web/main.dart
-      // org-dartlang-app:///packages/foo/bar.dart -> packages/foo/lib/bar.dart (useDebugger)
-      // org-dartlang-app:///packages/foo/lib/bar.dart -> packages/foo/bar.dart (!useDebugger)
-      final segments = appUri.pathSegments;
-      if (segments.isEmpty) {
-        throw FormatException('Invalid org-dartlang-app URI: $appUrl');
-      }
-      final path = useDebugger
-          ? WebPathTranslator.addLibSegment(appUri.path.substring(1))
-          : WebPathTranslator.removeLibSegment(appUri.path.substring(1));
-      return path;
-    }
-    return null;
-  }
-
-  @override
-  String? serverPathToAppUri(String serverPath) {
-    // packages/foo/lib/bar.dart -> package:foo/bar.dart
-    // packages/foo/bar.dart -> package:foo/bar.dart
-    // web/main.dart -> web/main.dart
-    serverPath = stripLeadingSlashes(serverPath).replaceAll('\\', '/');
-    if (!serverPath.startsWith('packages/')) return serverPath;
-    return WebPathTranslator.packagePathToPackageUri(serverPath);
-  }
-}
-
-final class BuildRunnerPathResolver extends PathResolver {
-  static Future<BuildRunnerPathResolver> create(
-    FileSystem fileSystem,
-    Uri packageConfigFile, {
-    bool useDebuggerModuleNames = false,
-  }) async {
-    final packageConfig = await loadPackageConfig(
-      fileSystem.file(packageConfigFile),
-    );
-    return BuildRunnerPathResolver(
-      packageConfig: packageConfig,
-      useDebuggerModuleNames: useDebuggerModuleNames,
-    );
-  }
-
-  BuildRunnerPathResolver({
-    super.packageConfig,
-    super.useDebuggerModuleNames = false,
-    super.packageRoot,
-  }) : super(loggerName: 'BuildRunnerPathResolver');
-
-  @override
-  String? appUriToServerPath(String appUrl, {bool? useDebuggerModuleNames}) {
-    final useDebugger = useDebuggerModuleNames ?? this.useDebuggerModuleNames;
-    final appUri = Uri.parse(appUrl);
-    // Note: must match `urlForComponentUri` in javascript_bundle.dart in SDK.
-    if (appUri.isScheme('package')) {
-      // package:foo/bar.dart -> packages/foo/bar.dart (useDebugger)
-      // package:foo/bar.dart -> /packages/foo/bar.dart (!useDebugger)
-      final pathSegments = appUri.pathSegments;
-      if (pathSegments.isEmpty) {
-        throw FormatException('Invalid package URI with empty path: $appUrl');
-      }
-      final path = 'packages/${appUri.path}';
-      if (!useDebugger && path.startsWith('packages/')) {
-        return '/$path';
-      }
-      return path;
-    }
-
-    if (appUri.isScheme('org-dartlang-app')) {
-      // org-dartlang-app:///web/main.dart -> main.dart
-      // org-dartlang-app:///packages/foo/bar.dart -> packages/foo/bar.dart
-      final segments = appUri.pathSegments;
-      if (segments.isEmpty) {
-        throw FormatException('Invalid org-dartlang-app URI: $appUrl');
-      }
-      final first = segments.first;
-      if (first == 'packages') {
-        if (segments.length < 3) {
-          throw FormatException('Invalid package path in app URI: $appUrl');
-        }
-        return segments.join('/');
-      }
-      return segments.skip(1).join('/');
-    }
-
-    return null;
-  }
-
-  @override
-  String? serverPathToAppUri(String serverPath) {
-    // packages/foo/bar.dart -> package:foo/bar.dart
-    // web/main.dart -> web/main.dart
-    serverPath = stripLeadingSlashes(serverPath).replaceAll('\\', '/');
-    if (!serverPath.startsWith('packages/')) return serverPath;
-    return serverPath.replaceFirst('packages/', 'package:');
-  }
-}
-
-final class FlutterPathResolver extends PathResolver {
-  FlutterPathResolver({
-    super.packageConfig,
-    super.useDebuggerModuleNames = false,
-    super.packageRoot,
-  }) : super(loggerName: 'FlutterPathResolver');
-
-  @override
-  String? appUriToServerPath(String appUrl, {bool? useDebuggerModuleNames}) {
-    final useDebugger = useDebuggerModuleNames ?? this.useDebuggerModuleNames;
-    final isFlutterPackage = appUrl.startsWith('package:');
-
-    if (isFlutterPackage) {
-      // package:foo/bar.dart -> packages/foo/bar.dart
-      final appUri = Uri.parse(appUrl);
-      final pathSegments = appUri.pathSegments;
-      if (pathSegments.isEmpty) {
-        throw FormatException('Invalid package URI with empty path: $appUrl');
-      }
-      final path = 'packages/${appUri.path}';
-      return path;
-    } else {
-      final appUri = Uri.parse(appUrl);
-      if (appUri.isScheme('org-dartlang-app')) {
-        // org-dartlang-app:///web/main.dart -> web/main.dart
-        // org-dartlang-app:///packages/foo/bar.dart -> packages/foo/lib/bar.dart (useDebugger)
-        // org-dartlang-app:///packages/foo/lib/bar.dart -> packages/foo/bar.dart (!useDebugger)
-        final path = useDebugger
-            ? WebPathTranslator.addLibSegment(appUri.path.substring(1))
-            : WebPathTranslator.removeLibSegment(appUri.path.substring(1));
-        return path;
-      }
-    }
-    return null;
-  }
-
-  @override
-  String? serverPathToAppUri(String serverPath) {
-    // packages/foo/lib/bar.dart -> package:foo/bar.dart
-    // packages/foo/bar.dart -> package:foo/bar.dart
-    // web/main.dart -> web/main.dart
-    serverPath = stripLeadingSlashes(serverPath).replaceAll('\\', '/');
-    if (!serverPath.startsWith('packages/')) return serverPath;
-    return WebPathTranslator.packagePathToPackageUri(serverPath);
-  }
-}
-
-/// A mapper for package URIs to server paths and resolved file URIs.
 class PackageUriMapper {
   final _logger = Logger('PackageUriMapper');
   final PackageConfig packageConfig;
@@ -313,6 +59,9 @@ class PackageUriMapper {
   PackageUriMapper(this.packageConfig, {this.useDebuggerModuleNames = false});
 
   /// Compute server path for package uri.
+  ///
+  /// Note: needs to match `urlForComponentUri` in javascript_bundle.dart
+  /// in SDK code.
   String? packageUriToServerPath(Uri packageUri) {
     final defaultServerPath = '/packages/${packageUri.path}';
     if (packageUri.isScheme('package')) {
@@ -353,10 +102,9 @@ class PackageUriMapper {
       }
       final relativeRoot = segments.skip(1).first;
       final relativeUrl = segments.skip(2).join('/');
-      final package = packageConfig.packages.firstWhereOrNull(
+      final package = packageConfig.packages.firstWhere(
         (Package p) => _getRelativeRoot(p.root) == relativeRoot,
       );
-      if (package == null) return null;
       final resolvedUri = package.root.resolve(relativeUrl);
 
       return resolvedUri;
@@ -364,6 +112,13 @@ class PackageUriMapper {
     _logger.severe('Expected "packages/" path, but found $serverPath');
     return null;
   }
+}
+
+String stripLeadingSlashes(String path) {
+  while (path.startsWith('/') || path.startsWith('\\')) {
+    path = path.substring(1);
+  }
+  return path;
 }
 
 String? _getRelativeRoot(Uri root) =>

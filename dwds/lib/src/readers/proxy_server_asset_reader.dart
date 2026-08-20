@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
@@ -14,21 +13,19 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
 /// A reader for resources provided by a proxy server.
-class ProxyServerAssetReader implements AssetReader, HasAssetScheme {
+class ProxyServerAssetReader implements AssetReader {
   final _logger = Logger('ProxyServerAssetReader');
 
   final Handler _handler;
   final http.Client? _client;
-  final AssetScheme _assetScheme;
 
-  ProxyServerAssetReader._(this._handler, this._client, this._assetScheme);
+  ProxyServerAssetReader._(this._handler, this._client);
 
   factory ProxyServerAssetReader(
     int assetServerPort, {
     String root = '',
     String host = 'localhost',
     bool isHttps = false,
-    AssetScheme? assetScheme,
   }) {
     final scheme = isHttps ? 'https://' : 'http://';
     final inner = HttpClient()
@@ -41,35 +38,34 @@ class ProxyServerAssetReader implements AssetReader, HasAssetScheme {
     var url = '$scheme$host:$assetServerPort/';
     if (root.isNotEmpty) url += '$root/';
     final handler = proxyHandler(url, client: client);
-    return ProxyServerAssetReader._(
-      handler,
-      client,
-      assetScheme ?? const BuildRunnerAssetScheme(),
-    );
+    return ProxyServerAssetReader._(handler, client);
   }
 
-  ProxyServerAssetReader.fromHandler(this._handler, {AssetScheme? assetScheme})
-    : _client = null,
-      _assetScheme = assetScheme ?? const BuildRunnerAssetScheme();
+  ProxyServerAssetReader.fromHandler(this._handler) : _client = null;
 
   @override
   String get basePath => '';
 
   @override
-  AssetScheme get assetScheme => _assetScheme;
+  Future<String?> dartSourceContents(String serverPath) =>
+      _readResource(serverPath);
 
-  Future<String?> _readResource(String serverPath) async {
+  @override
+  Future<String?> sourceMapContents(String serverPath) =>
+      _readResource(serverPath);
+
+  Future<String?> _readResource(String path) async {
     // Handlers expect a fully formed HTML URI. The actual hostname and port
     // does not matter.
     final request = Request(
       'GET',
-      Uri.parse('http://foo:0000/$serverPath'),
+      Uri.parse('http://foo:0000/$path'),
     ).change(headers: {'requested-by': 'DWDS'});
     final response = await _handler(request);
 
     if (response.statusCode != HttpStatus.ok) {
       _logger.warning('''
-      Failed to load asset at path: $serverPath.
+      Failed to load asset at path: $path.
 
       Status code: ${response.statusCode}
 
@@ -81,14 +77,6 @@ class ProxyServerAssetReader implements AssetReader, HasAssetScheme {
       return await response.readAsString();
     }
   }
-
-  @override
-  Future<String?> dartSourceContents(String serverPath) =>
-      _readResource(serverPath);
-
-  @override
-  Future<String?> sourceMapContents(String serverPath) =>
-      _readResource(serverPath);
 
   @override
   Future<String?> metadataContents(String serverPath) =>

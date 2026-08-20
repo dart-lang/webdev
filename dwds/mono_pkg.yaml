@@ -12,7 +12,6 @@ stages:
     # run first for Linux.
     - group:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - command: echo "CHROME_EXECUTABLE=$(which google-chrome)" >> $GITHUB_ENV
       - test: --tags=extension
       sdk: dev
       os:
@@ -23,54 +22,32 @@ stages:
       sdk: dev
       os:
         - windows
-    # First test shard (Linux):
-    - group:
-      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - command: echo "CHROME_EXECUTABLE=$(which google-chrome)" >> $GITHUB_ENV
-      - test: --total-shards 3 --shard-index 0 --exclude-tags=extension
-      sdk: dev
-      os:
-        - linux
-    # First test shard (Windows):
+    # First test shard:
     - group:
       - test: --total-shards 3 --shard-index 0 --exclude-tags=extension
       sdk: dev
       os:
+        - linux
         - windows
-    # Second test shard (Linux):
+    # Second test shard:
     - group:
-      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - command: echo "CHROME_EXECUTABLE=$(which google-chrome)" >> $GITHUB_ENV
       - test: --total-shards 3 --shard-index 1 --exclude-tags=extension
       sdk: dev
       os:
         - linux
-    # Second test shard (Windows):
-    - group:
-      - test: --total-shards 3 --shard-index 1 --exclude-tags=extension
-      sdk: dev
-      os:
         - windows
-    # Third test shard (Linux):
+    # Third test shard:
     - group:
-      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - command: echo "CHROME_EXECUTABLE=$(which google-chrome)" >> $GITHUB_ENV
       - test: --total-shards 3 --shard-index 2 --exclude-tags=extension
       sdk: dev
       os:
         - linux
-    # Third test shard (Windows):
-    - group:
-      - test: --total-shards 3 --shard-index 2 --exclude-tags=extension
-      sdk: dev
-      os:
         - windows
   - beta_cron:
     - analyze: .
       sdk: beta
     - group:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - command: echo "CHROME_EXECUTABLE=$(which google-chrome)" >> $GITHUB_ENV
       - test: -j 1
       sdk: beta
     - test: -j 1

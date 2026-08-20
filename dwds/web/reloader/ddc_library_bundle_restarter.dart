@@ -133,14 +133,10 @@ class DdcLibraryBundleRestarter implements Restarter, TwoPhaseRestarter {
   }
 
   @override
-  Future<JSArray<JSObject>> hotRestartBegin(String? reloadedSourcesPath) async {
-    assert(
-      reloadedSourcesPath != null,
-      "Expected 'reloadedSourcesPath' to not be null in a hot restart.",
-    );
+  Future<JSArray<JSObject>> hotRestartBegin(String reloadedSourcesPath) async {
     await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
     final srcModuleLibraries = await _getSrcModuleLibraries(
-      reloadedSourcesPath!,
+      reloadedSourcesPath,
     );
     final jsFilesToRequest = srcModuleLibraries.jsify() as JSArray<JSObject>;
     final requestedJsFiles = await _dartDevEmbedder
@@ -153,15 +149,11 @@ class DdcLibraryBundleRestarter implements Restarter, TwoPhaseRestarter {
   void hotRestartEnd() => _dartDevEmbedder.hotRestartEnd();
 
   @override
-  Future<JSArray<JSObject>> hotReloadStart(String? reloadedSourcesPath) async {
-    assert(
-      reloadedSourcesPath != null,
-      "Expected 'reloadedSourcesPath' to not be null in a hot reload.",
-    );
+  Future<JSArray<JSObject>> hotReloadStart(String reloadedSourcesPath) async {
     final filesToLoad = JSArray<JSString>();
     final librariesToReload = JSArray<JSString>();
     final srcModuleLibraries = await _getSrcModuleLibraries(
-      reloadedSourcesPath!,
+      reloadedSourcesPath,
     );
     for (final srcModuleLibrary in srcModuleLibraries) {
       final srcModuleLibraryCast = srcModuleLibrary.cast<String, Object>();
@@ -177,18 +169,7 @@ class DdcLibraryBundleRestarter implements Restarter, TwoPhaseRestarter {
         (JSFunction hotReloadEndCallback) {
           _capturedHotReloadEndCallback = hotReloadEndCallback;
         }.toJS;
-    final result = await _dartDevEmbedder
-        .hotReload(filesToLoad, librariesToReload)
-        .toDart;
-    _dartDevEmbedder.debugger.invokeExtension(
-      'ext.dwds.sendEvent',
-      '{"type": "hotReloadResult", "result": "$result"}',
-    );
-    if (result != null &&
-        result.typeofEquals('boolean') &&
-        !(result as JSBoolean).toDart) {
-      throw Exception('Hot reload rejected by DDC');
-    }
+    await _dartDevEmbedder.hotReload(filesToLoad, librariesToReload).toDart;
     return srcModuleLibraries.jsify() as JSArray<JSObject>;
   }
 

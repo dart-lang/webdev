@@ -9,10 +9,11 @@ library;
 import 'dart:io';
 
 import 'package:dwds/dwds.dart';
-import 'package:dwds_test_common/fixtures/project.dart';
 import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+
+import 'fixtures/project.dart';
 
 void main() {
   final project = TestProject.testPackage();
@@ -33,7 +34,7 @@ void main() {
 
       final resolvedPath = '${project.packageDirectory}/lib/test_library.dart';
 
-      late final PathResolver packageUriMapper;
+      late final PackageUriMapper packageUriMapper;
       setUpAll(() async {
         await project.setUp();
         // Note: Run `dart pub upgrade` before the test cases to fix
@@ -51,26 +52,17 @@ void main() {
           ),
         );
 
-        packageUriMapper = useDebuggerModuleNames
-            ? await FrontendServerPathResolver.create(
-                fileSystem,
-                packageConfigFile,
-                useDebuggerModuleNames: useDebuggerModuleNames,
-              )
-            : await BuildRunnerPathResolver.create(
-                fileSystem,
-                packageConfigFile,
-                useDebuggerModuleNames: useDebuggerModuleNames,
-              );
+        packageUriMapper = await PackageUriMapper.create(
+          fileSystem,
+          packageConfigFile,
+          useDebuggerModuleNames: useDebuggerModuleNames,
+        );
       });
 
       tearDownAll(project.tearDown);
 
       test('Can convert package urls to server paths', () {
-        expect(
-          packageUriMapper.appUriToServerPath(packageUri.toString()),
-          serverPath,
-        );
+        expect(packageUriMapper.packageUriToServerPath(packageUri), serverPath);
       });
 
       test('Can convert server paths to file paths', () {

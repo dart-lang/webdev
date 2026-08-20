@@ -12,14 +12,15 @@ import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/frame_computer.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
-import 'package:dwds_test_common/fixtures/debugger_data.dart';
-import 'package:dwds_test_common/fixtures/fakes.dart';
-import 'package:dwds_test_common/fixtures/utilities.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' hide LogRecord;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     show CallFrame, DebuggerPausedEvent, StackTrace, WipCallFrame, WipScript;
+
+import 'fixtures/debugger_data.dart';
+import 'fixtures/fakes.dart';
+import 'fixtures/utilities.dart';
 
 late FakeChromeAppInspector inspector;
 late Debugger debugger;

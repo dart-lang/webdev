@@ -8,7 +8,6 @@ import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/parser.dart';
@@ -195,8 +194,6 @@ class Locations {
     return _sourceToLocation[serverPath] ?? {};
   }
 
-  Iterable<String> keys() => _sourceToLocation.keys;
-
   /// Returns all [Location] data for a provided JS server path.
   Future<Set<Location>> locationsForUrl(String url) async {
     if (url.isEmpty) return {};
@@ -348,13 +345,7 @@ class Locations {
         '/${stripLeadingSlashes(modulePath)}',
       );
 
-      if (sourceMapContents == null) {
-        _logger.warning(
-          'Failed to load source map for module $module at path '
-          '$sourceMapPath',
-        );
-        return result;
-      }
+      if (sourceMapContents == null) return result;
 
       final runtimeScriptId = await _modules.getRuntimeScriptIdForModule(
         _entrypoint,
@@ -382,9 +373,11 @@ class Locations {
         }
       }
       for (final location in result) {
-        final serverPath = location.dartLocation.uri.serverPath;
         _sourceToLocation
-            .putIfAbsent(serverPath, () => <Location>{})
+            .putIfAbsent(
+              location.dartLocation.uri.serverPath,
+              () => <Location>{},
+            )
             .add(location);
       }
       return _moduleToLocations[module] = result;
@@ -402,25 +395,15 @@ class Locations {
   }) {
     final index = entry.sourceUrlId;
     if (index == null) return null;
-    final sourceUrl = sourceUrls[index];
-    String path;
-    if (Uri.tryParse(sourceUrl)?.isAbsolute == true) {
-      path = sourceUrl;
-    } else {
-      // TODO(markzipan): Check if platform-specific separators can be handled
-      //  upstream in the SDK.
-      // Source map URLS are relative to the script. They may have platform
-      // separators or they may use URL semantics. To be sure, we split and
-      // re-join them.
-      // This works on Windows because path treats both / and \ as separators.
-      // It will fail if the path has both separators in it.
-      final relativeSegments = p.split(sourceUrl);
-      path = p.url.normalize(
-        p.url.joinAll([scriptLocation, ...relativeSegments]),
-      );
-
-      path = WebPathTranslator.reconstructAppScheme(path, scriptLocation);
-    }
+    // Source map URLS are relative to the script. They may have platform
+    // separators or they may use URL semantics. To be sure, we split and
+    // re-join them.
+    // This works on Windows because path treats both / and \ as separators.
+    // It will fail if the path has both separators in it.
+    final relativeSegments = p.split(sourceUrls[index]);
+    final path = p.url.normalize(
+      p.url.joinAll([scriptLocation, ...relativeSegments]),
+    );
 
     try {
       final dartUri = DartUri(path, _root);

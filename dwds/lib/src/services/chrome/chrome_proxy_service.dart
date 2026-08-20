@@ -415,7 +415,7 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   }) {
     return wrapInErrorHandlerAsync(
       'addBreakpoint',
-      () => _addBreakpoint(isolateId, scriptId, line, column: column),
+      () => _addBreakpoint(isolateId, scriptId, line),
     );
   }
 

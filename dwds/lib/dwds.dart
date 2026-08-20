@@ -18,8 +18,6 @@ export 'src/debugging/metadata/provider.dart'
 export 'src/events.dart' show DwdsEvent;
 export 'src/handlers/dev_handler.dart' show AppConnectionException;
 export 'src/handlers/socket_connections.dart';
-export 'src/loaders/asset_scheme.dart'
-    show AssetScheme, BuildRunnerAssetScheme, FrontendServerAssetScheme;
 export 'src/loaders/build_runner_strategy_provider.dart'
     show
         BuildRunnerDdcLibraryBundleStrategyProvider,
@@ -27,7 +25,6 @@ export 'src/loaders/build_runner_strategy_provider.dart'
 export 'src/loaders/ddc.dart' show DdcStrategy;
 export 'src/loaders/frontend_server_strategy_provider.dart'
     show
-        FrontendServerBuildDaemonStrategyProvider,
         FrontendServerDdcLibraryBundleStrategyProvider,
         FrontendServerDdcStrategyProvider,
         FrontendServerRequireStrategyProvider;
@@ -38,21 +35,13 @@ export 'src/loaders/strategy.dart'
         LoadStrategy,
         ReloadConfiguration,
         ReloadableLoadStrategy;
-export 'src/readers/asset_reader.dart'
-    show
-        AssetReader,
-        BuildRunnerPathResolver,
-        FlutterPathResolver,
-        FrontendServerPathResolver,
-        PathResolver;
+export 'src/readers/asset_reader.dart' show AssetReader, PackageUriMapper;
 export 'src/readers/frontend_server_asset_reader.dart'
     show FrontendServerAssetReader;
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/servers/devtools.dart';
 export 'src/services/chrome/chrome_debug_exception.dart'
     show ChromeDebugException;
-export 'src/services/daemon_expression_compiler.dart'
-    show DaemonExpressionCompiler;
 export 'src/services/expression_compiler.dart'
     show
         CompilerOptions,

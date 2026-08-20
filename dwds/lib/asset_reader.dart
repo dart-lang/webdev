@@ -3,12 +3,4 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export 'src/readers/asset_reader.dart'
-    show
-        AssetReader,
-        AssetReaderSchemeExtension,
-        BuildRunnerPathResolver,
-        FrontendServerPathResolver,
-        HasAssetScheme,
-        PackageUriMapper,
-        PathResolver,
-        stripLeadingSlashes;
+    show AssetReader, PackageUriMapper, stripLeadingSlashes;

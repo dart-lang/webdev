@@ -3,36 +3,31 @@
 // found in the LICENSE file.
 
 import 'package:dwds/src/debugging/metadata/provider.dart';
-import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/loaders/ddc.dart';
 import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:path/path.dart' as p;
 
 abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
-  final PathResolver _pathResolver;
+  final PackageUriMapper _packageUriMapper;
   final Future<Map<String, String>> Function() _digestsProvider;
   final String _basePath;
   final BuildSettings _buildSettings;
   final String? _packageConfigPath;
 
-  AssetScheme get assetScheme;
-
   FrontendServerStrategyProvider(
     this._configuration,
     this._assetReader,
-    PathResolver? pathResolver,
+    this._packageUriMapper,
     this._digestsProvider,
     this._buildSettings, {
     this._packageConfigPath,
-  }) : _basePath = _assetReader.basePath,
-       _pathResolver = pathResolver ?? FrontendServerPathResolver();
+  }) : _basePath = _assetReader.basePath;
 
   T get strategy;
 
@@ -78,11 +73,17 @@ abstract class FrontendServerStrategyProvider<T extends LoadStrategy> {
       _addBasePath((await metadataProvider.moduleToSourceMap)[module] ?? '');
 
   String? _serverPathForAppUri(String appUrl) {
-    final translated = _pathResolver.appUriToServerPath(
-      appUrl,
-      useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
-    );
-    return translated != null ? _addBasePath(translated) : null;
+    final appUri = Uri.parse(appUrl);
+    if (appUri.isScheme('org-dartlang-app')) {
+      return _addBasePath(appUri.path);
+    }
+    if (appUri.isScheme('package')) {
+      final resolved = _packageUriMapper.packageUriToServerPath(appUri);
+      if (resolved != null) {
+        return resolved;
+      }
+    }
+    return null;
   }
 
   Future<Map<String, ModuleInfo>> _moduleInfoForProvider(
@@ -118,51 +119,39 @@ class FrontendServerDdcStrategyProvider
     _assetReader,
     _buildSettings,
     (String _) => null,
-    assetScheme: assetScheme,
     packageConfigPath: _packageConfigPath,
   );
 
   FrontendServerDdcStrategyProvider(
     super._configuration,
     super._assetReader,
-    super._pathResolver,
+    super._packageUriMapper,
     super._digestsProvider,
     super._buildSettings, {
     super.packageConfigPath,
   });
 
   @override
-  AssetScheme get assetScheme => const FrontendServerAssetScheme();
-
-  @override
   DdcStrategy get strategy => _ddcStrategy;
 }
 
-/// Provides a [DdcLibraryBundleStrategy] for the Frontend Server-only
-/// configuration.
+/// Provides a [DdcLibraryBundleStrategy] suitable for use with the Frontend
+/// Server.
+// ignore: prefer-correct-type-name
 class FrontendServerDdcLibraryBundleStrategyProvider
     extends FrontendServerStrategyProvider<DdcLibraryBundleStrategy> {
   late final DdcLibraryBundleStrategy _libraryBundleStrategy;
 
   FrontendServerDdcLibraryBundleStrategyProvider(
-    ReloadConfiguration configuration,
-    AssetReader assetReader,
-    PathResolver? pathResolver,
-    Future<Map<String, String>> Function() digestsProvider,
-    BuildSettings buildSettings, {
+    super._configuration,
+    super._assetReader,
+    super._packageUriMapper,
+    super._digestsProvider,
+    super._buildSettings, {
     super.packageConfigPath,
     Uri? reloadedSourcesUri,
     bool injectScriptLoad = true,
-  }) : super(
-         configuration,
-         assetReader,
-         pathResolver ??
-             (buildSettings.isFlutterApp
-                 ? FlutterPathResolver()
-                 : FrontendServerPathResolver()),
-         digestsProvider,
-         buildSettings,
-       ) {
+  }) {
     _libraryBundleStrategy = DdcLibraryBundleStrategy(
       _configuration,
       _moduleProvider,
@@ -175,7 +164,6 @@ class FrontendServerDdcLibraryBundleStrategyProvider
       _assetReader,
       _buildSettings,
       (String _) => null,
-      assetScheme: assetScheme,
       packageConfigPath: _packageConfigPath,
       reloadedSourcesUri: reloadedSourcesUri,
       injectScriptLoad: injectScriptLoad,
@@ -183,167 +171,7 @@ class FrontendServerDdcLibraryBundleStrategyProvider
   }
 
   @override
-  AssetScheme get assetScheme => const FrontendServerAssetScheme();
-
-  @override
   DdcLibraryBundleStrategy get strategy => _libraryBundleStrategy;
-}
-
-/// Provides a [DdcLibraryBundleStrategy] for the Frontend Server + Build
-/// Daemon configuration, which supports hot reload.
-class FrontendServerBuildDaemonStrategyProvider
-    extends FrontendServerStrategyProvider<DdcLibraryBundleStrategy> {
-  late final DdcLibraryBundleStrategy _libraryBundleStrategy;
-
-  FrontendServerBuildDaemonStrategyProvider(
-    ReloadConfiguration configuration,
-    AssetReader assetReader,
-    PathResolver? pathResolver,
-    Future<Map<String, String>> Function() digestsProvider,
-    BuildSettings buildSettings, {
-    super.packageConfigPath,
-    Uri? reloadedSourcesUri,
-    bool injectScriptLoad = true,
-  }) : super(
-         configuration,
-         assetReader,
-         pathResolver ?? BuildRunnerPathResolver(),
-         digestsProvider,
-         buildSettings,
-       ) {
-    _libraryBundleStrategy = DdcLibraryBundleStrategy(
-      _configuration,
-      _moduleProvider,
-      (_) => _digestsProvider(),
-      _moduleForServerPath,
-      _serverPathForModule,
-      _sourceMapPathForModule,
-      _serverPathForAppUri,
-      _moduleInfoForProvider,
-      _assetReader,
-      _buildSettings,
-      (String _) => null,
-      assetScheme: assetScheme,
-      packageConfigPath: _packageConfigPath,
-      reloadedSourcesUri: reloadedSourcesUri,
-      injectScriptLoad: injectScriptLoad,
-    );
-  }
-
-  @override
-  AssetScheme get assetScheme => const BuildRunnerAssetScheme();
-
-  @override
-  DdcLibraryBundleStrategy get strategy => _libraryBundleStrategy;
-
-  /// Strips the top-level web/entrypoint directory from a path.
-  ///
-  /// For example:
-  /// - `web/main.dart` -> `main.dart`
-  /// - `example/append_body/main.dart` -> `append_body/main.dart`
-  /// - `packages/path/path.dart` -> `packages/path/path.dart` (unchanged)
-  String _stripPrefix(String path) {
-    path = path.replaceAll('\\', '/');
-    if (path.startsWith('packages')) return path;
-    final parts = path.split('/');
-
-    final appUri = _buildSettings.appEntrypoint;
-    final validPrefixes = [
-      if (appUri != null && appUri.pathSegments.isNotEmpty)
-        appUri.pathSegments.first,
-      ...WebPathTranslator.defaultWebDirs,
-    ];
-
-    if (parts.length > 1 && validPrefixes.contains(parts[0])) {
-      return parts.skip(1).join('/');
-    }
-    return path;
-  }
-
-  /// Looks up the DDC module name for a served source file path while remapping
-  /// browser-requested DDC paths (containing '.ddc') to Frontend Server-served
-  /// paths (containing '.dart.lib').
-  ///
-  /// Requested paths can originate from different contexts at runtime, so we
-  /// perform several runtime lookups:
-  /// 1) Frontend Server uses '.dart.lib.js' and is referenced by expression
-  ///    evaluation requests, metadata files, stack traces, and sourcemaps.
-  /// 2) Build daemon serves with '.ddc.js' and is referenced by Chrome file
-  ///    requests and Chrome DevTools protocol script URLs.
-  @override
-  Future<String?> _moduleForServerPath(
-    MetadataProvider metadataProvider,
-    String serverPath,
-  ) async {
-    // Try looking up with the build runner path.
-    var module = await super._moduleForServerPath(metadataProvider, serverPath);
-    if (module != null) return module;
-    final remappedPath = WebPathTranslator.translateBuildRunnerToFesPath(
-      serverPath,
-    );
-    module = await super._moduleForServerPath(metadataProvider, remappedPath);
-    if (module != null) return module;
-
-    // Look up root modules with directory prefixes (e.g. 'web/' or 'example/').
-    // Package dependencies ('packages/') are matched above.
-    final modulePathToModule = await metadataProvider.modulePathToModule;
-    final appUri = _buildSettings.appEntrypoint;
-    final validPrefixes = [
-      if (appUri != null && appUri.pathSegments.isNotEmpty)
-        appUri.pathSegments.first,
-      ...WebPathTranslator.defaultWebDirs,
-    ];
-    for (final prefix in validPrefixes) {
-      final match =
-          modulePathToModule['$prefix/$remappedPath'] ??
-          modulePathToModule['$prefix/$serverPath'];
-      if (match != null) return match;
-    }
-    return null;
-  }
-
-  @override
-  Future<String> _serverPathForModule(
-    MetadataProvider metadataProvider,
-    String module,
-  ) async {
-    final path = await super._serverPathForModule(metadataProvider, module);
-    final stripped = _stripPrefix(path);
-    return WebPathTranslator.translateFesToBuildRunnerPath(stripped);
-  }
-
-  @override
-  Future<String> _sourceMapPathForModule(
-    MetadataProvider metadataProvider,
-    String module,
-  ) async {
-    final path = await super._sourceMapPathForModule(metadataProvider, module);
-    final stripped = _stripPrefix(path);
-    return WebPathTranslator.translateFesToBuildRunnerPath(stripped);
-  }
-
-  @override
-  String? _serverPathForAppUri(String appUrl) =>
-      _pathResolver.appUriToServerPath(
-        appUrl,
-        useDebuggerModuleNames: _buildSettings.useDebuggerModuleNames,
-      );
-
-  @override
-  Future<Map<String, ModuleInfo>> _moduleInfoForProvider(
-    MetadataProvider metadataProvider,
-  ) async {
-    final moduleInfo = await super._moduleInfoForProvider(metadataProvider);
-    return moduleInfo.map((module, info) {
-      return MapEntry(
-        module,
-        ModuleInfo(
-          WebPathTranslator.translateFesToBuildRunnerPath(info.fullDillPath),
-          WebPathTranslator.translateFesToBuildRunnerPath(info.summaryPath),
-        ),
-      );
-    });
-  }
 }
 
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.
@@ -360,30 +188,17 @@ class FrontendServerRequireStrategyProvider
     _moduleInfoForProvider,
     _assetReader,
     _buildSettings,
-    assetScheme: assetScheme,
     packageConfigPath: _packageConfigPath,
   );
 
   FrontendServerRequireStrategyProvider(
-    ReloadConfiguration configuration,
-    AssetReader assetReader,
-    PathResolver? pathResolver,
-    Future<Map<String, String>> Function() digestsProvider,
-    BuildSettings buildSettings, {
+    super._configuration,
+    super._assetReader,
+    super._packageUriMapper,
+    super._digestsProvider,
+    super._buildSettings, {
     super.packageConfigPath,
-  }) : super(
-         configuration,
-         assetReader,
-         pathResolver ??
-             (buildSettings.isFlutterApp
-                 ? FlutterPathResolver()
-                 : FrontendServerPathResolver()),
-         digestsProvider,
-         buildSettings,
-       );
-
-  @override
-  AssetScheme get assetScheme => const FrontendServerAssetScheme();
+  });
 
   @override
   RequireStrategy get strategy => _requireStrategy;
