@@ -14,7 +14,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
 /// A reader for resources provided by a proxy server.
-class ProxyServerAssetReader implements AssetReader {
+class ProxyServerAssetReader implements AssetReader, HasAssetScheme {
   final _logger = Logger('ProxyServerAssetReader');
 
   final Handler _handler;

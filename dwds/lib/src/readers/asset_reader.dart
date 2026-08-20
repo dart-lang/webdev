@@ -25,9 +25,6 @@ abstract class AssetReader {
   /// ```
   String get basePath;
 
-  /// The asset scheme used by this reader.
-  AssetScheme get assetScheme => const FrontendServerAssetScheme();
-
   /// Returns the contents for a dart source at the provided server path, or
   /// null if the resource does not exist.
   Future<String?> dartSourceContents(String serverPath);
@@ -42,6 +39,21 @@ abstract class AssetReader {
 
   /// Closes connections
   Future<void> close();
+}
+
+/// Optional interface for readers that provide a specific [AssetScheme].
+abstract interface class HasAssetScheme {
+  AssetScheme get assetScheme;
+}
+
+/// Extension providing safe default [AssetScheme] resolution without
+/// breaking existing classes that use `implements AssetReader`.
+extension AssetReaderSchemeExtension on AssetReader {
+  AssetScheme get assetScheme {
+    final reader = this;
+    if (reader is HasAssetScheme) return reader.assetScheme;
+    return const FrontendServerAssetScheme();
+  }
 }
 
 abstract class PathResolver {

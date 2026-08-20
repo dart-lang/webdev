@@ -13,7 +13,7 @@ import 'package:path/path.dart' as p;
 
 /// A reader for Dart sources and related source maps provided by the Frontend
 /// Server.
-class FrontendServerAssetReader implements AssetReader {
+class FrontendServerAssetReader implements AssetReader, HasAssetScheme {
   final _logger = Logger('FrontendServerAssetReader');
   final File _mapOriginal;
   final File _mapIncremental;

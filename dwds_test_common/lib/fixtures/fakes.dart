@@ -427,7 +427,7 @@ class FakeStrategy extends LoadStrategy {
       throw UnimplementedError();
 }
 
-class FakeAssetReader implements AssetReader {
+class FakeAssetReader implements AssetReader, HasAssetScheme {
   String? metadata;
   final String? dartSource;
   final String? sourceMap;

@@ -5,7 +5,9 @@
 export 'src/readers/asset_reader.dart'
     show
         AssetReader,
+        AssetReaderSchemeExtension,
         BuildRunnerPathResolver,
         FrontendServerPathResolver,
+        HasAssetScheme,
         PathResolver,
         stripLeadingSlashes;

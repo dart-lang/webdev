@@ -19,7 +19,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../test_sdk_layout.dart';
 
-class TestAssetServer implements AssetReader {
+class TestAssetServer implements AssetReader, HasAssetScheme {
   late final String _basePath;
   final String index;
 
