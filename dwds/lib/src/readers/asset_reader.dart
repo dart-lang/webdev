@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:dwds/src/loaders/asset_scheme.dart';
 import 'package:dwds/src/readers/frontend_server_asset_reader.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
@@ -288,3 +289,82 @@ final class FlutterPathResolver extends PathResolver {
     return WebPathTranslator.packagePathToPackageUri(serverPath);
   }
 }
+
+/// A mapper for package URIs to server paths and resolved file URIs.
+class PackageUriMapper {
+  final _logger = Logger('PackageUriMapper');
+  final PackageConfig packageConfig;
+  final bool useDebuggerModuleNames;
+
+  static Future<PackageUriMapper> create(
+    FileSystem fileSystem,
+    Uri packageConfigFile, {
+    bool useDebuggerModuleNames = false,
+  }) async {
+    final packageConfig = await loadPackageConfig(
+      fileSystem.file(packageConfigFile),
+    );
+    return PackageUriMapper(
+      packageConfig,
+      useDebuggerModuleNames: useDebuggerModuleNames,
+    );
+  }
+
+  PackageUriMapper(this.packageConfig, {this.useDebuggerModuleNames = false});
+
+  /// Compute server path for package uri.
+  String? packageUriToServerPath(Uri packageUri) {
+    final defaultServerPath = '/packages/${packageUri.path}';
+    if (packageUri.isScheme('package')) {
+      if (!useDebuggerModuleNames) {
+        return defaultServerPath;
+      }
+      final resolvedUri = packageConfig.resolve(packageUri);
+      if (resolvedUri == null) {
+        _logger.severe('Cannot resolve package uri $packageUri');
+        return defaultServerPath;
+      }
+      final package = packageConfig.packageOf(resolvedUri);
+      if (package == null) {
+        _logger.severe('Cannot find package for package uri $packageUri');
+        return defaultServerPath;
+      }
+      final root = package.root;
+      final relativeUrl = resolvedUri.toString().replaceFirst('$root', '');
+      final relativeRoot = _getRelativeRoot(root);
+      final ret = relativeRoot == null
+          ? 'packages/$relativeUrl'
+          : 'packages/$relativeRoot/$relativeUrl';
+      return ret;
+    }
+    _logger.severe('Expected package uri, but found $packageUri');
+    return null;
+  }
+
+  /// Compute resolved file uri for a server path.
+  Uri? serverPathToResolvedUri(String serverPath) {
+    serverPath = stripLeadingSlashes(serverPath);
+    final segments = serverPath.split('/');
+    if (segments.first == 'packages') {
+      if (!useDebuggerModuleNames) {
+        return packageConfig.resolve(
+          Uri(scheme: 'package', pathSegments: segments.skip(1)),
+        );
+      }
+      final relativeRoot = segments.skip(1).first;
+      final relativeUrl = segments.skip(2).join('/');
+      final package = packageConfig.packages.firstWhereOrNull(
+        (Package p) => _getRelativeRoot(p.root) == relativeRoot,
+      );
+      if (package == null) return null;
+      final resolvedUri = package.root.resolve(relativeUrl);
+
+      return resolvedUri;
+    }
+    _logger.severe('Expected "packages/" path, but found $serverPath');
+    return null;
+  }
+}
+
+String? _getRelativeRoot(Uri root) =>
+    root.pathSegments.lastWhereOrNull((segment) => segment.isNotEmpty);
