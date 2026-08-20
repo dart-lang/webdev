@@ -523,35 +523,24 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
         '.dart_tool',
         'package_config.json',
       );
-      String fesManagerPath;
+      String? fesManagerPath;
       var fesManagerPackagesFile = sourcePackagesFile.path;
       if (buildWebCompilers != null) {
         final pkgRootUri = Uri.parse(buildWebCompilers['rootUri'] as String);
         final pkgRootPath =
             sourcePackagesFile.parent.uri.resolveUri(pkgRootUri).toFilePath();
-        fesManagerPath = p.join(
-          pkgRootPath,
-          'bin',
-          'fes_manager.dart',
-        );
-      } else {
-        fesManagerPath = p.join(
-          localBuildRepoDir,
-          'builder_pkgs',
-          'build_web_compilers',
-          'bin',
-          'fes_manager.dart',
-        );
+        final candidate = p.join(pkgRootPath, 'bin', 'fes_manager.dart');
+        if (File(candidate).existsSync()) {
+          fesManagerPath = candidate;
+        }
       }
-      if (!File(fesManagerPath).existsSync()) {
-        fesManagerPath = p.join(
-          localBuildRepoDir,
-          'builder_pkgs',
-          'build_web_compilers',
-          'bin',
-          'fes_manager.dart',
-        );
-      }
+      fesManagerPath ??= p.join(
+        localBuildRepoDir,
+        'builder_pkgs',
+        'build_web_compilers',
+        'bin',
+        'fes_manager.dart',
+      );
       if (File(buildRepoPackages).existsSync()) {
         fesManagerPackagesFile = buildRepoPackages;
       }
