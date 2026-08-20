@@ -805,45 +805,32 @@ Handler _createBuildRunnerDdcLibraryBundleAssetHandler(
 
       final subDir = isPackage ? 'lib' : context.project.directoryToServe;
 
-      final candidateFiles = [
-        File(
-          p.join(
-            context.project.absolutePackageDirectory,
-            '.dart_tool',
-            'test_scratch_space',
-            newPath,
-          ),
+      // Look first in the Frontend Server scratch space (hot reload / incremental builds),
+      // then fall back to the build_runner generated output cache.
+      final scratchFile = File(
+        p.join(
+          context.project.absolutePackageDirectory,
+          '.dart_tool',
+          'test_scratch_space',
+          newPath,
         ),
-        File(
-          p.join(
-            context.project.absolutePackageDirectory,
-            '.dart_tool',
-            'build',
-            'test_scratch_space',
-            subDir,
-            relativePath,
-          ),
+      );
+      final generatedFile = File(
+        p.join(
+          context.project.absolutePackageDirectory,
+          '.dart_tool',
+          'build',
+          'generated',
+          pkgName,
+          subDir,
+          relativePath,
         ),
-        File(
-          p.join(
-            context.project.absolutePackageDirectory,
-            '.dart_tool',
-            'build',
-            'generated',
-            pkgName,
-            subDir,
-            relativePath,
-          ),
-        ),
-      ];
+      );
 
-      Uint8List? fileBytes;
-      for (final file in candidateFiles) {
-        if (file.existsSync()) {
-          fileBytes = file.readAsBytesSync();
-          break;
-        }
-      }
+      final file = scratchFile.existsSync()
+          ? scratchFile
+          : (generatedFile.existsSync() ? generatedFile : null);
+      final fileBytes = file?.readAsBytesSync();
 
       if (fileBytes != null) {
         final String mimeType;
