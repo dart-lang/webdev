@@ -524,7 +524,7 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
         'package_config.json',
       );
       String fesManagerPath;
-      String fesManagerPackagesFile = sourcePackagesFile.path;
+      var fesManagerPackagesFile = sourcePackagesFile.path;
       if (buildWebCompilers != null) {
         final pkgRootUri = Uri.parse(buildWebCompilers['rootUri'] as String);
         final pkgRootPath =
