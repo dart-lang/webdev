@@ -7,7 +7,6 @@
 @Timeout(Duration(minutes: 5))
 library;
 
-
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/integration/evaluate_parts.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
