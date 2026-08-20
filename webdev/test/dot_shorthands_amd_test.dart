@@ -8,7 +8,6 @@
 library;
 
 import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/integration/dot_shorthands.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
@@ -49,40 +48,6 @@ void main() {
     runTests(
       provider: provider,
       contextFactory: BuildDaemonTestContext.new,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: false | Frontend Server |', () {
-    final canaryFeatures = false;
-
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: ModuleFormat.amd,
-    );
-    tearDownAll(provider.dispose);
-
-    runTests(
-      provider: provider,
-      contextFactory: FrontendServerTestContext.new,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: true | Frontend Server |', () {
-    final canaryFeatures = true;
-
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      canaryFeatures: canaryFeatures,
-      ddcModuleFormat: ModuleFormat.amd,
-    );
-    tearDownAll(provider.dispose);
-
-    runTests(
-      provider: provider,
-      contextFactory: FrontendServerTestContext.new,
       canaryFeatures: canaryFeatures,
     );
   });

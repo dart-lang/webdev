@@ -25,7 +25,6 @@ import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/fixtures/utilities.dart';
 import 'package:dwds_test_common/frontend_server_common/devfs.dart';
-import 'package:dwds_test_common/utilities.dart';
 import 'package:file/local.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart' as logging;
@@ -496,8 +495,9 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
 
       if (buildWebCompilers != null) {
         final pkgRootUri = Uri.parse(buildWebCompilers['rootUri'] as String);
-        final pkgRootPath =
-            sourcePackagesFile.parent.uri.resolveUri(pkgRootUri).toFilePath();
+        final pkgRootPath = sourcePackagesFile.parent.uri
+            .resolveUri(pkgRootUri)
+            .toFilePath();
         fesManagerPath = p.join(pkgRootPath, 'bin', 'fes_manager.dart');
         fesManagerPackagesFile = sourcePackagesFile.path;
       } else {

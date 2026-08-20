@@ -7,7 +7,6 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/integration/load_strategy.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
@@ -27,16 +26,5 @@ void main() {
 
   group('Build Daemon |', () {
     testAll(provider: provider, contextFactory: BuildDaemonTestContext.new);
-  });
-
-  group('Build Daemon and Frontend Server |', () {
-    testAll(
-      provider: provider,
-      contextFactory: BuildDaemonAndFrontendServerTestContext.new,
-    );
-  });
-
-  group('Frontend Server |', () {
-    testAll(provider: provider, contextFactory: FrontendServerTestContext.new);
   });
 }

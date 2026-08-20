@@ -7,7 +7,6 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
-import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/integration/breakpoint.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
@@ -28,13 +27,6 @@ void main() {
     testBreakpoint(
       provider: provider,
       contextFactory: BuildDaemonTestContext.new,
-    );
-  });
-
-  group('Frontend Server |', () {
-    testBreakpoint(
-      provider: provider,
-      contextFactory: FrontendServerTestContext.new,
     );
   });
 }

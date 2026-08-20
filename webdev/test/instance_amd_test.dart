@@ -7,7 +7,6 @@
 library;
 
 import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/integration/instance.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
@@ -61,52 +60,6 @@ void main() {
     runTests(
       provider: provider,
       contextFactory: BuildDaemonTestContext.new,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: false | Frontend Server |', () {
-    final canaryFeatures = false;
-
-    final provider = TestSdkConfigurationProvider(
-      canaryFeatures: canaryFeatures,
-      verbose: debug,
-      ddcModuleFormat: moduleFormat,
-    );
-    tearDownAll(provider.dispose);
-
-    runTypeSystemVerificationTests(
-      provider: provider,
-      contextFactory: FrontendServerTestContext.new,
-      canaryFeatures: canaryFeatures,
-    );
-
-    runTests(
-      provider: provider,
-      contextFactory: FrontendServerTestContext.new,
-      canaryFeatures: canaryFeatures,
-    );
-  });
-
-  group('canary: true | Frontend Server |', () {
-    final canaryFeatures = true;
-
-    final provider = TestSdkConfigurationProvider(
-      canaryFeatures: canaryFeatures,
-      verbose: debug,
-      ddcModuleFormat: moduleFormat,
-    );
-    tearDownAll(provider.dispose);
-
-    runTypeSystemVerificationTests(
-      provider: provider,
-      contextFactory: FrontendServerTestContext.new,
-      canaryFeatures: canaryFeatures,
-    );
-
-    runTests(
-      provider: provider,
-      contextFactory: FrontendServerTestContext.new,
       canaryFeatures: canaryFeatures,
     );
   });
