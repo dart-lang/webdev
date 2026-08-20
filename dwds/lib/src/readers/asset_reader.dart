@@ -41,17 +41,16 @@ abstract class AssetReader {
   Future<void> close();
 }
 
-/// Optional interface for readers that provide a specific [AssetScheme].
+/// Interface for readers that provide a custom [AssetScheme].
 abstract interface class HasAssetScheme {
   AssetScheme get assetScheme;
 }
 
-/// Extension providing safe default [AssetScheme] resolution without
-/// breaking existing classes that use `implements AssetReader`.
 extension AssetReaderSchemeExtension on AssetReader {
   AssetScheme get assetScheme {
     final reader = this;
     if (reader is HasAssetScheme) return reader.assetScheme;
+    // Return `FrontendServerAssetScheme` by default.
     return const FrontendServerAssetScheme();
   }
 }
