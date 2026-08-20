@@ -489,16 +489,52 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
                 orElse: () => null,
               )
               as Map<String, dynamic>?;
+      String? findLocalBuildRepo() {
+        for (final startDir in [
+          Directory.current,
+          File(Platform.script.toFilePath()).parent,
+          File(sourcePackagesFile.path).parent,
+        ]) {
+          var dir = startDir.absolute;
+          for (var i = 0; i < 6; i++) {
+            final candidate = p.join(dir.path, 'build');
+            if (Directory(
+              p.join(candidate, 'builder_pkgs', 'build_web_compilers'),
+            ).existsSync()) {
+              return candidate;
+            }
+            if (Directory(
+              p.join(dir.path, 'builder_pkgs', 'build_web_compilers'),
+            ).existsSync()) {
+              return dir.path;
+            }
+            if (dir.path == dir.parent.path) break;
+            dir = dir.parent;
+          }
+        }
+        return null;
+      }
+
+      final localBuildRepo = findLocalBuildRepo();
+      final localBuildRepoDir =
+          localBuildRepo ?? p.join(p.dirname(projectRootDir), 'build');
+      final buildRepoPackages = p.join(
+        localBuildRepoDir,
+        '.dart_tool',
+        'package_config.json',
+      );
       String fesManagerPath;
+      String fesManagerPackagesFile = sourcePackagesFile.path;
       if (buildWebCompilers != null) {
         final pkgRootUri = Uri.parse(buildWebCompilers['rootUri'] as String);
+        final pkgRootPath =
+            sourcePackagesFile.parent.uri.resolveUri(pkgRootUri).toFilePath();
         fesManagerPath = p.join(
-          pkgRootUri.toFilePath(),
+          pkgRootPath,
           'bin',
           'fes_manager.dart',
         );
       } else {
-        final localBuildRepoDir = p.join(p.dirname(projectRootDir), 'build');
         fesManagerPath = p.join(
           localBuildRepoDir,
           'builder_pkgs',
@@ -507,16 +543,40 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
           'fes_manager.dart',
         );
       }
-      final compileResult = await Process.run(sdkLayout.dartPath, [
+      if (!File(fesManagerPath).existsSync()) {
+        fesManagerPath = p.join(
+          localBuildRepoDir,
+          'builder_pkgs',
+          'build_web_compilers',
+          'bin',
+          'fes_manager.dart',
+        );
+      }
+      if (File(buildRepoPackages).existsSync()) {
+        fesManagerPackagesFile = buildRepoPackages;
+      }
+      var compileResult = await Process.run(sdkLayout.dartPath, [
         'compile',
         'kernel',
-        '--packages=${sourcePackagesFile.path}',
+        '--packages=$fesManagerPackagesFile',
         '-o',
         fesSnapshot,
         fesManagerPath,
       ]);
+      if (compileResult.exitCode != 0 &&
+          fesManagerPackagesFile != buildRepoPackages &&
+          File(buildRepoPackages).existsSync()) {
+        compileResult = await Process.run(sdkLayout.dartPath, [
+          'compile',
+          'kernel',
+          '--packages=$buildRepoPackages',
+          '-o',
+          fesSnapshot,
+          fesManagerPath,
+        ]);
+      }
       if (compileResult.exitCode != 0) {
-        _logger.severe(
+        throw StateError(
           'Failed to compile Frontend Server Manager:\n'
           'Exit code: ${compileResult.exitCode}\n'
           'Stdout: ${compileResult.stdout}\n'
@@ -530,6 +590,10 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
         p.toUri(testScratchSpaceDir.path).toString(),
         p.toUri(packagesFile.path).toString(),
       ];
+      final configFile = _fesManagerConfigFile(this);
+      if (configFile.existsSync()) {
+        configFile.deleteSync();
+      }
       fesProcess = await Process.start(
         sdkLayout.dartPath,
         args,
@@ -549,7 +613,6 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
             _logger.warning('FES Manager STDERR: $line');
           });
 
-      final configFile = _fesManagerConfigFile(this);
       while (!await configFile.exists()) {
         await Future<void>.delayed(const Duration(milliseconds: 100));
       }
