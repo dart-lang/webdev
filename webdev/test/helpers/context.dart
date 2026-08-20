@@ -790,9 +790,11 @@ Handler _createBuildRunnerDdcLibraryBundleAssetHandler(
     final isJsOrMap = newPath.endsWith('.js') || newPath.endsWith('.js.map');
 
     if (isDill || isMetadata || (isPackage && isJsOrMap)) {
+      var pkgName = context.project.packageName;
       String relativePath;
       if (isPackage) {
         final parts = newPath.split('/');
+        pkgName = parts.length > 1 ? parts[1] : pkgName;
         relativePath = parts.length > 2 ? parts.sublist(2).join('/') : newPath;
       } else {
         final prefix = '${context.project.directoryToServe}/';
@@ -803,34 +805,44 @@ Handler _createBuildRunnerDdcLibraryBundleAssetHandler(
 
       final subDir = isPackage ? 'lib' : context.project.directoryToServe;
 
-      final scratchFile = File(
-        p.join(
-          context.project.absolutePackageDirectory,
-          '.dart_tool',
-          'build',
-          'test_scratch_space',
-          subDir,
-          relativePath,
+      final candidateFiles = [
+        File(
+          p.join(
+            context.project.absolutePackageDirectory,
+            '.dart_tool',
+            'test_scratch_space',
+            newPath,
+          ),
         ),
-      );
-
-      final generatedFile = File(
-        p.join(
-          context.project.absolutePackageDirectory,
-          '.dart_tool',
-          'build',
-          'generated',
-          context.project.packageName,
-          subDir,
-          relativePath,
+        File(
+          p.join(
+            context.project.absolutePackageDirectory,
+            '.dart_tool',
+            'build',
+            'test_scratch_space',
+            subDir,
+            relativePath,
+          ),
         ),
-      );
+        File(
+          p.join(
+            context.project.absolutePackageDirectory,
+            '.dart_tool',
+            'build',
+            'generated',
+            pkgName,
+            subDir,
+            relativePath,
+          ),
+        ),
+      ];
 
       Uint8List? fileBytes;
-      if (scratchFile.existsSync()) {
-        fileBytes = scratchFile.readAsBytesSync();
-      } else if (generatedFile.existsSync()) {
-        fileBytes = generatedFile.readAsBytesSync();
+      for (final file in candidateFiles) {
+        if (file.existsSync()) {
+          fileBytes = file.readAsBytesSync();
+          break;
+        }
       }
 
       if (fileBytes != null) {
