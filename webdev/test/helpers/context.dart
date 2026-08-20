@@ -24,7 +24,6 @@ import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/web_path_translator.dart';
 import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:dwds_test_common/fixtures/utilities.dart';
-import 'package:dwds_test_common/frontend_server_common/devfs.dart';
 import 'package:file/local.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart' as logging;
@@ -773,7 +772,7 @@ Handler _createBuildRunnerDdcLibraryBundleAssetHandler(
     }
 
     // Serve reloaded_sources.json.
-    if (newPath.endsWith(WebDevFS.reloadedSourcesFileName)) {
+    if (newPath.endsWith('reloaded_sources.json')) {
       if (context.lastBuildFailed) {
         return shelf.Response.internalServerError(
           body: 'Last build failed, no reloaded sources.',
