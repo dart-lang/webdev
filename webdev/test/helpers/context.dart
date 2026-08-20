@@ -29,8 +29,8 @@ import 'package:file/local.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
-import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_proxy/shelf_proxy.dart';
 
 Handler createBuildRunnerProxyHandler({
