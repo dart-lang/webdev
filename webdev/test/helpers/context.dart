@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:build_daemon/client.dart';
@@ -489,62 +490,33 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
                 orElse: () => null,
               )
               as Map<String, dynamic>?;
-      String? findLocalBuildRepo() {
-        for (final startDir in [
-          Directory.current,
-          File(Platform.script.toFilePath()).parent,
-          File(sourcePackagesFile.path).parent,
-        ]) {
-          var dir = startDir.absolute;
-          for (var i = 0; i < 6; i++) {
-            final candidate = p.join(dir.path, 'build');
-            if (Directory(
-              p.join(candidate, 'builder_pkgs', 'build_web_compilers'),
-            ).existsSync()) {
-              return candidate;
-            }
-            if (Directory(
-              p.join(dir.path, 'builder_pkgs', 'build_web_compilers'),
-            ).existsSync()) {
-              return dir.path;
-            }
-            if (dir.path == dir.parent.path) break;
-            dir = dir.parent;
-          }
-        }
-        return null;
-      }
 
-      final localBuildRepo = findLocalBuildRepo();
-      final localBuildRepoDir =
-          localBuildRepo ?? p.join(p.dirname(projectRootDir), 'build');
-      final buildRepoPackages = p.join(
-        localBuildRepoDir,
-        '.dart_tool',
-        'package_config.json',
-      );
-      String? fesManagerPath;
-      var fesManagerPackagesFile = sourcePackagesFile.path;
+      String fesManagerPath;
+      String fesManagerPackagesFile;
+
       if (buildWebCompilers != null) {
         final pkgRootUri = Uri.parse(buildWebCompilers['rootUri'] as String);
         final pkgRootPath =
             sourcePackagesFile.parent.uri.resolveUri(pkgRootUri).toFilePath();
-        final candidate = p.join(pkgRootPath, 'bin', 'fes_manager.dart');
-        if (File(candidate).existsSync()) {
-          fesManagerPath = candidate;
+        fesManagerPath = p.join(pkgRootPath, 'bin', 'fes_manager.dart');
+        fesManagerPackagesFile = sourcePackagesFile.path;
+      } else {
+        final resolvedUri = Isolate.resolvePackageUriSync(
+          Uri.parse('package:build_web_compilers/build_web_compilers.dart'),
+        );
+        if (resolvedUri == null) {
+          throw StateError(
+            'Unable to resolve package:build_web_compilers in isolate.',
+          );
         }
+        final pkgRootPath = p.dirname(p.dirname(resolvedUri.toFilePath()));
+        fesManagerPath = p.join(pkgRootPath, 'bin', 'fes_manager.dart');
+        final currentConfigUri = await Isolate.packageConfig;
+        fesManagerPackagesFile =
+            currentConfigUri?.toFilePath() ?? sourcePackagesFile.path;
       }
-      fesManagerPath ??= p.join(
-        localBuildRepoDir,
-        'builder_pkgs',
-        'build_web_compilers',
-        'bin',
-        'fes_manager.dart',
-      );
-      if (File(buildRepoPackages).existsSync()) {
-        fesManagerPackagesFile = buildRepoPackages;
-      }
-      var compileResult = await Process.run(sdkLayout.dartPath, [
+
+      final compileResult = await Process.run(sdkLayout.dartPath, [
         'compile',
         'kernel',
         '--packages=$fesManagerPackagesFile',
@@ -552,18 +524,6 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
         fesSnapshot,
         fesManagerPath,
       ]);
-      if (compileResult.exitCode != 0 &&
-          fesManagerPackagesFile != buildRepoPackages &&
-          File(buildRepoPackages).existsSync()) {
-        compileResult = await Process.run(sdkLayout.dartPath, [
-          'compile',
-          'kernel',
-          '--packages=$buildRepoPackages',
-          '-o',
-          fesSnapshot,
-          fesManagerPath,
-        ]);
-      }
       if (compileResult.exitCode != 0) {
         throw StateError(
           'Failed to compile Frontend Server Manager:\n'
