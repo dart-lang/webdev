@@ -28,8 +28,8 @@ import 'package:file/local.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
-import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
 Handler createBuildRunnerProxyHandler({
@@ -452,6 +452,22 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
           'package_config.json',
         ),
       );
+      final pubspecFile = File(
+        p.join(project.absolutePackageDirectory, 'pubspec.yaml'),
+      );
+      if (pubspecFile.existsSync()) {
+        final content = pubspecFile.readAsStringSync();
+        if (!content.contains('build_web_compilers')) {
+          pubspecFile.writeAsStringSync('''$content
+
+dev_dependencies:
+  build_daemon: ^4.1.4
+  build_runner: ^2.16.0
+  build_web_compilers: ^4.8.1
+''');
+        }
+      }
+
       final packagesFile = File(
         p.join(testScratchSpaceDir.path, '.dart_tool', 'package_config.json'),
       );
@@ -470,6 +486,7 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
         packageMap['rootUri'] = rootUri.toString();
       }
       packagesFile.writeAsStringSync(jsonEncode(originalJson));
+      sourcePackagesFile.writeAsStringSync(jsonEncode(originalJson));
 
       options.addAll([
         '--define',
@@ -494,9 +511,8 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
 
       if (buildWebCompilers != null) {
         final pkgRootUri = Uri.parse(buildWebCompilers['rootUri'] as String);
-        final pkgRootPath = sourcePackagesFile.parent.uri
-            .resolveUri(pkgRootUri)
-            .toFilePath();
+        final pkgRootPath =
+            sourcePackagesFile.parent.uri.resolveUri(pkgRootUri).toFilePath();
         fesManagerPath = p.join(pkgRootPath, 'bin', 'fes_manager.dart');
         fesManagerPackagesFile = sourcePackagesFile.path;
       } else {
@@ -788,7 +804,7 @@ Handler _createBuildRunnerDdcLibraryBundleAssetHandler(
     final isPackage = newPath.startsWith('packages/');
     final isJsOrMap = newPath.endsWith('.js') || newPath.endsWith('.js.map');
 
-    if (isDill || isMetadata || (isPackage && isJsOrMap)) {
+    if (isDill || isMetadata || isJsOrMap) {
       var pkgName = context.project.packageName;
       String relativePath;
       if (isPackage) {
@@ -804,16 +820,16 @@ Handler _createBuildRunnerDdcLibraryBundleAssetHandler(
 
       final subDir = isPackage ? 'lib' : context.project.directoryToServe;
 
-      // Look first in the Frontend Server scratch space (hot reload / incremental builds),
-      // then fall back to the build_runner generated output cache.
       final scratchFile = File(
         p.join(
           context.project.absolutePackageDirectory,
           '.dart_tool',
           'test_scratch_space',
-          newPath,
+          subDir,
+          relativePath,
         ),
       );
+
       final generatedFile = File(
         p.join(
           context.project.absolutePackageDirectory,
