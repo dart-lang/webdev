@@ -452,6 +452,29 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
           'package_config.json',
         ),
       );
+
+      // Fixtures in dwds_test_common do not declare dev_dependencies on
+      // build_web_compilers / build_runner. We inject them here since they're
+      // required by webdev.
+      final pubspecFile = File(
+        p.join(project.absolutePackageDirectory, 'pubspec.yaml'),
+      );
+      if (pubspecFile.existsSync()) {
+        final content = pubspecFile.readAsStringSync();
+        if (!content.contains('build_web_compilers')) {
+          pubspecFile.writeAsStringSync('''$content
+
+dev_dependencies:
+  build_daemon: ^4.1.4
+  build_runner: ^2.16.0
+  build_web_compilers: ^4.8.1
+''');
+          await Process.run(sdkLayout.dartPath, [
+            'pub',
+            'upgrade',
+          ], workingDirectory: project.absolutePackageDirectory);
+        }
+      }
       final packagesFile = File(
         p.join(testScratchSpaceDir.path, '.dart_tool', 'package_config.json'),
       );
@@ -495,8 +518,9 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
 
       if (buildWebCompilers != null) {
         final pkgRootUri = Uri.parse(buildWebCompilers['rootUri'] as String);
-        final pkgRootPath =
-            sourcePackagesFile.parent.uri.resolveUri(pkgRootUri).toFilePath();
+        final pkgRootPath = sourcePackagesFile.parent.uri
+            .resolveUri(pkgRootUri)
+            .toFilePath();
         fesManagerPath = p.join(pkgRootPath, 'bin', 'fes_manager.dart');
         fesManagerPackagesFile = sourcePackagesFile.path;
       } else {
