@@ -452,22 +452,6 @@ class BuildDaemonAndFrontendServerTestContext extends TestContext
           'package_config.json',
         ),
       );
-      final pubspecFile = File(
-        p.join(project.absolutePackageDirectory, 'pubspec.yaml'),
-      );
-      if (pubspecFile.existsSync()) {
-        final content = pubspecFile.readAsStringSync();
-        if (!content.contains('build_web_compilers')) {
-          pubspecFile.writeAsStringSync('''$content
-
-dev_dependencies:
-  build_daemon: ^4.1.4
-  build_runner: ^2.16.0
-  build_web_compilers: ^4.8.1
-''');
-        }
-      }
-
       final packagesFile = File(
         p.join(testScratchSpaceDir.path, '.dart_tool', 'package_config.json'),
       );
