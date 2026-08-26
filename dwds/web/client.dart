@@ -24,6 +24,7 @@ import 'package:dwds/data/service_extension_request.dart';
 import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/shared/batched_stream.dart';
 import 'package:dwds/src/sockets.dart';
+import 'package:dwds/src/utilities/fix_protocol.dart';
 import 'package:dwds/src/utilities/uuid.dart';
 import 'package:http/browser_client.dart';
 import 'package:sse/client/sse_client.dart';
@@ -360,22 +361,9 @@ void _sendConnectRequest(StreamSink clientSink) {
 }
 
 /// Returns [url] modified if necessary so that, if the current page is served
-/// over `https`, then the URL is converted to `https`.
-String _fixProtocol(String url) {
-  var uri = Uri.parse(url);
-  if (window.location.protocol == 'https:' &&
-      uri.scheme == 'http' &&
-      // Chrome allows mixed content on localhost. It is not safe to assume the
-      // server is also listening on https.
-      uri.host != 'localhost') {
-    uri = uri.replace(scheme: 'https');
-  } else if (window.location.protocol == 'wss:' &&
-      uri.scheme == 'ws' &&
-      uri.host != 'localhost') {
-    uri = uri.replace(scheme: 'wss');
-  }
-  return uri.toString();
-}
+/// over `https`, then the URL is converted to `https` (or `wss`).
+String _fixProtocol(String url) =>
+    fixProtocol(url, windowLocationProtocol: window.location.protocol);
 
 void _launchCommunicationWithDebugExtension() {
   // Listen for an event from the Dart Debug Extension to authenticate the
