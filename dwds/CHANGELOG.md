@@ -1,3 +1,7 @@
+## 27.1.3
+
+- Fix WebSocket protocol upgrade to `wss` when DWDS is served over HTTPS on non-localhost hosts.
+
 ## 27.1.2
 
 - Bump the min sdk to 3.13.0-107.0.dev.
