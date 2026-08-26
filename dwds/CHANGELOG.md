@@ -1,6 +1,6 @@
 ## 27.1.3
 
-- Fix WebSocket protocol upgrade to `wss` when DWDS is served over HTTPS on non-localhost hosts.
+- Fix WebSocket protocol upgrade to `wss` in the DWDS injected client when served over HTTPS on non-localhost hosts.
 
 ## 27.1.2
 
