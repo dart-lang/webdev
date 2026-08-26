@@ -12,11 +12,23 @@ import 'test_utils.dart';
 import 'tls_common.dart';
 
 void main() {
-  tlsTests(
-    testRunner: TestRunner(
-      canaryFeatures: true,
-      webHotReload: false,
-      ddcModuleFormat: ModuleFormat.ddc,
-    ),
-  );
+  group('Build Daemon', () {
+    tlsTests(
+      testRunner: TestRunner(
+        canaryFeatures: true,
+        webHotReload: false,
+        ddcModuleFormat: ModuleFormat.ddc,
+      ),
+    );
+  });
+
+  group('Build Daemon and Frontend Server', () {
+    tlsTests(
+      testRunner: TestRunner(
+        canaryFeatures: true,
+        webHotReload: true,
+        ddcModuleFormat: ModuleFormat.ddc,
+      ),
+    );
+  });
 }

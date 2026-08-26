@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with package:mono_repo v6.6.3
+# Created with package:mono_repo v6.7.2
 
 # Support built in commands on windows out of the box.
 
@@ -71,37 +71,41 @@ for PKG in ${PKGS}; do
         echo 'dart analyze .'
         dart analyze . || EXIT_CODE=$?
         ;;
-      command)
+      command_0)
         echo 'Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &'
         Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 & || EXIT_CODE=$?
+        ;;
+      command_1)
+        echo 'echo "CHROME_EXECUTABLE=$(which google-chrome)" >> $GITHUB_ENV'
+        echo "CHROME_EXECUTABLE=$(which google-chrome)" >> $GITHUB_ENV || EXIT_CODE=$?
         ;;
       format)
         echo 'dart format --output=none --set-exit-if-changed .'
         dart format --output=none --set-exit-if-changed . || EXIT_CODE=$?
         ;;
       test_0)
+        echo 'dart test -j 1'
+        dart test -j 1 || EXIT_CODE=$?
+        ;;
+      test_1)
         echo 'dart test test/build/ensure_version_test.dart'
         dart test test/build/ensure_version_test.dart || EXIT_CODE=$?
         ;;
-      test_1)
+      test_2)
         echo 'dart test --tags=extension'
         dart test --tags=extension || EXIT_CODE=$?
         ;;
-      test_2)
+      test_3)
         echo 'dart test --total-shards 3 --shard-index 0 --exclude-tags=extension'
         dart test --total-shards 3 --shard-index 0 --exclude-tags=extension || EXIT_CODE=$?
         ;;
-      test_3)
+      test_4)
         echo 'dart test --total-shards 3 --shard-index 1 --exclude-tags=extension'
         dart test --total-shards 3 --shard-index 1 --exclude-tags=extension || EXIT_CODE=$?
         ;;
-      test_4)
+      test_5)
         echo 'dart test --total-shards 3 --shard-index 2 --exclude-tags=extension'
         dart test --total-shards 3 --shard-index 2 --exclude-tags=extension || EXIT_CODE=$?
-        ;;
-      test_5)
-        echo 'dart test -j 1'
-        dart test -j 1 || EXIT_CODE=$?
         ;;
       test_6)
         echo 'dart test --exclude-tags=release'

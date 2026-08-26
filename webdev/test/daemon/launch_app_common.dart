@@ -5,6 +5,9 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'dart:io';
+
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../test_utils.dart';
@@ -16,6 +19,11 @@ void launchAppTests({required TestRunner testRunner}) {
   setUpAll(() async {
     await testRunner.setUpAll();
     exampleDirectory = await testRunner.prepareWorkspace();
+    // Delete 'main.dart' to ensure only one entrypoint exists.
+    final mainDart = File(p.join(exampleDirectory, 'web', 'main.dart'));
+    if (mainDart.existsSync()) {
+      mainDart.deleteSync();
+    }
   });
 
   tearDownAll(testRunner.tearDownAll);
