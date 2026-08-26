@@ -63,7 +63,10 @@ Future<void>? main() {
         }
       }
 
-      final fixedPath = _fixProtocol(dwdsDevHandlerPath);
+      final fixedPath = fixProtocol(
+        dwdsDevHandlerPath,
+        windowLocationProtocol: window.location.protocol,
+      );
       final fixedUri = Uri.parse(fixedPath);
       final client = fixedUri.isScheme('ws') || fixedUri.isScheme('wss')
           ? WebSocketClient(
@@ -359,11 +362,6 @@ void _sendConnectRequest(StreamSink clientSink) {
   );
   _trySendEvent(clientSink, jsonEncode(['ConnectRequest', request.toJson()]));
 }
-
-/// Returns [url] modified if necessary so that, if the current page is served
-/// over `https`, then the URL is converted to `https` (or `wss`).
-String _fixProtocol(String url) =>
-    fixProtocol(url, windowLocationProtocol: window.location.protocol);
 
 void _launchCommunicationWithDebugExtension() {
   // Listen for an event from the Dart Debug Extension to authenticate the
