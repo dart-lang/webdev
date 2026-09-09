@@ -77,7 +77,7 @@ void addSharedArgs(
     ..addFlag(
       canaryFeaturesFlag,
       abbr: 'c',
-      defaultsTo: false,
+      defaultsTo: true,
       negatable: true,
       hide: true,
       help: 'Enables DDC canary features.',
