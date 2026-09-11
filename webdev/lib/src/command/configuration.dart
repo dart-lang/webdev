@@ -482,7 +482,7 @@ class Configuration {
         logWriter(
           Level.INFO,
           "Coercing --$moduleFormatFlag to 'ddc' "
-          'because --$webHotReloadFlag is set.',
+          'because --$webHotReloadFlag is set.\n',
         );
         coercedModuleFormat = 'ddc';
       }
@@ -490,7 +490,7 @@ class Configuration {
         logWriter(
           Level.INFO,
           "Coercing --$canaryFeaturesFlag to 'true' "
-          'because --$webHotReloadFlag is set.',
+          'because --$webHotReloadFlag is set.\n',
         );
         coercedCanaryFeatures = true;
       }
@@ -501,14 +501,14 @@ class Configuration {
         logWriter(
           Level.INFO,
           "Coercing --$canaryFeaturesFlag to 'false' "
-          "because --$moduleFormatFlag is set to 'amd' ",
+          "because --$moduleFormatFlag is set to 'amd'\n",
         );
         coercedCanaryFeatures = false;
       } else if (moduleFormat == 'ddc' && !canaryFeatures) {
         logWriter(
           Level.INFO,
           "Coercing --$canaryFeaturesFlag to 'true' "
-          "because --$moduleFormatFlag is set to 'ddc' ",
+          "because --$moduleFormatFlag is set to 'ddc'.\n",
         );
       }
     }
