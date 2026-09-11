@@ -61,24 +61,6 @@ class DaemonCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final configuration = Configuration.fromArgs(
-      argResults,
-      defaultConfiguration: Configuration(
-        launchInChrome: true,
-        debug: true,
-        autoRun: false,
-        release: false,
-      ),
-    );
-    configureLogWriter(configuration.verbose);
-    // Validate the pubspec first to ensure we are in a Dart project.
-    try {
-      await validatePubspecLock(configuration);
-    } on PackageException catch (e) {
-      logWriter(Level.SEVERE, 'Pubspec errors: ', error: '${e.details}');
-      rethrow;
-    }
-
     Daemon? daemon;
     DevWorkflow? workflow;
     var cancelCount = 0;
@@ -97,24 +79,44 @@ class DaemonCommand extends Command<int> {
     try {
       daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
       final daemonDomain = DaemonDomain(daemon);
+      // Configure the log writer before building the configuration object
+      // so it can also correctly write to the configured log.
+      final verbose = argResults!.flag(verboseFlag);
       configureLogWriter(
-        configuration.verbose,
-        customLogWriter:
-            (level, message, {loggerName, error, stackTrace, verbose}) {
-              if (configuration.verbose || level >= Level.INFO) {
-                daemonDomain.sendEvent('daemon.log', {
-                  'log': formatLog(
-                    level,
-                    message,
-                    loggerName: loggerName,
-                    error: error,
-                    stackTrace: stackTrace,
-                  ),
-                });
-              }
-            },
+        verbose,
+        customLogWriter: (level, message, {loggerName, error, stackTrace}) {
+          if (verbose || level >= Level.INFO) {
+            daemonDomain.sendEvent('daemon.log', {
+              'log': formatLog(
+                level,
+                message,
+                loggerName: loggerName,
+                error: error,
+                stackTrace: stackTrace,
+              ),
+            });
+          }
+        },
       );
       daemon.registerDomain(daemonDomain);
+
+      final configuration = Configuration.fromArgs(
+        argResults,
+        defaultConfiguration: Configuration(
+          launchInChrome: true,
+          debug: true,
+          autoRun: false,
+          release: false,
+        ),
+      );
+
+      // Validate the pubspec first to ensure we are in a Dart project.
+      try {
+        await validatePubspecLock(configuration);
+      } on PackageException catch (e) {
+        logWriter(Level.SEVERE, 'Pubspec errors: ', error: '${e.details}');
+        rethrow;
+      }
       final buildOptions = buildRunnerArgs(configuration);
       final extraArgs = argResults?.rest ?? [];
       final directoryArgs = extraArgs

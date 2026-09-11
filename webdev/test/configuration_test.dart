@@ -158,6 +158,8 @@ void main() {
     );
   });
 
+  // TODO(nshahan): Remove when DDC no longer requires canary + ddc modules for
+  // the library bundle format.
   test('canary is enabled by default for ddc module format', () {
     final config = Configuration.fromArgs(argParser.parse([]));
     expect(config.moduleFormat, equals('ddc'));
