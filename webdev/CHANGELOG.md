@@ -1,3 +1,7 @@
+## 4.0.3
+
+- Fix failing debugger expression evaluation.
+
 ## 4.0.2
 
 - **Internal**: Resolve Chrome test flakes.
