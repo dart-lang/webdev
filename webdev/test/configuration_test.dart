@@ -160,6 +160,7 @@ void main() {
 
   // TODO(nshahan): Remove when DDC no longer requires canary + ddc modules for
   // the library bundle format.
+  // https://github.com/dart-lang/webdev/issues/2871
   test('canary is enabled by default for ddc module format', () {
     final config = Configuration.fromArgs(argParser.parse([]));
     expect(config.moduleFormat, equals('ddc'));

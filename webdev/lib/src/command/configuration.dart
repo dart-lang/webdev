@@ -473,6 +473,9 @@ class Configuration {
         ??
         'ddc';
 
+    // TODO(nshahan): Remove when DDC no longer requires canary + ddc modules
+    // for the library bundle format.
+    // https://github.com/dart-lang/webdev/issues/2871
     String? coercedModuleFormat;
     bool? coercedCanaryFeatures;
     if (webHotReload == true) {
