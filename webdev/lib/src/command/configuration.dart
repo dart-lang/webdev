@@ -317,8 +317,7 @@ class Configuration {
 
   String get moduleFormat => _moduleFormat ?? 'ddc';
 
-  bool get usesDdcLibraryBundle =>
-      canaryFeatures || (moduleFormat == 'ddc') || webHotReload;
+  bool get usesDdcLibraryBundle => canaryFeatures && moduleFormat == 'ddc';
 
   bool get offline => _offline ?? false;
 
@@ -450,41 +449,76 @@ class Configuration {
         ? argResults[webHotReloadFlag] as bool?
         : defaultConfiguration.webHotReload;
 
-    final canaryFeatures =
+    final canaryParsed =
         argResults.options.contains(canaryFeaturesFlag) &&
-            argResults.wasParsed(canaryFeaturesFlag)
-        ? argResults[canaryFeaturesFlag] as bool?
-        : defaultConfiguration._canaryFeatures;
+        argResults.wasParsed(canaryFeaturesFlag);
+
+    final canaryFeatures =
+        (canaryParsed
+            ? argResults[canaryFeaturesFlag] as bool?
+            : defaultConfiguration._canaryFeatures)
+        // Overwise match the default value of the CLI argument.
+        ??
+        true;
 
     final moduleFormatParsed =
         argResults.options.contains(moduleFormatFlag) &&
         argResults.wasParsed(moduleFormatFlag);
 
-    final moduleFormat = moduleFormatParsed
-        ? argResults[moduleFormatFlag] as String?
-        : (webHotReload == true ? 'ddc' : defaultConfiguration.moduleFormat);
+    final moduleFormat =
+        (moduleFormatParsed
+            ? argResults[moduleFormatFlag] as String?
+            : defaultConfiguration.moduleFormat)
+        // Overwise match the default value of the CLI argument.
+        ??
+        'ddc';
 
-    if (webHotReload == true && !moduleFormatParsed) {
-      logWriter(
-        Level.INFO,
-        'Coercing --$moduleFormatFlag to ddc because --$webHotReloadFlag is set.',
-      );
+    // TODO(nshahan): Remove when DDC no longer requires canary + ddc modules
+    // for the library bundle format.
+    // https://github.com/dart-lang/webdev/issues/2871
+    String? coercedModuleFormat;
+    bool? coercedCanaryFeatures;
+    if (webHotReload == true) {
+      // Always take enabling hot reload as the intent to override module format
+      // and canary mode since they are required for it to work.
+      if (moduleFormat != 'ddc') {
+        logWriter(
+          Level.INFO,
+          "Coercing --$moduleFormatFlag to 'ddc' "
+          'because --$webHotReloadFlag is set.\n',
+        );
+        coercedModuleFormat = 'ddc';
+      }
+      if (!canaryFeatures) {
+        logWriter(
+          Level.INFO,
+          "Coercing --$canaryFeaturesFlag to 'true' "
+          'because --$webHotReloadFlag is set.\n',
+        );
+        coercedCanaryFeatures = true;
+      }
+    } else {
+      // Use the module format as a signal to validate or coerce the canary
+      // mode since that is the advertised way to revert to the old behavior.
+      if (moduleFormat == 'amd' && canaryFeatures) {
+        logWriter(
+          Level.INFO,
+          "Coercing --$canaryFeaturesFlag to 'false' "
+          "because --$moduleFormatFlag is set to 'amd'\n",
+        );
+        coercedCanaryFeatures = false;
+      } else if (moduleFormat == 'ddc' && !canaryFeatures) {
+        logWriter(
+          Level.INFO,
+          "Coercing --$canaryFeaturesFlag to 'true' "
+          "because --$moduleFormatFlag is set to 'ddc'.\n",
+        );
+      }
     }
 
     final offline = argResults.options.contains(offlineFlag)
         ? argResults[offlineFlag] as bool?
         : defaultConfiguration.offline;
-
-    final canaryParsed =
-        argResults.options.contains(canaryFeaturesFlag) &&
-        argResults.wasParsed(canaryFeaturesFlag);
-
-    if (webHotReload == true && !canaryParsed && canaryFeatures == null) {
-      logWriter(
-        Level.INFO,
-        'Coercing --$canaryFeaturesFlag to true because --$webHotReloadFlag is set.',
-      );
-    }
 
     return Configuration(
       autoRun: defaultConfiguration.autoRun,
@@ -510,8 +544,8 @@ class Configuration {
       verbose: verbose,
       experiments: experiments,
       webHotReload: webHotReload,
-      canaryFeatures: canaryFeatures,
-      moduleFormat: moduleFormat,
+      canaryFeatures: coercedCanaryFeatures ?? canaryFeatures,
+      moduleFormat: coercedModuleFormat ?? moduleFormat,
       offline: offline,
     );
   }

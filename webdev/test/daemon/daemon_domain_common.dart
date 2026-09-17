@@ -30,7 +30,7 @@ void daemonDomainTests({required TestRunner testRunner}) {
         ], workingDirectory: exampleDirectory);
         await expectLater(
           webdev.stdout,
-          emits(startsWith('[{"event":"daemon.connected"')),
+          emitsThrough(startsWith('[{"event":"daemon.connected"')),
         );
         await exitWebdev(webdev);
       });

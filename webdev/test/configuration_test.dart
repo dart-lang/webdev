@@ -5,14 +5,15 @@
 import 'package:args/args.dart';
 import 'package:test/test.dart';
 import 'package:webdev/src/command/configuration.dart';
+import 'package:webdev/src/command/shared.dart';
 
 void main() {
   late ArgParser argParser;
   setUp(() {
     argParser = ArgParser()
-      ..addFlag('release')
       ..addFlag(launchInChromeFlag, defaultsTo: false)
       ..addOption(userDataDirFlag, defaultsTo: null);
+    addSharedArgs(argParser);
   });
 
   test('default configuration is correctly applied', () {
@@ -155,5 +156,21 @@ void main() {
       () => Configuration(webHotReload: true, moduleFormat: 'amd'),
       throwsA(isA<InvalidConfiguration>()),
     );
+  });
+
+  // TODO(nshahan): Remove when DDC no longer requires canary + ddc modules for
+  // the library bundle format.
+  // https://github.com/dart-lang/webdev/issues/2871
+  test('canary is enabled by default for ddc module format', () {
+    final config = Configuration.fromArgs(argParser.parse([]));
+    expect(config.moduleFormat, equals('ddc'));
+    expect(config.canaryFeatures, isTrue);
+  });
+  test('canary is coerced to false when --module-format=amd is passed', () {
+    final config = Configuration.fromArgs(
+      argParser.parse(['--module-format=amd']),
+    );
+    expect(config.moduleFormat, equals('amd'));
+    expect(config.canaryFeatures, isFalse);
   });
 }
