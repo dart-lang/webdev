@@ -13,7 +13,6 @@ void main() {
     late HttpServer server;
     late Uri uri;
 
-    /// Server-side sockets, in order of connection.
     late StreamController<WebSocket> serverSockets;
 
     setUp(() async {
@@ -48,13 +47,9 @@ void main() {
       serverSocket.listen(received.add);
 
       await serverSocket.close(WebSocketStatus.normalClosure);
-      // Give the client time to observe the close.
       await Future<void>.delayed(const Duration(milliseconds: 200));
 
-      // Queue a message while the underlying socket is closed. It is only
-      // written once the client starts listening. This must not result in an
-      // unhandled `WebSocketConnectionClosed` error (which would fail this
-      // test).
+      // Queue a message while the underlying socket is closed.
       client.sink.add('message');
       client.stream.listen(null);
       await client.done;
