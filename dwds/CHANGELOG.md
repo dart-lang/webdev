@@ -1,3 +1,9 @@
+## 27.1.4
+
+- Fix duplicated browser tabs taking over the original tab's DWDS connection.
+- Fix `PersistentWebSocket` throwing unhandled errors when writing to a
+  connection closed by the server.
+
 ## 27.1.3
 
 - Fix WebSocket protocol upgrade to `wss` in the DWDS injected client when served over HTTPS on non-localhost hosts.

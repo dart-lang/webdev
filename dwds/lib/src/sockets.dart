@@ -6,7 +6,8 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
-import 'package:sse/client/sse_client.dart';
+import 'package:sse/client/sse_client.dart'
+    if (dart.library.io) 'sse_client_stub.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket/web_socket.dart';
 
@@ -144,12 +145,19 @@ class PersistentWebSocket with StreamChannelMixin<dynamic> {
   var _closedManually = false;
 
   void _writeToWebSocket(dynamic data) {
-    if (data is String) {
-      _ws.sendText(data);
-    } else if (data is Uint8List) {
-      _ws.sendBytes(data);
-    } else {
-      throw UnsupportedError('Unexpected data type: ${data.runtimeType}');
+    try {
+      if (data is String) {
+        _ws.sendText(data);
+      } else if (data is Uint8List) {
+        _ws.sendBytes(data);
+      } else {
+        throw UnsupportedError('Unexpected data type: ${data.runtimeType}');
+      }
+    } on WebSocketConnectionClosed {
+      // The underlying connection was closed (e.g., by the server).
+      // Suppress surfacing an unhandled error by catching here.
+      // [onReconnect] is responsible for recovering after reconnect.
+      logger?.fine('$uri ($debugName): connection closed.');
     }
   }
 
@@ -229,6 +237,11 @@ class PersistentWebSocket with StreamChannelMixin<dynamic> {
     } while (retry && retryCount < maxRetryAttempts);
 
     _doneCompleter.complete();
+    // Close the outgoing sink so that subsequent writes fail synchronously
+    // with a [StateError] rather than being queued for a dead connection.
+    if (!_outgoingStreamController.isClosed) {
+      await _outgoingStreamController.close();
+    }
     if (!_incomingStreamController.isClosed) {
       await _incomingStreamController.sink.close();
     }
