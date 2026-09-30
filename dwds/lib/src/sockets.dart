@@ -6,8 +6,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
-import 'package:sse/client/sse_client.dart'
-    if (dart.library.io) 'sse_client_stub.dart';
+import 'package:sse/client/sse_client.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket/web_socket.dart';
 
@@ -237,11 +236,6 @@ class PersistentWebSocket with StreamChannelMixin<dynamic> {
     } while (retry && retryCount < maxRetryAttempts);
 
     _doneCompleter.complete();
-    // Close the outgoing sink so that subsequent writes fail synchronously
-    // with a [StateError] rather than being queued for a dead connection.
-    if (!_outgoingStreamController.isClosed) {
-      await _outgoingStreamController.close();
-    }
     if (!_incomingStreamController.isClosed) {
       await _incomingStreamController.sink.close();
     }
