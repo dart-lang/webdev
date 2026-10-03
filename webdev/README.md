@@ -115,6 +115,15 @@ Common:
                                            (defaults to on)
 -v, --verbose                              Enables verbose logging.
     --offline                              Disable fetching from pub.dev.
+    --[no-]deprecated-js-interop           Whether to allow the deprecated JS
+                                           interop libraries, such as
+                                           "dart:html", "dart:js",
+                                           "dart:js_util" and "package:js", when
+                                           compiling with dartdevc and dart2js.
+                                           If not set, the Dart SDK default is
+                                           used. Requires a Dart SDK and
+                                           "build_web_compilers" version that
+                                           support this option.
 
 Run "webdev help" to see global options.
 
@@ -149,6 +158,15 @@ Usage: webdev build [arguments]
                                            (defaults to on)
 -v, --verbose                              Enables verbose logging.
     --offline                              Disable fetching from pub.dev.
+    --[no-]deprecated-js-interop           Whether to allow the deprecated JS
+                                           interop libraries, such as
+                                           "dart:html", "dart:js",
+                                           "dart:js_util" and "package:js", when
+                                           compiling with dartdevc and dart2js.
+                                           If not set, the Dart SDK default is
+                                           used. Requires a Dart SDK and
+                                           "build_web_compilers" version that
+                                           support this option.
 
 Run "webdev help" to see global options.
 

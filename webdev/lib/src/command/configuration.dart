@@ -36,6 +36,7 @@ const canaryFeaturesFlag = 'canary';
 const moduleFormatFlag = 'module-format';
 const offlineFlag = 'offline';
 const webHotReloadFlag = 'web-hot-reload';
+const deprecatedJsInteropFlag = 'deprecated-js-interop';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
   var auto = argResults.options.contains(autoOption)
@@ -111,6 +112,7 @@ class Configuration {
   final String? _moduleFormat;
   final bool? _offline;
   final bool? _webHotReload;
+  final bool? _deprecatedJsInterop;
 
   Configuration({
     bool? autoRun,
@@ -139,6 +141,7 @@ class Configuration {
     String? moduleFormat,
     bool? offline,
     bool? webHotReload,
+    bool? deprecatedJsInterop,
   }) : _autoRun = autoRun,
        _chromeDebugPort = chromeDebugPort,
        _debugExtension = debugExtension,
@@ -166,7 +169,8 @@ class Configuration {
            ? 'ddc'
            : moduleFormat,
        _offline = offline,
-       _webHotReload = webHotReload {
+       _webHotReload = webHotReload,
+       _deprecatedJsInterop = deprecatedJsInterop {
     _validateConfiguration();
   }
 
@@ -265,6 +269,7 @@ class Configuration {
     moduleFormat: other._moduleFormat ?? _moduleFormat,
     offline: other._offline ?? _offline,
     webHotReload: other._webHotReload ?? _webHotReload,
+    deprecatedJsInterop: other._deprecatedJsInterop ?? _deprecatedJsInterop,
   );
 
   factory Configuration.noInjectedClientDefaults() =>
@@ -320,6 +325,12 @@ class Configuration {
   bool get usesDdcLibraryBundle => canaryFeatures && moduleFormat == 'ddc';
 
   bool get offline => _offline ?? false;
+
+  /// Whether the compilers allow the deprecated JS interop libraries, such as
+  /// `dart:html`.
+  ///
+  /// If `null`, nothing is passed to the compilers and the SDK default is used.
+  bool? get deprecatedJsInterop => _deprecatedJsInterop;
 
   /// Returns a new configuration with values updated from the parsed args.
   static Configuration fromArgs(
@@ -520,6 +531,12 @@ class Configuration {
         ? argResults[offlineFlag] as bool?
         : defaultConfiguration.offline;
 
+    final deprecatedJsInterop =
+        argResults.options.contains(deprecatedJsInteropFlag) &&
+            argResults.wasParsed(deprecatedJsInteropFlag)
+        ? argResults[deprecatedJsInteropFlag] as bool?
+        : defaultConfiguration.deprecatedJsInterop;
+
     return Configuration(
       autoRun: defaultConfiguration.autoRun,
       chromeDebugPort: chromeDebugPort,
@@ -547,6 +564,7 @@ class Configuration {
       canaryFeatures: coercedCanaryFeatures ?? canaryFeatures,
       moduleFormat: coercedModuleFormat ?? moduleFormat,
       offline: offline,
+      deprecatedJsInterop: deprecatedJsInterop,
     );
   }
 }

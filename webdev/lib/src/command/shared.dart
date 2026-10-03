@@ -101,8 +101,42 @@ void addSharedArgs(
       defaultsTo: false,
       negatable: false,
       help: 'Disable fetching from pub.dev.',
+    )
+    ..addFlag(
+      deprecatedJsInteropFlag,
+      defaultsTo: null,
+      negatable: true,
+      help:
+          'Whether to allow the deprecated JS interop libraries, such as '
+          '"dart:html", "dart:js", "dart:js_util" and "package:js", when '
+          'compiling with dartdevc and dart2js.\n'
+          'If not set, the Dart SDK default is used. Requires a Dart SDK and '
+          '"build_web_compilers" version that support this option.',
     );
 }
+
+/// The `build_web_compilers` builders that must be configured with the same
+/// `deprecated-js-interop` option.
+const _deprecatedJsInteropBuilders = [
+  'ddc',
+  'ddc_modules',
+  'dart2js_modules',
+  'entrypoint',
+];
+
+/// Returns the `build_runner` arguments that configure
+/// `deprecated-js-interop` for every builder that compiles user code to JS.
+///
+/// Returns an empty list when [deprecatedJsInterop] is `null` so that the
+/// SDK default is used.
+List<String> _deprecatedJsInteropArgs(bool? deprecatedJsInterop) => [
+  if (deprecatedJsInterop != null)
+    for (final builder in _deprecatedJsInteropBuilders) ...[
+      '--define',
+      'build_web_compilers|$builder='
+          '$deprecatedJsInteropFlag=$deprecatedJsInterop',
+    ],
+];
 
 /// Parses the provided [Configuration] to return a list of
 /// `package:build_runner` appropriate arguments.
@@ -158,6 +192,8 @@ List<String> buildRunnerArgs(Configuration configuration) {
       ..add('build_web_compilers|entrypoint_marker=ddc-library-bundle=true');
   }
 
+  arguments.addAll(_deprecatedJsInteropArgs(configuration.deprecatedJsInterop));
+
   return arguments;
 }
 
@@ -166,8 +202,20 @@ Future<void> validatePubspecLock(Configuration configuration) async {
   await checkPubspecLock(
     pubspecLock,
     requireBuildWebCompilers: configuration.requireBuildWebCompilers,
+    deprecatedJsInteropArgument: _deprecatedJsInteropFlagName(
+      configuration.deprecatedJsInterop,
+    ),
   );
 }
+
+/// The `--[no-]deprecated-js-interop` flag name (without `--`) the user
+/// passed, or `null` if they did not pass it.
+String? _deprecatedJsInteropFlagName(bool? deprecatedJsInterop) =>
+    switch (deprecatedJsInterop) {
+      null => null,
+      true => deprecatedJsInteropFlag,
+      false => 'no-$deprecatedJsInteropFlag',
+    };
 
 /// Checks that the normalized form of [path] is a top level directory under
 /// such as `web` or `test`.
