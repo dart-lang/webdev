@@ -33,6 +33,7 @@ void main() {
         '1234',
         '--module-format',
         'ddc',
+        '--enable-experiment=records',
         '--canary',
       ]);
     });
