@@ -1,3 +1,10 @@
+## 27.2.0-wip
+
+- Add `deprecatedJsInterop` to `BuildSettings` and `CompilerOptions`. When it
+  is set, the expression compiler worker is started with
+  `--[no-]deprecated-js-interop`. This requires a Dart SDK that supports the
+  flag.
+
 ## 27.1.4
 
 - Fix duplicated browser tabs taking over the original tab's DWDS connection.
