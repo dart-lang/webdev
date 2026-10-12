@@ -1,7 +1,9 @@
 // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
@@ -32,33 +34,29 @@ String get fixturesPath {
 /// root in the local machine, e.g. 'webdev/dwds_test_common' or
 /// 'pkg/dwds_test_common'.
 String get _dwdsTestCommonPackageRoot {
-  final scriptPath = Platform.script.toFilePath();
-  final isTest = scriptPath.contains('dart_test.kernel');
-  if (isTest) {
-    // When running tests, p.current might be dwds, so we need to check
-    // if we're in webdev/dwds_test_common or pkg/dwds_test_common or need to
-    // navigate to it.
-    var current = p.current;
-    if (p.basename(current) == 'dwds') {
-      // Check if dwds_test_common exists as a sibling
-      final testCommonPath = p.join(p.dirname(current), 'dwds_test_common');
-      if (Directory(testCommonPath).existsSync()) {
-        return testCommonPath;
+  // Try to resolve any `package:dwds_test_common` file.
+  final packageUri = Isolate.resolvePackageUriSync(
+    Uri.parse('package:dwds_test_common/utilities.dart'),
+  );
+  if (packageUri != null) {
+    // Strip `lib/utilities.dart`.
+    return p.dirname(p.dirname(packageUri.toFilePath()));
+  }
+  // If there's no package config, try to find it from the current dir.
+  for (var dir = p.current; dir != p.dirname(dir); dir = p.dirname(dir)) {
+    final file = File(p.join(dir, '.dart_tool', 'package_config.json'));
+    if (!file.existsSync()) continue;
+    final config = jsonDecode(file.readAsStringSync()) as Map<String, Object?>;
+    for (final package in config['packages'] as List<Object?>) {
+      if (package case {
+        'name': 'dwds_test_common',
+        'rootUri': final String rootUri,
+      }) {
+        return p.fromUri(file.uri.resolve(rootUri));
       }
     }
-    return current; // p.current is the package root for tests
   }
-  var current = p.dirname(scriptPath);
-  while (current != p.dirname(current)) {
-    if (File(p.join(current, 'pubspec.yaml')).existsSync()) {
-      return current; // This is the package root
-    }
-    current = p.dirname(current);
-  }
-  throw StateError(
-    'Could not find `dwds_test_common` package root from '
-    '${Platform.script.path}.',
-  );
+  throw StateError('Could not find dwds_test_common from ${p.current}.');
 }
 
 // Creates a path compatible for web.
