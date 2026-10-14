@@ -1,3 +1,7 @@
+## 4.0.4-wip
+
+- Locate the Dart SDK and `dart` executable via `package:cli_util` when running in AOT mode.
+
 ## 4.0.3
 
 - Fix failing debugger expression evaluation.
