@@ -6,14 +6,22 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/integration/dds_port.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
-import 'dds_port_common.dart';
+import '../fixtures/build_daemon_context.dart';
 
 void main() {
-  final provider = TestSdkConfigurationProvider();
+  // Enable verbose logging for debugging.
+  const debug = false;
+
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    ddcModuleFormat: ModuleFormat.amd,
+  );
   tearDownAll(provider.dispose);
 
-  testAll(provider: provider);
+  testAll(provider: provider, contextFactory: BuildDaemonTestContext.new);
 }

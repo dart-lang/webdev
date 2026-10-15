@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
+import 'package:dwds_test_common/fixtures/project.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
-import '../fixtures/context.dart';
-import '../fixtures/project.dart';
-import '../fixtures/utilities.dart';
+import '../../fixtures/build_daemon_context.dart';
 
 void testAll({required TestSdkConfigurationProvider provider}) {
   group('ProxyServerAssetReader', () {
-    final context = TestContext(TestProject.test, provider);
+    final context = BuildDaemonTestContext(TestProject.test, provider);
 
     late ProxyServerAssetReader assetReader;
     setUpAll(() async {

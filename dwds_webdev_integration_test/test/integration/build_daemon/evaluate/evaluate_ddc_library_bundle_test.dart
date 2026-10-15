@@ -7,54 +7,25 @@
 @Timeout(Duration(minutes: 5))
 library;
 
-import 'dart:io';
-
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/integration/evaluate.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
-import 'evaluate_common.dart';
-import 'fixtures/context.dart';
-import 'fixtures/project.dart';
+import '../../fixtures/build_daemon_context.dart';
 
-void main() async {
+void main() {
   // Enable verbose logging for debugging.
   const debug = false;
 
-  group('Canary: true |', () {
-    final provider = TestSdkConfigurationProvider(
-      verbose: debug,
-      ddcModuleFormat: ModuleFormat.ddc,
-      canaryFeatures: true,
-    );
-    tearDownAll(provider.dispose);
+  final provider = TestSdkConfigurationProvider(
+    verbose: debug,
+    ddcModuleFormat: ModuleFormat.ddc,
+    canaryFeatures: true,
+  );
+  tearDownAll(provider.dispose);
 
-    group('Build Daemon |', () {
-      testAll(provider: provider, compilationMode: CompilationMode.buildDaemon);
-    });
-
-    group('Frontend Server |', () {
-      for (final useDebuggerModuleNames in [false, true]) {
-        group('Debugger module names: $useDebuggerModuleNames |', () {
-          for (final indexBaseMode in IndexBaseMode.values) {
-            group(
-              'with ${indexBaseMode.name} |',
-              () {
-                testAll(
-                  provider: provider,
-                  compilationMode: CompilationMode.frontendServer,
-                  indexBaseMode: indexBaseMode,
-                  useDebuggerModuleNames: useDebuggerModuleNames,
-                );
-              },
-              // https://github.com/dart-lang/sdk/issues/49277
-              skip: indexBaseMode == IndexBaseMode.base && Platform.isWindows
-                  ? 'Skipped on Windows when indexBaseMode is base. See issue: https://github.com/dart-lang/sdk/issues/49277'
-                  : null,
-            );
-          }
-        });
-      }
-    });
+  group('Build Daemon |', () {
+    testAll(provider: provider, contextFactory: BuildDaemonTestContext.new);
   });
 }

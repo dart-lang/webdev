@@ -1,4 +1,4 @@
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,17 +7,14 @@
 @Timeout(Duration(minutes: 5))
 library;
 
-import 'dart:io';
-
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/integration/evaluate_parts.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
-import 'evaluate_parts_common.dart';
-import 'fixtures/context.dart';
-import 'fixtures/project.dart';
+import '../../fixtures/build_daemon_context.dart';
 
-void main() async {
+void main() {
   // Enable verbose logging for debugging.
   const debug = false;
 
@@ -28,27 +25,6 @@ void main() async {
   tearDownAll(provider.dispose);
 
   group('Build Daemon |', () {
-    testAll(provider: provider, compilationMode: CompilationMode.buildDaemon);
-  });
-
-  group('Frontend Server |', () {
-    group('Context with parts |', () {
-      for (final indexBaseMode in IndexBaseMode.values) {
-        group(
-          'with ${indexBaseMode.name} |',
-          () {
-            testAll(
-              provider: provider,
-              compilationMode: CompilationMode.frontendServer,
-              indexBaseMode: indexBaseMode,
-              useDebuggerModuleNames: true,
-            );
-          },
-          skip:
-              // https://github.com/dart-lang/sdk/issues/49277
-              indexBaseMode == IndexBaseMode.base && Platform.isWindows,
-        );
-      }
-    });
+    testAll(provider: provider, contextFactory: BuildDaemonTestContext.new);
   });
 }

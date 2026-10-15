@@ -8,31 +8,24 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/integration/hot_restart_breakpoints.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
-import 'fixtures/context.dart';
-import 'hot_restart_breakpoints_common.dart';
+import '../fixtures/build_daemon_context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
   const debug = false;
+
   final provider = TestSdkConfigurationProvider(
     verbose: debug,
-    canaryFeatures: true,
     ddcModuleFormat: ModuleFormat.ddc,
+    canaryFeatures: true,
   );
-
   tearDownAll(provider.dispose);
 
-  group('Frontend Server', () {
-    runTests(
-      provider: provider,
-      compilationMode: CompilationMode.frontendServer,
-    );
-  });
-
   group('Build Daemon', () {
-    runTests(provider: provider, compilationMode: CompilationMode.buildDaemon);
+    runTests(provider: provider, contextFactory: BuildDaemonTestContext.new);
   });
 }

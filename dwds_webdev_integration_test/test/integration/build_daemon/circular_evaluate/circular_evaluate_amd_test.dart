@@ -7,17 +7,14 @@
 @Timeout(Duration(minutes: 5))
 library;
 
-import 'dart:io';
-
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/integration/evaluate_circular.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
-import 'evaluate_circular_common.dart';
-import 'fixtures/context.dart';
-import 'fixtures/project.dart';
+import '../../fixtures/build_daemon_context.dart';
 
-void main() async {
+void main() {
   // Enable verbose logging for debugging.
   const debug = false;
 
@@ -28,27 +25,6 @@ void main() async {
   tearDownAll(provider.dispose);
 
   group('Build Daemon |', () {
-    testAll(provider: provider, compilationMode: CompilationMode.buildDaemon);
-  });
-
-  group('Frontend Server |', () {
-    group('Context with circular dependencies |', () {
-      for (final indexBaseMode in IndexBaseMode.values) {
-        group(
-          'with ${indexBaseMode.name} |',
-          () {
-            testAll(
-              provider: provider,
-              compilationMode: CompilationMode.frontendServer,
-              indexBaseMode: indexBaseMode,
-              useDebuggerModuleNames: true,
-            );
-          },
-          skip:
-              // https://github.com/dart-lang/sdk/issues/49277
-              indexBaseMode == IndexBaseMode.base && Platform.isWindows,
-        );
-      }
-    });
+    testAll(provider: provider, contextFactory: BuildDaemonTestContext.new);
   });
 }

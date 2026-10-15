@@ -7,11 +7,11 @@
 library;
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds_test_common/integration/breakpoint.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
-import 'breakpoint_common.dart';
-import 'fixtures/context.dart';
+import '../fixtures/build_daemon_context.dart';
 
 void main() {
   // Enable verbose logging for debugging.
@@ -27,14 +27,7 @@ void main() {
   group('Build Daemon |', () {
     testBreakpoint(
       provider: provider,
-      compilationMode: CompilationMode.buildDaemon,
-    );
-  });
-
-  group('Frontend Server |', () {
-    testBreakpoint(
-      provider: provider,
-      compilationMode: CompilationMode.frontendServer,
+      contextFactory: BuildDaemonTestContext.new,
     );
   });
 }
