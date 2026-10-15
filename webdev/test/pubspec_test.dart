@@ -17,8 +17,7 @@ build_runner:
 build_web_compilers:
   source: hosted
   version: "$buildWebCompilersVersion"
-''')
-          as YamlMap,
+''') as YamlMap,
     );
 
 void main() {
