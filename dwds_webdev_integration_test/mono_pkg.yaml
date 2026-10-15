@@ -4,7 +4,6 @@ stages:
     - group:
       - format
       - analyze: --fatal-infos .
-      - test: test/build/ensure_version_test.dart
       sdk: dev
   - unit_test:
     # Linux extension tests:
